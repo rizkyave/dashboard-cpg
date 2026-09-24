@@ -1,0 +1,102 @@
+export type EntityCode = 'ALL' | 'CPL' | 'PPI' | 'HL' | 'GAJ' | 'MIL' | 'SP' | 'SSK' | 'MO';
+
+export type LapseFilterType = 'ALL' | 'NORMAL' | 'WARNING' | 'CRITICAL';
+
+export type TabType = 'overview' | 'procurement' | 'armada' | 'analytics';
+
+export type StatusTone = 'emerald' | 'cyan' | 'purple' | 'amber' | 'rose';
+
+export interface ProcurementItem {
+  id?: string;
+  fpb: string;
+  entity: string;
+  po: string;
+  date: string;
+  item: string;
+  peruntukan: string;
+  lapse: number;
+  statusBadge: string;
+  statusTone: StatusTone;
+  picPch: string;
+  picTtb: string;
+  picLap: string;
+  picAdm: string;
+  picAktif: string;
+  statusPenjelasan: string;
+  // Extended fields from the actual Excel & Merge
+  deptArmada?: string;
+  deliveryTime?: string;
+  noFstb?: string;
+  tglInputFstb?: string;
+  tglKePicTtb?: string;
+  noTtb?: string;
+  tglInputTtb?: string;
+  tglKeTimLapangan?: string;
+  tglBarangDiantar?: string;
+  tglTtbKePicPch?: string;
+  tglKeAdmPch?: string;
+  noSpp?: string;
+  tglInputSpp?: string;
+  tglKeKeuangan?: string;
+  kodeBarang?: string;
+  satuan?: string;
+  qtyFPB?: number;
+  qtyPO?: number;
+  qtyFSTB?: number;
+  qtyTTB?: number;
+  selisih?: number;
+  priority?: string;
+  kategori?: string;
+  statusArmada?: string;
+  waktuProses?: string;
+  tglFpb?: string;
+  tglPo?: string;
+  tglFstb?: string;
+  tglTtb?: string;
+  sourceSheet?: string;
+}
+
+export interface ArmadaItem {
+  id?: string;
+  fpb: string;
+  armada: string;
+  item: string;
+  qtyFPB: number;
+  qtyFSTB: number;
+  selisih: number;
+  status: string;
+  // Extended fields from "Monitoring Layanan Armada" sheet & Merge
+  tglFpb?: string;
+  noPo?: string;
+  tglPo?: string;
+  noFstb?: string;
+  tglFstb?: string;
+  noTtb?: string;
+  tglTtb?: string;
+  kodeBarang?: string;
+  satuan?: string;
+  keterangan?: string;
+  kategori?: string;
+  entity?: string;
+  priority?: string;
+  waktuProses?: string;
+  qtyPO?: number;
+  qtyTTB?: number;
+  picPch?: string;
+  picTtb?: string;
+  picLap?: string;
+  picAdm?: string;
+  deliveryTime?: string;
+  tglKeKeuangan?: string;
+  noSpp?: string;
+  statusBadge?: string;
+  statusTone?: StatusTone;
+  lapse?: number;
+  picAktif?: string;
+}
+
+export interface ToastState {
+  message: string;
+  type?: 'info' | 'success' | 'warning' | 'error';
+  visible: boolean;
+}
