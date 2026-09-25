@@ -264,10 +264,10 @@ export default function AuditModal({
               </div>
             </div>
 
-            {/* 2. PROCUREMENT */}
+            {/* 2. MASTER DATA BU NOOR */}
             <div className="p-3 rounded-lg bg-card border border-border flex flex-col justify-between gap-2.5 shadow-xs hover:shadow-subtle transition">
               <div className="text-[11px] font-semibold text-foreground tracking-wide uppercase leading-tight min-h-[1.75rem] flex items-center">
-                PROCUREMENT
+                MASTER DATA BU NOOR
               </div>
               <div className="flex items-center justify-between pt-2 border-t border-border">
                 <span className="text-[10px] text-muted-foreground font-mono">Status:</span>
@@ -278,10 +278,10 @@ export default function AuditModal({
               </div>
             </div>
 
-            {/* 3. MASTER DATA BU NOOR */}
+            {/* 3. PROCUREMENT */}
             <div className="p-3 rounded-lg bg-card border border-border flex flex-col justify-between gap-2.5 shadow-xs hover:shadow-subtle transition">
               <div className="text-[11px] font-semibold text-foreground tracking-wide uppercase leading-tight min-h-[1.75rem] flex items-center">
-                MASTER DATA BU NOOR
+                PROCUREMENT
               </div>
               <div className="flex items-center justify-between pt-2 border-t border-border">
                 <span className="text-[10px] text-muted-foreground font-mono">Status:</span>

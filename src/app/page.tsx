@@ -240,11 +240,11 @@ export default function DashboardPage() {
         />
 
         <main className="flex-1 min-w-0 p-5 lg:p-8 space-y-6 max-w-[1800px] w-full mx-auto">
-          {/* Page Header in clean Studio Admin typography with CPG Company Identity */}
+          {/* Page Header in clean Studio Admin typography */}
           <div className="space-y-1">
             <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-foreground">
               {activeTab === 'overview'
-                ? 'Monitoring Pengadaan & Armada'
+                ? 'Pipeline Overview'
                 : activeTab === 'procurement'
                 ? 'Monitoring Berkas Pengadaan'
                 : activeTab === 'armada'
@@ -253,7 +253,7 @@ export default function DashboardPage() {
             </h1>
             <p className="text-xs sm:text-sm text-muted-foreground">
               {activeTab === 'overview'
-                ? 'Pemantauan posisi alur berkas pengadaan, verifikasi layanan armada, dan kepatuhan SLA fisik holding CPG.'
+                ? 'Keep tabs on lead quality, open opportunities, and conversion rates across the current sales cycle.'
                 : activeTab === 'procurement'
                 ? 'Daftar transaksi pengadaan PO, verifikasi berkas fisik antar divisi, dan status penyelesaian berkas.'
                 : activeTab === 'armada'

@@ -57,9 +57,9 @@ export default function Sidebar({
     },
     {
       id: 'procurement' as TabType,
-      label: 'Procurement Monitoring',
+      label: 'Procurement',
       icon: ShoppingBag,
-      badge: totalCount > 0 ? `${totalCount}` : undefined,
+      badge: totalCount > 0 ? (totalCount >= 1000 ? `${(totalCount / 1000).toFixed(0)}k` : `${totalCount}`) : undefined,
     },
     {
       id: 'armada' as TabType,
@@ -69,9 +69,9 @@ export default function Sidebar({
     },
     {
       id: 'analytics' as TabType,
-      label: 'Analytics & Lead Time',
+      label: 'Analytics',
       icon: BarChart3,
-      badge: criticalCount > 0 ? `${criticalCount} Kritis` : undefined,
+      badge: criticalCount > 0 ? (criticalCount >= 1000 ? `${(criticalCount / 1000).toFixed(0)}k` : `${criticalCount}`) : undefined,
       badgeVariant: criticalCount > 0 ? 'destructive' : 'default',
     },
   ];
@@ -120,12 +120,12 @@ export default function Sidebar({
       }`}
     >
       <div className="flex flex-col gap-4 overflow-y-auto no-scrollbar">
-        {/* Brand Header with CPG Admin branding in clean Studio Admin style */}
+        {/* Brand Header with Studio Admin style */}
         <div className="flex items-center justify-between px-1.5 pt-0.5">
           <div className="flex items-center gap-2">
             <Command className="size-4.5 text-foreground" />
             <span className="font-bold text-sm tracking-tight text-foreground">
-              CPG Admin
+              Studio Admin
             </span>
           </div>
           <button
@@ -185,19 +185,19 @@ export default function Sidebar({
                 <button
                   key={item.id}
                   onClick={() => onSelectTab(item.id)}
-                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${
+                  className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition ${
                     isActive
                       ? 'bg-muted text-foreground font-semibold shadow-xs'
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                   }`}
                 >
-                  <div className="flex items-center gap-2.5">
-                    <Icon className={`size-4 ${isActive ? 'text-foreground' : 'text-muted-foreground'}`} />
-                    <span>{item.label}</span>
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Icon className={`size-4 shrink-0 ${isActive ? 'text-foreground' : 'text-muted-foreground'}`} />
+                    <span className="truncate whitespace-nowrap">{item.label}</span>
                   </div>
                   {item.badge && (
                     <span
-                      className={`px-1.5 py-0.2 rounded text-[10px] font-mono ${
+                      className={`shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-medium leading-none whitespace-nowrap ${
                         item.badgeVariant === 'destructive'
                           ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
                           : 'bg-background text-muted-foreground border border-border'
@@ -225,15 +225,15 @@ export default function Sidebar({
                 <button
                   key={flt.id}
                   onClick={() => onSelectLapse(flt.id)}
-                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${
+                  className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition ${
                     isActive
                       ? 'bg-muted text-foreground font-semibold shadow-xs'
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                   }`}
                 >
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-2.5 min-w-0">
                     <Icon
-                      className={`size-3.5 ${
+                      className={`size-3.5 shrink-0 ${
                         flt.id === 'CRITICAL'
                           ? 'text-rose-500'
                           : flt.id === 'WARNING'
@@ -243,11 +243,11 @@ export default function Sidebar({
                           : 'text-muted-foreground'
                       }`}
                     />
-                    <span>{flt.label}</span>
+                    <span className="truncate whitespace-nowrap">{flt.label}</span>
                   </div>
                   {flt.count !== undefined && flt.count > 0 && (
-                    <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold bg-rose-500/10 text-rose-500 border border-rose-500/20">
-                      {flt.count}
+                    <span className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 whitespace-nowrap leading-none">
+                      {flt.count >= 1000 ? `${(flt.count / 1000).toFixed(0)}k` : flt.count}
                     </span>
                   )}
                 </button>
