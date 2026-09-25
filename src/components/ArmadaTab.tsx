@@ -372,7 +372,7 @@ export default function ArmadaTab({
     return (
       <span
         className={`inline-flex items-center ml-1 p-0.5 rounded transition ${
-          isActive ? 'text-cyan-400 bg-cyan-950/70' : 'text-slate-500 hover:text-slate-300'
+          isActive ? 'text-foreground' : 'text-muted-foreground/60'
         }`}
       >
         {isActive ? (
@@ -382,7 +382,7 @@ export default function ArmadaTab({
             <ArrowDown className="w-3.5 h-3.5" />
           )
         ) : (
-          <ArrowUpDown className="w-3 h-3 opacity-50" />
+          <ArrowUpDown className="w-3 h-3 opacity-40" />
         )}
       </span>
     );
@@ -418,52 +418,56 @@ export default function ArmadaTab({
       {/* ═══════════════════════════════════════════════════════════
           1. HEADER & KPI CARDS
           ═══════════════════════════════════════════════════════════ */}
-      <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3 flex-wrap gap-2">
-          <div>
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <Anchor className="w-5 h-5 text-cyan-400" />
-              <span>Monitoring Layanan Armada & Stok Backlog</span>
-            </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Verifikasi pemenuhan QTY FPB diajukan vs QTY FSTB terealisasi, pemantauan selisih backlog, dan rincian peruntukan armada.
-            </p>
+      <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm overflow-hidden">
+        <div className="flex items-center justify-between p-5 border-b border-border flex-wrap gap-2">
+          <div className="flex items-center gap-3">
+            <div className="size-9 rounded-lg border border-border bg-muted/60 text-muted-foreground flex items-center justify-center">
+              <Anchor className="w-4.5 h-4.5 text-foreground" />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold tracking-tight text-foreground">
+                Monitoring Layanan Armada & Stok Backlog
+              </h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Verifikasi pemenuhan QTY FPB diajukan vs QTY FSTB terealisasi, pemantauan selisih backlog, dan rincian peruntukan armada.
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-1 bg-cyan-950 text-cyan-300 rounded-lg text-xs font-mono border border-cyan-800">
+            <span className="rounded-full px-2.5 py-0.5 text-xs font-mono border border-border bg-muted/60 text-muted-foreground">
               {items.length.toLocaleString()} Total Baris Item
             </span>
           </div>
         </div>
 
         {/* 4 KPI Summary Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center border border-cyan-500/20">
-              <Boxes className="w-5 h-5" />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 p-5 border-b border-border">
+          <div className="p-3.5 rounded-xl bg-background border border-border flex items-center gap-3">
+            <div className="size-9 rounded-lg bg-muted/60 text-muted-foreground flex items-center justify-center border border-border">
+              <Boxes className="w-4.5 h-4.5" />
             </div>
             <div>
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
+              <span className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider block">
                 Total QTY Diminta (FPB)
               </span>
-              <span className="text-base font-bold text-white font-mono">
+              <span className="text-base font-semibold text-foreground font-mono">
                 {metrics.totalQtyFPB.toLocaleString()}
               </span>
-              <span className="text-[10px] text-slate-500 block">
+              <span className="text-[10px] text-muted-foreground block">
                 Unit barang dari {metrics.totalItems.toLocaleString()} item
               </span>
             </div>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
-              <CheckCircle2 className="w-5 h-5" />
+          <div className="p-3.5 rounded-xl bg-background border border-border flex items-center gap-3">
+            <div className="size-9 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+              <CheckCircle2 className="w-4.5 h-4.5" />
             </div>
             <div>
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
+              <span className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider block">
                 Total QTY Dipenuhi (FSTB)
               </span>
-              <span className="text-base font-bold text-emerald-400 font-mono">
+              <span className="text-base font-semibold text-emerald-400 font-mono">
                 {metrics.totalQtyFSTB.toLocaleString()}
               </span>
               <span className="text-[10px] text-emerald-500/80 block">
@@ -472,15 +476,15 @@ export default function ArmadaTab({
             </div>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center border border-rose-500/20">
-              <AlertTriangle className="w-5 h-5" />
+          <div className="p-3.5 rounded-xl bg-background border border-border flex items-center gap-3">
+            <div className="size-9 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center border border-rose-500/20">
+              <AlertTriangle className="w-4.5 h-4.5" />
             </div>
             <div>
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
+              <span className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider block">
                 Total QTY Selisih Backlog
               </span>
-              <span className="text-base font-bold text-rose-400 font-mono">
+              <span className="text-base font-semibold text-rose-400 font-mono">
                 {metrics.totalBacklogQty.toLocaleString()}
               </span>
               <span className="text-[10px] text-rose-400/80 block">
@@ -489,15 +493,15 @@ export default function ArmadaTab({
             </div>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20">
-              <Layers className="w-5 h-5" />
+          <div className="p-3.5 rounded-xl bg-background border border-border flex items-center gap-3">
+            <div className="size-9 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20">
+              <Layers className="w-4.5 h-4.5" />
             </div>
             <div>
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
+              <span className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider block">
                 Item Menunggu Pemenuhan
               </span>
-              <span className="text-base font-bold text-amber-400 font-mono">
+              <span className="text-base font-semibold text-amber-400 font-mono">
                 {metrics.backlogItemCount.toLocaleString()}
               </span>
               <span className="text-[10px] text-amber-400/80 block">
@@ -510,7 +514,7 @@ export default function ArmadaTab({
         {/* ═══════════════════════════════════════════════════════════
             2. FILTER & SORT CONTROL BAR
             ═══════════════════════════════════════════════════════════ */}
-        <div className="bg-[#090e1d] p-4 rounded-xl border border-slate-800 space-y-3">
+        <div className="p-4 bg-muted/20 border-b border-border space-y-3">
           <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
             {/* Search Input Form */}
             <form
@@ -522,7 +526,7 @@ export default function ArmadaTab({
               className="flex items-center gap-2 flex-1 min-w-[280px]"
             >
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                 <input
                   type="text"
                   value={searchTerm}
@@ -533,22 +537,22 @@ export default function ArmadaTab({
                     }
                   }}
                   placeholder="Cari FPB, Nama Kapal / Armada, Nama Barang, Tujuan / Keterangan, No PO..."
-                  className="w-full pl-9 pr-8 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition"
+                  className="w-full h-8 pl-8 pr-7 bg-background border border-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring transition"
                 />
                 {searchTerm && (
                   <button
                     type="button"
                     onClick={() => handleSearchChange('')}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     title="Hapus kata kunci"
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <X className="w-3 h-3" />
                   </button>
                 )}
               </div>
               <button
                 type="submit"
-                className="px-3.5 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-cyan-950/40 whitespace-nowrap"
+                className="h-8 px-3 rounded-lg border border-border bg-background hover:bg-muted text-xs font-medium text-foreground flex items-center gap-1.5 transition whitespace-nowrap"
                 title="Tekan Enter atau klik untuk mencari"
               >
                 <Search className="w-3.5 h-3.5" />
@@ -558,47 +562,47 @@ export default function ArmadaTab({
 
             {/* Quick Status Filter Buttons */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 text-xs">
-              <span className="text-slate-400 text-[11px] font-medium mr-1 flex items-center gap-1">
-                <Filter className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="text-muted-foreground text-[11px] font-medium mr-1 flex items-center gap-1">
+                <Filter className="w-3.5 h-3.5 text-muted-foreground" />
                 Status:
               </span>
               <button
                 onClick={() => setStatusFilter('ALL')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap ${
+                className={`h-7 px-2.5 rounded-lg text-xs font-medium transition whitespace-nowrap border ${
                   statusFilter === 'ALL'
-                    ? 'bg-cyan-600 text-white shadow-sm'
-                    : 'bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800'
+                    ? 'bg-foreground text-background border-foreground font-semibold'
+                    : 'bg-background text-muted-foreground hover:text-foreground border-border hover:bg-muted'
                 }`}
               >
                 Semua ({items.length})
               </button>
               <button
                 onClick={() => setStatusFilter('BACKLOG')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap flex items-center gap-1.5 ${
+                className={`h-7 px-2.5 rounded-lg text-xs font-medium transition whitespace-nowrap flex items-center gap-1.5 border ${
                   statusFilter === 'BACKLOG'
-                    ? 'bg-rose-600 text-white shadow-sm'
-                    : 'bg-slate-900 text-rose-300 hover:text-white hover:bg-rose-950/50 border border-rose-900/40'
+                    ? 'bg-rose-500/10 text-rose-400 border-rose-500/30 font-semibold'
+                    : 'bg-background text-muted-foreground hover:text-foreground border-border hover:bg-muted'
                 }`}
               >
-                <span className="w-2 h-2 rounded-full bg-rose-400 animate-pulse"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                 <span>Hanya Backlog ({metrics.backlogItemCount})</span>
               </button>
               <button
                 onClick={() => setStatusFilter('LENGKAP')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap ${
+                className={`h-7 px-2.5 rounded-lg text-xs font-medium transition whitespace-nowrap border ${
                   statusFilter === 'LENGKAP'
-                    ? 'bg-emerald-600 text-white shadow-sm'
-                    : 'bg-slate-900 text-emerald-300 hover:text-white hover:bg-emerald-950/50 border border-emerald-900/40'
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 font-semibold'
+                    : 'bg-background text-muted-foreground hover:text-foreground border-border hover:bg-muted'
                 }`}
               >
                 Lengkap ({metrics.completeItemCount})
               </button>
               <button
                 onClick={() => setStatusFilter('PARSIAL')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap ${
+                className={`h-7 px-2.5 rounded-lg text-xs font-medium transition whitespace-nowrap border ${
                   statusFilter === 'PARSIAL'
-                    ? 'bg-amber-600 text-white shadow-sm'
-                    : 'bg-slate-900 text-amber-300 hover:text-white hover:bg-amber-950/50 border border-amber-900/40'
+                    ? 'bg-amber-500/10 text-amber-400 border-amber-500/30 font-semibold'
+                    : 'bg-background text-muted-foreground hover:text-foreground border-border hover:bg-muted'
                 }`}
               >
                 Parsial ({metrics.partialItemCount})
@@ -607,22 +611,22 @@ export default function ArmadaTab({
           </div>
 
           {/* Row 2: Filter Waktu (Tahun, Bulan, Rentang Tanggal) & Quick Sort Tanggal */}
-          <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-slate-800/80 text-xs">
+          <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-border/60 text-xs">
             <div className="flex flex-wrap items-center gap-2">
               {/* Tahun Filter */}
-              <div className="flex items-center gap-1.5 bg-slate-900/90 px-2.5 py-1.5 rounded-lg border border-slate-700/80">
-                <Calendar className="w-3.5 h-3.5 text-cyan-400" />
-                <span className="text-slate-400 text-[11px] font-medium">Tahun:</span>
+              <div className="flex items-center gap-1.5 bg-background h-8 px-2.5 rounded-lg border border-border">
+                <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
+                <span className="text-muted-foreground text-[11px] font-medium">Tahun:</span>
                 <select
                   value={selectedYear}
                   onChange={(e) => setSelectedYear(e.target.value)}
-                  className="bg-transparent text-slate-200 text-xs focus:outline-none font-mono cursor-pointer"
+                  className="bg-transparent text-foreground text-xs focus:outline-none font-mono cursor-pointer"
                 >
-                  <option value="ALL" className="bg-slate-900 text-slate-200">
-                    Semua Tahun {uniqueYears.length > 0 ? `(${uniqueYears.length})` : ''}
+                  <option value="ALL" className="bg-popover text-popover-foreground">
+                    Semua ({uniqueYears.length})
                   </option>
                   {uniqueYears.map((yr) => (
-                    <option key={yr} value={yr} className="bg-slate-900 text-slate-200 font-mono">
+                    <option key={yr} value={yr} className="bg-popover text-popover-foreground font-mono">
                       {yr}
                     </option>
                   ))}
@@ -630,16 +634,16 @@ export default function ArmadaTab({
               </div>
 
               {/* Bulan Filter */}
-              <div className="flex items-center gap-1.5 bg-slate-900/90 px-2.5 py-1.5 rounded-lg border border-slate-700/80">
-                <CalendarDays className="w-3.5 h-3.5 text-cyan-400" />
-                <span className="text-slate-400 text-[11px] font-medium">Bulan:</span>
+              <div className="flex items-center gap-1.5 bg-background h-8 px-2.5 rounded-lg border border-border">
+                <CalendarDays className="w-3.5 h-3.5 text-muted-foreground" />
+                <span className="text-muted-foreground text-[11px] font-medium">Bulan:</span>
                 <select
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="bg-transparent text-slate-200 text-xs focus:outline-none cursor-pointer"
+                  className="bg-transparent text-foreground text-xs focus:outline-none cursor-pointer"
                 >
                   {MONTH_OPTIONS.map((m) => (
-                    <option key={m.value} value={m.value} className="bg-slate-900 text-slate-200">
+                    <option key={m.value} value={m.value} className="bg-popover text-popover-foreground">
                       {m.label}
                     </option>
                   ))}
@@ -647,22 +651,22 @@ export default function ArmadaTab({
               </div>
 
               {/* Rentang Tanggal (Date Range) */}
-              <div className="flex items-center gap-1.5 bg-slate-900/90 px-2.5 py-1.5 rounded-lg border border-slate-700/80 text-slate-300">
-                <CalendarRange className="w-3.5 h-3.5 text-cyan-400" />
-                <span className="text-slate-400 text-[11px]">Tgl:</span>
+              <div className="flex items-center gap-1.5 bg-background h-8 px-2.5 rounded-lg border border-border text-foreground">
+                <CalendarRange className="w-3.5 h-3.5 text-muted-foreground" />
+                <span className="text-muted-foreground text-[11px]">Tgl:</span>
                 <input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="bg-transparent text-slate-200 text-xs focus:outline-none font-mono cursor-pointer"
+                  className="bg-transparent text-foreground text-xs focus:outline-none font-mono cursor-pointer"
                   title="Dari Tanggal"
                 />
-                <span className="text-slate-500 text-[11px]">&ndash;</span>
+                <span className="text-muted-foreground text-[11px]">&ndash;</span>
                 <input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="bg-transparent text-slate-200 text-xs focus:outline-none font-mono cursor-pointer"
+                  className="bg-transparent text-foreground text-xs focus:outline-none font-mono cursor-pointer"
                   title="Sampai Tanggal"
                 />
                 {(startDate || endDate) && (
@@ -672,7 +676,7 @@ export default function ArmadaTab({
                       setStartDate('');
                       setEndDate('');
                     }}
-                    className="text-slate-400 hover:text-white ml-1"
+                    className="text-muted-foreground hover:text-foreground ml-1"
                     title="Hapus filter rentang tanggal"
                   >
                     <X className="w-3 h-3" />
@@ -683,21 +687,21 @@ export default function ArmadaTab({
 
             {/* Quick Sorting Buttons by Tanggal */}
             <div className="flex items-center gap-1.5">
-              <span className="text-slate-400 text-[11px] mr-1 hidden sm:inline">Urut Tanggal:</span>
+              <span className="text-muted-foreground text-[11px] mr-1 hidden sm:inline">Urut Tanggal:</span>
               <button
                 type="button"
                 onClick={() => {
                   setSortField('date');
                   setSortDirection('desc');
                 }}
-                className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
+                className={`h-7 px-2.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition border ${
                   sortField === 'date' && sortDirection === 'desc'
-                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/50 shadow-sm'
-                    : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
+                    ? 'bg-foreground text-background border-foreground font-semibold'
+                    : 'bg-background text-muted-foreground hover:text-foreground border-border hover:bg-muted'
                 }`}
                 title="Urutkan tanggal terbaru di atas"
               >
-                <ArrowDown className="w-3.5 h-3.5 text-cyan-400" />
+                <ArrowDown className="w-3 h-3" />
                 <span>Terbaru</span>
               </button>
               <button
@@ -706,34 +710,34 @@ export default function ArmadaTab({
                   setSortField('date');
                   setSortDirection('asc');
                 }}
-                className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
+                className={`h-7 px-2.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition border ${
                   sortField === 'date' && sortDirection === 'asc'
-                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/50 shadow-sm'
-                    : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
+                    ? 'bg-foreground text-background border-foreground font-semibold'
+                    : 'bg-background text-muted-foreground hover:text-foreground border-border hover:bg-muted'
                 }`}
                 title="Urutkan tanggal terlama di atas"
               >
-                <ArrowUp className="w-3.5 h-3.5 text-cyan-400" />
+                <ArrowUp className="w-3 h-3" />
                 <span>Terlama</span>
               </button>
             </div>
           </div>
 
           {/* Row 3: Secondary Dropdown Filters & Sorting Shortcuts */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-800/80 text-xs">
-            <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-border/60 text-xs">
+            <div className="flex flex-wrap items-center gap-2">
               {/* Entitas / PT Filter */}
               {uniqueEntities.length > 0 && (
                 <div className="flex items-center gap-1.5">
-                  <span className="text-slate-400 text-[11px]">PT:</span>
+                  <span className="text-muted-foreground text-[11px]">PT:</span>
                   <select
                     value={entityFilter}
                     onChange={(e) => setEntityFilter(e.target.value)}
-                    className="bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-cyan-400 font-mono"
+                    className="h-7 bg-background border border-border text-foreground text-xs rounded-lg px-2.5 focus:outline-none focus:ring-1 focus:ring-ring font-mono"
                   >
                     <option value="ALL">Semua PT ({uniqueEntities.length})</option>
                     {uniqueEntities.map((ent) => (
-                      <option key={ent} value={ent}>
+                      <option key={ent} value={ent} className="bg-popover text-popover-foreground">
                         {ent}
                       </option>
                     ))}
@@ -744,15 +748,15 @@ export default function ArmadaTab({
               {/* Kapal / Armada Filter */}
               {uniqueArmadas.length > 0 && (
                 <div className="flex items-center gap-1.5">
-                  <span className="text-slate-400 text-[11px]">Kapal / Armada:</span>
+                  <span className="text-muted-foreground text-[11px]">Kapal / Armada:</span>
                   <select
                     value={armadaFilter}
                     onChange={(e) => setArmadaFilter(e.target.value)}
-                    className="bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-cyan-400 max-w-[220px]"
+                    className="h-7 bg-background border border-border text-foreground text-xs rounded-lg px-2.5 focus:outline-none focus:ring-1 focus:ring-ring max-w-[220px]"
                   >
                     <option value="ALL">Semua Kapal / Armada ({uniqueArmadas.length})</option>
                     {uniqueArmadas.map((arm) => (
-                      <option key={arm} value={arm}>
+                      <option key={arm} value={arm} className="bg-popover text-popover-foreground">
                         {arm}
                       </option>
                     ))}
@@ -766,14 +770,14 @@ export default function ArmadaTab({
                   setSortField('selisih');
                   setSortDirection('desc');
                 }}
-                className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
+                className={`h-7 px-2.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition border ${
                   sortField === 'selisih' && sortDirection === 'desc'
-                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                    : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
+                    ? 'bg-amber-500/10 text-amber-400 border-amber-500/30 font-semibold'
+                    : 'bg-background text-muted-foreground hover:text-foreground border-border hover:bg-muted'
                 }`}
                 title="Urutkan backlog tertinggi di atas"
               >
-                <ArrowDown className="w-3.5 h-3.5 text-amber-400" />
+                <ArrowDown className="w-3 h-3 text-amber-400" />
                 <span>Backlog Terbanyak</span>
               </button>
 
@@ -781,27 +785,27 @@ export default function ArmadaTab({
               {isFiltered && (
                 <button
                   onClick={handleResetFilters}
-                  className="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-rose-300 hover:text-white bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800/40 flex items-center gap-1 transition"
+                  className="h-7 px-2.5 rounded-lg text-xs font-medium text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 flex items-center gap-1 transition"
                 >
-                  <RotateCcw className="w-3.5 h-3.5" />
+                  <RotateCcw className="w-3 h-3" />
                   <span>Reset Filter</span>
                 </button>
               )}
             </div>
 
             {/* Results Counter & Active Sorting Indicator */}
-            <div className="flex items-center gap-3 text-slate-400 text-[11px]">
+            <div className="flex items-center gap-3 text-muted-foreground text-[11px]">
               <span>
                 Menampilkan{' '}
-                <strong className="text-cyan-400 font-mono">
+                <strong className="text-foreground font-mono">
                   {sortedItems.length.toLocaleString()}
                 </strong>{' '}
                 dari {items.length.toLocaleString()} data
               </span>
-              <span className="text-slate-600">|</span>
+              <span className="text-border">|</span>
               <span>
                 Urutan:{' '}
-                <strong className="text-slate-200 font-mono uppercase">
+                <strong className="text-foreground font-mono uppercase">
                   {sortField === 'date'
                     ? `Tanggal (${sortDirection === 'desc' ? 'Terbaru' : 'Terlama'})`
                     : sortField === 'selisih'
@@ -814,51 +818,54 @@ export default function ArmadaTab({
 
           {/* Active Search & Filter Notification */}
           {isFiltered && (
-            <div className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-cyan-950/40 border border-cyan-800/60 text-xs flex-wrap">
+            <div className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-muted/50 border border-border text-xs flex-wrap">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-cyan-300 font-mono font-semibold">
+                <span className="text-foreground font-mono font-medium">
                   Filter Aktif:
                 </span>
                 {searchTerm.trim() !== '' && (
-                  <span className="px-2 py-0.5 rounded bg-cyan-900/60 border border-cyan-700/60 text-white font-mono text-[11px]">
+                  <span className="px-2 py-0.5 rounded-full bg-background border border-border text-foreground font-mono text-[11px]">
                     Cari: &quot;{searchTerm}&quot;
                   </span>
                 )}
                 {selectedYear !== 'ALL' && (
-                  <span className="px-2 py-0.5 rounded bg-blue-900/60 border border-blue-700/60 text-white font-mono text-[11px]">
+                  <span className="px-2 py-0.5 rounded-full bg-background border border-border text-foreground font-mono text-[11px]">
                     Tahun: {selectedYear}
                   </span>
                 )}
                 {selectedMonth !== 'ALL' && (
-                  <span className="px-2 py-0.5 rounded bg-indigo-900/60 border border-indigo-700/60 text-white font-mono text-[11px]">
+                  <span className="px-2 py-0.5 rounded-full bg-background border border-border text-foreground font-mono text-[11px]">
                     Bulan: {MONTH_OPTIONS.find((m) => m.value === selectedMonth)?.label}
                   </span>
                 )}
                 {(startDate || endDate) && (
-                  <span className="px-2 py-0.5 rounded bg-purple-900/60 border border-purple-700/60 text-white font-mono text-[11px]">
+                  <span className="px-2 py-0.5 rounded-full bg-background border border-border text-foreground font-mono text-[11px]">
                     Rentang: {startDate || 'Awal'} s/d {endDate || 'Sekarang'}
                   </span>
                 )}
                 {statusFilter !== 'ALL' && (
-                  <span className="px-2 py-0.5 rounded bg-amber-900/60 border border-amber-700/60 text-white font-mono text-[11px]">
+                  <span className="px-2 py-0.5 rounded-full bg-background border border-border text-foreground font-mono text-[11px]">
                     Status: {statusFilter}
                   </span>
                 )}
                 {entityFilter !== 'ALL' && (
-                  <span className="px-2 py-0.5 rounded bg-teal-900/60 border border-teal-700/60 text-white font-mono text-[11px]">
+                  <span className="px-2 py-0.5 rounded-full bg-background border border-border text-foreground font-mono text-[11px]">
                     PT: {entityFilter}
                   </span>
                 )}
                 {armadaFilter !== 'ALL' && (
-                  <span className="px-2 py-0.5 rounded bg-sky-900/60 border border-sky-700/60 text-white font-mono text-[11px]">
+                  <span className="px-2 py-0.5 rounded-full bg-background border border-border text-foreground font-mono text-[11px]">
                     Armada: {armadaFilter}
                   </span>
                 )}
+                <span className="text-muted-foreground font-mono text-[11px]">
+                  ({sortedItems.length} baris ditemukan)
+                </span>
               </div>
               <button
                 type="button"
                 onClick={handleResetFilters}
-                className="text-slate-400 hover:text-white text-[11px] underline flex items-center gap-1 ml-auto"
+                className="text-muted-foreground hover:text-foreground text-[11px] underline flex items-center gap-1 ml-auto"
               >
                 <X className="w-3 h-3" />
                 <span>Hapus Semua Filter</span>
@@ -870,13 +877,13 @@ export default function ArmadaTab({
         {/* ═══════════════════════════════════════════════════════════
             3. INTERACTIVE DATA TABLE
             ═══════════════════════════════════════════════════════════ */}
-        <div className="overflow-x-auto rounded-xl border border-slate-800 shadow-xl">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-[#080d1a] text-slate-400 font-semibold border-b border-slate-800 uppercase tracking-wider text-[11px] select-none">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs text-foreground">
+            <thead className="bg-muted/40 text-muted-foreground font-medium border-b border-border uppercase tracking-wider text-[11px] select-none">
               <tr>
                 <th
                   onClick={() => handleSort('fpb')}
-                  className="p-3 cursor-pointer hover:text-white hover:bg-slate-900/60 transition group whitespace-nowrap"
+                  className="p-3.5 cursor-pointer hover:text-foreground transition group whitespace-nowrap"
                 >
                   <span className="flex items-center">
                     NO FPB ASAL
@@ -885,7 +892,7 @@ export default function ArmadaTab({
                 </th>
                 <th
                   onClick={() => handleSort('armada')}
-                  className="p-3 cursor-pointer hover:text-white hover:bg-slate-900/60 transition group whitespace-nowrap"
+                  className="p-3.5 cursor-pointer hover:text-foreground transition group whitespace-nowrap"
                 >
                   <span className="flex items-center">
                     NAMA KAPAL / ARMADA
@@ -894,7 +901,7 @@ export default function ArmadaTab({
                 </th>
                 <th
                   onClick={() => handleSort('item')}
-                  className="p-3 cursor-pointer hover:text-white hover:bg-slate-900/60 transition group"
+                  className="p-3.5 cursor-pointer hover:text-foreground transition group"
                 >
                   <span className="flex items-center">
                     ITEM DESCRIPTION & KETERANGAN
@@ -903,7 +910,7 @@ export default function ArmadaTab({
                 </th>
                 <th
                   onClick={() => handleSort('qtyFPB')}
-                  className="p-3 text-center cursor-pointer hover:text-white hover:bg-slate-900/60 transition group whitespace-nowrap"
+                  className="p-3.5 text-center cursor-pointer hover:text-foreground transition group whitespace-nowrap"
                 >
                   <span className="flex items-center justify-center">
                     QTY FPB
@@ -912,7 +919,7 @@ export default function ArmadaTab({
                 </th>
                 <th
                   onClick={() => handleSort('qtyFSTB')}
-                  className="p-3 text-center cursor-pointer hover:text-white hover:bg-slate-900/60 transition group whitespace-nowrap"
+                  className="p-3.5 text-center cursor-pointer hover:text-foreground transition group whitespace-nowrap"
                 >
                   <span className="flex items-center justify-center">
                     QTY FSTB
@@ -921,41 +928,41 @@ export default function ArmadaTab({
                 </th>
                 <th
                   onClick={() => handleSort('selisih')}
-                  className="p-3 text-center cursor-pointer hover:text-white hover:bg-slate-900/60 transition group whitespace-nowrap bg-amber-950/20"
+                  className="p-3.5 text-center cursor-pointer hover:text-foreground transition group whitespace-nowrap"
                 >
-                  <span className="flex items-center justify-center text-amber-300 font-bold">
+                  <span className="flex items-center justify-center font-semibold">
                     SELISIH BACKLOG
                     {renderSortIndicator('selisih')}
                   </span>
                 </th>
                 <th
                   onClick={() => handleSort('status')}
-                  className="p-3 text-center cursor-pointer hover:text-white hover:bg-slate-900/60 transition group whitespace-nowrap"
+                  className="p-3.5 text-center cursor-pointer hover:text-foreground transition group whitespace-nowrap"
                 >
                   <span className="flex items-center justify-center">
                     STATUS PEMENUHAN
                     {renderSortIndicator('status')}
                   </span>
                 </th>
-                <th className="p-3 text-center whitespace-nowrap">AKSI</th>
+                <th className="p-3.5 text-center whitespace-nowrap">AKSI</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 font-sans">
+            <tbody className="divide-y divide-border/60">
               {paginatedItems.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="p-10 text-center text-slate-500">
+                  <td colSpan={8} className="p-10 text-center text-muted-foreground">
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <Anchor className="w-8 h-8 opacity-30 text-amber-400" />
-                      <p className="text-sm font-semibold text-slate-300">
+                      <Anchor className="w-8 h-8 opacity-30 text-muted-foreground" />
+                      <p className="text-sm font-medium text-foreground">
                         Tidak ada data yang sesuai filter
                       </p>
-                      <p className="text-xs text-slate-500 max-w-md">
+                      <p className="text-xs text-muted-foreground max-w-md">
                         Coba sesuaikan kata kunci pencarian, filter status, atau klik tombol Reset Filter di atas.
                       </p>
                       {isFiltered && (
                         <button
                           onClick={handleResetFilters}
-                          className="mt-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-cyan-300 rounded-lg text-xs font-semibold transition"
+                          className="mt-2 h-8 px-3 bg-muted hover:bg-muted/80 text-foreground border border-border rounded-lg text-xs font-medium transition"
                         >
                           Tampilkan Semua Data
                         </button>
@@ -971,26 +978,26 @@ export default function ArmadaTab({
                   return (
                     <tr
                       key={`${row.fpb}-${row.item}-${idx}`}
-                      className="hover:bg-slate-900/60 transition group"
+                      className="hover:bg-muted/30 transition group"
                     >
                       {/* No FPB, Entity Tag & Tanggal */}
-                      <td className="p-3 whitespace-nowrap font-mono">
+                      <td className="p-3.5 whitespace-nowrap font-mono">
                         <button
                           onClick={() => onOpenAudit && onOpenAudit(row.fpb, row.noPo)}
-                          className="font-bold text-cyan-400 hover:text-cyan-300 hover:underline flex items-center gap-1"
+                          className="font-medium text-foreground hover:underline flex items-center gap-1"
                           title="Buka audit modal FPB"
                         >
                           <span>{row.fpb}</span>
-                          <ExternalLink className="w-3 h-3 opacity-50 group-hover:opacity-100 transition-opacity" />
+                          <ExternalLink className="w-3 h-3 text-muted-foreground group-hover:text-foreground transition-colors" />
                         </button>
                         <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                           {row.entity && (
-                            <span className="inline-block px-1.5 py-0.2 rounded text-[10px] font-mono bg-slate-800 text-slate-300 border border-slate-700">
+                            <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-mono bg-muted text-muted-foreground border border-border">
                               {row.entity}
                             </span>
                           )}
                           {(row.tglPo || row.tglFpb) && (
-                            <span className="text-[10px] text-slate-400 font-mono">
+                            <span className="text-[10px] text-muted-foreground font-mono">
                               {row.tglPo || row.tglFpb}
                             </span>
                           )}
@@ -998,44 +1005,44 @@ export default function ArmadaTab({
                       </td>
 
                       {/* Nama Kapal & Peruntukan Keterangan */}
-                      <td className="p-3 max-w-[240px]">
-                        <div className="text-white font-medium flex items-center gap-1.5">
-                          <Anchor className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" />
+                      <td className="p-3.5 max-w-[240px]">
+                        <div className="text-foreground font-medium flex items-center gap-1.5">
+                          <Anchor className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
                           <span>{row.armada}</span>
                         </div>
                         {row.keterangan && (
-                          <div className="text-[11px] text-cyan-300 font-mono mt-1 leading-snug pl-5">
+                          <div className="text-[11px] text-muted-foreground font-mono mt-1 leading-snug pl-5">
                             {row.keterangan}
                           </div>
                         )}
                       </td>
 
                       {/* Item Description */}
-                      <td className="p-3 max-w-[280px]">
-                        <div className="text-slate-200 font-medium">{row.item}</div>
-                        <div className="flex items-center gap-2 mt-0.5 text-[10px] text-slate-500 font-mono flex-wrap">
+                      <td className="p-3.5 max-w-[280px]">
+                        <div className="text-foreground font-medium">{row.item}</div>
+                        <div className="flex items-center gap-2 mt-0.5 text-[10px] text-muted-foreground font-mono flex-wrap">
                           {row.kodeBarang && <span>Kode: {row.kodeBarang}</span>}
                           {row.satuan && <span>&bull; {row.satuan}</span>}
                           {row.noPo && <span>&bull; PO: {row.noPo}</span>}
                           {row.picPch && row.picPch !== '-' && (
-                            <span className="text-cyan-400 font-semibold">&bull; PIC: {row.picPch}</span>
+                            <span className="text-foreground font-medium">&bull; PIC: {row.picPch}</span>
                           )}
                         </div>
                       </td>
 
                       {/* Qty FPB */}
-                      <td className="p-3 text-center text-cyan-300 font-mono font-bold">
+                      <td className="p-3.5 text-center text-foreground font-mono font-medium">
                         {row.qtyFPB.toLocaleString()}
                       </td>
 
                       {/* Qty FSTB */}
-                      <td className="p-3 text-center text-slate-200 font-mono">
+                      <td className="p-3.5 text-center text-muted-foreground font-mono">
                         {row.qtyFSTB.toLocaleString()}
                       </td>
 
                       {/* Selisih Backlog */}
                       <td
-                        className={`p-3 text-center font-mono font-bold text-sm bg-slate-950/40 ${
+                        className={`p-3.5 text-center font-mono font-semibold text-sm ${
                           isComplete
                             ? 'text-emerald-400'
                             : isPartial
@@ -1047,22 +1054,22 @@ export default function ArmadaTab({
                       </td>
 
                       {/* Status Pemenuhan & Alur Berkas Procurement */}
-                      <td className="p-3 text-center whitespace-nowrap">
+                      <td className="p-3.5 text-center whitespace-nowrap">
                         <div className="space-y-1">
                           <span
-                            className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold tracking-wide border ${
+                            className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-medium border ${
                               isComplete
-                                ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                                 : isPartial
-                                ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
-                                : 'bg-rose-500/15 text-rose-300 border-rose-500/30'
+                                ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                                : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
                             }`}
                           >
                             {row.status}
                           </span>
                           {row.statusBadge && (
                             <div>
-                              <span className="inline-block px-1.5 py-0.5 rounded text-[9px] font-mono bg-cyan-950/90 text-cyan-300 border border-cyan-800/60 font-medium">
+                              <span className="inline-block px-1.5 py-0.5 rounded text-[9px] font-mono bg-muted text-muted-foreground border border-border font-medium">
                                 {row.statusBadge}
                               </span>
                             </div>
@@ -1071,11 +1078,11 @@ export default function ArmadaTab({
                       </td>
 
                       {/* Action Button */}
-                      <td className="p-3 text-center whitespace-nowrap">
+                      <td className="p-3.5 text-center whitespace-nowrap">
                         {onOpenAudit && (
                           <button
                             onClick={() => onOpenAudit(row.fpb, row.noPo)}
-                            className="px-2.5 py-1 bg-slate-800 hover:bg-cyan-900/60 text-slate-300 hover:text-cyan-300 border border-slate-700/80 hover:border-cyan-500/50 rounded-lg text-[11px] font-semibold transition"
+                            className="h-7 px-2.5 bg-background hover:bg-muted text-foreground border border-border rounded-lg text-xs font-medium transition"
                             title="Audit Akuntabilitas 4 Sheet"
                           >
                             Audit
@@ -1093,20 +1100,20 @@ export default function ArmadaTab({
         {/* ═══════════════════════════════════════════════════════════
             4. PAGINATION FOOTER
             ═══════════════════════════════════════════════════════════ */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-800 text-xs text-slate-400">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-t border-border text-xs text-muted-foreground">
           <div className="flex items-center gap-2">
             <span>Baris per halaman:</span>
             <select
               value={pageSize}
               onChange={(e) => setPageSize(Number(e.target.value))}
-              className="bg-slate-900 border border-slate-700 text-slate-200 rounded px-2 py-1 focus:outline-none focus:border-cyan-400 font-mono"
+              className="h-7 bg-background border border-border text-foreground rounded-lg px-2 focus:outline-none focus:ring-1 focus:ring-ring font-mono"
             >
               <option value={25}>25</option>
               <option value={50}>50</option>
               <option value={100}>100</option>
               <option value={200}>200</option>
             </select>
-            <span className="text-slate-500">
+            <span className="text-muted-foreground/80">
               (Menampilkan{' '}
               {sortedItems.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} -{' '}
               {Math.min(currentPage * pageSize, sortedItems.length)} dari{' '}
@@ -1119,39 +1126,39 @@ export default function ArmadaTab({
             <button
               onClick={() => setCurrentPage(1)}
               disabled={currentPage === 1}
-              className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 disabled:opacity-30 disabled:pointer-events-none border border-slate-800 transition"
+              className="h-8 w-8 rounded-lg bg-background hover:bg-muted text-foreground disabled:opacity-30 disabled:pointer-events-none border border-border flex items-center justify-center transition"
               title="Halaman Pertama"
             >
-              <ChevronsLeft className="w-4 h-4" />
+              <ChevronsLeft className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 disabled:opacity-30 disabled:pointer-events-none border border-slate-800 transition"
+              className="h-8 w-8 rounded-lg bg-background hover:bg-muted text-foreground disabled:opacity-30 disabled:pointer-events-none border border-border flex items-center justify-center transition"
               title="Halaman Sebelumnya"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-3.5 h-3.5" />
             </button>
 
-            <span className="px-3 py-1 bg-slate-950 rounded border border-slate-800 text-slate-200">
-              Halaman {currentPage} / {totalPages}
+            <span className="px-3 h-8 flex items-center rounded-lg border border-border bg-muted/40 text-foreground text-xs">
+              Hal {currentPage} / {totalPages}
             </span>
 
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 disabled:opacity-30 disabled:pointer-events-none border border-slate-800 transition"
+              className="h-8 w-8 rounded-lg bg-background hover:bg-muted text-foreground disabled:opacity-30 disabled:pointer-events-none border border-border flex items-center justify-center transition"
               title="Halaman Berikutnya"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() => setCurrentPage(totalPages)}
               disabled={currentPage === totalPages}
-              className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 disabled:opacity-30 disabled:pointer-events-none border border-slate-800 transition"
+              className="h-8 w-8 rounded-lg bg-background hover:bg-muted text-foreground disabled:opacity-30 disabled:pointer-events-none border border-border flex items-center justify-center transition"
               title="Halaman Terakhir"
             >
-              <ChevronsRight className="w-4 h-4" />
+              <ChevronsRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>

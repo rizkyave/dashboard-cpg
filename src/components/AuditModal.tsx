@@ -105,30 +105,30 @@ export default function AuditModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="bg-[#0b101f] border border-cyan-500/40 rounded-2xl w-full max-w-4xl max-h-[92vh] overflow-y-auto shadow-2xl p-6 space-y-5">
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-card border border-border rounded-xl w-full max-w-4xl max-h-[92vh] overflow-y-auto shadow-2xl p-5 md:p-6 space-y-4 text-card-foreground">
         {/* Modal Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div className="flex items-center justify-between pb-3.5 border-b border-border">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center border border-cyan-500/40">
-              <ShieldCheck className="w-6 h-6" />
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/60 text-cyan-400">
+              <ShieldCheck className="size-5" />
             </div>
             <div>
-              <span className="text-[10px] font-mono text-cyan-400 font-bold uppercase tracking-wider">
+              <span className="text-[10px] font-mono text-muted-foreground font-semibold uppercase tracking-wider block">
                 Verifikasi Akuntabilitas Lintas Modul Terintegrasi
               </span>
-              <h3 className="text-lg font-bold text-white font-mono flex items-center gap-2 flex-wrap">
+              <h3 className="text-base font-semibold text-foreground font-mono flex items-center gap-2 flex-wrap mt-0.5">
                 <span>{fpbNumber}</span>
                 {activePo ? (
-                  <span className="text-amber-400 font-mono text-xs px-2 py-0.5 rounded bg-amber-950/60 border border-amber-800/60">
+                  <span className="text-amber-400 font-mono text-xs px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20">
                     PO: {activePo}
                   </span>
                 ) : (
-                  <span className="text-slate-400 font-mono text-xs px-2 py-0.5 rounded bg-slate-900 border border-slate-700">
+                  <span className="text-muted-foreground font-mono text-xs px-2 py-0.5 rounded-md bg-muted border border-border">
                     PO: - (Kosong)
                   </span>
                 )}
-                <span className="text-cyan-400 font-sans text-base font-semibold">
+                <span className="text-foreground font-sans text-sm font-medium">
                   &bull; {itemsS2[0]?.armada || itemS1?.deptArmada || itemS1?.item || 'Nama Kapal / Armada'}
                 </span>
               </h3>
@@ -138,16 +138,16 @@ export default function AuditModal({
             {/* Gemini AI Risk Audit Button */}
             <button
               onClick={handleRunAiAudit}
-              className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 text-white text-xs font-semibold shadow flex items-center gap-1.5 transition"
+              className="h-8 px-3 rounded-lg border border-purple-500/30 bg-purple-950/40 hover:bg-purple-900/50 text-purple-300 text-xs font-medium shadow-xs flex items-center gap-1.5 transition active:scale-95"
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+              <Sparkles className="size-3.5 text-amber-300" />
               <span>Analisis Risiko AI</span>
             </button>
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-white p-2 rounded-lg bg-slate-800 border border-slate-700 transition"
+              className="size-8 rounded-lg border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition"
             >
-              <X className="w-4 h-4" />
+              <X className="size-4" />
             </button>
           </div>
         </div>
@@ -206,101 +206,101 @@ export default function AuditModal({
 
         {/* Metadata Row Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800">
-            <span className="text-[10px] text-slate-500 font-mono block">
+          <div className="p-3 rounded-lg bg-muted/40 border border-border">
+            <span className="text-[10px] text-muted-foreground font-mono block">
               NOMOR PO INTERNAL
             </span>
-            <span className="text-sm font-bold font-mono">
+            <span className="text-sm font-semibold font-mono mt-0.5 block">
               {activePo ? (
-                <span className="text-cyan-300">{activePo}</span>
+                <span className="text-foreground">{activePo}</span>
               ) : (
-                <span className="text-slate-400 font-normal italic">- (Kosong)</span>
+                <span className="text-muted-foreground font-normal italic">- (Kosong)</span>
               )}
             </span>
           </div>
-          <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800">
-            <span className="text-[10px] text-slate-500 font-mono block">
+          <div className="p-3 rounded-lg bg-muted/40 border border-border">
+            <span className="text-[10px] text-muted-foreground font-mono block">
               ENTITAS & TANGGAL
             </span>
-            <span className="text-sm font-bold text-white font-mono">
+            <span className="text-sm font-semibold text-foreground font-mono mt-0.5 block">
               {itemsS2[0]?.entity || itemS1?.entity || 'CPL'} &bull;{' '}
               {itemsS2[0]?.tglPo || itemsS2[0]?.tglFpb || itemS1?.date || '-'}
             </span>
           </div>
-          <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800">
-            <span className="text-[10px] text-slate-500 font-mono block">
+          <div className="p-3 rounded-lg bg-muted/40 border border-border">
+            <span className="text-[10px] text-muted-foreground font-mono block">
               STATUS SAAT INI
             </span>
-            <span className="text-sm font-bold text-emerald-400 font-mono">
+            <span className="text-sm font-semibold text-emerald-400 font-mono mt-0.5 block">
               {itemS1?.statusBadge || itemsS2[0]?.status || 'TERDATA DI LAYANAN ARMADA'}
             </span>
           </div>
         </div>
 
         {/* 4 Cross Verification Badges */}
-        <div className="bg-slate-900/80 rounded-xl border border-slate-800 p-4 space-y-3">
+        <div className="bg-muted/20 rounded-xl border border-border p-4 space-y-3">
           <div className="flex items-center justify-between flex-wrap gap-2">
-            <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+              <ShieldCheck className="size-4 text-emerald-400" />
               <span>Status Validasi Dokumen Lintas Modul</span>
             </h4>
-            <span className="text-[10px] text-emerald-400 font-mono bg-emerald-950/70 border border-emerald-800/60 px-2 py-0.5 rounded">
+            <span className="text-[10px] text-emerald-400 font-mono bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded-full">
               4/4 Modul Terverifikasi
             </span>
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
             {/* 1. INPUT DATA MELINDA */}
-            <div className="p-3 rounded-xl bg-slate-950/70 border border-emerald-500/30 flex flex-col justify-between gap-2.5 shadow-sm hover:border-emerald-500/50 transition">
-              <div className="text-[11px] font-bold text-slate-200 tracking-wide uppercase leading-tight min-h-[1.75rem] flex items-center">
+            <div className="p-3 rounded-lg bg-card border border-border flex flex-col justify-between gap-2.5 shadow-xs hover:border-zinc-700 transition">
+              <div className="text-[11px] font-semibold text-foreground tracking-wide uppercase leading-tight min-h-[1.75rem] flex items-center">
                 INPUT DATA MELINDA
               </div>
-              <div className="flex items-center justify-between pt-2 border-t border-slate-800/80">
-                <span className="text-[10px] text-slate-400 font-mono">Status:</span>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-950/90 text-emerald-400 border border-emerald-500/40 font-mono text-[11px] font-bold shadow-xs">
-                  <Check className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
+              <div className="flex items-center justify-between pt-2 border-t border-border">
+                <span className="text-[10px] text-muted-foreground font-mono">Status:</span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono text-[11px] font-bold">
+                  <Check className="size-3 text-emerald-400" />
                   DONE
                 </span>
               </div>
             </div>
 
             {/* 2. PROCUREMENT */}
-            <div className="p-3 rounded-xl bg-slate-950/70 border border-emerald-500/30 flex flex-col justify-between gap-2.5 shadow-sm hover:border-emerald-500/50 transition">
-              <div className="text-[11px] font-bold text-slate-200 tracking-wide uppercase leading-tight min-h-[1.75rem] flex items-center">
+            <div className="p-3 rounded-lg bg-card border border-border flex flex-col justify-between gap-2.5 shadow-xs hover:border-zinc-700 transition">
+              <div className="text-[11px] font-semibold text-foreground tracking-wide uppercase leading-tight min-h-[1.75rem] flex items-center">
                 PROCUREMENT
               </div>
-              <div className="flex items-center justify-between pt-2 border-t border-slate-800/80">
-                <span className="text-[10px] text-slate-400 font-mono">Status:</span>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-950/90 text-emerald-400 border border-emerald-500/40 font-mono text-[11px] font-bold shadow-xs">
-                  <Check className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
+              <div className="flex items-center justify-between pt-2 border-t border-border">
+                <span className="text-[10px] text-muted-foreground font-mono">Status:</span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono text-[11px] font-bold">
+                  <Check className="size-3 text-emerald-400" />
                   TERVERIFIKASI
                 </span>
               </div>
             </div>
 
             {/* 3. MASTER DATA BU NOOR */}
-            <div className="p-3 rounded-xl bg-slate-950/70 border border-emerald-500/30 flex flex-col justify-between gap-2.5 shadow-sm hover:border-emerald-500/50 transition">
-              <div className="text-[11px] font-bold text-slate-200 tracking-wide uppercase leading-tight min-h-[1.75rem] flex items-center">
+            <div className="p-3 rounded-lg bg-card border border-border flex flex-col justify-between gap-2.5 shadow-xs hover:border-zinc-700 transition">
+              <div className="text-[11px] font-semibold text-foreground tracking-wide uppercase leading-tight min-h-[1.75rem] flex items-center">
                 MASTER DATA BU NOOR
               </div>
-              <div className="flex items-center justify-between pt-2 border-t border-slate-800/80">
-                <span className="text-[10px] text-slate-400 font-mono">Status:</span>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-950/90 text-emerald-400 border border-emerald-500/40 font-mono text-[11px] font-bold shadow-xs">
-                  <Check className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
+              <div className="flex items-center justify-between pt-2 border-t border-border">
+                <span className="text-[10px] text-muted-foreground font-mono">Status:</span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono text-[11px] font-bold">
+                  <Check className="size-3 text-emerald-400" />
                   DONE
                 </span>
               </div>
             </div>
 
             {/* 4. LAYANAN ARMADA */}
-            <div className="p-3 rounded-xl bg-slate-950/70 border border-emerald-500/30 flex flex-col justify-between gap-2.5 shadow-sm hover:border-emerald-500/50 transition">
-              <div className="text-[11px] font-bold text-slate-200 tracking-wide uppercase leading-tight min-h-[1.75rem] flex items-center">
+            <div className="p-3 rounded-lg bg-card border border-border flex flex-col justify-between gap-2.5 shadow-xs hover:border-zinc-700 transition">
+              <div className="text-[11px] font-semibold text-foreground tracking-wide uppercase leading-tight min-h-[1.75rem] flex items-center">
                 LAYANAN ARMADA
               </div>
-              <div className="flex items-center justify-between pt-2 border-t border-slate-800/80">
-                <span className="text-[10px] text-slate-400 font-mono">Status:</span>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-950/90 text-emerald-400 border border-emerald-500/40 font-mono text-[11px] font-bold shadow-xs">
-                  <Check className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
+              <div className="flex items-center justify-between pt-2 border-t border-border">
+                <span className="text-[10px] text-muted-foreground font-mono">Status:</span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono text-[11px] font-bold">
+                  <Check className="size-3 text-emerald-400" />
                   MATCHING
                 </span>
               </div>
@@ -317,54 +317,54 @@ export default function AuditModal({
             ═══════════════════════════════════════════════════════════ */}
         <div className="space-y-2.5 pt-1">
           <div className="flex items-center justify-between">
-            <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+            <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-1.5">
               <span>Alur Tanggung Jawab Fisik & PIC (4 Divisi Terverifikasi)</span>
             </h4>
-            <span className="text-[10px] text-slate-400 font-mono bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+            <span className="text-[10px] text-muted-foreground font-mono bg-muted px-2 py-0.5 rounded-md border border-border">
               Audit Trail Lengkap
             </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
             {/* 1. PURCHASING */}
-            <div className="p-3.5 rounded-xl bg-gradient-to-b from-cyan-950/40 to-slate-950/90 border border-cyan-500/30 flex flex-col justify-between space-y-2 shadow-sm">
+            <div className="p-3.5 rounded-lg bg-card border border-border flex flex-col justify-between space-y-2 shadow-xs hover:border-zinc-700 transition">
               <div>
-                <div className="flex items-center justify-between pb-2 border-b border-cyan-900/40">
-                  <span className="text-[11px] font-bold text-cyan-400 font-mono flex items-center gap-1.5">
-                    <ShoppingBag className="w-3.5 h-3.5 text-cyan-400" />
+                <div className="flex items-center justify-between pb-2 border-b border-border">
+                  <span className="text-[11px] font-semibold text-foreground font-mono flex items-center gap-1.5">
+                    <ShoppingBag className="size-3.5 text-cyan-400" />
                     1. PURCHASING
                   </span>
-                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800/60 font-semibold">
+                  <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-muted text-muted-foreground border border-border font-semibold">
                     PCH
                   </span>
                 </div>
                 <div className="mt-2.5 space-y-1.5">
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-slate-400">PIC PCH:</span>
-                    <span className="font-bold text-white font-mono">{itemS1?.picPch || 'NOVI'}</span>
+                    <span className="text-muted-foreground">PIC PCH:</span>
+                    <span className="font-semibold text-foreground font-mono">{itemS1?.picPch || 'NOVI'}</span>
                   </div>
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-slate-400">No. PO:</span>
-                    <span className="text-cyan-300 font-mono font-bold">
+                    <span className="text-muted-foreground">No. PO:</span>
+                    <span className="text-foreground font-mono font-bold">
                       {itemsS2[0]?.noPo || itemS1?.po || '-'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-slate-400">Tgl Input PO:</span>
-                    <span className="text-slate-300 font-mono">
+                    <span className="text-muted-foreground">Tgl Input PO:</span>
+                    <span className="text-muted-foreground font-mono">
                       {itemsS2[0]?.tglPo || itemS1?.date || '-'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-slate-400">Delivery Time:</span>
-                    <span className="text-slate-300 font-mono">
+                    <span className="text-muted-foreground">Delivery Time:</span>
+                    <span className="text-muted-foreground font-mono">
                       {itemS1?.deliveryTime || itemsS2[0]?.waktuProses || '-'}
                     </span>
                   </div>
                 </div>
               </div>
-              <div className="pt-2 border-t border-slate-800/80">
-                <span className="text-[10px] font-mono text-cyan-300 bg-cyan-950/70 px-2 py-1 rounded border border-cyan-800/50 block text-center truncate">
+              <div className="pt-2 border-t border-border">
+                <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/40 px-2 py-0.5 rounded-md border border-cyan-800/40 block text-center truncate">
                   {itemS1?.po && itemS1.po !== '-'
                     ? 'PO Diterbitkan'
                     : itemsS2[0]?.noPo
@@ -375,44 +375,44 @@ export default function AuditModal({
             </div>
 
             {/* 2. LOGISTIK TTB */}
-            <div className="p-3.5 rounded-xl bg-gradient-to-b from-purple-950/40 to-slate-950/90 border border-purple-500/30 flex flex-col justify-between space-y-2 shadow-sm">
+            <div className="p-3.5 rounded-lg bg-card border border-border flex flex-col justify-between space-y-2 shadow-xs hover:border-zinc-700 transition">
               <div>
-                <div className="flex items-center justify-between pb-2 border-b border-purple-900/40">
-                  <span className="text-[11px] font-bold text-purple-400 font-mono flex items-center gap-1.5">
-                    <PackageCheck className="w-3.5 h-3.5 text-purple-400" />
+                <div className="flex items-center justify-between pb-2 border-b border-border">
+                  <span className="text-[11px] font-semibold text-foreground font-mono flex items-center gap-1.5">
+                    <PackageCheck className="size-3.5 text-purple-400" />
                     2. LOGISTIK TTB
                   </span>
-                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-800/60 font-semibold">
+                  <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-muted text-muted-foreground border border-border font-semibold">
                     LOG
                   </span>
                 </div>
                 <div className="mt-2.5 space-y-1.5">
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-slate-400">PIC TTB:</span>
-                    <span className="font-bold text-white font-mono">{itemS1?.picTtb || 'DAVILA'}</span>
+                    <span className="text-muted-foreground">PIC TTB:</span>
+                    <span className="font-semibold text-foreground font-mono">{itemS1?.picTtb || 'DAVILA'}</span>
                   </div>
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-slate-400">No. TTB:</span>
-                    <span className="text-purple-300 font-mono font-bold">
+                    <span className="text-muted-foreground">No. TTB:</span>
+                    <span className="text-purple-400 font-mono font-bold">
                       {itemsS2[0]?.noTtb || itemS1?.noTtb || '-'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-slate-400">Tgl Input TTB:</span>
-                    <span className="text-slate-300 font-mono">
+                    <span className="text-muted-foreground">Tgl Input TTB:</span>
+                    <span className="text-muted-foreground font-mono">
                       {itemsS2[0]?.tglTtb || itemS1?.tglInputTtb || '-'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-slate-400">No. FSTB:</span>
-                    <span className="text-slate-300 font-mono">
+                    <span className="text-muted-foreground">No. FSTB:</span>
+                    <span className="text-muted-foreground font-mono">
                       {itemsS2[0]?.noFstb || itemS1?.noFstb || '-'}
                     </span>
                   </div>
                 </div>
               </div>
-              <div className="pt-2 border-t border-slate-800/80">
-                <span className="text-[10px] font-mono text-purple-300 bg-purple-950/70 px-2 py-1 rounded border border-purple-800/50 block text-center truncate">
+              <div className="pt-2 border-t border-border">
+                <span className="text-[10px] font-mono text-purple-400 bg-purple-950/40 px-2 py-0.5 rounded-md border border-purple-800/40 block text-center truncate">
                   {itemsS2[0]?.noTtb || itemS1?.noTtb
                     ? 'TTB Divalidasi'
                     : itemsS2[0]?.noFstb
@@ -423,44 +423,44 @@ export default function AuditModal({
             </div>
 
             {/* 3. TIM LAPANGAN */}
-            <div className="p-3.5 rounded-xl bg-gradient-to-b from-amber-950/40 to-slate-950/90 border border-amber-500/30 flex flex-col justify-between space-y-2 shadow-sm">
+            <div className="p-3.5 rounded-lg bg-card border border-border flex flex-col justify-between space-y-2 shadow-xs hover:border-zinc-700 transition">
               <div>
-                <div className="flex items-center justify-between pb-2 border-b border-amber-900/40">
-                  <span className="text-[11px] font-bold text-amber-400 font-mono flex items-center gap-1.5">
-                    <HardHat className="w-3.5 h-3.5 text-amber-400" />
+                <div className="flex items-center justify-between pb-2 border-b border-border">
+                  <span className="text-[11px] font-semibold text-foreground font-mono flex items-center gap-1.5">
+                    <HardHat className="size-3.5 text-amber-400" />
                     3. TIM LAPANGAN
                   </span>
-                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800/60 font-semibold">
+                  <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-muted text-muted-foreground border border-border font-semibold">
                     LAP
                   </span>
                 </div>
                 <div className="mt-2.5 space-y-1.5">
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-slate-400">PIC Lapangan:</span>
-                    <span className="font-bold text-white font-mono">{itemS1?.picLap || 'AGUS'}</span>
+                    <span className="text-muted-foreground">PIC Lapangan:</span>
+                    <span className="font-semibold text-foreground font-mono">{itemS1?.picLap || 'AGUS'}</span>
                   </div>
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-slate-400">Tgl Diantar:</span>
-                    <span className="text-amber-300 font-mono">
+                    <span className="text-muted-foreground">Tgl Diantar:</span>
+                    <span className="text-amber-400 font-mono">
                       {itemS1?.tglBarangDiantar || '-'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-slate-400">Ke Tim Lap:</span>
-                    <span className="text-slate-300 font-mono">
+                    <span className="text-muted-foreground">Ke Tim Lap:</span>
+                    <span className="text-muted-foreground font-mono">
                       {itemS1?.tglKeTimLapangan || '-'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-slate-400">TTB ke PCH:</span>
-                    <span className="text-slate-300 font-mono">
+                    <span className="text-muted-foreground">TTB ke PCH:</span>
+                    <span className="text-muted-foreground font-mono">
                       {itemS1?.tglTtbKePicPch || '-'}
                     </span>
                   </div>
                 </div>
               </div>
-              <div className="pt-2 border-t border-slate-800/80">
-                <span className="text-[10px] font-mono text-amber-300 bg-amber-950/70 px-2 py-1 rounded border border-amber-800/50 block text-center truncate">
+              <div className="pt-2 border-t border-border">
+                <span className="text-[10px] font-mono text-amber-400 bg-amber-950/40 px-2 py-0.5 rounded-md border border-amber-800/40 block text-center truncate">
                   {itemS1?.tglBarangDiantar
                     ? 'Barang Sudah Diantar'
                     : itemsS2.length > 0 && itemsS2[0].selisih === 0
@@ -471,44 +471,44 @@ export default function AuditModal({
             </div>
 
             {/* 4. FINANCE / ADM */}
-            <div className="p-3.5 rounded-xl bg-gradient-to-b from-emerald-950/40 to-slate-950/90 border border-emerald-500/30 flex flex-col justify-between space-y-2 shadow-sm">
+            <div className="p-3.5 rounded-lg bg-card border border-border flex flex-col justify-between space-y-2 shadow-xs hover:border-zinc-700 transition">
               <div>
-                <div className="flex items-center justify-between pb-2 border-b border-emerald-900/40">
-                  <span className="text-[11px] font-bold text-emerald-400 font-mono flex items-center gap-1.5">
-                    <Landmark className="w-3.5 h-3.5 text-emerald-400" />
+                <div className="flex items-center justify-between pb-2 border-b border-border">
+                  <span className="text-[11px] font-semibold text-foreground font-mono flex items-center gap-1.5">
+                    <Landmark className="size-3.5 text-emerald-400" />
                     4. FINANCE / ADM
                   </span>
-                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800/60 font-semibold">
+                  <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-muted text-muted-foreground border border-border font-semibold">
                     FIN
                   </span>
                 </div>
                 <div className="mt-2.5 space-y-1.5">
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-slate-400">PIC ADM / Fin:</span>
-                    <span className="font-bold text-white font-mono">{itemS1?.picAdm || 'MANDA'}</span>
+                    <span className="text-muted-foreground">PIC ADM / Fin:</span>
+                    <span className="font-semibold text-foreground font-mono">{itemS1?.picAdm || 'MANDA'}</span>
                   </div>
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-slate-400">No. SPP:</span>
-                    <span className="text-emerald-300 font-mono font-bold">
+                    <span className="text-muted-foreground">No. SPP:</span>
+                    <span className="text-emerald-400 font-mono font-bold">
                       {itemS1?.noSpp || '-'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-slate-400">Tgl Input SPP:</span>
-                    <span className="text-slate-300 font-mono">
+                    <span className="text-muted-foreground">Tgl Input SPP:</span>
+                    <span className="text-muted-foreground font-mono">
                       {itemS1?.tglInputSpp || '-'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-slate-400">Ke Keuangan:</span>
-                    <span className="text-slate-300 font-mono">
+                    <span className="text-muted-foreground">Ke Keuangan:</span>
+                    <span className="text-muted-foreground font-mono">
                       {itemS1?.tglKeKeuangan || '-'}
                     </span>
                   </div>
                 </div>
               </div>
-              <div className="pt-2 border-t border-slate-800/80">
-                <span className="text-[10px] font-mono text-emerald-300 bg-emerald-950/70 px-2 py-1 rounded border border-emerald-800/50 block text-center truncate">
+              <div className="pt-2 border-t border-border">
+                <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-800/40 block text-center truncate">
                   {itemS1?.tglKeKeuangan
                     ? 'Selesai di Keuangan'
                     : itemS1?.noSpp
@@ -521,23 +521,23 @@ export default function AuditModal({
         </div>
 
         {/* Peruntukan & Tujuan Pengadaan */}
-        <div className="bg-slate-900/80 rounded-xl border border-slate-800 p-4 space-y-2">
+        <div className="bg-muted/30 rounded-xl border border-border p-4 space-y-2">
           <div className="flex items-center justify-between flex-wrap gap-2">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
               Tujuan & Peruntukan Pengadaan:
             </span>
             {tujuanPeruntukan && armadaKeterangans.length > 0 && (
-              <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/70 border border-cyan-800/80 px-2 py-0.5 rounded">
+              <span className="text-[10px] font-mono text-foreground bg-muted border border-border px-2 py-0.5 rounded">
                 Worksheet: Monitoring Layanan Armada
               </span>
             )}
           </div>
           {tujuanPeruntukan ? (
-            <p className="text-sm font-semibold text-cyan-300 leading-relaxed bg-slate-950/60 p-3 rounded-lg border border-slate-800/80">
+            <p className="text-xs font-medium text-foreground leading-relaxed bg-background p-3 rounded-lg border border-border">
               {tujuanPeruntukan}
             </p>
           ) : (
-            <p className="text-xs font-mono text-slate-400 italic bg-slate-950/40 p-3 rounded-lg border border-dashed border-slate-800">
+            <p className="text-xs font-mono text-muted-foreground italic bg-background/50 p-3 rounded-lg border border-dashed border-border">
               - (kosong)
             </p>
           )}
@@ -546,16 +546,16 @@ export default function AuditModal({
         {/* Items Table Breakdown */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
               Daftar Rincian Item Barang {activePo ? `(Khusus PO: ${activePo})` : '(Layanan Armada Matching)'}:
             </span>
-            <span className="text-[11px] font-mono text-cyan-400">
+            <span className="text-xs font-mono text-muted-foreground">
               {itemsS2.length} item ditemukan
             </span>
           </div>
-          <div className="border border-slate-800 rounded-xl overflow-hidden">
-            <table className="w-full text-left text-xs text-slate-300">
-              <thead className="bg-slate-950 text-slate-400 text-[10px] uppercase font-semibold">
+          <div className="border border-border rounded-xl overflow-hidden">
+            <table className="w-full text-left text-xs text-foreground">
+              <thead className="bg-muted/40 text-muted-foreground text-[10px] uppercase font-semibold border-b border-border">
                 <tr>
                   <th className="p-2.5">Item Deskripsi & Tujuan</th>
                   <th className="p-2.5 text-center">Qty FPB</th>
@@ -563,27 +563,27 @@ export default function AuditModal({
                   <th className="p-2.5 text-center">Status Pemenuhan</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 font-mono">
+              <tbody className="divide-y divide-border/60 font-mono text-xs">
                 {itemsS2.length > 0 ? (
                   itemsS2.map((i, idx) => (
-                    <tr key={`${i.fpb}-${i.item}-${idx}`} className="hover:bg-slate-900/50 transition">
-                      <td className="p-2.5 text-white font-sans">
-                        <div className="font-medium text-slate-100">{i.item}</div>
+                    <tr key={`${i.fpb}-${i.item}-${idx}`} className="hover:bg-muted/40 transition">
+                      <td className="p-2.5 text-foreground font-sans">
+                        <div className="font-medium text-foreground">{i.item}</div>
                         {i.keterangan && (
-                          <div className="text-[11px] text-cyan-400 font-mono mt-0.5">
-                            <span className="text-slate-400 font-sans mr-1">Tujuan:</span>
+                          <div className="text-[11px] text-muted-foreground font-mono mt-0.5">
+                            <span className="text-muted-foreground/70 font-sans mr-1">Tujuan:</span>
                             {i.keterangan}
                           </div>
                         )}
                       </td>
-                      <td className="p-2.5 text-center text-cyan-400">{i.qtyFPB}</td>
-                      <td className="p-2.5 text-center text-slate-300">{i.qtyFSTB}</td>
+                      <td className="p-2.5 text-center text-foreground font-semibold">{i.qtyFPB}</td>
+                      <td className="p-2.5 text-center text-muted-foreground">{i.qtyFSTB}</td>
                       <td className="p-2.5 text-center">
                         <span
-                          className={`px-2 py-0.5 rounded text-[10px] ${
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${
                             i.selisih === 0
-                              ? 'bg-emerald-500/20 text-emerald-300'
-                              : 'bg-amber-500/20 text-amber-300'
+                              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                              : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
                           }`}
                         >
                           {i.status}
@@ -593,13 +593,13 @@ export default function AuditModal({
                   ))
                 ) : (
                   <tr>
-                    <td className="p-2.5 text-white font-sans">
+                    <td className="p-2.5 text-foreground font-sans">
                       {itemS1 ? itemS1.item : 'Item Standar'}
                     </td>
-                    <td className="p-2.5 text-center text-cyan-400">1</td>
-                    <td className="p-2.5 text-center text-slate-300">1</td>
+                    <td className="p-2.5 text-center text-foreground font-semibold">1</td>
+                    <td className="p-2.5 text-center text-muted-foreground">1</td>
                     <td className="p-2.5 text-center">
-                      <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-500/20 text-emerald-300">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                         Lengkap
                       </span>
                     </td>
@@ -611,17 +611,17 @@ export default function AuditModal({
         </div>
 
         {/* Action Footer */}
-        <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+        <div className="flex items-center justify-between pt-3 border-t border-border">
           <button
             onClick={handleWhatsappNudge}
-            className="px-4 py-2 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition"
+            className="h-8 px-3.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-medium flex items-center gap-1.5 transition"
           >
-            <MessageSquare className="w-4 h-4 text-emerald-400" />
+            <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
             <span>Eskalasi PIC via WhatsApp</span>
           </button>
           <button
             onClick={onClose}
-            className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold transition"
+            className="h-8 px-4 bg-muted hover:bg-muted/80 text-foreground border border-border rounded-lg text-xs font-medium transition"
           >
             Tutup Modal
           </button>

@@ -14,11 +14,11 @@ export default function EntityFilterBar({
   onSelectEntity,
 }: EntityFilterBarProps) {
   return (
-    <section className="bg-[#0b101f] border-b border-slate-800/90 px-4 lg:px-8 py-2.5">
-      <div className="max-w-[1700px] mx-auto flex items-center justify-between overflow-x-auto gap-2 no-scrollbar">
+    <section className="bg-background/95 border-b border-border px-4 lg:px-6 py-2">
+      <div className="flex items-center justify-between overflow-x-auto gap-2 no-scrollbar">
         <div className="flex items-center gap-1.5 text-xs">
-          <span className="text-slate-400 font-mono text-[11px] uppercase tracking-wider mr-1 hidden sm:inline">
-            Entitas Resmi CPG:
+          <span className="text-muted-foreground text-[11px] font-medium mr-1.5 hidden sm:inline">
+            Entitas CPG:
           </span>
           {ENTITIES.map((ent) => {
             const isActive = selectedEntity === ent.code;
@@ -26,10 +26,10 @@ export default function EntityFilterBar({
               <button
                 key={ent.code}
                 onClick={() => onSelectEntity(ent.code as EntityCode)}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold transition font-mono whitespace-nowrap ${
+                className={`h-7 px-2.5 rounded-lg text-xs font-medium transition whitespace-nowrap outline-none ${
                   isActive
-                    ? 'bg-cyan-500 text-slate-950 shadow-sm'
-                    : 'bg-slate-900 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-800'
+                    ? 'bg-primary text-primary-foreground shadow-xs font-semibold'
+                    : 'border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground'
                 }`}
               >
                 {ent.label}
@@ -38,10 +38,10 @@ export default function EntityFilterBar({
           })}
         </div>
 
-        <div className="flex items-center gap-3 text-xs text-slate-400">
-          <span className="flex items-center gap-1.5 font-mono text-[11px] whitespace-nowrap">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-            Data Synchronized &bull; CPG Holding
+        <div className="flex items-center gap-2 text-xs text-muted-foreground shrink-0">
+          <span className="flex items-center gap-1.5 text-[11px] font-mono">
+            <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            Sync Active &bull; CPG Holding
           </span>
         </div>
       </div>

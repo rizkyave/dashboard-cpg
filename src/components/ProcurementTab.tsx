@@ -144,11 +144,11 @@ export default function ProcurementTab({
   const [pageSize, setPageSize] = useState<number>(50);
 
   const toneStyles: Record<StatusTone, string> = {
-    emerald: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
-    cyan: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30',
-    purple: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
-    amber: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
-    rose: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
+    emerald: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+    cyan: 'bg-primary/10 text-primary border-primary/20',
+    purple: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+    amber: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+    rose: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
   };
 
   // Base items depending on view grouping
@@ -376,7 +376,7 @@ export default function ProcurementTab({
     return (
       <span
         className={`inline-flex items-center ml-1 p-0.5 rounded transition ${
-          isActive ? 'text-cyan-400 bg-cyan-950/70' : 'text-slate-500 hover:text-slate-300'
+          isActive ? 'text-foreground' : 'text-muted-foreground/60'
         }`}
       >
         {isActive ? (
@@ -386,7 +386,7 @@ export default function ProcurementTab({
             <ArrowDown className="w-3.5 h-3.5" />
           )
         ) : (
-          <ArrowUpDown className="w-3 h-3 opacity-50" />
+          <ArrowUpDown className="w-3 h-3 opacity-40" />
         )}
       </span>
     );
@@ -419,56 +419,61 @@ export default function ProcurementTab({
 
   return (
     <div className="space-y-4">
-      <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4">
+      <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm overflow-hidden">
         {/* Header Title & Action Button */}
-        <div className="flex items-center justify-between flex-wrap gap-3 border-b border-slate-800 pb-3">
-          <div>
-            <h3 className="text-base font-bold text-white flex items-center gap-2 flex-wrap">
-              <FileSpreadsheet className="w-5 h-5 text-cyan-400" />
-              <span>Monitoring Pengadaan & Layanan Armada</span>
-              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                Acuan Utama: Monitoring Layanan Armada
-              </span>
-            </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Alur rantai pertanggungjawaban fisik dokumen dan layanan armada dari Purchasing, Logistik TTB,
-              Kru Lapangan, hingga Staf Keuangan.
-            </p>
+        <div className="flex items-center justify-between flex-wrap gap-3 p-5 border-b border-border">
+          <div className="flex items-center gap-3">
+            <div className="size-9 rounded-lg border border-border bg-muted/60 text-muted-foreground flex items-center justify-center">
+              <FileSpreadsheet className="w-4.5 h-4.5 text-foreground" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-sm font-semibold tracking-tight text-foreground">
+                  Monitoring Pengadaan & Layanan Armada
+                </h3>
+                <span className="rounded-full px-2 py-0.5 text-[10px] font-medium border bg-muted/60 text-muted-foreground border-border">
+                  Acuan Utama: Monitoring Layanan Armada
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Alur rantai pertanggungjawaban fisik dokumen dan layanan armada dari Purchasing, Logistik TTB, Kru Lapangan, hingga Staf Keuangan.
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             {/* View Mode Toggle: Per Item Armada vs Ringkasan Berkas/PO */}
-            <div className="flex items-center bg-slate-900/90 p-1 rounded-lg border border-slate-700/80 text-xs">
+            <div className="flex items-center bg-muted/60 p-1 rounded-lg border border-border text-xs">
               <button
                 type="button"
                 onClick={() => setViewGrouping('items')}
-                className={`px-2.5 py-1 rounded text-xs font-semibold transition ${
+                className={`h-7 px-2.5 rounded-md text-xs font-medium transition ${
                   viewGrouping === 'items'
-                    ? 'bg-cyan-600 text-white shadow'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-background text-foreground shadow-sm border border-border/80'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
                 title="Tampilkan setiap baris item dari sheet Monitoring Layanan Armada"
               >
-                📋 Semua Item ({items.length.toLocaleString()})
+                Semua Item ({items.length.toLocaleString()})
               </button>
               <button
                 type="button"
                 onClick={() => setViewGrouping('dossiers')}
-                className={`px-2.5 py-1 rounded text-xs font-semibold transition ${
+                className={`h-7 px-2.5 rounded-md text-xs font-medium transition ${
                   viewGrouping === 'dossiers'
-                    ? 'bg-cyan-600 text-white shadow'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-background text-foreground shadow-sm border border-border/80'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
                 title="Kelompokkan data per berkas PO / FPB"
               >
-                📁 Ringkasan Berkas
+                Ringkasan Berkas
               </button>
             </div>
 
             <button
               onClick={onOpenNewRecord}
-              className="px-3.5 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow"
+              className="h-8 px-3.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg text-xs font-medium flex items-center gap-1.5 transition shadow-sm"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-3.5 h-3.5" />
               <span>Input Berkas PO Baru</span>
             </button>
           </div>
@@ -477,7 +482,7 @@ export default function ProcurementTab({
         {/* ═══════════════════════════════════════════════════════════
             FILTER & SEARCH BAR CONTROL
             ═══════════════════════════════════════════════════════════ */}
-        <div className="bg-[#090e1d] p-4 rounded-xl border border-slate-800 space-y-3">
+        <div className="p-4 bg-muted/20 border-b border-border space-y-3">
           {/* Row 1: Search Input & Quick Lapse Filter Buttons */}
           <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
             {/* Search Input Form */}
@@ -490,7 +495,7 @@ export default function ProcurementTab({
               className="flex items-center gap-2 flex-1 min-w-[280px]"
             >
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                 <input
                   type="text"
                   value={searchTerm}
@@ -501,22 +506,22 @@ export default function ProcurementTab({
                     }
                   }}
                   placeholder="Cari FPB, No PO, Nama Kapal / Armada, Peruntukan, PIC..."
-                  className="w-full pl-9 pr-8 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition"
+                  className="w-full h-8 pl-8 pr-7 bg-background border border-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring transition"
                 />
                 {searchTerm && (
                   <button
                     type="button"
                     onClick={() => handleSearchChange('')}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     title="Hapus kata kunci"
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <X className="w-3 h-3" />
                   </button>
                 )}
               </div>
               <button
                 type="submit"
-                className="px-3.5 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-cyan-950/40 whitespace-nowrap"
+                className="h-8 px-3 rounded-lg border border-border bg-background hover:bg-muted text-xs font-medium text-foreground flex items-center gap-1.5 transition whitespace-nowrap"
                 title="Tekan Enter atau klik untuk mencari"
               >
                 <Search className="w-3.5 h-3.5" />
@@ -526,47 +531,47 @@ export default function ProcurementTab({
 
             {/* Quick Lapse Filter Buttons */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 text-xs">
-              <span className="text-slate-400 text-[11px] font-medium mr-1 flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="text-muted-foreground text-[11px] font-medium mr-1 flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5 text-muted-foreground" />
                 Lapse:
               </span>
               <button
                 onClick={() => setSelectedLapse('ALL')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap ${
+                className={`h-7 px-2.5 rounded-lg text-xs font-medium transition whitespace-nowrap border ${
                   selectedLapse === 'ALL'
-                    ? 'bg-cyan-600 text-white shadow-sm'
-                    : 'bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800'
+                    ? 'bg-foreground text-background border-foreground font-semibold'
+                    : 'bg-background text-muted-foreground hover:text-foreground border-border hover:bg-muted'
                 }`}
               >
                 Semua ({items.length})
               </button>
               <button
                 onClick={() => setSelectedLapse('CRITICAL')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap flex items-center gap-1.5 ${
+                className={`h-7 px-2.5 rounded-lg text-xs font-medium transition whitespace-nowrap flex items-center gap-1.5 border ${
                   selectedLapse === 'CRITICAL'
-                    ? 'bg-rose-600 text-white shadow-sm'
-                    : 'bg-slate-900 text-rose-300 hover:text-white hover:bg-rose-950/50 border border-rose-900/40'
+                    ? 'bg-rose-500/10 text-rose-400 border-rose-500/30 font-semibold'
+                    : 'bg-background text-muted-foreground hover:text-foreground border-border hover:bg-muted'
                 }`}
               >
-                <span className="w-2 h-2 rounded-full bg-rose-400 animate-pulse"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                 <span>Kritis &gt;5 Hari ({counts.critical})</span>
               </button>
               <button
                 onClick={() => setSelectedLapse('WARNING')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap ${
+                className={`h-7 px-2.5 rounded-lg text-xs font-medium transition whitespace-nowrap border ${
                   selectedLapse === 'WARNING'
-                    ? 'bg-amber-600 text-white shadow-sm'
-                    : 'bg-slate-900 text-amber-300 hover:text-white hover:bg-amber-950/50 border border-amber-900/40'
+                    ? 'bg-amber-500/10 text-amber-400 border-amber-500/30 font-semibold'
+                    : 'bg-background text-muted-foreground hover:text-foreground border-border hover:bg-muted'
                 }`}
               >
                 Perhatian 3-5 Hari ({counts.warning})
               </button>
               <button
                 onClick={() => setSelectedLapse('NORMAL')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap ${
+                className={`h-7 px-2.5 rounded-lg text-xs font-medium transition whitespace-nowrap border ${
                   selectedLapse === 'NORMAL'
-                    ? 'bg-emerald-600 text-white shadow-sm'
-                    : 'bg-slate-900 text-emerald-300 hover:text-white hover:bg-emerald-950/50 border border-emerald-900/40'
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 font-semibold'
+                    : 'bg-background text-muted-foreground hover:text-foreground border-border hover:bg-muted'
                 }`}
               >
                 Normal ≤2 Hari ({counts.normal})
@@ -575,22 +580,22 @@ export default function ProcurementTab({
           </div>
 
           {/* Row 2: Filter Waktu (Tahun, Bulan, Rentang Tanggal) & Quick Sort Tanggal */}
-          <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-slate-800/80 text-xs">
+          <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-border/60 text-xs">
             <div className="flex flex-wrap items-center gap-2">
               {/* Tahun Filter */}
-              <div className="flex items-center gap-1.5 bg-slate-900/90 px-2.5 py-1.5 rounded-lg border border-slate-700/80">
-                <Calendar className="w-3.5 h-3.5 text-cyan-400" />
-                <span className="text-slate-400 text-[11px] font-medium">Tahun:</span>
+              <div className="flex items-center gap-1.5 bg-background h-8 px-2.5 rounded-lg border border-border">
+                <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
+                <span className="text-muted-foreground text-[11px] font-medium">Tahun:</span>
                 <select
                   value={selectedYear}
                   onChange={(e) => setSelectedYear(e.target.value)}
-                  className="bg-transparent text-slate-200 text-xs focus:outline-none font-mono cursor-pointer"
+                  className="bg-transparent text-foreground text-xs focus:outline-none font-mono cursor-pointer"
                 >
-                  <option value="ALL" className="bg-slate-900 text-slate-200">
-                    Semua Tahun {uniqueYears.length > 0 ? `(${uniqueYears.length})` : ''}
+                  <option value="ALL" className="bg-popover text-popover-foreground">
+                    Semua ({uniqueYears.length})
                   </option>
                   {uniqueYears.map((yr) => (
-                    <option key={yr} value={yr} className="bg-slate-900 text-slate-200 font-mono">
+                    <option key={yr} value={yr} className="bg-popover text-popover-foreground font-mono">
                       {yr}
                     </option>
                   ))}
@@ -598,16 +603,16 @@ export default function ProcurementTab({
               </div>
 
               {/* Bulan Filter */}
-              <div className="flex items-center gap-1.5 bg-slate-900/90 px-2.5 py-1.5 rounded-lg border border-slate-700/80">
-                <CalendarDays className="w-3.5 h-3.5 text-cyan-400" />
-                <span className="text-slate-400 text-[11px] font-medium">Bulan:</span>
+              <div className="flex items-center gap-1.5 bg-background h-8 px-2.5 rounded-lg border border-border">
+                <CalendarDays className="w-3.5 h-3.5 text-muted-foreground" />
+                <span className="text-muted-foreground text-[11px] font-medium">Bulan:</span>
                 <select
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="bg-transparent text-slate-200 text-xs focus:outline-none cursor-pointer"
+                  className="bg-transparent text-foreground text-xs focus:outline-none cursor-pointer"
                 >
                   {MONTH_OPTIONS.map((m) => (
-                    <option key={m.value} value={m.value} className="bg-slate-900 text-slate-200">
+                    <option key={m.value} value={m.value} className="bg-popover text-popover-foreground">
                       {m.label}
                     </option>
                   ))}
@@ -615,22 +620,22 @@ export default function ProcurementTab({
               </div>
 
               {/* Rentang Tanggal PO (Date Range) */}
-              <div className="flex items-center gap-1.5 bg-slate-900/90 px-2.5 py-1.5 rounded-lg border border-slate-700/80 text-slate-300">
-                <CalendarRange className="w-3.5 h-3.5 text-cyan-400" />
-                <span className="text-slate-400 text-[11px]">Tgl PO:</span>
+              <div className="flex items-center gap-1.5 bg-background h-8 px-2.5 rounded-lg border border-border text-foreground">
+                <CalendarRange className="w-3.5 h-3.5 text-muted-foreground" />
+                <span className="text-muted-foreground text-[11px]">Tgl PO:</span>
                 <input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="bg-transparent text-slate-200 text-xs focus:outline-none font-mono cursor-pointer"
+                  className="bg-transparent text-foreground text-xs focus:outline-none font-mono cursor-pointer"
                   title="Dari Tanggal PO"
                 />
-                <span className="text-slate-500 text-[11px]">&ndash;</span>
+                <span className="text-muted-foreground text-[11px]">&ndash;</span>
                 <input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="bg-transparent text-slate-200 text-xs focus:outline-none font-mono cursor-pointer"
+                  className="bg-transparent text-foreground text-xs focus:outline-none font-mono cursor-pointer"
                   title="Sampai Tanggal PO"
                 />
                 {(startDate || endDate) && (
@@ -640,7 +645,7 @@ export default function ProcurementTab({
                       setStartDate('');
                       setEndDate('');
                     }}
-                    className="text-slate-400 hover:text-white ml-1"
+                    className="text-muted-foreground hover:text-foreground ml-1"
                     title="Hapus filter rentang tanggal"
                   >
                     <X className="w-3 h-3" />
@@ -651,21 +656,21 @@ export default function ProcurementTab({
 
             {/* Quick Sorting Buttons by Tanggal */}
             <div className="flex items-center gap-1.5">
-              <span className="text-slate-400 text-[11px] mr-1 hidden sm:inline">Urut Tanggal:</span>
+              <span className="text-muted-foreground text-[11px] mr-1 hidden sm:inline">Urut Tanggal:</span>
               <button
                 type="button"
                 onClick={() => {
                   setSortField('date');
                   setSortDirection('desc');
                 }}
-                className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
+                className={`h-7 px-2.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition border ${
                   sortField === 'date' && sortDirection === 'desc'
-                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/50 shadow-sm'
-                    : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
+                    ? 'bg-foreground text-background border-foreground font-semibold'
+                    : 'bg-background text-muted-foreground hover:text-foreground border-border hover:bg-muted'
                 }`}
                 title="Urutkan tanggal PO terbaru di atas"
               >
-                <ArrowDown className="w-3.5 h-3.5 text-cyan-400" />
+                <ArrowDown className="w-3 h-3" />
                 <span>Terbaru</span>
               </button>
               <button
@@ -674,37 +679,37 @@ export default function ProcurementTab({
                   setSortField('date');
                   setSortDirection('asc');
                 }}
-                className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
+                className={`h-7 px-2.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition border ${
                   sortField === 'date' && sortDirection === 'asc'
-                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/50 shadow-sm'
-                    : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
+                    ? 'bg-foreground text-background border-foreground font-semibold'
+                    : 'bg-background text-muted-foreground hover:text-foreground border-border hover:bg-muted'
                 }`}
                 title="Urutkan tanggal PO terlama di atas"
               >
-                <ArrowUp className="w-3.5 h-3.5 text-cyan-400" />
+                <ArrowUp className="w-3 h-3" />
                 <span>Terlama</span>
               </button>
             </div>
           </div>
 
           {/* Row 3: Secondary Dropdowns & Lapse Controls */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-800/80 text-xs">
-            <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-border/60 text-xs">
+            <div className="flex flex-wrap items-center gap-2">
               {/* Entitas / PT Filter */}
               {uniqueEntities.length > 0 && (
                 <div className="flex items-center gap-1.5">
-                  <span className="text-slate-400 text-[11px] flex items-center gap-1">
-                    <Building2 className="w-3.5 h-3.5 text-cyan-400" />
+                  <span className="text-muted-foreground text-[11px] flex items-center gap-1">
+                    <Building2 className="w-3.5 h-3.5 text-muted-foreground" />
                     PT:
                   </span>
                   <select
                     value={selectedEntity}
                     onChange={(e) => setSelectedEntity(e.target.value)}
-                    className="bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-cyan-400 font-mono"
+                    className="h-7 bg-background border border-border text-foreground text-xs rounded-lg px-2.5 focus:outline-none focus:ring-1 focus:ring-ring font-mono"
                   >
                     <option value="ALL">Semua PT ({uniqueEntities.length})</option>
                     {uniqueEntities.map((ent) => (
-                      <option key={ent} value={ent}>
+                      <option key={ent} value={ent} className="bg-popover text-popover-foreground">
                         {ent}
                       </option>
                     ))}
@@ -715,18 +720,18 @@ export default function ProcurementTab({
               {/* Status Berkas Filter */}
               {uniqueStatuses.length > 0 && (
                 <div className="flex items-center gap-1.5">
-                  <span className="text-slate-400 text-[11px] flex items-center gap-1">
-                    <Filter className="w-3.5 h-3.5 text-cyan-400" />
+                  <span className="text-muted-foreground text-[11px] flex items-center gap-1">
+                    <Filter className="w-3.5 h-3.5 text-muted-foreground" />
                     Status:
                   </span>
                   <select
                     value={selectedStatus}
                     onChange={(e) => setSelectedStatus(e.target.value)}
-                    className="bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-cyan-400 max-w-[220px]"
+                    className="h-7 bg-background border border-border text-foreground text-xs rounded-lg px-2.5 focus:outline-none focus:ring-1 focus:ring-ring max-w-[220px]"
                   >
                     <option value="ALL">Semua Status ({uniqueStatuses.length})</option>
                     {uniqueStatuses.map((st) => (
-                      <option key={st} value={st}>
+                      <option key={st} value={st} className="bg-popover text-popover-foreground">
                         {st}
                       </option>
                     ))}
@@ -740,14 +745,14 @@ export default function ProcurementTab({
                   setSortField('lapse');
                   setSortDirection('desc');
                 }}
-                className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
+                className={`h-7 px-2.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition border ${
                   sortField === 'lapse' && sortDirection === 'desc'
-                    ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
-                    : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
+                    ? 'bg-rose-500/10 text-rose-400 border-rose-500/30 font-semibold'
+                    : 'bg-background text-muted-foreground hover:text-foreground border-border hover:bg-muted'
                 }`}
                 title="Urutkan berkas dengan durasi tertunda paling lama"
               >
-                <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
+                <AlertTriangle className="w-3 h-3 text-rose-400" />
                 <span>Lapse Tertinggi</span>
               </button>
 
@@ -755,27 +760,27 @@ export default function ProcurementTab({
               {isFiltered && (
                 <button
                   onClick={handleResetFilters}
-                  className="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-rose-300 hover:text-white bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800/40 flex items-center gap-1 transition"
+                  className="h-7 px-2.5 rounded-lg text-xs font-medium text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 flex items-center gap-1 transition"
                 >
-                  <RotateCcw className="w-3.5 h-3.5" />
+                  <RotateCcw className="w-3 h-3" />
                   <span>Reset Filter</span>
                 </button>
               )}
             </div>
 
             {/* Results Counter & Active Sorting Indicator */}
-            <div className="flex items-center gap-3 text-slate-400 text-[11px]">
+            <div className="flex items-center gap-3 text-muted-foreground text-[11px]">
               <span>
                 Menampilkan{' '}
-                <strong className="text-cyan-400 font-mono">
+                <strong className="text-foreground font-mono">
                   {sortedItems.length.toLocaleString()}
                 </strong>{' '}
                 dari {items.length.toLocaleString()} berkas
               </span>
-              <span className="text-slate-600">|</span>
+              <span className="text-border">|</span>
               <span>
                 Urutan:{' '}
-                <strong className="text-slate-200 font-mono uppercase">
+                <strong className="text-foreground font-mono uppercase">
                   {sortField === 'date'
                     ? `Tanggal PO (${sortDirection === 'desc' ? 'Terbaru' : 'Terlama'})`
                     : `${sortField} (${sortDirection})`}
@@ -786,54 +791,54 @@ export default function ProcurementTab({
 
           {/* Active Search & Filter Notification */}
           {isFiltered && (
-            <div className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-cyan-950/40 border border-cyan-800/60 text-xs flex-wrap">
+            <div className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-muted/50 border border-border text-xs flex-wrap">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-cyan-300 font-mono font-semibold">
+                <span className="text-foreground font-mono font-medium">
                   Filter Aktif:
                 </span>
                 {searchTerm.trim() !== '' && (
-                  <span className="px-2 py-0.5 rounded bg-cyan-900/60 border border-cyan-700/60 text-white font-mono text-[11px]">
+                  <span className="px-2 py-0.5 rounded-full bg-background border border-border text-foreground font-mono text-[11px]">
                     Cari: &quot;{searchTerm}&quot;
                   </span>
                 )}
                 {selectedYear !== 'ALL' && (
-                  <span className="px-2 py-0.5 rounded bg-blue-900/60 border border-blue-700/60 text-white font-mono text-[11px]">
+                  <span className="px-2 py-0.5 rounded-full bg-background border border-border text-foreground font-mono text-[11px]">
                     Tahun: {selectedYear}
                   </span>
                 )}
                 {selectedMonth !== 'ALL' && (
-                  <span className="px-2 py-0.5 rounded bg-indigo-900/60 border border-indigo-700/60 text-white font-mono text-[11px]">
+                  <span className="px-2 py-0.5 rounded-full bg-background border border-border text-foreground font-mono text-[11px]">
                     Bulan: {MONTH_OPTIONS.find((m) => m.value === selectedMonth)?.label}
                   </span>
                 )}
                 {(startDate || endDate) && (
-                  <span className="px-2 py-0.5 rounded bg-purple-900/60 border border-purple-700/60 text-white font-mono text-[11px]">
+                  <span className="px-2 py-0.5 rounded-full bg-background border border-border text-foreground font-mono text-[11px]">
                     Rentang: {startDate || 'Awal'} s/d {endDate || 'Sekarang'}
                   </span>
                 )}
                 {selectedEntity !== 'ALL' && (
-                  <span className="px-2 py-0.5 rounded bg-emerald-900/60 border border-emerald-700/60 text-white font-mono text-[11px]">
+                  <span className="px-2 py-0.5 rounded-full bg-background border border-border text-foreground font-mono text-[11px]">
                     PT: {selectedEntity}
                   </span>
                 )}
                 {selectedLapse !== 'ALL' && (
-                  <span className="px-2 py-0.5 rounded bg-rose-900/60 border border-rose-700/60 text-white font-mono text-[11px]">
+                  <span className="px-2 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 font-mono text-[11px]">
                     Lapse: {selectedLapse}
                   </span>
                 )}
                 {selectedStatus !== 'ALL' && (
-                  <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-600 text-white font-mono text-[11px]">
+                  <span className="px-2 py-0.5 rounded-full bg-background border border-border text-foreground font-mono text-[11px]">
                     Status: {selectedStatus}
                   </span>
                 )}
-                <span className="text-cyan-400 font-mono text-[11px]">
+                <span className="text-muted-foreground font-mono text-[11px]">
                   ({sortedItems.length} berkas ditemukan)
                 </span>
               </div>
               <button
                 type="button"
                 onClick={handleResetFilters}
-                className="text-slate-400 hover:text-white text-[11px] underline flex items-center gap-1 ml-auto"
+                className="text-muted-foreground hover:text-foreground text-[11px] underline flex items-center gap-1 ml-auto"
               >
                 <X className="w-3 h-3" />
                 <span>Hapus Semua Filter</span>
@@ -845,13 +850,13 @@ export default function ProcurementTab({
         {/* ═══════════════════════════════════════════════════════════
             DETAILED SHEET 1 TABLE (INTERACTIVE SORTING)
             ═══════════════════════════════════════════════════════════ */}
-        <div className="overflow-x-auto rounded-xl border border-slate-800 shadow-xl">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-[#080d1a] text-slate-400 font-semibold border-b border-slate-800 uppercase tracking-wider text-[11px] select-none">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs text-foreground">
+            <thead className="bg-muted/40 text-muted-foreground font-medium border-b border-border uppercase tracking-wider text-[11px] select-none">
               <tr>
                 <th
                   onClick={() => handleSort('fpb')}
-                  className="p-3.5 cursor-pointer hover:text-white hover:bg-slate-900/60 transition group whitespace-nowrap"
+                  className="p-3.5 cursor-pointer hover:text-foreground transition group whitespace-nowrap"
                 >
                   <span className="flex items-center">
                     NO FPB & ENTITAS
@@ -860,7 +865,7 @@ export default function ProcurementTab({
                 </th>
                 <th
                   onClick={() => handleSort('po')}
-                  className="p-3.5 cursor-pointer hover:text-white hover:bg-slate-900/60 transition group whitespace-nowrap"
+                  className="p-3.5 cursor-pointer hover:text-foreground transition group whitespace-nowrap"
                 >
                   <span className="flex items-center">
                     NO PO INTERNAL
@@ -869,7 +874,7 @@ export default function ProcurementTab({
                 </th>
                 <th
                   onClick={() => handleSort('date')}
-                  className="p-3.5 cursor-pointer hover:text-white hover:bg-slate-900/60 transition group whitespace-nowrap"
+                  className="p-3.5 cursor-pointer hover:text-foreground transition group whitespace-nowrap"
                 >
                   <span className="flex items-center">
                     TANGGAL PO
@@ -878,7 +883,7 @@ export default function ProcurementTab({
                 </th>
                 <th
                   onClick={() => handleSort('item')}
-                  className="p-3.5 cursor-pointer hover:text-white hover:bg-slate-900/60 transition group"
+                  className="p-3.5 cursor-pointer hover:text-foreground transition group"
                 >
                   <span className="flex items-center">
                     DESKRIPSI BARANG & PERUNTUKAN
@@ -887,41 +892,41 @@ export default function ProcurementTab({
                 </th>
                 <th
                   onClick={() => handleSort('statusBadge')}
-                  className="p-3.5 cursor-pointer hover:text-white hover:bg-slate-900/60 transition group"
+                  className="p-3.5 cursor-pointer hover:text-foreground transition group"
                 >
                   <span className="flex items-center">
-                    STATUS BERKAS & PERSON IN CHARGE (PIC)
+                    STATUS BERKAS & PIC
                     {renderSortIndicator('statusBadge')}
                   </span>
                 </th>
                 <th
                   onClick={() => handleSort('lapse')}
-                  className="p-3.5 text-center cursor-pointer hover:text-white hover:bg-slate-900/60 transition group whitespace-nowrap bg-rose-950/20"
+                  className="p-3.5 text-center cursor-pointer hover:text-foreground transition group whitespace-nowrap"
                 >
-                  <span className="flex items-center justify-center text-rose-300 font-bold">
+                  <span className="flex items-center justify-center font-semibold">
                     LAPSE DAY
                     {renderSortIndicator('lapse')}
                   </span>
                 </th>
-                <th className="p-3.5 text-center whitespace-nowrap">AKSI AUDIT</th>
+                <th className="p-3.5 text-center whitespace-nowrap">AKSI</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 font-sans">
+            <tbody className="divide-y divide-border/60">
               {paginatedItems.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-10 text-center text-slate-500">
+                  <td colSpan={7} className="p-10 text-center text-muted-foreground">
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <FileSpreadsheet className="w-8 h-8 opacity-30 text-cyan-400" />
-                      <p className="text-sm font-semibold text-slate-300">
+                      <FileSpreadsheet className="w-8 h-8 opacity-30 text-muted-foreground" />
+                      <p className="text-sm font-medium text-foreground">
                         Tidak ada berkas yang cocok dengan filter
                       </p>
-                      <p className="text-xs text-slate-500 max-w-md">
+                      <p className="text-xs text-muted-foreground max-w-md">
                         Coba sesuaikan kata kunci pencarian, filter status, filter lapse day, atau klik tombol Reset Filter.
                       </p>
                       {isFiltered && (
                         <button
                           onClick={handleResetFilters}
-                          className="mt-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-cyan-300 rounded-lg text-xs font-semibold transition"
+                          className="mt-2 h-8 px-3 bg-muted hover:bg-muted/80 text-foreground border border-border rounded-lg text-xs font-medium transition"
                         >
                           Tampilkan Semua Berkas
                         </button>
@@ -934,16 +939,16 @@ export default function ProcurementTab({
                   const badgeClass = toneStyles[row.statusTone] || toneStyles.cyan;
                   const lapseBadgeClass =
                     row.lapse <= 2
-                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                       : row.lapse <= 4
-                      ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
-                      : 'bg-rose-500/20 text-rose-300 border-rose-500/30';
+                      ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                      : 'bg-rose-500/10 text-rose-400 border-rose-500/20';
 
                   return (
                     <tr
                       key={row.id || `${row.fpb}-${row.po}-${row.item}-${row.date}`}
                       onClick={() => onOpenAudit(row.fpb, row.po)}
-                      className="hover:bg-cyan-950/20 hover:border-cyan-500/30 cursor-pointer transition group"
+                      className="hover:bg-muted/30 cursor-pointer transition group"
                     >
                       <td className="p-3.5">
                         <button
@@ -951,42 +956,42 @@ export default function ProcurementTab({
                             e.stopPropagation();
                             onOpenAudit(row.fpb, row.po);
                           }}
-                          className="font-mono font-bold text-cyan-400 hover:text-cyan-200 hover:underline flex items-center gap-1.5 text-left group-hover:text-cyan-300"
+                          className="font-mono font-medium text-foreground hover:underline flex items-center gap-1.5 text-left"
                         >
                           <span>{row.fpb}</span>
-                          <ExternalLink className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100 transition-opacity" />
+                          <ExternalLink className="w-3 h-3 text-muted-foreground group-hover:text-foreground transition-colors" />
                         </button>
-                        <span className="inline-block mt-1 px-1.5 py-0.5 bg-slate-800 text-slate-300 rounded text-[10px] font-mono border border-slate-700">
+                        <span className="inline-block mt-1 px-1.5 py-0.5 bg-muted text-muted-foreground rounded text-[10px] font-mono border border-border">
                           {row.entity}
                         </span>
                       </td>
                       <td className="p-3.5">
                         {row.po && row.po !== '-' ? (
-                          <span className="font-mono text-slate-200">{row.po}</span>
+                          <span className="font-mono text-foreground">{row.po}</span>
                         ) : (
-                          <span className="font-mono text-slate-500 italic text-[11px]">- (Kosong)</span>
+                          <span className="font-mono text-muted-foreground italic text-[11px]">- (Kosong)</span>
                         )}
                       </td>
-                      <td className="p-3.5 font-mono text-slate-300">{row.date}</td>
+                      <td className="p-3.5 font-mono text-muted-foreground">{row.date}</td>
                       <td className="p-3.5 max-w-[290px]">
-                        <div className="font-medium text-white flex items-center gap-1.5 flex-wrap">
+                        <div className="font-medium text-foreground flex items-center gap-1.5 flex-wrap">
                           <span>{row.item}</span>
                           {row.qtyFPB !== undefined && row.qtyFPB > 0 && (
-                            <span className="px-1.5 py-0.5 rounded bg-cyan-950/80 text-cyan-300 border border-cyan-800/60 text-[10px] font-mono whitespace-nowrap">
+                            <span className="px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground border border-border text-[10px] font-mono whitespace-nowrap">
                               {row.qtyFPB} {row.satuan || ''}
                             </span>
                           )}
                         </div>
-                        <div className="text-[11px] text-cyan-400 font-mono mt-0.5 leading-snug">
+                        <div className="text-[11px] text-muted-foreground font-mono mt-0.5 leading-snug">
                           {row.deptArmada && (
-                            <span className="text-slate-400 font-sans mr-1">
+                            <span className="text-muted-foreground/70 font-sans mr-1">
                               [{row.deptArmada}]
                             </span>
                           )}
                           {row.peruntukan && row.peruntukan !== '-' ? (
-                            <span>{row.peruntukan}</span>
+                            <span className="text-foreground/80">{row.peruntukan}</span>
                           ) : (
-                            <span className="text-slate-500 italic font-normal text-[10px]">-</span>
+                            <span className="text-muted-foreground/50 italic font-normal text-[10px]">-</span>
                           )}
                         </div>
                       </td>
@@ -994,41 +999,41 @@ export default function ProcurementTab({
                         <div className="space-y-1">
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <span
-                              className={`px-2 py-0.5 rounded font-mono text-[10px] font-bold border ${badgeClass}`}
+                              className={`px-2 py-0.5 rounded-full font-mono text-[10px] font-medium border ${badgeClass}`}
                             >
                               {row.statusBadge || 'TERDATA'}
                             </span>
-                            <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-200 text-[10px] font-semibold flex items-center gap-1">
-                              <span className="text-slate-400">PIC Aktif:</span>
-                              <span className="text-cyan-300 font-mono">
+                            <span className="px-2 py-0.5 rounded bg-muted border border-border text-foreground text-[10px] font-medium flex items-center gap-1">
+                              <span className="text-muted-foreground">PIC:</span>
+                              <span className="font-mono">
                                 {row.picAktif || row.picPch}
                               </span>
                             </span>
                           </div>
-                          <div className="text-[11px] text-slate-400 leading-snug">
+                          <div className="text-[11px] text-muted-foreground leading-snug">
                             {row.statusPenjelasan || 'Dokumen sedang diproses'}
                           </div>
-                          <div className="text-[10px] text-slate-500 font-mono flex items-center gap-2 pt-0.5">
+                          <div className="text-[10px] text-muted-foreground font-mono flex items-center gap-2 pt-0.5">
                             <span>
                               PCH:{' '}
-                              <strong className="text-slate-300">{row.picPch || '-'}</strong>
+                              <strong className="text-foreground">{row.picPch || '-'}</strong>
                             </span>
                             <span>&bull;</span>
                             <span>
                               TTB:{' '}
-                              <strong className="text-slate-300">{row.picTtb || '-'}</strong>
+                              <strong className="text-foreground">{row.picTtb || '-'}</strong>
                             </span>
                             <span>&bull;</span>
                             <span>
                               LAP:{' '}
-                              <strong className="text-slate-300">{row.picLap || '-'}</strong>
+                              <strong className="text-foreground">{row.picLap || '-'}</strong>
                             </span>
                           </div>
                         </div>
                       </td>
                       <td className="p-3.5 text-center">
                         <span
-                          className={`inline-block px-2.5 py-1 rounded font-mono text-xs font-bold border ${lapseBadgeClass}`}
+                          className={`inline-block px-2.5 py-0.5 rounded-full font-mono text-xs font-medium border ${lapseBadgeClass}`}
                         >
                           {row.lapse} Hari
                         </span>
@@ -1036,10 +1041,10 @@ export default function ProcurementTab({
                       <td className="p-3.5 text-center" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => onOpenAudit(row.fpb, row.po)}
-                          className="px-2.5 py-1 bg-cyan-950/80 hover:bg-cyan-800 border border-cyan-500/40 text-cyan-300 hover:text-white rounded text-xs font-mono transition flex items-center gap-1 mx-auto"
+                          className="h-7 px-2.5 bg-background hover:bg-muted border border-border text-foreground rounded-lg text-xs font-medium transition flex items-center gap-1 mx-auto"
                         >
                           <span>Audit</span>
-                          <ArrowRight className="w-3 h-3" />
+                          <ArrowRight className="w-3 h-3 text-muted-foreground" />
                         </button>
                       </td>
                     </tr>
@@ -1053,20 +1058,20 @@ export default function ProcurementTab({
         {/* ═══════════════════════════════════════════════════════════
             PAGINATION & STATUS FOOTER
             ═══════════════════════════════════════════════════════════ */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-800 text-xs text-slate-400">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-t border-border text-xs text-muted-foreground">
           <div className="flex items-center gap-2">
             <span>Baris per halaman:</span>
             <select
               value={pageSize}
               onChange={(e) => setPageSize(Number(e.target.value))}
-              className="bg-slate-900 border border-slate-700 text-slate-200 rounded px-2 py-1 focus:outline-none focus:border-cyan-400 font-mono"
+              className="h-7 bg-background border border-border text-foreground rounded-lg px-2 focus:outline-none focus:ring-1 focus:ring-ring font-mono"
             >
               <option value={25}>25</option>
               <option value={50}>50</option>
               <option value={100}>100</option>
               <option value={200}>200</option>
             </select>
-            <span className="text-slate-500">
+            <span className="text-muted-foreground/80">
               (Menampilkan{' '}
               {sortedItems.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} -{' '}
               {Math.min(currentPage * pageSize, sortedItems.length)} dari{' '}
@@ -1079,39 +1084,39 @@ export default function ProcurementTab({
             <button
               onClick={() => setCurrentPage(1)}
               disabled={currentPage === 1}
-              className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 disabled:opacity-30 disabled:pointer-events-none border border-slate-800 transition"
+              className="h-8 w-8 rounded-lg bg-background hover:bg-muted text-foreground disabled:opacity-30 disabled:pointer-events-none border border-border flex items-center justify-center transition"
               title="Halaman Pertama"
             >
-              <ChevronsLeft className="w-4 h-4" />
+              <ChevronsLeft className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 disabled:opacity-30 disabled:pointer-events-none border border-slate-800 transition"
+              className="h-8 w-8 rounded-lg bg-background hover:bg-muted text-foreground disabled:opacity-30 disabled:pointer-events-none border border-border flex items-center justify-center transition"
               title="Halaman Sebelumnya"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-3.5 h-3.5" />
             </button>
 
-            <span className="px-3 py-1 bg-slate-950 rounded border border-slate-800 text-slate-200">
-              Halaman {currentPage} / {totalPages}
+            <span className="px-3 h-8 flex items-center rounded-lg border border-border bg-muted/40 text-foreground text-xs">
+              Hal {currentPage} / {totalPages}
             </span>
 
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 disabled:opacity-30 disabled:pointer-events-none border border-slate-800 transition"
+              className="h-8 w-8 rounded-lg bg-background hover:bg-muted text-foreground disabled:opacity-30 disabled:pointer-events-none border border-border flex items-center justify-center transition"
               title="Halaman Berikutnya"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() => setCurrentPage(totalPages)}
               disabled={currentPage === totalPages}
-              className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 disabled:opacity-30 disabled:pointer-events-none border border-slate-800 transition"
+              className="h-8 w-8 rounded-lg bg-background hover:bg-muted text-foreground disabled:opacity-30 disabled:pointer-events-none border border-border flex items-center justify-center transition"
               title="Halaman Terakhir"
             >
-              <ChevronsRight className="w-4 h-4" />
+              <ChevronsRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>

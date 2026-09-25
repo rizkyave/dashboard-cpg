@@ -260,13 +260,13 @@ export default function DashboardPage() {
             <div className="flex items-center gap-2.5">
               <button
                 onClick={toggleSidebar}
-                className="px-3.5 py-1.5 rounded-lg bg-cyan-950/80 hover:bg-cyan-900 text-cyan-300 border border-cyan-500/40 text-xs font-semibold flex items-center gap-2 transition-all duration-200 shadow-lg shadow-cyan-950/40 group hover:scale-[1.02] active:scale-95"
+                className="h-8 px-3 rounded-lg bg-background hover:bg-muted text-foreground border border-border text-xs font-medium flex items-center gap-2 transition-all shadow-sm group"
               >
-                <PanelLeftOpen className="w-4 h-4 text-cyan-400 group-hover:scale-110 transition-transform" />
-                <span>Buka Menu Navigasi Samping</span>
+                <PanelLeftOpen className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground" />
+                <span>Buka Menu Navigasi</span>
               </button>
-              <span className="text-[11px] text-slate-500 font-mono">
-                &bull; Mode Layar Penuh Aktif
+              <span className="text-[11px] text-muted-foreground font-mono">
+                &bull; Sidebar Disembunyikan
               </span>
             </div>
           </div>
@@ -318,22 +318,22 @@ export default function DashboardPage() {
       </div>
 
       {/* Footer */}
-      <footer className="mt-auto bg-[#070b16] border-t border-slate-800/80 px-4 lg:px-8 py-4 text-xs text-slate-400">
+      <footer className="mt-auto bg-card border-t border-border px-4 lg:px-8 py-3.5 text-xs text-muted-foreground">
         <div className="max-w-[1850px] mx-auto flex flex-col md:flex-row items-center justify-between gap-2 text-center md:text-left">
           <div>
-            <p className="text-slate-300 font-semibold">
+            <p className="text-foreground font-medium text-xs">
               PT Cindara Pratama Lines &bull; CPG Holding Procurement System
             </p>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-[11px] text-muted-foreground">
               Pusat Operasional Somber & Kariangau, Balikpapan, Kalimantan Timur
             </p>
           </div>
           <div className="flex items-center gap-4 font-mono text-[11px]">
-            <span className="text-slate-400">
-              Security: <strong className="text-emerald-400">Encrypted Local Sandbox</strong>
+            <span className="text-muted-foreground">
+              Security: <strong className="text-emerald-400 font-medium">Encrypted Local Sandbox</strong>
             </span>
-            <span className="text-slate-600">|</span>
-            <span className="text-cyan-400">Powered by Gemini 3 Flash Architecture &bull; Next.js</span>
+            <span className="text-border">|</span>
+            <span className="text-muted-foreground">CPG Enterprise Dashboard &bull; Next.js</span>
           </div>
         </div>
       </footer>

@@ -4,11 +4,12 @@ import React, { useState, useEffect } from 'react';
 import {
   Search,
   Upload,
-  FileSpreadsheet,
+  Download,
   RotateCcw,
-  PanelLeftClose,
-  PanelLeftOpen,
+  PanelLeft,
+  Clock,
   X,
+  FileSpreadsheet,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
@@ -35,7 +36,7 @@ export default function Header({
   isSidebarCollapsed,
   onToggleSidebar,
 }: HeaderProps) {
-  const [clock, setClock] = useState<string>('--:--:-- WITA');
+  const [clock, setClock] = useState<string>('--:-- WITA');
   const [searchQuery, setSearchQuery] = useState<string>(searchKeyword || '');
 
   useEffect(() => {
@@ -49,6 +50,9 @@ export default function Header({
       const now = new Date();
       const timeStr = now.toLocaleTimeString('id-ID', {
         timeZone: 'Asia/Makassar',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
         hour12: false,
       });
       setClock(`${timeStr} WITA`);
@@ -59,10 +63,7 @@ export default function Header({
     return () => clearInterval(timer);
   }, []);
 
-  // ─────────────────────────────────────────────────────────────
   // File Upload Handler (Client-Side Parsing & Merge)
-  // Acuan Utama: Sheet "Monitoring Layanan Armada"
-  // ─────────────────────────────────────────────────────────────
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -98,135 +99,108 @@ export default function Header({
     e.target.value = '';
   };
 
-
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSearch(searchQuery);
+  };
 
   return (
-    <header className="sticky top-0 z-40 bg-[#090d19]/95 backdrop-blur-md border-b border-slate-800/80 px-4 lg:px-8 py-3 transition-all shadow-xl">
-      <div className="max-w-[1850px] mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
-        {/* Brand, Sidebar Toggle & Entity Title */}
-        <div className="flex items-center gap-3 w-full md:w-auto">
-          {/* Sidebar Hide/Show Toggle Button */}
-          <button
-            onClick={onToggleSidebar}
-            title={isSidebarCollapsed ? 'Tampilkan Sidebar Navigasi' : 'Sembunyikan Sidebar Navigasi'}
-            className="p-2 rounded-xl bg-slate-900/90 hover:bg-cyan-950/80 text-slate-300 hover:text-cyan-300 border border-slate-700/80 hover:border-cyan-500/50 transition flex items-center justify-center shadow-sm group active:scale-95"
-          >
-            {isSidebarCollapsed ? (
-              <PanelLeftOpen className="w-5 h-5 text-cyan-400 group-hover:scale-110 transition-transform" />
-            ) : (
-              <PanelLeftClose className="w-5 h-5 text-slate-400 group-hover:text-cyan-400 group-hover:scale-110 transition-transform" />
-            )}
-          </button>
+    <header className="sticky top-0 z-40 h-13 border-b border-border bg-background/80 backdrop-blur-md px-4 lg:px-6 flex items-center justify-between transition-all">
+      {/* Left side: Sidebar Toggle, Separator, and Quick Search */}
+      <div className="flex items-center gap-2 flex-1 max-w-xl">
+        <button
+          onClick={onToggleSidebar}
+          title={isSidebarCollapsed ? 'Buka Sidebar' : 'Tutup Sidebar'}
+          className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground transition outline-none"
+        >
+          <PanelLeft className="size-4" />
+          <span className="sr-only">Toggle Sidebar</span>
+        </button>
 
-          <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-cyan-500 via-blue-600 to-indigo-700 p-0.5 shadow-lg shadow-cyan-500/20 flex items-center justify-center">
-            <div className="w-full h-full bg-[#090d19] rounded-[10px] flex items-center justify-center overflow-hidden">
-              <span className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400 font-mono text-base tracking-wider">
-                CPG
-              </span>
+        <div className="h-4 w-px bg-border mx-1" />
+
+        {/* Global Search Input */}
+        <form onSubmit={handleSearchSubmit} className="relative w-full max-w-md">
+          <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              onSearch(e.target.value);
+            }}
+            placeholder="Search berkas, FPB, PO, armada, PIC..."
+            className="w-full h-8 rounded-lg border border-border bg-muted/30 pl-8 pr-14 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-zinc-500 focus:bg-background transition"
+          />
+          {searchQuery ? (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery('');
+                onSearch('');
+              }}
+              className="absolute top-1/2 right-2.5 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X className="size-3.5" />
+            </button>
+          ) : (
+            <div className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 flex items-center gap-0.5">
+              <kbd className="inline-flex h-4.5 select-none items-center rounded border border-border bg-muted px-1 font-mono text-[9px] text-muted-foreground">
+                ⌘K
+              </kbd>
             </div>
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
-                CPG PROCUREMENT COMMAND CENTER
-              </h1>
-              <span className="px-2 py-0.5 text-[10px] font-mono font-semibold rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
-                v2.9 MLA-MASTER
-              </span>
-            </div>
-            <p className="text-xs text-slate-400 flex items-center gap-2">
-              <span>PT Cindara Pratama Lines & Group (Somber - Balikpapan)</span>
-              <span className="text-slate-600">&bull;</span>
-              <span className="text-cyan-400 font-mono text-[11px]">{clock}</span>
-            </p>
-          </div>
+          )}
+        </form>
+      </div>
+
+      {/* Right side: Action Buttons, Clock, and User Avatar */}
+      <div className="flex items-center gap-2">
+        {/* Quick Upload Excel Button */}
+        <label className="cursor-pointer inline-flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition shadow-xs active:scale-95">
+          <Upload className="size-3.5" />
+          <span className="hidden sm:inline">Unggah Excel</span>
+          <input
+            type="file"
+            accept=".xlsx, .xls, .csv"
+            className="hidden"
+            onChange={handleFileUpload}
+          />
+        </label>
+
+        {/* Export CSV */}
+        <button
+          onClick={onExportCsv}
+          className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 text-xs font-medium text-foreground hover:bg-muted transition active:scale-95"
+          title="Ekspor Data ke CSV"
+        >
+          <Download className="size-3.5 text-muted-foreground" />
+          <span className="hidden md:inline">Ekspor CSV</span>
+        </button>
+
+        {/* Reset Data Button */}
+        <button
+          onClick={() => {
+            if (confirm('Kosongkan seluruh data monitoring untuk pengujian upload baru?')) {
+              onResetData();
+            }
+          }}
+          className="inline-flex size-8 items-center justify-center rounded-lg border border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground transition active:scale-95"
+          title="Reset / Kosongkan Data"
+        >
+          <RotateCcw className="size-3.5" />
+        </button>
+
+        <div className="h-4 w-px bg-border mx-1 hidden sm:block" />
+
+        {/* Clock WITA Indicator */}
+        <div className="hidden lg:flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/40 border border-border text-[11px] font-mono text-muted-foreground">
+          <Clock className="size-3 text-muted-foreground" />
+          <span>{clock}</span>
         </div>
 
-        {/* Actions: Refresh, Excel Upload, CSV Export & Search */}
-        <div className="flex items-center flex-wrap gap-2.5 w-full md:w-auto justify-end">
-          {/* Quick Search */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              onSearch(searchQuery);
-              const input = e.currentTarget.querySelector('input');
-              input?.blur();
-              if (searchQuery.trim()) {
-                showToast(`Mencari: "${searchQuery}"`, 'info');
-              }
-            }}
-            className="flex items-center gap-1.5 relative flex-1 sm:w-72 md:w-80"
-          >
-            <div className="relative flex-1">
-              <input
-                type="text"
-                value={searchQuery}
-                placeholder="Cari FPB, PO, Item, Armada, PIC..."
-                className="w-full bg-slate-900/90 text-xs text-slate-200 placeholder-slate-500 pl-8 pr-7 py-2 rounded-lg border border-slate-700/80 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition"
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  onSearch(e.target.value);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.currentTarget.blur();
-                  }
-                }}
-              />
-              <Search className="w-4 h-4 text-slate-500 absolute left-2.5 top-2.5 pointer-events-none" />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSearchQuery('');
-                    onSearch('');
-                  }}
-                  className="absolute right-2 top-2 text-slate-400 hover:text-white"
-                  title="Hapus pencarian"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-            <button
-              type="submit"
-              className="px-3 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition shadow active:scale-95 whitespace-nowrap"
-              title="Tekan Enter atau klik untuk mencari"
-            >
-              <span>Cari</span>
-            </button>
-          </form>
-
-
-          {/* Manual File Upload Button */}
-          <label className="cursor-pointer px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-semibold rounded-lg border border-emerald-400/40 flex items-center gap-1.5 transition shadow-lg shadow-emerald-950/40 active:scale-95">
-            <Upload className="w-4 h-4" />
-            <span>Unggah Excel</span>
-            <input
-              type="file"
-              accept=".xlsx, .xls, .csv"
-              className="hidden"
-              onChange={handleFileUpload}
-            />
-          </label>
-
-          {/* CSV Export */}
-          <button
-            onClick={onExportCsv}
-            className="px-3 py-2 bg-cyan-950/80 hover:bg-cyan-900 text-cyan-300 border border-cyan-700/60 text-xs font-medium rounded-lg flex items-center gap-1.5 transition active:scale-95"
-          >
-            <FileSpreadsheet className="w-3.5 h-3.5" />
-            <span>Ekspor CSV</span>
-          </button>
-
-          {/* Reset Data Button */}
-          <button
-            onClick={onResetData}
-            title="Kosongkan / Reset Data"
-            className="p-2 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg border border-slate-700 transition active:scale-95"
-          >
-            <RotateCcw className="w-4 h-4" />
-          </button>
+        {/* User Profile Avatar */}
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border bg-muted text-xs font-semibold text-foreground select-none" title="Hermansyah - Purchasing Admin">
+          HA
         </div>
       </div>
     </header>

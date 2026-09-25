@@ -10,10 +10,43 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-inter)", "sans-serif"],
-        mono: ["var(--font-jetbrains-mono)", "monospace"],
+        sans: ["var(--font-inter)", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif"],
+        mono: ["var(--font-jetbrains-mono)", "ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "monospace"],
       },
       colors: {
+        background: "#09090b",
+        foreground: "#f4f4f5",
+        card: {
+          DEFAULT: "#111217",
+          foreground: "#f4f4f5",
+        },
+        popover: {
+          DEFAULT: "#111217",
+          foreground: "#f4f4f5",
+        },
+        primary: {
+          DEFAULT: "#f4f4f5",
+          foreground: "#09090b",
+        },
+        secondary: {
+          DEFAULT: "#27272a",
+          foreground: "#f4f4f5",
+        },
+        muted: {
+          DEFAULT: "#1c1c22",
+          foreground: "#a1a1aa",
+        },
+        accent: {
+          DEFAULT: "#27272a",
+          foreground: "#f4f4f5",
+        },
+        destructive: {
+          DEFAULT: "#ef4444",
+          foreground: "#ffffff",
+        },
+        border: "#27272a",
+        input: "#27272a",
+        ring: "#3f3f46",
         brand: {
           50: "#ecfeff",
           100: "#cffafe",
@@ -23,11 +56,9 @@ const config: Config = {
           900: "#164e63",
           950: "#082f49",
         },
-        cpgnavy: {
-          800: "#0f172a",
-          900: "#0a0f1d",
-          950: "#060913",
-        },
+      },
+      boxShadow: {
+        xs: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
       },
     },
   },
