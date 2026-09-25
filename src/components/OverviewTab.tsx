@@ -300,10 +300,10 @@ export default function OverviewTab({
           ═══════════════════════════════════════════════════════════ */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Chart 1: Pipeline Timeline Bar Chart */}
-        <div className="rounded-xl border border-border bg-card p-4.5 text-card-foreground shadow-xs lg:col-span-2 flex flex-col justify-between min-w-0 overflow-hidden">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-border pb-3 min-w-0">
+        <div className="rounded-xl border border-border bg-card text-card-foreground shadow-xs lg:col-span-2 flex flex-col justify-between min-w-0 overflow-hidden">
+          <div className="px-5 py-3.5 border-b border-border flex items-center justify-between gap-3 min-w-0 min-h-[58px]">
             <div className="min-w-0 flex-1">
-              <h3 className="text-sm font-semibold text-foreground truncate">
+              <h3 className="text-sm font-semibold text-foreground leading-tight truncate">
                 Milestone Fisik Dokumen Pengadaan
               </h3>
               <p className="text-xs text-muted-foreground mt-0.5 truncate">
@@ -313,19 +313,19 @@ export default function OverviewTab({
             <button
               onClick={onTriggerAiAudit}
               disabled={items.length === 0}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-xs font-medium text-purple-700 dark:text-purple-300 hover:bg-purple-500/20 transition active:scale-95 disabled:opacity-40 shrink-0 self-start sm:self-auto"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-xs font-medium text-purple-700 dark:text-purple-300 hover:bg-purple-500/20 transition active:scale-95 disabled:opacity-40 shrink-0"
             >
-              <Sparkles className="size-3 text-purple-600 dark:text-amber-300" />
+              <Sparkles className="size-3 text-purple-600 dark:text-purple-400" />
               <span>Audit Cerdas AI</span>
             </button>
           </div>
 
-          <div className="h-64 pt-4 relative w-full overflow-hidden">
+          <div className="h-64 px-5 py-4 relative w-full overflow-hidden flex items-center justify-center">
             <PipelineBarChart data={items} />
           </div>
 
-          <div className="mt-3 pt-3 border-t border-border flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground min-w-0">
-            <span className="flex items-center gap-1.5 min-w-0 truncate">
+          <div className="px-5 py-3 border-t border-border flex items-center justify-between gap-2 text-xs text-muted-foreground min-w-0 min-h-[46px]">
+            <span className="flex items-center gap-2 min-w-0 truncate">
               <span className="size-2 rounded-full bg-cyan-500 shrink-0"></span>
               <span className="truncate">Alur: PO &rarr; TTB &rarr; Lapangan &rarr; SPP &rarr; Keuangan</span>
             </span>
@@ -336,30 +336,40 @@ export default function OverviewTab({
         </div>
 
         {/* Chart 2: Entitas Donut Chart */}
-        <div className="rounded-xl border border-border bg-card p-4.5 text-card-foreground shadow-xs flex flex-col justify-between min-w-0 overflow-hidden">
-          <div className="border-b border-border pb-3 min-w-0">
-            <h3 className="text-sm font-semibold text-foreground truncate">
-              Distribusi Entitas CPG
-            </h3>
-            <p className="text-xs text-muted-foreground mt-0.5 truncate">
-              Komposisi berkas terdistribusi di 7 anak perusahaan
-            </p>
+        <div className="rounded-xl border border-border bg-card text-card-foreground shadow-xs flex flex-col justify-between min-w-0 overflow-hidden">
+          <div className="px-5 py-3.5 border-b border-border flex items-center justify-between gap-3 min-w-0 min-h-[58px]">
+            <div className="min-w-0 flex-1">
+              <h3 className="text-sm font-semibold text-foreground leading-tight truncate">
+                Distribusi Entitas CPG
+              </h3>
+              <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                Komposisi berkas terdistribusi di 7 anak perusahaan
+              </p>
+            </div>
+            <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-muted text-muted-foreground border border-border shrink-0 font-medium">
+              7 Entitas
+            </span>
           </div>
 
-          <div className="h-56 relative flex items-center justify-center my-auto w-full overflow-hidden">
+          <div className="h-64 px-5 py-4 relative w-full overflow-hidden flex items-center justify-center">
             <EntityDonutChart data={items} />
           </div>
 
-          <div className="grid grid-cols-3 gap-1.5 text-center text-xs pt-3 border-t border-border font-mono">
-            <div className="p-1 rounded-md bg-muted/40 border border-border truncate">
-              <span className="text-cyan-700 dark:text-cyan-400 font-bold">CPL:</span> {items.filter((i) => i.entity === 'CPL').length}
+          <div className="px-5 py-3 border-t border-border flex items-center justify-between gap-2 text-xs text-muted-foreground min-w-0 min-h-[46px]">
+            <div className="flex items-center gap-1.5 font-mono text-xs">
+              <span className="px-1.5 py-0.5 rounded bg-muted/60 text-muted-foreground border border-border text-[11px]">
+                <strong className="text-cyan-700 dark:text-cyan-400">CPL:</strong> {items.filter((i) => i.entity === 'CPL').length}
+              </span>
+              <span className="px-1.5 py-0.5 rounded bg-muted/60 text-muted-foreground border border-border text-[11px]">
+                <strong className="text-blue-700 dark:text-blue-400">PPI:</strong> {items.filter((i) => i.entity === 'PPI').length}
+              </span>
+              <span className="px-1.5 py-0.5 rounded bg-muted/60 text-muted-foreground border border-border text-[11px]">
+                <strong className="text-amber-700 dark:text-amber-400">GAJ:</strong> {items.filter((i) => i.entity === 'GAJ').length}
+              </span>
             </div>
-            <div className="p-1 rounded-md bg-muted/40 border border-border truncate">
-              <span className="text-blue-700 dark:text-blue-400 font-bold">PPI:</span> {items.filter((i) => i.entity === 'PPI').length}
-            </div>
-            <div className="p-1 rounded-md bg-muted/40 border border-border truncate">
-              <span className="text-amber-700 dark:text-amber-400 font-bold">GAJ:</span> {items.filter((i) => i.entity === 'GAJ').length}
-            </div>
+            <span className="text-[11px] font-mono text-muted-foreground shrink-0">
+              CPG Group
+            </span>
           </div>
         </div>
       </div>
@@ -369,19 +379,19 @@ export default function OverviewTab({
           ═══════════════════════════════════════════════════════════ */}
       <div className="rounded-xl border border-border bg-card text-card-foreground shadow-xs overflow-hidden">
         {/* Card Header */}
-        <div className="p-4.5 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="px-5 py-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <div className="font-heading text-base font-semibold text-foreground flex items-center gap-2">
+            <div className="text-sm font-semibold text-foreground flex items-center gap-2">
               <span>{sortedItems.length.toLocaleString()} Berkas Pengadaan & Armada</span>
               {isFiltered && (
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
                   Terfilter ({items.length} total)
                 </span>
               )}
             </div>
-            <div className="text-xs text-muted-foreground mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               Daftar berkas terintegrasi dengan alur PIC, PO, SLA, dan status pemenuhan logistik.
-            </div>
+            </p>
           </div>
           <div className="flex items-center gap-2">
             {isFiltered && (

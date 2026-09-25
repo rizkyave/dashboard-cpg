@@ -27,10 +27,12 @@ ChartJS.register(
 
 function EmptyChartPlaceholder({ message }: { message: string }) {
   return (
-    <div className="h-full min-h-[180px] flex flex-col items-center justify-center text-muted-foreground gap-2 p-4 text-center border border-dashed border-border rounded-xl bg-muted/20">
-      <FileSpreadsheet className="w-8 h-8 opacity-30 text-muted-foreground" />
-      <p className="text-xs text-muted-foreground">{message}</p>
-      <span className="text-[10px] text-muted-foreground/70 font-mono">
+    <div className="w-full h-full flex flex-col items-center justify-center text-center p-6 gap-2">
+      <div className="size-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground border border-border">
+        <FileSpreadsheet className="size-5" />
+      </div>
+      <p className="text-xs font-semibold text-foreground">{message}</p>
+      <span className="text-[11px] text-muted-foreground">
         Unggah file Excel untuk memuat visualisasi
       </span>
     </div>
