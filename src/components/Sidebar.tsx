@@ -68,12 +68,6 @@ export default function Sidebar({
     },
   ];
 
-  const validationModules = [
-    { label: 'INPUT DATA MELINDA', badge: 'DONE' },
-    { label: 'PROCUREMENT', badge: 'TERVERIFIKASI' },
-    { label: 'MASTER DATA BU NOOR', badge: 'DONE' },
-    { label: 'LAYANAN ARMADA', badge: 'MATCHING' },
-  ];
 
   const slaFilters: { id: LapseFilterType; label: string; icon: any; count?: number }[] = [
     { id: 'ALL', label: 'Semua Berkas', icon: List },
@@ -166,27 +160,6 @@ export default function Sidebar({
           </nav>
         </div>
 
-        {/* Group 2: Status Validasi 4 Modul */}
-        <div className="space-y-1">
-          <div className="px-2 py-1 text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-            Modul Terverifikasi
-          </div>
-          <div className="space-y-1 px-1">
-            {validationModules.map((mod, idx) => (
-              <div
-                key={idx}
-                className="flex items-center justify-between p-2 rounded-lg bg-card border border-border text-[11px]"
-              >
-                <span className="font-medium text-foreground truncate max-w-[125px]">
-                  {mod.label}
-                </span>
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                  {mod.badge}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
 
         {/* Group 3: Filter SLA */}
         <div className="space-y-1">
