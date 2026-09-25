@@ -286,11 +286,11 @@ export default function OverviewTab({
     endDate !== '';
 
   const toneStyles: Record<StatusTone, string> = {
-    emerald: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-    cyan: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
-    purple: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-    amber: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-    rose: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+    emerald: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20',
+    cyan: 'bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border-cyan-500/20',
+    purple: 'bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20',
+    amber: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20',
+    rose: 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20',
   };
 
   return (
@@ -304,7 +304,7 @@ export default function OverviewTab({
           <div className="flex items-center justify-between border-b border-border pb-3">
             <div>
               <div className="font-heading text-sm font-medium text-foreground">
-                Customer Activity &bull; Milestone Fisik Berkas
+                Milestone Fisik Dokumen Pengadaan
               </div>
               <div className="text-xs text-muted-foreground mt-0.5">
                 Pemantauan posisi antrian dokumen dari PO hingga Divisi Keuangan
@@ -313,9 +313,9 @@ export default function OverviewTab({
             <button
               onClick={onTriggerAiAudit}
               disabled={items.length === 0}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-purple-500/30 bg-purple-950/40 px-2.5 py-1 text-xs font-medium text-purple-300 hover:bg-purple-900/50 transition active:scale-95 disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-xs font-medium text-purple-700 dark:text-purple-300 hover:bg-purple-500/20 transition active:scale-95 disabled:opacity-40"
             >
-              <Sparkles className="size-3 text-amber-300" />
+              <Sparkles className="size-3 text-purple-600 dark:text-amber-300" />
               <span>Audit Cerdas AI</span>
             </button>
           </div>
@@ -611,10 +611,10 @@ export default function OverviewTab({
                   const badgeClass = toneStyles[row.statusTone] || toneStyles.cyan;
                   const lapseBadgeClass =
                     row.lapse <= 2
-                      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                      ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
                       : row.lapse <= 5
-                      ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                      : 'bg-rose-500/10 text-rose-400 border-rose-500/20';
+                      ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
+                      : 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20';
 
                   return (
                     <tr

@@ -330,7 +330,7 @@ export default function DashboardPage() {
           </div>
           <div className="flex items-center gap-4 font-mono text-[11px]">
             <span className="text-muted-foreground">
-              Security: <strong className="text-emerald-400 font-medium">Encrypted Local Sandbox</strong>
+              Security: <strong className="text-emerald-700 dark:text-emerald-400 font-medium">Encrypted Local Sandbox</strong>
             </span>
             <span className="text-border">|</span>
             <span className="text-muted-foreground">CPG Enterprise Dashboard &bull; Next.js</span>

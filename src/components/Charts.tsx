@@ -27,10 +27,10 @@ ChartJS.register(
 
 function EmptyChartPlaceholder({ message }: { message: string }) {
   return (
-    <div className="h-full min-h-[180px] flex flex-col items-center justify-center text-slate-500 gap-2 p-4 text-center border border-dashed border-slate-800 rounded-xl bg-slate-950/30">
-      <FileSpreadsheet className="w-8 h-8 opacity-30 text-cyan-400" />
-      <p className="text-xs text-slate-400">{message}</p>
-      <span className="text-[10px] text-slate-600 font-mono">
+    <div className="h-full min-h-[180px] flex flex-col items-center justify-center text-muted-foreground gap-2 p-4 text-center border border-dashed border-border rounded-xl bg-muted/20">
+      <FileSpreadsheet className="w-8 h-8 opacity-30 text-muted-foreground" />
+      <p className="text-xs text-muted-foreground">{message}</p>
+      <span className="text-[10px] text-muted-foreground/70 font-mono">
         Unggah file Excel untuk memuat visualisasi
       </span>
     </div>
@@ -88,8 +88,7 @@ export function EntityDonutChart({ data }: { data: ProcurementItem[] }) {
           '#10b981',
           '#64748b',
         ],
-        borderColor: '#0b101f',
-        borderWidth: 2,
+        borderWidth: 0,
       },
     ],
   };
@@ -100,7 +99,7 @@ export function EntityDonutChart({ data }: { data: ProcurementItem[] }) {
     plugins: {
       legend: {
         position: 'bottom' as const,
-        labels: { boxWidth: 10, color: '#94a3b8', font: { size: 10 } },
+        labels: { boxWidth: 10, color: '#64748b', font: { size: 10, family: 'Inter, sans-serif' } },
       },
     },
     cutout: '72%',
@@ -156,11 +155,11 @@ export function PipelineBarChart({ data }: { data: ProcurementItem[] }) {
     scales: {
       x: {
         grid: { display: false },
-        ticks: { color: '#94a3b8', font: { size: 10 } },
+        ticks: { color: '#64748b', font: { size: 10, family: 'Inter, sans-serif' } },
       },
       y: {
-        grid: { color: 'rgba(255,255,255,0.05)' },
-        ticks: { color: '#94a3b8', stepSize: 1 },
+        grid: { color: 'rgba(128,128,128,0.12)' },
+        ticks: { color: '#64748b', stepSize: 1, font: { family: 'JetBrains Mono, monospace' } },
       },
     },
   };
@@ -191,7 +190,7 @@ export function LapsePolarChart({ data }: { data: ProcurementItem[] }) {
       {
         data: [instant, normal, warning, critical],
         backgroundColor: ['#10b981', '#06b6d4', '#f59e0b', '#f43f5e'],
-        borderWidth: 1,
+        borderWidth: 0,
       },
     ],
   };
@@ -202,12 +201,12 @@ export function LapsePolarChart({ data }: { data: ProcurementItem[] }) {
     plugins: {
       legend: {
         position: 'bottom' as const,
-        labels: { color: '#94a3b8', font: { size: 10 } },
+        labels: { color: '#64748b', font: { size: 10, family: 'Inter, sans-serif' } },
       },
     },
     scales: {
       r: {
-        grid: { color: 'rgba(255,255,255,0.06)' },
+        grid: { color: 'rgba(128,128,128,0.15)' },
         ticks: { display: false },
       },
     },
@@ -258,12 +257,12 @@ export function PicWorkloadChart({ data }: { data: ProcurementItem[] }) {
     plugins: { legend: { display: false } },
     scales: {
       x: {
-        grid: { color: 'rgba(255,255,255,0.05)' },
-        ticks: { color: '#94a3b8', stepSize: 1 },
+        grid: { color: 'rgba(128,128,128,0.12)' },
+        ticks: { color: '#64748b', stepSize: 1, font: { family: 'JetBrains Mono, monospace' } },
       },
       y: {
         grid: { display: false },
-        ticks: { color: '#94a3b8', font: { size: 10 } },
+        ticks: { color: '#64748b', font: { size: 10, family: 'Inter, sans-serif' } },
       },
     },
   };

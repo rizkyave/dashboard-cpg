@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { FileText, Clock, CheckCircle2, PackageCheck, TrendingUp, TrendingDown } from 'lucide-react';
+import { FileText, Clock, CheckCircle2, PackageCheck, TrendingUp } from 'lucide-react';
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
 
 interface KpiCardsProps {
@@ -34,12 +34,12 @@ export default function KpiCards({ procurementList, armadaList }: KpiCardsProps)
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
       {/* Card 1: Total PO Berkas */}
-      <div className="group/card flex flex-col justify-between gap-3 rounded-xl bg-card p-4.5 text-card-foreground border border-border shadow-xs hover:border-zinc-700 transition">
+      <div className="group/card flex flex-col justify-between gap-3 rounded-xl bg-card p-4.5 text-card-foreground border border-border shadow-xs hover:shadow-subtle transition">
         <div className="flex items-center justify-between">
           <div className="flex size-8 items-center justify-center rounded-lg border border-border bg-muted/60 text-muted-foreground">
-            <FileText className="size-4 text-cyan-400" />
+            <FileText className="size-4 text-cyan-600 dark:text-cyan-400" />
           </div>
-          <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
             <TrendingUp className="size-3" />
             100% Tercatat
           </span>
@@ -61,12 +61,12 @@ export default function KpiCards({ procurementList, armadaList }: KpiCardsProps)
       </div>
 
       {/* Card 2: Rata-rata Lapse Lapangan */}
-      <div className="group/card flex flex-col justify-between gap-3 rounded-xl bg-card p-4.5 text-card-foreground border border-border shadow-xs hover:border-zinc-700 transition">
+      <div className="group/card flex flex-col justify-between gap-3 rounded-xl bg-card p-4.5 text-card-foreground border border-border shadow-xs hover:shadow-subtle transition">
         <div className="flex items-center justify-between">
           <div className="flex size-8 items-center justify-center rounded-lg border border-border bg-muted/60 text-muted-foreground">
-            <Clock className="size-4 text-emerald-400" />
+            <Clock className="size-4 text-emerald-600 dark:text-emerald-400" />
           </div>
-          <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
             <TrendingUp className="size-3" />
             SLA Normal
           </span>
@@ -88,12 +88,12 @@ export default function KpiCards({ procurementList, armadaList }: KpiCardsProps)
       </div>
 
       {/* Card 3: Penyelesaian Berkas SPP */}
-      <div className="group/card flex flex-col justify-between gap-3 rounded-xl bg-card p-4.5 text-card-foreground border border-border shadow-xs hover:border-zinc-700 transition">
+      <div className="group/card flex flex-col justify-between gap-3 rounded-xl bg-card p-4.5 text-card-foreground border border-border shadow-xs hover:shadow-subtle transition">
         <div className="flex items-center justify-between">
           <div className="flex size-8 items-center justify-center rounded-lg border border-border bg-muted/60 text-muted-foreground">
-            <CheckCircle2 className="size-4 text-purple-400" />
+            <CheckCircle2 className="size-4 text-purple-600 dark:text-purple-400" />
           </div>
-          <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20">
+          <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
             {financeDoneCount} Selesai
           </span>
         </div>
@@ -114,12 +114,12 @@ export default function KpiCards({ procurementList, armadaList }: KpiCardsProps)
       </div>
 
       {/* Card 4: Pemenuhan Item Armada */}
-      <div className="group/card flex flex-col justify-between gap-3 rounded-xl bg-card p-4.5 text-card-foreground border border-border shadow-xs hover:border-zinc-700 transition">
+      <div className="group/card flex flex-col justify-between gap-3 rounded-xl bg-card p-4.5 text-card-foreground border border-border shadow-xs hover:shadow-subtle transition">
         <div className="flex items-center justify-between">
           <div className="flex size-8 items-center justify-center rounded-lg border border-border bg-muted/60 text-muted-foreground">
-            <PackageCheck className="size-4 text-amber-400" />
+            <PackageCheck className="size-4 text-amber-600 dark:text-amber-400" />
           </div>
-          <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
+          <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
             QTY Match
           </span>
         </div>

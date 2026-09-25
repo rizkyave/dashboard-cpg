@@ -9,11 +9,12 @@ import {
   PanelLeft,
   Clock,
   X,
-  FileSpreadsheet,
+  Building2,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
 import { parseAndMergeWorkbook } from '@/utils/excelParser';
+import ThemeToggle from './ThemeToggle';
 
 interface HeaderProps {
   searchKeyword?: string;
@@ -105,9 +106,9 @@ export default function Header({
   };
 
   return (
-    <header className="sticky top-0 z-40 h-13 border-b border-border bg-background/80 backdrop-blur-md px-4 lg:px-6 flex items-center justify-between transition-all">
-      {/* Left side: Sidebar Toggle, Separator, and Quick Search */}
-      <div className="flex items-center gap-2 flex-1 max-w-xl">
+    <header className="sticky top-0 z-40 h-14 border-b border-border bg-background/85 backdrop-blur-md px-4 lg:px-6 flex items-center justify-between transition-colors">
+      {/* Left side: Sidebar Toggle, Separator, and Breadcrumbs / Quick Search */}
+      <div className="flex items-center gap-3 flex-1 max-w-xl">
         <button
           onClick={onToggleSidebar}
           title={isSidebarCollapsed ? 'Buka Sidebar' : 'Tutup Sidebar'}
@@ -117,10 +118,19 @@ export default function Header({
           <span className="sr-only">Toggle Sidebar</span>
         </button>
 
-        <div className="h-4 w-px bg-border mx-1" />
+        <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground">
+          <span className="font-semibold text-foreground tracking-tight flex items-center gap-1.5">
+            <Building2 className="size-3.5 text-primary" />
+            CPG Group
+          </span>
+          <span className="text-border">/</span>
+          <span>Command Center</span>
+        </div>
+
+        <div className="h-4 w-px bg-border mx-1 hidden sm:block" />
 
         {/* Global Search Input */}
-        <form onSubmit={handleSearchSubmit} className="relative w-full max-w-md">
+        <form onSubmit={handleSearchSubmit} className="relative w-full max-w-sm">
           <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
@@ -129,8 +139,8 @@ export default function Header({
               setSearchQuery(e.target.value);
               onSearch(e.target.value);
             }}
-            placeholder="Search berkas, FPB, PO, armada, PIC..."
-            className="w-full h-8 rounded-lg border border-border bg-muted/30 pl-8 pr-14 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-zinc-500 focus:bg-background transition"
+            placeholder="Search FPB, PO, kapal, barang, PIC..."
+            className="w-full h-8 rounded-lg border border-border bg-muted/40 pl-8 pr-14 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-ring focus:bg-background transition"
           />
           {searchQuery ? (
             <button
@@ -153,7 +163,7 @@ export default function Header({
         </form>
       </div>
 
-      {/* Right side: Action Buttons, Clock, and User Avatar */}
+      {/* Right side: Action Buttons, Theme Toggle, Clock, and User Avatar */}
       <div className="flex items-center gap-2">
         {/* Quick Upload Excel Button */}
         <label className="cursor-pointer inline-flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition shadow-xs active:scale-95">
@@ -190,16 +200,22 @@ export default function Header({
           <RotateCcw className="size-3.5" />
         </button>
 
+        {/* Theme Toggle Button (Light / Dark) */}
+        <ThemeToggle />
+
         <div className="h-4 w-px bg-border mx-1 hidden sm:block" />
 
         {/* Clock WITA Indicator */}
-        <div className="hidden lg:flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/40 border border-border text-[11px] font-mono text-muted-foreground">
+        <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/50 border border-border text-[11px] font-mono text-muted-foreground">
           <Clock className="size-3 text-muted-foreground" />
           <span>{clock}</span>
         </div>
 
         {/* User Profile Avatar */}
-        <div className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border bg-muted text-xs font-semibold text-foreground select-none" title="Hermansyah - Purchasing Admin">
+        <div
+          className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border bg-muted font-bold text-xs text-foreground select-none"
+          title="Hermansyah - Purchasing Admin"
+        >
           HA
         </div>
       </div>

@@ -2,15 +2,62 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: dark;
+@layer base {
+  :root {
+    --background: 210 20% 98%; /* #f8fafc clean slate background */
+    --foreground: 224 71.4% 4.1%; /* #020817 deep dark text */
+    --card: 0 0% 100%; /* #ffffff pure white card */
+    --card-foreground: 224 71.4% 4.1%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 71.4% 4.1%;
+    --primary: 220.9 39.3% 11%; /* #0f172a */
+    --primary-foreground: 210 20% 98%;
+    --secondary: 220 14.3% 95.9%; /* #f1f5f9 */
+    --secondary-foreground: 220.9 39.3% 11%;
+    --muted: 220 14.3% 95.9%; /* #f1f5f9 */
+    --muted-foreground: 220 8.9% 46.1%; /* #64748b */
+    --accent: 220 14.3% 95.9%;
+    --accent-foreground: 220.9 39.3% 11%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 220 13% 91%; /* #e2e8f0 */
+    --input: 220 13% 91%;
+    --ring: 224 71.4% 4.1%;
+    --radius: 0.625rem;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%; /* #09090b deep dark background */
+    --foreground: 0 0% 98%; /* #fafafa */
+    --card: 240 10% 6.5%; /* #111217 deep dark card */
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 6.5%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%; /* #fafafa */
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%; /* #27272a */
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 12%; /* #1c1c22 */
+    --muted-foreground: 240 5% 64.9%; /* #a1a1aa */
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%; /* #27272a */
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+  }
 }
 
 body {
-  background-color: #09090b;
-  color: #f4f4f5;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.012em;
   overflow-x: hidden;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* Custom Scrollbar in studio-admin style */
@@ -22,11 +69,11 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #27272a;
+  background: hsl(var(--border));
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46;
+  background: hsl(var(--muted-foreground));
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -38,6 +85,6 @@ body {
 }
 
 .glass-panel {
-  background: #111217;
-  border: 1px solid #27272a;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
 }

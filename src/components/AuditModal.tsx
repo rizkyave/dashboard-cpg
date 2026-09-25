@@ -138,9 +138,9 @@ export default function AuditModal({
             {/* Gemini AI Risk Audit Button */}
             <button
               onClick={handleRunAiAudit}
-              className="h-8 px-3 rounded-lg border border-purple-500/30 bg-purple-950/40 hover:bg-purple-900/50 text-purple-300 text-xs font-medium shadow-xs flex items-center gap-1.5 transition active:scale-95"
+              className="h-8 px-3 rounded-lg border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 dark:text-purple-300 text-xs font-medium shadow-xs flex items-center gap-1.5 transition active:scale-95"
             >
-              <Sparkles className="size-3.5 text-amber-300" />
+              <Sparkles className="size-3.5 text-purple-600 dark:text-amber-300" />
               <span>Analisis Risiko AI</span>
             </button>
             <button
@@ -154,33 +154,33 @@ export default function AuditModal({
 
         {/* AI Document Risk Callout Box */}
         {showAiRisk && (
-          <div className="p-4 rounded-xl bg-purple-950/40 border border-purple-500/40 text-xs space-y-2">
-            <div className="flex items-center justify-between text-purple-300 font-semibold font-mono">
+          <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/30 text-xs space-y-2">
+            <div className="flex items-center justify-between text-purple-800 dark:text-purple-300 font-semibold font-mono">
               <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-purple-400 animate-ping"></span>
+                <span className="w-2 h-2 rounded-full bg-purple-500 animate-ping"></span>
                 Hasil Analisis AI Gemini 3 Flash
               </span>
               <span
                 className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono ${
                   isCritical
-                    ? 'bg-rose-500/20 text-rose-300'
-                    : 'bg-emerald-500/20 text-emerald-300'
+                    ? 'bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-500/30'
+                    : 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'
                 }`}
               >
                 {isCritical ? 'RISIKO: TINGGI (BOTTLENECK)' : 'RISIKO: RENDAH (SESUAI SOP)'}
               </span>
             </div>
-            <div className="text-slate-200 leading-relaxed font-sans">
+            <div className="text-foreground leading-relaxed font-sans">
               {isCritical ? (
                 <>
-                  <p className="mb-1 text-slate-100">
+                  <p className="mb-1 text-foreground">
                     <strong>Peringatan SLA:</strong> Berkas <code>{itemS1?.fpb}</code> telah
                     tertahan selama <strong>{itemS1?.lapse} hari</strong> pada status{' '}
                     <em>{itemS1?.statusBadge}</em>.
                   </p>
-                  <p className="text-slate-300">
+                  <p className="text-muted-foreground">
                     PIC Aktif saat ini:{' '}
-                    <strong className="text-cyan-300">{itemS1?.picAktif}</strong>. Terdeteksi
+                    <strong className="text-foreground">{itemS1?.picAktif}</strong>. Terdeteksi
                     adanya penundaan verifikasi spek marine teknis oleh pihak armada/kapal.
                     Disarankan melakukan eskalasi langsung melalui WhatsApp agar berkas segera
                     diserahkan ke bagian Keuangan.
@@ -188,12 +188,12 @@ export default function AuditModal({
                 </>
               ) : (
                 <>
-                  <p className="mb-1 text-slate-100">
+                  <p className="mb-1 text-foreground">
                     <strong>Alur Berkas Bersih:</strong> Berkas <code>{itemS1?.fpb}</code> berada
                     dalam koridor SLA normal (Lapse: <strong>{itemS1?.lapse || 0} hari</strong>
                     ).
                   </p>
-                  <p className="text-slate-300">
+                  <p className="text-muted-foreground">
                     Rantai pertanggungjawaban fisik PIC Purchasing (&rarr; {itemS1?.picPch}), TTB
                     Logistik (&rarr; {itemS1?.picTtb}), dan Lapangan (&rarr; {itemS1?.picLap})
                     cocok dengan Master Data Bu Noor.
@@ -231,76 +231,76 @@ export default function AuditModal({
             <span className="text-[10px] text-muted-foreground font-mono block">
               STATUS SAAT INI
             </span>
-            <span className="text-sm font-semibold text-emerald-400 font-mono mt-0.5 block">
+            <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 font-mono mt-0.5 block">
               {itemS1?.statusBadge || itemsS2[0]?.status || 'TERDATA DI LAYANAN ARMADA'}
             </span>
           </div>
         </div>
 
         {/* 4 Cross Verification Badges */}
-        <div className="bg-muted/20 rounded-xl border border-border p-4 space-y-3">
+        <div className="bg-muted/30 rounded-xl border border-border p-4 space-y-3">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-1.5">
-              <ShieldCheck className="size-4 text-emerald-400" />
+              <ShieldCheck className="size-4 text-emerald-600 dark:text-emerald-400" />
               <span>Status Validasi Dokumen Lintas Modul</span>
             </h4>
-            <span className="text-[10px] text-emerald-400 font-mono bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+            <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-mono bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
               4/4 Modul Terverifikasi
             </span>
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
             {/* 1. INPUT DATA MELINDA */}
-            <div className="p-3 rounded-lg bg-card border border-border flex flex-col justify-between gap-2.5 shadow-xs hover:border-zinc-700 transition">
+            <div className="p-3 rounded-lg bg-card border border-border flex flex-col justify-between gap-2.5 shadow-xs hover:shadow-subtle transition">
               <div className="text-[11px] font-semibold text-foreground tracking-wide uppercase leading-tight min-h-[1.75rem] flex items-center">
                 INPUT DATA MELINDA
               </div>
               <div className="flex items-center justify-between pt-2 border-t border-border">
                 <span className="text-[10px] text-muted-foreground font-mono">Status:</span>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono text-[11px] font-bold">
-                  <Check className="size-3 text-emerald-400" />
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-mono text-[11px] font-medium">
+                  <Check className="size-3 text-emerald-600 dark:text-emerald-400" />
                   DONE
                 </span>
               </div>
             </div>
 
             {/* 2. PROCUREMENT */}
-            <div className="p-3 rounded-lg bg-card border border-border flex flex-col justify-between gap-2.5 shadow-xs hover:border-zinc-700 transition">
+            <div className="p-3 rounded-lg bg-card border border-border flex flex-col justify-between gap-2.5 shadow-xs hover:shadow-subtle transition">
               <div className="text-[11px] font-semibold text-foreground tracking-wide uppercase leading-tight min-h-[1.75rem] flex items-center">
                 PROCUREMENT
               </div>
               <div className="flex items-center justify-between pt-2 border-t border-border">
                 <span className="text-[10px] text-muted-foreground font-mono">Status:</span>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono text-[11px] font-bold">
-                  <Check className="size-3 text-emerald-400" />
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-mono text-[11px] font-medium">
+                  <Check className="size-3 text-emerald-600 dark:text-emerald-400" />
                   TERVERIFIKASI
                 </span>
               </div>
             </div>
 
             {/* 3. MASTER DATA BU NOOR */}
-            <div className="p-3 rounded-lg bg-card border border-border flex flex-col justify-between gap-2.5 shadow-xs hover:border-zinc-700 transition">
+            <div className="p-3 rounded-lg bg-card border border-border flex flex-col justify-between gap-2.5 shadow-xs hover:shadow-subtle transition">
               <div className="text-[11px] font-semibold text-foreground tracking-wide uppercase leading-tight min-h-[1.75rem] flex items-center">
                 MASTER DATA BU NOOR
               </div>
               <div className="flex items-center justify-between pt-2 border-t border-border">
                 <span className="text-[10px] text-muted-foreground font-mono">Status:</span>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono text-[11px] font-bold">
-                  <Check className="size-3 text-emerald-400" />
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-mono text-[11px] font-medium">
+                  <Check className="size-3 text-emerald-600 dark:text-emerald-400" />
                   DONE
                 </span>
               </div>
             </div>
 
             {/* 4. LAYANAN ARMADA */}
-            <div className="p-3 rounded-lg bg-card border border-border flex flex-col justify-between gap-2.5 shadow-xs hover:border-zinc-700 transition">
+            <div className="p-3 rounded-lg bg-card border border-border flex flex-col justify-between gap-2.5 shadow-xs hover:shadow-subtle transition">
               <div className="text-[11px] font-semibold text-foreground tracking-wide uppercase leading-tight min-h-[1.75rem] flex items-center">
                 LAYANAN ARMADA
               </div>
               <div className="flex items-center justify-between pt-2 border-t border-border">
                 <span className="text-[10px] text-muted-foreground font-mono">Status:</span>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono text-[11px] font-bold">
-                  <Check className="size-3 text-emerald-400" />
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-mono text-[11px] font-medium">
+                  <Check className="size-3 text-emerald-600 dark:text-emerald-400" />
                   MATCHING
                 </span>
               </div>
@@ -327,11 +327,11 @@ export default function AuditModal({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
             {/* 1. PURCHASING */}
-            <div className="p-3.5 rounded-lg bg-card border border-border flex flex-col justify-between space-y-2 shadow-xs hover:border-zinc-700 transition">
+            <div className="p-3.5 rounded-lg bg-card border border-border flex flex-col justify-between space-y-2 shadow-xs hover:border-foreground/20 transition">
               <div>
                 <div className="flex items-center justify-between pb-2 border-b border-border">
                   <span className="text-[11px] font-semibold text-foreground font-mono flex items-center gap-1.5">
-                    <ShoppingBag className="size-3.5 text-cyan-400" />
+                    <ShoppingBag className="size-3.5 text-cyan-600 dark:text-cyan-400" />
                     1. PURCHASING
                   </span>
                   <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-muted text-muted-foreground border border-border font-semibold">
@@ -364,7 +364,7 @@ export default function AuditModal({
                 </div>
               </div>
               <div className="pt-2 border-t border-border">
-                <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/40 px-2 py-0.5 rounded-md border border-cyan-800/40 block text-center truncate">
+                <span className="text-[10px] font-mono text-cyan-700 dark:text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-md border border-cyan-500/20 block text-center truncate font-medium">
                   {itemS1?.po && itemS1.po !== '-'
                     ? 'PO Diterbitkan'
                     : itemsS2[0]?.noPo
@@ -375,11 +375,11 @@ export default function AuditModal({
             </div>
 
             {/* 2. LOGISTIK TTB */}
-            <div className="p-3.5 rounded-lg bg-card border border-border flex flex-col justify-between space-y-2 shadow-xs hover:border-zinc-700 transition">
+            <div className="p-3.5 rounded-lg bg-card border border-border flex flex-col justify-between space-y-2 shadow-xs hover:border-foreground/20 transition">
               <div>
                 <div className="flex items-center justify-between pb-2 border-b border-border">
                   <span className="text-[11px] font-semibold text-foreground font-mono flex items-center gap-1.5">
-                    <PackageCheck className="size-3.5 text-purple-400" />
+                    <PackageCheck className="size-3.5 text-purple-600 dark:text-purple-400" />
                     2. LOGISTIK TTB
                   </span>
                   <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-muted text-muted-foreground border border-border font-semibold">
@@ -393,7 +393,7 @@ export default function AuditModal({
                   </div>
                   <div className="flex items-center justify-between text-[11px]">
                     <span className="text-muted-foreground">No. TTB:</span>
-                    <span className="text-purple-400 font-mono font-bold">
+                    <span className="text-purple-600 dark:text-purple-400 font-mono font-bold">
                       {itemsS2[0]?.noTtb || itemS1?.noTtb || '-'}
                     </span>
                   </div>
@@ -412,7 +412,7 @@ export default function AuditModal({
                 </div>
               </div>
               <div className="pt-2 border-t border-border">
-                <span className="text-[10px] font-mono text-purple-400 bg-purple-950/40 px-2 py-0.5 rounded-md border border-purple-800/40 block text-center truncate">
+                <span className="text-[10px] font-mono text-purple-700 dark:text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-md border border-purple-500/20 block text-center truncate font-medium">
                   {itemsS2[0]?.noTtb || itemS1?.noTtb
                     ? 'TTB Divalidasi'
                     : itemsS2[0]?.noFstb
@@ -423,11 +423,11 @@ export default function AuditModal({
             </div>
 
             {/* 3. TIM LAPANGAN */}
-            <div className="p-3.5 rounded-lg bg-card border border-border flex flex-col justify-between space-y-2 shadow-xs hover:border-zinc-700 transition">
+            <div className="p-3.5 rounded-lg bg-card border border-border flex flex-col justify-between space-y-2 shadow-xs hover:border-foreground/20 transition">
               <div>
                 <div className="flex items-center justify-between pb-2 border-b border-border">
                   <span className="text-[11px] font-semibold text-foreground font-mono flex items-center gap-1.5">
-                    <HardHat className="size-3.5 text-amber-400" />
+                    <HardHat className="size-3.5 text-amber-600 dark:text-amber-400" />
                     3. TIM LAPANGAN
                   </span>
                   <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-muted text-muted-foreground border border-border font-semibold">
@@ -441,7 +441,7 @@ export default function AuditModal({
                   </div>
                   <div className="flex items-center justify-between text-[11px]">
                     <span className="text-muted-foreground">Tgl Diantar:</span>
-                    <span className="text-amber-400 font-mono">
+                    <span className="text-amber-600 dark:text-amber-400 font-mono">
                       {itemS1?.tglBarangDiantar || '-'}
                     </span>
                   </div>
@@ -460,7 +460,7 @@ export default function AuditModal({
                 </div>
               </div>
               <div className="pt-2 border-t border-border">
-                <span className="text-[10px] font-mono text-amber-400 bg-amber-950/40 px-2 py-0.5 rounded-md border border-amber-800/40 block text-center truncate">
+                <span className="text-[10px] font-mono text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20 block text-center truncate font-medium">
                   {itemS1?.tglBarangDiantar
                     ? 'Barang Sudah Diantar'
                     : itemsS2.length > 0 && itemsS2[0].selisih === 0
@@ -471,11 +471,11 @@ export default function AuditModal({
             </div>
 
             {/* 4. FINANCE / ADM */}
-            <div className="p-3.5 rounded-lg bg-card border border-border flex flex-col justify-between space-y-2 shadow-xs hover:border-zinc-700 transition">
+            <div className="p-3.5 rounded-lg bg-card border border-border flex flex-col justify-between space-y-2 shadow-xs hover:border-foreground/20 transition">
               <div>
                 <div className="flex items-center justify-between pb-2 border-b border-border">
                   <span className="text-[11px] font-semibold text-foreground font-mono flex items-center gap-1.5">
-                    <Landmark className="size-3.5 text-emerald-400" />
+                    <Landmark className="size-3.5 text-emerald-600 dark:text-emerald-400" />
                     4. FINANCE / ADM
                   </span>
                   <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-muted text-muted-foreground border border-border font-semibold">
@@ -489,7 +489,7 @@ export default function AuditModal({
                   </div>
                   <div className="flex items-center justify-between text-[11px]">
                     <span className="text-muted-foreground">No. SPP:</span>
-                    <span className="text-emerald-400 font-mono font-bold">
+                    <span className="text-emerald-600 dark:text-emerald-400 font-mono font-bold">
                       {itemS1?.noSpp || '-'}
                     </span>
                   </div>
@@ -508,7 +508,7 @@ export default function AuditModal({
                 </div>
               </div>
               <div className="pt-2 border-t border-border">
-                <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-800/40 block text-center truncate">
+                <span className="text-[10px] font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20 block text-center truncate font-medium">
                   {itemS1?.tglKeKeuangan
                     ? 'Selesai di Keuangan'
                     : itemS1?.noSpp
@@ -582,8 +582,8 @@ export default function AuditModal({
                         <span
                           className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${
                             i.selisih === 0
-                              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                              : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                              ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
+                              : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
                           }`}
                         >
                           {i.status}
@@ -599,7 +599,7 @@ export default function AuditModal({
                     <td className="p-2.5 text-center text-foreground font-semibold">1</td>
                     <td className="p-2.5 text-center text-muted-foreground">1</td>
                     <td className="p-2.5 text-center">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
                         Lengkap
                       </span>
                     </td>
@@ -614,9 +614,9 @@ export default function AuditModal({
         <div className="flex items-center justify-between pt-3 border-t border-border">
           <button
             onClick={handleWhatsappNudge}
-            className="h-8 px-3.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-medium flex items-center gap-1.5 transition"
+            className="h-8 px-3.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-medium flex items-center gap-1.5 transition"
           >
-            <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
+            <MessageSquare className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
             <span>Eskalasi PIC via WhatsApp</span>
           </button>
           <button
