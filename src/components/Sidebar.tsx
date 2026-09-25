@@ -13,8 +13,12 @@ import {
   List,
   Command,
   PanelLeftClose,
+  Mail,
+  Upload,
 } from 'lucide-react';
-import { TabType, LapseFilterType } from '@/types/procurement';
+import * as XLSX from 'xlsx';
+import { TabType, LapseFilterType, ProcurementItem, ArmadaItem } from '@/types/procurement';
+import { parseAndMergeWorkbook } from '@/utils/excelParser';
 import ThemeToggle from './ThemeToggle';
 
 interface SidebarProps {
@@ -27,6 +31,8 @@ interface SidebarProps {
   isCollapsed: boolean;
   onToggleCollapse: () => void;
   onOpenNewRecord?: () => void;
+  onExcelUpload?: (payload: { procurement: ProcurementItem[]; armada: ArmadaItem[] }) => void;
+  showToast?: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
 }
 
 export default function Sidebar({
@@ -39,17 +45,19 @@ export default function Sidebar({
   isCollapsed,
   onToggleCollapse,
   onOpenNewRecord,
+  onExcelUpload,
+  showToast,
 }: SidebarProps) {
   const dashboards = [
     {
       id: 'overview' as TabType,
-      label: 'Ringkasan Utama',
+      label: 'Overview',
       icon: LayoutDashboard,
       badge: 'Main',
     },
     {
       id: 'procurement' as TabType,
-      label: 'Monitoring Pengadaan',
+      label: 'Procurement Monitoring',
       icon: ShoppingBag,
       badge: totalCount > 0 ? `${totalCount}` : undefined,
     },
@@ -61,13 +69,12 @@ export default function Sidebar({
     },
     {
       id: 'analytics' as TabType,
-      label: 'Analisis & Lead Time',
+      label: 'Analytics & Lead Time',
       icon: BarChart3,
       badge: criticalCount > 0 ? `${criticalCount} Kritis` : undefined,
       badgeVariant: criticalCount > 0 ? 'destructive' : 'default',
     },
   ];
-
 
   const slaFilters: { id: LapseFilterType; label: string; icon: any; count?: number }[] = [
     { id: 'ALL', label: 'Semua Berkas', icon: List },
@@ -76,29 +83,50 @@ export default function Sidebar({
     { id: 'CRITICAL', label: 'Kritis (> 5 hari)', icon: AlertOctagon, count: criticalCount },
   ];
 
+  const handleSidebarFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !onExcelUpload) return;
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const buffer = evt.target?.result as ArrayBuffer;
+        const workbook = XLSX.read(new Uint8Array(buffer), { type: 'array' });
+        const result = parseAndMergeWorkbook(workbook);
+
+        if (result.procurement.length > 0 || result.armada.length > 0) {
+          onExcelUpload({ procurement: result.procurement, armada: result.armada });
+          showToast?.(
+            `Data berhasil di-merge! (${result.procurement.length.toLocaleString()} total item).`,
+            'success'
+          );
+        } else {
+          showToast?.('Tidak ditemukan data valid pada sheet Excel.', 'warning');
+        }
+      } catch (err) {
+        showToast?.('Gagal memproses file Excel.', 'error');
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    e.target.value = '';
+  };
+
   return (
     <aside
-      className={`shrink-0 bg-background border-r border-border flex flex-col justify-between transition-all duration-200 select-none z-30 ${
+      className={`shrink-0 bg-background border-r border-border flex flex-col justify-between transition-all duration-200 select-none z-30 min-h-screen ${
         isCollapsed
           ? 'w-0 p-0 border-r-0 opacity-0 pointer-events-none -translate-x-full'
           : 'w-64 p-3.5 md:p-4 opacity-100 translate-x-0'
       }`}
     >
-      <div className="flex flex-col gap-5 overflow-y-auto no-scrollbar">
-        {/* Brand / Logo Header */}
-        <div className="flex items-center justify-between px-1">
-          <div className="flex items-center gap-2.5">
-            <div className="flex size-8 items-center justify-center rounded-lg border border-border bg-card shadow-xs text-foreground">
-              <Command className="size-4" />
-            </div>
-            <div className="grid leading-tight">
-              <span className="font-semibold text-sm tracking-tight text-foreground">
-                CPG Command
-              </span>
-              <span className="text-[10px] text-muted-foreground font-mono">
-                Procurement Suite v2.4
-              </span>
-            </div>
+      <div className="flex flex-col gap-4 overflow-y-auto no-scrollbar">
+        {/* Brand Header matching Studio Admin */}
+        <div className="flex items-center justify-between px-1.5 pt-0.5">
+          <div className="flex items-center gap-2">
+            <Command className="size-4.5 text-foreground" />
+            <span className="font-bold text-sm tracking-tight text-foreground">
+              Studio Admin
+            </span>
           </div>
           <button
             onClick={onToggleCollapse}
@@ -109,21 +137,45 @@ export default function Sidebar({
           </button>
         </div>
 
-        {/* Quick Action Button */}
-        {onOpenNewRecord && (
-          <button
-            onClick={onOpenNewRecord}
-            className="w-full h-8 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-medium flex items-center justify-center gap-1.5 transition shadow-xs"
-          >
-            <CirclePlus className="size-3.5" />
-            <span>Input Berkas PO Baru</span>
-          </button>
-        )}
+        {/* Quick Action Button matching Studio Admin screenshot: [ ⊕ Quick Create ] [ ✉ ] */}
+        <div className="flex items-center gap-1.5">
+          {onOpenNewRecord && (
+            <button
+              onClick={onOpenNewRecord}
+              className="flex-1 h-9 rounded-lg bg-foreground text-background hover:opacity-90 text-xs font-semibold flex items-center justify-center gap-2 transition shadow-xs active:scale-95"
+            >
+              <CirclePlus className="size-4" />
+              <span>Quick Create</span>
+            </button>
+          )}
 
-        {/* Group 1: Dashboards */}
-        <div className="space-y-1">
-          <div className="px-2 py-1 text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-            Menu Dashboard
+          {onExcelUpload ? (
+            <label
+              title="Unggah File Excel"
+              className="size-9 rounded-lg border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center cursor-pointer transition shadow-xs shrink-0 active:scale-95"
+            >
+              <Upload className="size-4" />
+              <input
+                type="file"
+                accept=".xlsx, .xls, .csv"
+                className="hidden"
+                onChange={handleSidebarFileUpload}
+              />
+            </label>
+          ) : (
+            <button
+              className="size-9 rounded-lg border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition shadow-xs shrink-0"
+              title="Inbox Notifikasi"
+            >
+              <Mail className="size-4" />
+            </button>
+          )}
+        </div>
+
+        {/* Dashboards Section */}
+        <div className="space-y-1 mt-1">
+          <div className="px-2 py-1 text-[11px] font-medium text-muted-foreground">
+            Dashboards
           </div>
           <nav className="space-y-0.5">
             {dashboards.map((item) => {
@@ -160,10 +212,9 @@ export default function Sidebar({
           </nav>
         </div>
 
-
-        {/* Group 3: Filter SLA */}
+        {/* Filter SLA */}
         <div className="space-y-1">
-          <div className="px-2 py-1 text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+          <div className="px-2 py-1 text-[11px] font-medium text-muted-foreground">
             Filter Lead Time SLA
           </div>
           <nav className="space-y-0.5">
@@ -195,7 +246,7 @@ export default function Sidebar({
                     <span>{flt.label}</span>
                   </div>
                   {flt.count !== undefined && flt.count > 0 && (
-                    <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                    <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold bg-rose-500/10 text-rose-500 border border-rose-500/20">
                       {flt.count}
                     </span>
                   )}
@@ -206,24 +257,18 @@ export default function Sidebar({
         </div>
       </div>
 
-      {/* Sidebar Footer: User Profile Card & Theme Switcher */}
-      <div className="pt-3 border-t border-border mt-3 space-y-2">
-        <div className="flex items-center justify-between p-2 rounded-lg bg-card border border-border">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted border border-border font-bold text-xs text-foreground">
-              HA
-            </div>
-            <div className="grid leading-tight min-w-0">
-              <span className="font-medium text-xs text-foreground truncate">
-                Hermansyah
-              </span>
-              <span className="text-[10px] text-muted-foreground truncate">
-                admin@cindarapratama.com
-              </span>
-            </div>
+      {/* Footer User Info & Theme Toggle */}
+      <div className="pt-3 border-t border-border flex items-center justify-between text-xs">
+        <div className="flex items-center gap-2">
+          <div className="size-7 rounded-full bg-linear-to-tr from-sky-500 to-indigo-500 flex items-center justify-center font-bold text-white text-[11px]">
+            H
           </div>
-          <ThemeToggle />
+          <div className="grid leading-tight">
+            <span className="text-foreground font-medium text-xs">Hermansyah</span>
+            <span className="text-[10px] text-muted-foreground">CPG Admin</span>
+          </div>
         </div>
+        <ThemeToggle />
       </div>
     </aside>
   );

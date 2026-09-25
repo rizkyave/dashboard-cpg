@@ -210,55 +210,56 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen relative overflow-x-hidden">
-      {/* Header with Sidebar Toggle Button */}
-      <Header
-        searchKeyword={searchKeyword}
-        onSearch={setSearchKeyword}
+    <div className="flex min-h-screen bg-background text-foreground antialiased">
+      {/* Left Navigation Sidebar running from top to bottom (Studio Admin Style) */}
+      <Sidebar
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
+        selectedLapse={selectedLapse}
+        onSelectLapse={setSelectedLapse}
+        totalCount={procurementData.length}
+        criticalCount={criticalCount}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={toggleSidebar}
+        onOpenNewRecord={() => setIsNewRecordOpen(true)}
         onExcelUpload={handleExcelUpload}
-        onExportCsv={handleExportCsv}
-        onResetData={handleResetData}
         showToast={showToast}
-        isSidebarCollapsed={isSidebarCollapsed}
-        onToggleSidebar={toggleSidebar}
       />
 
-      {/* Main Layout: Left Sidebar + Right Content Area */}
-      <div className="flex-1 flex flex-col md:flex-row w-full max-w-[1850px] mx-auto relative">
-        {/* Left Navigation Sidebar with Smooth CSS Transition */}
-        <Sidebar
-          activeTab={activeTab}
-          onSelectTab={setActiveTab}
-          selectedLapse={selectedLapse}
-          onSelectLapse={setSelectedLapse}
-          totalCount={procurementData.length}
-          criticalCount={criticalCount}
-          isCollapsed={isSidebarCollapsed}
-          onToggleCollapse={toggleSidebar}
+      {/* Right Column: Header Bar + Main Content Area + Footer */}
+      <div className="flex-1 flex flex-col min-w-0 transition-all duration-300">
+        <Header
+          searchKeyword={searchKeyword}
+          onSearch={setSearchKeyword}
+          onExcelUpload={handleExcelUpload}
+          onExportCsv={handleExportCsv}
+          onResetData={handleResetData}
+          showToast={showToast}
+          isSidebarCollapsed={isSidebarCollapsed}
+          onToggleSidebar={toggleSidebar}
         />
 
-        {/* Right Content Area with Smooth Width Transition */}
-        <main className="flex-1 min-w-0 p-4 lg:p-7 space-y-6 transition-all duration-300 ease-in-out">
-          {/* Smooth Fade & Slide Banner for Quick Reopen when Collapsed */}
-          <div
-            className={`transition-all duration-300 ease-in-out overflow-hidden ${
-              isSidebarCollapsed
-                ? 'max-h-16 opacity-100 mb-2 translate-y-0'
-                : 'max-h-0 opacity-0 mb-0 -translate-y-2 pointer-events-none'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <button
-                onClick={toggleSidebar}
-                className="h-8 px-3 rounded-lg bg-background hover:bg-muted text-foreground border border-border text-xs font-medium flex items-center gap-2 transition-all shadow-sm group"
-              >
-                <PanelLeftOpen className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground" />
-                <span>Buka Menu Navigasi</span>
-              </button>
-              <span className="text-[11px] text-muted-foreground font-mono">
-                &bull; Sidebar Disembunyikan
-              </span>
-            </div>
+        <main className="flex-1 min-w-0 p-5 lg:p-8 space-y-6 max-w-[1800px] w-full mx-auto">
+          {/* Studio Admin Page Header (Matching Reference Screenshot) */}
+          <div className="space-y-1">
+            <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-foreground">
+              {activeTab === 'overview'
+                ? 'Pipeline Overview'
+                : activeTab === 'procurement'
+                ? 'Procurement Monitoring'
+                : activeTab === 'armada'
+                ? 'Layanan Armada (FSTB)'
+                : 'Analytics & Performance'}
+            </h1>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              {activeTab === 'overview'
+                ? 'Keep tabs on lead quality, open opportunities, and conversion rates across the current sales cycle.'
+                : activeTab === 'procurement'
+                ? 'Pemantauan alur berkas pengadaan, verifikasi dokumen fisik, dan status antrian per divisi.'
+                : activeTab === 'armada'
+                ? 'Pencocokan kuantitas FPB vs FSTB, unit kapal armada, dan realisasi distribusi logistik.'
+                : 'Analisis waktu perputaran berkas fisik (lead time) dan beban kerja produktivitas staf PIC.'}
+            </p>
           </div>
 
           {/* 4 Pillar Executive Metric Cards (strictly filtered to active search & entity) */}
@@ -305,28 +306,28 @@ export default function DashboardPage() {
           {/* Tab 4: Analytics */}
           {activeTab === 'analytics' && <AnalyticsTab items={filteredProcurement} />}
         </main>
-      </div>
 
-      {/* Footer */}
-      <footer className="mt-auto bg-card border-t border-border px-4 lg:px-8 py-3.5 text-xs text-muted-foreground">
-        <div className="max-w-[1850px] mx-auto flex flex-col md:flex-row items-center justify-between gap-2 text-center md:text-left">
-          <div>
-            <p className="text-foreground font-medium text-xs">
-              PT Cindara Pratama Lines &bull; CPG Holding Procurement System
-            </p>
-            <p className="text-[11px] text-muted-foreground">
-              Pusat Operasional Somber & Kariangau, Balikpapan, Kalimantan Timur
-            </p>
+        {/* Footer */}
+        <footer className="mt-auto bg-card border-t border-border px-5 lg:px-8 py-3.5 text-xs text-muted-foreground">
+          <div className="max-w-[1850px] mx-auto flex flex-col md:flex-row items-center justify-between gap-2 text-center md:text-left">
+            <div>
+              <p className="text-foreground font-medium text-xs">
+                PT Cindara Pratama Lines &bull; CPG Holding Procurement System
+              </p>
+              <p className="text-[11px] text-muted-foreground">
+                Pusat Operasional Somber & Kariangau, Balikpapan, Kalimantan Timur
+              </p>
+            </div>
+            <div className="flex items-center gap-4 font-mono text-[11px]">
+              <span className="text-muted-foreground">
+                Security: <strong className="text-emerald-700 dark:text-emerald-400 font-medium">Encrypted Local Sandbox</strong>
+              </span>
+              <span className="text-border">|</span>
+              <span className="text-muted-foreground">CPG Enterprise Dashboard &bull; Next.js</span>
+            </div>
           </div>
-          <div className="flex items-center gap-4 font-mono text-[11px]">
-            <span className="text-muted-foreground">
-              Security: <strong className="text-emerald-700 dark:text-emerald-400 font-medium">Encrypted Local Sandbox</strong>
-            </span>
-            <span className="text-border">|</span>
-            <span className="text-muted-foreground">CPG Enterprise Dashboard &bull; Next.js</span>
-          </div>
-        </div>
-      </footer>
+        </footer>
+      </div>
 
       {/* Audit Modal */}
       <AuditModal
