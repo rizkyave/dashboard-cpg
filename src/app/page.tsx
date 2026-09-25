@@ -11,7 +11,6 @@ import {
 } from '@/types/procurement';
 import { INITIAL_PROCUREMENT_DATA, INITIAL_ARMADA_DATA } from '@/data/initialData';
 import Header from '@/components/Header';
-import EntityFilterBar from '@/components/EntityFilterBar';
 import Sidebar from '@/components/Sidebar';
 import KpiCards from '@/components/KpiCards';
 import OverviewTab from '@/components/OverviewTab';
@@ -222,15 +221,6 @@ export default function DashboardPage() {
         showToast={showToast}
         isSidebarCollapsed={isSidebarCollapsed}
         onToggleSidebar={toggleSidebar}
-      />
-
-      {/* Entity Selection Bar */}
-      <EntityFilterBar
-        selectedEntity={selectedEntity}
-        onSelectEntity={(code) => {
-          setSelectedEntity(code);
-          showToast(`Menampilkan data entitas: ${code}`, 'info');
-        }}
       />
 
       {/* Main Layout: Left Sidebar + Right Content Area */}
