@@ -240,25 +240,25 @@ export default function DashboardPage() {
         />
 
         <main className="flex-1 min-w-0 p-5 lg:p-8 space-y-6 max-w-[1800px] w-full mx-auto">
-          {/* Studio Admin Page Header (Matching Reference Screenshot) */}
+          {/* Page Header in clean Studio Admin typography with CPG Company Identity */}
           <div className="space-y-1">
             <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-foreground">
               {activeTab === 'overview'
-                ? 'Pipeline Overview'
+                ? 'Monitoring Pengadaan & Armada'
                 : activeTab === 'procurement'
-                ? 'Procurement Monitoring'
+                ? 'Monitoring Berkas Pengadaan'
                 : activeTab === 'armada'
-                ? 'Layanan Armada (FSTB)'
-                : 'Analytics & Performance'}
+                ? 'Monitoring Layanan Armada'
+                : 'Analisis SLA & Lead Time'}
             </h1>
             <p className="text-xs sm:text-sm text-muted-foreground">
               {activeTab === 'overview'
-                ? 'Keep tabs on lead quality, open opportunities, and conversion rates across the current sales cycle.'
+                ? 'Pemantauan posisi alur berkas pengadaan, verifikasi layanan armada, dan kepatuhan SLA fisik holding CPG.'
                 : activeTab === 'procurement'
-                ? 'Pemantauan alur berkas pengadaan, verifikasi dokumen fisik, dan status antrian per divisi.'
+                ? 'Daftar transaksi pengadaan PO, verifikasi berkas fisik antar divisi, dan status penyelesaian berkas.'
                 : activeTab === 'armada'
-                ? 'Pencocokan kuantitas FPB vs FSTB, unit kapal armada, dan realisasi distribusi logistik.'
-                : 'Analisis waktu perputaran berkas fisik (lead time) dan beban kerja produktivitas staf PIC.'}
+                ? 'Pencocokan kuantitas FPB vs FSTB, unit kapal armada, dan realisasi distribusi logistik lapangan.'
+                : 'Distribusi waktu perputaran berkas fisik (lead time) dan beban kerja produktivitas staf PIC operasional.'}
             </p>
           </div>
 

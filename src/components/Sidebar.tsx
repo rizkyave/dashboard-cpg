@@ -120,12 +120,12 @@ export default function Sidebar({
       }`}
     >
       <div className="flex flex-col gap-4 overflow-y-auto no-scrollbar">
-        {/* Brand Header matching Studio Admin */}
+        {/* Brand Header with CPG Admin branding in clean Studio Admin style */}
         <div className="flex items-center justify-between px-1.5 pt-0.5">
           <div className="flex items-center gap-2">
             <Command className="size-4.5 text-foreground" />
             <span className="font-bold text-sm tracking-tight text-foreground">
-              Studio Admin
+              CPG Admin
             </span>
           </div>
           <button
