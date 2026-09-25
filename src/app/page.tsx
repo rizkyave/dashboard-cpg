@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   EntityCode,
   LapseFilterType,
@@ -12,6 +12,7 @@ import {
 import { INITIAL_PROCUREMENT_DATA, INITIAL_ARMADA_DATA } from '@/data/initialData';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
+import MobileBottomNav from '@/components/MobileBottomNav';
 import KpiCards from '@/components/KpiCards';
 import OverviewTab from '@/components/OverviewTab';
 import ProcurementTab from '@/components/ProcurementTab';
@@ -35,6 +36,13 @@ export default function DashboardPage() {
   const [searchKeyword, setSearchKeyword] = useState<string>('');
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
+
+  // Auto-collapse sidebar on mobile screen size on initial mount
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setIsSidebarCollapsed(true);
+    }
+  }, []);
 
   const [auditedFpb, setAuditedFpb] = useState<string | null>(null);
   const [auditedPo, setAuditedPo] = useState<string | null>(null);
@@ -90,6 +98,7 @@ export default function DashboardPage() {
           r.peruntukan?.toLowerCase().includes(q) ||
           r.deptArmada?.toLowerCase().includes(q) ||
           r.entity?.toLowerCase().includes(q) ||
+          r.picCheckFpb?.toLowerCase().includes(q) ||
           r.picPch?.toLowerCase().includes(q) ||
           r.picTtb?.toLowerCase().includes(q) ||
           r.picLap?.toLowerCase().includes(q) ||
@@ -125,6 +134,7 @@ export default function DashboardPage() {
           r.item?.toLowerCase().includes(q) ||
           r.keterangan?.toLowerCase().includes(q) ||
           r.kodeBarang?.toLowerCase().includes(q) ||
+          r.picCheckFpb?.toLowerCase().includes(q) ||
           r.noPo?.toLowerCase().includes(q) ||
           r.noFstb?.toLowerCase().includes(q) ||
           r.noTtb?.toLowerCase().includes(q) ||
@@ -150,9 +160,9 @@ export default function DashboardPage() {
     }
 
     let csv =
-      'NO_FPB,ENTITAS,NO_PO,TANGGAL,DESKRIPSI_BARANG,PERUNTUKAN,LAPSE_DAY,STATUS_BERKAS,PIC_PURCHASING,PIC_TTB,PIC_LAPANGAN,PIC_AKTIF\n';
+      'NO_FPB,ENTITAS,NO_PO,TANGGAL,DESKRIPSI_BARANG,PERUNTUKAN,LAPSE_DAY,STATUS_BERKAS,PIC_CHECK_FPB,PIC_PURCHASING,PIC_TTB,PIC_LAPANGAN,PIC_AKTIF\n';
     procurementData.forEach((r) => {
-      csv += `"${r.fpb}","${r.entity}","${r.po}","${r.date}","${r.item}","${r.peruntukan}","${r.lapse}","${r.statusBadge}","${r.picPch}","${r.picTtb}","${r.picLap}","${r.picAktif}"\n`;
+      csv += `"${r.fpb}","${r.entity}","${r.po}","${r.date}","${r.item}","${r.peruntukan}","${r.lapse}","${r.statusBadge}","${r.picCheckFpb || '-'}","${r.picPch}","${r.picTtb}","${r.picLap}","${r.picAktif}"\n`;
     });
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -189,7 +199,7 @@ export default function DashboardPage() {
 
   const triggerAiBottleneckAudit = () => {
     if (procurementData.length === 0) {
-      showToast('Belum ada data untuk diaudit. Silakan unggah file Excel.', 'warning');
+      showToast('Belum ada data untuk dilihat detailnya. Silakan unggah file Excel.', 'warning');
       return;
     }
     showToast(
@@ -239,7 +249,7 @@ export default function DashboardPage() {
           onToggleSidebar={toggleSidebar}
         />
 
-        <main className="flex-1 min-w-0 p-5 lg:p-8 space-y-6 max-w-[1800px] w-full mx-auto">
+        <main className="flex-1 min-w-0 p-3.5 sm:p-5 lg:p-8 space-y-4 sm:space-y-6 max-w-[1800px] w-full mx-auto pb-24 lg:pb-8">
           {/* Page Header in clean Studio Admin typography */}
           <div className="space-y-1">
             <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-foreground">
@@ -308,7 +318,7 @@ export default function DashboardPage() {
         </main>
 
         {/* Footer */}
-        <footer className="mt-auto bg-card border-t border-border px-5 lg:px-8 py-3.5 text-xs text-muted-foreground">
+        <footer className="mt-auto bg-card border-t border-border px-4 sm:px-5 lg:px-8 py-3.5 text-xs text-muted-foreground mb-16 lg:mb-0">
           <div className="max-w-[1850px] mx-auto flex flex-col md:flex-row items-center justify-between gap-2 text-center md:text-left">
             <div>
               <p className="text-foreground font-medium text-xs">
@@ -329,18 +339,29 @@ export default function DashboardPage() {
         </footer>
       </div>
 
-      {/* Audit Modal */}
-      <AuditModal
-        fpbNumber={auditedFpb}
-        targetPo={auditedPo}
-        procurementList={procurementData}
-        armadaList={armadaData}
-        onClose={() => {
-          setAuditedFpb(null);
-          setAuditedPo(null);
-        }}
-        showToast={showToast}
+      {/* Mobile Sticky Bottom Navigation Bar */}
+      <MobileBottomNav
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
+        totalCount={procurementData.length}
+        criticalCount={criticalCount}
+        onOpenSidebar={() => setIsSidebarCollapsed(false)}
       />
+
+      {/* Audit Modal */}
+      {auditedFpb && (
+        <AuditModal
+          fpbNumber={auditedFpb}
+          targetPo={auditedPo}
+          procurementList={procurementData}
+          armadaList={armadaData}
+          onClose={() => {
+            setAuditedFpb(null);
+            setAuditedPo(null);
+          }}
+          showToast={showToast}
+        />
+      )}
 
       {/* New Record Modal */}
       <NewRecordModal

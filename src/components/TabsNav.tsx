@@ -19,7 +19,7 @@ export default function TabsNav({
   const tabs: { id: TabType; label: string }[] = [
     { id: 'overview', label: 'Dashboard Eksekutif & KPI' },
     { id: 'procurement', label: 'Monitoring Berkas Fisik & PIC' },
-    { id: 'armada', label: 'Layanan Armada & Stok Backlog' },
+    { id: 'armada', label: 'Layanan Armada & Belum Terpenuhi' },
     { id: 'analytics', label: 'Bottleneck & SLA Audit' },
   ];
 

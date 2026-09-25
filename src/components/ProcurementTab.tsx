@@ -17,12 +17,16 @@ import {
   ChevronsLeft,
   ChevronsRight,
   FileSpreadsheet,
+  FileText,
   AlertTriangle,
   Clock,
   Building2,
   Calendar,
   CalendarDays,
   CalendarRange,
+  LayoutGrid,
+  Table as TableIcon,
+  ChevronDown,
 } from 'lucide-react';
 import { ProcurementItem, StatusTone } from '@/types/procurement';
 
@@ -142,6 +146,16 @@ export default function ProcurementTab({
   // Pagination State
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(50);
+
+  // View Mode: Card (mobile optimal) vs Table
+  const [viewMode, setViewMode] = useState<'card' | 'table'>('table');
+  const [showMobileFilters, setShowMobileFilters] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setViewMode('card');
+    }
+  }, []);
 
   const toneStyles: Record<StatusTone, string> = {
     emerald: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20',
@@ -288,6 +302,7 @@ export default function ProcurementTab({
         const matchDeptArmada = row.deptArmada?.toLowerCase().includes(q);
         const matchEntity = row.entity?.toLowerCase().includes(q);
         const matchPicAktif = row.picAktif?.toLowerCase().includes(q);
+        const matchPicCheckFpb = row.picCheckFpb?.toLowerCase().includes(q);
         const matchPicPch = row.picPch?.toLowerCase().includes(q);
         const matchPicTtb = row.picTtb?.toLowerCase().includes(q);
         const matchPicLap = row.picLap?.toLowerCase().includes(q);
@@ -306,6 +321,7 @@ export default function ProcurementTab({
           !matchDeptArmada &&
           !matchEntity &&
           !matchPicAktif &&
+          !matchPicCheckFpb &&
           !matchPicPch &&
           !matchPicTtb &&
           !matchPicLap &&
@@ -441,14 +457,44 @@ export default function ProcurementTab({
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            {/* View Mode Toggle: Per Item Armada vs Ringkasan Berkas/PO */}
-            <div className="flex items-center bg-muted/60 p-1 rounded-lg border border-border text-xs">
+            {/* View Mode Switcher: Cards (mobile-friendly) vs Table */}
+            <div className="flex items-center bg-muted/60 p-0.5 rounded-lg border border-border">
+              <button
+                type="button"
+                onClick={() => setViewMode('card')}
+                className={`h-7 px-2.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition touch-manipulation ${
+                  viewMode === 'card'
+                    ? 'bg-background text-foreground shadow-xs font-semibold'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title="Tampilan Kartu Ringkas (Optimal untuk HP)"
+              >
+                <LayoutGrid className="size-3.5" />
+                <span>Kartu</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('table')}
+                className={`h-7 px-2.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition touch-manipulation ${
+                  viewMode === 'table'
+                    ? 'bg-background text-foreground shadow-xs font-semibold'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title="Tampilan Tabel Lengkap"
+              >
+                <TableIcon className="size-3.5" />
+                <span>Tabel</span>
+              </button>
+            </div>
+
+            {/* View Grouping Toggle: Per Item Armada vs Ringkasan Berkas/PO */}
+            <div className="hidden sm:flex items-center bg-muted/60 p-0.5 rounded-lg border border-border text-xs">
               <button
                 type="button"
                 onClick={() => setViewGrouping('items')}
                 className={`h-7 px-2.5 rounded-md text-xs font-medium transition ${
                   viewGrouping === 'items'
-                    ? 'bg-background text-foreground shadow-sm border border-border/80'
+                    ? 'bg-background text-foreground shadow-sm border border-border/80 font-semibold'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
                 title="Tampilkan setiap baris item dari sheet Monitoring Layanan Armada"
@@ -460,7 +506,7 @@ export default function ProcurementTab({
                 onClick={() => setViewGrouping('dossiers')}
                 className={`h-7 px-2.5 rounded-md text-xs font-medium transition ${
                   viewGrouping === 'dossiers'
-                    ? 'bg-background text-foreground shadow-sm border border-border/80'
+                    ? 'bg-background text-foreground shadow-sm border border-border/80 font-semibold'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
                 title="Kelompokkan data per berkas PO / FPB"
@@ -471,10 +517,10 @@ export default function ProcurementTab({
 
             <button
               onClick={onOpenNewRecord}
-              className="h-8 px-3.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg text-xs font-medium flex items-center gap-1.5 transition shadow-sm"
+              className="h-8 px-3 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg text-xs font-medium flex items-center gap-1.5 transition shadow-sm touch-manipulation active:scale-95"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>Input Berkas PO Baru</span>
+              <span>Input Berkas</span>
             </button>
           </div>
         </div>
@@ -482,55 +528,60 @@ export default function ProcurementTab({
         {/* ═══════════════════════════════════════════════════════════
             FILTER & SEARCH BAR CONTROL
             ═══════════════════════════════════════════════════════════ */}
-        <div className="p-4 bg-muted/20 border-b border-border space-y-3">
+        <div className="p-3 sm:p-4 bg-muted/20 border-b border-border space-y-3">
           {/* Row 1: Search Input & Quick Lapse Filter Buttons */}
           <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
-            {/* Search Input Form */}
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                const input = e.currentTarget.querySelector('input');
-                input?.blur();
-              }}
-              className="flex items-center gap-2 flex-1 min-w-[280px]"
-            >
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => handleSearchChange(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.currentTarget.blur();
-                    }
-                  }}
-                  placeholder="Cari FPB, No PO, Nama Kapal / Armada, Peruntukan, PIC..."
-                  className="w-full h-8 pl-8 pr-7 bg-background border border-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring transition"
-                />
-                {searchTerm && (
-                  <button
-                    type="button"
-                    onClick={() => handleSearchChange('')}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    title="Hapus kata kunci"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                )}
-              </div>
-              <button
-                type="submit"
-                className="h-8 px-3 rounded-lg border border-border bg-background hover:bg-muted text-xs font-medium text-foreground flex items-center gap-1.5 transition whitespace-nowrap"
-                title="Tekan Enter atau klik untuk mencari"
+            {/* Search Input Form & Mobile Filter Button */}
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const input = e.currentTarget.querySelector('input');
+                  input?.blur();
+                }}
+                className="flex items-center gap-2 flex-1 min-w-0"
               >
-                <Search className="w-3.5 h-3.5" />
-                <span>Cari</span>
+                <div className="relative flex-1 min-w-0">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => handleSearchChange(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.currentTarget.blur();
+                      }
+                    }}
+                    placeholder="Cari FPB, PO, armada, barang, PIC..."
+                    className="w-full h-8 pl-8 pr-7 bg-background border border-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring transition"
+                  />
+                  {searchTerm && (
+                    <button
+                      type="button"
+                      onClick={() => handleSearchChange('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      title="Hapus kata kunci"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+              </form>
+
+              {/* Mobile Filter Toggle Button */}
+              <button
+                type="button"
+                onClick={() => setShowMobileFilters((prev) => !prev)}
+                className="sm:hidden h-8 px-2.5 rounded-lg border border-border bg-background text-xs font-medium flex items-center gap-1 text-muted-foreground hover:text-foreground shrink-0 transition"
+              >
+                <Filter className="size-3.5" />
+                <span>Filter</span>
+                <ChevronDown className={`size-3 transition-transform ${showMobileFilters ? 'rotate-180' : ''}`} />
               </button>
-            </form>
+            </div>
 
             {/* Quick Lapse Filter Buttons */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 text-xs">
+            <div className={`${showMobileFilters ? 'flex' : 'hidden'} sm:flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 text-xs`}>
               <span className="text-muted-foreground text-[11px] font-medium mr-1 flex items-center gap-1">
                 <Clock className="w-3.5 h-3.5 text-muted-foreground" />
                 Lapse:
@@ -848,16 +899,146 @@ export default function ProcurementTab({
         </div>
 
         {/* ═══════════════════════════════════════════════════════════
-            DETAILED SHEET 1 TABLE (INTERACTIVE SORTING)
+            CONTENT AREA: CARD VIEW (OPTIMAL FOR PHONE) OR TABLE VIEW
             ═══════════════════════════════════════════════════════════ */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-foreground">
-            <thead className="bg-muted/40 text-muted-foreground font-medium border-b border-border uppercase tracking-wider text-[11px] select-none">
-              <tr>
-                <th
-                  onClick={() => handleSort('fpb')}
-                  className="p-3.5 cursor-pointer hover:text-foreground transition group whitespace-nowrap"
-                >
+        {viewMode === 'card' ? (
+          <div>
+            {paginatedItems.length === 0 ? (
+              <div className="p-10 text-center text-muted-foreground">
+                <div className="flex flex-col items-center justify-center gap-2">
+                  <FileSpreadsheet className="w-8 h-8 opacity-30 text-muted-foreground" />
+                  <p className="text-sm font-medium text-foreground">
+                    Tidak ada berkas yang cocok dengan filter
+                  </p>
+                  <p className="text-xs text-muted-foreground max-w-md">
+                    Coba sesuaikan kata kunci pencarian, filter status, filter lapse day, atau klik tombol Reset Filter.
+                  </p>
+                  {isFiltered && (
+                    <button
+                      onClick={handleResetFilters}
+                      className="mt-2 h-8 px-3 bg-muted hover:bg-muted/80 text-foreground border border-border rounded-lg text-xs font-medium transition"
+                    >
+                      Tampilkan Semua Berkas
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="p-3 sm:p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {paginatedItems.map((row) => {
+                  const badgeClass = toneStyles[row.statusTone] || toneStyles.cyan;
+                  const lapseBadgeClass =
+                    row.lapse <= 2
+                      ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
+                      : row.lapse <= 4
+                      ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
+                      : 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20';
+
+                  const cleanRowFpb = (row.fpb || '').trim().replace(/^["']|["']$/g, '');
+                  const fpbDocNum = cleanRowFpb || (row.po || '').trim().replace(/^["']|["']$/g, '');
+                  const rowPdfUrl = fpbDocNum
+                    ? `https://e-fpb.cindaragroup.com/files/logistik_Approved_rev_sign_${encodeURIComponent(cleanRowFpb || fpbDocNum)}.pdf`
+                    : null;
+
+                  return (
+                    <div
+                      key={row.id || `${row.fpb}-${row.po}-${row.item}-${row.date}`}
+                      onClick={() => onOpenAudit(row.fpb, row.po)}
+                      className="rounded-xl border border-border bg-card hover:border-foreground/30 p-3.5 transition shadow-xs hover:shadow-subtle cursor-pointer flex flex-col justify-between gap-2.5 active:scale-[0.99] touch-manipulation group"
+                    >
+                      {/* Header */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className="flex size-7.5 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/60 text-sky-500">
+                            <FileText className="size-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-mono font-bold text-xs text-foreground group-hover:text-primary transition truncate">
+                                {row.fpb}
+                              </span>
+                              {rowPdfUrl && (
+                                <a
+                                  href={rowPdfUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-blue-500/10 hover:bg-blue-500/20 text-blue-700 dark:text-blue-400 border border-blue-500/30 text-[9px] font-mono transition"
+                                  title="Buka PDF"
+                                >
+                                  <span>PDF</span>
+                                  <ExternalLink className="size-2" />
+                                </a>
+                              )}
+                            </div>
+                            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-muted border border-border text-muted-foreground inline-block mt-0.5">
+                              {row.entity}
+                            </span>
+                          </div>
+                        </div>
+                        <span
+                          className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${lapseBadgeClass}`}
+                        >
+                          {row.lapse} Hari
+                        </span>
+                      </div>
+
+                      {/* Body */}
+                      <div className="space-y-1 text-xs">
+                        <div className="flex items-center justify-between text-[11px] text-muted-foreground font-mono">
+                          <span>PO: <strong className="text-foreground">{row.po && row.po !== '-' ? row.po : 'Belum Ada'}</strong></span>
+                          <span>{row.date}</span>
+                        </div>
+                        <p className="font-medium text-foreground text-xs line-clamp-2 mt-1">
+                          {row.item}
+                        </p>
+                        {row.qtyFPB !== undefined && row.qtyFPB > 0 && (
+                          <span className="inline-block px-1.5 py-0.2 rounded bg-muted text-[10px] font-mono text-muted-foreground border border-border/80">
+                            Qty: {row.qtyFPB} {row.satuan || ''}
+                          </span>
+                        )}
+                        {row.peruntukan && (
+                          <p className="text-[11px] text-muted-foreground line-clamp-1">
+                            Peruntukan: <span className="text-foreground">{row.peruntukan}</span>
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Footer */}
+                      <div className="pt-2 border-t border-border/60 flex items-center justify-between gap-2 text-xs">
+                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-medium border truncate max-w-[160px] ${badgeClass}`}>
+                          {row.statusBadge}
+                        </span>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onOpenAudit(row.fpb, row.po);
+                            }}
+                            className="h-6.5 px-2 rounded-md bg-muted hover:bg-muted/80 text-[11px] font-medium text-foreground inline-flex items-center gap-1 border border-border transition touch-manipulation"
+                          >
+                            <span>Detail</span>
+                            <ArrowRight className="size-2.5 opacity-70" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Table View */
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs text-foreground">
+              <thead className="bg-muted/40 text-muted-foreground font-medium border-b border-border uppercase tracking-wider text-[11px] select-none">
+                <tr>
+                  <th
+                    onClick={() => handleSort('fpb')}
+                    className="p-3.5 cursor-pointer hover:text-foreground transition group whitespace-nowrap"
+                  >
                   <span className="flex items-center">
                     NO FPB & ENTITAS
                     {renderSortIndicator('fpb')}
@@ -944,6 +1125,12 @@ export default function ProcurementTab({
                       ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
                       : 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20';
 
+                  const cleanRowFpb = (row.fpb || '').trim().replace(/^["']|["']$/g, '');
+                  const fpbDocNum = cleanRowFpb || (row.po || '').trim().replace(/^["']|["']$/g, '');
+                  const rowPdfUrl = fpbDocNum
+                    ? `https://e-fpb.cindaragroup.com/files/logistik_Approved_rev_sign_${encodeURIComponent(cleanRowFpb || fpbDocNum)}.pdf`
+                    : null;
+
                   return (
                     <tr
                       key={row.id || `${row.fpb}-${row.po}-${row.item}-${row.date}`}
@@ -951,16 +1138,31 @@ export default function ProcurementTab({
                       className="hover:bg-muted/30 cursor-pointer transition group"
                     >
                       <td className="p-3.5">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onOpenAudit(row.fpb, row.po);
-                          }}
-                          className="font-mono font-medium text-foreground hover:underline flex items-center gap-1.5 text-left"
-                        >
-                          <span>{row.fpb}</span>
-                          <ExternalLink className="w-3 h-3 text-muted-foreground group-hover:text-foreground transition-colors" />
-                        </button>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onOpenAudit(row.fpb, row.po);
+                            }}
+                            className="font-mono font-medium text-foreground hover:underline flex items-center gap-1.5 text-left"
+                          >
+                            <span>{row.fpb}</span>
+                            <ExternalLink className="w-3 h-3 text-muted-foreground group-hover:text-foreground transition-colors" />
+                          </button>
+                          {rowPdfUrl && (
+                            <a
+                              href={rowPdfUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-blue-500/10 hover:bg-blue-500/20 text-blue-700 dark:text-blue-400 border border-blue-500/30 text-[10px] font-mono transition"
+                              title={`Buka Dokumen PDF e-FPB Terverifikasi (${fpbDocNum})`}
+                            >
+                              <FileText className="w-2.5 h-2.5 text-blue-600 dark:text-blue-400" />
+                              <span>PDF</span>
+                            </a>
+                          )}
+                        </div>
                         <span className="inline-block mt-1 px-1.5 py-0.5 bg-muted text-muted-foreground rounded text-[10px] font-mono border border-border">
                           {row.entity}
                         </span>
@@ -1039,13 +1241,27 @@ export default function ProcurementTab({
                         </span>
                       </td>
                       <td className="p-3.5 text-center" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          onClick={() => onOpenAudit(row.fpb, row.po)}
-                          className="h-7 px-2.5 bg-background hover:bg-muted border border-border text-foreground rounded-lg text-xs font-medium transition flex items-center gap-1 mx-auto"
-                        >
-                          <span>Audit</span>
-                          <ArrowRight className="w-3 h-3 text-muted-foreground" />
-                        </button>
+                        <div className="flex items-center justify-center gap-1.5">
+                          {rowPdfUrl && (
+                            <a
+                              href={rowPdfUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="h-7 px-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-700 dark:text-blue-400 border border-blue-500/20 rounded-lg text-xs font-medium transition inline-flex items-center gap-1"
+                              title={`Buka Dokumen PDF e-FPB: ${fpbDocNum}`}
+                            >
+                              <FileText className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                              <span className="hidden sm:inline">PDF</span>
+                            </a>
+                          )}
+                          <button
+                            onClick={() => onOpenAudit(row.fpb, row.po)}
+                            className="h-7 px-2.5 bg-background hover:bg-muted border border-border text-foreground rounded-lg text-xs font-medium transition flex items-center gap-1"
+                          >
+                            <span>Detail</span>
+                            <ArrowRight className="w-3 h-3 text-muted-foreground" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -1054,6 +1270,7 @@ export default function ProcurementTab({
             </tbody>
           </table>
         </div>
+      )}
 
         {/* ═══════════════════════════════════════════════════════════
             PAGINATION & STATUS FOOTER

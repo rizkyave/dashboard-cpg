@@ -23,6 +23,9 @@ import {
   FileSpreadsheet,
   FileText,
   UserCheck,
+  LayoutGrid,
+  Table as TableIcon,
+  ChevronDown,
 } from 'lucide-react';
 import { ProcurementItem, StatusTone } from '@/types/procurement';
 import { EntityDonutChart, PipelineBarChart } from './Charts';
@@ -122,6 +125,15 @@ export default function OverviewTab({
   const [currentPage, setCurrentPage] = useState<number>(1);
   const itemsPerPage = 15;
 
+  const [viewMode, setViewMode] = useState<'card' | 'table'>('table');
+  const [showMobileFilters, setShowMobileFilters] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setViewMode('card');
+    }
+  }, []);
+
   useEffect(() => {
     setSearchTerm(searchKeyword);
     setCurrentPage(1);
@@ -198,6 +210,7 @@ export default function OverviewTab({
         const peruntukanMatch = row.peruntukan?.toLowerCase().includes(q);
         const armadaMatch = row.deptArmada?.toLowerCase().includes(q);
         const picMatch =
+          row.picCheckFpb?.toLowerCase().includes(q) ||
           row.picPch?.toLowerCase().includes(q) ||
           row.picTtb?.toLowerCase().includes(q) ||
           row.picLap?.toLowerCase().includes(q) ||
@@ -316,7 +329,7 @@ export default function OverviewTab({
               className="inline-flex items-center gap-1.5 rounded-lg border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-xs font-medium text-purple-700 dark:text-purple-300 hover:bg-purple-500/20 transition active:scale-95 disabled:opacity-40 shrink-0"
             >
               <Sparkles className="size-3 text-purple-600 dark:text-purple-400" />
-              <span>Audit Cerdas AI</span>
+              <span>Detail Cerdas AI</span>
             </button>
           </div>
 
@@ -379,9 +392,9 @@ export default function OverviewTab({
           ═══════════════════════════════════════════════════════════ */}
       <div className="rounded-xl border border-border bg-card text-card-foreground shadow-xs overflow-hidden">
         {/* Card Header */}
-        <div className="px-5 py-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="px-4 sm:px-5 py-3.5 sm:py-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <div className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <div className="text-sm font-semibold text-foreground flex items-center gap-2 flex-wrap">
               <span>{sortedItems.length.toLocaleString()} Berkas Pengadaan & Armada</span>
               {isFiltered && (
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
@@ -393,44 +406,88 @@ export default function OverviewTab({
               Daftar berkas terintegrasi dengan alur PIC, PO, SLA, dan status pemenuhan logistik.
             </p>
           </div>
-          <div className="flex items-center gap-2">
+
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            {/* View Mode Switcher: Cards (mobile-friendly) vs Table */}
+            <div className="flex items-center bg-muted/60 p-0.5 rounded-lg border border-border">
+              <button
+                type="button"
+                onClick={() => setViewMode('card')}
+                className={`h-7 px-2 sm:px-2.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition touch-manipulation ${
+                  viewMode === 'card'
+                    ? 'bg-background text-foreground shadow-xs font-semibold'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title="Tampilan Kartu Ringkas (Optimal untuk HP)"
+              >
+                <LayoutGrid className="size-3.5" />
+                <span>Kartu</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('table')}
+                className={`h-7 px-2 sm:px-2.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition touch-manipulation ${
+                  viewMode === 'table'
+                    ? 'bg-background text-foreground shadow-xs font-semibold'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title="Tampilan Tabel Lengkap"
+              >
+                <TableIcon className="size-3.5" />
+                <span>Tabel</span>
+              </button>
+            </div>
+
             {isFiltered && (
               <button
                 onClick={handleResetFilters}
-                className="inline-flex h-8 items-center gap-1 rounded-lg border border-border bg-background px-2.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition"
+                className="inline-flex h-7 sm:h-8 items-center gap-1 rounded-lg border border-border bg-background px-2.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition touch-manipulation"
               >
                 <RotateCcw className="size-3" />
-                <span>Reset Filter</span>
+                <span className="hidden sm:inline">Reset Filter</span>
               </button>
             )}
           </div>
         </div>
 
         {/* Toolbar Controls */}
-        <div className="p-3.5 border-b border-border bg-muted/20 flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-2.5">
-          {/* Search Input */}
-          <div className="relative flex-1 min-w-[260px] max-w-md">
-            <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              placeholder="Search berkas, FPB, PO, nama barang, PIC..."
-              className="h-8 w-full rounded-lg border border-border bg-background pl-8 pr-7 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-zinc-500 transition"
-            />
-            {searchTerm && (
-              <button
-                type="button"
-                onClick={() => handleSearchChange('')}
-                className="absolute top-1/2 right-2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
-                <X className="size-3" />
-              </button>
-            )}
+        <div className="p-3 sm:p-3.5 border-b border-border bg-muted/20 flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-2.5">
+          {/* Row 1: Search Input & Mobile Filter Toggle */}
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <div className="relative flex-1 min-w-0 max-w-md">
+              <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                placeholder="Cari berkas, FPB, PO, barang, PIC..."
+                className="h-8 w-full rounded-lg border border-border bg-background pl-8 pr-7 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-zinc-500 transition"
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => handleSearchChange('')}
+                  className="absolute top-1/2 right-2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="size-3" />
+                </button>
+              )}
+            </div>
+
+            {/* Mobile Filter Toggle Button */}
+            <button
+              type="button"
+              onClick={() => setShowMobileFilters((prev) => !prev)}
+              className="sm:hidden h-8 px-2.5 rounded-lg border border-border bg-background text-xs font-medium flex items-center gap-1 text-muted-foreground hover:text-foreground shrink-0 transition"
+            >
+              <Filter className="size-3.5" />
+              <span>Filter</span>
+              <ChevronDown className={`size-3 transition-transform ${showMobileFilters ? 'rotate-180' : ''}`} />
+            </button>
           </div>
 
           {/* Filter Dropdowns and Buttons */}
-          <div className="flex flex-wrap items-center gap-1.5 text-xs">
+          <div className={`${showMobileFilters ? 'flex' : 'hidden'} sm:flex flex-wrap items-center gap-1.5 text-xs pt-1 sm:pt-0`}>
             {/* Status Select */}
             <select
               value={selectedStatus}
@@ -516,22 +573,134 @@ export default function OverviewTab({
           </div>
         </div>
 
-        {/* Table Container */}
-        <div className="relative w-full overflow-x-auto">
-          <table className="w-full text-left text-xs text-foreground">
-            <thead className="bg-muted/30 border-b border-border text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-              <tr>
-                <th
-                  className="p-3 cursor-pointer hover:text-foreground select-none transition"
-                  onClick={() => handleSort('fpb')}
-                >
-                  <div className="flex items-center gap-1">
-                    <span>Berkas & Entitas</span>
-                    {sortField === 'fpb' && (
-                      <span className="text-primary">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                    )}
-                  </div>
-                </th>
+        {/* Content Area: Card View (Mobile-Friendly) or Table View */}
+        {viewMode === 'card' ? (
+          <div>
+            {items.length === 0 ? (
+              <div className="p-10 text-center text-muted-foreground">
+                <div className="flex flex-col items-center justify-center gap-2">
+                  <FileSpreadsheet className="size-8 opacity-30 text-muted-foreground" />
+                  <p className="text-sm font-medium text-foreground">Belum ada data monitoring</p>
+                  <p className="text-xs text-muted-foreground">
+                    Gunakan tombol &quot;Unggah Excel&quot; di bagian atas untuk memasukkan data Anda.
+                  </p>
+                </div>
+              </div>
+            ) : paginatedItems.length === 0 ? (
+              <div className="p-10 text-center text-muted-foreground">
+                <div className="flex flex-col items-center justify-center gap-2">
+                  <Search className="size-8 opacity-30 text-muted-foreground" />
+                  <p className="text-sm font-medium text-foreground">Tidak ada berkas yang cocok</p>
+                  <button
+                    onClick={handleResetFilters}
+                    className="mt-2 h-7 px-3 rounded-lg border border-border bg-background text-xs font-medium hover:bg-muted transition"
+                  >
+                    Reset Filter
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="p-3 sm:p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {paginatedItems.map((row) => {
+                  const badgeClass = toneStyles[row.statusTone] || toneStyles.cyan;
+                  const lapseBadgeClass =
+                    row.lapse <= 2
+                      ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
+                      : row.lapse <= 5
+                      ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
+                      : 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20';
+
+                  return (
+                    <div
+                      key={row.id || `${row.fpb}-${row.po}-${row.item}-${row.date}`}
+                      onClick={() => onOpenAudit(row.fpb, row.po)}
+                      className="rounded-xl border border-border bg-card hover:border-foreground/30 p-3.5 transition shadow-xs hover:shadow-subtle cursor-pointer flex flex-col justify-between gap-2.5 active:scale-[0.99] touch-manipulation group"
+                    >
+                      {/* Card Top: FPB, Entity, Lapse */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className="flex size-7.5 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/60 text-cyan-500">
+                            <FileText className="size-3.5" />
+                          </div>
+                          <div className="min-w-0">
+                            <span className="font-mono font-bold text-xs text-foreground group-hover:text-cyan-500 transition truncate block">
+                              {row.fpb}
+                            </span>
+                            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-muted border border-border text-muted-foreground inline-block mt-0.5">
+                              {row.entity}
+                            </span>
+                          </div>
+                        </div>
+                        <span
+                          className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${lapseBadgeClass}`}
+                        >
+                          {row.lapse} Hari
+                        </span>
+                      </div>
+
+                      {/* Card Body: PO, Date, Item */}
+                      <div className="space-y-1 text-xs">
+                        <div className="flex items-center justify-between text-[11px] text-muted-foreground font-mono">
+                          <span>PO: <strong className="text-foreground">{row.po && row.po !== '-' ? row.po : 'Belum Ada'}</strong></span>
+                          <span>{row.date}</span>
+                        </div>
+                        <p className="font-medium text-foreground text-xs line-clamp-2 mt-1">
+                          {row.item}
+                        </p>
+                        {row.qtyFPB !== undefined && row.qtyFPB > 0 && (
+                          <span className="inline-block px-1.5 py-0.2 rounded bg-muted text-[10px] font-mono text-muted-foreground border border-border/80">
+                            Qty: {row.qtyFPB} {row.satuan || ''}
+                          </span>
+                        )}
+                        {row.deptArmada && (
+                          <p className="text-[11px] text-cyan-600 dark:text-cyan-400 font-mono truncate">
+                            Armada: {row.deptArmada}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Card Footer: Status, PIC & Audit Button */}
+                      <div className="pt-2 border-t border-border/60 flex items-center justify-between gap-2 text-xs">
+                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-medium border truncate max-w-[160px] ${badgeClass}`}>
+                          {row.statusBadge}
+                        </span>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onOpenAudit(row.fpb, row.po);
+                            }}
+                            className="h-6.5 px-2 rounded-md bg-muted hover:bg-muted/80 text-[11px] font-medium text-foreground inline-flex items-center gap-1 border border-border transition touch-manipulation"
+                          >
+                            <span>Verifikasi</span>
+                            <ExternalLink className="size-2.5 opacity-70" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Table Container */
+          <div className="relative w-full overflow-x-auto">
+            <table className="w-full text-left text-xs text-foreground">
+              <thead className="bg-muted/30 border-b border-border text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                <tr>
+                  <th
+                    className="p-3 cursor-pointer hover:text-foreground select-none transition"
+                    onClick={() => handleSort('fpb')}
+                  >
+                    <div className="flex items-center gap-1">
+                      <span>Berkas & Entitas</span>
+                      {sortField === 'fpb' && (
+                        <span className="text-primary">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                      )}
+                    </div>
+                  </th>
                 <th
                   className="p-3 cursor-pointer hover:text-foreground select-none transition"
                   onClick={() => handleSort('po')}
@@ -737,10 +906,11 @@ export default function OverviewTab({
             </tbody>
           </table>
         </div>
+      )}
 
         {/* Pagination Footer */}
         {sortedItems.length > 0 && (
-          <div className="p-3.5 border-t border-border bg-muted/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
+          <div className="p-3 sm:p-3.5 border-t border-border bg-muted/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
             <div>
               Menampilkan{' '}
               <strong className="text-foreground">
@@ -757,7 +927,7 @@ export default function OverviewTab({
               <button
                 onClick={() => setCurrentPage(1)}
                 disabled={currentPage === 1}
-                className="size-7 rounded-lg border border-border bg-background hover:bg-muted disabled:opacity-40 flex items-center justify-center transition"
+                className="size-8 sm:size-7 rounded-lg border border-border bg-background hover:bg-muted disabled:opacity-40 flex items-center justify-center transition touch-manipulation"
                 title="Halaman Pertama"
               >
                 <ChevronsLeft className="size-3.5" />
@@ -765,7 +935,7 @@ export default function OverviewTab({
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="size-7 rounded-lg border border-border bg-background hover:bg-muted disabled:opacity-40 flex items-center justify-center transition"
+                className="size-8 sm:size-7 rounded-lg border border-border bg-background hover:bg-muted disabled:opacity-40 flex items-center justify-center transition touch-manipulation"
                 title="Halaman Sebelumnya"
               >
                 <ChevronLeft className="size-3.5" />
@@ -778,7 +948,7 @@ export default function OverviewTab({
               <button
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="size-7 rounded-lg border border-border bg-background hover:bg-muted disabled:opacity-40 flex items-center justify-center transition"
+                className="size-8 sm:size-7 rounded-lg border border-border bg-background hover:bg-muted disabled:opacity-40 flex items-center justify-center transition touch-manipulation"
                 title="Halaman Selanjutnya"
               >
                 <ChevronRight className="size-3.5" />
@@ -786,7 +956,7 @@ export default function OverviewTab({
               <button
                 onClick={() => setCurrentPage(totalPages)}
                 disabled={currentPage === totalPages}
-                className="size-7 rounded-lg border border-border bg-background hover:bg-muted disabled:opacity-40 flex items-center justify-center transition"
+                className="size-8 sm:size-7 rounded-lg border border-border bg-background hover:bg-muted disabled:opacity-40 flex items-center justify-center transition touch-manipulation"
                 title="Halaman Terakhir"
               >
                 <ChevronsRight className="size-3.5" />

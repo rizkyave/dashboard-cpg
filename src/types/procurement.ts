@@ -54,6 +54,13 @@ export interface ProcurementItem {
   tglFstb?: string;
   tglTtb?: string;
   sourceSheet?: string;
+  // Divisi 1: Check & Verifikasi FPB
+  picCheckFpb?: string;
+  tglCheckFpb?: string;
+  statusCheckFpb?: string;
+  tglApproveWeb?: string;
+  noteCheckFpb?: string;
+  doneCheckFpb?: string;
 }
 
 export interface ArmadaItem {
@@ -93,6 +100,13 @@ export interface ArmadaItem {
   statusTone?: StatusTone;
   lapse?: number;
   picAktif?: string;
+  // Divisi 1: Check & Verifikasi FPB
+  picCheckFpb?: string;
+  tglCheckFpb?: string;
+  statusCheckFpb?: string;
+  tglApproveWeb?: string;
+  noteCheckFpb?: string;
+  doneCheckFpb?: string;
 }
 
 export interface ToastState {

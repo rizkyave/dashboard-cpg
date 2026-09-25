@@ -73,6 +73,7 @@ export interface MergedExcelResult {
     totalMlaRows: number;
     totalProcRows: number;
     totalBuNoorRows: number;
+    totalCheckFpbRows?: number;
     matchedMlaCount: number;
     unmatchedProcAppended: number;
     totalMergedProcurement: number;
@@ -83,7 +84,7 @@ export interface MergedExcelResult {
 /**
  * Parses an Excel workbook and merges data using
  * "Monitoring Layanan Armada" as the PRIMARY reference (acuan utama),
- * enriched with workflow tracking from "PROCUREMENT" and "Master Data Bu Noor".
+ * enriched with workflow tracking from "PROCUREMENT" and "CHECK FPB / Master Data Bu Noor".
  */
 export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResult {
   // 1. Identify sheet names
@@ -97,10 +98,20 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
     return up.includes('PROCUREMENT') || up.includes('PCH') || up.includes('PENGADAAN');
   });
 
-  const buNoorSheetName = workbook.SheetNames.find((n) => {
+  const checkFpbSheetName = workbook.SheetNames.find((n) => {
     const up = n.toUpperCase();
-    return up.includes('BU NOOR') || up.includes('NOOR');
+    return (
+      up.includes('CHECK FPB') ||
+      up.includes('FPB CHECK') ||
+      up.includes('FBP CHECK') ||
+      up.includes('CHECK FBP') ||
+      up.includes('BU NOOR') ||
+      up.includes('NOOR') ||
+      up.includes('VERIFIKASI FPB') ||
+      (up.includes('CHECK') && (up.includes('FPB') || up.includes('FBP')))
+    );
   });
+  const buNoorSheetName = checkFpbSheetName;
 
   // 2. Index "PROCUREMENT" sheet
   interface ProcRecord {
@@ -245,45 +256,82 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
     }
   }
 
-  // 3. Index "Master Data Bu Noor"
-  interface BuNoorRecord {
+  // 3. Index "Check FPB / Master Data Bu Noor" (Divisi 1: Verifikasi FPB)
+  interface CheckFpbRecord {
+    fpb: string;
     pic: string;
     armada: string;
+    tglFpb: string;
     tglCek: string;
     statusCek: string;
     tglApprove: string;
+    done: string;
     note: string;
   }
-  const buNoorMap = new Map<string, BuNoorRecord>();
+  const checkFpbMap = new Map<string, CheckFpbRecord>();
 
-  if (buNoorSheetName && workbook.Sheets[buNoorSheetName]) {
-    const ws = workbook.Sheets[buNoorSheetName];
+  if (checkFpbSheetName && workbook.Sheets[checkFpbSheetName]) {
+    const ws = workbook.Sheets[checkFpbSheetName];
     const json: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
-    const colMap = buildColumnMap(json[0] || []);
-    const cFPB       = findCol(colMap, 'NO. FPB');
-    const cPIC       = findCol(colMap, 'PIC');
-    const cArmada    = findCol(colMap, 'ARMADA');
-    const cTglCek    = findCol(colMap, 'TGL CEK');
-    const cStatusCek = findCol(colMap, 'STATUS CEK');
-    const cTglAppr   = findCol(colMap, 'TGL APPROVE WEB', 'TGL APPROVE');
-    const cNote      = findCol(colMap, 'NOTE');
 
-    for (let i = 1; i < json.length; i++) {
+    let headerRowIdx = 0;
+    for (let r = 0; r < Math.min(json.length, 10); r++) {
+      const rowText = (json[r] || []).map(String).join('|').toUpperCase();
+      if (
+        rowText.includes('NO FPB') ||
+        rowText.includes('NO. FPB') ||
+        rowText.includes('TGL CEK') ||
+        rowText.includes('STATUS CEK')
+      ) {
+        headerRowIdx = r;
+        break;
+      }
+    }
+
+    const colMap = buildColumnMap(json[headerRowIdx] || []);
+    const cFPB       = findCol(colMap, 'NO. FPB', 'NO FPB', 'NOMOR FPB', 'FPB');
+    const cTglFPB    = findCol(colMap, 'TGL FPB', 'TANGGAL FPB');
+    const cPIC       = findCol(colMap, 'REQUESTED BY', 'REQUESTED', 'PEMOHON', 'USER', 'PIC', 'VERIFIKATOR', 'CHECKER');
+    const cArmada    = findCol(colMap, 'ARMADA', 'KAPAL', 'DEPT');
+    const cTglCek    = findCol(colMap, 'TGL CEK', 'TANGGAL CEK');
+    const cStatusCek = findCol(colMap, 'STATUS CEK', 'STATUS');
+    const cTglAppr   = findCol(colMap, 'TGL APPROVE WEB', 'TGL APPROVE', 'APPROVE WEB');
+    const cDone      = findCol(colMap, 'DONE', 'STATUS DONE');
+    const cNote      = findCol(colMap, 'NOTE', 'CATATAN', 'KETERANGAN');
+
+    for (let i = headerRowIdx + 1; i < json.length; i++) {
       const r = json[i];
       if (!r || r.length === 0) continue;
       const fpb = String(cFPB >= 0 ? r[cFPB] : r[1] || '').trim();
       if (!fpb) continue;
 
-      buNoorMap.set(normalizeKey(fpb), {
-        pic: String(cPIC >= 0 ? r[cPIC] : '').trim(),
+      let pic = String(cPIC >= 0 ? r[cPIC] : '').trim();
+      const rawNote = String(cNote >= 0 ? r[cNote] : '').trim();
+      if (!pic && rawNote) {
+        const match = rawNote.match(/^([A-Za-z]+)/);
+        if (match && match[1] && match[1].length >= 3) {
+          pic = match[1].toUpperCase();
+        }
+      }
+      if (!pic) {
+        pic = 'Bu Noor';
+      }
+
+      checkFpbMap.set(normalizeKey(fpb), {
+        fpb,
+        pic,
         armada: String(cArmada >= 0 ? r[cArmada] : '').trim(),
+        tglFpb: excelDateToString(cTglFPB >= 0 ? r[cTglFPB] : ''),
         tglCek: excelDateToString(cTglCek >= 0 ? r[cTglCek] : ''),
         statusCek: String(cStatusCek >= 0 ? r[cStatusCek] : '').trim(),
         tglApprove: excelDateToString(cTglAppr >= 0 ? r[cTglAppr] : ''),
-        note: String(cNote >= 0 ? r[cNote] : '').trim(),
+        done: String(cDone >= 0 ? r[cDone] : '').trim(),
+        note: rawNote,
       });
     }
   }
+
+  const buNoorMap = checkFpbMap;
 
   // 4. MAIN PROCESS: Parse "Monitoring Layanan Armada" as PRIMARY REFERENCE
   const importedProcurement: ProcurementItem[] = [];
@@ -297,9 +345,12 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
     const json: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
 
     let headerRowIdx = 0;
-    for (let r = 0; r < Math.min(json.length, 5); r++) {
+    for (let r = 0; r < Math.min(json.length, 10); r++) {
       const rowText = (json[r] || []).map(String).join('|').toUpperCase();
-      if (rowText.includes('NO. FPB') && (rowText.includes('NAMA BARANG') || rowText.includes('KETERANGAN'))) {
+      if (
+        (rowText.includes('NO. FPB') || rowText.includes('NO FPB')) &&
+        (rowText.includes('NAMA BARANG') || rowText.includes('KETERANGAN') || rowText.includes('BARANG'))
+      ) {
         headerRowIdx = r;
         break;
       }
@@ -318,11 +369,11 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
     const aTglTTB    = findCol(colMap, 'TGL TTB');
     const aKode      = findCol(colMap, 'KODE BARANG');
     const aNama      = findCol(colMap, 'NAMA BARANG');
-    const aJmlFPB    = findCol(colMap, 'JML FPB');
-    const aJmlPO     = findCol(colMap, 'JML PO');
-    const aJmlFSTB   = findCol(colMap, 'JML FSTB');
-    const aJmlTTB    = findCol(colMap, 'JML TTB');
-    const aSatuan    = findCol(colMap, 'SATUAN');
+    const aJmlFPB    = findCol(colMap, 'JML FPB', 'QTY FPB', 'JUMLAH FPB', 'JML. FPB', 'QTY. FPB');
+    const aJmlPO     = findCol(colMap, 'JML PO', 'QTY PO', 'JUMLAH PO', 'JML. PO', 'QTY. PO');
+    const aJmlFSTB   = findCol(colMap, 'JML FSTB', 'QTY FSTB', 'JUMLAH FSTB', 'JML. FSTB', 'QTY. FSTB');
+    const aJmlTTB    = findCol(colMap, 'JML TTB', 'QTY TTB', 'JUMLAH TTB', 'JML. TTB', 'QTY. TTB');
+    const aSatuan    = findCol(colMap, 'SATUAN', 'UOM', 'UNIT');
     const aKet       = findCol(colMap, 'KETERANGAN');
     const aKat       = findCol(colMap, 'KATEGORI');
     const aStatus    = findCol(colMap, 'STATUS');
@@ -354,7 +405,7 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
 
       totalMlaRows++;
 
-      const tglFpb = excelDateToString(aTglFPB >= 0 ? r[aTglFPB] : '');
+      let tglFpb = excelDateToString(aTglFPB >= 0 ? r[aTglFPB] : '');
       const po = String(aPO >= 0 ? r[aPO] : '').trim();
       const tglPo = excelDateToString(aTglPO >= 0 ? r[aTglPO] : '');
       const fstbMla = String(aFSTB >= 0 ? r[aFSTB] : '').trim();
@@ -364,10 +415,25 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
 
       const kodeBarang = String(aKode >= 0 ? r[aKode] : '').trim();
       const namaBarang = String(aNama >= 0 ? r[aNama] : '').trim() || 'Item Operasional';
-      const qtyFPB = Number(aJmlFPB >= 0 ? r[aJmlFPB] : 0) || 0;
-      const qtyPO = Number(aJmlPO >= 0 ? r[aJmlPO] : 0) || 0;
-      const qtyFSTB = Number(aJmlFSTB >= 0 ? r[aJmlFSTB] : 0) || 0;
-      const qtyTTB = Number(aJmlTTB >= 0 ? r[aJmlTTB] : 0) || 0;
+      const rawJmlFPB = aJmlFPB >= 0 ? r[aJmlFPB] : '';
+      const rawJmlPO = aJmlPO >= 0 ? r[aJmlPO] : '';
+      const rawJmlFSTB = aJmlFSTB >= 0 ? r[aJmlFSTB] : '';
+      const rawJmlTTB = aJmlTTB >= 0 ? r[aJmlTTB] : '';
+
+      const qtyFPB = Number(rawJmlFPB) || 0;
+      const qtyPO =
+        rawJmlPO !== '' && rawJmlPO !== null && rawJmlPO !== undefined
+          ? Number(rawJmlPO) || 0
+          : po && po !== '-'
+          ? qtyFPB
+          : 0;
+      const qtyFSTB = Number(rawJmlFSTB) || 0;
+      const qtyTTB =
+        rawJmlTTB !== '' && rawJmlTTB !== null && rawJmlTTB !== undefined
+          ? Number(rawJmlTTB) || 0
+          : ttbMla
+          ? qtyFSTB
+          : 0;
       const selisih = Math.max(0, qtyFPB - qtyFSTB);
       const satuan = String(aSatuan >= 0 ? r[aSatuan] : '').trim();
       const keterangan = String(aKet >= 0 ? r[aKet] : '').trim();
@@ -394,9 +460,21 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
         matchedProcRowIndexes.add(pMatch.rowIdx);
       }
 
-      const bnMatch = normFpb ? buNoorMap.get(normFpb) : undefined;
+      const cfMatch = normFpb ? checkFpbMap.get(normFpb) : undefined;
+      const bnMatch = cfMatch;
 
-      const picPch = pMatch?.picPch || bnMatch?.pic || '-';
+      const picCheckFpb = cfMatch?.pic || (cfMatch ? 'Bu Noor' : '-');
+      const tglCheckFpb = cfMatch?.tglCek || '';
+      const statusCheckFpb = cfMatch?.statusCek || (cfMatch?.done ? 'DONE' : '');
+      const tglApproveWeb = cfMatch?.tglApprove || '';
+      const noteCheckFpb = cfMatch?.note || '';
+      const doneCheckFpb = cfMatch?.done || '';
+
+      if (!tglFpb && cfMatch?.tglFpb) {
+        tglFpb = cfMatch.tglFpb;
+      }
+
+      const picPch = pMatch?.picPch || '-';
       const picTtb = pMatch?.picTtb || '-';
       const picLap = pMatch?.picLap || '-';
       const picAdm = pMatch?.picAdm || '-';
@@ -556,13 +634,20 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
         tglFstb: tglInputFstb,
         tglTtb: tglInputTtb,
         sourceSheet: 'Monitoring Layanan Armada',
+        // Divisi 1: Check & Verifikasi FPB
+        picCheckFpb,
+        tglCheckFpb,
+        statusCheckFpb,
+        tglApproveWeb,
+        noteCheckFpb,
+        doneCheckFpb,
       });
 
       let armadaFulfillmentStatus = 'OPEN';
       if (rawStatus === 'CLOSE') armadaFulfillmentStatus = 'Lengkap';
       else if (selisih === 0 && qtyFSTB > 0) armadaFulfillmentStatus = 'Lengkap';
-      else if (qtyFSTB > 0 && selisih > 0) armadaFulfillmentStatus = `Parsial (Backlog ${selisih})`;
-      else armadaFulfillmentStatus = `Backlog (${qtyFPB})`;
+      else if (qtyFSTB > 0 && selisih > 0) armadaFulfillmentStatus = `Parsial (Belum Terpenuhi ${selisih})`;
+      else armadaFulfillmentStatus = `Belum Terpenuhi (${qtyFPB})`;
 
       importedArmada.push({
         id: recordId,
@@ -600,6 +685,13 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
         statusTone,
         lapse,
         picAktif,
+        // Divisi 1: Check & Verifikasi FPB
+        picCheckFpb,
+        tglCheckFpb,
+        statusCheckFpb,
+        tglApproveWeb,
+        noteCheckFpb,
+        doneCheckFpb,
       });
     }
   }
@@ -676,6 +768,14 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
         picAktif = `${proc.picAdm || '-'} (ADM PCH)`;
       }
 
+      const cfMatch = proc.fpb ? checkFpbMap.get(normalizeKey(proc.fpb)) : undefined;
+      const picCheckFpb = cfMatch?.pic || (cfMatch ? 'Bu Noor' : '-');
+      const tglCheckFpb = cfMatch?.tglCek || '';
+      const statusCheckFpb = cfMatch?.statusCek || (cfMatch?.done ? 'DONE' : '');
+      const tglApproveWeb = cfMatch?.tglApprove || '';
+      const noteCheckFpb = cfMatch?.note || '';
+      const doneCheckFpb = cfMatch?.done || '';
+
       const recordId = `PROC-${proc.fpb}-${proc.po || 'NOPO'}-${proc.rowIdx}`;
 
       importedProcurement.push({
@@ -713,6 +813,13 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
         tglFstb: proc.tglFstb,
         tglTtb: proc.tglTtb,
         sourceSheet: 'PROCUREMENT (Unmatched)',
+        // Divisi 1: Check & Verifikasi FPB
+        picCheckFpb,
+        tglCheckFpb,
+        statusCheckFpb,
+        tglApproveWeb,
+        noteCheckFpb,
+        doneCheckFpb,
       });
     }
   }
@@ -723,7 +830,8 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
     stats: {
       totalMlaRows,
       totalProcRows: allProcRecords.length,
-      totalBuNoorRows: buNoorMap.size,
+      totalBuNoorRows: checkFpbMap.size,
+      totalCheckFpbRows: checkFpbMap.size,
       matchedMlaCount,
       unmatchedProcAppended,
       totalMergedProcurement: importedProcurement.length,

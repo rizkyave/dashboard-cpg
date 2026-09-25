@@ -57,8 +57,14 @@ export default function NewRecordModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-card border border-border rounded-xl w-full max-w-lg p-5 space-y-4 shadow-xl">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 cursor-pointer animate-in fade-in duration-200"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-card border border-border rounded-t-2xl sm:rounded-xl w-full max-w-lg p-4 sm:p-5 space-y-4 shadow-xl cursor-default max-h-[92vh] overflow-y-auto pb-10 sm:pb-5"
+      >
         <div className="flex items-center justify-between border-b border-border pb-3">
           <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
             <PlusCircle className="w-4 h-4 text-primary" />
@@ -66,7 +72,7 @@ export default function NewRecordModal({
           </h3>
           <button
             onClick={onClose}
-            className="text-muted-foreground hover:text-foreground p-1 rounded-md hover:bg-muted transition"
+            className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-muted transition touch-manipulation"
           >
             <X className="w-4 h-4" />
           </button>
@@ -78,7 +84,7 @@ export default function NewRecordModal({
             <select
               value={entity}
               onChange={(e) => setEntity(e.target.value)}
-              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground font-mono focus:outline-hidden focus:ring-1 focus:ring-primary"
+              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground font-mono text-sm sm:text-xs focus:outline-hidden focus:ring-1 focus:ring-primary"
             >
               <option value="CPL">CPL - PT Cindara Pratama Lines</option>
               <option value="PPI">PPI - PT Petro Perkasa Indonesia</option>
@@ -90,7 +96,7 @@ export default function NewRecordModal({
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-muted-foreground font-medium mb-1.5">Nomor FPB</label>
               <input
@@ -99,7 +105,7 @@ export default function NewRecordModal({
                 placeholder="Cth: CPL-FPB-26-0000133"
                 value={fpb}
                 onChange={(e) => setFpb(e.target.value)}
-                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground font-mono focus:outline-hidden focus:ring-1 focus:ring-primary"
+                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground font-mono text-sm sm:text-xs focus:outline-hidden focus:ring-1 focus:ring-primary"
               />
             </div>
             <div>
@@ -110,7 +116,7 @@ export default function NewRecordModal({
                 placeholder="Cth: CPL-PO-26-00405"
                 value={po}
                 onChange={(e) => setPo(e.target.value)}
-                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground font-mono focus:outline-hidden focus:ring-1 focus:ring-primary"
+                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground font-mono text-sm sm:text-xs focus:outline-hidden focus:ring-1 focus:ring-primary"
               />
             </div>
           </div>
@@ -123,7 +129,7 @@ export default function NewRecordModal({
               placeholder="Cth: Oli Mesin Meditran SX 15W-40 (Drum)"
               value={item}
               onChange={(e) => setItem(e.target.value)}
-              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary"
+              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground text-sm sm:text-xs focus:outline-hidden focus:ring-1 focus:ring-primary"
             />
           </div>
 
@@ -132,12 +138,13 @@ export default function NewRecordModal({
             <input
               type="text"
               required
-              placeholder="Cth: U/ TB. ENTEBE EXPRESS 61"
+              placeholder="Cth: TB. CINDARA 01"
               value={peruntukan}
               onChange={(e) => setPeruntukan(e.target.value)}
-              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary"
+              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground text-sm sm:text-xs focus:outline-hidden focus:ring-1 focus:ring-primary"
             />
           </div>
+
 
           <div className="grid grid-cols-3 gap-2.5">
             <div>

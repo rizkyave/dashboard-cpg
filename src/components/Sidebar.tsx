@@ -111,43 +111,76 @@ export default function Sidebar({
     e.target.value = '';
   };
 
-  return (
-    <aside
-      className={`shrink-0 bg-background border-r border-border flex flex-col justify-between transition-all duration-200 select-none z-30 min-h-screen ${
-        isCollapsed
-          ? 'w-0 p-0 border-r-0 opacity-0 pointer-events-none -translate-x-full'
-          : 'w-64 p-3.5 md:p-4 opacity-100 translate-x-0'
-      }`}
-    >
-      <div className="flex flex-col gap-4 overflow-y-auto no-scrollbar">
-        {/* Brand Header with Studio Admin style */}
-        <div className="flex items-center justify-between px-1.5 pt-0.5">
-          <div className="flex items-center gap-2">
-            <Command className="size-4.5 text-foreground" />
-            <span className="font-bold text-sm tracking-tight text-foreground">
-              Studio Admin
-            </span>
-          </div>
-          <button
-            onClick={onToggleCollapse}
-            title="Sembunyikan Sidebar"
-            className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition"
-          >
-            <PanelLeftClose className="size-4" />
-          </button>
-        </div>
+  const handleSelectTab = (tab: TabType) => {
+    onSelectTab(tab);
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      onToggleCollapse();
+    }
+  };
 
-        {/* Quick Action Button matching Studio Admin screenshot: [ ⊕ Quick Create ] [ ✉ ] */}
-        <div className="flex items-center gap-1.5">
-          {onOpenNewRecord && (
+  const handleSelectLapse = (lapse: LapseFilterType) => {
+    onSelectLapse(lapse);
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      onToggleCollapse();
+    }
+  };
+
+  const handleQuickCreate = () => {
+    if (onOpenNewRecord) {
+      onOpenNewRecord();
+      if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+        onToggleCollapse();
+      }
+    }
+  };
+
+  return (
+    <>
+      {/* Mobile Drawer Overlay Backdrop */}
+      {!isCollapsed && (
+        <div
+          onClick={onToggleCollapse}
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 lg:hidden transition-opacity duration-300"
+          aria-hidden="true"
+        />
+      )}
+
+      <aside
+        className={`shrink-0 bg-background border-r border-border flex flex-col justify-between transition-all duration-300 select-none z-50 lg:z-30 min-h-screen fixed inset-y-0 left-0 lg:relative ${
+          isCollapsed
+            ? '-translate-x-full lg:w-0 lg:p-0 lg:border-r-0 lg:opacity-0 lg:pointer-events-none'
+            : 'w-72 max-w-[85vw] lg:w-64 p-3.5 md:p-4 opacity-100 translate-x-0 shadow-2xl lg:shadow-none'
+        }`}
+      >
+        <div className="flex flex-col gap-4 overflow-y-auto no-scrollbar">
+          {/* Brand Header with Studio Admin style */}
+          <div className="flex items-center justify-between px-1.5 pt-0.5">
+            <div className="flex items-center gap-2">
+              <Command className="size-4.5 text-foreground" />
+              <span className="font-bold text-sm tracking-tight text-foreground">
+                Studio Admin
+              </span>
+            </div>
             <button
-              onClick={onOpenNewRecord}
-              className="flex-1 h-9 rounded-lg bg-foreground text-background hover:opacity-90 text-xs font-semibold flex items-center justify-center gap-2 transition shadow-xs active:scale-95"
+              onClick={onToggleCollapse}
+              title="Tutup Navigasi"
+              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition touch-manipulation"
             >
-              <CirclePlus className="size-4" />
-              <span>Quick Create</span>
+              <PanelLeftClose className="size-4" />
             </button>
-          )}
+          </div>
+
+          {/* Quick Action Button matching Studio Admin screenshot: [ ⊕ Quick Create ] [ ✉ ] */}
+          <div className="flex items-center gap-1.5">
+            {onOpenNewRecord && (
+              <button
+                onClick={handleQuickCreate}
+                className="flex-1 h-9 rounded-lg bg-foreground text-background hover:opacity-90 text-xs font-semibold flex items-center justify-center gap-2 transition shadow-xs active:scale-95 touch-manipulation"
+              >
+                <CirclePlus className="size-4" />
+                <span>Quick Create</span>
+              </button>
+            )}
 
           {onExcelUpload ? (
             <label
@@ -184,8 +217,8 @@ export default function Sidebar({
               return (
                 <button
                   key={item.id}
-                  onClick={() => onSelectTab(item.id)}
-                  className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition ${
+                  onClick={() => handleSelectTab(item.id)}
+                  className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation ${
                     isActive
                       ? 'bg-muted text-foreground font-semibold shadow-xs'
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
@@ -224,8 +257,8 @@ export default function Sidebar({
               return (
                 <button
                   key={flt.id}
-                  onClick={() => onSelectLapse(flt.id)}
-                  className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition ${
+                  onClick={() => handleSelectLapse(flt.id)}
+                  className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation ${
                     isActive
                       ? 'bg-muted text-foreground font-semibold shadow-xs'
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
@@ -258,7 +291,7 @@ export default function Sidebar({
       </div>
 
       {/* Footer User Info & Theme Toggle */}
-      <div className="pt-3 border-t border-border flex items-center justify-between text-xs">
+      <div className="pt-3 border-t border-border flex items-center justify-between text-xs pb-safe">
         <div className="flex items-center gap-2">
           <div className="size-7 rounded-full bg-linear-to-tr from-sky-500 to-indigo-500 flex items-center justify-center font-bold text-white text-[11px]">
             H
@@ -271,5 +304,6 @@ export default function Sidebar({
         <ThemeToggle />
       </div>
     </aside>
+    </>
   );
 }
