@@ -300,63 +300,65 @@ export default function OverviewTab({
           ═══════════════════════════════════════════════════════════ */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Chart 1: Pipeline Timeline Bar Chart */}
-        <div className="rounded-xl border border-border bg-card p-4.5 text-card-foreground shadow-xs ring-1 ring-border/50 lg:col-span-2 flex flex-col justify-between">
-          <div className="flex items-center justify-between border-b border-border pb-3">
-            <div>
-              <div className="font-heading text-sm font-medium text-foreground">
+        <div className="rounded-xl border border-border bg-card p-4.5 text-card-foreground shadow-xs lg:col-span-2 flex flex-col justify-between min-w-0 overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-border pb-3 min-w-0">
+            <div className="min-w-0 flex-1">
+              <h3 className="text-sm font-semibold text-foreground truncate">
                 Milestone Fisik Dokumen Pengadaan
-              </div>
-              <div className="text-xs text-muted-foreground mt-0.5">
+              </h3>
+              <p className="text-xs text-muted-foreground mt-0.5 truncate">
                 Pemantauan posisi antrian dokumen dari PO hingga Divisi Keuangan
-              </div>
+              </p>
             </div>
             <button
               onClick={onTriggerAiAudit}
               disabled={items.length === 0}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-xs font-medium text-purple-700 dark:text-purple-300 hover:bg-purple-500/20 transition active:scale-95 disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-xs font-medium text-purple-700 dark:text-purple-300 hover:bg-purple-500/20 transition active:scale-95 disabled:opacity-40 shrink-0 self-start sm:self-auto"
             >
               <Sparkles className="size-3 text-purple-600 dark:text-amber-300" />
               <span>Audit Cerdas AI</span>
             </button>
           </div>
 
-          <div className="h-64 pt-4 relative">
+          <div className="h-64 pt-4 relative w-full overflow-hidden">
             <PipelineBarChart data={items} />
           </div>
 
-          <div className="mt-3 pt-3 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <span className="size-2 rounded-full bg-cyan-400"></span>
-              Alur: PO &rarr; TTB Logistik &rarr; Lapangan &rarr; SPP &rarr; Keuangan
+          <div className="mt-3 pt-3 border-t border-border flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground min-w-0">
+            <span className="flex items-center gap-1.5 min-w-0 truncate">
+              <span className="size-2 rounded-full bg-cyan-500 shrink-0"></span>
+              <span className="truncate">Alur: PO &rarr; TTB &rarr; Lapangan &rarr; SPP &rarr; Keuangan</span>
             </span>
-            <span className="font-mono text-[11px] text-cyan-400">SLA Efektif: &le; 5 Hari</span>
+            <span className="font-mono text-[11px] text-cyan-700 dark:text-cyan-400 font-medium shrink-0">
+              SLA: &le; 5 Hari
+            </span>
           </div>
         </div>
 
         {/* Chart 2: Entitas Donut Chart */}
-        <div className="rounded-xl border border-border bg-card p-4.5 text-card-foreground shadow-xs ring-1 ring-border/50 flex flex-col justify-between">
-          <div className="border-b border-border pb-3">
-            <div className="font-heading text-sm font-medium text-foreground">
+        <div className="rounded-xl border border-border bg-card p-4.5 text-card-foreground shadow-xs flex flex-col justify-between min-w-0 overflow-hidden">
+          <div className="border-b border-border pb-3 min-w-0">
+            <h3 className="text-sm font-semibold text-foreground truncate">
               Distribusi Entitas CPG
-            </div>
-            <div className="text-xs text-muted-foreground mt-0.5">
+            </h3>
+            <p className="text-xs text-muted-foreground mt-0.5 truncate">
               Komposisi berkas terdistribusi di 7 anak perusahaan
-            </div>
+            </p>
           </div>
 
-          <div className="h-56 relative flex items-center justify-center my-auto">
+          <div className="h-56 relative flex items-center justify-center my-auto w-full overflow-hidden">
             <EntityDonutChart data={items} />
           </div>
 
           <div className="grid grid-cols-3 gap-1.5 text-center text-xs pt-3 border-t border-border font-mono">
-            <div className="p-1 rounded-md bg-muted/40 border border-border">
-              <span className="text-cyan-400 font-bold">CPL:</span> {items.filter((i) => i.entity === 'CPL').length}
+            <div className="p-1 rounded-md bg-muted/40 border border-border truncate">
+              <span className="text-cyan-700 dark:text-cyan-400 font-bold">CPL:</span> {items.filter((i) => i.entity === 'CPL').length}
             </div>
-            <div className="p-1 rounded-md bg-muted/40 border border-border">
-              <span className="text-blue-400 font-bold">PPI:</span> {items.filter((i) => i.entity === 'PPI').length}
+            <div className="p-1 rounded-md bg-muted/40 border border-border truncate">
+              <span className="text-blue-700 dark:text-blue-400 font-bold">PPI:</span> {items.filter((i) => i.entity === 'PPI').length}
             </div>
-            <div className="p-1 rounded-md bg-muted/40 border border-border">
-              <span className="text-amber-400 font-bold">GAJ:</span> {items.filter((i) => i.entity === 'GAJ').length}
+            <div className="p-1 rounded-md bg-muted/40 border border-border truncate">
+              <span className="text-amber-700 dark:text-amber-400 font-bold">GAJ:</span> {items.filter((i) => i.entity === 'GAJ').length}
             </div>
           </div>
         </div>
@@ -365,7 +367,7 @@ export default function OverviewTab({
       {/* ═══════════════════════════════════════════════════════════
           DATA TABLE CARD (studio-admin 18,426 Customers Style)
           ═══════════════════════════════════════════════════════════ */}
-      <div className="rounded-xl border border-border bg-card text-card-foreground shadow-xs ring-1 ring-border/50 overflow-hidden">
+      <div className="rounded-xl border border-border bg-card text-card-foreground shadow-xs overflow-hidden">
         {/* Card Header */}
         <div className="p-4.5 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
