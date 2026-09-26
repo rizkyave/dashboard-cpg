@@ -20,6 +20,7 @@ export default function TabsNav({
     { id: 'overview', label: 'Dashboard Eksekutif & KPI' },
     { id: 'procurement', label: 'Monitoring Berkas Fisik & PIC' },
     { id: 'armada', label: 'Layanan Armada & Belum Terpenuhi' },
+    { id: 'timemark', label: 'Foto TimeMark (FSTB)' },
     { id: 'analytics', label: 'Bottleneck & SLA Audit' },
     { id: 'inventory', label: 'Cek Stok Persediaan' },
   ];

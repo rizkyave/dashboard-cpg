@@ -27,7 +27,9 @@ import {
   LayoutGrid,
   Table as TableIcon,
   ChevronDown,
+  Camera,
 } from 'lucide-react';
+import { extractFstbLast5, openTimemarkWithFstb } from '@/utils/timemark';
 
 interface ArmadaTabProps {
   items: ArmadaItem[];
@@ -35,6 +37,7 @@ interface ArmadaTabProps {
   onSearchKeywordChange?: (kw: string) => void;
   onOpenAudit?: (fpb: string, po?: string) => void;
   initialEntity?: string;
+  showToast?: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
 }
 
 // Helper: Extract date information accurately (Year, Month, Full Date, Timestamp)
@@ -122,7 +125,14 @@ export default function ArmadaTab({
   onSearchKeywordChange,
   onOpenAudit,
   initialEntity = 'ALL',
+  showToast,
 }: ArmadaTabProps) {
+  const handleOpenTimemark = (e: React.MouseEvent, fstb?: string) => {
+    e.stopPropagation();
+    if (!fstb) return;
+    openTimemarkWithFstb(fstb, showToast);
+  };
+
   // Filters state
   const [searchTerm, setSearchTerm] = useState<string>(searchKeyword || '');
   const [statusFilter, setStatusFilter] = useState<StatusFilterType>('ALL');
@@ -1090,19 +1100,32 @@ export default function ArmadaTab({
                             {row.status}
                           </span>
                         </div>
-                        {onOpenAudit && (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onOpenAudit(row.fpb, row.noPo);
-                            }}
-                            className="h-6.5 px-2 rounded-md bg-muted hover:bg-muted/80 text-[11px] font-medium text-foreground inline-flex items-center gap-1 border border-border transition touch-manipulation"
-                          >
-                            <span>Detail</span>
-                            <ExternalLink className="size-2.5 opacity-70" />
-                          </button>
-                        )}
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {row.noFstb && (
+                            <button
+                              type="button"
+                              onClick={(e) => handleOpenTimemark(e, row.noFstb)}
+                              className="h-6.5 px-2 rounded-md bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[11px] font-semibold inline-flex items-center gap-1 border border-amber-500/30 transition touch-manipulation"
+                              title={`Cek Foto TimeMark (${extractFstbLast5(row.noFstb)})`}
+                            >
+                              <Camera className="size-2.5 text-amber-600 dark:text-amber-400" />
+                              <span>Foto ({extractFstbLast5(row.noFstb)})</span>
+                            </button>
+                          )}
+                          {onOpenAudit && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onOpenAudit(row.fpb, row.noPo);
+                              }}
+                              className="h-6.5 px-2 rounded-md bg-muted hover:bg-muted/80 text-[11px] font-medium text-foreground inline-flex items-center gap-1 border border-border transition touch-manipulation"
+                            >
+                              <span>Detail</span>
+                              <ExternalLink className="size-2.5 opacity-70" />
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
@@ -1329,7 +1352,20 @@ export default function ArmadaTab({
 
                       {/* Qty FSTB */}
                       <td className="p-3.5 text-center text-muted-foreground font-mono">
-                        {row.qtyFSTB.toLocaleString()}
+                        <div>{row.qtyFSTB.toLocaleString()}</div>
+                        {row.noFstb && (
+                          <div className="pt-0.5">
+                            <button
+                              type="button"
+                              onClick={(e) => handleOpenTimemark(e, row.noFstb)}
+                              className="inline-flex items-center gap-1 text-[10px] text-amber-700 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 px-1.5 py-0.5 rounded border border-amber-500/20 font-medium transition active:scale-95"
+                              title={`Cek Foto TimeMark (${extractFstbLast5(row.noFstb)})`}
+                            >
+                              <Camera className="size-2.5 text-amber-600 dark:text-amber-400" />
+                              <span>{extractFstbLast5(row.noFstb)}</span>
+                            </button>
+                          </div>
+                        )}
                       </td>
 
                       {/* Qty TTB */}
@@ -1377,6 +1413,17 @@ export default function ArmadaTab({
                       {/* Action Button */}
                       <td className="p-3.5 text-center whitespace-nowrap">
                         <div className="flex items-center justify-center gap-1.5">
+                          {row.noFstb && (
+                            <button
+                              type="button"
+                              onClick={(e) => handleOpenTimemark(e, row.noFstb)}
+                              className="h-7 px-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 rounded-lg text-xs font-semibold transition inline-flex items-center gap-1 shadow-2xs"
+                              title={`Cek Foto TimeMark (${extractFstbLast5(row.noFstb)})`}
+                            >
+                              <Camera className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                              <span className="hidden sm:inline">Foto ({extractFstbLast5(row.noFstb)})</span>
+                            </button>
+                          )}
                           {rowPdfUrl && (
                             <a
                               href={rowPdfUrl}

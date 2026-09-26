@@ -26,9 +26,11 @@ import {
   LayoutGrid,
   Table as TableIcon,
   ChevronDown,
+  Camera,
 } from 'lucide-react';
 import { ProcurementItem, StatusTone } from '@/types/procurement';
 import { EntityDonutChart, PipelineBarChart } from './Charts';
+import { extractFstbLast5, openTimemarkWithFstb } from '@/utils/timemark';
 
 const extractDateInfo = (dateStr?: string) => {
   if (!dateStr) return { year: '', month: '', fullDate: '', timestamp: 0 };
@@ -96,6 +98,7 @@ interface OverviewTabProps {
   onSearchKeywordChange?: (kw: string) => void;
   onOpenAudit: (fpb: string, po?: string) => void;
   onTriggerAiAudit: () => void;
+  showToast?: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
 }
 
 type SortField = 'fpb' | 'po' | 'date' | 'item' | 'statusBadge' | 'lapse';
@@ -108,7 +111,14 @@ export default function OverviewTab({
   onSearchKeywordChange,
   onOpenAudit,
   onTriggerAiAudit,
+  showToast,
 }: OverviewTabProps) {
+  const handleOpenTimemark = (e: React.MouseEvent, fstb?: string) => {
+    e.stopPropagation();
+    if (!fstb) return;
+    openTimemarkWithFstb(fstb, showToast);
+  };
+
   const [searchTerm, setSearchTerm] = useState(searchKeyword);
   const [selectedEntity, setSelectedEntity] = useState<string>('ALL');
   const [selectedLapse, setSelectedLapse] = useState<string>('ALL');
@@ -665,6 +675,17 @@ export default function OverviewTab({
                           {row.statusBadge}
                         </span>
                         <div className="flex items-center gap-1.5 shrink-0">
+                          {row.noFstb && (
+                            <button
+                              type="button"
+                              onClick={(e) => handleOpenTimemark(e, row.noFstb)}
+                              className="h-6.5 px-2 rounded-md bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[11px] font-semibold inline-flex items-center gap-1 border border-amber-500/30 transition touch-manipulation"
+                              title={`Cek Foto TimeMark (${extractFstbLast5(row.noFstb)})`}
+                            >
+                              <Camera className="size-2.5 text-amber-600 dark:text-amber-400" />
+                              <span>Foto ({extractFstbLast5(row.noFstb)})</span>
+                            </button>
+                          )}
                           <button
                             type="button"
                             onClick={(e) => {
@@ -874,6 +895,19 @@ export default function OverviewTab({
                           <div className="text-[11px] text-muted-foreground leading-tight">
                             {row.statusPenjelasan || 'Dalam alur proses'}
                           </div>
+                          {row.noFstb && (
+                            <div className="pt-0.5">
+                              <button
+                                type="button"
+                                onClick={(e) => handleOpenTimemark(e, row.noFstb)}
+                                className="inline-flex items-center gap-1 text-[10px] text-amber-700 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 px-1.5 py-0.5 rounded border border-amber-500/20 font-medium transition active:scale-95"
+                                title={`Cek Foto TimeMark (${extractFstbLast5(row.noFstb)})`}
+                              >
+                                <Camera className="size-2.5 text-amber-600 dark:text-amber-400" />
+                                <span>FSTB: {extractFstbLast5(row.noFstb)}</span>
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </td>
 
@@ -887,17 +921,30 @@ export default function OverviewTab({
                       </td>
 
                       {/* Action */}
-                      <td className="p-3 text-center">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onOpenAudit(row.fpb, row.po);
-                          }}
-                          className="h-7 px-2.5 rounded-lg border border-border bg-background hover:bg-muted text-xs font-medium text-foreground inline-flex items-center gap-1 transition shadow-xs active:scale-95"
-                        >
-                          <span>Verifikasi</span>
-                          <ExternalLink className="size-3 text-muted-foreground" />
-                        </button>
+                      <td className="p-3 text-center whitespace-nowrap">
+                        <div className="flex items-center justify-center gap-1.5">
+                          {row.noFstb && (
+                            <button
+                              type="button"
+                              onClick={(e) => handleOpenTimemark(e, row.noFstb)}
+                              className="h-7 px-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 rounded-lg text-xs font-semibold transition inline-flex items-center gap-1 shadow-2xs"
+                              title={`Cek Foto TimeMark (${extractFstbLast5(row.noFstb)})`}
+                            >
+                              <Camera className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                              <span className="hidden sm:inline">Foto ({extractFstbLast5(row.noFstb)})</span>
+                            </button>
+                          )}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onOpenAudit(row.fpb, row.po);
+                            }}
+                            className="h-7 px-2.5 rounded-lg border border-border bg-background hover:bg-muted text-xs font-medium text-foreground inline-flex items-center gap-1 transition shadow-xs active:scale-95"
+                          >
+                            <span>Verifikasi</span>
+                            <ExternalLink className="size-3 text-muted-foreground" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

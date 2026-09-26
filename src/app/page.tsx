@@ -21,6 +21,7 @@ import ProcurementTab from '@/components/ProcurementTab';
 import ArmadaTab from '@/components/ArmadaTab';
 import AnalyticsTab from '@/components/AnalyticsTab';
 import InventoryTab from '@/components/InventoryTab';
+import TimemarkTab from '@/components/TimemarkTab';
 import AuditModal from '@/components/AuditModal';
 import NewRecordModal from '@/components/NewRecordModal';
 import ToastNotification from '@/components/ToastNotification';
@@ -331,6 +332,7 @@ export default function DashboardPage() {
               onSearchKeywordChange={setSearchKeyword}
               onOpenAudit={handleOpenAudit}
               onTriggerAiAudit={triggerAiBottleneckAudit}
+              showToast={showToast}
             />
           )}
 
@@ -343,6 +345,7 @@ export default function DashboardPage() {
               onSearchKeywordChange={setSearchKeyword}
               onOpenNewRecord={() => setIsNewRecordOpen(true)}
               onOpenAudit={handleOpenAudit}
+              showToast={showToast}
             />
           )}
 
@@ -354,6 +357,17 @@ export default function DashboardPage() {
               onSearchKeywordChange={setSearchKeyword}
               onOpenAudit={handleOpenAudit}
               initialEntity={selectedEntity}
+              showToast={showToast}
+            />
+          )}
+
+          {/* Tab TimeMark: Dokumentasi & Bukti Foto */}
+          {activeTab === 'timemark' && (
+            <TimemarkTab
+              armadaItems={armadaData}
+              procurementItems={procurementData}
+              onOpenAudit={handleOpenAudit}
+              showToast={showToast}
             />
           )}
 

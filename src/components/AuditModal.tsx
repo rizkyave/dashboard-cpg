@@ -18,9 +18,12 @@ import {
   RefreshCw,
   CheckCircle2,
   Boxes,
+  Camera,
 } from 'lucide-react';
 import { ProcurementItem, ArmadaItem, InventoryItem } from '@/types/procurement';
 import StockAuditModal from './StockAuditModal';
+import TimemarkModal from './TimemarkModal';
+import { extractFstbLast5, openTimemarkWithFstb } from '@/utils/timemark';
 
 interface AuditModalProps {
   fpbNumber: string | null;
@@ -68,6 +71,7 @@ export default function AuditModal({
   } | null>(null);
   const [isLoadingPdf, setIsLoadingPdf] = useState<boolean>(false);
   const [showStockModal, setShowStockModal] = useState<boolean>(false);
+  const [showTimemarkModal, setShowTimemarkModal] = useState<boolean>(false);
   const [internalInventory, setInternalInventory] = useState<InventoryItem[]>([]);
 
   // Fallback auto-fetch inventory if not yet passed from parent
@@ -205,6 +209,15 @@ export default function AuditModal({
   const fpbPdfUrl = primaryDocNum
     ? `https://e-fpb.cindaragroup.com/files/logistik_Approved_rev_sign_${encodeURIComponent(cleanFpb || primaryDocNum)}.pdf`
     : null;
+
+  // Metadata FSTB & 5 Digit Belakang untuk TimeMark (Pencarian menyeluruh di semua relasi item)
+  const activeFstb =
+    itemsS2.find((i) => i.noFstb && i.noFstb.trim() !== '' && i.noFstb.trim() !== '-')?.noFstb?.trim() ||
+    itemS1?.noFstb?.trim() ||
+    armadaList.find((i) => (i.fpb === fpbNumber || (activePo && i.noPo === activePo)) && i.noFstb && i.noFstb.trim() !== '' && i.noFstb.trim() !== '-')?.noFstb?.trim() ||
+    procurementList.find((i) => (i.fpb === fpbNumber || (activePo && i.po === activePo)) && i.noFstb && i.noFstb.trim() !== '' && i.noFstb.trim() !== '-')?.noFstb?.trim() ||
+    '';
+  const fstbLast5 = extractFstbLast5(activeFstb);
 
   // PIC & Tanggal Verifikasi FPB:
   // Prioritas utama diambil langsung dari 'Requested By' & tanggal tanda tangan digital PDF jika tersedia
@@ -371,6 +384,18 @@ export default function AuditModal({
             </div>
           </div>
           <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+            {/* Tombol: Cek Foto TimeMark (FSTB) */}
+            {activeFstb && (
+              <button
+                onClick={() => setShowTimemarkModal(true)}
+                className="h-8 px-2.5 sm:px-3 rounded-lg border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-xs font-semibold shadow-xs flex items-center gap-1.5 transition active:scale-95 touch-manipulation"
+                title={`Verifikasi foto serah terima fisik TimeMark (${fstbLast5})`}
+              >
+                <Camera className="size-3.5 text-amber-600 dark:text-amber-400" />
+                <span>Foto TimeMark ({fstbLast5})</span>
+              </button>
+            )}
+
             {/* Tombol: Cek Stok Gudang & Rekomendasi */}
             <button
               onClick={() => setShowStockModal(true)}
@@ -775,6 +800,18 @@ export default function AuditModal({
                       {itemsS2[0]?.noFstb || itemS1?.noFstb || '-'}
                     </span>
                   </div>
+                  {activeFstb && (
+                    <button
+                      type="button"
+                      onClick={() => setShowTimemarkModal(true)}
+                      className="w-full mt-1.5 py-1 px-2 rounded-md bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-[10px] font-semibold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-xs"
+                      title={`Buka verifikasi foto TimeMark dengan 5 digit: ${fstbLast5}`}
+                    >
+                      <Camera className="size-3 text-amber-600 dark:text-amber-400" />
+                      <span>Foto TimeMark ({fstbLast5})</span>
+                      <ExternalLink className="size-2.5 opacity-60" />
+                    </button>
+                  )}
                 </div>
               </div>
               <div className="pt-2 border-t border-border">
@@ -825,6 +862,18 @@ export default function AuditModal({
                       {itemS1?.tglTtbKePicPch || '-'}
                     </span>
                   </div>
+                  {activeFstb && (
+                    <button
+                      type="button"
+                      onClick={() => setShowTimemarkModal(true)}
+                      className="w-full mt-1.5 py-1 px-2 rounded-md bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-[10px] font-semibold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-xs"
+                      title={`Buka foto serah terima lapangan di TimeMark (${fstbLast5})`}
+                    >
+                      <Camera className="size-3 text-amber-600 dark:text-amber-400" />
+                      <span>Foto Lapangan ({fstbLast5})</span>
+                      <ExternalLink className="size-2.5 opacity-60" />
+                    </button>
+                  )}
                 </div>
               </div>
               <div className="pt-2 border-t border-border">
@@ -1236,6 +1285,19 @@ export default function AuditModal({
           armadaName={itemsS2[0]?.armada || itemS1?.deptArmada || 'Armada Kapal'}
           requestedItems={requestedFpbItems}
           inventoryItems={activeInventory}
+          showToast={showToast}
+        />
+      )}
+
+      {/* Pop-up Box: Verifikasi Bukti Foto TimeMark */}
+      {showTimemarkModal && activeFstb && (
+        <TimemarkModal
+          isOpen={showTimemarkModal}
+          onClose={() => setShowTimemarkModal(false)}
+          noFstb={activeFstb}
+          fpb={primaryDocNum}
+          armada={itemsS2[0]?.armada || itemS1?.deptArmada}
+          item={itemsS2[0]?.item || itemS1?.item}
           showToast={showToast}
         />
       )}

@@ -16,6 +16,7 @@ import {
   Mail,
   Upload,
   Boxes,
+  Camera,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { TabType, LapseFilterType, ProcurementItem, ArmadaItem } from '@/types/procurement';
@@ -69,6 +70,12 @@ export default function Sidebar({
       label: 'Layanan Armada',
       icon: Anchor,
       badge: 'FSTB',
+    },
+    {
+      id: 'timemark' as TabType,
+      label: 'Foto TimeMark',
+      icon: Camera,
+      badge: '5 Digit',
     },
     {
       id: 'analytics' as TabType,
