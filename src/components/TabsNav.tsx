@@ -21,6 +21,7 @@ export default function TabsNav({
     { id: 'procurement', label: 'Monitoring Berkas Fisik & PIC' },
     { id: 'armada', label: 'Layanan Armada & Belum Terpenuhi' },
     { id: 'analytics', label: 'Bottleneck & SLA Audit' },
+    { id: 'inventory', label: 'Cek Stok Persediaan' },
   ];
 
   return (

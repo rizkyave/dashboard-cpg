@@ -15,6 +15,7 @@ import {
   PanelLeftClose,
   Mail,
   Upload,
+  Boxes,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { TabType, LapseFilterType, ProcurementItem, ArmadaItem } from '@/types/procurement';
@@ -28,6 +29,7 @@ interface SidebarProps {
   onSelectLapse: (lapse: LapseFilterType) => void;
   totalCount: number;
   criticalCount: number;
+  inventoryCount?: number;
   isCollapsed: boolean;
   onToggleCollapse: () => void;
   onOpenNewRecord?: () => void;
@@ -42,6 +44,7 @@ export default function Sidebar({
   onSelectLapse,
   totalCount,
   criticalCount,
+  inventoryCount,
   isCollapsed,
   onToggleCollapse,
   onOpenNewRecord,
@@ -286,6 +289,42 @@ export default function Sidebar({
                 </button>
               );
             })}
+          </nav>
+        </div>
+
+        {/* Modul Cek Persediaan (Dibawah Filter Lead Time SLA) */}
+        <div className="space-y-1 pt-2 border-t border-border">
+          <div className="px-2 py-1 text-[11px] font-medium text-muted-foreground flex items-center justify-between">
+            <span>Modul Persediaan Gudang</span>
+            <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+              Accurate
+            </span>
+          </div>
+          <nav className="space-y-0.5">
+            <button
+              onClick={() => handleSelectTab('inventory')}
+              className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation ${
+                activeTab === 'inventory'
+                  ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-border'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+              }`}
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <Boxes
+                  className={`size-4 shrink-0 ${
+                    activeTab === 'inventory' ? 'text-emerald-500' : 'text-muted-foreground'
+                  }`}
+                />
+                <span className="truncate whitespace-nowrap">Cek Persediaan</span>
+              </div>
+              <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                {inventoryCount !== undefined && inventoryCount > 0
+                  ? inventoryCount >= 1000
+                    ? `${(inventoryCount / 1000).toFixed(0)}k`
+                    : `${inventoryCount}`
+                  : '10k'}
+              </span>
+            </button>
           </nav>
         </div>
       </div>

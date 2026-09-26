@@ -8,6 +8,8 @@ import {
   ProcurementItem,
   ArmadaItem,
   ToastState,
+  InventoryItem,
+  InventorySummary,
 } from '@/types/procurement';
 import { INITIAL_PROCUREMENT_DATA, INITIAL_ARMADA_DATA } from '@/data/initialData';
 import Header from '@/components/Header';
@@ -18,13 +20,14 @@ import OverviewTab from '@/components/OverviewTab';
 import ProcurementTab from '@/components/ProcurementTab';
 import ArmadaTab from '@/components/ArmadaTab';
 import AnalyticsTab from '@/components/AnalyticsTab';
+import InventoryTab from '@/components/InventoryTab';
 import AuditModal from '@/components/AuditModal';
 import NewRecordModal from '@/components/NewRecordModal';
 import ToastNotification from '@/components/ToastNotification';
 import { PanelLeftOpen } from 'lucide-react';
 
 export default function DashboardPage() {
-  // Data dimulai dalam kondisi kosong agar pengguna dapat melakukan pengujian unggah file Excel sendiri
+  // Data dimulai dalam kondisi kosong agar pengguna dapat melakukan pengujian unggah file Excel sendiri setiap kali refresh
   const [procurementData, setProcurementData] = useState<ProcurementItem[]>(
     INITIAL_PROCUREMENT_DATA
   );
@@ -36,6 +39,33 @@ export default function DashboardPage() {
   const [searchKeyword, setSearchKeyword] = useState<string>('');
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
+
+  // State untuk modul persediaan barang (Accurate) - dimulai kosong agar pengguna dapat menguji unggah file Excel setiap kali refresh
+  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
+  const [inventorySummary, setInventorySummary] = useState<InventorySummary | null>(null);
+  const [isLoadingInventory, setIsLoadingInventory] = useState<boolean>(false);
+
+  // Fungsi untuk memuat contoh data persediaan default jika diinginkan oleh pengguna
+  const handleLoadSampleInventory = async () => {
+    setIsLoadingInventory(true);
+    try {
+      const res = await fetch('/api/inventory');
+      const data = await res.json();
+      if (data.success && data.items) {
+        setInventoryItems(data.items);
+        if (data.summary) setInventorySummary(data.summary);
+        showToast(
+          `Berhasil memuat ${data.items.length.toLocaleString('id-ID')} item persediaan stok default Accurate!`,
+          'success'
+        );
+      }
+    } catch (err) {
+      console.error('Gagal mengambil data persediaan:', err);
+      showToast('Gagal memuat data persediaan default.', 'error');
+    } finally {
+      setIsLoadingInventory(false);
+    }
+  };
 
   // Auto-collapse sidebar on mobile screen size on initial mount
   useEffect(() => {
@@ -182,6 +212,8 @@ export default function DashboardPage() {
     setSearchKeyword('');
     setProcurementData([]);
     setArmadaData([]);
+    setInventoryItems([]);
+    setInventorySummary(null);
     showToast('Seluruh data berhasil dikosongkan. Siap untuk unggah file Excel baru.', 'info');
   };
 
@@ -227,8 +259,9 @@ export default function DashboardPage() {
         onSelectTab={setActiveTab}
         selectedLapse={selectedLapse}
         onSelectLapse={setSelectedLapse}
-        totalCount={procurementData.length}
+        totalCount={procurementData?.length ?? 0}
         criticalCount={criticalCount}
+        inventoryCount={inventoryItems?.length ?? 0}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={toggleSidebar}
         onOpenNewRecord={() => setIsNewRecordOpen(true)}
@@ -247,6 +280,11 @@ export default function DashboardPage() {
           showToast={showToast}
           isSidebarCollapsed={isSidebarCollapsed}
           onToggleSidebar={toggleSidebar}
+          inventoryItems={inventoryItems}
+          onInventoryUpload={(items, summary) => {
+            setInventoryItems(items);
+            if (summary) setInventorySummary(summary);
+          }}
         />
 
         <main className="flex-1 min-w-0 p-3.5 sm:p-5 lg:p-8 space-y-4 sm:space-y-6 max-w-[1800px] w-full mx-auto pb-24 lg:pb-8">
@@ -259,6 +297,8 @@ export default function DashboardPage() {
                 ? 'Monitoring Berkas Pengadaan'
                 : activeTab === 'armada'
                 ? 'Monitoring Layanan Armada'
+                : activeTab === 'inventory'
+                ? 'Cek Stok Persediaan Gudang'
                 : 'Analisis SLA & Lead Time'}
             </h1>
             <p className="text-xs sm:text-sm text-muted-foreground">
@@ -268,15 +308,19 @@ export default function DashboardPage() {
                 ? 'Daftar transaksi pengadaan PO, verifikasi berkas fisik antar divisi, dan status penyelesaian berkas.'
                 : activeTab === 'armada'
                 ? 'Pencocokan kuantitas FPB vs FSTB, unit kapal armada, dan realisasi distribusi logistik lapangan.'
+                : activeTab === 'inventory'
+                ? 'Pemeriksaan stok barang konsolidasi Accurate (CPL, Hana Lines, Mandar Ocean) & pencocokan kebutuhan pengadaan.'
                 : 'Distribusi waktu perputaran berkas fisik (lead time) dan beban kerja produktivitas staf PIC operasional.'}
             </p>
           </div>
 
-          {/* 4 Pillar Executive Metric Cards (strictly filtered to active search & entity) */}
-          <KpiCards
-            procurementList={filteredProcurement}
-            armadaList={filteredArmada}
-          />
+          {/* 4 Pillar Executive Metric Cards (procurement tabs only) */}
+          {activeTab !== 'inventory' && (
+            <KpiCards
+              procurementList={filteredProcurement}
+              armadaList={filteredArmada}
+            />
+          )}
 
           {/* Tab 1: Overview */}
           {activeTab === 'overview' && (
@@ -315,6 +359,23 @@ export default function DashboardPage() {
 
           {/* Tab 4: Analytics */}
           {activeTab === 'analytics' && <AnalyticsTab items={filteredProcurement} />}
+
+          {/* Tab 5: Inventory / Cek Persediaan (Sheet Accurate) */}
+          {activeTab === 'inventory' && (
+            <InventoryTab
+              items={inventoryItems}
+              summary={inventorySummary}
+              isLoading={isLoadingInventory}
+              procurementItems={procurementData}
+              armadaItems={armadaData}
+              onUpdateInventory={(newItems, newSummary) => {
+                setInventoryItems(newItems);
+                if (newSummary) setInventorySummary(newSummary);
+              }}
+              onLoadSampleInventory={handleLoadSampleInventory}
+              showToast={showToast}
+            />
+          )}
         </main>
 
         {/* Footer */}
@@ -355,6 +416,7 @@ export default function DashboardPage() {
           targetPo={auditedPo}
           procurementList={procurementData}
           armadaList={armadaData}
+          inventoryItems={inventoryItems}
           onClose={() => {
             setAuditedFpb(null);
             setAuditedPo(null);

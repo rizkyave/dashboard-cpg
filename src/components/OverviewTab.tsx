@@ -329,7 +329,7 @@ export default function OverviewTab({
               className="inline-flex items-center gap-1.5 rounded-lg border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-xs font-medium text-purple-700 dark:text-purple-300 hover:bg-purple-500/20 transition active:scale-95 disabled:opacity-40 shrink-0"
             >
               <Sparkles className="size-3 text-purple-600 dark:text-purple-400" />
-              <span>Detail Cerdas AI</span>
+              <span>Detail Analisis</span>
             </button>
           </div>
 

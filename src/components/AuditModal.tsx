@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   ShieldCheck,
   Sparkles,
@@ -17,14 +17,17 @@ import {
   Download,
   RefreshCw,
   CheckCircle2,
+  Boxes,
 } from 'lucide-react';
-import { ProcurementItem, ArmadaItem } from '@/types/procurement';
+import { ProcurementItem, ArmadaItem, InventoryItem } from '@/types/procurement';
+import StockAuditModal from './StockAuditModal';
 
 interface AuditModalProps {
   fpbNumber: string | null;
   targetPo?: string | null;
   procurementList: ProcurementItem[];
   armadaList: ArmadaItem[];
+  inventoryItems?: InventoryItem[];
   onClose: () => void;
   showToast: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
 }
@@ -34,6 +37,7 @@ export default function AuditModal({
   targetPo,
   procurementList,
   armadaList,
+  inventoryItems = [],
   onClose,
   showToast,
 }: AuditModalProps) {
@@ -63,6 +67,26 @@ export default function AuditModal({
     pdfUrl?: string;
   } | null>(null);
   const [isLoadingPdf, setIsLoadingPdf] = useState<boolean>(false);
+  const [showStockModal, setShowStockModal] = useState<boolean>(false);
+  const [internalInventory, setInternalInventory] = useState<InventoryItem[]>([]);
+
+  // Fallback auto-fetch inventory if not yet passed from parent
+  useEffect(() => {
+    if (inventoryItems && inventoryItems.length > 0) {
+      setInternalInventory(inventoryItems);
+    } else {
+      fetch('/api/inventory')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.items) {
+            setInternalInventory(data.items);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [inventoryItems]);
+
+  const activeInventory = inventoryItems.length > 0 ? inventoryItems : internalInventory;
 
   // Check if target PO is empty / '-' / '(kosong)'
   const isNoPo = !targetPo || targetPo.trim() === '' || targetPo === '-' || targetPo === '(kosong)' || targetPo === 'NOPO';
@@ -91,6 +115,60 @@ export default function AuditModal({
   const itemsS2 = poMatchingItems.length > 0
     ? poMatchingItems
     : armadaList.filter((i) => i.fpb === fpbNumber);
+
+  // Compile all requested items from e-FPB / Armada / Procurement for warehouse stock matching
+  const requestedFpbItems = useMemo(() => {
+    const list: Array<{
+      id: string;
+      name: string;
+      code?: string;
+      qty: number;
+      unit: string;
+    }> = [];
+
+    // Priority 1: From parsed PDF e-FPB items
+    if (pdfData?.items && pdfData.items.length > 0) {
+      pdfData.items.forEach((it, idx) => {
+        list.push({
+          id: `pdf-${idx}`,
+          name: it.itemName || it.description || 'Item Barang',
+          code: it.itemCode || '',
+          qty: it.qty || 1,
+          unit: it.unit || 'unit',
+        });
+      });
+      return list;
+    }
+
+    // Priority 2: From armada items matching this FPB
+    if (itemsS2 && itemsS2.length > 0) {
+      itemsS2.forEach((it, idx) => {
+        if (it.item) {
+          list.push({
+            id: `arm-${idx}`,
+            name: it.item,
+            code: it.kodeBarang || '',
+            qty: it.qtyFPB || 1,
+            unit: it.satuan || 'unit',
+          });
+        }
+      });
+      if (list.length > 0) return list;
+    }
+
+    // Priority 3: Fallback from procurement item
+    if (itemS1 && itemS1.item) {
+      list.push({
+        id: 'proc-0',
+        name: itemS1.item,
+        code: itemS1.kodeBarang || '',
+        qty: itemS1.qtyFPB || 1,
+        unit: itemS1.satuan || 'unit',
+      });
+    }
+
+    return list;
+  }, [pdfData, itemsS2, itemS1]);
 
   // Ambil Keterangan Tujuan & Peruntukan Pengadaan:
   // HANYA ambil jika ada data keterangan asli yang valid (bukan dummy/fallback)
@@ -202,7 +280,7 @@ export default function AuditModal({
 
   const handleRunAiAudit = () => {
     setShowAiRisk(true);
-    showToast('Analisis Risiko AI Gemini 3 Flash selesai diproses.', 'success');
+    showToast('Hasil Analisis Risiko selesai diproses.', 'success');
   };
 
   const handleWhatsappNudge = () => {
@@ -286,19 +364,6 @@ export default function AuditModal({
                     PO: - (Kosong)
                   </span>
                 )}
-                {fpbPdfUrl && (
-                  <a
-                    href={fpbPdfUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-500/10 hover:bg-blue-500/20 text-blue-700 dark:text-blue-400 border border-blue-500/30 text-xs font-mono font-medium transition shadow-2xs"
-                    title={`Buka Dokumen PDF e-FPB Terverifikasi (${primaryDocNum})`}
-                  >
-                    <FileText className="size-3 text-blue-600 dark:text-blue-400" />
-                    <span>PDF e-FPB</span>
-                    <ExternalLink className="size-2.5 opacity-70" />
-                  </a>
-                )}
                 <span className="text-foreground font-sans text-xs sm:text-sm font-medium">
                   &bull; {itemsS2[0]?.armada || itemS1?.deptArmada || itemS1?.item || 'Nama Kapal / Armada'}
                 </span>
@@ -306,13 +371,23 @@ export default function AuditModal({
             </div>
           </div>
           <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
-            {/* Gemini AI Risk Audit Button */}
+            {/* Tombol: Cek Stok Gudang & Rekomendasi */}
+            <button
+              onClick={() => setShowStockModal(true)}
+              className="h-8 px-2.5 sm:px-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-medium shadow-xs flex items-center gap-1.5 transition active:scale-95 touch-manipulation"
+              title="Buka Pengecekan Stok Gudang Accurate & Analisis Rekomendasi"
+            >
+              <Boxes className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>Cek Stok Gudang</span>
+            </button>
+
+            {/* Risk Audit Button */}
             <button
               onClick={handleRunAiAudit}
               className="h-8 px-2.5 sm:px-3 rounded-lg border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 dark:text-purple-300 text-xs font-medium shadow-xs flex items-center gap-1.5 transition active:scale-95 touch-manipulation"
             >
               <Sparkles className="size-3.5 text-purple-600 dark:text-amber-300" />
-              <span>Analisis Risiko AI</span>
+              <span>Analisis Risiko</span>
             </button>
             <button
               onClick={onClose}
@@ -323,13 +398,13 @@ export default function AuditModal({
           </div>
         </div>
 
-        {/* AI Document Risk Callout Box */}
+        {/* Document Risk Callout Box */}
         {showAiRisk && (
           <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/30 text-xs space-y-2">
             <div className="flex items-center justify-between text-purple-800 dark:text-purple-300 font-semibold font-mono">
               <span className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-purple-500 animate-ping"></span>
-                Hasil Analisis AI Gemini 3 Flash
+                Hasil Analisis Risiko Berkas
               </span>
               <span
                 className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono ${
@@ -1151,6 +1226,19 @@ export default function AuditModal({
           </button>
         </div>
       </div>
+
+      {/* Pop-up Box: Pengecekan Stok Persediaan Gudang & Hasil Analisis Rekomendasi */}
+      {showStockModal && (
+        <StockAuditModal
+          isOpen={showStockModal}
+          onClose={() => setShowStockModal(false)}
+          fpbNumber={cleanFpb || primaryDocNum || 'FPB'}
+          armadaName={itemsS2[0]?.armada || itemS1?.deptArmada || 'Armada Kapal'}
+          requestedItems={requestedFpbItems}
+          inventoryItems={activeInventory}
+          showToast={showToast}
+        />
+      )}
     </div>
   );
 }

@@ -2,9 +2,56 @@ export type EntityCode = 'ALL' | 'CPL' | 'PPI' | 'HL' | 'GAJ' | 'MIL' | 'SP' | '
 
 export type LapseFilterType = 'ALL' | 'NORMAL' | 'WARNING' | 'CRITICAL';
 
-export type TabType = 'overview' | 'procurement' | 'armada' | 'analytics';
+export type TabType = 'overview' | 'procurement' | 'armada' | 'analytics' | 'inventory';
 
 export type StatusTone = 'emerald' | 'cyan' | 'purple' | 'amber' | 'rose';
+
+export interface InventoryItem {
+  id: string;
+  perusahaan: string;
+  entity: string;
+  itemCode: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  itemType: string;
+  inventoryType: string;
+  category: string;
+  level?: 'Induk' | 'Sub-Barang' | string;
+}
+
+export interface InventoryCompanySummary {
+  name: string;
+  entity: string;
+  totalItems: number;
+  parentItems: number;
+  subItems: number;
+  totalQuantity: number;
+  activeStock: number;
+  zeroStock: number;
+  negativeStock: number;
+}
+
+export interface InventorySummary {
+  totalItems: number;
+  parentItems: number;
+  subItems: number;
+  totalQuantity: number;
+  activeStock: number;
+  zeroStock: number;
+  negativeStock: number;
+  byCompany: InventoryCompanySummary[];
+  topItems: {
+    rank: number;
+    company: string;
+    itemCode: string;
+    description: string;
+    quantity: number;
+    itemType: string;
+    category?: string;
+    level: string;
+  }[];
+}
 
 export interface ProcurementItem {
   id?: string;

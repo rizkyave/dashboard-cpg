@@ -6,6 +6,7 @@ import {
   ShoppingBag,
   Anchor,
   BarChart3,
+  Boxes,
   Menu,
 } from 'lucide-react';
 import { TabType } from '@/types/procurement';
@@ -25,14 +26,20 @@ export default function MobileBottomNav({
   criticalCount,
   onOpenSidebar,
 }: MobileBottomNavProps) {
-  const tabs = [
+  const tabs: {
+    id: TabType;
+    label: string;
+    icon: any;
+    badge?: string;
+    badgeDestructive?: boolean;
+  }[] = [
     {
-      id: 'overview' as TabType,
+      id: 'overview',
       label: 'Overview',
       icon: LayoutDashboard,
     },
     {
-      id: 'procurement' as TabType,
+      id: 'procurement',
       label: 'Pengadaan',
       icon: ShoppingBag,
       badge:
@@ -43,21 +50,15 @@ export default function MobileBottomNav({
           : undefined,
     },
     {
-      id: 'armada' as TabType,
+      id: 'armada',
       label: 'Armada',
       icon: Anchor,
     },
     {
-      id: 'analytics' as TabType,
-      label: 'Analisis',
-      icon: BarChart3,
-      badge:
-        criticalCount > 0
-          ? criticalCount >= 1000
-            ? `${(criticalCount / 1000).toFixed(0)}k`
-            : `${criticalCount}`
-          : undefined,
-      badgeDestructive: true,
+      id: 'inventory',
+      label: 'Stok',
+      icon: Boxes,
+      badge: '10k',
     },
   ];
 

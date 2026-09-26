@@ -10,14 +10,15 @@ import {
   X,
   SlidersHorizontal,
   Github,
-  Globe,
-  ExternalLink,
-  MoreVertical,
-  User,
+  ChevronDown,
+  Boxes,
+  FileSpreadsheet,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import { ProcurementItem, ArmadaItem } from '@/types/procurement';
+import { ProcurementItem, ArmadaItem, InventoryItem, InventorySummary } from '@/types/procurement';
 import { parseAndMergeWorkbook } from '@/utils/excelParser';
+import { parseInventoryWorkbook } from '@/utils/inventoryParser';
+import { determineCategory } from '@/utils/categoryClassifier';
 import ThemeToggle from './ThemeToggle';
 
 interface HeaderProps {
@@ -29,6 +30,9 @@ interface HeaderProps {
   showToast: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
   isSidebarCollapsed: boolean;
   onToggleSidebar: () => void;
+  inventoryItems?: InventoryItem[];
+  onInventoryUpload?: (items: InventoryItem[], summary?: InventorySummary) => void;
+  onInventoryExport?: () => void;
 }
 
 export default function Header({
@@ -40,10 +44,13 @@ export default function Header({
   showToast,
   isSidebarCollapsed,
   onToggleSidebar,
+  inventoryItems,
+  onInventoryUpload,
+  onInventoryExport,
 }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState<string>(searchKeyword || '');
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
-  const mobileMenuRef = useRef<HTMLDivElement>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (searchKeyword !== undefined) {
@@ -51,21 +58,22 @@ export default function Header({
     }
   }, [searchKeyword]);
 
-  // Click outside listener for mobile menu
+  // Click outside listener for action dropdown menu
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target as Node)) {
-        setIsMobileMenuOpen(false);
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setIsMenuOpen(false);
       }
     };
-    if (isMobileMenuOpen) {
+    if (isMenuOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isMobileMenuOpen]);
+  }, [isMenuOpen]);
 
+  // Handle Unggah Layanan (Procurement & Monitoring Layanan Armada)
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -94,12 +102,94 @@ export default function Header({
         }
       } catch (err: any) {
         console.error('Excel parse error:', err);
-        showToast('Gagal memproses file Excel. Pastikan format file tidak rusak.', 'error');
+        showToast('Gagal memproses file Excel layanan. Pastikan format file tidak rusak.', 'error');
       }
     };
     reader.readAsArrayBuffer(file);
     e.target.value = '';
-    setIsMobileMenuOpen(false);
+    setIsMenuOpen(false);
+  };
+
+  // Handle Unggah Stok (Daftar Barang Accurate)
+  const handleStockUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const buffer = evt.target?.result as ArrayBuffer;
+        const workbook = XLSX.read(new Uint8Array(buffer), { type: 'array' });
+        const result = parseInventoryWorkbook(workbook);
+
+        if (result.items.length === 0) {
+          showToast(
+            'Format file Excel tidak cocok atau tidak ada baris data persediaan yang terbaca.',
+            'error'
+          );
+          return;
+        }
+
+        if (onInventoryUpload) {
+          onInventoryUpload(result.items, result.summary);
+        }
+        showToast(
+          `Berhasil memuat ${result.items.length.toLocaleString('id-ID')} item persediaan stok dari Excel!`,
+          'success'
+        );
+      } catch (err: any) {
+        showToast(`Gagal membaca file Excel stok: ${err.message || 'Format tidak valid'}`, 'error');
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    e.target.value = '';
+    setIsMenuOpen(false);
+  };
+
+  // Handle Ekspor Stok (Persediaan Barang Accurate)
+  const handleExportStock = () => {
+    if (onInventoryExport) {
+      onInventoryExport();
+      setIsMenuOpen(false);
+      return;
+    }
+
+    if (!inventoryItems || inventoryItems.length === 0) {
+      showToast('Tidak ada data persediaan stok untuk diekspor.', 'warning');
+      setIsMenuOpen(false);
+      return;
+    }
+
+    try {
+      const exportRows = inventoryItems.map((it, idx) => ({
+        No: idx + 1,
+        Perusahaan: it.perusahaan,
+        'No. Barang': it.itemCode,
+        'Deskripsi Barang': it.description,
+        Kuantitas: it.quantity,
+        'Harga Satuan': it.unitPrice,
+        'Tipe Barang': it.itemType,
+        'Tipe Persediaan': it.inventoryType,
+        Kategori:
+          it.category || determineCategory(it.itemCode, it.description, it.itemType),
+        'Status Stok': it.quantity > 0 ? 'Tersedia' : it.quantity === 0 ? 'Kosong' : 'Minus',
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(exportRows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Data Persediaan');
+      XLSX.writeFile(
+        wb,
+        `Persediaan_Stok_Accurate_${new Date().toISOString().slice(0, 10)}.xlsx`
+      );
+      showToast(
+        `Berhasil mengekspor ${exportRows.length.toLocaleString('id-ID')} item stok ke Excel!`,
+        'success'
+      );
+    } catch (err: any) {
+      showToast(`Gagal mengekspor file stok: ${err.message}`, 'error');
+    }
+    setIsMenuOpen(false);
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -109,16 +199,205 @@ export default function Header({
 
   return (
     <header className="sticky top-0 z-40 h-14 border-b border-border bg-background/90 backdrop-blur-md px-3 sm:px-4 lg:px-6 flex items-center justify-between transition-colors">
-      {/* Left side: Sidebar Toggle & Search Input */}
-      <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0 max-w-md mr-2">
+      {/* Left side: Sidebar Toggle, Dropdown Menu (Kiri Atas), & Search Input */}
+      <div className="flex items-center gap-2 sm:gap-2.5 flex-1 min-w-0 max-w-lg mr-2" ref={menuRef}>
+        {/* Sidebar Toggle Button */}
         <button
           onClick={onToggleSidebar}
-          title={isSidebarCollapsed ? 'Buka Menu' : 'Tutup Menu'}
+          title={isSidebarCollapsed ? 'Buka Menu Navigasi' : 'Tutup Menu Navigasi'}
           className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition outline-none touch-manipulation"
         >
           <PanelLeft className="size-4" />
           <span className="sr-only">Toggle Sidebar</span>
         </button>
+
+        {/* Dropdown Menu Kiri Atas */}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setIsMenuOpen((prev) => !prev)}
+            className={`h-8 px-2 sm:px-2.5 rounded-lg border border-border bg-card hover:bg-muted text-foreground text-xs font-medium flex items-center gap-1.5 transition active:scale-95 shadow-xs touch-manipulation ${
+              isMenuOpen
+                ? 'bg-muted ring-1 ring-border text-foreground font-semibold'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+            title="Menu Aksi & Pengaturan"
+            aria-expanded={isMenuOpen}
+          >
+            <SlidersHorizontal className="size-3.5 text-muted-foreground" />
+            <span className="font-medium text-xs">Menu</span>
+            <ChevronDown
+              className={`size-3 text-muted-foreground transition-transform duration-200 ${
+                isMenuOpen ? 'rotate-180' : ''
+              }`}
+            />
+          </button>
+
+          {/* Clean Action Dropdown Popover */}
+          {isMenuOpen && (
+            <div className="absolute left-0 top-10 w-72 rounded-xl border border-border bg-card p-1.5 shadow-2xl z-50 text-xs animate-in fade-in slide-in-from-top-2 duration-150">
+              {/* User Profile Banner */}
+              <div className="flex items-center gap-2.5 p-2.5 border-b border-border/80 mb-1">
+                <div className="flex size-8 items-center justify-center rounded-full bg-linear-to-tr from-sky-500 to-indigo-500 text-white font-bold text-xs shadow-xs">
+                  H
+                </div>
+                <div className="leading-tight min-w-0">
+                  <p className="font-semibold text-foreground truncate">Hermansyah</p>
+                  <p className="text-[10px] text-muted-foreground truncate">
+                    CPG Administrator &bull; Somber HQ
+                  </p>
+                </div>
+              </div>
+
+              {/* Menu Items */}
+              <div className="space-y-0.5">
+                {/* Section Header: Layanan & Pengadaan */}
+                <div className="px-2.5 pt-1.5 pb-1 text-[10px] font-mono font-semibold uppercase tracking-wider text-muted-foreground">
+                  Layanan &amp; Pengadaan
+                </div>
+
+                {/* 1. Unggah Layanan */}
+                <label className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-foreground hover:bg-muted cursor-pointer transition">
+                  <Upload className="size-4 text-sky-500 shrink-0" />
+                  <div className="min-w-0">
+                    <span className="font-medium block leading-tight">Unggah Layanan</span>
+                    <span className="text-[10px] text-muted-foreground block">
+                      Impor berkas pengadaan / armada (.xlsx)
+                    </span>
+                  </div>
+                  <input
+                    type="file"
+                    accept=".xlsx, .xls, .csv"
+                    className="hidden"
+                    onChange={handleFileUpload}
+                  />
+                </label>
+
+                {/* 2. Ekspor Layanan */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    onExportCsv();
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-foreground hover:bg-muted text-left transition"
+                >
+                  <Download className="size-4 text-emerald-500 shrink-0" />
+                  <div className="min-w-0">
+                    <span className="font-medium block leading-tight">Ekspor Layanan</span>
+                    <span className="text-[10px] text-muted-foreground block">
+                      Unduh CSV monitoring berkas &amp; PO
+                    </span>
+                  </div>
+                </button>
+
+                <div className="h-px bg-border my-1" />
+
+                {/* Section Header: Persediaan Gudang (Stok Accurate) */}
+                <div className="px-2.5 pt-1.5 pb-1 text-[10px] font-mono font-semibold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
+                  <span>Persediaan Gudang</span>
+                  <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-500/10 px-1 py-0.2 rounded border border-emerald-500/20">
+                    Accurate
+                  </span>
+                </div>
+
+                {/* 3. Unggah Stok */}
+                <label className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-foreground hover:bg-muted cursor-pointer transition">
+                  <Boxes className="size-4 text-indigo-500 shrink-0" />
+                  <div className="min-w-0">
+                    <span className="font-medium block leading-tight">Unggah Stok</span>
+                    <span className="text-[10px] text-muted-foreground block">
+                      Impor data persediaan Accurate (.xlsx)
+                    </span>
+                  </div>
+                  <input
+                    type="file"
+                    accept=".xlsx, .xls, .csv"
+                    className="hidden"
+                    onChange={handleStockUpload}
+                  />
+                </label>
+
+                {/* 4. Ekspor Stok */}
+                <button
+                  type="button"
+                  onClick={handleExportStock}
+                  className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-foreground hover:bg-muted text-left transition"
+                >
+                  <FileSpreadsheet className="size-4 text-teal-500 shrink-0" />
+                  <div className="min-w-0">
+                    <span className="font-medium block leading-tight">Ekspor Stok</span>
+                    <span className="text-[10px] text-muted-foreground block">
+                      Unduh data persediaan stok{' '}
+                      {inventoryItems && inventoryItems.length > 0
+                        ? `(${inventoryItems.length.toLocaleString('id-ID')} item)`
+                        : ''}
+                    </span>
+                  </div>
+                </button>
+
+                <div className="h-px bg-border my-1" />
+
+                {/* Settings / Preference */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    showToast('Pengaturan preferensi dashboard', 'info');
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-foreground hover:bg-muted text-left transition"
+                >
+                  <SlidersHorizontal className="size-4 text-muted-foreground shrink-0" />
+                  <div className="min-w-0">
+                    <span className="font-medium block leading-tight">Preferensi Tampilan</span>
+                    <span className="text-[10px] text-muted-foreground block">
+                      Atur filter &amp; preferensi
+                    </span>
+                  </div>
+                </button>
+
+                {/* GitHub Repository */}
+                <a
+                  href="https://github.com/rizkyave/dashboard-cpg.git"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-foreground hover:bg-muted text-left transition"
+                >
+                  <Github className="size-4 text-muted-foreground shrink-0" />
+                  <div className="min-w-0">
+                    <span className="font-medium block leading-tight">Repository GitHub</span>
+                    <span className="text-[10px] text-muted-foreground block">
+                      dashboard-cpg.git
+                    </span>
+                  </div>
+                </a>
+              </div>
+
+              <div className="h-px bg-border my-1.5" />
+
+              {/* Reset Data */}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  if (confirm('Kosongkan seluruh data monitoring untuk pengujian upload baru?')) {
+                    onResetData();
+                  }
+                }}
+                className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-rose-500 hover:bg-rose-500/10 text-left transition"
+              >
+                <RotateCcw className="size-4 shrink-0" />
+                <div className="min-w-0">
+                  <span className="font-medium block leading-tight">Reset Seluruh Data</span>
+                  <span className="text-[10px] text-rose-500/70 block">
+                    Kosongkan tabel &amp; mulai pengujian baru
+                  </span>
+                </div>
+              </button>
+            </div>
+          )}
+        </div>
 
         <div className="h-4 w-px bg-border shrink-0" />
 
@@ -132,7 +411,7 @@ export default function Header({
               setSearchQuery(e.target.value);
               onSearch(e.target.value);
             }}
-            placeholder="Cari FPB, PO, armada..."
+            placeholder="Cari FPB, PO, armada, stok..."
             className="w-full h-8 rounded-lg bg-muted/40 border border-transparent pl-8 pr-8 sm:pr-12 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-border focus:bg-background transition"
           />
           {searchQuery ? (
@@ -156,194 +435,19 @@ export default function Header({
         </form>
       </div>
 
-      {/* Right side Desktop Actions (screens >= sm) */}
-      <div className="hidden sm:flex items-center gap-1.5 shrink-0">
-        {/* Quick Upload Excel */}
-        <label
-          className="cursor-pointer inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition"
-          title="Unggah File Excel"
-        >
-          <Upload className="size-4" />
-          <input
-            type="file"
-            accept=".xlsx, .xls, .csv"
-            className="hidden"
-            onChange={handleFileUpload}
-          />
-        </label>
-
-        {/* Export CSV */}
-        <button
-          onClick={onExportCsv}
-          className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition"
-          title="Ekspor CSV"
-        >
-          <Download className="size-4" />
-        </button>
-
-        {/* Reset / Settings */}
-        <button
-          onClick={() => {
-            if (confirm('Kosongkan seluruh data monitoring untuk pengujian upload baru?')) {
-              onResetData();
-            }
-          }}
-          className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition"
-          title="Reset Data"
-        >
-          <RotateCcw className="size-4" />
-        </button>
-
-        {/* Customizer / Settings Icon */}
-        <button
-          onClick={() => showToast('Pengaturan preferensi dashboard', 'info')}
-          className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition"
-          title="Settings"
-        >
-          <SlidersHorizontal className="size-4" />
-        </button>
-
-        {/* e-FPB Cindara Group Portal Link */}
-        <a
-          href="https://e-fpb.cindaragroup.com/Menu2#"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg border border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 text-xs font-medium transition"
-          title="Buka Portal e-FPB Cindara Group (e-fpb.cindaragroup.com)"
-        >
-          <Globe className="size-3.5" />
-          <span className="font-mono font-semibold">e-FPB</span>
-          <ExternalLink className="size-3 opacity-70" />
-        </a>
-
+      {/* Right side Clean Actions */}
+      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
         {/* Theme Toggle Button (Light / Dark) */}
         <ThemeToggle />
 
-        {/* GitHub Repository Link */}
-        <a
-          href="https://github.com/rizkyave/dashboard-cpg.git"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition"
-          title="Lihat Repository GitHub"
-        >
-          <Github className="size-4" />
-        </a>
-
-        {/* User Profile Avatar Circle */}
+        {/* User Profile Avatar (Clickable to open menu as well) */}
         <div
-          className="flex size-7.5 shrink-0 items-center justify-center rounded-full bg-linear-to-tr from-sky-500 to-indigo-500 text-white font-bold text-xs select-none shadow-xs ml-1"
-          title="Hermansyah - Administrator"
+          onClick={() => setIsMenuOpen((prev) => !prev)}
+          className="flex size-7.5 shrink-0 items-center justify-center rounded-full bg-linear-to-tr from-sky-500 to-indigo-500 text-white font-bold text-xs select-none shadow-xs cursor-pointer hover:opacity-90 transition active:scale-95 ml-0.5"
+          title="Hermansyah - Administrator (Klik untuk menu)"
         >
           H
         </div>
-      </div>
-
-      {/* Right side Mobile Actions (screens < sm) */}
-      <div className="flex sm:hidden items-center gap-1 shrink-0 relative" ref={mobileMenuRef}>
-        <ThemeToggle />
-
-        <button
-          type="button"
-          onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-          className={`inline-flex size-8 items-center justify-center rounded-lg transition active:scale-95 touch-manipulation ${
-            isMobileMenuOpen
-              ? 'bg-muted text-foreground'
-              : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-          }`}
-          title="Menu Aksi Lainnya"
-          aria-expanded={isMobileMenuOpen}
-        >
-          <MoreVertical className="size-4" />
-        </button>
-
-        {/* Mobile Dropdown Popover */}
-        {isMobileMenuOpen && (
-          <div className="absolute right-0 top-10 w-56 rounded-xl border border-border bg-card p-1.5 shadow-xl z-50 text-xs animate-in fade-in slide-in-from-top-2 duration-150">
-            {/* User Profile Banner */}
-            <div className="flex items-center gap-2 p-2 border-b border-border/80 mb-1">
-              <div className="flex size-7 items-center justify-center rounded-full bg-linear-to-tr from-sky-500 to-indigo-500 text-white font-bold text-xs">
-                H
-              </div>
-              <div className="leading-tight">
-                <p className="font-semibold text-foreground">Hermansyah</p>
-                <p className="text-[10px] text-muted-foreground">CPG Administrator</p>
-              </div>
-            </div>
-
-            {/* Upload Excel */}
-            <label className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-foreground hover:bg-muted cursor-pointer transition">
-              <Upload className="size-4 text-sky-500" />
-              <span>Unggah File Excel</span>
-              <input
-                type="file"
-                accept=".xlsx, .xls, .csv"
-                className="hidden"
-                onChange={handleFileUpload}
-              />
-            </label>
-
-            {/* Export CSV */}
-            <button
-              type="button"
-              onClick={() => {
-                onExportCsv();
-                setIsMobileMenuOpen(false);
-              }}
-              className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-foreground hover:bg-muted text-left transition"
-            >
-              <Download className="size-4 text-emerald-500" />
-              <span>Ekspor Data CSV</span>
-            </button>
-
-            {/* Portal e-FPB */}
-            <a
-              href="https://e-fpb.cindaragroup.com/Menu2#"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="flex items-center justify-between px-2.5 py-2 rounded-lg text-cyan-600 dark:text-cyan-400 hover:bg-muted transition"
-            >
-              <div className="flex items-center gap-2.5">
-                <Globe className="size-4" />
-                <span>Portal e-FPB</span>
-              </div>
-              <ExternalLink className="size-3 opacity-60" />
-            </a>
-
-            {/* GitHub Repo */}
-            <a
-              href="https://github.com/rizkyave/dashboard-cpg.git"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="flex items-center justify-between px-2.5 py-2 rounded-lg text-foreground hover:bg-muted transition"
-            >
-              <div className="flex items-center gap-2.5">
-                <Github className="size-4" />
-                <span>Repository GitHub</span>
-              </div>
-              <ExternalLink className="size-3 opacity-60" />
-            </a>
-
-            <div className="h-px bg-border my-1" />
-
-            {/* Reset Data */}
-            <button
-              type="button"
-              onClick={() => {
-                setIsMobileMenuOpen(false);
-                if (confirm('Kosongkan seluruh data monitoring untuk pengujian upload baru?')) {
-                  onResetData();
-                }
-              }}
-              className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-rose-500 hover:bg-rose-500/10 text-left transition"
-            >
-              <RotateCcw className="size-4" />
-              <span>Reset Seluruh Data</span>
-            </button>
-          </div>
-        )}
       </div>
     </header>
   );
