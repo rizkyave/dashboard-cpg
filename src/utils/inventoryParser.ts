@@ -186,12 +186,25 @@ export function parseInventoryWorkbook(workbook: XLSX.WorkBook): {
 
       if (headerIdx !== -1) {
         const headerRow = rows[headerIdx].map((c) => String(c || '').trim().toLowerCase());
-        const noIdx = headerRow.findIndex((h) => h.includes('no') || h.includes('kode'));
-        const descIdx = headerRow.findIndex((h) => h.includes('deskripsi') || h.includes('nama'));
-        const qtyIdx = headerRow.findIndex((h) => h.includes('kuantitas') || h.includes('stok') || h.includes('qty'));
-        const priceIdx = headerRow.findIndex((h) => h.includes('harga'));
-        const typeIdx = headerRow.findIndex((h) => h.includes('tipe barang'));
-        const invTypeIdx = headerRow.findIndex((h) => h.includes('tipe persediaan'));
+        const compIdx = headerRow.findIndex(
+          (h) => h.includes('perusahaan') || h.includes('company') || h.includes('pt ') || h === 'pt'
+        );
+        const noIdx = headerRow.findIndex(
+          (h) => h.includes('no') || h.includes('kode') || h.includes('item code') || h === 'item'
+        );
+        const descIdx = headerRow.findIndex(
+          (h) => h.includes('deskripsi') || h.includes('nama') || h.includes('description') || h.includes('item name')
+        );
+        const qtyIdx = headerRow.findIndex(
+          (h) => h.includes('kuantitas') || h.includes('stok') || h.includes('qty') || h.includes('quantity')
+        );
+        const priceIdx = headerRow.findIndex((h) => h.includes('harga') || h.includes('price'));
+        const typeIdx = headerRow.findIndex(
+          (h) => h.includes('tipe barang') || h.includes('item type') || h.includes('tipe') || h === 'type'
+        );
+        const invTypeIdx = headerRow.findIndex(
+          (h) => h.includes('tipe persediaan') || h.includes('inventory type')
+        );
         const levelIdx = headerRow.findIndex((h) => h.includes('level'));
 
         for (let j = headerIdx + 1; j < rows.length; j++) {
@@ -202,6 +215,9 @@ export function parseInventoryWorkbook(workbook: XLSX.WorkBook): {
           const desc = String(row[descIdx] ?? '').trim();
           if (!code && !desc) continue;
 
+          const rawComp = compIdx !== -1 ? String(row[compIdx] ?? '').trim() : '';
+          const comp = rawComp || detectedCompany;
+
           const qty = Number(row[qtyIdx] ?? 0);
           const price = Number(row[priceIdx] ?? 0);
           const itemType = String(row[typeIdx] ?? 'Persediaan').trim();
@@ -210,8 +226,8 @@ export function parseInventoryWorkbook(workbook: XLSX.WorkBook): {
 
           items.push({
             id: `inv-${items.length + 1}`,
-            perusahaan: detectedCompany,
-            entity: mapCompanyToEntity(detectedCompany),
+            perusahaan: comp,
+            entity: mapCompanyToEntity(comp),
             itemCode: code,
             description: desc,
             quantity: isNaN(qty) ? 0 : qty,

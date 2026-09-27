@@ -17,6 +17,7 @@ import {
   Upload,
   Boxes,
   Camera,
+  Images,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { TabType, LapseFilterType, ProcurementItem, ArmadaItem } from '@/types/procurement';
@@ -72,9 +73,15 @@ export default function Sidebar({
       badge: 'FSTB',
     },
     {
+      id: 'foto-lapangan' as TabType,
+      label: 'Foto Lapangan',
+      icon: Camera,
+      badge: 'In-App',
+    },
+    {
       id: 'timemark' as TabType,
       label: 'Foto TimeMark',
-      icon: Camera,
+      icon: Images,
       badge: '5 Digit',
     },
     {

@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { ProcurementItem, StatusTone } from '@/types/procurement';
 import { extractFstbLast5, openTimemarkWithFstb } from '@/utils/timemark';
+import { formatDateDdMmYy } from '@/utils/formatDate';
 
 // Helper: Extract date information accurately (Year, Month, Full Date, Timestamp)
 const extractDateInfo = (dateStr?: string) => {
@@ -967,19 +968,6 @@ export default function ProcurementTab({
                               <span className="font-mono font-bold text-xs text-foreground group-hover:text-primary transition truncate">
                                 {row.fpb}
                               </span>
-                              {rowPdfUrl && (
-                                <a
-                                  href={rowPdfUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-blue-500/10 hover:bg-blue-500/20 text-blue-700 dark:text-blue-400 border border-blue-500/30 text-[9px] font-mono transition"
-                                  title="Buka PDF"
-                                >
-                                  <span>PDF</span>
-                                  <ExternalLink className="size-2" />
-                                </a>
-                              )}
                             </div>
                             <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-muted border border-border text-muted-foreground inline-block mt-0.5">
                               {row.entity}
@@ -997,7 +985,7 @@ export default function ProcurementTab({
                       <div className="space-y-1 text-xs">
                         <div className="flex items-center justify-between text-[11px] text-muted-foreground font-mono">
                           <span>PO: <strong className="text-foreground">{row.po && row.po !== '-' ? row.po : 'Belum Ada'}</strong></span>
-                          <span>{row.date}</span>
+                          <span>{formatDateDdMmYy(row.date)}</span>
                         </div>
                         <p className="font-medium text-foreground text-xs line-clamp-2 mt-1">
                           {row.item}
@@ -1170,19 +1158,6 @@ export default function ProcurementTab({
                             <span>{row.fpb}</span>
                             <ExternalLink className="w-3 h-3 text-muted-foreground group-hover:text-foreground transition-colors" />
                           </button>
-                          {rowPdfUrl && (
-                            <a
-                              href={rowPdfUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={(e) => e.stopPropagation()}
-                              className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-blue-500/10 hover:bg-blue-500/20 text-blue-700 dark:text-blue-400 border border-blue-500/30 text-[10px] font-mono transition"
-                              title={`Buka Dokumen PDF e-FPB Terverifikasi (${fpbDocNum})`}
-                            >
-                              <FileText className="w-2.5 h-2.5 text-blue-600 dark:text-blue-400" />
-                              <span>PDF</span>
-                            </a>
-                          )}
                         </div>
                         <span className="inline-block mt-1 px-1.5 py-0.5 bg-muted text-muted-foreground rounded text-[10px] font-mono border border-border">
                           {row.entity}
@@ -1195,7 +1170,7 @@ export default function ProcurementTab({
                           <span className="font-mono text-muted-foreground italic text-[11px]">- (Kosong)</span>
                         )}
                       </td>
-                      <td className="p-3.5 font-mono text-muted-foreground">{row.date}</td>
+                      <td className="p-3.5 font-mono text-muted-foreground">{formatDateDdMmYy(row.date)}</td>
                       <td className="p-3.5 max-w-[290px]">
                         <div className="font-medium text-foreground flex items-center gap-1.5 flex-wrap">
                           <span>{row.item}</span>
@@ -1286,18 +1261,6 @@ export default function ProcurementTab({
                               <Camera className="w-3 h-3 text-amber-600 dark:text-amber-400" />
                               <span className="hidden sm:inline">Foto ({extractFstbLast5(row.noFstb)})</span>
                             </button>
-                          )}
-                          {rowPdfUrl && (
-                            <a
-                              href={rowPdfUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="h-7 px-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-700 dark:text-blue-400 border border-blue-500/20 rounded-lg text-xs font-medium transition inline-flex items-center gap-1"
-                              title={`Buka Dokumen PDF e-FPB: ${fpbDocNum}`}
-                            >
-                              <FileText className="w-3 h-3 text-blue-600 dark:text-blue-400" />
-                              <span className="hidden sm:inline">PDF</span>
-                            </a>
                           )}
                           <button
                             onClick={() => onOpenAudit(row.fpb, row.po)}

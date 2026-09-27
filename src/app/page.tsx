@@ -22,6 +22,7 @@ import ArmadaTab from '@/components/ArmadaTab';
 import AnalyticsTab from '@/components/AnalyticsTab';
 import InventoryTab from '@/components/InventoryTab';
 import TimemarkTab from '@/components/TimemarkTab';
+import FotoLapanganTab from '@/components/FotoLapanganTab';
 import AuditModal from '@/components/AuditModal';
 import NewRecordModal from '@/components/NewRecordModal';
 import ToastNotification from '@/components/ToastNotification';
@@ -281,6 +282,8 @@ export default function DashboardPage() {
           showToast={showToast}
           isSidebarCollapsed={isSidebarCollapsed}
           onToggleSidebar={toggleSidebar}
+          procurementData={procurementData}
+          armadaData={armadaData}
           inventoryItems={inventoryItems}
           onInventoryUpload={(items, summary) => {
             setInventoryItems(items);
@@ -357,6 +360,16 @@ export default function DashboardPage() {
               onSearchKeywordChange={setSearchKeyword}
               onOpenAudit={handleOpenAudit}
               initialEntity={selectedEntity}
+              showToast={showToast}
+            />
+          )}
+
+          {/* Tab Foto Lapangan: Upload & Galeri Lapangan In-App Terintegrasi No TTB */}
+          {activeTab === 'foto-lapangan' && (
+            <FotoLapanganTab
+              procurementItems={procurementData}
+              armadaItems={armadaData}
+              onOpenAudit={handleOpenAudit}
               showToast={showToast}
             />
           )}

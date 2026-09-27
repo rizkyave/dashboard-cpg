@@ -23,7 +23,12 @@ import {
 import { ProcurementItem, ArmadaItem, InventoryItem } from '@/types/procurement';
 import StockAuditModal from './StockAuditModal';
 import TimemarkModal from './TimemarkModal';
+import UploadFotoLapanganModal from './UploadFotoLapanganModal';
+import FotoLapanganViewerModal from './FotoLapanganViewerModal';
 import { extractFstbLast5, openTimemarkWithFstb } from '@/utils/timemark';
+import { getFotosByNoTtb, getFotosByFpbOrFstb } from '@/utils/fotoLapanganStorage';
+import { FotoLapangan } from '@/types/fotoLapangan';
+import { formatDateDdMmYy } from '@/utils/formatDate';
 
 interface AuditModalProps {
   fpbNumber: string | null;
@@ -56,6 +61,9 @@ export default function AuditModal({
     reviewedDate?: string;
     approvedBy?: string;
     approvedDate?: string;
+    receivedBy?: string;
+    receivedDate?: string;
+    isLogistikApproved?: boolean;
     items: Array<{
       no: number;
       itemCode: string;
@@ -72,6 +80,9 @@ export default function AuditModal({
   const [isLoadingPdf, setIsLoadingPdf] = useState<boolean>(false);
   const [showStockModal, setShowStockModal] = useState<boolean>(false);
   const [showTimemarkModal, setShowTimemarkModal] = useState<boolean>(false);
+  const [showUploadFotoModal, setShowUploadFotoModal] = useState<boolean>(false);
+  const [showFotoViewerModal, setShowFotoViewerModal] = useState<boolean>(false);
+  const [fotoLapanganList, setFotoLapanganList] = useState<FotoLapangan[]>([]);
   const [internalInventory, setInternalInventory] = useState<InventoryItem[]>([]);
 
   // Fallback auto-fetch inventory if not yet passed from parent
@@ -197,18 +208,26 @@ export default function AuditModal({
     armadaKeterangans.length > 0
       ? armadaKeterangans.join(' • ')
       : rawPeruntukan;
-  const tujuanPeruntukan = basePeruntukan || pdfData?.tujuanPeruntukan || '';
+  const tujuanPeruntukan = pdfData?.tujuanPeruntukan || basePeruntukan || '';
 
-  // Trigger Link Dokumen PDF e-FPB Terverifikasi (logistik_Approved_rev_sign):
-  // Format Server: https://e-fpb.cindaragroup.com/files/logistik_Approved_rev_sign_{FPB}.pdf
+  // Trigger Link Dokumen PDF e-FPB Terverifikasi:
+  // Format Utama: https://e-fpb.cindaragroup.com/files/logistik_Approved_rev_sign_{FPB}.pdf
+  // Fallback Otomatis (jika logistik_ 404): https://e-fpb.cindaragroup.com/files/Approved_rev_sign_{FPB}.pdf
   const docFpb = fpbNumber?.trim() || itemS1?.fpb?.trim() || itemsS2[0]?.fpb?.trim() || '';
   const docPo = activePo?.trim() || itemS1?.po?.trim() || itemsS2[0]?.noPo?.trim() || '';
   const cleanFpb = docFpb.replace(/^["']|["']$/g, '');
   const cleanPo = docPo.replace(/^["']|["']$/g, '');
   const primaryDocNum = cleanFpb || cleanPo;
-  const fpbPdfUrl = primaryDocNum
+  const directApprovedPdfUrl = primaryDocNum
+    ? `https://e-fpb.cindaragroup.com/files/Approved_rev_sign_${encodeURIComponent(cleanFpb || primaryDocNum)}.pdf`
+    : null;
+  const defaultLogistikPdfUrl = primaryDocNum
     ? `https://e-fpb.cindaragroup.com/files/logistik_Approved_rev_sign_${encodeURIComponent(cleanFpb || primaryDocNum)}.pdf`
     : null;
+  const fpbPdfUrl =
+    pdfData?.pdfUrl ||
+    (pdfData && pdfData.isLogistikApproved === false ? directApprovedPdfUrl : defaultLogistikPdfUrl) ||
+    directApprovedPdfUrl;
 
   // Metadata FSTB & 5 Digit Belakang untuk TimeMark (Pencarian menyeluruh di semua relasi item)
   const activeFstb =
@@ -218,6 +237,83 @@ export default function AuditModal({
     procurementList.find((i) => (i.fpb === fpbNumber || (activePo && i.po === activePo)) && i.noFstb && i.noFstb.trim() !== '' && i.noFstb.trim() !== '-')?.noFstb?.trim() ||
     '';
   const fstbLast5 = extractFstbLast5(activeFstb);
+
+  // Metadata Nomor TTB untuk integrasi foto lapangan langsung di aplikasi
+  const activeTtb =
+    itemsS2.find((i) => i.noTtb && i.noTtb.trim() !== '' && i.noTtb.trim() !== '-')?.noTtb?.trim() ||
+    itemS1?.noTtb?.trim() ||
+    armadaList.find((i) => (i.fpb === fpbNumber || (activePo && i.noPo === activePo)) && i.noTtb && i.noTtb.trim() !== '' && i.noTtb.trim() !== '-')?.noTtb?.trim() ||
+    procurementList.find((i) => (i.fpb === fpbNumber || (activePo && i.po === activePo)) && i.noTtb && i.noTtb.trim() !== '' && i.noTtb.trim() !== '-')?.noTtb?.trim() ||
+    '';
+
+  // Load foto lapangan yang terintegrasi dengan Nomor TTB (atau FPB/FSTB)
+  const refreshFotoLapangan = async () => {
+    try {
+      let fotos: FotoLapangan[] = [];
+      if (activeTtb) {
+        fotos = await getFotosByNoTtb(activeTtb);
+      }
+      if (fotos.length === 0 && (primaryDocNum || activeFstb)) {
+        fotos = await getFotosByFpbOrFstb(primaryDocNum, activeFstb);
+      }
+      setFotoLapanganList(fotos);
+    } catch (err) {
+      console.error('Error refreshing foto lapangan:', err);
+    }
+  };
+
+  useEffect(() => {
+    refreshFotoLapangan();
+    const handleFotoUpdate = () => refreshFotoLapangan();
+    window.addEventListener('foto-lapangan-updated', handleFotoUpdate);
+    return () => window.removeEventListener('foto-lapangan-updated', handleFotoUpdate);
+  }, [activeTtb, primaryDocNum, activeFstb]);
+
+  // Daftar saran TTB untuk mempermudah autocomplete saat upload
+  const ttbSuggestions = useMemo(() => {
+    const list: Array<{
+      noTtb: string;
+      fpb?: string;
+      noPo?: string;
+      noFstb?: string;
+      item?: string;
+      armada?: string;
+      picLap?: string;
+    }> = [];
+    const seen = new Set<string>();
+
+    procurementList.forEach((p) => {
+      if (p.noTtb && p.noTtb.trim() && p.noTtb.trim() !== '-' && !seen.has(p.noTtb.trim())) {
+        seen.add(p.noTtb.trim());
+        list.push({
+          noTtb: p.noTtb.trim(),
+          fpb: p.fpb,
+          noPo: p.po,
+          noFstb: p.noFstb,
+          item: p.item,
+          armada: p.deptArmada,
+          picLap: p.picLap,
+        });
+      }
+    });
+
+    armadaList.forEach((a) => {
+      if (a.noTtb && a.noTtb.trim() && a.noTtb.trim() !== '-' && !seen.has(a.noTtb.trim())) {
+        seen.add(a.noTtb.trim());
+        list.push({
+          noTtb: a.noTtb.trim(),
+          fpb: a.fpb,
+          noPo: a.noPo,
+          noFstb: a.noFstb,
+          item: a.item,
+          armada: a.armada,
+          picLap: a.picLap,
+        });
+      }
+    });
+
+    return list;
+  }, [procurementList, armadaList]);
 
   // PIC & Tanggal Verifikasi FPB:
   // Prioritas utama diambil langsung dari 'Requested By' & tanggal tanda tangan digital PDF jika tersedia
@@ -229,6 +325,7 @@ export default function AuditModal({
     let isMounted = true;
     if (primaryDocNum) {
       setPdfData(null);
+      setIsLoadingPdf(true);
       fetch(`/api/parse-fpb-pdf?fpb=${encodeURIComponent(primaryDocNum)}`)
         .then((res) => res.json())
         .then((json) => {
@@ -236,9 +333,15 @@ export default function AuditModal({
             setPdfData(json.data);
           }
         })
-        .catch(() => {});
+        .catch(() => {})
+        .finally(() => {
+          if (isMounted) {
+            setIsLoadingPdf(false);
+          }
+        });
     } else {
       setPdfData(null);
+      setIsLoadingPdf(false);
     }
     return () => {
       isMounted = false;
@@ -498,7 +601,7 @@ export default function AuditModal({
             </span>
             <span className="text-sm font-semibold text-foreground font-mono mt-0.5 block">
               {itemsS2[0]?.entity || itemS1?.entity || 'CPL'} &bull;{' '}
-              {itemsS2[0]?.tglPo || itemsS2[0]?.tglFpb || itemS1?.date || '-'}
+              {formatDateDdMmYy(itemsS2[0]?.tglPo || itemsS2[0]?.tglFpb || itemS1?.date)}
             </span>
           </div>
           <div className="p-3 rounded-lg bg-muted/40 border border-border">
@@ -544,18 +647,6 @@ export default function AuditModal({
                 <span className="text-[11px] font-semibold text-foreground tracking-wide uppercase leading-tight truncate">
                   VERIFIKASI FPB {pdfData?.requestedBy ? `(${pdfData.requestedBy})` : '/ BU NOOR'}
                 </span>
-                {fpbPdfUrl && (
-                  <a
-                    href={fpbPdfUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-[10px] text-blue-600 dark:text-blue-400 hover:underline font-mono shrink-0"
-                    title={`Buka Dokumen PDF e-FPB Terverifikasi (${primaryDocNum})`}
-                  >
-                    <span>PDF</span>
-                    <ExternalLink className="size-2.5" />
-                  </a>
-                )}
               </div>
               <div className="flex items-center justify-between pt-2 border-t border-border">
                 <span className="text-[10px] text-muted-foreground font-mono">Status:</span>
@@ -648,7 +739,7 @@ export default function AuditModal({
                       className="text-muted-foreground font-mono text-right ml-1.5"
                       title={pdfData?.requestedTimestamp ? `Timestamp: ${pdfData.requestedTimestamp}` : displayTglFpb}
                     >
-                      {displayTglFpb}
+                      {formatDateDdMmYy(displayTglFpb)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -657,20 +748,52 @@ export default function AuditModal({
                       {itemS1?.statusCheckFpb || itemsS2[0]?.statusCheckFpb || (itemS1?.doneCheckFpb ? 'DONE' : 'CLOSE')}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-1.5">
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">Approved:</span>
                     <span
-                      className="text-muted-foreground font-mono text-right ml-1.5 truncate max-w-[130px]"
+                      className="text-muted-foreground font-mono text-right ml-1.5 truncate min-w-0"
                       title={
                         pdfData?.approvedBy
-                          ? `Approved By: ${pdfData.approvedBy} (${pdfData.approvedDate || ''})`
+                          ? `Approved By: ${pdfData.approvedBy} (${formatDateDdMmYy(pdfData.approvedDate) || ''})`
                           : undefined
                       }
                     >
                       {pdfData?.approvedBy
-                        ? pdfData.approvedBy
-                        : itemS1?.tglApproveWeb || itemsS2[0]?.tglApproveWeb || (itemS1?.statusCheckFpb === 'CLOSE' ? 'Tervalidasi' : '-')}
+                        ? `${pdfData.approvedBy}${pdfData.approvedDate ? ` (${formatDateDdMmYy(pdfData.approvedDate)})` : ''}`
+                        : itemS1?.tglApproveWeb
+                        ? formatDateDdMmYy(itemS1.tglApproveWeb)
+                        : itemsS2[0]?.tglApproveWeb
+                        ? formatDateDdMmYy(itemsS2[0].tglApproveWeb)
+                        : itemS1?.statusCheckFpb === 'CLOSE'
+                        ? 'Tervalidasi'
+                        : '-'}
                     </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-1.5">
+                    <span className="text-muted-foreground shrink-0 whitespace-nowrap">Received by:</span>
+                    <div
+                      className={`font-mono text-right ml-1.5 flex items-center justify-end gap-1 min-w-0 flex-wrap ${
+                        pdfData?.receivedBy
+                          ? 'font-semibold text-foreground'
+                          : 'text-muted-foreground'
+                      }`}
+                      title={
+                        pdfData?.receivedBy
+                          ? `Received By (Logistic Staff): ${pdfData.receivedBy} (${formatDateDdMmYy(pdfData.receivedDate) || ''})`
+                          : 'Belum di-approved / diterima oleh Logistik (logistik_ 404)'
+                      }
+                    >
+                      {pdfData?.receivedBy ? (
+                        <>
+                          <span className="truncate">{pdfData.receivedBy}</span>
+                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-sans font-medium shrink-0" title="Logistik Approved Terverifikasi">
+                            Logistik
+                          </span>
+                        </>
+                      ) : (
+                        '-'
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -688,19 +811,6 @@ export default function AuditModal({
                     ? 'Tercatat Verifikator'
                     : 'Menunggu FPB'}
                 </span>
-                {fpbPdfUrl && (
-                  <a
-                    href={fpbPdfUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-1.5 w-full py-1.5 px-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-semibold transition shadow-xs group"
-                    title={`Buka Dokumen PDF e-FPB Terverifikasi: ${primaryDocNum}`}
-                  >
-                    <FileText className="size-3.5" />
-                    <span>Buka PDF Terverifikasi</span>
-                    <ExternalLink className="size-3 opacity-80 group-hover:opacity-100 transition" />
-                  </a>
-                )}
               </div>
             </div>
 
@@ -735,13 +845,22 @@ export default function AuditModal({
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">Tgl PO:</span>
                     <span className="text-muted-foreground font-mono text-right ml-1.5">
-                      {itemsS2[0]?.tglPo || itemS1?.date || '-'}
+                      {formatDateDdMmYy(itemsS2[0]?.tglPo || itemS1?.date)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">Delivery:</span>
                     <span className="text-muted-foreground font-mono text-right ml-1.5">
                       {itemS1?.deliveryTime || itemsS2[0]?.waktuProses || '-'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground shrink-0 whitespace-nowrap">No. FSTB:</span>
+                    <span
+                      className="text-muted-foreground font-mono truncate text-right ml-1.5"
+                      title={itemsS2[0]?.noFstb || itemS1?.noFstb || '-'}
+                    >
+                      {itemsS2[0]?.noFstb || itemS1?.noFstb || '-'}
                     </span>
                   </div>
                 </div>
@@ -752,6 +871,8 @@ export default function AuditModal({
                     ? 'PO Diterbitkan'
                     : itemsS2[0]?.noPo
                     ? 'PO Diterbitkan'
+                    : itemsS2[0]?.noFstb || itemS1?.noFstb
+                    ? 'FSTB Diterbitkan'
                     : 'Menunggu PO'}
                 </span>
               </div>
@@ -787,17 +908,11 @@ export default function AuditModal({
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">Tgl TTB:</span>
-                    <span className="text-muted-foreground font-mono text-right ml-1.5">
-                      {itemsS2[0]?.tglTtb || itemS1?.tglInputTtb || '-'}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground shrink-0 whitespace-nowrap">No. FSTB:</span>
                     <span
-                      className="text-muted-foreground font-mono truncate text-right ml-1.5"
-                      title={itemsS2[0]?.noFstb || itemS1?.noFstb || '-'}
+                      className="text-muted-foreground font-mono text-right ml-1.5"
+                      title={itemsS2[0]?.tglTtb || itemS1?.tglInputTtb || '-'}
                     >
-                      {itemsS2[0]?.noFstb || itemS1?.noFstb || '-'}
+                      {formatDateDdMmYy(itemsS2[0]?.tglTtb || itemS1?.tglInputTtb)}
                     </span>
                   </div>
                   {activeFstb && (
@@ -818,8 +933,6 @@ export default function AuditModal({
                 <span className="text-[10px] font-mono text-purple-700 dark:text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-md border border-purple-500/20 block text-center truncate font-medium">
                   {itemsS2[0]?.noTtb || itemS1?.noTtb
                     ? 'TTB Divalidasi'
-                    : itemsS2[0]?.noFstb
-                    ? 'FSTB Diterbitkan'
                     : 'Menunggu TTB'}
                 </span>
               </div>
@@ -847,33 +960,56 @@ export default function AuditModal({
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">Tgl Diantar:</span>
                     <span className="text-amber-600 dark:text-amber-400 font-mono text-right ml-1.5">
-                      {itemS1?.tglBarangDiantar || '-'}
+                      {formatDateDdMmYy(itemS1?.tglBarangDiantar)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">Ke Tim Lap:</span>
                     <span className="text-muted-foreground font-mono text-right ml-1.5">
-                      {itemS1?.tglKeTimLapangan || '-'}
+                      {formatDateDdMmYy(itemS1?.tglKeTimLapangan)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">TTB ke PCH:</span>
                     <span className="text-muted-foreground font-mono text-right ml-1.5">
-                      {itemS1?.tglTtbKePicPch || '-'}
+                      {formatDateDdMmYy(itemS1?.tglTtbKePicPch)}
                     </span>
                   </div>
-                  {activeFstb && (
-                    <button
-                      type="button"
-                      onClick={() => setShowTimemarkModal(true)}
-                      className="w-full mt-1.5 py-1 px-2 rounded-md bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-[10px] font-semibold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-xs"
-                      title={`Buka foto serah terima lapangan di TimeMark (${fstbLast5})`}
-                    >
-                      <Camera className="size-3 text-amber-600 dark:text-amber-400" />
-                      <span>Foto Lapangan ({fstbLast5})</span>
-                      <ExternalLink className="size-2.5 opacity-60" />
-                    </button>
-                  )}
+                  {/* Integrasi Foto Lapangan Langsung di Aplikasi */}
+                  <div className="pt-1.5 space-y-1">
+                    {fotoLapanganList.length > 0 ? (
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setShowFotoViewerModal(true)}
+                          className="flex-1 py-1 px-2 rounded-md bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-[10px] font-semibold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-xs truncate"
+                          title={`Lihat ${fotoLapanganList.length} foto dokumentasi serah terima lapangan`}
+                        >
+                          <Camera className="size-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                          <span className="truncate">Foto Lapangan ({fotoLapanganList.length})</span>
+                          <Check className="size-2.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShowUploadFotoModal(true)}
+                          className="h-6.5 px-1.5 rounded-md bg-muted hover:bg-muted/80 text-foreground border border-border text-[10px] font-medium transition shrink-0"
+                          title="Upload foto tambahan untuk TTB ini"
+                        >
+                          + Foto
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setShowUploadFotoModal(true)}
+                        className="w-full py-1 px-2 rounded-md bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-[10px] font-semibold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-xs"
+                        title={activeTtb ? `Upload foto lapangan untuk TTB: ${activeTtb}` : 'Upload foto lapangan'}
+                      >
+                        <Camera className="size-3 text-amber-600 dark:text-amber-400" />
+                        <span>Upload Foto Lapangan</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="pt-2 border-t border-border">
@@ -918,13 +1054,13 @@ export default function AuditModal({
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">Tgl SPP:</span>
                     <span className="text-muted-foreground font-mono text-right ml-1.5">
-                      {itemS1?.tglInputSpp || '-'}
+                      {formatDateDdMmYy(itemS1?.tglInputSpp)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">Ke Keuangan:</span>
                     <span className="text-muted-foreground font-mono text-right ml-1.5">
-                      {itemS1?.tglKeKeuangan || '-'}
+                      {formatDateDdMmYy(itemS1?.tglKeKeuangan)}
                     </span>
                   </div>
                 </div>
@@ -978,7 +1114,7 @@ export default function AuditModal({
             </span>
             <div className="flex items-center gap-2">
               <span className="text-xs font-mono text-muted-foreground">
-                {pdfData && Array.isArray(pdfData.items) && pdfData.items.length > 0 && itemsS2.length === 0
+                {pdfData && Array.isArray(pdfData.items) && pdfData.items.length > 0
                   ? `${pdfData.items.length} item (dari PDF e-FPB)`
                   : `${itemsS2.length} item ditemukan`}
               </span>
@@ -1066,7 +1202,101 @@ export default function AuditModal({
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/60 font-mono text-xs">
-                {itemsS2.length > 0 ? (
+                {pdfData && Array.isArray(pdfData.items) && pdfData.items.length > 0 ? (
+                  pdfData.items.map((pi, idx) => {
+                    // Cek korelasi ke worksheet Armada/Procurement untuk data PO, FSTB, TTB jika tersedia
+                    const matchedS2 = itemsS2.find(
+                      (it) =>
+                        (it.kodeBarang && pi.itemCode && it.kodeBarang.trim().toLowerCase() === pi.itemCode.trim().toLowerCase()) ||
+                        (it.item && pi.itemName && it.item.trim().toLowerCase().includes(pi.itemName.trim().toLowerCase()))
+                    );
+
+                    const valQtyPo =
+                      matchedS2?.qtyPO !== undefined && matchedS2.qtyPO !== null
+                        ? matchedS2.qtyPO
+                        : activePo
+                        ? pi.qty
+                        : '-';
+                    const valQtyFstb =
+                      matchedS2?.qtyFSTB !== undefined && matchedS2.qtyFSTB !== null
+                        ? matchedS2.qtyFSTB
+                        : '-';
+                    const valQtyTtb =
+                      matchedS2?.qtyTTB !== undefined && matchedS2.qtyTTB !== null
+                        ? matchedS2.qtyTTB
+                        : '-';
+
+                    return (
+                      <tr key={`pdf-${pi.itemCode}-${idx}`} className="hover:bg-muted/40 transition bg-emerald-500/5">
+                        <td className="p-2.5 text-foreground font-sans">
+                          <div className="font-medium text-foreground flex items-center gap-1.5 flex-wrap">
+                            <span>{pi.itemName}</span>
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-mono bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-semibold">
+                              PDF e-FPB
+                            </span>
+                          </div>
+                          {pi.itemCode && (
+                            <div className="text-[10px] text-muted-foreground font-mono mt-0.5">
+                              Kode: {pi.itemCode}
+                            </div>
+                          )}
+                          {pi.description && (
+                            <div className="text-[11px] text-muted-foreground font-mono mt-0.5">
+                              <span className="text-muted-foreground/70 font-sans mr-1">Tujuan:</span>
+                              {pi.description}
+                            </div>
+                          )}
+                        </td>
+                        <td className="p-2.5 text-center">
+                          {renderPriorityBadge(pi.priority || itemS1?.priority)}
+                        </td>
+                        <td className="p-2.5 text-center font-mono">
+                          {pi.unit ? (
+                            <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold bg-muted text-foreground border border-border">
+                              {pi.unit}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground/60 text-[11px]">-</span>
+                          )}
+                        </td>
+                        <td className="p-2.5 text-center text-foreground font-semibold font-mono">
+                          {typeof pi.qty === 'number' ? pi.qty.toLocaleString('id-ID') : pi.qty}
+                        </td>
+                        <td className="p-2.5 text-center text-foreground font-semibold font-mono">
+                          {typeof valQtyPo === 'number' ? valQtyPo.toLocaleString('id-ID') : valQtyPo}
+                        </td>
+                        <td className="p-2.5 text-center text-muted-foreground font-mono">
+                          {typeof valQtyFstb === 'number' ? valQtyFstb.toLocaleString('id-ID') : valQtyFstb}
+                        </td>
+                        <td className="p-2.5 text-center text-muted-foreground font-mono">
+                          {typeof valQtyTtb === 'number' ? valQtyTtb.toLocaleString('id-ID') : valQtyTtb}
+                        </td>
+                        <td className="p-2.5 text-center">
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${
+                              matchedS2?.selisih === 0
+                                ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
+                                : 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20'
+                            }`}
+                          >
+                            {matchedS2?.status || (activePo ? 'PO Diterbitkan' : 'Disetujui di e-FPB')}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : isLoadingPdf ? (
+                  <tr>
+                    <td colSpan={8} className="p-8 text-center text-muted-foreground">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <RefreshCw className="size-5 animate-spin text-primary" />
+                        <span className="text-xs font-mono">
+                          Menghubungkan ke server e-FPB dan membaca berkas PDF resmi...
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : itemsS2.length > 0 ? (
                   itemsS2.map((i, idx) => {
                     const itemSatuan = i.satuan || itemS1?.satuan;
                     const valQtyPo =
@@ -1111,16 +1341,16 @@ export default function AuditModal({
                           )}
                         </td>
                         <td className="p-2.5 text-center text-foreground font-semibold font-mono">
-                          {i.qtyFPB}
+                          {typeof i.qtyFPB === 'number' ? i.qtyFPB.toLocaleString('id-ID') : i.qtyFPB}
                         </td>
                         <td className="p-2.5 text-center text-foreground font-semibold font-mono">
-                          {valQtyPo}
+                          {typeof valQtyPo === 'number' ? valQtyPo.toLocaleString('id-ID') : valQtyPo}
                         </td>
                         <td className="p-2.5 text-center text-muted-foreground font-mono">
-                          {i.qtyFSTB}
+                          {typeof i.qtyFSTB === 'number' ? i.qtyFSTB.toLocaleString('id-ID') : i.qtyFSTB}
                         </td>
                         <td className="p-2.5 text-center text-muted-foreground font-mono">
-                          {valQtyTtb}
+                          {typeof valQtyTtb === 'number' ? valQtyTtb.toLocaleString('id-ID') : valQtyTtb}
                         </td>
                         <td className="p-2.5 text-center">
                           <span
@@ -1131,61 +1361,6 @@ export default function AuditModal({
                             }`}
                           >
                             {i.status}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })
-                ) : pdfData && Array.isArray(pdfData.items) && pdfData.items.length > 0 ? (
-                  pdfData.items.map((pi, idx) => {
-                    return (
-                      <tr key={`pdf-${pi.itemCode}-${idx}`} className="hover:bg-muted/40 transition bg-blue-500/5">
-                        <td className="p-2.5 text-foreground font-sans">
-                          <div className="font-medium text-foreground flex items-center gap-1.5 flex-wrap">
-                            <span>{pi.itemName}</span>
-                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-mono bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-500/30">
-                              PDF e-FPB
-                            </span>
-                          </div>
-                          {pi.itemCode && (
-                            <div className="text-[10px] text-muted-foreground font-mono mt-0.5">
-                              Kode: {pi.itemCode}
-                            </div>
-                          )}
-                          {pi.description && (
-                            <div className="text-[11px] text-muted-foreground font-mono mt-0.5">
-                              <span className="text-muted-foreground/70 font-sans mr-1">Tujuan:</span>
-                              {pi.description}
-                            </div>
-                          )}
-                        </td>
-                        <td className="p-2.5 text-center">
-                          {renderPriorityBadge(pi.priority)}
-                        </td>
-                        <td className="p-2.5 text-center font-mono">
-                          {pi.unit ? (
-                            <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold bg-muted text-foreground border border-border">
-                              {pi.unit}
-                            </span>
-                          ) : (
-                            <span className="text-muted-foreground/60 text-[11px]">-</span>
-                          )}
-                        </td>
-                        <td className="p-2.5 text-center text-foreground font-semibold font-mono">
-                          {pi.qty}
-                        </td>
-                        <td className="p-2.5 text-center text-foreground font-semibold font-mono">
-                          {activePo ? pi.qty : '-'}
-                        </td>
-                        <td className="p-2.5 text-center text-muted-foreground font-mono">
-                          {pi.qty}
-                        </td>
-                        <td className="p-2.5 text-center text-muted-foreground font-mono">
-                          {pi.qty}
-                        </td>
-                        <td className="p-2.5 text-center">
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
-                            Sinkron PDF
                           </span>
                         </td>
                       </tr>
@@ -1298,6 +1473,42 @@ export default function AuditModal({
           fpb={primaryDocNum}
           armada={itemsS2[0]?.armada || itemS1?.deptArmada}
           item={itemsS2[0]?.item || itemS1?.item}
+          showToast={showToast}
+        />
+      )}
+
+      {/* Pop-up Box: Form Upload Foto Lapangan Terintegrasi No. TTB */}
+      {showUploadFotoModal && (
+        <UploadFotoLapanganModal
+          isOpen={showUploadFotoModal}
+          onClose={() => setShowUploadFotoModal(false)}
+          defaultNoTtb={activeTtb}
+          defaultFpb={primaryDocNum}
+          defaultNoPo={activePo || undefined}
+          defaultNoFstb={activeFstb}
+          defaultItem={itemsS2[0]?.item || itemS1?.item}
+          defaultArmada={itemsS2[0]?.armada || itemS1?.deptArmada}
+          defaultPicLap={itemS1?.picLap || 'AGUS'}
+          availableOptions={ttbSuggestions}
+          onSuccess={() => {
+            refreshFotoLapangan();
+            setShowFotoViewerModal(true);
+          }}
+          showToast={showToast}
+        />
+      )}
+
+      {/* Pop-up Box: Viewer Galeri Foto Lapangan Terintegrasi Full App */}
+      {showFotoViewerModal && (
+        <FotoLapanganViewerModal
+          isOpen={showFotoViewerModal}
+          onClose={() => setShowFotoViewerModal(false)}
+          noTtb={activeTtb}
+          noFstb={activeFstb}
+          fpb={primaryDocNum}
+          item={itemsS2[0]?.item || itemS1?.item}
+          armada={itemsS2[0]?.armada || itemS1?.deptArmada}
+          onOpenUpload={(suggestedTtb) => setShowUploadFotoModal(true)}
           showToast={showToast}
         />
       )}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Search,
   Boxes,
@@ -26,8 +26,11 @@ import {
   Check,
   Upload,
   RotateCcw,
+  Settings2,
+  Globe,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import SyncEfpbModal from './SyncEfpbModal';
 import {
   InventoryItem,
   InventorySummary,
@@ -72,6 +75,85 @@ export default function InventoryTab({
 }: InventoryTabProps) {
   // File upload input ref for stock excel
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // State untuk Sinkronisasi e-FPB
+  const [isEfpbModalOpen, setIsEfpbModalOpen] = useState<boolean>(false);
+  const [isQuickSyncingEfpb, setIsQuickSyncingEfpb] = useState<boolean>(false);
+  const [lastEfpbSyncTime, setLastEfpbSyncTime] = useState<string>('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedTime = localStorage.getItem('EFPB_LAST_SYNC_TIME');
+      if (savedTime) setLastEfpbSyncTime(savedTime);
+    }
+  }, []);
+
+  const handleQuickRefreshEfpb = async () => {
+    if (typeof window === 'undefined') return;
+    const savedUser = localStorage.getItem('EFPB_USERNAME') || 'Hermansyah';
+    const savedPass = localStorage.getItem('EFPB_PASSWORD') || 'Biocpl24!@#';
+    const savedSess = localStorage.getItem('EFPB_SESSION_ID') || '';
+    const savedUrl =
+      localStorage.getItem('EFPB_URL') ||
+      'https://e-fpb.cindaragroup.com/KodeItemForAccurateList';
+
+    setIsQuickSyncingEfpb(true);
+    showToast?.('Menghubungkan ke e-FPB & mengunduh data stok Accurate...', 'info');
+
+    try {
+      const payload: Record<string, any> = { url: savedUrl };
+      if (savedUser && savedPass) {
+        payload.username = savedUser;
+        payload.password = savedPass;
+      } else if (savedSess) {
+        payload.sessionId = savedSess;
+      }
+
+      const res = await fetch('/api/sync-efpb-stock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const resText = await res.text();
+      let data: any = {};
+      try {
+        data = resText ? JSON.parse(resText) : {};
+      } catch {
+        throw new Error(
+          `Server tidak mengembalikan respons yang valid (${res.status}: ${res.statusText}).`
+        );
+      }
+
+      if (data.requiresAuth || !res.ok) {
+        setIsEfpbModalOpen(true);
+        showToast?.(data.message || 'Sesi e-FPB memerlukan login ulang.', 'warning');
+        return;
+      }
+
+      if (data.success && data.items) {
+        onUpdateInventory(data.items, data.summary);
+        const now = new Date();
+        const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now
+          .getMinutes()
+          .toString()
+          .padStart(2, '0')}`;
+        setLastEfpbSyncTime(timeStr);
+        localStorage.setItem('EFPB_LAST_SYNC_TIME', timeStr);
+        showToast?.(
+          data.message ||
+            `Berhasil menyinkronkan ${data.items.length.toLocaleString('id-ID')} item persediaan dari e-FPB!`,
+          'success'
+        );
+      }
+    } catch (err: any) {
+      console.error('Quick sync e-FPB error:', err);
+      showToast?.('Gagal menyinkronkan e-FPB. Buka pengaturan.', 'error');
+      setIsEfpbModalOpen(true);
+    } finally {
+      setIsQuickSyncingEfpb(false);
+    }
+  };
 
   // File upload handler
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -324,15 +406,21 @@ export default function InventoryTab({
                   Accurate System
                 </span>
               </h2>
-              <p className="text-xs text-muted-foreground">
-                Data persediaan barang konsolidasi per 26 September 2026 lintas unit PT CPL, PT Hana
-                Lines, dan PT Mandar Ocean.
+              <p className="text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
+                <span>
+                  Data persediaan barang konsolidasi Accurate lintas unit PT CPL, PT Hana Lines, dan PT Mandar Ocean.
+                </span>
+                {lastEfpbSyncTime && (
+                  <span className="inline-flex items-center gap-1 font-mono text-[10px] text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded border border-indigo-500/20 font-semibold">
+                    <Globe className="size-2.5" /> e-FPB synced {lastEfpbSyncTime}
+                  </span>
+                )}
               </p>
             </div>
           </div>
         </div>
 
-        {/* Actions: View Mode, Upload, Reset */}
+        {/* Actions: View Mode, Refresh e-FPB, Upload, Reset */}
         <div className="flex items-center gap-2 flex-wrap">
           {/* View mode toggle */}
           <div className="flex items-center bg-muted/70 p-1 rounded-lg border border-border text-xs">
@@ -378,6 +466,26 @@ export default function InventoryTab({
             className="hidden"
             onChange={handleFileUpload}
           />
+
+          {/* Refresh dari e-FPB Link Button */}
+          <div className="flex items-center rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition shrink-0 overflow-hidden">
+            <button
+              onClick={handleQuickRefreshEfpb}
+              disabled={isQuickSyncingEfpb}
+              className="h-8 px-2.5 sm:px-3 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 disabled:opacity-60 cursor-pointer"
+              title="Refresh persediaan langsung dari https://e-fpb.cindaragroup.com/KodeItemForAccurateList"
+            >
+              <RefreshCw className={`size-3.5 ${isQuickSyncingEfpb ? 'animate-spin' : ''}`} />
+              <span>{isQuickSyncingEfpb ? 'Menyinkronkan...' : 'Refresh dari e-FPB'}</span>
+            </button>
+            <button
+              onClick={() => setIsEfpbModalOpen(true)}
+              className="h-8 px-2 bg-indigo-700/60 hover:bg-indigo-700 text-white/90 hover:text-white border-l border-indigo-500/40 transition flex items-center justify-center cursor-pointer"
+              title="Pengaturan Kredensial & URL e-FPB"
+            >
+              <Settings2 className="size-3.5" />
+            </button>
+          </div>
 
           {/* Direct Upload Button */}
           <button
@@ -1343,6 +1451,22 @@ export default function InventoryTab({
           </div>
         </div>
       )}
+
+      {/* Modal Sinkronisasi e-FPB */}
+      <SyncEfpbModal
+        isOpen={isEfpbModalOpen}
+        onClose={() => setIsEfpbModalOpen(false)}
+        onSuccess={(newItems, newSummary) => {
+          onUpdateInventory(newItems, newSummary);
+          const now = new Date();
+          const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now
+            .getMinutes()
+            .toString()
+            .padStart(2, '0')}`;
+          setLastEfpbSyncTime(timeStr);
+        }}
+        showToast={showToast}
+      />
     </div>
   );
 }

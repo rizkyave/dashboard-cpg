@@ -13,6 +13,9 @@ import {
   ChevronDown,
   Boxes,
   FileSpreadsheet,
+  RefreshCw,
+  Settings2,
+  ExternalLink,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { ProcurementItem, ArmadaItem, InventoryItem, InventorySummary } from '@/types/procurement';
@@ -20,6 +23,7 @@ import { parseAndMergeWorkbook } from '@/utils/excelParser';
 import { parseInventoryWorkbook } from '@/utils/inventoryParser';
 import { determineCategory } from '@/utils/categoryClassifier';
 import ThemeToggle from './ThemeToggle';
+import SyncEfpbModal from './SyncEfpbModal';
 
 interface HeaderProps {
   searchKeyword?: string;
@@ -30,10 +34,16 @@ interface HeaderProps {
   showToast: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
   isSidebarCollapsed: boolean;
   onToggleSidebar: () => void;
+  procurementData?: ProcurementItem[];
+  armadaData?: ArmadaItem[];
   inventoryItems?: InventoryItem[];
   onInventoryUpload?: (items: InventoryItem[], summary?: InventorySummary) => void;
   onInventoryExport?: () => void;
 }
+
+const DEFAULT_SHEET_URL =
+  'https://docs.google.com/spreadsheets/d/16Ae8gGsGYx_xCNaqZvME-uZvaAeECsE69PBYlY32fZk/edit?gid=0#gid=0';
+const DEFAULT_EFPB_FILES_URL = 'https://e-fpb.cindaragroup.com/FilesList';
 
 export default function Header({
   searchKeyword,
@@ -44,6 +54,8 @@ export default function Header({
   showToast,
   isSidebarCollapsed,
   onToggleSidebar,
+  procurementData,
+  armadaData,
   inventoryItems,
   onInventoryUpload,
   onInventoryExport,
@@ -51,6 +63,35 @@ export default function Header({
   const [searchQuery, setSearchQuery] = useState<string>(searchKeyword || '');
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // State untuk sinkronisasi Google Sheets
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [isConfigOpen, setIsConfigOpen] = useState<boolean>(false);
+  const [sheetUrl, setSheetUrl] = useState<string>(DEFAULT_SHEET_URL);
+  const [lastSyncedTime, setLastSyncedTime] = useState<string>('');
+
+  // State untuk sinkronisasi e-FPB Accurate
+  const [isEfpbModalOpen, setIsEfpbModalOpen] = useState<boolean>(false);
+  const [isSyncingStock, setIsSyncingStock] = useState<boolean>(false);
+
+  // State untuk sinkronisasi e-FPB FilesList (No. FPB Terbaru)
+  const [isSyncingEfpbFiles, setIsSyncingEfpbFiles] = useState<boolean>(false);
+  const [isEfpbFilesConfigOpen, setIsEfpbFilesConfigOpen] = useState<boolean>(false);
+  const [efpbFilesUrl, setEfpbFilesUrl] = useState<string>(DEFAULT_EFPB_FILES_URL);
+  const [lastEfpbFilesSyncedTime, setLastEfpbFilesSyncedTime] = useState<string>('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedUrl = localStorage.getItem('CPG_GOOGLE_SHEET_URL');
+      if (savedUrl) setSheetUrl(savedUrl);
+      const savedTime = localStorage.getItem('CPG_LAST_SYNC_TIME');
+      if (savedTime) setLastSyncedTime(savedTime);
+      const savedFilesUrl = localStorage.getItem('CPG_EFPB_FILES_URL');
+      if (savedFilesUrl) setEfpbFilesUrl(savedFilesUrl);
+      const savedFilesTime = localStorage.getItem('CPG_LAST_EFPB_FILES_SYNC_TIME');
+      if (savedFilesTime) setLastEfpbFilesSyncedTime(savedFilesTime);
+    }
+  }, []);
 
   useEffect(() => {
     if (searchKeyword !== undefined) {
@@ -72,6 +113,260 @@ export default function Header({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isMenuOpen]);
+
+  // Handle Refresh Layanan Langsung dari Link Google Sheets
+  const handleRefreshFromGoogleSheets = async () => {
+    setIsSyncing(true);
+    showToast('Menghubungkan ke Google Sheets & mengunduh data layanan terbaru...', 'info');
+
+    try {
+      const res = await fetch('/api/sync-sheets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: sheetUrl }),
+      });
+
+      const resText = await res.text();
+      let data: any = {};
+      try {
+        data = resText ? JSON.parse(resText) : {};
+      } catch {
+        throw new Error(
+          `Server tidak mengembalikan format JSON yang valid (${res.status}: ${res.statusText}).`
+        );
+      }
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || 'Gagal menyinkronkan data Google Sheets.');
+      }
+
+      if (data.procurement?.length > 0 || data.armada?.length > 0) {
+        onExcelUpload({
+          procurement: data.procurement,
+          armada: data.armada || [],
+        });
+
+        const now = new Date();
+        const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now
+          .getMinutes()
+          .toString()
+          .padStart(2, '0')}`;
+        setLastSyncedTime(timeStr);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('CPG_LAST_SYNC_TIME', timeStr);
+        }
+
+        showToast(
+          data.message ||
+            `Berhasil memperbarui ${data.procurement.length.toLocaleString('id-ID')} data procurement terbaru dari Google Sheets!`,
+          'success'
+        );
+        setIsMenuOpen(false);
+      } else {
+        showToast('Tidak ada data procurement yang dapat dibaca dari tautan Google Sheets.', 'warning');
+      }
+    } catch (err: any) {
+      console.error('Google Sheets sync error:', err);
+      showToast(
+        err.message || 'Gagal memperbarui data dari Google Sheets. Pastikan link dapat diakses publik.',
+        'error'
+      );
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  // Handle Refresh No. FPB Terbaru Langsung dari link e-FPB FilesList
+  const handleRefreshFromEfpbFiles = async () => {
+    setIsSyncingEfpbFiles(true);
+    showToast('Menghubungkan ke e-FPB FilesList & memindai nomor FPB terbaru...', 'info');
+
+    try {
+      const savedUser =
+        (typeof window !== 'undefined' && localStorage.getItem('EFPB_USERNAME')) || 'Hermansyah';
+      const savedPass =
+        (typeof window !== 'undefined' && localStorage.getItem('EFPB_PASSWORD')) || 'Biocpl24!@#';
+
+      const res = await fetch('/api/sync-efpb-files', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: efpbFilesUrl,
+          username: savedUser,
+          password: savedPass,
+        }),
+      });
+
+      const resText = await res.text();
+      let data: any = {};
+      try {
+        data = resText ? JSON.parse(resText) : {};
+      } catch {
+        throw new Error(
+          `Server tidak mengembalikan respons yang valid (${res.status}: ${res.statusText}).`
+        );
+      }
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || 'Gagal menyinkronkan data dari e-FPB FilesList.');
+      }
+
+      const incomingProc: ProcurementItem[] = data.newItems || data.procurement || [];
+      const incomingArm: ArmadaItem[] = data.newArmada || data.armada || [];
+
+      if (incomingProc.length > 0) {
+        // Fast index of existing procurement items
+        const existingMap = new Map<string, number>();
+        const currentProc = [...(procurementData || [])];
+        currentProc.forEach((item, idx) => {
+          existingMap.set(item.fpb.trim().toLowerCase(), idx);
+        });
+
+        const newItemsToPrepend: ProcurementItem[] = [];
+        let updatedExistingCount = 0;
+
+        incomingProc.forEach((efpbItem) => {
+          const key = efpbItem.fpb.trim().toLowerCase();
+          if (existingMap.has(key)) {
+            const idx = existingMap.get(key)!;
+            const existing = { ...currentProc[idx] };
+            // If incoming item has DONE logistic status, update existing
+            if (efpbItem.statusCheckFpb === 'DONE') {
+              existing.statusCheckFpb = 'DONE';
+              if (!existing.picCheckFpb || existing.picCheckFpb === '-') {
+                existing.picCheckFpb = 'Logistik';
+              }
+              currentProc[idx] = existing;
+              updatedExistingCount++;
+            }
+          } else {
+            newItemsToPrepend.push(efpbItem);
+          }
+        });
+
+        // Fast index of existing armada items
+        const existingArmSet = new Set<string>();
+        const currentArm = [...(armadaData || [])];
+        currentArm.forEach((a) => existingArmSet.add(a.fpb.trim().toLowerCase()));
+
+        const newArmToPrepend: ArmadaItem[] = [];
+        incomingArm.forEach((efpbArm) => {
+          const key = efpbArm.fpb.trim().toLowerCase();
+          if (!existingArmSet.has(key)) {
+            newArmToPrepend.push(efpbArm);
+          }
+        });
+
+        const finalProcurement = [...newItemsToPrepend, ...currentProc];
+        const finalArmada = [...newArmToPrepend, ...currentArm];
+
+        onExcelUpload({
+          procurement: finalProcurement,
+          armada: finalArmada,
+        });
+
+        const now = new Date();
+        const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now
+          .getMinutes()
+          .toString()
+          .padStart(2, '0')}`;
+        setLastEfpbFilesSyncedTime(timeStr);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('CPG_LAST_EFPB_FILES_SYNC_TIME', timeStr);
+        }
+
+        const msg =
+          newItemsToPrepend.length > 0
+            ? `Berhasil menyinkronkan e-FPB! ${newItemsToPrepend.length} berkas FPB baru ditambahkan, ${updatedExistingCount} diperbarui.`
+            : `Semua data e-FPB FilesList sudah mutakhir (${data.totalEfpb || incomingProc.length} berkas FPB aktif).`;
+
+        showToast(msg, 'success');
+        setIsMenuOpen(false);
+      } else {
+        showToast('Tidak ada data FPB yang ditemukan dari e-FPB FilesList.', 'warning');
+      }
+    } catch (err: any) {
+      console.error('e-FPB FilesList sync error:', err);
+      showToast(
+        err.message || 'Gagal menyinkronkan data dari e-FPB FilesList. Periksa koneksi ke server e-FPB.',
+        'error'
+      );
+    } finally {
+      setIsSyncingEfpbFiles(false);
+    }
+  };
+
+  // Handle Refresh Persediaan Stok dari link e-FPB
+  const handleRefreshStockFromEfpb = async () => {
+    if (typeof window === 'undefined') return;
+    const savedUser = localStorage.getItem('EFPB_USERNAME') || 'Hermansyah';
+    const savedPass = localStorage.getItem('EFPB_PASSWORD') || 'Biocpl24!@#';
+    const savedSess = localStorage.getItem('EFPB_SESSION_ID') || '';
+    const savedUrl =
+      localStorage.getItem('EFPB_URL') ||
+      'https://e-fpb.cindaragroup.com/KodeItemForAccurateList';
+
+    setIsSyncingStock(true);
+    showToast('Menghubungkan ke e-FPB & mengunduh stok Accurate...', 'info');
+
+    try {
+      const payload: Record<string, any> = { url: savedUrl };
+      if (savedUser && savedPass) {
+        payload.username = savedUser;
+        payload.password = savedPass;
+      } else if (savedSess) {
+        payload.sessionId = savedSess;
+      }
+
+      const res = await fetch('/api/sync-efpb-stock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const resText = await res.text();
+      let data: any = {};
+      try {
+        data = resText ? JSON.parse(resText) : {};
+      } catch {
+        throw new Error(
+          `Server tidak mengembalikan respons yang valid (${res.status}: ${res.statusText}).`
+        );
+      }
+
+      if (data.requiresAuth || !res.ok) {
+        setIsEfpbModalOpen(true);
+        setIsMenuOpen(false);
+        showToast(data.message || 'Sesi e-FPB memerlukan login ulang.', 'warning');
+        return;
+      }
+
+      if (data.success && data.items) {
+        if (onInventoryUpload) {
+          onInventoryUpload(data.items, data.summary);
+        }
+        const now = new Date();
+        const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now
+          .getMinutes()
+          .toString()
+          .padStart(2, '0')}`;
+        localStorage.setItem('EFPB_LAST_SYNC_TIME', timeStr);
+        showToast(
+          data.message ||
+            `Berhasil memperbarui ${data.items.length.toLocaleString('id-ID')} item persediaan dari e-FPB!`,
+          'success'
+        );
+        setIsMenuOpen(false);
+      }
+    } catch (err: any) {
+      console.error('Error syncing stock from e-FPB:', err);
+      showToast('Gagal menyinkronkan e-FPB. Buka modal pengaturan.', 'error');
+      setIsEfpbModalOpen(true);
+      setIsMenuOpen(false);
+    } finally {
+      setIsSyncingStock(false);
+    }
+  };
 
   // Handle Unggah Layanan (Procurement & Monitoring Layanan Armada)
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -224,8 +519,12 @@ export default function Header({
             title="Menu Aksi & Pengaturan"
             aria-expanded={isMenuOpen}
           >
-            <SlidersHorizontal className="size-3.5 text-muted-foreground" />
-            <span className="font-medium text-xs">Menu</span>
+            {isSyncing ? (
+              <RefreshCw className="size-3.5 text-sky-500 animate-spin" />
+            ) : (
+              <SlidersHorizontal className="size-3.5 text-muted-foreground" />
+            )}
+            <span className="font-medium text-xs">{isSyncing ? 'Sinkron...' : 'Menu'}</span>
             <ChevronDown
               className={`size-3 text-muted-foreground transition-transform duration-200 ${
                 isMenuOpen ? 'rotate-180' : ''
@@ -235,7 +534,7 @@ export default function Header({
 
           {/* Clean Action Dropdown Popover */}
           {isMenuOpen && (
-            <div className="absolute left-0 top-10 w-72 rounded-xl border border-border bg-card p-1.5 shadow-2xl z-50 text-xs animate-in fade-in slide-in-from-top-2 duration-150">
+            <div className="absolute left-0 top-10 w-80 rounded-xl border border-border bg-card p-1.5 shadow-2xl z-50 text-xs animate-in fade-in slide-in-from-top-2 duration-150">
               {/* User Profile Banner */}
               <div className="flex items-center gap-2.5 p-2.5 border-b border-border/80 mb-1">
                 <div className="flex size-8 items-center justify-center rounded-full bg-linear-to-tr from-sky-500 to-indigo-500 text-white font-bold text-xs shadow-xs">
@@ -252,17 +551,222 @@ export default function Header({
               {/* Menu Items */}
               <div className="space-y-0.5">
                 {/* Section Header: Layanan & Pengadaan */}
-                <div className="px-2.5 pt-1.5 pb-1 text-[10px] font-mono font-semibold uppercase tracking-wider text-muted-foreground">
-                  Layanan &amp; Pengadaan
+                <div className="px-2.5 pt-1.5 pb-1 text-[10px] font-mono font-semibold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
+                  <span>Layanan &amp; Pengadaan</span>
+                  <span className="text-[9px] text-sky-600 dark:text-sky-400 font-bold bg-sky-500/10 px-1 py-0.2 rounded border border-sky-500/20">
+                    Live Sync
+                  </span>
                 </div>
 
-                {/* 1. Unggah Layanan */}
+                {/* 1. Refresh Layanan Langsung dari Link Google Sheets */}
+                <div className="rounded-lg hover:bg-muted/80 transition p-1 border border-transparent hover:border-border/60">
+                  <div className="flex items-center justify-between gap-1">
+                    <button
+                      type="button"
+                      onClick={handleRefreshFromGoogleSheets}
+                      disabled={isSyncing}
+                      className="flex-1 flex items-center gap-2.5 px-1.5 py-1.5 text-left text-foreground transition disabled:opacity-60 cursor-pointer"
+                    >
+                      <RefreshCw
+                        className={`size-4 text-sky-500 shrink-0 ${isSyncing ? 'animate-spin text-sky-600' : ''}`}
+                      />
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-semibold block leading-tight text-xs text-foreground">
+                            {isSyncing ? 'Menyinkronkan...' : 'Refresh Layanan'}
+                          </span>
+                          <span className="text-[9px] font-bold px-1 py-0.2 rounded bg-sky-500/15 text-sky-600 dark:text-sky-400">
+                            Google Sheets
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-muted-foreground block truncate">
+                          {lastSyncedTime
+                            ? `Terakhir disinkron: ${lastSyncedTime}`
+                            : 'Tarik data procurement terbaru dari link'}
+                        </span>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsConfigOpen((prev) => !prev);
+                      }}
+                      title="Pengaturan URL Google Sheets"
+                      className={`size-7 flex items-center justify-center rounded-md transition shrink-0 ${
+                        isConfigOpen
+                          ? 'bg-sky-500/15 text-sky-600'
+                          : 'hover:bg-muted text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      <Settings2 className="size-3.5" />
+                    </button>
+                  </div>
+
+                  {/* Expandable URL Config inside menu */}
+                  {isConfigOpen && (
+                    <div className="mt-1.5 p-2 rounded-lg bg-background border border-border space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-semibold text-foreground">Link Spreadsheet:</span>
+                        <a
+                          href={sheetUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[10px] text-sky-500 hover:underline flex items-center gap-0.5"
+                        >
+                          Buka Google Sheet <ExternalLink className="size-2.5" />
+                        </a>
+                      </div>
+                      <input
+                        type="text"
+                        value={sheetUrl}
+                        onChange={(e) => setSheetUrl(e.target.value)}
+                        placeholder="https://docs.google.com/spreadsheets/d/..."
+                        className="w-full h-6 px-1.5 text-[10px] font-mono rounded bg-muted/50 border border-border focus:border-sky-500 focus:outline-none"
+                      />
+                      <div className="flex justify-between items-center pt-0.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSheetUrl(DEFAULT_SHEET_URL);
+                            if (typeof window !== 'undefined') {
+                              localStorage.removeItem('CPG_GOOGLE_SHEET_URL');
+                            }
+                            showToast('URL Google Sheets direset ke default', 'info');
+                          }}
+                          className="text-[10px] text-muted-foreground hover:text-foreground underline"
+                        >
+                          Reset Default
+                        </button>
+                        <div className="flex gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (typeof window !== 'undefined') {
+                                localStorage.setItem('CPG_GOOGLE_SHEET_URL', sheetUrl);
+                              }
+                              setIsConfigOpen(false);
+                              showToast('Link Google Sheets berhasil disimpan!', 'success');
+                            }}
+                            className="text-[10px] bg-sky-500 hover:bg-sky-600 text-white font-medium px-2 py-0.5 rounded shadow-xs"
+                          >
+                            Simpan
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 2. Refresh No. FPB Terbaru Langsung dari Link e-FPB FilesList */}
+                <div className="rounded-lg hover:bg-muted/80 transition p-1 border border-transparent hover:border-border/60">
+                  <div className="flex items-center justify-between gap-1">
+                    <button
+                      type="button"
+                      onClick={handleRefreshFromEfpbFiles}
+                      disabled={isSyncingEfpbFiles}
+                      className="flex-1 flex items-center gap-2.5 px-1.5 py-1.5 text-left text-foreground transition disabled:opacity-60 cursor-pointer"
+                    >
+                      <RefreshCw
+                        className={`size-4 text-emerald-500 shrink-0 ${
+                          isSyncingEfpbFiles ? 'animate-spin text-emerald-600' : ''
+                        }`}
+                      />
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-semibold block leading-tight text-xs text-foreground">
+                            {isSyncingEfpbFiles ? 'Menyinkronkan...' : 'Refresh FPB Terbaru'}
+                          </span>
+                          <span className="text-[9px] font-bold px-1 py-0.2 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+                            e-FPB Live
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-muted-foreground block truncate">
+                          {lastEfpbFilesSyncedTime
+                            ? `Terakhir disinkron: ${lastEfpbFilesSyncedTime}`
+                            : 'Tarik nomor FPB terbaru dari FilesList'}
+                        </span>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsEfpbFilesConfigOpen((prev) => !prev);
+                      }}
+                      title="Pengaturan URL e-FPB FilesList"
+                      className={`size-7 flex items-center justify-center rounded-md transition shrink-0 ${
+                        isEfpbFilesConfigOpen
+                          ? 'bg-emerald-500/15 text-emerald-600'
+                          : 'hover:bg-muted text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      <Settings2 className="size-3.5" />
+                    </button>
+                  </div>
+
+                  {/* Expandable URL Config inside menu */}
+                  {isEfpbFilesConfigOpen && (
+                    <div className="mt-1.5 p-2 rounded-lg bg-background border border-border space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-semibold text-foreground">Link e-FPB FilesList:</span>
+                        <a
+                          href={efpbFilesUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[10px] text-emerald-500 hover:underline flex items-center gap-0.5"
+                        >
+                          Buka FilesList <ExternalLink className="size-2.5" />
+                        </a>
+                      </div>
+                      <input
+                        type="text"
+                        value={efpbFilesUrl}
+                        onChange={(e) => setEfpbFilesUrl(e.target.value)}
+                        placeholder="https://e-fpb.cindaragroup.com/FilesList"
+                        className="w-full h-6 px-1.5 text-[10px] font-mono rounded bg-muted/50 border border-border focus:border-emerald-500 focus:outline-none"
+                      />
+                      <div className="flex justify-between items-center pt-0.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEfpbFilesUrl(DEFAULT_EFPB_FILES_URL);
+                            if (typeof window !== 'undefined') {
+                              localStorage.removeItem('CPG_EFPB_FILES_URL');
+                            }
+                            showToast('URL e-FPB FilesList direset ke default', 'info');
+                          }}
+                          className="text-[10px] text-muted-foreground hover:text-foreground underline"
+                        >
+                          Reset Default
+                        </button>
+                        <div className="flex gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (typeof window !== 'undefined') {
+                                localStorage.setItem('CPG_EFPB_FILES_URL', efpbFilesUrl);
+                              }
+                              setIsEfpbFilesConfigOpen(false);
+                              showToast('Link e-FPB FilesList berhasil disimpan!', 'success');
+                            }}
+                            className="text-[10px] bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-2 py-0.5 rounded shadow-xs"
+                          >
+                            Simpan
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 3. Unggah Layanan */}
                 <label className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-foreground hover:bg-muted cursor-pointer transition">
                   <Upload className="size-4 text-sky-500 shrink-0" />
                   <div className="min-w-0">
                     <span className="font-medium block leading-tight">Unggah Layanan</span>
                     <span className="text-[10px] text-muted-foreground block">
-                      Impor berkas pengadaan / armada (.xlsx)
+                      Impor berkas pengadaan manual (.xlsx)
                     </span>
                   </div>
                   <input
@@ -301,7 +805,32 @@ export default function Header({
                   </span>
                 </div>
 
-                {/* 3. Unggah Stok */}
+                {/* 3. Refresh Stok dari e-FPB Link */}
+                <button
+                  type="button"
+                  onClick={handleRefreshStockFromEfpb}
+                  disabled={isSyncingStock}
+                  className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-foreground hover:bg-muted text-left transition disabled:opacity-60 cursor-pointer"
+                >
+                  <RefreshCw
+                    className={`size-4 text-indigo-500 shrink-0 ${isSyncingStock ? 'animate-spin text-indigo-600' : ''}`}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-semibold block leading-tight text-xs text-foreground">
+                        {isSyncingStock ? 'Menyinkronkan...' : 'Refresh Stok (e-FPB)'}
+                      </span>
+                      <span className="text-[9px] font-bold px-1 rounded bg-indigo-500/15 text-indigo-600 dark:text-indigo-400">
+                        Live Link
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground block truncate">
+                      Tarik langsung dari KodeItemForAccurateList
+                    </span>
+                  </div>
+                </button>
+
+                {/* 4. Unggah Stok */}
                 <label className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-foreground hover:bg-muted cursor-pointer transition">
                   <Boxes className="size-4 text-indigo-500 shrink-0" />
                   <div className="min-w-0">
@@ -449,6 +978,18 @@ export default function Header({
           H
         </div>
       </div>
+
+      {/* Modal Sinkronisasi e-FPB */}
+      <SyncEfpbModal
+        isOpen={isEfpbModalOpen}
+        onClose={() => setIsEfpbModalOpen(false)}
+        onSuccess={(newItems, newSummary) => {
+          if (onInventoryUpload) {
+            onInventoryUpload(newItems, newSummary || undefined);
+          }
+        }}
+        showToast={showToast}
+      />
     </header>
   );
 }
