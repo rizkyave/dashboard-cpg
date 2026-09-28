@@ -76,9 +76,11 @@ export default function Header({
 
   // State untuk sinkronisasi e-FPB FilesList (No. FPB Terbaru)
   const [isSyncingEfpbFiles, setIsSyncingEfpbFiles] = useState<boolean>(false);
+  const [isSyncingEfpbFull, setIsSyncingEfpbFull] = useState<boolean>(false);
   const [isEfpbFilesConfigOpen, setIsEfpbFilesConfigOpen] = useState<boolean>(false);
   const [efpbFilesUrl, setEfpbFilesUrl] = useState<string>(DEFAULT_EFPB_FILES_URL);
   const [lastEfpbFilesSyncedTime, setLastEfpbFilesSyncedTime] = useState<string>('');
+  const [lastEfpbFullSyncCount, setLastEfpbFullSyncCount] = useState<number>(0);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -90,6 +92,8 @@ export default function Header({
       if (savedFilesUrl) setEfpbFilesUrl(savedFilesUrl);
       const savedFilesTime = localStorage.getItem('CPG_LAST_EFPB_FILES_SYNC_TIME');
       if (savedFilesTime) setLastEfpbFilesSyncedTime(savedFilesTime);
+      const savedFullCount = localStorage.getItem('CPG_EFPB_FULL_SYNC_COUNT');
+      if (savedFullCount) setLastEfpbFullSyncCount(parseInt(savedFullCount, 10) || 0);
     }
   }, []);
 
@@ -176,10 +180,19 @@ export default function Header({
     }
   };
 
-  // Handle Refresh No. FPB Terbaru Langsung dari link e-FPB FilesList
-  const handleRefreshFromEfpbFiles = async () => {
-    setIsSyncingEfpbFiles(true);
-    showToast('Menghubungkan ke e-FPB FilesList & memindai nomor FPB terbaru...', 'info');
+  // Handle Refresh No. FPB from e-FPB FilesList (shared logic for quick & full modes)
+  const handleRefreshFromEfpbFiles = async (mode: 'quick' | 'full' = 'quick') => {
+    const isFullMode = mode === 'full';
+    if (isFullMode) {
+      setIsSyncingEfpbFull(true);
+    } else {
+      setIsSyncingEfpbFiles(true);
+    }
+
+    const toastMsg = isFullMode
+      ? '🔄 Full Sync: Mengunduh seluruh data FPB dari e-FPB (~25.000 record, estimasi ~90 detik)...'
+      : 'Menghubungkan ke e-FPB FilesList & memindai nomor FPB terbaru...';
+    showToast(toastMsg, 'info');
 
     try {
       const savedUser =
@@ -194,6 +207,7 @@ export default function Header({
           url: efpbFilesUrl,
           username: savedUser,
           password: savedPass,
+          mode,
         }),
       });
 
@@ -273,10 +287,21 @@ export default function Header({
         setLastEfpbFilesSyncedTime(timeStr);
         if (typeof window !== 'undefined') {
           localStorage.setItem('CPG_LAST_EFPB_FILES_SYNC_TIME', timeStr);
+          if (isFullMode) {
+            localStorage.setItem('CPG_EFPB_FULL_SYNC_COUNT', String(data.totalEfpb || incomingProc.length));
+            setLastEfpbFullSyncCount(data.totalEfpb || incomingProc.length);
+          }
         }
 
-        const msg =
-          newItemsToPrepend.length > 0
+        const companyBreakdown = data.byCompany
+          ? Object.entries(data.byCompany as Record<string, number>)
+              .map(([co, count]) => `${co}: ${count}`)
+              .join(', ')
+          : '';
+
+        const msg = isFullMode
+          ? `✅ Full Sync selesai! ${data.totalEfpb || incomingProc.length} FPB unik dimuat (${newItemsToPrepend.length} baru, ${updatedExistingCount} diperbarui).${companyBreakdown ? ` [${companyBreakdown}]` : ''}`
+          : newItemsToPrepend.length > 0
             ? `Berhasil menyinkronkan e-FPB! ${newItemsToPrepend.length} berkas FPB baru ditambahkan, ${updatedExistingCount} diperbarui.`
             : `Semua data e-FPB FilesList sudah mutakhir (${data.totalEfpb || incomingProc.length} berkas FPB aktif).`;
 
@@ -293,6 +318,7 @@ export default function Header({
       );
     } finally {
       setIsSyncingEfpbFiles(false);
+      setIsSyncingEfpbFull(false);
     }
   };
 
@@ -663,8 +689,8 @@ export default function Header({
                   <div className="flex items-center justify-between gap-1">
                     <button
                       type="button"
-                      onClick={handleRefreshFromEfpbFiles}
-                      disabled={isSyncingEfpbFiles}
+                      onClick={() => handleRefreshFromEfpbFiles('quick')}
+                      disabled={isSyncingEfpbFiles || isSyncingEfpbFull}
                       className="flex-1 flex items-center gap-2.5 px-1.5 py-1.5 text-left text-foreground transition disabled:opacity-60 cursor-pointer"
                     >
                       <RefreshCw
@@ -759,6 +785,37 @@ export default function Header({
                     </div>
                   )}
                 </div>
+
+                {/* 2b. Full Sync - Tarik SEMUA data FPB dari e-FPB */}
+                <button
+                  type="button"
+                  onClick={() => handleRefreshFromEfpbFiles('full')}
+                  disabled={isSyncingEfpbFull || isSyncingEfpbFiles}
+                  className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-foreground hover:bg-muted/80 text-left transition disabled:opacity-60 cursor-pointer border border-transparent hover:border-border/60"
+                >
+                  <Boxes
+                    className={`size-4 text-purple-500 shrink-0 ${
+                      isSyncingEfpbFull ? 'animate-pulse' : ''
+                    }`}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-semibold block leading-tight text-xs text-foreground">
+                        {isSyncingEfpbFull ? 'Full Sync Berjalan...' : 'Full Sync Seluruh FPB'}
+                      </span>
+                      <span className="text-[9px] font-bold px-1 py-0.2 rounded bg-purple-500/15 text-purple-600 dark:text-purple-400">
+                        ~25.000
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground block truncate">
+                      {isSyncingEfpbFull
+                        ? 'Mengunduh seluruh halaman e-FPB (~90 detik)...'
+                        : lastEfpbFullSyncCount > 0
+                          ? `Terakhir dimuat: ${lastEfpbFullSyncCount.toLocaleString('id-ID')} FPB unik`
+                          : 'Tarik semua nomor FPB dari seluruh halaman e-FPB'}
+                    </span>
+                  </div>
+                </button>
 
                 {/* 3. Unggah Layanan */}
                 <label className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-foreground hover:bg-muted cursor-pointer transition">
