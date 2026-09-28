@@ -24,6 +24,8 @@ import { parseInventoryWorkbook } from '@/utils/inventoryParser';
 import { determineCategory } from '@/utils/categoryClassifier';
 import ThemeToggle from './ThemeToggle';
 import SyncEfpbModal from './SyncEfpbModal';
+import ResetConfirmModal, { ResetScope } from './ResetConfirmModal';
+import { mergeProcurementDatasets, mergeArmadaDatasets } from '@/utils/dataMerger';
 
 interface HeaderProps {
   searchKeyword?: string;
@@ -31,6 +33,7 @@ interface HeaderProps {
   onExcelUpload: (payload: { procurement: ProcurementItem[]; armada: ArmadaItem[] }) => void;
   onExportCsv: () => void;
   onResetData: () => void;
+  onScopedReset?: (scope: ResetScope) => void;
   showToast: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
   isSidebarCollapsed: boolean;
   onToggleSidebar: () => void;
@@ -51,6 +54,7 @@ export default function Header({
   onExcelUpload,
   onExportCsv,
   onResetData,
+  onScopedReset,
   showToast,
   isSidebarCollapsed,
   onToggleSidebar,
@@ -62,6 +66,7 @@ export default function Header({
 }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState<string>(searchKeyword || '');
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const [isResetModalOpen, setIsResetModalOpen] = useState<boolean>(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // State untuk sinkronisasi Google Sheets
@@ -145,9 +150,18 @@ export default function Header({
       }
 
       if (data.procurement?.length > 0 || data.armada?.length > 0) {
+        const { merged: finalProc, stats: procStats } = mergeProcurementDatasets(
+          procurementData || [],
+          data.procurement || []
+        );
+        const { merged: finalArm } = mergeArmadaDatasets(
+          armadaData || [],
+          data.armada || []
+        );
+
         onExcelUpload({
-          procurement: data.procurement,
-          armada: data.armada || [],
+          procurement: finalProc,
+          armada: finalArm,
         });
 
         const now = new Date();
@@ -229,50 +243,14 @@ export default function Header({
       const incomingArm: ArmadaItem[] = data.newArmada || data.armada || [];
 
       if (incomingProc.length > 0) {
-        // Fast index of existing procurement items
-        const existingMap = new Map<string, number>();
-        const currentProc = [...(procurementData || [])];
-        currentProc.forEach((item, idx) => {
-          existingMap.set(item.fpb.trim().toLowerCase(), idx);
-        });
-
-        const newItemsToPrepend: ProcurementItem[] = [];
-        let updatedExistingCount = 0;
-
-        incomingProc.forEach((efpbItem) => {
-          const key = efpbItem.fpb.trim().toLowerCase();
-          if (existingMap.has(key)) {
-            const idx = existingMap.get(key)!;
-            const existing = { ...currentProc[idx] };
-            // If incoming item has DONE logistic status, update existing
-            if (efpbItem.statusCheckFpb === 'DONE') {
-              existing.statusCheckFpb = 'DONE';
-              if (!existing.picCheckFpb || existing.picCheckFpb === '-') {
-                existing.picCheckFpb = 'Logistik';
-              }
-              currentProc[idx] = existing;
-              updatedExistingCount++;
-            }
-          } else {
-            newItemsToPrepend.push(efpbItem);
-          }
-        });
-
-        // Fast index of existing armada items
-        const existingArmSet = new Set<string>();
-        const currentArm = [...(armadaData || [])];
-        currentArm.forEach((a) => existingArmSet.add(a.fpb.trim().toLowerCase()));
-
-        const newArmToPrepend: ArmadaItem[] = [];
-        incomingArm.forEach((efpbArm) => {
-          const key = efpbArm.fpb.trim().toLowerCase();
-          if (!existingArmSet.has(key)) {
-            newArmToPrepend.push(efpbArm);
-          }
-        });
-
-        const finalProcurement = [...newItemsToPrepend, ...currentProc];
-        const finalArmada = [...newArmToPrepend, ...currentArm];
+        const { merged: finalProcurement, stats: procStats } = mergeProcurementDatasets(
+          procurementData || [],
+          incomingProc
+        );
+        const { merged: finalArmada } = mergeArmadaDatasets(
+          armadaData || [],
+          incomingArm
+        );
 
         onExcelUpload({
           procurement: finalProcurement,
@@ -300,9 +278,9 @@ export default function Header({
           : '';
 
         const msg = isFullMode
-          ? `✅ Full Sync selesai! ${data.totalEfpb || incomingProc.length} FPB unik dimuat (${newItemsToPrepend.length} baru, ${updatedExistingCount} diperbarui).${companyBreakdown ? ` [${companyBreakdown}]` : ''}`
-          : newItemsToPrepend.length > 0
-            ? `Berhasil menyinkronkan e-FPB! ${newItemsToPrepend.length} berkas FPB baru ditambahkan, ${updatedExistingCount} diperbarui.`
+          ? `✅ Full Sync selesai! ${data.totalEfpb || incomingProc.length} FPB unik dimuat (${procStats.added} baru, ${procStats.updated} diperbarui).${companyBreakdown ? ` [${companyBreakdown}]` : ''}`
+          : procStats.added > 0
+            ? `Berhasil menyinkronkan e-FPB! ${procStats.added} berkas FPB baru ditambahkan, ${procStats.updated} diperbarui.`
             : `Semua data e-FPB FilesList sudah mutakhir (${data.totalEfpb || incomingProc.length} berkas FPB aktif).`;
 
         showToast(msg, 'success');
@@ -408,9 +386,18 @@ export default function Header({
         const result = parseAndMergeWorkbook(workbook);
 
         if (result.procurement.length > 0 || result.armada.length > 0) {
-          onExcelUpload({ procurement: result.procurement, armada: result.armada });
+          const { merged: finalProc, stats: procStats } = mergeProcurementDatasets(
+            procurementData || [],
+            result.procurement
+          );
+          const { merged: finalArm } = mergeArmadaDatasets(
+            armadaData || [],
+            result.armada || []
+          );
+
+          onExcelUpload({ procurement: finalProc, armada: finalArm });
           showToast(
-            `Data berhasil di-merge! Acuan Utama: "Monitoring Layanan Armada" (${result.procurement.length.toLocaleString()} total item).`,
+            `Data berhasil di-merge! ${procStats.added} berkas baru ditambahkan, ${procStats.updated} diperkaya dari file Excel (${finalProc.length.toLocaleString('id-ID')} total item).`,
             'success'
           );
         } else {
@@ -962,22 +949,20 @@ export default function Header({
 
               <div className="h-px bg-border my-1.5" />
 
-              {/* Reset Data */}
+              {/* Reset Data (Mode Uji Coba) */}
               <button
                 type="button"
                 onClick={() => {
                   setIsMenuOpen(false);
-                  if (confirm('Kosongkan seluruh data monitoring untuk pengujian upload baru?')) {
-                    onResetData();
-                  }
+                  setIsResetModalOpen(true);
                 }}
-                className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-rose-500 hover:bg-rose-500/10 text-left transition"
+                className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-rose-500 hover:bg-rose-500/10 text-left transition cursor-pointer"
               >
                 <RotateCcw className="size-4 shrink-0" />
                 <div className="min-w-0">
-                  <span className="font-medium block leading-tight">Reset Seluruh Data</span>
+                  <span className="font-medium block leading-tight">Reset Data (Mode Uji Coba)</span>
                   <span className="text-[10px] text-rose-500/70 block">
-                    Kosongkan tabel &amp; mulai pengujian baru
+                    Pilihan kosongkan data untuk pengujian baru
                   </span>
                 </div>
               </button>
@@ -1046,6 +1031,21 @@ export default function Header({
           }
         }}
         showToast={showToast}
+      />
+
+      {/* Modal Konfirmasi Reset Data (Mode Uji Coba) */}
+      <ResetConfirmModal
+        isOpen={isResetModalOpen}
+        onClose={() => setIsResetModalOpen(false)}
+        onConfirmReset={(scope) => {
+          if (onScopedReset) {
+            onScopedReset(scope);
+          } else {
+            onResetData();
+          }
+        }}
+        procurementCount={procurementData?.length || 0}
+        inventoryCount={inventoryItems?.length || 0}
       />
     </header>
   );

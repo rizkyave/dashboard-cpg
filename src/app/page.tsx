@@ -12,6 +12,9 @@ import {
   InventorySummary,
 } from '@/types/procurement';
 import { INITIAL_PROCUREMENT_DATA, INITIAL_ARMADA_DATA } from '@/data/initialData';
+import { mergeProcurementDatasets, mergeArmadaDatasets } from '@/utils/dataMerger';
+import { ResetScope } from '@/components/ResetConfirmModal';
+import { clearAllFotos } from '@/utils/fotoLapanganStorage';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import MobileBottomNav from '@/components/MobileBottomNav';
@@ -29,7 +32,6 @@ import ToastNotification from '@/components/ToastNotification';
 import { PanelLeftOpen } from 'lucide-react';
 
 export default function DashboardPage() {
-  // Data dimulai dalam kondisi kosong agar pengguna dapat melakukan pengujian unggah file Excel sendiri setiap kali refresh
   const [procurementData, setProcurementData] = useState<ProcurementItem[]>(
     INITIAL_PROCUREMENT_DATA
   );
@@ -73,6 +75,41 @@ export default function DashboardPage() {
   useEffect(() => {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
       setIsSidebarCollapsed(true);
+    }
+  }, []);
+
+  // Memuat data tersimpan dari localStorage saat halaman dibuka (TIDAK ADA auto-refresh ke server eksternal saat F5)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const savedProc = localStorage.getItem('CPG_SAVED_PROCUREMENT_DATA');
+      if (savedProc) {
+        const parsed = JSON.parse(savedProc);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setProcurementData(parsed);
+        }
+      }
+      const savedArm = localStorage.getItem('CPG_SAVED_ARMADA_DATA');
+      if (savedArm) {
+        const parsed = JSON.parse(savedArm);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setArmadaData(parsed);
+        }
+      }
+      const savedInv = localStorage.getItem('CPG_SAVED_INVENTORY_ITEMS');
+      if (savedInv) {
+        const parsed = JSON.parse(savedInv);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setInventoryItems(parsed);
+        }
+      }
+      const savedSummary = localStorage.getItem('CPG_SAVED_INVENTORY_SUMMARY');
+      if (savedSummary) {
+        const parsed = JSON.parse(savedSummary);
+        if (parsed) setInventorySummary(parsed);
+      }
+    } catch (e) {
+      console.error('Gagal memuat data tersimpan dari localStorage:', e);
     }
   }, []);
 
@@ -208,26 +245,129 @@ export default function DashboardPage() {
     showToast('File CSV berhasil diunduh.', 'success');
   };
 
+  const handleExportInventoryCsv = () => {
+    if (!inventoryItems || inventoryItems.length === 0) {
+      showToast('Tidak ada data persediaan stok untuk diekspor.', 'warning');
+      return;
+    }
+
+    let csv = 'KODE_BARANG,NAMA_BARANG,KUANTITAS,HARGA_SATUAN,KATEGORI,PERUSAHAAN\n';
+    inventoryItems.forEach((item) => {
+      csv += `"${item.itemCode || ''}","${(item.description || '').replace(/"/g, '""')}","${item.quantity || 0}","${item.unitPrice || 0}","${item.category || '-'}","${item.perusahaan || '-'}"\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `CPG_Stok_Accurate_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    showToast('File CSV persediaan stok berhasil diunduh.', 'success');
+  };
+
+  const handleInventoryUpload = (items: InventoryItem[], summary?: InventorySummary) => {
+    setInventoryItems(items);
+    if (summary) setInventorySummary(summary);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('CPG_SAVED_INVENTORY_ITEMS', JSON.stringify(items));
+        if (summary) {
+          localStorage.setItem('CPG_SAVED_INVENTORY_SUMMARY', JSON.stringify(summary));
+        }
+      } catch (e) {
+        console.warn('Gagal menyimpan persediaan ke localStorage:', e);
+      }
+    }
+  };
+
+  const handleScopedReset = async (scope: ResetScope) => {
+    if (scope === 'all') {
+      setSelectedEntity('ALL');
+      setSelectedLapse('ALL');
+      setSearchKeyword('');
+      setProcurementData([]);
+      setArmadaData([]);
+      setInventoryItems([]);
+      setInventorySummary(null);
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('CPG_SAVED_PROCUREMENT_DATA');
+        localStorage.removeItem('CPG_SAVED_ARMADA_DATA');
+        localStorage.removeItem('CPG_SAVED_INVENTORY_ITEMS');
+        localStorage.removeItem('CPG_SAVED_INVENTORY_SUMMARY');
+        localStorage.removeItem('CPG_LAST_SYNC_TIME');
+        localStorage.removeItem('CPG_LAST_EFPB_FILES_SYNC_TIME');
+        localStorage.removeItem('CPG_EFPB_FULL_SYNC_COUNT');
+      }
+      await clearAllFotos();
+      showToast('Seluruh data dashboard berhasil dikosongkan total untuk mode uji coba.', 'info');
+    } else if (scope === 'procurement') {
+      setProcurementData([]);
+      setArmadaData([]);
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('CPG_SAVED_PROCUREMENT_DATA');
+        localStorage.removeItem('CPG_SAVED_ARMADA_DATA');
+        localStorage.removeItem('CPG_LAST_SYNC_TIME');
+        localStorage.removeItem('CPG_LAST_EFPB_FILES_SYNC_TIME');
+      }
+      showToast('Data pengadaan & layanan armada berhasil dikosongkan.', 'info');
+    } else if (scope === 'inventory') {
+      setInventoryItems([]);
+      setInventorySummary(null);
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('CPG_SAVED_INVENTORY_ITEMS');
+        localStorage.removeItem('CPG_SAVED_INVENTORY_SUMMARY');
+      }
+      showToast('Data persediaan stok Accurate berhasil dikosongkan.', 'info');
+    } else if (scope === 'photos') {
+      await clearAllFotos();
+      showToast('Seluruh arsip foto lapangan berhasil dihapus.', 'info');
+    }
+  };
+
   const handleResetData = () => {
-    setSelectedEntity('ALL');
-    setSelectedLapse('ALL');
-    setSearchKeyword('');
-    setProcurementData([]);
-    setArmadaData([]);
-    setInventoryItems([]);
-    setInventorySummary(null);
-    showToast('Seluruh data berhasil dikosongkan. Siap untuk unggah file Excel baru.', 'info');
+    handleScopedReset('all');
   };
 
   const handleExcelUpload = (payload: { procurement: ProcurementItem[]; armada: ArmadaItem[] }) => {
-    setProcurementData(payload.procurement);
+    // Smart Merge: menggabungkan data lama & baru secara cerdas tanpa menghapus data yang sudah ada
+    const { merged: mergedProc } = mergeProcurementDatasets(
+      procurementData,
+      payload.procurement || []
+    );
+    setProcurementData(mergedProc);
+
+    let mergedArm = armadaData;
     if (payload.armada && payload.armada.length > 0) {
-      setArmadaData(payload.armada);
+      const armResult = mergeArmadaDatasets(armadaData, payload.armada);
+      mergedArm = armResult.merged;
+      setArmadaData(mergedArm);
+    }
+
+    // Simpan ke localStorage agar tidak hilang saat reload halaman
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('CPG_SAVED_PROCUREMENT_DATA', JSON.stringify(mergedProc));
+        if (mergedArm.length > 0) {
+          localStorage.setItem('CPG_SAVED_ARMADA_DATA', JSON.stringify(mergedArm));
+        }
+      } catch (e) {
+        console.warn('Ukuran data melebihi kuota localStorage:', e);
+      }
     }
   };
 
   const handleNewRecordSubmit = (item: ProcurementItem) => {
-    setProcurementData((prev) => [item, ...prev]);
+    setProcurementData((prev) => {
+      const updated = [item, ...prev];
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('CPG_SAVED_PROCUREMENT_DATA', JSON.stringify(updated));
+        } catch (e) {}
+      }
+      return updated;
+    });
     showToast(`Berkas ${item.fpb} berhasil ditambahkan ke antrian monitoring.`, 'success');
   };
 
@@ -279,16 +419,15 @@ export default function DashboardPage() {
           onExcelUpload={handleExcelUpload}
           onExportCsv={handleExportCsv}
           onResetData={handleResetData}
+          onScopedReset={handleScopedReset}
           showToast={showToast}
           isSidebarCollapsed={isSidebarCollapsed}
           onToggleSidebar={toggleSidebar}
           procurementData={procurementData}
           armadaData={armadaData}
           inventoryItems={inventoryItems}
-          onInventoryUpload={(items, summary) => {
-            setInventoryItems(items);
-            if (summary) setInventorySummary(summary);
-          }}
+          onInventoryUpload={handleInventoryUpload}
+          onInventoryExport={handleExportInventoryCsv}
         />
 
         <main className="flex-1 min-w-0 p-3.5 sm:p-5 lg:p-8 space-y-4 sm:space-y-6 max-w-[1800px] w-full mx-auto pb-24 lg:pb-8">

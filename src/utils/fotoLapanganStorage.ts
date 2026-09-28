@@ -204,3 +204,25 @@ export function compressImageFile(
     reader.readAsDataURL(file);
   });
 }
+
+/**
+ * Mengosongkan seluruh foto lapangan di IndexedDB
+ */
+export async function clearAllFotos(): Promise<void> {
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      const request = store.clear();
+      request.onsuccess = () => {
+        notifyUpdate();
+        resolve();
+      };
+      request.onerror = () => reject(request.error);
+    });
+  } catch (err) {
+    console.error('Error clearing fotos DB:', err);
+  }
+}
+
