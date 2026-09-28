@@ -78,6 +78,26 @@ export default function DashboardPage() {
     }
   }, []);
 
+  // Sanitasi data procurement dari localStorage yang mungkin rusak / tidak lengkap
+  const sanitizeProcItem = (item: any): ProcurementItem => ({
+    ...item,
+    fpb: item.fpb || '',
+    entity: item.entity || 'CPL',
+    po: item.po || '-',
+    date: item.date || '',
+    item: item.item || '',
+    peruntukan: item.peruntukan || '',
+    lapse: typeof item.lapse === 'number' ? item.lapse : 0,
+    statusBadge: item.statusBadge || 'PROSES',
+    statusTone: item.statusTone || 'cyan',
+    picPch: item.picPch || '-',
+    picTtb: item.picTtb || '-',
+    picLap: item.picLap || '-',
+    picAdm: item.picAdm || '-',
+    picAktif: item.picAktif || '-',
+    statusPenjelasan: item.statusPenjelasan || '',
+  });
+
   // Memuat data tersimpan dari localStorage saat halaman dibuka (TIDAK ADA auto-refresh ke server eksternal saat F5)
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -86,7 +106,7 @@ export default function DashboardPage() {
       if (savedProc) {
         const parsed = JSON.parse(savedProc);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          setProcurementData(parsed);
+          setProcurementData(parsed.map(sanitizeProcItem));
         }
       }
       const savedArm = localStorage.getItem('CPG_SAVED_ARMADA_DATA');

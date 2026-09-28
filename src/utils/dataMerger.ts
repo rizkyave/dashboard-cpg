@@ -1,4 +1,4 @@
-import { ProcurementItem, ArmadaItem, StatusTone } from '@/types/procurement';
+import { ProcurementItem, ArmadaItem } from '@/types/procurement';
 
 /**
  * Normalisasi format nomor FPB untuk pencocokan kunci unik
@@ -30,6 +30,7 @@ function hasValue(val?: string | number | null): boolean {
  * - Menjaga data yang sudah ada (tidak menghapus)
  * - Jika nomor FPB sama: memperkaya kolom yang kosong dari data yang baru masuk (Excel / e-FPB / Sheets)
  * - Jika nomor FPB baru: ditambahkan ke dalam antrean
+ * - Aman dari duplicate FPB di incoming list (tidak menimbulkan out-of-bounds index error)
  */
 export function mergeProcurementDatasets(
   existingList: ProcurementItem[],
@@ -38,39 +39,77 @@ export function mergeProcurementDatasets(
   merged: ProcurementItem[];
   stats: { total: number; updated: number; added: number };
 } {
-  if (!existingList || existingList.length === 0) {
+  const safeExisting = (existingList || []).filter(Boolean);
+  const safeIncoming = (incomingList || []).filter(Boolean);
+
+  if (safeExisting.length === 0) {
+    // Deduplikasi incomingList berdasarkan nomor FPB agar bersih
+    const dedupedMap = new Map<string, ProcurementItem>();
+    const dedupedList: ProcurementItem[] = [];
+
+    for (const item of safeIncoming) {
+      const key = normalizeFpbKey(item.fpb);
+      if (!key) {
+        dedupedList.push({ ...item });
+        continue;
+      }
+      if (dedupedMap.has(key)) {
+        const target = dedupedMap.get(key)!;
+        // Perkaya field target dari baris duplikat berikutnya
+        if (!hasValue(target.po) && hasValue(item.po)) target.po = item.po;
+        if (!hasValue(target.tglPo) && hasValue(item.tglPo)) target.tglPo = item.tglPo;
+        if (!hasValue(target.noFstb) && hasValue(item.noFstb)) target.noFstb = item.noFstb;
+        if (!hasValue(target.noTtb) && hasValue(item.noTtb)) target.noTtb = item.noTtb;
+        if (!hasValue(target.noSpp) && hasValue(item.noSpp)) target.noSpp = item.noSpp;
+      } else {
+        const copy = { ...item };
+        dedupedMap.set(key, copy);
+        dedupedList.push(copy);
+      }
+    }
+
     return {
-      merged: [...incomingList],
-      stats: { total: incomingList.length, updated: 0, added: incomingList.length },
-    };
-  }
-  if (!incomingList || incomingList.length === 0) {
-    return {
-      merged: [...existingList],
-      stats: { total: existingList.length, updated: 0, added: 0 },
+      merged: dedupedList,
+      stats: { total: dedupedList.length, updated: 0, added: dedupedList.length },
     };
   }
 
+  if (safeIncoming.length === 0) {
+    return {
+      merged: safeExisting.map((item) => ({ ...item })),
+      stats: { total: safeExisting.length, updated: 0, added: 0 },
+    };
+  }
+
+  // Gunakan satu unified list untuk menghindari out-of-bounds indexing
   const existingMap = new Map<string, number>();
-  const mergedList: ProcurementItem[] = existingList.map((item, idx) => {
+  const mergedList: ProcurementItem[] = [];
+
+  for (const item of safeExisting) {
     const key = normalizeFpbKey(item.fpb);
-    if (key) existingMap.set(key, idx);
-    return { ...item };
-  });
+    const idx = mergedList.length;
+    mergedList.push({ ...item });
+    if (key && !existingMap.has(key)) {
+      existingMap.set(key, idx);
+    }
+  }
 
   let updatedCount = 0;
-  const newItems: ProcurementItem[] = [];
+  let addedCount = 0;
 
-  for (const incoming of incomingList) {
+  for (const incoming of safeIncoming) {
+    if (!incoming) continue;
     const key = normalizeFpbKey(incoming.fpb);
     if (!key) {
-      newItems.push(incoming);
+      mergedList.push({ ...incoming });
+      addedCount++;
       continue;
     }
 
     if (existingMap.has(key)) {
       const idx = existingMap.get(key)!;
       const target = mergedList[idx];
+      if (!target) continue;
 
       // 1. Lengkapi PO jika data lama belum ada nomor PO
       if (!hasValue(target.po) && hasValue(incoming.po)) {
@@ -103,7 +142,7 @@ export function mergeProcurementDatasets(
         target.entity = incoming.entity;
       }
 
-      // 4. Lengkapi FSTB, TTB, SPP dari Excel
+      // 4. Lengkapi FSTB, TTB, SPP dari Excel / Sheets
       if (!hasValue(target.noFstb) && hasValue(incoming.noFstb)) {
         target.noFstb = incoming.noFstb;
       }
@@ -190,21 +229,20 @@ export function mergeProcurementDatasets(
 
       updatedCount++;
     } else {
-      // Item baru: tambahkan
-      newItems.push(incoming);
-      existingMap.set(key, mergedList.length + newItems.length - 1);
+      // Item baru: tambahkan langsung ke mergedList dan daftarkan ke existingMap
+      const newIdx = mergedList.length;
+      mergedList.push({ ...incoming });
+      existingMap.set(key, newIdx);
+      addedCount++;
     }
   }
 
-  // Gabungkan item baru di paling atas agar mudah terlihat
-  const finalMerged = [...newItems, ...mergedList];
-
   return {
-    merged: finalMerged,
+    merged: mergedList,
     stats: {
-      total: finalMerged.length,
+      total: mergedList.length,
       updated: updatedCount,
-      added: newItems.length,
+      added: addedCount,
     },
   };
 }
@@ -219,36 +257,45 @@ export function mergeArmadaDatasets(
   merged: ArmadaItem[];
   stats: { total: number; updated: number; added: number };
 } {
-  if (!existingList || existingList.length === 0) {
+  const safeExisting = (existingList || []).filter(Boolean);
+  const safeIncoming = (incomingList || []).filter(Boolean);
+
+  if (safeExisting.length === 0) {
     return {
-      merged: [...incomingList],
-      stats: { total: incomingList.length, updated: 0, added: incomingList.length },
+      merged: safeIncoming.map((a) => ({ ...a })),
+      stats: { total: safeIncoming.length, updated: 0, added: safeIncoming.length },
     };
   }
-  if (!incomingList || incomingList.length === 0) {
+  if (safeIncoming.length === 0) {
     return {
-      merged: [...existingList],
-      stats: { total: existingList.length, updated: 0, added: 0 },
+      merged: safeExisting.map((a) => ({ ...a })),
+      stats: { total: safeExisting.length, updated: 0, added: 0 },
     };
   }
 
   const existingMap = new Map<string, number>();
-  const mergedList: ArmadaItem[] = existingList.map((item, idx) => {
+  const mergedList: ArmadaItem[] = [];
+
+  for (const item of safeExisting) {
     const key = `${normalizeFpbKey(item.fpb)}::${item.item?.trim().toLowerCase() || ''}`;
-    existingMap.set(key, idx);
-    return { ...item };
-  });
+    const idx = mergedList.length;
+    mergedList.push({ ...item });
+    if (!existingMap.has(key)) {
+      existingMap.set(key, idx);
+    }
+  }
 
   let updatedCount = 0;
-  const newItems: ArmadaItem[] = [];
+  let addedCount = 0;
 
-  for (const incoming of incomingList) {
+  for (const incoming of safeIncoming) {
+    if (!incoming) continue;
     const key = `${normalizeFpbKey(incoming.fpb)}::${incoming.item?.trim().toLowerCase() || ''}`;
-    const fpbOnlyKey = normalizeFpbKey(incoming.fpb);
 
     if (existingMap.has(key)) {
       const idx = existingMap.get(key)!;
       const target = mergedList[idx];
+      if (!target) continue;
 
       if (!target.qtyFPB && incoming.qtyFPB) target.qtyFPB = incoming.qtyFPB;
       if (!target.qtyFSTB && incoming.qtyFSTB) target.qtyFSTB = incoming.qtyFSTB;
@@ -262,19 +309,19 @@ export function mergeArmadaDatasets(
       }
       updatedCount++;
     } else {
-      newItems.push(incoming);
-      existingMap.set(key, mergedList.length + newItems.length - 1);
+      const newIdx = mergedList.length;
+      mergedList.push({ ...incoming });
+      existingMap.set(key, newIdx);
+      addedCount++;
     }
   }
 
-  const finalMerged = [...newItems, ...mergedList];
-
   return {
-    merged: finalMerged,
+    merged: mergedList,
     stats: {
-      total: finalMerged.length,
+      total: mergedList.length,
       updated: updatedCount,
-      added: newItems.length,
+      added: addedCount,
     },
   };
 }
