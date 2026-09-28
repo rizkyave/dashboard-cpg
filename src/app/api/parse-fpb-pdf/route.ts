@@ -333,14 +333,22 @@ function extractPdfData(
       }
 
       allBlocks.push(...streamBlocks);
-      if (
-        streamBlocks.some(
-          (sb) =>
-            sb.text.includes('Was Approved') ||
-            sb.text.includes('Was review') ||
-            sb.text.includes('Received:')
-        )
-      ) {
+      const hasSignatureMarker = streamBlocks.some(
+        (sb) =>
+          sb.text.includes('Was Approved') ||
+          sb.text.includes('Was review') ||
+          sb.text.includes('Received:')
+      );
+      const isSignatureStream =
+        streamBlocks.length >= 2 &&
+        streamBlocks.length <= 4 &&
+        streamBlocks.some((sb) => /\d{1,2}[-/]\d{1,2}[-/]\d{2,4}/.test(sb.text)) &&
+        !streamBlocks[0].text.includes('FORM') &&
+        !streamBlocks[0].text.includes('CPL-') &&
+        !streamBlocks[0].text.includes('Jalan') &&
+        !streamBlocks[0].text.includes('PT ');
+
+      if (hasSignatureMarker || isSignatureStream) {
         signatureBlocks.push(streamBlocks);
       }
     }
@@ -381,6 +389,8 @@ function extractPdfData(
   if (!fpbNo) fpbNo = fpbQuery;
 
   // Extract signatures
+  let requestedBy = '',
+    requestedDate = '';
   let reviewedBy = '',
     reviewedDate = '';
   let approvedBy = '',
@@ -394,16 +404,33 @@ function extractPdfData(
     if (revText) {
       reviewedBy = texts[0] || '';
       reviewedDate = texts[1] || '';
+      continue;
     }
     const appText = texts.find((t) => t.includes('Was Approved'));
     if (appText) {
       approvedBy = texts[0] || '';
       approvedDate = texts[1] || '';
+      continue;
     }
     const recText = texts.find((t) => t.includes('Received:'));
     if (recText) {
       receivedBy = texts[0] || '';
       receivedDate = texts[1] || '';
+      continue;
+    }
+
+    // Requester signature block (Requested By / End User)
+    const dateText = texts.find((t) => /\d{1,2}[-/]\d{1,2}[-/]\d{2,4}/.test(t));
+    if (dateText && texts[0]) {
+      const candidate = texts[0].replace(/^name\s*:\s*/i, '').trim();
+      if (
+        candidate &&
+        candidate.length > 1 &&
+        !/^(end user|supervisor|manager|logistic|staff)/i.test(candidate)
+      ) {
+        requestedBy = candidate;
+        requestedDate = dateText;
+      }
     }
   }
 
@@ -485,9 +512,11 @@ function extractPdfData(
     fpbNo,
     fpbDate: formatDateDdMmYy(fpbDate),
     userArmada,
-    requestedBy: requestedByBottom || 'End User',
-    requestedDate: formatDateDdMmYy(userTimestamp ? userTimestamp.slice(0, 10) : ''),
-    requestedTimestamp: userTimestamp,
+    requestedBy: requestedBy || requestedByBottom || '',
+    requestedDate: formatDateDdMmYy(
+      requestedDate || (userTimestamp ? userTimestamp.slice(0, 10) : '')
+    ),
+    requestedTimestamp: requestedDate || userTimestamp,
     reviewedBy,
     reviewedDate: formatDateDdMmYy(reviewedDate),
     approvedBy,

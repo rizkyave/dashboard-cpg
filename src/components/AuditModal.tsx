@@ -317,7 +317,19 @@ export default function AuditModal({
 
   // PIC & Tanggal Verifikasi FPB:
   // Prioritas utama diambil langsung dari 'Requested By' & tanggal tanda tangan digital PDF jika tersedia
-  const displayPicFpb = pdfData?.requestedBy || itemS1?.picCheckFpb || itemsS2[0]?.picCheckFpb || 'Bu Noor';
+  const isValidPicName = (name?: string) => {
+    if (!name) return false;
+    const n = name.trim().toLowerCase();
+    return n !== '' && n !== '-' && n !== 'end user' && n !== '(end user)' && n !== 'e-fpb server';
+  };
+
+  const displayPicFpb =
+    (isValidPicName(pdfData?.requestedBy) ? pdfData?.requestedBy : '') ||
+    (isValidPicName(itemS1?.picCheckFpb) ? itemS1?.picCheckFpb : '') ||
+    (isValidPicName(itemsS2[0]?.picCheckFpb) ? itemsS2[0]?.picCheckFpb : '') ||
+    (pdfData?.requestedBy && !/end user/i.test(pdfData.requestedBy) ? pdfData.requestedBy : '') ||
+    (itemS1?.picCheckFpb && itemS1.picCheckFpb !== 'e-FPB Server' ? itemS1.picCheckFpb : '') ||
+    'Bu Noor';
   const displayTglFpb = pdfData?.requestedDate || itemS1?.tglCheckFpb || itemsS2[0]?.tglCheckFpb || itemS1?.tglFpb || '-';
 
   // Otomatis sinkronkan metadata PDF (Requested By, Tanggal, Item) saat modal dibuka
@@ -645,7 +657,7 @@ export default function AuditModal({
             <div className="p-3 rounded-lg bg-card border border-border flex flex-col justify-between gap-2.5 shadow-xs hover:shadow-subtle transition">
               <div className="flex items-center justify-between min-h-[1.75rem] gap-1">
                 <span className="text-[11px] font-semibold text-foreground tracking-wide uppercase leading-tight truncate">
-                  VERIFIKASI FPB {pdfData?.requestedBy ? `(${pdfData.requestedBy})` : '/ BU NOOR'}
+                  VERIFIKASI FPB {isValidPicName(displayPicFpb) ? `(${displayPicFpb})` : '/ BU NOOR'}
                 </span>
               </div>
               <div className="flex items-center justify-between pt-2 border-t border-border">
@@ -723,10 +735,10 @@ export default function AuditModal({
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">PIC:</span>
                     <span
                       className="font-semibold text-foreground font-mono truncate text-right ml-1.5 flex items-center justify-end gap-1"
-                      title={pdfData?.requestedBy ? `Requested By (End User): ${pdfData.requestedBy}` : displayPicFpb}
+                      title={isValidPicName(pdfData?.requestedBy) ? `Requested By: ${pdfData?.requestedBy}` : displayPicFpb}
                     >
                       <span>{displayPicFpb}</span>
-                      {pdfData?.requestedBy && (
+                      {isValidPicName(pdfData?.requestedBy) && (
                         <span className="text-[9px] px-1 py-0.2 rounded bg-blue-500/20 text-blue-700 dark:text-blue-300 font-sans font-medium" title="Ditarik dari Requested By PDF">
                           Requested By
                         </span>
