@@ -15,6 +15,15 @@ import { INITIAL_PROCUREMENT_DATA, INITIAL_ARMADA_DATA } from '@/data/initialDat
 import { mergeProcurementDatasets, mergeArmadaDatasets } from '@/utils/dataMerger';
 import { ResetScope } from '@/components/ResetConfirmModal';
 import { clearAllFotos } from '@/utils/fotoLapanganStorage';
+import {
+  saveStoredProcurement,
+  loadStoredProcurement,
+  saveStoredArmada,
+  loadStoredArmada,
+  saveStoredInventory,
+  loadStoredInventory,
+  clearStoredData,
+} from '@/utils/appStorage';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import MobileBottomNav from '@/components/MobileBottomNav';
@@ -58,6 +67,7 @@ export default function DashboardPage() {
       if (data.success && data.items) {
         setInventoryItems(data.items);
         if (data.summary) setInventorySummary(data.summary);
+        saveStoredInventory(data.items, data.summary || null);
         showToast(
           `Berhasil memuat ${data.items.length.toLocaleString('id-ID')} item persediaan stok default Accurate!`,
           'success'
@@ -78,7 +88,7 @@ export default function DashboardPage() {
     }
   }, []);
 
-  // Sanitasi data procurement dari localStorage yang mungkin rusak / tidak lengkap
+  // Sanitasi data procurement dari storage yang mungkin rusak / tidak lengkap
   const sanitizeProcItem = (item: any): ProcurementItem => ({
     ...item,
     fpb: item.fpb || '',
@@ -98,39 +108,38 @@ export default function DashboardPage() {
     statusPenjelasan: item.statusPenjelasan || '',
   });
 
-  // Memuat data tersimpan dari localStorage saat halaman dibuka (TIDAK ADA auto-refresh ke server eksternal saat F5)
+  // Memuat data tersimpan dari IndexedDB saat halaman dibuka (TIDAK ADA auto-refresh ke server eksternal saat F5)
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      const savedProc = localStorage.getItem('CPG_SAVED_PROCUREMENT_DATA');
-      if (savedProc) {
-        const parsed = JSON.parse(savedProc);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setProcurementData(parsed.map(sanitizeProcItem));
+    let isMounted = true;
+    const initData = async () => {
+      try {
+        const [savedProc, savedArm, savedInv] = await Promise.all([
+          loadStoredProcurement(),
+          loadStoredArmada(),
+          loadStoredInventory(),
+        ]);
+
+        if (!isMounted) return;
+
+        if (savedProc && savedProc.length > 0) {
+          setProcurementData(savedProc.map(sanitizeProcItem));
         }
-      }
-      const savedArm = localStorage.getItem('CPG_SAVED_ARMADA_DATA');
-      if (savedArm) {
-        const parsed = JSON.parse(savedArm);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setArmadaData(parsed);
+        if (savedArm && savedArm.length > 0) {
+          setArmadaData(savedArm);
         }
-      }
-      const savedInv = localStorage.getItem('CPG_SAVED_INVENTORY_ITEMS');
-      if (savedInv) {
-        const parsed = JSON.parse(savedInv);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setInventoryItems(parsed);
+        if (savedInv && savedInv.items && savedInv.items.length > 0) {
+          setInventoryItems(savedInv.items);
+          if (savedInv.summary) setInventorySummary(savedInv.summary);
         }
+      } catch (e) {
+        console.error('Gagal memuat data tersimpan dari IndexedDB/storage:', e);
       }
-      const savedSummary = localStorage.getItem('CPG_SAVED_INVENTORY_SUMMARY');
-      if (savedSummary) {
-        const parsed = JSON.parse(savedSummary);
-        if (parsed) setInventorySummary(parsed);
-      }
-    } catch (e) {
-      console.error('Gagal memuat data tersimpan dari localStorage:', e);
-    }
+    };
+
+    initData();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const [auditedFpb, setAuditedFpb] = useState<string | null>(null);
@@ -290,16 +299,7 @@ export default function DashboardPage() {
   const handleInventoryUpload = (items: InventoryItem[], summary?: InventorySummary) => {
     setInventoryItems(items);
     if (summary) setInventorySummary(summary);
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem('CPG_SAVED_INVENTORY_ITEMS', JSON.stringify(items));
-        if (summary) {
-          localStorage.setItem('CPG_SAVED_INVENTORY_SUMMARY', JSON.stringify(summary));
-        }
-      } catch (e) {
-        console.warn('Gagal menyimpan persediaan ke localStorage:', e);
-      }
-    }
+    saveStoredInventory(items, summary || null);
   };
 
   const handleScopedReset = async (scope: ResetScope) => {
@@ -311,11 +311,8 @@ export default function DashboardPage() {
       setArmadaData([]);
       setInventoryItems([]);
       setInventorySummary(null);
+      await clearStoredData('all');
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('CPG_SAVED_PROCUREMENT_DATA');
-        localStorage.removeItem('CPG_SAVED_ARMADA_DATA');
-        localStorage.removeItem('CPG_SAVED_INVENTORY_ITEMS');
-        localStorage.removeItem('CPG_SAVED_INVENTORY_SUMMARY');
         localStorage.removeItem('CPG_LAST_SYNC_TIME');
         localStorage.removeItem('CPG_LAST_EFPB_FILES_SYNC_TIME');
         localStorage.removeItem('CPG_EFPB_FULL_SYNC_COUNT');
@@ -325,9 +322,8 @@ export default function DashboardPage() {
     } else if (scope === 'procurement') {
       setProcurementData([]);
       setArmadaData([]);
+      await clearStoredData('procurement');
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('CPG_SAVED_PROCUREMENT_DATA');
-        localStorage.removeItem('CPG_SAVED_ARMADA_DATA');
         localStorage.removeItem('CPG_LAST_SYNC_TIME');
         localStorage.removeItem('CPG_LAST_EFPB_FILES_SYNC_TIME');
       }
@@ -335,10 +331,7 @@ export default function DashboardPage() {
     } else if (scope === 'inventory') {
       setInventoryItems([]);
       setInventorySummary(null);
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('CPG_SAVED_INVENTORY_ITEMS');
-        localStorage.removeItem('CPG_SAVED_INVENTORY_SUMMARY');
-      }
+      await clearStoredData('inventory');
       showToast('Data persediaan stok Accurate berhasil dikosongkan.', 'info');
     } else if (scope === 'photos') {
       await clearAllFotos();
@@ -365,27 +358,17 @@ export default function DashboardPage() {
       setArmadaData(mergedArm);
     }
 
-    // Simpan ke localStorage agar tidak hilang saat reload halaman
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem('CPG_SAVED_PROCUREMENT_DATA', JSON.stringify(mergedProc));
-        if (mergedArm.length > 0) {
-          localStorage.setItem('CPG_SAVED_ARMADA_DATA', JSON.stringify(mergedArm));
-        }
-      } catch (e) {
-        console.warn('Ukuran data melebihi kuota localStorage:', e);
-      }
+    // Simpan ke IndexedDB (kapasitas besar, tidak terbatas kuota 5MB localStorage)
+    saveStoredProcurement(mergedProc);
+    if (mergedArm.length > 0) {
+      saveStoredArmada(mergedArm);
     }
   };
 
   const handleNewRecordSubmit = (item: ProcurementItem) => {
     setProcurementData((prev) => {
       const updated = [item, ...prev];
-      if (typeof window !== 'undefined') {
-        try {
-          localStorage.setItem('CPG_SAVED_PROCUREMENT_DATA', JSON.stringify(updated));
-        } catch (e) {}
-      }
+      saveStoredProcurement(updated);
       return updated;
     });
     showToast(`Berkas ${item.fpb} berhasil ditambahkan ke antrian monitoring.`, 'success');

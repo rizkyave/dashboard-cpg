@@ -122,7 +122,7 @@ export function PipelineBarChart({ data }: { data: ProcurementItem[] }) {
   let doneCount = 0;
 
   data.forEach((item) => {
-    const s = item.statusBadge.toUpperCase();
+    const s = (item.statusBadge || '').toUpperCase();
     if (s.includes('SELESAI')) doneCount++;
     else if (s.includes('SPEK')) spekCount++;
     else if (s.includes('LAPANGAN') || s.includes('FABRIKASI')) lapCount++;
@@ -232,12 +232,12 @@ export function PicWorkloadChart({ data }: { data: ProcurementItem[] }) {
   };
 
   data.forEach((item) => {
-    if (item.picPch.includes('NOVI')) pics['NOVI (PCH)']++;
-    if (item.picPch.includes('RINI')) pics['RINI (PCH)']++;
-    if (item.picTtb.includes('DAVILA')) pics['DAVILA (TTB)']++;
-    if (item.picTtb.includes('FIFI')) pics['FIFI (TTB)']++;
-    if (item.picLap.includes('AGUS')) pics['AGUS (LAP)']++;
-    if (item.picLap.includes('HAMKA')) pics['HAMKA (LAP)']++;
+    if (item.picPch?.includes('NOVI')) pics['NOVI (PCH)']++;
+    if (item.picPch?.includes('RINI')) pics['RINI (PCH)']++;
+    if (item.picTtb?.includes('DAVILA')) pics['DAVILA (TTB)']++;
+    if (item.picTtb?.includes('FIFI')) pics['FIFI (TTB)']++;
+    if (item.picLap?.includes('AGUS')) pics['AGUS (LAP)']++;
+    if (item.picLap?.includes('HAMKA')) pics['HAMKA (LAP)']++;
   });
 
   const chartData = {
