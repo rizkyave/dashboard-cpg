@@ -26,7 +26,6 @@ import ThemeToggle from './ThemeToggle';
 import SyncEfpbModal from './SyncEfpbModal';
 import ResetConfirmModal, { ResetScope } from './ResetConfirmModal';
 import { mergeProcurementDatasets, mergeArmadaDatasets } from '@/utils/dataMerger';
-
 interface HeaderProps {
   searchKeyword?: string;
   onSearch: (keyword: string) => void;
@@ -150,18 +149,9 @@ export default function Header({
       }
 
       if (data.procurement?.length > 0 || data.armada?.length > 0) {
-        const { merged: finalProc, stats: procStats } = mergeProcurementDatasets(
-          procurementData || [],
-          data.procurement || []
-        );
-        const { merged: finalArm } = mergeArmadaDatasets(
-          armadaData || [],
-          data.armada || []
-        );
-
         onExcelUpload({
-          procurement: finalProc,
-          armada: finalArm,
+          procurement: data.procurement || [],
+          armada: data.armada || [],
         });
 
         const now = new Date();
@@ -243,18 +233,9 @@ export default function Header({
       const incomingArm: ArmadaItem[] = data.newArmada || data.armada || [];
 
       if (incomingProc.length > 0) {
-        const { merged: finalProcurement, stats: procStats } = mergeProcurementDatasets(
-          procurementData || [],
-          incomingProc
-        );
-        const { merged: finalArmada } = mergeArmadaDatasets(
-          armadaData || [],
-          incomingArm
-        );
-
         onExcelUpload({
-          procurement: finalProcurement,
-          armada: finalArmada,
+          procurement: incomingProc,
+          armada: incomingArm,
         });
 
         const now = new Date();
@@ -278,10 +259,8 @@ export default function Header({
           : '';
 
         const msg = isFullMode
-          ? `✅ Full Sync selesai! ${data.totalEfpb || incomingProc.length} FPB unik dimuat (${procStats.added} baru, ${procStats.updated} diperbarui).${companyBreakdown ? ` [${companyBreakdown}]` : ''}`
-          : procStats.added > 0
-            ? `Berhasil menyinkronkan e-FPB! ${procStats.added} berkas FPB baru ditambahkan, ${procStats.updated} diperbarui.`
-            : `Semua data e-FPB FilesList sudah mutakhir (${data.totalEfpb || incomingProc.length} berkas FPB aktif).`;
+          ? `✅ Full Sync selesai! ${data.totalEfpb || incomingProc.length} FPB unik dimuat.${companyBreakdown ? ` [${companyBreakdown}]` : ''}`
+          : `Berhasil menyinkronkan e-FPB! ${incomingProc.length} berkas FPB ditambahkan/diperbarui.`;
 
         showToast(msg, 'success');
         setIsMenuOpen(false);
