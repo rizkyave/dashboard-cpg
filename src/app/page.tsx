@@ -15,6 +15,7 @@ import { INITIAL_PROCUREMENT_DATA, INITIAL_ARMADA_DATA } from '@/data/initialDat
 import { mergeProcurementDatasets, mergeArmadaDatasets } from '@/utils/dataMerger';
 import { ResetScope } from '@/components/ResetConfirmModal';
 import { clearAllFotos } from '@/utils/fotoLapanganStorage';
+import { formatDateDdMmYyDash } from '@/utils/formatDate';
 import {
   saveStoredProcurement,
   loadStoredProcurement,
@@ -89,24 +90,44 @@ export default function DashboardPage() {
   }, []);
 
   // Sanitasi data procurement dari storage yang mungkin rusak / tidak lengkap
-  const sanitizeProcItem = (item: any): ProcurementItem => ({
-    ...item,
-    fpb: item.fpb || '',
-    entity: item.entity || 'CPL',
-    po: item.po || '-',
-    date: item.date || '',
-    item: item.item || '',
-    peruntukan: item.peruntukan || '',
-    lapse: typeof item.lapse === 'number' ? item.lapse : 0,
-    statusBadge: item.statusBadge || 'PROSES',
-    statusTone: item.statusTone || 'cyan',
-    picPch: item.picPch || '-',
-    picTtb: item.picTtb || '-',
-    picLap: item.picLap || '-',
-    picAdm: item.picAdm || '-',
-    picAktif: item.picAktif || '-',
-    statusPenjelasan: item.statusPenjelasan || '',
-  });
+  const sanitizeProcItem = (item: any): ProcurementItem => {
+    let picAktif = item.picAktif || '-';
+    picAktif = picAktif.replace(/\(adm\/finance\)/gi, '(ADM/PRC)');
+
+    let statusPenjelasan = item.statusPenjelasan || '';
+    statusPenjelasan = statusPenjelasan.replace(
+      /Berkas sudah di [Kk]euangan pada (.+)/gi,
+      (_: string, d: string) => `Berkas sudah di administrasi purchasing pada ${formatDateDdMmYyDash(d)}`
+    );
+
+    return {
+      ...item,
+      fpb: item.fpb || '',
+      entity: item.entity || 'CPL',
+      po: item.po || '-',
+      date: item.date || '',
+      item: item.item || '',
+      peruntukan: item.peruntukan || '',
+      lapse: typeof item.lapse === 'number' ? item.lapse : 0,
+      statusBadge: item.statusBadge || 'PROSES',
+      statusTone: item.statusTone || 'cyan',
+      picPch: item.picPch || '-',
+      picTtb: item.picTtb || '-',
+      picLap: item.picLap || '-',
+      picAdm: item.picAdm || '-',
+      picAktif,
+      statusPenjelasan,
+    };
+  };
+
+  const sanitizeArmItem = (item: any): ArmadaItem => {
+    let picAktif = item.picAktif || '-';
+    picAktif = picAktif.replace(/\(adm\/finance\)/gi, '(ADM/PRC)');
+    return {
+      ...item,
+      picAktif,
+    };
+  };
 
   // Memuat data tersimpan dari IndexedDB saat halaman dibuka (TIDAK ADA auto-refresh ke server eksternal saat F5)
   useEffect(() => {
@@ -125,7 +146,7 @@ export default function DashboardPage() {
           setProcurementData(savedProc.map(sanitizeProcItem));
         }
         if (savedArm && savedArm.length > 0) {
-          setArmadaData(savedArm);
+          setArmadaData(savedArm.map(sanitizeArmItem));
         }
         if (savedInv && savedInv.items && savedInv.items.length > 0) {
           setInventoryItems(savedInv.items);

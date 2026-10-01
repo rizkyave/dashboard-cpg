@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx';
 import { ProcurementItem, ArmadaItem, StatusTone } from '@/types/procurement';
+import { formatDateDdMmYyDash } from '@/utils/formatDate';
 
 // Helper: Convert Excel date / serial date number to YYYY-MM-DD string
 export const excelDateToString = (val: any): string => {
@@ -520,7 +521,7 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
       if (tglKeKeuangan) {
         statusBadge = 'SELESAI DI KEUANGAN';
         statusTone = 'emerald';
-        statusPenjelasan = `Berkas sudah di Keuangan pada ${tglKeKeuangan}`;
+        statusPenjelasan = `Berkas sudah di administrasi purchasing pada ${formatDateDdMmYyDash(tglKeKeuangan)}`;
       } else if (noSpp || tglInputSpp) {
         statusBadge = 'PROSES SPP';
         statusTone = 'emerald';
@@ -587,7 +588,7 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
 
       let picAktif = `${picPch} (Purchasing)`;
       if (statusBadge.includes('KEUANGAN') || statusBadge.includes('SPP')) {
-        picAktif = `${picAdm && picAdm !== '-' ? picAdm : picPch} (ADM/Finance)`;
+        picAktif = `${picAdm && picAdm !== '-' ? picAdm : picPch} (ADM/PRC)`;
       } else if (statusBadge.includes('LAPANGAN') || statusBadge.includes('DISTRIBUSI')) {
         picAktif = `${picLap && picLap !== '-' ? picLap : 'Tim Lapangan'} (Lapangan)`;
       } else if (statusBadge.includes('TTB') || statusBadge.includes('LOGISTIK')) {
@@ -724,7 +725,7 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
       if (proc.tglKeu) {
         statusBadge = 'SELESAI DI KEUANGAN';
         statusTone = 'emerald';
-        statusPenjelasan = `Berkas sudah di Keuangan pada ${proc.tglKeu}`;
+        statusPenjelasan = `Berkas sudah di administrasi purchasing pada ${formatDateDdMmYyDash(proc.tglKeu)}`;
       } else if (proc.spp || proc.tglSpp) {
         statusBadge = 'PROSES SPP';
         statusTone = 'emerald';
@@ -774,7 +775,7 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
 
       let picAktif = `${proc.picPch || '-'} (Purchasing)`;
       if (statusBadge.includes('KEUANGAN') || statusBadge.includes('SPP')) {
-        picAktif = `${proc.picAdm || proc.picPch || '-'} (ADM/Finance)`;
+        picAktif = `${proc.picAdm || proc.picPch || '-'} (ADM/PRC)`;
       } else if (statusBadge.includes('LAPANGAN') || statusBadge.includes('DISTRIBUSI')) {
         picAktif = `${proc.picLap || '-'} (Lapangan)`;
       } else if (statusBadge.includes('TTB') || statusBadge.includes('LOGISTIK')) {

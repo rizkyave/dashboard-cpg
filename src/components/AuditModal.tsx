@@ -28,6 +28,7 @@ import FotoLapanganViewerModal from './FotoLapanganViewerModal';
 import { extractFstbLast5, openTimemarkWithFstb } from '@/utils/timemark';
 import { getFotosByNoTtb, getFotosByFpbOrFstb } from '@/utils/fotoLapanganStorage';
 import { FotoLapangan } from '@/types/fotoLapangan';
+import { updatePdfItemsCacheForFpb } from '@/utils/appStorage';
 import { formatDateDdMmYy } from '@/utils/formatDate';
 
 interface AuditModalProps {
@@ -343,6 +344,13 @@ export default function AuditModal({
         .then((json) => {
           if (isMounted && json.success && json.data) {
             setPdfData(json.data);
+            // Simpan nama barang ke cache IndexedDB untuk Advanced Search
+            if (json.data.items && json.data.items.length > 0) {
+              const itemNames = json.data.items.map((it: { itemName: string; description?: string; itemCode?: string }) =>
+                [it.itemName, it.description, it.itemCode].filter(Boolean).join(' | ')
+              );
+              updatePdfItemsCacheForFpb(json.data.fpbNo || primaryDocNum, itemNames).catch(() => {});
+            }
           }
         })
         .catch(() => {})
@@ -388,6 +396,13 @@ export default function AuditModal({
       const json = await res.json();
       if (json.success && json.data) {
         setPdfData(json.data);
+        // Simpan nama barang ke cache IndexedDB untuk Advanced Search
+        if (json.data.items && json.data.items.length > 0) {
+          const itemNames = json.data.items.map((it: { itemName: string; description?: string; itemCode?: string }) =>
+            [it.itemName, it.description, it.itemCode].filter(Boolean).join(' | ')
+          );
+          updatePdfItemsCacheForFpb(json.data.fpbNo || primaryDocNum, itemNames).catch(() => {});
+        }
         showToast(
           `Berhasil menarik ${json.data.items?.length || 0} rincian item & peruntukan dari PDF e-FPB!`,
           'success'

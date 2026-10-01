@@ -156,6 +156,9 @@ export interface ArmadaItem {
   doneCheckFpb?: string;
 }
 
+/** Cache of PDF item names keyed by FPB number for advanced search */
+export type PdfItemsCache = Record<string, string[]>;
+
 export interface ToastState {
   message: string;
   type?: 'info' | 'success' | 'warning' | 'error';

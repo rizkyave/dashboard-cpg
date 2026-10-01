@@ -1,4 +1,4 @@
-import { ProcurementItem, ArmadaItem, InventoryItem, InventorySummary } from '@/types/procurement';
+import { ProcurementItem, ArmadaItem, InventoryItem, InventorySummary, PdfItemsCache } from '@/types/procurement';
 
 const DB_NAME = 'cpg_dashboard_data_db';
 const DB_VERSION = 1;
@@ -213,12 +213,41 @@ export async function loadStoredInventory(): Promise<{
 }
 
 /**
+ * Simpan cache nama barang dari PDF (untuk Advanced Search)
+ * Key IndexedDB: 'pdf_items_cache'
+ */
+export async function savePdfItemsCache(cache: PdfItemsCache): Promise<void> {
+  await idbSet('pdf_items_cache', cache);
+}
+
+/**
+ * Muat cache nama barang PDF
+ */
+export async function loadPdfItemsCache(): Promise<PdfItemsCache | null> {
+  const data = await idbGet<PdfItemsCache>('pdf_items_cache');
+  return data && typeof data === 'object' ? data : null;
+}
+
+/**
+ * Update cache untuk satu FPB tertentu
+ */
+export async function updatePdfItemsCacheForFpb(
+  fpb: string,
+  itemNames: string[]
+): Promise<void> {
+  const existing = await loadPdfItemsCache();
+  const updated = { ...(existing || {}), [fpb]: itemNames };
+  await savePdfItemsCache(updated);
+}
+
+/**
  * Hapus data dari storage berdasarkan scope
  */
 export async function clearStoredData(scope: 'all' | 'procurement' | 'inventory'): Promise<void> {
   if (scope === 'all' || scope === 'procurement') {
     await idbDelete('procurement_data');
     await idbDelete('armada_data');
+    await idbDelete('pdf_items_cache');
     if (typeof window !== 'undefined') {
       try {
         localStorage.removeItem('CPG_SAVED_PROCUREMENT_DATA');

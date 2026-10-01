@@ -31,6 +31,20 @@ import {
 import { ProcurementItem, StatusTone } from '@/types/procurement';
 import { EntityDonutChart, PipelineBarChart } from './Charts';
 import { extractFstbLast5, openTimemarkWithFstb } from '@/utils/timemark';
+import { formatDateDdMmYyDash } from '@/utils/formatDate';
+
+const formatPicAktif = (pic?: string) => {
+  if (!pic) return '-';
+  return pic.replace(/\(adm\/finance\)/gi, '(ADM/PRC)');
+};
+
+const formatStatusPenjelasan = (desc?: string) => {
+  if (!desc) return 'Dalam alur proses';
+  return desc.replace(
+    /Berkas sudah di [Kk]euangan pada (.+)/gi,
+    (_: string, d: string) => `Berkas sudah di administrasi purchasing pada ${formatDateDdMmYyDash(d)}`
+  );
+};
 
 const extractDateInfo = (dateStr?: string) => {
   if (!dateStr) return { year: '', month: '', fullDate: '', timestamp: 0 };
@@ -889,11 +903,11 @@ export default function OverviewTab({
                             </span>
                             <span className="px-1.5 py-0.2 rounded-md bg-muted border border-border text-muted-foreground text-[10px] font-medium flex items-center gap-1">
                               <UserCheck className="size-3 text-cyan-400" />
-                              <span>{row.picAktif || row.picPch}</span>
+                              <span>{formatPicAktif(row.picAktif || row.picPch)}</span>
                             </span>
                           </div>
                           <div className="text-[11px] text-muted-foreground leading-tight">
-                            {row.statusPenjelasan || 'Dalam alur proses'}
+                            {formatStatusPenjelasan(row.statusPenjelasan)}
                           </div>
                           {row.noFstb && (
                             <div className="pt-0.5">

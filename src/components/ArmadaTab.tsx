@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { ArmadaItem } from '@/types/procurement';
+import { ArmadaItem, PdfItemsCache } from '@/types/procurement';
 import {
   Anchor,
   Search,
@@ -28,9 +28,14 @@ import {
   Table as TableIcon,
   ChevronDown,
   Camera,
+  SlidersHorizontal,
+  Sparkles,
+  Loader2,
 } from 'lucide-react';
+
 import { extractFstbLast5, openTimemarkWithFstb } from '@/utils/timemark';
 import { formatDateDdMmYy } from '@/utils/formatDate';
+import { loadPdfItemsCache, savePdfItemsCache } from '@/utils/appStorage';
 
 interface ArmadaTabProps {
   items: ArmadaItem[];
@@ -146,6 +151,71 @@ export default function ArmadaTab({
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
 
+  // Advanced Search State (Pencarian spesifik Nama Barang, No FPB, No PO, Kode/PIC)
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState<boolean>(false);
+  const [searchBarang, setSearchBarang] = useState<string>('');
+  const [searchFpb, setSearchFpb] = useState<string>('');
+  const [searchPo, setSearchPo] = useState<string>('');
+  const [searchKode, setSearchKode] = useState<string>('');
+
+  // Cache nama barang dari PDF e-FPB
+  const [pdfCache, setPdfCache] = useState<PdfItemsCache>({});
+  const [isScanningPdf, setIsScanningPdf] = useState<boolean>(false);
+  const [scanProgress, setScanProgress] = useState<{ current: number; total: number } | null>(null);
+
+  useEffect(() => {
+    loadPdfItemsCache().then((cached) => {
+      if (cached) setPdfCache(cached);
+    }).catch(() => {});
+  }, []);
+
+  // Fungsi Scan / Tarik Nama Barang dari PDF FPB yang belum ada di cache
+  const handleScanPdfItems = async () => {
+    const uniqueFpbs = Array.from(new Set(items.map((i) => i.fpb).filter(Boolean)));
+    const uncachedFpbs = uniqueFpbs.filter((f) => !pdfCache[f] || pdfCache[f].length === 0);
+
+    if (uncachedFpbs.length === 0) {
+      showToast?.(`Semua ${uniqueFpbs.length} FPB sudah memiliki rincian PDF di cache!`, 'success');
+      return;
+    }
+
+    setIsScanningPdf(true);
+    setScanProgress({ current: 0, total: uncachedFpbs.length });
+    showToast?.(`Memulai pemindaian PDF untuk ${uncachedFpbs.length} FPB...`, 'info');
+
+    let successCount = 0;
+    const newCache = { ...pdfCache };
+
+    const batchSize = 3;
+    for (let i = 0; i < uncachedFpbs.length; i += batchSize) {
+      const batch = uncachedFpbs.slice(i, i + batchSize);
+      await Promise.all(
+        batch.map(async (fpbNo) => {
+          try {
+            const res = await fetch(`/api/parse-fpb-pdf?fpb=${encodeURIComponent(fpbNo)}`);
+            const json = await res.json();
+            if (json.success && json.data && json.data.items && json.data.items.length > 0) {
+              const itemNames = json.data.items.map((it: { itemName: string; description?: string; itemCode?: string }) =>
+                [it.itemName, it.description, it.itemCode].filter(Boolean).join(' | ')
+              );
+              newCache[fpbNo] = itemNames;
+              successCount++;
+            }
+          } catch {}
+        })
+      );
+      setScanProgress({ current: Math.min(i + batchSize, uncachedFpbs.length), total: uncachedFpbs.length });
+    }
+
+    setPdfCache(newCache);
+    await savePdfItemsCache(newCache);
+    setIsScanningPdf(false);
+    setScanProgress(null);
+    showToast?.(`Selesai! Berhasil membaca rincian barang dari ${successCount} berkas PDF.`, 'success');
+  };
+
+
+
   useEffect(() => {
     if (searchKeyword !== undefined) {
       setSearchTerm(searchKeyword);
@@ -197,6 +267,10 @@ export default function ArmadaTab({
     sortField,
     sortDirection,
     pageSize,
+    searchBarang,
+    searchFpb,
+    searchPo,
+    searchKode,
   ]);
 
   // Overall KPI Metrics for the dataset
@@ -302,7 +376,7 @@ export default function ArmadaTab({
         }
       }
 
-      // 5. Keyword Search
+      // 5. Keyword Search (Search Utama Atas)
       if (searchTerm.trim() !== '') {
         const q = searchTerm.toLowerCase().trim();
         const matchFpb = item.fpb?.toLowerCase().includes(q);
@@ -334,6 +408,51 @@ export default function ArmadaTab({
         }
       }
 
+      // 6. Advanced Search: Spesifik Nama Barang / Deskripsi Item (termasuk hasil scan PDF e-FPB)
+      if (searchBarang.trim() !== '') {
+        const qb = searchBarang.toLowerCase().trim();
+        const matchItem = item.item?.toLowerCase().includes(qb);
+        const matchKet = item.keterangan?.toLowerCase().includes(qb);
+        const matchKode = item.kodeBarang?.toLowerCase().includes(qb);
+        const matchSatuan = item.satuan?.toLowerCase().includes(qb);
+
+        // Cari juga di rincian item PDF e-FPB yang tersimpan di cache
+        const pdfItems = item.fpb ? pdfCache[item.fpb] : undefined;
+        const matchPdf = pdfItems && pdfItems.some((pi) => pi.toLowerCase().includes(qb));
+
+        if (!matchItem && !matchKet && !matchKode && !matchSatuan && !matchPdf) {
+          return false;
+        }
+      }
+
+      // 7. Advanced Search: Spesifik Nomor FPB Asal
+      if (searchFpb.trim() !== '') {
+        const qf = searchFpb.toLowerCase().trim();
+        if (!item.fpb?.toLowerCase().includes(qf)) {
+          return false;
+        }
+      }
+
+      // 8. Advanced Search: Spesifik Nomor PO
+      if (searchPo.trim() !== '') {
+        const qp = searchPo.toLowerCase().trim();
+        if (!item.noPo?.toLowerCase().includes(qp)) {
+          return false;
+        }
+      }
+
+      // 9. Advanced Search: Spesifik Kode Barang / PIC
+      if (searchKode.trim() !== '') {
+        const qk = searchKode.toLowerCase().trim();
+        const matchKode = item.kodeBarang?.toLowerCase().includes(qk);
+        const matchPicPch = item.picPch?.toLowerCase().includes(qk);
+        const matchPicAktif = item.picAktif?.toLowerCase().includes(qk);
+        const matchSatuan = item.satuan?.toLowerCase().includes(qk);
+        if (!matchKode && !matchPicPch && !matchPicAktif && !matchSatuan) {
+          return false;
+        }
+      }
+
       return true;
     });
   }, [
@@ -346,7 +465,13 @@ export default function ArmadaTab({
     startDate,
     endDate,
     searchTerm,
+    searchBarang,
+    searchFpb,
+    searchPo,
+    searchKode,
+    pdfCache,
   ]);
+
 
   // Sort filtered items
   const sortedItems = useMemo(() => {
@@ -464,8 +589,16 @@ export default function ArmadaTab({
     setEndDate('');
     setSortField('selisih');
     setSortDirection('desc');
+    setSearchBarang('');
+    setSearchFpb('');
+    setSearchPo('');
+    setSearchKode('');
     setCurrentPage(1);
   };
+
+  const hasActiveAdvancedSearch = Boolean(
+    searchBarang.trim() || searchFpb.trim() || searchPo.trim() || searchKode.trim()
+  );
 
   const isFiltered =
     searchTerm.trim() !== '' ||
@@ -475,7 +608,8 @@ export default function ArmadaTab({
     selectedYear !== 'ALL' ||
     selectedMonth !== 'ALL' ||
     Boolean(startDate) ||
-    Boolean(endDate);
+    Boolean(endDate) ||
+    hasActiveAdvancedSearch;
 
   return (
     <div className="space-y-4">
@@ -631,7 +765,7 @@ export default function ArmadaTab({
                         e.currentTarget.blur();
                       }
                     }}
-                    placeholder="Cari FPB, Kapal, Barang, Keterangan, No PO..."
+                    placeholder="Cari Nama Kapal / Pencarian Cepat..."
                     className="w-full h-8 pl-8 pr-7 bg-background border border-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring transition"
                   />
                   {searchTerm && (
@@ -646,6 +780,28 @@ export default function ArmadaTab({
                   )}
                 </div>
               </form>
+
+              {/* Advanced Search Toggle Button */}
+              <button
+                type="button"
+                onClick={() => setShowAdvancedSearch((prev) => !prev)}
+                className={`h-8 px-2.5 rounded-lg border text-xs font-medium flex items-center gap-1.5 transition whitespace-nowrap shrink-0 ${
+                  hasActiveAdvancedSearch
+                    ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 font-semibold'
+                    : showAdvancedSearch
+                    ? 'bg-muted text-foreground border-border'
+                    : 'bg-background text-muted-foreground hover:text-foreground border-border hover:bg-muted'
+                }`}
+                title="Buka / Tutup Pencarian Lanjutan (Spesifik Nama Barang, FPB, PO, Kode)"
+              >
+                <SlidersHorizontal className="size-3.5" />
+                <span className="hidden sm:inline">Advanced Search</span>
+                <span className="sm:hidden">Adv</span>
+                {hasActiveAdvancedSearch && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                )}
+                <ChevronDown className={`size-3 transition-transform ${showAdvancedSearch ? 'rotate-180' : ''}`} />
+              </button>
 
               {/* Mobile Filter Toggle Button */}
               <button
@@ -708,6 +864,178 @@ export default function ArmadaTab({
               </button>
             </div>
           </div>
+
+          {/* ═══════════════════════════════════════════════════════════
+              COLLAPSIBLE ADVANCED SEARCH PANEL
+              ═══════════════════════════════════════════════════════════ */}
+          {showAdvancedSearch && (
+            <div className="p-3.5 rounded-xl bg-card border border-border/80 shadow-xs space-y-3 animate-in fade-in-50 duration-150">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <SlidersHorizontal className="size-3.5 text-amber-500" />
+                  <span className="text-xs font-semibold text-foreground">
+                    Advanced Search (Pencarian Spesifik Kolom)
+                  </span>
+                  <span className="text-[11px] text-muted-foreground hidden sm:inline">
+                    &bull; Otomatis realtime tanpa reload halaman
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {/* Tombol Scan Nama Barang dari PDF e-FPB */}
+                  <button
+                    type="button"
+                    onClick={handleScanPdfItems}
+                    disabled={isScanningPdf}
+                    className={`h-7 px-2.5 rounded-lg text-[11px] font-medium flex items-center gap-1.5 transition border ${
+                      isScanningPdf
+                        ? 'bg-amber-500/10 text-amber-400 border-amber-500/30 cursor-wait'
+                        : 'bg-muted/70 hover:bg-muted text-muted-foreground hover:text-foreground border-border'
+                    }`}
+                    title="Pindai seluruh rincian nama barang dari PDF e-FPB untuk memperluas pencarian"
+                  >
+                    {isScanningPdf ? (
+                      <>
+                        <Loader2 className="size-3 animate-spin text-amber-500" />
+                        <span>
+                          Memindai PDF ({scanProgress ? `${scanProgress.current}/${scanProgress.total}` : '...'})
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="size-3 text-amber-500" />
+                        <span>
+                          Scan Rincian PDF ({Object.keys(pdfCache).length} siap dicari)
+                        </span>
+                      </>
+                    )}
+                  </button>
+
+                  {hasActiveAdvancedSearch && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchBarang('');
+                        setSearchFpb('');
+                        setSearchPo('');
+                        setSearchKode('');
+                      }}
+                      className="text-[11px] text-rose-500 hover:text-rose-400 flex items-center gap-1 hover:underline transition"
+                    >
+                      <RotateCcw className="size-3" />
+                      <span>Bersihkan Input</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs">
+                {/* 1. Spesifik Nama Barang / Item Description */}
+                <div>
+                  <label className="block text-[11px] font-medium text-foreground mb-1">
+                    Nama Barang / Item:
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={searchBarang}
+                      onChange={(e) => setSearchBarang(e.target.value)}
+                      placeholder="Cth: Oli, Filter, Pompa, Valve..."
+                      className="w-full h-8 px-2.5 pr-7 bg-background border border-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                    />
+                    {searchBarang && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchBarang('')}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        title="Hapus pencarian barang"
+                      >
+                        <X className="size-3" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* 2. Spesifik Nomor FPB Asal */}
+                <div>
+                  <label className="block text-[11px] font-medium text-foreground mb-1">
+                    No. FPB Asal:
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={searchFpb}
+                      onChange={(e) => setSearchFpb(e.target.value)}
+                      placeholder="Cth: HL-FPB-26-0001391..."
+                      className="w-full h-8 px-2.5 pr-7 bg-background border border-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring font-mono"
+                    />
+                    {searchFpb && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchFpb('')}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        title="Hapus filter FPB"
+                      >
+                        <X className="size-3" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* 3. Spesifik Nomor PO */}
+                <div>
+                  <label className="block text-[11px] font-medium text-foreground mb-1">
+                    No. PO (Purchase Order):
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={searchPo}
+                      onChange={(e) => setSearchPo(e.target.value)}
+                      placeholder="Cth: HL-PO-26-01639..."
+                      className="w-full h-8 px-2.5 pr-7 bg-background border border-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring font-mono"
+                    />
+                    {searchPo && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchPo('')}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        title="Hapus filter PO"
+                      >
+                        <X className="size-3" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* 4. Kode Barang / PIC */}
+                <div>
+                  <label className="block text-[11px] font-medium text-foreground mb-1">
+                    Kode Barang / PIC:
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={searchKode}
+                      onChange={(e) => setSearchKode(e.target.value)}
+                      placeholder="Cth: Elsa, Melinda, kode..."
+                      className="w-full h-8 px-2.5 pr-7 bg-background border border-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                    />
+                    {searchKode && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchKode('')}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        title="Hapus filter kode/PIC"
+                      >
+                        <X className="size-3" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Row 2: Filter Waktu (Tahun, Bulan, Rentang Tanggal) & Quick Sort Tanggal */}
           <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-border/60 text-xs">
@@ -955,6 +1283,58 @@ export default function ArmadaTab({
                 {armadaFilter !== 'ALL' && (
                   <span className="px-2 py-0.5 rounded-full bg-background border border-border text-foreground font-mono text-[11px]">
                     Armada: {armadaFilter}
+                  </span>
+                )}
+                {searchBarang.trim() !== '' && (
+                  <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-mono text-[11px] flex items-center gap-1">
+                    <span>Barang: &quot;{searchBarang}&quot;</span>
+                    <button
+                      type="button"
+                      onClick={() => setSearchBarang('')}
+                      className="hover:text-rose-500 transition"
+                      title="Hapus filter barang"
+                    >
+                      <X className="w-2.5 h-2.5" />
+                    </button>
+                  </span>
+                )}
+                {searchFpb.trim() !== '' && (
+                  <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/30 font-mono text-[11px] flex items-center gap-1">
+                    <span>FPB: &quot;{searchFpb}&quot;</span>
+                    <button
+                      type="button"
+                      onClick={() => setSearchFpb('')}
+                      className="hover:text-rose-500 transition"
+                      title="Hapus filter FPB"
+                    >
+                      <X className="w-2.5 h-2.5" />
+                    </button>
+                  </span>
+                )}
+                {searchPo.trim() !== '' && (
+                  <span className="px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/30 font-mono text-[11px] flex items-center gap-1">
+                    <span>PO: &quot;{searchPo}&quot;</span>
+                    <button
+                      type="button"
+                      onClick={() => setSearchPo('')}
+                      className="hover:text-rose-500 transition"
+                      title="Hapus filter PO"
+                    >
+                      <X className="w-2.5 h-2.5" />
+                    </button>
+                  </span>
+                )}
+                {searchKode.trim() !== '' && (
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-mono text-[11px] flex items-center gap-1">
+                    <span>Kode/PIC: &quot;{searchKode}&quot;</span>
+                    <button
+                      type="button"
+                      onClick={() => setSearchKode('')}
+                      className="hover:text-rose-500 transition"
+                      title="Hapus filter Kode/PIC"
+                    >
+                      <X className="w-2.5 h-2.5" />
+                    </button>
                   </span>
                 )}
                 <span className="text-muted-foreground font-mono text-[11px]">
@@ -1300,6 +1680,14 @@ export default function ArmadaTab({
                       {/* Item Description */}
                       <td className="p-3.5 max-w-[280px]">
                         <div className="text-foreground font-medium">{row.item}</div>
+                        {row.fpb && pdfCache[row.fpb] && pdfCache[row.fpb].length > 0 && (
+                          <div className="mt-1 flex items-center gap-1 flex-wrap">
+                            <span className="px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[9px] font-medium inline-flex items-center gap-0.5" title={`Rincian PDF: ${pdfCache[row.fpb].join(', ')}`}>
+                              <Sparkles className="size-2.5" />
+                              <span>{pdfCache[row.fpb].length} item PDF</span>
+                            </span>
+                          </div>
+                        )}
                         <div className="flex items-center gap-2 mt-0.5 text-[10px] text-muted-foreground font-mono flex-wrap">
                           {row.kodeBarang && <span>Kode: {row.kodeBarang}</span>}
                           {row.satuan && <span>&bull; {row.satuan}</span>}
@@ -1309,6 +1697,7 @@ export default function ArmadaTab({
                           )}
                         </div>
                       </td>
+
 
                       {/* Priority */}
                       <td className="p-3.5 text-center whitespace-nowrap">
