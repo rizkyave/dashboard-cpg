@@ -75,4 +75,11 @@ export function formatDateDdMmYy(val?: string | number | null): string {
   return str;
 }
 
+export function formatDateDdMmYyDash(val?: string | number | null): string {
+  const slash = formatDateDdMmYy(val);
+  if (!slash || slash === '-') return '-';
+  return slash.replace(/\//g, '-');
+}
+
 export default formatDateDdMmYy;
+
