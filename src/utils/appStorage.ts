@@ -1,4 +1,4 @@
-import { ProcurementItem, ArmadaItem, InventoryItem, InventorySummary, PdfItemsCache } from '@/types/procurement';
+import { ProcurementItem, ArmadaItem, InventoryItem, InventorySummary, PdfItemsCache, KapalPosisiItem, KapalPosisiSummary } from '@/types/procurement';
 
 const DB_NAME = 'cpg_dashboard_data_db';
 const DB_VERSION = 1;
@@ -238,6 +238,36 @@ export async function updatePdfItemsCacheForFpb(
   const existing = await loadPdfItemsCache();
   const updated = { ...(existing || {}), [fpb]: itemNames };
   await savePdfItemsCache(updated);
+}
+
+/**
+ * Simpan dataset Posisi Kapal (Daily Report FMS) ke IndexedDB
+ */
+export async function saveStoredKapalPosisi(
+  items: KapalPosisiItem[],
+  summary?: KapalPosisiSummary | null
+): Promise<void> {
+  await idbSet('kapal_posisi_items', items);
+  if (summary) {
+    await idbSet('kapal_posisi_summary', summary);
+  }
+}
+
+/**
+ * Muat dataset Posisi Kapal dari IndexedDB
+ */
+export async function loadStoredKapalPosisi(): Promise<{
+  items: KapalPosisiItem[];
+  summary: KapalPosisiSummary | null;
+} | null> {
+  const items = await idbGet<KapalPosisiItem[]>('kapal_posisi_items');
+  const summary = await idbGet<KapalPosisiSummary>('kapal_posisi_summary');
+
+  if (items && Array.isArray(items) && items.length > 0) {
+    return { items, summary: summary || null };
+  }
+
+  return null;
 }
 
 /**

@@ -18,6 +18,7 @@ import {
   Boxes,
   Camera,
   Images,
+  Navigation,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { TabType, LapseFilterType, ProcurementItem, ArmadaItem } from '@/types/procurement';
@@ -71,6 +72,12 @@ export default function Sidebar({
       label: 'Layanan Armada',
       icon: Anchor,
       badge: 'FSTB',
+    },
+    {
+      id: 'pos-kapal' as TabType,
+      label: 'Posisi Kapal (FMS)',
+      icon: Navigation,
+      badge: 'Live',
     },
     {
       id: 'foto-lapangan' as TabType,

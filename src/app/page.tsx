@@ -10,6 +10,8 @@ import {
   ToastState,
   InventoryItem,
   InventorySummary,
+  KapalPosisiItem,
+  KapalPosisiSummary,
 } from '@/types/procurement';
 import { INITIAL_PROCUREMENT_DATA, INITIAL_ARMADA_DATA } from '@/data/initialData';
 import { mergeProcurementDatasets, mergeArmadaDatasets } from '@/utils/dataMerger';
@@ -23,6 +25,8 @@ import {
   loadStoredArmada,
   saveStoredInventory,
   loadStoredInventory,
+  saveStoredKapalPosisi,
+  loadStoredKapalPosisi,
   clearStoredData,
 } from '@/utils/appStorage';
 import Header from '@/components/Header';
@@ -32,12 +36,14 @@ import KpiCards from '@/components/KpiCards';
 import OverviewTab from '@/components/OverviewTab';
 import ProcurementTab from '@/components/ProcurementTab';
 import ArmadaTab from '@/components/ArmadaTab';
+import PosisiKapalTab from '@/components/PosisiKapalTab';
 import AnalyticsTab from '@/components/AnalyticsTab';
 import InventoryTab from '@/components/InventoryTab';
 import TimemarkTab from '@/components/TimemarkTab';
 import FotoLapanganTab from '@/components/FotoLapanganTab';
 import AuditModal from '@/components/AuditModal';
 import NewRecordModal from '@/components/NewRecordModal';
+
 import ToastNotification from '@/components/ToastNotification';
 import { PanelLeftOpen } from 'lucide-react';
 
@@ -58,6 +64,46 @@ export default function DashboardPage() {
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
   const [inventorySummary, setInventorySummary] = useState<InventorySummary | null>(null);
   const [isLoadingInventory, setIsLoadingInventory] = useState<boolean>(false);
+
+  // State untuk modul Daily Report Posisi Kapal (Fleet Management System)
+  const [kapalPosisiItems, setKapalPosisiItems] = useState<KapalPosisiItem[]>([]);
+  const [kapalPosisiSummary, setKapalPosisiSummary] = useState<KapalPosisiSummary | null>(null);
+  const [isLoadingPosisiKapal, setIsLoadingPosisiKapal] = useState<boolean>(false);
+
+  // Fungsi untuk menyinkronkan data Posisi Kapal dari FMS (/voyage/daily_index)
+  const handleRefreshPosisiKapal = async () => {
+    setIsLoadingPosisiKapal(true);
+    showToast('Menghubungkan ke Fleet Management System & menarik Posisi Kapal...', 'info');
+
+    try {
+      const res = await fetch('/api/posisi-kapal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: 'logistik',
+          password: '12345',
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success && Array.isArray(data.items)) {
+        setKapalPosisiItems(data.items);
+        if (data.summary) setKapalPosisiSummary(data.summary);
+        await saveStoredKapalPosisi(data.items, data.summary || null);
+        showToast(
+          `Berhasil menarik data Daily Report Posisi Kapal (${data.items.length} unit kapal)!`,
+          'success'
+        );
+      } else {
+        throw new Error(data.message || 'Gagal mengambil data posisi kapal.');
+      }
+    } catch (err: any) {
+      console.error('Gagal mengambil data posisi kapal:', err);
+      showToast(err.message || 'Gagal menyinkronkan posisi kapal dari FMS.', 'error');
+    } finally {
+      setIsLoadingPosisiKapal(false);
+    }
+  };
 
   // Fungsi untuk memuat contoh data persediaan default jika diinginkan oleh pengguna
   const handleLoadSampleInventory = async () => {
@@ -81,6 +127,7 @@ export default function DashboardPage() {
       setIsLoadingInventory(false);
     }
   };
+
 
   // Auto-collapse sidebar on mobile screen size on initial mount
   useEffect(() => {
@@ -134,10 +181,11 @@ export default function DashboardPage() {
     let isMounted = true;
     const initData = async () => {
       try {
-        const [savedProc, savedArm, savedInv] = await Promise.all([
+        const [savedProc, savedArm, savedInv, savedKapal] = await Promise.all([
           loadStoredProcurement(),
           loadStoredArmada(),
           loadStoredInventory(),
+          loadStoredKapalPosisi(),
         ]);
 
         if (!isMounted) return;
@@ -152,6 +200,11 @@ export default function DashboardPage() {
           setInventoryItems(savedInv.items);
           if (savedInv.summary) setInventorySummary(savedInv.summary);
         }
+        if (savedKapal && savedKapal.items && savedKapal.items.length > 0) {
+          setKapalPosisiItems(savedKapal.items);
+          if (savedKapal.summary) setKapalPosisiSummary(savedKapal.summary);
+        }
+
       } catch (e) {
         console.error('Gagal memuat data tersimpan dari IndexedDB/storage:', e);
       }
@@ -452,7 +505,11 @@ export default function DashboardPage() {
           inventoryItems={inventoryItems}
           onInventoryUpload={handleInventoryUpload}
           onInventoryExport={handleExportInventoryCsv}
+          onRefreshPosisiKapal={handleRefreshPosisiKapal}
+          isSyncingPosisiKapal={isLoadingPosisiKapal}
+          kapalPosisiCount={kapalPosisiItems.length}
         />
+
 
         <main className="flex-1 min-w-0 p-3.5 sm:p-5 lg:p-8 space-y-4 sm:space-y-6 max-w-[1800px] w-full mx-auto pb-24 lg:pb-8">
           {/* Page Header in clean Studio Admin typography */}
@@ -464,6 +521,8 @@ export default function DashboardPage() {
                 ? 'Monitoring Berkas Pengadaan'
                 : activeTab === 'armada'
                 ? 'Monitoring Layanan Armada'
+                : activeTab === 'pos-kapal'
+                ? 'Daily Report Posisi Kapal'
                 : activeTab === 'inventory'
                 ? 'Cek Stok Persediaan Gudang'
                 : 'Analisis SLA & Lead Time'}
@@ -475,6 +534,8 @@ export default function DashboardPage() {
                 ? 'Daftar transaksi pengadaan PO, verifikasi berkas fisik antar divisi, dan status penyelesaian berkas.'
                 : activeTab === 'armada'
                 ? 'Pencocokan kuantitas FPB vs FSTB, unit kapal armada, dan realisasi distribusi logistik lapangan.'
+                : activeTab === 'pos-kapal'
+                ? 'Laporan harian posisi, rute, aktivitas, status performa dan pekerjaan pemeliharaan armada kapal dari Fleet Management System.'
                 : activeTab === 'inventory'
                 ? 'Pemeriksaan stok barang konsolidasi Accurate (CPL, Hana Lines, Mandar Ocean) & pencocokan kebutuhan pengadaan.'
                 : 'Distribusi waktu perputaran berkas fisik (lead time) dan beban kerja produktivitas staf PIC operasional.'}
@@ -482,7 +543,7 @@ export default function DashboardPage() {
           </div>
 
           {/* 4 Pillar Executive Metric Cards (procurement tabs only) */}
-          {activeTab !== 'inventory' && (
+          {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && (
             <KpiCards
               procurementList={filteredProcurement}
               armadaList={filteredArmada}
@@ -527,6 +588,17 @@ export default function DashboardPage() {
             />
           )}
 
+          {/* Tab Posisi Kapal (FMS Daily Report) */}
+          {activeTab === 'pos-kapal' && (
+            <PosisiKapalTab
+              items={kapalPosisiItems}
+              summary={kapalPosisiSummary}
+              isLoading={isLoadingPosisiKapal}
+              onRefresh={handleRefreshPosisiKapal}
+              showToast={showToast}
+            />
+          )}
+
           {/* Tab Foto Lapangan: Upload & Galeri Lapangan In-App Terintegrasi No TTB */}
           {activeTab === 'foto-lapangan' && (
             <FotoLapanganTab
@@ -536,6 +608,7 @@ export default function DashboardPage() {
               showToast={showToast}
             />
           )}
+
 
           {/* Tab TimeMark: Dokumentasi & Bukti Foto */}
           {activeTab === 'timemark' && (

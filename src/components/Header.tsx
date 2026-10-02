@@ -16,9 +16,10 @@ import {
   RefreshCw,
   Settings2,
   ExternalLink,
+  Navigation,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import { ProcurementItem, ArmadaItem, InventoryItem, InventorySummary } from '@/types/procurement';
+import { ProcurementItem, ArmadaItem, InventoryItem, InventorySummary, KapalPosisiItem } from '@/types/procurement';
 import { parseAndMergeWorkbook } from '@/utils/excelParser';
 import { parseInventoryWorkbook } from '@/utils/inventoryParser';
 import { determineCategory } from '@/utils/categoryClassifier';
@@ -41,7 +42,11 @@ interface HeaderProps {
   inventoryItems?: InventoryItem[];
   onInventoryUpload?: (items: InventoryItem[], summary?: InventorySummary) => void;
   onInventoryExport?: () => void;
+  onRefreshPosisiKapal?: () => void;
+  isSyncingPosisiKapal?: boolean;
+  kapalPosisiCount?: number;
 }
+
 
 const DEFAULT_SHEET_URL =
   'https://docs.google.com/spreadsheets/d/16Ae8gGsGYx_xCNaqZvME-uZvaAeECsE69PBYlY32fZk/edit?gid=0#gid=0';
@@ -62,7 +67,11 @@ export default function Header({
   inventoryItems,
   onInventoryUpload,
   onInventoryExport,
+  onRefreshPosisiKapal,
+  isSyncingPosisiKapal,
+  kapalPosisiCount,
 }: HeaderProps) {
+
   const [searchQuery, setSearchQuery] = useState<string>(searchKeyword || '');
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [isResetModalOpen, setIsResetModalOpen] = useState<boolean>(false);
@@ -820,6 +829,50 @@ export default function Header({
 
                 <div className="h-px bg-border my-1" />
 
+                {/* Section Header: Posisi Kapal (Daily Report FMS) */}
+                <div className="px-2.5 pt-1.5 pb-1 text-[10px] font-mono font-semibold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
+                  <span>Operasional Kapal</span>
+                  <span className="text-[9px] text-sky-600 dark:text-sky-400 font-bold bg-sky-500/10 px-1 py-0.2 rounded border border-sky-500/20">
+                    FMS
+                  </span>
+                </div>
+
+                {/* Refresh Posisi Kapal Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onRefreshPosisiKapal) {
+                      onRefreshPosisiKapal();
+                    }
+                    setIsMenuOpen(false);
+                  }}
+                  disabled={isSyncingPosisiKapal}
+                  className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-foreground hover:bg-muted text-left transition disabled:opacity-60 cursor-pointer"
+                >
+                  <Navigation
+                    className={`size-4 text-sky-500 shrink-0 ${
+                      isSyncingPosisiKapal ? 'animate-spin text-sky-600' : ''
+                    }`}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-semibold block leading-tight text-xs text-foreground">
+                        {isSyncingPosisiKapal ? 'Menyinkronkan...' : 'Refresh Posisi Kapal'}
+                      </span>
+                      <span className="text-[9px] font-bold px-1 rounded bg-sky-500/15 text-sky-600 dark:text-sky-400">
+                        Daily Report
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground block truncate">
+                      {kapalPosisiCount && kapalPosisiCount > 0
+                        ? `Terpantau ${kapalPosisiCount} unit kapal aktif`
+                        : 'Tarik laporan posisi & aktivitas kapal'}
+                    </span>
+                  </div>
+                </button>
+
+                <div className="h-px bg-border my-1" />
+
                 {/* Section Header: Persediaan Gudang (Stok Accurate) */}
                 <div className="px-2.5 pt-1.5 pb-1 text-[10px] font-mono font-semibold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
                   <span>Persediaan Gudang</span>
@@ -827,6 +880,7 @@ export default function Header({
                     Accurate
                   </span>
                 </div>
+
 
                 {/* 3. Refresh Stok dari e-FPB Link */}
                 <button

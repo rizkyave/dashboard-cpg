@@ -2,9 +2,34 @@ export type EntityCode = 'ALL' | 'CPL' | 'PPI' | 'HL' | 'GAJ' | 'MIL' | 'SP' | '
 
 export type LapseFilterType = 'ALL' | 'NORMAL' | 'WARNING' | 'CRITICAL';
 
-export type TabType = 'overview' | 'procurement' | 'armada' | 'analytics' | 'inventory' | 'timemark' | 'foto-lapangan';
+export type TabType = 'overview' | 'procurement' | 'armada' | 'pos-kapal' | 'analytics' | 'inventory' | 'timemark' | 'foto-lapangan';
 
 export type StatusTone = 'emerald' | 'cyan' | 'purple' | 'amber' | 'rose';
+
+export interface KapalPosisiItem {
+  id: string;
+  kapalSlug: string;
+  namaKapal: string;
+  callsign?: string;
+  posisi: string;
+  activity: string;
+  statusKode: 'ON' | 'SB' | 'MT' | 'BD' | 'DK' | string;
+  detailStatus?: string;
+  tanggal: string;
+  performa?: string;
+  kerusakan?: string;
+  keterangan?: string;
+}
+
+export interface KapalPosisiSummary {
+  totalKapal: number;
+  totalON: number;
+  totalSB: number;
+  totalMT: number;
+  totalBD: number;
+  totalDK: number;
+  lastUpdated: string;
+}
 
 export interface InventoryItem {
   id: string;

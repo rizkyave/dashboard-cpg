@@ -5,10 +5,12 @@ import {
   LayoutDashboard,
   ShoppingBag,
   Anchor,
+  Navigation,
   BarChart3,
   Boxes,
   Menu,
 } from 'lucide-react';
+
 import { TabType } from '@/types/procurement';
 
 interface MobileBottomNavProps {
@@ -55,12 +57,18 @@ export default function MobileBottomNav({
       icon: Anchor,
     },
     {
+      id: 'pos-kapal',
+      label: 'Posisi',
+      icon: Navigation,
+    },
+    {
       id: 'inventory',
       label: 'Stok',
       icon: Boxes,
       badge: '10k',
     },
   ];
+
 
   return (
     <nav
@@ -70,7 +78,7 @@ export default function MobileBottomNav({
         paddingBottom: 'max(0.35rem, env(safe-area-inset-bottom))',
       }}
     >
-      <div className="grid grid-cols-5 items-stretch h-14 px-1 max-w-lg mx-auto">
+      <div className="grid grid-cols-6 items-stretch h-14 px-1 max-w-lg mx-auto">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
