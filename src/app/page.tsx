@@ -481,11 +481,13 @@ export default function DashboardPage() {
         totalCount={procurementData?.length ?? 0}
         criticalCount={criticalCount}
         inventoryCount={inventoryItems?.length ?? 0}
+        kapalPosisiCount={kapalPosisiItems.length}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={toggleSidebar}
         onOpenNewRecord={() => setIsNewRecordOpen(true)}
         onExcelUpload={handleExcelUpload}
         showToast={showToast}
+
       />
 
       {/* Right Column: Header Bar + Main Content Area + Footer */}
