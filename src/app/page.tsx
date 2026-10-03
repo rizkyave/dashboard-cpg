@@ -537,7 +537,7 @@ export default function DashboardPage() {
                 : activeTab === 'armada'
                 ? 'Pencocokan kuantitas FPB vs FSTB, unit kapal armada, dan realisasi distribusi logistik lapangan.'
                 : activeTab === 'pos-kapal'
-                ? 'Laporan harian posisi, rute, aktivitas, status performa dan pekerjaan pemeliharaan armada kapal dari Fleet Management System.'
+                ? 'Laporan harian posisi, rute, aktivitas, status armada dan pekerjaan pemeliharaan kapal dari Fleet Management System.'
                 : activeTab === 'inventory'
                 ? 'Pemeriksaan stok barang konsolidasi Accurate (CPL, Hana Lines, Mandar Ocean) & pencocokan kebutuhan pengadaan.'
                 : 'Distribusi waktu perputaran berkas fisik (lead time) dan beban kerja produktivitas staf PIC operasional.'}

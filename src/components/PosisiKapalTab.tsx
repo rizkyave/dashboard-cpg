@@ -16,7 +16,6 @@ import {
   CheckCircle2,
   Ship,
   Wrench,
-  Percent,
   Calendar,
   X,
   ChevronDown,
@@ -191,7 +190,7 @@ export default function PosisiKapalTab({
                   </span>
                 </h2>
                 <p className="text-xs text-muted-foreground">
-                  Data pemantauan posisi terkini, aktivitas harian, performa &amp; status armada kapal
+                  Data pemantauan posisi terkini, aktivitas harian, dan status armada kapal
                 </p>
               </div>
             </div>
@@ -572,7 +571,6 @@ export default function PosisiKapalTab({
                   <th className="p-3.5">Posisi / Lokasi</th>
                   <th className="p-3.5">Activity Terkini</th>
                   <th className="p-3.5 text-center">Status</th>
-                  <th className="p-3.5 text-center">Performa</th>
                   <th className="p-3.5">Kerusakan / Maintenance</th>
                   <th className="p-3.5">Keterangan</th>
                 </tr>
@@ -621,17 +619,6 @@ export default function PosisiKapalTab({
                             <span className="text-[9px] opacity-80">({item.detailStatus})</span>
                           )}
                         </span>
-                      </td>
-
-                      {/* Performa */}
-                      <td className="p-3.5 text-center whitespace-nowrap font-mono font-medium">
-                        {item.performa && item.performa !== '-' ? (
-                          <span className="px-1.5 py-0.5 rounded bg-muted text-foreground border border-border">
-                            {item.performa}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground/60">-</span>
-                        )}
                       </td>
 
                       {/* Kerusakan */}
@@ -704,22 +691,12 @@ export default function PosisiKapalTab({
                   </div>
                 </div>
 
-                {(item.kerusakan !== '-' || item.performa !== '-') && (
-                  <div className="pt-2 border-t border-border/60 flex items-center justify-between text-xs font-mono">
-                    {item.performa && item.performa !== '-' ? (
-                      <span className="text-[11px] text-muted-foreground">
-                        Performa: <b className="text-foreground">{item.performa}</b>
-                      </span>
-                    ) : (
-                      <span></span>
-                    )}
-
-                    {item.kerusakan && item.kerusakan !== '-' && (
-                      <span className="text-[10px] text-amber-500 font-sans flex items-center gap-1">
-                        <Wrench className="size-3" />
-                        <span>{item.kerusakan}</span>
-                      </span>
-                    )}
+                {item.kerusakan && item.kerusakan !== '-' && (
+                  <div className="pt-2 border-t border-border/60 flex items-center justify-between text-xs">
+                    <span className="text-[10px] text-amber-500 font-sans flex items-center gap-1">
+                      <Wrench className="size-3" />
+                      <span>{item.kerusakan}</span>
+                    </span>
                   </div>
                 )}
               </div>
