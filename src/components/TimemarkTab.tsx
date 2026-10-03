@@ -279,7 +279,7 @@ export default function TimemarkTab({
               type="text"
               value={customInputUrl}
               onChange={(e) => setCustomInputUrl(e.target.value)}
-              placeholder="https://teamspace.timemark.com"
+              placeholder="https://teamspace.timemark.com/?search={code}"
               className="flex-1 h-9 px-3 rounded-lg border border-border bg-background text-xs font-mono text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
             />
             <div className="flex items-center gap-2">
@@ -300,6 +300,9 @@ export default function TimemarkTab({
               </button>
             </div>
           </div>
+          <p className="text-[11px] text-muted-foreground">
+            💡 Sistem otomatis menyematkan query pencarian FSTB ke URL web, atau gunakan placeholder <code className="text-amber-500 font-semibold">{'{code}'}</code> / <code className="text-amber-500 font-semibold">{'{fstb}'}</code> jika portal Anda memiliki format khusus.
+          </p>
         </div>
       )}
 
@@ -519,7 +522,7 @@ export default function TimemarkTab({
                             type="button"
                             onClick={(e) => handleOpenTimemarkDirect(e, row.noFstb)}
                             className="h-7 px-2.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 rounded-lg text-xs font-semibold transition inline-flex items-center gap-1 shadow-2xs"
-                            title={`Salin kode ${row.shortCode} dan buka portal TimeMark`}
+                            title={`Buka & cari langsung foto FSTB (${row.shortCode}) di web portal TimeMark`}
                           >
                             <Camera className="w-3 h-3 text-amber-600 dark:text-amber-400" />
                             <span>Buka Foto ({row.shortCode})</span>

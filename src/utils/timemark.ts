@@ -64,53 +64,86 @@ export const setTimemarkPortalUrl = (url: string): void => {
 };
 
 /**
- * Membuka portal TimeMark & menyalin 5 angka FSTB ke clipboard pengguna.
- * Memberikan feedback toast instan untuk kemudahan alur kerja.
+ * Membentuk URL pencarian web langsung dengan nomor FSTB.
+ * Mendukung template placeholder {code} dan {fstb}, serta otomatis
+ * menambahkan parameter query string (?search=...&keyword=...&q=...) ke URL portal.
+ */
+export const buildTimemarkSearchUrl = (baseUrl: string, shortCode: string, fullFstb?: string): string => {
+  const code = (shortCode || extractFstbLast5(fullFstb)).trim();
+  const fstb = (fullFstb || code).trim();
+  if (!code && !fstb) return baseUrl || DEFAULT_TIMEMARK_PORTAL_URL;
+
+  const url = (baseUrl || DEFAULT_TIMEMARK_PORTAL_URL).trim();
+
+  // 1. Template replacement jika user mengonfigurasi template URL kustom
+  // Contoh: https://teamspace.timemark.com/?search={code}
+  // Atau: https://drive.google.com/drive/search?q={fstb}
+  if (url.includes('{code}') || url.includes('{fstb}')) {
+    return url
+      .replace(/\{code\}/g, encodeURIComponent(code))
+      .replace(/\{fstb\}/g, encodeURIComponent(fstb));
+  }
+
+  // 2. Format URL pencarian web otomatis:
+  // Mengirim parameter search dan keyword yang umum digunakan web app
+  const cleanBase = url.replace(/\/+$/, '');
+  const separator = cleanBase.includes('?') ? '&' : '?';
+  const queryParam = `search=${encodeURIComponent(code)}&keyword=${encodeURIComponent(code)}&q=${encodeURIComponent(code)}`;
+
+  // Menangani URL yang memiliki hash routing (#/...)
+  if (cleanBase.includes('#')) {
+    const hashSep = cleanBase.includes('?') ? '&' : '?';
+    return `${cleanBase}${hashSep}${queryParam}`;
+  }
+
+  return `${cleanBase}${separator}${queryParam}`;
+};
+
+/**
+ * Membuka portal TimeMark langsung dengan pencarian nomor FSTB di web & menyalin ke clipboard.
+ * Membuka web search langsung tanpa harus paste manual.
  */
 export const openTimemarkWithFstb = async (
   fstb: string,
   onNotify?: (msg: string, type: 'info' | 'success' | 'warning' | 'error') => void
-): Promise<{ success: boolean; shortCode: string; portalUrl: string }> => {
+): Promise<{ success: boolean; shortCode: string; portalUrl: string; searchUrl: string }> => {
   const shortCode = extractFstbLast5(fstb);
   const portalUrl = getTimemarkPortalUrl();
 
-  if (!shortCode) {
+  if (!shortCode && !fstb) {
     if (onNotify) {
       onNotify('Nomor FSTB tidak valid atau belum terbit.', 'warning');
     }
-    return { success: false, shortCode: '', portalUrl };
+    return { success: false, shortCode: '', portalUrl, searchUrl: portalUrl };
   }
 
-  // 1. Salin 5 angka ke clipboard
+  // 1. Bentuk URL pencarian web langsung yang membawa nomor FSTB
+  const searchUrl = buildTimemarkSearchUrl(portalUrl, shortCode, fstb);
+
+  // 2. Salin 5 angka ke clipboard sebagai safeguard / cadangan
   let copied = false;
   if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
     try {
-      await navigator.clipboard.writeText(shortCode);
+      await navigator.clipboard.writeText(shortCode || fstb);
       copied = true;
     } catch {
-      // Clipboard write failed (permissions/focus), non-fatal
+      // Non-fatal
     }
   }
 
-  // 2. Buka portal web TimeMark di tab baru
+  // 3. Buka URL pencarian langsung di tab baru (langsung search no FSTB tanpa paste manual)
   if (typeof window !== 'undefined') {
-    window.open(portalUrl, '_blank', 'noopener,noreferrer');
+    window.open(searchUrl, '_blank', 'noopener,noreferrer');
   }
 
-  // 3. Notifikasi toast
+  // 4. Notifikasi toast
   if (onNotify) {
-    if (copied) {
-      onNotify(
-        `Kode FSTB "${shortCode}" disalin ke clipboard! Membuka portal TimeMark...`,
-        'success'
-      );
-    } else {
-      onNotify(
-        `Membuka portal TimeMark untuk FSTB "${shortCode}"...`,
-        'info'
-      );
-    }
+    onNotify(
+      `Membuka web pencarian FSTB "${shortCode || fstb}"${copied ? ' (kode juga disalin ke clipboard)' : ''}...`,
+      'success'
+    );
   }
 
-  return { success: true, shortCode, portalUrl };
+  return { success: true, shortCode, portalUrl, searchUrl };
 };
+
