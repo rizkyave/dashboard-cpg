@@ -279,7 +279,7 @@ export default function TimemarkTab({
               type="text"
               value={customInputUrl}
               onChange={(e) => setCustomInputUrl(e.target.value)}
-              placeholder="https://teamspace.timemark.com/?search={code}"
+              placeholder="https://teamspace.timemark.com/en/allPhotos"
               className="flex-1 h-9 px-3 rounded-lg border border-border bg-background text-xs font-mono text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
             />
             <div className="flex items-center gap-2">

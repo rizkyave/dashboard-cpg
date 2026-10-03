@@ -3,7 +3,7 @@
  * Menghubungkan kode FSTB (5 digit terakhir) langsung ke portal web TimeMark Teamspace.
  */
 
-export const DEFAULT_TIMEMARK_PORTAL_URL = 'https://teamspace.timemark.com';
+export const DEFAULT_TIMEMARK_PORTAL_URL = 'https://teamspace.timemark.com/en/allPhotos';
 const STORAGE_KEY = 'timemark_portal_url';
 
 /**
@@ -39,6 +39,11 @@ export const getTimemarkPortalUrl = (): string => {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved && saved.trim().startsWith('http')) {
+      const clean = saved.trim().replace(/\/+$/, '');
+      // Auto upgrade root domain lama ke halaman allPhotos langsung
+      if (clean === 'https://teamspace.timemark.com' || clean === 'http://teamspace.timemark.com') {
+        return DEFAULT_TIMEMARK_PORTAL_URL;
+      }
       return saved.trim();
     }
   } catch {
@@ -71,9 +76,14 @@ export const setTimemarkPortalUrl = (url: string): void => {
 export const buildTimemarkSearchUrl = (baseUrl: string, shortCode: string, fullFstb?: string): string => {
   const code = (shortCode || extractFstbLast5(fullFstb)).trim();
   const fstb = (fullFstb || code).trim();
-  if (!code && !fstb) return baseUrl || DEFAULT_TIMEMARK_PORTAL_URL;
+  let url = (baseUrl || DEFAULT_TIMEMARK_PORTAL_URL).trim();
 
-  const url = (baseUrl || DEFAULT_TIMEMARK_PORTAL_URL).trim();
+  // Jika URL masih mengarah ke root domain, arahkan langsung ke halaman galeri allPhotos
+  if (url.replace(/\/+$/, '') === 'https://teamspace.timemark.com' || url.replace(/\/+$/, '') === 'http://teamspace.timemark.com') {
+    url = DEFAULT_TIMEMARK_PORTAL_URL;
+  }
+
+  if (!code && !fstb) return url;
 
   // 1. Template replacement jika user mengonfigurasi template URL kustom
   // Contoh: https://teamspace.timemark.com/?search={code}

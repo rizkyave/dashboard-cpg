@@ -232,7 +232,7 @@ export default function TimemarkModal({
                   type="text"
                   value={customInputUrl}
                   onChange={(e) => setCustomInputUrl(e.target.value)}
-                  placeholder="https://teamspace.timemark.com/?search={code}"
+                  placeholder="https://teamspace.timemark.com/en/allPhotos"
                   className="w-full h-8 px-2.5 rounded-lg border border-border bg-background text-xs font-mono text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                 />
                 <div className="flex items-center justify-end gap-2 pt-1">
