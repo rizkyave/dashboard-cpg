@@ -19,6 +19,7 @@ import {
   CheckCircle2,
   Boxes,
   Camera,
+  Clock,
 } from 'lucide-react';
 import { ProcurementItem, ArmadaItem, InventoryItem } from '@/types/procurement';
 import StockAuditModal from './StockAuditModal';
@@ -269,6 +270,53 @@ export default function AuditModal({
     window.addEventListener('foto-lapangan-updated', handleFotoUpdate);
     return () => window.removeEventListener('foto-lapangan-updated', handleFotoUpdate);
   }, [activeTtb, primaryDocNum, activeFstb]);
+
+  // Validasi keterisian Logistik TTB dan Tim Lapangan untuk penentuan status PENGANTARAN LOGISTIK
+  const activeTglTtb =
+    itemsS2.find((i) => i.tglTtb && i.tglTtb.trim() !== '' && i.tglTtb !== '-')?.tglTtb ||
+    (itemS1?.tglInputTtb && itemS1.tglInputTtb.trim() !== '' && itemS1.tglInputTtb !== '-' ? itemS1.tglInputTtb : '') ||
+    (itemS1?.tglKePicTtb && itemS1.tglKePicTtb.trim() !== '' && itemS1.tglKePicTtb !== '-' ? itemS1.tglKePicTtb : '') ||
+    '';
+  const isPicTtbFilled = Boolean(
+    itemS1?.picTtb &&
+    itemS1.picTtb !== '-' &&
+    itemS1.picTtb.trim() !== '' &&
+    itemS1.picTtb.toLowerCase() !== '(kosong)'
+  );
+
+  const isLogistikTtbFilled = Boolean(
+    (activeTtb && activeTtb !== '-' && activeTtb.trim() !== '') ||
+    (activeTglTtb && activeTglTtb !== '-' && activeTglTtb.trim() !== '') ||
+    isPicTtbFilled
+  );
+
+  const isPicLapFilled = Boolean(
+    itemS1?.picLap &&
+    itemS1.picLap !== '-' &&
+    itemS1.picLap.trim() !== '' &&
+    itemS1.picLap.toLowerCase() !== '(kosong)'
+  );
+  const hasTglDiantar = Boolean(
+    itemS1?.tglBarangDiantar && itemS1.tglBarangDiantar !== '-' && itemS1.tglBarangDiantar.trim() !== ''
+  );
+  const hasTglKeLap = Boolean(
+    itemS1?.tglKeTimLapangan && itemS1.tglKeTimLapangan !== '-' && itemS1.tglKeTimLapangan.trim() !== ''
+  );
+  const hasTglTtbKePch = Boolean(
+    itemS1?.tglTtbKePicPch && itemS1.tglTtbKePicPch !== '-' && itemS1.tglTtbKePicPch.trim() !== ''
+  );
+  const hasFotoLap = fotoLapanganList.length > 0;
+
+  const isTimLapFilled = Boolean(
+    isPicLapFilled ||
+    hasTglDiantar ||
+    hasTglKeLap ||
+    hasTglTtbKePch ||
+    hasFotoLap
+  );
+
+  // Status PENGANTARAN LOGISTIK: DONE jika logistik TTB dan tim lapangan sudah terisi, sebaliknya IN PROGRESS
+  const isPengantaranLogistikDone = isLogistikTtbFilled && isTimLapFilled;
 
   // Daftar saran TTB untuk mempermudah autocomplete saat upload
   const ttbSuggestions = useMemo(() => {
@@ -648,8 +696,14 @@ export default function AuditModal({
               <ShieldCheck className="size-4 text-emerald-600 dark:text-emerald-400" />
               <span>Status Validasi Dokumen Lintas Modul</span>
             </h4>
-            <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-mono bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
-              4/4 Modul Terverifikasi
+            <span
+              className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
+                isPengantaranLogistikDone
+                  ? 'text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
+                  : 'text-amber-700 dark:text-amber-400 bg-amber-500/10 border-amber-500/20'
+              }`}
+            >
+              {isPengantaranLogistikDone ? '4/4' : '3/4'} Modul Terverifikasi
             </span>
           </div>
 
@@ -705,10 +759,17 @@ export default function AuditModal({
               </div>
               <div className="flex items-center justify-between pt-2 border-t border-border">
                 <span className="text-[10px] text-muted-foreground font-mono">Status:</span>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-mono text-[11px] font-medium">
-                  <Check className="size-3 text-emerald-600 dark:text-emerald-400" />
-                  DONE
-                </span>
+                {isPengantaranLogistikDone ? (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-mono text-[11px] font-medium">
+                    <Check className="size-3 text-emerald-600 dark:text-emerald-400" />
+                    DONE
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 font-mono text-[11px] font-medium">
+                    <Clock className="size-3 text-amber-600 dark:text-amber-400" />
+                    IN PROGRESS
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -958,7 +1019,7 @@ export default function AuditModal({
               </div>
               <div className="pt-2 border-t border-border">
                 <span className="text-[10px] font-mono text-purple-700 dark:text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-md border border-purple-500/20 block text-center truncate font-medium">
-                  {itemsS2[0]?.noTtb || itemS1?.noTtb
+                  {isLogistikTtbFilled
                     ? 'TTB Divalidasi'
                     : 'Menunggu TTB'}
                 </span>
@@ -1043,9 +1104,13 @@ export default function AuditModal({
                 <span className="text-[10px] font-mono text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20 block text-center truncate font-medium">
                   {itemS1?.tglBarangDiantar
                     ? 'Barang Sudah Diantar'
-                    : itemsS2.length > 0 && itemsS2[0].selisih === 0
+                    : hasFotoLap
+                    ? 'Dokumentasi Lapangan'
+                    : isTimLapFilled
+                    ? 'Distribusi Lapangan'
+                    : itemsS2.length > 0 && itemsS2[0].qtyFSTB > 0 && itemsS2[0].selisih === 0
                     ? 'Fisik Lengkap'
-                    : 'Distribusi Lapangan'}
+                    : 'Menunggu Distribusi'}
                 </span>
               </div>
             </div>
