@@ -223,8 +223,9 @@ export function PicWorkloadChart({ data }: { data: ProcurementItem[] }) {
   }
 
   const pics: Record<string, number> = {
+    'LUTFI (PCH)': 0,
+    'PUTRI (PCH)': 0,
     'NOVI (PCH)': 0,
-    'RINI (PCH)': 0,
     'DAVILA (TTB)': 0,
     'FIFI (TTB)': 0,
     'AGUS (LAP)': 0,
@@ -232,12 +233,17 @@ export function PicWorkloadChart({ data }: { data: ProcurementItem[] }) {
   };
 
   data.forEach((item) => {
-    if (item.picPch?.includes('NOVI')) pics['NOVI (PCH)']++;
-    if (item.picPch?.includes('RINI')) pics['RINI (PCH)']++;
-    if (item.picTtb?.includes('DAVILA')) pics['DAVILA (TTB)']++;
-    if (item.picTtb?.includes('FIFI')) pics['FIFI (TTB)']++;
-    if (item.picLap?.includes('AGUS')) pics['AGUS (LAP)']++;
-    if (item.picLap?.includes('HAMKA')) pics['HAMKA (LAP)']++;
+    const pch = item.picPch?.toUpperCase() || '';
+    const ttb = item.picTtb?.toUpperCase() || '';
+    const lap = item.picLap?.toUpperCase() || '';
+
+    if (pch.includes('LUTFI')) pics['LUTFI (PCH)']++;
+    if (pch.includes('PUTRI')) pics['PUTRI (PCH)']++;
+    if (pch.includes('NOVI')) pics['NOVI (PCH)']++;
+    if (ttb.includes('DAVILA')) pics['DAVILA (TTB)']++;
+    if (ttb.includes('FIFI')) pics['FIFI (TTB)']++;
+    if (lap.includes('AGUS')) pics['AGUS (LAP)']++;
+    if (lap.includes('HAMKA')) pics['HAMKA (LAP)']++;
   });
 
   const chartData = {
