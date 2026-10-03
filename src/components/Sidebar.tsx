@@ -175,18 +175,18 @@ export default function Sidebar({
         }`}
       >
         <div className="flex flex-col gap-4 overflow-y-auto no-scrollbar">
-          {/* Brand Header with Studio Admin style */}
-          <div className="flex items-center justify-between px-1.5 pt-0.5">
-            <div className="flex items-center gap-2">
-              <Command className="size-4.5 text-foreground" />
-              <span className="font-bold text-sm tracking-tight text-foreground">
-                Studio Admin
+          {/* Brand Header with CPG Procurement Monitoring System */}
+          <div className="flex items-center justify-between px-1.5 pt-0.5 gap-1.5">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <Command className="size-4.5 text-foreground shrink-0" />
+              <span className="font-bold text-xs tracking-tight text-foreground leading-tight">
+                CPG Procurement Monitoring System
               </span>
             </div>
             <button
               onClick={onToggleCollapse}
               title="Tutup Navigasi"
-              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition touch-manipulation"
+              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition touch-manipulation shrink-0"
             >
               <PanelLeftClose className="size-4" />
             </button>
