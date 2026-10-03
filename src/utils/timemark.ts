@@ -98,7 +98,8 @@ export const buildTimemarkSearchUrl = (baseUrl: string, shortCode: string, fullF
   // Mengirim parameter search dan keyword yang umum digunakan web app
   const cleanBase = url.replace(/\/+$/, '');
   const separator = cleanBase.includes('?') ? '&' : '?';
-  const queryParam = `search=${encodeURIComponent(code)}&keyword=${encodeURIComponent(code)}&q=${encodeURIComponent(code)}`;
+  // `fstb` dibaca oleh userscript auto-search (public/timemark-autosearch.user.js)
+  const queryParam = `fstb=${encodeURIComponent(code)}&search=${encodeURIComponent(code)}&keyword=${encodeURIComponent(code)}&q=${encodeURIComponent(code)}`;
 
   // Menangani URL yang memiliki hash routing (#/...)
   if (cleanBase.includes('#')) {

@@ -303,6 +303,26 @@ export default function TimemarkTab({
           <p className="text-[11px] text-muted-foreground">
             💡 Sistem otomatis menyematkan query pencarian FSTB ke URL web, atau gunakan placeholder <code className="text-amber-500 font-semibold">{'{code}'}</code> / <code className="text-amber-500 font-semibold">{'{fstb}'}</code> jika portal Anda memiliki format khusus.
           </p>
+          <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-[11px] text-foreground space-y-1.5">
+            <div className="font-semibold flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+              <span>Auto-Search FSTB di TimeMark (tanpa copy-paste)</span>
+            </div>
+            <p className="text-muted-foreground leading-relaxed">
+              Web TimeMark menghapus parameter pencarian dari URL. Pasang ekstensi gratis{' '}
+              <a href="https://www.tampermonkey.net/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">Tampermonkey</a>,
+              lalu klik tombol di bawah. Setelah itu kolom pencarian TimeMark akan terisi &amp; dicari otomatis setiap kali Anda klik &quot;Buka Foto&quot;.
+            </p>
+            <a
+              href="/timemark-autosearch.user.js"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 h-7 px-3 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-semibold transition"
+            >
+              <ExternalLink className="w-3 h-3" />
+              <span>Instal Script Auto-Search</span>
+            </a>
+          </div>
         </div>
       )}
 
