@@ -139,6 +139,7 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
     waktuKePicTtb: string;
     ket1: string;
     lapseProc?: number;
+    lapseText?: string;
     picTtb: string;
     ttb: string;
     tglTtb: string;
@@ -202,11 +203,33 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
 
     const lapseCols: number[] = [];
     (json[headerRowIdx] || []).forEach((cell: any, idx: number) => {
-      if (String(cell || '').trim().toUpperCase() === 'LAPSE DAY') {
+      const headerStr = String(cell || '').trim().toUpperCase();
+      if (
+        headerStr === 'LAPSE DAY' ||
+        headerStr.replace(/\s+/g, '') === 'LAPSEDAY' ||
+        headerStr.replace(/\s+/g, ' ') === 'LAP SE DAY'
+      ) {
         lapseCols.push(idx);
       }
     });
-    const cLapse = lapseCols.length > 0 ? lapseCols[0] : -1;
+
+    // Cari kolom LAPSE DAY di Kolom AA (Column AA = index 26, atau LAPSE DAY tepat sebelum TANGGAL KE ADM PCH)
+    let cLapse = -1;
+    for (const colIdx of lapseCols) {
+      const nextHeader = String(json[headerRowIdx][colIdx + 1] || '').trim().toUpperCase();
+      if (colIdx === 26 || nextHeader.includes('ADM PCH')) {
+        cLapse = colIdx;
+        break;
+      }
+    }
+    // Fallback jika tidak terdeteksi via nama nextHeader:
+    if (cLapse < 0) {
+      if (lapseCols.length >= 4) {
+        cLapse = lapseCols[3]; // Kolom ke-4 (AA) di sheet PROCUREMENT
+      } else if (lapseCols.length > 0) {
+        cLapse = lapseCols[lapseCols.length - 1];
+      }
+    }
 
     for (let i = headerRowIdx + 1; i < json.length; i++) {
       const r = json[i];
@@ -216,13 +239,39 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
       const po = String(cPO >= 0 ? r[cPO] : r[5] || '').trim();
       if (!fpb && !po) continue;
 
+      const tglTtbKePicPch = excelDateToString(cTglTtbPch >= 0 ? r[cTglTtbPch] : '');
       const rawLapse = cLapse >= 0 ? r[cLapse] : '';
-      const lapseProc =
+
+      let lapseProc: number = 0;
+      let lapseText: string | undefined = undefined;
+
+      const isNegativeLapse =
         typeof rawLapse === 'number'
-          ? Math.abs(Math.round(rawLapse))
-          : rawLapse !== ''
-          ? Math.abs(parseInt(String(rawLapse)) || 0)
-          : undefined;
+          ? rawLapse < 0
+          : typeof rawLapse === 'string' && rawLapse.trim().startsWith('-');
+      const isTtbPchEmpty =
+        !tglTtbKePicPch || tglTtbKePicPch === '-' || tglTtbKePicPch.trim() === '';
+
+      // Logic: jika TANGGAL TTB KE PIC PCH belum diinput atau formula menghasilkan negatif (-46... sekian), set TBC
+      if (isNegativeLapse || isTtbPchEmpty) {
+        lapseProc = 0;
+        lapseText = 'TBC';
+      } else if (typeof rawLapse === 'number' && !isNaN(rawLapse)) {
+        lapseProc = Math.round(rawLapse);
+        lapseText = undefined;
+      } else if (rawLapse !== '' && !isNaN(Number(rawLapse))) {
+        const parsed = parseInt(String(rawLapse), 10);
+        if (parsed < 0) {
+          lapseProc = 0;
+          lapseText = 'TBC';
+        } else {
+          lapseProc = parsed;
+          lapseText = undefined;
+        }
+      } else {
+        lapseProc = 0;
+        lapseText = 'TBC';
+      }
 
       const record: ProcRecord = {
         rowIdx: i,
@@ -239,6 +288,7 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
         waktuKePicTtb: String(cWaktuPicTtb >= 0 ? r[cWaktuPicTtb] : '').trim(),
         ket1: String(cKet1 >= 0 ? r[cKet1] : '').trim(),
         lapseProc,
+        lapseText,
         picTtb: String(cPicTtb >= 0 ? r[cPicTtb] : '').trim(),
         ttb: String(cTTB >= 0 ? r[cTTB] : '').trim(),
         tglTtb: excelDateToString(cTglTTB >= 0 ? r[cTglTTB] : ''),
@@ -569,8 +619,14 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
       }
 
       let lapse = 0;
-      if (pMatch?.lapseProc !== undefined && pMatch.lapseProc !== null) {
+      let lapseText: string | undefined = undefined;
+
+      if (pMatch?.lapseText === 'TBC') {
+        lapse = 0;
+        lapseText = 'TBC';
+      } else if (pMatch?.lapseProc !== undefined && pMatch.lapseProc !== null) {
         lapse = pMatch.lapseProc;
+        lapseText = pMatch.lapseText;
       } else if (waktuProses) {
         const match = waktuProses.match(/\d+/);
         if (match) lapse = parseInt(match[0]);
@@ -582,7 +638,7 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
         }
       }
 
-      if (lapse > 5 && statusTone !== 'emerald') {
+      if (lapseText !== 'TBC' && lapse > 5 && statusTone !== 'emerald') {
         statusTone = 'rose';
       }
 
@@ -612,6 +668,7 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
         item: namaBarang,
         peruntukan,
         lapse,
+        lapseText,
         statusBadge,
         statusTone,
         picPch,
@@ -700,6 +757,7 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
         statusBadge,
         statusTone,
         lapse,
+        lapseText,
         picAktif,
         // Divisi 1: Check & Verifikasi FPB
         picCheckFpb,
@@ -768,8 +826,11 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
         statusPenjelasan = `FPB ${proc.fpb} belum memiliki PO`;
       }
 
-      const lapse = proc.lapseProc !== undefined ? proc.lapseProc : 0;
-      if (lapse > 5 && statusTone !== 'emerald') {
+      let lapse = proc.lapseProc !== undefined ? proc.lapseProc : 0;
+      let lapseText: string | undefined = proc.lapseText;
+      if (lapseText === 'TBC') {
+        lapse = 0;
+      } else if (lapse > 5 && statusTone !== 'emerald') {
         statusTone = 'rose';
       }
 
@@ -808,6 +869,7 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
         item: itemDesc,
         peruntukan: proc.ket1 || '',
         lapse,
+        lapseText,
         statusBadge,
         statusTone,
         picPch: proc.picPch || '-',
@@ -886,6 +948,7 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
           statusBadge,
           statusTone,
           lapse,
+          lapseText,
           picAktif,
           picCheckFpb,
           tglCheckFpb,

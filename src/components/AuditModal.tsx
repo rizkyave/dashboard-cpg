@@ -429,7 +429,7 @@ export default function AuditModal({
     };
   }, [onClose]);
 
-  const isCritical = itemS1 ? itemS1.lapse > 5 : false;
+  const isCritical = itemS1 ? (itemS1.lapseText !== 'TBC' && itemS1.lapse > 5) : false;
 
   const handleFetchPdfData = async () => {
     if (!primaryDocNum) {
@@ -639,7 +639,7 @@ export default function AuditModal({
                 <>
                   <p className="mb-1 text-foreground">
                     <strong>Alur Berkas Bersih:</strong> Berkas <code>{itemS1?.fpb}</code> berada
-                    dalam koridor SLA normal (Lapse: <strong>{itemS1?.lapse || 0} hari</strong>
+                    dalam koridor SLA normal (Lapse: <strong>{itemS1?.lapseText === 'TBC' ? 'TBC' : `${itemS1?.lapse || 0} hari`}</strong>
                     ).
                   </p>
                   <p className="text-muted-foreground">

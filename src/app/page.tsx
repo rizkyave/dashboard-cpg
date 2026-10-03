@@ -155,7 +155,8 @@ export default function DashboardPage() {
       date: item.date || '',
       item: item.item || '',
       peruntukan: item.peruntukan || '',
-      lapse: typeof item.lapse === 'number' ? item.lapse : 0,
+      lapse: typeof item.lapse === 'number' && item.lapse >= 0 ? item.lapse : 0,
+      lapseText: item.lapseText || (item.lapse < 0 ? 'TBC' : undefined),
       statusBadge: item.statusBadge || 'PROSES',
       statusTone: item.statusTone || 'cyan',
       picPch: item.picPch || '-',
@@ -172,6 +173,8 @@ export default function DashboardPage() {
     picAktif = picAktif.replace(/\(adm\/finance\)/gi, '(ADM/PRC)');
     return {
       ...item,
+      lapse: typeof item.lapse === 'number' && item.lapse >= 0 ? item.lapse : 0,
+      lapseText: item.lapseText || (item.lapse < 0 ? 'TBC' : undefined),
       picAktif,
     };
   };

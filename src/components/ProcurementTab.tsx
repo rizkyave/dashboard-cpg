@@ -277,7 +277,9 @@ export default function ProcurementTab({
     let warning = 0;
     let normal = 0;
     for (const item of displayBaseItems) {
-      if (item.lapse > 5) critical++;
+      if (item.lapseText === 'TBC' || item.lapse < 0) {
+        // TBC (belum input TTB ke PIC PCH)
+      } else if (item.lapse > 5) critical++;
       else if (item.lapse >= 3) warning++;
       else normal++;
     }
@@ -315,9 +317,10 @@ export default function ProcurementTab({
       }
 
       // Lapse Filter
-      if (selectedLapse === 'NORMAL' && row.lapse > 2) return false;
-      if (selectedLapse === 'WARNING' && (row.lapse < 3 || row.lapse > 5)) return false;
-      if (selectedLapse === 'CRITICAL' && row.lapse <= 5) return false;
+      const isTbc = row.lapseText === 'TBC' || row.lapse < 0;
+      if (selectedLapse === 'NORMAL' && (isTbc || row.lapse > 2)) return false;
+      if (selectedLapse === 'WARNING' && (isTbc || row.lapse < 3 || row.lapse > 5)) return false;
+      if (selectedLapse === 'CRITICAL' && (isTbc || row.lapse <= 5)) return false;
 
       // Status Filter
       if (selectedStatus !== 'ALL' && row.statusBadge !== selectedStatus) {
@@ -1306,12 +1309,14 @@ export default function ProcurementTab({
               <div className="p-3 sm:p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {paginatedItems.map((row) => {
                   const badgeClass = toneStyles[row.statusTone] || toneStyles.cyan;
-                  const lapseBadgeClass =
-                    row.lapse <= 2
-                      ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
-                      : row.lapse <= 4
-                      ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
-                      : 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20';
+                  const isTbc = row.lapseText === 'TBC' || row.lapse < 0;
+                  const lapseBadgeClass = isTbc
+                    ? 'bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-500/20'
+                    : row.lapse <= 2
+                    ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
+                    : row.lapse <= 4
+                    ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
+                    : 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20';
 
                   const cleanRowFpb = (row.fpb || '').trim().replace(/^["']|["']$/g, '');
                   const fpbDocNum = cleanRowFpb || (row.po || '').trim().replace(/^["']|["']$/g, '');
@@ -1344,8 +1349,9 @@ export default function ProcurementTab({
                         </div>
                         <span
                           className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${lapseBadgeClass}`}
+                          title={isTbc ? 'TBC (To Be Confirmed) - Tanggal TTB ke PIC PCH belum diinput' : `${row.lapse} Hari`}
                         >
-                          {row.lapse} Hari
+                          {isTbc ? 'TBC' : `${row.lapse} Hari`}
                         </span>
                       </div>
 
@@ -1484,12 +1490,14 @@ export default function ProcurementTab({
               ) : (
                 paginatedItems.map((row) => {
                   const badgeClass = toneStyles[row.statusTone] || toneStyles.cyan;
-                  const lapseBadgeClass =
-                    row.lapse <= 2
-                      ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
-                      : row.lapse <= 4
-                      ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
-                      : 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20';
+                  const isTbc = row.lapseText === 'TBC' || row.lapse < 0;
+                  const lapseBadgeClass = isTbc
+                    ? 'bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-500/20'
+                    : row.lapse <= 2
+                    ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
+                    : row.lapse <= 4
+                    ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
+                    : 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20';
 
                   const cleanRowFpb = (row.fpb || '').trim().replace(/^["']|["']$/g, '');
                   const fpbDocNum = cleanRowFpb || (row.po || '').trim().replace(/^["']|["']$/g, '');
@@ -1610,9 +1618,10 @@ export default function ProcurementTab({
                       </td>
                       <td className="p-3.5 text-center">
                         <span
-                          className={`inline-block px-2.5 py-0.5 rounded-full font-mono text-xs font-medium border ${lapseBadgeClass}`}
+                          className={`inline-block px-2.5 py-0.5 rounded-full font-mono text-xs font-semibold border ${lapseBadgeClass}`}
+                          title={isTbc ? 'TBC (To Be Confirmed) - Tanggal TTB ke PIC PCH belum diinput' : `${row.lapse} Hari`}
                         >
-                          {row.lapse} Hari
+                          {isTbc ? 'TBC' : `${row.lapse} Hari`}
                         </span>
                       </td>
                       <td className="p-3.5 text-center" onClick={(e) => e.stopPropagation()}>

@@ -87,6 +87,7 @@ export interface ProcurementItem {
   item: string;
   peruntukan: string;
   lapse: number;
+  lapseText?: string;
   statusBadge: string;
   statusTone: StatusTone;
   picPch: string;
@@ -171,6 +172,7 @@ export interface ArmadaItem {
   statusBadge?: string;
   statusTone?: StatusTone;
   lapse?: number;
+  lapseText?: string;
   picAktif?: string;
   // Divisi 1: Check & Verifikasi FPB
   picCheckFpb?: string;

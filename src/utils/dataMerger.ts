@@ -223,8 +223,12 @@ export function mergeProcurementDatasets(
         }
       }
 
-      if (incoming.lapse && incoming.lapse > 0) {
+      if (incoming.lapseText === 'TBC') {
+        target.lapseText = 'TBC';
+        target.lapse = 0;
+      } else if (incoming.lapse !== undefined && incoming.lapse !== null) {
         target.lapse = incoming.lapse;
+        target.lapseText = incoming.lapseText;
       }
 
       updatedCount++;
@@ -306,6 +310,13 @@ export function mergeArmadaDatasets(
       if (incoming.statusCheckFpb === 'DONE') {
         target.statusCheckFpb = 'DONE';
         target.picCheckFpb = incoming.picCheckFpb || 'Logistik';
+      }
+      if (incoming.lapseText === 'TBC') {
+        target.lapseText = 'TBC';
+        target.lapse = 0;
+      } else if (incoming.lapse !== undefined && incoming.lapse !== null) {
+        target.lapse = incoming.lapse;
+        target.lapseText = incoming.lapseText;
       }
       updatedCount++;
     } else {
