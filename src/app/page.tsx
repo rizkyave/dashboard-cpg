@@ -45,7 +45,7 @@ import AuditModal from '@/components/AuditModal';
 import NewRecordModal from '@/components/NewRecordModal';
 
 import ToastNotification from '@/components/ToastNotification';
-import { PanelLeftOpen } from 'lucide-react';
+import { PanelLeftOpen, ChevronDown } from 'lucide-react';
 
 export default function DashboardPage() {
   const [procurementData, setProcurementData] = useState<ProcurementItem[]>(
@@ -59,6 +59,22 @@ export default function DashboardPage() {
   const [searchKeyword, setSearchKeyword] = useState<string>('');
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
+  const [isKpiHidden, setIsKpiHidden] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('CPG_KPI_HIDDEN') === 'true';
+    }
+    return false;
+  });
+
+  const toggleKpiHidden = () => {
+    setIsKpiHidden((prev) => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('CPG_KPI_HIDDEN', String(next));
+      }
+      return next;
+    });
+  };
 
   // State untuk modul persediaan barang (Accurate) - dimulai kosong agar pengguna dapat menguji unggah file Excel setiap kali refresh
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
@@ -536,41 +552,62 @@ export default function DashboardPage() {
 
         <main className="flex-1 min-w-0 p-3.5 sm:p-5 lg:p-8 space-y-4 sm:space-y-6 max-w-[1800px] w-full mx-auto pb-24 lg:pb-8">
           {/* Page Header in clean Studio Admin typography */}
-          <div className="space-y-1">
-            <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-foreground">
-              {activeTab === 'overview'
-                ? 'Monitoring Logistik'
-                : activeTab === 'procurement'
-                ? 'Monitoring Berkas Pengadaan'
-                : activeTab === 'armada'
-                ? 'Monitoring Layanan Armada'
-                : activeTab === 'pos-kapal'
-                ? 'Posisi Kapal'
-                : activeTab === 'inventory'
-                ? 'Cek Stok Persediaan Gudang'
-                : 'Analisis SLA & Lead Time'}
-            </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              {activeTab === 'overview'
-                ? 'Pemantauan terpadu alur pengadaan barang, perputaran berkas fisik divisi, distribusi logistik armada kapal, dan status stok persediaan.'
-                : activeTab === 'procurement'
-                ? 'Daftar transaksi pengadaan PO, verifikasi berkas fisik antar divisi, dan status penyelesaian berkas.'
-                : activeTab === 'armada'
-                ? 'Pencocokan kuantitas FPB vs FSTB, unit kapal armada, dan realisasi distribusi logistik lapangan.'
-                : activeTab === 'pos-kapal'
-                ? 'Laporan posisi, rute, aktivitas, status armada dan pekerjaan pemeliharaan kapal.'
-                : activeTab === 'inventory'
-                ? 'Pemeriksaan stok barang konsolidasi Accurate (CPL, Hana Lines, Mandar Ocean) & pencocokan kebutuhan pengadaan.'
-                : 'Distribusi waktu perputaran berkas fisik (lead time) dan beban kerja produktivitas staf PIC operasional.'}
-            </p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="space-y-1">
+              <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-foreground">
+                {activeTab === 'overview'
+                  ? 'Monitoring Logistik'
+                  : activeTab === 'procurement'
+                  ? 'Monitoring Berkas Pengadaan'
+                  : activeTab === 'armada'
+                  ? 'Monitoring Layanan Armada'
+                  : activeTab === 'pos-kapal'
+                  ? 'Posisi Kapal'
+                  : activeTab === 'inventory'
+                  ? 'Cek Stok Persediaan Gudang'
+                  : 'Analisis SLA & Lead Time'}
+              </h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                {activeTab === 'overview'
+                  ? 'Pemantauan terpadu alur pengadaan barang, perputaran berkas fisik divisi, distribusi logistik armada kapal, dan status stok persediaan.'
+                  : activeTab === 'procurement'
+                  ? 'Daftar transaksi pengadaan PO, verifikasi berkas fisik antar divisi, dan status penyelesaian berkas.'
+                  : activeTab === 'armada'
+                  ? 'Pencocokan kuantitas FPB vs FSTB, unit kapal armada, dan realisasi distribusi logistik lapangan.'
+                  : activeTab === 'pos-kapal'
+                  ? 'Laporan posisi, rute, aktivitas, status armada dan pekerjaan pemeliharaan kapal.'
+                  : activeTab === 'inventory'
+                  ? 'Pemeriksaan stok barang konsolidasi Accurate (CPL, Hana Lines, Mandar Ocean) & pencocokan kebutuhan pengadaan.'
+                  : 'Distribusi waktu perputaran berkas fisik (lead time) dan beban kerja produktivitas staf PIC operasional.'}
+              </p>
+            </div>
+
+            {/* Tombol Sembunyikan Ringkasan Metrik KPI */}
+            {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && (
+              <button
+                type="button"
+                onClick={toggleKpiHidden}
+                className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1.5 py-1.5 px-3 rounded-lg border border-border bg-card hover:bg-muted transition shadow-xs self-start sm:self-auto shrink-0 cursor-pointer"
+                title={isKpiHidden ? 'Tampilkan Ringkasan Metrik' : 'Sembunyikan Ringkasan Metrik'}
+              >
+                <span>{isKpiHidden ? 'Tampilkan Ringkasan' : 'Sembunyikan Ringkasan'}</span>
+                <ChevronDown
+                  className={`size-3.5 transition-transform duration-200 ${
+                    isKpiHidden ? '-rotate-90' : ''
+                  }`}
+                />
+              </button>
+            )}
           </div>
 
           {/* 4 Pillar Executive Metric Cards (procurement tabs only) */}
-          {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && (
-            <KpiCards
-              procurementList={filteredProcurement}
-              armadaList={filteredArmada}
-            />
+          {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && !isKpiHidden && (
+            <div className="animate-in fade-in-50 duration-200">
+              <KpiCards
+                procurementList={filteredProcurement}
+                armadaList={filteredArmada}
+              />
+            </div>
           )}
 
           {/* Tab 1: Overview */}

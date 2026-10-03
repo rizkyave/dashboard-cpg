@@ -109,6 +109,23 @@ export default function OverviewTab({
   const [viewMode, setViewMode] = useState<'card' | 'table'>('table');
   const [showMobileFilters, setShowMobileFilters] = useState<boolean>(false);
 
+  const [isChartsHidden, setIsChartsHidden] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('CPG_OVERVIEW_CHARTS_HIDDEN') === 'true';
+    }
+    return false;
+  });
+
+  const toggleChartsHidden = () => {
+    setIsChartsHidden((prev) => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('CPG_OVERVIEW_CHARTS_HIDDEN', String(next));
+      }
+      return next;
+    });
+  };
+
   useEffect(() => {
     if (typeof window !== 'undefined' && window.innerWidth < 768) {
       setViewMode('card');
@@ -300,83 +317,103 @@ export default function OverviewTab({
   return (
     <div className="space-y-6">
       {/* ═══════════════════════════════════════════════════════════
-          CHARTS SECTION (studio-admin Customer Activity Card Style)
-          ═══════════════════════════════════════════════════════════ */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Chart 1: Pipeline Timeline Bar Chart */}
-        <div className="rounded-xl border border-border bg-card text-card-foreground shadow-xs lg:col-span-2 flex flex-col justify-between min-w-0 overflow-hidden">
-          <div className="px-5 py-3.5 border-b border-border flex items-center justify-between gap-3 min-w-0 min-h-[58px]">
-            <div className="min-w-0 flex-1">
-              <h3 className="text-sm font-semibold text-foreground leading-tight truncate">
-                Milestone Fisik Dokumen Pengadaan
-              </h3>
-              <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                Pemantauan posisi antrian dokumen dari PO hingga Divisi Keuangan
-              </p>
-            </div>
-            <button
-              onClick={onTriggerAiAudit}
-              disabled={items.length === 0}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-xs font-medium text-purple-700 dark:text-purple-300 hover:bg-purple-500/20 transition active:scale-95 disabled:opacity-40 shrink-0"
-            >
-              <Sparkles className="size-3 text-purple-600 dark:text-purple-400" />
-              <span>Detail Analisis</span>
-            </button>
-          </div>
-
-          <div className="h-64 px-5 py-4 relative w-full overflow-hidden flex items-center justify-center">
-            <PipelineBarChart data={items} />
-          </div>
-
-          <div className="px-5 py-3 border-t border-border flex items-center justify-between gap-2 text-xs text-muted-foreground min-w-0 min-h-[46px]">
-            <span className="flex items-center gap-2 min-w-0 truncate">
-              <span className="size-2 rounded-full bg-cyan-500 shrink-0"></span>
-              <span className="truncate">Alur: PO &rarr; TTB &rarr; Lapangan &rarr; SPP &rarr; Keuangan</span>
-            </span>
-            <span className="font-mono text-[11px] text-cyan-700 dark:text-cyan-400 font-medium shrink-0">
-              SLA: &le; 5 Hari
-            </span>
-          </div>
-        </div>
-
-        {/* Chart 2: Entitas Donut Chart */}
-        <div className="rounded-xl border border-border bg-card text-card-foreground shadow-xs flex flex-col justify-between min-w-0 overflow-hidden">
-          <div className="px-5 py-3.5 border-b border-border flex items-center justify-between gap-3 min-w-0 min-h-[58px]">
-            <div className="min-w-0 flex-1">
-              <h3 className="text-sm font-semibold text-foreground leading-tight truncate">
-                Distribusi Entitas CPG
-              </h3>
-              <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                Komposisi berkas terdistribusi di 7 anak perusahaan
-              </p>
-            </div>
-            <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-muted text-muted-foreground border border-border shrink-0 font-medium">
-              7 Entitas
-            </span>
-          </div>
-
-          <div className="h-64 px-5 py-4 relative w-full overflow-hidden flex items-center justify-center">
-            <EntityDonutChart data={items} />
-          </div>
-
-          <div className="px-5 py-3 border-t border-border flex items-center justify-between gap-2 text-xs text-muted-foreground min-w-0 min-h-[46px]">
-            <div className="flex items-center gap-1.5 font-mono text-xs">
-              <span className="px-1.5 py-0.5 rounded bg-muted/60 text-muted-foreground border border-border text-[11px]">
-                <strong className="text-cyan-700 dark:text-cyan-400">CPL:</strong> {items.filter((i) => i.entity === 'CPL').length}
-              </span>
-              <span className="px-1.5 py-0.5 rounded bg-muted/60 text-muted-foreground border border-border text-[11px]">
-                <strong className="text-blue-700 dark:text-blue-400">PPI:</strong> {items.filter((i) => i.entity === 'PPI').length}
-              </span>
-              <span className="px-1.5 py-0.5 rounded bg-muted/60 text-muted-foreground border border-border text-[11px]">
-                <strong className="text-amber-700 dark:text-amber-400">GAJ:</strong> {items.filter((i) => i.entity === 'GAJ').length}
-              </span>
-            </div>
-            <span className="text-[11px] font-mono text-muted-foreground shrink-0">
-              CPG Group
-            </span>
-          </div>
-        </div>
+      {/* Header bar / toggle for charts */}
+      <div className="flex items-center justify-between gap-2 -mb-2">
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          Analisis Milestone & Distribusi Berkas
+        </span>
+        <button
+          type="button"
+          onClick={toggleChartsHidden}
+          className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1.5 py-1 px-2.5 rounded-lg border border-border bg-card hover:bg-muted transition shadow-xs cursor-pointer"
+          title={isChartsHidden ? 'Tampilkan Grafik' : 'Sembunyikan Grafik'}
+        >
+          <span>{isChartsHidden ? 'Tampilkan Grafik' : 'Sembunyikan Grafik'}</span>
+          <ChevronDown
+            className={`size-3 transition-transform duration-200 ${
+              isChartsHidden ? '-rotate-90' : ''
+            }`}
+          />
+        </button>
       </div>
+
+      {!isChartsHidden && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 animate-in fade-in-50 duration-200">
+          {/* Chart 1: Pipeline Timeline Bar Chart */}
+          <div className="rounded-xl border border-border bg-card text-card-foreground shadow-xs lg:col-span-2 flex flex-col justify-between min-w-0 overflow-hidden">
+            <div className="px-5 py-3.5 border-b border-border flex items-center justify-between gap-3 min-w-0 min-h-[58px]">
+              <div className="min-w-0 flex-1">
+                <h3 className="text-sm font-semibold text-foreground leading-tight truncate">
+                  Milestone Fisik Dokumen Pengadaan
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                  Pemantauan posisi antrian dokumen dari PO hingga Divisi Keuangan
+                </p>
+              </div>
+              <button
+                onClick={onTriggerAiAudit}
+                disabled={items.length === 0}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-xs font-medium text-purple-700 dark:text-purple-300 hover:bg-purple-500/20 transition active:scale-95 disabled:opacity-40 shrink-0"
+              >
+                <Sparkles className="size-3 text-purple-600 dark:text-purple-400" />
+                <span>Detail Analisis</span>
+              </button>
+            </div>
+
+            <div className="h-64 px-5 py-4 relative w-full overflow-hidden flex items-center justify-center">
+              <PipelineBarChart data={items} />
+            </div>
+
+            <div className="px-5 py-3 border-t border-border flex items-center justify-between gap-2 text-xs text-muted-foreground min-w-0 min-h-[46px]">
+              <span className="flex items-center gap-2 min-w-0 truncate">
+                <span className="size-2 rounded-full bg-cyan-500 shrink-0"></span>
+                <span className="truncate">Alur: PO &rarr; TTB &rarr; Lapangan &rarr; SPP &rarr; Keuangan</span>
+              </span>
+              <span className="font-mono text-[11px] text-cyan-700 dark:text-cyan-400 font-medium shrink-0">
+                SLA: &le; 5 Hari
+              </span>
+            </div>
+          </div>
+
+          {/* Chart 2: Entitas Donut Chart */}
+          <div className="rounded-xl border border-border bg-card text-card-foreground shadow-xs flex flex-col justify-between min-w-0 overflow-hidden">
+            <div className="px-5 py-3.5 border-b border-border flex items-center justify-between gap-3 min-w-0 min-h-[58px]">
+              <div className="min-w-0 flex-1">
+                <h3 className="text-sm font-semibold text-foreground leading-tight truncate">
+                  Distribusi Entitas CPG
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                  Komposisi berkas terdistribusi di 7 anak perusahaan
+                </p>
+              </div>
+              <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-muted text-muted-foreground border border-border shrink-0 font-medium">
+                7 Entitas
+              </span>
+            </div>
+
+            <div className="h-64 px-5 py-4 relative w-full overflow-hidden flex items-center justify-center">
+              <EntityDonutChart data={items} />
+            </div>
+
+            <div className="px-5 py-3 border-t border-border flex items-center justify-between gap-2 text-xs text-muted-foreground min-w-0 min-h-[46px]">
+              <div className="flex items-center gap-1.5 font-mono text-xs">
+                <span className="px-1.5 py-0.5 rounded bg-muted/60 text-muted-foreground border border-border text-[11px]">
+                  <strong className="text-cyan-700 dark:text-cyan-400">CPL:</strong> {items.filter((i) => i.entity === 'CPL').length}
+                </span>
+                <span className="px-1.5 py-0.5 rounded bg-muted/60 text-muted-foreground border border-border text-[11px]">
+                  <strong className="text-blue-700 dark:text-blue-400">PPI:</strong> {items.filter((i) => i.entity === 'PPI').length}
+                </span>
+                <span className="px-1.5 py-0.5 rounded bg-muted/60 text-muted-foreground border border-border text-[11px]">
+                  <strong className="text-amber-700 dark:text-amber-400">GAJ:</strong> {items.filter((i) => i.entity === 'GAJ').length}
+                </span>
+              </div>
+              <span className="text-[11px] font-mono text-muted-foreground shrink-0">
+                CPG Group
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ═══════════════════════════════════════════════════════════
           DATA TABLE CARD (studio-admin 18,426 Customers Style)

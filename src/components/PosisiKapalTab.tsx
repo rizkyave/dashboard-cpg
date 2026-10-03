@@ -41,6 +41,22 @@ export default function PosisiKapalTab({
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL'); // ALL, ON, SB, MT, BD, DK
   const [viewMode, setViewMode] = useState<'table' | 'card'>('table');
+  const [isSummaryHidden, setIsSummaryHidden] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('CPG_POS_KAPAL_SUMMARY_HIDDEN') === 'true';
+    }
+    return false;
+  });
+
+  const toggleSummaryHidden = () => {
+    setIsSummaryHidden((prev) => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('CPG_POS_KAPAL_SUMMARY_HIDDEN', String(next));
+      }
+      return next;
+    });
+  };
 
   // Advanced Search Specific Filters
   const [showAdvancedSearch, setShowAdvancedSearch] = useState<boolean>(false);
@@ -195,6 +211,19 @@ export default function PosisiKapalTab({
           <div className="flex items-center gap-2 flex-wrap">
             <button
               type="button"
+              onClick={toggleSummaryHidden}
+              className="h-9 px-3 rounded-xl border border-border bg-card hover:bg-muted text-xs text-muted-foreground hover:text-foreground font-medium flex items-center gap-1.5 transition shadow-xs cursor-pointer"
+              title={isSummaryHidden ? 'Tampilkan Ringkasan Armada' : 'Sembunyikan Ringkasan Armada'}
+            >
+              <span>{isSummaryHidden ? 'Tampilkan Ringkasan' : 'Sembunyikan Ringkasan'}</span>
+              <ChevronDown
+                className={`size-3 transition-transform duration-200 ${
+                  isSummaryHidden ? '-rotate-90' : ''
+                }`}
+              />
+            </button>
+            <button
+              type="button"
               onClick={onRefresh}
               disabled={isLoading}
               className={`h-9 px-3.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition shadow-xs cursor-pointer ${
@@ -210,7 +239,8 @@ export default function PosisiKapalTab({
         </div>
 
         {/* Quick KPI Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 mt-4 pt-4 border-t border-border/60">
+        {!isSummaryHidden && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 mt-4 pt-4 border-t border-border/60 animate-in fade-in-50 duration-200">
           {/* Total Kapal */}
           <div className="p-2.5 rounded-xl bg-background border border-border/80">
             <div className="text-[11px] text-muted-foreground font-medium flex items-center gap-1">
@@ -311,7 +341,8 @@ export default function PosisiKapalTab({
               {summary ? summary.totalDK : items.filter((i) => i.statusKode === 'DK').length}
             </div>
           </div>
-        </div>
+          </div>
+        )}
       </div>
 
       {/* ═══════════════════════════════════════════════════════════

@@ -12,6 +12,7 @@ import {
   RefreshCw,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Eye,
   CheckCircle2,
   AlertTriangle,
@@ -80,6 +81,23 @@ export default function InventoryTab({
   const [isEfpbModalOpen, setIsEfpbModalOpen] = useState<boolean>(false);
   const [isQuickSyncingEfpb, setIsQuickSyncingEfpb] = useState<boolean>(false);
   const [lastEfpbSyncTime, setLastEfpbSyncTime] = useState<string>('');
+
+  const [isKpiHidden, setIsKpiHidden] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('CPG_INVENTORY_KPI_HIDDEN') === 'true';
+    }
+    return false;
+  });
+
+  const toggleKpiHidden = () => {
+    setIsKpiHidden((prev) => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('CPG_INVENTORY_KPI_HIDDEN', String(next));
+      }
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -508,11 +526,26 @@ export default function InventoryTab({
               <span className="hidden sm:inline">Reset Stok</span>
             </button>
           )}
+
+          {/* Tombol Sembunyikan Ringkasan Stok */}
+          <button
+            onClick={toggleKpiHidden}
+            className="h-8 px-2.5 rounded-lg border border-border bg-card hover:bg-muted text-xs text-muted-foreground hover:text-foreground font-medium transition shadow-xs flex items-center gap-1.5 active:scale-95 shrink-0 cursor-pointer"
+            title={isKpiHidden ? 'Tampilkan Ringkasan Stok' : 'Sembunyikan Ringkasan Stok'}
+          >
+            <span>{isKpiHidden ? 'Tampilkan Ringkasan' : 'Sembunyikan Ringkasan'}</span>
+            <ChevronDown
+              className={`size-3 transition-transform duration-200 ${
+                isKpiHidden ? '-rotate-90' : ''
+              }`}
+            />
+          </button>
         </div>
       </div>
 
       {/* 4 Pillar Executive KPI Cards for Inventory */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      {!isKpiHidden && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 animate-in fade-in-50 duration-200">
         {/* Total Catalog Items */}
         <div className="bg-card border border-border rounded-xl p-4 sm:p-5 shadow-xs space-y-2">
           <div className="flex items-center justify-between text-muted-foreground">
@@ -590,7 +623,8 @@ export default function InventoryTab({
             Katalog barang butuh PO jika dipesan oleh armada
           </p>
         </div>
-      </div>
+        </div>
+      )}
 
       {/* If items are empty: Show prominent Empty State Card */}
       {items.length === 0 ? (
