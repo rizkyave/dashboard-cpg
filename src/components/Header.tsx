@@ -829,12 +829,9 @@ export default function Header({
 
                 <div className="h-px bg-border my-1" />
 
-                {/* Section Header: Posisi Kapal (Daily Report FMS) */}
+                {/* Section Header: Posisi Kapal */}
                 <div className="px-2.5 pt-1.5 pb-1 text-[10px] font-mono font-semibold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
                   <span>Operasional Kapal</span>
-                  <span className="text-[9px] text-sky-600 dark:text-sky-400 font-bold bg-sky-500/10 px-1 py-0.2 rounded border border-sky-500/20">
-                    FMS
-                  </span>
                 </div>
 
                 {/* Refresh Posisi Kapal Button */}

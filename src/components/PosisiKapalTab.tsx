@@ -7,7 +7,6 @@ import {
   Search,
   SlidersHorizontal,
   RotateCcw,
-  ExternalLink,
   Anchor,
   Clock,
   Compass,
@@ -183,11 +182,8 @@ export default function PosisiKapalTab({
                 <Navigation className="size-5" />
               </span>
               <div>
-                <h2 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-2">
-                  <span>Daily Report Posisi Kapal</span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-600 dark:text-sky-400 font-semibold border border-sky-500/20">
-                    FMS Live
-                  </span>
+                <h2 className="text-base sm:text-lg font-bold text-foreground">
+                  Posisi Kapal
                 </h2>
                 <p className="text-xs text-muted-foreground">
                   Data pemantauan posisi terkini, aktivitas harian, dan status armada kapal
@@ -210,16 +206,6 @@ export default function PosisiKapalTab({
               <RefreshCw className={`size-3.5 ${isLoading ? 'animate-spin' : ''}`} />
               <span>{isLoading ? 'Menyinkronkan...' : 'Refresh Posisi Kapal'}</span>
             </button>
-
-            <a
-              href="https://cindara.beruangmadutech.web.id/voyage/daily_index"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="h-9 px-3 rounded-xl border border-border bg-background hover:bg-muted text-xs font-medium text-muted-foreground hover:text-foreground flex items-center gap-1.5 transition"
-            >
-              <span>FMS Portal</span>
-              <ExternalLink className="size-3 text-muted-foreground" />
-            </a>
           </div>
         </div>
 

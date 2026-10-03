@@ -360,7 +360,7 @@ export default function Sidebar({
                     activeTab === 'pos-kapal' ? 'text-sky-500' : 'text-muted-foreground'
                   }`}
                 />
-                <span className="truncate whitespace-nowrap">Posisi Kapal (FMS)</span>
+                <span className="truncate whitespace-nowrap">Posisi Kapal</span>
               </div>
               <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
                 {kapalPosisiCount !== undefined && kapalPosisiCount > 0
