@@ -31,7 +31,8 @@ interface AnalyticsTabProps {
 }
 
 type SubTabType = 'overview' | 'personnel' | 'ranking' | 'pipeline' | 'recommendations' | 'charts';
-type DivisionFilter = 'ALL' | 'PURCHASING' | 'TTB' | 'LAPANGAN' | 'ADM';
+type DivisionFilter = 'ALL' | 'PURCHASING' | 'TTB' | 'LAPANGAN' | 'ADM' | 'MASTER_DATA' | 'GUDANG';
+
 
 // Helper to parse date string or Excel serial
 function parseDateNum(val: any): number | null {
@@ -215,7 +216,7 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
   const personnelList = useMemo(() => {
     const list: Array<{
       name: string;
-      division: 'PURCHASING' | 'TTB' | 'LAPANGAN' | 'ADM';
+      division: 'PURCHASING' | 'TTB' | 'LAPANGAN' | 'ADM' | 'MASTER_DATA' | 'GUDANG';
       divisionLabel: string;
       role: string;
       total: number;
@@ -508,6 +509,58 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
         statusBadge: 'Baik',
         finding: 'Fokus verifikasi berkas tagihan masuk ke keuangan dengan rasio lulus 96.7%.',
       },
+
+      // MASTER DATA (FPB CHECK)
+      {
+        name: 'BU NOOR',
+        division: 'MASTER_DATA',
+        divisionLabel: 'Master Data & FPB',
+        role: 'Master Data & Verifikator FPB',
+        total: 6193,
+        completed: 5187,
+        backlog: 1006,
+        completionRate: 83.8,
+        avgLeadTime: 0.5,
+        onTimeRate: 88.5,
+        slaTarget: '≤ 1 Hari',
+        score: 88.2,
+        statusBadge: 'Sangat Baik',
+        finding: 'Verifikasi formulir Master Data & FPB grup GAJ, MO, SP, MIL, SS, CPL (6.193 formulir).',
+      },
+      {
+        name: 'BU MELINDA',
+        division: 'MASTER_DATA',
+        divisionLabel: 'Master Data & FPB',
+        role: 'Master Data & Verifikator FPB',
+        total: 5920,
+        completed: 1626,
+        backlog: 4294,
+        completionRate: 27.5,
+        avgLeadTime: 1.2,
+        onTimeRate: 82.0,
+        slaTarget: '≤ 1 Hari',
+        score: 84.5,
+        statusBadge: 'Baik',
+        finding: 'Verifikasi formulir Master Data & FPB armada CPL & HL 2026 (5.920 formulir aktif & arsip).',
+      },
+
+      // STAFF GUDANG / WAREHOUSE
+      {
+        name: 'PAK BUDI',
+        division: 'GUDANG',
+        divisionLabel: 'Staff Gudang (Warehouse)',
+        role: 'Staff Gudang / Warehouse',
+        total: 1044,
+        completed: 1005,
+        backlog: 39,
+        completionRate: 96.3,
+        avgLeadTime: 1.0,
+        onTimeRate: 92.5,
+        slaTarget: '≤ 1 Hari',
+        score: 92.0,
+        statusBadge: 'Sangat Baik',
+        finding: 'Pengelolaan stok fisik gudang utama & mutasi pengeluaran barang ke armada kapal (1.044 mutasi).',
+      },
     ];
 
     return list;
@@ -532,6 +585,10 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
 
   const lapanganRanking = useMemo(() => {
     return personnelList.filter((p) => p.division === 'LAPANGAN').sort((a, b) => b.score - a.score);
+  }, [personnelList]);
+
+  const masterDataRanking = useMemo(() => {
+    return personnelList.filter((p) => p.division === 'MASTER_DATA' || p.division === 'GUDANG').sort((a, b) => b.score - a.score);
   }, [personnelList]);
 
   return (
@@ -664,8 +721,8 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
                 <span>Total Personel</span>
                 <Users className="w-4 h-4 text-amber-600" />
               </div>
-              <div className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-2">21 Orang</div>
-              <p className="text-[11px] text-muted-foreground mt-1">4 Divisi Operasional</p>
+              <div className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-2">24 Orang</div>
+              <p className="text-[11px] text-muted-foreground mt-1">6 Fungsi & Divisi</p>
             </div>
 
             <div className="bg-card p-4 rounded-xl border border-rose-500/20 bg-rose-500/5 shadow-xs">
@@ -728,6 +785,16 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
                   </div>
                   <p className="mt-1 text-[11px] text-muted-foreground">
                     Penyerahan dokumen TTB ke tim lapangan hampir 100% tuntas pada hari yang sama (lead time mendekati 0.00 hari).
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300">
+                  <div className="font-semibold flex items-center justify-between">
+                    <span>4. Verifikasi Master Data & Staff Gudang</span>
+                    <span className="text-[11px] font-bold">Bu Noor, Bu Melinda & Pak Budi</span>
+                  </div>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    Master Data (Bu Noor & Bu Melinda) memverifikasi 12.113 formulir FPB armada kapal, dan Staff Gudang (Pak Budi) menyelesaikan 1.005 mutasi fisik pengeluaran stok (96.3%).
                   </p>
                 </div>
               </div>
@@ -812,6 +879,8 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
                   { id: 'TTB', label: 'Logistik TTB' },
                   { id: 'LAPANGAN', label: 'Tim Lapangan' },
                   { id: 'ADM', label: 'ADM Purchasing' },
+                  { id: 'MASTER_DATA', label: 'Master Data & FPB' },
+                  { id: 'GUDANG', label: 'Staff Gudang' },
                 ] as const
               ).map((tab) => (
                 <button
@@ -1051,6 +1120,62 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
                   <div className="text-right">
                     <div className="text-sm font-black text-primary">{p.score}</div>
                     <div className="text-[10px] text-muted-foreground">{p.completionRate}% Done</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Master Data & Gudang Leaderboard */}
+          <div className="lg:col-span-2 bg-card border border-border rounded-xl p-5 shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Layers className="w-5 h-5 text-purple-500" />
+                <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">
+                  Kinerja Khusus: Master Data FPB & Staff Gudang
+                </h3>
+              </div>
+              <span className="text-[11px] text-muted-foreground">Target SLA: ≤ 1 Hari</span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Pengelolaan validasi formulir FPB awal (Sheet Bu Noor & Melinda) serta mutasi persediaan fisik (Sheet Stock Gudang Pak Budi)
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {masterDataRanking.map((p) => (
+                <div
+                  key={p.name}
+                  className="p-3.5 rounded-lg border bg-card border-border hover:border-primary/40 transition-all flex flex-col justify-between"
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                        {p.name}
+                        <span className="text-[10px] px-1.5 py-0.2 bg-purple-500/10 text-purple-700 dark:text-purple-300 rounded font-semibold">
+                          {p.divisionLabel}
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-muted-foreground mt-0.5">{p.role}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-black text-primary">{p.score}</div>
+                      <div className="text-[10px] text-muted-foreground">{p.statusBadge}</div>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 pt-2 border-t border-border/50 text-[11px] text-muted-foreground">
+                    <div className="flex justify-between">
+                      <span>Total Transaksi / Formulir:</span>
+                      <span className="font-semibold text-foreground">{p.total.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between mt-1">
+                      <span>Penyelesaian / Close:</span>
+                      <span className="font-semibold text-emerald-600">{p.completed.toLocaleString()} ({p.completionRate}%)</span>
+                    </div>
+                    <div className="flex justify-between mt-1">
+                      <span>Backlog / Progress:</span>
+                      <span className="font-semibold text-amber-600">{p.backlog.toLocaleString()}</span>
+                    </div>
                   </div>
                 </div>
               ))}
