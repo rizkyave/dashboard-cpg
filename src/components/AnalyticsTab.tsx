@@ -49,6 +49,8 @@ const MONTH_OPTIONS: Array<{ value: string; label: string }> = [
 
 interface AnalyticsTabProps {
   items: ProcurementItem[];
+  onSyncSheets?: () => Promise<void> | void;
+  isSyncingSheets?: boolean;
 }
 
 type SubTabType = 'overview' | 'personnel' | 'ranking' | 'pipeline' | 'recommendations' | 'swot' | 'charts';
@@ -80,7 +82,7 @@ function parseDateNum(val: any): number | null {
   return null;
 }
 
-export default function AnalyticsTab({ items }: AnalyticsTabProps) {
+export default function AnalyticsTab({ items, onSyncSheets, isSyncingSheets }: AnalyticsTabProps) {
   const [activeSubTab, setActiveSubTab] = useState<SubTabType>('overview');
   const [divFilter, setDivFilter] = useState<DivisionFilter>('ALL');
   const [searchPic, setSearchPic] = useState<string>('');
@@ -173,21 +175,50 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
     const admMap: Record<string, { total: number; doneSpp: number; doneFin: number; backlog: number; diffs: number[]; onTime: number }> = {};
 
     let totalFstbDone = 0;
+    let totalTtbToLap = 0;
     let totalLapDelivered = 0;
+    let totalTtbBackToPch = 0;
     let totalFinDone = 0;
     let totalSppDone = 0;
     let unassignedAdmCount = 0;
 
     list.forEach((it) => {
+      // 1. PO ke FSTB
+      const hasFstb = Boolean(it.noFstb && it.noFstb.trim() !== '' && it.noFstb !== '-');
+      if (hasFstb || it.tglKePicTtb) {
+        totalFstbDone++;
+      }
+
+      // 2. TTB ke Tim Lapangan
+      if (it.tglKeTimLapangan) {
+        totalTtbToLap++;
+      }
+
+      // 3. Pengantaran Fisik Kapal
+      if (it.tglBarangDiantar) {
+        totalLapDelivered++;
+      }
+
+      // 4. Bukti Balik TTB ke Purchasing
+      if (it.tglTtbKePicPch) {
+        totalTtbBackToPch++;
+      }
+
+      // 5. Masuk Keuangan
+      if (it.tglKeKeuangan) {
+        totalFinDone++;
+      }
+      if (it.noSpp && it.noSpp.trim() !== '' && it.noSpp !== '-') {
+        totalSppDone++;
+      }
+
       // PURCHASING
       const picPch = (it.picPch && it.picPch !== '-' ? it.picPch.trim().toUpperCase() : 'UNASSIGNED');
       if (picPch !== 'UNASSIGNED') {
         if (!pchMap[picPch]) pchMap[picPch] = { total: 0, doneFstb: 0, backlog: 0, diffs: [], onTime: 0 };
         pchMap[picPch].total++;
-        const hasFstb = Boolean(it.noFstb && it.noFstb.trim() !== '' && it.noFstb !== '-');
         if (hasFstb || it.tglKePicTtb) {
           pchMap[picPch].doneFstb++;
-          totalFstbDone++;
         } else {
           pchMap[picPch].backlog++;
         }
@@ -233,7 +264,6 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
         const isReturned = Boolean(it.tglTimLapKePicTtb);
         if (isDelivered) {
           lapMap[picLap].delivered++;
-          totalLapDelivered++;
         }
         if (isReturned) lapMap[picLap].returnedTtb++;
         if (!isDelivered || !isReturned) {
@@ -259,11 +289,9 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
         const hasFin = Boolean(it.tglKeKeuangan);
         if (hasSpp) {
           admMap[picAdm].doneSpp++;
-          totalSppDone++;
         }
         if (hasFin) {
           admMap[picAdm].doneFin++;
-          totalFinDone++;
         } else {
           admMap[picAdm].backlog++;
         }
@@ -285,9 +313,26 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
     const isBaseline = !isFilteredByDate && totalTransactions === 0;
     const finalTotal = isBaseline ? 3541 : totalTransactions;
     const finalFstb = isBaseline ? 3414 : totalFstbDone;
+    const finalTtbToLap = isBaseline ? 3215 : totalTtbToLap;
     const finalLap = isBaseline ? 3087 : totalLapDelivered;
+    const finalTtbBack = isBaseline ? 2970 : totalTtbBackToPch;
     const finalFin = isBaseline ? 1649 : totalFinDone;
     const finalUnassignedAdm = isBaseline ? 1369 : unassignedAdmCount;
+
+    const fstbRate = finalTotal > 0 ? ((finalFstb / finalTotal) * 100).toFixed(1) : '0.0';
+    const ttbToLapRate = finalTotal > 0 ? ((finalTtbToLap / finalTotal) * 100).toFixed(1) : '0.0';
+    const lapRate = finalTotal > 0 ? ((finalLap / Math.max(1, finalTotal)) * 100).toFixed(1) : '0.0';
+    const ttbBackRate = finalTotal > 0 ? ((finalTtbBack / finalTotal) * 100).toFixed(1) : '0.0';
+    const finRate = finalTotal > 0 ? ((finalFin / finalTotal) * 100).toFixed(1) : '0.0';
+
+    const fstbBacklog = Math.max(0, finalTotal - finalFstb);
+    const ttbToLapBacklog = Math.max(0, finalTotal - finalTtbToLap);
+    const lapBacklog = Math.max(0, finalTotal - finalLap);
+    const ttbBackBacklog = Math.max(0, finalTotal - finalTtbBack);
+    const finBacklog = Math.max(0, finalTotal - finalFin);
+
+    const agusHamkaCount = (lapMap['AGUS']?.total || 0) + (lapMap['HAMKA']?.total || 0);
+    const agusHamkaPct = finalLap > 0 ? Math.round((agusHamkaCount / finalLap) * 100) : 0;
 
     return {
       total: finalTotal,
@@ -295,10 +340,17 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
       lapDone: finalLap,
       finDone: finalFin,
       unassignedAdm: finalUnassignedAdm,
-      purchasingCompletionRate: finalTotal > 0 ? ((finalFstb / finalTotal) * 100).toFixed(1) : '0.0',
-      physicalDeliveryRate: finalTotal > 0 ? ((finalLap / Math.max(1, finalTotal)) * 100).toFixed(1) : '0.0',
-      financeHandoverRate: finalTotal > 0 ? ((finalFin / finalTotal) * 100).toFixed(1) : '0.0',
-      totalBacklogPo: Math.max(0, finalTotal - finalFstb),
+      purchasingCompletionRate: fstbRate,
+      physicalDeliveryRate: lapRate,
+      financeHandoverRate: finRate,
+      totalBacklogPo: fstbBacklog,
+      stage1: { done: finalFstb, rate: fstbRate, backlog: fstbBacklog },
+      stage2: { done: finalTtbToLap, rate: ttbToLapRate, backlog: ttbToLapBacklog },
+      stage3: { done: finalLap, rate: lapRate, backlog: lapBacklog },
+      stage4: { done: finalTtbBack, rate: ttbBackRate, backlog: ttbBackBacklog },
+      stage5: { done: finalFin, rate: finRate, backlog: finBacklog },
+      agusHamkaCount,
+      agusHamkaPct,
       pchMap,
       ttbMap,
       lapMap,
@@ -852,6 +904,23 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
                 >
                   <RotateCcw className="w-3 h-3" />
                   <span>Reset</span>
+                </button>
+              )}
+
+              {onSyncSheets && (
+                <button
+                  type="button"
+                  onClick={onSyncSheets}
+                  disabled={isSyncingSheets}
+                  className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold border flex items-center gap-1.5 transition-all shadow-xs cursor-pointer ${
+                    isSyncingSheets
+                      ? 'bg-muted border-border text-muted-foreground cursor-wait'
+                      : 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 active:scale-95'
+                  }`}
+                  title="Tarik data terbaru langsung dari Google Sheets (Real-Time)"
+                >
+                  <RotateCcw className={`w-3.5 h-3.5 ${isSyncingSheets ? 'animate-spin' : ''}`} />
+                  <span>{isSyncingSheets ? 'Menyinkronkan...' : '⚡ Sync Google Sheets'}</span>
                 </button>
               )}
             </div>
@@ -1741,52 +1810,52 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
               <div className="p-4 rounded-xl bg-muted/40 border border-border space-y-2">
                 <div className="text-[11px] font-semibold text-muted-foreground">Tahap 1: Purchasing</div>
                 <div className="text-lg font-bold text-foreground">PO ke FSTB</div>
-                <div className="text-xs text-emerald-600 font-semibold">3.414 Selesai (96.4%)</div>
-                <div className="text-[11px] text-muted-foreground">Backlog: 127 PO</div>
+                <div className="text-xs text-emerald-600 font-semibold">{metrics.stage1.done.toLocaleString()} Selesai ({metrics.stage1.rate}%)</div>
+                <div className="text-[11px] text-muted-foreground">Backlog: {metrics.stage1.backlog.toLocaleString()} PO</div>
                 <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden">
-                  <div className="bg-emerald-500 h-full w-[96%]" />
+                  <div className="bg-emerald-500 h-full transition-all duration-300" style={{ width: `${Math.min(100, Math.max(0, Number(metrics.stage1.rate)))}%` }} />
                 </div>
               </div>
 
               <div className="p-4 rounded-xl bg-muted/40 border border-border space-y-2">
                 <div className="text-[11px] font-semibold text-muted-foreground">Tahap 2: Logistik TTB</div>
                 <div className="text-lg font-bold text-foreground">TTB ke Lapangan</div>
-                <div className="text-xs text-emerald-600 font-semibold">3.215 Selesai (99.1%)</div>
-                <div className="text-[11px] text-muted-foreground">Backlog: 28 Dokumen</div>
+                <div className="text-xs text-emerald-600 font-semibold">{metrics.stage2.done.toLocaleString()} Selesai ({metrics.stage2.rate}%)</div>
+                <div className="text-[11px] text-muted-foreground">Backlog: {metrics.stage2.backlog.toLocaleString()} Dokumen</div>
                 <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden">
-                  <div className="bg-emerald-500 h-full w-[99%]" />
+                  <div className="bg-emerald-500 h-full transition-all duration-300" style={{ width: `${Math.min(100, Math.max(0, Number(metrics.stage2.rate)))}%` }} />
                 </div>
               </div>
 
               <div className="p-4 rounded-xl bg-muted/40 border border-border space-y-2">
                 <div className="text-[11px] font-semibold text-muted-foreground">Tahap 3: Pengantaran</div>
                 <div className="text-lg font-bold text-foreground">Serah Fisik Kapal</div>
-                <div className="text-xs text-blue-600 font-semibold">3.087 Selesai (99.8%)</div>
-                <div className="text-[11px] text-muted-foreground">Backlog: 6 Order</div>
+                <div className="text-xs text-blue-600 font-semibold">{metrics.stage3.done.toLocaleString()} Selesai ({metrics.stage3.rate}%)</div>
+                <div className="text-[11px] text-muted-foreground">Backlog: {metrics.stage3.backlog.toLocaleString()} Order</div>
                 <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden">
-                  <div className="bg-blue-500 h-full w-[99%]" />
+                  <div className="bg-blue-500 h-full transition-all duration-300" style={{ width: `${Math.min(100, Math.max(0, Number(metrics.stage3.rate)))}%` }} />
                 </div>
               </div>
 
               <div className="p-4 rounded-xl bg-muted/40 border border-border space-y-2">
                 <div className="text-[11px] font-semibold text-muted-foreground">Tahap 4: Bukti Balik</div>
                 <div className="text-lg font-bold text-foreground">TTB Balik ke PCH</div>
-                <div className="text-xs text-purple-600 font-semibold">2.970 Selesai (91.6%)</div>
-                <div className="text-[11px] text-muted-foreground">Backlog: 273 Berkas</div>
+                <div className="text-xs text-purple-600 font-semibold">{metrics.stage4.done.toLocaleString()} Selesai ({metrics.stage4.rate}%)</div>
+                <div className="text-[11px] text-muted-foreground">Backlog: {metrics.stage4.backlog.toLocaleString()} Berkas</div>
                 <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden">
-                  <div className="bg-purple-500 h-full w-[91%]" />
+                  <div className="bg-purple-500 h-full transition-all duration-300" style={{ width: `${Math.min(100, Math.max(0, Number(metrics.stage4.rate)))}%` }} />
                 </div>
               </div>
 
               <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 space-y-2">
                 <div className="text-[11px] font-semibold text-rose-600">Tahap 5: SPP & Finance</div>
                 <div className="text-lg font-bold text-rose-700 dark:text-rose-400">Masuk Keuangan</div>
-                <div className="text-xs text-rose-600 font-bold">1.649 Selesai (46.5%)</div>
+                <div className="text-xs text-rose-600 font-bold">{metrics.stage5.done.toLocaleString()} Selesai ({metrics.stage5.rate}%)</div>
                 <div className="text-[11px] font-semibold text-rose-700 dark:text-rose-300">
-                  Backlog: 1.892 Berkas (Kritis)
+                  Backlog: {metrics.stage5.backlog.toLocaleString()} Berkas {Number(metrics.stage5.rate) < 70 ? '(Kritis)' : ''}
                 </div>
                 <div className="w-full bg-rose-200 dark:bg-rose-950 h-1.5 rounded-full overflow-hidden">
-                  <div className="bg-rose-500 h-full w-[46%]" />
+                  <div className="bg-rose-500 h-full transition-all duration-300" style={{ width: `${Math.min(100, Math.max(0, Number(metrics.stage5.rate)))}%` }} />
                 </div>
               </div>
             </div>
@@ -1811,24 +1880,24 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
                   <tr>
                     <td className="py-2.5 px-3 font-medium text-rose-600">Process & Workload</td>
                     <td className="py-2.5 px-3 text-muted-foreground">
-                      1.369 berkas dokumen belum diinput PIC ADM PCH; lead time SPP 11.8 - 16.8 hari kerja.
+                      {metrics.unassignedAdm.toLocaleString()} berkas dokumen belum diinput PIC ADM PCH; lead time SPP 11.8 - 16.8 hari kerja.
                     </td>
                     <td className="py-2.5 px-3 text-foreground">Tertahannya pembayaran tagihan vendor</td>
                     <td className="py-2.5 px-3">
                       <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-600 border border-rose-500/20">
-                        TINGGI (HIGH)
+                        {metrics.unassignedAdm > 0 ? 'TINGGI (HIGH)' : 'AMAN (NORMAL)'}
                       </span>
                     </td>
                   </tr>
                   <tr>
                     <td className="py-2.5 px-3 font-medium text-amber-600">Workload Imbalance</td>
                     <td className="py-2.5 px-3 text-muted-foreground">
-                      Agus & Hamka memegang 54% total distribusi logistik lapangan (1.675 pengantaran).
+                      Agus & Hamka memegang {metrics.agusHamkaPct}% total distribusi logistik lapangan ({metrics.agusHamkaCount.toLocaleString()} pengantaran).
                     </td>
                     <td className="py-2.5 px-3 text-foreground">Risiko fatigue personel & keterlambatan order darurat</td>
                     <td className="py-2.5 px-3">
                       <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-600 border border-amber-500/20">
-                        SEDANG (MEDIUM)
+                        {metrics.agusHamkaPct > 50 ? 'SEDANG (MEDIUM)' : 'TERKENDALI'}
                       </span>
                     </td>
                   </tr>

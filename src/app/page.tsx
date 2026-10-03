@@ -121,6 +121,47 @@ export default function DashboardPage() {
     }
   };
 
+  // State untuk sinkronisasi live Google Sheets
+  const [isSyncingSheets, setIsSyncingSheets] = useState<boolean>(false);
+
+  // Fungsi sinkronisasi seluruh data pengadaan dan armada langsung dari Google Sheets
+  const handleSyncGoogleSheets = async () => {
+    setIsSyncingSheets(true);
+    showToast('Menghubungkan ke Google Sheets & mengunduh seluruh data terbaru...', 'info');
+    try {
+      const res = await fetch('/api/sync-sheets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || 'Gagal menyinkronkan data Google Sheets.');
+      }
+      if (data.procurement?.length > 0 || data.armada?.length > 0) {
+        handleExcelUpload({
+          procurement: data.procurement || [],
+          armada: data.armada || [],
+        });
+        const now = new Date();
+        const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('CPG_LAST_SYNC_TIME', timeStr);
+        }
+        showToast(
+          data.message || `Berhasil menyinkronkan ${data.procurement.length.toLocaleString('id-ID')} data dari Google Sheets!`,
+          'success'
+        );
+      }
+    } catch (err: any) {
+      console.error('Sync Sheets Error:', err);
+      showToast(err.message || 'Gagal menyinkronkan data dari Google Sheets.', 'error');
+    } finally {
+      setIsSyncingSheets(false);
+    }
+  };
+
+
   // Fungsi untuk memuat contoh data persediaan default jika diinginkan oleh pengguna
   const handleLoadSampleInventory = async () => {
     setIsLoadingInventory(true);
@@ -143,7 +184,6 @@ export default function DashboardPage() {
       setIsLoadingInventory(false);
     }
   };
-
 
   // Auto-collapse sidebar on mobile screen size on initial mount
   useEffect(() => {
@@ -681,7 +721,13 @@ export default function DashboardPage() {
           )}
 
           {/* Tab 4: Analytics */}
-          {activeTab === 'analytics' && <AnalyticsTab items={filteredProcurement} />}
+          {activeTab === 'analytics' && (
+            <AnalyticsTab
+              items={filteredProcurement}
+              onSyncSheets={handleSyncGoogleSheets}
+              isSyncingSheets={isSyncingSheets}
+            />
+          )}
 
           {/* Tab 5: Inventory / Cek Persediaan (Sheet Accurate) */}
           {activeTab === 'inventory' && (
