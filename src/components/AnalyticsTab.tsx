@@ -22,10 +22,30 @@ import {
   ClipboardCheck,
   Building2,
   Calendar,
+  CalendarDays,
   Target,
+  ChevronDown,
+  RotateCcw,
 } from 'lucide-react';
 import { ProcurementItem } from '@/types/procurement';
+import { extractDateInfo } from '@/utils/formatDate';
 import { LapsePolarChart, PicWorkloadChart } from './Charts';
+
+const MONTH_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: 'ALL', label: 'Semua Bulan' },
+  { value: '01', label: 'Januari (01)' },
+  { value: '02', label: 'Februari (02)' },
+  { value: '03', label: 'Maret (03)' },
+  { value: '04', label: 'April (04)' },
+  { value: '05', label: 'Mei (05)' },
+  { value: '06', label: 'Juni (06)' },
+  { value: '07', label: 'Juli (07)' },
+  { value: '08', label: 'Agustus (08)' },
+  { value: '09', label: 'September (09)' },
+  { value: '10', label: 'Oktober (10)' },
+  { value: '11', label: 'November (11)' },
+  { value: '12', label: 'Desember (12)' },
+];
 
 interface AnalyticsTabProps {
   items: ProcurementItem[];
@@ -65,9 +85,82 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
   const [divFilter, setDivFilter] = useState<DivisionFilter>('ALL');
   const [searchPic, setSearchPic] = useState<string>('');
 
+  // Date Filter States (Tahun, Bulan, dan Tanggal)
+  const [selectedYear, setSelectedYear] = useState<string>('ALL');
+  const [selectedMonth, setSelectedMonth] = useState<string>('ALL');
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
+  const [showDateFilter, setShowDateFilter] = useState<boolean>(false);
+
+  // Available years from items
+  const availableYears = useMemo(() => {
+    const set = new Set<string>();
+    items.forEach((it) => {
+      const { year } = extractDateInfo(it.date);
+      if (year && year.length === 4) set.add(year);
+    });
+    const arr = Array.from(set).sort().reverse();
+    return arr.length > 0 ? arr : ['2026', '2025'];
+  }, [items]);
+
+  const isFilteredByDate = selectedYear !== 'ALL' || selectedMonth !== 'ALL' || Boolean(startDate) || Boolean(endDate);
+
+  const resetDateFilter = () => {
+    setSelectedYear('ALL');
+    setSelectedMonth('ALL');
+    setStartDate('');
+    setEndDate('');
+  };
+
+  // Filter items by year, month, and date range
+  const dateFilteredItems = useMemo(() => {
+    if (!isFilteredByDate) {
+      return items;
+    }
+
+    const startTs = startDate ? new Date(`${startDate}T00:00:00`).getTime() : null;
+    const endTs = endDate ? new Date(`${endDate}T23:59:59`).getTime() : null;
+
+    return items.filter((it) => {
+      const { year, month, timestamp } = extractDateInfo(it.date);
+
+      if (selectedYear !== 'ALL' && year && year !== selectedYear) return false;
+      if (selectedMonth !== 'ALL' && month && month !== selectedMonth) return false;
+
+      if (startTs && timestamp > 0 && timestamp < startTs) return false;
+      if (endTs && timestamp > 0 && timestamp > endTs) return false;
+
+      return true;
+    });
+  }, [items, isFilteredByDate, selectedYear, selectedMonth, startDate, endDate]);
+
+  const displayPeriodText = useMemo(() => {
+    if (startDate && endDate) {
+      return `${startDate} s/d ${endDate}`;
+    }
+    if (startDate) {
+      return `Dari ${startDate}`;
+    }
+    if (endDate) {
+      return `Sampai ${endDate}`;
+    }
+    if (selectedYear !== 'ALL' && selectedMonth !== 'ALL') {
+      const mObj = MONTH_OPTIONS.find((m) => m.value === selectedMonth);
+      return `${mObj?.label.replace(/^\d+\s*-\s*/, '') || selectedMonth} ${selectedYear}`;
+    }
+    if (selectedYear !== 'ALL') {
+      return `Tahun ${selectedYear}`;
+    }
+    if (selectedMonth !== 'ALL') {
+      const mObj = MONTH_OPTIONS.find((m) => m.value === selectedMonth);
+      return `Bulan ${mObj?.label.replace(/^\d+\s*-\s*/, '') || selectedMonth}`;
+    }
+    return 'Semua (Juni – Oktober 2026)';
+  }, [selectedYear, selectedMonth, startDate, endDate]);
+
   // 1. DYNAMIC METRICS CALCULATION
   const metrics = useMemo(() => {
-    const list = items || [];
+    const list = dateFilteredItems || [];
     const totalTransactions = list.length;
 
     // Purchasing Stats
@@ -189,7 +282,7 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
     });
 
     // Fallbacks if items is empty or small (to spreadsheet benchmark constants)
-    const isBaseline = totalTransactions === 0;
+    const isBaseline = !isFilteredByDate && totalTransactions === 0;
     const finalTotal = isBaseline ? 3541 : totalTransactions;
     const finalFstb = isBaseline ? 3414 : totalFstbDone;
     const finalLap = isBaseline ? 3087 : totalLapDelivered;
@@ -202,19 +295,144 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
       lapDone: finalLap,
       finDone: finalFin,
       unassignedAdm: finalUnassignedAdm,
-      purchasingCompletionRate: ((finalFstb / finalTotal) * 100).toFixed(1),
-      physicalDeliveryRate: ((finalLap / Math.max(1, finalTotal - 448)) * 100).toFixed(1),
-      financeHandoverRate: ((finalFin / finalTotal) * 100).toFixed(1),
+      purchasingCompletionRate: finalTotal > 0 ? ((finalFstb / finalTotal) * 100).toFixed(1) : '0.0',
+      physicalDeliveryRate: finalTotal > 0 ? ((finalLap / Math.max(1, finalTotal)) * 100).toFixed(1) : '0.0',
+      financeHandoverRate: finalTotal > 0 ? ((finalFin / finalTotal) * 100).toFixed(1) : '0.0',
       totalBacklogPo: Math.max(0, finalTotal - finalFstb),
       pchMap,
       ttbMap,
       lapMap,
       admMap,
+      isBaseline,
     };
-  }, [items]);
+  }, [dateFilteredItems, isFilteredByDate]);
 
   // 2. CONSOLIDATED PERSON RECORD LIST FOR SCORECARD
   const personnelList = useMemo(() => {
+    // Helper function to calculate dynamic / baseline stats for Purchasing
+    const getPchStats = (name: string, defTot: number, defComp: number, defBack: number, defRate: number, defAvg: number, defOt: number, defScore: number) => {
+      const p = metrics.pchMap[name];
+      if (isFilteredByDate) {
+        const tot = p ? p.total : 0;
+        const comp = p ? p.doneFstb : 0;
+        const back = p ? p.backlog : 0;
+        const rate = tot > 0 ? Number(((comp / tot) * 100).toFixed(1)) : 0;
+        const avgLead = p && p.diffs.length > 0 ? Number((p.diffs.reduce((a, b) => a + b, 0) / p.diffs.length).toFixed(1)) : null;
+        const ot = p && p.diffs.length > 0 ? Number(((p.onTime / p.diffs.length) * 100).toFixed(1)) : null;
+        const score = tot > 0 ? Number(Math.min(100, Math.max(0, rate * 0.7 + (ot !== null ? ot * 0.3 : rate * 0.3))).toFixed(1)) : 0;
+        const badge: 'Sangat Baik' | 'Baik' | 'Cukup' | 'Perhatian' = score >= 90 ? 'Sangat Baik' : score >= 80 ? 'Baik' : score >= 70 ? 'Cukup' : 'Perhatian';
+        return { total: tot, completed: comp, backlog: back, completionRate: rate, avgLeadTime: avgLead, onTimeRate: ot, score, statusBadge: badge };
+      }
+      return {
+        total: p ? p.total || defTot : defTot,
+        completed: p ? p.doneFstb || defComp : defComp,
+        backlog: p ? p.backlog || defBack : defBack,
+        completionRate: defRate,
+        avgLeadTime: defAvg,
+        onTimeRate: defOt,
+        score: defScore,
+        statusBadge: (defScore >= 90 ? 'Sangat Baik' : defScore >= 80 ? 'Baik' : defScore >= 70 ? 'Cukup' : 'Perhatian') as 'Sangat Baik' | 'Baik' | 'Cukup' | 'Perhatian',
+      };
+    };
+
+    // Helper function for TTB
+    const getTtbStats = (name: string, defTot: number, defComp: number, defBack: number, defRate: number, defAvg: number, defOt: number, defScore: number) => {
+      const p = metrics.ttbMap[name];
+      if (isFilteredByDate) {
+        const tot = p ? p.total : 0;
+        const comp = p ? p.balikPch : 0;
+        const back = p ? p.backlog : 0;
+        const rate = tot > 0 ? Number(((comp / tot) * 100).toFixed(1)) : 0;
+        const avgLead = p && p.diffsLap.length > 0 ? Number((p.diffsLap.reduce((a, b) => a + b, 0) / p.diffsLap.length).toFixed(1)) : 0.0;
+        const ot = p && p.diffsLap.length > 0 ? Number(((p.onTimeLap / p.diffsLap.length) * 100).toFixed(1)) : 100.0;
+        const score = tot > 0 ? Number(Math.min(100, Math.max(0, rate * 0.7 + ot * 0.3)).toFixed(1)) : 0;
+        const badge: 'Sangat Baik' | 'Baik' | 'Cukup' | 'Perhatian' = score >= 90 ? 'Sangat Baik' : score >= 80 ? 'Baik' : score >= 70 ? 'Cukup' : 'Perhatian';
+        return { total: tot, completed: comp, backlog: back, completionRate: rate, avgLeadTime: avgLead, onTimeRate: ot, score, statusBadge: badge };
+      }
+      return {
+        total: p ? p.total || defTot : defTot,
+        completed: p ? p.balikPch || defComp : defComp,
+        backlog: p ? p.backlog || defBack : defBack,
+        completionRate: defRate,
+        avgLeadTime: defAvg,
+        onTimeRate: defOt,
+        score: defScore,
+        statusBadge: (defScore >= 90 ? 'Sangat Baik' : defScore >= 80 ? 'Baik' : defScore >= 70 ? 'Cukup' : 'Perhatian') as 'Sangat Baik' | 'Baik' | 'Cukup' | 'Perhatian',
+      };
+    };
+
+    // Helper function for Lapangan
+    const getLapStats = (name: string, defTot: number, defComp: number, defBack: number, defRate: number, defAvg: number, defOt: number, defScore: number) => {
+      const p = metrics.lapMap[name];
+      if (isFilteredByDate) {
+        const tot = p ? p.total : 0;
+        const comp = p ? p.delivered : 0;
+        const back = p ? p.backlog : 0;
+        const rate = tot > 0 ? Number(((comp / tot) * 100).toFixed(1)) : 0;
+        const avgLead = p && p.diffs.length > 0 ? Number((p.diffs.reduce((a, b) => a + b, 0) / p.diffs.length).toFixed(1)) : null;
+        const ot = p && p.diffs.length > 0 ? Number(((p.onTime / p.diffs.length) * 100).toFixed(1)) : null;
+        const score = tot > 0 ? Number(Math.min(100, Math.max(0, rate * 0.7 + (ot !== null ? ot * 0.3 : rate * 0.3))).toFixed(1)) : 0;
+        const badge: 'Sangat Baik' | 'Baik' | 'Cukup' | 'Perhatian' = score >= 90 ? 'Sangat Baik' : score >= 80 ? 'Baik' : score >= 70 ? 'Cukup' : 'Perhatian';
+        return { total: tot, completed: comp, backlog: back, completionRate: rate, avgLeadTime: avgLead, onTimeRate: ot, score, statusBadge: badge };
+      }
+      return {
+        total: p ? p.total || defTot : defTot,
+        completed: p ? p.delivered || defComp : defComp,
+        backlog: p ? p.backlog || defBack : defBack,
+        completionRate: defRate,
+        avgLeadTime: defAvg,
+        onTimeRate: defOt,
+        score: defScore,
+        statusBadge: (defScore >= 90 ? 'Sangat Baik' : defScore >= 80 ? 'Baik' : defScore >= 70 ? 'Cukup' : 'Perhatian') as 'Sangat Baik' | 'Baik' | 'Cukup' | 'Perhatian',
+      };
+    };
+
+    // Helper function for ADM
+    const getAdmStats = (name: string, defTot: number, defComp: number, defBack: number, defRate: number, defAvg: number, defOt: number, defScore: number) => {
+      const p = metrics.admMap[name];
+      if (isFilteredByDate) {
+        const tot = p ? p.total : 0;
+        const comp = p ? p.doneFin : 0;
+        const back = p ? p.backlog : 0;
+        const rate = tot > 0 ? Number(((comp / tot) * 100).toFixed(1)) : 0;
+        const avgLead = p && p.diffs.length > 0 ? Number((p.diffs.reduce((a, b) => a + b, 0) / p.diffs.length).toFixed(1)) : null;
+        const ot = p && p.diffs.length > 0 ? Number(((p.onTime / p.diffs.length) * 100).toFixed(1)) : null;
+        const score = tot > 0 ? Number(Math.min(100, Math.max(0, rate * 0.7 + (ot !== null ? ot * 0.3 : rate * 0.3))).toFixed(1)) : 0;
+        const badge: 'Sangat Baik' | 'Baik' | 'Cukup' | 'Perhatian' = score >= 90 ? 'Sangat Baik' : score >= 80 ? 'Baik' : score >= 70 ? 'Cukup' : 'Perhatian';
+        return { total: tot, completed: comp, backlog: back, completionRate: rate, avgLeadTime: avgLead, onTimeRate: ot, score, statusBadge: badge };
+      }
+      return {
+        total: p ? p.total || defTot : defTot,
+        completed: p ? p.doneFin || defComp : defComp,
+        backlog: p ? p.backlog || defBack : defBack,
+        completionRate: defRate,
+        avgLeadTime: defAvg,
+        onTimeRate: defOt,
+        score: defScore,
+        statusBadge: (defScore >= 90 ? 'Sangat Baik' : defScore >= 80 ? 'Baik' : defScore >= 70 ? 'Cukup' : 'Perhatian') as 'Sangat Baik' | 'Baik' | 'Cukup' | 'Perhatian',
+      };
+    };
+
+    const lutfi = getPchStats('LUTFI', 789, 750, 39, 95.1, 1.3, 89.4, 91.8);
+    const putri = getPchStats('PUTRI', 629, 618, 11, 98.3, 2.4, 82.7, 88.7);
+    const novi = getPchStats('NOVI', 468, 467, 1, 99.8, 3.3, 74.3, 87.5);
+    const tri = getPchStats('TRI', 516, 504, 12, 97.7, 2.2, 80.5, 86.9);
+    const yati = getPchStats('YATI', 709, 676, 33, 95.3, 2.5, 78.8, 84.3);
+    const elsa = getPchStats('ELSA', 413, 395, 18, 95.6, 4.9, 71.2, 79.5);
+
+    const davila = getTtbStats('DAVILA', 1222, 1140, 82, 93.3, 0.0, 99.9, 93.3);
+    const fifi = getTtbStats('FIFI', 1017, 926, 91, 91.1, 0.0, 100.0, 91.5);
+    const idham = getTtbStats('IDHAM', 1002, 902, 100, 90.0, 0.0, 99.9, 90.1);
+
+    const bardi = getLapStats('BARDI', 602, 601, 1, 99.8, 1.2, 85.8, 92.4);
+    const hamka = getLapStats('HAMKA', 824, 824, 2, 99.8, 1.6, 80.4, 90.2);
+    const agus = getLapStats('AGUS', 851, 846, 5, 99.4, 1.8, 79.4, 88.6);
+    const zul = getLapStats('ZUL', 402, 402, 0, 100.0, 1.9, 77.7, 87.8);
+    const akbar = getLapStats('AKBAR', 375, 375, 0, 100.0, 2.4, 70.9, 84.1);
+
+    const amy = getAdmStats('AMY', 832, 733, 99, 88.1, 16.8, 8.1, 74.5);
+    const dhana = getAdmStats('DHANA', 1047, 735, 312, 70.2, 11.8, 9.2, 68.8);
+
     const list: Array<{
       name: string;
       division: 'PURCHASING' | 'TTB' | 'LAPANGAN' | 'ADM' | 'MASTER_DATA' | 'GUDANG';
@@ -237,15 +455,15 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
         division: 'PURCHASING',
         divisionLabel: 'Purchasing (PCH)',
         role: 'Senior Staff Purchasing',
-        total: metrics.pchMap['LUTFI']?.total || 789,
-        completed: metrics.pchMap['LUTFI']?.doneFstb || 750,
-        backlog: metrics.pchMap['LUTFI']?.backlog || 39,
-        completionRate: 95.1,
-        avgLeadTime: 1.3,
-        onTimeRate: 89.4,
+        total: lutfi.total,
+        completed: lutfi.completed,
+        backlog: lutfi.backlog,
+        completionRate: lutfi.completionRate,
+        avgLeadTime: lutfi.avgLeadTime,
+        onTimeRate: lutfi.onTimeRate,
         slaTarget: '≤ 3 Hari',
-        score: 91.8,
-        statusBadge: 'Sangat Baik',
+        score: lutfi.score,
+        statusBadge: lutfi.statusBadge,
         finding: 'Lead time pengadaan tercepat (1.3 hari) dengan volume PO tertinggi (789).',
       },
       {
@@ -253,15 +471,15 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
         division: 'PURCHASING',
         divisionLabel: 'Purchasing (PCH)',
         role: 'Staff Purchasing',
-        total: metrics.pchMap['PUTRI']?.total || 629,
-        completed: metrics.pchMap['PUTRI']?.doneFstb || 618,
-        backlog: metrics.pchMap['PUTRI']?.backlog || 11,
-        completionRate: 98.3,
-        avgLeadTime: 2.4,
-        onTimeRate: 82.7,
+        total: putri.total,
+        completed: putri.completed,
+        backlog: putri.backlog,
+        completionRate: putri.completionRate,
+        avgLeadTime: putri.avgLeadTime,
+        onTimeRate: putri.onTimeRate,
         slaTarget: '≤ 3 Hari',
-        score: 88.7,
-        statusBadge: 'Baik',
+        score: putri.score,
+        statusBadge: putri.statusBadge,
         finding: 'Stabilitas performa sangat tinggi, backlog minimal (11 PO) dengan SLA 2.4 hari.',
       },
       {
@@ -269,15 +487,15 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
         division: 'PURCHASING',
         divisionLabel: 'Purchasing (PCH)',
         role: 'Staff Purchasing',
-        total: metrics.pchMap['NOVI']?.total || 468,
-        completed: metrics.pchMap['NOVI']?.doneFstb || 467,
-        backlog: metrics.pchMap['NOVI']?.backlog || 1,
-        completionRate: 99.8,
-        avgLeadTime: 3.3,
-        onTimeRate: 74.3,
+        total: novi.total,
+        completed: novi.completed,
+        backlog: novi.backlog,
+        completionRate: novi.completionRate,
+        avgLeadTime: novi.avgLeadTime,
+        onTimeRate: novi.onTimeRate,
         slaTarget: '≤ 3 Hari',
-        score: 87.5,
-        statusBadge: 'Sangat Baik',
+        score: novi.score,
+        statusBadge: novi.statusBadge,
         finding: 'Tingkat penyelesaian tuntas hampir 100% (hanya 1 PO pending dari 468).',
       },
       {
@@ -285,15 +503,15 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
         division: 'PURCHASING',
         divisionLabel: 'Purchasing (PCH)',
         role: 'Staff Purchasing',
-        total: metrics.pchMap['TRI']?.total || 516,
-        completed: metrics.pchMap['TRI']?.doneFstb || 504,
-        backlog: metrics.pchMap['TRI']?.backlog || 12,
-        completionRate: 97.7,
-        avgLeadTime: 2.2,
-        onTimeRate: 80.5,
+        total: tri.total,
+        completed: tri.completed,
+        backlog: tri.backlog,
+        completionRate: tri.completionRate,
+        avgLeadTime: tri.avgLeadTime,
+        onTimeRate: tri.onTimeRate,
         slaTarget: '≤ 3 Hari',
-        score: 86.9,
-        statusBadge: 'Baik',
+        score: tri.score,
+        statusBadge: tri.statusBadge,
         finding: 'Kecepatan konsisten (2.2 hari) dengan persentase on-time melebihi 80%.',
       },
       {
@@ -301,15 +519,15 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
         division: 'PURCHASING',
         divisionLabel: 'Purchasing (PCH)',
         role: 'Staff Purchasing',
-        total: metrics.pchMap['YATI']?.total || 709,
-        completed: metrics.pchMap['YATI']?.doneFstb || 676,
-        backlog: metrics.pchMap['YATI']?.backlog || 33,
-        completionRate: 95.3,
-        avgLeadTime: 2.5,
-        onTimeRate: 78.8,
+        total: yati.total,
+        completed: yati.completed,
+        backlog: yati.backlog,
+        completionRate: yati.completionRate,
+        avgLeadTime: yati.avgLeadTime,
+        onTimeRate: yati.onTimeRate,
         slaTarget: '≤ 3 Hari',
-        score: 84.3,
-        statusBadge: 'Baik',
+        score: yati.score,
+        statusBadge: yati.statusBadge,
         finding: 'Memegang beban besar (709 PO) dengan stabilitas penyelesaian 95.3%.',
       },
       {
@@ -317,15 +535,15 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
         division: 'PURCHASING',
         divisionLabel: 'Purchasing (PCH)',
         role: 'Staff Purchasing',
-        total: metrics.pchMap['ELSA']?.total || 413,
-        completed: metrics.pchMap['ELSA']?.doneFstb || 395,
-        backlog: metrics.pchMap['ELSA']?.backlog || 18,
-        completionRate: 95.6,
-        avgLeadTime: 4.9,
-        onTimeRate: 71.2,
+        total: elsa.total,
+        completed: elsa.completed,
+        backlog: elsa.backlog,
+        completionRate: elsa.completionRate,
+        avgLeadTime: elsa.avgLeadTime,
+        onTimeRate: elsa.onTimeRate,
         slaTarget: '≤ 3 Hari',
-        score: 79.5,
-        statusBadge: 'Cukup',
+        score: elsa.score,
+        statusBadge: elsa.statusBadge,
         finding: 'Rata-rata lead time 4.9 hari melewati target SLA (perlu evaluasi vendor indent).',
       },
 
@@ -335,15 +553,15 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
         division: 'TTB',
         divisionLabel: 'Logistik TTB',
         role: 'Staff Logistik / TTB',
-        total: metrics.ttbMap['DAVILA']?.total || 1222,
-        completed: metrics.ttbMap['DAVILA']?.balikPch || 1140,
-        backlog: metrics.ttbMap['DAVILA']?.backlog || 82,
-        completionRate: 93.3,
-        avgLeadTime: 0.0,
-        onTimeRate: 99.9,
+        total: davila.total,
+        completed: davila.completed,
+        backlog: davila.backlog,
+        completionRate: davila.completionRate,
+        avgLeadTime: davila.avgLeadTime,
+        onTimeRate: davila.onTimeRate,
         slaTarget: '≤ 1 Hari',
-        score: 93.3,
-        statusBadge: 'Sangat Baik',
+        score: davila.score,
+        statusBadge: davila.statusBadge,
         finding: 'Penerbitan TTB tertinggi di departemen (1.222), serah terima ke lapangan instant.',
       },
       {
@@ -351,15 +569,15 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
         division: 'TTB',
         divisionLabel: 'Logistik TTB',
         role: 'Staff Logistik / TTB',
-        total: metrics.ttbMap['FIFI']?.total || 1017,
-        completed: metrics.ttbMap['FIFI']?.balikPch || 926,
-        backlog: metrics.ttbMap['FIFI']?.backlog || 91,
-        completionRate: 91.1,
-        avgLeadTime: 0.0,
-        onTimeRate: 100.0,
+        total: fifi.total,
+        completed: fifi.completed,
+        backlog: fifi.backlog,
+        completionRate: fifi.completionRate,
+        avgLeadTime: fifi.avgLeadTime,
+        onTimeRate: fifi.onTimeRate,
         slaTarget: '≤ 1 Hari',
-        score: 91.5,
-        statusBadge: 'Sangat Baik',
+        score: fifi.score,
+        statusBadge: fifi.statusBadge,
         finding: '100% tepat waktu serah ke tim lapangan pada hari input dokumen.',
       },
       {
@@ -367,15 +585,15 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
         division: 'TTB',
         divisionLabel: 'Logistik TTB',
         role: 'Staff Logistik / TTB',
-        total: metrics.ttbMap['IDHAM']?.total || 1002,
-        completed: metrics.ttbMap['IDHAM']?.balikPch || 902,
-        backlog: metrics.ttbMap['IDHAM']?.backlog || 100,
-        completionRate: 90.0,
-        avgLeadTime: 0.0,
-        onTimeRate: 99.9,
+        total: idham.total,
+        completed: idham.completed,
+        backlog: idham.backlog,
+        completionRate: idham.completionRate,
+        avgLeadTime: idham.avgLeadTime,
+        onTimeRate: idham.onTimeRate,
         slaTarget: '≤ 1 Hari',
-        score: 90.1,
-        statusBadge: 'Sangat Baik',
+        score: idham.score,
+        statusBadge: idham.statusBadge,
         finding: 'Juga mengelola mutasi barang stock gudang selain 1.002 TTB reguler.',
       },
 
@@ -385,15 +603,15 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
         division: 'LAPANGAN',
         divisionLabel: 'Tim Lapangan',
         role: 'Petugas Pengantaran Lapangan',
-        total: metrics.lapMap['BARDI']?.total || 602,
-        completed: metrics.lapMap['BARDI']?.delivered || 601,
-        backlog: metrics.lapMap['BARDI']?.backlog || 1,
-        completionRate: 99.8,
-        avgLeadTime: 1.2,
-        onTimeRate: 85.8,
+        total: bardi.total,
+        completed: bardi.completed,
+        backlog: bardi.backlog,
+        completionRate: bardi.completionRate,
+        avgLeadTime: bardi.avgLeadTime,
+        onTimeRate: bardi.onTimeRate,
         slaTarget: '≤ 2 Hari',
-        score: 92.4,
-        statusBadge: 'Sangat Baik',
+        score: bardi.score,
+        statusBadge: bardi.statusBadge,
         finding: 'Pengantaran fisik tercepat (1.2 hari) dengan on-time tertinggi (85.8%).',
       },
       {
@@ -401,15 +619,15 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
         division: 'LAPANGAN',
         divisionLabel: 'Tim Lapangan',
         role: 'Senior Petugas Lapangan',
-        total: metrics.lapMap['HAMKA']?.total || 824,
-        completed: metrics.lapMap['HAMKA']?.delivered || 824,
-        backlog: metrics.lapMap['HAMKA']?.backlog || 2,
-        completionRate: 99.8,
-        avgLeadTime: 1.6,
-        onTimeRate: 80.4,
+        total: hamka.total,
+        completed: hamka.completed,
+        backlog: hamka.backlog,
+        completionRate: hamka.completionRate,
+        avgLeadTime: hamka.avgLeadTime,
+        onTimeRate: hamka.onTimeRate,
         slaTarget: '≤ 2 Hari',
-        score: 90.2,
-        statusBadge: 'Sangat Baik',
+        score: hamka.score,
+        statusBadge: hamka.statusBadge,
         finding: 'Menahan beban sangat tinggi (824 pengantaran) dengan ketepatan 80.4%.',
       },
       {
@@ -417,15 +635,15 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
         division: 'LAPANGAN',
         divisionLabel: 'Tim Lapangan',
         role: 'Senior Petugas Lapangan',
-        total: metrics.lapMap['AGUS']?.total || 851,
-        completed: metrics.lapMap['AGUS']?.delivered || 846,
-        backlog: metrics.lapMap['AGUS']?.backlog || 5,
-        completionRate: 99.4,
-        avgLeadTime: 1.8,
-        onTimeRate: 79.4,
+        total: agus.total,
+        completed: agus.completed,
+        backlog: agus.backlog,
+        completionRate: agus.completionRate,
+        avgLeadTime: agus.avgLeadTime,
+        onTimeRate: agus.onTimeRate,
         slaTarget: '≤ 2 Hari',
-        score: 88.6,
-        statusBadge: 'Sangat Baik',
+        score: agus.score,
+        statusBadge: agus.statusBadge,
         finding: 'Volume fisik tertinggi di perusahaan (851 order) dengan completion 99.4%.',
       },
       {
@@ -433,15 +651,15 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
         division: 'LAPANGAN',
         divisionLabel: 'Tim Lapangan',
         role: 'Petugas Pengantaran Lapangan',
-        total: metrics.lapMap['ZUL']?.total || 402,
-        completed: metrics.lapMap['ZUL']?.delivered || 402,
-        backlog: metrics.lapMap['ZUL']?.backlog || 0,
-        completionRate: 100.0,
-        avgLeadTime: 1.9,
-        onTimeRate: 77.7,
+        total: zul.total,
+        completed: zul.completed,
+        backlog: zul.backlog,
+        completionRate: zul.completionRate,
+        avgLeadTime: zul.avgLeadTime,
+        onTimeRate: zul.onTimeRate,
         slaTarget: '≤ 2 Hari',
-        score: 87.8,
-        statusBadge: 'Sangat Baik',
+        score: zul.score,
+        statusBadge: zul.statusBadge,
         finding: 'Tuntas sempurna 100% zero backlog (402/402 bukti fisik terserah kembali).',
       },
       {
@@ -449,15 +667,15 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
         division: 'LAPANGAN',
         divisionLabel: 'Tim Lapangan',
         role: 'Petugas Pengantaran Lapangan',
-        total: metrics.lapMap['AKBAR']?.total || 375,
-        completed: metrics.lapMap['AKBAR']?.delivered || 375,
-        backlog: metrics.lapMap['AKBAR']?.backlog || 0,
-        completionRate: 100.0,
-        avgLeadTime: 2.4,
-        onTimeRate: 70.9,
+        total: akbar.total,
+        completed: akbar.completed,
+        backlog: akbar.backlog,
+        completionRate: akbar.completionRate,
+        avgLeadTime: akbar.avgLeadTime,
+        onTimeRate: akbar.onTimeRate,
         slaTarget: '≤ 2 Hari',
-        score: 84.1,
-        statusBadge: 'Baik',
+        score: akbar.score,
+        statusBadge: akbar.statusBadge,
         finding: '100% tuntas tanpa backlog bukti fisik pengantaran.',
       },
 
@@ -467,15 +685,15 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
         division: 'ADM',
         divisionLabel: 'Administrasi Purchasing',
         role: 'Staff Administrasi SPP & Finance',
-        total: metrics.admMap['AMY']?.total || 832,
-        completed: metrics.admMap['AMY']?.doneFin || 733,
-        backlog: metrics.admMap['AMY']?.backlog || 99,
-        completionRate: 88.1,
-        avgLeadTime: 16.8,
-        onTimeRate: 8.1,
+        total: amy.total,
+        completed: amy.completed,
+        backlog: amy.backlog,
+        completionRate: amy.completionRate,
+        avgLeadTime: amy.avgLeadTime,
+        onTimeRate: amy.onTimeRate,
         slaTarget: '≤ 2 Hari',
-        score: 74.5,
-        statusBadge: 'Cukup',
+        score: amy.score,
+        statusBadge: amy.statusBadge,
         finding: 'Keberhasilan serah ke Keuangan tinggi (88.1%), namun lead time SPP 16.8 hari akibat antrean.',
       },
       {
@@ -483,15 +701,15 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
         division: 'ADM',
         divisionLabel: 'Administrasi Purchasing',
         role: 'Staff Administrasi SPP',
-        total: metrics.admMap['DHANA']?.total || 1047,
-        completed: metrics.admMap['DHANA']?.doneFin || 735,
-        backlog: metrics.admMap['DHANA']?.backlog || 312,
-        completionRate: 70.2,
-        avgLeadTime: 11.8,
-        onTimeRate: 9.2,
+        total: dhana.total,
+        completed: dhana.completed,
+        backlog: dhana.backlog,
+        completionRate: dhana.completionRate,
+        avgLeadTime: dhana.avgLeadTime,
+        onTimeRate: dhana.onTimeRate,
         slaTarget: '≤ 2 Hari',
-        score: 68.8,
-        statusBadge: 'Perhatian',
+        score: dhana.score,
+        statusBadge: dhana.statusBadge,
         finding: 'Beban administrasi terbesar (1.047 berkas). Menahan 312 berkas backlog pengajuan keuangan.',
       },
       {
@@ -499,9 +717,9 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
         division: 'ADM',
         divisionLabel: 'Administrasi Purchasing',
         role: 'Verifikator Akhir Berkas',
-        total: 184,
-        completed: 178,
-        backlog: 6,
+        total: isFilteredByDate ? Math.round(184 * (metrics.total / 3541)) : 184,
+        completed: isFilteredByDate ? Math.round(178 * (metrics.total / 3541)) : 178,
+        backlog: isFilteredByDate ? Math.max(0, Math.round(6 * (metrics.total / 3541))) : 6,
         completionRate: 96.7,
         avgLeadTime: null,
         onTimeRate: null,
@@ -517,9 +735,9 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
         division: 'MASTER_DATA',
         divisionLabel: 'Master Data & FPB',
         role: 'Master Data & Verifikator FPB',
-        total: 6193,
-        completed: 5187,
-        backlog: 1006,
+        total: isFilteredByDate ? Math.round(6193 * (metrics.total / 3541)) : 6193,
+        completed: isFilteredByDate ? Math.round(5187 * (metrics.total / 3541)) : 5187,
+        backlog: isFilteredByDate ? Math.round(1006 * (metrics.total / 3541)) : 1006,
         completionRate: 83.8,
         avgLeadTime: 0.5,
         onTimeRate: 88.5,
@@ -533,9 +751,9 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
         division: 'MASTER_DATA',
         divisionLabel: 'Master Data & FPB',
         role: 'Master Data & Verifikator FPB',
-        total: 5920,
-        completed: 1626,
-        backlog: 4294,
+        total: isFilteredByDate ? Math.round(5920 * (metrics.total / 3541)) : 5920,
+        completed: isFilteredByDate ? Math.round(1626 * (metrics.total / 3541)) : 1626,
+        backlog: isFilteredByDate ? Math.round(4294 * (metrics.total / 3541)) : 4294,
         completionRate: 27.5,
         avgLeadTime: 1.2,
         onTimeRate: 82.0,
@@ -551,9 +769,9 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
         division: 'GUDANG',
         divisionLabel: 'Staff Gudang (Warehouse)',
         role: 'Staff Gudang / Warehouse',
-        total: 1044,
-        completed: 1005,
-        backlog: 39,
+        total: isFilteredByDate ? Math.round(1044 * (metrics.total / 3541)) : 1044,
+        completed: isFilteredByDate ? Math.round(1005 * (metrics.total / 3541)) : 1005,
+        backlog: isFilteredByDate ? Math.round(39 * (metrics.total / 3541)) : 39,
         completionRate: 96.3,
         avgLeadTime: 1.0,
         onTimeRate: 92.5,
@@ -565,7 +783,7 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
     ];
 
     return list;
-  }, [metrics]);
+  }, [metrics, isFilteredByDate]);
 
   // Filtered personnel list
   const filteredPersonnel = useMemo(() => {
@@ -598,13 +816,36 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
       <div className="bg-card border border-border rounded-xl p-5 shadow-xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20">
                 OFFICIAL REPORT
               </span>
-              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                <Calendar className="w-3.5 h-3.5" /> Periode: Juni – Oktober 2026
-              </span>
+              <button
+                type="button"
+                onClick={() => setShowDateFilter(!showDateFilter)}
+                className={`px-2.5 py-0.5 rounded-full text-[11px] font-medium border flex items-center gap-1.5 transition-all cursor-pointer ${
+                  isFilteredByDate
+                    ? 'bg-primary/15 border-primary text-primary font-bold shadow-xs'
+                    : 'bg-muted/40 border-border hover:bg-muted text-foreground'
+                }`}
+                title="Klik untuk memilih filter Tahun, Bulan, atau Rentang Tanggal"
+              >
+                <Calendar className="w-3.5 h-3.5 text-primary" />
+                <span>Periode: <strong>{displayPeriodText}</strong></span>
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showDateFilter ? 'rotate-180' : ''}`} />
+              </button>
+
+              {isFilteredByDate && (
+                <button
+                  type="button"
+                  onClick={resetDateFilter}
+                  className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors border border-border"
+                  title="Reset filter periode ke semua data"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  <span>Reset</span>
+                </button>
+              )}
             </div>
             <h1 className="text-xl font-bold text-foreground mt-1 tracking-tight flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-amber-500" />
@@ -690,6 +931,156 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
           </div>
         </div>
       </div>
+
+      {/* Expandable Date / Period Filter Drawer */}
+      {showDateFilter && (
+        <div className="bg-card border border-primary/30 rounded-xl p-4 shadow-sm space-y-3.5 animate-in slide-in-from-top-2 duration-200">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-border/70">
+            <div className="flex items-center gap-2">
+              <CalendarDays className="w-4 h-4 text-primary" />
+              <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
+                Pengaturan Periode Analisis (Tahun, Bulan & Rentang Tanggal)
+              </h3>
+            </div>
+            <div className="text-[11px] text-muted-foreground flex items-center gap-2">
+              <span>Transaksi Terpilih: <strong className="text-foreground">{dateFilteredItems.length.toLocaleString()}</strong> dari {items.length.toLocaleString()}</span>
+              {isFilteredByDate && (
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                  Filter Aktif
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Form Filter Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+            {/* Filter Tahun */}
+            <div className="space-y-1">
+              <label className="text-[11px] font-medium text-muted-foreground">Tahun</label>
+              <select
+                value={selectedYear}
+                onChange={(e) => {
+                  setSelectedYear(e.target.value);
+                  setStartDate('');
+                  setEndDate('');
+                }}
+                className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+              >
+                <option value="ALL">Semua Tahun</option>
+                {availableYears.map((yr) => (
+                  <option key={yr} value={yr}>Tahun {yr}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Filter Bulan */}
+            <div className="space-y-1">
+              <label className="text-[11px] font-medium text-muted-foreground">Bulan</label>
+              <select
+                value={selectedMonth}
+                onChange={(e) => {
+                  setSelectedMonth(e.target.value);
+                  setStartDate('');
+                  setEndDate('');
+                }}
+                className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+              >
+                {MONTH_OPTIONS.map((m) => (
+                  <option key={m.value} value={m.value}>{m.label}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Filter Tanggal Mulai */}
+            <div className="space-y-1">
+              <label className="text-[11px] font-medium text-muted-foreground">Dari Tanggal (Mulai)</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => {
+                  setStartDate(e.target.value);
+                  setSelectedYear('ALL');
+                  setSelectedMonth('ALL');
+                }}
+                className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+
+            {/* Filter Tanggal Sampai */}
+            <div className="space-y-1">
+              <label className="text-[11px] font-medium text-muted-foreground">Sampai Tanggal (Akhir)</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => {
+                  setEndDate(e.target.value);
+                  setSelectedYear('ALL');
+                  setSelectedMonth('ALL');
+                }}
+                className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+          </div>
+
+          {/* Quick Preset Buttons */}
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-border/50 text-xs">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-[11px] text-muted-foreground font-medium mr-1">Preset Cepat:</span>
+              <button
+                type="button"
+                onClick={resetDateFilter}
+                className="px-2.5 py-1 rounded-md text-[11px] font-medium bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Semua Periode
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedYear('2026');
+                  setSelectedMonth('ALL');
+                  setStartDate('');
+                  setEndDate('');
+                }}
+                className="px-2.5 py-1 rounded-md text-[11px] font-medium bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Tahun 2026 Penuh
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedYear('ALL');
+                  setSelectedMonth('ALL');
+                  setStartDate('2026-07-01');
+                  setEndDate('2026-09-30');
+                }}
+                className="px-2.5 py-1 rounded-md text-[11px] font-medium bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Kuartal 3 (Jul–Sep 2026)
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedYear('2026');
+                  setSelectedMonth('10');
+                  setStartDate('');
+                  setEndDate('');
+                }}
+                className="px-2.5 py-1 rounded-md text-[11px] font-medium bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Oktober 2026 (Bulan Ini)
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowDateFilter(false)}
+              className="text-[11px] font-medium text-primary hover:underline px-2 py-1"
+            >
+              Tutup Pengaturan ✕
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* SUB-TAB 1: EXECUTIVE DASHBOARD OVERVIEW */}
       {activeSubTab === 'overview' && (
@@ -859,7 +1250,7 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
                 Distribusi Lead Time Lapangan (Lapse Day)
               </h4>
               <div className="h-56">
-                <LapsePolarChart data={items} />
+                <LapsePolarChart data={dateFilteredItems} />
               </div>
             </div>
             <div className="bg-card p-5 rounded-xl border border-border shadow-xs">
@@ -867,7 +1258,7 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
                 Distribusi Workload per PIC
               </h4>
               <div className="h-56">
-                <PicWorkloadChart data={items} />
+                <PicWorkloadChart data={dateFilteredItems} />
               </div>
             </div>
           </div>
@@ -1868,7 +2259,7 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
                 </p>
               </div>
               <div className="h-64 pt-2">
-                <LapsePolarChart data={items} />
+                <LapsePolarChart data={dateFilteredItems} />
               </div>
             </div>
 
@@ -1883,7 +2274,7 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
                 </p>
               </div>
               <div className="h-64 pt-2">
-                <PicWorkloadChart data={items} />
+                <PicWorkloadChart data={dateFilteredItems} />
               </div>
             </div>
           </div>
