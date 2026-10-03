@@ -1188,12 +1188,7 @@ export default function AuditModal({
             <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
               Tujuan & Peruntukan Pengadaan:
             </span>
-            {pdfData?.tujuanPeruntukan ? (
-              <span className="text-[10px] font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded flex items-center gap-1 font-medium">
-                <CheckCircle2 className="size-3 text-emerald-600 dark:text-emerald-400" />
-                Sumber: Dokumen PDF e-FPB Asli
-              </span>
-            ) : tujuanPeruntukan && armadaKeterangans.length > 0 ? (
+            {tujuanPeruntukan && !pdfData?.tujuanPeruntukan && armadaKeterangans.length > 0 ? (
               <span className="text-[10px] font-mono text-foreground bg-muted border border-border px-2 py-0.5 rounded">
                 Worksheet: Monitoring Layanan Armada
               </span>
@@ -1286,7 +1281,7 @@ export default function AuditModal({
                 </span>
               </div>
               <span className="text-[10px] font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded border border-emerald-500/30 font-medium">
-                100% Akurat dari Server
+                100% terverifikasi
               </span>
             </div>
           )}
