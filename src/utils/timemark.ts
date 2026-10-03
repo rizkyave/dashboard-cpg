@@ -3,7 +3,7 @@
  * Menghubungkan kode FSTB (5 digit terakhir) langsung ke portal web TimeMark Teamspace.
  */
 
-export const DEFAULT_TIMEMARK_PORTAL_URL = 'https://teamspace.timemark.com/en/allPhotos';
+export const DEFAULT_TIMEMARK_PORTAL_URL = 'https://teamspace.timemark.com';
 const STORAGE_KEY = 'timemark_portal_url';
 
 /**
@@ -39,11 +39,6 @@ export const getTimemarkPortalUrl = (): string => {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved && saved.trim().startsWith('http')) {
-      const clean = saved.trim().replace(/\/+$/, '');
-      // Auto upgrade root domain lama ke halaman allPhotos langsung
-      if (clean === 'https://teamspace.timemark.com' || clean === 'http://teamspace.timemark.com') {
-        return DEFAULT_TIMEMARK_PORTAL_URL;
-      }
       return saved.trim();
     }
   } catch {
@@ -69,92 +64,53 @@ export const setTimemarkPortalUrl = (url: string): void => {
 };
 
 /**
- * Membentuk URL pencarian web langsung dengan nomor FSTB.
- * Mendukung template placeholder {code} dan {fstb}, serta otomatis
- * menambahkan parameter query string (?search=...&keyword=...&q=...) ke URL portal.
- */
-export const buildTimemarkSearchUrl = (baseUrl: string, shortCode: string, fullFstb?: string): string => {
-  const code = (shortCode || extractFstbLast5(fullFstb)).trim();
-  const fstb = (fullFstb || code).trim();
-  let url = (baseUrl || DEFAULT_TIMEMARK_PORTAL_URL).trim();
-
-  // Jika URL masih mengarah ke root domain, arahkan langsung ke halaman galeri allPhotos
-  if (url.replace(/\/+$/, '') === 'https://teamspace.timemark.com' || url.replace(/\/+$/, '') === 'http://teamspace.timemark.com') {
-    url = DEFAULT_TIMEMARK_PORTAL_URL;
-  }
-
-  if (!code && !fstb) return url;
-
-  // 1. Template replacement jika user mengonfigurasi template URL kustom
-  // Contoh: https://teamspace.timemark.com/?search={code}
-  // Atau: https://drive.google.com/drive/search?q={fstb}
-  if (url.includes('{code}') || url.includes('{fstb}')) {
-    return url
-      .replace(/\{code\}/g, encodeURIComponent(code))
-      .replace(/\{fstb\}/g, encodeURIComponent(fstb));
-  }
-
-  // 2. Format URL pencarian web otomatis:
-  // Mengirim parameter search dan keyword yang umum digunakan web app
-  const cleanBase = url.replace(/\/+$/, '');
-  const separator = cleanBase.includes('?') ? '&' : '?';
-  // `fstb` dibaca oleh userscript auto-search (public/timemark-autosearch.user.js)
-  const queryParam = `fstb=${encodeURIComponent(code)}&search=${encodeURIComponent(code)}&keyword=${encodeURIComponent(code)}&q=${encodeURIComponent(code)}`;
-
-  // Menangani URL yang memiliki hash routing (#/...)
-  if (cleanBase.includes('#')) {
-    const hashSep = cleanBase.includes('?') ? '&' : '?';
-    return `${cleanBase}${hashSep}${queryParam}`;
-  }
-
-  return `${cleanBase}${separator}${queryParam}`;
-};
-
-/**
- * Membuka portal TimeMark langsung dengan pencarian nomor FSTB di web & menyalin ke clipboard.
- * Membuka web search langsung tanpa harus paste manual.
+ * Membuka portal TimeMark & menyalin 5 angka FSTB ke clipboard pengguna.
+ * Memberikan feedback toast instan untuk kemudahan alur kerja.
  */
 export const openTimemarkWithFstb = async (
   fstb: string,
   onNotify?: (msg: string, type: 'info' | 'success' | 'warning' | 'error') => void
-): Promise<{ success: boolean; shortCode: string; portalUrl: string; searchUrl: string }> => {
+): Promise<{ success: boolean; shortCode: string; portalUrl: string }> => {
   const shortCode = extractFstbLast5(fstb);
   const portalUrl = getTimemarkPortalUrl();
 
-  if (!shortCode && !fstb) {
+  if (!shortCode) {
     if (onNotify) {
       onNotify('Nomor FSTB tidak valid atau belum terbit.', 'warning');
     }
-    return { success: false, shortCode: '', portalUrl, searchUrl: portalUrl };
+    return { success: false, shortCode: '', portalUrl };
   }
 
-  // 1. Bentuk URL pencarian web langsung yang membawa nomor FSTB
-  const searchUrl = buildTimemarkSearchUrl(portalUrl, shortCode, fstb);
-
-  // 2. Salin 5 angka ke clipboard sebagai safeguard / cadangan
+  // 1. Salin 5 angka ke clipboard
   let copied = false;
   if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
     try {
-      await navigator.clipboard.writeText(shortCode || fstb);
+      await navigator.clipboard.writeText(shortCode);
       copied = true;
     } catch {
-      // Non-fatal
+      // Clipboard write failed (permissions/focus), non-fatal
     }
   }
 
-  // 3. Buka URL pencarian langsung di tab baru (langsung search no FSTB tanpa paste manual)
+  // 2. Buka portal web TimeMark di tab baru
   if (typeof window !== 'undefined') {
-    window.open(searchUrl, '_blank', 'noopener,noreferrer');
+    window.open(portalUrl, '_blank', 'noopener,noreferrer');
   }
 
-  // 4. Notifikasi toast
+  // 3. Notifikasi toast
   if (onNotify) {
-    onNotify(
-      `Membuka web pencarian FSTB "${shortCode || fstb}"${copied ? ' (kode juga disalin ke clipboard)' : ''}...`,
-      'success'
-    );
+    if (copied) {
+      onNotify(
+        `Kode FSTB "${shortCode}" disalin ke clipboard! Membuka portal TimeMark...`,
+        'success'
+      );
+    } else {
+      onNotify(
+        `Membuka portal TimeMark untuk FSTB "${shortCode}"...`,
+        'info'
+      );
+    }
   }
 
-  return { success: true, shortCode, portalUrl, searchUrl };
+  return { success: true, shortCode, portalUrl };
 };
-

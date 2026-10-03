@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import {
   extractFstbLast5,
-  buildTimemarkSearchUrl,
   getTimemarkPortalUrl,
   setTimemarkPortalUrl,
   DEFAULT_TIMEMARK_PORTAL_URL,
@@ -78,9 +77,8 @@ export default function TimemarkModal({
         // Continue opening portal
       }
     }
-    const searchUrl = buildTimemarkSearchUrl(portalUrl, shortCode, noFstb);
-    window.open(searchUrl, '_blank', 'noopener,noreferrer');
-    showToast?.(`Membuka pencarian TimeMark untuk "${shortCode || noFstb}"...`, 'info');
+    window.open(portalUrl, '_blank', 'noopener,noreferrer');
+    showToast?.(`Membuka portal TimeMark dengan kode pencarian "${shortCode}"...`, 'info');
   };
 
   const handleSaveConfig = () => {
@@ -199,7 +197,7 @@ export default function TimemarkModal({
               </button>
             </div>
             <p className="text-[11px] text-muted-foreground leading-relaxed pt-1">
-              Browser akan <strong>langsung membuka pencarian web</strong> dengan kode FSTB tanpa harus paste manual. Kode juga tetap disalin ke clipboard sebagai cadangan.
+              Kode di atas otomatis disalin ke clipboard saat Anda menekan tombol di bawah. Cukup <strong>Paste (Ctrl+V)</strong> di bilah pencarian portal TimeMark.
             </p>
           </div>
 
@@ -222,27 +220,17 @@ export default function TimemarkModal({
             <div className="font-mono text-[11px] text-muted-foreground truncate bg-muted/60 px-2 py-1 rounded border border-border/60">
               {portalUrl}
             </div>
-            <a
-              href="/timemark-autosearch.user.js"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-[11px] text-amber-600 dark:text-amber-400 hover:underline font-medium"
-              title="Butuh ekstensi Tampermonkey. Setelah dipasang, kolom pencarian TimeMark terisi otomatis."
-            >
-              <Sparkles className="w-3 h-3" />
-              <span>Instal Script Auto-Search (Tampermonkey) agar FSTB dicari otomatis</span>
-            </a>
 
             {isConfigOpen && (
               <div className="pt-2 border-t border-border space-y-2 animate-in fade-in duration-150">
                 <label className="text-[11px] text-muted-foreground block">
-                  Masukkan URL Portal tim Anda (Mendukung parameter atau placeholder <code className="text-amber-500 font-semibold">{'{code}'}</code>):
+                  Masukkan URL Portal / Teamspace TimeMark tim Anda:
                 </label>
                 <input
                   type="text"
                   value={customInputUrl}
                   onChange={(e) => setCustomInputUrl(e.target.value)}
-                  placeholder="https://teamspace.timemark.com/en/allPhotos"
+                  placeholder="https://teamspace.timemark.com"
                   className="w-full h-8 px-2.5 rounded-lg border border-border bg-background text-xs font-mono text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                 />
                 <div className="flex items-center justify-end gap-2 pt-1">
@@ -282,7 +270,7 @@ export default function TimemarkModal({
             className="h-9 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-semibold text-xs shadow-md inline-flex items-center gap-1.5 transition active:scale-95"
           >
             <Camera className="w-4 h-4" />
-            <span>Buka & Cari Langsung FSTB</span>
+            <span>Buka Portal TimeMark</span>
             <ExternalLink className="w-3.5 h-3.5 opacity-80" />
           </button>
         </div>
