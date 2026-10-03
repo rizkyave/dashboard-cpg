@@ -730,7 +730,7 @@ export default function OverviewTab({
                     onClick={() => handleSort('fpb')}
                   >
                     <div className="flex items-center gap-1">
-                      <span>Berkas & Entitas</span>
+                      <span>Nomor Reservasi FPB</span>
                       {sortField === 'fpb' && (
                         <span className="text-primary">{sortDirection === 'asc' ? '↑' : '↓'}</span>
                       )}
