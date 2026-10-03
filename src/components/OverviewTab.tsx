@@ -31,7 +31,7 @@ import {
 import { ProcurementItem, StatusTone } from '@/types/procurement';
 import { EntityDonutChart, PipelineBarChart } from './Charts';
 import { extractFstbLast5, openTimemarkWithFstb } from '@/utils/timemark';
-import { formatDateDdMmYyDash } from '@/utils/formatDate';
+import { formatDateDdMmYy, formatDateDdMmYyDash } from '@/utils/formatDate';
 
 const formatPicAktif = (pic?: string) => {
   if (!pic) return '-';
@@ -666,7 +666,7 @@ export default function OverviewTab({
                       <div className="space-y-1 text-xs">
                         <div className="flex items-center justify-between text-[11px] text-muted-foreground font-mono">
                           <span>PO: <strong className="text-foreground">{row.po && row.po !== '-' ? row.po : 'Belum Ada'}</strong></span>
-                          <span>{row.date}</span>
+                          <span>{formatDateDdMmYy(row.date)}</span>
                         </div>
                         <p className="font-medium text-foreground text-xs line-clamp-2 mt-1">
                           {row.item}
@@ -866,7 +866,7 @@ export default function OverviewTab({
                       </td>
 
                       {/* Date */}
-                      <td className="p-3 font-mono text-xs text-muted-foreground">{row.date}</td>
+                      <td className="p-3 font-mono text-xs text-muted-foreground">{formatDateDdMmYy(row.date)}</td>
 
                       {/* Item Description */}
                       <td className="p-3 max-w-[280px]">
