@@ -802,8 +802,16 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
     return personnelList.filter((p) => p.division === 'PURCHASING').sort((a, b) => b.score - a.score);
   }, [personnelList]);
 
+  const ttbRanking = useMemo(() => {
+    return personnelList.filter((p) => p.division === 'TTB').sort((a, b) => b.score - a.score);
+  }, [personnelList]);
+
   const lapanganRanking = useMemo(() => {
     return personnelList.filter((p) => p.division === 'LAPANGAN').sort((a, b) => b.score - a.score);
+  }, [personnelList]);
+
+  const admRanking = useMemo(() => {
+    return personnelList.filter((p) => p.division === 'ADM').sort((a, b) => b.score - a.score);
   }, [personnelList]);
 
   const masterDataRanking = useMemo(() => {
@@ -1398,7 +1406,7 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
       {/* SUB-TAB 3: RANKING & LEADERBOARDS */}
       {activeSubTab === 'ranking' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          {/* Purchasing Leaderboard */}
+          {/* 1. Purchasing Leaderboard */}
           <div className="bg-card border border-border rounded-xl p-5 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -1463,7 +1471,72 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
             </div>
           </div>
 
-          {/* Tim Lapangan Leaderboard */}
+          {/* 2. Tim Logistik TTB Leaderboard */}
+          <div className="bg-card border border-border rounded-xl p-5 shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <PackageCheck className="w-5 h-5 text-emerald-500" />
+                <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">
+                  Ranking Kinerja Tim Logistik TTB
+                </h3>
+              </div>
+              <span className="text-[11px] text-muted-foreground">Target SLA: ≤ 1 Hari</span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Formula Skor: Kecepatan Serah Lapangan (40%) + On-Time Serah Lap (30%) + TTB Selesai Balik PCH (30%)
+            </p>
+
+            <div className="space-y-2.5">
+              {ttbRanking.map((p, idx) => (
+                <div
+                  key={p.name}
+                  className={`p-3 rounded-lg border transition-all flex items-center justify-between ${
+                    idx === 0
+                      ? 'bg-emerald-500/10 border-emerald-500/30'
+                      : idx === 1
+                      ? 'bg-muted/40 border-border'
+                      : 'bg-card border-border'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs ${
+                        idx === 0
+                          ? 'bg-emerald-600 text-white'
+                          : idx === 1
+                          ? 'bg-slate-400 text-white'
+                          : idx === 2
+                          ? 'bg-amber-700 text-white'
+                          : 'bg-muted text-muted-foreground'
+                      }`}
+                    >
+                      {idx + 1}
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-foreground flex items-center gap-2">
+                        {p.name}
+                        {idx === 0 && (
+                          <span className="text-[10px] px-1.5 py-0.2 bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 rounded font-semibold">
+                            VOLUME TERBESAR
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground mt-0.5">
+                        {p.total} TTB • Serah Lap: <span className="font-semibold text-foreground">{p.avgLeadTime ?? 0} hari</span> • On-Time: {p.onTimeRate ?? 100}%
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    <div className="text-sm font-black text-primary">{p.score}</div>
+                    <div className="text-[10px] text-muted-foreground">{p.completionRate}% Done</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 3. Tim Lapangan Leaderboard */}
           <div className="bg-card border border-border rounded-xl p-5 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -1515,6 +1588,71 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
                       </div>
                       <div className="text-[11px] text-muted-foreground mt-0.5">
                         {p.total} Order • Antar: <span className="font-semibold text-foreground">{p.avgLeadTime} hari</span> • On-Time: {p.onTimeRate}%
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    <div className="text-sm font-black text-primary">{p.score}</div>
+                    <div className="text-[10px] text-muted-foreground">{p.completionRate}% Done</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 4. Tim ADM Purchasing Leaderboard */}
+          <div className="bg-card border border-border rounded-xl p-5 shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileText className="w-5 h-5 text-indigo-500" />
+                <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">
+                  Ranking Kinerja Tim ADM Purchasing
+                </h3>
+              </div>
+              <span className="text-[11px] text-muted-foreground">Target SLA: ≤ 2 Hari</span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Formula Skor: Lolos Serah ke Finance (40%) + Ketepatan Input SPP (30%) + Rasio Selesai (30%)
+            </p>
+
+            <div className="space-y-2.5">
+              {admRanking.map((p, idx) => (
+                <div
+                  key={p.name}
+                  className={`p-3 rounded-lg border transition-all flex items-center justify-between ${
+                    idx === 0
+                      ? 'bg-indigo-500/10 border-indigo-500/30'
+                      : idx === 1
+                      ? 'bg-muted/40 border-border'
+                      : 'bg-card border-border'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs ${
+                        idx === 0
+                          ? 'bg-indigo-600 text-white'
+                          : idx === 1
+                          ? 'bg-slate-400 text-white'
+                          : idx === 2
+                          ? 'bg-amber-700 text-white'
+                          : 'bg-muted text-muted-foreground'
+                      }`}
+                    >
+                      {idx + 1}
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-foreground flex items-center gap-2">
+                        {p.name}
+                        {idx === 0 && (
+                          <span className="text-[10px] px-1.5 py-0.2 bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 rounded font-semibold">
+                            EFISIEN
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground mt-0.5">
+                        {p.total} Berkas • Lead Time: <span className="font-semibold text-foreground">{p.avgLeadTime !== null ? `${p.avgLeadTime} hari` : 'Verifikasi'}</span> • Backlog: <span className="text-amber-600 font-semibold">{p.backlog}</span>
                       </div>
                     </div>
                   </div>
