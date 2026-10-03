@@ -49,7 +49,7 @@ interface HeaderProps {
 
 
 const DEFAULT_SHEET_URL =
-  'https://docs.google.com/spreadsheets/d/16Ae8gGsGYx_xCNaqZvME-uZvaAeECsE69PBYlY32fZk/edit?gid=0#gid=0';
+  'https://docs.google.com/spreadsheets/d/16Ae8gGsGYx_xCNaqZvME-uZvaAeECsE69PBYlY32fZk/edit?pli=1&gid=0#gid=0';
 const DEFAULT_EFPB_FILES_URL = 'https://e-fpb.cindaragroup.com/FilesList';
 
 export default function Header({
@@ -558,6 +558,34 @@ export default function Header({
                     Live Sync
                   </span>
                 </div>
+
+                {/* 0. Shortcut Langsung: Buka Google Spreadsheet */}
+                <a
+                  href={sheetUrl || DEFAULT_SHEET_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg text-foreground hover:bg-emerald-500/10 hover:border-emerald-500/30 border border-transparent transition group cursor-pointer"
+                  title="Buka Google Spreadsheet Monitoring Layanan di tab baru"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <FileSpreadsheet className="size-4 text-emerald-600 dark:text-emerald-400 shrink-0 group-hover:scale-110 transition-transform" />
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-semibold block leading-tight text-xs text-foreground group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                          Buka Google Spreadsheet
+                        </span>
+                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
+                          Shortcut ↗
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-muted-foreground block truncate">
+                        Monitoring Layanan &amp; Pengadaan Logistik
+                      </span>
+                    </div>
+                  </div>
+                  <ExternalLink className="size-3.5 text-muted-foreground group-hover:text-emerald-600 dark:group-hover:text-emerald-400 shrink-0 transition-colors" />
+                </a>
 
                 {/* 1. Refresh Layanan Langsung dari Link Google Sheets */}
                 <div className="rounded-lg hover:bg-muted/80 transition p-1 border border-transparent hover:border-border/60">
