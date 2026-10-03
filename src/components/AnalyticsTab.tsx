@@ -22,6 +22,7 @@ import {
   ClipboardCheck,
   Building2,
   Calendar,
+  Target,
 } from 'lucide-react';
 import { ProcurementItem } from '@/types/procurement';
 import { LapsePolarChart, PicWorkloadChart } from './Charts';
@@ -30,7 +31,7 @@ interface AnalyticsTabProps {
   items: ProcurementItem[];
 }
 
-type SubTabType = 'overview' | 'personnel' | 'ranking' | 'pipeline' | 'recommendations' | 'charts';
+type SubTabType = 'overview' | 'personnel' | 'ranking' | 'pipeline' | 'recommendations' | 'swot' | 'charts';
 type DivisionFilter = 'ALL' | 'PURCHASING' | 'TTB' | 'LAPANGAN' | 'ADM' | 'MASTER_DATA' | 'GUDANG';
 
 
@@ -665,6 +666,16 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
               }`}
             >
               📋 Rekomendasi
+            </button>
+            <button
+              onClick={() => setActiveSubTab('swot')}
+              className={`px-3 py-1.5 rounded-md font-medium transition-colors ${
+                activeSubTab === 'swot'
+                  ? 'bg-card text-foreground shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              🎯 Analisa SWOT
             </button>
             <button
               onClick={() => setActiveSubTab('charts')}
@@ -1412,6 +1423,432 @@ export default function AnalyticsTab({ items }: AnalyticsTabProps) {
                 </tr>
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* SUB-TAB: ANALISA SWOT */}
+      {activeSubTab === 'swot' && (
+        <div className="space-y-6">
+          {/* Header Banner */}
+          <div className="bg-card border border-border rounded-xl p-5 shadow-xs space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20">
+                STRATEGIC FRAMEWORK
+              </span>
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <Target className="w-3.5 h-3.5 text-primary" /> Analisis SWOT Departemen Procurement & Logistik
+              </span>
+            </div>
+            <h2 className="text-lg font-bold text-foreground tracking-tight">
+              Matriks Analisis SWOT Berbasis Data Kinerja Aktual
+            </h2>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Pemetaan faktor internal (Kekuatan & Kelemahan) dan eksternal/lingkungan kerja (Peluang & Ancaman) 
+              berdasarkan 3.541 transaksi procurement, 12.113 verifikasi form master data, dan 1.044 mutasi gudang.
+            </p>
+          </div>
+
+          {/* 4 Quadrants Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* 1. STRENGTHS (KEKUATAN INTERNAL) */}
+            <div className="bg-card border border-emerald-500/30 rounded-xl p-5 shadow-xs space-y-4 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-bl-full pointer-events-none" />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-sm">
+                    S
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-foreground tracking-tight">STRENGTHS (Kekuatan)</h3>
+                    <p className="text-[11px] text-muted-foreground">Faktor internal operasional yang unggul</p>
+                  </div>
+                </div>
+                <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  5 PILLARS
+                </span>
+              </div>
+
+              {/* Badges Highlights */}
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                <span className="text-[10px] bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded font-semibold">
+                  ✓ 99.6% Pengantaran Fisik
+                </span>
+                <span className="text-[10px] bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded font-semibold">
+                  ✓ 96.4% PO Terbit FSTB
+                </span>
+                <span className="text-[10px] bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded font-semibold">
+                  ✓ 100% On-Time Serah TTB
+                </span>
+                <span className="text-[10px] bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded font-semibold">
+                  ✓ 12.113 Master FPB
+                </span>
+              </div>
+
+              {/* Items List */}
+              <div className="space-y-3 text-xs pt-1">
+                <div className="p-3 rounded-lg bg-muted/40 border border-border/80 space-y-1">
+                  <div className="font-semibold text-foreground flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                    Keandalan Tim Lapangan Sangat Tinggi (99.6%)
+                  </div>
+                  <p className="text-[11px] text-muted-foreground pl-5">
+                    Sebanyak 3.087 dari 3.093 pengantaran fisik sukses diantar ke armada kapal dengan rata-rata lead time 1.2–2.4 hari. Personel Zul & Akbar berhasil mencapai 100% penyelesaian tanpa ada backlog.
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-lg bg-muted/40 border border-border/80 space-y-1">
+                  <div className="font-semibold text-foreground flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                    Responsivitas Penerbitan TTB Instan (Lead Time 0 Hari)
+                  </div>
+                  <p className="text-[11px] text-muted-foreground pl-5">
+                    PIC TTB (Davila, Fifi, Idham) menerbitkan 3.243 formulir TTB dan langsung menyerahkan dokumen ke tim lapangan pada hari yang sama (on-time rate serah terima mencapai 99.9% - 100%).
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-lg bg-muted/40 border border-border/80 space-y-1">
+                  <div className="font-semibold text-foreground flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                    Produktivitas Purchasing Kuat (3.414 PO Selesai)
+                  </div>
+                  <p className="text-[11px] text-muted-foreground pl-5">
+                    Completion rate purchasing mencapai 96.4%. Lutfi menangani 789 PO dengan SLA tercepat 1.3 hari kerja, dan Novi mencapai tuntas 99.8% dengan hanya 1 PO backlog.
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-lg bg-muted/40 border border-border/80 space-y-1">
+                  <div className="font-semibold text-foreground flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                    Kapasitas Verifikasi Master Data & Gudang Solid
+                  </div>
+                  <p className="text-[11px] text-muted-foreground pl-5">
+                    Bu Noor & Bu Melinda memproses 12.113 permohonan FPB armada, serta Pak Budi mengelola 1.044 mutasi barang persediaan gudang dengan tingkat penyelesaian 96.3%.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. WEAKNESSES (KELEMAHAN INTERNAL) */}
+            <div className="bg-card border border-rose-500/30 rounded-xl p-5 shadow-xs space-y-4 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-rose-500/5 rounded-bl-full pointer-events-none" />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold text-sm">
+                    W
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-foreground tracking-tight">WEAKNESSES (Kelemahan)</h3>
+                    <p className="text-[11px] text-muted-foreground">Titik lemah dan hambatan proses internal</p>
+                  </div>
+                </div>
+                <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                  4 CRITICAL AREAS
+                </span>
+              </div>
+
+              {/* Badges Highlights */}
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                <span className="text-[10px] bg-rose-500/10 text-rose-700 dark:text-rose-300 px-2 py-0.5 rounded font-semibold">
+                  ⚠ 46.5% Handover Keuangan
+                </span>
+                <span className="text-[10px] bg-rose-500/10 text-rose-700 dark:text-rose-300 px-2 py-0.5 rounded font-semibold">
+                  ⚠ 1.369 Berkas Belum SPP
+                </span>
+                <span className="text-[10px] bg-rose-500/10 text-rose-700 dark:text-rose-300 px-2 py-0.5 rounded font-semibold">
+                  ⚠ 54% Lapangan Terkonsentrasi
+                </span>
+                <span className="text-[10px] bg-rose-500/10 text-rose-700 dark:text-rose-300 px-2 py-0.5 rounded font-semibold">
+                  ⚠ 11.8 - 16.8 Hari Turnaround
+                </span>
+              </div>
+
+              {/* Items List */}
+              <div className="space-y-3 text-xs pt-1">
+                <div className="p-3 rounded-lg bg-rose-500/5 border border-rose-500/20 space-y-1">
+                  <div className="font-semibold text-rose-600 dark:text-rose-400 flex items-center gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                    Bottleneck Berat pada Alur ADM PCH & SPP
+                  </div>
+                  <p className="text-[11px] text-muted-foreground pl-5">
+                    Hanya 46.5% berkas pengadaan yang sampai ke kasir/keuangan. Sebanyak 1.369 berkas berstatus unassigned di ADM PCH, dengan rata-rata proses SPP memakan waktu 11.8 – 16.8 hari kerja (on-time SLA &lt; 10%).
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-lg bg-muted/40 border border-border/80 space-y-1">
+                  <div className="font-semibold text-foreground flex items-center gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                    Distribusi Workload Lapangan Ekstrem Tidak Merata
+                  </div>
+                  <p className="text-[11px] text-muted-foreground pl-5">
+                    Agus (851 order) dan Hamka (824 order) menanggung 54% dari total muatan fisik logistik armada, sedangkan petugas lain berkisar 375 - 602 order. Hal ini memicu risiko kelelahan dan keterlambatan pada kondisi darurat.
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-lg bg-muted/40 border border-border/80 space-y-1">
+                  <div className="font-semibold text-foreground flex items-center gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                    Disparitas Lead Time Purchasing (Elsa 4.9 Hari)
+                  </div>
+                  <p className="text-[11px] text-muted-foreground pl-5">
+                    Terdapat deviasi lead time yang lebar antara PIC tercepat (Lutfi 1.3 hari) dengan Elsa (4.9 hari), menandakan belum adanya pemisahan SOP perlakuan untuk material ready vs material indent khusus.
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-lg bg-muted/40 border border-border/80 space-y-1">
+                  <div className="font-semibold text-foreground flex items-center gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                    Kelemahan Logging Berkas Turun & Anomali Formula
+                  </div>
+                  <p className="text-[11px] text-muted-foreground pl-5">
+                    96% baris data pada sheet Berkas Turun tidak memiliki nama PIC pencatat (654/680 baris), serta formula sel kosong memicu anomali nilai negatif (-46xxx) pada spreadsheet mentah.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 3. OPPORTUNITIES (PELUANG EKSTERNAL / MASA DEPAN) */}
+            <div className="bg-card border border-blue-500/30 rounded-xl p-5 shadow-xs space-y-4 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-bl-full pointer-events-none" />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-sm">
+                    O
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-foreground tracking-tight">OPPORTUNITIES (Peluang)</h3>
+                    <p className="text-[11px] text-muted-foreground">Peluang peningkatan efisiensi & teknologi</p>
+                  </div>
+                </div>
+                <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                  INNOVATION & SYSTEM
+                </span>
+              </div>
+
+              {/* Badges Highlights */}
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                <span className="text-[10px] bg-blue-500/10 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded font-semibold">
+                  ★ Otomasi Auto-Draft SPP
+                </span>
+                <span className="text-[10px] bg-blue-500/10 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded font-semibold">
+                  ★ Zonasi Rute Lapangan
+                </span>
+                <span className="text-[10px] bg-blue-500/10 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded font-semibold">
+                  ★ Vendor SLA Rating
+                </span>
+                <span className="text-[10px] bg-blue-500/10 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded font-semibold">
+                  ★ Integrasi QR TTB Mobile
+                </span>
+              </div>
+
+              {/* Items List */}
+              <div className="space-y-3 text-xs pt-1">
+                <div className="p-3 rounded-lg bg-muted/40 border border-border/80 space-y-1">
+                  <div className="font-semibold text-foreground flex items-center gap-1.5">
+                    <TrendingUp className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                    Otomasi Pembuatan SPP dari Data TTB Terverifikasi
+                  </div>
+                  <p className="text-[11px] text-muted-foreground pl-5">
+                    Integrasi dashboard dengan ERP/Accurate agar terbitnya nomor TTB otomatis menghasilkan draft SPP pembayaran, mengurai 1.369 berkas antrean tanpa beban pengetikan manual berulang.
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-lg bg-muted/40 border border-border/80 space-y-1">
+                  <div className="font-semibold text-foreground flex items-center gap-1.5">
+                    <TrendingUp className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                    Standardisasi Zonasi Logistik Armada
+                  </div>
+                  <p className="text-[11px] text-muted-foreground pl-5">
+                    Mengelompokkan rute delivery armada berdasarkan lokasi dermaga (Pelabuhan Somber, Kariangau, Semayang) dan mendistribusikan beban secara merata ke Bardi, Zul, dan Akbar.
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-lg bg-muted/40 border border-border/80 space-y-1">
+                  <div className="font-semibold text-foreground flex items-center gap-1.5">
+                    <TrendingUp className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                    Penerapan Vendor Performance Rating
+                  </div>
+                  <p className="text-[11px] text-muted-foreground pl-5">
+                    Menilai vendor berdasarkan deviasi waktu antara Delivery Time yang dijanjikan vs tanggal aktual penerimaan FSTB, memperkuat posisi tawar negosiasi dan termin pembayaran perusahaan.
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-lg bg-muted/40 border border-border/80 space-y-1">
+                  <div className="font-semibold text-foreground flex items-center gap-1.5">
+                    <TrendingUp className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                    Integrasi Database Master Data FPB Terpusat
+                  </div>
+                  <p className="text-[11px] text-muted-foreground pl-5">
+                    Sinkronisasi berkala antara lembar verifikasi Bu Noor & Bu Melinda dengan database item pengadaan untuk mencegah duplikasi pesanan barang ganda antar unit kapal.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 4. THREATS (ANCAMAN / RISIKO OPERASIONAL) */}
+            <div className="bg-card border border-amber-500/30 rounded-xl p-5 shadow-xs space-y-4 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-bl-full pointer-events-none" />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-sm">
+                    T
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-foreground tracking-tight">THREATS (Ancaman)</h3>
+                    <p className="text-[11px] text-muted-foreground">Risiko operasional & dampak bisnis eksternal</p>
+                  </div>
+                </div>
+                <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                  HIGH IMPACT RISKS
+                </span>
+              </div>
+
+              {/* Badges Highlights */}
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                <span className="text-[10px] bg-amber-500/10 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded font-semibold">
+                  ⚡ Vendor Credit Freeze
+                </span>
+                <span className="text-[10px] bg-amber-500/10 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded font-semibold">
+                  ⚡ Vessel Downtime Risk
+                </span>
+                <span className="text-[10px] bg-amber-500/10 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded font-semibold">
+                  ⚡ Single Point of Failure
+                </span>
+                <span className="text-[10px] bg-amber-500/10 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded font-semibold">
+                  ⚡ Risiko Kehilangan Fisik
+                </span>
+              </div>
+
+              {/* Items List */}
+              <div className="space-y-3 text-xs pt-1">
+                <div className="p-3 rounded-lg bg-amber-500/5 border border-amber-500/20 space-y-1">
+                  <div className="font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                    <ShieldAlert className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                    Risiko Pemblokiran Kredit / Penghentian Suplai Vendor
+                  </div>
+                  <p className="text-[11px] text-muted-foreground pl-5">
+                    Tertundanya 1.892 berkas tagihan masuk ke keuangan melewati batas termin kredit vendor dapat memicu vendor mem-blacklist akun perusahaan atau menghentikan pasokan suku cadang armada.
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-lg bg-muted/40 border border-border/80 space-y-1">
+                  <div className="font-semibold text-foreground flex items-center gap-1.5">
+                    <ShieldAlert className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                    Potensi Downtime / Off-Hire Armada Kapal
+                  </div>
+                  <p className="text-[11px] text-muted-foreground pl-5">
+                    Keterlambatan pengantaran suku cadang vital akibat overload fisik staf lapangan dapat menyebabkan keterlambatan keberangkatan kapal atau kerugian off-hire harian bagi armada komersial.
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-lg bg-muted/40 border border-border/80 space-y-1">
+                  <div className="font-semibold text-foreground flex items-center gap-1.5">
+                    <ShieldAlert className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                    Ketergantungan Ekstrem pada Personel Tertentu (SPOF)
+                  </div>
+                  <p className="text-[11px] text-muted-foreground pl-5">
+                    Konsentrasi volume pada Lutfi (22% PO), Davila (35% TTB), dan Agus-Hamka (54% Lapangan) menciptakan Single Point of Failure. Jika salah satu berhalangan, rantai suplai berisiko terganggu secara masif.
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-lg bg-muted/40 border border-border/80 space-y-1">
+                  <div className="font-semibold text-foreground flex items-center gap-1.5">
+                    <ShieldAlert className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                    Risiko Dokumen Fisik Hilang / Cacat Audit
+                  </div>
+                  <p className="text-[11px] text-muted-foreground pl-5">
+                    Terdapat 273 dokumen TTB bukti serah fisik yang belum kembali ke Purchasing dan lama mengendap dalam alur administrasi, rentan tercecer sebelum rekonsiliasi kasir.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* MATRIKS STRATEGI EKSEKUSI (TOWS MATRIX) */}
+          <div className="bg-card border border-border rounded-xl p-5 shadow-xs space-y-4">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-primary" />
+              <div>
+                <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">
+                  Matriks Strategi Eksekusi (TOWS Action Matrix)
+                </h3>
+                <p className="text-xs text-muted-foreground">Kombinasi formulasi strategi untuk pengambilan keputusan Manajemen PT Cindara Pratama Lines</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+              {/* Strategi SO */}
+              <div className="p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
+                    STRATEGI S - O (Maxi - Maxi)
+                  </span>
+                  <span className="text-[10px] bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded font-semibold">
+                    Ekspansi & Kecepatan
+                  </span>
+                </div>
+                <p className="text-xs text-foreground font-medium">
+                  Manfaatkan Kecepatan TTB & Tim Lapangan dengan Penataan Zonasi Armada
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  Gunakan tingkat penyelesaian pengantaran 99.6% dan SLA instant TTB untuk mengunci standar SLA pengantaran armada 24 jam dengan membagi zonasi pelabuhan tetap (Somber, Kariangau, Semayang).
+                </p>
+              </div>
+
+              {/* Strategi WO */}
+              <div className="p-4 rounded-xl border border-blue-500/20 bg-blue-500/5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-blue-700 dark:text-blue-400">
+                    STRATEGI W - O (Mini - Maxi)
+                  </span>
+                  <span className="text-[10px] bg-blue-500/20 text-blue-800 dark:text-blue-300 px-2 py-0.5 rounded font-semibold">
+                    Otomasi & Efisiensi
+                  </span>
+                </div>
+                <p className="text-xs text-foreground font-medium">
+                  Atasi Bottleneck 1.369 Berkas ADM Melalui Otomasi Auto-Draft SPP
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  Hilangkan antrean berkas fisik penagihan dengan mengintegrasikan data TTB yang terbit otomatis menjadi draf permohonan pembayaran (SPP) di sistem, memotong lead time dari 16 hari menjadi ≤ 2 hari kerja.
+                </p>
+              </div>
+
+              {/* Strategi ST */}
+              <div className="p-4 rounded-xl border border-purple-500/20 bg-purple-500/5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-purple-700 dark:text-purple-400">
+                    STRATEGI S - T (Maxi - Mini)
+                  </span>
+                  <span className="text-[10px] bg-purple-500/20 text-purple-800 dark:text-purple-300 px-2 py-0.5 rounded font-semibold">
+                    Proteksi Hubungan Vendor
+                  </span>
+                </div>
+                <p className="text-xs text-foreground font-medium">
+                  Kapitalisasi Kecepatan FSTB Purchasing untuk Menjamin Kelancaran Kredit Vendor
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  Gunakan keberhasilan FSTB 96.4% untuk mewajibkan pelampiran surat jalan digital langsung ke vendor mitra, mencegah risiko pemblokiran kredit belanja (*credit freeze*) material kapal.
+                </p>
+              </div>
+
+              {/* Strategi WT */}
+              <div className="p-4 rounded-xl border border-rose-500/20 bg-rose-500/5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-rose-700 dark:text-rose-400">
+                    STRATEGI W - T (Mini - Mini)
+                  </span>
+                  <span className="text-[10px] bg-rose-500/20 text-rose-800 dark:text-rose-300 px-2 py-0.5 rounded font-semibold">
+                    Mitigasi Risiko Kritis
+                  </span>
+                </div>
+                <p className="text-xs text-foreground font-medium">
+                  Mitigasi Single Point of Failure & Risiko Downtime Armada Kapal
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  Segera alokasikan staf bantuan input SPP dan lakukan rotasi distribusi order lapangan dari Agus & Hamka ke Bardi, Zul, dan Akbar untuk mencegah risiko kapal berhenti beroperasi (*vessel downtime*).
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       )}
