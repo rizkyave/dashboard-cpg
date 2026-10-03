@@ -1417,17 +1417,6 @@ export default function ProcurementTab({
                           {row.statusBadge}
                         </span>
                         <div className="flex items-center gap-1.5 shrink-0">
-                          {row.noFstb && (
-                            <button
-                              type="button"
-                              onClick={(e) => handleOpenTimemark(e, row.noFstb)}
-                              className="h-6.5 px-2 rounded-md bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[11px] font-semibold inline-flex items-center gap-1 border border-amber-500/30 transition touch-manipulation"
-                              title={`Cek Foto TimeMark (${extractFstbLast5(row.noFstb)})`}
-                            >
-                              <Camera className="size-2.5 text-amber-600 dark:text-amber-400" />
-                              <span>Foto ({extractFstbLast5(row.noFstb)})</span>
-                            </button>
-                          )}
                           <button
                             type="button"
                             onClick={(e) => {
@@ -1669,17 +1658,6 @@ export default function ProcurementTab({
                       </td>
                       <td className="p-3.5 text-center" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-center gap-1.5">
-                          {row.noFstb && (
-                            <button
-                              type="button"
-                              onClick={(e) => handleOpenTimemark(e, row.noFstb)}
-                              className="h-7 px-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 rounded-lg text-xs font-semibold transition inline-flex items-center gap-1 shadow-2xs"
-                              title={`Cek Foto TimeMark (${extractFstbLast5(row.noFstb)})`}
-                            >
-                              <Camera className="w-3 h-3 text-amber-600 dark:text-amber-400" />
-                              <span className="hidden sm:inline">Foto ({extractFstbLast5(row.noFstb)})</span>
-                            </button>
-                          )}
                           <button
                             onClick={() => onOpenAudit(row.fpb, row.po)}
                             className="h-7 px-2.5 bg-background hover:bg-muted border border-border text-foreground rounded-lg text-xs font-medium transition flex items-center gap-1"
