@@ -36,7 +36,7 @@ import {
 
 import { ProcurementItem, StatusTone, PdfItemsCache } from '@/types/procurement';
 import { extractFstbLast5, openTimemarkWithFstb } from '@/utils/timemark';
-import { formatDateDdMmYy, formatDateDdMmYyDash } from '@/utils/formatDate';
+import { formatDateDdMmYy, formatDateDdMmYyDash, extractDateInfo } from '@/utils/formatDate';
 import { loadPdfItemsCache, savePdfItemsCache } from '@/utils/appStorage';
 
 // Helper formatting PIC & Status Penjelasan
@@ -51,53 +51,6 @@ const formatStatusPenjelasan = (desc?: string) => {
     /Berkas sudah di [Kk]euangan pada (.+)/gi,
     (_: string, d: string) => `Berkas sudah di administrasi purchasing pada ${formatDateDdMmYyDash(d)}`
   );
-};
-
-// Helper: Extract date information accurately (Year, Month, Full Date, Timestamp)
-const extractDateInfo = (dateStr?: string) => {
-  if (!dateStr) return { year: '', month: '', fullDate: '', timestamp: 0 };
-  const str = dateStr.trim();
-  // Format YYYY-MM-DD
-  const isoMatch = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (isoMatch) {
-    const year = isoMatch[1];
-    const month = isoMatch[2];
-    const day = isoMatch[3];
-    return {
-      year,
-      month,
-      fullDate: `${year}-${month}-${day}`,
-      timestamp: new Date(`${year}-${month}-${day}T00:00:00`).getTime(),
-    };
-  }
-  // Format DD/MM/YYYY
-  const slashMatch = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-  if (slashMatch) {
-    const day = slashMatch[1].padStart(2, '0');
-    const month = slashMatch[2].padStart(2, '0');
-    const year = slashMatch[3];
-    return {
-      year,
-      month,
-      fullDate: `${year}-${month}-${day}`,
-      timestamp: new Date(`${year}-${month}-${day}T00:00:00`).getTime(),
-    };
-  }
-  // Fallback Date.parse
-  const parsed = Date.parse(str);
-  if (!isNaN(parsed)) {
-    const dt = new Date(parsed);
-    const year = String(dt.getFullYear());
-    const month = String(dt.getMonth() + 1).padStart(2, '0');
-    const day = String(dt.getDate()).padStart(2, '0');
-    return {
-      year,
-      month,
-      fullDate: `${year}-${month}-${day}`,
-      timestamp: parsed,
-    };
-  }
-  return { year: '', month: '', fullDate: '', timestamp: 0 };
 };
 
 const MONTH_OPTIONS = [
@@ -233,8 +186,8 @@ export default function ProcurementTab({
     onSearchKeywordChange?.(val);
   };
 
-  // Sorting State
-  const [sortField, setSortField] = useState<SortField>('lapse');
+  // Sorting State (Default: Tanggal Terbaru / Descending)
+  const [sortField, setSortField] = useState<SortField>('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   // View Grouping State: 'items' (All Line Items from Monitoring Layanan Armada) vs 'dossiers' (Consolidated by FPB/PO)
@@ -511,11 +464,17 @@ export default function ProcurementTab({
     list.sort((a, b) => {
       // Accurate chronological sorting when sorting by date
       if (sortField === 'date') {
-        const timeA = extractDateInfo(a.date).timestamp;
-        const timeB = extractDateInfo(b.date).timestamp;
-        if (timeA && timeB) {
+        const timeA = extractDateInfo(a.date).timestamp || 0;
+        const timeB = extractDateInfo(b.date).timestamp || 0;
+        if (timeA !== timeB) {
           return sortDirection === 'asc' ? timeA - timeB : timeB - timeA;
         }
+        // Tie-breaker when dates are equal: larger FPB / PO number first
+        const numA = (a.fpb || a.po || '').trim();
+        const numB = (b.fpb || b.po || '').trim();
+        return sortDirection === 'asc'
+          ? numA.localeCompare(numB, undefined, { numeric: true, sensitivity: 'base' })
+          : numB.localeCompare(numA, undefined, { numeric: true, sensitivity: 'base' });
       }
 
       const aVal = a[sortField];
@@ -583,7 +542,7 @@ export default function ProcurementTab({
     setSelectedMonth('ALL');
     setStartDate('');
     setEndDate('');
-    setSortField('lapse');
+    setSortField('date');
     setSortDirection('desc');
     setSearchBarang('');
     setSearchFpb('');

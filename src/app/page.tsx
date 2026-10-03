@@ -17,7 +17,7 @@ import { INITIAL_PROCUREMENT_DATA, INITIAL_ARMADA_DATA } from '@/data/initialDat
 import { mergeProcurementDatasets, mergeArmadaDatasets } from '@/utils/dataMerger';
 import { ResetScope } from '@/components/ResetConfirmModal';
 import { clearAllFotos } from '@/utils/fotoLapanganStorage';
-import { formatDateDdMmYyDash } from '@/utils/formatDate';
+import { formatDateDdMmYyDash, extractDateInfo } from '@/utils/formatDate';
 import {
   saveStoredProcurement,
   loadStoredProcurement,
@@ -191,10 +191,28 @@ export default function DashboardPage() {
         if (!isMounted) return;
 
         if (savedProc && savedProc.length > 0) {
-          setProcurementData(savedProc.map(sanitizeProcItem));
+          const sanitized = savedProc.map(sanitizeProcItem);
+          sanitized.sort((a, b) => {
+            const timeA = extractDateInfo(a.date).timestamp || 0;
+            const timeB = extractDateInfo(b.date).timestamp || 0;
+            if (timeA !== timeB) return timeB - timeA;
+            const numA = (a.fpb || a.po || '').trim();
+            const numB = (b.fpb || b.po || '').trim();
+            return numB.localeCompare(numA, undefined, { numeric: true, sensitivity: 'base' });
+          });
+          setProcurementData(sanitized);
         }
         if (savedArm && savedArm.length > 0) {
-          setArmadaData(savedArm.map(sanitizeArmItem));
+          const sanitized = savedArm.map(sanitizeArmItem);
+          sanitized.sort((a, b) => {
+            const timeA = extractDateInfo(a.tglPo || a.tglFpb).timestamp || 0;
+            const timeB = extractDateInfo(b.tglPo || b.tglFpb).timestamp || 0;
+            if (timeA !== timeB) return timeB - timeA;
+            const numA = (a.fpb || a.noPo || a.noFstb || '').trim();
+            const numB = (b.fpb || b.noPo || b.noFstb || '').trim();
+            return numB.localeCompare(numA, undefined, { numeric: true, sensitivity: 'base' });
+          });
+          setArmadaData(sanitized);
         }
         if (savedInv && savedInv.items && savedInv.items.length > 0) {
           setInventoryItems(savedInv.items);

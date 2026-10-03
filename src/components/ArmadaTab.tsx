@@ -34,7 +34,7 @@ import {
 } from 'lucide-react';
 
 import { extractFstbLast5, openTimemarkWithFstb } from '@/utils/timemark';
-import { formatDateDdMmYy } from '@/utils/formatDate';
+import { formatDateDdMmYy, extractDateInfo } from '@/utils/formatDate';
 import { loadPdfItemsCache, savePdfItemsCache } from '@/utils/appStorage';
 
 interface ArmadaTabProps {
@@ -45,66 +45,6 @@ interface ArmadaTabProps {
   initialEntity?: string;
   showToast?: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
 }
-
-// Helper: Extract date information accurately (Year, Month, Full Date, Timestamp)
-const extractDateInfo = (dateStr?: string) => {
-  if (!dateStr) return { year: '', month: '', fullDate: '', timestamp: 0 };
-  const str = dateStr.trim();
-  // Format YYYY-MM-DD
-  const isoMatch = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (isoMatch) {
-    const year = isoMatch[1];
-    const month = isoMatch[2];
-    const day = isoMatch[3];
-    return {
-      year,
-      month,
-      fullDate: `${year}-${month}-${day}`,
-      timestamp: new Date(`${year}-${month}-${day}T00:00:00`).getTime(),
-    };
-  }
-  // Format DD/MM/YYYY
-  const slashMatch = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-  if (slashMatch) {
-    const day = slashMatch[1].padStart(2, '0');
-    const month = slashMatch[2].padStart(2, '0');
-    const year = slashMatch[3];
-    return {
-      year,
-      month,
-      fullDate: `${year}-${month}-${day}`,
-      timestamp: new Date(`${year}-${month}-${day}T00:00:00`).getTime(),
-    };
-  }
-  // Format YYYY/MM/DD
-  const slashIsoMatch = str.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})/);
-  if (slashIsoMatch) {
-    const year = slashIsoMatch[1];
-    const month = slashIsoMatch[2].padStart(2, '0');
-    const day = slashIsoMatch[3].padStart(2, '0');
-    return {
-      year,
-      month,
-      fullDate: `${year}-${month}-${day}`,
-      timestamp: new Date(`${year}-${month}-${day}T00:00:00`).getTime(),
-    };
-  }
-  // Fallback: try Date.parse
-  const parsed = Date.parse(str);
-  if (!isNaN(parsed)) {
-    const d = new Date(parsed);
-    const year = d.getFullYear().toString();
-    const month = (d.getMonth() + 1).toString().padStart(2, '0');
-    const day = d.getDate().toString().padStart(2, '0');
-    return {
-      year,
-      month,
-      fullDate: `${year}-${month}-${day}`,
-      timestamp: parsed,
-    };
-  }
-  return { year: '', month: '', fullDate: '', timestamp: 0 };
-};
 
 const MONTH_OPTIONS = [
   { value: 'ALL', label: 'Semua Bulan' },
@@ -227,8 +167,8 @@ export default function ArmadaTab({
     onSearchKeywordChange?.(val);
   };
 
-  // Sorting state
-  const [sortField, setSortField] = useState<SortField>('selisih');
+  // Sorting state (Default: Tanggal Terbaru / Descending)
+  const [sortField, setSortField] = useState<SortField>('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   // Pagination state
@@ -479,9 +419,16 @@ export default function ArmadaTab({
     list.sort((a, b) => {
       // Sorting by date chronologically
       if (sortField === 'date') {
-        const dateA = extractDateInfo(a.tglPo || a.tglFpb).timestamp;
-        const dateB = extractDateInfo(b.tglPo || b.tglFpb).timestamp;
-        return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+        const dateA = extractDateInfo(a.tglPo || a.tglFpb).timestamp || 0;
+        const dateB = extractDateInfo(b.tglPo || b.tglFpb).timestamp || 0;
+        if (dateA !== dateB) {
+          return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+        }
+        const numA = (a.fpb || a.noPo || a.noFstb || '').trim();
+        const numB = (b.fpb || b.noPo || b.noFstb || '').trim();
+        return sortDirection === 'asc'
+          ? numA.localeCompare(numB, undefined, { numeric: true, sensitivity: 'base' })
+          : numB.localeCompare(numA, undefined, { numeric: true, sensitivity: 'base' });
       }
 
       const aVal = a[sortField];
@@ -587,7 +534,7 @@ export default function ArmadaTab({
     setSelectedMonth('ALL');
     setStartDate('');
     setEndDate('');
-    setSortField('selisih');
+    setSortField('date');
     setSortDirection('desc');
     setSearchBarang('');
     setSearchFpb('');

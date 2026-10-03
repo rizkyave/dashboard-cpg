@@ -31,7 +31,7 @@ import {
 import { ProcurementItem, StatusTone } from '@/types/procurement';
 import { EntityDonutChart, PipelineBarChart } from './Charts';
 import { extractFstbLast5, openTimemarkWithFstb } from '@/utils/timemark';
-import { formatDateDdMmYy, formatDateDdMmYyDash } from '@/utils/formatDate';
+import { formatDateDdMmYy, formatDateDdMmYyDash, extractDateInfo } from '@/utils/formatDate';
 
 const formatPicAktif = (pic?: string) => {
   if (!pic) return '-';
@@ -44,49 +44,6 @@ const formatStatusPenjelasan = (desc?: string) => {
     /Berkas sudah di [Kk]euangan pada (.+)/gi,
     (_: string, d: string) => `Berkas sudah di administrasi purchasing pada ${formatDateDdMmYyDash(d)}`
   );
-};
-
-const extractDateInfo = (dateStr?: string) => {
-  if (!dateStr) return { year: '', month: '', fullDate: '', timestamp: 0 };
-  const str = dateStr.trim();
-  const isoMatch = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (isoMatch) {
-    const year = isoMatch[1];
-    const month = isoMatch[2];
-    const day = isoMatch[3];
-    return {
-      year,
-      month,
-      fullDate: `${year}-${month}-${day}`,
-      timestamp: new Date(`${year}-${month}-${day}T00:00:00`).getTime(),
-    };
-  }
-  const slashMatch = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-  if (slashMatch) {
-    const day = slashMatch[1].padStart(2, '0');
-    const month = slashMatch[2].padStart(2, '0');
-    const year = slashMatch[3];
-    return {
-      year,
-      month,
-      fullDate: `${year}-${month}-${day}`,
-      timestamp: new Date(`${year}-${month}-${day}T00:00:00`).getTime(),
-    };
-  }
-  const parsed = Date.parse(str);
-  if (!isNaN(parsed)) {
-    const dt = new Date(parsed);
-    const year = String(dt.getFullYear());
-    const month = String(dt.getMonth() + 1).padStart(2, '0');
-    const day = String(dt.getDate()).padStart(2, '0');
-    return {
-      year,
-      month,
-      fullDate: `${year}-${month}-${day}`,
-      timestamp: parsed,
-    };
-  }
-  return { year: '', month: '', fullDate: '', timestamp: 0 };
 };
 
 const MONTH_OPTIONS = [
@@ -143,7 +100,7 @@ export default function OverviewTab({
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
 
-  const [sortField, setSortField] = useState<SortField>('lapse');
+  const [sortField, setSortField] = useState<SortField>('date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -265,9 +222,16 @@ export default function OverviewTab({
       let bVal: any = b[sortField];
 
       if (sortField === 'date') {
-        const aTs = extractDateInfo(a.date).timestamp;
-        const bTs = extractDateInfo(b.date).timestamp;
-        return sortDirection === 'asc' ? aTs - bTs : bTs - aTs;
+        const aTs = extractDateInfo(a.date).timestamp || 0;
+        const bTs = extractDateInfo(b.date).timestamp || 0;
+        if (aTs !== bTs) {
+          return sortDirection === 'asc' ? aTs - bTs : bTs - aTs;
+        }
+        const numA = (a.fpb || a.po || '').trim();
+        const numB = (b.fpb || b.po || '').trim();
+        return sortDirection === 'asc'
+          ? numA.localeCompare(numB, undefined, { numeric: true, sensitivity: 'base' })
+          : numB.localeCompare(numA, undefined, { numeric: true, sensitivity: 'base' });
       }
 
       if (sortField === 'lapse') {
@@ -307,7 +271,7 @@ export default function OverviewTab({
     setSelectedMonth('ALL');
     setStartDate('');
     setEndDate('');
-    setSortField('lapse');
+    setSortField('date');
     setSortDirection('desc');
     setCurrentPage(1);
   };

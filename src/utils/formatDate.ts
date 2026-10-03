@@ -81,5 +81,85 @@ export function formatDateDdMmYyDash(val?: string | number | null): string {
   return slash.replace(/\//g, '-');
 }
 
+export interface DateInfo {
+  year: string;
+  month: string;
+  day: string;
+  fullDate: string;
+  timestamp: number;
+}
+
+/**
+ * Ekstraksi informasi tanggal secara akurat (Tahun 4-digit, Bulan 2-digit, Tanggal 2-digit, Timestamp).
+ * Menangani format:
+ * - ISO: YYYY-MM-DD atau YYYY/MM/DD
+ * - Standar Indonesia: DD/MM/YYYY, DD/MM/YY, DD-MM-YYYY, DD-MM-YY
+ * - Fallback teks/Date.parse
+ */
+export function extractDateInfo(dateStr?: string | number | null): DateInfo {
+  if (!dateStr && dateStr !== 0) return { year: '', month: '', day: '', fullDate: '', timestamp: 0 };
+  const str = String(dateStr).trim();
+  if (!str || str === '-' || str === '(kosong)' || str.toLowerCase() === 'null') {
+    return { year: '', month: '', day: '', fullDate: '', timestamp: 0 };
+  }
+
+  // 1. Format ISO: YYYY-MM-DD atau YYYY/MM/DD
+  const isoMatch = str.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+  if (isoMatch) {
+    const year = isoMatch[1];
+    const month = isoMatch[2].padStart(2, '0');
+    const day = isoMatch[3].padStart(2, '0');
+    const fullDate = `${year}-${month}-${day}`;
+    const timestamp = new Date(`${fullDate}T00:00:00`).getTime();
+    return { year, month, day, fullDate, timestamp: isNaN(timestamp) ? 0 : timestamp };
+  }
+
+  // 2. Format Slash/Dash: DD/MM/YYYY, DD/MM/YY, DD-MM-YYYY, DD-MM-YY
+  const slashMatch = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{2,4})/);
+  if (slashMatch) {
+    const p1 = parseInt(slashMatch[1], 10);
+    const p2 = parseInt(slashMatch[2], 10);
+    const yrStr = slashMatch[3];
+    const year = yrStr.length === 2 ? (parseInt(yrStr, 10) > 50 ? `19${yrStr}` : `20${yrStr}`) : yrStr;
+
+    let day = '';
+    let month = '';
+    if (p1 > 12) {
+      day = String(p1).padStart(2, '0');
+      month = String(p2).padStart(2, '0');
+    } else if (p2 > 12) {
+      day = String(p2).padStart(2, '0');
+      month = String(p1).padStart(2, '0');
+    } else {
+      // Default operasi pengadaan Indonesia adalah DD/MM/YY
+      day = String(p1).padStart(2, '0');
+      month = String(p2).padStart(2, '0');
+    }
+
+    const fullDate = `${year}-${month}-${day}`;
+    const timestamp = new Date(`${fullDate}T00:00:00`).getTime();
+    return { year, month, day, fullDate, timestamp: isNaN(timestamp) ? 0 : timestamp };
+  }
+
+  // 3. Fallback: Parse textual dates
+  const parsed = Date.parse(str);
+  if (!isNaN(parsed)) {
+    const dt = new Date(parsed);
+    const year = String(dt.getFullYear());
+    const month = String(dt.getMonth() + 1).padStart(2, '0');
+    const day = String(dt.getDate()).padStart(2, '0');
+    const fullDate = `${year}-${month}-${day}`;
+    return {
+      year,
+      month,
+      day,
+      fullDate,
+      timestamp: new Date(`${fullDate}T00:00:00`).getTime() || parsed,
+    };
+  }
+
+  return { year: '', month: '', day: '', fullDate: '', timestamp: 0 };
+}
+
 export default formatDateDdMmYy;
 
