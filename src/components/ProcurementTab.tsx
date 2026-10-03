@@ -37,6 +37,7 @@ import {
 import { ProcurementItem, StatusTone, PdfItemsCache } from '@/types/procurement';
 import { extractFstbLast5, openTimemarkWithFstb } from '@/utils/timemark';
 import { formatDateDdMmYy, formatDateDdMmYyDash, extractDateInfo } from '@/utils/formatDate';
+import { cleanTujuanPeruntukan } from '@/utils/descriptionCleaner';
 import { loadPdfItemsCache, savePdfItemsCache } from '@/utils/appStorage';
 
 // Helper formatting PIC & Status Penjelasan
@@ -230,8 +231,10 @@ export default function ProcurementTab({
         if (it.item && !existing.item.includes(it.item)) {
           existing.item = `${existing.item}, ${it.item}`;
         }
-        if (it.peruntukan && !existing.peruntukan.includes(it.peruntukan)) {
-          existing.peruntukan = `${existing.peruntukan} • ${it.peruntukan}`;
+        if (it.peruntukan) {
+          existing.peruntukan = cleanTujuanPeruntukan(
+            existing.peruntukan ? `${existing.peruntukan} • ${it.peruntukan}` : it.peruntukan
+          );
         }
         existing.lapse = Math.max(existing.lapse, it.lapse);
         if (it.qtyFPB) existing.qtyFPB = (existing.qtyFPB || 0) + it.qtyFPB;

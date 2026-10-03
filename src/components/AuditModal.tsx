@@ -31,6 +31,7 @@ import { getFotosByNoTtb, getFotosByFpbOrFstb } from '@/utils/fotoLapanganStorag
 import { FotoLapangan } from '@/types/fotoLapangan';
 import { updatePdfItemsCacheForFpb } from '@/utils/appStorage';
 import { formatDateDdMmYy } from '@/utils/formatDate';
+import { cleanSingleDescription, deduplicateDescriptions, cleanTujuanPeruntukan } from '@/utils/descriptionCleaner';
 
 interface AuditModalProps {
   fpbNumber: string | null;
@@ -191,15 +192,13 @@ export default function AuditModal({
   // HANYA ambil jika ada data keterangan asli yang valid (bukan dummy/fallback)
   const dummyTexts = ['-', 'U/ Operasional Rutin', 'U/ Kebutuhan Operasional Armada', 'Pengadaan Operasional'];
 
-  const armadaKeterangans = Array.from(
-    new Set(
-      itemsS2
-        .map((i) => i.keterangan?.trim())
-        .filter((k): k is string => typeof k === 'string' && k.length > 0 && !dummyTexts.includes(k))
-    )
+  const armadaKeterangans = deduplicateDescriptions(
+    itemsS2
+      .map((i) => i.keterangan?.trim())
+      .filter((k): k is string => typeof k === 'string' && k.length > 0 && !dummyTexts.includes(k))
   );
 
-  let rawPeruntukan = itemS1?.peruntukan?.trim() || '';
+  let rawPeruntukan = cleanSingleDescription(itemS1?.peruntukan?.trim() || '');
   if (dummyTexts.includes(rawPeruntukan)) {
     rawPeruntukan = '';
   }
@@ -210,7 +209,7 @@ export default function AuditModal({
     armadaKeterangans.length > 0
       ? armadaKeterangans.join(' • ')
       : rawPeruntukan;
-  const tujuanPeruntukan = pdfData?.tujuanPeruntukan || basePeruntukan || '';
+  const tujuanPeruntukan = cleanTujuanPeruntukan(pdfData?.tujuanPeruntukan || basePeruntukan || '');
 
   // Trigger Link Dokumen PDF e-FPB Terverifikasi:
   // Format Utama: https://e-fpb.cindaragroup.com/files/logistik_Approved_rev_sign_{FPB}.pdf
@@ -1342,7 +1341,7 @@ export default function AuditModal({
                           {pi.description && (
                             <div className="text-[11px] text-muted-foreground font-mono mt-0.5">
                               <span className="text-muted-foreground/70 font-sans mr-1">Tujuan:</span>
-                              {pi.description}
+                              {cleanSingleDescription(pi.description)}
                             </div>
                           )}
                         </td>

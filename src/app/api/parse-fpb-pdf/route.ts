@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import zlib from 'zlib';
 import { formatDateDdMmYy } from '@/utils/formatDate';
+import { cleanSingleDescription, deduplicateDescriptions } from '@/utils/descriptionCleaner';
 
 export interface ParsedItem {
   no: number;
@@ -490,15 +491,15 @@ function extractPdfData(
         itemName: name.trim(),
         qty: parseFloat(qtyStr.replace(/,/g, '')) || 1,
         unit: unit.trim(),
-        description: desc.trim(),
+        description: cleanSingleDescription(desc.trim()),
         lastDate: formatDateDdMmYy(lastDate.trim()),
         priority: priority.trim(),
       });
     }
   }
 
-  const uniqueDescs = Array.from(
-    new Set(items.map((i) => i.description).filter((d) => d && d !== '-' && d.length > 1))
+  const uniqueDescs = deduplicateDescriptions(
+    items.map((i) => i.description).filter((d) => d && d !== '-' && d.length > 1)
   );
   const tujuanPeruntukan = uniqueDescs.join(' • ');
 
