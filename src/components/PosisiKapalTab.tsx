@@ -494,7 +494,7 @@ export default function PosisiKapalTab({
 
               <div>
                 <label className="block text-[11px] font-medium text-foreground mb-1">
-                  Kerusakan / Keterangan:
+                  Status Terakhir / Keterangan:
                 </label>
                 <input
                   type="text"
@@ -571,7 +571,7 @@ export default function PosisiKapalTab({
                   <th className="p-3.5">Posisi / Lokasi</th>
                   <th className="p-3.5">Activity Terkini</th>
                   <th className="p-3.5 text-center">Status</th>
-                  <th className="p-3.5">Kerusakan / Maintenance</th>
+                  <th className="p-3.5">Status Terakhir</th>
                   <th className="p-3.5">Keterangan</th>
                 </tr>
               </thead>
