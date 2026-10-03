@@ -27,13 +27,11 @@ import {
   LayoutGrid,
   Table as TableIcon,
   ChevronDown,
-  Camera,
   SlidersHorizontal,
   Sparkles,
   Loader2,
 } from 'lucide-react';
 
-import { extractFstbLast5, openTimemarkWithFstb } from '@/utils/timemark';
 import { formatDateDdMmYy, extractDateInfo } from '@/utils/formatDate';
 import { loadPdfItemsCache, savePdfItemsCache } from '@/utils/appStorage';
 
@@ -73,12 +71,6 @@ export default function ArmadaTab({
   initialEntity = 'ALL',
   showToast,
 }: ArmadaTabProps) {
-  const handleOpenTimemark = (e: React.MouseEvent, fstb?: string) => {
-    e.stopPropagation();
-    if (!fstb) return;
-    openTimemarkWithFstb(fstb, showToast);
-  };
-
   // Filters state
   const [searchTerm, setSearchTerm] = useState<string>(searchKeyword || '');
   const [statusFilter, setStatusFilter] = useState<StatusFilterType>('ALL');
@@ -1652,20 +1644,7 @@ export default function ArmadaTab({
 
                       {/* Qty FSTB */}
                       <td className="p-3.5 text-center text-muted-foreground font-mono">
-                        <div>{row.qtyFSTB.toLocaleString()}</div>
-                        {row.noFstb && (
-                          <div className="pt-0.5">
-                            <button
-                              type="button"
-                              onClick={(e) => handleOpenTimemark(e, row.noFstb)}
-                              className="inline-flex items-center gap-1 text-[10px] text-amber-700 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 px-1.5 py-0.5 rounded border border-amber-500/20 font-medium transition active:scale-95"
-                              title={`Cek Foto TimeMark (${extractFstbLast5(row.noFstb)})`}
-                            >
-                              <Camera className="size-2.5 text-amber-600 dark:text-amber-400" />
-                              <span>{extractFstbLast5(row.noFstb)}</span>
-                            </button>
-                          </div>
-                        )}
+                        {row.qtyFSTB.toLocaleString()}
                       </td>
 
                       {/* Qty TTB */}
