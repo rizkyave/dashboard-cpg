@@ -106,6 +106,7 @@ export interface ProcurementItem {
   tglInputTtb?: string;
   tglKeTimLapangan?: string;
   tglBarangDiantar?: string;
+  tglTimLapKePicTtb?: string;
   tglTtbKePicPch?: string;
   tglKeAdmPch?: string;
   noSpp?: string;
@@ -167,6 +168,7 @@ export interface ArmadaItem {
   picLap?: string;
   picAdm?: string;
   deliveryTime?: string;
+  tglTimLapKePicTtb?: string;
   tglKeKeuangan?: string;
   noSpp?: string;
   statusBadge?: string;

@@ -302,6 +302,11 @@ export default function AuditModal({
   const hasTglKeLap = Boolean(
     itemS1?.tglKeTimLapangan && itemS1.tglKeTimLapangan !== '-' && itemS1.tglKeTimLapangan.trim() !== ''
   );
+  const hasTglTimLapKePicTtb = Boolean(
+    (itemS1?.tglTimLapKePicTtb || itemsS2[0]?.tglTimLapKePicTtb) &&
+    (itemS1?.tglTimLapKePicTtb || itemsS2[0]?.tglTimLapKePicTtb) !== '-' &&
+    (itemS1?.tglTimLapKePicTtb || itemsS2[0]?.tglTimLapKePicTtb)?.trim() !== ''
+  );
   const hasTglTtbKePch = Boolean(
     itemS1?.tglTtbKePicPch && itemS1.tglTtbKePicPch !== '-' && itemS1.tglTtbKePicPch.trim() !== ''
   );
@@ -311,6 +316,7 @@ export default function AuditModal({
     isPicLapFilled ||
     hasTglDiantar ||
     hasTglKeLap ||
+    hasTglTimLapKePicTtb ||
     hasTglTtbKePch ||
     hasFotoLap
   );
@@ -1055,6 +1061,12 @@ export default function AuditModal({
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">Ke Tim Lap:</span>
                     <span className="text-muted-foreground font-mono text-right ml-1.5">
                       {formatDateDdMmYy(itemS1?.tglKeTimLapangan)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground shrink-0 whitespace-nowrap">TL ke TTB:</span>
+                    <span className="text-muted-foreground font-mono text-right ml-1.5">
+                      {formatDateDdMmYy(itemS1?.tglTimLapKePicTtb || itemsS2[0]?.tglTimLapKePicTtb)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">

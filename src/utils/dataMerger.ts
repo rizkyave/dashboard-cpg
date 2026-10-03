@@ -60,6 +60,7 @@ export function mergeProcurementDatasets(
         if (!hasValue(target.tglPo) && hasValue(item.tglPo)) target.tglPo = item.tglPo;
         if (!hasValue(target.noFstb) && hasValue(item.noFstb)) target.noFstb = item.noFstb;
         if (!hasValue(target.noTtb) && hasValue(item.noTtb)) target.noTtb = item.noTtb;
+        if (!hasValue(target.tglTimLapKePicTtb) && hasValue(item.tglTimLapKePicTtb)) target.tglTimLapKePicTtb = item.tglTimLapKePicTtb;
         if (!hasValue(target.noSpp) && hasValue(item.noSpp)) target.noSpp = item.noSpp;
       } else {
         const copy = { ...item };
@@ -163,6 +164,9 @@ export function mergeProcurementDatasets(
       }
       if (!hasValue(target.tglBarangDiantar) && hasValue(incoming.tglBarangDiantar)) {
         target.tglBarangDiantar = incoming.tglBarangDiantar;
+      }
+      if (!hasValue(target.tglTimLapKePicTtb) && hasValue(incoming.tglTimLapKePicTtb)) {
+        target.tglTimLapKePicTtb = incoming.tglTimLapKePicTtb;
       }
       if (!hasValue(target.tglTtbKePicPch) && hasValue(incoming.tglTtbKePicPch)) {
         target.tglTtbKePicPch = incoming.tglTtbKePicPch;
@@ -306,6 +310,9 @@ export function mergeArmadaDatasets(
       if (incoming.selisih !== undefined) target.selisih = incoming.selisih;
       if (!hasValue(target.keterangan) && hasValue(incoming.keterangan)) {
         target.keterangan = incoming.keterangan;
+      }
+      if (!hasValue(target.tglTimLapKePicTtb) && hasValue(incoming.tglTimLapKePicTtb)) {
+        target.tglTimLapKePicTtb = incoming.tglTimLapKePicTtb;
       }
       if (incoming.statusCheckFpb === 'DONE') {
         target.statusCheckFpb = 'DONE';

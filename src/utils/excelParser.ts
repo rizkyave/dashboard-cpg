@@ -552,6 +552,7 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
       const tglKePicTtb = pMatch?.tglKePicTtb || '';
       const tglKeTimLapangan = pMatch?.tglKeTimLap || '';
       const tglBarangDiantar = pMatch?.tglDiantar || '';
+      const tglTimLapKePicTtb = pMatch?.tglTimLapKePicTtb || '';
       const tglTtbKePicPch = pMatch?.tglTtbKePicPch || '';
       const tglKeAdmPch = pMatch?.tglKeAdmPch || '';
       const noSpp = pMatch?.spp || '';
@@ -686,6 +687,7 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
         tglInputTtb,
         tglKeTimLapangan,
         tglBarangDiantar,
+        tglTimLapKePicTtb,
         tglTtbKePicPch,
         tglKeAdmPch,
         noSpp,
@@ -752,6 +754,7 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
         picLap,
         picAdm,
         deliveryTime,
+        tglTimLapKePicTtb,
         tglKeKeuangan,
         noSpp,
         statusBadge,
@@ -887,6 +890,7 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
         tglInputTtb: proc.tglTtb,
         tglKeTimLapangan: proc.tglKeTimLap,
         tglBarangDiantar: proc.tglDiantar,
+        tglTimLapKePicTtb: proc.tglTimLapKePicTtb,
         tglTtbKePicPch: proc.tglTtbKePicPch,
         tglKeAdmPch: proc.tglKeAdmPch,
         noSpp: proc.spp,
@@ -943,6 +947,7 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
           picLap: proc.picLap || '-',
           picAdm: proc.picAdm || '-',
           deliveryTime: proc.deliveryTime,
+          tglTimLapKePicTtb: proc.tglTimLapKePicTtb,
           tglKeKeuangan: proc.tglKeu,
           noSpp: proc.spp,
           statusBadge,
