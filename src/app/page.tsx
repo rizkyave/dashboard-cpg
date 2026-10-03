@@ -518,7 +518,7 @@ export default function DashboardPage() {
           <div className="space-y-1">
             <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-foreground">
               {activeTab === 'overview'
-                ? 'Pipeline Overview'
+                ? 'Monitoring Logistik'
                 : activeTab === 'procurement'
                 ? 'Monitoring Berkas Pengadaan'
                 : activeTab === 'armada'
@@ -531,7 +531,7 @@ export default function DashboardPage() {
             </h1>
             <p className="text-xs sm:text-sm text-muted-foreground">
               {activeTab === 'overview'
-                ? 'Keep tabs on lead quality, open opportunities, and conversion rates across the current sales cycle.'
+                ? 'Pemantauan terpadu alur pengadaan barang, perputaran berkas fisik divisi, distribusi logistik armada kapal, dan status stok persediaan.'
                 : activeTab === 'procurement'
                 ? 'Daftar transaksi pengadaan PO, verifikasi berkas fisik antar divisi, dan status penyelesaian berkas.'
                 : activeTab === 'armada'
