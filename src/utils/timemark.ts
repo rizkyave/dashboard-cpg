@@ -3,7 +3,7 @@
  * Menghubungkan kode FSTB (5 digit terakhir) langsung ke portal web TimeMark Teamspace.
  */
 
-export const DEFAULT_TIMEMARK_PORTAL_URL = 'https://teamspace.timemark.com';
+export const DEFAULT_TIMEMARK_PORTAL_URL = 'https://teamspace.timemark.com/en/allPhotos';
 const STORAGE_KEY = 'timemark_portal_url';
 
 /**
