@@ -222,6 +222,16 @@ export default function TimemarkModal({
             <div className="font-mono text-[11px] text-muted-foreground truncate bg-muted/60 px-2 py-1 rounded border border-border/60">
               {portalUrl}
             </div>
+            <a
+              href="/timemark-autosearch.user.js"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-[11px] text-amber-600 dark:text-amber-400 hover:underline font-medium"
+              title="Butuh ekstensi Tampermonkey. Setelah dipasang, kolom pencarian TimeMark terisi otomatis."
+            >
+              <Sparkles className="w-3 h-3" />
+              <span>Instal Script Auto-Search (Tampermonkey) agar FSTB dicari otomatis</span>
+            </a>
 
             {isConfigOpen && (
               <div className="pt-2 border-t border-border space-y-2 animate-in fade-in duration-150">
