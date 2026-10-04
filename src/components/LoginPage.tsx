@@ -22,7 +22,6 @@ interface LoginPageProps {
 }
 
 export default function LoginPage({ onSuccess }: LoginPageProps) {
-  const { login } = useAuth();
   const { login, resetDefaults } = useAuth();
 
   const [username, setUsername] = useState('');
@@ -35,6 +34,7 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
+    setInfoMessage('');
 
     if (!username.trim() || !password.trim()) {
       setErrorMessage('Silakan masukkan username dan password.');
@@ -62,6 +62,7 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
     setUsername(userPreset);
     setPassword(passPreset);
     setErrorMessage('');
+    setInfoMessage('');
     setIsLoading(true);
 
     try {
@@ -100,10 +101,8 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
             </p>
           </div>
 
-          {/* Error Message Callout */}
           {/* Error & Info Message Callouts */}
           {errorMessage && (
-            <div className="mb-5 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-start gap-2.5 animate-in fade-in-50">
             <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-start gap-2.5 animate-in fade-in-50">
               <AlertCircle className="size-4 shrink-0 mt-0.5" />
               <div className="leading-relaxed">{errorMessage}</div>
@@ -198,17 +197,12 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
             <button
               type="button"
               onClick={() => handleQuickLogin('admin', 'admin')}
-              className="p-2 rounded-xl border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 text-left transition flex flex-col justify-between cursor-pointer"
               className="p-2.5 rounded-xl border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 text-left transition flex flex-col justify-between cursor-pointer group"
             >
               <div className="flex items-center gap-1 font-semibold text-[11px]">
-                <Shield className="size-3 text-purple-400" />
                 <Shield className="size-3 text-purple-400 group-hover:scale-110 transition-transform" />
                 <span>Admin</span>
               </div>
-              <span className="text-[9px] text-purple-400/80 font-mono mt-1">
-                Full Access
-              </span>
               <div className="mt-1">
                 <span className="text-[9px] text-purple-400/80 font-mono block">
                   pass: admin
@@ -222,17 +216,12 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
             <button
               type="button"
               onClick={() => handleQuickLogin('staff', 'user123')}
-              className="p-2 rounded-xl border border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 text-left transition flex flex-col justify-between cursor-pointer"
               className="p-2.5 rounded-xl border border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 text-left transition flex flex-col justify-between cursor-pointer group"
             >
               <div className="flex items-center gap-1 font-semibold text-[11px]">
-                <User className="size-3 text-sky-400" />
                 <User className="size-3 text-sky-400 group-hover:scale-110 transition-transform" />
                 <span>Staff User</span>
               </div>
-              <span className="text-[9px] text-sky-400/80 font-mono mt-1">
-                Operasional
-              </span>
               <div className="mt-1">
                 <span className="text-[9px] text-sky-400/80 font-mono block">
                   pass: user123
@@ -246,17 +235,12 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
             <button
               type="button"
               onClick={() => handleQuickLogin('visitor', 'visitor123')}
-              className="p-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 text-left transition flex flex-col justify-between cursor-pointer"
               className="p-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 text-left transition flex flex-col justify-between cursor-pointer group"
             >
               <div className="flex items-center gap-1 font-semibold text-[11px]">
-                <Eye className="size-3 text-emerald-400" />
                 <Eye className="size-3 text-emerald-400 group-hover:scale-110 transition-transform" />
                 <span>Visitor</span>
               </div>
-              <span className="text-[9px] text-emerald-400/80 font-mono mt-1">
-                Overview Only
-              </span>
               <div className="mt-1">
                 <span className="text-[9px] text-emerald-400/80 font-mono block">
                   pass: visitor123
@@ -294,4 +278,3 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
     </div>
   );
 }
-
