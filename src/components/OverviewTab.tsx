@@ -32,6 +32,7 @@ import { ProcurementItem, StatusTone } from '@/types/procurement';
 import { EntityDonutChart, PipelineBarChart } from './Charts';
 import { extractFstbLast5, openTimemarkWithFstb } from '@/utils/timemark';
 import { formatDateDdMmYy, formatDateDdMmYyDash, extractDateInfo } from '@/utils/formatDate';
+import { useAuth } from '@/context/AuthContext';
 
 const formatPicAktif = (pic?: string) => {
   if (!pic) return '-';
@@ -84,6 +85,8 @@ export default function OverviewTab({
   onTriggerAiAudit,
   showToast,
 }: OverviewTabProps) {
+  const { isVisitor } = useAuth();
+
   const handleOpenTimemark = (e: React.MouseEvent, fstb?: string) => {
     e.stopPropagation();
     if (!fstb) return;
@@ -350,14 +353,16 @@ export default function OverviewTab({
                   Pemantauan posisi antrian dokumen dari PO hingga Divisi Keuangan
                 </p>
               </div>
-              <button
-                onClick={onTriggerAiAudit}
-                disabled={items.length === 0}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-xs font-medium text-purple-700 dark:text-purple-300 hover:bg-purple-500/20 transition active:scale-95 disabled:opacity-40 shrink-0"
-              >
-                <Sparkles className="size-3 text-purple-600 dark:text-purple-400" />
-                <span>Detail Analisis</span>
-              </button>
+              {!isVisitor && (
+                <button
+                  onClick={onTriggerAiAudit}
+                  disabled={items.length === 0}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-xs font-medium text-purple-700 dark:text-purple-300 hover:bg-purple-500/20 transition active:scale-95 disabled:opacity-40 shrink-0"
+                >
+                  <Sparkles className="size-3 text-purple-600 dark:text-purple-400" />
+                  <span>Detail Analisis</span>
+                </button>
+              )}
             </div>
 
             <div className="h-64 px-5 py-4 relative w-full overflow-hidden flex items-center justify-center">

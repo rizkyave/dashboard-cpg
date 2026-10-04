@@ -32,6 +32,7 @@ import { FotoLapangan } from '@/types/fotoLapangan';
 import { updatePdfItemsCacheForFpb } from '@/utils/appStorage';
 import { formatDateDdMmYy } from '@/utils/formatDate';
 import { cleanSingleDescription, deduplicateDescriptions, cleanTujuanPeruntukan } from '@/utils/descriptionCleaner';
+import { useAuth } from '@/context/AuthContext';
 
 interface AuditModalProps {
   fpbNumber: string | null;
@@ -52,6 +53,7 @@ export default function AuditModal({
   onClose,
   showToast,
 }: AuditModalProps) {
+  const { isVisitor } = useAuth();
   const [showAiRisk, setShowAiRisk] = useState<boolean>(false);
   const [pdfData, setPdfData] = useState<{
     fpbNo: string;
@@ -567,39 +569,45 @@ export default function AuditModal({
             </div>
           </div>
           <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
-            {/* Tombol: Cek Foto TimeMark (FSTB) */}
-            {activeFstb && (
-              <button
-                onClick={() => setShowTimemarkModal(true)}
-                className="h-8 px-2.5 sm:px-3 rounded-lg border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-xs font-semibold shadow-xs flex items-center gap-1.5 transition active:scale-95 touch-manipulation"
-                title={`Verifikasi foto serah terima fisik TimeMark (${fstbLast5})`}
-              >
-                <Camera className="size-3.5 text-amber-600 dark:text-amber-400" />
-                <span>Foto TimeMark ({fstbLast5})</span>
-              </button>
+            {/* Action buttons (Khusus Admin & Staff User, Visitor tidak perlu) */}
+            {!isVisitor && (
+              <>
+                {/* Tombol: Cek Foto TimeMark (FSTB) */}
+                {activeFstb && (
+                  <button
+                    onClick={() => setShowTimemarkModal(true)}
+                    className="h-8 px-2.5 sm:px-3 rounded-lg border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-xs font-semibold shadow-xs flex items-center gap-1.5 transition active:scale-95 touch-manipulation cursor-pointer"
+                    title={`Verifikasi foto serah terima fisik TimeMark (${fstbLast5})`}
+                  >
+                    <Camera className="size-3.5 text-amber-600 dark:text-amber-400" />
+                    <span>Foto TimeMark ({fstbLast5})</span>
+                  </button>
+                )}
+
+                {/* Tombol: Cek Stok Gudang & Rekomendasi */}
+                <button
+                  onClick={() => setShowStockModal(true)}
+                  className="h-8 px-2.5 sm:px-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-medium shadow-xs flex items-center gap-1.5 transition active:scale-95 touch-manipulation cursor-pointer"
+                  title="Buka Pengecekan Stok Gudang Accurate & Analisis Rekomendasi"
+                >
+                  <Boxes className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <span>Cek Stok Gudang</span>
+                </button>
+
+                {/* Risk Audit Button */}
+                <button
+                  onClick={handleRunAiAudit}
+                  className="h-8 px-2.5 sm:px-3 rounded-lg border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 dark:text-purple-300 text-xs font-medium shadow-xs flex items-center gap-1.5 transition active:scale-95 touch-manipulation cursor-pointer"
+                >
+                  <Sparkles className="size-3.5 text-purple-600 dark:text-amber-300" />
+                  <span>Analisis Risiko</span>
+                </button>
+              </>
             )}
 
-            {/* Tombol: Cek Stok Gudang & Rekomendasi */}
-            <button
-              onClick={() => setShowStockModal(true)}
-              className="h-8 px-2.5 sm:px-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-medium shadow-xs flex items-center gap-1.5 transition active:scale-95 touch-manipulation"
-              title="Buka Pengecekan Stok Gudang Accurate & Analisis Rekomendasi"
-            >
-              <Boxes className="size-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span>Cek Stok Gudang</span>
-            </button>
-
-            {/* Risk Audit Button */}
-            <button
-              onClick={handleRunAiAudit}
-              className="h-8 px-2.5 sm:px-3 rounded-lg border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 dark:text-purple-300 text-xs font-medium shadow-xs flex items-center gap-1.5 transition active:scale-95 touch-manipulation"
-            >
-              <Sparkles className="size-3.5 text-purple-600 dark:text-amber-300" />
-              <span>Analisis Risiko</span>
-            </button>
             <button
               onClick={onClose}
-              className="size-8 rounded-lg border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition touch-manipulation"
+              className="size-8 rounded-lg border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition touch-manipulation cursor-pointer"
             >
               <X className="size-4" />
             </button>
@@ -607,7 +615,7 @@ export default function AuditModal({
         </div>
 
         {/* Document Risk Callout Box */}
-        {showAiRisk && (
+        {showAiRisk && !isVisitor && (
           <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/30 text-xs space-y-2">
             <div className="flex items-center justify-between text-purple-800 dark:text-purple-300 font-semibold font-mono">
               <span className="flex items-center gap-1.5">
@@ -695,90 +703,92 @@ export default function AuditModal({
         </div>
 
         {/* 4 Cross Verification Badges */}
-        <div className="bg-muted/30 rounded-xl border border-border p-4 space-y-3">
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-1.5">
-              <ShieldCheck className="size-4 text-emerald-600 dark:text-emerald-400" />
-              <span>Status Validasi Dokumen Lintas Modul</span>
-            </h4>
-            <span
-              className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
-                isPengantaranLogistikDone
-                  ? 'text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
-                  : 'text-amber-700 dark:text-amber-400 bg-amber-500/10 border-amber-500/20'
-              }`}
-            >
-              {isPengantaranLogistikDone ? '4/4' : '3/4'} Modul Terverifikasi
-            </span>
-          </div>
-
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-            {/* 1. INPUT DATA MELINDA */}
-            <div className="p-3 rounded-lg bg-card border border-border flex flex-col justify-between gap-2.5 shadow-xs hover:shadow-subtle transition">
-              <div className="text-[11px] font-semibold text-foreground tracking-wide uppercase leading-tight min-h-[1.75rem] flex items-center">
-                INPUT DATA MELINDA
-              </div>
-              <div className="flex items-center justify-between pt-2 border-t border-border">
-                <span className="text-[10px] text-muted-foreground font-mono">Status:</span>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-mono text-[11px] font-medium">
-                  <Check className="size-3 text-emerald-600 dark:text-emerald-400" />
-                  DONE
-                </span>
-              </div>
+        {!isVisitor && (
+          <div className="bg-muted/30 rounded-xl border border-border p-4 space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+                <ShieldCheck className="size-4 text-emerald-600 dark:text-emerald-400" />
+                <span>Status Validasi Dokumen Lintas Modul</span>
+              </h4>
+              <span
+                className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
+                  isPengantaranLogistikDone
+                    ? 'text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
+                    : 'text-amber-700 dark:text-amber-400 bg-amber-500/10 border-amber-500/20'
+                }`}
+              >
+                {isPengantaranLogistikDone ? '4/4' : '3/4'} Modul Terverifikasi
+              </span>
             </div>
 
-            {/* 2. VERIFIKASI FPB / BU NOOR */}
-            <div className="p-3 rounded-lg bg-card border border-border flex flex-col justify-between gap-2.5 shadow-xs hover:shadow-subtle transition">
-              <div className="flex items-center justify-between min-h-[1.75rem] gap-1">
-                <span className="text-[11px] font-semibold text-foreground tracking-wide uppercase leading-tight truncate">
-                  VERIFIKASI FPB {isValidPicName(displayPicFpb) ? `(${displayPicFpb})` : '/ BU NOOR'}
-                </span>
-              </div>
-              <div className="flex items-center justify-between pt-2 border-t border-border">
-                <span className="text-[10px] text-muted-foreground font-mono">Status:</span>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-mono text-[11px] font-medium">
-                  <Check className="size-3 text-emerald-600 dark:text-emerald-400" />
-                  {itemS1?.statusCheckFpb || itemS1?.doneCheckFpb || (itemS1?.picCheckFpb && itemS1.picCheckFpb !== '-' ? 'TERVERIFIKASI' : 'MATCHING')}
-                </span>
-              </div>
-            </div>
-
-            {/* 3. PROCUREMENT */}
-            <div className="p-3 rounded-lg bg-card border border-border flex flex-col justify-between gap-2.5 shadow-xs hover:shadow-subtle transition">
-              <div className="text-[11px] font-semibold text-foreground tracking-wide uppercase leading-tight min-h-[1.75rem] flex items-center">
-                PROCUREMENT
-              </div>
-              <div className="flex items-center justify-between pt-2 border-t border-border">
-                <span className="text-[10px] text-muted-foreground font-mono">Status:</span>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-mono text-[11px] font-medium">
-                  <Check className="size-3 text-emerald-600 dark:text-emerald-400" />
-                  DONE
-                </span>
-              </div>
-            </div>
-
-            {/* 4. PENGANTARAN LOGISTIK */}
-            <div className="p-3 rounded-lg bg-card border border-border flex flex-col justify-between gap-2.5 shadow-xs hover:shadow-subtle transition">
-              <div className="text-[11px] font-semibold text-foreground tracking-wide uppercase leading-tight min-h-[1.75rem] flex items-center">
-                PENGANTARAN LOGISTIK
-              </div>
-              <div className="flex items-center justify-between pt-2 border-t border-border">
-                <span className="text-[10px] text-muted-foreground font-mono">Status:</span>
-                {isPengantaranLogistikDone ? (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+              {/* 1. INPUT DATA MELINDA */}
+              <div className="p-3 rounded-lg bg-card border border-border flex flex-col justify-between gap-2.5 shadow-xs hover:shadow-subtle transition">
+                <div className="text-[11px] font-semibold text-foreground tracking-wide uppercase leading-tight min-h-[1.75rem] flex items-center">
+                  INPUT DATA MELINDA
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t border-border">
+                  <span className="text-[10px] text-muted-foreground font-mono">Status:</span>
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-mono text-[11px] font-medium">
                     <Check className="size-3 text-emerald-600 dark:text-emerald-400" />
                     DONE
                   </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 font-mono text-[11px] font-medium">
-                    <Clock className="size-3 text-amber-600 dark:text-amber-400" />
-                    IN PROGRESS
+                </div>
+              </div>
+
+              {/* 2. VERIFIKASI FPB / BU NOOR */}
+              <div className="p-3 rounded-lg bg-card border border-border flex flex-col justify-between gap-2.5 shadow-xs hover:shadow-subtle transition">
+                <div className="flex items-center justify-between min-h-[1.75rem] gap-1">
+                  <span className="text-[11px] font-semibold text-foreground tracking-wide uppercase leading-tight truncate">
+                    VERIFIKASI FPB {isValidPicName(displayPicFpb) ? `(${displayPicFpb})` : '/ BU NOOR'}
                   </span>
-                )}
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t border-border">
+                  <span className="text-[10px] text-muted-foreground font-mono">Status:</span>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-mono text-[11px] font-medium">
+                    <Check className="size-3 text-emerald-600 dark:text-emerald-400" />
+                    {itemS1?.statusCheckFpb || itemS1?.doneCheckFpb || (itemS1?.picCheckFpb && itemS1.picCheckFpb !== '-' ? 'TERVERIFIKASI' : 'MATCHING')}
+                  </span>
+                </div>
+              </div>
+
+              {/* 3. PROCUREMENT */}
+              <div className="p-3 rounded-lg bg-card border border-border flex flex-col justify-between gap-2.5 shadow-xs hover:shadow-subtle transition">
+                <div className="text-[11px] font-semibold text-foreground tracking-wide uppercase leading-tight min-h-[1.75rem] flex items-center">
+                  PROCUREMENT
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t border-border">
+                  <span className="text-[10px] text-muted-foreground font-mono">Status:</span>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-mono text-[11px] font-medium">
+                    <Check className="size-3 text-emerald-600 dark:text-emerald-400" />
+                    DONE
+                  </span>
+                </div>
+              </div>
+
+              {/* 4. PENGANTARAN LOGISTIK */}
+              <div className="p-3 rounded-lg bg-card border border-border flex flex-col justify-between gap-2.5 shadow-xs hover:shadow-subtle transition">
+                <div className="text-[11px] font-semibold text-foreground tracking-wide uppercase leading-tight min-h-[1.75rem] flex items-center">
+                  PENGANTARAN LOGISTIK
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t border-border">
+                  <span className="text-[10px] text-muted-foreground font-mono">Status:</span>
+                  {isPengantaranLogistikDone ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-mono text-[11px] font-medium">
+                      <Check className="size-3 text-emerald-600 dark:text-emerald-400" />
+                      DONE
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 font-mono text-[11px] font-medium">
+                      <Clock className="size-3 text-amber-600 dark:text-amber-400" />
+                      IN PROGRESS
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* ═══════════════════════════════════════════════════════════
             RANTAI TANGGUNG JAWAB & AUDIT DETAIL (5 DIVISI LENGKAP)
@@ -1508,13 +1518,15 @@ export default function AuditModal({
         {/* Action Footer */}
         <div className="flex items-center justify-between pt-3 border-t border-border flex-wrap gap-2">
           <div className="flex items-center gap-2 flex-wrap">
-            <button
-              onClick={handleWhatsappNudge}
-              className="h-8 px-3.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-medium flex items-center gap-1.5 transition"
-            >
-              <MessageSquare className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
-              <span>Eskalasi PIC via WhatsApp</span>
-            </button>
+            {!isVisitor && (
+              <button
+                onClick={handleWhatsappNudge}
+                className="h-8 px-3.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-medium flex items-center gap-1.5 transition"
+              >
+                <MessageSquare className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
+                <span>Eskalasi PIC via WhatsApp</span>
+              </button>
+            )}
             {fpbPdfUrl && !pdfData && (
               <button
                 onClick={handleFetchPdfData}
@@ -1550,7 +1562,7 @@ export default function AuditModal({
       </div>
 
       {/* Pop-up Box: Pengecekan Stok Persediaan Gudang & Hasil Analisis Rekomendasi */}
-      {showStockModal && (
+      {showStockModal && !isVisitor && (
         <StockAuditModal
           isOpen={showStockModal}
           onClose={() => setShowStockModal(false)}
@@ -1563,7 +1575,7 @@ export default function AuditModal({
       )}
 
       {/* Pop-up Box: Verifikasi Bukti Foto TimeMark */}
-      {showTimemarkModal && activeFstb && (
+      {showTimemarkModal && !isVisitor && activeFstb && (
         <TimemarkModal
           isOpen={showTimemarkModal}
           onClose={() => setShowTimemarkModal(false)}
@@ -1576,7 +1588,7 @@ export default function AuditModal({
       )}
 
       {/* Pop-up Box: Form Upload Foto Lapangan Terintegrasi No. TTB */}
-      {showUploadFotoModal && (
+      {showUploadFotoModal && !isVisitor && (
         <UploadFotoLapanganModal
           isOpen={showUploadFotoModal}
           onClose={() => setShowUploadFotoModal(false)}

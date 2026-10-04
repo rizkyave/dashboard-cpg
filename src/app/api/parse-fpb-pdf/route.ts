@@ -3,6 +3,9 @@ import zlib from 'zlib';
 import { formatDateDdMmYy } from '@/utils/formatDate';
 import { cleanSingleDescription, deduplicateDescriptions } from '@/utils/descriptionCleaner';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export interface ParsedItem {
   no: number;
   itemCode: string;

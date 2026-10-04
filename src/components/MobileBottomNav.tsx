@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 
 import { TabType } from '@/types/procurement';
+import { useAuth } from '@/context/AuthContext';
 
 interface MobileBottomNavProps {
   activeTab: TabType;
@@ -28,18 +29,28 @@ export default function MobileBottomNav({
   criticalCount,
   onOpenSidebar,
 }: MobileBottomNavProps) {
+  const { isVisitor } = useAuth();
+
   const tabs: {
     id: TabType;
     label: string;
     icon: any;
     badge?: string;
     badgeDestructive?: boolean;
-  }[] = [
-    {
-      id: 'overview',
-      label: 'Overview',
-      icon: LayoutDashboard,
-    },
+  }[] = isVisitor
+    ? [
+        {
+          id: 'overview',
+          label: 'Overview',
+          icon: LayoutDashboard,
+        },
+      ]
+    : [
+        {
+          id: 'overview',
+          label: 'Overview',
+          icon: LayoutDashboard,
+        },
     {
       id: 'procurement',
       label: 'Pengadaan',

@@ -17,6 +17,10 @@ import {
   Settings2,
   ExternalLink,
   Navigation,
+  LogOut,
+  Users,
+  ShieldCheck,
+  Eye,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { ProcurementItem, ArmadaItem, InventoryItem, InventorySummary, KapalPosisiItem } from '@/types/procurement';
@@ -27,6 +31,7 @@ import ThemeToggle from './ThemeToggle';
 import SyncEfpbModal from './SyncEfpbModal';
 import ResetConfirmModal, { ResetScope } from './ResetConfirmModal';
 import { mergeProcurementDatasets, mergeArmadaDatasets } from '@/utils/dataMerger';
+import { useAuth } from '@/context/AuthContext';
 interface HeaderProps {
   searchKeyword?: string;
   onSearch: (keyword: string) => void;
@@ -45,6 +50,7 @@ interface HeaderProps {
   onRefreshPosisiKapal?: () => void;
   isSyncingPosisiKapal?: boolean;
   kapalPosisiCount?: number;
+  onNavigateTab?: (tab: any) => void;
 }
 
 
@@ -70,7 +76,9 @@ export default function Header({
   onRefreshPosisiKapal,
   isSyncingPosisiKapal,
   kapalPosisiCount,
+  onNavigateTab,
 }: HeaderProps) {
+  const { user, isAdmin, isVisitor, logout } = useAuth();
 
   const [searchQuery, setSearchQuery] = useState<string>(searchKeyword || '');
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
@@ -538,16 +546,46 @@ export default function Header({
             <div className="absolute left-0 top-10 w-80 rounded-xl border border-border bg-card p-1.5 shadow-2xl z-50 text-xs animate-in fade-in slide-in-from-top-2 duration-150">
               {/* User Profile Banner */}
               <div className="flex items-center gap-2.5 p-2.5 border-b border-border/80 mb-1">
-                <div className="flex size-8 items-center justify-center rounded-full bg-linear-to-tr from-sky-500 to-indigo-500 text-white font-bold text-xs shadow-xs">
-                  H
+                <div
+                  className={`flex size-8 items-center justify-center rounded-full text-white font-bold text-xs shadow-xs shrink-0 ${
+                    isAdmin
+                      ? 'bg-linear-to-tr from-purple-600 to-indigo-600'
+                      : isVisitor
+                      ? 'bg-linear-to-tr from-emerald-600 to-teal-600'
+                      : 'bg-linear-to-tr from-sky-500 to-indigo-500'
+                  }`}
+                >
+                  {user?.avatar || (user?.name ? user.name[0]?.toUpperCase() : 'U')}
                 </div>
-                <div className="leading-tight min-w-0">
-                  <p className="font-semibold text-foreground truncate">Hermansyah</p>
+                <div className="leading-tight min-w-0 flex-1">
+                  <p className="font-semibold text-foreground truncate">{user?.name || 'Pengguna'}</p>
                   <p className="text-[10px] text-muted-foreground truncate">
-                    CPG Administrator &bull; Somber HQ
+                    {user?.department || (isAdmin ? 'CPG Administrator • Somber HQ' : isVisitor ? 'Visitor (Akses Read-Only)' : 'Staff Operasional')}
                   </p>
                 </div>
               </div>
+
+              {/* Shortcut: Admin Settings (Khusus Admin) */}
+              {isAdmin && onNavigateTab && (
+                <div className="p-1 border-b border-border/60 mb-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      onNavigateTab('admin-settings');
+                    }}
+                    className="w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 dark:text-purple-300 font-semibold transition cursor-pointer border border-purple-500/20"
+                  >
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck className="size-4" />
+                      <span>Admin Settings &bull; Kelola Pengguna</span>
+                    </div>
+                    <span className="text-[9px] font-mono font-bold bg-purple-500/20 px-1 rounded">
+                      Admin
+                    </span>
+                  </button>
+                </div>
+              )}
 
               {/* Menu Items */}
               <div className="space-y-0.5">
@@ -1007,23 +1045,45 @@ export default function Header({
 
               <div className="h-px bg-border my-1.5" />
 
-              {/* Reset Data (Mode Uji Coba) */}
+              {/* Logout Option */}
               <button
                 type="button"
                 onClick={() => {
                   setIsMenuOpen(false);
-                  setIsResetModalOpen(true);
+                  if (window.confirm('Apakah Anda yakin ingin keluar dari sistem?')) {
+                    logout();
+                  }
                 }}
-                className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-rose-500 hover:bg-rose-500/10 text-left transition cursor-pointer"
+                className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-foreground hover:bg-muted text-left transition cursor-pointer"
               >
-                <RotateCcw className="size-4 shrink-0" />
+                <LogOut className="size-4 text-muted-foreground shrink-0" />
                 <div className="min-w-0">
-                  <span className="font-medium block leading-tight">Reset Data (Mode Uji Coba)</span>
-                  <span className="text-[10px] text-rose-500/70 block">
-                    Pilihan kosongkan data untuk pengujian baru
+                  <span className="font-medium block leading-tight text-xs">Keluar / Logout</span>
+                  <span className="text-[10px] text-muted-foreground block">
+                    Akhiri sesi masuk saat ini
                   </span>
                 </div>
               </button>
+
+              {/* Reset Data (Hanya untuk Admin) */}
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    setIsResetModalOpen(true);
+                  }}
+                  className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-rose-500 hover:bg-rose-500/10 text-left transition cursor-pointer mt-0.5"
+                >
+                  <RotateCcw className="size-4 shrink-0" />
+                  <div className="min-w-0">
+                    <span className="font-medium block leading-tight">Reset Data (Mode Uji Coba)</span>
+                    <span className="text-[10px] text-rose-500/70 block">
+                      Pilihan kosongkan data untuk pengujian baru
+                    </span>
+                  </div>
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -1066,16 +1126,30 @@ export default function Header({
 
       {/* Right side Clean Actions */}
       <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        {/* Visitor Mode Pill Badge */}
+        {isVisitor && (
+          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[11px] font-semibold">
+            <Eye className="size-3" />
+            <span>Mode Visitor (Read-Only)</span>
+          </div>
+        )}
+
         {/* Theme Toggle Button (Light / Dark) */}
         <ThemeToggle />
 
         {/* User Profile Avatar (Clickable to open menu as well) */}
         <div
           onClick={() => setIsMenuOpen((prev) => !prev)}
-          className="flex size-7.5 shrink-0 items-center justify-center rounded-full bg-linear-to-tr from-sky-500 to-indigo-500 text-white font-bold text-xs select-none shadow-xs cursor-pointer hover:opacity-90 transition active:scale-95 ml-0.5"
-          title="Hermansyah - Administrator (Klik untuk menu)"
+          className={`flex size-7.5 shrink-0 items-center justify-center rounded-full text-white font-bold text-xs select-none shadow-xs cursor-pointer hover:opacity-90 transition active:scale-95 ml-0.5 ${
+            isAdmin
+              ? 'bg-linear-to-tr from-purple-600 to-indigo-600'
+              : isVisitor
+              ? 'bg-linear-to-tr from-emerald-600 to-teal-600'
+              : 'bg-linear-to-tr from-sky-500 to-indigo-500'
+          }`}
+          title={`${user?.name || 'User'} (${user?.role?.toUpperCase()}) - Klik untuk menu`}
         >
-          H
+          {user?.avatar || (user?.name ? user.name[0]?.toUpperCase() : 'U')}
         </div>
       </div>
 

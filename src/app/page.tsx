@@ -41,13 +41,18 @@ import AnalyticsTab from '@/components/AnalyticsTab';
 import InventoryTab from '@/components/InventoryTab';
 import TimemarkTab from '@/components/TimemarkTab';
 import FotoLapanganTab from '@/components/FotoLapanganTab';
+import AdminSettingsTab from '@/components/AdminSettingsTab';
 import AuditModal from '@/components/AuditModal';
 import NewRecordModal from '@/components/NewRecordModal';
+import LoginPage from '@/components/LoginPage';
+import { useAuth } from '@/context/AuthContext';
 
 import ToastNotification from '@/components/ToastNotification';
 import { PanelLeftOpen, ChevronDown } from 'lucide-react';
 
 export default function DashboardPage() {
+  const { user, isAuthenticated, isLoading: isAuthLoading, isAdmin, isVisitor } = useAuth();
+
   const [procurementData, setProcurementData] = useState<ProcurementItem[]>(
     INITIAL_PROCUREMENT_DATA
   );
@@ -538,6 +543,15 @@ export default function DashboardPage() {
     setSelectedLapse('CRITICAL');
   };
 
+  // Efek guard hak akses Admin Settings & Batasan Visitor (Hanya Overview)
+  useEffect(() => {
+    if (isVisitor && activeTab !== 'overview') {
+      setActiveTab('overview');
+    } else if (!isAdmin && activeTab === 'admin-settings') {
+      setActiveTab('overview');
+    }
+  }, [isVisitor, isAdmin, activeTab]);
+
   const toggleSidebar = () => {
     const nextState = !isSidebarCollapsed;
     setIsSidebarCollapsed(nextState);
@@ -546,6 +560,22 @@ export default function DashboardPage() {
       'info'
     );
   };
+
+  // Proteksi Akses & Tampilan Login
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center selection:bg-primary selection:text-primary-foreground">
+        <div className="size-9 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        <span className="text-xs text-muted-foreground mt-3 font-mono tracking-wide">
+          Memuat CPG Command Center Balikpapan...
+        </span>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <LoginPage />;
+  }
 
   return (
     <div className="flex min-h-screen bg-background text-foreground antialiased">
@@ -587,6 +617,7 @@ export default function DashboardPage() {
           onRefreshPosisiKapal={handleRefreshPosisiKapal}
           isSyncingPosisiKapal={isLoadingPosisiKapal}
           kapalPosisiCount={kapalPosisiItems.length}
+          onNavigateTab={setActiveTab}
         />
 
 
@@ -605,6 +636,8 @@ export default function DashboardPage() {
                   ? 'Posisi Kapal'
                   : activeTab === 'inventory'
                   ? 'Cek Stok Persediaan Gudang'
+                  : activeTab === 'admin-settings'
+                  ? 'Pengaturan Administrator & Pengguna'
                   : 'Analisis SLA & Lead Time'}
               </h1>
               <p className="text-xs sm:text-sm text-muted-foreground">
@@ -618,12 +651,14 @@ export default function DashboardPage() {
                   ? 'Laporan posisi, rute, aktivitas, status armada dan pekerjaan pemeliharaan kapal.'
                   : activeTab === 'inventory'
                   ? 'Pemeriksaan stok barang konsolidasi Accurate (CPL, Hana Lines, Mandar Ocean) & pencocokan kebutuhan pengadaan.'
+                  : activeTab === 'admin-settings'
+                  ? 'Kelola akun operasional staf purchasing (User) dan akun tamu/peninjau (Visitor). Tambahkan pengguna baru dan konfigurasi wewenang hak akses.'
                   : 'Distribusi waktu perputaran berkas fisik (lead time) dan beban kerja produktivitas staf PIC operasional.'}
               </p>
             </div>
 
             {/* Tombol Sembunyikan Ringkasan Metrik KPI */}
-            {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && (
+            {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && activeTab !== 'admin-settings' && (
               <button
                 type="button"
                 onClick={toggleKpiHidden}
@@ -641,7 +676,7 @@ export default function DashboardPage() {
           </div>
 
           {/* 4 Pillar Executive Metric Cards (procurement tabs only) */}
-          {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && !isKpiHidden && (
+          {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && activeTab !== 'admin-settings' && !isKpiHidden && (
             <div className="animate-in fade-in-50 duration-200">
               <KpiCards
                 procurementList={filteredProcurement}
@@ -744,6 +779,11 @@ export default function DashboardPage() {
               onLoadSampleInventory={handleLoadSampleInventory}
               showToast={showToast}
             />
+          )}
+
+          {/* Tab 6: Admin Settings - Manajemen Pengguna & Visitor */}
+          {activeTab === 'admin-settings' && (
+            <AdminSettingsTab showToast={showToast} />
           )}
         </main>
 

@@ -1,0 +1,53 @@
+import { UserAccount } from '@/types/auth';
+
+export const DEFAULT_USERS: UserAccount[] = [
+  {
+    id: 'usr-admin-01',
+    username: 'admin',
+    name: 'Administrator CPG',
+    password: 'admin',
+    role: 'admin',
+    department: 'Management Information System',
+    email: 'admin@cindaragroup.com',
+    avatar: 'A',
+    status: 'active',
+    createdAt: '2026-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'usr-admin-02',
+    username: 'hermansyah',
+    name: 'Hermansyah (Lead Procurement)',
+    password: 'admin',
+    role: 'admin',
+    department: 'Procurement & Supply Chain',
+    email: 'hermansyah@cindaragroup.com',
+    avatar: 'H',
+    status: 'active',
+    createdAt: '2026-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'usr-staff-01',
+    username: 'staff',
+    name: 'Staff Logistik & Pengadaan',
+    password: 'user123',
+    role: 'user',
+    department: 'Logistik & Operasional Darat',
+    email: 'staff@cindaragroup.com',
+    avatar: 'S',
+    status: 'active',
+    createdAt: '2026-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'usr-visitor-01',
+    username: 'visitor',
+    name: 'Tamu / Auditor Eksternal',
+    password: 'visitor123',
+    role: 'visitor',
+    department: 'Auditor & Eksternal Partner',
+    email: 'visitor@cindaragroup.com',
+    avatar: 'V',
+    status: 'active',
+    createdAt: '2026-01-01T00:00:00.000Z',
+  },
+];
+

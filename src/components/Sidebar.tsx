@@ -20,12 +20,16 @@ import {
   Images,
   Navigation,
   ChevronDown,
+  ShieldCheck,
+  LogOut,
+  ShieldAlert,
 } from 'lucide-react';
 
 import * as XLSX from 'xlsx';
 import { TabType, LapseFilterType, ProcurementItem, ArmadaItem } from '@/types/procurement';
 import { parseAndMergeWorkbook } from '@/utils/excelParser';
 import ThemeToggle from './ThemeToggle';
+import { useAuth } from '@/context/AuthContext';
 
 interface SidebarProps {
   activeTab: TabType;
@@ -58,6 +62,8 @@ export default function Sidebar({
   onExcelUpload,
   showToast,
 }: SidebarProps) {
+  const { user, isAdmin, isVisitor, logout } = useAuth();
+
   const [isLeadTimeHidden, setIsLeadTimeHidden] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('cpg_hide_lead_time_filter') === 'true';
@@ -75,45 +81,65 @@ export default function Sidebar({
     });
   };
 
-  const dashboards = [
-    {
-      id: 'overview' as TabType,
-      label: 'Overview',
-      icon: LayoutDashboard,
-      badge: 'Main',
-    },
-    {
-      id: 'procurement' as TabType,
-      label: 'Procurement',
-      icon: ShoppingBag,
-      badge: totalCount > 0 ? (totalCount >= 1000 ? `${(totalCount / 1000).toFixed(0)}k` : `${totalCount}`) : undefined,
-    },
-    {
-      id: 'armada' as TabType,
-      label: 'Layanan Armada',
-      icon: Anchor,
-      badge: 'FSTB',
-    },
-    {
-      id: 'foto-lapangan' as TabType,
-      label: 'Foto Lapangan',
-      icon: Camera,
-      badge: 'In-App',
-    },
-    {
-      id: 'timemark' as TabType,
-      label: 'Foto TimeMark',
-      icon: Images,
-      badge: '5 Digit',
-    },
-    {
-      id: 'analytics' as TabType,
-      label: 'Analytics',
-      icon: BarChart3,
-      badge: criticalCount > 0 ? (criticalCount >= 1000 ? `${(criticalCount / 1000).toFixed(0)}k` : `${criticalCount}`) : undefined,
-      badgeVariant: criticalCount > 0 ? 'destructive' : 'default',
-    },
-  ];
+  const dashboards = isVisitor
+    ? [
+        {
+          id: 'overview' as TabType,
+          label: 'Overview',
+          icon: LayoutDashboard,
+          badge: 'Visitor',
+        },
+      ]
+    : [
+        {
+          id: 'overview' as TabType,
+          label: 'Overview',
+          icon: LayoutDashboard,
+          badge: 'Main',
+        },
+        {
+          id: 'procurement' as TabType,
+          label: 'Procurement',
+          icon: ShoppingBag,
+          badge: totalCount > 0 ? (totalCount >= 1000 ? `${(totalCount / 1000).toFixed(0)}k` : `${totalCount}`) : undefined,
+        },
+        {
+          id: 'armada' as TabType,
+          label: 'Layanan Armada',
+          icon: Anchor,
+          badge: 'FSTB',
+        },
+        {
+          id: 'foto-lapangan' as TabType,
+          label: 'Foto Lapangan',
+          icon: Camera,
+          badge: 'In-App',
+        },
+        {
+          id: 'timemark' as TabType,
+          label: 'Foto TimeMark',
+          icon: Images,
+          badge: '5 Digit',
+        },
+        {
+          id: 'analytics' as TabType,
+          label: 'Analytics',
+          icon: BarChart3,
+          badge: criticalCount > 0 ? (criticalCount >= 1000 ? `${(criticalCount / 1000).toFixed(0)}k` : `${criticalCount}`) : undefined,
+          badgeVariant: criticalCount > 0 ? 'destructive' : 'default',
+        },
+        ...(isAdmin
+          ? [
+              {
+                id: 'admin-settings' as TabType,
+                label: 'Admin Settings',
+                icon: ShieldCheck,
+                badge: 'Users',
+                badgeVariant: 'default' as const,
+              },
+            ]
+          : []),
+      ];
 
   const slaFilters: { id: LapseFilterType; label: string; icon: any; count?: number }[] = [
     { id: 'ALL', label: 'Semua Berkas', icon: List },
@@ -209,40 +235,47 @@ export default function Sidebar({
             </button>
           </div>
 
-          {/* Quick Action Button matching Studio Admin screenshot: [ ⊕ Quick Create ] [ ✉ ] */}
-          <div className="flex items-center gap-1.5">
-            {onOpenNewRecord && (
-              <button
-                onClick={handleQuickCreate}
-                className="flex-1 h-9 rounded-lg bg-foreground text-background hover:opacity-90 text-xs font-semibold flex items-center justify-center gap-2 transition shadow-xs active:scale-95 touch-manipulation"
-              >
-                <CirclePlus className="size-4" />
-                <span>Quick Create</span>
-              </button>
-            )}
-
-          {onExcelUpload ? (
-            <label
-              title="Unggah File Excel"
-              className="size-9 rounded-lg border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center cursor-pointer transition shadow-xs shrink-0 active:scale-95"
-            >
-              <Upload className="size-4" />
-              <input
-                type="file"
-                accept=".xlsx, .xls, .csv"
-                className="hidden"
-                onChange={handleSidebarFileUpload}
-              />
-            </label>
+          {/* Quick Action Button or Visitor Badge */}
+          {isVisitor ? (
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[11px] font-medium">
+              <span className="size-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+              <span className="truncate">Mode Visitor &bull; Read-Only</span>
+            </div>
           ) : (
-            <button
-              className="size-9 rounded-lg border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition shadow-xs shrink-0"
-              title="Inbox Notifikasi"
-            >
-              <Mail className="size-4" />
-            </button>
+            <div className="flex items-center gap-1.5">
+              {onOpenNewRecord && (
+                <button
+                  onClick={handleQuickCreate}
+                  className="flex-1 h-9 rounded-lg bg-foreground text-background hover:opacity-90 text-xs font-semibold flex items-center justify-center gap-2 transition shadow-xs active:scale-95 touch-manipulation cursor-pointer"
+                >
+                  <CirclePlus className="size-4" />
+                  <span>Quick Create</span>
+                </button>
+              )}
+
+              {onExcelUpload ? (
+                <label
+                  title="Unggah File Excel"
+                  className="size-9 rounded-lg border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center cursor-pointer transition shadow-xs shrink-0 active:scale-95"
+                >
+                  <Upload className="size-4" />
+                  <input
+                    type="file"
+                    accept=".xlsx, .xls, .csv"
+                    className="hidden"
+                    onChange={handleSidebarFileUpload}
+                  />
+                </label>
+              ) : (
+                <button
+                  className="size-9 rounded-lg border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition shadow-xs shrink-0"
+                  title="Inbox Notifikasi"
+                >
+                  <Mail className="size-4" />
+                </button>
+              )}
+            </div>
           )}
-        </div>
 
         {/* Dashboards Section */}
         <div className="space-y-1 mt-1">
@@ -355,80 +388,108 @@ export default function Sidebar({
           )}
         </div>
 
-        {/* Modul Cek Persediaan (Dibawah Filter Lead Time SLA) */}
-        <div className="space-y-1 pt-2 border-t border-border">
-          <div className="px-2 py-1 text-[11px] font-medium text-muted-foreground flex items-center justify-between">
-            <span>Modul Persediaan Gudang</span>
-            <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
-              Accurate
-            </span>
-          </div>
-          <nav className="space-y-0.5">
-            <button
-              onClick={() => handleSelectTab('inventory')}
-              className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation ${
-                activeTab === 'inventory'
-                  ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-border'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-              }`}
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <Boxes
-                  className={`size-4 shrink-0 ${
-                    activeTab === 'inventory' ? 'text-emerald-500' : 'text-muted-foreground'
-                  }`}
-                />
-                <span className="truncate whitespace-nowrap">Cek Persediaan</span>
-              </div>
-              <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                {inventoryCount !== undefined && inventoryCount > 0
-                  ? inventoryCount >= 1000
-                    ? `${(inventoryCount / 1000).toFixed(0)}k`
-                    : `${inventoryCount}`
-                  : '10k'}
+        {/* Modul Cek Persediaan (Dibawah Filter Lead Time SLA) - Khusus Admin & User */}
+        {!isVisitor && (
+          <div className="space-y-1 pt-2 border-t border-border">
+            <div className="px-2 py-1 text-[11px] font-medium text-muted-foreground flex items-center justify-between">
+              <span>Modul Persediaan Gudang</span>
+              <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                Accurate
               </span>
-            </button>
+            </div>
+            <nav className="space-y-0.5">
+              <button
+                onClick={() => handleSelectTab('inventory')}
+                className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation ${
+                  activeTab === 'inventory'
+                    ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-border'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                }`}
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <Boxes
+                    className={`size-4 shrink-0 ${
+                      activeTab === 'inventory' ? 'text-emerald-500' : 'text-muted-foreground'
+                    }`}
+                  />
+                  <span className="truncate whitespace-nowrap">Cek Persediaan</span>
+                </div>
+                <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  {inventoryCount !== undefined && inventoryCount > 0
+                    ? inventoryCount >= 1000
+                      ? `${(inventoryCount / 1000).toFixed(0)}k`
+                      : `${inventoryCount}`
+                    : '10k'}
+                </span>
+              </button>
 
-            {/* Posisi Kapal FMS (Tepat di paling bawah Cek Persediaan) */}
-            <button
-              onClick={() => handleSelectTab('pos-kapal')}
-              className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation ${
-                activeTab === 'pos-kapal'
-                  ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-border'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-              }`}
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <Navigation
-                  className={`size-4 shrink-0 ${
-                    activeTab === 'pos-kapal' ? 'text-sky-500' : 'text-muted-foreground'
-                  }`}
-                />
-                <span className="truncate whitespace-nowrap">Posisi Kapal</span>
-              </div>
-              <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
-                {kapalPosisiCount !== undefined && kapalPosisiCount > 0
-                  ? `${kapalPosisiCount}`
-                  : 'Live'}
-              </span>
-            </button>
-          </nav>
-        </div>
+              {/* Posisi Kapal FMS (Tepat di paling bawah Cek Persediaan) */}
+              <button
+                onClick={() => handleSelectTab('pos-kapal')}
+                className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation ${
+                  activeTab === 'pos-kapal'
+                    ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-border'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                }`}
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <Navigation
+                    className={`size-4 shrink-0 ${
+                      activeTab === 'pos-kapal' ? 'text-sky-500' : 'text-muted-foreground'
+                    }`}
+                  />
+                  <span className="truncate whitespace-nowrap">Posisi Kapal</span>
+                </div>
+                <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
+                  {kapalPosisiCount !== undefined && kapalPosisiCount > 0
+                    ? `${kapalPosisiCount}`
+                    : 'Live'}
+                </span>
+              </button>
+            </nav>
+          </div>
+        )}
       </div>
 
 
-      {/* Footer User Info & Theme Toggle */}
-      <div className="pt-3 border-t border-border flex items-center justify-between text-xs pb-safe">
-        <div className="flex items-center gap-2">
-          <div className="size-7 rounded-full bg-linear-to-tr from-sky-500 to-indigo-500 flex items-center justify-center font-bold text-white text-[11px]">
-            H
+      {/* Footer User Info, Logout & Theme Toggle */}
+      <div className="pt-3 border-t border-border flex items-center justify-between text-xs pb-safe gap-1.5">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <div
+            className={`size-7 rounded-full flex items-center justify-center font-bold text-white text-[11px] shrink-0 ${
+              isAdmin
+                ? 'bg-linear-to-tr from-purple-600 to-indigo-600'
+                : isVisitor
+                ? 'bg-linear-to-tr from-emerald-600 to-teal-600'
+                : 'bg-linear-to-tr from-sky-500 to-indigo-500'
+            }`}
+          >
+            {user?.avatar || (user?.name ? user.name[0]?.toUpperCase() : 'U')}
           </div>
-          <div className="grid leading-tight">
-            <span className="text-foreground font-medium text-xs">Hermansyah</span>
-            <span className="text-[10px] text-muted-foreground">CPG Admin</span>
+          <div className="grid leading-tight min-w-0 flex-1">
+            <span className="text-foreground font-semibold text-xs truncate">
+              {user?.name || 'Pengguna'}
+            </span>
+            <span className="text-[10px] text-muted-foreground truncate">
+              {isAdmin ? 'CPG Admin' : isVisitor ? 'Visitor (Read-Only)' : 'Staff User'}
+            </span>
           </div>
         </div>
-        <ThemeToggle />
+
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            onClick={() => {
+              if (window.confirm('Apakah Anda yakin ingin keluar (logout)?')) {
+                logout();
+              }
+            }}
+            title="Keluar / Logout"
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition cursor-pointer"
+          >
+            <LogOut className="size-3.5" />
+          </button>
+          <ThemeToggle />
+        </div>
       </div>
     </aside>
     </>
