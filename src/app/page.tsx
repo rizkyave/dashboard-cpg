@@ -641,7 +641,9 @@ export default function DashboardPage() {
                   : 'Analisis SLA & Lead Time'}
               </h1>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                {activeTab === 'overview'
+                {isVisitor
+                  ? 'Mode Peninjauan Tamu: Silakan masukkan No. FPB, Nama Kapal, atau No. PO pada kolom pencarian di bawah untuk menampilkan data.'
+                  : activeTab === 'overview'
                   ? 'Pemantauan terpadu alur pengadaan barang, perputaran berkas fisik divisi, distribusi logistik armada kapal, dan status stok persediaan.'
                   : activeTab === 'procurement'
                   ? 'Daftar transaksi pengadaan PO, verifikasi berkas fisik antar divisi, dan status penyelesaian berkas.'
@@ -658,7 +660,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Tombol Sembunyikan Ringkasan Metrik KPI */}
-            {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && activeTab !== 'admin-settings' && (
+            {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && activeTab !== 'admin-settings' && (!isVisitor || searchKeyword.trim() !== '') && (
               <button
                 type="button"
                 onClick={toggleKpiHidden}
@@ -676,7 +678,7 @@ export default function DashboardPage() {
           </div>
 
           {/* 4 Pillar Executive Metric Cards (procurement tabs only) */}
-          {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && activeTab !== 'admin-settings' && !isKpiHidden && (
+          {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && activeTab !== 'admin-settings' && !isKpiHidden && (!isVisitor || searchKeyword.trim() !== '') && (
             <div className="animate-in fade-in-50 duration-200">
               <KpiCards
                 procurementList={filteredProcurement}

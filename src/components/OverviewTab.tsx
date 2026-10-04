@@ -182,6 +182,11 @@ export default function OverviewTab({
   }, [items]);
 
   const filteredItems = useMemo(() => {
+    // Mode Visitor: Hanya tampilkan data setelah melakukan pencarian (FPB / Kapal / PO)
+    if (isVisitor && !searchTerm.trim()) {
+      return [];
+    }
+
     return items.filter((row) => {
       if (selectedEntity !== 'ALL' && row.entity !== selectedEntity) return false;
 
@@ -213,6 +218,7 @@ export default function OverviewTab({
         const itemMatch = row.item?.toLowerCase().includes(q);
         const peruntukanMatch = row.peruntukan?.toLowerCase().includes(q);
         const armadaMatch = row.deptArmada?.toLowerCase().includes(q);
+        const entityMatch = row.entity?.toLowerCase().includes(q);
         const picMatch =
           row.picCheckFpb?.toLowerCase().includes(q) ||
           row.picPch?.toLowerCase().includes(q) ||
@@ -220,7 +226,7 @@ export default function OverviewTab({
           row.picLap?.toLowerCase().includes(q) ||
           row.picAktif?.toLowerCase().includes(q);
         const statusMatch = row.statusBadge?.toLowerCase().includes(q);
-        if (!fpbMatch && !poMatch && !itemMatch && !peruntukanMatch && !armadaMatch && !picMatch && !statusMatch) {
+        if (!fpbMatch && !poMatch && !itemMatch && !peruntukanMatch && !armadaMatch && !entityMatch && !picMatch && !statusMatch) {
           return false;
         }
       }
@@ -237,6 +243,7 @@ export default function OverviewTab({
     startDate,
     endDate,
     searchTerm,
+    isVisitor,
   ]);
 
   const sortedItems = useMemo(() => {
@@ -319,9 +326,11 @@ export default function OverviewTab({
 
   return (
     <div className="space-y-6">
-      {/* ═══════════════════════════════════════════════════════════
-      {/* Header bar / toggle for charts */}
-      <div className="flex items-center justify-between gap-2 -mb-2">
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {/* Header bar / toggle for charts (Non-Visitor only) */}
+      {!isVisitor && (
+        <>
+          <div className="flex items-center justify-between gap-2 -mb-2">
         <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
           Analisis Milestone & Distribusi Berkas
         </span>
@@ -419,6 +428,8 @@ export default function OverviewTab({
           </div>
         </div>
       )}
+      </>
+    )}
 
       {/* ═══════════════════════════════════════════════════════════
           DATA TABLE CARD (studio-admin 18,426 Customers Style)
@@ -428,15 +439,32 @@ export default function OverviewTab({
         <div className="px-4 sm:px-5 py-3.5 sm:py-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <div className="text-sm font-semibold text-foreground flex items-center gap-2 flex-wrap">
-              <span>{sortedItems.length.toLocaleString()} Berkas Pengadaan & Armada</span>
-              {isFiltered && (
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
-                  Terfilter ({items.length} total)
-                </span>
+              {isVisitor ? (
+                searchTerm.trim() ? (
+                  <>
+                    <span>{sortedItems.length.toLocaleString()} Berkas Ditemukan</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/20">
+                      Pencarian: &quot;{searchTerm}&quot;
+                    </span>
+                  </>
+                ) : (
+                  <span>Pencarian Berkas Pengadaan & Armada</span>
+                )
+              ) : (
+                <>
+                  <span>{sortedItems.length.toLocaleString()} Berkas Pengadaan & Armada</span>
+                  {isFiltered && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
+                      Terfilter ({items.length} total)
+                    </span>
+                  )}
+                </>
               )}
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Daftar berkas terintegrasi dengan alur PIC, PO, SLA, dan status pemenuhan logistik.
+              {isVisitor
+                ? 'Ketik No. FPB, Nama Kapal / Armada, atau No. PO pada kotak pencarian untuk menampilkan data.'
+                : 'Daftar berkas terintegrasi dengan alur PIC, PO, SLA, dan status pemenuhan logistik.'}
             </p>
           </div>
 
@@ -487,40 +515,49 @@ export default function OverviewTab({
         <div className="p-3 sm:p-3.5 border-b border-border bg-muted/20 flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-2.5">
           {/* Row 1: Search Input & Mobile Filter Toggle */}
           <div className="flex items-center gap-2 flex-1 min-w-0">
-            <div className="relative flex-1 min-w-0 max-w-md">
-              <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
+            <div className={`relative flex-1 min-w-0 ${isVisitor ? 'max-w-xl' : 'max-w-md'}`}>
+              <Search className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-muted-foreground" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                placeholder="Cari berkas, FPB, PO, barang, PIC..."
-                className="h-8 w-full rounded-lg border border-border bg-background pl-8 pr-7 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-zinc-500 transition"
+                placeholder={
+                  isVisitor
+                    ? 'Ketik No. FPB (misal: GAJ/FPB/...), Nama Kapal, atau No. PO...'
+                    : 'Cari berkas, FPB, PO, barang, PIC...'
+                }
+                className={`w-full rounded-lg border border-border bg-background pl-8.5 pr-7 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-cyan-500 transition ${
+                  isVisitor ? 'h-9 text-xs sm:text-sm font-medium shadow-2xs' : 'h-8'
+                }`}
               />
               {searchTerm && (
                 <button
                   type="button"
                   onClick={() => handleSearchChange('')}
-                  className="absolute top-1/2 right-2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  className="absolute top-1/2 right-2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
                 >
-                  <X className="size-3" />
+                  <X className="size-3.5" />
                 </button>
               )}
             </div>
 
-            {/* Mobile Filter Toggle Button */}
-            <button
-              type="button"
-              onClick={() => setShowMobileFilters((prev) => !prev)}
-              className="sm:hidden h-8 px-2.5 rounded-lg border border-border bg-background text-xs font-medium flex items-center gap-1 text-muted-foreground hover:text-foreground shrink-0 transition"
-            >
-              <Filter className="size-3.5" />
-              <span>Filter</span>
-              <ChevronDown className={`size-3 transition-transform ${showMobileFilters ? 'rotate-180' : ''}`} />
-            </button>
+            {/* Mobile Filter Toggle Button (hanya staf/admin) */}
+            {!isVisitor && (
+              <button
+                type="button"
+                onClick={() => setShowMobileFilters((prev) => !prev)}
+                className="sm:hidden h-8 px-2.5 rounded-lg border border-border bg-background text-xs font-medium flex items-center gap-1 text-muted-foreground hover:text-foreground shrink-0 transition"
+              >
+                <Filter className="size-3.5" />
+                <span>Filter</span>
+                <ChevronDown className={`size-3 transition-transform ${showMobileFilters ? 'rotate-180' : ''}`} />
+              </button>
+            )}
           </div>
 
-          {/* Filter Dropdowns and Buttons */}
-          <div className={`${showMobileFilters ? 'flex' : 'hidden'} sm:flex flex-wrap items-center gap-1.5 text-xs pt-1 sm:pt-0`}>
+          {/* Filter Dropdowns and Buttons (Non-Visitor only) */}
+          {!isVisitor && (
+            <div className={`${showMobileFilters ? 'flex' : 'hidden'} sm:flex flex-wrap items-center gap-1.5 text-xs pt-1 sm:pt-0`}>
             {/* Status Select */}
             <select
               value={selectedStatus}
@@ -604,12 +641,51 @@ export default function OverviewTab({
               ))}
             </select>
           </div>
+          )}
         </div>
 
         {/* Content Area: Card View (Mobile-Friendly) or Table View */}
         {viewMode === 'card' ? (
           <div>
-            {items.length === 0 ? (
+            {isVisitor && !searchTerm.trim() ? (
+              <div className="py-16 px-6 text-center flex flex-col items-center justify-center space-y-4">
+                <div className="size-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-600 dark:text-cyan-400 flex items-center justify-center shadow-xs">
+                  <Search className="size-8" />
+                </div>
+                <div className="max-w-md space-y-1.5">
+                  <h3 className="text-sm sm:text-base font-bold text-foreground">
+                    Pencarian Dokumen Pengadaan (Mode Visitor)
+                  </h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Daftar data pengadaan hanya akan muncul setelah Anda memasukkan pencarian. Silakan ketik <strong>No. FPB</strong>, <strong>Nama Kapal / Armada</strong>, atau <strong>No. PO</strong> pada kolom pencarian di atas.
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                  <span className="text-[11px] text-muted-foreground">Pencarian cepat:</span>
+                  <button
+                    type="button"
+                    onClick={() => handleSearchChange('FPB')}
+                    className="text-xs font-mono px-3 py-1 rounded-lg bg-muted hover:bg-muted/80 text-foreground border border-border transition cursor-pointer hover:border-cyan-500/50"
+                  >
+                    🔍 FPB
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSearchChange('GAJ')}
+                    className="text-xs font-mono px-3 py-1 rounded-lg bg-muted hover:bg-muted/80 text-foreground border border-border transition cursor-pointer hover:border-cyan-500/50"
+                  >
+                    🚢 Kapal GAJ
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSearchChange('PO')}
+                    className="text-xs font-mono px-3 py-1 rounded-lg bg-muted hover:bg-muted/80 text-foreground border border-border transition cursor-pointer hover:border-cyan-500/50"
+                  >
+                    📄 No. PO
+                  </button>
+                </div>
+              </div>
+            ) : items.length === 0 ? (
               <div className="p-10 text-center text-muted-foreground">
                 <div className="flex flex-col items-center justify-center gap-2">
                   <FileSpreadsheet className="size-8 opacity-30 text-muted-foreground" />
@@ -620,15 +696,22 @@ export default function OverviewTab({
                 </div>
               </div>
             ) : paginatedItems.length === 0 ? (
-              <div className="p-10 text-center text-muted-foreground">
+              <div className="p-12 text-center text-muted-foreground">
                 <div className="flex flex-col items-center justify-center gap-2">
                   <Search className="size-8 opacity-30 text-muted-foreground" />
-                  <p className="text-sm font-medium text-foreground">Tidak ada berkas yang cocok</p>
+                  <p className="text-sm font-medium text-foreground">
+                    {isVisitor && searchTerm
+                      ? `Tidak ditemukan berkas untuk "${searchTerm}"`
+                      : 'Tidak ada berkas yang cocok'}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Periksa kembali kata kunci No. FPB, Nama Kapal, atau No. PO yang Anda cari.
+                  </p>
                   <button
                     onClick={handleResetFilters}
-                    className="mt-2 h-7 px-3 rounded-lg border border-border bg-background text-xs font-medium hover:bg-muted transition"
+                    className="mt-2 h-7 px-3 rounded-lg border border-border bg-background text-xs font-medium hover:bg-muted transition cursor-pointer"
                   >
-                    Reset Filter
+                    Bersihkan Pencarian
                   </button>
                 </div>
               </div>
@@ -796,7 +879,49 @@ export default function OverviewTab({
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {items.length === 0 ? (
+              {isVisitor && !searchTerm.trim() ? (
+                <tr>
+                  <td colSpan={7} className="py-16 px-6 text-center text-muted-foreground">
+                    <div className="flex flex-col items-center justify-center space-y-4">
+                      <div className="size-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-600 dark:text-cyan-400 flex items-center justify-center shadow-xs">
+                        <Search className="size-8" />
+                      </div>
+                      <div className="max-w-md space-y-1.5">
+                        <h3 className="text-sm sm:text-base font-bold text-foreground">
+                          Pencarian Dokumen Pengadaan (Mode Visitor)
+                        </h3>
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                          Daftar data pengadaan hanya akan muncul setelah Anda memasukkan pencarian. Silakan ketik <strong>No. FPB</strong>, <strong>Nama Kapal / Armada</strong>, atau <strong>No. PO</strong> pada kolom pencarian di atas.
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                        <span className="text-[11px] text-muted-foreground">Pencarian cepat:</span>
+                        <button
+                          type="button"
+                          onClick={() => handleSearchChange('FPB')}
+                          className="text-xs font-mono px-3 py-1 rounded-lg bg-muted hover:bg-muted/80 text-foreground border border-border transition cursor-pointer hover:border-cyan-500/50"
+                        >
+                          🔍 FPB
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSearchChange('GAJ')}
+                          className="text-xs font-mono px-3 py-1 rounded-lg bg-muted hover:bg-muted/80 text-foreground border border-border transition cursor-pointer hover:border-cyan-500/50"
+                        >
+                          🚢 Kapal GAJ
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSearchChange('PO')}
+                          className="text-xs font-mono px-3 py-1 rounded-lg bg-muted hover:bg-muted/80 text-foreground border border-border transition cursor-pointer hover:border-cyan-500/50"
+                        >
+                          📄 No. PO
+                        </button>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              ) : items.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="p-10 text-center text-muted-foreground">
                     <div className="flex flex-col items-center justify-center gap-2">
@@ -810,15 +935,22 @@ export default function OverviewTab({
                 </tr>
               ) : paginatedItems.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-10 text-center text-muted-foreground">
+                  <td colSpan={7} className="p-12 text-center text-muted-foreground">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <Search className="size-8 opacity-30 text-muted-foreground" />
-                      <p className="text-sm font-medium text-foreground">Tidak ada berkas yang cocok</p>
+                      <p className="text-sm font-medium text-foreground">
+                        {isVisitor && searchTerm
+                          ? `Tidak ditemukan berkas untuk "${searchTerm}"`
+                          : 'Tidak ada berkas yang cocok'}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Periksa kembali kata kunci No. FPB, Nama Kapal, atau No. PO yang Anda cari.
+                      </p>
                       <button
                         onClick={handleResetFilters}
-                        className="mt-2 h-7 px-3 rounded-lg border border-border bg-background text-xs font-medium hover:bg-muted transition"
+                        className="mt-2 h-7 px-3 rounded-lg border border-border bg-background text-xs font-medium hover:bg-muted transition cursor-pointer"
                       >
-                        Reset Filter
+                        Bersihkan Pencarian
                       </button>
                     </div>
                   </td>
