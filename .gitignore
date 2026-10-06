@@ -32,3 +32,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# foto TTB lokal (1+ GB) - disimpan di cloud storage, bukan di git
+/src/app/public/

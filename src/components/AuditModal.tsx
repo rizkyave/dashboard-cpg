@@ -1018,15 +1018,15 @@ export default function AuditModal({
                       {formatDateDdMmYy(itemsS2[0]?.tglTtb || itemS1?.tglInputTtb)}
                     </span>
                   </div>
-                  {activeFstb && (
+                  {(activeFstb || activeTtb) && (
                     <button
                       type="button"
                       onClick={() => setShowTimemarkModal(true)}
                       className="w-full mt-1.5 py-1 px-2 rounded-md bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-[10px] font-semibold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-xs"
-                      title={`Buka verifikasi foto TimeMark dengan 5 digit: ${fstbLast5}`}
+                      title={`Bandingkan foto TimeMark (${fstbLast5 || '-'}) dengan foto server TTB`}
                     >
                       <Camera className="size-3 text-amber-600 dark:text-amber-400" />
-                      <span>Foto TimeMark ({fstbLast5})</span>
+                      <span>Foto TimeMark ({fstbLast5 || '-'})</span>
                       <ExternalLink className="size-2.5 opacity-60" />
                     </button>
                   )}
@@ -1575,11 +1575,12 @@ export default function AuditModal({
       )}
 
       {/* Pop-up Box: Verifikasi Bukti Foto TimeMark */}
-      {showTimemarkModal && !isVisitor && activeFstb && (
+      {showTimemarkModal && !isVisitor && (activeFstb || activeTtb) && (
         <TimemarkModal
           isOpen={showTimemarkModal}
           onClose={() => setShowTimemarkModal(false)}
           noFstb={activeFstb}
+          noTtb={activeTtb}
           fpb={primaryDocNum}
           armada={itemsS2[0]?.armada || itemS1?.deptArmada}
           item={itemsS2[0]?.item || itemS1?.item}

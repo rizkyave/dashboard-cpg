@@ -11,6 +11,10 @@ import {
   Sparkles,
   Info,
   RotateCcw,
+  Server,
+  ImageOff,
+  Loader2,
+  Maximize2,
 } from 'lucide-react';
 import {
   extractFstbLast5,
@@ -19,10 +23,17 @@ import {
   DEFAULT_TIMEMARK_PORTAL_URL,
 } from '@/utils/timemark';
 
+interface ServerPhoto {
+  name: string;
+  url: string;
+  takenAt: string | null;
+}
+
 interface TimemarkModalProps {
   isOpen: boolean;
   onClose: () => void;
   noFstb: string;
+  noTtb?: string;
   fpb?: string;
   item?: string;
   armada?: string;
@@ -33,6 +44,7 @@ export default function TimemarkModal({
   isOpen,
   onClose,
   noFstb,
+  noTtb,
   fpb,
   item,
   armada,
@@ -42,6 +54,12 @@ export default function TimemarkModal({
   const [isConfigOpen, setIsConfigOpen] = useState<boolean>(false);
   const [portalUrl, setPortalUrlState] = useState<string>(DEFAULT_TIMEMARK_PORTAL_URL);
   const [customInputUrl, setCustomInputUrl] = useState<string>('');
+
+  // Foto dari server (database sementara) berdasarkan No. TTB
+  const [serverPhotos, setServerPhotos] = useState<ServerPhoto[]>([]);
+  const [photosLoading, setPhotosLoading] = useState<boolean>(false);
+  const [photosError, setPhotosError] = useState<string>('');
+  const [selectedIdx, setSelectedIdx] = useState<number>(0);
 
   const shortCode = extractFstbLast5(noFstb);
 
@@ -55,7 +73,32 @@ export default function TimemarkModal({
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen || !noTtb) {
+      setServerPhotos([]);
+      return;
+    }
+    let cancelled = false;
+    setPhotosLoading(true);
+    setPhotosError('');
+    setSelectedIdx(0);
+    fetch(`/api/ttb-photos?ttb=${encodeURIComponent(noTtb)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return;
+        setServerPhotos(data.photos || []);
+        if (data.error) setPhotosError(data.error);
+      })
+      .catch(() => !cancelled && setPhotosError('Gagal memuat foto dari server.'))
+      .finally(() => !cancelled && setPhotosLoading(false));
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, noTtb]);
+
   if (!isOpen) return null;
+
+  const selectedPhoto = serverPhotos[selectedIdx];
 
   const handleCopy = async () => {
     if (!shortCode) return;
@@ -109,7 +152,7 @@ export default function TimemarkModal({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-card border border-border rounded-2xl w-full max-w-md shadow-2xl p-5 md:p-6 space-y-4 text-card-foreground cursor-default"
+        className="bg-card border border-border rounded-2xl w-full max-w-5xl max-h-[92vh] overflow-y-auto shadow-2xl p-5 md:p-6 space-y-4 text-card-foreground cursor-default"
       >
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-border">
@@ -137,6 +180,10 @@ export default function TimemarkModal({
           </button>
         </div>
 
+        {/* Split View: Kiri = TimeMark, Kanan = Foto Server */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* ===== Kolom Kiri: TimeMark ===== */}
+        <div className="space-y-4 flex flex-col">
         {/* Content Box */}
         <div className="space-y-3">
           {/* Metadata Card */}
@@ -256,7 +303,7 @@ export default function TimemarkModal({
         </div>
 
         {/* Footer Actions */}
-        <div className="pt-2 flex items-center justify-end gap-2">
+        <div className="mt-auto pt-2 flex items-center justify-end gap-2">
           <button
             type="button"
             onClick={onClose}
@@ -274,7 +321,94 @@ export default function TimemarkModal({
             <ExternalLink className="w-3.5 h-3.5 opacity-80" />
           </button>
         </div>
+        </div>
+
+        {/* ===== Kolom Kanan: Foto dari Server (Database Sementara) ===== */}
+        <div className="rounded-xl border border-purple-500/30 bg-purple-500/5 p-3 flex flex-col gap-3 min-h-[360px]">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-7 h-7 rounded-lg bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-600 dark:text-purple-400 shrink-0">
+                <Server className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <h4 className="text-xs font-bold text-foreground">Foto Server (Database Sementara)</h4>
+                <p className="text-[10px] text-muted-foreground font-mono truncate">
+                  No. TTB: <span className="text-purple-600 dark:text-purple-400 font-semibold">{noTtb || '-'}</span>
+                </p>
+              </div>
+            </div>
+            {serverPhotos.length > 0 && (
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20 font-semibold shrink-0">
+                {serverPhotos.length} foto
+              </span>
+            )}
+          </div>
+
+          {photosLoading ? (
+            <div className="flex-1 flex flex-col items-center justify-center gap-2 text-muted-foreground text-xs">
+              <Loader2 className="w-6 h-6 animate-spin" />
+              <span>Mencari foto di server...</span>
+            </div>
+          ) : !noTtb || serverPhotos.length === 0 ? (
+            <div className="flex-1 flex flex-col items-center justify-center gap-2 text-muted-foreground text-xs text-center px-4">
+              <ImageOff className="w-8 h-8 opacity-60" />
+              <span className="font-medium">
+                {!noTtb ? 'Nomor TTB belum tersedia.' : 'Belum ada foto untuk TTB ini di server.'}
+              </span>
+              {photosError && <span className="text-[10px] text-red-500">{photosError}</span>}
+            </div>
+          ) : (
+            <>
+              {/* Foto utama */}
+              <a
+                href={selectedPhoto?.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative block rounded-lg overflow-hidden border border-border bg-black/80"
+                title="Buka ukuran penuh"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={selectedPhoto?.url}
+                  alt={selectedPhoto?.name}
+                  className="w-full h-[320px] object-contain"
+                />
+                <span className="absolute top-2 right-2 w-7 h-7 rounded-md bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                  <Maximize2 className="w-3.5 h-3.5" />
+                </span>
+              </a>
+              <div className="text-[10px] text-muted-foreground space-y-0.5">
+                <p className="font-mono truncate text-foreground" title={selectedPhoto?.name}>
+                  {selectedPhoto?.name}
+                </p>
+                {selectedPhoto?.takenAt && <p>Diambil: {selectedPhoto.takenAt}</p>}
+              </div>
+
+              {/* Thumbnail */}
+              {serverPhotos.length > 1 && (
+                <div className="flex gap-2 overflow-x-auto pb-1">
+                  {serverPhotos.map((p, idx) => (
+                    <button
+                      key={p.name}
+                      type="button"
+                      onClick={() => setSelectedIdx(idx)}
+                      className={`shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 transition ${
+                        idx === selectedIdx ? 'border-purple-500' : 'border-transparent opacity-70 hover:opacity-100'
+                      }`}
+                      title={p.takenAt || p.name}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={p.url} alt={p.name} loading="lazy" className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+        </div>
       </div>
     </div>
   );
 }
+

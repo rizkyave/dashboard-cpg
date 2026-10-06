@@ -5,9 +5,12 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "photos:check": "node scripts/upload-ttb-photos.mjs --dry-run",
+    "photos:upload": "node scripts/upload-ttb-photos.mjs"
   },
   "dependencies": {
+    "@vercel/blob": "^2.8.1",
     "chart.js": "^4.4.4",
     "clsx": "^2.1.1",
     "lucide-react": "^0.453.0",
