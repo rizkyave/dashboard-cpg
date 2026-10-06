@@ -16,7 +16,6 @@ import {
 import { INITIAL_PROCUREMENT_DATA, INITIAL_ARMADA_DATA } from '@/data/initialData';
 import { mergeProcurementDatasets, mergeArmadaDatasets } from '@/utils/dataMerger';
 import { ResetScope } from '@/components/ResetConfirmModal';
-import { clearAllFotos } from '@/utils/fotoLapanganStorage';
 import { formatDateDdMmYyDash, extractDateInfo } from '@/utils/formatDate';
 import {
   saveStoredProcurement,
@@ -40,7 +39,7 @@ import PosisiKapalTab from '@/components/PosisiKapalTab';
 import AnalyticsTab from '@/components/AnalyticsTab';
 import InventoryTab from '@/components/InventoryTab';
 import TimemarkTab from '@/components/TimemarkTab';
-import FotoLapanganTab from '@/components/FotoLapanganTab';
+import TtbGalleryTab from '@/components/TtbGalleryTab';
 import AdminSettingsTab from '@/components/AdminSettingsTab';
 import AuditModal from '@/components/AuditModal';
 import NewRecordModal from '@/components/NewRecordModal';
@@ -473,7 +472,6 @@ export default function DashboardPage() {
         localStorage.removeItem('CPG_LAST_EFPB_FILES_SYNC_TIME');
         localStorage.removeItem('CPG_EFPB_FULL_SYNC_COUNT');
       }
-      await clearAllFotos();
       showToast('Seluruh data dashboard berhasil dikosongkan total untuk mode uji coba.', 'info');
     } else if (scope === 'procurement') {
       setProcurementData([]);
@@ -489,9 +487,6 @@ export default function DashboardPage() {
       setInventorySummary(null);
       await clearStoredData('inventory');
       showToast('Data persediaan stok Accurate berhasil dikosongkan.', 'info');
-    } else if (scope === 'photos') {
-      await clearAllFotos();
-      showToast('Seluruh arsip foto lapangan berhasil dihapus.', 'info');
     }
   };
 
@@ -736,14 +731,9 @@ export default function DashboardPage() {
             />
           )}
 
-          {/* Tab Foto Lapangan: Upload & Galeri Lapangan In-App Terintegrasi No TTB */}
-          {activeTab === 'foto-lapangan' && (
-            <FotoLapanganTab
-              procurementItems={procurementData}
-              armadaItems={armadaData}
-              onOpenAudit={handleOpenAudit}
-              showToast={showToast}
-            />
+          {/* Tab Galeri Seluruh Foto TTB (Vercel Blob / Server) */}
+          {activeTab === 'galeri-ttb' && (
+            <TtbGalleryTab showToast={showToast} />
           )}
 
 

@@ -2,7 +2,7 @@ export type EntityCode = 'ALL' | 'CPL' | 'PPI' | 'HL' | 'GAJ' | 'MIL' | 'SP' | '
 
 export type LapseFilterType = 'ALL' | 'NORMAL' | 'WARNING' | 'CRITICAL';
 
-export type TabType = 'overview' | 'procurement' | 'armada' | 'pos-kapal' | 'analytics' | 'inventory' | 'timemark' | 'foto-lapangan' | 'admin-settings';
+export type TabType = 'overview' | 'procurement' | 'armada' | 'pos-kapal' | 'analytics' | 'inventory' | 'timemark' | 'galeri-ttb' | 'admin-settings';
 
 export type StatusTone = 'emerald' | 'cyan' | 'purple' | 'amber' | 'rose';
 

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Trash2, AlertTriangle, X, Database, Boxes, Camera, RefreshCw } from 'lucide-react';
 
-export type ResetScope = 'all' | 'procurement' | 'inventory' | 'photos';
+export type ResetScope = 'all' | 'procurement' | 'inventory';
 
 interface ResetConfirmModalProps {
   isOpen: boolean;
@@ -137,33 +137,6 @@ export default function ResetConfirmModal({
               </div>
               <p className="text-[11px] text-muted-foreground mt-0.5">
                 Mengosongkan {inventoryCount.toLocaleString('id-ID')} item persediaan stok gudang. Data berkas FPB tetap aman.
-              </p>
-            </div>
-          </label>
-
-          {/* Option: Photos Only */}
-          <label
-            onClick={() => setSelectedScope('photos')}
-            className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition ${
-              selectedScope === 'photos'
-                ? 'border-purple-500 bg-purple-500/5 dark:bg-purple-500/10 text-foreground'
-                : 'border-border hover:bg-muted/50 text-muted-foreground'
-            }`}
-          >
-            <input
-              type="radio"
-              name="reset-scope"
-              checked={selectedScope === 'photos'}
-              onChange={() => setSelectedScope('photos')}
-              className="mt-0.5 text-purple-500 focus:ring-purple-500"
-            />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 font-medium text-xs text-foreground">
-                <Camera className="size-3.5 text-purple-500" />
-                <span>Hanya Dokumentasi Foto Lapangan</span>
-              </div>
-              <p className="text-[11px] text-muted-foreground mt-0.5">
-                Menghapus seluruh arsip foto serah terima barang dari memori browser.
               </p>
             </div>
           </label>

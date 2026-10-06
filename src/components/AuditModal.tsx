@@ -24,11 +24,7 @@ import {
 import { ProcurementItem, ArmadaItem, InventoryItem } from '@/types/procurement';
 import StockAuditModal from './StockAuditModal';
 import TimemarkModal from './TimemarkModal';
-import UploadFotoLapanganModal from './UploadFotoLapanganModal';
-import FotoLapanganViewerModal from './FotoLapanganViewerModal';
 import { extractFstbLast5, openTimemarkWithFstb } from '@/utils/timemark';
-import { getFotosByNoTtb, getFotosByFpbOrFstb } from '@/utils/fotoLapanganStorage';
-import { FotoLapangan } from '@/types/fotoLapangan';
 import { updatePdfItemsCacheForFpb } from '@/utils/appStorage';
 import { formatDateDdMmYy } from '@/utils/formatDate';
 import { cleanSingleDescription, deduplicateDescriptions, cleanTujuanPeruntukan } from '@/utils/descriptionCleaner';
@@ -85,9 +81,6 @@ export default function AuditModal({
   const [isLoadingPdf, setIsLoadingPdf] = useState<boolean>(false);
   const [showStockModal, setShowStockModal] = useState<boolean>(false);
   const [showTimemarkModal, setShowTimemarkModal] = useState<boolean>(false);
-  const [showUploadFotoModal, setShowUploadFotoModal] = useState<boolean>(false);
-  const [showFotoViewerModal, setShowFotoViewerModal] = useState<boolean>(false);
-  const [fotoLapanganList, setFotoLapanganList] = useState<FotoLapangan[]>([]);
   const [internalInventory, setInternalInventory] = useState<InventoryItem[]>([]);
 
   // Fallback auto-fetch inventory if not yet passed from parent
@@ -249,28 +242,7 @@ export default function AuditModal({
     procurementList.find((i) => (i.fpb === fpbNumber || (activePo && i.po === activePo)) && i.noTtb && i.noTtb.trim() !== '' && i.noTtb.trim() !== '-')?.noTtb?.trim() ||
     '';
 
-  // Load foto lapangan yang terintegrasi dengan Nomor TTB (atau FPB/FSTB)
-  const refreshFotoLapangan = async () => {
-    try {
-      let fotos: FotoLapangan[] = [];
-      if (activeTtb) {
-        fotos = await getFotosByNoTtb(activeTtb);
-      }
-      if (fotos.length === 0 && (primaryDocNum || activeFstb)) {
-        fotos = await getFotosByFpbOrFstb(primaryDocNum, activeFstb);
-      }
-      setFotoLapanganList(fotos);
-    } catch (err) {
-      console.error('Error refreshing foto lapangan:', err);
-    }
-  };
 
-  useEffect(() => {
-    refreshFotoLapangan();
-    const handleFotoUpdate = () => refreshFotoLapangan();
-    window.addEventListener('foto-lapangan-updated', handleFotoUpdate);
-    return () => window.removeEventListener('foto-lapangan-updated', handleFotoUpdate);
-  }, [activeTtb, primaryDocNum, activeFstb]);
 
   // Validasi keterisian Logistik TTB dan Tim Lapangan untuk penentuan status PENGANTARAN LOGISTIK
   const activeTglTtb =
@@ -311,65 +283,16 @@ export default function AuditModal({
   const hasTglTtbKePch = Boolean(
     itemS1?.tglTtbKePicPch && itemS1.tglTtbKePicPch !== '-' && itemS1.tglTtbKePicPch.trim() !== ''
   );
-  const hasFotoLap = fotoLapanganList.length > 0;
-
   const isTimLapFilled = Boolean(
     isPicLapFilled ||
     hasTglDiantar ||
     hasTglKeLap ||
     hasTglTimLapKePicTtb ||
-    hasTglTtbKePch ||
-    hasFotoLap
+    hasTglTtbKePch
   );
 
   // Status PENGANTARAN LOGISTIK: DONE jika logistik TTB dan tim lapangan sudah terisi, sebaliknya IN PROGRESS
   const isPengantaranLogistikDone = isLogistikTtbFilled && isTimLapFilled;
-
-  // Daftar saran TTB untuk mempermudah autocomplete saat upload
-  const ttbSuggestions = useMemo(() => {
-    const list: Array<{
-      noTtb: string;
-      fpb?: string;
-      noPo?: string;
-      noFstb?: string;
-      item?: string;
-      armada?: string;
-      picLap?: string;
-    }> = [];
-    const seen = new Set<string>();
-
-    procurementList.forEach((p) => {
-      if (p.noTtb && p.noTtb.trim() && p.noTtb.trim() !== '-' && !seen.has(p.noTtb.trim())) {
-        seen.add(p.noTtb.trim());
-        list.push({
-          noTtb: p.noTtb.trim(),
-          fpb: p.fpb,
-          noPo: p.po,
-          noFstb: p.noFstb,
-          item: p.item,
-          armada: p.deptArmada,
-          picLap: p.picLap,
-        });
-      }
-    });
-
-    armadaList.forEach((a) => {
-      if (a.noTtb && a.noTtb.trim() && a.noTtb.trim() !== '-' && !seen.has(a.noTtb.trim())) {
-        seen.add(a.noTtb.trim());
-        list.push({
-          noTtb: a.noTtb.trim(),
-          fpb: a.fpb,
-          noPo: a.noPo,
-          noFstb: a.noFstb,
-          item: a.item,
-          armada: a.armada,
-          picLap: a.picLap,
-        });
-      }
-    });
-
-    return list;
-  }, [procurementList, armadaList]);
 
   // PIC & Tanggal Verifikasi FPB:
   // Prioritas utama diambil langsung dari 'Requested By' & tanggal tanda tangan digital PDF jika tersedia
@@ -1083,50 +1006,12 @@ export default function AuditModal({
                     <span className="text-muted-foreground font-mono text-right ml-1.5">
                       {formatDateDdMmYy(itemS1?.tglTtbKePicPch)}
                     </span>
-                  </div>
-                  {/* Integrasi Foto Lapangan Langsung di Aplikasi */}
-                  <div className="pt-1.5 space-y-1">
-                    {fotoLapanganList.length > 0 ? (
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => setShowFotoViewerModal(true)}
-                          className="flex-1 py-1 px-2 rounded-md bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-[10px] font-semibold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-xs truncate"
-                          title={`Lihat ${fotoLapanganList.length} foto dokumentasi serah terima lapangan`}
-                        >
-                          <Camera className="size-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                          <span className="truncate">Foto Lapangan ({fotoLapanganList.length})</span>
-                          <Check className="size-2.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setShowUploadFotoModal(true)}
-                          className="h-6.5 px-1.5 rounded-md bg-muted hover:bg-muted/80 text-foreground border border-border text-[10px] font-medium transition shrink-0"
-                          title="Upload foto tambahan untuk TTB ini"
-                        >
-                          + Foto
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setShowUploadFotoModal(true)}
-                        className="w-full py-1 px-2 rounded-md bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-[10px] font-semibold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-xs"
-                        title={activeTtb ? `Upload foto lapangan untuk TTB: ${activeTtb}` : 'Upload foto lapangan'}
-                      >
-                        <Camera className="size-3 text-amber-600 dark:text-amber-400" />
-                        <span>Upload Foto Lapangan</span>
-                      </button>
-                    )}
-                  </div>
                 </div>
               </div>
               <div className="pt-2 border-t border-border">
                 <span className="text-[10px] font-mono text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20 block text-center truncate font-medium">
                   {itemS1?.tglBarangDiantar
                     ? 'Barang Sudah Diantar'
-                    : hasFotoLap
-                    ? 'Dokumentasi Lapangan'
                     : isTimLapFilled
                     ? 'Distribusi Lapangan'
                     : itemsS2.length > 0 && itemsS2[0].qtyFSTB > 0 && itemsS2[0].selisih === 0
@@ -1574,7 +1459,7 @@ export default function AuditModal({
         />
       )}
 
-      {/* Pop-up Box: Verifikasi Bukti Foto TimeMark */}
+      {/* Pop-up Box: Verifikasi Bukti Foto TimeMark & Foto Server TTB */}
       {showTimemarkModal && !isVisitor && (activeFstb || activeTtb) && (
         <TimemarkModal
           isOpen={showTimemarkModal}
@@ -1587,42 +1472,7 @@ export default function AuditModal({
           showToast={showToast}
         />
       )}
-
-      {/* Pop-up Box: Form Upload Foto Lapangan Terintegrasi No. TTB */}
-      {showUploadFotoModal && !isVisitor && (
-        <UploadFotoLapanganModal
-          isOpen={showUploadFotoModal}
-          onClose={() => setShowUploadFotoModal(false)}
-          defaultNoTtb={activeTtb}
-          defaultFpb={primaryDocNum}
-          defaultNoPo={activePo || undefined}
-          defaultNoFstb={activeFstb}
-          defaultItem={itemsS2[0]?.item || itemS1?.item}
-          defaultArmada={itemsS2[0]?.armada || itemS1?.deptArmada}
-          defaultPicLap={itemS1?.picLap || 'AGUS'}
-          availableOptions={ttbSuggestions}
-          onSuccess={() => {
-            refreshFotoLapangan();
-            setShowFotoViewerModal(true);
-          }}
-          showToast={showToast}
-        />
-      )}
-
-      {/* Pop-up Box: Viewer Galeri Foto Lapangan Terintegrasi Full App */}
-      {showFotoViewerModal && (
-        <FotoLapanganViewerModal
-          isOpen={showFotoViewerModal}
-          onClose={() => setShowFotoViewerModal(false)}
-          noTtb={activeTtb}
-          noFstb={activeFstb}
-          fpb={primaryDocNum}
-          item={itemsS2[0]?.item || itemS1?.item}
-          armada={itemsS2[0]?.armada || itemS1?.deptArmada}
-          onOpenUpload={(suggestedTtb) => setShowUploadFotoModal(true)}
-          showToast={showToast}
-        />
-      )}
+      </div>
     </div>
   );
 }

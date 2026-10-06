@@ -110,15 +110,15 @@ export default function Sidebar({
           badge: 'FSTB',
         },
         {
-          id: 'foto-lapangan' as TabType,
-          label: 'Foto Lapangan',
-          icon: Camera,
-          badge: 'In-App',
+          id: 'galeri-ttb' as TabType,
+          label: 'Galeri Foto TTB',
+          icon: Images,
+          badge: 'Blob',
         },
         {
           id: 'timemark' as TabType,
           label: 'Foto TimeMark',
-          icon: Images,
+          icon: Camera,
           badge: '5 Digit',
         },
         {
