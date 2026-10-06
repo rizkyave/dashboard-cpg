@@ -1617,8 +1617,8 @@ export default function ArmadaTab({
                           </div>
                         )}
                         <div className="flex items-center gap-2 mt-0.5 text-[10px] text-muted-foreground font-mono flex-wrap">
-                          {row.kodeBarang && <span>Kode: {row.kodeBarang}</span>}
-                          {row.satuan && <span>&bull; {row.satuan}</span>}
+                          {row.kodeBarang && row.kodeBarang !== '-' && <span>Kode: {row.kodeBarang}</span>}
+                          {row.satuan && row.satuan.toLowerCase() !== 'paket' && <span>{row.kodeBarang && row.kodeBarang !== '-' ? `• ${row.satuan}` : row.satuan}</span>}
                           {row.noPo && <span>&bull; PO: {row.noPo}</span>}
                           {row.picPch && row.picPch !== '-' && (
                             <span className="text-foreground font-medium">&bull; PIC: {row.picPch}</span>

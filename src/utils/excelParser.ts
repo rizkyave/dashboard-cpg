@@ -934,7 +934,7 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
           noTtb: proc.ttb,
           tglTtb: proc.tglTtb,
           kodeBarang: '-',
-          satuan: 'Paket',
+          satuan: '',
           keterangan: proc.ket1 || '-',
           kategori: 'Pengadaan',
           entity: proc.pt || 'CPL',

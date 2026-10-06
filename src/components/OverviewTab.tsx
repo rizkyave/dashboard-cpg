@@ -516,7 +516,7 @@ export default function OverviewTab({
           {/* Row 1: Search Input & Mobile Filter Toggle */}
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <div className={`relative flex-1 min-w-0 ${isVisitor ? 'max-w-xl' : 'max-w-md'}`}>
-              <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground z-10" />
               <input
                 type="text"
                 value={searchTerm}
@@ -526,7 +526,7 @@ export default function OverviewTab({
                     ? 'Ketik No. FPB (misal: GAJ/FPB/...), Nama Kapal, atau No. PO...'
                     : 'Cari berkas, FPB, PO, barang, PIC...'
                 }
-                className={`w-full rounded-lg border border-border bg-background pl-9.5 pr-8 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-cyan-500 transition ${
+                className={`w-full rounded-lg border border-border bg-background pl-10 pr-8 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-cyan-500 transition ${
                   isVisitor ? 'h-9 text-xs sm:text-sm font-medium shadow-2xs' : 'h-8'
                 }`}
               />
@@ -768,7 +768,7 @@ export default function OverviewTab({
                         </p>
                         {row.qtyFPB !== undefined && row.qtyFPB > 0 && (
                           <span className="inline-block px-1.5 py-0.2 rounded bg-muted text-[10px] font-mono text-muted-foreground border border-border/80">
-                            Qty: {row.qtyFPB} {row.satuan || ''}
+                            Qty: {row.qtyFPB} {row.satuan && row.satuan.toLowerCase() !== 'paket' ? row.satuan : ''}
                           </span>
                         )}
                         {row.deptArmada && (
@@ -1009,7 +1009,7 @@ export default function OverviewTab({
                           <span>{row.item}</span>
                           {row.qtyFPB !== undefined && row.qtyFPB > 0 && (
                             <span className="px-1.5 py-0.2 rounded-md bg-muted border border-border text-[10px] font-mono text-muted-foreground">
-                              {row.qtyFPB} {row.satuan || ''}
+                              {row.qtyFPB} {row.satuan && row.satuan.toLowerCase() !== 'paket' ? row.satuan : ''}
                             </span>
                           )}
                         </div>
