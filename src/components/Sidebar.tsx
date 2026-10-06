@@ -89,6 +89,18 @@ export default function Sidebar({
           icon: LayoutDashboard,
           badge: 'Visitor',
         },
+        {
+          id: 'galeri-ttb' as TabType,
+          label: 'Galeri Foto TTB',
+          icon: Images,
+          badge: 'Blob',
+        },
+        {
+          id: 'timemark' as TabType,
+          label: 'Foto TimeMark',
+          icon: Camera,
+          badge: '5 Digit',
+        },
       ]
     : [
         {

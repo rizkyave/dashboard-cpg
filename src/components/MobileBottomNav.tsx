@@ -9,6 +9,8 @@ import {
   BarChart3,
   Boxes,
   Menu,
+  Images,
+  Camera,
 } from 'lucide-react';
 
 import { TabType } from '@/types/procurement';
@@ -43,6 +45,16 @@ export default function MobileBottomNav({
           id: 'overview',
           label: 'Overview',
           icon: LayoutDashboard,
+        },
+        {
+          id: 'galeri-ttb',
+          label: 'Galeri TTB',
+          icon: Images,
+        },
+        {
+          id: 'timemark',
+          label: 'TimeMark',
+          icon: Camera,
         },
       ]
     : [
@@ -89,7 +101,11 @@ export default function MobileBottomNav({
         paddingBottom: 'max(0.35rem, env(safe-area-inset-bottom))',
       }}
     >
-      <div className="grid grid-cols-6 items-stretch h-14 px-1 max-w-lg mx-auto">
+      <div
+        className={`grid items-stretch h-14 px-1 max-w-lg mx-auto ${
+          tabs.length === 3 ? 'grid-cols-3' : 'grid-cols-6'
+        }`}
+      >
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;

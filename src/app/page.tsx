@@ -538,9 +538,9 @@ export default function DashboardPage() {
     setSelectedLapse('CRITICAL');
   };
 
-  // Efek guard hak akses Admin Settings & Batasan Visitor (Hanya Overview)
+  // Efek guard hak akses Admin Settings & Batasan Visitor (Overview & Foto Dokumen)
   useEffect(() => {
-    if (isVisitor && activeTab !== 'overview') {
+    if (isVisitor && activeTab !== 'overview' && activeTab !== 'galeri-ttb' && activeTab !== 'timemark') {
       setActiveTab('overview');
     } else if (!isAdmin && activeTab === 'admin-settings') {
       setActiveTab('overview');
@@ -627,6 +627,10 @@ export default function DashboardPage() {
                   ? 'Monitoring Berkas Pengadaan'
                   : activeTab === 'armada'
                   ? 'Monitoring Layanan Armada'
+                  : activeTab === 'galeri-ttb'
+                  ? 'Galeri Foto TTB'
+                  : activeTab === 'timemark'
+                  ? 'Dokumentasi Foto TimeMark'
                   : activeTab === 'pos-kapal'
                   ? 'Posisi Kapal'
                   : activeTab === 'inventory'
@@ -636,7 +640,7 @@ export default function DashboardPage() {
                   : 'Analisis SLA & Lead Time'}
               </h1>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                {isVisitor
+                {isVisitor && activeTab === 'overview'
                   ? 'Mode Peninjauan Tamu: Silakan masukkan No. FPB, Nama Kapal, atau No. PO pada kolom pencarian di bawah untuk menampilkan data.'
                   : activeTab === 'overview'
                   ? 'Pemantauan terpadu alur pengadaan barang, perputaran berkas fisik divisi, distribusi logistik armada kapal, dan status stok persediaan.'
@@ -644,6 +648,10 @@ export default function DashboardPage() {
                   ? 'Daftar transaksi pengadaan PO, verifikasi berkas fisik antar divisi, dan status penyelesaian berkas.'
                   : activeTab === 'armada'
                   ? 'Pencocokan kuantitas FPB vs FSTB, unit kapal armada, dan realisasi distribusi logistik lapangan.'
+                  : activeTab === 'galeri-ttb'
+                  ? 'Galeri foto penerimaan dan serah terima dokumen fisik TTB dari server terpusat & Vercel Blob.'
+                  : activeTab === 'timemark'
+                  ? 'Verifikasi dokumentasi bukti foto fisik lapangan TimeMark dengan pencarian 5 digit nomor FSTB.'
                   : activeTab === 'pos-kapal'
                   ? 'Laporan posisi, rute, aktivitas, status armada dan pekerjaan pemeliharaan kapal.'
                   : activeTab === 'inventory'

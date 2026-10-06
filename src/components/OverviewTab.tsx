@@ -516,7 +516,7 @@ export default function OverviewTab({
           {/* Row 1: Search Input & Mobile Filter Toggle */}
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <div className={`relative flex-1 min-w-0 ${isVisitor ? 'max-w-xl' : 'max-w-md'}`}>
-              <Search className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-muted-foreground" />
+              <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
               <input
                 type="text"
                 value={searchTerm}
@@ -526,7 +526,7 @@ export default function OverviewTab({
                     ? 'Ketik No. FPB (misal: GAJ/FPB/...), Nama Kapal, atau No. PO...'
                     : 'Cari berkas, FPB, PO, barang, PIC...'
                 }
-                className={`w-full rounded-lg border border-border bg-background pl-8.5 pr-7 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-cyan-500 transition ${
+                className={`w-full rounded-lg border border-border bg-background pl-9.5 pr-8 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-cyan-500 transition ${
                   isVisitor ? 'h-9 text-xs sm:text-sm font-medium shadow-2xs' : 'h-8'
                 }`}
               />

@@ -492,21 +492,21 @@ export default function AuditModal({
             </div>
           </div>
           <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
-            {/* Action buttons (Khusus Admin & Staff User, Visitor tidak perlu) */}
+            {/* Tombol: Cek Foto TimeMark (FSTB / TTB) - Dapat diakses oleh semua pengguna termasuk Visitor */}
+            {(activeFstb || activeTtb) && (
+              <button
+                onClick={() => setShowTimemarkModal(true)}
+                className="h-8 px-2.5 sm:px-3 rounded-lg border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-xs font-semibold shadow-xs flex items-center gap-1.5 transition active:scale-95 touch-manipulation cursor-pointer"
+                title={`Verifikasi foto serah terima fisik TimeMark / Server TTB (${fstbLast5 || activeTtb || '-'})`}
+              >
+                <Camera className="size-3.5 text-amber-600 dark:text-amber-400" />
+                <span>Foto {fstbLast5 ? `TimeMark (${fstbLast5})` : 'TTB'}</span>
+              </button>
+            )}
+
+            {/* Action buttons khusus Admin & Staff User (Visitor tidak perlu) */}
             {!isVisitor && (
               <>
-                {/* Tombol: Cek Foto TimeMark (FSTB) */}
-                {activeFstb && (
-                  <button
-                    onClick={() => setShowTimemarkModal(true)}
-                    className="h-8 px-2.5 sm:px-3 rounded-lg border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-xs font-semibold shadow-xs flex items-center gap-1.5 transition active:scale-95 touch-manipulation cursor-pointer"
-                    title={`Verifikasi foto serah terima fisik TimeMark (${fstbLast5})`}
-                  >
-                    <Camera className="size-3.5 text-amber-600 dark:text-amber-400" />
-                    <span>Foto TimeMark ({fstbLast5})</span>
-                  </button>
-                )}
-
                 {/* Tombol: Cek Stok Gudang & Rekomendasi */}
                 <button
                   onClick={() => setShowStockModal(true)}
@@ -824,19 +824,45 @@ export default function AuditModal({
                 </div>
               </div>
               <div className="pt-2 border-t border-border flex flex-col gap-1.5">
-                <span className="text-[10px] font-mono text-blue-700 dark:text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/20 block text-center truncate font-medium">
-                  {pdfData?.approvedBy
-                    ? `Approved (${pdfData.approvedBy})`
-                    : itemS1?.tglApproveWeb
-                    ? 'Approved'
-                    : itemS1?.statusCheckFpb === 'CLOSE' || itemS1?.doneCheckFpb === 'DONE'
-                    ? 'FPB Terverifikasi (CLOSE)'
-                    : itemS1?.tglCheckFpb
-                    ? 'Sedang Diproses'
-                    : itemS1?.picCheckFpb && itemS1.picCheckFpb !== '-'
-                    ? 'Tercatat Verifikator'
-                    : 'Menunggu FPB'}
-                </span>
+                {fpbPdfUrl ? (
+                  <a
+                    href={fpbPdfUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[10px] font-mono text-blue-700 dark:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 active:scale-95 px-2 py-1 rounded-md border border-blue-500/30 flex items-center justify-center gap-1.5 text-center truncate font-medium transition cursor-pointer shadow-2xs group"
+                    title={`Klik untuk Buka Dokumen PDF e-FPB (${primaryDocNum || 'FPB'})`}
+                  >
+                    <FileText className="size-3 text-blue-600 dark:text-blue-400 shrink-0" />
+                    <span className="truncate">
+                      {pdfData?.approvedBy
+                        ? `Approved (${pdfData.approvedBy})`
+                        : itemS1?.tglApproveWeb
+                        ? 'Approved'
+                        : itemS1?.statusCheckFpb === 'CLOSE' || itemS1?.doneCheckFpb === 'DONE'
+                        ? 'FPB Terverifikasi (CLOSE)'
+                        : itemS1?.tglCheckFpb
+                        ? 'Sedang Diproses'
+                        : itemS1?.picCheckFpb && itemS1.picCheckFpb !== '-'
+                        ? 'Tercatat Verifikator'
+                        : 'Buka PDF e-FPB'}
+                    </span>
+                    <ExternalLink className="size-2.5 opacity-60 group-hover:opacity-100 shrink-0" />
+                  </a>
+                ) : (
+                  <span className="text-[10px] font-mono text-blue-700 dark:text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/20 block text-center truncate font-medium">
+                    {pdfData?.approvedBy
+                      ? `Approved (${pdfData.approvedBy})`
+                      : itemS1?.tglApproveWeb
+                      ? 'Approved'
+                      : itemS1?.statusCheckFpb === 'CLOSE' || itemS1?.doneCheckFpb === 'DONE'
+                      ? 'FPB Terverifikasi (CLOSE)'
+                      : itemS1?.tglCheckFpb
+                      ? 'Sedang Diproses'
+                      : itemS1?.picCheckFpb && itemS1.picCheckFpb !== '-'
+                      ? 'Tercatat Verifikator'
+                      : 'Menunggu FPB'}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -1424,19 +1450,6 @@ export default function AuditModal({
                 <span>{isLoadingPdf ? 'Menarik...' : 'Tarik dari PDF'}</span>
               </button>
             )}
-            {fpbPdfUrl && (
-              <a
-                href={fpbPdfUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="h-8 px-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium flex items-center gap-1.5 transition shadow-xs"
-                title={`Buka Dokumen PDF e-FPB Terverifikasi (${primaryDocNum})`}
-              >
-                <FileText className="size-3.5" />
-                <span>Buka PDF e-FPB ({primaryDocNum})</span>
-                <ExternalLink className="size-3 opacity-80" />
-              </a>
-            )}
           </div>
           <button
             onClick={onClose}
@@ -1460,8 +1473,8 @@ export default function AuditModal({
         />
       )}
 
-      {/* Pop-up Box: Verifikasi Bukti Foto TimeMark & Foto Server TTB */}
-      {showTimemarkModal && !isVisitor && (activeFstb || activeTtb) && (
+      {/* Pop-up Box: Verifikasi Bukti Foto TimeMark & Foto Server TTB (Dapat diakses juga oleh Visitor) */}
+      {showTimemarkModal && (activeFstb || activeTtb) && (
         <TimemarkModal
           isOpen={showTimemarkModal}
           onClose={() => setShowTimemarkModal(false)}
