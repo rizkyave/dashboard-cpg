@@ -322,6 +322,9 @@ export default function ArmadaTab({
         const matchSatuan = item.satuan?.toLowerCase().includes(q);
         const matchStatus = item.status?.toLowerCase().includes(q);
         const matchPriority = item.priority?.toLowerCase().includes(q);
+        const matchPicPch = item.picPch?.toLowerCase().includes(q);
+        const matchPicTtb = item.picTtb?.toLowerCase().includes(q);
+        const matchPicLap = item.picLap?.toLowerCase().includes(q);
 
         if (
           !matchFpb &&
@@ -334,7 +337,10 @@ export default function ArmadaTab({
           !matchTtb &&
           !matchSatuan &&
           !matchStatus &&
-          !matchPriority
+          !matchPriority &&
+          !matchPicPch &&
+          !matchPicTtb &&
+          !matchPicLap
         ) {
           return false;
         }
@@ -378,9 +384,11 @@ export default function ArmadaTab({
         const qk = searchKode.toLowerCase().trim();
         const matchKode = item.kodeBarang?.toLowerCase().includes(qk);
         const matchPicPch = item.picPch?.toLowerCase().includes(qk);
+        const matchPicTtb = item.picTtb?.toLowerCase().includes(qk);
+        const matchPicLap = item.picLap?.toLowerCase().includes(qk);
         const matchPicAktif = item.picAktif?.toLowerCase().includes(qk);
         const matchSatuan = item.satuan?.toLowerCase().includes(qk);
-        if (!matchKode && !matchPicPch && !matchPicAktif && !matchSatuan) {
+        if (!matchKode && !matchPicPch && !matchPicTtb && !matchPicLap && !matchPicAktif && !matchSatuan) {
           return false;
         }
       }
@@ -1368,6 +1376,11 @@ export default function ArmadaTab({
 
                       {/* Body */}
                       <div className="space-y-1.5 text-xs">
+                        {row.noPo && (
+                          <div className="text-[11px] text-muted-foreground font-mono">
+                            <span>PO: <strong className="text-foreground">{row.noPo}</strong></span>
+                          </div>
+                        )}
                         <p className="font-medium text-foreground text-xs line-clamp-2">
                           {row.item}
                         </p>
@@ -1376,6 +1389,22 @@ export default function ArmadaTab({
                             Ket: {row.keterangan}
                           </p>
                         )}
+                        <div className="text-[10px] text-muted-foreground font-mono flex items-center gap-2 pt-0.5 flex-wrap">
+                          <span>
+                            PCH:{' '}
+                            <strong className="text-foreground">{row.picPch || '-'}</strong>
+                          </span>
+                          <span>&bull;</span>
+                          <span>
+                            TTB:{' '}
+                            <strong className="text-foreground">{row.picTtb || '-'}</strong>
+                          </span>
+                          <span>&bull;</span>
+                          <span>
+                            LAP:{' '}
+                            <strong className="text-foreground">{row.picLap || '-'}</strong>
+                          </span>
+                        </div>
 
                         {/* Qty Comparison Matrix */}
                         <div className="grid grid-cols-3 gap-1.5 p-2 rounded-lg bg-muted/40 border border-border/70 text-center font-mono text-[11px]">
@@ -1619,10 +1648,23 @@ export default function ArmadaTab({
                         <div className="flex items-center gap-2 mt-0.5 text-[10px] text-muted-foreground font-mono flex-wrap">
                           {row.kodeBarang && row.kodeBarang !== '-' && <span>Kode: {row.kodeBarang}</span>}
                           {row.satuan && row.satuan.toLowerCase() !== 'paket' && <span>{row.kodeBarang && row.kodeBarang !== '-' ? `• ${row.satuan}` : row.satuan}</span>}
-                          {row.noPo && <span>&bull; PO: {row.noPo}</span>}
-                          {row.picPch && row.picPch !== '-' && (
-                            <span className="text-foreground font-medium">&bull; PIC: {row.picPch}</span>
-                          )}
+                          {row.noPo && <span>{(row.kodeBarang && row.kodeBarang !== '-') || (row.satuan && row.satuan.toLowerCase() !== 'paket') ? '• ' : ''}PO: {row.noPo}</span>}
+                        </div>
+                        <div className="text-[10px] text-muted-foreground font-mono flex items-center gap-2 pt-0.5 flex-wrap">
+                          <span>
+                            PCH:{' '}
+                            <strong className="text-foreground">{row.picPch || '-'}</strong>
+                          </span>
+                          <span>&bull;</span>
+                          <span>
+                            TTB:{' '}
+                            <strong className="text-foreground">{row.picTtb || '-'}</strong>
+                          </span>
+                          <span>&bull;</span>
+                          <span>
+                            LAP:{' '}
+                            <strong className="text-foreground">{row.picLap || '-'}</strong>
+                          </span>
                         </div>
                       </td>
 
