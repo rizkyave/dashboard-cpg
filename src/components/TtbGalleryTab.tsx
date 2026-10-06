@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Images,
   Search,
@@ -18,9 +18,12 @@ import {
   ChevronsRight,
   ImageOff,
   Loader2,
-  SlidersHorizontal,
+  Plus,
+  Upload,
+  X,
+  FileImage,
 } from 'lucide-react';
-import { extractFstbLast5 } from '@/utils/timemark';
+import { useAuth } from '@/context/AuthContext';
 
 interface PhotoItem {
   name: string;
@@ -37,6 +40,8 @@ interface TtbGalleryTabProps {
 }
 
 export default function TtbGalleryTab({ showToast }: TtbGalleryTabProps) {
+  const { canEdit, user } = useAuth();
+
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -47,6 +52,16 @@ export default function TtbGalleryTab({ showToast }: TtbGalleryTabProps) {
   const [source, setSource] = useState<string>('');
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [previewPhoto, setPreviewPhoto] = useState<PhotoItem | null>(null);
+
+  // Upload Modal State (Khusus Admin & Staff/User)
+  const [isUploadOpen, setIsUploadOpen] = useState<boolean>(false);
+  const [uploadNoTtb, setUploadNoTtb] = useState<string>('');
+  const [uploadArmada, setUploadArmada] = useState<string>('');
+  const [uploadCompany, setUploadCompany] = useState<string>('CPL');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [filePreviewUrl, setFilePreviewUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchPhotos = async (targetPage = 1, query = '') => {
     setIsLoading(true);
@@ -94,6 +109,73 @@ export default function TtbGalleryTab({ showToast }: TtbGalleryTabProps) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        showToast?.('Mohon pilih berkas gambar (JPG, PNG, WEBP).', 'warning');
+        return;
+      }
+      setSelectedFile(file);
+      setFilePreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
+  const handleResetUploadForm = () => {
+    setSelectedFile(null);
+    setFilePreviewUrl(null);
+    setUploadNoTtb('');
+    setUploadArmada('');
+    setUploadCompany('CPL');
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    setIsUploadOpen(false);
+  };
+
+  const handleSubmitUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedFile) {
+      showToast?.('Silakan pilih foto terlebih dahulu.', 'warning');
+      return;
+    }
+    const cleanNum = uploadNoTtb.trim().replace(/\D/g, '');
+    if (!cleanNum) {
+      showToast?.('Nomor urut TTB wajib diisi (contoh: 04975).', 'warning');
+      return;
+    }
+
+    const formattedTtb = `${uploadCompany}-TTB ${cleanNum.padStart(5, '0')}`;
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('noTtb', formattedTtb);
+      if (uploadArmada.trim()) {
+        formData.append('armada', uploadArmada.trim());
+      }
+
+      const res = await fetch('/api/ttb-photos', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await res.json();
+      if (!res.ok || result.error) {
+        throw new Error(result.error || 'Terjadi kesalahan saat upload.');
+      }
+
+      showToast?.(result.message || 'Foto TTB berhasil diupload!', 'success');
+      handleResetUploadForm();
+      // Segarkan galeri foto
+      fetchPhotos(1, '');
+      setSearchTerm('');
+    } catch (err) {
+      showToast?.((err as Error).message, 'error');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   // Filter prefix jika ada (CPL, GAJ, MO, HL, dll.)
   const displayedPhotos = useMemo(() => {
     if (selectedPrefix === 'ALL') return photos;
@@ -116,24 +198,38 @@ export default function TtbGalleryTab({ showToast }: TtbGalleryTabProps) {
                   {totalPhotos.toLocaleString('id-ID')} Foto
                 </span>
                 <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border uppercase">
-                  {source === 'blob' ? 'Vercel Blob CDN' : 'Server Lokal'}
+                  {source === 'blob' ? 'Vercel Blob CDN' : 'Server'}
                 </span>
               </div>
               <p className="text-xs text-muted-foreground">
-                Pencarian dan eksplorasi arsip foto bukti fisik penyerahan barang berdasarkan Nomor TTB &amp; Nama Armada
+                Arsip foto bukti fisik serah terima barang terintegrasi Nomor TTB &amp; Nama Armada
               </p>
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => fetchPhotos(page, searchTerm)}
-            disabled={isLoading}
-            className="h-8.5 px-3 rounded-lg border border-border bg-background hover:bg-muted text-xs font-medium text-foreground inline-flex items-center gap-1.5 transition active:scale-95 self-start sm:self-auto shrink-0 cursor-pointer"
-          >
-            <RefreshCw className={`size-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-            <span>Segarkan</span>
-          </button>
+          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+            {/* Tombol Tambah Foto (Admin & Staff) */}
+            {canEdit && (
+              <button
+                type="button"
+                onClick={() => setIsUploadOpen(true)}
+                className="h-8.5 px-3.5 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs transition active:scale-95 cursor-pointer"
+              >
+                <Plus className="size-3.5" />
+                <span>Upload Foto TTB</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => fetchPhotos(page, searchTerm)}
+              disabled={isLoading}
+              className="h-8.5 px-3 rounded-lg border border-border bg-background hover:bg-muted text-xs font-medium text-foreground inline-flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
+            >
+              <RefreshCw className={`size-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+              <span>Segarkan</span>
+            </button>
+          </div>
         </div>
 
         {/* Filter & Search Bar */}
@@ -310,6 +406,178 @@ export default function TtbGalleryTab({ showToast }: TtbGalleryTabProps) {
         </div>
       )}
 
+      {/* Upload Modal (Khusus Admin & Staff) */}
+      {isUploadOpen && (
+        <div
+          onClick={handleResetUploadForm}
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer animate-in fade-in duration-150"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-card border border-border rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl space-y-4 cursor-default text-card-foreground animate-in zoom-in-95 duration-150"
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-border">
+              <div className="flex items-center gap-2.5">
+                <div className="size-9 rounded-xl bg-primary/15 border border-primary/30 flex items-center justify-center text-primary">
+                  <Upload className="size-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-foreground">Upload Foto ke Galeri TTB</h3>
+                  <p className="text-[11px] text-muted-foreground">
+                    Diinput oleh: <strong className="text-foreground">{user?.name || 'Staff'}</strong>
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleResetUploadForm}
+                className="size-8 rounded-lg border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            {/* Form Upload */}
+            <form onSubmit={handleSubmitUpload} className="space-y-3.5">
+              {/* Form Input No TTB */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground flex items-center justify-between">
+                  <span>Nomor TTB (Wajib):</span>
+                  <span className="text-[10px] text-muted-foreground">Format 5 angka urut</span>
+                </label>
+                <div className="grid grid-cols-12 gap-2">
+                  <select
+                    value={uploadCompany}
+                    onChange={(e) => setUploadCompany(e.target.value)}
+                    className="col-span-4 h-9 px-2 rounded-lg border border-border bg-background text-xs font-mono font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  >
+                    <option value="CPL">CPL</option>
+                    <option value="GAJ">GAJ</option>
+                    <option value="MO">MO</option>
+                    <option value="HL">HL</option>
+                    <option value="PPI">PPI</option>
+                  </select>
+                  <div className="col-span-8 relative">
+                    <input
+                      type="text"
+                      required
+                      value={uploadNoTtb}
+                      onChange={(e) => setUploadNoTtb(e.target.value)}
+                      placeholder="Contoh: 04975"
+                      maxLength={6}
+                      className="w-full h-9 px-3 rounded-lg border border-border bg-background text-xs font-mono font-bold text-purple-600 dark:text-purple-400 focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                </div>
+                <p className="text-[10px] text-muted-foreground">
+                  Label otomatis:{' '}
+                  <span className="font-mono font-semibold text-foreground">
+                    {uploadCompany}-TTB {uploadNoTtb ? uploadNoTtb.padStart(5, '0') : '00000'}
+                  </span>
+                </p>
+              </div>
+
+              {/* Form Input Nama Armada / Kapal */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground block">
+                  Nama Armada / Kapal / Lokasi (Opsional):
+                </label>
+                <input
+                  type="text"
+                  value={uploadArmada}
+                  onChange={(e) => setUploadArmada(e.target.value)}
+                  placeholder="Contoh: TB CINDARA 2107 / WORKSHOP 01"
+                  className="w-full h-9 px-3 rounded-lg border border-border bg-background text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+
+              {/* File Drop / Selector */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground block">
+                  Pilih File Foto:
+                </label>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleFileChange}
+                  className="hidden"
+                  id="ttb-file-input"
+                />
+
+                {!selectedFile ? (
+                  <label
+                    htmlFor="ttb-file-input"
+                    className="border-2 border-dashed border-border hover:border-primary/50 rounded-xl p-5 flex flex-col items-center justify-center gap-2 cursor-pointer bg-muted/20 hover:bg-muted/40 transition"
+                  >
+                    <FileImage className="size-8 text-muted-foreground" />
+                    <span className="text-xs font-medium text-foreground">
+                      Klik untuk memilih foto dari perangkat
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">
+                      Format: JPG, JPEG, PNG, WEBP
+                    </span>
+                  </label>
+                ) : (
+                  <div className="border border-border rounded-xl p-3 bg-muted/30 flex items-center gap-3">
+                    {filePreviewUrl && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={filePreviewUrl}
+                        alt="Preview"
+                        className="size-16 rounded-lg object-cover border border-border"
+                      />
+                    )}
+                    <div className="flex-1 min-w-0 text-xs">
+                      <p className="font-semibold text-foreground truncate">{selectedFile.name}</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {(selectedFile.size / 1024).toFixed(1)} KB
+                      </p>
+                    </div>
+                    <label
+                      htmlFor="ttb-file-input"
+                      className="px-2.5 py-1 text-[11px] rounded-lg border border-border bg-background hover:bg-muted text-foreground cursor-pointer transition"
+                    >
+                      Ganti
+                    </label>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-2 flex items-center justify-end gap-2 border-t border-border">
+                <button
+                  type="button"
+                  onClick={handleResetUploadForm}
+                  disabled={isUploading}
+                  className="h-9 px-3.5 rounded-lg border border-border bg-background hover:bg-muted text-xs font-medium text-foreground transition"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUploading || !selectedFile || !uploadNoTtb.trim()}
+                  className="h-9 px-4 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="size-3.5 animate-spin" />
+                      <span>Mengupload...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="size-3.5" />
+                      <span>Upload Sekarang</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Lightbox Modal Fullscreen Preview */}
       {previewPhoto && (
         <div
@@ -365,4 +633,3 @@ export default function TtbGalleryTab({ showToast }: TtbGalleryTabProps) {
     </div>
   );
 }
-
