@@ -1006,6 +1006,7 @@ export default function AuditModal({
                     <span className="text-muted-foreground font-mono text-right ml-1.5">
                       {formatDateDdMmYy(itemS1?.tglTtbKePicPch)}
                     </span>
+                  </div>
                 </div>
               </div>
               <div className="pt-2 border-t border-border">
@@ -1472,7 +1473,6 @@ export default function AuditModal({
           showToast={showToast}
         />
       )}
-      </div>
     </div>
   );
 }
