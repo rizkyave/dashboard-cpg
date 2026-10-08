@@ -135,6 +135,8 @@ export interface ProcurementItem {
   tglApproveWeb?: string;
   noteCheckFpb?: string;
   doneCheckFpb?: string;
+  sourceCheckFpb?: string;
+  verifiedByFpb?: string;
 }
 
 export interface ArmadaItem {
@@ -183,6 +185,8 @@ export interface ArmadaItem {
   tglApproveWeb?: string;
   noteCheckFpb?: string;
   doneCheckFpb?: string;
+  sourceCheckFpb?: string;
+  verifiedByFpb?: string;
 }
 
 /** Cache of PDF item names keyed by FPB number for advanced search */

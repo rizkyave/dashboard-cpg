@@ -1492,51 +1492,6 @@ export default function ArmadaTab({
                   </span>
                 </th>
                 <th
-                  onClick={() => handleSort('priority')}
-                  className="p-3.5 text-center cursor-pointer hover:text-foreground transition group whitespace-nowrap"
-                >
-                  <span className="flex items-center justify-center">
-                    PRIORITY
-                    {renderSortIndicator('priority')}
-                  </span>
-                </th>
-                <th
-                  onClick={() => handleSort('qtyFPB')}
-                  className="p-3.5 text-center cursor-pointer hover:text-foreground transition group whitespace-nowrap"
-                >
-                  <span className="flex items-center justify-center">
-                    QTY FPB
-                    {renderSortIndicator('qtyFPB')}
-                  </span>
-                </th>
-                <th
-                  onClick={() => handleSort('qtyPO')}
-                  className="p-3.5 text-center cursor-pointer hover:text-foreground transition group whitespace-nowrap"
-                >
-                  <span className="flex items-center justify-center">
-                    QTY PO
-                    {renderSortIndicator('qtyPO')}
-                  </span>
-                </th>
-                <th
-                  onClick={() => handleSort('qtyFSTB')}
-                  className="p-3.5 text-center cursor-pointer hover:text-foreground transition group whitespace-nowrap"
-                >
-                  <span className="flex items-center justify-center">
-                    QTY FSTB
-                    {renderSortIndicator('qtyFSTB')}
-                  </span>
-                </th>
-                <th
-                  onClick={() => handleSort('qtyTTB')}
-                  className="p-3.5 text-center cursor-pointer hover:text-foreground transition group whitespace-nowrap"
-                >
-                  <span className="flex items-center justify-center">
-                    QTY TTB
-                    {renderSortIndicator('qtyTTB')}
-                  </span>
-                </th>
-                <th
                   onClick={() => handleSort('selisih')}
                   className="p-3.5 text-center cursor-pointer hover:text-foreground transition group whitespace-nowrap"
                 >
@@ -1560,7 +1515,7 @@ export default function ArmadaTab({
             <tbody className="divide-y divide-border/60">
               {paginatedItems.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="p-10 text-center text-muted-foreground">
+                  <td colSpan={6} className="p-10 text-center text-muted-foreground">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <Anchor className="w-8 h-8 opacity-30 text-muted-foreground" />
                       <p className="text-sm font-medium text-foreground">
@@ -1668,31 +1623,6 @@ export default function ArmadaTab({
                         </div>
                       </td>
 
-
-                      {/* Priority */}
-                      <td className="p-3.5 text-center whitespace-nowrap">
-                        {renderPriorityBadge(row.priority)}
-                      </td>
-
-                      {/* Qty FPB */}
-                      <td className="p-3.5 text-center text-foreground font-mono font-medium">
-                        {row.qtyFPB.toLocaleString()}
-                      </td>
-
-                      {/* Qty PO */}
-                      <td className="p-3.5 text-center text-foreground font-mono font-medium">
-                        {(row.qtyPO !== undefined ? row.qtyPO : (row.noPo && row.noPo !== '-' ? row.qtyFPB : 0)).toLocaleString()}
-                      </td>
-
-                      {/* Qty FSTB */}
-                      <td className="p-3.5 text-center text-muted-foreground font-mono">
-                        {row.qtyFSTB.toLocaleString()}
-                      </td>
-
-                      {/* Qty TTB */}
-                      <td className="p-3.5 text-center text-muted-foreground font-mono">
-                        {(row.qtyTTB !== undefined ? row.qtyTTB : (row.noTtb ? row.qtyFSTB : 0)).toLocaleString()}
-                      </td>
 
                       {/* Selisih Backlog */}
                       <td

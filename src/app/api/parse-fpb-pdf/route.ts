@@ -215,6 +215,7 @@ function extractPdfData(
 
   const allBlocks: TextBlock[] = [];
   const signatureBlocks: TextBlock[][] = [];
+  const streamBlocksList: TextBlock[][] = [];
 
   for (const [, body] of Object.entries(rawObjects)) {
     if (body.includes('stream')) {
@@ -337,6 +338,7 @@ function extractPdfData(
       }
 
       allBlocks.push(...streamBlocks);
+      streamBlocksList.push(streamBlocks);
       const hasSignatureMarker = streamBlocks.some(
         (sb) =>
           sb.text.includes('Was Approved') ||
@@ -438,68 +440,120 @@ function extractPdfData(
     }
   }
 
-  // Table items: group cells into rows by Y coordinate
-  const tableCells = allBlocks.filter(
-    (b) => b.y < 260 && b.y > 50 && b.x >= 30 && b.x <= 560
-  );
-  const rowsMap = new Map<number, TextBlock[]>();
-  for (const cell of tableCells) {
-    let matchedY: number | null = null;
-    for (const y of Array.from(rowsMap.keys())) {
-      if (Math.abs(y - cell.y) <= 4) {
-        matchedY = y;
-        break;
-      }
-    }
-    if (matchedY === null) {
-      matchedY = cell.y;
-      rowsMap.set(matchedY, []);
-    }
-    rowsMap.get(matchedY)!.push(cell);
-  }
-
-  const sortedY = Array.from(rowsMap.keys()).sort((a, b) => b - a);
+  // Table items: parse per-stream to prevent rows from multiple pages being merged by identical Y coordinates
   const items: ParsedItem[] = [];
 
-  for (const y of sortedY) {
-    const cells = rowsMap.get(y)!;
-    cells.sort((a, b) => a.x - b.x);
-    let noStr = '',
-      code = '',
-      name = '',
-      qtyStr = '',
-      unit = '',
-      desc = '',
-      lastDate = '',
-      priority = '';
+  for (const sBlocks of streamBlocksList) {
+    const tableCells = sBlocks.filter(
+      (b) => b.y < 260 && b.y > 50 && b.x >= 30 && b.x <= 560
+    );
+    if (tableCells.length === 0) continue;
 
-    for (const c of cells) {
-      const t = c.text.trim();
-      if (!t) continue;
-      if (c.x < 47) noStr += t;
-      else if (c.x < 105) code += (code ? '' : '') + t;
-      else if (c.x < 245) name += (name ? ' ' : '') + t;
-      else if (c.x < 285) qtyStr += t;
-      else if (c.x < 330) unit += (unit ? ' ' : '') + t;
-      else if (c.x < 415) desc += (desc ? ' ' : '') + t;
-      else if (c.x < 490) lastDate += (lastDate ? ' ' : '') + t;
-      else priority += (priority ? ' ' : '') + t;
+    const rowsMap = new Map<number, TextBlock[]>();
+    for (const cell of tableCells) {
+      let matchedY: number | null = null;
+      for (const y of Array.from(rowsMap.keys())) {
+        if (Math.abs(y - cell.y) <= 4) {
+          matchedY = y;
+          break;
+        }
+      }
+      if (matchedY === null) {
+        matchedY = cell.y;
+        rowsMap.set(matchedY, []);
+      }
+      rowsMap.get(matchedY)!.push(cell);
     }
 
-    const no = parseInt(noStr, 10);
-    if (!isNaN(no) && (code || name)) {
-      items.push({
-        no,
-        itemCode: code.trim(),
-        itemName: name.trim(),
-        qty: parseFloat(qtyStr.replace(/,/g, '')) || 1,
-        unit: unit.trim(),
-        description: cleanSingleDescription(desc.trim()),
-        lastDate: formatDateDdMmYy(lastDate.trim()),
-        priority: priority.trim(),
-      });
+    const sortedY = Array.from(rowsMap.keys()).sort((a, b) => b - a);
+
+    for (const y of sortedY) {
+      const cells = rowsMap.get(y)!;
+      cells.sort((a, b) => a.x - b.x);
+      let noStr = '',
+        code = '',
+        name = '',
+        qtyStr = '',
+        unit = '',
+        desc = '',
+        lastDate = '',
+        priority = '';
+
+      for (const c of cells) {
+        const t = c.text.trim();
+        if (!t) continue;
+        if (c.x < 47) {
+          noStr += t;
+        } else if (c.x < 105) {
+          code += (code ? '' : '') + t;
+        } else if (c.x < 255) {
+          name += (name ? ' ' : '') + t;
+        } else if (c.x < 315 && /^\d+(?:[.,]\d+)?$/.test(t)) {
+          // Angka kuantitas (Qty) pada koordinat x antara 245 - 315
+          qtyStr = t;
+        } else if (c.x < 290 && !qtyStr) {
+          // Lanjutan nama barang jika Qty belum tercapai
+          name += (name ? ' ' : '') + t;
+        } else if (c.x < 335) {
+          unit += (unit ? ' ' : '') + t;
+        } else if (c.x < 445) {
+          desc += (desc ? ' ' : '') + t;
+        } else if (c.x < 515) {
+          lastDate += (lastDate ? ' ' : '') + t;
+        } else {
+          priority += (priority ? ' ' : '') + t;
+        }
+      }
+
+      // Penanganan khusus jika angka Qty tergabung ke dalam kolom satuan (misal "10 RIM", "5 PCS")
+      if (unit) {
+        const unitQtyMatch = unit.match(/^(\d+(?:[.,]\d+)?)\s*(.+)$/);
+        if (unitQtyMatch) {
+          if (!qtyStr || qtyStr === '1') {
+            qtyStr = unitQtyMatch[1];
+          }
+          unit = unitQtyMatch[2];
+        }
+
+        // Jika keterangan tujuan peruntukan ("U/ ...") ikut terbawa ke satuan
+        const unitDescMatch = unit.match(/^([A-Za-z0-9]+)\s+(U\/.*)$/i);
+        if (unitDescMatch) {
+          unit = unitDescMatch[1];
+          desc = (unitDescMatch[2] + ' ' + desc).trim();
+        }
+      }
+      if (qtyStr) {
+        const qtyUnitMatch = qtyStr.match(/^(\d+(?:[.,]\d+)?)\s*([A-Za-z]+.*)$/);
+        if (qtyUnitMatch) {
+          qtyStr = qtyUnitMatch[1];
+          if (!unit) unit = qtyUnitMatch[2];
+        }
+      }
+
+      const no = parseInt(noStr, 10);
+      if (!isNaN(no) && (code || name)) {
+        // Prevent duplicate items if stream is referenced twice
+        const alreadyExists = items.some(
+          (it) => it.no === no && (it.itemCode === code.trim() || it.itemName === name.trim())
+        );
+        if (!alreadyExists) {
+          items.push({
+            no,
+            itemCode: code.trim(),
+            itemName: name.trim(),
+            qty: parseFloat(qtyStr.replace(/,/g, '')) || 1,
+            unit: unit.trim(),
+            description: cleanSingleDescription(desc.trim()),
+            lastDate: formatDateDdMmYy(lastDate.trim()),
+            priority: priority.trim(),
+          });
+        }
+      }
     }
   }
+
+  // Sort items sequentially by their item number (No)
+  items.sort((a, b) => a.no - b.no);
 
   const uniqueDescs = deduplicateDescriptions(
     items.map((i) => i.description).filter((d) => d && d !== '-' && d.length > 1)
@@ -534,6 +588,188 @@ function extractPdfData(
   };
 }
 
+/**
+ * Mencari URL PDF asli di e-FPB FilesList via internal authentication search.
+ * Berguna saat dokumen memiliki nama khusus atau revisi yang tidak tertebak.
+ */
+async function searchFilesListForPdfUrl(cleanDoc: string): Promise<string | null> {
+  const username = 'Hermansyah';
+  const password = 'Biocpl24!@#';
+
+  try {
+    // 1. Dapatkan CSRF & Session Cookie
+    const loginRes = await fetch('https://e-fpb.cindaragroup.com/login', {
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      },
+      cache: 'no-store',
+    });
+    const initCookies = (loginRes.headers as any).getSetCookie
+      ? (loginRes.headers as any).getSetCookie()
+      : [loginRes.headers.get('set-cookie') || ''];
+    const cookieHeader = initCookies.map((c: string) => c.split(';')[0]).join('; ');
+
+    const html = await loginRes.text();
+    const csrfName = html.split('name="csrf_name" value="')[1]?.split('"')[0] || '';
+    const csrfVal = html.split('name="csrf_value" value="')[1]?.split('"')[0] || '';
+
+    const fd = new FormData();
+    if (csrfName) fd.append('csrf_name', csrfName);
+    if (csrfVal) fd.append('csrf_value', csrfVal);
+    if (csrfName && csrfVal) fd.append(csrfName, csrfVal);
+    fd.append('username', username);
+    fd.append('password', password);
+
+    // 2. Lakukan login POST
+    const authRes = await fetch('https://e-fpb.cindaragroup.com/login', {
+      method: 'POST',
+      headers: {
+        Cookie: cookieHeader,
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      },
+      body: fd,
+      redirect: 'manual',
+      cache: 'no-store',
+    });
+    const authCookies = (authRes.headers as any).getSetCookie
+      ? (authRes.headers as any).getSetCookie()
+      : [authRes.headers.get('set-cookie') || ''];
+    const fullCookie = [...initCookies, ...authCookies].map((c: string) => c.split(';')[0]).join('; ');
+
+    // 3. Cari di FilesList dengan query search nomor FPB
+    const searchUrl = `https://e-fpb.cindaragroup.com/FilesList?cmd=search&search=${encodeURIComponent(
+      cleanDoc
+    )}`;
+    const searchRes = await fetch(searchUrl, {
+      headers: {
+        Cookie: fullCookie,
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      },
+      cache: 'no-store',
+    });
+    if (!searchRes.ok) return null;
+
+    const searchHtml = await searchRes.text();
+    const pdfMatches = searchHtml.match(/files\/[^\s"'\\]+\.pdf/gi) || [];
+    if (pdfMatches.length === 0) return null;
+
+    // Filter PDF yang berkaitan dengan nomor FPB
+    const cleanDocRaw = cleanDoc.replace(/[^A-Za-z0-9]/g, '').toLowerCase();
+    const matchedPdf =
+      pdfMatches.find((p) =>
+        p.replace(/[^A-Za-z0-9]/g, '').toLowerCase().includes(cleanDocRaw)
+      ) || pdfMatches[0];
+
+    if (matchedPdf) {
+      const rawPath = matchedPdf.replace(/^\/+/, '');
+      return `https://e-fpb.cindaragroup.com/${rawPath}`;
+    }
+  } catch (err) {
+    console.warn('[searchFilesListForPdfUrl] Error searching FilesList:', err);
+  }
+
+  return null;
+}
+
+/**
+ * Mencari berkas PDF e-FPB dengan strategi bertingkat:
+ * 1. Probing pola variasi revisi (_rev_rev_rev..._) secara paralel (cepat ~200-500ms, tanpa auth)
+ * 2. Fallback pencarian di e-FPB FilesList via internal authentication search jika pola standar 404
+ */
+async function resolveEfpbPdf(
+  cleanDoc: string
+): Promise<{ buffer: Buffer; url: string; isLogistik: boolean } | null> {
+  const normalizedDoc = cleanDoc.replace(/\/LOG\/FPB\//i, '-FPB-').trim();
+  const enc = encodeURIComponent(normalizedDoc);
+
+  // 1. Probing pola revisi e-FPB
+  const prefixes = [
+    { prefix: 'logistik_Approved_', isLogistik: true },
+    { prefix: 'Approved_', isLogistik: false },
+  ];
+
+  const candidateUrls: Array<{ url: string; isLogistik: boolean }> = [];
+  // Cek dari revisi tertinggi (terbaru) ke terendah
+  for (const { prefix, isLogistik } of prefixes) {
+    for (let r = 8; r >= 0; r--) {
+      const revStr = r === 0 ? '' : Array(r).fill('rev').join('_') + '_';
+      candidateUrls.push({
+        url: `https://e-fpb.cindaragroup.com/files/${prefix}${revStr}sign_${enc}.pdf`,
+        isLogistik,
+      });
+    }
+  }
+
+  try {
+    const probeResults = await Promise.all(
+      candidateUrls.map(async (c) => {
+        try {
+          const res = await fetch(c.url, {
+            method: 'HEAD',
+            headers: {
+              'User-Agent':
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            },
+            cache: 'no-store',
+          });
+          return { ...c, ok: res.ok && res.status === 200 };
+        } catch {
+          return { ...c, ok: false };
+        }
+      })
+    );
+
+    const matched = probeResults.find((r) => r.ok);
+    if (matched) {
+      console.log(`[parse-fpb-pdf] Berhasil menemukan PDF revisi: ${matched.url}`);
+      const getRes = await fetch(matched.url, {
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        },
+        cache: 'no-store',
+      });
+      if (getRes.ok) {
+        const ab = await getRes.arrayBuffer();
+        return { buffer: Buffer.from(ab), url: matched.url, isLogistik: matched.isLogistik };
+      }
+    }
+  } catch (probeErr) {
+    console.warn('[parse-fpb-pdf] Gagal saat probing variasi revisi:', probeErr);
+  }
+
+  // 2. Fallback: Cari langsung ke e-FPB FilesList via Search Keyword (mengambil data dari FilesList)
+  try {
+    console.log(`[parse-fpb-pdf] Mencari dokumen ${normalizedDoc} di e-FPB FilesList...`);
+    const filesListUrl = await searchFilesListForPdfUrl(normalizedDoc);
+    if (filesListUrl) {
+      console.log(`[parse-fpb-pdf] Ditemukan PDF dari FilesList: ${filesListUrl}`);
+      const getRes = await fetch(filesListUrl, {
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        },
+        cache: 'no-store',
+      });
+      if (getRes.ok) {
+        const ab = await getRes.arrayBuffer();
+        return {
+          buffer: Buffer.from(ab),
+          url: filesListUrl,
+          isLogistik: filesListUrl.includes('logistik_'),
+        };
+      }
+    }
+  } catch (searchErr) {
+    console.warn('[parse-fpb-pdf] Gagal mencari di FilesList:', searchErr);
+  }
+
+  return null;
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const rawDoc =
@@ -551,58 +787,30 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const logistikPdfUrl = `https://e-fpb.cindaragroup.com/files/logistik_Approved_rev_sign_${encodeURIComponent(
-    cleanDoc
-  )}.pdf`;
-  const approvedPdfUrl = `https://e-fpb.cindaragroup.com/files/Approved_rev_sign_${encodeURIComponent(
-    cleanDoc
-  )}.pdf`;
-
   try {
-    let finalPdfUrl = logistikPdfUrl;
-    let isLogistikApproved = true;
-    let response = await fetch(logistikPdfUrl, {
-      method: 'GET',
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      },
-      cache: 'no-store',
-    });
+    const resolved = await resolveEfpbPdf(cleanDoc);
 
-    if (!response.ok) {
-      isLogistikApproved = false;
-      // Fallback ke Approved_rev_sign_ jika logistik_Approved_rev_sign_ belum tersedia di server (404)
-      const fallbackResponse = await fetch(approvedPdfUrl, {
-        method: 'GET',
-        headers: {
-          'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        },
-        cache: 'no-store',
-      });
-      if (fallbackResponse.ok) {
-        response = fallbackResponse;
-        finalPdfUrl = approvedPdfUrl;
-      }
-    }
-
-    if (!response.ok) {
+    if (!resolved) {
+      const fallbackUrl = `https://e-fpb.cindaragroup.com/files/Approved_rev_sign_${encodeURIComponent(
+        cleanDoc
+      )}.pdf`;
       return NextResponse.json(
         {
           success: false,
-          status: response.status,
-          message: `Dokumen PDF tidak ditemukan di server e-FPB (${response.status} Not Found).`,
-          pdfUrl: approvedPdfUrl,
+          status: 404,
+          message: `Dokumen PDF untuk ${cleanDoc} tidak ditemukan di server e-FPB (404 Not Found). Silakan cek apakah berkas sudah diupload di e-fpb.cindaragroup.com/FilesList.`,
+          pdfUrl: fallbackUrl,
         },
         { status: 404 }
       );
     }
 
-    const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    const parsedData = extractPdfData(buffer, cleanDoc, finalPdfUrl, isLogistikApproved);
+    const parsedData = extractPdfData(
+      resolved.buffer,
+      cleanDoc,
+      resolved.url,
+      resolved.isLogistik
+    );
 
     return NextResponse.json({
       success: true,

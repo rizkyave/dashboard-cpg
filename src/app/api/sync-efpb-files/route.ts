@@ -129,9 +129,10 @@ function parseFilesListHtml(html: string): ParsedEfpbFileRow[] {
     // Format date to dd/mm/yy
     const formattedDate = formatDateDdMmYy(rawTgl.slice(0, 10)) || formatDateDdMmYy(rawTgl);
 
-    const pdfUrl = `https://e-fpb.cindaragroup.com/files/Approved_rev_sign_${encodeURIComponent(
-      cleanFpb
-    )}.pdf`;
+    const pdfMatch = rowContent.match(/files\/[^\s"'\\]+\.pdf/i);
+    const pdfUrl = pdfMatch
+      ? `https://e-fpb.cindaragroup.com/${pdfMatch[0].replace(/^\/+/, '')}`
+      : `https://e-fpb.cindaragroup.com/files/Approved_rev_sign_${encodeURIComponent(cleanFpb)}.pdf`;
 
     rows.push({
       fpb: cleanFpb,

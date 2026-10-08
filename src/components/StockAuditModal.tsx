@@ -65,64 +65,37 @@ export default function StockAuditModal({
   }, [isOpen, onClose]);
 
   // Match each requested item against the 10,049 inventory items
+  // Aturan: Hanya cocokkan jika kode barang/ref sama persis (tidak ada pencocokan fuzzy deskripsi)
   const matchedAnalysis = useMemo(() => {
     return requestedItems.map((req) => {
-      const cleanReqName = (req.name || '').toUpperCase().trim();
-      const cleanReqCode = (req.code || '').toUpperCase().trim();
-      const words = cleanReqName
-        .split(/[\s,./\-_()]+/)
-        .filter(
-          (w) =>
-            w.length >= 3 &&
-            !['DAN', 'UNTUK', 'DENGAN', 'SET', 'THE', 'PCS', 'UNIT', 'KAPAL'].includes(w)
-        );
+      const cleanReqCode = (req.code || '')
+        .replace(/^REF:\s*/i, '')
+        .trim()
+        .toUpperCase();
 
-      const candidateMatches = inventoryItems
-        .map((it) => {
-          let score = 0;
-          const itCode = String(it.itemCode || '').toUpperCase().trim();
-          const itDesc = String(it.description || '').toUpperCase().trim();
+      // Hanya cocok jika memiliki kode/ref yang valid dan sama persis dengan itemCode di katalog Accurate
+      const candidateMatches =
+        cleanReqCode && cleanReqCode !== '-'
+          ? inventoryItems
+              .filter((it) => {
+                const itCode = String(it.itemCode || '')
+                  .replace(/^REF:\s*/i, '')
+                  .trim()
+                  .toUpperCase();
+                return itCode === cleanReqCode;
+              })
+              .sort((a, b) => b.quantity - a.quantity)
+          : [];
 
-          // Code match has highest weight
-          if (cleanReqCode && itCode === cleanReqCode) {
-            score += 100;
-          } else if (cleanReqCode && itCode.includes(cleanReqCode)) {
-            score += 65;
-          }
-
-          // Description matches
-          if (itDesc === cleanReqName) {
-            score += 95;
-          } else if (itDesc.includes(cleanReqName) || cleanReqName.includes(itDesc)) {
-            score += 75;
-          } else if (words.length > 0) {
-            let matchedWords = 0;
-            for (const w of words) {
-              if (itDesc.includes(w)) matchedWords++;
-            }
-            if (matchedWords > 0) {
-              score += 30 + Math.round((matchedWords / words.length) * 45);
-            }
-          }
-
-          return { item: it, score };
-        })
-        .filter((res) => res.score >= 30)
-        .sort((a, b) => {
-          if (b.score !== a.score) return b.score - a.score;
-          return b.item.quantity - a.item.quantity;
-        })
-        .slice(0, 3);
-
-      const bestMatch = candidateMatches[0]?.item || null;
-      const totalWarehouseStock = candidateMatches.reduce((acc, c) => acc + c.item.quantity, 0);
-      const isAvailable = bestMatch ? bestMatch.quantity > 0 : false;
-      const isFullStock = bestMatch ? bestMatch.quantity >= req.qty : false;
+      const bestMatch = candidateMatches[0] || null;
+      const totalWarehouseStock = candidateMatches.reduce((acc, c) => acc + c.quantity, 0);
+      const isAvailable = bestMatch ? totalWarehouseStock > 0 : false;
+      const isFullStock = bestMatch ? totalWarehouseStock >= req.qty : false;
 
       return {
         requested: req,
         bestMatch,
-        candidateMatches: candidateMatches.map((c) => c.item),
+        candidateMatches,
         totalWarehouseStock,
         isAvailable,
         isFullStock,
@@ -175,13 +148,13 @@ export default function StockAuditModal({
     } else {
       return {
         status: 'OUT_OF_STOCK',
-        badge: 'STOK KOSONG (0) - WAJIB PO',
+        badge: 'STOK KOSONG (0) - REKOMENDASI PENGADAAN',
         color: 'rose',
         title: 'Rekomendasi: Segera Proses Purchase Order (PO) Prioritas',
-        description: `Tidak ditemukan stok fisik yang mencukupi di gudang CPL, Hana Lines, maupun Mandar Ocean untuk barang yang diminta. Berkas perlu diprioritaskan oleh tim Purchasing untuk segera diverifikasi dan diterbitkan PO ke vendor.`,
+        description: `Tidak ditemukan stok fisik yang mencukupi di gudang CPL, Hana Lines, maupun Mandar Ocean untuk barang yang diminta. Berkas perlu diprioritaskan oleh tim Purchasing untuk segera diverifikasi dan diproses pengadaan ke vendor.`,
         readyPercentage: 0,
         leadTimeSaved: 'Standar Vendor SLA (3-5 Hari)',
-        actionAdvice: 'Terbitkan PO ke Vendor Rekanan Terdaftar',
+        actionAdvice: 'Proses Pengadaan ke Vendor Rekanan Terdaftar',
       };
     }
   }, [matchedAnalysis, armadaName]);
@@ -222,7 +195,7 @@ ${matchedAnalysis
       `${i + 1}. ${m.requested.name} (FPB: ${m.requested.qty} ${m.requested.unit}) -> Stok Gudang: ${
         m.bestMatch
           ? `${m.bestMatch.description} [${m.bestMatch.perusahaan}] = ${m.bestMatch.quantity.toLocaleString('id-ID')} unit`
-          : 'Tidak Ada Stok di Gudang'
+          : 'N/A (-)'
       }`
   )
   .join('\n')}
@@ -458,8 +431,8 @@ Sumber: Accurate Accounting System (10.049 Item Konsolidasi)`;
                                   </div>
                                 </div>
                               ) : (
-                                <span className="text-muted-foreground italic">
-                                  Tidak ada barang serupa di katalog Accurate
+                                <span className="font-mono font-bold text-xs text-muted-foreground">
+                                  N/A
                                 </span>
                               )}
                             </td>
@@ -480,7 +453,7 @@ Sumber: Accurate Accounting System (10.049 Item Konsolidasi)`;
                                   </span>
                                 </div>
                               ) : (
-                                <span className="font-mono text-muted-foreground">0</span>
+                                <span className="font-mono font-semibold text-muted-foreground text-sm">-</span>
                               )}
                             </td>
                             <td className="py-3 px-3 text-center whitespace-nowrap">
@@ -497,7 +470,7 @@ Sumber: Accurate Accounting System (10.049 Item Konsolidasi)`;
                               ) : (
                                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/20">
                                   <PackageX className="size-3 shrink-0" />
-                                  Wajib PO
+                                  Rekomendasi Pengadaan
                                 </span>
                               )}
                             </td>

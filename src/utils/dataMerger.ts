@@ -26,6 +26,20 @@ function hasValue(val?: string | number | null): boolean {
 }
 
 /**
+ * Validasi konsistensi status berkas:
+ * Apabila tidak ada nomor SPP, status berkas tidak boleh SELESAI DI KEUANGAN / PROSES SPP,
+ * melainkan menjadi "PROSES ADM PURCHASING".
+ */
+export function sanitizeItemStatus(item: ProcurementItem): void {
+  const hasValidSpp = hasValue(item.noSpp);
+  if (!hasValidSpp && (item.statusBadge === 'SELESAI DI KEUANGAN' || item.statusBadge === 'PROSES SPP')) {
+    item.statusBadge = 'PROSES ADM PURCHASING';
+    item.statusTone = 'cyan';
+    item.statusPenjelasan = 'Berkas di administrasi purchasing (menunggu nomor SPP)';
+  }
+}
+
+/**
  * Penggabungan cerdas (Smart Merge) dataset Procurement:
  * - Menjaga data yang sudah ada (tidak menghapus)
  * - Jika nomor FPB sama: memperkaya kolom yang kosong dari data yang baru masuk (Excel / e-FPB / Sheets)
@@ -64,11 +78,13 @@ export function mergeProcurementDatasets(
         if (!hasValue(target.noSpp) && hasValue(item.noSpp)) target.noSpp = item.noSpp;
       } else {
         const copy = { ...item };
+        sanitizeItemStatus(copy);
         dedupedMap.set(key, copy);
         dedupedList.push(copy);
       }
     }
 
+    dedupedList.forEach(sanitizeItemStatus);
     return {
       merged: dedupedList,
       stats: { total: dedupedList.length, updated: 0, added: dedupedList.length },
@@ -76,8 +92,13 @@ export function mergeProcurementDatasets(
   }
 
   if (safeIncoming.length === 0) {
+    const list = safeExisting.map((item) => {
+      const copy = { ...item };
+      sanitizeItemStatus(copy);
+      return copy;
+    });
     return {
-      merged: safeExisting.map((item) => ({ ...item })),
+      merged: list,
       stats: { total: safeExisting.length, updated: 0, added: 0 },
     };
   }
@@ -217,6 +238,12 @@ export function mergeProcurementDatasets(
           target.picCheckFpb = incoming.picCheckFpb || target.picCheckFpb || 'Logistik';
         }
       }
+      if (!hasValue(target.sourceCheckFpb) && hasValue(incoming.sourceCheckFpb)) {
+        target.sourceCheckFpb = incoming.sourceCheckFpb;
+      }
+      if (!hasValue(target.verifiedByFpb) && hasValue(incoming.verifiedByFpb)) {
+        target.verifiedByFpb = incoming.verifiedByFpb;
+      }
 
       // 8. Status Badge & Workflow Tone
       if (hasValue(incoming.statusBadge) && incoming.statusBadge !== 'PROSES PENGADAAN') {
@@ -244,6 +271,8 @@ export function mergeProcurementDatasets(
       addedCount++;
     }
   }
+
+  mergedList.forEach(sanitizeItemStatus);
 
   return {
     merged: mergedList,

@@ -308,8 +308,93 @@ export default function AuditModal({
     (isValidPicName(itemsS2[0]?.picCheckFpb) ? itemsS2[0]?.picCheckFpb : '') ||
     (pdfData?.requestedBy && !/end user/i.test(pdfData.requestedBy) ? pdfData.requestedBy : '') ||
     (itemS1?.picCheckFpb && itemS1.picCheckFpb !== 'e-FPB Server' ? itemS1.picCheckFpb : '') ||
-    'Bu Noor';
+    '-';
   const displayTglFpb = pdfData?.requestedDate || itemS1?.tglCheckFpb || itemsS2[0]?.tglCheckFpb || itemS1?.tglFpb || '-';
+
+  // Menentukan sumber verifikasi data FPB Check (Bu Noor atau Bu Melinda)
+  const fpbCheckInfo = useMemo(() => {
+    // 1. Cek dari field eksplisit hasil parsing workbook
+    const explicitVerified = itemS1?.verifiedByFpb || itemsS2[0]?.verifiedByFpb;
+    const explicitSource = itemS1?.sourceCheckFpb || itemsS2[0]?.sourceCheckFpb;
+
+    let checker = '';
+    if (explicitVerified) {
+      checker = explicitVerified;
+    } else if (explicitSource) {
+      checker = explicitSource.toUpperCase().includes('MELINDA') ? 'Bu Melinda' : 'Bu Noor';
+    } else {
+      // 2. Cek dari picCheckFpb jika berisi nama checker
+      const picCheck = (itemS1?.picCheckFpb || itemsS2[0]?.picCheckFpb || '').toLowerCase();
+      if (picCheck.includes('melinda')) {
+        checker = 'Bu Melinda';
+      } else if (picCheck.includes('noor')) {
+        checker = 'Bu Noor';
+      } else {
+        // 3. Fallback cerdas berdasarkan prefix nomor FPB & data PDF
+        const cleanDoc = (primaryDocNum || itemS1?.fpb || itemsS2[0]?.fpb || '').toUpperCase();
+        if (cleanDoc.startsWith('HL-') || cleanDoc.startsWith('HL/')) {
+          checker = 'Bu Melinda';
+        } else if (
+          cleanDoc.startsWith('MO-') || cleanDoc.startsWith('MO/') ||
+          cleanDoc.startsWith('GAJ-') || cleanDoc.startsWith('GAJ/') ||
+          cleanDoc.startsWith('SP-') || cleanDoc.startsWith('SP/') ||
+          cleanDoc.startsWith('MIL-') || cleanDoc.startsWith('MIL/') ||
+          cleanDoc.startsWith('SS-') || cleanDoc.startsWith('SS/')
+        ) {
+          checker = 'Bu Noor';
+        } else if (pdfData?.receivedBy && /noor|hasanah/i.test(pdfData.receivedBy)) {
+          checker = 'Bu Noor';
+        } else if (itemS1?.statusCheckFpb || itemS1?.doneCheckFpb || itemS1?.tglCheckFpb) {
+          checker = 'Bu Noor';
+        }
+      }
+    }
+
+    const activeChecker = checker || 'Bu Noor';
+    const label = `Terverifikasi oleh data FPB Check ${activeChecker}`;
+
+    return {
+      checkerName: activeChecker,
+      label,
+    };
+  }, [itemS1, itemsS2, primaryDocNum, pdfData?.receivedBy]);
+
+  // Validasi nomor SPP:
+  const hasValidSpp = Boolean(
+    itemS1?.noSpp &&
+    itemS1.noSpp.trim() !== '' &&
+    itemS1.noSpp.trim() !== '-' &&
+    itemS1.noSpp.toLowerCase() !== '(kosong)' &&
+    itemS1.noSpp.toLowerCase() !== 'null'
+  );
+
+  // Status Saat Ini (Header Box):
+  // Rule: Apabila tidak ada nomor SPP maka status saat ini menjadi "PROSES ADM PURCHASING"
+  const rawStatusSaatIni = itemS1?.statusBadge || itemsS2[0]?.status || 'TERDATA DI LAYANAN ARMADA';
+  let statusSaatIni = rawStatusSaatIni;
+  if (
+    !hasValidSpp &&
+    (rawStatusSaatIni === 'SELESAI DI KEUANGAN' ||
+      rawStatusSaatIni === 'PROSES SPP' ||
+      Boolean(itemS1?.tglKeKeuangan) ||
+      Boolean(itemS1?.tglKeAdmPch) ||
+      Boolean(itemS1?.picAdm && itemS1.picAdm !== '-'))
+  ) {
+    statusSaatIni = 'PROSES ADM PURCHASING';
+  }
+
+  const statusSaatIniColor =
+    statusSaatIni === 'SELESAI DI KEUANGAN' || statusSaatIni === 'SELESAI (CLOSE)' || statusSaatIni === 'SELESAI'
+      ? 'text-emerald-600 dark:text-emerald-400'
+      : statusSaatIni === 'PROSES ADM PURCHASING' || statusSaatIni === 'PROSES FSTB' || statusSaatIni === 'MENUNGGU FSTB'
+      ? 'text-cyan-600 dark:text-cyan-400'
+      : statusSaatIni === 'PROSES SPP'
+      ? 'text-emerald-600 dark:text-emerald-400'
+      : statusSaatIni.includes('TTB')
+      ? 'text-purple-600 dark:text-purple-400'
+      : statusSaatIni.includes('LAPANGAN') || statusSaatIni.includes('DISTRIBUSI')
+      ? 'text-amber-600 dark:text-amber-400'
+      : 'text-foreground';
 
   // Otomatis sinkronkan metadata PDF (Requested By, Tanggal, Item) saat modal dibuka
   useEffect(() => {
@@ -361,13 +446,16 @@ export default function AuditModal({
 
   const isCritical = itemS1 ? (itemS1.lapseText !== 'TBC' && itemS1.lapse > 5) : false;
 
-  const handleFetchPdfData = async () => {
+  const handleFetchPdfData = async (silent: boolean | unknown = false) => {
+    const isSilent = typeof silent === 'boolean' ? silent : false;
     if (!primaryDocNum) {
-      showToast('Nomor FPB/PO tidak valid untuk penarikan dokumen PDF.', 'warning');
+      if (!isSilent) showToast('Nomor FPB/PO tidak valid untuk penarikan dokumen PDF.', 'warning');
       return;
     }
     setIsLoadingPdf(true);
-    showToast(`Menghubungkan ke server e-FPB untuk mengambil data ${primaryDocNum}...`, 'info');
+    if (!isSilent) {
+      showToast(`Menghubungkan ke server e-FPB untuk mengambil data ${primaryDocNum}...`, 'info');
+    }
 
     try {
       const res = await fetch(`/api/parse-fpb-pdf?fpb=${encodeURIComponent(primaryDocNum)}`);
@@ -381,23 +469,36 @@ export default function AuditModal({
           );
           updatePdfItemsCacheForFpb(json.data.fpbNo || primaryDocNum, itemNames).catch(() => {});
         }
-        showToast(
-          `Berhasil menarik ${json.data.items?.length || 0} rincian item & peruntukan dari PDF e-FPB!`,
-          'success'
-        );
+        if (!isSilent) {
+          showToast(
+            `Berhasil menarik ${json.data.items?.length || 0} rincian item & peruntukan dari PDF e-FPB!`,
+            'success'
+          );
+        }
       } else {
-        showToast(
-          json.message || 'Dokumen PDF tidak ditemukan di server e-FPB.',
-          'warning'
-        );
+        if (!isSilent) {
+          showToast(
+            json.message || 'Dokumen PDF tidak ditemukan di server e-FPB.',
+            'warning'
+          );
+        }
       }
     } catch (err: any) {
       console.error('Failed to fetch PDF data:', err);
-      showToast('Gagal menarik data dari server PDF. Periksa koneksi jaringan.', 'error');
+      if (!isSilent) {
+        showToast('Gagal menarik data dari server PDF. Periksa koneksi jaringan.', 'error');
+      }
     } finally {
       setIsLoadingPdf(false);
     }
   };
+
+  // Auto-fetch data PDF saat modal dibuka jika belum pernah ditarik
+  useEffect(() => {
+    if (primaryDocNum && !pdfData) {
+      handleFetchPdfData(true);
+    }
+  }, [primaryDocNum]);
 
   const handleRunAiAudit = () => {
     setShowAiRisk(true);
@@ -579,7 +680,7 @@ export default function AuditModal({
                     ).
                   </p>
                   <p className="text-muted-foreground">
-                    Rantai pertanggungjawaban fisik 5 divisi: Verifikasi FPB (&rarr;{' '}
+                    Rantai pertanggungjawaban fisik 5 divisi: Pembuatan FPB (&rarr;{' '}
                     {displayPicFpb}), Purchasing (&rarr;{' '}
                     {itemS1?.picPch || 'NOVI'}), TTB Logistik (&rarr;{' '}
                     {itemS1?.picTtb || 'DAVILA'}), Lapangan (&rarr;{' '}
@@ -619,8 +720,8 @@ export default function AuditModal({
             <span className="text-[10px] text-muted-foreground font-mono block">
               STATUS SAAT INI
             </span>
-            <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 font-mono mt-0.5 block">
-              {itemS1?.statusBadge || itemsS2[0]?.status || 'TERDATA DI LAYANAN ARMADA'}
+            <span className={`text-sm font-semibold font-mono mt-0.5 block ${statusSaatIniColor}`}>
+              {statusSaatIni}
             </span>
           </div>
         </div>
@@ -659,19 +760,25 @@ export default function AuditModal({
                 </div>
               </div>
 
-              {/* 2. VERIFIKASI FPB / BU NOOR */}
+              {/* 2. PEMBUATAN FPB (TERVERIFIKASI FPB CHECK BU NOOR / BU MELINDA) */}
               <div className="p-3 rounded-lg bg-card border border-border flex flex-col justify-between gap-2.5 shadow-xs hover:shadow-subtle transition">
                 <div className="flex items-center justify-between min-h-[1.75rem] gap-1">
                   <span className="text-[11px] font-semibold text-foreground tracking-wide uppercase leading-tight truncate">
-                    VERIFIKASI FPB {isValidPicName(displayPicFpb) ? `(${displayPicFpb})` : '/ BU NOOR'}
+                    PEMBUATAN FPB {isValidPicName(displayPicFpb) ? `(${displayPicFpb})` : ''}
                   </span>
                 </div>
-                <div className="flex items-center justify-between pt-2 border-t border-border">
-                  <span className="text-[10px] text-muted-foreground font-mono">Status:</span>
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-mono text-[11px] font-medium">
-                    <Check className="size-3 text-emerald-600 dark:text-emerald-400" />
-                    {itemS1?.statusCheckFpb || itemS1?.doneCheckFpb || (itemS1?.picCheckFpb && itemS1.picCheckFpb !== '-' ? 'TERVERIFIKASI' : 'MATCHING')}
-                  </span>
+                <div className="space-y-1 pt-2 border-t border-border">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] text-muted-foreground font-mono">Status:</span>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-mono text-[11px] font-medium">
+                      <Check className="size-3 text-emerald-600 dark:text-emerald-400" />
+                      {itemS1?.statusCheckFpb || itemS1?.doneCheckFpb || (itemS1?.picCheckFpb && itemS1.picCheckFpb !== '-' ? 'TERVERIFIKASI' : 'CLOSE')}
+                    </span>
+                  </div>
+                  <div className="text-[9.5px] font-mono text-emerald-700 dark:text-emerald-400 font-medium leading-tight flex items-center gap-1 pt-0.5" title={fpbCheckInfo.label}>
+                    <CheckCircle2 className="size-2.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span className="truncate">{fpbCheckInfo.label}</span>
+                  </div>
                 </div>
               </div>
 
@@ -732,13 +839,13 @@ export default function AuditModal({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 text-xs">
-            {/* 1. VERIFIKASI FPB */}
+            {/* 1. PEMBUATAN FPB */}
             <div className="p-3.5 rounded-lg bg-card border border-border flex flex-col justify-between space-y-2.5 shadow-xs hover:border-foreground/20 transition">
               <div>
                 <div className="flex items-center justify-between pb-2 border-b border-border gap-1">
                   <span className="text-[11px] font-semibold text-foreground font-mono flex items-center gap-1.5 whitespace-nowrap min-w-0">
                     <FileCheck className="size-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
-                    <span>1. VERIFIKASI FPB</span>
+                    <span>1. PEMBUATAN FPB</span>
                   </span>
                   <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border font-semibold shrink-0">
                     FPB
@@ -772,6 +879,15 @@ export default function AuditModal({
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">Status:</span>
                     <span className="text-blue-600 dark:text-blue-400 font-mono font-bold text-right ml-1.5">
                       {itemS1?.statusCheckFpb || itemsS2[0]?.statusCheckFpb || (itemS1?.doneCheckFpb ? 'DONE' : 'CLOSE')}
+                    </span>
+                  </div>
+                  <div className="flex items-start justify-between gap-1.5">
+                    <span className="text-muted-foreground shrink-0 whitespace-nowrap">Verifikasi:</span>
+                    <span
+                      className="text-[10px] font-mono text-right text-emerald-700 dark:text-emerald-400 font-medium leading-tight ml-1.5 truncate"
+                      title={fpbCheckInfo.label}
+                    >
+                      {fpbCheckInfo.checkerName ? `FPB Check ${fpbCheckInfo.checkerName}` : '-'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between gap-1.5">
@@ -1070,7 +1186,11 @@ export default function AuditModal({
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">No. SPP:</span>
                     <span
-                      className="text-emerald-600 dark:text-emerald-400 font-mono font-bold truncate text-right ml-1.5"
+                      className={
+                        hasValidSpp
+                          ? 'text-emerald-600 dark:text-emerald-400 font-mono font-bold truncate text-right ml-1.5'
+                          : 'text-muted-foreground font-mono truncate text-right ml-1.5'
+                      }
                       title={itemS1?.noSpp || '-'}
                     >
                       {itemS1?.noSpp || '-'}
@@ -1091,13 +1211,23 @@ export default function AuditModal({
                 </div>
               </div>
               <div className="pt-2 border-t border-border">
-                <span className="text-[10px] font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20 block text-center truncate font-medium">
-                  {itemS1?.tglKeKeuangan
-                    ? 'Selesai di Keuangan'
-                    : itemS1?.noSpp
-                    ? 'Proses SPP Kas'
-                    : 'Menunggu Berkas ADM'}
-                </span>
+                {hasValidSpp && itemS1?.tglKeKeuangan ? (
+                  <span className="text-[10px] font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20 block text-center truncate font-medium">
+                    Selesai di Keuangan
+                  </span>
+                ) : hasValidSpp ? (
+                  <span className="text-[10px] font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20 block text-center truncate font-medium">
+                    Proses SPP Kas
+                  </span>
+                ) : itemS1?.tglKeKeuangan || itemS1?.tglKeAdmPch || (itemS1?.picAdm && itemS1.picAdm !== '-') ? (
+                  <span className="text-[10px] font-mono text-cyan-700 dark:text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-md border border-cyan-500/20 block text-center truncate font-medium">
+                    Proses ADM Purchasing
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded-md border border-border block text-center truncate font-medium">
+                    Menunggu Berkas ADM
+                  </span>
+                )}
               </div>
             </div>
           </div>

@@ -316,7 +316,7 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
     }
   }
 
-  // 3. Index "Check FPB / Master Data Bu Noor" (Divisi 1: Verifikasi FPB)
+  // 3. Index "Check FPB / Master Data Bu Noor & Bu Melinda" (Divisi 1: Pembuatan & Verifikasi FPB)
   interface CheckFpbRecord {
     fpb: string;
     pic: string;
@@ -327,6 +327,8 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
     tglApprove: string;
     done: string;
     note: string;
+    sourceSheet?: string;
+    verifiedBy?: string;
   }
   const checkFpbMap = new Map<string, CheckFpbRecord>();
 
@@ -360,7 +362,10 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
     const cDone      = findCol(colMap, 'DONE', 'STATUS DONE');
     const cNote      = findCol(colMap, 'NOTE', 'CATATAN', 'KETERANGAN');
 
-    const defaultPicName = sName.toUpperCase().includes('MELINDA') ? 'Melinda' : 'Bu Noor';
+    const isMelinda = sName.toUpperCase().includes('MELINDA');
+    const defaultPicName = isMelinda ? 'Melinda' : 'Bu Noor';
+    const verifiedBy = isMelinda ? 'Bu Melinda' : 'Bu Noor';
+    const sourceCheckFpb = sName;
 
     for (let i = headerRowIdx + 1; i < json.length; i++) {
       const r = json[i];
@@ -392,6 +397,8 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
           tglApprove: excelDateToString(cTglAppr >= 0 ? r[cTglAppr] : ''),
           done: String(cDone >= 0 ? r[cDone] : '').trim(),
           note: rawNote,
+          sourceSheet: sourceCheckFpb,
+          verifiedBy,
         });
       }
     }
@@ -529,12 +536,14 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
       const cfMatch = normFpb ? checkFpbMap.get(normFpb) : undefined;
       const bnMatch = cfMatch;
 
-      const picCheckFpb = cfMatch?.pic || (cfMatch ? 'Bu Noor' : '-');
+      const picCheckFpb = cfMatch?.pic || (cfMatch ? (cfMatch.verifiedBy || 'Bu Noor') : '-');
       const tglCheckFpb = cfMatch?.tglCek || '';
       const statusCheckFpb = cfMatch?.statusCek || (cfMatch?.done ? 'DONE' : '');
       const tglApproveWeb = cfMatch?.tglApprove || '';
       const noteCheckFpb = cfMatch?.note || '';
       const doneCheckFpb = cfMatch?.done || '';
+      const sourceCheckFpb = cfMatch?.sourceSheet || (cfMatch ? (cfMatch.verifiedBy === 'Bu Melinda' ? 'FBP CHECK MELINDA' : 'FBP CHECK BU NOOR') : '');
+      const verifiedByFpb = cfMatch?.verifiedBy || (cfMatch ? 'Bu Noor' : '');
 
       if (!tglFpb && cfMatch?.tglFpb) {
         tglFpb = cfMatch.tglFpb;
@@ -569,18 +578,27 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
       let statusTone: StatusTone = 'cyan';
       let statusPenjelasan = '';
 
-      if (tglKeKeuangan) {
+      const hasValidSpp = Boolean(
+        noSpp &&
+        noSpp.trim() !== '' &&
+        noSpp.trim() !== '-' &&
+        noSpp.trim().toLowerCase() !== '(kosong)' &&
+        noSpp.trim().toLowerCase() !== 'null'
+      );
+
+      if (hasValidSpp && tglKeKeuangan) {
         statusBadge = 'SELESAI DI KEUANGAN';
         statusTone = 'emerald';
-        statusPenjelasan = `Berkas sudah di administrasi purchasing pada ${formatDateDdMmYyDash(tglKeKeuangan)}`;
-      } else if (noSpp || tglInputSpp) {
+        statusPenjelasan = `Berkas sudah di keuangan pada ${formatDateDdMmYyDash(tglKeKeuangan)} (SPP: ${noSpp})`;
+      } else if (hasValidSpp || (noSpp && tglInputSpp)) {
         statusBadge = 'PROSES SPP';
         statusTone = 'emerald';
         statusPenjelasan = `SPP ${noSpp || ''} diterbitkan ${tglInputSpp || '-'}`;
-      } else if (tglKeAdmPch) {
+      } else if (tglKeKeuangan || tglKeAdmPch || (picAdm && picAdm !== '-')) {
+        // Apabila tidak ada nomor SPP maka status saat ini menjadi "PROSES ADM PURCHASING"
         statusBadge = 'PROSES ADM PURCHASING';
         statusTone = 'cyan';
-        statusPenjelasan = `Berkas diteruskan ke ADM PCH pada ${tglKeAdmPch}`;
+        statusPenjelasan = `Berkas di proses administrasi purchasing (menunggu nomor SPP)`;
       } else if (tglTtbKePicPch) {
         statusBadge = 'TTB KE PIC PCH';
         statusTone = 'purple';
@@ -716,6 +734,8 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
         tglApproveWeb,
         noteCheckFpb,
         doneCheckFpb,
+        sourceCheckFpb,
+        verifiedByFpb,
       });
 
       let armadaFulfillmentStatus = 'OPEN';
@@ -769,6 +789,8 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
         tglApproveWeb,
         noteCheckFpb,
         doneCheckFpb,
+        sourceCheckFpb,
+        verifiedByFpb,
       });
     }
   }
@@ -783,18 +805,27 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
       let statusTone: StatusTone = 'cyan';
       let statusPenjelasan = `Diimpor dari sheet ${procSheetName || 'PROCUREMENT'}`;
 
-      if (proc.tglKeu) {
+      const hasValidProcSpp = Boolean(
+        proc.spp &&
+        proc.spp.trim() !== '' &&
+        proc.spp.trim() !== '-' &&
+        proc.spp.trim().toLowerCase() !== '(kosong)' &&
+        proc.spp.trim().toLowerCase() !== 'null'
+      );
+
+      if (hasValidProcSpp && proc.tglKeu) {
         statusBadge = 'SELESAI DI KEUANGAN';
         statusTone = 'emerald';
-        statusPenjelasan = `Berkas sudah di administrasi purchasing pada ${formatDateDdMmYyDash(proc.tglKeu)}`;
-      } else if (proc.spp || proc.tglSpp) {
+        statusPenjelasan = `Berkas sudah di keuangan pada ${formatDateDdMmYyDash(proc.tglKeu)} (SPP: ${proc.spp})`;
+      } else if (hasValidProcSpp || (proc.spp && proc.tglSpp)) {
         statusBadge = 'PROSES SPP';
         statusTone = 'emerald';
         statusPenjelasan = `SPP ${proc.spp} dibuat ${proc.tglSpp}`;
-      } else if (proc.tglKeAdmPch) {
+      } else if (proc.tglKeu || proc.tglKeAdmPch || (proc.picAdm && proc.picAdm !== '-')) {
+        // Apabila tidak ada nomor SPP maka status saat ini menjadi "PROSES ADM PURCHASING"
         statusBadge = 'PROSES ADM PURCHASING';
         statusTone = 'cyan';
-        statusPenjelasan = `Berkas ke ADM PCH pada ${proc.tglKeAdmPch}`;
+        statusPenjelasan = `Berkas di proses administrasi purchasing (menunggu nomor SPP)`;
       } else if (proc.tglTtbKePicPch) {
         statusBadge = 'TTB KE PIC PCH';
         statusTone = 'purple';
@@ -849,12 +880,14 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
       }
 
       const cfMatch = proc.fpb ? checkFpbMap.get(normalizeKey(proc.fpb)) : undefined;
-      const picCheckFpb = cfMatch?.pic || (cfMatch ? 'Bu Noor' : '-');
+      const picCheckFpb = cfMatch?.pic || (cfMatch ? (cfMatch.verifiedBy || 'Bu Noor') : '-');
       const tglCheckFpb = cfMatch?.tglCek || '';
       const statusCheckFpb = cfMatch?.statusCek || (cfMatch?.done ? 'DONE' : '');
       const tglApproveWeb = cfMatch?.tglApprove || '';
       const noteCheckFpb = cfMatch?.note || '';
       const doneCheckFpb = cfMatch?.done || '';
+      const sourceCheckFpb = cfMatch?.sourceSheet || (cfMatch ? (cfMatch.verifiedBy === 'Bu Melinda' ? 'FBP CHECK MELINDA' : 'FBP CHECK BU NOOR') : '');
+      const verifiedByFpb = cfMatch?.verifiedBy || (cfMatch ? 'Bu Noor' : '');
 
       const recordId = `PROC-${proc.fpb}-${proc.po || 'NOPO'}-${proc.rowIdx}`;
       const itemDesc = proc.ket1
@@ -907,6 +940,8 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
         tglApproveWeb,
         noteCheckFpb,
         doneCheckFpb,
+        sourceCheckFpb,
+        verifiedByFpb,
       });
 
       // Jika file Excel murni Procurement tanpa sheet Monitoring Layanan Armada terpisah,
@@ -961,6 +996,8 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
           tglApproveWeb,
           noteCheckFpb,
           doneCheckFpb,
+          sourceCheckFpb,
+          verifiedByFpb,
         });
       }
     }
