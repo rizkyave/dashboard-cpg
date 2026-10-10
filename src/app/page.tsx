@@ -14,7 +14,8 @@ import {
   KapalPosisiSummary,
 } from '@/types/procurement';
 import { INITIAL_PROCUREMENT_DATA, INITIAL_ARMADA_DATA } from '@/data/initialData';
-import { mergeProcurementDatasets, mergeArmadaDatasets } from '@/utils/dataMerger';
+import { mergeProcurementDatasets, mergeArmadaDatasets, enrichProcurementAndArmada } from '@/utils/dataMerger';
+import { evaluateTransactionStatus } from '@/utils/statusWorkflow';
 import { ResetScope } from '@/components/ResetConfirmModal';
 import { formatDateDdMmYyDash, extractDateInfo } from '@/utils/formatDate';
 import {
@@ -311,47 +312,84 @@ export default function DashboardPage() {
     }
   }, []);
 
-  // Sanitasi data procurement dari storage yang mungkin rusak / tidak lengkap
+  // Sanitasi data procurement dari storage: selalu evaluasi status agar 100% akurat
   const sanitizeProcItem = (item: any): ProcurementItem => {
     let picAktif = item.picAktif || '-';
     picAktif = picAktif.replace(/\(adm\/finance\)/gi, '(ADM/PRC)');
 
-    let statusPenjelasan = item.statusPenjelasan || '';
-    statusPenjelasan = statusPenjelasan.replace(
-      /Berkas sudah di [Kk]euangan pada (.+)/gi,
-      (_: string, d: string) => `Berkas sudah di administrasi purchasing pada ${formatDateDdMmYyDash(d)}`
-    );
+    const lapse = typeof item.lapse === 'number' && item.lapse >= 0 ? item.lapse : 0;
+    const lapseText = item.lapseText || (item.lapse < 0 ? 'TBC' : undefined);
 
-    return {
+    const baseItem: ProcurementItem = {
       ...item,
       fpb: item.fpb || '',
       entity: item.entity || 'CPL',
       po: item.po || '-',
-      date: item.date || '',
+      date: item.date || item.tglPo || '',
       item: item.item || '',
       peruntukan: item.peruntukan || '',
-      lapse: typeof item.lapse === 'number' && item.lapse >= 0 ? item.lapse : 0,
-      lapseText: item.lapseText || (item.lapse < 0 ? 'TBC' : undefined),
-      statusBadge: item.statusBadge || 'PROSES',
-      statusTone: item.statusTone || 'cyan',
+      lapse,
+      lapseText,
       picPch: item.picPch || '-',
       picTtb: item.picTtb || '-',
       picLap: item.picLap || '-',
       picAdm: item.picAdm || '-',
       picAktif,
-      statusPenjelasan,
+      statusBadge: item.statusBadge || 'PROSES',
+      statusTone: item.statusTone || 'cyan',
+      statusPenjelasan: item.statusPenjelasan || '',
     };
+
+    // Evaluasi status dan keterangan secara akurat dari nilai riil tahapan supply chain
+    const evalResult = evaluateTransactionStatus(baseItem);
+    baseItem.statusBadge = evalResult.statusBadge;
+    baseItem.statusTone = evalResult.statusTone;
+    baseItem.statusPenjelasan = evalResult.statusPenjelasan;
+    if (!baseItem.picAktif || baseItem.picAktif === '-' || baseItem.picAktif.includes('Input PO')) {
+      baseItem.picAktif = evalResult.picAktif;
+    }
+
+    return baseItem;
   };
 
   const sanitizeArmItem = (item: any): ArmadaItem => {
     let picAktif = item.picAktif || '-';
     picAktif = picAktif.replace(/\(adm\/finance\)/gi, '(ADM/PRC)');
-    return {
+
+    const baseArm: ArmadaItem = {
       ...item,
       lapse: typeof item.lapse === 'number' && item.lapse >= 0 ? item.lapse : 0,
       lapseText: item.lapseText || (item.lapse < 0 ? 'TBC' : undefined),
       picAktif,
     };
+
+    const evalResult = evaluateTransactionStatus({
+      fpb: baseArm.fpb,
+      po: baseArm.noPo,
+      tglPo: baseArm.tglPo,
+      noFstb: baseArm.noFstb,
+      tglFstb: baseArm.tglFstb,
+      noTtb: baseArm.noTtb,
+      tglTtb: baseArm.tglTtb,
+      tglTimLapKePicTtb: baseArm.tglTimLapKePicTtb,
+      noSpp: baseArm.noSpp,
+      tglKeKeuangan: baseArm.tglKeKeuangan,
+      picPch: baseArm.picPch,
+      picTtb: baseArm.picTtb,
+      picLap: baseArm.picLap,
+      picAdm: baseArm.picAdm,
+      lapse: baseArm.lapse,
+      lapseText: baseArm.lapseText,
+      statusArmada: baseArm.status,
+    });
+
+    baseArm.statusBadge = evalResult.statusBadge;
+    baseArm.statusTone = evalResult.statusTone;
+    if (!baseArm.picAktif || baseArm.picAktif === '-') {
+      baseArm.picAktif = evalResult.picAktif;
+    }
+
+    return baseArm;
   };
 
   // Memuat data tersimpan dari IndexedDB saat halaman dibuka (TIDAK ADA auto-refresh ke server eksternal saat F5)
@@ -369,8 +407,13 @@ export default function DashboardPage() {
         if (!isMounted) return;
 
         if (savedProc && savedProc.length > 0) {
-          const sanitized = savedProc.map(sanitizeProcItem);
-          sanitized.sort((a, b) => {
+          const rawSanitizedProc = savedProc.map(sanitizeProcItem);
+          const rawSanitizedArm = (savedArm || []).map(sanitizeArmItem);
+
+          // Cross-enrichment data tersimpan di browser agar nomor PO, TTB, dan status langsung tersinkronisasi
+          const enriched = enrichProcurementAndArmada(rawSanitizedProc, rawSanitizedArm);
+
+          enriched.procurement.sort((a, b) => {
             const timeA = extractDateInfo(a.date).timestamp || 0;
             const timeB = extractDateInfo(b.date).timestamp || 0;
             if (timeA !== timeB) return timeB - timeA;
@@ -378,9 +421,23 @@ export default function DashboardPage() {
             const numB = (b.fpb || b.po || '').trim();
             return numB.localeCompare(numA, undefined, { numeric: true, sensitivity: 'base' });
           });
-          setProcurementData(sanitized);
-        }
-        if (savedArm && savedArm.length > 0) {
+
+          enriched.armada.sort((a, b) => {
+            const timeA = extractDateInfo(a.tglPo || a.tglFpb).timestamp || 0;
+            const timeB = extractDateInfo(b.tglPo || b.tglFpb).timestamp || 0;
+            if (timeA !== timeB) return timeB - timeA;
+            const numA = (a.fpb || a.noPo || a.noFstb || '').trim();
+            const numB = (b.fpb || b.noPo || b.noFstb || '').trim();
+            return numB.localeCompare(numA, undefined, { numeric: true, sensitivity: 'base' });
+          });
+
+          setProcurementData(enriched.procurement);
+          setArmadaData(enriched.armada);
+
+          // Perbarui IndexedDB dengan data bersih yang sudah tersinkronisasi
+          saveStoredProcurement(enriched.procurement);
+          saveStoredArmada(enriched.armada);
+        } else if (savedArm && savedArm.length > 0) {
           const sanitized = savedArm.map(sanitizeArmItem);
           sanitized.sort((a, b) => {
             const timeA = extractDateInfo(a.tglPo || a.tglFpb).timestamp || 0;
@@ -639,19 +696,23 @@ export default function DashboardPage() {
       procurementData,
       payload.procurement || []
     );
-    setProcurementData(mergedProc);
 
     let mergedArm = armadaData;
     if (payload.armada && payload.armada.length > 0) {
       const armResult = mergeArmadaDatasets(armadaData, payload.armada);
       mergedArm = armResult.merged;
-      setArmadaData(mergedArm);
     }
 
+    // Cross-enrichment data yang digabungkan agar selalu sinkron dan konsisten
+    const enriched = enrichProcurementAndArmada(mergedProc, mergedArm);
+
+    setProcurementData(enriched.procurement);
+    setArmadaData(enriched.armada);
+
     // Simpan ke IndexedDB (kapasitas besar, tidak terbatas kuota 5MB localStorage)
-    saveStoredProcurement(mergedProc);
-    if (mergedArm.length > 0) {
-      saveStoredArmada(mergedArm);
+    saveStoredProcurement(enriched.procurement);
+    if (enriched.armada.length > 0) {
+      saveStoredArmada(enriched.armada);
     }
   };
 

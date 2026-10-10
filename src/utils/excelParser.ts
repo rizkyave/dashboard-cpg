@@ -1,6 +1,8 @@
 import * as XLSX from 'xlsx';
 import { ProcurementItem, ArmadaItem, StatusTone } from '@/types/procurement';
 import { formatDateDdMmYyDash } from '@/utils/formatDate';
+import { evaluateTransactionStatus } from '@/utils/statusWorkflow';
+import { enrichProcurementAndArmada } from '@/utils/dataMerger';
 
 // Helper: Convert Excel date / serial date number to YYYY-MM-DD string
 export const excelDateToString = (val: any): string => {
@@ -574,69 +576,6 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
         bnMatch?.armada ||
         (entity ? `Unit Armada ${entity}` : 'Armada Operasional');
 
-      let statusBadge = 'PROSES ADM PURCHASING';
-      let statusTone: StatusTone = 'cyan';
-      let statusPenjelasan = '';
-
-      const hasValidSpp = Boolean(
-        noSpp &&
-        noSpp.trim() !== '' &&
-        noSpp.trim() !== '-' &&
-        noSpp.trim().toLowerCase() !== '(kosong)' &&
-        noSpp.trim().toLowerCase() !== 'null'
-      );
-
-      if (hasValidSpp && tglKeKeuangan) {
-        statusBadge = 'SELESAI DI KEUANGAN';
-        statusTone = 'emerald';
-        statusPenjelasan = `Berkas sudah di keuangan pada ${formatDateDdMmYyDash(tglKeKeuangan)} (SPP: ${noSpp})`;
-      } else if (hasValidSpp || (noSpp && tglInputSpp)) {
-        statusBadge = 'PROSES SPP';
-        statusTone = 'emerald';
-        statusPenjelasan = `SPP ${noSpp || ''} diterbitkan ${tglInputSpp || '-'}`;
-      } else if (tglKeKeuangan || tglKeAdmPch || (picAdm && picAdm !== '-')) {
-        // Apabila tidak ada nomor SPP maka status saat ini menjadi "PROSES ADM PURCHASING"
-        statusBadge = 'PROSES ADM PURCHASING';
-        statusTone = 'cyan';
-        statusPenjelasan = `Berkas di proses administrasi purchasing (menunggu nomor SPP)`;
-      } else if (tglTtbKePicPch) {
-        statusBadge = 'TTB KE PIC PCH';
-        statusTone = 'purple';
-        statusPenjelasan = `TTB kembali ke PIC PCH pada ${tglTtbKePicPch}`;
-      } else if (tglBarangDiantar) {
-        statusBadge = 'DIANTAR KE LAPANGAN';
-        statusTone = 'amber';
-        statusPenjelasan = `Barang telah diantar ke lapangan pada ${tglBarangDiantar}`;
-      } else if (tglKeTimLapangan) {
-        statusBadge = 'MENUNGGU DISTRIBUSI LAPANGAN';
-        statusTone = 'amber';
-        statusPenjelasan = `Diteruskan ke tim lapangan pada ${tglKeTimLapangan}`;
-      } else if (noTtb || tglInputTtb) {
-        statusBadge = 'VALIDASI LOGISTIK TTB';
-        statusTone = 'purple';
-        statusPenjelasan = `TTB ${noTtb} divalidasi logistik (${tglInputTtb || '-'})`;
-      } else if (tglKePicTtb) {
-        statusBadge = 'MENUNGGU PIC TTB';
-        statusTone = 'purple';
-        statusPenjelasan = `Menunggu proses PIC TTB sejak ${tglKePicTtb}`;
-      } else if (noFstb || tglInputFstb) {
-        statusBadge = 'PROSES FSTB';
-        statusTone = 'cyan';
-        statusPenjelasan = `FSTB ${noFstb} diterbitkan (${tglInputFstb || '-'})`;
-      } else if (rawStatus === 'CLOSE') {
-        statusBadge = 'SELESAI (CLOSE)';
-        statusTone = 'emerald';
-        statusPenjelasan = 'Layanan armada dan pemenuhan barang selesai (CLOSE)';
-      } else if (po && po !== '-') {
-        statusBadge = 'MENUNGGU FSTB';
-        statusTone = 'cyan';
-        statusPenjelasan = `PO ${po} terbit (${tglPo || '-'}), menunggu FSTB`;
-      } else {
-        statusBadge = 'MENUNGGU PO';
-        statusTone = 'rose';
-        statusPenjelasan = `FPB ${fpb} diajukan (${tglFpb || '-'}), PO belum terbit`;
-      }
-
       let lapse = 0;
       let lapseText: string | undefined = undefined;
 
@@ -649,7 +588,7 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
       } else if (waktuProses) {
         const match = waktuProses.match(/\d+/);
         if (match) lapse = parseInt(match[0]);
-      } else if (statusTone !== 'emerald' && (tglPo || tglFpb)) {
+      } else if (tglPo || tglFpb) {
         const refDate = new Date(tglPo || tglFpb).getTime();
         if (!isNaN(refDate)) {
           const diffDays = Math.floor((Date.now() - refDate) / (1000 * 60 * 60 * 24));
@@ -657,22 +596,37 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
         }
       }
 
-      if (lapseText !== 'TBC' && lapse > 5 && statusTone !== 'emerald') {
-        statusTone = 'rose';
-      }
+      const evalRes = evaluateTransactionStatus({
+        fpb,
+        po,
+        tglPo,
+        tglFpb,
+        noFstb,
+        tglInputFstb,
+        noTtb,
+        tglInputTtb,
+        tglKePicTtb,
+        tglKeTimLapangan,
+        tglBarangDiantar,
+        tglTimLapKePicTtb,
+        tglTtbKePicPch,
+        tglKeAdmPch,
+        picAdm,
+        picPch,
+        picTtb,
+        picLap,
+        noSpp,
+        tglInputSpp,
+        tglKeKeuangan,
+        rawStatus,
+        lapse,
+        lapseText,
+      });
 
-      let picAktif = `${picPch} (Purchasing)`;
-      if (statusBadge.includes('KEUANGAN') || statusBadge.includes('SPP')) {
-        picAktif = `${picAdm && picAdm !== '-' ? picAdm : picPch} (ADM/PRC)`;
-      } else if (statusBadge.includes('LAPANGAN') || statusBadge.includes('DISTRIBUSI')) {
-        picAktif = `${picLap && picLap !== '-' ? picLap : 'Tim Lapangan'} (Lapangan)`;
-      } else if (statusBadge.includes('TTB') || statusBadge.includes('LOGISTIK')) {
-        picAktif = `${picTtb && picTtb !== '-' ? picTtb : 'Davila/Fifi'} (Logistik)`;
-      } else if (statusBadge.includes('ADM')) {
-        picAktif = `${picAdm && picAdm !== '-' ? picAdm : 'Eka'} (ADM PCH)`;
-      } else if (statusBadge.includes('MENUNGGU PO')) {
-        picAktif = `${picPch && picPch !== '-' ? picPch : 'Input PO'} (Purchasing)`;
-      }
+      const statusBadge = evalRes.statusBadge;
+      const statusTone = evalRes.statusTone;
+      const statusPenjelasan = evalRes.statusPenjelasan;
+      const picAktif = evalRes.picAktif;
 
       const peruntukan = keterangan || (bnMatch?.note ? `Note: ${bnMatch.note}` : '');
 
@@ -801,83 +755,41 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
     if (!matchedProcRowIndexes.has(proc.rowIdx)) {
       unmatchedProcAppended++;
 
-      let statusBadge = 'PROSES ADM PURCHASING';
-      let statusTone: StatusTone = 'cyan';
-      let statusPenjelasan = `Diimpor dari sheet ${procSheetName || 'PROCUREMENT'}`;
-
-      const hasValidProcSpp = Boolean(
-        proc.spp &&
-        proc.spp.trim() !== '' &&
-        proc.spp.trim() !== '-' &&
-        proc.spp.trim().toLowerCase() !== '(kosong)' &&
-        proc.spp.trim().toLowerCase() !== 'null'
-      );
-
-      if (hasValidProcSpp && proc.tglKeu) {
-        statusBadge = 'SELESAI DI KEUANGAN';
-        statusTone = 'emerald';
-        statusPenjelasan = `Berkas sudah di keuangan pada ${formatDateDdMmYyDash(proc.tglKeu)} (SPP: ${proc.spp})`;
-      } else if (hasValidProcSpp || (proc.spp && proc.tglSpp)) {
-        statusBadge = 'PROSES SPP';
-        statusTone = 'emerald';
-        statusPenjelasan = `SPP ${proc.spp} dibuat ${proc.tglSpp}`;
-      } else if (proc.tglKeu || proc.tglKeAdmPch || (proc.picAdm && proc.picAdm !== '-')) {
-        // Apabila tidak ada nomor SPP maka status saat ini menjadi "PROSES ADM PURCHASING"
-        statusBadge = 'PROSES ADM PURCHASING';
-        statusTone = 'cyan';
-        statusPenjelasan = `Berkas di proses administrasi purchasing (menunggu nomor SPP)`;
-      } else if (proc.tglTtbKePicPch) {
-        statusBadge = 'TTB KE PIC PCH';
-        statusTone = 'purple';
-        statusPenjelasan = `TTB kembali ke PIC PCH pada ${proc.tglTtbKePicPch}`;
-      } else if (proc.tglDiantar) {
-        statusBadge = 'DIANTAR KE LAPANGAN';
-        statusTone = 'amber';
-        statusPenjelasan = `Barang diantar pada ${proc.tglDiantar}`;
-      } else if (proc.tglKeTimLap) {
-        statusBadge = 'MENUNGGU DISTRIBUSI LAPANGAN';
-        statusTone = 'amber';
-        statusPenjelasan = `Ke tim lapangan pada ${proc.tglKeTimLap}`;
-      } else if (proc.ttb || proc.tglTtb) {
-        statusBadge = 'VALIDASI LOGISTIK TTB';
-        statusTone = 'purple';
-        statusPenjelasan = `TTB ${proc.ttb} divalidasi logistik`;
-      } else if (proc.tglKePicTtb) {
-        statusBadge = 'MENUNGGU PIC TTB';
-        statusTone = 'purple';
-        statusPenjelasan = `Ke PIC TTB pada ${proc.tglKePicTtb}`;
-      } else if (proc.fstb || proc.tglFstb) {
-        statusBadge = 'PROSES FSTB';
-        statusTone = 'cyan';
-        statusPenjelasan = `FSTB ${proc.fstb} diterbitkan`;
-      } else if (proc.po && proc.po !== '-') {
-        statusBadge = 'MENUNGGU FSTB';
-        statusTone = 'cyan';
-        statusPenjelasan = `PO ${proc.po} tercatat, menunggu FSTB`;
-      } else {
-        statusBadge = 'MENUNGGU PO';
-        statusTone = 'rose';
-        statusPenjelasan = `FPB ${proc.fpb} belum memiliki PO`;
-      }
-
       let lapse = proc.lapseProc !== undefined ? proc.lapseProc : 0;
       let lapseText: string | undefined = proc.lapseText;
       if (lapseText === 'TBC') {
         lapse = 0;
-      } else if (lapse > 5 && statusTone !== 'emerald') {
-        statusTone = 'rose';
       }
 
-      let picAktif = `${proc.picPch || '-'} (Purchasing)`;
-      if (statusBadge.includes('KEUANGAN') || statusBadge.includes('SPP')) {
-        picAktif = `${proc.picAdm || proc.picPch || '-'} (ADM/PRC)`;
-      } else if (statusBadge.includes('LAPANGAN') || statusBadge.includes('DISTRIBUSI')) {
-        picAktif = `${proc.picLap || '-'} (Lapangan)`;
-      } else if (statusBadge.includes('TTB') || statusBadge.includes('LOGISTIK')) {
-        picAktif = `${proc.picTtb || '-'} (Logistik)`;
-      } else if (statusBadge.includes('ADM')) {
-        picAktif = `${proc.picAdm || '-'} (ADM PCH)`;
-      }
+      const evalRes = evaluateTransactionStatus({
+        fpb: proc.fpb,
+        po: proc.po,
+        tglPo: proc.tglPo,
+        noFstb: proc.fstb,
+        tglInputFstb: proc.tglFstb,
+        noTtb: proc.ttb,
+        tglInputTtb: proc.tglTtb,
+        tglKePicTtb: proc.tglKePicTtb,
+        tglKeTimLapangan: proc.tglKeTimLap,
+        tglBarangDiantar: proc.tglDiantar,
+        tglTimLapKePicTtb: proc.tglTimLapKePicTtb,
+        tglTtbKePicPch: proc.tglTtbKePicPch,
+        tglKeAdmPch: proc.tglKeAdmPch,
+        picAdm: proc.picAdm,
+        picPch: proc.picPch,
+        picTtb: proc.picTtb,
+        picLap: proc.picLap,
+        noSpp: proc.spp,
+        tglInputSpp: proc.tglSpp,
+        tglKeKeuangan: proc.tglKeu,
+        lapse,
+        lapseText,
+      });
+
+      const statusBadge = evalRes.statusBadge;
+      const statusTone = evalRes.statusTone;
+      const statusPenjelasan = evalRes.statusPenjelasan;
+      const picAktif = evalRes.picAktif;
 
       const cfMatch = proc.fpb ? checkFpbMap.get(normalizeKey(proc.fpb)) : undefined;
       const picCheckFpb = cfMatch?.pic || (cfMatch ? (cfMatch.verifiedBy || 'Bu Noor') : '-');
@@ -1003,9 +915,11 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
     }
   }
 
+  const enriched = enrichProcurementAndArmada(importedProcurement, importedArmada);
+
   return {
-    procurement: importedProcurement,
-    armada: importedArmada,
+    procurement: enriched.procurement,
+    armada: enriched.armada,
     stats: {
       totalMlaRows,
       totalProcRows: allProcRecords.length,
@@ -1013,8 +927,8 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
       totalCheckFpbRows: checkFpbMap.size,
       matchedMlaCount,
       unmatchedProcAppended,
-      totalMergedProcurement: importedProcurement.length,
-      totalArmadaItems: importedArmada.length,
+      totalMergedProcurement: enriched.procurement.length,
+      totalArmadaItems: enriched.armada.length,
     },
   };
 }

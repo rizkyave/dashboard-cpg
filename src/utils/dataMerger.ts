@@ -1,4 +1,5 @@
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
+import { evaluateTransactionStatus, hasValue } from '@/utils/statusWorkflow';
 
 /**
  * Normalisasi format nomor FPB untuk pencocokan kunci unik
@@ -16,26 +17,17 @@ export function normalizeFpbKey(fpb?: string): string {
 }
 
 /**
- * Helper untuk menentukan apakah suatu nilai string memiliki isi yang bermakna
- * (bukan kosong, bukan '-', bukan '(kosong)', dll).
- */
-function hasValue(val?: string | number | null): boolean {
-  if (val === undefined || val === null) return false;
-  const s = String(val).trim();
-  return s !== '' && s !== '-' && s !== '(kosong)' && s.toLowerCase() !== 'null';
-}
-
-/**
- * Validasi konsistensi status berkas:
- * Apabila tidak ada nomor SPP, status berkas tidak boleh SELESAI DI KEUANGAN / PROSES SPP,
- * melainkan menjadi "PROSES ADM PURCHASING".
+ * Validasi konsistensi status berkas secara menyeluruh:
+ * Menggunakan evaluasi alur 4 modul supply chain sehingga statusBadge dan statusPenjelasan
+ * selalu akurat 100% dan tidak pernah bertentangan dengan data aktual.
  */
 export function sanitizeItemStatus(item: ProcurementItem): void {
-  const hasValidSpp = hasValue(item.noSpp);
-  if (!hasValidSpp && (item.statusBadge === 'SELESAI DI KEUANGAN' || item.statusBadge === 'PROSES SPP')) {
-    item.statusBadge = 'PROSES ADM PURCHASING';
-    item.statusTone = 'cyan';
-    item.statusPenjelasan = 'Berkas di administrasi purchasing (menunggu nomor SPP)';
+  const result = evaluateTransactionStatus(item);
+  item.statusBadge = result.statusBadge;
+  item.statusTone = result.statusTone;
+  item.statusPenjelasan = result.statusPenjelasan;
+  if (!item.picAktif || item.picAktif === '-' || item.picAktif.includes('Input PO')) {
+    item.picAktif = result.picAktif;
   }
 }
 
@@ -73,9 +65,20 @@ export function mergeProcurementDatasets(
         if (!hasValue(target.po) && hasValue(item.po)) target.po = item.po;
         if (!hasValue(target.tglPo) && hasValue(item.tglPo)) target.tglPo = item.tglPo;
         if (!hasValue(target.noFstb) && hasValue(item.noFstb)) target.noFstb = item.noFstb;
+        if (!hasValue(target.tglInputFstb) && hasValue(item.tglInputFstb)) target.tglInputFstb = item.tglInputFstb;
         if (!hasValue(target.noTtb) && hasValue(item.noTtb)) target.noTtb = item.noTtb;
+        if (!hasValue(target.tglInputTtb) && hasValue(item.tglInputTtb)) target.tglInputTtb = item.tglInputTtb;
         if (!hasValue(target.tglTimLapKePicTtb) && hasValue(item.tglTimLapKePicTtb)) target.tglTimLapKePicTtb = item.tglTimLapKePicTtb;
+        if (!hasValue(target.tglTtbKePicPch) && hasValue(item.tglTtbKePicPch)) target.tglTtbKePicPch = item.tglTtbKePicPch;
+        if (!hasValue(target.tglKeAdmPch) && hasValue(item.tglKeAdmPch)) target.tglKeAdmPch = item.tglKeAdmPch;
         if (!hasValue(target.noSpp) && hasValue(item.noSpp)) target.noSpp = item.noSpp;
+        if (!hasValue(target.tglInputSpp) && hasValue(item.tglInputSpp)) target.tglInputSpp = item.tglInputSpp;
+        if (!hasValue(target.tglKeKeuangan) && hasValue(item.tglKeKeuangan)) target.tglKeKeuangan = item.tglKeKeuangan;
+        if (!hasValue(target.picPch) && hasValue(item.picPch)) target.picPch = item.picPch;
+        if (!hasValue(target.picTtb) && hasValue(item.picTtb)) target.picTtb = item.picTtb;
+        if (!hasValue(target.picLap) && hasValue(item.picLap)) target.picLap = item.picLap;
+        if (!hasValue(target.picAdm) && hasValue(item.picAdm)) target.picAdm = item.picAdm;
+        sanitizeItemStatus(target);
       } else {
         const copy = { ...item };
         sanitizeItemStatus(copy);
@@ -245,15 +248,7 @@ export function mergeProcurementDatasets(
         target.verifiedByFpb = incoming.verifiedByFpb;
       }
 
-      // 8. Status Badge & Workflow Tone
-      if (hasValue(incoming.statusBadge) && incoming.statusBadge !== 'PROSES PENGADAAN') {
-        target.statusBadge = incoming.statusBadge;
-        target.statusTone = incoming.statusTone || target.statusTone;
-        if (hasValue(incoming.statusPenjelasan)) {
-          target.statusPenjelasan = incoming.statusPenjelasan;
-        }
-      }
-
+      // 8. Evaluasi Ulang Status Badge & Workflow Tone Berdasarkan Tahapan Terakhir
       if (incoming.lapseText === 'TBC') {
         target.lapseText = 'TBC';
         target.lapse = 0;
@@ -261,6 +256,8 @@ export function mergeProcurementDatasets(
         target.lapse = incoming.lapse;
         target.lapseText = incoming.lapseText;
       }
+
+      sanitizeItemStatus(target);
 
       updatedCount++;
     } else {
@@ -370,5 +367,148 @@ export function mergeArmadaDatasets(
       updated: updatedCount,
       added: addedCount,
     },
+  };
+}
+
+/**
+ * Cross-Enrichment antara dataset Procurement dan dataset Armada:
+ * Memastikan data saling melengkapi (nomor PO, tanggal PO, TTB, FSTB, pengantaran fisik, SPP, PIC)
+ * dan seluruh status berkas terevaluasi konsisten 100% di semua tab tampilan.
+ */
+export function enrichProcurementAndArmada(
+  procurementList: ProcurementItem[],
+  armadaList: ArmadaItem[]
+): {
+  procurement: ProcurementItem[];
+  armada: ArmadaItem[];
+} {
+  const safeProc = (procurementList || []).map((p) => ({ ...p }));
+  const safeArm = (armadaList || []).map((a) => ({ ...a }));
+
+  // Buat map pencarian armada berdasarkan FPB & PO
+  const armMapByFpb = new Map<string, ArmadaItem[]>();
+  const armMapByPo = new Map<string, ArmadaItem[]>();
+
+  for (const arm of safeArm) {
+    const fpbKey = normalizeFpbKey(arm.fpb);
+    if (fpbKey) {
+      if (!armMapByFpb.has(fpbKey)) armMapByFpb.set(fpbKey, []);
+      armMapByFpb.get(fpbKey)!.push(arm);
+    }
+    const poKey = hasValue(arm.noPo) ? String(arm.noPo).trim().toLowerCase() : '';
+    if (poKey) {
+      if (!armMapByPo.has(poKey)) armMapByPo.set(poKey, []);
+      armMapByPo.get(poKey)!.push(arm);
+    }
+  }
+
+  // Buat map pencarian procurement berdasarkan FPB & PO
+  const procMapByFpb = new Map<string, ProcurementItem>();
+  const procMapByPo = new Map<string, ProcurementItem>();
+
+  for (const proc of safeProc) {
+    const fpbKey = normalizeFpbKey(proc.fpb);
+    if (fpbKey && !procMapByFpb.has(fpbKey)) {
+      procMapByFpb.set(fpbKey, proc);
+    }
+    const poKey = hasValue(proc.po) ? String(proc.po).trim().toLowerCase() : '';
+    if (poKey && !procMapByPo.has(poKey)) {
+      procMapByPo.set(poKey, proc);
+    }
+  }
+
+  // 1. Lengkapi Procurement dari Armada
+  for (const proc of safeProc) {
+    const fpbKey = normalizeFpbKey(proc.fpb);
+    const poKey = hasValue(proc.po) ? String(proc.po).trim().toLowerCase() : '';
+
+    const matchedArmList =
+      (fpbKey ? armMapByFpb.get(fpbKey) : undefined) ||
+      (poKey ? armMapByPo.get(poKey) : undefined) ||
+      [];
+
+    for (const arm of matchedArmList) {
+      if (!hasValue(proc.po) && hasValue(arm.noPo)) proc.po = String(arm.noPo);
+      if (!hasValue(proc.tglPo) && hasValue(arm.tglPo)) proc.tglPo = String(arm.tglPo);
+      if (!hasValue(proc.date) && hasValue(arm.tglPo)) proc.date = String(arm.tglPo);
+      if (!hasValue(proc.noFstb) && hasValue(arm.noFstb)) proc.noFstb = String(arm.noFstb);
+      if (!hasValue(proc.tglInputFstb) && hasValue(arm.tglFstb)) proc.tglInputFstb = String(arm.tglFstb);
+      if (!hasValue(proc.noTtb) && hasValue(arm.noTtb)) proc.noTtb = String(arm.noTtb);
+      if (!hasValue(proc.tglInputTtb) && hasValue(arm.tglTtb)) proc.tglInputTtb = String(arm.tglTtb);
+      if (!hasValue(proc.tglTimLapKePicTtb) && hasValue(arm.tglTimLapKePicTtb)) proc.tglTimLapKePicTtb = String(arm.tglTimLapKePicTtb);
+      if (!hasValue(proc.noSpp) && hasValue(arm.noSpp)) proc.noSpp = String(arm.noSpp);
+      if (!hasValue(proc.tglKeKeuangan) && hasValue(arm.tglKeKeuangan)) proc.tglKeKeuangan = String(arm.tglKeKeuangan);
+      if (!hasValue(proc.deptArmada) && hasValue(arm.armada)) proc.deptArmada = String(arm.armada);
+      if (!hasValue(proc.picPch) && hasValue(arm.picPch)) proc.picPch = String(arm.picPch);
+      if (!hasValue(proc.picTtb) && hasValue(arm.picTtb)) proc.picTtb = String(arm.picTtb);
+      if (!hasValue(proc.picLap) && hasValue(arm.picLap)) proc.picLap = String(arm.picLap);
+      if (!hasValue(proc.picAdm) && hasValue(arm.picAdm)) proc.picAdm = String(arm.picAdm);
+      if (arm.statusCheckFpb === 'DONE' && proc.statusCheckFpb !== 'DONE') {
+        proc.statusCheckFpb = 'DONE';
+        proc.picCheckFpb = arm.picCheckFpb || proc.picCheckFpb || 'Logistik';
+      }
+    }
+
+    sanitizeItemStatus(proc);
+  }
+
+  // 2. Lengkapi Armada dari Procurement
+  for (const arm of safeArm) {
+    const fpbKey = normalizeFpbKey(arm.fpb);
+    const poKey = hasValue(arm.noPo) ? String(arm.noPo).trim().toLowerCase() : '';
+
+    const matchedProc =
+      (fpbKey ? procMapByFpb.get(fpbKey) : undefined) ||
+      (poKey ? procMapByPo.get(poKey) : undefined);
+
+    if (matchedProc) {
+      if (!hasValue(arm.noPo) && hasValue(matchedProc.po)) arm.noPo = String(matchedProc.po);
+      if (!hasValue(arm.tglPo) && hasValue(matchedProc.tglPo)) arm.tglPo = String(matchedProc.tglPo);
+      if (!hasValue(arm.noFstb) && hasValue(matchedProc.noFstb)) arm.noFstb = String(matchedProc.noFstb);
+      if (!hasValue(arm.tglFstb) && hasValue(matchedProc.tglInputFstb)) arm.tglFstb = String(matchedProc.tglInputFstb);
+      if (!hasValue(arm.noTtb) && hasValue(matchedProc.noTtb)) arm.noTtb = String(matchedProc.noTtb);
+      if (!hasValue(arm.tglTtb) && hasValue(matchedProc.tglInputTtb)) arm.tglTtb = String(matchedProc.tglInputTtb);
+      if (!hasValue(arm.tglTimLapKePicTtb) && hasValue(matchedProc.tglTimLapKePicTtb)) arm.tglTimLapKePicTtb = String(matchedProc.tglTimLapKePicTtb);
+      if (!hasValue(arm.noSpp) && hasValue(matchedProc.noSpp)) arm.noSpp = String(matchedProc.noSpp);
+      if (!hasValue(arm.tglKeKeuangan) && hasValue(matchedProc.tglKeKeuangan)) arm.tglKeKeuangan = String(matchedProc.tglKeKeuangan);
+      if (!hasValue(arm.picPch) && hasValue(matchedProc.picPch)) arm.picPch = String(matchedProc.picPch);
+      if (!hasValue(arm.picTtb) && hasValue(matchedProc.picTtb)) arm.picTtb = String(matchedProc.picTtb);
+      if (!hasValue(arm.picLap) && hasValue(matchedProc.picLap)) arm.picLap = String(matchedProc.picLap);
+      if (!hasValue(arm.picAdm) && hasValue(matchedProc.picAdm)) arm.picAdm = String(matchedProc.picAdm);
+      if (matchedProc.statusCheckFpb === 'DONE' && arm.statusCheckFpb !== 'DONE') {
+        arm.statusCheckFpb = 'DONE';
+        arm.picCheckFpb = matchedProc.picCheckFpb || arm.picCheckFpb || 'Logistik';
+      }
+
+      // Selaraskan status badge & tone
+      const evaluated = evaluateTransactionStatus({
+        fpb: arm.fpb,
+        po: arm.noPo,
+        tglPo: arm.tglPo,
+        noFstb: arm.noFstb,
+        tglFstb: arm.tglFstb,
+        noTtb: arm.noTtb,
+        tglTtb: arm.tglTtb,
+        tglTimLapKePicTtb: arm.tglTimLapKePicTtb,
+        noSpp: arm.noSpp,
+        tglKeKeuangan: arm.tglKeKeuangan,
+        picPch: arm.picPch,
+        picTtb: arm.picTtb,
+        picLap: arm.picLap,
+        picAdm: arm.picAdm,
+        lapse: arm.lapse,
+        lapseText: arm.lapseText,
+        statusArmada: arm.status,
+      });
+
+      arm.statusBadge = evaluated.statusBadge;
+      arm.statusTone = evaluated.statusTone;
+      if (!arm.picAktif || arm.picAktif === '-') arm.picAktif = evaluated.picAktif;
+    }
+  }
+
+  return {
+    procurement: safeProc,
+    armada: safeArm,
   };
 }

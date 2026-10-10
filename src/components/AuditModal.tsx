@@ -551,6 +551,10 @@ export default function AuditModal({
       return 'BATAL / REJECT';
     }
 
+    if (itemS1?.statusBadge && itemS1.statusBadge !== 'PROSES PENGADAAN' && itemS1.statusBadge !== 'TERDATA') {
+      return itemS1.statusBadge;
+    }
+
     // 1. Selesai di Keuangan (SPP sah dan sudah ada bukti penyerahan ke Keuangan)
     if (hasValidSpp && itemS1?.tglKeKeuangan && itemS1.tglKeKeuangan !== '-') {
       return 'SELESAI DI KEUANGAN';
@@ -558,7 +562,7 @@ export default function AuditModal({
 
     // 2. SPP sudah terbit, menunggu proses pencairan kas
     if (hasValidSpp) {
-      return 'PROSES SPP KAS';
+      return 'PROSES SPP';
     }
 
     // 3. Serah terima fisik / BAST sudah selesai, berkas masuk proses ADM Purchasing
@@ -575,20 +579,21 @@ export default function AuditModal({
     if (activeTtb || activeFstb) {
       return isJasaOnly
         ? 'MENUNGGU BAST / MTC JASA'
-        : 'MENUNGGU VERIFIKASI FISIK';
+        : 'VALIDASI LOGISTIK TTB';
     }
 
     // 5. PO sudah sah diterbitkan, menunggu pengiriman barang vendor / terbit TTB
     if (activePo && activePo !== '-' && activePo !== 'NOPO') {
       return isJasaOnly
         ? 'PO TERBIT - PROSES PEKERJAAN'
-        : 'MENUNGGU PENGIRIMAN / TTB';
+        : 'MENUNGGU FSTB';
     }
 
     // 6. Belum ada PO resmi
     return 'MENUNGGU PO';
   }, [
     isExplicitCancel,
+    itemS1?.statusBadge,
     hasValidSpp,
     itemS1?.tglKeKeuangan,
     itemS1?.tglKeAdmPch,
@@ -605,13 +610,18 @@ export default function AuditModal({
     if (statusSaatIni === 'SELESAI DI KEUANGAN' || statusSaatIni.includes('SELESAI')) {
       return 'text-emerald-600 dark:text-emerald-400';
     }
-    if (statusSaatIni === 'PROSES SPP KAS') {
+    if (statusSaatIni.includes('SPP')) {
       return 'text-emerald-600 dark:text-emerald-400';
     }
-    if (statusSaatIni === 'PROSES ADM PURCHASING') {
+    if (statusSaatIni.includes('ADM')) {
       return 'text-cyan-600 dark:text-cyan-400';
     }
+    if (statusSaatIni.includes('TTB') || statusSaatIni.includes('LOGISTIK')) {
+      return 'text-purple-600 dark:text-purple-400';
+    }
     if (
+      statusSaatIni.includes('LAPANGAN') ||
+      statusSaatIni.includes('DISTRIBUSI') ||
       statusSaatIni.includes('VERIFIKASI FISIK') ||
       statusSaatIni.includes('PENGIRIMAN') ||
       statusSaatIni.includes('BAST') ||
@@ -619,8 +629,11 @@ export default function AuditModal({
     ) {
       return 'text-amber-600 dark:text-amber-400';
     }
+    if (statusSaatIni.includes('FSTB')) {
+      return 'text-cyan-600 dark:text-cyan-400';
+    }
     if (statusSaatIni === 'MENUNGGU PO') {
-      return 'text-amber-600 dark:text-amber-400';
+      return 'text-rose-600 dark:text-rose-400';
     }
     return 'text-foreground';
   }, [statusSaatIni]);
