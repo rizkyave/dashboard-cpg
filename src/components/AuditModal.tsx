@@ -1350,50 +1350,63 @@ export default function AuditModal({
                   </div>
                   <div className="flex items-start justify-between gap-1.5 min-w-0">
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">Verifikasi:</span>
-                    <span
-                      className="text-[10px] font-mono text-right text-emerald-700 dark:text-emerald-400 font-medium leading-tight ml-1.5 truncate min-w-0"
-                      title={fpbCheckInfo.label}
-                    >
-                      {fpbCheckInfo.checkerName ? `FPB Check ${fpbCheckInfo.checkerName}` : '-'}
-                    </span>
+                    {fpbCheckInfo.checkerName ? (
+                      <span
+                        className="text-[10px] font-mono text-right text-emerald-700 dark:text-emerald-400 font-medium leading-tight ml-1.5 truncate min-w-0"
+                        title={fpbCheckInfo.label}
+                      >
+                        FPB Check {fpbCheckInfo.checkerName}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
+                        Belum Diverifikasi
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center justify-between gap-1.5 min-w-0">
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">Approved:</span>
-                    <span
-                      className="text-muted-foreground font-mono text-right ml-1.5 truncate min-w-0"
-                      title={
-                        pdfData?.approvedBy
-                          ? `Approved By: ${pdfData.approvedBy} (${formatDateDdMmYy(pdfData.approvedDate) || ''})`
-                          : undefined
-                      }
-                    >
-                      {pdfData?.approvedBy
-                        ? `${pdfData.approvedBy}${pdfData.approvedDate ? ` (${formatDateDdMmYy(pdfData.approvedDate)})` : ''}`
-                        : itemS1?.tglApproveWeb
-                        ? formatDateDdMmYy(itemS1.tglApproveWeb)
-                        : itemsS2[0]?.tglApproveWeb
-                        ? formatDateDdMmYy(itemsS2[0].tglApproveWeb)
-                        : itemS1?.statusCheckFpb === 'CLOSE'
-                        ? 'Tervalidasi'
-                        : '-'}
-                    </span>
+                    {pdfData?.approvedBy ? (
+                      <span
+                        className="text-muted-foreground font-mono text-right ml-1.5 truncate min-w-0"
+                        title={`Approved By: ${pdfData.approvedBy} (${formatDateDdMmYy(pdfData.approvedDate) || ''})`}
+                      >
+                        {pdfData.approvedBy}{pdfData.approvedDate ? ` (${formatDateDdMmYy(pdfData.approvedDate)})` : ''}
+                      </span>
+                    ) : itemS1?.tglApproveWeb ? (
+                      <span className="text-muted-foreground font-mono text-right ml-1.5 truncate min-w-0">
+                        {formatDateDdMmYy(itemS1.tglApproveWeb)}
+                      </span>
+                    ) : itemsS2[0]?.tglApproveWeb ? (
+                      <span className="text-muted-foreground font-mono text-right ml-1.5 truncate min-w-0">
+                        {formatDateDdMmYy(itemsS2[0].tglApproveWeb)}
+                      </span>
+                    ) : itemS1?.statusCheckFpb === 'CLOSE' ? (
+                      <span className="text-muted-foreground font-mono text-right ml-1.5 truncate min-w-0">
+                        Tervalidasi
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
+                        Belum Diapprove
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center justify-between gap-1.5 min-w-0">
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">Received:</span>
-                    <span
-                      className={`font-mono text-right ml-1.5 truncate min-w-0 ${
-                        pdfData?.receivedBy
-                          ? 'font-semibold text-foreground'
-                          : 'text-muted-foreground'
-                      }`}
-                      title={
-                        pdfData?.receivedBy
-                          ? `Received By (Logistic Staff): ${pdfData.receivedBy} (${formatDateDdMmYy(pdfData.receivedDate) || ''})`
-                          : 'Belum di-approved / diterima oleh Logistik'
-                      }
-                    >
-                      {pdfData?.receivedBy || '-'}
-                    </span>
+                    {pdfData?.receivedBy ? (
+                      <span
+                        className="font-semibold text-foreground font-mono text-right ml-1.5 truncate min-w-0"
+                        title={`Received By (Logistic Staff): ${pdfData.receivedBy} (${formatDateDdMmYy(pdfData.receivedDate) || ''})`}
+                      >
+                        {pdfData.receivedBy}
+                      </span>
+                    ) : (
+                      <span
+                        className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0"
+                        title="Belum di-approved / diterima oleh Logistik"
+                      >
+                        Belum Diterima
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1435,39 +1448,69 @@ export default function AuditModal({
                 <div className="mt-2.5 space-y-1.5 text-[11px]">
                   <div className="flex items-center justify-between min-w-0">
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">PIC:</span>
-                    <span className="font-semibold text-foreground font-mono truncate text-right ml-1.5 min-w-0">
-                      {hasPicPch ? itemS1?.picPch : '-'}
-                    </span>
+                    {hasPicPch ? (
+                      <span className="font-semibold text-foreground font-mono truncate text-right ml-1.5 min-w-0">
+                        {itemS1?.picPch}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
+                        Belum Ditugaskan
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center justify-between min-w-0">
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">No. PO:</span>
-                    <span
-                      className="text-foreground font-mono font-bold truncate text-right ml-1.5 min-w-0"
-                      title={activePo || itemsS2[0]?.noPo || itemS1?.po || '-'}
-                    >
-                      {activePo || itemsS2[0]?.noPo || itemS1?.po || '-'}
-                    </span>
+                    {hasValidPo ? (
+                      <span
+                        className="text-foreground font-mono font-bold truncate text-right ml-1.5 min-w-0"
+                        title={activePo || itemsS2[0]?.noPo || itemS1?.po || ''}
+                      >
+                        {activePo || itemsS2[0]?.noPo || itemS1?.po}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
+                        Belum Terbit
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center justify-between min-w-0">
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">Tgl PO:</span>
-                    <span className="text-muted-foreground font-mono text-right ml-1.5 truncate min-w-0">
-                      {displayTglPo}
-                    </span>
+                    {displayTglPo && displayTglPo !== '-' ? (
+                      <span className="text-muted-foreground font-mono text-right ml-1.5 truncate min-w-0">
+                        {displayTglPo}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
+                        Belum Terbit
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center justify-between min-w-0">
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">Delivery:</span>
-                    <span className="text-muted-foreground font-mono text-right ml-1.5 truncate min-w-0">
-                      {itemS1?.deliveryTime || itemsS2[0]?.waktuProses || '-'}
-                    </span>
+                    {(itemS1?.deliveryTime && itemS1.deliveryTime !== '-') || (itemsS2[0]?.waktuProses && itemsS2[0].waktuProses !== '-') ? (
+                      <span className="text-muted-foreground font-mono text-right ml-1.5 truncate min-w-0">
+                        {itemS1?.deliveryTime || itemsS2[0]?.waktuProses}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
+                        Belum Dijadwalkan
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center justify-between min-w-0">
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">No. FSTB:</span>
-                    <span
-                      className="text-muted-foreground font-mono truncate text-right ml-1.5 min-w-0"
-                      title={itemsS2[0]?.noFstb || itemS1?.noFstb || '-'}
-                    >
-                      {itemsS2[0]?.noFstb || itemS1?.noFstb || '-'}
-                    </span>
+                    {(activeFstb && activeFstb !== '-' && activeFstb !== '(kosong)') || (itemsS2[0]?.noFstb && itemsS2[0].noFstb !== '-') || (itemS1?.noFstb && itemS1.noFstb !== '-') ? (
+                      <span
+                        className="text-muted-foreground font-mono truncate text-right ml-1.5 min-w-0"
+                        title={activeFstb || itemsS2[0]?.noFstb || itemS1?.noFstb || ''}
+                      >
+                        {activeFstb || itemsS2[0]?.noFstb || itemS1?.noFstb}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
+                        Belum Terbit
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1512,8 +1555,8 @@ export default function AuditModal({
                         {cleanPicTtb}
                       </span>
                     ) : (
-                      <span className="text-muted-foreground font-mono text-right ml-1.5 shrink-0">
-                        -
+                      <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
+                        Belum Ditugaskan
                       </span>
                     )}
                   </div>
@@ -1547,8 +1590,14 @@ export default function AuditModal({
                             </span>
                           )}
                         </>
+                      ) : activeTtb && activeTtb !== '-' && activeTtb !== '(kosong)' ? (
+                        <span className="text-purple-700 dark:text-purple-300 font-mono font-bold text-[10px] truncate">
+                          {activeTtb}
+                        </span>
                       ) : (
-                        <span className="text-muted-foreground font-mono text-[11px]">-</span>
+                        <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
+                          Belum Terbit
+                        </span>
                       )}
                     </div>
                   </div>
@@ -1556,12 +1605,18 @@ export default function AuditModal({
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">
                       {isJasaOnly ? 'Tgl Validasi:' : 'Tgl TTB:'}
                     </span>
-                    <span
-                      className="text-muted-foreground font-mono text-right ml-1.5 truncate min-w-0"
-                      title={itemsS2[0]?.tglTtb || itemS1?.tglInputTtb || '-'}
-                    >
-                      {formatDateDdMmYy(itemsS2[0]?.tglTtb || itemS1?.tglInputTtb)}
-                    </span>
+                    {(itemsS2[0]?.tglTtb && itemsS2[0].tglTtb !== '-') || (itemS1?.tglInputTtb && itemS1.tglInputTtb !== '-') ? (
+                      <span
+                        className="text-muted-foreground font-mono text-right ml-1.5 truncate min-w-0"
+                        title={itemsS2[0]?.tglTtb || itemS1?.tglInputTtb}
+                      >
+                        {formatDateDdMmYy(itemsS2[0]?.tglTtb || itemS1?.tglInputTtb)}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
+                        Belum Terbit
+                      </span>
+                    )}
                   </div>
                   {(activeFstb || parsedTtbList.length > 0 || activeTtb) && (
                     <button
@@ -1751,7 +1806,7 @@ export default function AuditModal({
                         {formatDateDdMmYy(itemS1.tglInputSpp)}
                       </span>
                     ) : (
-                      <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">-</span>
+                      <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">Belum Terbit</span>
                     )}
                   </div>
                   <div className="flex items-center justify-between min-w-0">
