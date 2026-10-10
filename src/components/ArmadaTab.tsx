@@ -329,6 +329,7 @@ export default function ArmadaTab({
       if (searchTerm.trim() !== '') {
         const q = searchTerm.toLowerCase().trim();
         const matchFpb = item.fpb?.toLowerCase().includes(q);
+        const matchWo = item.workOrderNo?.toLowerCase().includes(q);
         const matchArmada = item.armada?.toLowerCase().includes(q);
         const matchItem = item.item?.toLowerCase().includes(q);
         const matchKet = item.keterangan?.toLowerCase().includes(q);
@@ -345,6 +346,7 @@ export default function ArmadaTab({
 
         if (
           !matchFpb &&
+          !matchWo &&
           !matchArmada &&
           !matchItem &&
           !matchKet &&
@@ -1375,6 +1377,15 @@ export default function ArmadaTab({
                               <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-muted border border-border text-muted-foreground">
                                 {row.entity || 'CPL'}
                               </span>
+                              {row.workOrderNo && (
+                                <span
+                                  className="text-[10px] font-mono font-semibold px-1.5 py-0.2 rounded bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 inline-flex items-center gap-0.5"
+                                  title={`Nomor Work Order Operasional: ${row.workOrderNo}`}
+                                >
+                                  <span>🔧 WO:</span>
+                                  <span className="truncate max-w-[120px]">{row.workOrderNo}</span>
+                                </span>
+                              )}
                               {row.armada && (
                                 <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/20 truncate max-w-[130px]">
                                   {row.armada}
@@ -1656,6 +1667,15 @@ export default function ArmadaTab({
                           {row.entity && (
                             <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-mono bg-muted text-muted-foreground border border-border">
                               {row.entity}
+                            </span>
+                          )}
+                          {row.workOrderNo && (
+                            <span
+                              className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400"
+                              title={`Nomor Work Order Operasional: ${row.workOrderNo}`}
+                            >
+                              <span>🔧 WO:</span>
+                              <span className="truncate max-w-[130px]">{row.workOrderNo}</span>
                             </span>
                           )}
                           {(row.tglPo || row.tglFpb) && (

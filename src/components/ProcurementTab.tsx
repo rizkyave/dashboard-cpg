@@ -389,6 +389,7 @@ export default function ProcurementTab({
       if (searchTerm.trim() !== '') {
         const q = searchTerm.toLowerCase().trim();
         const matchFpb = row.fpb?.toLowerCase().includes(q);
+        const matchWo = row.workOrderNo?.toLowerCase().includes(q);
         const matchPo = row.po?.toLowerCase().includes(q);
         const matchItem = row.item?.toLowerCase().includes(q);
         const matchPeruntukan = row.peruntukan?.toLowerCase().includes(q);
@@ -408,6 +409,7 @@ export default function ProcurementTab({
 
         if (
           !matchFpb &&
+          !matchWo &&
           !matchPo &&
           !matchItem &&
           !matchPeruntukan &&
@@ -1390,9 +1392,20 @@ export default function ProcurementTab({
                                 {row.fpb}
                               </span>
                             </div>
-                            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-muted border border-border text-muted-foreground inline-block mt-0.5">
-                              {row.entity}
-                            </span>
+                            <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-muted border border-border text-muted-foreground inline-block">
+                                {row.entity}
+                              </span>
+                              {row.workOrderNo && (
+                                <span
+                                  className="text-[10px] font-mono font-semibold px-1.5 py-0.2 rounded bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 inline-flex items-center gap-0.5"
+                                  title={`Nomor Work Order Operasional: ${row.workOrderNo}`}
+                                >
+                                  <span>🔧 WO:</span>
+                                  <span className="truncate max-w-[120px]">{row.workOrderNo}</span>
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                         <span
@@ -1654,9 +1667,20 @@ export default function ProcurementTab({
                             <ExternalLink className="w-3 h-3 text-muted-foreground group-hover:text-foreground transition-colors" />
                           </button>
                         </div>
-                        <span className="inline-block mt-1 px-1.5 py-0.5 bg-muted text-muted-foreground rounded text-[10px] font-mono border border-border">
-                          {row.entity}
-                        </span>
+                        <div className="flex items-center gap-1.5 flex-wrap mt-1">
+                          <span className="inline-block px-1.5 py-0.5 bg-muted text-muted-foreground rounded text-[10px] font-mono border border-border">
+                            {row.entity}
+                          </span>
+                          {row.workOrderNo && (
+                            <span
+                              className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400"
+                              title={`Nomor Work Order Operasional: ${row.workOrderNo}`}
+                            >
+                              <span>🔧 WO:</span>
+                              <span className="truncate max-w-[130px]">{row.workOrderNo}</span>
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="p-3.5">
                         {row.po && row.po !== '-' ? (

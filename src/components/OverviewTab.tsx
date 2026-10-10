@@ -247,6 +247,7 @@ export default function OverviewTab({
       if (searchTerm.trim() !== '') {
         const q = searchTerm.toLowerCase().trim();
         const fpbMatch = row.fpb?.toLowerCase().includes(q);
+        const woMatch = row.workOrderNo?.toLowerCase().includes(q);
         const poMatch = row.po?.toLowerCase().includes(q);
         const itemMatch = row.item?.toLowerCase().includes(q);
         const peruntukanMatch = row.peruntukan?.toLowerCase().includes(q);
@@ -259,7 +260,7 @@ export default function OverviewTab({
           row.picLap?.toLowerCase().includes(q) ||
           row.picAktif?.toLowerCase().includes(q);
         const statusMatch = row.statusBadge?.toLowerCase().includes(q);
-        if (!fpbMatch && !poMatch && !itemMatch && !peruntukanMatch && !armadaMatch && !entityMatch && !picMatch && !statusMatch) {
+        if (!fpbMatch && !woMatch && !poMatch && !itemMatch && !peruntukanMatch && !armadaMatch && !entityMatch && !picMatch && !statusMatch) {
           return false;
         }
       }
@@ -789,9 +790,20 @@ export default function OverviewTab({
                             <span className="font-mono font-bold text-xs text-foreground group-hover:text-cyan-500 transition truncate block">
                               {row.fpb}
                             </span>
-                            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-muted border border-border text-muted-foreground inline-block mt-0.5">
-                              {row.entity}
-                            </span>
+                            <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-muted border border-border text-muted-foreground inline-block">
+                                {row.entity}
+                              </span>
+                              {row.workOrderNo && (
+                                <span
+                                  className="text-[10px] font-mono font-semibold px-1.5 py-0.2 rounded bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 inline-flex items-center gap-0.5"
+                                  title={`Nomor Work Order Operasional: ${row.workOrderNo}`}
+                                >
+                                  <span>🔧 WO:</span>
+                                  <span className="truncate max-w-[120px]">{row.workOrderNo}</span>
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                         <span
@@ -1111,9 +1123,20 @@ export default function OverviewTab({
                               <span>{row.fpb}</span>
                               <ExternalLink className="size-3 opacity-0 group-hover:opacity-100 transition" />
                             </div>
-                            <span className="inline-block mt-0.5 px-1.5 py-0.2 rounded text-[10px] font-mono font-medium bg-muted border border-border text-muted-foreground">
-                              {row.entity}
-                            </span>
+                            <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                              <span className="inline-block px-1.5 py-0.2 rounded text-[10px] font-mono font-medium bg-muted border border-border text-muted-foreground">
+                                {row.entity}
+                              </span>
+                              {row.workOrderNo && (
+                                <span
+                                  className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[10px] font-mono font-semibold bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400"
+                                  title={`Nomor Work Order Operasional: ${row.workOrderNo}`}
+                                >
+                                  <span>🔧 WO:</span>
+                                  <span className="truncate max-w-[130px]">{row.workOrderNo}</span>
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </td>

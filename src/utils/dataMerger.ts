@@ -1,4 +1,5 @@
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
+import { WorkOrderItem } from '@/types/workOrder';
 import { evaluateTransactionStatus, hasValue } from '@/utils/statusWorkflow';
 
 /**
@@ -78,6 +79,7 @@ export function mergeProcurementDatasets(
         if (!hasValue(target.picTtb) && hasValue(item.picTtb)) target.picTtb = item.picTtb;
         if (!hasValue(target.picLap) && hasValue(item.picLap)) target.picLap = item.picLap;
         if (!hasValue(target.picAdm) && hasValue(item.picAdm)) target.picAdm = item.picAdm;
+        if (!hasValue(target.workOrderNo) && hasValue(item.workOrderNo)) target.workOrderNo = item.workOrderNo;
         sanitizeItemStatus(target);
       } else {
         const copy = { ...item };
@@ -142,6 +144,9 @@ export function mergeProcurementDatasets(
       }
       if (!hasValue(target.tglPo) && hasValue(incoming.tglPo)) {
         target.tglPo = incoming.tglPo;
+      }
+      if (!hasValue(target.workOrderNo) && hasValue(incoming.workOrderNo)) {
+        target.workOrderNo = incoming.workOrderNo;
       }
 
       // 2. Lengkapi Tanggal & Deskripsi Barang (gunakan yang lebih spesifik)
@@ -340,6 +345,9 @@ export function mergeArmadaDatasets(
       if (!hasValue(target.tglTimLapKePicTtb) && hasValue(incoming.tglTimLapKePicTtb)) {
         target.tglTimLapKePicTtb = incoming.tglTimLapKePicTtb;
       }
+      if (!hasValue(target.workOrderNo) && hasValue(incoming.workOrderNo)) {
+        target.workOrderNo = incoming.workOrderNo;
+      }
       if (incoming.statusCheckFpb === 'DONE') {
         target.statusCheckFpb = 'DONE';
         target.picCheckFpb = incoming.picCheckFpb || 'Logistik';
@@ -371,19 +379,85 @@ export function mergeArmadaDatasets(
 }
 
 /**
- * Cross-Enrichment antara dataset Procurement dan dataset Armada:
- * Memastikan data saling melengkapi (nomor PO, tanggal PO, TTB, FSTB, pengantaran fisik, SPP, PIC)
+ * Buat map pencarian nomor Work Order dari WorkOrderItem[] berdasarkan nomor FPB
+ */
+export function buildWorkOrderMap(workOrderList: WorkOrderItem[] = []): {
+  exactMap: Map<string, string>;
+  numericMap: Map<string, string>;
+} {
+  const exactMap = new Map<string, string>();
+  const numericMap = new Map<string, string>();
+
+  for (const wo of workOrderList || []) {
+    if (!hasValue(wo.nomerDokumen) || !hasValue(wo.noFpbMrp)) continue;
+    const woNum = String(wo.nomerDokumen).trim();
+    if (!woNum || woNum === '-' || woNum.toLowerCase() === 'null') continue;
+
+    // Pisahkan FPB jika terdapat beberapa nomor dipisahkan koma, slash, titik koma, spasi, atau baris baru
+    const tokens = String(wo.noFpbMrp)
+      .split(/[\r\n,;|]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    for (const token of tokens) {
+      const key = normalizeFpbKey(token);
+      if (key && !exactMap.has(key)) {
+        exactMap.set(key, woNum);
+      }
+
+      // Regex mencari pola format FPB 2 digit tahun + tanda minus + 4-8 digit nomor (contoh: 26-0001751)
+      const numMatches = token.match(/\b\d{2}-\d{4,8}\b/g);
+      if (numMatches) {
+        for (const nm of numMatches) {
+          const lowerNm = nm.toLowerCase();
+          if (!numericMap.has(lowerNm)) {
+            numericMap.set(lowerNm, woNum);
+          }
+        }
+      }
+    }
+  }
+
+  return { exactMap, numericMap };
+}
+
+export function matchWorkOrderNo(
+  fpbStr?: string,
+  woMaps?: { exactMap: Map<string, string>; numericMap: Map<string, string> }
+): string | undefined {
+  if (!fpbStr || !woMaps) return undefined;
+  const key = normalizeFpbKey(fpbStr);
+  if (key && woMaps.exactMap.has(key)) {
+    return woMaps.exactMap.get(key);
+  }
+  const numMatches = fpbStr.match(/\b\d{2}-\d{4,8}\b/g);
+  if (numMatches) {
+    for (const nm of numMatches) {
+      const lowerNm = nm.toLowerCase();
+      if (woMaps.numericMap.has(lowerNm)) {
+        return woMaps.numericMap.get(lowerNm);
+      }
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Cross-Enrichment antara dataset Procurement dan dataset Armada, serta sinkronisasi Work Order:
+ * Memastikan data saling melengkapi (nomor PO, tanggal PO, TTB, FSTB, pengantaran fisik, SPP, PIC, nomor WO)
  * dan seluruh status berkas terevaluasi konsisten 100% di semua tab tampilan.
  */
 export function enrichProcurementAndArmada(
   procurementList: ProcurementItem[],
-  armadaList: ArmadaItem[]
+  armadaList: ArmadaItem[],
+  workOrderList?: WorkOrderItem[]
 ): {
   procurement: ProcurementItem[];
   armada: ArmadaItem[];
 } {
   const safeProc = (procurementList || []).map((p) => ({ ...p }));
   const safeArm = (armadaList || []).map((a) => ({ ...a }));
+  const woMaps = workOrderList && workOrderList.length > 0 ? buildWorkOrderMap(workOrderList) : undefined;
 
   // Buat map pencarian armada berdasarkan FPB & PO
   const armMapByFpb = new Map<string, ArmadaItem[]>();
@@ -443,9 +517,18 @@ export function enrichProcurementAndArmada(
       if (!hasValue(proc.picTtb) && hasValue(arm.picTtb)) proc.picTtb = String(arm.picTtb);
       if (!hasValue(proc.picLap) && hasValue(arm.picLap)) proc.picLap = String(arm.picLap);
       if (!hasValue(proc.picAdm) && hasValue(arm.picAdm)) proc.picAdm = String(arm.picAdm);
+      if (!hasValue(proc.workOrderNo) && hasValue(arm.workOrderNo)) proc.workOrderNo = String(arm.workOrderNo);
       if (arm.statusCheckFpb === 'DONE' && proc.statusCheckFpb !== 'DONE') {
         proc.statusCheckFpb = 'DONE';
         proc.picCheckFpb = arm.picCheckFpb || proc.picCheckFpb || 'Logistik';
+      }
+    }
+
+    // Sinkronkan nomor WO dari Google Sheets jika belum terisi dari e-FPB / Armada
+    if (!hasValue(proc.workOrderNo) && woMaps) {
+      const matchedWo = matchWorkOrderNo(proc.fpb, woMaps);
+      if (matchedWo) {
+        proc.workOrderNo = matchedWo;
       }
     }
 
@@ -475,6 +558,7 @@ export function enrichProcurementAndArmada(
       if (!hasValue(arm.picTtb) && hasValue(matchedProc.picTtb)) arm.picTtb = String(matchedProc.picTtb);
       if (!hasValue(arm.picLap) && hasValue(matchedProc.picLap)) arm.picLap = String(matchedProc.picLap);
       if (!hasValue(arm.picAdm) && hasValue(matchedProc.picAdm)) arm.picAdm = String(matchedProc.picAdm);
+      if (!hasValue(arm.workOrderNo) && hasValue(matchedProc.workOrderNo)) arm.workOrderNo = String(matchedProc.workOrderNo);
       if (matchedProc.statusCheckFpb === 'DONE' && arm.statusCheckFpb !== 'DONE') {
         arm.statusCheckFpb = 'DONE';
         arm.picCheckFpb = matchedProc.picCheckFpb || arm.picCheckFpb || 'Logistik';
@@ -504,6 +588,14 @@ export function enrichProcurementAndArmada(
       arm.statusBadge = evaluated.statusBadge;
       arm.statusTone = evaluated.statusTone;
       if (!arm.picAktif || arm.picAktif === '-') arm.picAktif = evaluated.picAktif;
+    }
+
+    // Sinkronkan nomor WO dari Google Sheets jika armada belum memiliki workOrderNo
+    if (!hasValue(arm.workOrderNo) && woMaps) {
+      const matchedWo = matchWorkOrderNo(arm.fpb, woMaps);
+      if (matchedWo) {
+        arm.workOrderNo = matchedWo;
+      }
     }
   }
 

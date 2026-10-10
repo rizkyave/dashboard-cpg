@@ -14,7 +14,7 @@ import {
   KapalPosisiSummary,
 } from '@/types/procurement';
 import { INITIAL_PROCUREMENT_DATA, INITIAL_ARMADA_DATA } from '@/data/initialData';
-import { mergeProcurementDatasets, mergeArmadaDatasets, enrichProcurementAndArmada } from '@/utils/dataMerger';
+import { mergeProcurementDatasets, mergeArmadaDatasets, enrichProcurementAndArmada, normalizeFpbKey } from '@/utils/dataMerger';
 import { evaluateTransactionStatus } from '@/utils/statusWorkflow';
 import { ResetScope } from '@/components/ResetConfirmModal';
 import { formatDateDdMmYyDash, extractDateInfo } from '@/utils/formatDate';
@@ -160,8 +160,21 @@ export default function DashboardPage() {
         setWorkOrderItems(data.items);
         if (data.summary) setWorkOrderSummary(data.summary);
         await saveStoredWorkOrder(data.items, data.summary || null);
+
+        // Sinkronkan nomor WO ke dataset Procurement dan Armada
+        setProcurementData((prevProc) => {
+          setArmadaData((prevArm) => {
+            const enriched = enrichProcurementAndArmada(prevProc, prevArm, data.items);
+            saveStoredProcurement(enriched.procurement);
+            saveStoredArmada(enriched.armada);
+            return enriched.armada;
+          });
+          const enriched = enrichProcurementAndArmada(prevProc, armadaData, data.items);
+          return enriched.procurement;
+        });
+
         showToast(
-          `Berhasil menyinkronkan ${data.items.length.toLocaleString('id-ID')} data Work Order dari Google Spreadsheet!`,
+          `Berhasil menyinkronkan ${data.items.length.toLocaleString('id-ID')} data Work Order & menghubungkannya ke FPB Overview!`,
           'success'
         );
       } else {
@@ -397,21 +410,29 @@ export default function DashboardPage() {
     let isMounted = true;
     const initData = async () => {
       try {
-        const [savedProc, savedArm, savedInv, savedKapal] = await Promise.all([
+        const [savedProc, savedArm, savedInv, savedKapal, savedWo, savedSm] = await Promise.all([
           loadStoredProcurement(),
           loadStoredArmada(),
           loadStoredInventory(),
           loadStoredKapalPosisi(),
+          loadStoredWorkOrder(),
+          loadStoredServiceMaintenance(),
         ]);
 
         if (!isMounted) return;
+
+        const activeWoItems = (savedWo && savedWo.items) || [];
+        if (activeWoItems.length > 0) {
+          setWorkOrderItems(activeWoItems);
+          if (savedWo?.summary) setWorkOrderSummary(savedWo.summary);
+        }
 
         if (savedProc && savedProc.length > 0) {
           const rawSanitizedProc = savedProc.map(sanitizeProcItem);
           const rawSanitizedArm = (savedArm || []).map(sanitizeArmItem);
 
-          // Cross-enrichment data tersimpan di browser agar nomor PO, TTB, dan status langsung tersinkronisasi
-          const enriched = enrichProcurementAndArmada(rawSanitizedProc, rawSanitizedArm);
+          // Cross-enrichment data tersimpan di browser agar nomor PO, TTB, status, dan nomor WO langsung tersinkronisasi
+          const enriched = enrichProcurementAndArmada(rawSanitizedProc, rawSanitizedArm, activeWoItems);
 
           enriched.procurement.sort((a, b) => {
             const timeA = extractDateInfo(a.date).timestamp || 0;
@@ -457,11 +478,7 @@ export default function DashboardPage() {
           setKapalPosisiItems(savedKapal.items);
           if (savedKapal.summary) setKapalPosisiSummary(savedKapal.summary);
         }
-        const savedWo = await loadStoredWorkOrder();
-        if (savedWo && savedWo.items && savedWo.items.length > 0) {
-          setWorkOrderItems(savedWo.items);
-          if (savedWo.summary) setWorkOrderSummary(savedWo.summary);
-        } else {
+        if (activeWoItems.length === 0) {
           // Sync Work Order on initial load in background if not yet cached
           fetch('/api/sync-work-order')
             .then((r) => r.json())
@@ -470,12 +487,23 @@ export default function DashboardPage() {
                 setWorkOrderItems(res.items);
                 if (res.summary) setWorkOrderSummary(res.summary);
                 saveStoredWorkOrder(res.items, res.summary || null);
+
+                // Auto-enrich dataset saat background fetch selesai
+                setProcurementData((prevProc) => {
+                  setArmadaData((prevArm) => {
+                    const reEnriched = enrichProcurementAndArmada(prevProc, prevArm, res.items);
+                    saveStoredProcurement(reEnriched.procurement);
+                    saveStoredArmada(reEnriched.armada);
+                    return reEnriched.armada;
+                  });
+                  const reEnriched = enrichProcurementAndArmada(prevProc, armadaData, res.items);
+                  return reEnriched.procurement;
+                });
               }
             })
             .catch((e) => console.warn('Auto-sync Work Order background:', e));
         }
 
-        const savedSm = await loadStoredServiceMaintenance();
         if (savedSm && savedSm.items && savedSm.items.length > 0) {
           setSmItems(savedSm.items);
           if (savedSm.summary) setSmSummary(savedSm.summary);
@@ -704,7 +732,7 @@ export default function DashboardPage() {
     }
 
     // Cross-enrichment data yang digabungkan agar selalu sinkron dan konsisten
-    const enriched = enrichProcurementAndArmada(mergedProc, mergedArm);
+    const enriched = enrichProcurementAndArmada(mergedProc, mergedArm, workOrderItems);
 
     setProcurementData(enriched.procurement);
     setArmadaData(enriched.armada);
@@ -723,6 +751,42 @@ export default function DashboardPage() {
       return updated;
     });
     showToast(`Berkas ${item.fpb} berhasil ditambahkan ke antrian monitoring.`, 'success');
+  };
+
+  // Callback saat nomor Work Order terdeteksi dari parsing PDF e-FPB
+  const handleUpdateWorkOrderNo = (fpb: string, woNo: string) => {
+    if (!fpb || !woNo) return;
+    const fpbKey = normalizeFpbKey(fpb);
+    let procChanged = false;
+    let armChanged = false;
+
+    setProcurementData((prevProc) => {
+      const nextProc = prevProc.map((p) => {
+        if (normalizeFpbKey(p.fpb) === fpbKey && p.workOrderNo !== woNo) {
+          procChanged = true;
+          return { ...p, workOrderNo: woNo };
+        }
+        return p;
+      });
+      if (procChanged) {
+        saveStoredProcurement(nextProc);
+      }
+      return nextProc;
+    });
+
+    setArmadaData((prevArm) => {
+      const nextArm = prevArm.map((a) => {
+        if (normalizeFpbKey(a.fpb) === fpbKey && a.workOrderNo !== woNo) {
+          armChanged = true;
+          return { ...a, workOrderNo: woNo };
+        }
+        return a;
+      });
+      if (armChanged) {
+        saveStoredArmada(nextArm);
+      }
+      return nextArm;
+    });
   };
 
   const triggerAiBottleneckAudit = () => {
@@ -1068,6 +1132,7 @@ export default function DashboardPage() {
             setAuditedPo(null);
           }}
           showToast={showToast}
+          onUpdateWorkOrderNo={handleUpdateWorkOrderNo}
         />
       )}
 

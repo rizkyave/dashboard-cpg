@@ -44,6 +44,7 @@ interface AuditModalProps {
   inventoryItems?: InventoryItem[];
   onClose: () => void;
   showToast: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
+  onUpdateWorkOrderNo?: (fpb: string, woNo: string) => void;
 }
 
 export default function AuditModal({
@@ -54,6 +55,7 @@ export default function AuditModal({
   inventoryItems = [],
   onClose,
   showToast,
+  onUpdateWorkOrderNo,
 }: AuditModalProps) {
   const { isVisitor } = useAuth();
   const [showAiRisk, setShowAiRisk] = useState<boolean>(false);
@@ -137,6 +139,9 @@ export default function AuditModal({
   const itemsS2 = poMatchingItems.length > 0
     ? poMatchingItems
     : armadaList.filter((i) => i.fpb === fpbNumber);
+
+  // Nomor Work Order (terpadu dari header e-FPB maupun Form Responses 1 Google Sheets)
+  const effectiveWorkOrderNo = pdfData?.workOrderNo || itemS1?.workOrderNo || itemsS2[0]?.workOrderNo || '';
 
   // Compile all requested items from e-FPB / Armada / Procurement for warehouse stock matching
   const requestedFpbItems = useMemo(() => {
@@ -649,6 +654,9 @@ export default function AuditModal({
         .then((json) => {
           if (isMounted && json.success && json.data) {
             setPdfData(json.data);
+            if (json.data.workOrderNo) {
+              onUpdateWorkOrderNo?.(json.data.fpbNo || primaryDocNum, json.data.workOrderNo);
+            }
             // Simpan nama barang ke cache IndexedDB untuk Advanced Search
             if (json.data.items && json.data.items.length > 0) {
               const itemNames = json.data.items.map((it: { itemName: string; description?: string; itemCode?: string }) =>
@@ -738,6 +746,9 @@ export default function AuditModal({
       const json = await res.json();
       if (json.success && json.data) {
         setPdfData(json.data);
+        if (json.data.workOrderNo) {
+          onUpdateWorkOrderNo?.(json.data.fpbNo || primaryDocNum, json.data.workOrderNo);
+        }
         // Simpan nama barang ke cache IndexedDB untuk Advanced Search
         if (json.data.items && json.data.items.length > 0) {
           const itemNames = json.data.items.map((it: { itemName: string; description?: string; itemCode?: string }) =>
@@ -896,12 +907,12 @@ export default function AuditModal({
                     </>
                   )}
                 </span>
-                {pdfData?.workOrderNo && (
+                {effectiveWorkOrderNo && (
                   <span
                     className="text-cyan-600 dark:text-cyan-400 font-mono text-xs px-2 py-0.5 rounded-md bg-cyan-500/10 border border-cyan-500/20 font-semibold shrink-0"
-                    title={`Nomor Work Order Operasional: ${pdfData.workOrderNo}`}
+                    title={`Nomor Work Order Operasional: ${effectiveWorkOrderNo}`}
                   >
-                    WO: {pdfData.workOrderNo}
+                    WO: {effectiveWorkOrderNo}
                   </span>
                 )}
                 <span className="text-foreground font-sans text-xs sm:text-sm font-medium truncate max-w-full">
@@ -1036,7 +1047,7 @@ export default function AuditModal({
         )}
 
         {/* Metadata Row Cards */}
-        <div className={`grid gap-3 min-w-0 ${pdfData?.workOrderNo ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 md:grid-cols-3'}`}>
+        <div className={`grid gap-3 min-w-0 ${effectiveWorkOrderNo ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 md:grid-cols-3'}`}>
           <div className="p-3 rounded-lg bg-muted/40 border border-border min-w-0">
             <span className="text-[10px] text-muted-foreground font-mono block">
               NOMOR PO INTERNAL
@@ -1049,13 +1060,13 @@ export default function AuditModal({
               )}
             </span>
           </div>
-          {pdfData?.workOrderNo && (
+          {effectiveWorkOrderNo && (
             <div className="p-3 rounded-lg bg-cyan-500/5 border border-cyan-500/20 min-w-0">
               <span className="text-[10px] text-cyan-700 dark:text-cyan-400 font-mono block font-medium">
                 WORK ORDER (WO)
               </span>
-              <span className="text-sm font-semibold text-foreground font-mono mt-0.5 block truncate" title={pdfData.workOrderNo}>
-                {pdfData.workOrderNo}
+              <span className="text-sm font-semibold text-foreground font-mono mt-0.5 block truncate" title={effectiveWorkOrderNo}>
+                {effectiveWorkOrderNo}
               </span>
             </div>
           )}
@@ -1272,14 +1283,14 @@ export default function AuditModal({
                       {formatDateDdMmYy(displayTglFpb)}
                     </span>
                   </div>
-                  {pdfData?.workOrderNo && (
+                  {effectiveWorkOrderNo && (
                     <div className="flex items-center justify-between min-w-0">
                       <span className="text-muted-foreground shrink-0 whitespace-nowrap">No. WO:</span>
                       <span
                         className="text-cyan-700 dark:text-cyan-400 font-mono font-semibold text-[10.5px] truncate text-right ml-1.5 min-w-0"
-                        title={`Work Order: ${pdfData.workOrderNo}`}
+                        title={`Work Order: ${effectiveWorkOrderNo}`}
                       >
-                        {pdfData.workOrderNo}
+                        {effectiveWorkOrderNo}
                       </span>
                     </div>
                   )}
@@ -1813,9 +1824,9 @@ export default function AuditModal({
               <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                 Daftar Rincian Item Barang {activePo ? `(Khusus PO: ${activePo})` : '(Layanan Armada Matching)'}:
               </span>
-              {pdfData?.workOrderNo && (
+              {effectiveWorkOrderNo && (
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/20 font-medium">
-                  WO: {pdfData.workOrderNo}
+                  WO: {effectiveWorkOrderNo}
                 </span>
               )}
             </div>
