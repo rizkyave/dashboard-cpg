@@ -127,8 +127,8 @@ export function evaluateTransactionStatus(item: EvaluatableItem): EvaluatedStatu
   const tglPo = item.tglPo || item.date || '';
   const tglFpb = item.tglFpb || '';
 
-  const picPch = item.picPch && item.picPch !== '-' ? item.picPch.trim() : '';
-  const picTtb = item.picTtb && item.picTtb !== '-' ? item.picTtb.trim() : '';
+  const picPch = item.picPch && item.picPch !== '-' && item.picPch.toLowerCase() !== 'purchasing' ? item.picPch.trim() : '';
+  const picTtb = item.picTtb && item.picTtb !== '-' && item.picTtb.toLowerCase() !== 'logistik' ? item.picTtb.trim() : '';
   const picLap = item.picLap && item.picLap !== '-' ? item.picLap.trim() : '';
   const picAdm = item.picAdm && item.picAdm !== '-' ? item.picAdm.trim() : '';
 

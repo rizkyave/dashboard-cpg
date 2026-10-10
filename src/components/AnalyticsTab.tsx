@@ -234,7 +234,7 @@ export default function AnalyticsTab({ items, onSyncSheets, isSyncingSheets }: A
       }
 
       // TTB
-      const picTtb = (it.picTtb && it.picTtb !== '-' ? it.picTtb.trim().toUpperCase() : 'UNASSIGNED');
+      const picTtb = (it.picTtb && it.picTtb !== '-' && it.picTtb.trim().toLowerCase() !== 'logistik' ? it.picTtb.trim().toUpperCase() : 'UNASSIGNED');
       if (picTtb !== 'UNASSIGNED') {
         if (!ttbMap[picTtb]) ttbMap[picTtb] = { total: 0, serahLap: 0, balikPch: 0, backlog: 0, diffsLap: [], onTimeLap: 0 };
         ttbMap[picTtb].total++;

@@ -23,6 +23,9 @@ export function normalizeFpbKey(fpb?: string): string {
  * selalu akurat 100% dan tidak pernah bertentangan dengan data aktual.
  */
 export function sanitizeItemStatus(item: ProcurementItem): void {
+  if (item.picTtb && item.picTtb.trim().toLowerCase() === 'logistik') {
+    item.picTtb = '';
+  }
   const result = evaluateTransactionStatus(item);
   item.statusBadge = result.statusBadge;
   item.statusTone = result.statusTone;

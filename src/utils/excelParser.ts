@@ -291,7 +291,7 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
         ket1: String(cKet1 >= 0 ? r[cKet1] : '').trim(),
         lapseProc,
         lapseText,
-        picTtb: String(cPicTtb >= 0 ? r[cPicTtb] : '').trim(),
+        picTtb: String(cPicTtb >= 0 ? r[cPicTtb] : '').trim().toLowerCase() === 'logistik' ? '' : String(cPicTtb >= 0 ? r[cPicTtb] : '').trim(),
         ttb: String(cTTB >= 0 ? r[cTTB] : '').trim(),
         tglTtb: excelDateToString(cTglTTB >= 0 ? r[cTglTTB] : ''),
         tglKeTimLap: excelDateToString(cTglTimLap >= 0 ? r[cTglTimLap] : ''),
@@ -552,7 +552,7 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
       }
 
       const picPch = pMatch?.picPch || '-';
-      const picTtb = pMatch?.picTtb || '-';
+      const picTtb = pMatch?.picTtb && pMatch.picTtb.trim().toLowerCase() !== 'logistik' ? pMatch.picTtb : '-';
       const picLap = pMatch?.picLap || '-';
       const picAdm = pMatch?.picAdm || '-';
       const deliveryTime = pMatch?.deliveryTime || '';

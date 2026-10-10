@@ -335,20 +335,58 @@ export default function AuditModal({
   const activeTglTtb =
     itemsS2.find((i) => i.tglTtb && i.tglTtb.trim() !== '' && i.tglTtb !== '-')?.tglTtb ||
     (itemS1?.tglInputTtb && itemS1.tglInputTtb.trim() !== '' && itemS1.tglInputTtb !== '-' ? itemS1.tglInputTtb : '') ||
-    (itemS1?.tglKePicTtb && itemS1.tglKePicTtb.trim() !== '' && itemS1.tglKePicTtb !== '-' ? itemS1.tglKePicTtb : '') ||
     '';
-  const isPicTtbFilled = Boolean(
-    itemS1?.picTtb &&
-    itemS1.picTtb !== '-' &&
-    itemS1.picTtb.trim() !== '' &&
-    itemS1.picTtb.toLowerCase() !== '(kosong)'
+
+  const isRealPicTtb = (pic?: string): boolean => {
+    if (!pic) return false;
+    const clean = pic.trim().toLowerCase();
+    return (
+      clean !== '' &&
+      clean !== '-' &&
+      clean !== '(kosong)' &&
+      clean !== 'null' &&
+      clean !== 'logistik' &&
+      !clean.startsWith('logistik')
+    );
+  };
+
+  const cleanPicTtb = isRealPicTtb(itemS1?.picTtb)
+    ? itemS1!.picTtb.trim()
+    : itemsS2.find((i) => isRealPicTtb(i.picTtb))?.picTtb?.trim() || '';
+
+  const isPicTtbFilled = Boolean(cleanPicTtb);
+
+  // Status TTB Tercatat: harus ada dokumen nomor TTB atau tanggal terbit TTB resmi
+  const hasValidTtbDoc = Boolean(
+    (activeTtb && activeTtb !== '-' && activeTtb.trim() !== '' && activeTtb !== '(kosong)') ||
+    parsedTtbList.length > 0
+  );
+  const hasValidTglTtb = Boolean(activeTglTtb && activeTglTtb !== '-' && activeTglTtb.trim() !== '');
+  const isLogistikTtbFilled = hasValidTtbDoc || hasValidTglTtb;
+
+  // Logika Kotak 2 (Purchasing): jika PIC dan No. PO belum terisi, Tgl PO otomatis kosong (-)
+  const hasPicPch = Boolean(
+    itemS1?.picPch &&
+    itemS1.picPch.trim() !== '' &&
+    itemS1.picPch !== '-' &&
+    itemS1.picPch.toLowerCase() !== '(kosong)' &&
+    itemS1.picPch.toLowerCase() !== 'null' &&
+    itemS1.picPch.toLowerCase() !== 'purchasing'
   );
 
-  const isLogistikTtbFilled = Boolean(
-    (activeTtb && activeTtb !== '-' && activeTtb.trim() !== '') ||
-    (activeTglTtb && activeTglTtb !== '-' && activeTglTtb.trim() !== '') ||
-    isPicTtbFilled
+  const hasValidPo = Boolean(
+    activePo &&
+    activePo.trim() !== '' &&
+    activePo !== '-' &&
+    activePo !== 'NOPO' &&
+    activePo.toLowerCase() !== '(kosong)' &&
+    activePo.toLowerCase() !== 'null'
   );
+
+  const rawTglPo = (hasValidPo || hasPicPch)
+    ? (itemsS2[0]?.tglPo || itemS1?.tglPo || '')
+    : '';
+  const displayTglPo = rawTglPo && rawTglPo !== '-' ? formatDateDdMmYy(rawTglPo) : '-';
 
   const isPicLapFilled = Boolean(
     itemS1?.picLap &&
@@ -1019,7 +1057,7 @@ export default function AuditModal({
                     <code>{parsedTtbList.join(', ') || activeTtb}</code>) telah tercatat, namun bukti serah terima fisik ke tim lapangan / kapal belum lengkap.
                   </p>
                   <p className="text-muted-foreground">
-                    PIC Logistik: <strong className="text-foreground">{isPicTtbFilled ? itemS1?.picTtb : 'Belum Tercatat'}</strong>,{' '}
+                    PIC Logistik: <strong className="text-foreground">{cleanPicTtb || 'Belum Tercatat'}</strong>,{' '}
                     PIC Lapangan: <strong className="text-foreground">{isPicLapFilled ? itemS1?.picLap : 'Belum Tercatat'}</strong>,{' '}
                     Tanggal Diantar: <strong className="text-foreground">{hasTglDiantar ? formatDateDdMmYy(itemS1?.tglBarangDiantar) : 'Belum Diantar'}</strong>.
                     Perlu konfirmasi serah terima fisik aktual sebelum berkas dinyatakan selesai secara operasional.
@@ -1036,7 +1074,7 @@ export default function AuditModal({
                     Rantai pertanggungjawaban 5 divisi: Pembuatan FPB (&rarr;{' '}
                     {displayPicFpb}), Purchasing (&rarr;{' '}
                     {activePo ? `${itemS1?.picPch || 'Purchasing'} - PO: ${activePo}` : 'Menunggu PO'}), TTB Logistik (&rarr;{' '}
-                    {isPicTtbFilled ? itemS1?.picTtb : parsedTtbList.length > 0 ? `TTB (${parsedTtbList.join(', ')})` : 'Belum Ada TTB'}), Lapangan (&rarr;{' '}
+                    {cleanPicTtb ? cleanPicTtb : parsedTtbList.length > 0 ? `TTB (${parsedTtbList.join(', ')})` : 'Belum Ada TTB'}), Lapangan (&rarr;{' '}
                     {isPicLapFilled ? itemS1?.picLap : hasTglDiantar ? `Diantar tgl ${formatDateDdMmYy(itemS1?.tglBarangDiantar)}` : 'Belum Dikonfirmasi'}), dan Finance (&rarr;{' '}
                     {hasValidSpp ? `${itemS1?.picAdm || 'Finance'} - SPP: ${itemS1?.noSpp}` : 'Menunggu Berkas ADM'}).
                   </p>
@@ -1388,7 +1426,7 @@ export default function AuditModal({
                   <div className="flex items-center justify-between min-w-0">
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">PIC:</span>
                     <span className="font-semibold text-foreground font-mono truncate text-right ml-1.5 min-w-0">
-                      {itemS1?.picPch || 'Purchasing'}
+                      {hasPicPch ? itemS1?.picPch : '-'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between min-w-0">
@@ -1403,7 +1441,7 @@ export default function AuditModal({
                   <div className="flex items-center justify-between min-w-0">
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">Tgl PO:</span>
                     <span className="text-muted-foreground font-mono text-right ml-1.5 truncate min-w-0">
-                      {formatDateDdMmYy(itemsS2[0]?.tglPo || itemS1?.date)}
+                      {displayTglPo}
                     </span>
                   </div>
                   <div className="flex items-center justify-between min-w-0">
@@ -1459,17 +1497,13 @@ export default function AuditModal({
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">
                       {isJasaOnly ? 'PIC Admin:' : 'PIC TTB:'}
                     </span>
-                    {isPicTtbFilled ? (
+                    {cleanPicTtb ? (
                       <span className="font-semibold text-foreground font-mono truncate text-right ml-1.5 min-w-0">
-                        {itemS1?.picTtb}
+                        {cleanPicTtb}
                       </span>
                     ) : (
-                      <span
-                        className="text-amber-600 dark:text-amber-400 font-mono text-[10px] italic font-medium flex items-center gap-1 text-right ml-1.5 shrink-0"
-                        title="PIC penerima TTB logistik belum dicatat pada berkas ini"
-                      >
-                        <AlertTriangle className="size-2.5 shrink-0" />
-                        Belum Tercatat
+                      <span className="text-muted-foreground font-mono text-right ml-1.5 shrink-0">
+                        -
                       </span>
                     )}
                   </div>
@@ -1543,8 +1577,8 @@ export default function AuditModal({
                     {isJasaOnly ? 'BAST Tercatat' : 'TTB Tercatat'}
                   </span>
                 ) : (
-                  <span className="inline-flex items-center justify-center gap-1 text-[10px] font-mono text-muted-foreground bg-muted px-2 py-1 rounded-md border border-border w-full truncate font-medium min-w-0">
-                    <Clock className="size-3 text-muted-foreground" />
+                  <span className="inline-flex items-center justify-center gap-1 text-[10px] font-mono text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-1 rounded-md border border-amber-500/20 w-full truncate font-medium min-w-0">
+                    <Clock className="size-3 text-amber-600 dark:text-amber-400" />
                     {isJasaOnly ? 'Menunggu BAST' : 'Menunggu TTB'}
                   </span>
                 )}
