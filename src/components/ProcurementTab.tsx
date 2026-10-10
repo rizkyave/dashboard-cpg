@@ -41,6 +41,7 @@ import { extractFstbLast5, openTimemarkWithFstb } from '@/utils/timemark';
 import { formatDateDdMmYy, formatDateDdMmYyDash, extractDateInfo } from '@/utils/formatDate';
 import { cleanTujuanPeruntukan } from '@/utils/descriptionCleaner';
 import { loadPdfItemsCache, savePdfItemsCache } from '@/utils/appStorage';
+import { getWorkflowGroupedStatuses } from '@/utils/statusWorkflow';
 
 // Helper formatting PIC & Status Penjelasan
 const formatPicAktif = (pic?: string) => {
@@ -288,8 +289,23 @@ export default function ProcurementTab({
     for (const item of displayBaseItems) {
       if (item.statusBadge) set.add(item.statusBadge.trim());
     }
-    return Array.from(set).sort();
+    return Array.from(set);
   }, [displayBaseItems]);
+
+  const statusCounts = useMemo(() => {
+    const countsMap: Record<string, number> = {};
+    for (const item of displayBaseItems) {
+      if (item.statusBadge) {
+        const key = item.statusBadge.trim();
+        countsMap[key] = (countsMap[key] || 0) + 1;
+      }
+    }
+    return countsMap;
+  }, [displayBaseItems]);
+
+  const workflowStatusGroups = useMemo(() => {
+    return getWorkflowGroupedStatuses(uniqueStatuses, statusCounts);
+  }, [uniqueStatuses, statusCounts]);
 
   // Counts for quick badges
   const counts = useMemo(() => {
@@ -1128,13 +1144,25 @@ export default function ProcurementTab({
                   <select
                     value={selectedStatus}
                     onChange={(e) => setSelectedStatus(e.target.value)}
-                    className="h-7 bg-background border border-border text-foreground text-xs rounded-lg px-2.5 focus:outline-none focus:ring-1 focus:ring-ring max-w-[220px]"
+                    className="h-7 bg-background border border-border text-foreground text-xs rounded-lg px-2.5 focus:outline-none focus:ring-1 focus:ring-ring max-w-[260px] font-medium"
                   >
-                    <option value="ALL">Semua Status ({uniqueStatuses.length})</option>
-                    {uniqueStatuses.map((st) => (
-                      <option key={st} value={st} className="bg-popover text-popover-foreground">
-                        {st}
-                      </option>
+                    <option value="ALL">Semua Status ({displayBaseItems.length})</option>
+                    {workflowStatusGroups.map((group) => (
+                      <optgroup
+                        key={group.moduleCode}
+                        label={group.moduleTitle}
+                        className="font-semibold text-muted-foreground bg-muted/60"
+                      >
+                        {group.options.map((opt) => (
+                          <option
+                            key={opt.value}
+                            value={opt.value}
+                            className="font-normal text-foreground bg-background"
+                          >
+                            {opt.label}{opt.count !== undefined ? ` (${opt.count})` : ''}
+                          </option>
+                        ))}
+                      </optgroup>
                     ))}
                   </select>
                 </div>

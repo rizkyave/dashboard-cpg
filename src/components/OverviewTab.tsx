@@ -35,6 +35,7 @@ import { EntityDonutChart, PipelineBarChart } from './Charts';
 import { extractFstbLast5, openTimemarkWithFstb } from '@/utils/timemark';
 import { formatDateDdMmYy, formatDateDdMmYyDash, extractDateInfo } from '@/utils/formatDate';
 import { useAuth } from '@/context/AuthContext';
+import { getWorkflowGroupedStatuses } from '@/utils/statusWorkflow';
 
 const formatPicAktif = (pic?: string) => {
   if (!pic) return '-';
@@ -179,10 +180,25 @@ export default function OverviewTab({
   const uniqueStatuses = useMemo(() => {
     const s = new Set<string>();
     items.forEach((item) => {
-      if (item.statusBadge) s.add(item.statusBadge);
+      if (item.statusBadge) s.add(item.statusBadge.trim());
     });
-    return Array.from(s).sort();
+    return Array.from(s);
   }, [items]);
+
+  const statusCounts = useMemo(() => {
+    const countsMap: Record<string, number> = {};
+    items.forEach((item) => {
+      if (item.statusBadge) {
+        const key = item.statusBadge.trim();
+        countsMap[key] = (countsMap[key] || 0) + 1;
+      }
+    });
+    return countsMap;
+  }, [items]);
+
+  const workflowStatusGroups = useMemo(() => {
+    return getWorkflowGroupedStatuses(uniqueStatuses, statusCounts);
+  }, [uniqueStatuses, statusCounts]);
 
   const counts = useMemo(() => {
     let critical = 0;
@@ -575,20 +591,32 @@ export default function OverviewTab({
           {/* Filter Dropdowns and Buttons (Non-Visitor only) */}
           {!isVisitor && (
             <div className={`${showMobileFilters ? 'flex' : 'hidden'} sm:flex flex-wrap items-center gap-1.5 text-xs pt-1 sm:pt-0`}>
-            {/* Status Select */}
+            {/* Status Select (Alur Sesuai Modul Supply Chain) */}
             <select
               value={selectedStatus}
               onChange={(e) => {
                 setSelectedStatus(e.target.value);
                 setCurrentPage(1);
               }}
-              className="h-8 rounded-lg border border-border bg-background px-2.5 text-xs text-foreground outline-none cursor-pointer hover:bg-muted transition"
+              className="h-8 rounded-lg border border-border bg-background px-2.5 text-xs text-foreground outline-none cursor-pointer hover:bg-muted transition font-medium"
             >
-              <option value="ALL">Semua Status</option>
-              {uniqueStatuses.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
+              <option value="ALL">Semua Status ({items.length})</option>
+              {workflowStatusGroups.map((group) => (
+                <optgroup
+                  key={group.moduleCode}
+                  label={group.moduleTitle}
+                  className="font-semibold text-muted-foreground bg-muted/60"
+                >
+                  {group.options.map((opt) => (
+                    <option
+                      key={opt.value}
+                      value={opt.value}
+                      className="font-normal text-foreground bg-background"
+                    >
+                      {opt.label}{opt.count !== undefined ? ` (${opt.count})` : ''}
+                    </option>
+                  ))}
+                </optgroup>
               ))}
             </select>
 
