@@ -447,7 +447,12 @@ export interface DivisionStageLight {
   isPassed: boolean;
   statusText: string;
   detail: string;
-  colorName: 'blue' | 'cyan' | 'purple' | 'amber' | 'emerald';
+  colorName: 'green' | 'blue' | 'purple' | 'orange' | 'gray' | 'emerald';
+  glowColor: string;
+  lightColor: string;
+  baseColor: string;
+  deepColor: string;
+  borderColor: string;
   activeBulbClass: string;
   activeTextClass: string;
 }
@@ -464,11 +469,11 @@ export interface FiveDivisionWorkflowResult {
 
 /**
  * Evaluasi status alur 5 divisi terverifikasi untuk lampu indikator traffic light:
- * 1. FPB (Pembuatan & Verifikasi FPB)
- * 2. PCH (Purchasing / No. PO & PIC)
- * 3. TTB (Logistik TTB)
- * 4. LAP (Tim Lapangan / Pengantaran & Serah Terima)
- * 5. FIN (Finance / ADM & SPP)
+ * 1. FPB (Pembuatan & Verifikasi FPB) -> Hijau jenuh
+ * 2. PCH (Purchasing / No. PO & PIC)  -> Biru jenuh
+ * 3. TTB (Logistik TTB)                -> Ungu jenuh
+ * 4. LAP (Tim Lapangan / Penyerahan)   -> Oranye jenuh
+ * 5. FIN (Finance / ADM & SPP)        -> Redup / Mati (jika belum lengkap)
  */
 export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisionWorkflowResult {
   // 1. FPB (Pembuatan & Verifikasi FPB)
@@ -578,9 +583,14 @@ export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisio
       isPassed: isFpbPassed,
       statusText: fpbStatus,
       detail: fpbDetail,
-      colorName: 'blue',
-      activeBulbClass: 'bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.9)] ring-1 ring-blue-300',
-      activeTextClass: 'text-blue-400 dark:text-blue-300 font-bold',
+      colorName: 'green',
+      glowColor: '#22c55e',
+      lightColor: '#86efac',
+      baseColor: '#22c55e',
+      deepColor: '#15803d',
+      borderColor: '#16a34a',
+      activeBulbClass: 'bg-emerald-500 shadow-[0_0_16px_rgba(34,197,94,0.7),0_0_6px_rgba(34,197,94,0.95)] ring-2 ring-emerald-400/50',
+      activeTextClass: 'text-emerald-700 dark:text-emerald-400 font-bold',
     },
     {
       code: 'PCH',
@@ -589,9 +599,14 @@ export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisio
       isPassed: isPchPassed,
       statusText: pchStatus,
       detail: pchDetail,
-      colorName: 'cyan',
-      activeBulbClass: 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.9)] ring-1 ring-cyan-300',
-      activeTextClass: 'text-cyan-400 dark:text-cyan-300 font-bold',
+      colorName: 'blue',
+      glowColor: '#0ea5e9',
+      lightColor: '#7dd3fc',
+      baseColor: '#0284c7',
+      deepColor: '#0369a1',
+      borderColor: '#0284c7',
+      activeBulbClass: 'bg-sky-500 shadow-[0_0_16px_rgba(14,165,233,0.7),0_0_6px_rgba(14,165,233,0.95)] ring-2 ring-sky-400/50',
+      activeTextClass: 'text-sky-700 dark:text-sky-400 font-bold',
     },
     {
       code: 'TTB',
@@ -601,8 +616,13 @@ export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisio
       statusText: ttbStatus,
       detail: ttbDetail,
       colorName: 'purple',
-      activeBulbClass: 'bg-purple-400 shadow-[0_0_8px_rgba(192,132,252,0.9)] ring-1 ring-purple-300',
-      activeTextClass: 'text-purple-400 dark:text-purple-300 font-bold',
+      glowColor: '#a855f7',
+      lightColor: '#d8b4fe',
+      baseColor: '#9333ea',
+      deepColor: '#7e22ce',
+      borderColor: '#9333ea',
+      activeBulbClass: 'bg-purple-500 shadow-[0_0_16px_rgba(168,85,247,0.7),0_0_6px_rgba(168,85,247,0.95)] ring-2 ring-purple-400/50',
+      activeTextClass: 'text-purple-700 dark:text-purple-400 font-bold',
     },
     {
       code: 'LAP',
@@ -611,9 +631,14 @@ export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisio
       isPassed: isLapPassed,
       statusText: lapStatus,
       detail: lapDetail,
-      colorName: 'amber',
-      activeBulbClass: 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.9)] ring-1 ring-amber-300',
-      activeTextClass: 'text-amber-400 dark:text-amber-300 font-bold',
+      colorName: 'orange',
+      glowColor: '#f97316',
+      lightColor: '#fdba74',
+      baseColor: '#ea580c',
+      deepColor: '#c2410c',
+      borderColor: '#ea580c',
+      activeBulbClass: 'bg-orange-500 shadow-[0_0_16px_rgba(249,115,22,0.7),0_0_6px_rgba(249,115,22,0.95)] ring-2 ring-orange-400/50',
+      activeTextClass: 'text-orange-700 dark:text-orange-400 font-bold',
     },
     {
       code: 'FIN',
@@ -622,9 +647,18 @@ export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisio
       isPassed: isFinPassed,
       statusText: finStatus,
       detail: finDetail,
-      colorName: 'emerald',
-      activeBulbClass: 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)] ring-1 ring-emerald-300',
-      activeTextClass: 'text-emerald-400 dark:text-emerald-300 font-bold',
+      colorName: isFinPassed ? 'emerald' : 'gray',
+      glowColor: isFinPassed ? '#10b981' : '#cbd5e1',
+      lightColor: isFinPassed ? '#6ee7b7' : '#f1f5f9',
+      baseColor: isFinPassed ? '#059669' : '#cbd5e1',
+      deepColor: isFinPassed ? '#047857' : '#94a3b8',
+      borderColor: isFinPassed ? '#059669' : '#cbd5e1',
+      activeBulbClass: isFinPassed
+        ? 'bg-emerald-500 shadow-[0_0_16px_rgba(16,185,129,0.7),0_0_6px_rgba(16,185,129,0.95)] ring-2 ring-emerald-400/50'
+        : 'bg-slate-300 dark:bg-zinc-700 border-2 border-slate-300 dark:border-zinc-600 shadow-inner opacity-40',
+      activeTextClass: isFinPassed
+        ? 'text-emerald-700 dark:text-emerald-400 font-bold'
+        : 'text-slate-400 dark:text-zinc-500 font-medium',
     },
   ];
 
@@ -645,6 +679,7 @@ export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisio
     summaryBadge = `${passedCount}/5 Sebagian`;
     statusTone = 'amber';
   }
+
 
   return {
     stages,

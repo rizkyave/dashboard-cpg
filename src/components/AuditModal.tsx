@@ -1085,46 +1085,64 @@ export default function AuditModal({
           </div>
         )}
 
-        {/* Metadata Row Cards */}
-        <div className={`grid gap-3 min-w-0 ${effectiveWorkOrderNo ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 md:grid-cols-3'}`}>
-          <div className="p-3 rounded-lg bg-muted/40 border border-border min-w-0">
-            <span className="text-[10px] text-muted-foreground font-mono block">
-              NOMOR PO INTERNAL
-            </span>
-            <span className="text-sm font-semibold font-mono mt-0.5 block truncate" title={activePo || ''}>
-              {activePo ? (
-                <span className="text-foreground">{activePo}</span>
-              ) : (
-                <span className="text-muted-foreground font-normal italic">- (Kosong)</span>
-              )}
-            </span>
-          </div>
-          {effectiveWorkOrderNo && (
-            <div className="p-3 rounded-lg bg-cyan-500/5 border border-cyan-500/20 min-w-0">
-              <span className="text-[10px] text-cyan-700 dark:text-cyan-400 font-mono block font-medium">
-                WORK ORDER (WO)
+        {/* Top Overview & Prominent 5-Division Indicator Row */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-3 min-w-0 items-center">
+          {/* 1. Left Card: PO & Identitas */}
+          <div className="md:col-span-3 p-3.5 rounded-xl bg-card border border-border min-w-0 flex flex-col justify-between shadow-xs">
+            <div>
+              <span className="text-[10px] text-muted-foreground font-mono block">
+                NOMOR PO INTERNAL
               </span>
-              <span className="text-sm font-semibold text-foreground font-mono mt-0.5 block truncate" title={effectiveWorkOrderNo}>
-                {effectiveWorkOrderNo}
+              <span className="text-sm font-semibold font-mono mt-0.5 block truncate" title={activePo || ''}>
+                {activePo ? (
+                  <span className="text-foreground">{activePo}</span>
+                ) : (
+                  <span className="text-muted-foreground font-normal italic">- (Kosong)</span>
+                )}
               </span>
             </div>
-          )}
-          <div className="p-3 rounded-lg bg-muted/40 border border-border min-w-0">
-            <span className="text-[10px] text-muted-foreground font-mono block">
-              ENTITAS &amp; TANGGAL
-            </span>
-            <span className="text-sm font-semibold text-foreground font-mono mt-0.5 block truncate">
-              {itemsS2[0]?.entity || itemS1?.entity || 'CPL'} &bull;{' '}
-              {formatDateDdMmYy(itemsS2[0]?.tglPo || itemsS2[0]?.tglFpb || itemS1?.date)}
-            </span>
+
+            <div className="pt-2 mt-2 border-t border-border/60 flex items-center justify-between text-xs font-mono">
+              <span className="text-[10px] text-muted-foreground uppercase">ENTITAS &amp; TANGGAL:</span>
+              <span className="font-semibold text-foreground truncate ml-1 text-right">
+                {itemsS2[0]?.entity || itemS1?.entity || 'CPL'} &bull;{' '}
+                {formatDateDdMmYy(itemsS2[0]?.tglPo || itemsS2[0]?.tglFpb || itemS1?.date)}
+              </span>
+            </div>
+
+            {effectiveWorkOrderNo && (
+              <div className="pt-1.5 mt-1.5 border-t border-cyan-500/20 flex items-center justify-between text-xs font-mono text-cyan-700 dark:text-cyan-400">
+                <span className="text-[10px] uppercase font-medium">WORK ORDER:</span>
+                <span className="font-semibold truncate ml-1 text-right">{effectiveWorkOrderNo}</span>
+              </div>
+            )}
           </div>
-          <div className="p-3 rounded-lg bg-muted/40 border border-border min-w-0">
-            <span className="text-[10px] text-muted-foreground font-mono block">
-              STATUS SAAT INI
-            </span>
-            <span className={`text-sm font-semibold font-mono mt-0.5 block truncate ${statusSaatIniColor}`} title={statusSaatIni}>
-              {statusSaatIni}
-            </span>
+
+          {/* 2. Centerpiece: Prominent Light-Themed 5-Division Glass LED Traffic Light */}
+          <div className="md:col-span-6 flex flex-col items-center justify-center min-w-0 py-1">
+            <WorkflowTrafficLight
+              item={(itemS1 || itemsS2[0]) as any}
+              variant="prominent"
+              showBadge={true}
+            />
+          </div>
+
+          {/* 3. Right Card: Status Saat Ini */}
+          <div className="md:col-span-3 p-3.5 rounded-xl bg-card border border-border min-w-0 flex flex-col justify-between shadow-xs">
+            <div>
+              <span className="text-[10px] text-muted-foreground font-mono block">
+                STATUS SAAT INI
+              </span>
+              <span className={`text-sm font-semibold font-mono mt-0.5 block truncate ${statusSaatIniColor}`} title={statusSaatIni}>
+                {statusSaatIni}
+              </span>
+            </div>
+            <div className="pt-2 mt-2 border-t border-border/60 flex items-center justify-between text-[11px] font-mono text-muted-foreground">
+              <span className="uppercase text-[10px]">VERIFIKASI:</span>
+              <span className="font-semibold text-foreground">
+                {verifiedModulesCount}/4 Modul
+              </span>
+            </div>
           </div>
         </div>
 
