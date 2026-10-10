@@ -1085,10 +1085,10 @@ export default function AuditModal({
           </div>
         )}
 
-        {/* Top Overview & Prominent 5-Division Indicator Row */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-3 min-w-0 items-center">
-          {/* 1. Left Card: PO & Identitas */}
-          <div className="md:col-span-3 p-3.5 rounded-xl bg-card border border-border min-w-0 flex flex-col justify-between shadow-xs">
+        {/* Top Overview Cards Row: PO Internal | Work Order (WO) | Status Saat Ini */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 min-w-0 items-stretch">
+          {/* 1. Left Card: NOMOR PO INTERNAL */}
+          <div className="p-3.5 rounded-xl bg-card border border-border min-w-0 flex flex-col justify-between shadow-xs">
             <div>
               <span className="text-[10px] text-muted-foreground font-mono block">
                 NOMOR PO INTERNAL
@@ -1109,26 +1109,44 @@ export default function AuditModal({
                 {formatDateDdMmYy(itemsS2[0]?.tglPo || itemsS2[0]?.tglFpb || itemS1?.date)}
               </span>
             </div>
+          </div>
 
-            {effectiveWorkOrderNo && (
-              <div className="pt-1.5 mt-1.5 border-t border-cyan-500/20 flex items-center justify-between text-xs font-mono text-cyan-700 dark:text-cyan-400">
-                <span className="text-[10px] uppercase font-medium">WORK ORDER:</span>
-                <span className="font-semibold truncate ml-1 text-right">{effectiveWorkOrderNo}</span>
+          {/* 2. Center Card: KOTAK MENU NOMOR WORK ORDER (WO) */}
+          <div className="p-3.5 rounded-xl bg-card border border-border min-w-0 flex flex-col justify-between shadow-xs hover:border-cyan-500/40 transition-colors">
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-muted-foreground font-mono block">
+                  NOMOR WORK ORDER (WO)
+                </span>
+                <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/20 font-semibold">
+                  WO
+                </span>
               </div>
-            )}
+              <span className="text-sm font-semibold font-mono mt-0.5 block truncate" title={effectiveWorkOrderNo || 'Belum Ada Nomor Work Order'}>
+                {effectiveWorkOrderNo ? (
+                  <span className="text-cyan-700 dark:text-cyan-400 font-bold">{effectiveWorkOrderNo}</span>
+                ) : (
+                  <span className="text-muted-foreground font-normal italic">- (Kosong)</span>
+                )}
+              </span>
+            </div>
+
+            <div className="pt-2 mt-2 border-t border-border/60 flex items-center justify-between text-xs font-mono">
+              <span className="text-[10px] text-muted-foreground uppercase">STATUS WO:</span>
+              <span
+                className={`font-semibold truncate ml-1 text-right text-[11px] ${
+                  effectiveWorkOrderNo
+                    ? 'text-cyan-700 dark:text-cyan-400'
+                    : 'text-muted-foreground italic'
+                }`}
+              >
+                {effectiveWorkOrderNo ? 'Tersinkronisasi e-FPB' : 'Belum Diterbitkan'}
+              </span>
+            </div>
           </div>
 
-          {/* 2. Centerpiece: Prominent Light-Themed 5-Division Glass LED Traffic Light */}
-          <div className="md:col-span-6 flex flex-col items-center justify-center min-w-0 py-1">
-            <WorkflowTrafficLight
-              item={(itemS1 || itemsS2[0]) as any}
-              variant="prominent"
-              showBadge={true}
-            />
-          </div>
-
-          {/* 3. Right Card: Status Saat Ini */}
-          <div className="md:col-span-3 p-3.5 rounded-xl bg-card border border-border min-w-0 flex flex-col justify-between shadow-xs">
+          {/* 3. Right Card: STATUS SAAT INI */}
+          <div className="p-3.5 rounded-xl bg-card border border-border min-w-0 flex flex-col justify-between shadow-xs">
             <div>
               <span className="text-[10px] text-muted-foreground font-mono block">
                 STATUS SAAT INI
