@@ -518,8 +518,10 @@ export default function Header({
           <span className="sr-only">Toggle Sidebar</span>
         </button>
 
-        {/* Dropdown Menu Kiri Atas */}
-        <div className="relative">
+        {/* Dropdown Menu Kiri Atas (Hanya untuk Admin, Disembunyikan untuk Staff Purchasing & User) */}
+        {isAdmin && (
+          <>
+            <div className="relative">
           <button
             type="button"
             onClick={() => setIsMenuOpen((prev) => !prev)}
@@ -1161,8 +1163,9 @@ export default function Header({
             </div>
           )}
         </div>
-
         <div className="h-4 w-px bg-border shrink-0" />
+      </>
+    )}
 
         {/* Global Search Bar */}
         <form onSubmit={handleSearchSubmit} className="relative flex-1 min-w-0">
@@ -1213,15 +1216,19 @@ export default function Header({
 
         {/* User Profile Avatar (Clickable to open menu as well) */}
         <div
-          onClick={() => setIsMenuOpen((prev) => !prev)}
-          className={`flex size-7.5 shrink-0 items-center justify-center rounded-full text-white font-bold text-xs select-none shadow-xs cursor-pointer hover:opacity-90 transition active:scale-95 ml-0.5 ${
+          onClick={() => {
+            if (isAdmin) setIsMenuOpen((prev) => !prev);
+          }}
+          className={`flex size-7.5 shrink-0 items-center justify-center rounded-full text-white font-bold text-xs select-none shadow-xs transition active:scale-95 ml-0.5 ${
+            isAdmin ? 'cursor-pointer hover:opacity-90' : 'cursor-default'
+          } ${
             isAdmin
               ? 'bg-linear-to-tr from-purple-600 to-indigo-600'
               : isVisitor
               ? 'bg-linear-to-tr from-emerald-600 to-teal-600'
               : 'bg-linear-to-tr from-sky-500 to-indigo-500'
           }`}
-          title={`${user?.name || 'User'} (${user?.role?.toUpperCase()}) - Klik untuk menu`}
+          title={`${user?.name || 'User'} (${user?.role?.toUpperCase()})${isAdmin ? ' - Klik untuk menu' : ''}`}
         >
           {user?.avatar || (user?.name ? user.name[0]?.toUpperCase() : 'U')}
         </div>
