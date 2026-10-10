@@ -1182,15 +1182,6 @@ export default function AuditModal({
                 >
                   {verifiedModulesCount}/4 Modul Terverifikasi
                 </span>
-                {verifiedModulesCount < 4 && (
-                  <span className="text-[10px] font-mono text-amber-600 dark:text-amber-400 hidden sm:inline">
-                    {!isModul3Done
-                      ? '(Menunggu PO)'
-                      : !isCard4Done
-                      ? '(Logistik: Menunggu Serah Terima Fisik)'
-                      : '(Menunggu Validasi Dokumen)'}
-                  </span>
-                )}
               </div>
             </div>
 
@@ -1251,23 +1242,35 @@ export default function AuditModal({
               </div>
 
               {/* 4. PENGANTARAN LOGISTIK / PELAKSANAAN & BERITA ACARA JASA */}
-              <div className="p-3 rounded-lg bg-card border border-border flex flex-col justify-start gap-1.5 shadow-xs hover:shadow-subtle transition min-w-0">
-                <div className="text-[11px] font-semibold text-foreground tracking-wide uppercase leading-tight flex items-center gap-1.5 min-w-0">
-                  {isJasaOnly ? (
-                    <>
-                      <Wrench className="size-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
-                      <span className="truncate" title="Pelaksanaan & Berita Acara (BAST / MTC)">PELAKSANAAN &amp; BAST JASA</span>
-                    </>
-                  ) : isCampuran ? (
-                    <>
-                      <Boxes className="size-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
-                      <span className="truncate" title="Logistik & Serah Terima Jasa">LOGISTIK &amp; SERAH TERIMA</span>
-                    </>
-                  ) : (
-                    <span className="truncate">PENGANTARAN LOGISTIK</span>
-                  )}
+              <div className="p-3 rounded-lg bg-card border border-border flex flex-col justify-between gap-2.5 shadow-xs hover:shadow-subtle transition min-w-0">
+                <div className="flex flex-col justify-center min-h-[1.75rem] gap-0.5 min-w-0">
+                  <div className="text-[11px] font-semibold text-foreground tracking-wide uppercase leading-tight flex items-center gap-1.5 min-w-0">
+                    {isJasaOnly ? (
+                      <>
+                        <Wrench className="size-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                        <span className="truncate" title="Pelaksanaan & Berita Acara (BAST / MTC)">PELAKSANAAN &amp; BAST JASA</span>
+                      </>
+                    ) : isCampuran ? (
+                      <>
+                        <Boxes className="size-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
+                        <span className="truncate" title="Logistik & Serah Terima Jasa">LOGISTIK &amp; SERAH TERIMA</span>
+                      </>
+                    ) : (
+                      <span className="truncate">PENGANTARAN LOGISTIK</span>
+                    )}
+                  </div>
+                  <div className="text-[9.5px] font-mono text-muted-foreground truncate leading-tight min-w-0" title={isCard4Done ? 'Serah terima fisik terverifikasi' : 'Dokumen TTB ada, menunggu serah terima fisik lapangan'}>
+                    {isCard4Done ? (
+                      <span className="text-emerald-700 dark:text-emerald-400 font-medium flex items-center gap-1">
+                        <CheckCircle2 className="size-2.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        <span>Serah terima lengkap</span>
+                      </span>
+                    ) : (
+                      <span>{activeTtb ? 'Menunggu konfirmasi fisik' : 'Menunggu dokumen TTB'}</span>
+                    )}
+                  </div>
                 </div>
-                <div className="space-y-1 pt-1.5 border-t border-border min-w-0">
+                <div className="space-y-1 pt-2 border-t border-border min-w-0">
                   <div className="flex items-center justify-between min-w-0 gap-1.5">
                     <span className="text-[10px] text-muted-foreground font-mono shrink-0">Status:</span>
                     {isCard4Done ? (
@@ -1281,9 +1284,6 @@ export default function AuditModal({
                         {isJasaOnly ? 'PENGERJAAN' : 'DALAM PROSES'}
                       </span>
                     )}
-                  </div>
-                  <div className="text-[9.5px] font-mono text-muted-foreground truncate" title={isCard4Done ? 'Serah terima fisik terverifikasi' : 'Dokumen TTB ada, menunggu serah terima fisik lapangan'}>
-                    {isCard4Done ? '✓ Serah terima lengkap' : activeTtb ? 'Menunggu konfirmasi fisik' : 'Menunggu dokumen TTB'}
                   </div>
                   {detectedServiceReportNo && (
                     <a
