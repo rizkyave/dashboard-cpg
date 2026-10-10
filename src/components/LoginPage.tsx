@@ -129,7 +129,7 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="admin / staff / visitor"
+                  placeholder="admin / staff / guest / visitor"
                   className="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl border border-slate-700 bg-slate-800/60 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition"
                   autoComplete="username"
                 />
@@ -193,7 +193,7 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
           </div>
 
           {/* Quick Login Presets */}
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <button
               type="button"
               onClick={() => handleQuickLogin('admin', 'admin')}
@@ -228,6 +228,25 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
                 </span>
                 <span className="text-[9px] text-sky-300/60 font-sans">
                   Operasional
+                </span>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleQuickLogin('guest', '0123')}
+              className="p-2.5 rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-left transition flex flex-col justify-between cursor-pointer group"
+            >
+              <div className="flex items-center gap-1 font-semibold text-[11px]">
+                <Sparkles className="size-3 text-amber-400 group-hover:scale-110 transition-transform" />
+                <span>Guest</span>
+              </div>
+              <div className="mt-1">
+                <span className="text-[9px] text-amber-400/80 font-mono block">
+                  pass: 0123
+                </span>
+                <span className="text-[9px] text-amber-300/60 font-sans">
+                  Tamu / MTC
                 </span>
               </div>
             </button>

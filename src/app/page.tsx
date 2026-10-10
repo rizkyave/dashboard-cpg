@@ -26,8 +26,11 @@ import {
   loadStoredInventory,
   saveStoredKapalPosisi,
   loadStoredKapalPosisi,
+  saveStoredWorkOrder,
+  loadStoredWorkOrder,
   clearStoredData,
 } from '@/utils/appStorage';
+import { WorkOrderItem, WorkOrderSummary } from '@/types/workOrder';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import MobileBottomNav from '@/components/MobileBottomNav';
@@ -36,6 +39,21 @@ import OverviewTab from '@/components/OverviewTab';
 import ProcurementTab from '@/components/ProcurementTab';
 import ArmadaTab from '@/components/ArmadaTab';
 import PosisiKapalTab from '@/components/PosisiKapalTab';
+import WorkOrderTab from '@/components/WorkOrderTab';
+import ServiceMaintenanceTab from '@/components/ServiceMaintenanceTab';
+import {
+  ServiceMaintenanceItem,
+  ServiceMaintenanceSummary,
+  VendorSheetConfig,
+} from '@/types/serviceMaintenance';
+import {
+  saveStoredServiceMaintenance,
+  loadStoredServiceMaintenance,
+  saveStoredSmVendors,
+  loadStoredSmVendors,
+  INITIAL_SM_ITEMS,
+  INITIAL_SM_SUMMARY,
+} from '@/utils/smStorage';
 import AnalyticsTab from '@/components/AnalyticsTab';
 import InventoryTab from '@/components/InventoryTab';
 import TimemarkTab from '@/components/TimemarkTab';
@@ -123,6 +141,103 @@ export default function DashboardPage() {
     } finally {
       setIsLoadingPosisiKapal(false);
     }
+  };
+
+  // State untuk modul Work Order (Form Responses 1 Google Sheets)
+  const [workOrderItems, setWorkOrderItems] = useState<WorkOrderItem[]>([]);
+  const [workOrderSummary, setWorkOrderSummary] = useState<WorkOrderSummary | null>(null);
+  const [isLoadingWorkOrder, setIsLoadingWorkOrder] = useState<boolean>(false);
+
+  // Fungsi sinkronisasi data Work Order dari Form Responses 1 Google Sheets
+  const handleSyncWorkOrder = async () => {
+    setIsLoadingWorkOrder(true);
+    showToast('Menghubungkan & menyinkronkan data Work Order (Form Responses 1)...', 'info');
+    try {
+      const res = await fetch('/api/sync-work-order');
+      const data = await res.json();
+      if (data.success && Array.isArray(data.items)) {
+        setWorkOrderItems(data.items);
+        if (data.summary) setWorkOrderSummary(data.summary);
+        await saveStoredWorkOrder(data.items, data.summary || null);
+        showToast(
+          `Berhasil menyinkronkan ${data.items.length.toLocaleString('id-ID')} data Work Order dari Google Spreadsheet!`,
+          'success'
+        );
+      } else {
+        throw new Error(data.message || 'Gagal menyinkronkan data Work Order.');
+      }
+    } catch (err: any) {
+      console.error('Gagal mengambil data Work Order:', err);
+      showToast(err.message || 'Gagal menyinkronkan Work Order dari Google Sheets.', 'error');
+    } finally {
+      setIsLoadingWorkOrder(false);
+    }
+  };
+
+  // State untuk modul Service & Maintenance (List SM Bengkel Vendor)
+  const [smItems, setSmItems] = useState<ServiceMaintenanceItem[]>(INITIAL_SM_ITEMS);
+  const [smSummary, setSmSummary] = useState<ServiceMaintenanceSummary | null>(INITIAL_SM_SUMMARY);
+  const [isLoadingSm, setIsLoadingSm] = useState<boolean>(false);
+  const [smVendors, setSmVendors] = useState<VendorSheetConfig[]>([]);
+
+  // Fungsi sinkronisasi data Service & Maintenance dari Google Sheets seluruh vendor
+  const handleSyncSm = async () => {
+    setIsLoadingSm(true);
+    showToast('Menghubungkan ke Google Sheets vendor SM (Karindo, Surabaya Teknik, dll)...', 'info');
+    try {
+      const res = await fetch('/api/sync-sm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ syncAll: true, vendors: smVendors }),
+      });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.items)) {
+        if (data.items.length > 0) {
+          const existingMap = new Map(smItems.map((i) => [i.id, i]));
+          data.items.forEach((it: ServiceMaintenanceItem) => existingMap.set(it.id, it));
+          const merged = Array.from(existingMap.values());
+          setSmItems(merged);
+          if (data.summary) setSmSummary(data.summary);
+          await saveStoredServiceMaintenance(merged, data.summary || null);
+        }
+        showToast(
+          data.message || `Berhasil menyinkronkan data SM dari Google Sheets!`,
+          'success'
+        );
+      } else {
+        throw new Error(data.message || 'Gagal menyinkronkan data Service & Maintenance.');
+      }
+    } catch (err: any) {
+      console.error('Gagal mengambil data SM:', err);
+      showToast(err.message || 'Gagal menyinkronkan data SM dari Google Sheets.', 'error');
+    } finally {
+      setIsLoadingSm(false);
+    }
+  };
+
+  const handleUploadSmExcel = (newItems: ServiceMaintenanceItem[]) => {
+    const existingMap = new Map(smItems.map((i) => [i.id, i]));
+    newItems.forEach((it) => existingMap.set(it.id, it));
+    const merged = Array.from(existingMap.values());
+    const totalClose = merged.filter((i) => i.status === 'CLOSE').length;
+    const totalOpen = merged.filter((i) => i.status === 'OPEN').length;
+    const totalHold = merged.filter((i) => i.status === 'HOLD').length;
+    const summary: ServiceMaintenanceSummary = {
+      totalRecords: merged.length,
+      totalClose,
+      totalOpen,
+      totalHold,
+      totalVendors: Array.from(new Set(merged.map((i) => i.vendor))).length,
+      lastUpdated: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+    };
+    setSmItems(merged);
+    setSmSummary(summary);
+    saveStoredServiceMaintenance(merged, summary);
+  };
+
+  const handleSaveSmVendors = (configs: VendorSheetConfig[]) => {
+    setSmVendors(configs);
+    saveStoredSmVendors(configs);
   };
 
   // State untuk sinkronisasi live Google Sheets
@@ -285,6 +400,30 @@ export default function DashboardPage() {
           setKapalPosisiItems(savedKapal.items);
           if (savedKapal.summary) setKapalPosisiSummary(savedKapal.summary);
         }
+        const savedWo = await loadStoredWorkOrder();
+        if (savedWo && savedWo.items && savedWo.items.length > 0) {
+          setWorkOrderItems(savedWo.items);
+          if (savedWo.summary) setWorkOrderSummary(savedWo.summary);
+        } else {
+          // Sync Work Order on initial load in background if not yet cached
+          fetch('/api/sync-work-order')
+            .then((r) => r.json())
+            .then((res) => {
+              if (res.success && Array.isArray(res.items)) {
+                setWorkOrderItems(res.items);
+                if (res.summary) setWorkOrderSummary(res.summary);
+                saveStoredWorkOrder(res.items, res.summary || null);
+              }
+            })
+            .catch((e) => console.warn('Auto-sync Work Order background:', e));
+        }
+
+        const savedSm = await loadStoredServiceMaintenance();
+        if (savedSm && savedSm.items && savedSm.items.length > 0) {
+          setSmItems(savedSm.items);
+          if (savedSm.summary) setSmSummary(savedSm.summary);
+        }
+        setSmVendors(loadStoredSmVendors());
 
       } catch (e) {
         console.error('Gagal memuat data tersimpan dari IndexedDB/storage:', e);
@@ -584,6 +723,8 @@ export default function DashboardPage() {
         criticalCount={criticalCount}
         inventoryCount={inventoryItems?.length ?? 0}
         kapalPosisiCount={kapalPosisiItems.length}
+        workOrderCount={workOrderItems.length}
+        serviceMaintenanceCount={smItems.length}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={toggleSidebar}
         onOpenNewRecord={() => setIsNewRecordOpen(true)}
@@ -633,6 +774,10 @@ export default function DashboardPage() {
                   ? 'Dokumentasi Foto TimeMark'
                   : activeTab === 'pos-kapal'
                   ? 'Posisi Kapal'
+                  : activeTab === 'work-order'
+                  ? 'Monitoring Work Order (WO)'
+                  : activeTab === 'list-sm'
+                  ? 'Monitoring Service & Maintenance (SM) Vendor'
                   : activeTab === 'inventory'
                   ? 'Cek Stok Persediaan Gudang'
                   : activeTab === 'admin-settings'
@@ -647,13 +792,17 @@ export default function DashboardPage() {
                   : activeTab === 'procurement'
                   ? 'Daftar transaksi pengadaan PO, verifikasi berkas fisik antar divisi, dan status penyelesaian berkas.'
                   : activeTab === 'armada'
-                  ? 'Pencocokan kuantitas FPB vs FSTB, unit kapal armada, dan realisasi distribusi logistik lapangan.'
+                  ? 'Rekonsiliasi FPB–FSTB & Distribusi Logistik'
                   : activeTab === 'galeri-ttb'
                   ? 'Galeri foto penerimaan dan serah terima dokumen fisik TTB dari server terpusat & Vercel Blob.'
                   : activeTab === 'timemark'
                   ? 'Verifikasi dokumentasi bukti foto fisik lapangan TimeMark dengan pencarian 5 digit nomor FSTB.'
                   : activeTab === 'pos-kapal'
                   ? 'Laporan posisi, rute, aktivitas, status armada dan pekerjaan pemeliharaan kapal.'
+                  : activeTab === 'work-order'
+                  ? 'Rekap dan Validasi WO Armada'
+                  : activeTab === 'list-sm'
+                  ? 'Pelacakan pekerjaan jasa perbaikan mesin kapal, bubut, servis bengkel rekanan (Karindo, Surabaya Teknik, Sidomukti, Panca Teknik, Tjokro), dan integrasi FPB-PO.'
                   : activeTab === 'inventory'
                   ? 'Pemeriksaan stok barang konsolidasi Accurate (CPL, Hana Lines, Mandar Ocean) & pencocokan kebutuhan pengadaan.'
                   : activeTab === 'admin-settings'
@@ -663,7 +812,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Tombol Sembunyikan Ringkasan Metrik KPI */}
-            {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && activeTab !== 'admin-settings' && (!isVisitor || searchKeyword.trim() !== '') && (
+            {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'admin-settings' && (!isVisitor || searchKeyword.trim() !== '') && (
               <button
                 type="button"
                 onClick={toggleKpiHidden}
@@ -681,7 +830,7 @@ export default function DashboardPage() {
           </div>
 
           {/* 4 Pillar Executive Metric Cards (procurement tabs only) */}
-          {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && activeTab !== 'admin-settings' && !isKpiHidden && (!isVisitor || searchKeyword.trim() !== '') && (
+          {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'admin-settings' && !isKpiHidden && (!isVisitor || searchKeyword.trim() !== '') && (
             <div className="animate-in fade-in-50 duration-200">
               <KpiCards
                 procurementList={filteredProcurement}
@@ -735,6 +884,33 @@ export default function DashboardPage() {
               summary={kapalPosisiSummary}
               isLoading={isLoadingPosisiKapal}
               onRefresh={handleRefreshPosisiKapal}
+              showToast={showToast}
+            />
+          )}
+
+          {/* Tab Work Order (Form Responses 1 Google Sheets) */}
+          {activeTab === 'work-order' && (
+            <WorkOrderTab
+              items={workOrderItems}
+              summary={workOrderSummary}
+              isLoading={isLoadingWorkOrder}
+              onRefresh={handleSyncWorkOrder}
+              onOpenAudit={handleOpenAudit}
+              showToast={showToast}
+            />
+          )}
+
+          {/* Tab List SM: Service & Maintenance Bengkel/Vendor (Google Sheets) */}
+          {activeTab === 'list-sm' && (
+            <ServiceMaintenanceTab
+              items={smItems}
+              summary={smSummary}
+              isLoading={isLoadingSm}
+              onRefreshAll={handleSyncSm}
+              onUploadExcel={handleUploadSmExcel}
+              onOpenAudit={handleOpenAudit}
+              vendorConfigs={smVendors}
+              onSaveVendorConfigs={handleSaveSmVendors}
               showToast={showToast}
             />
           )}

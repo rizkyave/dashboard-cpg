@@ -21,6 +21,7 @@ export interface ParsedFpbData {
   fpbNo: string;
   fpbDate: string;
   userArmada: string;
+  workOrderNo?: string;
   requestedBy: string;
   requestedDate: string;
   requestedTimestamp: string;
@@ -33,6 +34,7 @@ export interface ParsedFpbData {
   isLogistikApproved?: boolean;
   items: ParsedItem[];
   tujuanPeruntukan: string;
+  tanggalPenerimaanTerakhir?: string;
   pdfUrl: string;
 }
 
@@ -364,6 +366,7 @@ function extractPdfData(
   let fpbNo = '';
   let fpbDate = '';
   let userArmada = '';
+  let workOrderNo = '';
   let requestedByBottom = '';
   let userTimestamp = '';
 
@@ -384,11 +387,36 @@ function extractPdfData(
       if (dM) fpbDate = dM[1];
     }
 
+    if (/work\s*order(\s*no\.?)?/i.test(t)) {
+      const rest = t.replace(/^.*?work\s*order(\s*no\.?)?\s*:?\s*/i, '').trim();
+      if (rest && rest !== ':') {
+        workOrderNo = rest.replace(/^[:\s]+/, '').trim();
+      } else if (idx + 1 < allBlocks.length) {
+        workOrderNo = allBlocks[idx + 1].text.replace(/^[:\s]+/, '').trim();
+      }
+    }
+
     if (t === 'USERNAME' && idx + 1 < allBlocks.length) {
       requestedByBottom = allBlocks[idx + 1].text.replace(/^:\s*/, '').trim();
       if (idx + 2 < allBlocks.length) {
         userTimestamp = allBlocks[idx + 2].text.trim();
       }
+    }
+  }
+
+  // Fallback stream check for Work Order No if not found in blocks
+  if (!workOrderNo) {
+    for (const [, raw] of Object.entries(rawObjects)) {
+      const streamMatch = raw.match(/stream[\r\n]+([\s\S]*?)[\r\n]+endstream/);
+      if (!streamMatch) continue;
+      try {
+        const decomp = zlib.inflateSync(Buffer.from(streamMatch[1], 'latin1')).toString('latin1');
+        const m = decomp.match(/Work\s*Order\s*No\.?[^\)]*?\)\s*Tj[\s\S]*?\(([^)]+)\)\s*Tj/i);
+        if (m && m[1]) {
+          workOrderNo = m[1].replace(/^[:\s]+/, '').trim();
+          if (workOrderNo) break;
+        }
+      } catch {}
     }
   }
 
@@ -496,7 +524,7 @@ function extractPdfData(
           name += (name ? ' ' : '') + t;
         } else if (c.x < 335) {
           unit += (unit ? ' ' : '') + t;
-        } else if (c.x < 445) {
+        } else if (c.x < 420) {
           desc += (desc ? ' ' : '') + t;
         } else if (c.x < 515) {
           lastDate += (lastDate ? ' ' : '') + t;
@@ -530,6 +558,15 @@ function extractPdfData(
         }
       }
 
+      // Jika tanggal penerimaan barang terakhir ikut menempel di akhir deskripsi (contoh: "U/... 12/05/2026")
+      const trailingDateMatch = desc.match(/\s+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})$/);
+      if (trailingDateMatch) {
+        if (!lastDate || lastDate === '-' || lastDate.trim().length === 0) {
+          lastDate = trailingDateMatch[1];
+        }
+        desc = desc.slice(0, trailingDateMatch.index).trim();
+      }
+
       const no = parseInt(noStr, 10);
       if (!isNaN(no) && (code || name)) {
         // Prevent duplicate items if stream is referenced twice
@@ -560,6 +597,15 @@ function extractPdfData(
   );
   const tujuanPeruntukan = uniqueDescs.join(' • ');
 
+  const uniqueLastDates = Array.from(
+    new Set(
+      items
+        .map((i) => i.lastDate?.trim())
+        .filter((d): d is string => Boolean(d && d !== '-' && d.length > 1))
+    )
+  );
+  const tanggalPenerimaanTerakhir = uniqueLastDates.join(' • ');
+
   const pdfUrl =
     sourcePdfUrl ||
     `https://e-fpb.cindaragroup.com/files/logistik_Approved_rev_sign_${encodeURIComponent(
@@ -570,6 +616,7 @@ function extractPdfData(
     fpbNo,
     fpbDate: formatDateDdMmYy(fpbDate),
     userArmada,
+    workOrderNo: workOrderNo || undefined,
     requestedBy: requestedBy || requestedByBottom || '',
     requestedDate: formatDateDdMmYy(
       requestedDate || (userTimestamp ? userTimestamp.slice(0, 10) : '')
@@ -584,6 +631,7 @@ function extractPdfData(
     isLogistikApproved: Boolean(isLogistikApproved && receivedBy),
     items,
     tujuanPeruntukan,
+    tanggalPenerimaanTerakhir,
     pdfUrl,
   };
 }

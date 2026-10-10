@@ -29,6 +29,7 @@ import {
   RotateCcw,
   Settings2,
   Globe,
+  Printer,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import SyncEfpbModal from './SyncEfpbModal';
@@ -1365,8 +1366,8 @@ export default function InventoryTab({
       {/* Modal: Item Detail Inspection */}
       {/* ========================================================================= */}
       {selectedItemDetail && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 printable-modal-overlay">
+          <div className="bg-card border border-border rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-200 printable-modal-content">
             <div className="flex items-center justify-between pb-3 border-b border-border">
               <div className="flex items-center gap-2">
                 <Boxes className="size-5 text-primary" />
@@ -1474,12 +1475,24 @@ export default function InventoryTab({
               </div>
             </div>
 
-            <div className="flex justify-end pt-2">
+            <div className="flex items-center justify-end gap-2 pt-2">
               <button
-                onClick={() => setSelectedItemDetail(null)}
-                className="px-4 py-2 rounded-lg bg-foreground text-background font-semibold text-xs transition active:scale-95"
+                type="button"
+                onClick={() => {
+                  if (typeof window !== 'undefined') window.print();
+                }}
+                className="h-8 px-3.5 bg-background hover:bg-muted text-foreground border border-border rounded-lg text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 shadow-xs cursor-pointer print:hidden"
+                title="Cetak atau simpan modul ini ke format PDF"
               >
-                Tutup
+                <Printer className="size-3.5 text-primary" />
+                <span>Print PDF</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedItemDetail(null)}
+                className="h-8 px-4 rounded-lg bg-foreground text-background font-bold tracking-wide text-xs transition active:scale-95 cursor-pointer print:hidden"
+              >
+                TUTUP
               </button>
             </div>
           </div>

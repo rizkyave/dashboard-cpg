@@ -2,7 +2,7 @@ export type EntityCode = 'ALL' | 'CPL' | 'PPI' | 'HL' | 'GAJ' | 'MIL' | 'SP' | '
 
 export type LapseFilterType = 'ALL' | 'NORMAL' | 'WARNING' | 'CRITICAL';
 
-export type TabType = 'overview' | 'procurement' | 'armada' | 'pos-kapal' | 'analytics' | 'inventory' | 'timemark' | 'galeri-ttb' | 'admin-settings';
+export type TabType = 'overview' | 'procurement' | 'armada' | 'pos-kapal' | 'work-order' | 'list-sm' | 'analytics' | 'inventory' | 'timemark' | 'galeri-ttb' | 'admin-settings';
 
 export type StatusTone = 'emerald' | 'cyan' | 'purple' | 'amber' | 'rose';
 
@@ -137,12 +137,14 @@ export interface ProcurementItem {
   doneCheckFpb?: string;
   sourceCheckFpb?: string;
   verifiedByFpb?: string;
+  workOrderNo?: string;
 }
 
 export interface ArmadaItem {
   id?: string;
   fpb: string;
   armada: string;
+  workOrderNo?: string;
   item: string;
   qtyFPB: number;
   qtyFSTB: number;

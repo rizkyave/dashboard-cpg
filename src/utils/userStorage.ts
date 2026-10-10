@@ -17,6 +17,15 @@ export function getStoredUsers(): UserAccount[] {
     }
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length > 0) {
+      // Pastikan semua akun default (termasuk guest baru) tersinkronisasi
+      const missingDefaults = DEFAULT_USERS.filter(
+        (def) => !parsed.some((p: any) => p.username?.toLowerCase() === def.username.toLowerCase())
+      );
+      if (missingDefaults.length > 0) {
+        const merged = [...parsed, ...missingDefaults];
+        localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(merged));
+        return merged;
+      }
       return parsed;
     }
   } catch (err) {
@@ -97,6 +106,9 @@ export function authenticate(usernameInput: string, passwordInput: string): { su
     if (uName === 'visitor' && (cleanPassword === 'visitor' || cleanPassword === 'visitor123')) {
       return true;
     }
+    if (uName === 'guest' && (cleanPassword === '0123' || cleanPassword === 'guest' || cleanPassword === 'guest123')) {
+      return true;
+    }
     return false;
   })();
 
@@ -105,6 +117,8 @@ export function authenticate(usernameInput: string, passwordInput: string): { su
       success: false,
       message: (uName === 'admin' || uName === 'hermansyah')
         ? 'Password admin salah. Silakan coba: "admin" atau "admin123".'
+        : uName === 'guest'
+        ? 'Password akun guest salah. Silakan masukkan: "0123".'
         : 'Password salah. Periksa kembali huruf besar/kecil.',
     };
   }

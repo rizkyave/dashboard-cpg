@@ -15,6 +15,7 @@ import {
   ImageOff,
   Loader2,
   Maximize2,
+  Printer,
 } from 'lucide-react';
 import {
   extractFstbLast5,
@@ -148,11 +149,11 @@ export default function TimemarkModal({
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer animate-in fade-in duration-200 printable-modal-overlay"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-card border border-border rounded-2xl w-full max-w-5xl max-h-[92vh] overflow-y-auto shadow-2xl p-5 md:p-6 space-y-4 text-card-foreground cursor-default"
+        className="bg-card border border-border rounded-2xl w-full max-w-5xl max-h-[92vh] overflow-y-auto shadow-2xl p-5 md:p-6 space-y-4 text-card-foreground cursor-default printable-modal-content"
       >
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-border">
@@ -187,27 +188,27 @@ export default function TimemarkModal({
         {/* Content Box */}
         <div className="space-y-3">
           {/* Metadata Card */}
-          <div className="p-3 rounded-xl bg-muted/40 border border-border space-y-1.5 text-xs">
-            <div className="flex justify-between items-center text-muted-foreground">
-              <span>Nomor FSTB:</span>
-              <span className="font-mono font-semibold text-foreground">{noFstb || '-'}</span>
+          <div className="p-3 rounded-xl bg-muted/40 border border-border space-y-1.5 text-xs min-w-0">
+            <div className="flex justify-between items-center text-muted-foreground min-w-0 gap-2">
+              <span className="shrink-0">Nomor FSTB:</span>
+              <span className="font-mono font-semibold text-foreground truncate text-right min-w-0">{noFstb || '-'}</span>
             </div>
             {fpb && (
-              <div className="flex justify-between items-center text-muted-foreground">
-                <span>Nomor FPB:</span>
-                <span className="font-mono text-foreground">{fpb}</span>
+              <div className="flex justify-between items-center text-muted-foreground min-w-0 gap-2">
+                <span className="shrink-0">Nomor FPB:</span>
+                <span className="font-mono text-foreground truncate text-right min-w-0">{fpb}</span>
               </div>
             )}
             {armada && (
-              <div className="flex justify-between items-center text-muted-foreground">
-                <span>Armada / Unit:</span>
-                <span className="font-medium text-foreground">{armada}</span>
+              <div className="flex justify-between items-center text-muted-foreground min-w-0 gap-2">
+                <span className="shrink-0">Armada / Unit:</span>
+                <span className="font-medium text-foreground truncate text-right min-w-0" title={armada}>{armada}</span>
               </div>
             )}
             {item && (
-              <div className="flex justify-between items-center text-muted-foreground">
-                <span>Barang:</span>
-                <span className="font-medium text-foreground truncate max-w-[200px]" title={item}>
+              <div className="flex justify-between items-center text-muted-foreground min-w-0 gap-2">
+                <span className="shrink-0">Barang:</span>
+                <span className="font-medium text-foreground truncate text-right min-w-0" title={item}>
                   {item}
                 </span>
               </div>
@@ -303,22 +304,33 @@ export default function TimemarkModal({
         </div>
 
         {/* Footer Actions */}
-        <div className="mt-auto pt-2 flex items-center justify-end gap-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="h-9 px-3.5 rounded-xl border border-border bg-background hover:bg-muted text-foreground text-xs font-medium transition"
-          >
-            Tutup
-          </button>
+        <div className="mt-auto pt-2 flex items-center justify-end gap-2 flex-wrap">
           <button
             type="button"
             onClick={handleOpenPortal}
-            className="h-9 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-semibold text-xs shadow-md inline-flex items-center gap-1.5 transition active:scale-95"
+            className="h-9 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-semibold text-xs shadow-md inline-flex items-center gap-1.5 transition active:scale-95 mr-auto"
           >
             <Camera className="w-4 h-4" />
             <span>Buka Portal TimeMark</span>
             <ExternalLink className="w-3.5 h-3.5 opacity-80" />
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (typeof window !== 'undefined') window.print();
+            }}
+            className="h-9 px-3.5 rounded-xl border border-border bg-background hover:bg-muted text-foreground text-xs font-semibold inline-flex items-center gap-1.5 transition active:scale-95 shadow-xs cursor-pointer print:hidden"
+            title="Cetak atau simpan modul ini ke format PDF"
+          >
+            <Printer className="size-3.5 text-primary" />
+            <span>Print PDF</span>
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="h-9 px-4 rounded-xl bg-foreground text-background text-xs font-bold tracking-wide transition active:scale-95 cursor-pointer print:hidden"
+          >
+            TUTUP
           </button>
         </div>
         </div>

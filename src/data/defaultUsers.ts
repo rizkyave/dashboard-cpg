@@ -49,5 +49,17 @@ export const DEFAULT_USERS: UserAccount[] = [
     status: 'active',
     createdAt: '2026-01-01T00:00:00.000Z',
   },
+  {
+    id: 'usr-guest-01',
+    username: 'guest',
+    name: 'Guest User (MTC & Pengadaan)',
+    password: '0123',
+    role: 'visitor',
+    department: 'Tamu & Eksternal Partner',
+    email: 'guest@cindaragroup.com',
+    avatar: 'G',
+    status: 'active',
+    createdAt: '2026-01-01T00:00:00.000Z',
+  },
 ];
 

@@ -23,6 +23,9 @@ import {
   ShieldCheck,
   LogOut,
   ShieldAlert,
+  FileSpreadsheet,
+  ExternalLink,
+  Wrench,
 } from 'lucide-react';
 
 import * as XLSX from 'xlsx';
@@ -40,6 +43,8 @@ interface SidebarProps {
   criticalCount: number;
   inventoryCount?: number;
   kapalPosisiCount?: number;
+  workOrderCount?: number;
+  serviceMaintenanceCount?: number;
   isCollapsed: boolean;
   onToggleCollapse: () => void;
   onOpenNewRecord?: () => void;
@@ -56,6 +61,8 @@ export default function Sidebar({
   criticalCount,
   inventoryCount,
   kapalPosisiCount,
+  workOrderCount,
+  serviceMaintenanceCount,
   isCollapsed,
   onToggleCollapse,
   onOpenNewRecord,
@@ -400,13 +407,13 @@ export default function Sidebar({
           )}
         </div>
 
-        {/* Modul Cek Persediaan (Dibawah Filter Lead Time SLA) - Khusus Admin & User */}
+        {/* Modul Tambahan (Cek Persediaan, Posisi Kapal, List WO) - Khusus Admin & User */}
         {!isVisitor && (
           <div className="space-y-1 pt-2 border-t border-border">
             <div className="px-2 py-1 text-[11px] font-medium text-muted-foreground flex items-center justify-between">
-              <span>Modul Persediaan Gudang</span>
-              <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
-                Accurate
+              <span>Modul Tambahan</span>
+              <span className="text-[10px] font-mono text-sky-600 dark:text-sky-400 font-semibold bg-sky-500/10 px-1.5 py-0.5 rounded border border-sky-500/20">
+                Eksternal &amp; Live
               </span>
             </div>
             <nav className="space-y-0.5">
@@ -456,6 +463,56 @@ export default function Sidebar({
                   {kapalPosisiCount !== undefined && kapalPosisiCount > 0
                     ? `${kapalPosisiCount}`
                     : 'Live'}
+                </span>
+              </button>
+
+              {/* Modul Baru: List WO (Work Order Dashboard Langsung di Web) */}
+              <button
+                onClick={() => handleSelectTab('work-order')}
+                className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation cursor-pointer ${
+                  activeTab === 'work-order'
+                    ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-border'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                }`}
+                title="Buka Modul Monitoring Work Order (WO)"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <FileSpreadsheet
+                    className={`size-4 shrink-0 ${
+                      activeTab === 'work-order' ? 'text-blue-500' : 'text-muted-foreground'
+                    }`}
+                  />
+                  <span className="truncate whitespace-nowrap">List WO</span>
+                </div>
+                <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                  {workOrderCount !== undefined && workOrderCount > 0
+                    ? `${workOrderCount}`
+                    : 'Sync'}
+                </span>
+              </button>
+
+              {/* Modul Baru: List SM (Service & Maintenance Bengkel Rekanan) */}
+              <button
+                onClick={() => handleSelectTab('list-sm')}
+                className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation cursor-pointer ${
+                  activeTab === 'list-sm'
+                    ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-border'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                }`}
+                title="Buka Modul Monitoring Service & Maintenance (SM) Bengkel Vendor"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <Wrench
+                    className={`size-4 shrink-0 ${
+                      activeTab === 'list-sm' ? 'text-amber-500' : 'text-muted-foreground'
+                    }`}
+                  />
+                  <span className="truncate whitespace-nowrap">List SM</span>
+                </div>
+                <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                  {serviceMaintenanceCount !== undefined && serviceMaintenanceCount > 0
+                    ? `${serviceMaintenanceCount}`
+                    : 'Vendor'}
                 </span>
               </button>
             </nav>

@@ -27,6 +27,8 @@ import {
   Table as TableIcon,
   ChevronDown,
   Camera,
+  Pin,
+  ChevronUp,
 } from 'lucide-react';
 import { ProcurementItem, StatusTone } from '@/types/procurement';
 import { EntityDonutChart, PipelineBarChart } from './Charts';
@@ -111,6 +113,21 @@ export default function OverviewTab({
 
   const [viewMode, setViewMode] = useState<'card' | 'table'>('table');
   const [showMobileFilters, setShowMobileFilters] = useState<boolean>(false);
+
+  // Split View & Freeze Header Pane State
+  const [splitHeight, setSplitHeight] = useState<'compact' | 'default' | 'expanded'>('default');
+  const [isTableScrolled, setIsTableScrolled] = useState<boolean>(false);
+  const tableContainerRef = React.useRef<HTMLDivElement>(null);
+
+  const handleTableScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    setIsTableScrolled(e.currentTarget.scrollTop > 30);
+  };
+
+  const scrollToTop = () => {
+    if (tableContainerRef.current) {
+      tableContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   const [isChartsHidden, setIsChartsHidden] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
@@ -804,80 +821,162 @@ export default function OverviewTab({
             )}
           </div>
         ) : (
-          /* Table Container */
-          <div className="relative w-full overflow-x-auto">
-            <table className="w-full text-left text-xs text-foreground">
-              <thead className="bg-muted/30 border-b border-border text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-                <tr>
-                  <th
-                    className="p-3 cursor-pointer hover:text-foreground select-none transition"
-                    onClick={() => handleSort('fpb')}
+          /* Table Container with Split Freeze Header */
+          <div className="relative w-full">
+            {/* Split / Freeze Panes Status & Controls */}
+            <div className="py-2.5 px-3.5 border-b border-border bg-muted/40 flex items-center justify-between gap-3 text-xs flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20 shadow-2xs">
+                  <Pin className="size-3 text-primary rotate-45" />
+                  <span>Header Terkunci (Split Scroll Aktif)</span>
+                  <span className="size-1.5 rounded-full bg-primary animate-pulse"></span>
+                </div>
+                <span className="text-[11px] text-muted-foreground hidden md:inline">
+                  Judul kolom tetap melayang di atas saat scroll ke bawah
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 ml-auto flex-wrap">
+                <div className="flex items-center gap-1 bg-background border border-border p-0.5 rounded-lg text-[11px]">
+                  <span className="px-2 text-muted-foreground text-[10px] font-medium hidden sm:inline">
+                    Tinggi Panel:
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setSplitHeight('compact')}
+                    className={`px-2 py-0.5 rounded-md font-medium transition cursor-pointer ${
+                      splitHeight === 'compact'
+                        ? 'bg-primary text-primary-foreground shadow-xs font-semibold'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    title="Tinggi Ringkas (500px)"
                   >
-                    <div className="flex items-center gap-1">
-                      <span>Nomor Reservasi FPB</span>
-                      {sortField === 'fpb' && (
-                        <span className="text-primary">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                      )}
-                    </div>
-                  </th>
-                <th
-                  className="p-3 cursor-pointer hover:text-foreground select-none transition"
-                  onClick={() => handleSort('po')}
-                >
-                  <div className="flex items-center gap-1">
-                    <span>Nomor PO</span>
-                    {sortField === 'po' && (
-                      <span className="text-primary">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                    )}
-                  </div>
-                </th>
-                <th
-                  className="p-3 cursor-pointer hover:text-foreground select-none transition"
-                  onClick={() => handleSort('date')}
-                >
-                  <div className="flex items-center gap-1">
-                    <span>Tanggal PO</span>
-                    {sortField === 'date' && (
-                      <span className="text-primary">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                    )}
-                  </div>
-                </th>
-                <th
-                  className="p-3 cursor-pointer hover:text-foreground select-none transition"
-                  onClick={() => handleSort('item')}
-                >
-                  <div className="flex items-center gap-1">
-                    <span>Deskripsi Barang & Peruntukan</span>
-                    {sortField === 'item' && (
-                      <span className="text-primary">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                    )}
-                  </div>
-                </th>
-                <th
-                  className="p-3 cursor-pointer hover:text-foreground select-none transition"
-                  onClick={() => handleSort('statusBadge')}
-                >
-                  <div className="flex items-center gap-1">
-                    <span>Status Berkas & PIC</span>
-                    {sortField === 'statusBadge' && (
-                      <span className="text-primary">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                    )}
-                  </div>
-                </th>
-                <th
-                  className="p-3 text-center cursor-pointer hover:text-foreground select-none transition"
-                  onClick={() => handleSort('lapse')}
-                >
-                  <div className="flex items-center justify-center gap-1">
-                    <span>Lapse SLA</span>
-                    {sortField === 'lapse' && (
-                      <span className="text-primary">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                    )}
-                  </div>
-                </th>
-                <th className="p-3 text-center">Aksi</th>
-              </tr>
-            </thead>
+                    500px
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSplitHeight('default')}
+                    className={`px-2 py-0.5 rounded-md font-medium transition cursor-pointer ${
+                      splitHeight === 'default'
+                        ? 'bg-primary text-primary-foreground shadow-xs font-semibold'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    title="Tinggi Fokus Layar (72vh - Rekomendasi)"
+                  >
+                    Fokus (72vh)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSplitHeight('expanded')}
+                    className={`px-2 py-0.5 rounded-md font-medium transition cursor-pointer ${
+                      splitHeight === 'expanded'
+                        ? 'bg-primary text-primary-foreground shadow-xs font-semibold'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    title="Tinggi Bebas (Mengikuti Seluruh Baris)"
+                  >
+                    Penuh
+                  </button>
+                </div>
+
+                {isTableScrolled && (
+                  <button
+                    type="button"
+                    onClick={scrollToTop}
+                    className="h-7 px-2.5 rounded-lg border border-primary/30 bg-primary/10 hover:bg-primary/20 text-primary text-[11px] font-semibold flex items-center gap-1 transition shadow-xs cursor-pointer active:scale-95 animate-in fade-in"
+                    title="Kembali ke baris teratas"
+                  >
+                    <ChevronUp className="size-3.5" />
+                    <span className="hidden sm:inline">Ke Atas</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Scroll Container with Freeze Header */}
+            <div
+              ref={tableContainerRef}
+              onScroll={handleTableScroll}
+              className={`overflow-auto relative transition-all duration-200 ${
+                splitHeight === 'compact'
+                  ? 'max-h-[500px]'
+                  : splitHeight === 'default'
+                  ? 'max-h-[72vh]'
+                  : 'max-h-none'
+              }`}
+            >
+              <table className="w-full text-left text-xs text-foreground border-collapse">
+                <thead className="sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md text-[11px] font-medium text-muted-foreground uppercase tracking-wider border-b border-border shadow-[0_2px_8px_rgba(0,0,0,0.06)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
+                  <tr>
+                    <th
+                      className="p-3 cursor-pointer hover:text-foreground select-none transition sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md"
+                      onClick={() => handleSort('fpb')}
+                    >
+                      <div className="flex items-center gap-1">
+                        <span>Nomor Reservasi FPB</span>
+                        {sortField === 'fpb' && (
+                          <span className="text-primary">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                        )}
+                      </div>
+                    </th>
+                    <th
+                      className="p-3 cursor-pointer hover:text-foreground select-none transition sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md"
+                      onClick={() => handleSort('po')}
+                    >
+                      <div className="flex items-center gap-1">
+                        <span>Nomor PO</span>
+                        {sortField === 'po' && (
+                          <span className="text-primary">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                        )}
+                      </div>
+                    </th>
+                    <th
+                      className="p-3 cursor-pointer hover:text-foreground select-none transition sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md"
+                      onClick={() => handleSort('date')}
+                    >
+                      <div className="flex items-center gap-1">
+                        <span>Tanggal PO</span>
+                        {sortField === 'date' && (
+                          <span className="text-primary">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                        )}
+                      </div>
+                    </th>
+                    <th
+                      className="p-3 cursor-pointer hover:text-foreground select-none transition sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md"
+                      onClick={() => handleSort('item')}
+                    >
+                      <div className="flex items-center gap-1">
+                        <span>Armada</span>
+                        {sortField === 'item' && (
+                          <span className="text-primary">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                        )}
+                      </div>
+                    </th>
+                    <th
+                      className="p-3 cursor-pointer hover:text-foreground select-none transition sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md"
+                      onClick={() => handleSort('statusBadge')}
+                    >
+                      <div className="flex items-center gap-1">
+                        <span>Status Berkas & PIC</span>
+                        {sortField === 'statusBadge' && (
+                          <span className="text-primary">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                        )}
+                      </div>
+                    </th>
+                    <th
+                      className="p-3 text-center cursor-pointer hover:text-foreground select-none transition sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md"
+                      onClick={() => handleSort('lapse')}
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        <span>Lapse SLA</span>
+                        {sortField === 'lapse' && (
+                          <span className="text-primary">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                        )}
+                      </div>
+                    </th>
+                    <th className="p-3 text-center sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md">Aksi</th>
+                  </tr>
+                </thead>
             <tbody className="divide-y divide-border">
               {isVisitor && !searchTerm.trim() ? (
                 <tr>
@@ -1003,26 +1102,14 @@ export default function OverviewTab({
                       {/* Date */}
                       <td className="p-3 font-mono text-xs text-muted-foreground">{formatDateDdMmYy(row.date)}</td>
 
-                      {/* Item Description */}
+                      {/* Item / Armada */}
                       <td className="p-3 max-w-[280px]">
                         <div className="font-medium text-xs text-foreground flex items-center gap-1.5 flex-wrap">
-                          <span>{row.item}</span>
+                          <span>{row.deptArmada || row.item}</span>
                           {row.qtyFPB !== undefined && row.qtyFPB > 0 && (
                             <span className="px-1.5 py-0.2 rounded-md bg-muted border border-border text-[10px] font-mono text-muted-foreground">
                               {row.qtyFPB} {row.satuan && row.satuan.toLowerCase() !== 'paket' ? row.satuan : ''}
                             </span>
-                          )}
-                        </div>
-                        <div className="text-[11px] text-muted-foreground mt-0.5 leading-snug">
-                          {row.deptArmada && (
-                            <span className="text-cyan-400 font-medium mr-1">
-                              [{row.deptArmada}]
-                            </span>
-                          )}
-                          {row.peruntukan && row.peruntukan !== '-' ? (
-                            <span>{row.peruntukan}</span>
-                          ) : (
-                            <span className="italic text-muted-foreground/60">-</span>
                           )}
                         </div>
                       </td>
@@ -1092,7 +1179,21 @@ export default function OverviewTab({
             </tbody>
           </table>
         </div>
-      )}
+
+        {/* Floating Quick Back to Top Button */}
+        {isTableScrolled && splitHeight !== 'expanded' && (
+          <button
+            type="button"
+            onClick={scrollToTop}
+            className="absolute bottom-16 right-5 z-30 shadow-lg bg-foreground text-background hover:bg-foreground/90 font-semibold text-xs py-1.5 px-3.5 rounded-full flex items-center gap-1.5 transition active:scale-95 cursor-pointer animate-in fade-in slide-in-from-bottom-2 duration-200 border border-border/40 shadow-primary/10"
+            title="Kembali ke baris pertama tabel"
+          >
+            <ChevronUp className="size-3.5" />
+            <span>Kembali ke Atas</span>
+          </button>
+        )}
+      </div>
+    )}
 
         {/* Pagination Footer */}
         {sortedItems.length > 0 && (

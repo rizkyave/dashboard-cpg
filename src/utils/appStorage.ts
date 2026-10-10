@@ -1,4 +1,5 @@
 import { ProcurementItem, ArmadaItem, InventoryItem, InventorySummary, PdfItemsCache, KapalPosisiItem, KapalPosisiSummary } from '@/types/procurement';
+import { WorkOrderItem, WorkOrderSummary } from '@/types/workOrder';
 
 const DB_NAME = 'cpg_dashboard_data_db';
 const DB_VERSION = 1;
@@ -262,6 +263,36 @@ export async function loadStoredKapalPosisi(): Promise<{
 } | null> {
   const items = await idbGet<KapalPosisiItem[]>('kapal_posisi_items');
   const summary = await idbGet<KapalPosisiSummary>('kapal_posisi_summary');
+
+  if (items && Array.isArray(items) && items.length > 0) {
+    return { items, summary: summary || null };
+  }
+
+  return null;
+}
+
+/**
+ * Simpan dataset Work Order (Form Responses 1 Google Sheets) ke IndexedDB
+ */
+export async function saveStoredWorkOrder(
+  items: WorkOrderItem[],
+  summary?: WorkOrderSummary | null
+): Promise<void> {
+  await idbSet('work_order_items', items);
+  if (summary) {
+    await idbSet('work_order_summary', summary);
+  }
+}
+
+/**
+ * Muat dataset Work Order dari IndexedDB
+ */
+export async function loadStoredWorkOrder(): Promise<{
+  items: WorkOrderItem[];
+  summary: WorkOrderSummary | null;
+} | null> {
+  const items = await idbGet<WorkOrderItem[]>('work_order_items');
+  const summary = await idbGet<WorkOrderSummary>('work_order_summary');
 
   if (items && Array.isArray(items) && items.length > 0) {
     return { items, summary: summary || null };

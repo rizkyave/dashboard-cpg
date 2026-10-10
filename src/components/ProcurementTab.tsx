@@ -32,6 +32,8 @@ import {
   RefreshCw,
   Sparkles,
   Loader2,
+  Pin,
+  ChevronUp,
 } from 'lucide-react';
 
 import { ProcurementItem, StatusTone, PdfItemsCache } from '@/types/procurement';
@@ -121,6 +123,21 @@ export default function ProcurementTab({
   const [pdfCache, setPdfCache] = useState<PdfItemsCache>({});
   const [isScanningPdf, setIsScanningPdf] = useState<boolean>(false);
   const [scanProgress, setScanProgress] = useState<{ current: number; total: number } | null>(null);
+
+  // Split View & Freeze Header Pane State
+  const [splitHeight, setSplitHeight] = useState<'compact' | 'default' | 'expanded'>('default');
+  const [isTableScrolled, setIsTableScrolled] = useState<boolean>(false);
+  const tableContainerRef = React.useRef<HTMLDivElement>(null);
+
+  const handleTableScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    setIsTableScrolled(e.currentTarget.scrollTop > 30);
+  };
+
+  const scrollToTop = () => {
+    if (tableContainerRef.current) {
+      tableContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   useEffect(() => {
     loadPdfItemsCache().then((cached) => {
@@ -1405,68 +1422,150 @@ export default function ProcurementTab({
             )}
           </div>
         ) : (
-          /* Table View */
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-foreground">
-              <thead className="bg-muted/40 text-muted-foreground font-medium border-b border-border uppercase tracking-wider text-[11px] select-none">
-                <tr>
-                  <th
-                    onClick={() => handleSort('fpb')}
-                    className="p-3.5 cursor-pointer hover:text-foreground transition group whitespace-nowrap"
+          /* Table Container with Split Freeze Header */
+          <div className="relative w-full">
+            {/* Split / Freeze Panes Status & Controls */}
+            <div className="py-2.5 px-3.5 border-b border-border bg-muted/40 flex items-center justify-between gap-3 text-xs flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20 shadow-2xs">
+                  <Pin className="size-3 text-primary rotate-45" />
+                  <span>Header Terkunci (Split Scroll Aktif)</span>
+                  <span className="size-1.5 rounded-full bg-primary animate-pulse"></span>
+                </div>
+                <span className="text-[11px] text-muted-foreground hidden md:inline">
+                  Judul kolom tetap melayang di atas saat scroll ke bawah
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 ml-auto flex-wrap">
+                <div className="flex items-center gap-1 bg-background border border-border p-0.5 rounded-lg text-[11px]">
+                  <span className="px-2 text-muted-foreground text-[10px] font-medium hidden sm:inline">
+                    Tinggi Panel:
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setSplitHeight('compact')}
+                    className={`px-2 py-0.5 rounded-md font-medium transition cursor-pointer ${
+                      splitHeight === 'compact'
+                        ? 'bg-primary text-primary-foreground shadow-xs font-semibold'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    title="Tinggi Ringkas (500px)"
                   >
-                  <span className="flex items-center">
-                    NO FPB & ENTITAS
-                    {renderSortIndicator('fpb')}
-                  </span>
-                </th>
-                <th
-                  onClick={() => handleSort('po')}
-                  className="p-3.5 cursor-pointer hover:text-foreground transition group whitespace-nowrap"
-                >
-                  <span className="flex items-center">
-                    NO PO INTERNAL
-                    {renderSortIndicator('po')}
-                  </span>
-                </th>
-                <th
-                  onClick={() => handleSort('date')}
-                  className="p-3.5 cursor-pointer hover:text-foreground transition group whitespace-nowrap"
-                >
-                  <span className="flex items-center">
-                    TANGGAL PO
-                    {renderSortIndicator('date')}
-                  </span>
-                </th>
-                <th
-                  onClick={() => handleSort('item')}
-                  className="p-3.5 cursor-pointer hover:text-foreground transition group"
-                >
-                  <span className="flex items-center">
-                    DESKRIPSI BARANG & PERUNTUKAN
-                    {renderSortIndicator('item')}
-                  </span>
-                </th>
-                <th
-                  onClick={() => handleSort('statusBadge')}
-                  className="p-3.5 cursor-pointer hover:text-foreground transition group"
-                >
-                  <span className="flex items-center">
-                    STATUS BERKAS & PIC
-                    {renderSortIndicator('statusBadge')}
-                  </span>
-                </th>
-                <th
-                  onClick={() => handleSort('lapse')}
-                  className="p-3.5 text-center cursor-pointer hover:text-foreground transition group whitespace-nowrap"
-                >
-                  <span className="flex items-center justify-center font-semibold">
-                    LAPSE DAY
-                    {renderSortIndicator('lapse')}
-                  </span>
-                </th>
-                <th className="p-3.5 text-center whitespace-nowrap">AKSI</th>
-              </tr>
-            </thead>
+                    500px
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSplitHeight('default')}
+                    className={`px-2 py-0.5 rounded-md font-medium transition cursor-pointer ${
+                      splitHeight === 'default'
+                        ? 'bg-primary text-primary-foreground shadow-xs font-semibold'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    title="Tinggi Fokus Layar (72vh - Rekomendasi)"
+                  >
+                    Fokus (72vh)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSplitHeight('expanded')}
+                    className={`px-2 py-0.5 rounded-md font-medium transition cursor-pointer ${
+                      splitHeight === 'expanded'
+                        ? 'bg-primary text-primary-foreground shadow-xs font-semibold'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    title="Tinggi Bebas (Mengikuti Seluruh Baris)"
+                  >
+                    Penuh
+                  </button>
+                </div>
+
+                {isTableScrolled && (
+                  <button
+                    type="button"
+                    onClick={scrollToTop}
+                    className="h-7 px-2.5 rounded-lg border border-primary/30 bg-primary/10 hover:bg-primary/20 text-primary text-[11px] font-semibold flex items-center gap-1 transition shadow-xs cursor-pointer active:scale-95 animate-in fade-in"
+                    title="Kembali ke baris teratas"
+                  >
+                    <ChevronUp className="size-3.5" />
+                    <span className="hidden sm:inline">Ke Atas</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Scroll Container with Freeze Header */}
+            <div
+              ref={tableContainerRef}
+              onScroll={handleTableScroll}
+              className={`overflow-auto relative transition-all duration-200 ${
+                splitHeight === 'compact'
+                  ? 'max-h-[500px]'
+                  : splitHeight === 'default'
+                  ? 'max-h-[72vh]'
+                  : 'max-h-none'
+              }`}
+            >
+              <table className="w-full text-left text-xs text-foreground border-collapse">
+                <thead className="sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md text-[11px] font-medium text-muted-foreground uppercase tracking-wider border-b border-border shadow-[0_2px_8px_rgba(0,0,0,0.06)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.35)] select-none">
+                  <tr>
+                    <th
+                      onClick={() => handleSort('fpb')}
+                      className="p-3.5 cursor-pointer hover:text-foreground transition group whitespace-nowrap sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md"
+                    >
+                      <span className="flex items-center">
+                        NO FPB & ENTITAS
+                        {renderSortIndicator('fpb')}
+                      </span>
+                    </th>
+                    <th
+                      onClick={() => handleSort('po')}
+                      className="p-3.5 cursor-pointer hover:text-foreground transition group whitespace-nowrap sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md"
+                    >
+                      <span className="flex items-center">
+                        NO PO INTERNAL
+                        {renderSortIndicator('po')}
+                      </span>
+                    </th>
+                    <th
+                      onClick={() => handleSort('date')}
+                      className="p-3.5 cursor-pointer hover:text-foreground transition group whitespace-nowrap sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md"
+                    >
+                      <span className="flex items-center">
+                        TANGGAL PO
+                        {renderSortIndicator('date')}
+                      </span>
+                    </th>
+                    <th
+                      onClick={() => handleSort('item')}
+                      className="p-3.5 cursor-pointer hover:text-foreground transition group sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md"
+                    >
+                      <span className="flex items-center">
+                        ARMADA
+                        {renderSortIndicator('item')}
+                      </span>
+                    </th>
+                    <th
+                      onClick={() => handleSort('statusBadge')}
+                      className="p-3.5 cursor-pointer hover:text-foreground transition group sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md"
+                    >
+                      <span className="flex items-center">
+                        STATUS BERKAS & PIC
+                        {renderSortIndicator('statusBadge')}
+                      </span>
+                    </th>
+                    <th
+                      onClick={() => handleSort('lapse')}
+                      className="p-3.5 text-center cursor-pointer hover:text-foreground transition group whitespace-nowrap sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md"
+                    >
+                      <span className="flex items-center justify-center font-semibold">
+                        LAPSE DAY
+                        {renderSortIndicator('lapse')}
+                      </span>
+                    </th>
+                    <th className="p-3.5 text-center whitespace-nowrap sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md">AKSI</th>
+                  </tr>
+                </thead>
             <tbody className="divide-y divide-border/60">
               {paginatedItems.length === 0 ? (
                 <tr>
@@ -1541,7 +1640,7 @@ export default function ProcurementTab({
                       <td className="p-3.5 font-mono text-muted-foreground">{formatDateDdMmYy(row.date)}</td>
                       <td className="p-3.5 max-w-[290px]">
                         <div className="font-medium text-foreground flex items-center gap-1.5 flex-wrap">
-                          <span>{row.item}</span>
+                          <span>{row.deptArmada || row.item}</span>
                           {row.qtyFPB !== undefined && row.qtyFPB > 0 && (
                             <span className="px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground border border-border text-[10px] font-mono whitespace-nowrap">
                               {row.qtyFPB} {row.satuan || ''}
@@ -1556,18 +1655,6 @@ export default function ProcurementTab({
                             </span>
                           </div>
                         )}
-                        <div className="text-[11px] text-muted-foreground font-mono mt-0.5 leading-snug">
-                          {row.deptArmada && (
-                            <span className="text-muted-foreground/70 font-sans mr-1">
-                              [{row.deptArmada}]
-                            </span>
-                          )}
-                          {row.peruntukan && row.peruntukan !== '-' ? (
-                            <span className="text-foreground/80">{row.peruntukan}</span>
-                          ) : (
-                            <span className="text-muted-foreground/50 italic font-normal text-[10px]">-</span>
-                          )}
-                        </div>
                       </td>
 
                       <td className="p-3.5">
@@ -1645,7 +1732,21 @@ export default function ProcurementTab({
             </tbody>
           </table>
         </div>
-      )}
+
+        {/* Floating Quick Back to Top Button */}
+        {isTableScrolled && splitHeight !== 'expanded' && (
+          <button
+            type="button"
+            onClick={scrollToTop}
+            className="absolute bottom-16 right-5 z-30 shadow-lg bg-foreground text-background hover:bg-foreground/90 font-semibold text-xs py-1.5 px-3.5 rounded-full flex items-center gap-1.5 transition active:scale-95 cursor-pointer animate-in fade-in slide-in-from-bottom-2 duration-200 border border-border/40 shadow-primary/10"
+            title="Kembali ke baris pertama tabel"
+          >
+            <ChevronUp className="size-3.5" />
+            <span>Kembali ke Atas</span>
+          </button>
+        )}
+      </div>
+    )}
 
         {/* ═══════════════════════════════════════════════════════════
             PAGINATION & STATUS FOOTER

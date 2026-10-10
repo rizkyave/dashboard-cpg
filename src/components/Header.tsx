@@ -21,6 +21,7 @@ import {
   Users,
   ShieldCheck,
   Eye,
+  Wrench,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { ProcurementItem, ArmadaItem, InventoryItem, InventorySummary, KapalPosisiItem } from '@/types/procurement';
@@ -56,6 +57,8 @@ interface HeaderProps {
 
 const DEFAULT_SHEET_URL =
   'https://docs.google.com/spreadsheets/d/16Ae8gGsGYx_xCNaqZvME-uZvaAeECsE69PBYlY32fZk/edit?pli=1&gid=0#gid=0';
+const WORK_ORDER_SHEET_URL =
+  'https://docs.google.com/spreadsheets/d/1PCko1zSn1PNpK9kfnUp3CoMGeeKsxhycwBiUH78b9B4/edit?gid=687878754#gid=687878754';
 const DEFAULT_EFPB_FILES_URL = 'https://e-fpb.cindaragroup.com/FilesList';
 
 export default function Header({
@@ -597,33 +600,104 @@ export default function Header({
                   </span>
                 </div>
 
-                {/* 0. Shortcut Langsung: Buka Google Spreadsheet */}
+                {/* 0a. Shortcut Langsung: Monitoring Layanan dan Pengadaan Logistik */}
                 <a
                   href={sheetUrl || DEFAULT_SHEET_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => setIsMenuOpen(false)}
                   className="flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg text-foreground hover:bg-emerald-500/10 hover:border-emerald-500/30 border border-transparent transition group cursor-pointer"
-                  title="Buka Google Spreadsheet Monitoring Layanan di tab baru"
+                  title="Buka Spreadsheet Monitoring Layanan dan Pengadaan Logistik di tab baru"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     <FileSpreadsheet className="size-4 text-emerald-600 dark:text-emerald-400 shrink-0 group-hover:scale-110 transition-transform" />
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5">
                         <span className="font-semibold block leading-tight text-xs text-foreground group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                          Buka Google Spreadsheet
+                          Monitoring Layanan dan Pengadaan Logistik
                         </span>
-                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
-                          Shortcut ↗
+                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 shrink-0">
+                          Sheets ↗
                         </span>
                       </div>
                       <span className="text-[10px] text-muted-foreground block truncate">
-                        Monitoring Layanan &amp; Pengadaan Logistik
+                        Google Sheets Utama (Procurement &amp; Armada)
                       </span>
                     </div>
                   </div>
                   <ExternalLink className="size-3.5 text-muted-foreground group-hover:text-emerald-600 dark:group-hover:text-emerald-400 shrink-0 transition-colors" />
                 </a>
+
+                {/* 0b. Shortcut Baru: (WO) Work Order */}
+                <div
+                  onClick={() => {
+                    if (onNavigateTab) {
+                      onNavigateTab('work-order');
+                    }
+                    setIsMenuOpen(false);
+                  }}
+                  className="flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg text-foreground hover:bg-blue-500/10 hover:border-blue-500/30 border border-transparent transition group cursor-pointer"
+                  title="Buka Modul Monitoring Work Order (WO) di dalam web"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <FileSpreadsheet className="size-4 text-blue-600 dark:text-blue-400 shrink-0 group-hover:scale-110 transition-transform" />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-semibold block leading-tight text-xs text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                          (WO) Work Order
+                        </span>
+                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-blue-500/15 text-blue-700 dark:text-blue-300 shrink-0">
+                          Modul &amp; Live
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-muted-foreground block truncate">
+                        Monitoring Work Order Armada
+                      </span>
+                    </div>
+                  </div>
+                  <a
+                    href={WORK_ORDER_SHEET_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsMenuOpen(false);
+                    }}
+                    title="Buka Spreadsheet di Google Sheets"
+                    className="p-1 rounded text-muted-foreground hover:text-blue-600 hover:bg-blue-500/15 transition shrink-0"
+                  >
+                    <ExternalLink className="size-3.5" />
+                  </a>
+                </div>
+
+                {/* 0c. Shortcut Baru: (SM) Service & Maintenance Bengkel Vendor */}
+                <div
+                  onClick={() => {
+                    if (onNavigateTab) {
+                      onNavigateTab('list-sm');
+                    }
+                    setIsMenuOpen(false);
+                  }}
+                  className="flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg text-foreground hover:bg-amber-500/10 hover:border-amber-500/30 border border-transparent transition group cursor-pointer"
+                  title="Buka Modul Monitoring Service & Maintenance (SM) Vendor"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <Wrench className="size-4 text-amber-600 dark:text-amber-400 shrink-0 group-hover:scale-110 transition-transform" />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-semibold block leading-tight text-xs text-foreground group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                          (SM) Service &amp; Maintenance
+                        </span>
+                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300 shrink-0">
+                          Vendor
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-muted-foreground block truncate">
+                        Monitoring Perbaikan Bengkel Rekanan
+                      </span>
+                    </div>
+                  </div>
+                </div>
 
                 {/* 1. Refresh Layanan Langsung dari Link Google Sheets */}
                 <div className="rounded-lg hover:bg-muted/80 transition p-1 border border-transparent hover:border-border/60">

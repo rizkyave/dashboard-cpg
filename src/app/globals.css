@@ -88,3 +88,78 @@ body {
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
 }
+
+/* Print Styles for Modals & Modules */
+@media print {
+  @page {
+    size: auto;
+    margin: 10mm;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+  }
+
+  /* Sembunyikan elemen background dan tombol aksi saat print */
+  header,
+  nav,
+  aside,
+  main,
+  footer,
+  .no-print,
+  button:not(.print-allow) {
+    display: none !important;
+  }
+
+  /* Hilangkan backdrop gelap modal dan buka batasan scroll */
+  .printable-modal-overlay {
+    position: static !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+    inset: auto !important;
+    display: block !important;
+    overflow: visible !important;
+  }
+
+  .printable-modal-content {
+    position: static !important;
+    max-height: none !important;
+    height: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .printable-modal-content .bg-card,
+  .printable-modal-content .bg-muted\/40,
+  .printable-modal-content .bg-muted\/20,
+  .printable-modal-content .bg-muted\/60,
+  .printable-modal-content .bg-muted\/10,
+  .printable-modal-content .bg-background {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border-color: #cbd5e1 !important;
+  }
+
+  .printable-modal-content .text-muted-foreground {
+    color: #475569 !important;
+  }
+
+  .printable-modal-content .text-foreground {
+    color: #0f172a !important;
+  }
+}
+

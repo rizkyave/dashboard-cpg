@@ -32,6 +32,45 @@ export const extractFstbLast5 = (fstb?: string | null): string => {
 };
 
 /**
+ * Memecah dan merapikan string nomor TTB yang digabung dengan koma, titik koma, atau garis miring.
+ * Mendukung pewarisan prefix format untuk entri lanjutan
+ * Contoh: "CPL-TTB-26-06713,06714" -> ["CPL-TTB-26-06713", "CPL-TTB-26-06714"]
+ */
+export const parseTtbList = (rawTtb?: string | null): string[] => {
+  if (!rawTtb) return [];
+  const clean = rawTtb.trim();
+  if (!clean || clean === '-' || clean.toLowerCase() === '(kosong)' || clean.toLowerCase() === 'null') {
+    return [];
+  }
+
+  // Split by koma, slash, titik koma, spasi/newline
+  const parts = clean.split(/[,;/]+/).map((p) => p.trim()).filter(Boolean);
+  if (parts.length === 0) return [];
+
+  const results: string[] = [];
+  let currentPrefix = '';
+
+  for (const part of parts) {
+    // Cek apakah part sudah memiliki format prefix dokumen lengkap
+    const matchPrefix =
+      part.match(/^([A-Za-z0-9]+-(?:TTB|PO|FSTB|SRD|SRM)-[\d]+-)(.*)$/i) ||
+      part.match(/^([A-Za-z0-9]+-[A-Za-z0-9]+-)(.*)$/i);
+    if (matchPrefix) {
+      currentPrefix = matchPrefix[1];
+      results.push(part.toUpperCase());
+    } else if (/^\d+$/.test(part) && currentPrefix) {
+      // Hanya angka lanjutan (misal '06714'), warisi prefix sebelumnya
+      results.push(`${currentPrefix}${part}`.toUpperCase());
+    } else {
+      results.push(part.toUpperCase());
+    }
+  }
+
+  // Deduplikasi jika ada nomor yang kembar
+  return Array.from(new Set(results));
+};
+
+/**
  * Mendapatkan URL portal TimeMark yang dikonfigurasi pengguna (atau default).
  */
 export const getTimemarkPortalUrl = (): string => {
