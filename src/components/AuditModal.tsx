@@ -1211,23 +1211,21 @@ export default function AuditModal({
 
               {/* 2. PEMBUATAN FPB (TERVERIFIKASI FPB CHECK BU NOOR / BU MELINDA) */}
               <div className="p-3 rounded-lg bg-card border border-border flex flex-col justify-between gap-2.5 shadow-xs hover:shadow-subtle transition min-w-0">
-                <div className="flex items-center justify-between min-h-[1.75rem] gap-1 min-w-0">
+                <div className="flex flex-col justify-center min-h-[1.75rem] gap-0.5 min-w-0">
                   <span className="text-[11px] font-semibold text-foreground tracking-wide uppercase leading-tight truncate min-w-0" title={`PEMBUATAN FPB ${isValidPicName(displayPicFpb) ? `(${displayPicFpb})` : ''}`}>
                     PEMBUATAN FPB {isValidPicName(displayPicFpb) ? `(${displayPicFpb})` : ''}
                   </span>
-                </div>
-                <div className="space-y-1 pt-2 border-t border-border min-w-0">
-                  <div className="flex items-center justify-between min-w-0 gap-1.5">
-                    <span className="text-[10px] text-muted-foreground font-mono shrink-0">Status:</span>
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-mono text-[11px] font-medium shrink-0">
-                      <Check className="size-3 text-emerald-600 dark:text-emerald-400" />
-                      {itemS1?.statusCheckFpb || itemS1?.doneCheckFpb || (itemS1?.picCheckFpb && itemS1.picCheckFpb !== '-' ? 'TERVERIFIKASI' : 'CLOSE')}
-                    </span>
-                  </div>
-                  <div className="text-[9.5px] font-mono text-emerald-700 dark:text-emerald-400 font-medium leading-tight flex items-center gap-1 pt-0.5 min-w-0" title={fpbCheckInfo.label}>
+                  <div className="text-[9.5px] font-mono text-emerald-700 dark:text-emerald-400 font-medium leading-tight flex items-center gap-1 min-w-0" title={fpbCheckInfo.label}>
                     <CheckCircle2 className="size-2.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                     <span className="truncate min-w-0">{fpbCheckInfo.label}</span>
                   </div>
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t border-border min-w-0 gap-1.5">
+                  <span className="text-[10px] text-muted-foreground font-mono shrink-0">Status:</span>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-mono text-[11px] font-medium shrink-0">
+                    <Check className="size-3 text-emerald-600 dark:text-emerald-400" />
+                    {itemS1?.statusCheckFpb || itemS1?.doneCheckFpb || (itemS1?.picCheckFpb && itemS1.picCheckFpb !== '-' ? 'TERVERIFIKASI' : 'CLOSE')}
+                  </span>
                 </div>
               </div>
 
@@ -1318,10 +1316,10 @@ export default function AuditModal({
             ═══════════════════════════════════════════════════════════ */}
         <div className="space-y-2.5 pt-1">
           <div className="flex items-center justify-between flex-wrap gap-2">
+            <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+              <span>Alur Tanggung Jawab Fisik & PIC (5 Divisi Terverifikasi)</span>
+            </h4>
             <div className="flex items-center gap-2.5 flex-wrap">
-              <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-1.5">
-                <span>Alur Tanggung Jawab Fisik & PIC (5 Divisi Terverifikasi)</span>
-              </h4>
               {(itemS1 || itemsS2[0]) && (
                 <WorkflowTrafficLight
                   item={(itemS1 || itemsS2[0]) as any}
@@ -1329,10 +1327,10 @@ export default function AuditModal({
                   compact={true}
                 />
               )}
+              <span className="text-[10px] text-muted-foreground font-mono bg-muted px-2 py-0.5 rounded-md border border-border">
+                Detail Riwayat Lengkap
+              </span>
             </div>
-            <span className="text-[10px] text-muted-foreground font-mono bg-muted px-2 py-0.5 rounded-md border border-border">
-              Detail Riwayat Lengkap
-            </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 text-xs">
