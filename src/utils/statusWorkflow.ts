@@ -60,6 +60,7 @@ export interface EvaluatableItem {
   tglInputFstb?: string;
   tglKePicTtb?: string;
   noTtb?: string;
+  ttb?: string;
   tglTtb?: string;
   tglInputTtb?: string;
   tglKeTimLapangan?: string;
@@ -87,6 +88,17 @@ export interface EvaluatableItem {
   statusPenjelasan?: string;
   lapse?: number;
   lapseText?: string;
+  status?: string;
+  selisih?: number;
+  qtyFPB?: number;
+  qtyPO?: number;
+  qtyFSTB?: number;
+  qtyTTB?: number;
+  statusCheckFpb?: string;
+  doneCheckFpb?: string;
+  picCheckFpb?: string;
+  tglApproveWeb?: string;
+  verifiedByFpb?: string;
 }
 
 /**
@@ -427,4 +439,222 @@ export function getWorkflowGroupedStatuses(
 
   return result;
 }
+
+export interface DivisionStageLight {
+  code: 'FPB' | 'PCH' | 'TTB' | 'LAP' | 'FIN';
+  name: string;
+  stepNumber: number;
+  isPassed: boolean;
+  statusText: string;
+  detail: string;
+  colorName: 'blue' | 'cyan' | 'purple' | 'amber' | 'emerald';
+  activeBulbClass: string;
+  activeTextClass: string;
+}
+
+export interface FiveDivisionWorkflowResult {
+  stages: DivisionStageLight[];
+  passedCount: number;
+  totalCount: number;
+  isComplete: boolean;
+  completionPercentage: number;
+  summaryBadge: string;
+  statusTone: 'emerald' | 'amber' | 'blue';
+}
+
+/**
+ * Evaluasi status alur 5 divisi terverifikasi untuk lampu indikator traffic light:
+ * 1. FPB (Pembuatan & Verifikasi FPB)
+ * 2. PCH (Purchasing / No. PO & PIC)
+ * 3. TTB (Logistik TTB)
+ * 4. LAP (Tim Lapangan / Pengantaran & Serah Terima)
+ * 5. FIN (Finance / ADM & SPP)
+ */
+export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisionWorkflowResult {
+  // 1. FPB (Pembuatan & Verifikasi FPB)
+  const rawFpb = item.fpb?.trim() || '';
+  const hasFpb = hasValue(rawFpb);
+  const isFpbApproved =
+    item.statusCheckFpb === 'CLOSE' ||
+    item.statusCheckFpb === 'DONE' ||
+    item.doneCheckFpb === 'DONE' ||
+    hasValue(item.tglApproveWeb) ||
+    hasValue(item.picCheckFpb);
+  const isFpbPassed = hasFpb;
+  const fpbDetail = hasFpb
+    ? `${rawFpb}${isFpbApproved ? ' (Terverifikasi)' : ''}`
+    : 'Menunggu FPB';
+  const fpbStatus = isFpbApproved ? 'FPB Terverifikasi' : hasFpb ? 'FPB Terbit' : 'Menunggu FPB';
+
+  // 2. PURCHASING (Penerbitan PO & PIC Purchasing)
+  const rawPo = item.po || item.noPo;
+  const hasPo = hasValue(rawPo);
+  const picPch = item.picPch && item.picPch !== '-' && item.picPch.toLowerCase() !== 'purchasing'
+    ? item.picPch.trim()
+    : '';
+  const hasPicPch = Boolean(picPch);
+  const isPchPassed = hasPo || (hasPicPch && hasValue(item.tglPo));
+  const pchDetail = hasPo
+    ? `PO: ${rawPo}${picPch ? ` (${picPch})` : ''}`
+    : hasPicPch
+    ? `PIC: ${picPch}`
+    : 'Menunggu PO';
+  const pchStatus = hasPo ? 'PO Diterbitkan' : hasPicPch ? 'PIC Ditugaskan' : 'Menunggu PO';
+
+  // 3. LOGISTIK TTB (Penerimaan & Dokumen TTB)
+  const rawTtb = item.noTtb || item.ttb;
+  const hasTtb = hasValue(rawTtb);
+  const rawTglTtb = item.tglTtb || item.tglInputTtb;
+  const hasTglTtb = hasValue(rawTglTtb);
+  const picTtb = item.picTtb && item.picTtb !== '-' && item.picTtb.toLowerCase() !== 'logistik'
+    ? item.picTtb.trim()
+    : '';
+  const hasPicTtb = Boolean(picTtb);
+  const hasQtyTtb = typeof item.qtyTTB === 'number' && item.qtyTTB > 0;
+  const isTtbPassed = hasTtb || hasTglTtb || (hasPicTtb && hasQtyTtb);
+  const ttbDetail = hasTtb
+    ? `TTB: ${rawTtb}${picTtb ? ` (${picTtb})` : ''}`
+    : hasTglTtb
+    ? `Tgl: ${formatDateDdMmYyDash(rawTglTtb) || rawTglTtb}`
+    : hasPicTtb
+    ? `PIC: ${picTtb}`
+    : 'Menunggu TTB';
+  const ttbStatus = hasTtb ? 'TTB Tercatat' : hasTglTtb ? 'Tgl TTB Ada' : 'Menunggu TTB';
+
+  // 4. TIM LAPANGAN (Serah Terima Fisik & Pengantaran)
+  const picLap = item.picLap && item.picLap !== '-' && item.picLap.toLowerCase() !== '(kosong)'
+    ? item.picLap.trim()
+    : '';
+  const hasPicLap = Boolean(picLap);
+  const tglDiantar = item.tglBarangDiantar || item.tglDiantar;
+  const hasTglDiantar = hasValue(tglDiantar);
+  const tglLap = item.tglTimLapKePicTtb || item.tglKeTimLapangan || item.tglKeTimLap;
+  const hasTglLap = hasValue(tglLap);
+  const isPhysicalDone =
+    (typeof item.selisih === 'number' && item.selisih === 0 && typeof item.qtyFSTB === 'number' && item.qtyFSTB > 0) ||
+    item.status === 'LENGKAP' ||
+    item.status === 'SELESAI';
+  const isLapPassed = hasPicLap || hasTglDiantar || hasTglLap || isPhysicalDone;
+  const lapDetail = hasPicLap
+    ? `PIC: ${picLap}${hasTglDiantar ? ` (${formatDateDdMmYyDash(tglDiantar) || tglDiantar})` : ''}`
+    : hasTglDiantar
+    ? `Diantar: ${formatDateDdMmYyDash(tglDiantar) || tglDiantar}`
+    : isPhysicalDone
+    ? 'Serah Terima Lengkap'
+    : 'Menunggu Lapangan';
+  const lapStatus = isLapPassed ? 'Serah Terima Lengkap' : 'Menunggu Serah Terima';
+
+  // 5. FINANCE / ADM (Penerbitan SPP & Penyelesaian Kas)
+  const rawSpp = item.noSpp || item.spp;
+  const hasSpp = hasValue(rawSpp);
+  const rawTglKeu = item.tglKeKeuangan || item.tglKeuangan || item.tglKeu;
+  const hasTglKeu = hasValue(rawTglKeu);
+  const rawStatusUpper = (item.statusBadge || item.statusArmada || item.status || item.rawStatus || '').toUpperCase();
+  const isKeuanganStatus =
+    rawStatusUpper.includes('KEUANGAN') ||
+    rawStatusUpper.includes('SELESAI') ||
+    rawStatusUpper.includes('SPP');
+  const isFinPassed = hasSpp || hasTglKeu || isKeuanganStatus;
+  const finDetail = hasSpp
+    ? `SPP: ${rawSpp}${hasTglKeu ? ` (${formatDateDdMmYyDash(rawTglKeu) || rawTglKeu})` : ''}`
+    : hasTglKeu
+    ? `Ke Keuangan: ${formatDateDdMmYyDash(rawTglKeu) || rawTglKeu}`
+    : isKeuanganStatus
+    ? 'Selesai di Keuangan'
+    : 'Menunggu Berkas ADM';
+  const finStatus = (hasSpp && hasTglKeu) || rawStatusUpper.includes('SELESAI DI KEUANGAN')
+    ? 'Selesai di Keuangan'
+    : hasSpp
+    ? 'Proses SPP Kas'
+    : isKeuanganStatus
+    ? 'Selesai di Keuangan'
+    : 'Menunggu Berkas ADM';
+
+  const stages: DivisionStageLight[] = [
+    {
+      code: 'FPB',
+      name: 'Pembuatan FPB',
+      stepNumber: 1,
+      isPassed: isFpbPassed,
+      statusText: fpbStatus,
+      detail: fpbDetail,
+      colorName: 'blue',
+      activeBulbClass: 'bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.9)] ring-1 ring-blue-300',
+      activeTextClass: 'text-blue-400 dark:text-blue-300 font-bold',
+    },
+    {
+      code: 'PCH',
+      name: 'Purchasing',
+      stepNumber: 2,
+      isPassed: isPchPassed,
+      statusText: pchStatus,
+      detail: pchDetail,
+      colorName: 'cyan',
+      activeBulbClass: 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.9)] ring-1 ring-cyan-300',
+      activeTextClass: 'text-cyan-400 dark:text-cyan-300 font-bold',
+    },
+    {
+      code: 'TTB',
+      name: 'Logistik TTB',
+      stepNumber: 3,
+      isPassed: isTtbPassed,
+      statusText: ttbStatus,
+      detail: ttbDetail,
+      colorName: 'purple',
+      activeBulbClass: 'bg-purple-400 shadow-[0_0_8px_rgba(192,132,252,0.9)] ring-1 ring-purple-300',
+      activeTextClass: 'text-purple-400 dark:text-purple-300 font-bold',
+    },
+    {
+      code: 'LAP',
+      name: 'Tim Lapangan',
+      stepNumber: 4,
+      isPassed: isLapPassed,
+      statusText: lapStatus,
+      detail: lapDetail,
+      colorName: 'amber',
+      activeBulbClass: 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.9)] ring-1 ring-amber-300',
+      activeTextClass: 'text-amber-400 dark:text-amber-300 font-bold',
+    },
+    {
+      code: 'FIN',
+      name: 'Finance / ADM',
+      stepNumber: 5,
+      isPassed: isFinPassed,
+      statusText: finStatus,
+      detail: finDetail,
+      colorName: 'emerald',
+      activeBulbClass: 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)] ring-1 ring-emerald-300',
+      activeTextClass: 'text-emerald-400 dark:text-emerald-300 font-bold',
+    },
+  ];
+
+  const passedCount = stages.filter((s) => s.isPassed).length;
+  const isComplete = passedCount === 5;
+  const completionPercentage = Math.round((passedCount / 5) * 100);
+
+  let summaryBadge = `${passedCount}/5 Terisi`;
+  let statusTone: 'emerald' | 'amber' | 'blue' = 'amber';
+
+  if (isComplete) {
+    summaryBadge = '5/5 Lengkap';
+    statusTone = 'emerald';
+  } else if (passedCount === 0) {
+    summaryBadge = '0/5 Menunggu';
+    statusTone = 'blue';
+  } else {
+    summaryBadge = `${passedCount}/5 Sebagian`;
+    statusTone = 'amber';
+  }
+
+  return {
+    stages,
+    passedCount,
+    totalCount: 5,
+    isComplete,
+    completionPercentage,
+    summaryBadge,
+    statusTone,
+  };
+}
+
 

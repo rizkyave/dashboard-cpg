@@ -35,6 +35,7 @@ import { formatDateDdMmYy } from '@/utils/formatDate';
 import { cleanSingleDescription, deduplicateDescriptions, cleanTujuanPeruntukan } from '@/utils/descriptionCleaner';
 import { isItemJasa, determineTransactionCategory, ProcurementCategory, normalizeJasaUnit } from '@/utils/jasaClassifier';
 import { useAuth } from '@/context/AuthContext';
+import WorkflowTrafficLight from './WorkflowTrafficLight';
 
 interface AuditModalProps {
   fpbNumber: string | null;
@@ -1280,10 +1281,19 @@ export default function AuditModal({
             5. FINANCE / ADM
             ═══════════════════════════════════════════════════════════ */}
         <div className="space-y-2.5 pt-1">
-          <div className="flex items-center justify-between">
-            <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-1.5">
-              <span>Alur Tanggung Jawab Fisik & PIC (5 Divisi Terverifikasi)</span>
-            </h4>
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+                <span>Alur Tanggung Jawab Fisik & PIC (5 Divisi Terverifikasi)</span>
+              </h4>
+              {(itemS1 || itemsS2[0]) && (
+                <WorkflowTrafficLight
+                  item={(itemS1 || itemsS2[0]) as any}
+                  showBadge={true}
+                  compact={true}
+                />
+              )}
+            </div>
             <span className="text-[10px] text-muted-foreground font-mono bg-muted px-2 py-0.5 rounded-md border border-border">
               Detail Riwayat Lengkap
             </span>

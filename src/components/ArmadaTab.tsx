@@ -36,6 +36,8 @@ import {
 
 import { formatDateDdMmYy, extractDateInfo } from '@/utils/formatDate';
 import { loadPdfItemsCache, savePdfItemsCache } from '@/utils/appStorage';
+import WorkflowTrafficLight from '@/components/WorkflowTrafficLight';
+import { evaluateFiveDivisionWorkflow } from '@/utils/statusWorkflow';
 
 interface ArmadaTabProps {
   items: ArmadaItem[];
@@ -62,7 +64,7 @@ const MONTH_OPTIONS = [
   { value: '12', label: '12 - Desember' },
 ];
 
-type SortField = 'fpb' | 'armada' | 'item' | 'priority' | 'qtyFPB' | 'qtyPO' | 'qtyFSTB' | 'qtyTTB' | 'selisih' | 'status' | 'date';
+type SortField = 'fpb' | 'armada' | 'item' | 'priority' | 'qtyFPB' | 'qtyPO' | 'qtyFSTB' | 'qtyTTB' | 'selisih' | 'status' | 'date' | 'workflow';
 type StatusFilterType = 'ALL' | 'BACKLOG' | 'LENGKAP' | 'PARSIAL';
 
 export default function ArmadaTab({
@@ -450,8 +452,17 @@ export default function ArmadaTab({
           : numB.localeCompare(numA, undefined, { numeric: true, sensitivity: 'base' });
       }
 
-      const aVal = a[sortField];
-      const bVal = b[sortField];
+      if (sortField === 'workflow') {
+        const scoreA = evaluateFiveDivisionWorkflow(a).passedCount;
+        const scoreB = evaluateFiveDivisionWorkflow(b).passedCount;
+        if (scoreA !== scoreB) {
+          return sortDirection === 'asc' ? scoreA - scoreB : scoreB - scoreA;
+        }
+        return 0;
+      }
+
+      const aVal = a[sortField as keyof ArmadaItem];
+      const bVal = b[sortField as keyof ArmadaItem];
 
       if (typeof aVal === 'string' && typeof bVal === 'string') {
         const cmp = aVal.localeCompare(bVal, undefined, { numeric: true, sensitivity: 'base' });
@@ -1454,8 +1465,8 @@ export default function ArmadaTab({
                       </div>
 
                       {/* Footer */}
-                      <div className="pt-2 border-t border-border/60 flex items-center justify-between gap-2 text-xs">
-                        <div className="min-w-0">
+                      <div className="pt-2 border-t border-border/60 flex items-center justify-between gap-2 text-xs flex-wrap">
+                        <div className="flex items-center gap-2 min-w-0 flex-wrap">
                           <span className={`px-2 py-0.5 rounded text-[10px] font-medium border truncate inline-block ${
                             row.status === 'SELESAI' || row.status === 'MATCH'
                               ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
@@ -1463,6 +1474,7 @@ export default function ArmadaTab({
                           }`}>
                             {row.status}
                           </span>
+                          <WorkflowTrafficLight item={row} compact={true} showBadge={false} />
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
                           {onOpenAudit && (
@@ -1602,6 +1614,19 @@ export default function ArmadaTab({
                       </span>
                     </th>
                     <th
+                      onClick={() => handleSort('workflow')}
+                      className="p-3.5 text-center cursor-pointer hover:text-foreground transition group whitespace-nowrap sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md"
+                      title="Klik untuk mengurutkan kelengkapan alur 5 divisi (5/5 Lengkap ke Belum Lengkap)"
+                    >
+                      <span className="flex items-center justify-center gap-1.5">
+                        <span className="inline-flex items-center gap-1">
+                          <span className="size-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_6px_rgba(16,185,129,0.8)]"></span>
+                          ALUR 5 DIVISI
+                        </span>
+                        {renderSortIndicator('workflow')}
+                      </span>
+                    </th>
+                    <th
                       onClick={() => handleSort('status')}
                       className="p-3.5 text-center cursor-pointer hover:text-foreground transition group whitespace-nowrap sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md"
                     >
@@ -1616,7 +1641,7 @@ export default function ArmadaTab({
             <tbody className="divide-y divide-border/60">
               {paginatedItems.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-10 text-center text-muted-foreground">
+                  <td colSpan={6} className="p-10 text-center text-muted-foreground">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <Anchor className="w-8 h-8 opacity-30 text-muted-foreground" />
                       <p className="text-sm font-medium text-foreground">
@@ -1733,6 +1758,13 @@ export default function ArmadaTab({
                         </div>
                       </td>
 
+                      {/* Indikator Traffic Light Alur 5 Divisi */}
+                      <td className="p-3.5 text-center whitespace-nowrap">
+                        <WorkflowTrafficLight
+                          item={row}
+                          onClick={onOpenAudit ? () => onOpenAudit(row.fpb, row.noPo) : undefined}
+                        />
+                      </td>
 
                       {/* Status Pemenuhan & Alur Berkas Procurement */}
                       <td className="p-3.5 text-center whitespace-nowrap">
