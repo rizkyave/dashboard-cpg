@@ -1251,8 +1251,8 @@ export default function AuditModal({
               </div>
 
               {/* 4. PENGANTARAN LOGISTIK / PELAKSANAAN & BERITA ACARA JASA */}
-              <div className="p-3 rounded-lg bg-card border border-border flex flex-col justify-between gap-2.5 shadow-xs hover:shadow-subtle transition min-w-0">
-                <div className="text-[11px] font-semibold text-foreground tracking-wide uppercase leading-tight min-h-[1.75rem] flex items-center gap-1.5 min-w-0">
+              <div className="p-3 rounded-lg bg-card border border-border flex flex-col justify-start gap-1.5 shadow-xs hover:shadow-subtle transition min-w-0">
+                <div className="text-[11px] font-semibold text-foreground tracking-wide uppercase leading-tight flex items-center gap-1.5 min-w-0">
                   {isJasaOnly ? (
                     <>
                       <Wrench className="size-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
@@ -1267,7 +1267,7 @@ export default function AuditModal({
                     <span className="truncate">PENGANTARAN LOGISTIK</span>
                   )}
                 </div>
-                <div className="space-y-1 pt-2 border-t border-border min-w-0">
+                <div className="space-y-1 pt-1.5 border-t border-border min-w-0">
                   <div className="flex items-center justify-between min-w-0 gap-1.5">
                     <span className="text-[10px] text-muted-foreground font-mono shrink-0">Status:</span>
                     {isCard4Done ? (
