@@ -1588,6 +1588,20 @@ export default function AuditModal({
                   </div>
                   <div className="flex items-center justify-between min-w-0">
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">
+                      {isJasaOnly ? 'Ke Lapangan:' : 'Tgl diterima TL:'}
+                    </span>
+                    {hasTglKeLap ? (
+                      <span className="text-muted-foreground font-mono text-right ml-1.5 truncate min-w-0">
+                        {formatDateDdMmYy(itemS1?.tglKeTimLapangan)}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
+                        Belum Diserahkan
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between min-w-0">
+                    <span className="text-muted-foreground shrink-0 whitespace-nowrap">
                       {isJasaOnly ? 'Tgl Selesai:' : 'Tgl Diantar:'}
                     </span>
                     {hasTglDiantar ? (
@@ -1597,20 +1611,6 @@ export default function AuditModal({
                     ) : (
                       <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
                         {isJasaOnly ? 'Belum Selesai' : 'Belum Diantar'}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between min-w-0">
-                    <span className="text-muted-foreground shrink-0 whitespace-nowrap">
-                      {isJasaOnly ? 'Ke Lapangan:' : 'Ke Tim Lap:'}
-                    </span>
-                    {hasTglKeLap ? (
-                      <span className="text-muted-foreground font-mono text-right ml-1.5 truncate min-w-0">
-                        {formatDateDdMmYy(itemS1?.tglKeTimLapangan)}
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
-                        Belum Diserahkan
                       </span>
                     )}
                   </div>
