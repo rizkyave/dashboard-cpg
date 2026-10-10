@@ -441,7 +441,7 @@ export function getWorkflowGroupedStatuses(
 }
 
 export interface DivisionStageLight {
-  code: 'FPB' | 'PCH' | 'TTB' | 'LAP' | 'FIN';
+  code: 'FPB' | 'PCH' | 'TTB' | 'LAP' | 'ADM' | 'FIN';
   name: string;
   stepNumber: number;
   isPassed: boolean;
@@ -641,8 +641,8 @@ export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisio
       activeTextClass: 'text-orange-700 dark:text-orange-400 font-bold',
     },
     {
-      code: 'FIN',
-      name: 'Finance / ADM',
+      code: 'ADM',
+      name: 'Purchasing / ADM',
       stepNumber: 5,
       isPassed: isFinPassed,
       statusText: finStatus,

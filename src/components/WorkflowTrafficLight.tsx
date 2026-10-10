@@ -164,13 +164,13 @@ export default function WorkflowTrafficLight({
     <div
       onClick={onClick}
       title={tooltipText}
-      className={`inline-flex flex-col items-center justify-center gap-1 select-none ${
+      className={`inline-flex flex-col items-center justify-center gap-1 select-none text-center ${
         onClick ? 'cursor-pointer group/light hover:opacity-95' : ''
       } ${className}`}
     >
       {/* Light-Themed Mini Traffic Light Pod */}
       <div
-        className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-white dark:bg-zinc-900 border border-amber-200/80 dark:border-zinc-700 shadow-xs shadow-amber-500/5 transition-all ${
+        className={`inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-zinc-900 border border-amber-200/80 dark:border-zinc-700 shadow-xs shadow-amber-500/5 transition-all text-center ${
           onClick ? 'group-hover/light:border-amber-400' : ''
         }`}
       >
@@ -178,14 +178,14 @@ export default function WorkflowTrafficLight({
           return (
             <div
               key={stage.code}
-              className="flex flex-col items-center gap-0.5 min-w-[18px]"
+              className="flex flex-col items-center justify-center text-center gap-1 w-5 sm:w-5.5 shrink-0"
               title={`${stage.stepNumber}. ${stage.name}: ${
                 stage.isPassed ? '✓ ' + stage.statusText : '○ Belum Lengkap'
               } (${stage.detail})`}
             >
               {/* Lamp Bulb Indicator */}
               <div
-                className="relative flex items-center justify-center rounded-full transition-all duration-300 size-2.5 sm:size-3"
+                className="relative flex items-center justify-center mx-auto rounded-full transition-all duration-300 size-2.5 sm:size-3 shrink-0"
                 style={{
                   background: stage.isPassed
                     ? `radial-gradient(circle at 36% 30%, ${stage.lightColor} 0%, ${stage.baseColor} 55%, ${stage.deepColor} 100%)`
@@ -206,7 +206,7 @@ export default function WorkflowTrafficLight({
 
               {/* Division Code Label */}
               <span
-                className="text-[7.5px] sm:text-[8px] font-mono leading-none tracking-tight transition-colors"
+                className="text-[7.5px] sm:text-[8px] font-mono leading-none tracking-tight transition-colors text-center block w-full"
                 style={{
                   color: stage.isPassed ? stage.deepColor : '#94a3b8',
                   fontWeight: stage.isPassed ? 700 : 500,
@@ -221,19 +221,19 @@ export default function WorkflowTrafficLight({
 
       {/* Summary Badge below the Traffic Light */}
       {showBadge && (
-        <div className="flex items-center justify-center">
+        <div className="flex items-center justify-center w-full mx-auto">
           {result.isComplete ? (
-            <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[9px] font-mono font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 whitespace-nowrap">
+            <span className="inline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 whitespace-nowrap mx-auto">
               <Check className="size-2.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
               5/5 Lengkap
             </span>
           ) : result.passedCount > 0 ? (
-            <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[9px] font-mono font-medium bg-[#fef3c7]/90 dark:bg-amber-950/40 text-stone-700 dark:text-stone-300 border border-[#fde68a] dark:border-amber-800/60 whitespace-nowrap">
+            <span className="inline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono font-medium bg-[#fef3c7]/90 dark:bg-amber-950/40 text-stone-700 dark:text-stone-300 border border-[#fde68a] dark:border-amber-800/60 whitespace-nowrap mx-auto">
               <span className="size-1.5 rounded-full bg-amber-500 animate-pulse shrink-0" />
               {result.passedCount}/5 Sebagian
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[9px] font-mono text-muted-foreground bg-muted border border-border whitespace-nowrap">
+            <span className="inline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono text-muted-foreground bg-muted border border-border whitespace-nowrap mx-auto">
               0/5 Belum
             </span>
           )}

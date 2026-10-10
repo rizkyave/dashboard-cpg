@@ -1076,8 +1076,8 @@ export default function AuditModal({
                     {displayPicFpb}), Purchasing (&rarr;{' '}
                     {activePo ? `${itemS1?.picPch || 'Purchasing'} - PO: ${activePo}` : 'Menunggu PO'}), TTB Logistik (&rarr;{' '}
                     {cleanPicTtb ? cleanPicTtb : parsedTtbList.length > 0 ? `TTB (${parsedTtbList.join(', ')})` : 'Belum Ada TTB'}), Lapangan (&rarr;{' '}
-                    {isPicLapFilled ? itemS1?.picLap : hasTglDiantar ? `Diantar tgl ${formatDateDdMmYy(itemS1?.tglBarangDiantar)}` : 'Belum Dikonfirmasi'}), dan Finance (&rarr;{' '}
-                    {hasValidSpp ? `${itemS1?.picAdm || 'Finance'} - SPP: ${itemS1?.noSpp}` : 'Menunggu Berkas ADM'}).
+                    {isPicLapFilled ? itemS1?.picLap : hasTglDiantar ? `Diantar tgl ${formatDateDdMmYy(itemS1?.tglBarangDiantar)}` : 'Belum Dikonfirmasi'}), dan Purchasing / ADM (&rarr;{' '}
+                    {hasValidSpp ? `${itemS1?.picAdm || 'Purchasing/ADM'} - SPP: ${itemS1?.noSpp}` : 'Menunggu Berkas ADM'}).
                   </p>
                 </>
               )}
@@ -1312,7 +1312,7 @@ export default function AuditModal({
             2. PURCHASING
             3. LOGISTIK TTB
             4. TIM LAPANGAN
-            5. FINANCE / ADM
+            5. PURCHASING / ADM
             ═══════════════════════════════════════════════════════════ */}
         <div className="space-y-2.5 pt-1">
           <div className="flex items-center justify-between flex-wrap gap-2">
@@ -1793,21 +1793,21 @@ export default function AuditModal({
               </div>
             </div>
 
-            {/* 5. FINANCE / ADM */}
+            {/* 5. PURCHASING / ADM */}
             <div className="p-3.5 rounded-lg bg-card border border-border flex flex-col justify-between space-y-2.5 shadow-xs hover:border-foreground/20 transition min-w-0">
               <div className="min-w-0">
                 <div className="flex items-center justify-between pb-2 border-b border-border gap-1 min-w-0">
                   <span className="text-[11px] font-semibold text-foreground font-mono flex items-center gap-1.5 min-w-0 truncate">
                     <Landmark className="size-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                    <span className="truncate">5. FINANCE / ADM</span>
+                    <span className="truncate">5. PURCHASING / ADM</span>
                   </span>
                   <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border font-semibold shrink-0">
-                    FIN
+                    ADM
                   </span>
                 </div>
                 <div className="mt-2.5 space-y-1.5 text-[11px]">
                   <div className="flex items-center justify-between min-w-0">
-                    <span className="text-muted-foreground shrink-0 whitespace-nowrap">PIC Fin:</span>
+                    <span className="text-muted-foreground shrink-0 whitespace-nowrap">PIC Adm:</span>
                     {itemS1?.picAdm && itemS1.picAdm !== '-' ? (
                       <span className="font-semibold text-foreground font-mono truncate text-right ml-1.5 min-w-0">
                         {itemS1.picAdm}
