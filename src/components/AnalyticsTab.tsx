@@ -2227,16 +2227,16 @@ export default function AnalyticsTab({
                 </p>
                 <div className="flex items-baseline gap-2 mt-1.5">
                   <span className="text-2xl sm:text-3xl font-extrabold font-mono text-slate-900 dark:text-foreground">
-                    {fleetSummary.totalFpbCount.toLocaleString('id-ID')}
+                    {(fleetSummary?.totalFpbCount ?? 0).toLocaleString('id-ID')}
                   </span>
                   <span className="text-xs font-semibold text-slate-500 dark:text-muted-foreground">FPB</span>
                 </div>
                 <div className="flex items-center gap-1.5 mt-1 text-[11px] text-slate-500 dark:text-muted-foreground font-mono">
                   <span className="text-sky-600 dark:text-sky-400 font-semibold">
-                    {fleetSummary.totalWoCount.toLocaleString('id-ID')} Tiket WO
+                    {(fleetSummary?.totalWoCount ?? 0).toLocaleString('id-ID')} Tiket WO
                   </span>
                   <span>•</span>
-                  <span>{fleetSummary.totalVesselCount.toLocaleString('id-ID')} Kapal</span>
+                  <span>{(fleetSummary?.totalVesselCount ?? 0).toLocaleString('id-ID')} Kapal</span>
                 </div>
               </div>
               <div className="size-11 sm:size-12 rounded-2xl bg-sky-50 dark:bg-sky-950/50 border border-sky-200 dark:border-sky-800/60 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
@@ -2252,21 +2252,21 @@ export default function AnalyticsTab({
                 </p>
                 <div className="flex items-baseline gap-1.5 mt-1.5">
                   <span className="text-2xl sm:text-3xl font-extrabold font-mono text-teal-600 dark:text-teal-400">
-                    {fleetSummary.totalQtyFSTB.toLocaleString('id-ID')}
+                    {(fleetSummary?.totalQtyFSTB ?? 0).toLocaleString('id-ID')}
                   </span>
                   <span className="text-xs text-slate-500 dark:text-muted-foreground font-mono truncate">
-                    / {fleetSummary.totalQtyFPB.toLocaleString('id-ID')} unit
+                    / {(fleetSummary?.totalQtyFPB ?? 0).toLocaleString('id-ID')} unit
                   </span>
                 </div>
                 <div className="mt-2 flex items-center gap-2">
                   <div className="flex-1 h-1.5 bg-slate-100 dark:bg-muted rounded-full overflow-hidden">
                     <div
                       className="h-full bg-teal-500 rounded-full transition-all"
-                      style={{ width: `${fleetSummary.fulfillmentRate}%` }}
+                      style={{ width: `${fleetSummary?.fulfillmentRate ?? 0}%` }}
                     />
                   </div>
                   <span className="text-[11px] font-mono font-bold text-teal-600 dark:text-teal-400 shrink-0">
-                    {fleetSummary.fulfillmentRate}%
+                    {fleetSummary?.fulfillmentRate ?? 0}%
                   </span>
                 </div>
               </div>
@@ -2283,12 +2283,12 @@ export default function AnalyticsTab({
                 </p>
                 <div className="flex items-baseline gap-2 mt-1.5">
                   <span className="text-2xl sm:text-3xl font-extrabold font-mono text-amber-600 dark:text-amber-400">
-                    {fleetSummary.totalBacklogQty.toLocaleString('id-ID')}
+                    {(fleetSummary?.totalBacklogQty ?? 0).toLocaleString('id-ID')}
                   </span>
                   <span className="text-xs font-semibold text-slate-500 dark:text-muted-foreground">unit</span>
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-muted-foreground mt-1 truncate">
-                  {(fleetSummary.backlogCount + fleetSummary.partialCount).toLocaleString('id-ID')} item belum lengkap terkirim
+                  {((fleetSummary?.backlogCount ?? 0) + (fleetSummary?.partialCount ?? 0)).toLocaleString('id-ID')} item belum lengkap terkirim
                 </p>
               </div>
               <div className="size-11 sm:size-12 rounded-2xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
@@ -2302,12 +2302,12 @@ export default function AnalyticsTab({
                 <p className="text-[11px] font-bold text-slate-500 dark:text-muted-foreground uppercase tracking-wider">
                   Armada Paling Intensif
                 </p>
-                <p className="text-sm sm:text-base font-bold text-slate-900 dark:text-foreground truncate mt-1.5" title={fleetSummary.topVessel?.name || '-'}>
-                  {fleetSummary.topVessel?.name || '-'}
+                <p className="text-sm sm:text-base font-bold text-slate-900 dark:text-foreground truncate mt-1.5" title={fleetSummary?.topVessel?.name || '-'}>
+                  {fleetSummary?.topVessel?.name || '-'}
                 </p>
                 <p className="text-[11px] text-slate-500 dark:text-muted-foreground mt-1 truncate">
-                  {fleetSummary.topVessel
-                    ? `${fleetSummary.topVessel.fpbCount.toLocaleString('id-ID')} FPB (${fleetSummary.topVessel.qtyFPB.toLocaleString('id-ID')} unit barang)`
+                  {fleetSummary?.topVessel
+                    ? `${(fleetSummary.topVessel.fpbCount ?? 0).toLocaleString('id-ID')} FPB (${(fleetSummary.topVessel.qtyFPB ?? 0).toLocaleString('id-ID')} unit barang)`
                     : 'Belum ada data'}
                 </p>
               </div>
@@ -2841,13 +2841,13 @@ export default function AnalyticsTab({
                             {v.woCount > 0 ? `${v.woCount} WO` : '-'}
                           </td>
                           <td className="p-3 text-right font-mono text-foreground">
-                            {v.qtyFPB.toLocaleString('id-ID')}
+                            {(v?.qtyFPB ?? 0).toLocaleString('id-ID')}
                           </td>
                           <td className="p-3 text-right font-mono text-emerald-600 dark:text-emerald-400 font-medium">
-                            {v.qtyFSTB.toLocaleString('id-ID')}
+                            {(v?.qtyFSTB ?? 0).toLocaleString('id-ID')}
                           </td>
                           <td className="p-3 text-right font-mono text-amber-600 dark:text-amber-400">
-                            {v.backlogQty > 0 ? v.backlogQty.toLocaleString('id-ID') : '0'}
+                            {(v?.backlogQty ?? 0) > 0 ? (v.backlogQty ?? 0).toLocaleString('id-ID') : '0'}
                           </td>
                           <td className="p-3 text-center">
                             <div className="flex items-center gap-1.5 justify-center">

@@ -12,8 +12,10 @@ import {
   RadialLinearScale,
   PointElement,
   LineElement,
+  LineController,
+  BarController,
 } from 'chart.js';
-import { Doughnut, Bar, PolarArea } from 'react-chartjs-2';
+import { Doughnut, Bar, PolarArea, Chart } from 'react-chartjs-2';
 import { ProcurementItem } from '@/types/procurement';
 import { FileSpreadsheet } from 'lucide-react';
 
@@ -26,7 +28,9 @@ ChartJS.register(
   BarElement,
   RadialLinearScale,
   PointElement,
-  LineElement
+  LineElement,
+  LineController,
+  BarController
 );
 
 function EmptyChartPlaceholder({ message }: { message: string }) {
@@ -297,41 +301,60 @@ export function FleetDemandBarChart({
   }
 
   // Tampilkan top 7 armada agar spasi lega dan nama armada panjang terbaca utuh
-  const topItems = data.slice(0, 7);
-  const labels = topItems.map((d) => (d.name.length > 28 ? d.name.slice(0, 27) + '…' : d.name));
+  const topItems = (data || []).slice(0, 7);
+  const labels = topItems.map((d) => (d.name && d.name.length > 28 ? d.name.slice(0, 27) + '…' : (d.name || '-')));
 
   // Custom data labels plugin untuk mencetak angka di ujung bar horizontal
-  const horizontalDataLabelsPlugin = {
-    id: 'fleetHorizontalDataLabels',
-    afterDatasetsDraw(chart: any) {
-      const { ctx } = chart;
-      chart.data.datasets.forEach((dataset: any, datasetIndex: number) => {
-        const meta = chart.getDatasetMeta(datasetIndex);
-        if (meta.hidden) return;
+  const horizontalDataLabelsPlugin = React.useMemo(
+    () => ({
+      id: 'fleetHorizontalDataLabels',
+      afterDatasetsDraw(chart: any) {
+        try {
+          const { ctx } = chart;
+          if (!ctx || !chart.data?.datasets) return;
 
-        meta.data.forEach((element: any, index: number) => {
-          const val = dataset.data[index];
-          if (val === undefined || val === null || val === 0) return;
-          const text = Number(val).toLocaleString('id-ID');
+          chart.data.datasets.forEach((dataset: any, datasetIndex: number) => {
+            if (!chart.isDatasetVisible?.(datasetIndex)) return;
+            const meta = chart.getDatasetMeta(datasetIndex);
+            if (!meta || meta.hidden || !Array.isArray(meta.data)) return;
 
-          ctx.save();
-          ctx.font = '600 9px "JetBrains Mono", monospace, sans-serif';
-          ctx.fillStyle = datasetIndex === 0 ? '#0284c7' : '#0d9488';
-          ctx.textAlign = 'left';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(text, element.x + 4, element.y);
-          ctx.restore();
-        });
-      });
-    },
-  };
+            meta.data.forEach((element: any, index: number) => {
+              if (
+                !element ||
+                typeof element.x !== 'number' ||
+                typeof element.y !== 'number' ||
+                isNaN(element.x) ||
+                isNaN(element.y)
+              ) {
+                return;
+              }
+              const val = dataset.data?.[index];
+              if (val === undefined || val === null || val === 0) return;
+              const text = Number(val).toLocaleString('id-ID');
+
+              ctx.save();
+              ctx.font = '600 9px "JetBrains Mono", monospace, sans-serif';
+              ctx.fillStyle = datasetIndex === 0 ? '#0284c7' : '#0d9488';
+              ctx.textAlign = 'left';
+              ctx.textBaseline = 'middle';
+              ctx.fillText(text, element.x + 4, element.y);
+              ctx.restore();
+            });
+          });
+        } catch (err) {
+          // Guard against canvas render race conditions
+        }
+      },
+    }),
+    []
+  );
 
   const chartData = {
     labels,
     datasets: [
       {
         label: 'Qty Diminta (FPB)',
-        data: topItems.map((d) => d.qtyFPB),
+        data: topItems.map((d) => d.qtyFPB || 0),
         backgroundColor: '#0284c7', // Biru Sky
         borderColor: '#0369a1',
         borderWidth: 1,
@@ -341,7 +364,7 @@ export function FleetDemandBarChart({
       },
       {
         label: 'Qty Realisasi (FSTB)',
-        data: topItems.map((d) => d.qtyFSTB),
+        data: topItems.map((d) => d.qtyFSTB || 0),
         backgroundColor: '#0d9488', // Teal
         borderColor: '#0f766e',
         borderWidth: 1,
@@ -385,12 +408,12 @@ export function FleetDemandBarChart({
         cornerRadius: 8,
         callbacks: {
           label: (context: any) => {
-            const label = context.dataset.label || '';
+            const label = context.dataset?.label || '';
             const val = context.raw || 0;
             return ` ${label}: ${Number(val).toLocaleString('id-ID')} unit`;
           },
           afterBody: (context: any) => {
-            const index = context[0]?.dataIndex;
+            const index = context?.[0]?.dataIndex;
             if (index != null && topItems[index]) {
               return ` Tingkat Pemenuhan: ${topItems[index].fulfillmentRate}%`;
             }
@@ -430,13 +453,14 @@ export function FleetCategoryDonutChart({
 }) {
   const [viewMode, setViewMode] = React.useState<'bar' | 'donut'>(defaultView);
 
-  const entries = Object.entries(categories).filter(([_, count]) => count > 0);
+  const safeCategories = categories || {};
+  const entries = Object.entries(safeCategories).filter(([_, count]) => typeof count === 'number' && count > 0);
   if (entries.length === 0) {
     return <EmptyChartPlaceholder message="Belum ada rincian kategori suku cadang" />;
   }
 
   entries.sort((a, b) => b[1] - a[1]);
-  const totalItems = entries.reduce((acc, curr) => acc + curr[1], 0);
+  const totalItems = entries.reduce((acc, curr) => acc + (curr[1] || 0), 0);
 
   // Palet Korporat Harmonis: Biru, Teal, Ungu, Cyan, Indigo, Violet, Amber
   const palette = [
@@ -450,6 +474,54 @@ export function FleetCategoryDonutChart({
     '#38bdf8', // Biru Muda
     '#f59e0b', // Amber
   ];
+
+  // View Mode: Horizontal Bar Chart Breakdown (Default)
+  // Menampilkan kategori teratas dengan nama jelas agar kategori kecil (Deck, Listrik) terlihat proporsinya
+  const displayCategories = entries.slice(0, 7);
+  const labels = displayCategories.map(([cat]) => cat);
+  const counts = displayCategories.map(([_, count]) => count);
+
+  const categoryLabelsPlugin = React.useMemo(
+    () => ({
+      id: 'categoryHorizontalLabels',
+      afterDatasetsDraw(chart: any) {
+        try {
+          const { ctx } = chart;
+          if (!ctx) return;
+          if (!chart.isDatasetVisible?.(0)) return;
+          const meta = chart.getDatasetMeta(0);
+          if (!meta || meta.hidden || !Array.isArray(meta.data)) return;
+
+          meta.data.forEach((element: any, index: number) => {
+            if (
+              !element ||
+              typeof element.x !== 'number' ||
+              typeof element.y !== 'number' ||
+              isNaN(element.x) ||
+              isNaN(element.y)
+            ) {
+              return;
+            }
+            const val = counts[index];
+            if (val === undefined || val === null) return;
+            const pct = totalItems > 0 ? Math.round((val / totalItems) * 100) : 0;
+            const text = `${Number(val).toLocaleString('id-ID')} (${pct}%)`;
+
+            ctx.save();
+            ctx.font = '600 9px "JetBrains Mono", monospace, sans-serif';
+            ctx.fillStyle = '#334155';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, element.x + 6, element.y);
+            ctx.restore();
+          });
+        } catch (err) {
+          // Guard against canvas render race conditions
+        }
+      },
+    }),
+    [counts, totalItems]
+  );
 
   if (viewMode === 'donut') {
     const topCategories = entries.slice(0, 6);
@@ -497,7 +569,7 @@ export function FleetCategoryDonutChart({
           <button
             type="button"
             onClick={() => setViewMode('bar')}
-            className="text-[10px] font-semibold text-primary hover:underline"
+            className="text-[10px] font-semibold text-primary hover:underline cursor-pointer"
           >
             Lihat Breakdown Bar &rarr;
           </button>
@@ -508,36 +580,6 @@ export function FleetCategoryDonutChart({
       </div>
     );
   }
-
-  // View Mode: Horizontal Bar Chart Breakdown (Default)
-  // Menampilkan kategori teratas dengan nama jelas agar kategori kecil (Deck, Listrik) terlihat proporsinya
-  const displayCategories = entries.slice(0, 7);
-  const labels = displayCategories.map(([cat]) => cat);
-  const counts = displayCategories.map(([_, count]) => count);
-
-  const categoryLabelsPlugin = {
-    id: 'categoryHorizontalLabels',
-    afterDatasetsDraw(chart: any) {
-      const { ctx } = chart;
-      const meta = chart.getDatasetMeta(0);
-      if (meta.hidden) return;
-
-      meta.data.forEach((element: any, index: number) => {
-        const val = counts[index];
-        if (val === undefined || val === null) return;
-        const pct = totalItems > 0 ? Math.round((val / totalItems) * 100) : 0;
-        const text = `${Number(val).toLocaleString('id-ID')} (${pct}%)`;
-
-        ctx.save();
-        ctx.font = '600 9px "JetBrains Mono", monospace, sans-serif';
-        ctx.fillStyle = '#334155';
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(text, element.x + 6, element.y);
-        ctx.restore();
-      });
-    },
-  };
 
   const barData = {
     labels,
@@ -610,7 +652,7 @@ export function FleetCategoryDonutChart({
         <button
           type="button"
           onClick={() => setViewMode('donut')}
-          className="text-primary hover:underline font-semibold"
+          className="text-primary hover:underline font-semibold cursor-pointer"
         >
           Tampilan Donut &rarr;
         </button>
@@ -637,46 +679,66 @@ export function FleetMonthlyTrendChart({
 }) {
   const [chartMode, setChartMode] = React.useState<'bar' | 'combo'>(defaultMode);
 
-  if (!monthlyData || monthlyData.length === 0) {
+  const safeMonthlyData = monthlyData || [];
+  if (safeMonthlyData.length === 0) {
     return <EmptyChartPlaceholder message="Belum ada data tren bulanan armada" />;
   }
 
   // Custom Data Labels Plugin to draw precision numbers directly above each bar / line point
-  const precisionDataLabelsPlugin = {
-    id: 'fleetPrecisionDataLabels',
-    afterDatasetsDraw(chart: any) {
-      const { ctx } = chart;
-      chart.data.datasets.forEach((dataset: any, datasetIndex: number) => {
-        const meta = chart.getDatasetMeta(datasetIndex);
-        if (meta.hidden) return;
+  const precisionDataLabelsPlugin = React.useMemo(
+    () => ({
+      id: 'fleetPrecisionDataLabels',
+      afterDatasetsDraw(chart: any) {
+        try {
+          const { ctx } = chart;
+          if (!ctx || !chart.data?.datasets) return;
 
-        meta.data.forEach((element: any, index: number) => {
-          const val = dataset.data[index];
-          if (val === undefined || val === null || val === 0) return;
-          const labelText = Number(val).toLocaleString('id-ID');
+          chart.data.datasets.forEach((dataset: any, datasetIndex: number) => {
+            if (!chart.isDatasetVisible?.(datasetIndex)) return;
+            const meta = chart.getDatasetMeta(datasetIndex);
+            if (!meta || meta.hidden || !Array.isArray(meta.data)) return;
 
-          ctx.save();
-          ctx.font = '600 9px "JetBrains Mono", monospace, sans-serif';
-          ctx.fillStyle = datasetIndex === 0 ? '#0284c7' : '#7c3aed';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'bottom';
+            meta.data.forEach((element: any, index: number) => {
+              if (!element || typeof element.x !== 'number' || isNaN(element.x)) return;
+              const yVal =
+                typeof element.y === 'number' && !isNaN(element.y)
+                  ? element.y
+                  : typeof element.base === 'number' && !isNaN(element.base)
+                  ? element.base
+                  : null;
+              if (yVal === null) return;
 
-          // Position text right above the top of the bar or point
-          const yPos = typeof element.y === 'number' ? element.y - 4 : element.base - 4;
-          ctx.fillText(labelText, element.x, yPos);
-          ctx.restore();
-        });
-      });
-    },
-  };
+              const val = dataset.data?.[index];
+              if (val === undefined || val === null || val === 0) return;
+              const labelText = Number(val).toLocaleString('id-ID');
+
+              ctx.save();
+              ctx.font = '600 9px "JetBrains Mono", monospace, sans-serif';
+              ctx.fillStyle = datasetIndex === 0 ? '#0284c7' : '#7c3aed';
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'bottom';
+
+              // Position text right above the top of the bar or point
+              const yPos = yVal - 4;
+              ctx.fillText(labelText, element.x, yPos);
+              ctx.restore();
+            });
+          });
+        } catch (err) {
+          // Guard against canvas render race conditions
+        }
+      },
+    }),
+    []
+  );
 
   const chartData = {
-    labels: monthlyData.map((d) => d.monthName),
+    labels: safeMonthlyData.map((d) => d.monthName),
     datasets: [
       {
         type: 'bar' as const,
         label: 'Jumlah FPB',
-        data: monthlyData.map((d) => d.fpbCount),
+        data: safeMonthlyData.map((d) => d.fpbCount || 0),
         backgroundColor: 'rgba(56, 189, 248, 0.9)', // Kotak / batang biru muda
         borderColor: '#0284c7',
         borderWidth: 1.5,
@@ -688,7 +750,7 @@ export function FleetMonthlyTrendChart({
       {
         type: (chartMode === 'combo' ? 'line' : 'bar') as any,
         label: 'Total Kuantitas Barang (Unit)',
-        data: monthlyData.map((d) => d.qtyTotal),
+        data: safeMonthlyData.map((d) => d.qtyTotal || 0),
         backgroundColor: chartMode === 'combo' ? 'rgba(168, 85, 247, 0.15)' : 'rgba(168, 85, 247, 0.9)', // Kotak / batang ungu
         borderColor: '#7c3aed',
         borderWidth: chartMode === 'combo' ? 2.5 : 1.5,
@@ -733,7 +795,7 @@ export function FleetMonthlyTrendChart({
         cornerRadius: 8,
         callbacks: {
           label: (context: any) => {
-            const label = context.dataset.label || '';
+            const label = context.dataset?.label || '';
             const val = context.raw || 0;
             return ` ${label}: ${Number(val).toLocaleString('id-ID')}`;
           },
@@ -815,7 +877,7 @@ export function FleetMonthlyTrendChart({
           <button
             type="button"
             onClick={() => setChartMode('bar')}
-            className={`px-2 py-0.5 rounded transition ${
+            className={`px-2 py-0.5 rounded transition cursor-pointer ${
               chartMode === 'bar'
                 ? 'bg-white dark:bg-card text-foreground shadow-2xs font-semibold'
                 : 'text-muted-foreground hover:text-foreground'
@@ -827,7 +889,7 @@ export function FleetMonthlyTrendChart({
           <button
             type="button"
             onClick={() => setChartMode('combo')}
-            className={`px-2 py-0.5 rounded transition ${
+            className={`px-2 py-0.5 rounded transition cursor-pointer ${
               chartMode === 'combo'
                 ? 'bg-white dark:bg-card text-foreground shadow-2xs font-semibold'
                 : 'text-muted-foreground hover:text-foreground'
@@ -841,7 +903,13 @@ export function FleetMonthlyTrendChart({
 
       {/* Area Grafik Utama */}
       <div className="flex-1 min-h-[210px] w-full">
-        <Bar data={chartData as any} options={options as any} plugins={[precisionDataLabelsPlugin]} />
+        <Chart
+          key={chartMode}
+          type="bar"
+          data={chartData as any}
+          options={options as any}
+          plugins={[precisionDataLabelsPlugin]}
+        />
       </div>
     </div>
   );
