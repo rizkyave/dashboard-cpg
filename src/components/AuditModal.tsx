@@ -1421,47 +1421,15 @@ export default function AuditModal({
             </div>
           </div>
 
-          {/* 2. Center Card: KOTAK MENU NOMOR WORK ORDER (WO) */}
-          <div className="p-3.5 rounded-xl bg-card border border-border min-w-0 flex flex-col justify-between shadow-xs hover:border-cyan-500/40 transition-colors">
+          {/* 2. Center Card: NOMOR WORK ORDER (WO) */}
+          <div className="p-3.5 rounded-xl bg-card border border-border min-w-0 flex flex-col justify-between shadow-xs">
             <div>
-              <div className="flex items-center justify-between gap-1.5">
-                <span className="text-[10px] text-muted-foreground font-mono block">
-                  NOMOR WORK ORDER (WO)
-                </span>
-                {matchedWoUrl ? (
-                  <a
-                    href={matchedWoUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30 font-semibold inline-flex items-center gap-1 transition active:scale-95 shadow-2xs cursor-pointer group shrink-0"
-                    title={`Klik untuk Buka Link Dokumen Work Order (${effectiveWorkOrderNo}) di Tab Baru Browser`}
-                  >
-                    <FileText className="size-2.5 text-cyan-600 dark:text-cyan-400" />
-                    <span>Buka Link WO</span>
-                    <ExternalLink className="size-2.5 opacity-70 group-hover:opacity-100" />
-                  </a>
-                ) : (
-                  <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/20 font-semibold shrink-0">
-                    WO
-                  </span>
-                )}
-              </div>
-              <span className="text-sm font-semibold font-mono mt-1 block truncate" title={effectiveWorkOrderNo || 'Belum Ada Nomor Work Order'}>
+              <span className="text-[10px] text-muted-foreground font-mono block">
+                NOMOR WORK ORDER (WO)
+              </span>
+              <span className="text-sm font-semibold font-mono mt-0.5 block truncate" title={effectiveWorkOrderNo || 'Belum Ada Nomor Work Order'}>
                 {effectiveWorkOrderNo ? (
-                  matchedWoUrl ? (
-                    <a
-                      href={matchedWoUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-cyan-700 dark:text-cyan-400 hover:text-cyan-600 dark:hover:text-cyan-300 font-bold hover:underline inline-flex items-center gap-1.5 transition-colors cursor-pointer group max-w-full truncate"
-                      title={`Klik untuk Buka Dokumen Work Order (${effectiveWorkOrderNo}) di Tab Baru Browser`}
-                    >
-                      <span className="truncate">{effectiveWorkOrderNo}</span>
-                      <ExternalLink className="size-3.5 shrink-0 opacity-60 group-hover:opacity-100" />
-                    </a>
-                  ) : (
-                    <span className="text-cyan-700 dark:text-cyan-400 font-bold">{effectiveWorkOrderNo}</span>
-                  )
+                  <span className="text-foreground">{effectiveWorkOrderNo}</span>
                 ) : (
                   <span className="text-muted-foreground font-normal italic">- (Kosong)</span>
                 )}
@@ -1470,28 +1438,15 @@ export default function AuditModal({
 
             <div className="pt-2 mt-2 border-t border-border/60 flex items-center justify-between text-xs font-mono">
               <span className="text-[10px] text-muted-foreground uppercase shrink-0">STATUS WO:</span>
-              {matchedWoUrl ? (
-                <a
-                  href={matchedWoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-semibold truncate ml-1 text-right text-[11px] text-cyan-700 dark:text-cyan-400 hover:underline inline-flex items-center gap-1 cursor-pointer"
-                  title="Dokumen SO/WO terhubung secara live dari Google Drive (Klik untuk Buka di Tab Baru)"
-                >
-                  <span className="truncate">Dokumen Tersedia</span>
-                  <ExternalLink className="size-2.5 shrink-0 opacity-80" />
-                </a>
-              ) : (
-                <span
-                  className={`font-semibold truncate ml-1 text-right text-[11px] ${
-                    effectiveWorkOrderNo
-                      ? 'text-cyan-700 dark:text-cyan-400'
-                      : 'text-muted-foreground italic'
-                  }`}
-                >
-                  {effectiveWorkOrderNo ? 'Tersinkronisasi e-FPB' : 'Belum Diterbitkan'}
-                </span>
-              )}
+              <span
+                className={`font-semibold truncate ml-1 text-right text-[11px] ${
+                  effectiveWorkOrderNo
+                    ? 'text-cyan-700 dark:text-cyan-400'
+                    : 'text-muted-foreground italic'
+                }`}
+              >
+                {effectiveWorkOrderNo ? 'Tersinkronisasi e-FPB' : 'Belum Diterbitkan'}
+              </span>
             </div>
           </div>
 
