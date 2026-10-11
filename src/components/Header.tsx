@@ -109,7 +109,14 @@ export default function Header({
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedUrl = localStorage.getItem('CPG_GOOGLE_SHEET_URL');
-      if (savedUrl) setSheetUrl(savedUrl);
+      if (savedUrl && savedUrl.includes('16Ae8gGsGYx_xCNaqZvME-uZvaAeECsE69PBYlY32fZk')) {
+        setSheetUrl(savedUrl);
+      } else {
+        setSheetUrl(DEFAULT_SHEET_URL);
+        if (savedUrl) {
+          localStorage.setItem('CPG_GOOGLE_SHEET_URL', DEFAULT_SHEET_URL);
+        }
+      }
       const savedTime = localStorage.getItem('CPG_LAST_SYNC_TIME');
       if (savedTime) setLastSyncedTime(savedTime);
       const savedFilesUrl = localStorage.getItem('CPG_EFPB_FILES_URL');

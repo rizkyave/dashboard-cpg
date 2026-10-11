@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 const DEFAULT_SHEET_URL =
-  'https://docs.google.com/spreadsheets/d/16Ae8gGsGYx_xCNaqZvME-uZvaAeECsE69PBYlY32fZk/edit?gid=0#gid=0';
+  'https://docs.google.com/spreadsheets/d/16Ae8gGsGYx_xCNaqZvME-uZvaAeECsE69PBYlY32fZk/edit?pli=1&gid=0#gid=0';
 
 function extractExportUrl(rawUrl: string): string {
   const trimmed = rawUrl.trim();
@@ -70,34 +70,55 @@ async function processSheet(targetUrl: string) {
   });
 
   if (!response.ok) {
+    if (response.status === 401 || response.status === 403) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            'Akses Google Sheets masih dibatasi (HTTP 401/403). Silakan buka spreadsheet -> Klik tombol "Bagikan" (Share) -> Pada bagian "Akses umum" (General access), ubah dari "Dibatasi" menjadi "Siapa saja yang memiliki link" -> pilih "Pelihat" (Viewer).',
+        },
+        { status: 403 }
+      );
+    }
     return NextResponse.json(
       {
         success: false,
-        message: `Gagal mengunduh file Google Sheets (HTTP Status ${response.status}: ${response.statusText}). Pastikan link memiliki izin akses "Siapa saja yang memiliki link dapat melihat".`,
+        message: `Gagal mengunduh file Google Sheets (HTTP Status ${response.status}: ${response.statusText}). Pastikan Akses Umum diset ke "Siapa saja yang memiliki link (Pelihat)".`,
       },
       { status: 400 }
+    );
+  }
+
+  const contentType = response.headers.get('content-type') || '';
+  if (contentType.includes('text/html')) {
+    return NextResponse.json(
+      {
+        success: false,
+        message:
+          'Akses Google Sheets dialihkan ke halaman login Google. Silakan buka spreadsheet -> Klik tombol "Bagikan" (Share) -> Pada bagian "Akses umum", ubah dari "Dibatasi" menjadi "Siapa saja yang memiliki link" -> pilih "Pelihat" (Viewer).',
+      },
+      { status: 403 }
     );
   }
 
   const arrayBuffer = await response.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
 
-  if (buffer.length < 500) {
-    const textPreview = buffer.toString('utf8');
-    if (
-      textPreview.includes('<html') ||
-      textPreview.includes('login') ||
-      textPreview.includes('ServiceLogin')
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            'Akses ke Google Sheets ditolak / memerlukan login. Ubah pengaturan bagikan (share) spreadsheet menjadi "Siapa saja yang memiliki link dapat melihat (Viewer)".',
-        },
-        { status: 403 }
-      );
-    }
+  const textPreview = buffer.subarray(0, 1000).toString('utf8');
+  if (
+    textPreview.includes('<html') ||
+    textPreview.includes('<!DOCTYPE') ||
+    textPreview.includes('ServiceLogin') ||
+    textPreview.includes('accounts.google.com')
+  ) {
+    return NextResponse.json(
+      {
+        success: false,
+        message:
+          'Akses ke Google Sheets ditolak / memerlukan login Google. Silakan buka spreadsheet -> Klik "Bagikan" -> Pada "Akses umum", ubah menjadi "Siapa saja yang memiliki link" -> "Pelihat" (Viewer).',
+      },
+      { status: 403 }
+    );
   }
 
   const workbook = XLSX.read(buffer, { type: 'buffer' });
