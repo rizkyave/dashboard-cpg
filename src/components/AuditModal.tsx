@@ -1594,46 +1594,22 @@ export default function AuditModal({
                       </span>
                     )}
                   </div>
-                  <div className="flex items-start justify-between min-w-0">
-                    <span className="text-muted-foreground shrink-0 whitespace-nowrap mt-0.5">
+                  <div className="flex items-center justify-between min-w-0">
+                    <span className="text-muted-foreground shrink-0 whitespace-nowrap">
                       {isJasaOnly ? 'No. BAST/TTB:' : 'No. TTB:'}
                     </span>
-                    <div className="flex flex-col items-end gap-1 ml-1.5 min-w-0">
-                      {parsedTtbList.length > 0 ? (
-                        <>
-                          <div className="flex flex-wrap justify-end gap-1 min-w-0 max-w-full">
-                            {parsedTtbList.map((ttbNo) => (
-                              <button
-                                key={ttbNo}
-                                type="button"
-                                onClick={() => {
-                                  setSelectedTtbForPhoto(ttbNo);
-                                  setShowTimemarkModal(true);
-                                }}
-                                className="inline-flex items-center gap-1 font-mono text-purple-700 dark:text-purple-300 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/25 px-1.5 py-0.5 rounded text-[10px] font-bold cursor-pointer transition active:scale-95 truncate"
-                                title={`Klik untuk lihat foto serah terima TimeMark / Server: ${ttbNo}`}
-                              >
-                                <Camera className="size-2.5 text-purple-600 dark:text-purple-400 shrink-0" />
-                                <span className="truncate">{ttbNo}</span>
-                              </button>
-                            ))}
-                          </div>
-                          {parsedTtbList.length > 1 && (
-                            <span className="text-[9px] font-mono text-muted-foreground">
-                              ({parsedTtbList.length} Dokumen TTB Terpisah)
-                            </span>
-                          )}
-                        </>
-                      ) : activeTtb && activeTtb !== '-' && activeTtb !== '(kosong)' ? (
-                        <span className="text-purple-700 dark:text-purple-300 font-mono font-bold text-[10px] truncate">
-                          {activeTtb}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
-                          Belum Terbit
-                        </span>
-                      )}
-                    </div>
+                    {parsedTtbList.length > 0 || (activeTtb && activeTtb !== '-' && activeTtb !== '(kosong)') ? (
+                      <span
+                        className="font-semibold text-foreground font-mono truncate text-right ml-1.5 min-w-0"
+                        title={parsedTtbList.length > 0 ? parsedTtbList.join(', ') : activeTtb}
+                      >
+                        {parsedTtbList.length > 0 ? parsedTtbList.join(', ') : activeTtb}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
+                        Belum Terbit
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center justify-between min-w-0">
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">
