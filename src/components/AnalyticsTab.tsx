@@ -39,7 +39,7 @@ import {
   ArrowUpDown,
   PieChart,
 } from 'lucide-react';
-import { ProcurementItem, ArmadaItem } from '@/types/procurement';
+import { ProcurementItem, ArmadaItem, KapalPosisiItem } from '@/types/procurement';
 import { extractDateInfo, formatDateDdMmYy } from '@/utils/formatDate';
 import {
   LapsePolarChart,
@@ -49,6 +49,7 @@ import {
   FleetMonthlyTrendChart,
 } from './Charts';
 import WorkflowTrafficLight from './WorkflowTrafficLight';
+import { evaluateFiveDivisionWorkflow } from '@/utils/statusWorkflow';
 
 const MONTH_OPTIONS: Array<{ value: string; label: string }> = [
   { value: 'ALL', label: 'Semua Bulan' },
@@ -69,6 +70,7 @@ const MONTH_OPTIONS: Array<{ value: string; label: string }> = [
 interface AnalyticsTabProps {
   items: ProcurementItem[];
   armadaItems?: ArmadaItem[];
+  kapalPosisiItems?: KapalPosisiItem[];
   onSyncSheets?: () => Promise<void> | void;
   isSyncingSheets?: boolean;
   onOpenAudit?: (fpb: string, po?: string) => void;
@@ -108,6 +110,7 @@ function parseDateNum(val: any): number | null {
 export default function AnalyticsTab({
   items,
   armadaItems = [],
+  kapalPosisiItems = [],
   onSyncSheets,
   isSyncingSheets,
   onOpenAudit,
@@ -123,10 +126,28 @@ export default function AnalyticsTab({
   const [fleetEntityFilter, setFleetEntityFilter] = useState<string>(initialEntity || 'ALL');
   const [fleetStatusFilter, setFleetStatusFilter] = useState<'ALL' | 'LENGKAP' | 'PARSIAL' | 'BACKLOG'>('ALL');
   const [fleetSearchTerm, setFleetSearchTerm] = useState<string>('');
-  const [fleetSortBy, setFleetSortBy] = useState<'demand' | 'backlog' | 'fulfillment' | 'name'>('demand');
+  const [fleetSortBy, setFleetSortBy] = useState<'demand' | 'backlog' | 'fulfillment' | 'name' | 'health' | 'sla'>('demand');
   const [fleetTablePage, setFleetTablePage] = useState<number>(1);
   const [fleetTableView, setFleetTableView] = useState<'all' | 'backlog' | 'recurring'>('all');
   const fleetTablePageSize = 12;
+
+  // Kapal Posisi Mapping Cache
+  const kapalPosisiMap = useMemo(() => {
+    const map = new Map<string, KapalPosisiItem>();
+    (kapalPosisiItems || []).forEach((kp) => {
+      const rawName = (kp.namaKapal || '').toLowerCase().trim();
+      if (rawName) map.set(rawName, kp);
+      const clean = rawName.replace(/^(tb|bg|tk|tugboat|barge)\.?\s*/i, '').trim();
+      if (clean) map.set(clean, kp);
+    });
+    return map;
+  }, [kapalPosisiItems]);
+
+  const getVesselPosisiInfo = (armadaName: string) => {
+    const raw = (armadaName || '').toLowerCase().trim();
+    const clean = raw.replace(/^(tb|bg|tk|tugboat|barge)\.?\s*/i, '').trim();
+    return kapalPosisiMap.get(raw) || kapalPosisiMap.get(clean) || null;
+  };
 
   // Sync initialEntity if changed
   useEffect(() => {
@@ -372,6 +393,9 @@ export default function AnalyticsTab({
         completeItems: number;
         partialItems: number;
         backlogItems: number;
+        totalLapse: number;
+        lapseCount: number;
+        totalPassedStages: number;
         itemFrequency: Record<string, { name: string; count: number; totalQty: number; satuan: string }>;
         categories: Record<string, number>;
       }
@@ -414,6 +438,9 @@ export default function AnalyticsTab({
           completeItems: 0,
           partialItems: 0,
           backlogItems: 0,
+          totalLapse: 0,
+          lapseCount: 0,
+          totalPassedStages: 0,
           itemFrequency: {},
           categories: {},
         };
@@ -429,6 +456,31 @@ export default function AnalyticsTab({
       if (isComp) v.completeItems++;
       else if (isPart) v.partialItems++;
       else v.backlogItems++;
+
+      // SLA & Lead time tracking
+      let itLapse = 0;
+      if (typeof it.waktuProses === 'number') {
+        itLapse = it.waktuProses;
+      } else if (typeof it.waktuProses === 'string') {
+        const m = it.waktuProses.match(/\d+(\.\d+)?/);
+        if (m) itLapse = parseFloat(m[0]);
+      }
+      if (!itLapse && (it as any).lapse) {
+        itLapse = Number((it as any).lapse) || 0;
+      }
+      if (!itLapse && (it as any).deliveryTime) {
+        const m = String((it as any).deliveryTime).match(/\d+(\.\d+)?/);
+        if (m) itLapse = parseFloat(m[0]);
+      }
+      if (itLapse <= 0) {
+        itLapse = isComp ? 2 : 3;
+      }
+      v.totalLapse += itLapse;
+      v.lapseCount++;
+
+      // 5-division workflow compliance tracking
+      const wfResult = evaluateFiveDivisionWorkflow(it as any);
+      v.totalPassedStages += wfResult ? wfResult.passedCount : 3;
 
       const cleanItemName = (it.item || 'Barang').trim();
       if (!v.itemFrequency[cleanItemName]) {
@@ -454,11 +506,43 @@ export default function AnalyticsTab({
       const topItems = Object.values(v.itemFrequency).sort(
         (a, b) => b.count - a.count || b.totalQty - a.totalQty
       );
+
+      // Lead time / SLA calculation
+      const avgLeadTime = v.lapseCount > 0 ? Math.round((v.totalLapse / v.lapseCount) * 10) / 10 : 2.5;
+
+      // 5-Section Workflow compliance calculation
+      const avgPassedSections = v.itemCount > 0 ? v.totalPassedStages / v.itemCount : 4;
+      const workflowScore = Math.min(100, Math.round((avgPassedSections / 5) * 100));
+
+      // SLA Score (35%)
+      let slaScore = 100;
+      if (avgLeadTime > 6) slaScore = 40;
+      else if (avgLeadTime > 4) slaScore = 65;
+      else if (avgLeadTime > 3) slaScore = 80;
+      else if (avgLeadTime > 2) slaScore = 90;
+
+      // Combined Fleet Health Score (0 - 100)
+      const healthScore = Math.min(
+        100,
+        Math.max(0, Math.round(vFulfillRate * 0.40 + slaScore * 0.35 + workflowScore * 0.25))
+      );
+
+      let healthStatus: 'PRIMA' | 'BAIK' | 'WASPADA' | 'KRITIS' = 'PRIMA';
+      if (healthScore < 55) healthStatus = 'KRITIS';
+      else if (healthScore < 70) healthStatus = 'WASPADA';
+      else if (healthScore < 85) healthStatus = 'BAIK';
+
+      const posisiInfo = getVesselPosisiInfo(v.name);
+
       return {
         ...v,
         fpbCount: v.fpbs.size,
         woCount: v.wos.size,
         fulfillmentRate: vFulfillRate,
+        avgLeadTime,
+        healthScore,
+        healthStatus,
+        posisiInfo,
         topItems,
       };
     });
@@ -467,6 +551,8 @@ export default function AnalyticsTab({
       if (fleetSortBy === 'demand') return b.fpbCount - a.fpbCount || b.qtyFPB - a.qtyFPB;
       if (fleetSortBy === 'backlog') return b.backlogQty - a.backlogQty;
       if (fleetSortBy === 'fulfillment') return b.fulfillmentRate - a.fulfillmentRate;
+      if (fleetSortBy === 'health') return b.healthScore - a.healthScore || b.fulfillmentRate - a.fulfillmentRate;
+      if (fleetSortBy === 'sla') return a.avgLeadTime - b.avgLeadTime;
       return a.name.localeCompare(b.name);
     });
 
@@ -2039,7 +2125,9 @@ export default function AnalyticsTab({
                 >
                   <option value="demand">Permintaan Terbanyak</option>
                   <option value="backlog">Backlog / Selisih Terbanyak</option>
-                  <option value="fulfillment">Tingkat Pemenuhan</option>
+                  <option value="fulfillment">Tingkat Pemenuhan Tertinggi</option>
+                  <option value="health">Skor Kesehatan Tertinggi (0-100)</option>
+                  <option value="sla">Lead Time / SLA Tercepat</option>
                   <option value="name">Nama Armada (A-Z)</option>
                 </select>
               </div>
@@ -2241,11 +2329,60 @@ export default function AnalyticsTab({
                           {fleetSummary.vesselList[0].entity}
                         </span>
                       )}
+                      {fleetSummary.vesselList[0]?.posisiInfo && (
+                        <span
+                          className={`px-2 py-0.5 rounded text-[10px] font-semibold flex items-center gap-1.5 border ${
+                            fleetSummary.vesselList[0].posisiInfo.statusKode === 'ON'
+                              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                              : fleetSummary.vesselList[0].posisiInfo.statusKode === 'SB'
+                              ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30'
+                              : fleetSummary.vesselList[0].posisiInfo.statusKode === 'MT'
+                              ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                              : fleetSummary.vesselList[0].posisiInfo.statusKode === 'BD'
+                              ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30'
+                              : 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30'
+                          }`}
+                          title={`Aktivitas: ${fleetSummary.vesselList[0].posisiInfo.activity || '-'}`}
+                        >
+                          <span
+                            className={`size-1.5 rounded-full ${
+                              fleetSummary.vesselList[0].posisiInfo.statusKode === 'ON'
+                                ? 'bg-emerald-500 animate-pulse'
+                                : 'bg-current'
+                            }`}
+                          />
+                          <span>
+                            Status Kapal: {fleetSummary.vesselList[0].posisiInfo.statusKode}
+                            {fleetSummary.vesselList[0].posisiInfo.posisi ? ` (${fleetSummary.vesselList[0].posisiInfo.posisi})` : ''}
+                          </span>
+                        </span>
+                      )}
                       <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400">
                         {fleetSummary.fulfillmentRate}% Terpenuhi
                       </span>
+                      {fleetSummary.vesselList[0] && (
+                        <span
+                          className={`px-2 py-0.5 rounded text-[10px] font-mono font-semibold border ${
+                            fleetSummary.vesselList[0].healthScore >= 85
+                              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                              : fleetSummary.vesselList[0].healthScore >= 70
+                              ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30'
+                              : fleetSummary.vesselList[0].healthScore >= 55
+                              ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                              : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30'
+                          }`}
+                        >
+                          Skor Kesehatan: {fleetSummary.vesselList[0].healthScore}/100 ({fleetSummary.vesselList[0].healthStatus})
+                        </span>
+                      )}
+                      {fleetSummary.vesselList[0] && (
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-muted border border-border text-foreground flex items-center gap-1">
+                          <Clock className="size-3 text-muted-foreground" />
+                          <span>Rata-rata SLA: {fleetSummary.vesselList[0].avgLeadTime} Hari</span>
+                        </span>
+                      )}
                     </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">
+                    <p className="text-xs text-muted-foreground mt-1">
                       Menampilkan riwayat permintaan &amp; suku cadang khusus armada ini pada periode terpilih.
                     </p>
                   </div>
@@ -2387,14 +2524,36 @@ export default function AnalyticsTab({
                               <span className="px-1.5 py-0.2 rounded text-[9px] font-mono bg-muted border border-border text-muted-foreground">
                                 {v.entity}
                               </span>
+                              {v.posisiInfo?.statusKode && (
+                                <span
+                                  className={`px-1.5 py-0.2 rounded text-[9px] font-semibold border ${
+                                    v.posisiInfo.statusKode === 'ON'
+                                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                                      : v.posisiInfo.statusKode === 'SB'
+                                      ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30'
+                                      : v.posisiInfo.statusKode === 'MT'
+                                      ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                                      : v.posisiInfo.statusKode === 'BD'
+                                      ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30'
+                                      : 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30'
+                                  }`}
+                                  title={`Posisi: ${v.posisiInfo.posisi || '-'}`}
+                                >
+                                  {v.posisiInfo.statusKode}
+                                </span>
+                              )}
                             </div>
-                            <div className="flex items-center gap-2 mt-1 text-[10px] text-muted-foreground font-mono">
+                            <div className="flex items-center gap-2 mt-1 text-[10px] text-muted-foreground font-mono flex-wrap">
                               <span>{v.fpbCount} FPB</span>
                               <span>•</span>
                               <span>{v.itemCount} Item</span>
                               <span>•</span>
                               <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
                                 {v.fulfillmentRate}% Terpenuhi
+                              </span>
+                              <span>•</span>
+                              <span className="text-sky-600 dark:text-sky-400 font-semibold">
+                                Skor: {v.healthScore}
                               </span>
                             </div>
                           </div>
@@ -2509,7 +2668,7 @@ export default function AnalyticsTab({
                     </h4>
                   </div>
                   <span className="text-[11px] text-muted-foreground font-mono">
-                    Urutan: {fleetSortBy === 'demand' ? 'Permintaan Terbanyak' : fleetSortBy === 'backlog' ? 'Backlog Terbanyak' : fleetSortBy === 'fulfillment' ? 'Tingkat Pemenuhan' : 'Nama Armada'}
+                    Urutan: {fleetSortBy === 'demand' ? 'Permintaan Terbanyak' : fleetSortBy === 'backlog' ? 'Backlog Terbanyak' : fleetSortBy === 'fulfillment' ? 'Tingkat Pemenuhan Tertinggi' : fleetSortBy === 'health' ? 'Skor Kesehatan Tertinggi' : fleetSortBy === 'sla' ? 'Lead Time / SLA Tercepat' : 'Nama Armada'}
                   </span>
                 </div>
 
@@ -2519,13 +2678,16 @@ export default function AnalyticsTab({
                       <tr>
                         <th className="p-3 text-center">Rank</th>
                         <th className="p-3">Nama Armada</th>
+                        <th className="p-3 text-center">Status Kapal</th>
                         <th className="p-3 text-center">Entitas</th>
                         <th className="p-3 text-center">FPB</th>
                         <th className="p-3 text-center">Tiket WO</th>
                         <th className="p-3 text-right">Qty Diminta</th>
                         <th className="p-3 text-right">Realisasi</th>
                         <th className="p-3 text-right">Backlog</th>
-                        <th className="p-3 text-center min-w-[130px]">Pemenuhan</th>
+                        <th className="p-3 text-center min-w-[120px]">Pemenuhan</th>
+                        <th className="p-3 text-center min-w-[100px]">Rata-rata SLA</th>
+                        <th className="p-3 text-center min-w-[120px]">Skor Kesehatan</th>
                         <th className="p-3 text-center">Aksi</th>
                       </tr>
                     </thead>
@@ -2539,10 +2701,66 @@ export default function AnalyticsTab({
                             <button
                               type="button"
                               onClick={() => setSelectedFleetArmada(v.name)}
-                              className="hover:text-primary hover:underline text-left"
+                              className="hover:text-primary hover:underline text-left font-semibold"
                             >
                               {v.name}
                             </button>
+                          </td>
+                          <td className="p-3 text-center">
+                            {(() => {
+                              const kp = v.posisiInfo;
+                              if (!kp || !kp.statusKode) {
+                                return (
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono bg-muted/60 text-muted-foreground border border-border" title="Belum terdata posisi live">
+                                    <span className="size-1.5 rounded-full bg-slate-400" />
+                                    <span>-</span>
+                                  </span>
+                                );
+                              }
+                              const kode = (kp.statusKode || '').toUpperCase().trim();
+                              let badgeStyle = 'bg-muted text-muted-foreground border-border';
+                              let dotStyle = 'bg-slate-400';
+                              let label = kode;
+
+                              if (kode === 'ON') {
+                                badgeStyle = 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30';
+                                dotStyle = 'bg-emerald-500 animate-pulse';
+                                label = 'ON (Operasi)';
+                              } else if (kode === 'SB') {
+                                badgeStyle = 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30';
+                                dotStyle = 'bg-sky-500';
+                                label = 'SB (Standby)';
+                              } else if (kode === 'MT') {
+                                badgeStyle = 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30';
+                                dotStyle = 'bg-amber-500';
+                                label = 'MT (Maintenance)';
+                              } else if (kode === 'BD') {
+                                badgeStyle = 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30';
+                                dotStyle = 'bg-rose-500';
+                                label = 'BD (Breakdown)';
+                              } else if (kode === 'DK') {
+                                badgeStyle = 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30';
+                                dotStyle = 'bg-purple-500';
+                                label = 'DK (Docking)';
+                              }
+
+                              return (
+                                <div className="flex flex-col items-center">
+                                  <span
+                                    className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold border ${badgeStyle}`}
+                                    title={`${label}${kp.posisi ? ` • Posisi: ${kp.posisi}` : ''}${kp.activity ? ` • Aktivitas: ${kp.activity}` : ''}`}
+                                  >
+                                    <span className={`size-1.5 rounded-full ${dotStyle}`} />
+                                    <span>{kode}</span>
+                                  </span>
+                                  {kp.posisi && (
+                                    <span className="text-[9px] text-muted-foreground truncate max-w-[85px] mt-0.5 font-sans" title={kp.posisi}>
+                                      {kp.posisi}
+                                    </span>
+                                  )}
+                                </div>
+                              );
+                            })()}
                           </td>
                           <td className="p-3 text-center">
                             <span className="px-1.5 py-0.5 rounded font-mono text-[10px] bg-muted border border-border text-muted-foreground">
@@ -2576,6 +2794,65 @@ export default function AnalyticsTab({
                                 {v.fulfillmentRate}%
                               </span>
                             </div>
+                          </td>
+                          <td className="p-3 text-center">
+                            {(() => {
+                              const avg = v.avgLeadTime;
+                              let badgeClass = 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/30';
+                              if (avg > 4) {
+                                badgeClass = 'text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/30';
+                              } else if (avg > 2.5) {
+                                badgeClass = 'text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/30';
+                              }
+                              return (
+                                <span
+                                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-medium border ${badgeClass}`}
+                                  title={`Rata-rata waktu pemrosesan dan serah terima: ${avg} hari`}
+                                >
+                                  <Clock className="size-2.5" />
+                                  <span>{avg} Hari</span>
+                                </span>
+                              );
+                            })()}
+                          </td>
+                          <td className="p-3 text-center">
+                            {(() => {
+                              const score = v.healthScore;
+                              const status = v.healthStatus;
+                              let barBg = 'bg-emerald-500';
+                              let textCol = 'text-emerald-600 dark:text-emerald-400';
+                              let pillBg = 'bg-emerald-500/10 border-emerald-500/30';
+
+                              if (score < 55) {
+                                barBg = 'bg-rose-500';
+                                textCol = 'text-rose-600 dark:text-rose-400';
+                                pillBg = 'bg-rose-500/10 border-rose-500/30';
+                              } else if (score < 70) {
+                                barBg = 'bg-amber-500';
+                                textCol = 'text-amber-600 dark:text-amber-400';
+                                pillBg = 'bg-amber-500/10 border-amber-500/30';
+                              } else if (score < 85) {
+                                barBg = 'bg-sky-500';
+                                textCol = 'text-sky-600 dark:text-sky-400';
+                                pillBg = 'bg-sky-500/10 border-sky-500/30';
+                              }
+
+                              return (
+                                <div className="flex flex-col items-center gap-0.5" title={`Skor Kesehatan Logistik: ${score}/100 (${status})\nKomponen: Pemenuhan Fisik (40%), SLA (35%), Alur 5 Seksi (25%)`}>
+                                  <div className="flex items-center gap-1.5">
+                                    <div className="w-10 h-1.5 bg-muted rounded-full overflow-hidden">
+                                      <div className={`h-full ${barBg} rounded-full`} style={{ width: `${score}%` }} />
+                                    </div>
+                                    <span className={`font-mono text-[11px] font-bold ${textCol}`}>
+                                      {score}
+                                    </span>
+                                  </div>
+                                  <span className={`px-1 py-0.2 rounded text-[9px] font-semibold uppercase tracking-wider border ${pillBg} ${textCol}`}>
+                                    {status}
+                                  </span>
+                                </div>
+                              );
+                            })()}
                           </td>
                           <td className="p-3 text-center">
                             <button

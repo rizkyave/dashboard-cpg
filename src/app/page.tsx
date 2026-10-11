@@ -1061,6 +1061,7 @@ export default function DashboardPage() {
             <AnalyticsTab
               items={filteredProcurement}
               armadaItems={armadaData}
+              kapalPosisiItems={kapalPosisiItems}
               onSyncSheets={handleSyncGoogleSheets}
               isSyncingSheets={isSyncingSheets}
               onOpenAudit={handleOpenAudit}
