@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import REAL_FLEET_DATA from '@/data/realFleetData.json';
 import {
   Calendar,
   Search,
@@ -16,6 +17,72 @@ import {
   AlertTriangle,
   RotateCcw,
 } from 'lucide-react';
+
+// Helper: Konversi tanggal transaksi ke indeks kolom timeline 0..19 (Jun W1..Okt W4)
+function dateToTimelineCol(val: any): number | null {
+  if (!val && val !== 0) return null;
+  let year = 2026;
+  let month = 7;
+  let day = 1;
+
+  if (typeof val === 'number') {
+    if (val > 10000 && val < 100000) {
+      const d = new Date((val - 25569) * 86400 * 1000);
+      year = d.getUTCFullYear();
+      month = d.getUTCMonth() + 1;
+      day = d.getUTCDate();
+    } else if (val > 1000000000000) {
+      const d = new Date(val);
+      year = d.getFullYear();
+      month = d.getMonth() + 1;
+      day = d.getDate();
+    }
+  } else if (typeof val === 'string') {
+    const trimmed = val.trim();
+    if (!trimmed || trimmed === '-') return null;
+    const isoMatch = trimmed.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (isoMatch) {
+      year = parseInt(isoMatch[1], 10);
+      month = parseInt(isoMatch[2], 10);
+      day = parseInt(isoMatch[3], 10);
+    } else {
+      const dmyMatch = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      if (dmyMatch) {
+        year = parseInt(dmyMatch[3], 10);
+        month = parseInt(dmyMatch[2], 10);
+        day = parseInt(dmyMatch[1], 10);
+      } else {
+        const num = parseFloat(trimmed);
+        if (!isNaN(num) && num > 10000 && num < 100000) {
+          const d = new Date((num - 25569) * 86400 * 1000);
+          year = d.getUTCFullYear();
+          month = d.getUTCMonth() + 1;
+          day = d.getUTCDate();
+        } else {
+          return null;
+        }
+      }
+    }
+  } else {
+    return null;
+  }
+
+  // 06 (Jun): 0..3, 07 (Jul): 4..7, 08 (Agu): 8..11, 09 (Sep): 12..15, 10 (Okt): 16..19
+  let monthOffset = 4;
+  if (month <= 6) monthOffset = 0;
+  else if (month === 7) monthOffset = 4;
+  else if (month === 8) monthOffset = 8;
+  else if (month === 9) monthOffset = 12;
+  else monthOffset = 16;
+
+  let weekOffset = 0;
+  if (day <= 7) weekOffset = 0;
+  else if (day <= 14) weekOffset = 1;
+  else if (day <= 21) weekOffset = 2;
+  else weekOffset = 3;
+
+  return Math.max(0, Math.min(19, monthOffset + weekOffset));
+}
 
 export interface FleetGanttItem {
   id?: string;
@@ -275,9 +342,7 @@ const CURATED_TOP_VESSELS: CuratedVessel[] = [
   },
 ];
 
-const TOTAL_FLEET_COUNT = 420;
 const PAGE_SIZE = 12;
-const TOTAL_PAGES = 35; // 420 / 12 = 35 Halaman
 
 export default function FleetGanttSchedule({
   items = [],
@@ -292,66 +357,222 @@ export default function FleetGanttSchedule({
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [hoveredVessel, setHoveredVessel] = useState<CuratedVessel | null>(null);
 
-  // Buat daftar lengkap 420 armada (12 baseline utama di halaman 1, sisanya sintetis/riil hingga 420)
-  const fullFleetList = useMemo(() => {
-    const list: CuratedVessel[] = [...CURATED_TOP_VESSELS];
-    const curatedNames = new Set(CURATED_TOP_VESSELS.map((v) => v.name.toLowerCase()));
+  // Daftar lengkap armada riil: dibangun secara dinamis dari props items jika ada, atau menggunakan 100% data riil baseline dari dataset
+  const fullFleetList = useMemo<CuratedVessel[]>(() => {
+    // 1. Jika ada transaksi dari props items
+    if (items && items.length > 0) {
+      const map = new Map<string, {
+        name: string;
+        tag: string;
+        fpbs: Set<string>;
+        items: FleetGanttItem[];
+        startCols: number[];
+        endCols: number[];
+        lengkap: number;
+        proses: number;
+        parsial: number;
+        backlog: number;
+      }>();
 
-    const vesselPrefixes = ['TB', 'BG', 'TK', 'SPOB', 'MV', 'SV', 'KAPAL'];
-    const vesselNames = [
-      'DELTA PRATAMA', 'ROYAL FALCON', 'SAMUDRA BERKAH', 'PACIFIC OASIS',
-      'NUSANTARA MAKMUR', 'BINTANG LAUT 08', 'GALAXY POWER', 'SURYA CEMERLANG',
-      'ANUGERAH ABADI', 'PELITA RAYA 02', 'BARUNA JAYA', 'MEGA PERSADA',
-      'INDO TRANSIT', 'MARITIM JAYA', 'TIRTA KENCANA', 'SENTOSA JAYA 05',
-    ];
-    const tags = ['CPL', 'PPI', 'HL', 'MO', 'GAJ', 'SP', 'MIL', 'SSK'];
+      for (const it of items) {
+        const rawName = (it.armada || (it as any).deptArmada || '').trim();
+        if (!rawName || rawName === '-' || rawName.length < 2) continue;
 
-    let synthIndex = list.length + 1;
-    while (list.length < TOTAL_FLEET_COUNT) {
-      const pfx = vesselPrefixes[synthIndex % vesselPrefixes.length];
-      const nm = vesselNames[synthIndex % vesselNames.length];
-      const num = 100 + (synthIndex % 890);
-      const tag = tags[synthIndex % tags.length];
-      const fpbCount = Math.max(8, Math.round(52 - synthIndex * 0.1));
-      const startCol = 1 + (synthIndex % 7);
-      const endCol = Math.min(19, startCol + 5 + (synthIndex % 9));
+        let tag = it.entity?.trim().toUpperCase() || '';
+        if (!tag || tag === 'ALL' || tag.length > 5) {
+          if (it.fpb && it.fpb.includes('-')) {
+            tag = it.fpb.split('-')[0].trim().toUpperCase();
+          }
+        }
+        if (!tag) tag = 'CPL';
 
-      list.push({
-        name: `${pfx} ${nm} ${num}`,
-        tag,
-        fpbCount,
-        startCol,
-        endCol,
-        gradientStyle:
-          synthIndex % 3 === 0
-            ? 'bg-gradient-to-r from-[#10B981] via-[#10B981] to-[#0EA5E9]'
-            : synthIndex % 3 === 1
-            ? 'bg-gradient-to-r from-[#0EA5E9] to-[#F59E0B]'
-            : 'bg-gradient-to-r from-[#10B981] via-[#F59E0B] to-[#EF4444]',
-        colorType: synthIndex % 2 === 0 ? 'HIJAU' : 'BIRU_ORANYE_MERAH',
-        summaryText: `W${(startCol % 4) + 1} - W${(endCol % 4) + 1} Aktif`,
-        statusBadge: {
-          lengkap: Math.round(fpbCount * 0.6),
-          proses: Math.round(fpbCount * 0.2),
-          parsial: Math.round(fpbCount * 0.1),
-          backlog: Math.round(fpbCount * 0.1),
-        },
-        sampleItems: [
-          { fpb: `FPB-${tag}-${synthIndex}01`, item: 'Suku Cadang Mesin Rutin', startCol, endCol: Math.min(19, startCol + 3), status: 'LENGKAP' },
-          { fpb: `FPB-${tag}-${synthIndex}02`, item: 'Perlengkapan Deck & Tali', startCol: Math.min(19, startCol + 4), endCol, status: 'PARSIAL' },
-        ],
-      });
-      synthIndex++;
+        let entry = map.get(rawName);
+        if (!entry) {
+          entry = {
+            name: rawName,
+            tag,
+            fpbs: new Set(),
+            items: [],
+            startCols: [],
+            endCols: [],
+            lengkap: 0,
+            proses: 0,
+            parsial: 0,
+            backlog: 0,
+          };
+          map.set(rawName, entry);
+        }
+
+        if (it.fpb) entry.fpbs.add(it.fpb.trim());
+        entry.items.push(it);
+
+        const qFpb = Number(it.qtyFPB) || 0;
+        const qFstb = Number(it.qtyFSTB) || 0;
+        const qSel = Number(it.selisih) || Math.max(0, qFpb - qFstb);
+
+        const statusUpper = (it.status || '').toUpperCase();
+        const isComp =
+          (qSel === 0 && qFstb > 0) ||
+          statusUpper.includes('LENGKAP') ||
+          statusUpper.includes('SELESAI') ||
+          Boolean(it.noTtb);
+        const isPart = statusUpper.includes('PARSIAL') || (qFstb > 0 && qSel > 0);
+        const isBacklog =
+          statusUpper.includes('BACKLOG') ||
+          statusUpper.includes('KRITIS') ||
+          statusUpper.includes('BELUM TERPENUHI') ||
+          (!isComp && !isPart && (it.noPo === '-' || !it.noPo));
+
+        if (isComp) entry.lengkap++;
+        else if (isPart) entry.parsial++;
+        else if (isBacklog) entry.backlog++;
+        else entry.proses++;
+
+        const dateStr = it.tglFstb || it.tglPo || it.tglFpb || (it as any).date;
+        const col = dateToTimelineCol(dateStr);
+        if (col !== null) {
+          entry.startCols.push(col);
+          entry.endCols.push(col);
+        }
+      }
+
+      if (map.size > 0) {
+        const months = ['Jun', 'Jul', 'Agu', 'Sep', 'Okt'];
+        const curatedMap = new Map<string, CuratedVessel>(
+          CURATED_TOP_VESSELS.map((v) => [v.name.toUpperCase(), v])
+        );
+
+        const dynamicList: CuratedVessel[] = [];
+
+        for (const entry of Array.from(map.values())) {
+          const curatedMatch = curatedMap.get(entry.name.toUpperCase());
+          const fpbCount = Math.max(entry.fpbs.size, 1);
+          const minCol = entry.startCols.length > 0 ? Math.min(...entry.startCols) : (curatedMatch?.startCol ?? 4);
+          const maxCol = entry.endCols.length > 0 ? Math.max(...entry.endCols) : (curatedMatch?.endCol ?? 19);
+          const startCol = Math.max(0, Math.min(minCol, 18));
+          const endCol = Math.max(startCol + 1, Math.min(maxCol, 19));
+
+          const totalStatus = entry.lengkap + entry.proses + entry.parsial + entry.backlog || 1;
+          const lkRatio = entry.lengkap / totalStatus;
+          const bkRatio = entry.backlog / totalStatus;
+
+          let gradientStyle = 'bg-gradient-to-r from-[#0EA5E9] via-[#0EA5E9] to-[#F59E0B]';
+          let colorType: CuratedVessel['colorType'] = 'BIRU_ORANYE';
+
+          if (lkRatio >= 0.7) {
+            gradientStyle = 'bg-gradient-to-r from-[#10B981] via-[#10B981] to-[#0EA5E9]';
+            colorType = 'HIJAU';
+          } else if (bkRatio >= 0.25) {
+            gradientStyle = 'bg-gradient-to-r from-[#10B981] via-[#F59E0B] to-[#EF4444]';
+            colorType = 'HIJAU_MERAH';
+          } else if (entry.backlog > 0 && entry.proses > 0) {
+            gradientStyle = 'bg-gradient-to-r from-[#0EA5E9] via-[#F59E0B] to-[#EF4444]';
+            colorType = 'BIRU_ORANYE_MERAH';
+          }
+
+          const sM = months[Math.floor(startCol / 4)] || 'Jul';
+          const sW = 'W' + ((startCol % 4) + 1);
+          const eM = months[Math.floor(endCol / 4)] || 'Okt';
+          const eW = 'W' + ((endCol % 4) + 1);
+          const summaryText = `${sM} ${sW} - ${eM} ${eW}`;
+
+          let sampleItems: CuratedVessel['sampleItems'] = [];
+          if (curatedMatch && curatedMatch.sampleItems.length > 0) {
+            sampleItems = curatedMatch.sampleItems;
+          } else {
+            const seenFpbs = new Set<string>();
+            for (const child of entry.items) {
+              const fpbNum = child.fpb || `${entry.tag}-FPB-26-${sampleItems.length + 1}`;
+              if (seenFpbs.has(fpbNum) && sampleItems.length >= 4) continue;
+              seenFpbs.add(fpbNum);
+
+              const childCol = dateToTimelineCol(child.tglFstb || child.tglPo || child.tglFpb) ?? startCol;
+              const cStart = Math.max(0, Math.min(childCol, 18));
+              const cEnd = Math.max(cStart + 1, Math.min(childCol + 3, 19));
+
+              const childQSel = Number(child.selisih) || 0;
+              const childQFstb = Number(child.qtyFSTB) || 0;
+              let childStatus: 'LENGKAP' | 'PROSES' | 'PARSIAL' | 'BACKLOG' = 'PROSES';
+
+              if (child.status?.toUpperCase().includes('LENGKAP') || (childQSel === 0 && childQFstb > 0) || child.noTtb) {
+                childStatus = 'LENGKAP';
+              } else if (child.status?.toUpperCase().includes('PARSIAL') || (childQFstb > 0 && childQSel > 0)) {
+                childStatus = 'PARSIAL';
+              } else if (child.status?.toUpperCase().includes('BACKLOG') || (childQFstb === 0 && childQSel > 0)) {
+                childStatus = 'BACKLOG';
+              }
+
+              sampleItems.push({
+                fpb: fpbNum,
+                item: child.item || `Kebutuhan ${entry.name}`,
+                startCol: cStart,
+                endCol: cEnd,
+                status: childStatus,
+              });
+
+              if (sampleItems.length >= 8) break;
+            }
+          }
+
+          dynamicList.push({
+            name: entry.name,
+            tag: entry.tag,
+            fpbCount,
+            startCol,
+            endCol,
+            gradientStyle,
+            colorType,
+            summaryText,
+            statusBadge: {
+              lengkap: entry.lengkap,
+              proses: entry.proses,
+              parsial: entry.parsial,
+              backlog: entry.backlog,
+            },
+            sampleItems: sampleItems.length > 0 ? sampleItems : [
+              {
+                fpb: Array.from(entry.fpbs)[0] || `${entry.tag}-FPB-26-0001`,
+                item: `Suku Cadang & Perlengkapan ${entry.name}`,
+                startCol,
+                endCol,
+                status: colorType === 'HIJAU' ? 'LENGKAP' : 'PROSES',
+              },
+            ],
+          });
+        }
+
+        dynamicList.sort((a, b) => b.fpbCount - a.fpbCount || a.name.localeCompare(b.name));
+        return dynamicList;
+      }
     }
 
-    return list;
-  }, []);
+    // 2. Fallback: 100% data armada riil dari dataset (CURATED_TOP_VESSELS + REAL_FLEET_DATA)
+    const curatedNames = new Set(CURATED_TOP_VESSELS.map((v) => v.name.toUpperCase()));
+    const remainingRealVessels = (REAL_FLEET_DATA as CuratedVessel[]).filter(
+      (v) => !curatedNames.has(v.name.toUpperCase())
+    );
+
+    return [...CURATED_TOP_VESSELS, ...remainingRealVessels];
+  }, [items]);
 
   // Filter Data Armada
   const filteredFleetList = useMemo(() => {
     return fullFleetList.filter((v) => {
-      if (selectedEntity !== 'ALL' && v.tag !== selectedEntity) {
+      if (selectedEntity !== 'ALL' && v.tag.toUpperCase() !== selectedEntity.toUpperCase()) {
         return false;
+      }
+      if (selectedPeriod !== 'ALL') {
+        const periodMap: Record<string, [number, number]> = {
+          '06': [0, 3],
+          '07': [4, 7],
+          '08': [8, 11],
+          '09': [12, 15],
+          '10': [16, 19],
+        };
+        const range = periodMap[selectedPeriod];
+        if (range && (v.endCol < range[0] || v.startCol > range[1])) {
+          return false;
+        }
       }
       if (searchTerm.trim() !== '') {
         const q = searchTerm.toLowerCase().trim();
@@ -367,7 +588,7 @@ export default function FleetGanttSchedule({
       if (statusFilter === 'BACKLOG' && v.statusBadge.backlog === 0) return false;
       return true;
     });
-  }, [fullFleetList, selectedEntity, searchTerm, statusFilter]);
+  }, [fullFleetList, selectedEntity, selectedPeriod, searchTerm, statusFilter]);
 
   // Pagination
   const totalFilteredCount = filteredFleetList.length;
@@ -525,7 +746,7 @@ export default function FleetGanttSchedule({
 
         {/* Teks Kanan Atas Tabel */}
         <div className="text-[11px] font-mono text-slate-500 dark:text-muted-foreground font-semibold">
-          Menampilkan <strong className="text-slate-900 dark:text-foreground">420 armada aktif</strong>
+          Menampilkan <strong className="text-slate-900 dark:text-foreground">{totalFilteredCount} armada aktif</strong>
         </div>
       </div>
 
@@ -841,7 +1062,7 @@ export default function FleetGanttSchedule({
       <div className="flex items-center justify-between pt-1 text-xs text-muted-foreground flex-wrap gap-2">
         <p className="font-mono">
           Halaman <strong className="text-slate-900 dark:text-foreground">{activePage}</strong> dari{' '}
-          <strong className="text-slate-900 dark:text-foreground">{TOTAL_PAGES}</strong>
+          <strong className="text-slate-900 dark:text-foreground">{totalPages}</strong>
         </p>
 
         <div className="flex items-center gap-2">
@@ -855,8 +1076,8 @@ export default function FleetGanttSchedule({
           </button>
           <button
             type="button"
-            disabled={activePage >= TOTAL_PAGES}
-            onClick={() => setCurrentPage((p) => Math.min(TOTAL_PAGES, p + 1))}
+            disabled={activePage >= totalPages}
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             className="px-3 py-1.5 bg-white hover:bg-slate-50 dark:bg-card dark:hover:bg-muted border border-slate-300 dark:border-border text-slate-700 dark:text-slate-200 disabled:opacity-40 disabled:pointer-events-none rounded-lg text-xs font-semibold transition inline-flex items-center gap-1 shadow-2xs cursor-pointer"
           >
             Selanjutnya &rarr;
