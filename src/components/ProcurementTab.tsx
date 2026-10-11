@@ -1608,16 +1608,16 @@ export default function ProcurementTab({
                         {renderSortIndicator('item')}
                       </span>
                     </th>
-                    {/* Alur 5 Divisi */}
+                    {/* Alur 5 Seksi */}
                     <th
                       onClick={() => handleSort('workflow')}
                       className="p-3.5 text-center cursor-pointer hover:text-foreground transition group whitespace-nowrap sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md"
-                      title="Klik untuk mengurutkan kelengkapan alur 5 divisi (5/5 Lengkap ke Belum Lengkap)"
+                      title="Klik untuk mengurutkan kelengkapan alur 5 seksi (5/5 Lengkap ke Belum Lengkap)"
                     >
                       <span className="flex items-center justify-center gap-1.5">
                         <span className="inline-flex items-center gap-1">
                           <span className="size-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_6px_rgba(16,185,129,0.8)]"></span>
-                          ALUR 5 DIVISI
+                          ALUR 5 SEKSI
                         </span>
                         {renderSortIndicator('workflow')}
                       </span>
@@ -1745,7 +1745,7 @@ export default function ProcurementTab({
                         )}
                       </td>
 
-                      {/* Indikator Traffic Light Alur 5 Divisi */}
+                      {/* Indikator Traffic Light Alur 5 Seksi */}
                       <td className="p-3.5 text-center whitespace-nowrap">
                         <WorkflowTrafficLight
                           item={row}

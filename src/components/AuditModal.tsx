@@ -910,7 +910,7 @@ export default function AuditModal({
     return 'text-foreground';
   }, [statusSaatIni]);
 
-  // Evaluasi item workflow alur 5 divisi yang disinkronkan dengan data aktual AuditModal
+  // Evaluasi item workflow alur 5 seksi yang disinkronkan dengan data aktual AuditModal
   const evaluatableWorkflowItem = useMemo(() => {
     const baseItem = itemS1 || itemsS2[0];
     if (!baseItem) return null;
@@ -1612,7 +1612,7 @@ export default function AuditModal({
         )}
 
         {/* ═══════════════════════════════════════════════════════════
-            RANTAI TANGGUNG JAWAB & AUDIT DETAIL (5 DIVISI LENGKAP)
+            RANTAI TANGGUNG JAWAB & AUDIT DETAIL (5 SEKSI LENGKAP)
             1. VERIFIKASI FPB
             2. PURCHASING
             3. LOGISTIK TTB
