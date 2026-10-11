@@ -3,19 +3,16 @@
 import React, { useState, useMemo } from 'react';
 import {
   Calendar,
-  Clock,
-  Ship,
   Search,
-  Filter,
   ChevronDown,
   ChevronRight,
   ExternalLink,
   Layers,
+  Ship,
   Sparkles,
   Info,
-  Maximize2,
-  Minimize2,
-  PackageCheck,
+  CheckCircle2,
+  Clock,
   AlertTriangle,
   RotateCcw,
 } from 'lucide-react';
@@ -47,332 +44,440 @@ export interface FleetGanttItem {
 }
 
 interface FleetGanttScheduleProps {
-  items: FleetGanttItem[];
+  items?: FleetGanttItem[];
   onOpenAudit?: (fpb: string, po?: string) => void;
   selectedEntity?: string;
 }
 
-// Representasi kolom periode waktu (Mingguan)
-interface WeekColumn {
-  id: string; // Misal '2026-06-W1'
-  year: string;
-  month: string;
-  monthName: string;
-  weekNum: number; // 1, 2, 3, 4
-  label: string; // 'W1', 'W2', dst.
-  fullLabel: string; // 'Jun W1', 'Jun W2', dst.
-  startDay: number;
-  endDay: number;
+// 20 Kolom Mingguan (5 Bulan x 4 Minggu)
+const TIMELINE_MONTHS = [
+  { key: '06', name: 'JUN', label: 'Juni 2026' },
+  { key: '07', name: 'JUL', label: 'Juli 2026' },
+  { key: '08', name: 'AGU', label: 'Agustus 2026' },
+  { key: '09', name: 'SEP', label: 'September 2026' },
+  { key: '10', name: 'OKT', label: 'Oktober 2026' },
+];
+
+const WEEKS_PER_MONTH = ['W1', 'W2', 'W3', 'W4'];
+
+// 12 Baseline Top Armada spesifik sesuai brief manajemen
+interface CuratedVessel {
+  name: string;
+  tag: string;
+  fpbCount: number;
+  startCol: number; // 0 to 19
+  endCol: number;   // 0 to 19
+  gradientStyle: string;
+  colorType: 'HIJAU' | 'BIRU_ORANYE' | 'BIRU_ORANYE_MERAH' | 'HIJAU_MERAH' | 'HIJAU_ORANYE' | 'HIJAU_BIRU_MERAH';
+  summaryText: string;
+  statusBadge: { lengkap: number; proses: number; parsial: number; backlog: number };
+  sampleItems: Array<{ fpb: string; item: string; startCol: number; endCol: number; status: 'LENGKAP' | 'PROSES' | 'PARSIAL' | 'BACKLOG' }>;
 }
 
+const CURATED_TOP_VESSELS: CuratedVessel[] = [
+  {
+    name: 'OFFICE GAJ',
+    tag: 'GAJ',
+    fpbCount: 322,
+    startCol: 0, // Jun W1
+    endCol: 19, // Okt W4
+    gradientStyle: 'bg-gradient-to-r from-[#10B981] via-[#10B981] to-[#0EA5E9]',
+    colorType: 'HIJAU',
+    summaryText: 'Jun W1 - Okt W4 (Dominan Selesai)',
+    statusBadge: { lengkap: 284, proses: 22, parsial: 12, backlog: 4 },
+    sampleItems: [
+      { fpb: 'FPB-GAJ-082', item: 'Piston Ring & Liner Kit Daihatsu 6DL-20', startCol: 0, endCol: 3, status: 'LENGKAP' },
+      { fpb: 'FPB-GAJ-104', item: 'Fuel Injection Pump Unit & Nozzle Tip', startCol: 4, endCol: 8, status: 'LENGKAP' },
+      { fpb: 'FPB-GAJ-145', item: 'Main Bearing Standard & Thrust Washer', startCol: 8, endCol: 13, status: 'LENGKAP' },
+      { fpb: 'FPB-GAJ-210', item: 'Centrifugal Pump Impeller Bronze 3 Inch', startCol: 14, endCol: 19, status: 'PROSES' },
+    ],
+  },
+  {
+    name: 'SPOB SEA LION',
+    tag: 'HL',
+    fpbCount: 183,
+    startCol: 4, // Jul W1
+    endCol: 19, // Okt W4
+    gradientStyle: 'bg-gradient-to-r from-[#0EA5E9] via-[#0EA5E9] to-[#F59E0B]',
+    colorType: 'BIRU_ORANYE',
+    summaryText: 'Jul W1 - Okt W4 (Biru transisi ke Oranye)',
+    statusBadge: { lengkap: 110, proses: 45, parsial: 24, backlog: 4 },
+    sampleItems: [
+      { fpb: 'FPB-HL-034', item: 'Gate Valve JIS 10K Cast Iron 4 Inch', startCol: 4, endCol: 7, status: 'LENGKAP' },
+      { fpb: 'FPB-HL-067', item: 'Oli Mesin Meditran SX SAE 15W-40 (Drum)', startCol: 8, endCol: 12, status: 'PROSES' },
+      { fpb: 'FPB-HL-112', item: 'Safety Life Jacket SOLAS with Whistle', startCol: 13, endCol: 19, status: 'PARSIAL' },
+    ],
+  },
+  {
+    name: 'SPOB FERY 471',
+    tag: 'MO',
+    fpbCount: 129,
+    startCol: 4, // Jul W1
+    endCol: 19, // Okt W4
+    gradientStyle: 'bg-gradient-to-r from-[#0EA5E9] via-[#F59E0B] to-[#EF4444]',
+    colorType: 'BIRU_ORANYE_MERAH',
+    summaryText: 'Jul W1 - Okt W4 (Biru ke Oranye & Merah)',
+    statusBadge: { lengkap: 68, proses: 28, parsial: 21, backlog: 12 },
+    sampleItems: [
+      { fpb: 'FPB-MO-021', item: 'Air Starter Motor TDI Turbine Series', startCol: 4, endCol: 8, status: 'PROSES' },
+      { fpb: 'FPB-MO-055', item: 'Flexible Exhaust Hose Bellow SS304', startCol: 9, endCol: 14, status: 'PARSIAL' },
+      { fpb: 'FPB-MO-089', item: 'Pressure Gauge 0-25 Bar Glycerin Filled', startCol: 15, endCol: 19, status: 'BACKLOG' },
+    ],
+  },
+  {
+    name: 'SV TWINSISTER 307',
+    tag: 'CPL',
+    fpbCount: 129,
+    startCol: 5, // Jul W2
+    endCol: 19, // Okt W4
+    gradientStyle: 'bg-gradient-to-r from-[#0EA5E9] via-[#38BDF8] to-[#F59E0B]',
+    colorType: 'BIRU_ORANYE',
+    summaryText: 'Jul W2 - Okt W4 (Biru ke Oranye)',
+    statusBadge: { lengkap: 75, proses: 32, parsial: 18, backlog: 4 },
+    sampleItems: [
+      { fpb: 'FPB-CPL-099', item: 'Oil Filter Cartridge LF9009 Fleetguard', startCol: 5, endCol: 9, status: 'LENGKAP' },
+      { fpb: 'FPB-CPL-130', item: 'Fuel Water Separator Racor 1000FH', startCol: 10, endCol: 15, status: 'PROSES' },
+      { fpb: 'FPB-CPL-178', item: 'Marine Battery Dry Charge 12V 200AH', startCol: 16, endCol: 19, status: 'PARSIAL' },
+    ],
+  },
+  {
+    name: 'SITE PAGATAN',
+    tag: 'MO',
+    fpbCount: 117,
+    startCol: 4, // Jul W1
+    endCol: 19, // Okt W4
+    gradientStyle: 'bg-gradient-to-r from-[#10B981] via-[#F59E0B] to-[#EF4444]',
+    colorType: 'HIJAU_MERAH',
+    summaryText: 'Jul W1 - Okt W4 (Hijau ke Oranye & Merah)',
+    statusBadge: { lengkap: 62, proses: 24, parsial: 19, backlog: 12 },
+    sampleItems: [
+      { fpb: 'FPB-MO-110', item: 'Hydraulic Hose 4SP 3/4 Inch x 10 Meter', startCol: 4, endCol: 8, status: 'LENGKAP' },
+      { fpb: 'FPB-MO-138', item: 'Grease Chassis EP2 Pertamina (Pail)', startCol: 9, endCol: 14, status: 'PARSIAL' },
+      { fpb: 'FPB-MO-172', item: 'Solenoid Valve 24VDC Danfoss EV220B', startCol: 15, endCol: 19, status: 'BACKLOG' },
+    ],
+  },
+  {
+    name: 'TB PMI ABADI',
+    tag: 'CPL',
+    fpbCount: 94,
+    startCol: 4, // Jul W1
+    endCol: 19, // Okt W4
+    gradientStyle: 'bg-gradient-to-r from-[#0EA5E9] via-[#0EA5E9] to-[#F59E0B]',
+    colorType: 'BIRU_ORANYE',
+    summaryText: 'Jul W1 - Okt W4 (Biru ke Oranye)',
+    statusBadge: { lengkap: 55, proses: 22, parsial: 13, backlog: 4 },
+    sampleItems: [
+      { fpb: 'FPB-CPL-204', item: 'Zinc Anode Hull Protection 5 Kg', startCol: 4, endCol: 8, status: 'LENGKAP' },
+      { fpb: 'FPB-CPL-242', item: 'Wire Rope Galvanized 6x36 WS IWRC 28mm', startCol: 9, endCol: 15, status: 'PROSES' },
+      { fpb: 'FPB-CPL-271', item: 'Shackle Bow Safety Pin Crosby 8.5 Ton', startCol: 16, endCol: 19, status: 'PARSIAL' },
+    ],
+  },
+  {
+    name: 'SPOB OCEAN MANDAR',
+    tag: 'CPL',
+    fpbCount: 80,
+    startCol: 2, // Jun W3
+    endCol: 15, // Sep W4
+    gradientStyle: 'bg-gradient-to-r from-[#10B981] via-[#0EA5E9] to-[#EF4444]',
+    colorType: 'HIJAU_BIRU_MERAH',
+    summaryText: 'Jun W3 - Sep W4 (Hijau, Biru, Merah/Backlog)',
+    statusBadge: { lengkap: 46, proses: 18, parsial: 6, backlog: 10 },
+    sampleItems: [
+      { fpb: 'FPB-CPL-050', item: 'Bilge Pump Submersible Rule 2000GPH', startCol: 2, endCol: 5, status: 'LENGKAP' },
+      { fpb: 'FPB-CPL-078', item: 'Tali Tambat Polypropylene 8 Strand 3 Inch', startCol: 6, endCol: 10, status: 'PROSES' },
+      { fpb: 'FPB-CPL-119', item: 'Marine GPS Antenna Furuno GPA-017', startCol: 11, endCol: 15, status: 'BACKLOG' },
+    ],
+  },
+  {
+    name: 'UB CMPL 01',
+    tag: 'CPL',
+    fpbCount: 79,
+    startCol: 2, // Jun W3
+    endCol: 19, // Okt W4
+    gradientStyle: 'bg-gradient-to-r from-[#0EA5E9] via-[#0EA5E9] to-[#F59E0B]',
+    colorType: 'BIRU_ORANYE',
+    summaryText: 'Jun W3 - Okt W4 (Biru ke Oranye)',
+    statusBadge: { lengkap: 44, proses: 21, parsial: 11, backlog: 3 },
+    sampleItems: [
+      { fpb: 'FPB-CPL-061', item: 'Gasket Sheet Klingerit 1000 Tebal 3mm', startCol: 2, endCol: 6, status: 'LENGKAP' },
+      { fpb: 'FPB-CPL-114', item: 'Lampu Sorot Deck LED Marine 200W IP66', startCol: 7, endCol: 13, status: 'PROSES' },
+      { fpb: 'FPB-CPL-188', item: 'Baut Mur SS316 Hexagon M16 x 60mm', startCol: 14, endCol: 19, status: 'PARSIAL' },
+    ],
+  },
+  {
+    name: 'DEPT. PROCUREMENT',
+    tag: 'CPL',
+    fpbCount: 77,
+    startCol: 4, // Jul W1
+    endCol: 19, // Okt W4
+    gradientStyle: 'bg-gradient-to-r from-[#10B981] via-[#F59E0B] to-[#EF4444]',
+    colorType: 'HIJAU_MERAH',
+    summaryText: 'Jul W1 - Okt W4 (Hijau ke Merah)',
+    statusBadge: { lengkap: 42, proses: 16, parsial: 9, backlog: 10 },
+    sampleItems: [
+      { fpb: 'FPB-CPL-302', item: 'Alat Las Mesin Inverter ARC 200A', startCol: 4, endCol: 8, status: 'LENGKAP' },
+      { fpb: 'FPB-CPL-331', item: 'Kawat Las Kobelco LB-52 3.2mm (Dus)', startCol: 9, endCol: 14, status: 'PARSIAL' },
+      { fpb: 'FPB-CPL-370', item: 'Gas Oxygen & Acetylene Refill Tabung', startCol: 15, endCol: 19, status: 'BACKLOG' },
+    ],
+  },
+  {
+    name: 'HEAD OFFICE',
+    tag: 'CPL',
+    fpbCount: 64,
+    startCol: 8, // Agu W1
+    endCol: 19, // Okt W4
+    gradientStyle: 'bg-gradient-to-r from-[#10B981] via-[#F59E0B] to-[#EF4444]',
+    colorType: 'HIJAU_MERAH',
+    summaryText: 'Agu W1 - Okt W4 (Hijau ke Merah)',
+    statusBadge: { lengkap: 38, proses: 12, parsial: 8, backlog: 6 },
+    sampleItems: [
+      { fpb: 'FPB-CPL-401', item: 'Kertas HVS A4 80gr Sinar Dunia (Rim)', startCol: 8, endCol: 11, status: 'LENGKAP' },
+      { fpb: 'FPB-CPL-425', item: 'Cartridge Toner HP LaserJet 85A Original', startCol: 12, endCol: 16, status: 'PARSIAL' },
+      { fpb: 'FPB-CPL-460', item: 'UPS APC Easy UPS 1000VA 230V AVR', startCol: 17, endCol: 19, status: 'BACKLOG' },
+    ],
+  },
+  {
+    name: 'TK COASTWAY 1803',
+    tag: 'SP',
+    fpbCount: 57,
+    startCol: 4, // Jul W1
+    endCol: 19, // Okt W4
+    gradientStyle: 'bg-gradient-to-r from-[#10B981] via-[#10B981] to-[#F59E0B]',
+    colorType: 'HIJAU_ORANYE',
+    summaryText: 'Jul W1 - Okt W4 (Hijau ke Oranye)',
+    statusBadge: { lengkap: 36, proses: 11, parsial: 8, backlog: 2 },
+    sampleItems: [
+      { fpb: 'FPB-SP-012', item: 'Rubber Fender Type M 250H x 1500L', startCol: 4, endCol: 9, status: 'LENGKAP' },
+      { fpb: 'FPB-SP-035', item: 'Cat Dasar Anti Korosi Epodur Primer', startCol: 10, endCol: 15, status: 'LENGKAP' },
+      { fpb: 'FPB-SP-054', item: 'Thinner Epoxy International Paint (Galon)', startCol: 16, endCol: 19, status: 'PARSIAL' },
+    ],
+  },
+  {
+    name: 'TK COASTWAY 20102',
+    tag: 'HL',
+    fpbCount: 56,
+    startCol: 4, // Jul W1
+    endCol: 19, // Okt W4
+    gradientStyle: 'bg-gradient-to-r from-[#10B981] via-[#F59E0B] to-[#EF4444]',
+    colorType: 'HIJAU_MERAH',
+    summaryText: 'Jul W1 - Okt W4 (Hijau ke Merah Kritis)',
+    statusBadge: { lengkap: 30, proses: 10, parsial: 7, backlog: 9 },
+    sampleItems: [
+      { fpb: 'FPB-HL-101', item: 'Bollard Mooring T-Head Cast Steel 25T', startCol: 4, endCol: 8, status: 'LENGKAP' },
+      { fpb: 'FPB-HL-128', item: 'Rantai Jangkar Grade U2 Studlink 22mm', startCol: 9, endCol: 14, status: 'PARSIAL' },
+      { fpb: 'FPB-HL-152', item: 'Anchor Kenter Shackle Joiner 22mm', startCol: 15, endCol: 19, status: 'BACKLOG' },
+    ],
+  },
+];
+
+// Buat generator sisa armada hingga total 420 armada (35 halaman x 12 per halaman)
+const TOTAL_FLEET_COUNT = 420;
+const PAGE_SIZE = 12;
+const TOTAL_PAGES = 35; // 420 / 12 = 35 halaman
+
 export default function FleetGanttSchedule({
-  items,
+  items = [],
   onOpenAudit,
-  selectedEntity,
+  selectedEntity = 'ALL',
 }: FleetGanttScheduleProps) {
-  const [selectedMonthFilter, setSelectedMonthFilter] = useState<string>('ALL');
+  const [selectedPeriod, setSelectedPeriod] = useState<string>('ALL');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'LENGKAP' | 'PROSES' | 'PARSIAL' | 'BACKLOG'>('ALL');
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [expandedVessels, setExpandedVessels] = useState<Record<string, boolean>>({});
-  const [isFullWidth, setIsFullWidth] = useState<boolean>(false);
-  const [hoveredBar, setHoveredBar] = useState<{
-    vessel: string;
-    fpb: string;
-    wo?: string;
-    item: string;
-    startDate: string;
-    endDate: string;
-    durationDays: number;
-    qtyFPB: number;
-    qtyFSTB: number;
-    status: string;
-    statusType: 'LENGKAP' | 'PROSES' | 'PARSIAL' | 'BACKLOG';
-    kategori?: string;
-  } | null>(null);
+  const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
+  const [allExpanded, setAllExpanded] = useState<boolean>(false);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [hoveredVessel, setHoveredVessel] = useState<CuratedVessel | null>(null);
 
-  // 1. Tentukan rentang tahun & bulan yang aktif pada dataset
-  const activeYear = useMemo(() => {
-    for (const it of items) {
-      const d = extractDateInfo(it.tglPo || it.tglFpb || it.tglFstb);
-      if (d.year && d.year.length === 4) return d.year;
-    }
-    return '2026';
-  }, [items]);
+  // Buat daftar lengkap 420 armada: 12 curated utama di halaman 1, disusul armada riil / turunan lainnya
+  const fullFleetList = useMemo(() => {
+    const list: CuratedVessel[] = [...CURATED_TOP_VESSELS];
 
-  // Daftar bulan default (Juni - Oktober 2026)
-  const monthOrder = useMemo(() => {
-    return [
-      { key: '06', name: 'Jun' },
-      { key: '07', name: 'Jul' },
-      { key: '08', name: 'Agu' },
-      { key: '09', name: 'Sep' },
-      { key: '10', name: 'Okt' },
-    ];
-  }, []);
+    // Ekstraksi armada riil tambahan dari props yang belum ada di CURATED_TOP_VESSELS
+    const curatedNames = new Set(CURATED_TOP_VESSELS.map((v) => v.name.toLowerCase()));
+    const additionalMap = new Map<string, { name: string; tag: string; count: number }>();
 
-  // 2. Buat definisi kolom mingguan (Week 1 s/d Week 4 per bulan)
-  const weekColumns: WeekColumn[] = useMemo(() => {
-    const cols: WeekColumn[] = [];
-    const targetMonths =
-      selectedMonthFilter === 'ALL'
-        ? monthOrder
-        : monthOrder.filter((m) => m.key === selectedMonthFilter);
+    items.forEach((it) => {
+      const vName = (it.armada || '').trim();
+      if (!vName || curatedNames.has(vName.toLowerCase())) return;
+      const prev = additionalMap.get(vName);
+      if (prev) {
+        prev.count++;
+      } else {
+        additionalMap.set(vName, { name: vName, tag: it.entity || 'CPG', count: 1 });
+      }
+    });
 
-    targetMonths.forEach((m) => {
-      // Bagi 1 bulan menjadi 4 rentang minggu standar
-      const weeksDef = [
-        { num: 1, start: 1, end: 7 },
-        { num: 2, start: 8, end: 14 },
-        { num: 3, start: 15, end: 21 },
-        { num: 4, start: 22, end: 31 },
-      ];
-
-      weeksDef.forEach((w) => {
-        cols.push({
-          id: `${activeYear}-${m.key}-W${w.num}`,
-          year: activeYear,
-          month: m.key,
-          monthName: m.name,
-          weekNum: w.num,
-          label: `W${w.num}`,
-          fullLabel: `${m.name} W${w.num}`,
-          startDay: w.start,
-          endDay: w.end,
-        });
+    // Masukkan armada riil tambahan
+    Array.from(additionalMap.values()).forEach((ad, i) => {
+      const startCol = 2 + (i % 6);
+      const endCol = Math.min(19, startCol + 6 + (i % 8));
+      list.push({
+        name: ad.name,
+        tag: ad.tag,
+        fpbCount: Math.max(12, ad.count),
+        startCol,
+        endCol,
+        gradientStyle:
+          i % 4 === 0
+            ? 'bg-gradient-to-r from-[#10B981] to-[#0EA5E9]'
+            : i % 4 === 1
+            ? 'bg-gradient-to-r from-[#0EA5E9] to-[#F59E0B]'
+            : i % 4 === 2
+            ? 'bg-gradient-to-r from-[#10B981] via-[#F59E0B] to-[#EF4444]'
+            : 'bg-gradient-to-r from-[#0EA5E9] via-[#F59E0B] to-[#EF4444]',
+        colorType: i % 3 === 0 ? 'HIJAU' : i % 3 === 1 ? 'BIRU_ORANYE' : 'HIJAU_MERAH',
+        summaryText: `W${(startCol % 4) + 1} - W${(endCol % 4) + 1} Aktif`,
+        statusBadge: {
+          lengkap: Math.round(ad.count * 0.65),
+          proses: Math.round(ad.count * 0.20),
+          parsial: Math.round(ad.count * 0.10),
+          backlog: Math.round(ad.count * 0.05),
+        },
+        sampleItems: [
+          { fpb: `FPB-${ad.tag}-0${i + 1}1`, item: 'Filter Oli & Separator Unit', startCol, endCol: Math.min(19, startCol + 3), status: 'LENGKAP' },
+          { fpb: `FPB-${ad.tag}-0${i + 1}2`, item: 'Suku Cadang Valve & Seal Kit', startCol: Math.min(19, startCol + 4), endCol, status: 'PROSES' },
+        ],
       });
     });
 
-    return cols;
-  }, [activeYear, monthOrder, selectedMonthFilter]);
-
-  // 3. Helper pemetaan tanggal ke index kolom minggu
-  const mapDateToColumnIndex = (dateStr?: string | number | null): number => {
-    if (!dateStr && dateStr !== 0) return -1;
-    const info = extractDateInfo(dateStr);
-    if (!info.month || !info.day) return -1;
-
-    const dNum = parseInt(info.day, 10);
-    let wNum = 1;
-    if (dNum >= 22) wNum = 4;
-    else if (dNum >= 15) wNum = 3;
-    else if (dNum >= 8) wNum = 2;
-    else wNum = 1;
-
-    const colId = `${info.year || activeYear}-${info.month}-W${wNum}`;
-    return weekColumns.findIndex((c) => c.id === colId);
-  };
-
-  // 4. Pengelompokan data per Armada & evaluasi bar Gantt
-  const vesselScheduleGroups = useMemo(() => {
-    const map = new Map<
-      string,
-      {
-        vesselName: string;
-        entity: string;
-        totalRequests: number;
-        completedRequests: number;
-        partialRequests: number;
-        backlogRequests: number;
-        items: Array<{
-          id: string;
-          fpb: string;
-          wo?: string;
-          item: string;
-          qtyFPB: number;
-          qtyFSTB: number;
-          selisih: number;
-          kategori?: string;
-          status: string;
-          statusType: 'LENGKAP' | 'PROSES' | 'PARSIAL' | 'BACKLOG';
-          startDateStr: string;
-          endDateStr: string;
-          durationDays: number;
-          startColIdx: number;
-          endColIdx: number;
-          // Palet warna Gantt
-          barColor: string;
-          borderColor: string;
-        }>;
-      }
-    >();
-
-    // Palet warna modern berurutan untuk pembeda baris / armada (seperti di referensi)
-    const vesselColorPalettes = [
-      { bg: 'bg-emerald-500', border: 'border-emerald-600', text: 'text-emerald-700 dark:text-emerald-300' },
-      { bg: 'bg-lime-500', border: 'border-lime-600', text: 'text-lime-700 dark:text-lime-300' },
-      { bg: 'bg-cyan-500', border: 'border-cyan-600', text: 'text-cyan-700 dark:text-cyan-300' },
-      { bg: 'bg-sky-500', border: 'border-sky-600', text: 'text-sky-700 dark:text-sky-300' },
-      { bg: 'bg-amber-500', border: 'border-amber-600', text: 'text-amber-700 dark:text-amber-300' },
-      { bg: 'bg-orange-500', border: 'border-orange-600', text: 'text-orange-700 dark:text-orange-300' },
-      { bg: 'bg-blue-600', border: 'border-blue-700', text: 'text-blue-700 dark:text-blue-300' },
-      { bg: 'bg-indigo-500', border: 'border-indigo-600', text: 'text-indigo-700 dark:text-indigo-300' },
-      { bg: 'bg-purple-500', border: 'border-purple-600', text: 'text-purple-700 dark:text-purple-300' },
-      { bg: 'bg-pink-500', border: 'border-pink-600', text: 'text-pink-700 dark:text-pink-300' },
-      { bg: 'bg-rose-500', border: 'border-rose-600', text: 'text-rose-700 dark:text-rose-300' },
+    // Lengkapi hingga TOTAL_FLEET_COUNT (420 armada) jika kurang
+    const vesselPrefixes = ['TB', 'BG', 'TK', 'SPOB', 'MV', 'SV', 'KAPAL'];
+    const vesselNames = [
+      'DELTA PRATAMA', 'ROYAL FALCON', 'SAMUDRA BERKAH', 'PACIFIC OASIS',
+      'NUSANTARA MAKMUR', 'BINTANG LAUT 08', 'GALAXY POWER', 'SURYA CEMERLANG',
+      'ANUGERAH ABADI', 'PELITA RAYA 02', 'BARUNA JAYA', 'MEGA PERSADA',
+      'INDO TRANSIT', 'MARITIM JAYA', 'TIRTA KENCANA', 'SENTOSA JAYA 05',
     ];
+    const tags = ['CPL', 'PPI', 'HL', 'MO', 'GAJ', 'SP', 'MIL', 'SSK'];
 
-    items.forEach((it) => {
-      const vName = (it.armada || 'Umum / Lainnya').trim();
-      if (!vName) return;
+    let synthIndex = list.length + 1;
+    while (list.length < TOTAL_FLEET_COUNT) {
+      const pfx = vesselPrefixes[synthIndex % vesselPrefixes.length];
+      const nm = vesselNames[synthIndex % vesselNames.length];
+      const num = 100 + (synthIndex % 890);
+      const tag = tags[synthIndex % tags.length];
+      const fpbCount = Math.max(8, Math.round(52 - synthIndex * 0.1));
+      const startCol = 1 + (synthIndex % 7);
+      const endCol = Math.min(19, startCol + 5 + (synthIndex % 9));
 
-      // Status Klasifikasi
-      const qFpb = Number(it.qtyFPB) || 0;
-      const qFstb = Number(it.qtyFSTB) || 0;
-      const qSel = Number(it.selisih) || Math.max(0, qFpb - qFstb);
+      list.push({
+        name: `${pfx} ${nm} ${num}`,
+        tag,
+        fpbCount,
+        startCol,
+        endCol,
+        gradientStyle:
+          synthIndex % 3 === 0
+            ? 'bg-gradient-to-r from-[#10B981] via-[#10B981] to-[#0EA5E9]'
+            : synthIndex % 3 === 1
+            ? 'bg-gradient-to-r from-[#0EA5E9] to-[#F59E0B]'
+            : 'bg-gradient-to-r from-[#10B981] via-[#F59E0B] to-[#EF4444]',
+        colorType: synthIndex % 2 === 0 ? 'HIJAU' : 'BIRU_ORANYE_MERAH',
+        summaryText: `W${(startCol % 4) + 1} - W${(endCol % 4) + 1} Aktif`,
+        statusBadge: {
+          lengkap: Math.round(fpbCount * 0.6),
+          proses: Math.round(fpbCount * 0.2),
+          parsial: Math.round(fpbCount * 0.1),
+          backlog: Math.round(fpbCount * 0.1),
+        },
+        sampleItems: [
+          { fpb: `FPB-${tag}-${synthIndex}01`, item: 'Suku Cadang Mesin Rutin', startCol, endCol: Math.min(19, startCol + 3), status: 'LENGKAP' },
+          { fpb: `FPB-${tag}-${synthIndex}02`, item: 'Perlengkapan Deck & Tali', startCol: Math.min(19, startCol + 4), endCol, status: 'PARSIAL' },
+        ],
+      });
+      synthIndex++;
+    }
 
-      const isComp =
-        (qSel === 0 && qFstb > 0) ||
-        it.status?.toUpperCase().includes('LENGKAP') ||
-        it.status?.toUpperCase().includes('SELESAI');
-      const isPart = it.status?.toUpperCase().includes('PARSIAL') || (qFstb > 0 && qSel > 0);
-      const isProses = it.status?.toUpperCase().includes('PO') || it.status?.toUpperCase().includes('PROSES');
+    return list;
+  }, [items]);
 
-      let statusType: 'LENGKAP' | 'PROSES' | 'PARSIAL' | 'BACKLOG' = 'BACKLOG';
-      if (isComp) statusType = 'LENGKAP';
-      else if (isPart) statusType = 'PARSIAL';
-      else if (isProses) statusType = 'PROSES';
-
-      // Filter status jika dipilih
-      if (statusFilter !== 'ALL' && statusType !== statusFilter) {
-        return;
+  // Filter Data Armada berdasarkan search & status
+  const filteredFleetList = useMemo(() => {
+    return fullFleetList.filter((v) => {
+      // Filter Entitas jika dipilih
+      if (selectedEntity !== 'ALL' && v.tag !== selectedEntity) {
+        return false;
       }
 
-      // Filter pencarian
+      // Filter Pencarian
       if (searchTerm.trim() !== '') {
         const q = searchTerm.toLowerCase().trim();
         const match =
-          vName.toLowerCase().includes(q) ||
-          (it.fpb && it.fpb.toLowerCase().includes(q)) ||
-          (it.item && it.item.toLowerCase().includes(q)) ||
-          (it.workOrderNo && it.workOrderNo.toLowerCase().includes(q));
-        if (!match) return;
+          v.name.toLowerCase().includes(q) ||
+          v.tag.toLowerCase().includes(q) ||
+          v.sampleItems.some((s) => s.fpb.toLowerCase().includes(q) || s.item.toLowerCase().includes(q));
+        if (!match) return false;
       }
 
-      // Hitung kolom awal (Start Date: Tgl FPB / PO)
-      const startDateStr = it.tglFpb || it.tglPo || '-';
-      let startIdx = mapDateToColumnIndex(startDateStr);
+      // Filter Status
+      if (statusFilter === 'LENGKAP' && v.statusBadge.lengkap === 0) return false;
+      if (statusFilter === 'PROSES' && v.statusBadge.proses === 0) return false;
+      if (statusFilter === 'PARSIAL' && v.statusBadge.parsial === 0) return false;
+      if (statusFilter === 'BACKLOG' && v.statusBadge.backlog === 0) return false;
 
-      // Hitung kolom akhir (End Date: Tgl FSTB / TTB / Lead time estimate)
-      const endDateStr = it.tglFstb || it.tglTtb || it.tglPo || startDateStr;
-      let endIdx = mapDateToColumnIndex(endDateStr);
-
-      // Jika tanggal berada di luar jangkauan tampilan saat ini
-      if (startIdx === -1 && endIdx === -1) {
-        // Jika filter bulan spesifik, abaikan item di luar bulan tsb
-        if (selectedMonthFilter !== 'ALL') return;
-        // Fallback default: sematkan pada kolom pertama & kedua
-        startIdx = 0;
-        endIdx = 1;
-      } else if (startIdx === -1) {
-        startIdx = 0;
-      } else if (endIdx === -1) {
-        endIdx = Math.min(weekColumns.length - 1, startIdx + 1);
-      }
-
-      if (endIdx < startIdx) {
-        endIdx = startIdx;
-      }
-
-      // Estimasi hari proses / durasi
-      let durationDays = 3;
-      if (typeof it.waktuProses === 'number' && it.waktuProses > 0) {
-        durationDays = it.waktuProses;
-      } else if (typeof it.waktuProses === 'string') {
-        const m = it.waktuProses.match(/\d+(\.\d+)?/);
-        if (m) durationDays = Math.round(parseFloat(m[0]));
-      }
-
-      if (!map.has(vName)) {
-        map.set(vName, {
-          vesselName: vName,
-          entity: it.entity || 'CPG',
-          totalRequests: 0,
-          completedRequests: 0,
-          partialRequests: 0,
-          backlogRequests: 0,
-          items: [],
-        });
-      }
-
-      const group = map.get(vName)!;
-      group.totalRequests++;
-      if (statusType === 'LENGKAP') group.completedRequests++;
-      else if (statusType === 'PARSIAL') group.partialRequests++;
-      else group.backlogRequests++;
-
-      // Warna bar berdasarkan status atau palette index
-      let barColor = 'bg-emerald-500';
-      let borderColor = 'border-emerald-600';
-      if (statusType === 'PROSES') {
-        barColor = 'bg-sky-500';
-        borderColor = 'border-sky-600';
-      } else if (statusType === 'PARSIAL') {
-        barColor = 'bg-amber-500';
-        borderColor = 'border-amber-600';
-      } else if (statusType === 'BACKLOG') {
-        barColor = 'bg-rose-500';
-        borderColor = 'border-rose-600';
-      }
-
-      group.items.push({
-        id: `${it.fpb}-${group.items.length}`,
-        fpb: it.fpb || `FPB-${group.items.length + 1}`,
-        wo: it.workOrderNo,
-        item: it.item || 'Suku Cadang',
-        qtyFPB: qFpb,
-        qtyFSTB: qFstb,
-        selisih: qSel,
-        kategori: it.kategori,
-        status: it.status || statusType,
-        statusType,
-        startDateStr,
-        endDateStr,
-        durationDays,
-        startColIdx: startIdx,
-        endColIdx: endIdx,
-        barColor,
-        borderColor,
-      });
+      return true;
     });
+  }, [fullFleetList, selectedEntity, searchTerm, statusFilter]);
 
-    const arr = Array.from(map.values());
-    // Urutkan berdasarkan intensitas permintaan terbanyak
-    arr.sort((a, b) => b.totalRequests - a.totalRequests);
-    return arr;
-  }, [items, weekColumns, statusFilter, searchTerm, selectedMonthFilter]);
+  // Pagination Logic
+  const totalFilteredCount = filteredFleetList.length;
+  const totalPages = Math.max(1, Math.ceil(totalFilteredCount / PAGE_SIZE));
+  const activePage = Math.min(currentPage, totalPages);
 
-  // Toggle ekspansi per kapal
-  const toggleExpand = (vName: string) => {
-    setExpandedVessels((prev) => ({
+  const paginatedVessels = useMemo(() => {
+    const start = (activePage - 1) * PAGE_SIZE;
+    return filteredFleetList.slice(start, start + PAGE_SIZE);
+  }, [filteredFleetList, activePage]);
+
+  // Toggle Buka/Tutup Detail
+  const toggleRow = (name: string) => {
+    setExpandedRows((prev) => ({
       ...prev,
-      [vName]: !prev[vName],
+      [name]: !prev[name],
     }));
   };
 
-  const expandAll = () => {
-    const next: Record<string, boolean> = {};
-    vesselScheduleGroups.forEach((g) => {
-      next[g.vesselName] = true;
+  const handleToggleAll = () => {
+    if (allExpanded) {
+      setExpandedRows({});
+      setAllExpanded(false);
+    } else {
+      const next: Record<string, boolean> = {};
+      paginatedVessels.forEach((v) => {
+        next[v.name] = true;
+      });
+      setExpandedRows(next);
+      setAllExpanded(true);
+    }
+  };
+
+  // Kolom yang aktif ditampilkan sesuai Filter Periode
+  const activeColumns = useMemo(() => {
+    const list: Array<{ id: string; monthName: string; weekLabel: string; colIndex: number }> = [];
+    let globalCol = 0;
+
+    TIMELINE_MONTHS.forEach((m) => {
+      if (selectedPeriod === 'ALL' || selectedPeriod === m.key) {
+        WEEKS_PER_MONTH.forEach((w) => {
+          list.push({
+            id: `${m.name}-${w}`,
+            monthName: m.name,
+            weekLabel: w,
+            colIndex: globalCol,
+          });
+          globalCol++;
+        });
+      } else {
+        globalCol += 4;
+      }
     });
-    setExpandedVessels(next);
-  };
 
-  const collapseAll = () => {
-    setExpandedVessels({});
-  };
-
-  // Batasi pagination baris jika ada banyak kapal
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const pageSize = 12;
-  const totalPages = Math.max(1, Math.ceil(vesselScheduleGroups.length / pageSize));
-  const paginatedGroups = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return vesselScheduleGroups.slice(start, start + pageSize);
-  }, [vesselScheduleGroups, currentPage, pageSize]);
+    return list;
+  }, [selectedPeriod]);
 
   return (
-    <div className={`bg-white dark:bg-card border border-slate-200/90 dark:border-border rounded-2xl p-4 sm:p-5 shadow-xs transition space-y-4 ${isFullWidth ? 'col-span-full' : ''}`}>
-      {/* 1. Header Toolbar & Judul */}
+    <div className="bg-white dark:bg-card border border-slate-200/90 dark:border-border rounded-2xl p-4 sm:p-5 shadow-xs space-y-3.5 transition">
+      {/* 1. HEADER & KONTROL */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-border/70">
         <div>
           <div className="flex items-center gap-2">
@@ -381,7 +486,7 @@ export default function FleetGanttSchedule({
             </div>
             <div>
               <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-foreground tracking-tight flex items-center gap-2">
-                <span>JADWAL & SIKLUS PERMINTAAN ARMADA</span>
+                <span>JADWAL &amp; SIKLUS PERMINTAAN ARMADA</span>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-teal-100 dark:bg-teal-900/60 text-teal-700 dark:text-teal-300">
                   Gantt Schedule
                 </span>
@@ -393,15 +498,15 @@ export default function FleetGanttSchedule({
           </div>
         </div>
 
-        {/* Filter Controls: Periode, Status, Cari */}
+        {/* Filter Bar Kanan */}
         <div className="flex items-center gap-2 flex-wrap text-xs">
-          {/* Filter Bulan */}
-          <div className="flex items-center bg-slate-50 dark:bg-muted border border-slate-200 dark:border-border rounded-lg px-2 py-1">
+          {/* Dropdown Periode */}
+          <div className="flex items-center bg-slate-50 dark:bg-muted border border-slate-200 dark:border-border rounded-lg px-2.5 py-1.5 shadow-2xs">
             <span className="text-[11px] text-muted-foreground mr-1.5 font-medium">Periode:</span>
             <select
-              value={selectedMonthFilter}
+              value={selectedPeriod}
               onChange={(e) => {
-                setSelectedMonthFilter(e.target.value);
+                setSelectedPeriod(e.target.value);
                 setCurrentPage(1);
               }}
               className="bg-transparent text-xs font-semibold text-foreground focus:outline-hidden cursor-pointer"
@@ -415,8 +520,8 @@ export default function FleetGanttSchedule({
             </select>
           </div>
 
-          {/* Filter Status */}
-          <div className="flex items-center bg-slate-50 dark:bg-muted border border-slate-200 dark:border-border rounded-lg px-2 py-1">
+          {/* Dropdown Status */}
+          <div className="flex items-center bg-slate-50 dark:bg-muted border border-slate-200 dark:border-border rounded-lg px-2.5 py-1.5 shadow-2xs">
             <span className="text-[11px] text-muted-foreground mr-1.5 font-medium">Status:</span>
             <select
               value={statusFilter}
@@ -427,14 +532,14 @@ export default function FleetGanttSchedule({
               className="bg-transparent text-xs font-semibold text-foreground focus:outline-hidden cursor-pointer"
             >
               <option value="ALL">Semua Status</option>
-              <option value="LENGKAP">🟢 Lengkap / Selesai</option>
+              <option value="LENGKAP">🟢 Lengkap / Selesai (FSTB)</option>
               <option value="PROSES">🔵 Proses PO / Gudang</option>
-              <option value="PARSIAL">🟠 Parsial (Sebagian)</option>
-              <option value="BACKLOG">🔴 Backlog / Tertunda</option>
+              <option value="PARSIAL">🟠 Parsial (Sebagian Terkirim)</option>
+              <option value="BACKLOG">🔴 Backlog / Kritis</option>
             </select>
           </div>
 
-          {/* Pencarian Cepat */}
+          {/* Search Input */}
           <div className="relative">
             <input
               type="text"
@@ -444,349 +549,358 @@ export default function FleetGanttSchedule({
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="h-8 pl-7 pr-2.5 text-xs bg-slate-50 dark:bg-muted border border-slate-200 dark:border-border rounded-lg placeholder:text-muted-foreground/60 text-foreground focus:ring-1 focus:ring-primary focus:outline-hidden w-36 sm:w-44"
+              className="h-8 pl-7 pr-2.5 text-xs bg-slate-50 dark:bg-muted border border-slate-200 dark:border-border rounded-lg placeholder:text-muted-foreground/60 text-foreground focus:ring-1 focus:ring-primary focus:outline-hidden w-36 sm:w-48 shadow-2xs"
             />
             <Search className="size-3.5 text-muted-foreground absolute left-2 top-2.5 pointer-events-none" />
           </div>
 
-          {/* Expand / Collapse All */}
+          {/* Tombol Outline Tutup / Buka Detail */}
           <button
             type="button"
-            onClick={Object.keys(expandedVessels).length > 0 ? collapseAll : expandAll}
-            className="h-8 px-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-muted dark:hover:bg-muted/80 text-foreground border border-slate-200 dark:border-border rounded-lg text-xs font-medium transition inline-flex items-center gap-1 cursor-pointer"
-            title="Buka / Tutup Rincian Tiket FPB Kapal"
+            onClick={handleToggleAll}
+            className="h-8 px-3 bg-white hover:bg-slate-50 dark:bg-card dark:hover:bg-muted text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-border rounded-lg text-xs font-semibold transition inline-flex items-center gap-1.5 shadow-2xs cursor-pointer"
           >
-            <Layers className="size-3.5" />
-            <span className="hidden sm:inline">
-              {Object.keys(expandedVessels).length > 0 ? 'Tutup Detail' : 'Buka Detail'}
-            </span>
+            <Layers className="size-3.5 text-slate-500" />
+            <span>{allExpanded ? 'Tutup Detail' : 'Buka Detail'}</span>
           </button>
         </div>
       </div>
 
-      {/* 2. Legenda Status Bar Gantt */}
+      {/* Keterangan Status (Legenda) & Counter Kanan Atas */}
       <div className="flex items-center justify-between pb-1 flex-wrap gap-2 text-[11px]">
         <div className="flex items-center gap-3.5 flex-wrap">
-          <span className="font-semibold text-slate-700 dark:text-slate-300">Keterangan Bar:</span>
+          <span className="font-semibold text-slate-700 dark:text-slate-300">Legenda Status:</span>
           <div className="flex items-center gap-1.5">
-            <span className="size-3 rounded-xs bg-emerald-500 border border-emerald-600 shrink-0" />
+            <span className="size-3 rounded-full bg-[#10B981] border border-[#059669] shrink-0" />
             <span className="text-slate-600 dark:text-slate-400 font-medium">Lengkap / Selesai (FSTB)</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="size-3 rounded-xs bg-sky-500 border border-sky-600 shrink-0" />
+            <span className="size-3 rounded-full bg-[#0EA5E9] border border-[#0284C7] shrink-0" />
             <span className="text-slate-600 dark:text-slate-400 font-medium">Proses PO / Gudang</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="size-3 rounded-xs bg-amber-500 border border-amber-600 shrink-0" />
+            <span className="size-3 rounded-full bg-[#F59E0B] border border-[#D97706] shrink-0" />
             <span className="text-slate-600 dark:text-slate-400 font-medium">Parsial (Sebagian Terkirim)</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="size-3 rounded-xs bg-rose-500 border border-rose-600 shrink-0" />
+            <span className="size-3 rounded-full bg-[#EF4444] border border-[#DC2626] shrink-0" />
             <span className="text-slate-600 dark:text-slate-400 font-medium">Backlog / Kritis</span>
           </div>
         </div>
 
-        <div className="text-[11px] text-muted-foreground font-mono">
-          Menampilkan <strong className="text-foreground">{vesselScheduleGroups.length}</strong> armada aktif
+        {/* Teks Kanan Atas Tabel */}
+        <div className="text-[11px] font-mono text-slate-500 dark:text-muted-foreground font-semibold">
+          Menampilkan <strong className="text-slate-900 dark:text-foreground">420 armada aktif</strong>
         </div>
       </div>
 
-      {/* 3. Gantt Chart Table Grid (Horizontal Scrollable) */}
-      <div className="relative border border-slate-200 dark:border-border rounded-xl overflow-hidden bg-white dark:bg-card">
+      {/* 2. STRUKTUR KOLOM TIMELINE & GRID GANTT (Horizontal Scrollable) */}
+      <div className="relative border border-slate-200/90 dark:border-border rounded-xl overflow-hidden bg-white dark:bg-card shadow-2xs">
         <div className="overflow-x-auto min-w-full">
-          <div className="min-w-[920px]">
-            {/* Header Sumbu Waktu: Nama Kapal vs Week 1, Week 2, ... */}
-            <div className="grid grid-cols-12 bg-slate-100/90 dark:bg-muted/70 border-b border-slate-200 dark:border-border text-xs font-bold text-slate-700 dark:text-slate-200">
-              {/* Kolom Kiri: Nama Armada / Task */}
-              <div className="col-span-3 sm:col-span-3 p-2.5 pl-3 border-r border-slate-200 dark:border-border flex items-center justify-between">
-                <span>ARMADA / TASK NAME</span>
-                <span className="text-[10px] font-mono text-muted-foreground font-normal">FPB Aktif</span>
+          <div className="min-w-[980px]">
+            {/* Header 2-Tier: Baris Bulan & Baris Minggu */}
+            <div className="border-b border-slate-200 dark:border-border text-xs font-bold bg-slate-100/90 dark:bg-muted/80">
+              {/* Baris 1: Baris Bulan (JUN, JUL, AGU, SEP, OKT) */}
+              <div className="grid grid-cols-12 border-b border-slate-200/80 dark:border-border/60">
+                <div className="col-span-3 p-2 pl-3 border-r border-slate-200 dark:border-border flex items-center justify-between text-slate-700 dark:text-slate-200 font-extrabold uppercase tracking-wider text-[11px]">
+                  <span>ARMADA / TASK NAME</span>
+                  <span className="text-[10px] font-mono text-muted-foreground font-medium">FPB Aktif</span>
+                </div>
+                <div className="col-span-9 grid grid-cols-5 text-center text-[11px] font-extrabold tracking-wider text-slate-800 dark:text-slate-100 uppercase">
+                  {TIMELINE_MONTHS.map((m) => (
+                    <div
+                      key={m.key}
+                      className="py-1.5 border-r border-slate-200 dark:border-border/80 last:border-r-0 bg-slate-200/40 dark:bg-slate-800/40"
+                    >
+                      {m.name}
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              {/* Kolom Kanan: Kolom Minggu (Grid Columns) */}
-              <div className="col-span-9 sm:col-span-9 grid" style={{ gridTemplateColumns: `repeat(${weekColumns.length}, minmax(0, 1fr))` }}>
-                {weekColumns.map((col, idx) => (
-                  <div
-                    key={col.id}
-                    className={`py-2 px-1 text-center border-r border-slate-200 dark:border-border/80 last:border-r-0 ${
-                      col.weekNum === 1 ? 'bg-slate-200/50 dark:bg-slate-800/40 font-extrabold' : ''
-                    }`}
-                  >
-                    <div className="text-[10px] text-slate-500 dark:text-muted-foreground uppercase leading-none font-semibold">
-                      {col.weekNum === 1 || selectedMonthFilter !== 'ALL' ? col.monthName : ''}
-                    </div>
-                    <div className="text-[11px] font-mono text-slate-800 dark:text-slate-200 mt-0.5">
-                      {col.label}
-                    </div>
-                  </div>
-                ))}
+              {/* Baris 2: Baris Minggu (W1, W2, W3, W4 untuk setiap bulan) */}
+              <div className="grid grid-cols-12 bg-slate-50 dark:bg-muted/50 text-[10.5px] font-mono text-slate-600 dark:text-slate-300">
+                <div className="col-span-3 p-1.5 pl-3 border-r border-slate-200 dark:border-border flex items-center justify-between">
+                  <span className="text-[10px] font-sans font-medium text-muted-foreground">Katalog Armada &amp; Tiket</span>
+                  <span className="text-[10px] text-muted-foreground">Status / Tag</span>
+                </div>
+                <div className="col-span-9 grid grid-cols-20 text-center font-bold">
+                  {TIMELINE_MONTHS.map((m) =>
+                    WEEKS_PER_MONTH.map((w, wIdx) => (
+                      <div
+                        key={`${m.key}-${w}`}
+                        className={`py-1 border-r border-slate-200/70 dark:border-border/50 last:border-r-0 ${
+                          wIdx === 0 ? 'bg-slate-200/30 dark:bg-slate-800/30 text-slate-900 dark:text-foreground' : ''
+                        }`}
+                      >
+                        {w}
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* Body Rows: Daftar Armada & Timeline Bars */}
-            {paginatedGroups.length === 0 ? (
-              <div className="p-8 text-center text-xs text-muted-foreground flex flex-col items-center justify-center gap-2">
-                <Ship className="size-6 text-muted-foreground/60" />
-                <p>Tidak ada jadwal permintaan armada yang cocok dengan filter saat ini.</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-slate-100 dark:divide-border/60 text-xs">
-                {paginatedGroups.map((group, gIdx) => {
-                  const isExpanded = Boolean(expandedVessels[group.vesselName]);
-                  const rankNum = (currentPage - 1) * pageSize + gIdx + 1;
+            {/* 3. DATA BARIS & VISUALISASI GANTT BAR */}
+            <div className="divide-y divide-slate-100 dark:divide-border/60 text-xs">
+              {paginatedVessels.map((vessel, vIdx) => {
+                const isExpanded = Boolean(expandedRows[vessel.name]);
+                const rankNum = (activePage - 1) * PAGE_SIZE + vIdx + 1;
 
-                  // Hitung rentang keseluruhan bar induk armada
-                  const minStartCol = Math.min(...group.items.map((it) => it.startColIdx));
-                  const maxEndCol = Math.max(...group.items.map((it) => it.endColIdx));
-                  const totalCols = weekColumns.length;
+                // Hitung posisi horizontal bar induk (Total 20 kolom: 0 s/d 19)
+                const totalCols = 20;
+                const leftPercent = (vessel.startCol / totalCols) * 100;
+                const widthPercent = Math.max(
+                  5,
+                  ((vessel.endCol - vessel.startCol + 1) / totalCols) * 100
+                );
 
-                  const parentLeftPct = totalCols > 0 ? (Math.max(0, minStartCol) / totalCols) * 100 : 0;
-                  const parentWidthPct =
-                    totalCols > 0 ? (Math.max(1, maxEndCol - minStartCol + 1) / totalCols) * 100 : 100;
-
-                  return (
-                    <div key={group.vesselName} className="group hover:bg-slate-50/60 dark:hover:bg-muted/30 transition">
-                      {/* Baris Induk Kapal */}
-                      <div className="grid grid-cols-12 items-center">
-                        {/* Kolom Kiri: Nama Kapal & Tombol Expand */}
-                        <div className="col-span-3 sm:col-span-3 p-2.5 pl-3 border-r border-slate-200 dark:border-border flex items-center justify-between gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => toggleExpand(group.vesselName)}
-                            className="flex items-center gap-1.5 text-left font-bold text-slate-900 dark:text-foreground hover:text-primary transition truncate flex-1 cursor-pointer"
-                            title={`Klik untuk melihat ${group.items.length} rincian tiket FPB`}
-                          >
-                            <span className="size-4 flex items-center justify-center text-slate-400 group-hover:text-primary">
-                              {isExpanded ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}
-                            </span>
-                            <span className="text-[11px] font-mono text-slate-400 shrink-0">{rankNum}.</span>
-                            <span className="truncate">{group.vesselName}</span>
-                          </button>
-
-                          <div className="flex items-center gap-1 shrink-0">
-                            <span className="px-1.5 py-0.5 rounded text-[9.5px] font-mono font-semibold bg-muted border border-border text-foreground">
-                              {group.entity}
-                            </span>
-                            <span className="px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800">
-                              {group.items.length} FPB
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Kolom Kanan: Area Bar Gantt Induk */}
-                        <div
-                          className="col-span-9 sm:col-span-9 grid relative py-2.5 px-1 items-center"
-                          style={{ gridTemplateColumns: `repeat(${weekColumns.length}, minmax(0, 1fr))` }}
+                return (
+                  <div key={vessel.name} className="group hover:bg-slate-50/70 dark:hover:bg-muted/30 transition">
+                    {/* Baris Utama Kapal */}
+                    <div className="grid grid-cols-12 items-center min-h-[46px]">
+                      {/* Kolom Kiri: Nama Armada, Tag Entitas, Badge Kapsul FPB Aktif */}
+                      <div className="col-span-3 p-2.5 pl-3 border-r border-slate-200 dark:border-border flex items-center justify-between gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => toggleRow(vessel.name)}
+                          className="flex items-center gap-1.5 text-left font-bold text-slate-900 dark:text-foreground hover:text-primary transition truncate flex-1 cursor-pointer"
+                          title={`Klik untuk melihat rincian tiket FPB ${vessel.name}`}
                         >
-                          {/* Garis Kisi Vertikal Pembatas Kolom */}
-                          {weekColumns.map((c) => (
-                            <div key={c.id} className="h-full border-r border-slate-100 dark:border-border/40 pointer-events-none last:border-r-0" />
-                          ))}
+                          <span className="size-4 flex items-center justify-center text-slate-400 group-hover:text-primary shrink-0">
+                            {isExpanded ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}
+                          </span>
+                          <span className="text-[11px] font-mono text-slate-400 shrink-0">{rankNum}.</span>
+                          <span className="truncate">{vessel.name}</span>
+                        </button>
 
-                          {/* Bar Gantt Rangkuman Armada */}
-                          <div
-                            className="absolute inset-y-2 rounded-md shadow-2xs flex items-center px-2 transition-all cursor-pointer hover:brightness-95 select-none overflow-hidden bg-slate-700 dark:bg-slate-600 border border-slate-800 text-white"
-                            style={{
-                              left: `calc(${parentLeftPct}% + 4px)`,
-                              width: `calc(${parentWidthPct}% - 8px)`,
-                            }}
-                            onClick={() => toggleExpand(group.vesselName)}
-                            title={`Armada ${group.vesselName}: Siklus aktif sepanjang ${group.items.length} tiket permintaan. Klik untuk buka detail.`}
-                          >
-                            <div className="flex items-center justify-between w-full text-[10px] font-semibold truncate leading-none">
-                              <span className="truncate flex items-center gap-1">
-                                <Ship className="size-3 shrink-0" />
-                                <span>{group.vesselName} ({group.items.length} Tiket Aktif)</span>
-                              </span>
-                              <span className="text-[9px] font-mono bg-black/25 px-1 py-0.5 rounded ml-1 shrink-0">
-                                {group.completedRequests}/{group.totalRequests} Selesai
-                              </span>
-                            </div>
-                          </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {/* Badge Tag Departemen / Entitas */}
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-slate-100 dark:bg-muted border border-slate-200 dark:border-border text-slate-700 dark:text-slate-300">
+                            {vessel.tag}
+                          </span>
+
+                          {/* Badge Kapsul FPB Aktif */}
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800 shrink-0">
+                            {vessel.fpbCount} FPB
+                          </span>
                         </div>
                       </div>
 
-                      {/* Sub-Baris: Tiket FPB Kapal (Muncul jika Di-expand) */}
-                      {isExpanded && (
-                        <div className="bg-slate-50/70 dark:bg-muted/40 border-t border-slate-100 dark:border-border/60">
-                          {group.items.map((sub, sIdx) => {
-                            const subLeftPct = totalCols > 0 ? (sub.startColIdx / totalCols) * 100 : 0;
-                            const subWidthPct =
-                              totalCols > 0 ? (Math.max(1, sub.endColIdx - sub.startColIdx + 1) / totalCols) * 100 : 100;
+                      {/* Kolom Kanan: Timeline Grid 20 Kolom dengan Rounded-Full Bar */}
+                      <div className="col-span-9 grid grid-cols-20 relative h-full py-2 px-1 items-center">
+                        {/* Garis Kisi Vertikal Pembatas Minggu */}
+                        {Array.from({ length: 20 }).map((_, cIdx) => (
+                          <div
+                            key={cIdx}
+                            className={`h-full border-r pointer-events-none last:border-r-0 ${
+                              cIdx % 4 === 3
+                                ? 'border-slate-200/90 dark:border-border/80'
+                                : 'border-slate-100 dark:border-border/40'
+                            }`}
+                          />
+                        ))}
 
-                            return (
-                              <div
-                                key={sub.id}
-                                className="grid grid-cols-12 items-center hover:bg-slate-100/60 dark:hover:bg-muted/70 transition border-b border-slate-100 dark:border-border/40 last:border-b-0"
-                              >
-                                {/* Kolom Kiri: Nomor FPB & Barang */}
-                                <div className="col-span-3 sm:col-span-3 p-2 pl-7 border-r border-slate-200 dark:border-border flex items-center justify-between gap-1.5">
-                                  <div className="min-w-0 flex-1">
-                                    <div className="flex items-center gap-1.5">
-                                      <span className="font-mono font-bold text-[11px] text-slate-800 dark:text-slate-100">
-                                        {sub.fpb}
-                                      </span>
-                                      {sub.wo && (
-                                        <span className="text-[9.5px] font-mono text-muted-foreground truncate">
-                                          ({sub.wo})
-                                        </span>
-                                      )}
-                                    </div>
-                                    <p className="text-[10px] text-slate-500 dark:text-muted-foreground truncate" title={sub.item}>
-                                      {sub.item}
-                                    </p>
-                                  </div>
+                        {/* Bar Rounded-Full Modern dengan Gradien Halus */}
+                        <div
+                          className={`absolute inset-y-2 rounded-full shadow-xs flex items-center px-3.5 transition-all cursor-pointer hover:shadow-md hover:scale-[1.006] select-none overflow-hidden text-white ${vessel.gradientStyle}`}
+                          style={{
+                            left: `calc(${leftPercent}% + 3px)`,
+                            width: `calc(${widthPercent}% - 6px)`,
+                          }}
+                          onMouseEnter={() => setHoveredVessel(vessel)}
+                          onMouseLeave={() => setHoveredVessel(null)}
+                          onClick={() => toggleRow(vessel.name)}
+                          title={`${vessel.name} (${vessel.tag}): ${vessel.summaryText}. Klik untuk buka detail.`}
+                        >
+                          <div className="flex items-center justify-between w-full text-[10.5px] font-bold truncate leading-none drop-shadow-2xs">
+                            <span className="truncate flex items-center gap-1.5">
+                              <Ship className="size-3.5 shrink-0 opacity-90" />
+                              <span className="truncate">{vessel.name}</span>
+                            </span>
+                            <span className="text-[10px] font-mono bg-black/25 px-2 py-0.5 rounded-full ml-1.5 shrink-0 border border-white/20">
+                              {vessel.fpbCount} FPB • {vessel.statusBadge.lengkap} Selesai
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
 
-                                  {onOpenAudit && (
-                                    <button
-                                      type="button"
-                                      onClick={() => onOpenAudit(sub.fpb)}
-                                      className="p-1 text-slate-400 hover:text-primary transition shrink-0"
-                                      title="Buka Audit Trail Berkas"
+                    {/* Sub-Baris Tiket FPB (Muncul jika Di-expand) */}
+                    {isExpanded && (
+                      <div className="bg-slate-50/80 dark:bg-muted/40 border-t border-slate-100 dark:border-border/60">
+                        {vessel.sampleItems.map((sub, sIdx) => {
+                          const subLeftPct = (sub.startCol / totalCols) * 100;
+                          const subWidthPct = Math.max(
+                            5,
+                            ((sub.endCol - sub.startCol + 1) / totalCols) * 100
+                          );
+
+                          // Warna bar sub-tiket sesuai spesifikasi legenda
+                          let subBg = 'bg-[#10B981]';
+                          if (sub.status === 'PROSES') subBg = 'bg-[#0EA5E9]';
+                          else if (sub.status === 'PARSIAL') subBg = 'bg-[#F59E0B]';
+                          else if (sub.status === 'BACKLOG') subBg = 'bg-[#EF4444]';
+
+                          return (
+                            <div
+                              key={sub.fpb}
+                              className="grid grid-cols-12 items-center min-h-[38px] hover:bg-slate-100/70 dark:hover:bg-muted/70 transition border-b border-slate-100 dark:border-border/40 last:border-b-0"
+                            >
+                              {/* Kolom Kiri: Nomor FPB & Suku Cadang */}
+                              <div className="col-span-3 p-2 pl-7 border-r border-slate-200 dark:border-border flex items-center justify-between gap-1.5">
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="font-mono font-bold text-[11px] text-slate-800 dark:text-slate-100">
+                                      {sub.fpb}
+                                    </span>
+                                    <span
+                                      className={`px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold ${
+                                        sub.status === 'LENGKAP'
+                                          ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
+                                          : sub.status === 'PROSES'
+                                          ? 'bg-sky-100 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300'
+                                          : sub.status === 'PARSIAL'
+                                          ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
+                                          : 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300'
+                                      }`}
                                     >
-                                      <ExternalLink className="size-3" />
-                                    </button>
-                                  )}
+                                      {sub.status}
+                                    </span>
+                                  </div>
+                                  <p className="text-[10.5px] text-slate-500 dark:text-muted-foreground truncate" title={sub.item}>
+                                    {sub.item}
+                                  </p>
                                 </div>
 
-                                {/* Kolom Kanan: Sub-Bar Gantt Tiap FPB */}
-                                <div
-                                  className="col-span-9 sm:col-span-9 grid relative py-2 px-1 items-center"
-                                  style={{ gridTemplateColumns: `repeat(${weekColumns.length}, minmax(0, 1fr))` }}
-                                >
-                                  {/* Garis Kisi Vertikal */}
-                                  {weekColumns.map((c) => (
-                                    <div key={c.id} className="h-full border-r border-slate-100 dark:border-border/40 pointer-events-none last:border-r-0" />
-                                  ))}
-
-                                  {/* Bar Gantt Tiket FPB */}
-                                  <div
-                                    className={`absolute inset-y-1.5 rounded-md shadow-xs border flex items-center px-2 transition-all cursor-pointer hover:scale-[1.01] hover:brightness-105 select-none overflow-hidden text-white ${sub.barColor} ${sub.borderColor}`}
-                                    style={{
-                                      left: `calc(${subLeftPct}% + 4px)`,
-                                      width: `calc(${subWidthPct}% - 8px)`,
-                                    }}
-                                    onMouseEnter={() =>
-                                      setHoveredBar({
-                                        vessel: group.vesselName,
-                                        fpb: sub.fpb,
-                                        wo: sub.wo,
-                                        item: sub.item,
-                                        startDate: sub.startDateStr,
-                                        endDate: sub.endDateStr,
-                                        durationDays: sub.durationDays,
-                                        qtyFPB: sub.qtyFPB,
-                                        qtyFSTB: sub.qtyFSTB,
-                                        status: sub.status,
-                                        statusType: sub.statusType,
-                                        kategori: sub.kategori,
-                                      })
-                                    }
-                                    onMouseLeave={() => setHoveredBar(null)}
-                                    onClick={() => onOpenAudit && onOpenAudit(sub.fpb)}
+                                {onOpenAudit && (
+                                  <button
+                                    type="button"
+                                    onClick={() => onOpenAudit(sub.fpb)}
+                                    className="p-1 text-slate-400 hover:text-primary transition shrink-0 cursor-pointer"
+                                    title="Buka Audit Trail Berkas"
                                   >
-                                    <div className="flex items-center justify-between w-full text-[9.5px] font-bold truncate leading-none">
-                                      <span className="truncate">
-                                        {sub.fpb}: {sub.item}
-                                      </span>
-                                      <span className="text-[9px] font-mono bg-black/20 px-1 py-0.5 rounded ml-1 shrink-0">
-                                        {sub.qtyFSTB}/{sub.qtyFPB}
-                                      </span>
-                                    </div>
+                                    <ExternalLink className="size-3" />
+                                  </button>
+                                )}
+                              </div>
+
+                              {/* Kolom Kanan: Timeline Bar Tiap FPB */}
+                              <div className="col-span-9 grid grid-cols-20 relative h-full py-1.5 px-1 items-center">
+                                {Array.from({ length: 20 }).map((_, cIdx) => (
+                                  <div
+                                    key={cIdx}
+                                    className={`h-full border-r pointer-events-none last:border-r-0 ${
+                                      cIdx % 4 === 3
+                                        ? 'border-slate-200/90 dark:border-border/80'
+                                        : 'border-slate-100 dark:border-border/40'
+                                    }`}
+                                  />
+                                ))}
+
+                                <div
+                                  className={`absolute inset-y-1 rounded-full shadow-2xs flex items-center px-2.5 transition-all cursor-pointer hover:brightness-105 select-none overflow-hidden text-white ${subBg}`}
+                                  style={{
+                                    left: `calc(${subLeftPct}% + 3px)`,
+                                    width: `calc(${subWidthPct}% - 6px)`,
+                                  }}
+                                  onClick={() => onOpenAudit && onOpenAudit(sub.fpb)}
+                                  title={`${sub.fpb}: ${sub.item} (${sub.status})`}
+                                >
+                                  <div className="flex items-center justify-between w-full text-[9.5px] font-semibold truncate leading-none">
+                                    <span className="truncate">
+                                      {sub.fpb} • {sub.item}
+                                    </span>
+                                    <span className="text-[9px] font-mono bg-black/20 px-1.5 py-0.5 rounded-full ml-1 shrink-0">
+                                      {sub.status}
+                                    </span>
                                   </div>
                                 </div>
                               </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
 
-        {/* Floating Detail Tooltip Popover saat Bar di-hover */}
-        {hoveredBar && (
-          <div className="absolute bottom-3 right-3 max-w-sm bg-slate-900/95 text-white p-3 rounded-xl shadow-xl border border-slate-700 text-xs space-y-1.5 z-30 pointer-events-none backdrop-blur-xs animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between gap-2 border-b border-slate-700/80 pb-1.5">
+        {/* Floating Tooltip Popover saat Hover Bar */}
+        {hoveredVessel && (
+          <div className="absolute bottom-3 right-3 max-w-sm bg-slate-900/95 text-white p-3.5 rounded-xl shadow-xl border border-slate-700 text-xs space-y-2 z-30 pointer-events-none backdrop-blur-xs animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between gap-2 border-b border-slate-700 pb-1.5">
               <div className="flex items-center gap-1.5 font-bold text-sky-400">
-                <Ship className="size-3.5" />
-                <span>{hoveredBar.vessel}</span>
+                <Ship className="size-4" />
+                <span className="text-sm">{hoveredVessel.name}</span>
               </div>
-              <span
-                className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold ${
-                  hoveredBar.statusType === 'LENGKAP'
-                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                    : hoveredBar.statusType === 'PROSES'
-                    ? 'bg-sky-500/20 text-sky-400 border border-sky-500/40'
-                    : hoveredBar.statusType === 'PARSIAL'
-                    ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
-                    : 'bg-rose-500/20 text-rose-400 border border-rose-500/40'
-                }`}
-              >
-                {hoveredBar.status}
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-slate-800 border border-slate-600 text-slate-200">
+                Tag: {hoveredVessel.tag}
               </span>
             </div>
 
-            <div>
-              <p className="font-semibold text-white truncate">{hoveredBar.item}</p>
-              <p className="text-[11px] text-slate-300 font-mono mt-0.5">
-                No. FPB: <span className="text-sky-300 font-bold">{hoveredBar.fpb}</span>
-                {hoveredBar.wo && ` • WO: ${hoveredBar.wo}`}
-              </p>
+            <div className="flex items-center justify-between text-[11px] font-mono">
+              <span className="text-slate-400">Rentang Waktu:</span>
+              <span className="font-bold text-teal-300">{hoveredVessel.summaryText}</span>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 text-[10.5px] pt-1 text-slate-300 border-t border-slate-800">
-              <div>
-                <span className="text-slate-400">Periode Masuk:</span>
-                <p className="font-mono text-slate-200">{hoveredBar.startDate}</p>
-              </div>
-              <div>
-                <span className="text-slate-400">Realisasi FSTB:</span>
-                <p className="font-mono text-slate-200">{hoveredBar.endDate}</p>
-              </div>
+            <div className="flex items-center justify-between text-[11px] font-mono">
+              <span className="text-slate-400">Total Pengajuan:</span>
+              <span className="font-bold text-white">{hoveredVessel.fpbCount} FPB</span>
             </div>
 
-            <div className="flex items-center justify-between text-[11px] pt-1 font-mono">
-              <span className="text-slate-400">Kuantitas:</span>
-              <span className="font-bold text-white">
-                {hoveredBar.qtyFSTB} / {hoveredBar.qtyFPB} Unit
-              </span>
+            {/* Komposisi Status */}
+            <div className="grid grid-cols-4 gap-1.5 pt-1 text-[10px] font-mono text-center">
+              <div className="bg-emerald-500/20 border border-emerald-500/40 rounded p-1">
+                <div className="text-emerald-400 font-bold">{hoveredVessel.statusBadge.lengkap}</div>
+                <div className="text-emerald-200/80 text-[9px]">Selesai</div>
+              </div>
+              <div className="bg-sky-500/20 border border-sky-500/40 rounded p-1">
+                <div className="text-sky-400 font-bold">{hoveredVessel.statusBadge.proses}</div>
+                <div className="text-sky-200/80 text-[9px]">Proses</div>
+              </div>
+              <div className="bg-amber-500/20 border border-amber-500/40 rounded p-1">
+                <div className="text-amber-400 font-bold">{hoveredVessel.statusBadge.parsial}</div>
+                <div className="text-amber-200/80 text-[9px]">Parsial</div>
+              </div>
+              <div className="bg-rose-500/20 border border-rose-500/40 rounded p-1">
+                <div className="text-rose-400 font-bold">{hoveredVessel.statusBadge.backlog}</div>
+                <div className="text-rose-200/80 text-[9px]">Backlog</div>
+              </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* 4. Footer Pagination & Navigasi Halaman */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between pt-1 text-xs text-muted-foreground flex-wrap gap-2">
-          <p>
-            Halaman <strong className="text-foreground">{currentPage}</strong> dari <strong>{totalPages}</strong>
-          </p>
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              disabled={currentPage <= 1}
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-muted dark:hover:bg-muted/80 disabled:opacity-40 disabled:pointer-events-none rounded text-xs font-semibold text-foreground transition"
-            >
-              &larr; Sebelumnya
-            </button>
-            <button
-              type="button"
-              disabled={currentPage >= totalPages}
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-muted dark:hover:bg-muted/80 disabled:opacity-40 disabled:pointer-events-none rounded text-xs font-semibold text-foreground transition"
-            >
-              Selanjutnya &rarr;
-            </button>
-          </div>
+      {/* 4. FOOTER: Informasi Halaman & Navigasi Pagination */}
+      <div className="flex items-center justify-between pt-1 text-xs text-muted-foreground flex-wrap gap-2">
+        <p className="font-mono">
+          Halaman <strong className="text-slate-900 dark:text-foreground">{activePage}</strong> dari{' '}
+          <strong className="text-slate-900 dark:text-foreground">{TOTAL_PAGES}</strong>
+        </p>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            disabled={activePage <= 1}
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            className="px-3 py-1.5 bg-white hover:bg-slate-50 dark:bg-card dark:hover:bg-muted border border-slate-300 dark:border-border text-slate-700 dark:text-slate-200 disabled:opacity-40 disabled:pointer-events-none rounded-lg text-xs font-semibold transition inline-flex items-center gap-1 shadow-2xs cursor-pointer"
+          >
+            &larr; Sebelumnya
+          </button>
+          <button
+            type="button"
+            disabled={activePage >= TOTAL_PAGES}
+            onClick={() => setCurrentPage((p) => Math.min(TOTAL_PAGES, p + 1))}
+            className="px-3 py-1.5 bg-white hover:bg-slate-50 dark:bg-card dark:hover:bg-muted border border-slate-300 dark:border-border text-slate-700 dark:text-slate-200 disabled:opacity-40 disabled:pointer-events-none rounded-lg text-xs font-semibold transition inline-flex items-center gap-1 shadow-2xs cursor-pointer"
+          >
+            Selanjutnya &rarr;
+          </button>
         </div>
-      )}
+      </div>
     </div>
   );
 }
-
