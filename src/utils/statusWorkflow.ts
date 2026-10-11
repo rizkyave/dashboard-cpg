@@ -28,13 +28,15 @@ export interface WorkflowModuleGroup {
 export function hasValue(val?: string | number | null): val is string | number {
   if (val === undefined || val === null) return false;
   const s = String(val).trim();
+  const lower = s.toLowerCase();
   if (
     s === '' ||
     s === '-' ||
-    s.toLowerCase() === '(kosong)' ||
-    s.toLowerCase() === 'null' ||
-    s.toLowerCase() === 'nopo' ||
-    s.toLowerCase() === 'undefined'
+    lower === '(kosong)' ||
+    lower === 'null' ||
+    lower === 'nopo' ||
+    lower === 'undefined' ||
+    lower.startsWith('belum ')
   ) {
     return false;
   }

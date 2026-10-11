@@ -116,32 +116,43 @@ export default function AuditModal({
   const activeInventory = inventoryItems.length > 0 ? inventoryItems : internalInventory;
 
   // Check if target PO is empty / '-' / '(kosong)'
-  const isNoPo = !targetPo || targetPo.trim() === '' || targetPo === '-' || targetPo === '(kosong)' || targetPo === 'NOPO';
+  const hasTargetPo = Boolean(targetPo && hasValue(targetPo));
+  const normTargetPo = hasTargetPo ? String(targetPo).trim().toLowerCase() : '';
+  const normFpb = normalizeFpbKey(fpbNumber);
 
   // Find exact procurement item:
-  // If targetPo is specified and not empty, find by that PO first
-  // If PO is empty, strictly find a record for this FPB that has no PO (po === '-' or empty)
-  const itemS1 = !isNoPo
-    ? procurementList.find((i) => i.po === targetPo) || procurementList.find((i) => i.fpb === fpbNumber)
-    : procurementList.find((i) => i.fpb === fpbNumber && (!i.po || i.po === '-' || i.po === '(kosong)')) ||
-      procurementList.find((i) => i.fpb === fpbNumber);
+  // 1. If targetPo is provided, find by targetPo
+  // 2. If targetPo not provided, find by FPB preferring an item that has valid FSTB or valid PO
+  const itemS1 =
+    (hasTargetPo
+      ? procurementList.find((i) => i.po && i.po.trim().toLowerCase() === normTargetPo) ||
+        procurementList.find((i) => normalizeFpbKey(i.fpb) === normFpb && i.po && i.po.trim().toLowerCase() === normTargetPo)
+      : null) ||
+    procurementList.find((i) => normalizeFpbKey(i.fpb) === normFpb && hasValue(i.noFstb)) ||
+    procurementList.find((i) => normalizeFpbKey(i.fpb) === normFpb && hasValue(i.po)) ||
+    procurementList.find((i) => normalizeFpbKey(i.fpb) === normFpb) ||
+    null;
 
-  // Active PO: strictly null if isNoPo!
-  const activePo = !isNoPo ? (targetPo || (itemS1?.po && itemS1.po !== '-' ? itemS1.po : null)) : null;
+  // Active PO: targetPo if given, else PO from itemS1, else first PO from items matching FPB
+  const activePo =
+    (hasTargetPo ? targetPo!.trim() : null) ||
+    (itemS1?.po && hasValue(itemS1.po) ? itemS1.po.trim() : null) ||
+    armadaList.find((i) => normalizeFpbKey(i.fpb) === normFpb && hasValue(i.noPo))?.noPo?.trim() ||
+    procurementList.find((i) => normalizeFpbKey(i.fpb) === normFpb && hasValue(i.po))?.po?.trim() ||
+    null;
+
+  const normPo = activePo ? activePo.trim().toLowerCase() : '';
 
   // Filter armada list:
-  // 1. If activePo is available, match strictly by that PO
-  // 2. If isNoPo, filter strictly by items under that FPB that DO NOT have a PO
-  // 3. Fallback to all items with that FPB
-  const poMatchingItems = activePo
-    ? armadaList.filter((i) => i.noPo === activePo)
-    : isNoPo
-    ? armadaList.filter((i) => i.fpb === fpbNumber && (!i.noPo || i.noPo === '-' || i.noPo === ''))
+  // 1. If activePo is available, match by that PO
+  // 2. Fallback to matching by FPB
+  const poMatchingItems = normPo
+    ? armadaList.filter((i) => i.noPo && i.noPo.trim().toLowerCase() === normPo)
     : [];
 
   const itemsS2 = poMatchingItems.length > 0
     ? poMatchingItems
-    : armadaList.filter((i) => i.fpb === fpbNumber);
+    : armadaList.filter((i) => normalizeFpbKey(i.fpb) === normFpb);
 
   // Nomor Work Order (terpadu dari header e-FPB maupun Form Responses 1 Google Sheets)
   const effectiveWorkOrderNo = pdfData?.workOrderNo || itemS1?.workOrderNo || itemsS2[0]?.workOrderNo || '';
@@ -301,22 +312,17 @@ export default function AuditModal({
     directApprovedPdfUrl;
 
   // Metadata FSTB & 5 Digit Belakang untuk TimeMark (Pencarian menyeluruh di semua relasi item)
-  const normFpb = normalizeFpbKey(fpbNumber);
-  const normPo = activePo ? activePo.trim().toLowerCase() : '';
-
   const activeFstb =
     itemsS2.find((i) => hasValue(i.noFstb))?.noFstb?.trim() ||
     (hasValue(itemS1?.noFstb) ? itemS1!.noFstb!.trim() : '') ||
-    armadaList.find(
-      (i) =>
-        (normalizeFpbKey(i.fpb) === normFpb || (normPo && i.noPo && i.noPo.trim().toLowerCase() === normPo)) &&
-        hasValue(i.noFstb)
-    )?.noFstb?.trim() ||
-    procurementList.find(
-      (i) =>
-        (normalizeFpbKey(i.fpb) === normFpb || (normPo && i.po && i.po.trim().toLowerCase() === normPo)) &&
-        hasValue(i.noFstb)
-    )?.noFstb?.trim() ||
+    (normPo
+      ? procurementList.find((i) => i.po && i.po.trim().toLowerCase() === normPo && hasValue(i.noFstb))?.noFstb?.trim() ||
+        armadaList.find((i) => i.noPo && i.noPo.trim().toLowerCase() === normPo && hasValue(i.noFstb))?.noFstb?.trim()
+      : '') ||
+    (normFpb
+      ? procurementList.find((i) => normalizeFpbKey(i.fpb) === normFpb && hasValue(i.noFstb))?.noFstb?.trim() ||
+        armadaList.find((i) => normalizeFpbKey(i.fpb) === normFpb && hasValue(i.noFstb))?.noFstb?.trim()
+      : '') ||
     '';
   const fstbLast5 = extractFstbLast5(activeFstb);
 
@@ -324,16 +330,14 @@ export default function AuditModal({
   const activeTtb =
     itemsS2.find((i) => hasValue(i.noTtb))?.noTtb?.trim() ||
     (hasValue(itemS1?.noTtb) ? itemS1!.noTtb!.trim() : '') ||
-    armadaList.find(
-      (i) =>
-        (normalizeFpbKey(i.fpb) === normFpb || (normPo && i.noPo && i.noPo.trim().toLowerCase() === normPo)) &&
-        hasValue(i.noTtb)
-    )?.noTtb?.trim() ||
-    procurementList.find(
-      (i) =>
-        (normalizeFpbKey(i.fpb) === normFpb || (normPo && i.po && i.po.trim().toLowerCase() === normPo)) &&
-        hasValue(i.noTtb)
-    )?.noTtb?.trim() ||
+    (normPo
+      ? procurementList.find((i) => i.po && i.po.trim().toLowerCase() === normPo && hasValue(i.noTtb))?.noTtb?.trim() ||
+        armadaList.find((i) => i.noPo && i.noPo.trim().toLowerCase() === normPo && hasValue(i.noTtb))?.noTtb?.trim()
+      : '') ||
+    (normFpb
+      ? procurementList.find((i) => normalizeFpbKey(i.fpb) === normFpb && hasValue(i.noTtb))?.noTtb?.trim() ||
+        armadaList.find((i) => normalizeFpbKey(i.fpb) === normFpb && hasValue(i.noTtb))?.noTtb?.trim()
+      : '') ||
     '';
 
   // Daftar nomor TTB yang telah di-parse & dirapikan (memisahkan entri koma/garis miring seperti CPL-TTB-26-06713,06714)
@@ -386,29 +390,56 @@ export default function AuditModal({
   const hasValidTglTtb = Boolean(activeTglTtb && activeTglTtb !== '-' && activeTglTtb.trim() !== '');
   const isLogistikTtbFilled = hasValidTtbDoc || hasValidTglTtb;
 
+  const activePicPch =
+    (hasValue(itemS1?.picPch) ? itemS1!.picPch.trim() : '') ||
+    itemsS2.find((i) => hasValue(i.picPch))?.picPch?.trim() ||
+    (normPo
+      ? procurementList.find((i) => i.po && i.po.trim().toLowerCase() === normPo && hasValue(i.picPch))?.picPch?.trim() ||
+        armadaList.find((i) => i.noPo && i.noPo.trim().toLowerCase() === normPo && hasValue(i.picPch))?.picPch?.trim()
+      : '') ||
+    (normFpb
+      ? procurementList.find((i) => normalizeFpbKey(i.fpb) === normFpb && hasValue(i.picPch))?.picPch?.trim() ||
+        armadaList.find((i) => normalizeFpbKey(i.fpb) === normFpb && hasValue(i.picPch))?.picPch?.trim()
+      : '') ||
+    '';
+
   // Logika Kotak 2 (Purchasing): jika PIC dan No. PO belum terisi, Tgl PO otomatis kosong (-)
   const hasPicPch = Boolean(
-    itemS1?.picPch &&
-    itemS1.picPch.trim() !== '' &&
-    itemS1.picPch !== '-' &&
-    itemS1.picPch.toLowerCase() !== '(kosong)' &&
-    itemS1.picPch.toLowerCase() !== 'null' &&
-    itemS1.picPch.toLowerCase() !== 'purchasing'
+    hasValue(activePicPch) &&
+    activePicPch.toLowerCase() !== 'purchasing'
   );
 
-  const hasValidPo = Boolean(
-    activePo &&
-    activePo.trim() !== '' &&
-    activePo !== '-' &&
-    activePo !== 'NOPO' &&
-    activePo.toLowerCase() !== '(kosong)' &&
-    activePo.toLowerCase() !== 'null'
-  );
+  const hasValidPo = Boolean(hasValue(activePo));
 
-  const rawTglPo = (hasValidPo || hasPicPch)
-    ? (itemsS2[0]?.tglPo || itemS1?.tglPo || '')
-    : '';
+  const activeTglPo =
+    (hasValue(itemS1?.tglPo) ? itemS1!.tglPo.trim() : '') ||
+    itemsS2.find((i) => hasValue(i.tglPo))?.tglPo?.trim() ||
+    (normPo
+      ? procurementList.find((i) => i.po && i.po.trim().toLowerCase() === normPo && hasValue(i.tglPo))?.tglPo?.trim() ||
+        armadaList.find((i) => i.noPo && i.noPo.trim().toLowerCase() === normPo && hasValue(i.tglPo))?.tglPo?.trim()
+      : '') ||
+    (normFpb
+      ? procurementList.find((i) => normalizeFpbKey(i.fpb) === normFpb && hasValue(i.tglPo))?.tglPo?.trim() ||
+        armadaList.find((i) => normalizeFpbKey(i.fpb) === normFpb && hasValue(i.tglPo))?.tglPo?.trim()
+      : '') ||
+    '';
+
+  const rawTglPo = (hasValidPo || hasPicPch) ? activeTglPo : '';
   const displayTglPo = rawTglPo && rawTglPo !== '-' ? formatDateDdMmYy(rawTglPo) : '-';
+
+  const activeDeliveryTime =
+    (hasValue(itemS1?.deliveryTime) ? itemS1!.deliveryTime.trim() : '') ||
+    itemsS2.find((i) => hasValue(i.deliveryTime))?.deliveryTime?.trim() ||
+    itemsS2.find((i) => hasValue(i.waktuProses))?.waktuProses?.trim() ||
+    (normPo
+      ? procurementList.find((i) => i.po && i.po.trim().toLowerCase() === normPo && hasValue(i.deliveryTime))?.deliveryTime?.trim() ||
+        armadaList.find((i) => i.noPo && i.noPo.trim().toLowerCase() === normPo && hasValue(i.deliveryTime))?.deliveryTime?.trim()
+      : '') ||
+    (normFpb
+      ? procurementList.find((i) => normalizeFpbKey(i.fpb) === normFpb && hasValue(i.deliveryTime))?.deliveryTime?.trim() ||
+        armadaList.find((i) => normalizeFpbKey(i.fpb) === normFpb && hasValue(i.deliveryTime))?.deliveryTime?.trim()
+      : '') ||
+    '';
 
   const isPicLapFilled = Boolean(
     hasValue(itemS1?.picLap) || hasValue(itemsS2[0]?.picLap)
@@ -1496,7 +1527,7 @@ export default function AuditModal({
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">PIC:</span>
                     {hasPicPch ? (
                       <span className="font-semibold text-foreground font-mono truncate text-right ml-1.5 min-w-0">
-                        {itemS1?.picPch}
+                        {activePicPch || itemS1?.picPch}
                       </span>
                     ) : (
                       <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
@@ -1533,11 +1564,9 @@ export default function AuditModal({
                   </div>
                   <div className="flex items-center justify-between min-w-0">
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">Delivery:</span>
-                    {hasValue(itemS1?.deliveryTime) || hasValue(itemsS2[0]?.deliveryTime) || hasValue(itemsS2[0]?.waktuProses) ? (
+                    {hasValue(activeDeliveryTime) ? (
                       <span className="text-muted-foreground font-mono text-right ml-1.5 truncate min-w-0">
-                        {(hasValue(itemS1?.deliveryTime) ? itemS1!.deliveryTime : '') ||
-                         (hasValue(itemsS2[0]?.deliveryTime) ? itemsS2[0]!.deliveryTime : '') ||
-                         (hasValue(itemsS2[0]?.waktuProses) ? itemsS2[0]!.waktuProses : '')}
+                        {activeDeliveryTime}
                       </span>
                     ) : (
                       <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">

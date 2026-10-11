@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as XLSX from 'xlsx';
+import fs from 'fs';
+import path from 'path';
 import { parseAndMergeWorkbook } from '@/utils/excelParser';
 
 export const dynamic = 'force-dynamic';
@@ -18,6 +20,59 @@ function extractExportUrl(rawUrl: string): string {
     return trimmed;
   }
   return trimmed;
+}
+
+/**
+ * Cari file Excel Monitoring Berkas Internal Procurement terbaru dari folder Downloads / Project
+ */
+function findLatestLocalProcurementFile(): { buffer: Buffer; fileName: string } | null {
+  const candidateDirs = [
+    process.cwd(),
+    'C:\\Users\\Hermansyah\\Downloads',
+    'C:\\Users\\Hermansyah\\Desktop',
+    path.join(process.env.USERPROFILE || 'C:\\Users\\Hermansyah', 'Downloads'),
+    path.join(process.env.USERPROFILE || 'C:\\Users\\Hermansyah', 'Desktop'),
+  ];
+
+  let bestFile: { filePath: string; mtime: number; version: number } | null = null;
+
+  for (const dir of Array.from(new Set(candidateDirs))) {
+    if (!fs.existsSync(dir)) continue;
+    try {
+      const files = fs.readdirSync(dir);
+      for (const file of files) {
+        if (!file.endsWith('.xlsx')) continue;
+        const lower = file.toLowerCase();
+        if (
+          lower.includes('monitoring berkas internal procurement') ||
+          lower.includes('monitoring_berkas_internal_procurement') ||
+          lower.includes('monitoring berkas procurement')
+        ) {
+          const fullPath = path.join(dir, file);
+          const stat = fs.statSync(fullPath);
+          const vMatch = file.match(/\((\d+)\)/);
+          const version = vMatch ? parseInt(vMatch[1], 10) : (lower.includes('latest') ? 999 : 0);
+          const score = version * 10000000000000 + stat.mtimeMs;
+
+          if (!bestFile || score > (bestFile.version * 10000000000000 + bestFile.mtime)) {
+            bestFile = { filePath: fullPath, mtime: stat.mtimeMs, version };
+          }
+        }
+      }
+    } catch {
+      // Abaikan folder tanpa izin baca
+    }
+  }
+
+  if (bestFile) {
+    try {
+      const buffer = fs.readFileSync(bestFile.filePath);
+      return { buffer, fileName: path.basename(bestFile.filePath) };
+    } catch {
+      return null;
+    }
+  }
+  return null;
 }
 
 export async function GET(req: NextRequest) {
@@ -56,66 +111,60 @@ export async function POST(req: NextRequest) {
 }
 
 async function processSheet(targetUrl: string) {
-  const downloadUrl = extractExportUrl(targetUrl);
+  let buffer: Buffer | null = null;
+  let sourceLabel = targetUrl;
+  let isLocalFallback = false;
 
-  const response = await fetch(downloadUrl, {
-    headers: {
-      'User-Agent':
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      Accept:
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/octet-stream, */*',
-    },
-    cache: 'no-store',
-    redirect: 'follow',
-  });
+  // 1. Coba download dari Google Sheets jika URL disediakan
+  try {
+    const downloadUrl = extractExportUrl(targetUrl);
+    const response = await fetch(downloadUrl, {
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        Accept:
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/octet-stream, */*',
+      },
+      cache: 'no-store',
+      redirect: 'follow',
+    });
 
-  if (!response.ok) {
-    if (response.status === 401 || response.status === 403) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            'Akses Google Sheets masih dibatasi (HTTP 401/403). Silakan buka spreadsheet -> Klik tombol "Bagikan" (Share) -> Pada bagian "Akses umum" (General access), ubah dari "Dibatasi" menjadi "Siapa saja yang memiliki link" -> pilih "Pelihat" (Viewer).',
-        },
-        { status: 403 }
-      );
+    if (response.ok) {
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.includes('text/html')) {
+        const arrayBuffer = await response.arrayBuffer();
+        const b = Buffer.from(arrayBuffer);
+        const textPreview = b.subarray(0, 1000).toString('utf8');
+        if (
+          !textPreview.includes('<html') &&
+          !textPreview.includes('<!DOCTYPE') &&
+          !textPreview.includes('ServiceLogin') &&
+          !textPreview.includes('accounts.google.com')
+        ) {
+          buffer = b;
+        }
+      }
     }
-    return NextResponse.json(
-      {
-        success: false,
-        message: `Gagal mengunduh file Google Sheets (HTTP Status ${response.status}: ${response.statusText}). Pastikan Akses Umum diset ke "Siapa saja yang memiliki link (Pelihat)".`,
-      },
-      { status: 400 }
-    );
+  } catch (netErr) {
+    console.warn('Google Sheets network fetch failed, trying local fallback:', netErr);
   }
 
-  const contentType = response.headers.get('content-type') || '';
-  if (contentType.includes('text/html')) {
+  // 2. Jika Google Sheets dibatasi (401/403/Login Page) atau gagal diunduh, otomatis gunakan file lokal terbaru
+  if (!buffer) {
+    const local = findLatestLocalProcurementFile();
+    if (local) {
+      buffer = local.buffer;
+      sourceLabel = `${local.fileName} (Lokal)`;
+      isLocalFallback = true;
+    }
+  }
+
+  if (!buffer) {
     return NextResponse.json(
       {
         success: false,
         message:
-          'Akses Google Sheets dialihkan ke halaman login Google. Silakan buka spreadsheet -> Klik tombol "Bagikan" (Share) -> Pada bagian "Akses umum", ubah dari "Dibatasi" menjadi "Siapa saja yang memiliki link" -> pilih "Pelihat" (Viewer).',
-      },
-      { status: 403 }
-    );
-  }
-
-  const arrayBuffer = await response.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
-
-  const textPreview = buffer.subarray(0, 1000).toString('utf8');
-  if (
-    textPreview.includes('<html') ||
-    textPreview.includes('<!DOCTYPE') ||
-    textPreview.includes('ServiceLogin') ||
-    textPreview.includes('accounts.google.com')
-  ) {
-    return NextResponse.json(
-      {
-        success: false,
-        message:
-          'Akses ke Google Sheets ditolak / memerlukan login Google. Silakan buka spreadsheet -> Klik "Bagikan" -> Pada "Akses umum", ubah menjadi "Siapa saja yang memiliki link" -> "Pelihat" (Viewer).',
+          'Akses Google Sheets masih dibatasi (HTTP 401/403) dan belum ditemukan file Excel Monitoring Berkas Internal Procurement di folder Downloads/komputer.',
       },
       { status: 403 }
     );
@@ -136,12 +185,14 @@ async function processSheet(targetUrl: string) {
 
   return NextResponse.json({
     success: true,
-    message: `Berhasil menyinkronkan ${result.procurement.length.toLocaleString('id-ID')} data procurement langsung dari Google Sheets!`,
+    message: isLocalFallback
+      ? `Berhasil menyinkronkan ${result.procurement.length.toLocaleString('id-ID')} data procurement langsung dari file ${sourceLabel}!`
+      : `Berhasil menyinkronkan ${result.procurement.length.toLocaleString('id-ID')} data procurement langsung dari Google Sheets!`,
     stats: result.stats,
     sheetNames: workbook.SheetNames,
     procurement: result.procurement,
     armada: result.armada,
-    sourceUrl: targetUrl,
+    sourceUrl: sourceLabel,
     timestamp: new Date().toISOString(),
   });
 }
