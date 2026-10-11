@@ -8,7 +8,7 @@ import { evaluateTransactionStatus, hasValue } from '@/utils/statusWorkflow';
  *   "MO/LOG/FPB/26-0001751" -> "mo-fpb-26-0001751"
  *   "CPL-FPB-26-0004500"    -> "cpl-fpb-26-0004500"
  */
-export function normalizeFpbKey(fpb?: string): string {
+export function normalizeFpbKey(fpb?: string | null): string {
   if (!fpb) return '';
   return fpb
     .trim()
@@ -345,9 +345,28 @@ export function mergeArmadaDatasets(
       if (!hasValue(target.keterangan) && hasValue(incoming.keterangan)) {
         target.keterangan = incoming.keterangan;
       }
+      if (!hasValue(target.noPo) && hasValue(incoming.noPo)) target.noPo = incoming.noPo;
+      if (!hasValue(target.tglPo) && hasValue(incoming.tglPo)) target.tglPo = incoming.tglPo;
+      if (!hasValue(target.noFstb) && hasValue(incoming.noFstb)) target.noFstb = incoming.noFstb;
+      if (!hasValue(target.tglFstb) && hasValue(incoming.tglFstb)) target.tglFstb = incoming.tglFstb;
+      if (!hasValue(target.noTtb) && hasValue(incoming.noTtb)) target.noTtb = incoming.noTtb;
+      if (!hasValue(target.tglTtb) && hasValue(incoming.tglTtb)) target.tglTtb = incoming.tglTtb;
+      if (!hasValue(target.deliveryTime) && hasValue(incoming.deliveryTime)) target.deliveryTime = incoming.deliveryTime;
+      if (!hasValue(target.picPch) && hasValue(incoming.picPch)) target.picPch = incoming.picPch;
+      if (!hasValue(target.picTtb) && hasValue(incoming.picTtb)) target.picTtb = incoming.picTtb;
+      if (!hasValue(target.picLap) && hasValue(incoming.picLap)) target.picLap = incoming.picLap;
+      if (!hasValue(target.picAdm) && hasValue(incoming.picAdm)) target.picAdm = incoming.picAdm;
+      if (!hasValue(target.tglKePicTtb) && hasValue(incoming.tglKePicTtb)) target.tglKePicTtb = incoming.tglKePicTtb;
+      if (!hasValue(target.tglKeTimLapangan) && hasValue(incoming.tglKeTimLapangan)) target.tglKeTimLapangan = incoming.tglKeTimLapangan;
+      if (!hasValue(target.tglBarangDiantar) && hasValue(incoming.tglBarangDiantar)) target.tglBarangDiantar = incoming.tglBarangDiantar;
       if (!hasValue(target.tglTimLapKePicTtb) && hasValue(incoming.tglTimLapKePicTtb)) {
         target.tglTimLapKePicTtb = incoming.tglTimLapKePicTtb;
       }
+      if (!hasValue(target.tglTtbKePicPch) && hasValue(incoming.tglTtbKePicPch)) target.tglTtbKePicPch = incoming.tglTtbKePicPch;
+      if (!hasValue(target.tglKeAdmPch) && hasValue(incoming.tglKeAdmPch)) target.tglKeAdmPch = incoming.tglKeAdmPch;
+      if (!hasValue(target.noSpp) && hasValue(incoming.noSpp)) target.noSpp = incoming.noSpp;
+      if (!hasValue(target.tglInputSpp) && hasValue(incoming.tglInputSpp)) target.tglInputSpp = incoming.tglInputSpp;
+      if (!hasValue(target.tglKeKeuangan) && hasValue(incoming.tglKeKeuangan)) target.tglKeKeuangan = incoming.tglKeKeuangan;
       if (!hasValue(target.workOrderNo) && hasValue(incoming.workOrderNo)) {
         target.workOrderNo = incoming.workOrderNo;
       }
@@ -485,12 +504,59 @@ export function enrichProcurementAndArmada(
 
   for (const proc of safeProc) {
     const fpbKey = normalizeFpbKey(proc.fpb);
-    if (fpbKey && !procMapByFpb.has(fpbKey)) {
-      procMapByFpb.set(fpbKey, proc);
+    if (fpbKey) {
+      if (!procMapByFpb.has(fpbKey)) {
+        procMapByFpb.set(fpbKey, { ...proc });
+      } else {
+        const existing = procMapByFpb.get(fpbKey)!;
+        if (!hasValue(existing.po) && hasValue(proc.po)) existing.po = proc.po;
+        if (!hasValue(existing.tglPo) && hasValue(proc.tglPo)) existing.tglPo = proc.tglPo;
+        if (!hasValue(existing.noFstb) && hasValue(proc.noFstb)) existing.noFstb = proc.noFstb;
+        if (!hasValue(existing.tglInputFstb) && hasValue(proc.tglInputFstb)) existing.tglInputFstb = proc.tglInputFstb;
+        if (!hasValue(existing.noTtb) && hasValue(proc.noTtb)) existing.noTtb = proc.noTtb;
+        if (!hasValue(existing.tglInputTtb) && hasValue(proc.tglInputTtb)) existing.tglInputTtb = proc.tglInputTtb;
+        if (!hasValue(existing.deliveryTime) && hasValue(proc.deliveryTime)) existing.deliveryTime = proc.deliveryTime;
+        if (!hasValue(existing.picPch) && hasValue(proc.picPch)) existing.picPch = proc.picPch;
+        if (!hasValue(existing.picTtb) && hasValue(proc.picTtb)) existing.picTtb = proc.picTtb;
+        if (!hasValue(existing.picLap) && hasValue(proc.picLap)) existing.picLap = proc.picLap;
+        if (!hasValue(existing.picAdm) && hasValue(proc.picAdm)) existing.picAdm = proc.picAdm;
+        if (!hasValue(existing.tglKePicTtb) && hasValue(proc.tglKePicTtb)) existing.tglKePicTtb = proc.tglKePicTtb;
+        if (!hasValue(existing.tglKeTimLapangan) && hasValue(proc.tglKeTimLapangan)) existing.tglKeTimLapangan = proc.tglKeTimLapangan;
+        if (!hasValue(existing.tglBarangDiantar) && hasValue(proc.tglBarangDiantar)) existing.tglBarangDiantar = proc.tglBarangDiantar;
+        if (!hasValue(existing.tglTimLapKePicTtb) && hasValue(proc.tglTimLapKePicTtb)) existing.tglTimLapKePicTtb = proc.tglTimLapKePicTtb;
+        if (!hasValue(existing.tglTtbKePicPch) && hasValue(proc.tglTtbKePicPch)) existing.tglTtbKePicPch = proc.tglTtbKePicPch;
+        if (!hasValue(existing.tglKeAdmPch) && hasValue(proc.tglKeAdmPch)) existing.tglKeAdmPch = proc.tglKeAdmPch;
+        if (!hasValue(existing.noSpp) && hasValue(proc.noSpp)) existing.noSpp = proc.noSpp;
+        if (!hasValue(existing.tglInputSpp) && hasValue(proc.tglInputSpp)) existing.tglInputSpp = proc.tglInputSpp;
+        if (!hasValue(existing.tglKeKeuangan) && hasValue(proc.tglKeKeuangan)) existing.tglKeKeuangan = proc.tglKeKeuangan;
+      }
     }
     const poKey = hasValue(proc.po) ? String(proc.po).trim().toLowerCase() : '';
-    if (poKey && !procMapByPo.has(poKey)) {
-      procMapByPo.set(poKey, proc);
+    if (poKey) {
+      if (!procMapByPo.has(poKey)) {
+        procMapByPo.set(poKey, { ...proc });
+      } else {
+        const existing = procMapByPo.get(poKey)!;
+        if (!hasValue(existing.noFstb) && hasValue(proc.noFstb)) existing.noFstb = proc.noFstb;
+        if (!hasValue(existing.tglInputFstb) && hasValue(proc.tglInputFstb)) existing.tglInputFstb = proc.tglInputFstb;
+        if (!hasValue(existing.noTtb) && hasValue(proc.noTtb)) existing.noTtb = proc.noTtb;
+        if (!hasValue(existing.tglInputTtb) && hasValue(proc.tglInputTtb)) existing.tglInputTtb = proc.tglInputTtb;
+        if (!hasValue(existing.deliveryTime) && hasValue(proc.deliveryTime)) existing.deliveryTime = proc.deliveryTime;
+        if (!hasValue(existing.tglPo) && hasValue(proc.tglPo)) existing.tglPo = proc.tglPo;
+        if (!hasValue(existing.picPch) && hasValue(proc.picPch)) existing.picPch = proc.picPch;
+        if (!hasValue(existing.picTtb) && hasValue(proc.picTtb)) existing.picTtb = proc.picTtb;
+        if (!hasValue(existing.picLap) && hasValue(proc.picLap)) existing.picLap = proc.picLap;
+        if (!hasValue(existing.picAdm) && hasValue(proc.picAdm)) existing.picAdm = proc.picAdm;
+        if (!hasValue(existing.tglKePicTtb) && hasValue(proc.tglKePicTtb)) existing.tglKePicTtb = proc.tglKePicTtb;
+        if (!hasValue(existing.tglKeTimLapangan) && hasValue(proc.tglKeTimLapangan)) existing.tglKeTimLapangan = proc.tglKeTimLapangan;
+        if (!hasValue(existing.tglBarangDiantar) && hasValue(proc.tglBarangDiantar)) existing.tglBarangDiantar = proc.tglBarangDiantar;
+        if (!hasValue(existing.tglTimLapKePicTtb) && hasValue(proc.tglTimLapKePicTtb)) existing.tglTimLapKePicTtb = proc.tglTimLapKePicTtb;
+        if (!hasValue(existing.tglTtbKePicPch) && hasValue(proc.tglTtbKePicPch)) existing.tglTtbKePicPch = proc.tglTtbKePicPch;
+        if (!hasValue(existing.tglKeAdmPch) && hasValue(proc.tglKeAdmPch)) existing.tglKeAdmPch = proc.tglKeAdmPch;
+        if (!hasValue(existing.noSpp) && hasValue(proc.noSpp)) existing.noSpp = proc.noSpp;
+        if (!hasValue(existing.tglInputSpp) && hasValue(proc.tglInputSpp)) existing.tglInputSpp = proc.tglInputSpp;
+        if (!hasValue(existing.tglKeKeuangan) && hasValue(proc.tglKeKeuangan)) existing.tglKeKeuangan = proc.tglKeKeuangan;
+      }
     }
   }
 
@@ -512,14 +578,21 @@ export function enrichProcurementAndArmada(
       if (!hasValue(proc.tglInputFstb) && hasValue(arm.tglFstb)) proc.tglInputFstb = String(arm.tglFstb);
       if (!hasValue(proc.noTtb) && hasValue(arm.noTtb)) proc.noTtb = String(arm.noTtb);
       if (!hasValue(proc.tglInputTtb) && hasValue(arm.tglTtb)) proc.tglInputTtb = String(arm.tglTtb);
+      if (!hasValue(proc.tglKePicTtb) && hasValue(arm.tglKePicTtb)) proc.tglKePicTtb = String(arm.tglKePicTtb);
+      if (!hasValue(proc.tglKeTimLapangan) && hasValue(arm.tglKeTimLapangan)) proc.tglKeTimLapangan = String(arm.tglKeTimLapangan);
+      if (!hasValue(proc.tglBarangDiantar) && hasValue(arm.tglBarangDiantar)) proc.tglBarangDiantar = String(arm.tglBarangDiantar);
       if (!hasValue(proc.tglTimLapKePicTtb) && hasValue(arm.tglTimLapKePicTtb)) proc.tglTimLapKePicTtb = String(arm.tglTimLapKePicTtb);
+      if (!hasValue(proc.tglTtbKePicPch) && hasValue(arm.tglTtbKePicPch)) proc.tglTtbKePicPch = String(arm.tglTtbKePicPch);
+      if (!hasValue(proc.tglKeAdmPch) && hasValue(arm.tglKeAdmPch)) proc.tglKeAdmPch = String(arm.tglKeAdmPch);
       if (!hasValue(proc.noSpp) && hasValue(arm.noSpp)) proc.noSpp = String(arm.noSpp);
+      if (!hasValue(proc.tglInputSpp) && hasValue(arm.tglInputSpp)) proc.tglInputSpp = String(arm.tglInputSpp);
       if (!hasValue(proc.tglKeKeuangan) && hasValue(arm.tglKeKeuangan)) proc.tglKeKeuangan = String(arm.tglKeKeuangan);
       if (!hasValue(proc.deptArmada) && hasValue(arm.armada)) proc.deptArmada = String(arm.armada);
       if (!hasValue(proc.picPch) && hasValue(arm.picPch)) proc.picPch = String(arm.picPch);
       if (!hasValue(proc.picTtb) && hasValue(arm.picTtb)) proc.picTtb = String(arm.picTtb);
       if (!hasValue(proc.picLap) && hasValue(arm.picLap)) proc.picLap = String(arm.picLap);
       if (!hasValue(proc.picAdm) && hasValue(arm.picAdm)) proc.picAdm = String(arm.picAdm);
+      if (!hasValue(proc.deliveryTime) && hasValue(arm.deliveryTime)) proc.deliveryTime = String(arm.deliveryTime);
       if (!hasValue(proc.workOrderNo) && hasValue(arm.workOrderNo)) proc.workOrderNo = String(arm.workOrderNo);
       if (arm.statusCheckFpb === 'DONE' && proc.statusCheckFpb !== 'DONE') {
         proc.statusCheckFpb = 'DONE';
@@ -554,13 +627,20 @@ export function enrichProcurementAndArmada(
       if (!hasValue(arm.tglFstb) && hasValue(matchedProc.tglInputFstb)) arm.tglFstb = String(matchedProc.tglInputFstb);
       if (!hasValue(arm.noTtb) && hasValue(matchedProc.noTtb)) arm.noTtb = String(matchedProc.noTtb);
       if (!hasValue(arm.tglTtb) && hasValue(matchedProc.tglInputTtb)) arm.tglTtb = String(matchedProc.tglInputTtb);
+      if (!hasValue(arm.tglKePicTtb) && hasValue(matchedProc.tglKePicTtb)) arm.tglKePicTtb = String(matchedProc.tglKePicTtb);
+      if (!hasValue(arm.tglKeTimLapangan) && hasValue(matchedProc.tglKeTimLapangan)) arm.tglKeTimLapangan = String(matchedProc.tglKeTimLapangan);
+      if (!hasValue(arm.tglBarangDiantar) && hasValue(matchedProc.tglBarangDiantar)) arm.tglBarangDiantar = String(matchedProc.tglBarangDiantar);
       if (!hasValue(arm.tglTimLapKePicTtb) && hasValue(matchedProc.tglTimLapKePicTtb)) arm.tglTimLapKePicTtb = String(matchedProc.tglTimLapKePicTtb);
+      if (!hasValue(arm.tglTtbKePicPch) && hasValue(matchedProc.tglTtbKePicPch)) arm.tglTtbKePicPch = String(matchedProc.tglTtbKePicPch);
+      if (!hasValue(arm.tglKeAdmPch) && hasValue(matchedProc.tglKeAdmPch)) arm.tglKeAdmPch = String(matchedProc.tglKeAdmPch);
       if (!hasValue(arm.noSpp) && hasValue(matchedProc.noSpp)) arm.noSpp = String(matchedProc.noSpp);
+      if (!hasValue(arm.tglInputSpp) && hasValue(matchedProc.tglInputSpp)) arm.tglInputSpp = String(matchedProc.tglInputSpp);
       if (!hasValue(arm.tglKeKeuangan) && hasValue(matchedProc.tglKeKeuangan)) arm.tglKeKeuangan = String(matchedProc.tglKeKeuangan);
       if (!hasValue(arm.picPch) && hasValue(matchedProc.picPch)) arm.picPch = String(matchedProc.picPch);
       if (!hasValue(arm.picTtb) && hasValue(matchedProc.picTtb)) arm.picTtb = String(matchedProc.picTtb);
       if (!hasValue(arm.picLap) && hasValue(matchedProc.picLap)) arm.picLap = String(matchedProc.picLap);
       if (!hasValue(arm.picAdm) && hasValue(matchedProc.picAdm)) arm.picAdm = String(matchedProc.picAdm);
+      if (!hasValue(arm.deliveryTime) && hasValue(matchedProc.deliveryTime)) arm.deliveryTime = String(matchedProc.deliveryTime);
       if (!hasValue(arm.workOrderNo) && hasValue(matchedProc.workOrderNo)) arm.workOrderNo = String(matchedProc.workOrderNo);
       if (matchedProc.statusCheckFpb === 'DONE' && arm.statusCheckFpb !== 'DONE') {
         arm.statusCheckFpb = 'DONE';

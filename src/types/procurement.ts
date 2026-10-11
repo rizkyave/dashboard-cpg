@@ -172,9 +172,15 @@ export interface ArmadaItem {
   picLap?: string;
   picAdm?: string;
   deliveryTime?: string;
+  tglKePicTtb?: string;
   tglTimLapKePicTtb?: string;
+  tglKeTimLapangan?: string;
+  tglBarangDiantar?: string;
+  tglTtbKePicPch?: string;
+  tglKeAdmPch?: string;
   tglKeKeuangan?: string;
   noSpp?: string;
+  tglInputSpp?: string;
   statusBadge?: string;
   statusTone?: StatusTone;
   lapse?: number;

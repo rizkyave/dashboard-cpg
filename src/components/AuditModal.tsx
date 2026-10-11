@@ -36,6 +36,8 @@ import { cleanSingleDescription, deduplicateDescriptions, cleanTujuanPeruntukan 
 import { isItemJasa, determineTransactionCategory, ProcurementCategory, normalizeJasaUnit } from '@/utils/jasaClassifier';
 import { useAuth } from '@/context/AuthContext';
 import WorkflowTrafficLight from './WorkflowTrafficLight';
+import { hasValue } from '@/utils/statusWorkflow';
+import { normalizeFpbKey } from '@/utils/dataMerger';
 
 interface AuditModalProps {
   fpbNumber: string | null;
@@ -299,20 +301,39 @@ export default function AuditModal({
     directApprovedPdfUrl;
 
   // Metadata FSTB & 5 Digit Belakang untuk TimeMark (Pencarian menyeluruh di semua relasi item)
+  const normFpb = normalizeFpbKey(fpbNumber);
+  const normPo = activePo ? activePo.trim().toLowerCase() : '';
+
   const activeFstb =
-    itemsS2.find((i) => i.noFstb && i.noFstb.trim() !== '' && i.noFstb.trim() !== '-')?.noFstb?.trim() ||
-    itemS1?.noFstb?.trim() ||
-    armadaList.find((i) => (i.fpb === fpbNumber || (activePo && i.noPo === activePo)) && i.noFstb && i.noFstb.trim() !== '' && i.noFstb.trim() !== '-')?.noFstb?.trim() ||
-    procurementList.find((i) => (i.fpb === fpbNumber || (activePo && i.po === activePo)) && i.noFstb && i.noFstb.trim() !== '' && i.noFstb.trim() !== '-')?.noFstb?.trim() ||
+    itemsS2.find((i) => hasValue(i.noFstb))?.noFstb?.trim() ||
+    (hasValue(itemS1?.noFstb) ? itemS1!.noFstb!.trim() : '') ||
+    armadaList.find(
+      (i) =>
+        (normalizeFpbKey(i.fpb) === normFpb || (normPo && i.noPo && i.noPo.trim().toLowerCase() === normPo)) &&
+        hasValue(i.noFstb)
+    )?.noFstb?.trim() ||
+    procurementList.find(
+      (i) =>
+        (normalizeFpbKey(i.fpb) === normFpb || (normPo && i.po && i.po.trim().toLowerCase() === normPo)) &&
+        hasValue(i.noFstb)
+    )?.noFstb?.trim() ||
     '';
   const fstbLast5 = extractFstbLast5(activeFstb);
 
   // Metadata Nomor TTB untuk integrasi foto lapangan langsung di aplikasi
   const activeTtb =
-    itemsS2.find((i) => i.noTtb && i.noTtb.trim() !== '' && i.noTtb.trim() !== '-')?.noTtb?.trim() ||
-    itemS1?.noTtb?.trim() ||
-    armadaList.find((i) => (i.fpb === fpbNumber || (activePo && i.noPo === activePo)) && i.noTtb && i.noTtb.trim() !== '' && i.noTtb.trim() !== '-')?.noTtb?.trim() ||
-    procurementList.find((i) => (i.fpb === fpbNumber || (activePo && i.po === activePo)) && i.noTtb && i.noTtb.trim() !== '' && i.noTtb.trim() !== '-')?.noTtb?.trim() ||
+    itemsS2.find((i) => hasValue(i.noTtb))?.noTtb?.trim() ||
+    (hasValue(itemS1?.noTtb) ? itemS1!.noTtb!.trim() : '') ||
+    armadaList.find(
+      (i) =>
+        (normalizeFpbKey(i.fpb) === normFpb || (normPo && i.noPo && i.noPo.trim().toLowerCase() === normPo)) &&
+        hasValue(i.noTtb)
+    )?.noTtb?.trim() ||
+    procurementList.find(
+      (i) =>
+        (normalizeFpbKey(i.fpb) === normFpb || (normPo && i.po && i.po.trim().toLowerCase() === normPo)) &&
+        hasValue(i.noTtb)
+    )?.noTtb?.trim() ||
     '';
 
   // Daftar nomor TTB yang telah di-parse & dirapikan (memisahkan entri koma/garis miring seperti CPL-TTB-26-06713,06714)
@@ -390,24 +411,19 @@ export default function AuditModal({
   const displayTglPo = rawTglPo && rawTglPo !== '-' ? formatDateDdMmYy(rawTglPo) : '-';
 
   const isPicLapFilled = Boolean(
-    itemS1?.picLap &&
-    itemS1.picLap !== '-' &&
-    itemS1.picLap.trim() !== '' &&
-    itemS1.picLap.toLowerCase() !== '(kosong)'
+    hasValue(itemS1?.picLap) || hasValue(itemsS2[0]?.picLap)
   );
   const hasTglDiantar = Boolean(
-    itemS1?.tglBarangDiantar && itemS1.tglBarangDiantar !== '-' && itemS1.tglBarangDiantar.trim() !== ''
+    hasValue(itemS1?.tglBarangDiantar) || hasValue(itemsS2[0]?.tglBarangDiantar)
   );
   const hasTglKeLap = Boolean(
-    itemS1?.tglKeTimLapangan && itemS1.tglKeTimLapangan !== '-' && itemS1.tglKeTimLapangan.trim() !== ''
+    hasValue(itemS1?.tglKeTimLapangan) || hasValue(itemsS2[0]?.tglKeTimLapangan)
   );
   const hasTglTimLapKePicTtb = Boolean(
-    (itemS1?.tglTimLapKePicTtb || itemsS2[0]?.tglTimLapKePicTtb) &&
-    (itemS1?.tglTimLapKePicTtb || itemsS2[0]?.tglTimLapKePicTtb) !== '-' &&
-    (itemS1?.tglTimLapKePicTtb || itemsS2[0]?.tglTimLapKePicTtb)?.trim() !== ''
+    hasValue(itemS1?.tglTimLapKePicTtb) || hasValue(itemsS2[0]?.tglTimLapKePicTtb)
   );
   const hasTglTtbKePch = Boolean(
-    itemS1?.tglTtbKePicPch && itemS1.tglTtbKePicPch !== '-' && itemS1.tglTtbKePicPch.trim() !== ''
+    hasValue(itemS1?.tglTtbKePicPch) || hasValue(itemsS2[0]?.tglTtbKePicPch)
   );
   const isTimLapFilled = Boolean(
     isPicLapFilled ||
@@ -573,11 +589,7 @@ export default function AuditModal({
 
   // Validasi nomor SPP:
   const hasValidSpp = Boolean(
-    itemS1?.noSpp &&
-    itemS1.noSpp.trim() !== '' &&
-    itemS1.noSpp.trim() !== '-' &&
-    itemS1.noSpp.toLowerCase() !== '(kosong)' &&
-    itemS1.noSpp.toLowerCase() !== 'null'
+    hasValue(itemS1?.noSpp) || hasValue(itemsS2[0]?.noSpp)
   );
 
   // Status Saat Ini (Header Box):
@@ -1521,9 +1533,11 @@ export default function AuditModal({
                   </div>
                   <div className="flex items-center justify-between min-w-0">
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">Delivery:</span>
-                    {(itemS1?.deliveryTime && itemS1.deliveryTime !== '-') || (itemsS2[0]?.waktuProses && itemsS2[0].waktuProses !== '-') ? (
+                    {hasValue(itemS1?.deliveryTime) || hasValue(itemsS2[0]?.deliveryTime) || hasValue(itemsS2[0]?.waktuProses) ? (
                       <span className="text-muted-foreground font-mono text-right ml-1.5 truncate min-w-0">
-                        {itemS1?.deliveryTime || itemsS2[0]?.waktuProses}
+                        {(hasValue(itemS1?.deliveryTime) ? itemS1!.deliveryTime : '') ||
+                         (hasValue(itemsS2[0]?.deliveryTime) ? itemsS2[0]!.deliveryTime : '') ||
+                         (hasValue(itemsS2[0]?.waktuProses) ? itemsS2[0]!.waktuProses : '')}
                       </span>
                     ) : (
                       <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
@@ -1533,12 +1547,12 @@ export default function AuditModal({
                   </div>
                   <div className="flex items-center justify-between min-w-0">
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">No. FSTB:</span>
-                    {(activeFstb && activeFstb !== '-' && activeFstb !== '(kosong)') || (itemsS2[0]?.noFstb && itemsS2[0].noFstb !== '-') || (itemS1?.noFstb && itemS1.noFstb !== '-') ? (
+                    {hasValue(activeFstb) || hasValue(itemsS2[0]?.noFstb) || hasValue(itemS1?.noFstb) ? (
                       <span
-                        className="text-muted-foreground font-mono truncate text-right ml-1.5 min-w-0"
-                        title={activeFstb || itemsS2[0]?.noFstb || itemS1?.noFstb || ''}
+                        className="font-semibold text-foreground font-mono truncate text-right ml-1.5 min-w-0"
+                        title={activeFstb || (hasValue(itemsS2[0]?.noFstb) ? itemsS2[0].noFstb : '') || (hasValue(itemS1?.noFstb) ? itemS1?.noFstb : '') || ''}
                       >
-                        {activeFstb || itemsS2[0]?.noFstb || itemS1?.noFstb}
+                        {activeFstb || (hasValue(itemsS2[0]?.noFstb) ? itemsS2[0].noFstb : '') || (hasValue(itemS1?.noFstb) ? itemS1?.noFstb : '')}
                       </span>
                     ) : (
                       <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
@@ -1668,7 +1682,7 @@ export default function AuditModal({
                     </span>
                     {isPicLapFilled ? (
                       <span className="font-semibold text-foreground font-mono truncate text-right ml-1.5 min-w-0">
-                        {itemS1?.picLap}
+                        {hasValue(itemS1?.picLap) ? itemS1!.picLap : itemsS2[0]?.picLap}
                       </span>
                     ) : (
                       <span
@@ -1686,7 +1700,10 @@ export default function AuditModal({
                     </span>
                     {hasTglKeLap ? (
                       <span className="text-muted-foreground font-mono text-right ml-1.5 truncate min-w-0">
-                        {formatDateDdMmYy(itemS1?.tglKeTimLapangan)}
+                        {formatDateDdMmYy(
+                          (hasValue(itemS1?.tglKeTimLapangan) ? itemS1!.tglKeTimLapangan : '') ||
+                          (hasValue(itemsS2[0]?.tglKeTimLapangan) ? itemsS2[0]!.tglKeTimLapangan : '')
+                        )}
                       </span>
                     ) : (
                       <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
@@ -1700,7 +1717,10 @@ export default function AuditModal({
                     </span>
                     {hasTglDiantar ? (
                       <span className="text-amber-600 dark:text-amber-400 font-mono text-right ml-1.5 truncate min-w-0 font-medium">
-                        {formatDateDdMmYy(itemS1?.tglBarangDiantar)}
+                        {formatDateDdMmYy(
+                          (hasValue(itemS1?.tglBarangDiantar) ? itemS1!.tglBarangDiantar : '') ||
+                          (hasValue(itemsS2[0]?.tglBarangDiantar) ? itemsS2[0]!.tglBarangDiantar : '')
+                        )}
                       </span>
                     ) : (
                       <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
@@ -1712,7 +1732,10 @@ export default function AuditModal({
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">TL ke TTB:</span>
                     {hasTglTimLapKePicTtb ? (
                       <span className="text-muted-foreground font-mono text-right ml-1.5 truncate min-w-0">
-                        {formatDateDdMmYy(itemS1?.tglTimLapKePicTtb || itemsS2[0]?.tglTimLapKePicTtb)}
+                        {formatDateDdMmYy(
+                          (hasValue(itemS1?.tglTimLapKePicTtb) ? itemS1!.tglTimLapKePicTtb : '') ||
+                          (hasValue(itemsS2[0]?.tglTimLapKePicTtb) ? itemsS2[0]!.tglTimLapKePicTtb : '')
+                        )}
                       </span>
                     ) : (
                       <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
@@ -1724,7 +1747,10 @@ export default function AuditModal({
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">TTB ke PCH:</span>
                     {hasTglTtbKePch ? (
                       <span className="text-muted-foreground font-mono text-right ml-1.5 truncate min-w-0">
-                        {formatDateDdMmYy(itemS1?.tglTtbKePicPch)}
+                        {formatDateDdMmYy(
+                          (hasValue(itemS1?.tglTtbKePicPch) ? itemS1!.tglTtbKePicPch : '') ||
+                          (hasValue(itemsS2[0]?.tglTtbKePicPch) ? itemsS2[0]!.tglTtbKePicPch : '')
+                        )}
                       </span>
                     ) : (
                       <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
@@ -1769,9 +1795,9 @@ export default function AuditModal({
                 <div className="mt-2.5 space-y-1.5 text-[11px]">
                   <div className="flex items-center justify-between min-w-0">
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">PIC Adm:</span>
-                    {itemS1?.picAdm && itemS1.picAdm !== '-' ? (
+                    {hasValue(itemS1?.picAdm) || hasValue(itemsS2[0]?.picAdm) ? (
                       <span className="font-semibold text-foreground font-mono truncate text-right ml-1.5 min-w-0">
-                        {itemS1.picAdm}
+                        {hasValue(itemS1?.picAdm) ? itemS1!.picAdm : itemsS2[0]?.picAdm}
                       </span>
                     ) : (
                       <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
@@ -1784,9 +1810,14 @@ export default function AuditModal({
                     {hasValidSpp ? (
                       <span
                         className="text-emerald-600 dark:text-emerald-400 font-mono font-bold truncate text-right ml-1.5 min-w-0"
-                        title={itemS1?.noSpp || '-'}
+                        title={
+                          (hasValue(itemS1?.noSpp) ? itemS1!.noSpp : '') ||
+                          (hasValue(itemsS2[0]?.noSpp) ? itemsS2[0]!.noSpp : '') ||
+                          '-'
+                        }
                       >
-                        {itemS1?.noSpp}
+                        {(hasValue(itemS1?.noSpp) ? itemS1!.noSpp : '') ||
+                         (hasValue(itemsS2[0]?.noSpp) ? itemsS2[0]!.noSpp : '')}
                       </span>
                     ) : (
                       <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
@@ -1796,9 +1827,12 @@ export default function AuditModal({
                   </div>
                   <div className="flex items-center justify-between min-w-0">
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">Tgl SPP:</span>
-                    {itemS1?.tglInputSpp && itemS1.tglInputSpp !== '-' ? (
+                    {hasValue(itemS1?.tglInputSpp) || hasValue(itemsS2[0]?.tglInputSpp) ? (
                       <span className="text-muted-foreground font-mono text-right ml-1.5 truncate min-w-0">
-                        {formatDateDdMmYy(itemS1.tglInputSpp)}
+                        {formatDateDdMmYy(
+                          (hasValue(itemS1?.tglInputSpp) ? itemS1!.tglInputSpp : '') ||
+                          (hasValue(itemsS2[0]?.tglInputSpp) ? itemsS2[0]!.tglInputSpp : '')
+                        )}
                       </span>
                     ) : (
                       <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">Belum Terbit</span>
@@ -1806,9 +1840,12 @@ export default function AuditModal({
                   </div>
                   <div className="flex items-center justify-between min-w-0">
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">Ke Keuangan:</span>
-                    {itemS1?.tglKeKeuangan && itemS1.tglKeKeuangan !== '-' ? (
+                    {hasValue(itemS1?.tglKeKeuangan) || hasValue(itemsS2[0]?.tglKeKeuangan) ? (
                       <span className="text-muted-foreground font-mono text-right ml-1.5 truncate min-w-0">
-                        {formatDateDdMmYy(itemS1.tglKeKeuangan)}
+                        {formatDateDdMmYy(
+                          (hasValue(itemS1?.tglKeKeuangan) ? itemS1!.tglKeKeuangan : '') ||
+                          (hasValue(itemsS2[0]?.tglKeKeuangan) ? itemsS2[0]!.tglKeKeuangan : '')
+                        )}
                       </span>
                     ) : (
                       <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
@@ -1819,7 +1856,7 @@ export default function AuditModal({
                 </div>
               </div>
               <div className="pt-2 border-t border-border min-w-0">
-                {hasValidSpp && itemS1?.tglKeKeuangan ? (
+                {hasValidSpp && (itemS1?.tglKeKeuangan || itemsS2[0]?.tglKeKeuangan) ? (
                   <span className="inline-flex items-center justify-center gap-1 text-[10px] font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-md border border-emerald-500/20 w-full truncate font-semibold min-w-0">
                     <Check className="size-3 text-emerald-600 dark:text-emerald-400" />
                     Selesai di Keuangan
@@ -1829,7 +1866,7 @@ export default function AuditModal({
                     <Clock className="size-3 text-emerald-600 dark:text-emerald-400" />
                     Proses SPP Kas
                   </span>
-                ) : itemS1?.tglKeKeuangan || itemS1?.tglKeAdmPch || (itemS1?.picAdm && itemS1.picAdm !== '-') ? (
+                ) : itemS1?.tglKeKeuangan || itemsS2[0]?.tglKeKeuangan || itemS1?.tglKeAdmPch || hasValue(itemS1?.picAdm) || hasValue(itemsS2[0]?.picAdm) ? (
                   <span className="inline-flex items-center justify-center gap-1 text-[10px] font-mono text-cyan-700 dark:text-cyan-400 bg-cyan-500/10 px-2 py-1 rounded-md border border-cyan-500/20 w-full truncate font-semibold min-w-0">
                     <Clock className="size-3 text-cyan-600 dark:text-cyan-400" />
                     Proses ADM Purchasing

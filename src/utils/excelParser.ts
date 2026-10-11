@@ -1,7 +1,7 @@
 import * as XLSX from 'xlsx';
 import { ProcurementItem, ArmadaItem, StatusTone } from '@/types/procurement';
 import { formatDateDdMmYyDash } from '@/utils/formatDate';
-import { evaluateTransactionStatus } from '@/utils/statusWorkflow';
+import { evaluateTransactionStatus, hasValue } from '@/utils/statusWorkflow';
 import { enrichProcurementAndArmada } from '@/utils/dataMerger';
 
 // Helper: Convert Excel date / serial date number to YYYY-MM-DD string
@@ -54,8 +54,16 @@ export const buildColumnMap = (headerRow: any[]): Record<string, number> => {
   const map: Record<string, number> = {};
   if (!headerRow) return map;
   headerRow.forEach((cell, idx) => {
-    const h = String(cell || '').trim().toUpperCase();
-    if (h) map[h] = idx;
+    const raw = String(cell || '').trim().toUpperCase();
+    if (raw) {
+      map[raw] = idx;
+      const clean = raw.replace(/\s+/g, ' ');
+      map[clean] = idx;
+      const alphaNum = raw.replace(/[^A-Z0-9]/g, '');
+      if (alphaNum && map[alphaNum] === undefined) {
+        map[alphaNum] = idx;
+      }
+    }
   });
   return map;
 };
@@ -63,10 +71,16 @@ export const buildColumnMap = (headerRow: any[]): Record<string, number> => {
 // Helper: Find column index by exact or partial header match
 export const findCol = (colMap: Record<string, number>, ...patterns: string[]): number => {
   for (const pattern of patterns) {
-    const pUpper = pattern.toUpperCase();
+    const pUpper = pattern.toUpperCase().trim();
     if (colMap[pUpper] !== undefined) return colMap[pUpper];
+    const pClean = pUpper.replace(/\s+/g, ' ');
+    if (colMap[pClean] !== undefined) return colMap[pClean];
+    const pAlpha = pUpper.replace(/[^A-Z0-9]/g, '');
+    if (pAlpha && colMap[pAlpha] !== undefined) return colMap[pAlpha];
     for (const [key, idx] of Object.entries(colMap)) {
-      if (key.includes(pUpper)) return idx;
+      if (key.includes(pUpper) || key.includes(pClean)) return idx;
+      const kAlpha = key.replace(/[^A-Z0-9]/g, '');
+      if (pAlpha && kAlpha.includes(pAlpha)) return idx;
     }
   }
   return -1;
@@ -177,31 +191,31 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
     }
 
     const colMap = buildColumnMap(json[headerRowIdx] || []);
-    const cPicPch    = findCol(colMap, 'PIC PCH');
+    const cPicPch    = findCol(colMap, 'PIC PCH', 'PIC PURCHASING', 'PURCHASING');
     const cPT        = findCol(colMap, 'PT');
     const cDeptArm   = findCol(colMap, 'DEPT/ ARMADA', 'DEPT/ARMADA', 'ARMADA');
-    const cFPB       = findCol(colMap, 'NO. FPB');
-    const cPO        = findCol(colMap, 'NO. PO');
-    const cTglPO     = findCol(colMap, 'TANGGAL  INPUT PO', 'TANGGAL INPUT PO', 'TGL PO');
-    const cDelivery  = findCol(colMap, 'DELIVERY TIME', 'DELIVERY');
-    const cFSTB      = findCol(colMap, 'NO. FSTB');
-    const cTglFSTB   = findCol(colMap, 'TANGGAL INPUT FSTB', 'TGL FSTB');
-    const cTglPicTtb = findCol(colMap, 'TANGGAL KE PIC TTB');
-    const cWaktuPicTtb = findCol(colMap, 'WAKTU KE PIC TTB');
+    const cFPB       = findCol(colMap, 'NO. FPB', 'NO FPB', 'NOMOR FPB', 'FPB');
+    const cPO        = findCol(colMap, 'NO. PO', 'NO PO', 'NOMOR PO', 'PO');
+    const cTglPO     = findCol(colMap, 'TANGGAL  INPUT PO', 'TANGGAL INPUT PO', 'TGL INPUT PO', 'TANGGAL PO', 'TGL PO');
+    const cDelivery  = findCol(colMap, 'DELIVERY TIME', 'DELIVERY', 'WAKTU DELIVERY', 'WAKTU PROSES');
+    const cFSTB      = findCol(colMap, 'NO. FSTB', 'NO FSTB', 'NOMOR FSTB', 'FSTB');
+    const cTglFSTB   = findCol(colMap, 'TANGGAL INPUT FSTB', 'TGL INPUT FSTB', 'TANGGAL FSTB', 'TGL FSTB');
+    const cTglPicTtb = findCol(colMap, 'TANGGAL KE PIC TTB', 'TGL KE PIC TTB', 'KE PIC TTB');
+    const cWaktuPicTtb = findCol(colMap, 'WAKTU KE PIC TTB', 'JAM KE PIC TTB', 'WAKTU PIC TTB');
     const cKet1      = findCol(colMap, 'KETERANGAN');
-    const cPicTtb    = findCol(colMap, 'PIC TTB');
-    const cTTB       = findCol(colMap, 'TTB');
-    const cTglTTB    = findCol(colMap, 'TANGGAL  INPUT TTB', 'TANGGAL INPUT TTB');
-    const cTglTimLap = findCol(colMap, 'TANGGAL KE TIM LAPANGAN');
-    const cPicLap    = findCol(colMap, 'PIC LAPANGAN');
-    const cTglDiantar = findCol(colMap, 'TANGGAL BARANG DI DIANTAR');
-    const cTglTimLapKePicTtb = findCol(colMap, 'TANGGAL TIM LAP KE PIC TTB');
-    const cTglTtbPch = findCol(colMap, 'TANGGAL TTB KE PIC PCH');
-    const cTglAdmPch = findCol(colMap, 'TANGGAL KE ADM PCH');
-    const cPicAdm    = findCol(colMap, 'PIC ADM PCH');
-    const cSPP       = findCol(colMap, 'NO. SPP');
-    const cTglSPP    = findCol(colMap, 'TANGGAL INPUT SPP');
-    const cTglKeu    = findCol(colMap, 'TANGGAL KE KEUANGAN');
+    const cPicTtb    = findCol(colMap, 'PIC TTB', 'LOGISTIK TTB', 'PIC_TTB');
+    const cTTB       = findCol(colMap, 'NO. TTB', 'NO TTB', 'NOMOR TTB', 'TTB');
+    const cTglTTB    = findCol(colMap, 'TANGGAL  INPUT TTB', 'TANGGAL INPUT TTB', 'TGL INPUT TTB', 'TANGGAL TTB', 'TGL TTB');
+    const cTglTimLap = findCol(colMap, 'TANGGAL KE TIM LAPANGAN', 'TGL KE TIM LAPANGAN', 'TANGGAL KE LAPANGAN', 'TGL KE LAPANGAN', 'KE TIM LAPANGAN');
+    const cPicLap    = findCol(colMap, 'PIC LAPANGAN', 'PIC TIM LAPANGAN', 'TIM LAPANGAN', 'PIC TL');
+    const cTglDiantar = findCol(colMap, 'TANGGAL BARANG DI DIANTAR', 'TANGGAL BARANG DIANTAR', 'TGL BARANG DIANTAR', 'TANGGAL DIANTAR', 'TGL DIANTAR');
+    const cTglTimLapKePicTtb = findCol(colMap, 'TANGGAL TIM LAP KE PIC TTB', 'TGL TIM LAP KE PIC TTB', 'TL KE TTB');
+    const cTglTtbPch = findCol(colMap, 'TANGGAL TTB KE PIC PCH', 'TGL TTB KE PIC PCH', 'TTB KE PCH');
+    const cTglAdmPch = findCol(colMap, 'TANGGAL KE ADM PCH', 'TGL KE ADM PCH', 'KE ADM PCH');
+    const cPicAdm    = findCol(colMap, 'PIC ADM PCH', 'PIC ADM', 'ADM PCH');
+    const cSPP       = findCol(colMap, 'NO. SPP', 'NO SPP', 'NOMOR SPP', 'SPP');
+    const cTglSPP    = findCol(colMap, 'TANGGAL INPUT SPP', 'TGL INPUT SPP', 'TANGGAL SPP', 'TGL SPP');
+    const cTglKeu    = findCol(colMap, 'TANGGAL KE KEUANGAN', 'TGL KE KEUANGAN', 'KE KEUANGAN', 'TGL KEU');
 
     const lapseCols: number[] = [];
     (json[headerRowIdx] || []).forEach((cell: any, idx: number) => {
@@ -310,10 +324,66 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
       allProcRecords.push(record);
 
       if (po && po !== '-') {
-        procByPo.set(normalizeKey(po), record);
+        const normPo = normalizeKey(po);
+        if (procByPo.has(normPo)) {
+          const target = procByPo.get(normPo)!;
+          if (!hasValue(target.fpb) && hasValue(record.fpb)) target.fpb = record.fpb;
+          if (!hasValue(target.tglPo) && hasValue(record.tglPo)) target.tglPo = record.tglPo;
+          if (!hasValue(target.picPch) && hasValue(record.picPch)) target.picPch = record.picPch;
+          if (!hasValue(target.deliveryTime) && hasValue(record.deliveryTime)) target.deliveryTime = record.deliveryTime;
+          if (!hasValue(target.fstb) && hasValue(record.fstb)) target.fstb = record.fstb;
+          if (!hasValue(target.tglFstb) && hasValue(record.tglFstb)) target.tglFstb = record.tglFstb;
+          if (!hasValue(target.picTtb) && hasValue(record.picTtb)) target.picTtb = record.picTtb;
+          if (!hasValue(target.ttb) && hasValue(record.ttb)) target.ttb = record.ttb;
+          if (!hasValue(target.tglTtb) && hasValue(record.tglTtb)) target.tglTtb = record.tglTtb;
+          if (!hasValue(target.tglKePicTtb) && hasValue(record.tglKePicTtb)) target.tglKePicTtb = record.tglKePicTtb;
+          if (!hasValue(target.tglKeTimLap) && hasValue(record.tglKeTimLap)) target.tglKeTimLap = record.tglKeTimLap;
+          if (!hasValue(target.picLap) && hasValue(record.picLap)) target.picLap = record.picLap;
+          if (!hasValue(target.tglDiantar) && hasValue(record.tglDiantar)) target.tglDiantar = record.tglDiantar;
+          if (!hasValue(target.tglTimLapKePicTtb) && hasValue(record.tglTimLapKePicTtb)) target.tglTimLapKePicTtb = record.tglTimLapKePicTtb;
+          if (!hasValue(target.tglTtbKePicPch) && hasValue(record.tglTtbKePicPch)) target.tglTtbKePicPch = record.tglTtbKePicPch;
+          if (!hasValue(target.tglKeAdmPch) && hasValue(record.tglKeAdmPch)) target.tglKeAdmPch = record.tglKeAdmPch;
+          if (!hasValue(target.picAdm) && hasValue(record.picAdm)) target.picAdm = record.picAdm;
+          if (!hasValue(target.spp) && hasValue(record.spp)) target.spp = record.spp;
+          if (!hasValue(target.tglSpp) && hasValue(record.tglSpp)) target.tglSpp = record.tglSpp;
+          if (!hasValue(target.tglKeu) && hasValue(record.tglKeu)) target.tglKeu = record.tglKeu;
+          if (!hasValue(target.pt) && hasValue(record.pt)) target.pt = record.pt;
+          if (!hasValue(target.armada) && hasValue(record.armada)) target.armada = record.armada;
+          if (!hasValue(target.ket1) && hasValue(record.ket1)) target.ket1 = record.ket1;
+        } else {
+          procByPo.set(normPo, { ...record });
+        }
       }
-      if (fpb && !procByFpb.has(normalizeKey(fpb))) {
-        procByFpb.set(normalizeKey(fpb), record);
+      if (fpb && fpb !== '-') {
+        const normFpb = normalizeKey(fpb);
+        if (procByFpb.has(normFpb)) {
+          const target = procByFpb.get(normFpb)!;
+          if (!hasValue(target.po) && hasValue(record.po)) target.po = record.po;
+          if (!hasValue(target.tglPo) && hasValue(record.tglPo)) target.tglPo = record.tglPo;
+          if (!hasValue(target.picPch) && hasValue(record.picPch)) target.picPch = record.picPch;
+          if (!hasValue(target.deliveryTime) && hasValue(record.deliveryTime)) target.deliveryTime = record.deliveryTime;
+          if (!hasValue(target.fstb) && hasValue(record.fstb)) target.fstb = record.fstb;
+          if (!hasValue(target.tglFstb) && hasValue(record.tglFstb)) target.tglFstb = record.tglFstb;
+          if (!hasValue(target.picTtb) && hasValue(record.picTtb)) target.picTtb = record.picTtb;
+          if (!hasValue(target.ttb) && hasValue(record.ttb)) target.ttb = record.ttb;
+          if (!hasValue(target.tglTtb) && hasValue(record.tglTtb)) target.tglTtb = record.tglTtb;
+          if (!hasValue(target.tglKePicTtb) && hasValue(record.tglKePicTtb)) target.tglKePicTtb = record.tglKePicTtb;
+          if (!hasValue(target.tglKeTimLap) && hasValue(record.tglKeTimLap)) target.tglKeTimLap = record.tglKeTimLap;
+          if (!hasValue(target.picLap) && hasValue(record.picLap)) target.picLap = record.picLap;
+          if (!hasValue(target.tglDiantar) && hasValue(record.tglDiantar)) target.tglDiantar = record.tglDiantar;
+          if (!hasValue(target.tglTimLapKePicTtb) && hasValue(record.tglTimLapKePicTtb)) target.tglTimLapKePicTtb = record.tglTimLapKePicTtb;
+          if (!hasValue(target.tglTtbKePicPch) && hasValue(record.tglTtbKePicPch)) target.tglTtbKePicPch = record.tglTtbKePicPch;
+          if (!hasValue(target.tglKeAdmPch) && hasValue(record.tglKeAdmPch)) target.tglKeAdmPch = record.tglKeAdmPch;
+          if (!hasValue(target.picAdm) && hasValue(record.picAdm)) target.picAdm = record.picAdm;
+          if (!hasValue(target.spp) && hasValue(record.spp)) target.spp = record.spp;
+          if (!hasValue(target.tglSpp) && hasValue(record.tglSpp)) target.tglSpp = record.tglSpp;
+          if (!hasValue(target.tglKeu) && hasValue(record.tglKeu)) target.tglKeu = record.tglKeu;
+          if (!hasValue(target.pt) && hasValue(record.pt)) target.pt = record.pt;
+          if (!hasValue(target.armada) && hasValue(record.armada)) target.armada = record.armada;
+          if (!hasValue(target.ket1) && hasValue(record.ket1)) target.ket1 = record.ket1;
+        } else {
+          procByFpb.set(normFpb, { ...record });
+        }
       }
     }
   }
@@ -434,14 +504,14 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
     const colMap = buildColumnMap(json[headerRowIdx] || []);
     const dataStartRow = headerRowIdx + 1;
 
-    const aFPB       = findCol(colMap, 'NO. FPB');
-    const aTglFPB    = findCol(colMap, 'TGL FPB');
-    const aPO        = findCol(colMap, 'NO. PO');
-    const aTglPO     = findCol(colMap, 'TGL PO');
-    const aFSTB      = findCol(colMap, 'NO. FSTB');
-    const aTglFSTB   = findCol(colMap, 'TGL FSTB');
-    const aTTB       = findCol(colMap, 'NO. TTB');
-    const aTglTTB    = findCol(colMap, 'TGL TTB');
+    const aFPB       = findCol(colMap, 'NO. FPB', 'NO FPB', 'NOMOR FPB', 'FPB');
+    const aTglFPB    = findCol(colMap, 'TGL FPB', 'TANGGAL FPB', 'TGL INPUT FPB', 'TANGGAL INPUT FPB');
+    const aPO        = findCol(colMap, 'NO. PO', 'NO PO', 'NOMOR PO', 'PO');
+    const aTglPO     = findCol(colMap, 'TGL PO', 'TANGGAL PO', 'TGL INPUT PO', 'TANGGAL INPUT PO');
+    const aFSTB      = findCol(colMap, 'NO. FSTB', 'NO FSTB', 'NOMOR FSTB', 'FSTB');
+    const aTglFSTB   = findCol(colMap, 'TGL FSTB', 'TANGGAL FSTB', 'TGL INPUT FSTB', 'TANGGAL INPUT FSTB');
+    const aTTB       = findCol(colMap, 'NO. TTB', 'NO TTB', 'NOMOR TTB', 'TTB');
+    const aTglTTB    = findCol(colMap, 'TGL TTB', 'TANGGAL TTB', 'TGL INPUT TTB', 'TANGGAL INPUT TTB');
     const aKode      = findCol(colMap, 'KODE BARANG');
     const aNama      = findCol(colMap, 'NAMA BARANG');
     const aJmlFPB    = findCol(colMap, 'JML FPB', 'QTY FPB', 'JUMLAH FPB', 'JML. FPB', 'QTY. FPB');
@@ -551,15 +621,15 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
         tglFpb = cfMatch.tglFpb;
       }
 
-      const picPch = pMatch?.picPch || '-';
-      const picTtb = pMatch?.picTtb && pMatch.picTtb.trim().toLowerCase() !== 'logistik' ? pMatch.picTtb : '-';
-      const picLap = pMatch?.picLap || '-';
-      const picAdm = pMatch?.picAdm || '-';
-      const deliveryTime = pMatch?.deliveryTime || '';
-      const noFstb = fstbMla || pMatch?.fstb || '';
-      const tglInputFstb = tglFstbMla || pMatch?.tglFstb || '';
-      const noTtb = ttbMla || pMatch?.ttb || '';
-      const tglInputTtb = tglTtbMla || pMatch?.tglTtb || '';
+      const picPch = hasValue(pMatch?.picPch) ? pMatch!.picPch : '-';
+      const picTtb = hasValue(pMatch?.picTtb) && pMatch!.picTtb.trim().toLowerCase() !== 'logistik' ? pMatch!.picTtb : '-';
+      const picLap = hasValue(pMatch?.picLap) ? pMatch!.picLap : '-';
+      const picAdm = hasValue(pMatch?.picAdm) ? pMatch!.picAdm : '-';
+      const deliveryTime = hasValue(pMatch?.deliveryTime) ? pMatch!.deliveryTime : (hasValue(waktuProses) ? waktuProses : '');
+      const noFstb = hasValue(pMatch?.fstb) ? pMatch!.fstb : (hasValue(fstbMla) ? fstbMla : '');
+      const tglInputFstb = hasValue(pMatch?.tglFstb) ? pMatch!.tglFstb : (hasValue(tglFstbMla) ? tglFstbMla : '');
+      const noTtb = hasValue(pMatch?.ttb) ? pMatch!.ttb : (hasValue(ttbMla) ? ttbMla : '');
+      const tglInputTtb = hasValue(pMatch?.tglTtb) ? pMatch!.tglTtb : (hasValue(tglTtbMla) ? tglTtbMla : '');
       const tglKePicTtb = pMatch?.tglKePicTtb || '';
       const tglKeTimLapangan = pMatch?.tglKeTimLap || '';
       const tglBarangDiantar = pMatch?.tglDiantar || '';
@@ -728,9 +798,15 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
         picLap,
         picAdm,
         deliveryTime,
+        tglKePicTtb,
+        tglKeTimLapangan,
+        tglBarangDiantar,
         tglTimLapKePicTtb,
+        tglTtbKePicPch,
+        tglKeAdmPch,
         tglKeKeuangan,
         noSpp,
+        tglInputSpp,
         statusBadge,
         statusTone,
         lapse,
