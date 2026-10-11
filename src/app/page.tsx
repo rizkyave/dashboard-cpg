@@ -1060,8 +1060,12 @@ export default function DashboardPage() {
           {activeTab === 'analytics' && (
             <AnalyticsTab
               items={filteredProcurement}
+              armadaItems={armadaData}
               onSyncSheets={handleSyncGoogleSheets}
               isSyncingSheets={isSyncingSheets}
+              onOpenAudit={handleOpenAudit}
+              initialEntity={selectedEntity}
+              showToast={showToast}
             />
           )}
 

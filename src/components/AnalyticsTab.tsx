@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   TrendingUp,
   Award,
@@ -26,10 +26,23 @@ import {
   Target,
   ChevronDown,
   RotateCcw,
+  Ship,
+  Anchor,
+  Boxes,
+  ExternalLink,
+  Wrench,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  ArrowUpDown,
+  PieChart,
 } from 'lucide-react';
-import { ProcurementItem } from '@/types/procurement';
-import { extractDateInfo } from '@/utils/formatDate';
+import { ProcurementItem, ArmadaItem } from '@/types/procurement';
+import { extractDateInfo, formatDateDdMmYy } from '@/utils/formatDate';
 import { LapsePolarChart, PicWorkloadChart } from './Charts';
+import WorkflowTrafficLight from './WorkflowTrafficLight';
 
 const MONTH_OPTIONS: Array<{ value: string; label: string }> = [
   { value: 'ALL', label: 'Semua Bulan' },
@@ -49,11 +62,15 @@ const MONTH_OPTIONS: Array<{ value: string; label: string }> = [
 
 interface AnalyticsTabProps {
   items: ProcurementItem[];
+  armadaItems?: ArmadaItem[];
   onSyncSheets?: () => Promise<void> | void;
   isSyncingSheets?: boolean;
+  onOpenAudit?: (fpb: string, po?: string) => void;
+  initialEntity?: string;
+  showToast?: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
 }
 
-type SubTabType = 'overview' | 'personnel' | 'ranking' | 'pipeline' | 'recommendations' | 'swot' | 'charts';
+type SubTabType = 'overview' | 'armada' | 'personnel' | 'ranking' | 'pipeline' | 'recommendations' | 'swot' | 'charts';
 type DivisionFilter = 'ALL' | 'PURCHASING' | 'TTB' | 'LAPANGAN' | 'ADM' | 'MASTER_DATA' | 'GUDANG';
 
 
@@ -82,10 +99,34 @@ function parseDateNum(val: any): number | null {
   return null;
 }
 
-export default function AnalyticsTab({ items, onSyncSheets, isSyncingSheets }: AnalyticsTabProps) {
+export default function AnalyticsTab({
+  items,
+  armadaItems = [],
+  onSyncSheets,
+  isSyncingSheets,
+  onOpenAudit,
+  initialEntity,
+  showToast,
+}: AnalyticsTabProps) {
   const [activeSubTab, setActiveSubTab] = useState<SubTabType>('overview');
   const [divFilter, setDivFilter] = useState<DivisionFilter>('ALL');
   const [searchPic, setSearchPic] = useState<string>('');
+
+  // Fleet / Armada specific filter states
+  const [selectedFleetArmada, setSelectedFleetArmada] = useState<string>('ALL');
+  const [fleetEntityFilter, setFleetEntityFilter] = useState<string>(initialEntity || 'ALL');
+  const [fleetStatusFilter, setFleetStatusFilter] = useState<'ALL' | 'LENGKAP' | 'PARSIAL' | 'BACKLOG'>('ALL');
+  const [fleetSearchTerm, setFleetSearchTerm] = useState<string>('');
+  const [fleetSortBy, setFleetSortBy] = useState<'demand' | 'backlog' | 'fulfillment' | 'name'>('demand');
+  const [fleetTablePage, setFleetTablePage] = useState<number>(1);
+  const fleetTablePageSize = 12;
+
+  // Sync initialEntity if changed
+  useEffect(() => {
+    if (initialEntity && initialEntity !== 'ALL') {
+      setFleetEntityFilter(initialEntity);
+    }
+  }, [initialEntity]);
 
   // Date Filter States (Tahun, Bulan, dan Tanggal)
   const [selectedYear, setSelectedYear] = useState<string>('ALL');
@@ -159,6 +200,318 @@ export default function AnalyticsTab({ items, onSyncSheets, isSyncingSheets }: A
     }
     return 'Semua (Juni – Oktober 2026)';
   }, [selectedYear, selectedMonth, startDate, endDate]);
+
+  // ─────────────────────────────────────────────────────────────
+  // FLEET / ARMADA ANALYTICS LOGIC & COMPUTATIONS
+  // ─────────────────────────────────────────────────────────────
+
+  // Reset pagination when fleet filters change
+  useEffect(() => {
+    setFleetTablePage(1);
+  }, [
+    selectedFleetArmada,
+    fleetEntityFilter,
+    fleetStatusFilter,
+    fleetSearchTerm,
+    fleetSortBy,
+    selectedYear,
+    selectedMonth,
+    startDate,
+    endDate,
+  ]);
+
+  // 1. Raw fleet dataset filtered by global period/date
+  const dateFilteredFleetItems = useMemo(() => {
+    let rawList: ArmadaItem[] = [];
+    if (armadaItems && armadaItems.length > 0) {
+      rawList = armadaItems;
+    } else {
+      // Graceful fallback from procurement items if armada sheet is not loaded
+      rawList = items
+        .filter((it) => Boolean(it.deptArmada))
+        .map((it) => ({
+          fpb: it.fpb,
+          armada: it.deptArmada || 'Armada CPG',
+          workOrderNo: it.workOrderNo,
+          item: it.item,
+          qtyFPB: it.qtyFPB || 1,
+          qtyFSTB:
+            it.qtyFSTB ||
+            (it.statusBadge?.includes('SELESAI') || it.statusBadge?.includes('LENGKAP') ? it.qtyFPB || 1 : 0),
+          selisih: it.selisih || 0,
+          status: it.statusBadge || 'TERDATA',
+          entity: it.entity,
+          tglFpb: it.tglFpb || it.date,
+          noPo: it.po,
+          tglPo: it.tglPo || it.date,
+          satuan: it.satuan || 'UNIT',
+          picPch: it.picPch,
+          kategori: it.kategori || 'Suku Cadang',
+          priority: it.priority,
+          waktuProses: it.waktuProses,
+        }));
+    }
+
+    if (!isFilteredByDate) {
+      return rawList;
+    }
+
+    const startTs = startDate ? new Date(`${startDate}T00:00:00`).getTime() : null;
+    const endTs = endDate ? new Date(`${endDate}T23:59:59`).getTime() : null;
+
+    return rawList.filter((it) => {
+      const dateInfo = extractDateInfo(it.tglPo || it.tglFpb || it.tglFstb);
+      if (selectedYear !== 'ALL' && dateInfo.year && dateInfo.year !== selectedYear) return false;
+      if (selectedMonth !== 'ALL' && dateInfo.month && dateInfo.month !== selectedMonth) return false;
+      if (startTs && dateInfo.timestamp > 0 && dateInfo.timestamp < startTs) return false;
+      if (endTs && dateInfo.timestamp > 0 && dateInfo.timestamp > endTs) return false;
+      return true;
+    });
+  }, [armadaItems, items, isFilteredByDate, selectedYear, selectedMonth, startDate, endDate]);
+
+  // 2. Unique armada list for dropdown
+  const availableArmadaList = useMemo(() => {
+    const map = new Map<string, { name: string; entity: string; count: number }>();
+    dateFilteredFleetItems.forEach((it) => {
+      const name = (it.armada || '').trim();
+      if (!name) return;
+      const prev = map.get(name);
+      if (prev) {
+        prev.count++;
+      } else {
+        map.set(name, { name, entity: it.entity || 'CPG', count: 1 });
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  }, [dateFilteredFleetItems]);
+
+  // 3. Unique entities across fleet
+  const uniqueFleetEntities = useMemo(() => {
+    const set = new Set<string>();
+    dateFilteredFleetItems.forEach((it) => {
+      if (it.entity) set.add(it.entity.trim().toUpperCase());
+    });
+    return Array.from(set).sort();
+  }, [dateFilteredFleetItems]);
+
+  // 4. Fleet items filtered by fleet controls
+  const fleetFilteredItems = useMemo(() => {
+    return dateFilteredFleetItems.filter((it) => {
+      // Armada Filter
+      if (selectedFleetArmada !== 'ALL' && (it.armada || '').trim() !== selectedFleetArmada) {
+        return false;
+      }
+      // Entity Filter
+      if (fleetEntityFilter !== 'ALL' && it.entity?.trim().toUpperCase() !== fleetEntityFilter) {
+        return false;
+      }
+      // Status Filter
+      if (fleetStatusFilter === 'LENGKAP') {
+        const isComp =
+          (it.selisih === 0 && it.qtyFSTB > 0) ||
+          it.status?.toUpperCase().includes('LENGKAP') ||
+          it.status?.toUpperCase().includes('SELESAI');
+        if (!isComp) return false;
+      } else if (fleetStatusFilter === 'PARSIAL') {
+        const isPart = it.status?.toUpperCase().includes('PARSIAL') || (it.qtyFSTB > 0 && it.selisih > 0);
+        if (!isPart) return false;
+      } else if (fleetStatusFilter === 'BACKLOG') {
+        const isBacklog = it.selisih > 0 || it.qtyFSTB === 0;
+        if (!isBacklog) return false;
+      }
+      // Search Keyword
+      if (fleetSearchTerm.trim() !== '') {
+        const q = fleetSearchTerm.toLowerCase().trim();
+        const match =
+          it.armada?.toLowerCase().includes(q) ||
+          it.item?.toLowerCase().includes(q) ||
+          it.fpb?.toLowerCase().includes(q) ||
+          it.noPo?.toLowerCase().includes(q) ||
+          it.workOrderNo?.toLowerCase().includes(q) ||
+          it.keterangan?.toLowerCase().includes(q);
+        if (!match) return false;
+      }
+      return true;
+    });
+  }, [dateFilteredFleetItems, selectedFleetArmada, fleetEntityFilter, fleetStatusFilter, fleetSearchTerm]);
+
+  // 5. Fleet summary & per-vessel aggregation
+  const fleetSummary = useMemo(() => {
+    const list = fleetFilteredItems;
+    const totalRecords = list.length;
+    const uniqueFpbs = new Set<string>();
+    const uniqueWos = new Set<string>();
+    const uniqueVessels = new Set<string>();
+
+    let totalQtyFPB = 0;
+    let totalQtyFSTB = 0;
+    let totalBacklogQty = 0;
+    let completeCount = 0;
+    let partialCount = 0;
+    let backlogCount = 0;
+
+    const vesselMap: Record<
+      string,
+      {
+        name: string;
+        entity: string;
+        fpbs: Set<string>;
+        wos: Set<string>;
+        itemCount: number;
+        qtyFPB: number;
+        qtyFSTB: number;
+        backlogQty: number;
+        completeItems: number;
+        partialItems: number;
+        backlogItems: number;
+        itemFrequency: Record<string, { name: string; count: number; totalQty: number; satuan: string }>;
+        categories: Record<string, number>;
+      }
+    > = {};
+
+    list.forEach((it) => {
+      const vName = (it.armada || 'Unassigned').trim();
+      uniqueVessels.add(vName);
+      if (it.fpb) uniqueFpbs.add(it.fpb.trim());
+      if (it.workOrderNo) uniqueWos.add(it.workOrderNo.trim());
+
+      const qFpb = Number(it.qtyFPB) || 0;
+      const qFstb = Number(it.qtyFSTB) || 0;
+      const qSel = Number(it.selisih) || Math.max(0, qFpb - qFstb);
+
+      totalQtyFPB += qFpb;
+      totalQtyFSTB += qFstb;
+      totalBacklogQty += qSel;
+
+      const isComp =
+        (qSel === 0 && qFstb > 0) ||
+        it.status?.toUpperCase().includes('LENGKAP') ||
+        it.status?.toUpperCase().includes('SELESAI');
+      const isPart = it.status?.toUpperCase().includes('PARSIAL') || (qFstb > 0 && qSel > 0);
+
+      if (isComp) completeCount++;
+      else if (isPart) partialCount++;
+      else backlogCount++;
+
+      if (!vesselMap[vName]) {
+        vesselMap[vName] = {
+          name: vName,
+          entity: it.entity || 'CPG',
+          fpbs: new Set(),
+          wos: new Set(),
+          itemCount: 0,
+          qtyFPB: 0,
+          qtyFSTB: 0,
+          backlogQty: 0,
+          completeItems: 0,
+          partialItems: 0,
+          backlogItems: 0,
+          itemFrequency: {},
+          categories: {},
+        };
+      }
+
+      const v = vesselMap[vName];
+      if (it.fpb) v.fpbs.add(it.fpb.trim());
+      if (it.workOrderNo) v.wos.add(it.workOrderNo.trim());
+      v.itemCount++;
+      v.qtyFPB += qFpb;
+      v.qtyFSTB += qFstb;
+      v.backlogQty += qSel;
+      if (isComp) v.completeItems++;
+      else if (isPart) v.partialItems++;
+      else v.backlogItems++;
+
+      const cleanItemName = (it.item || 'Barang').trim();
+      if (!v.itemFrequency[cleanItemName]) {
+        v.itemFrequency[cleanItemName] = {
+          name: cleanItemName,
+          count: 0,
+          totalQty: 0,
+          satuan: it.satuan || 'UNIT',
+        };
+      }
+      v.itemFrequency[cleanItemName].count++;
+      v.itemFrequency[cleanItemName].totalQty += qFpb;
+
+      const kat = (it.kategori || 'Umum').trim();
+      v.categories[kat] = (v.categories[kat] || 0) + 1;
+    });
+
+    const fulfillmentRate =
+      totalQtyFPB > 0 ? Math.min(100, Math.round((totalQtyFSTB / totalQtyFPB) * 100)) : 100;
+
+    const vesselList = Object.values(vesselMap).map((v) => {
+      const vFulfillRate = v.qtyFPB > 0 ? Math.min(100, Math.round((v.qtyFSTB / v.qtyFPB) * 100)) : 100;
+      const topItems = Object.values(v.itemFrequency).sort(
+        (a, b) => b.count - a.count || b.totalQty - a.totalQty
+      );
+      return {
+        ...v,
+        fpbCount: v.fpbs.size,
+        woCount: v.wos.size,
+        fulfillmentRate: vFulfillRate,
+        topItems,
+      };
+    });
+
+    vesselList.sort((a, b) => {
+      if (fleetSortBy === 'demand') return b.fpbCount - a.fpbCount || b.qtyFPB - a.qtyFPB;
+      if (fleetSortBy === 'backlog') return b.backlogQty - a.backlogQty;
+      if (fleetSortBy === 'fulfillment') return b.fulfillmentRate - a.fulfillmentRate;
+      return a.name.localeCompare(b.name);
+    });
+
+    const topVessel = vesselList.length > 0 ? vesselList[0] : null;
+
+    const globalItemMap: Record<
+      string,
+      { name: string; count: number; totalQty: number; vessels: Set<string>; satuan: string }
+    > = {};
+    list.forEach((it) => {
+      const name = (it.item || '').trim();
+      if (!name) return;
+      if (!globalItemMap[name]) {
+        globalItemMap[name] = {
+          name,
+          count: 0,
+          totalQty: 0,
+          vessels: new Set(),
+          satuan: it.satuan || 'UNIT',
+        };
+      }
+      globalItemMap[name].count++;
+      globalItemMap[name].totalQty += Number(it.qtyFPB) || 0;
+      if (it.armada) globalItemMap[name].vessels.add(it.armada.trim());
+    });
+    const topRequestedItemsAll = Object.values(globalItemMap)
+      .map((it) => ({ ...it, vesselCount: it.vessels.size }))
+      .sort((a, b) => b.count - a.count || b.totalQty - a.totalQty)
+      .slice(0, 8);
+
+    return {
+      totalRecords,
+      totalFpbCount: uniqueFpbs.size,
+      totalWoCount: uniqueWos.size,
+      totalVesselCount: uniqueVessels.size,
+      totalQtyFPB,
+      totalQtyFSTB,
+      totalBacklogQty,
+      completeCount,
+      partialCount,
+      backlogCount,
+      fulfillmentRate,
+      vesselList,
+      topVessel,
+      topRequestedItemsAll,
+    };
+  }, [fleetFilteredItems, fleetSortBy]);
+
+  const totalFleetTablePages = Math.max(1, Math.ceil(fleetFilteredItems.length / fleetTablePageSize));
+  const paginatedFleetItems = useMemo(() => {
+    const start = (fleetTablePage - 1) * fleetTablePageSize;
+    return fleetFilteredItems.slice(start, start + fleetTablePageSize);
+  }, [fleetFilteredItems, fleetTablePage, fleetTablePageSize]);
 
   // 1. DYNAMIC METRICS CALCULATION
   const metrics = useMemo(() => {
@@ -946,6 +1299,22 @@ export default function AnalyticsTab({ items, onSyncSheets, isSyncingSheets }: A
               📊 Ringkasan Eksekutif
             </button>
             <button
+              onClick={() => setActiveSubTab('armada')}
+              className={`px-3 py-1.5 rounded-md font-medium transition-colors flex items-center gap-1.5 ${
+                activeSubTab === 'armada'
+                  ? 'bg-card text-foreground shadow-xs font-semibold'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Ship className="w-3.5 h-3.5 text-sky-500 shrink-0" />
+              <span>Permintaan Armada</span>
+              {fleetSummary.totalVesselCount > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 font-mono">
+                  {fleetSummary.totalVesselCount}
+                </span>
+              )}
+            </button>
+            <button
               onClick={() => setActiveSubTab('personnel')}
               className={`px-3 py-1.5 rounded-md font-medium transition-colors ${
                 activeSubTab === 'personnel'
@@ -1342,7 +1711,862 @@ export default function AnalyticsTab({ items, onSyncSheets, isSyncingSheets }: A
         </div>
       )}
 
-      {/* SUB-TAB 2: INDIVIDUAL PIC KPI SCORECARD */}
+      {/* ═══════════════════════════════════════════════════════════
+          SUB-TAB FLEET: ANALISIS PERMINTAAN & PEMENUHAN ARMADA
+          ═══════════════════════════════════════════════════════════ */}
+      {activeSubTab === 'armada' && (
+        <div className="space-y-4">
+          {/* 1. Fleet Interactive Filter Toolbar */}
+          <div className="bg-card border border-border rounded-xl p-4 shadow-xs space-y-3">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <div className="size-8 rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
+                  <Ship className="size-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                    <span>Analisis Permintaan Armada Kapal</span>
+                    <span className="text-[11px] font-normal px-2 py-0.5 rounded-full bg-muted border border-border text-muted-foreground font-mono">
+                      {displayPeriodText}
+                    </span>
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Monitoring volume pengajuan FPB, realisasi suku cadang, rasio pemenuhan, dan tiket Work Order (WO) per kapal.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => setShowDateFilter((prev) => !prev)}
+                  className={`h-8 px-2.5 rounded-lg border text-xs font-medium inline-flex items-center gap-1.5 transition ${
+                    isFilteredByDate
+                      ? 'bg-primary/10 border-primary text-primary font-semibold'
+                      : 'bg-muted/60 border-border text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <Calendar className="size-3.5" />
+                  <span>Periode: {displayPeriodText}</span>
+                  <ChevronDown className="size-3" />
+                </button>
+
+                {(selectedFleetArmada !== 'ALL' ||
+                  fleetEntityFilter !== 'ALL' ||
+                  fleetStatusFilter !== 'ALL' ||
+                  fleetSearchTerm.trim() !== '') && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedFleetArmada('ALL');
+                      setFleetEntityFilter('ALL');
+                      setFleetStatusFilter('ALL');
+                      setFleetSearchTerm('');
+                    }}
+                    className="h-8 px-2.5 rounded-lg bg-muted hover:bg-muted/80 text-foreground border border-border text-xs font-medium inline-flex items-center gap-1.5 transition"
+                  >
+                    <RotateCcw className="size-3 text-muted-foreground" />
+                    <span>Reset Filter Armada</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Filter Dropdown Controls */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2 pt-2 border-t border-border/60 text-xs">
+              {/* Dropdown 1: Pilih Armada */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
+                  <Anchor className="size-3 text-sky-500" />
+                  <span>Pilih Armada:</span>
+                </label>
+                <select
+                  value={selectedFleetArmada}
+                  onChange={(e) => setSelectedFleetArmada(e.target.value)}
+                  className="w-full h-8 px-2 bg-muted/50 border border-border rounded-lg text-foreground text-xs focus:ring-1 focus:ring-primary focus:outline-hidden"
+                >
+                  <option value="ALL">⚓ Semua Armada ({availableArmadaList.length} Kapal)</option>
+                  {availableArmadaList.map((v) => (
+                    <option key={v.name} value={v.name}>
+                      {v.name} ({v.count} item - {v.entity})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Dropdown 2: Entitas */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
+                  <Building2 className="size-3 text-muted-foreground" />
+                  <span>Entitas CPG:</span>
+                </label>
+                <select
+                  value={fleetEntityFilter}
+                  onChange={(e) => setFleetEntityFilter(e.target.value)}
+                  className="w-full h-8 px-2 bg-muted/50 border border-border rounded-lg text-foreground text-xs focus:ring-1 focus:ring-primary focus:outline-hidden"
+                >
+                  <option value="ALL">Semua Entitas</option>
+                  {uniqueFleetEntities.map((ent) => (
+                    <option key={ent} value={ent}>
+                      {ent}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Dropdown 3: Status Pemenuhan */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
+                  <Filter className="size-3 text-muted-foreground" />
+                  <span>Status Pemenuhan:</span>
+                </label>
+                <select
+                  value={fleetStatusFilter}
+                  onChange={(e) => setFleetStatusFilter(e.target.value as any)}
+                  className="w-full h-8 px-2 bg-muted/50 border border-border rounded-lg text-foreground text-xs focus:ring-1 focus:ring-primary focus:outline-hidden"
+                >
+                  <option value="ALL">Semua Status</option>
+                  <option value="LENGKAP">✓ Lengkap (100% Terpenuhi)</option>
+                  <option value="PARSIAL">⚡ Parsial (Sebagian Terkirim)</option>
+                  <option value="BACKLOG">⚠️ Backlog (Belum Lengkap)</option>
+                </select>
+              </div>
+
+              {/* Dropdown 4: Urutan Komparasi */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
+                  <ArrowUpDown className="size-3 text-muted-foreground" />
+                  <span>Urutkan Armada:</span>
+                </label>
+                <select
+                  value={fleetSortBy}
+                  onChange={(e) => setFleetSortBy(e.target.value as any)}
+                  className="w-full h-8 px-2 bg-muted/50 border border-border rounded-lg text-foreground text-xs focus:ring-1 focus:ring-primary focus:outline-hidden"
+                >
+                  <option value="demand">Permintaan Terbanyak</option>
+                  <option value="backlog">Backlog / Selisih Terbanyak</option>
+                  <option value="fulfillment">Tingkat Pemenuhan</option>
+                  <option value="name">Nama Armada (A-Z)</option>
+                </select>
+              </div>
+
+              {/* Input 5: Pencarian Barang / FPB / WO */}
+              <div className="space-y-1 sm:col-span-2 md:col-span-4 lg:col-span-1">
+                <label className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
+                  <Search className="size-3 text-muted-foreground" />
+                  <span>Pencarian Cepat:</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={fleetSearchTerm}
+                    onChange={(e) => setFleetSearchTerm(e.target.value)}
+                    placeholder="Nama barang, FPB, WO..."
+                    className="w-full h-8 pl-7 pr-2 bg-muted/50 border border-border rounded-lg text-foreground text-xs placeholder:text-muted-foreground/60 focus:ring-1 focus:ring-primary focus:outline-hidden"
+                  />
+                  <Search className="size-3 text-muted-foreground absolute left-2.5 top-2.5 pointer-events-none" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 2. Fleet KPI Executive Summary Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {/* Card 1: Total Pengajuan FPB & WO */}
+            <div className="bg-card border border-border rounded-xl p-4 shadow-xs flex items-center justify-between">
+              <div>
+                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  Total Pengajuan Armada
+                </p>
+                <div className="flex items-baseline gap-2 mt-1">
+                  <span className="text-2xl font-bold font-mono text-foreground">
+                    {fleetSummary.totalFpbCount}
+                  </span>
+                  <span className="text-xs text-muted-foreground">FPB</span>
+                </div>
+                <div className="flex items-center gap-1.5 mt-1 text-[11px] text-muted-foreground font-mono">
+                  <span className="text-sky-600 dark:text-sky-400 font-medium">
+                    {fleetSummary.totalWoCount} Tiket WO
+                  </span>
+                  <span>•</span>
+                  <span>{fleetSummary.totalVesselCount} Kapal</span>
+                </div>
+              </div>
+              <div className="size-11 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
+                <Ship className="size-5" />
+              </div>
+            </div>
+
+            {/* Card 2: Kuantitas Barang & Fulfillment */}
+            <div className="bg-card border border-border rounded-xl p-4 shadow-xs flex items-center justify-between">
+              <div className="flex-1 min-w-0 mr-2">
+                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  Realisasi Suku Cadang
+                </p>
+                <div className="flex items-baseline gap-1.5 mt-1">
+                  <span className="text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400">
+                    {fleetSummary.totalQtyFSTB.toLocaleString('id-ID')}
+                  </span>
+                  <span className="text-xs text-muted-foreground font-mono">
+                    / {fleetSummary.totalQtyFPB.toLocaleString('id-ID')} unit
+                  </span>
+                </div>
+                <div className="mt-1.5 flex items-center gap-2">
+                  <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-emerald-500 rounded-full transition-all"
+                      style={{ width: `${fleetSummary.fulfillmentRate}%` }}
+                    />
+                  </div>
+                  <span className="text-[11px] font-mono font-semibold text-emerald-600 dark:text-emerald-400">
+                    {fleetSummary.fulfillmentRate}%
+                  </span>
+                </div>
+              </div>
+              <div className="size-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                <PackageCheck className="size-5" />
+              </div>
+            </div>
+
+            {/* Card 3: Total Sisa Selisih / Backlog */}
+            <div className="bg-card border border-border rounded-xl p-4 shadow-xs flex items-center justify-between">
+              <div>
+                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  Total Selisih / Backlog
+                </p>
+                <div className="flex items-baseline gap-2 mt-1">
+                  <span className="text-2xl font-bold font-mono text-amber-600 dark:text-amber-400">
+                    {fleetSummary.totalBacklogQty.toLocaleString('id-ID')}
+                  </span>
+                  <span className="text-xs text-muted-foreground">unit</span>
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  {fleetSummary.backlogCount + fleetSummary.partialCount} item belum lengkap terkirim
+                </p>
+              </div>
+              <div className="size-11 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                <AlertTriangle className="size-5" />
+              </div>
+            </div>
+
+            {/* Card 4: Armada Paling Intensif */}
+            <div className="bg-card border border-border rounded-xl p-4 shadow-xs flex items-center justify-between">
+              <div className="min-w-0 flex-1 mr-2">
+                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  Armada Paling Intensif
+                </p>
+                <p className="text-base font-bold text-foreground truncate mt-1" title={fleetSummary.topVessel?.name || '-'}>
+                  {fleetSummary.topVessel?.name || '-'}
+                </p>
+                <p className="text-[11px] text-muted-foreground mt-1 truncate">
+                  {fleetSummary.topVessel
+                    ? `${fleetSummary.topVessel.fpbCount} FPB (${fleetSummary.topVessel.qtyFPB.toLocaleString('id-ID')} unit barang)`
+                    : 'Belum ada data'}
+                </p>
+              </div>
+              <div className="size-11 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+                <TrendingUp className="size-5" />
+              </div>
+            </div>
+          </div>
+
+          {/* 3. MODE TAMPILAN: JIKA MEMILIH 1 ARMADA SPESIFIK */}
+          {selectedFleetArmada !== 'ALL' && (
+            <div className="space-y-4">
+              {/* Banner Profil Armada Spesifik */}
+              <div className="bg-sky-500/10 border border-sky-500/30 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="size-10 rounded-xl bg-sky-500/20 text-sky-600 dark:text-sky-300 flex items-center justify-center shrink-0">
+                    <Anchor className="size-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h4 className="text-base font-bold text-foreground">{selectedFleetArmada}</h4>
+                      {fleetSummary.vesselList[0] && (
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-muted border border-border text-foreground">
+                          {fleetSummary.vesselList[0].entity}
+                        </span>
+                      )}
+                      <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400">
+                        {fleetSummary.fulfillmentRate}% Terpenuhi
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Menampilkan riwayat permintaan &amp; suku cadang khusus armada ini pada periode terpilih.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedFleetArmada('ALL')}
+                  className="px-3 py-1.5 bg-card hover:bg-muted text-foreground border border-border rounded-lg text-xs font-medium transition self-start sm:self-auto shrink-0 inline-flex items-center gap-1.5"
+                >
+                  <ChevronLeft className="size-3.5" />
+                  <span>Kembali ke Semua Armada</span>
+                </button>
+              </div>
+
+              {/* Grid 2 Kolom: Suku Cadang Teratas & Tiket WO Kapal Ini */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Kolom Kiri: Suku Cadang Sering Diminta oleh Kapal Ini */}
+                <div className="bg-card border border-border rounded-xl p-4 shadow-xs space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+                      <Boxes className="size-3.5 text-primary" />
+                      <span>Suku Cadang Paling Sering Diminta ({selectedFleetArmada})</span>
+                    </h4>
+                    <span className="text-[11px] text-muted-foreground font-mono">
+                      {fleetSummary.vesselList[0]?.topItems.length || 0} Jenis Item
+                    </span>
+                  </div>
+
+                  <div className="divide-y divide-border/60 max-h-[300px] overflow-y-auto pr-1">
+                    {fleetSummary.vesselList[0]?.topItems.slice(0, 8).map((it, idx) => (
+                      <div key={idx} className="py-2 flex items-center justify-between text-xs gap-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-foreground truncate" title={it.name}>
+                            {idx + 1}. {it.name}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground font-mono">
+                            Frekuensi: {it.count} kali diajukan
+                          </p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <span className="px-2 py-0.5 rounded-full bg-muted font-mono text-[11px] font-semibold text-foreground border border-border">
+                            {it.totalQty} {it.satuan}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                    {(!fleetSummary.vesselList[0] || fleetSummary.vesselList[0].topItems.length === 0) && (
+                      <div className="p-4 text-center text-xs text-muted-foreground">
+                        Tidak ada data suku cadang yang tercatat
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Kolom Kanan: Tiket Work Order (WO) Terkait */}
+                <div className="bg-card border border-border rounded-xl p-4 shadow-xs space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+                      <Wrench className="size-3.5 text-amber-500" />
+                      <span>Tiket Work Order (WO) Operasional</span>
+                    </h4>
+                    <span className="text-[11px] text-muted-foreground font-mono">
+                      {fleetSummary.vesselList[0]?.woCount || 0} Tiket WO
+                    </span>
+                  </div>
+
+                  <div className="divide-y divide-border/60 max-h-[300px] overflow-y-auto pr-1">
+                    {Array.from(fleetSummary.vesselList[0]?.wos || []).map((woNum, idx) => {
+                      const relatedItems = fleetFilteredItems.filter((i) => (i.workOrderNo || '').trim() === woNum);
+                      return (
+                        <div key={idx} className="py-2.5 space-y-1">
+                          <div className="flex items-center justify-between text-xs gap-2">
+                            <span className="font-mono font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded">
+                              🔧 {woNum}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground font-mono">
+                              {relatedItems.length} Permintaan Barang
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-muted-foreground truncate">
+                            Item: {relatedItems.map((r) => r.item).slice(0, 2).join(', ')}
+                            {relatedItems.length > 2 && '...'}
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {(!fleetSummary.vesselList[0] || fleetSummary.vesselList[0].wos.size === 0) && (
+                      <div className="p-4 text-center text-xs text-muted-foreground">
+                        Tidak ada nomor tiket Work Order (WO) khusus pada periode ini
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 4. MODE TAMPILAN: JIKA MELIHAT "SEMUA ARMADA" (KOMPARASI & LEADERBOARD) */}
+          {selectedFleetArmada === 'ALL' && (
+            <div className="space-y-4">
+              {/* Grid 2 Kolom: Top Fleets Leaderboard & Suku Cadang Terbanyak Global */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Kolom Kiri: Ranking Intensitas Permintaan Armada */}
+                <div className="bg-card border border-border rounded-xl p-4 shadow-xs space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+                      <TrendingUp className="size-3.5 text-primary" />
+                      <span>Peringkat Permintaan Armada Teratas</span>
+                    </h4>
+                    <span className="text-[11px] text-muted-foreground font-mono">
+                      Top {Math.min(6, fleetSummary.vesselList.length)} dari {fleetSummary.vesselList.length} Kapal
+                    </span>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    {fleetSummary.vesselList.slice(0, 6).map((v, idx) => (
+                      <div
+                        key={v.name}
+                        className="p-2.5 rounded-lg border border-border/70 hover:border-primary/40 bg-muted/20 hover:bg-muted/40 transition flex items-center justify-between gap-3 text-xs"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                          <span
+                            className={`size-6 rounded-full flex items-center justify-center font-bold text-[11px] shrink-0 ${
+                              idx === 0
+                                ? 'bg-amber-500 text-amber-950 font-black'
+                                : idx === 1
+                                ? 'bg-slate-300 dark:bg-slate-600 text-slate-900 dark:text-slate-100 font-bold'
+                                : idx === 2
+                                ? 'bg-amber-700/60 text-amber-100'
+                                : 'bg-muted text-muted-foreground font-mono'
+                            }`}
+                          >
+                            #{idx + 1}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-semibold text-foreground truncate">{v.name}</span>
+                              <span className="px-1.5 py-0.2 rounded text-[9px] font-mono bg-muted border border-border text-muted-foreground">
+                                {v.entity}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 mt-1 text-[10px] text-muted-foreground font-mono">
+                              <span>{v.fpbCount} FPB</span>
+                              <span>•</span>
+                              <span>{v.itemCount} Item</span>
+                              <span>•</span>
+                              <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                                {v.fulfillmentRate}% Terpenuhi
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => setSelectedFleetArmada(v.name)}
+                          className="px-2.5 py-1 rounded bg-card hover:bg-primary/10 text-primary border border-border hover:border-primary/30 text-[11px] font-medium transition shrink-0 inline-flex items-center gap-1"
+                        >
+                          <span>Rincian</span>
+                          <ArrowRight className="size-3" />
+                        </button>
+                      </div>
+                    ))}
+                    {fleetSummary.vesselList.length === 0 && (
+                      <div className="p-8 text-center text-xs text-muted-foreground">
+                        Tidak ada data armada yang sesuai dengan filter
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Kolom Kanan: Suku Cadang Teratas Di Seluruh Armada & Rasio WO */}
+                <div className="space-y-4">
+                  {/* Top Requested Parts across all ships */}
+                  <div className="bg-card border border-border rounded-xl p-4 shadow-xs space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+                        <Boxes className="size-3.5 text-sky-500" />
+                        <span>Suku Cadang Paling Banyak Diminta (Semua Armada)</span>
+                      </h4>
+                      <span className="text-[11px] text-muted-foreground font-mono">
+                        {fleetSummary.topRequestedItemsAll.length} Item
+                      </span>
+                    </div>
+
+                    <div className="divide-y divide-border/60">
+                      {fleetSummary.topRequestedItemsAll.slice(0, 5).map((it, idx) => (
+                        <div key={idx} className="py-2 flex items-center justify-between text-xs gap-2">
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-foreground truncate" title={it.name}>
+                              {idx + 1}. {it.name}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground font-mono">
+                              Diminta oleh {it.vesselCount} armada ({it.count} transaksi)
+                            </p>
+                          </div>
+                          <span className="px-2 py-0.5 rounded-full bg-muted font-mono text-[11px] font-semibold text-foreground border border-border shrink-0">
+                            {it.totalQty} {it.satuan}
+                          </span>
+                        </div>
+                      ))}
+                      {fleetSummary.topRequestedItemsAll.length === 0 && (
+                        <div className="p-4 text-center text-xs text-muted-foreground">
+                          Belum ada item permintaan barang
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Ringkasan Korelasi Work Order (WO) */}
+                  <div className="bg-card border border-border rounded-xl p-4 shadow-xs">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+                        <Wrench className="size-3.5 text-amber-500" />
+                        <span>Korelasi Work Order (WO) vs Belanja Rutin</span>
+                      </h4>
+                      <span className="text-[11px] font-mono font-semibold text-amber-600 dark:text-amber-400">
+                        {fleetSummary.totalWoCount} Tiket WO
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Persentase barang yang memiliki tiket pemeliharaan operasional (*maintenance breakdown*) vs pengadaan rutin kapal.
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden flex">
+                        <div
+                          className="h-full bg-amber-500 rounded-l-full transition-all"
+                          style={{
+                            width: `${
+                              fleetSummary.totalFpbCount > 0
+                                ? Math.min(100, Math.round((fleetSummary.totalWoCount / fleetSummary.totalFpbCount) * 100))
+                                : 0
+                            }%`,
+                          }}
+                          title="Permintaan dengan Work Order"
+                        />
+                        <div
+                          className="h-full bg-sky-500 rounded-r-full transition-all flex-1"
+                          title="Pengadaan Rutin"
+                        />
+                      </div>
+                      <span className="text-[11px] font-mono text-muted-foreground shrink-0">
+                        {fleetSummary.totalFpbCount > 0
+                          ? Math.round((fleetSummary.totalWoCount / fleetSummary.totalFpbCount) * 100)
+                          : 0}
+                        % WO
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tabel Matriks Komparasi Seluruh Armada */}
+              <div className="bg-card border border-border rounded-xl shadow-xs overflow-hidden">
+                <div className="p-3.5 border-b border-border flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-2">
+                    <Ship className="size-4 text-sky-500" />
+                    <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
+                      Matriks Pemenuhan Seluruh Armada ({fleetSummary.vesselList.length} Kapal)
+                    </h4>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground font-mono">
+                    Urutan: {fleetSortBy === 'demand' ? 'Permintaan Terbanyak' : fleetSortBy === 'backlog' ? 'Backlog Terbanyak' : fleetSortBy === 'fulfillment' ? 'Tingkat Pemenuhan' : 'Nama Armada'}
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-left">
+                    <thead className="bg-muted/60 text-muted-foreground uppercase text-[10px] tracking-wider font-semibold border-b border-border">
+                      <tr>
+                        <th className="p-3 text-center">Rank</th>
+                        <th className="p-3">Nama Armada</th>
+                        <th className="p-3 text-center">Entitas</th>
+                        <th className="p-3 text-center">FPB</th>
+                        <th className="p-3 text-center">Tiket WO</th>
+                        <th className="p-3 text-right">Qty Diminta</th>
+                        <th className="p-3 text-right">Realisasi</th>
+                        <th className="p-3 text-right">Backlog</th>
+                        <th className="p-3 text-center min-w-[130px]">Pemenuhan</th>
+                        <th className="p-3 text-center">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/60">
+                      {fleetSummary.vesselList.map((v, idx) => (
+                        <tr key={v.name} className="hover:bg-muted/30 transition">
+                          <td className="p-3 text-center font-mono text-muted-foreground">
+                            #{idx + 1}
+                          </td>
+                          <td className="p-3 font-semibold text-foreground">
+                            <button
+                              type="button"
+                              onClick={() => setSelectedFleetArmada(v.name)}
+                              className="hover:text-primary hover:underline text-left"
+                            >
+                              {v.name}
+                            </button>
+                          </td>
+                          <td className="p-3 text-center">
+                            <span className="px-1.5 py-0.5 rounded font-mono text-[10px] bg-muted border border-border text-muted-foreground">
+                              {v.entity}
+                            </span>
+                          </td>
+                          <td className="p-3 text-center font-mono font-medium text-foreground">
+                            {v.fpbCount}
+                          </td>
+                          <td className="p-3 text-center font-mono text-amber-600 dark:text-amber-400">
+                            {v.woCount > 0 ? `${v.woCount} WO` : '-'}
+                          </td>
+                          <td className="p-3 text-right font-mono text-foreground">
+                            {v.qtyFPB.toLocaleString('id-ID')}
+                          </td>
+                          <td className="p-3 text-right font-mono text-emerald-600 dark:text-emerald-400 font-medium">
+                            {v.qtyFSTB.toLocaleString('id-ID')}
+                          </td>
+                          <td className="p-3 text-right font-mono text-amber-600 dark:text-amber-400">
+                            {v.backlogQty > 0 ? v.backlogQty.toLocaleString('id-ID') : '0'}
+                          </td>
+                          <td className="p-3 text-center">
+                            <div className="flex items-center gap-1.5 justify-center">
+                              <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
+                                <div
+                                  className="h-full bg-emerald-500 rounded-full"
+                                  style={{ width: `${v.fulfillmentRate}%` }}
+                                />
+                              </div>
+                              <span className="font-mono text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                                {v.fulfillmentRate}%
+                              </span>
+                            </div>
+                          </td>
+                          <td className="p-3 text-center">
+                            <button
+                              type="button"
+                              onClick={() => setSelectedFleetArmada(v.name)}
+                              className="px-2 py-0.5 rounded bg-muted hover:bg-muted/80 text-foreground border border-border text-[11px] font-medium transition"
+                            >
+                              Filter Kapal
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 5. TABEL RINCIAN TRANSAKSI PERMINTAAN BARANG */}
+          <div className="bg-card border border-border rounded-xl shadow-xs overflow-hidden">
+            <div className="p-3.5 border-b border-border flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-2">
+                <FileText className="size-4 text-primary" />
+                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
+                  Rincian Transaksi Permintaan Barang
+                  {selectedFleetArmada !== 'ALL' ? ` (${selectedFleetArmada})` : ''}
+                </h4>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-muted border border-border text-muted-foreground">
+                  {fleetFilteredItems.length} Baris
+                </span>
+              </div>
+
+              {fleetFilteredItems.length > 0 && (
+                <span className="text-[11px] text-muted-foreground font-mono">
+                  Halaman {fleetTablePage} dari {totalFleetTablePages}
+                </span>
+              )}
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-left">
+                <thead className="bg-muted/60 text-muted-foreground uppercase text-[10px] tracking-wider font-semibold border-b border-border">
+                  <tr>
+                    <th className="p-3">Armada &amp; Entitas</th>
+                    <th className="p-3">No. FPB &amp; PO</th>
+                    <th className="p-3">Work Order (WO)</th>
+                    <th className="p-3">Tanggal PO / FPB</th>
+                    <th className="p-3">Rincian Barang</th>
+                    <th className="p-3 text-right">Qty Diminta</th>
+                    <th className="p-3 text-right">Realisasi</th>
+                    <th className="p-3 text-right">Selisih</th>
+                    <th className="p-3 text-center">Status</th>
+                    <th className="p-3 text-center whitespace-nowrap">Alur 5 Seksi</th>
+                    <th className="p-3 text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/60">
+                  {paginatedFleetItems.length === 0 ? (
+                    <tr>
+                      <td colSpan={11} className="p-8 text-center text-muted-foreground">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <Ship className="size-7 opacity-30 text-muted-foreground" />
+                          <p className="text-sm font-medium text-foreground">
+                            Tidak ada data permintaan armada yang cocok dengan filter
+                          </p>
+                          <p className="text-xs text-muted-foreground max-w-sm">
+                            Coba sesuaikan pilihan tanggal, pilihan armada, atau bersihkan kata kunci pencarian.
+                          </p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    paginatedFleetItems.map((row, idx) => {
+                      const isComplete =
+                        (row.selisih === 0 && row.qtyFSTB > 0) ||
+                        row.status?.toUpperCase().includes('LENGKAP') ||
+                        row.status?.toUpperCase().includes('SELESAI');
+                      const isPartial = row.status?.toUpperCase().includes('PARSIAL') || (row.qtyFSTB > 0 && row.selisih > 0);
+
+                      const badgeClass = isComplete
+                        ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
+                        : isPartial
+                        ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
+                        : 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20';
+
+                      return (
+                        <tr key={idx} className="hover:bg-muted/30 transition">
+                          {/* 1. Armada & Entity */}
+                          <td className="p-3">
+                            <div className="font-semibold text-foreground">{row.armada || '-'}</div>
+                            <span className="inline-block px-1.5 py-0.2 rounded text-[10px] font-mono bg-muted border border-border text-muted-foreground mt-0.5">
+                              {row.entity || 'CPG'}
+                            </span>
+                          </td>
+
+                          {/* 2. No FPB & PO */}
+                          <td className="p-3 font-mono">
+                            <div className="font-semibold text-foreground">{row.fpb || '-'}</div>
+                            <div className="text-[11px] text-muted-foreground">
+                              PO: {row.noPo || '-'}
+                            </div>
+                          </td>
+
+                          {/* 3. Work Order (WO) */}
+                          <td className="p-3">
+                            {row.workOrderNo ? (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400">
+                                🔧 {row.workOrderNo}
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground text-[11px] italic">-</span>
+                            )}
+                          </td>
+
+                          {/* 4. Tanggal */}
+                          <td className="p-3 font-mono text-muted-foreground">
+                            {formatDateDdMmYy(row.tglPo || row.tglFpb)}
+                          </td>
+
+                          {/* 5. Barang */}
+                          <td className="p-3 max-w-[200px]">
+                            <div className="font-medium text-foreground truncate" title={row.item}>
+                              {row.item}
+                            </div>
+                            {row.satuan && (
+                              <span className="text-[10px] text-muted-foreground font-mono">
+                                Satuan: {row.satuan}
+                              </span>
+                            )}
+                          </td>
+
+                          {/* 6. Qty FPB */}
+                          <td className="p-3 text-right font-mono text-foreground font-medium">
+                            {row.qtyFPB}
+                          </td>
+
+                          {/* 7. Realisasi */}
+                          <td className="p-3 text-right font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
+                            {row.qtyFSTB}
+                          </td>
+
+                          {/* 8. Selisih / Backlog */}
+                          <td className="p-3 text-right font-mono text-amber-600 dark:text-amber-400">
+                            {row.selisih}
+                          </td>
+
+                          {/* 9. Status */}
+                          <td className="p-3 text-center">
+                            <span
+                              className={`px-2 py-0.5 rounded-full font-mono text-[10px] font-semibold border ${badgeClass}`}
+                            >
+                              {row.status || 'TERDATA'}
+                            </span>
+                          </td>
+
+                          {/* 10. Alur 5 Seksi */}
+                          <td className="p-3 text-center whitespace-nowrap">
+                            <WorkflowTrafficLight
+                              item={row as any}
+                              compact={true}
+                              showBadge={true}
+                              onClick={() => onOpenAudit?.(row.fpb, row.noPo)}
+                            />
+                          </td>
+
+                          {/* 11. Aksi */}
+                          <td className="p-3 text-center">
+                            <button
+                              type="button"
+                              onClick={() => onOpenAudit?.(row.fpb, row.noPo)}
+                              className="px-2 py-1 rounded bg-muted hover:bg-muted/80 text-foreground border border-border text-[11px] font-medium transition inline-flex items-center gap-1"
+                              title="Buka Audit Akuntabilitas"
+                            >
+                              <ExternalLink className="size-3 text-muted-foreground" />
+                              <span>Audit</span>
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination Controls */}
+            {totalFleetTablePages > 1 && (
+              <div className="p-3 border-t border-border flex items-center justify-between flex-wrap gap-2 text-xs">
+                <span className="text-muted-foreground font-mono">
+                  Menampilkan {(fleetTablePage - 1) * fleetTablePageSize + 1} -{' '}
+                  {Math.min(fleetTablePage * fleetTablePageSize, fleetFilteredItems.length)} dari{' '}
+                  {fleetFilteredItems.length} transaksi
+                </span>
+
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    disabled={fleetTablePage === 1}
+                    onClick={() => setFleetTablePage(1)}
+                    className="p-1 rounded border border-border hover:bg-muted disabled:opacity-40 disabled:pointer-events-none text-muted-foreground"
+                    title="Halaman Pertama"
+                  >
+                    <ChevronsLeft className="size-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    disabled={fleetTablePage === 1}
+                    onClick={() => setFleetTablePage((p) => Math.max(1, p - 1))}
+                    className="p-1 rounded border border-border hover:bg-muted disabled:opacity-40 disabled:pointer-events-none text-muted-foreground"
+                    title="Halaman Sebelumnya"
+                  >
+                    <ChevronLeft className="size-3.5" />
+                  </button>
+
+                  <span className="px-2 font-mono text-foreground font-semibold">
+                    {fleetTablePage} / {totalFleetTablePages}
+                  </span>
+
+                  <button
+                    type="button"
+                    disabled={fleetTablePage === totalFleetTablePages}
+                    onClick={() => setFleetTablePage((p) => Math.min(totalFleetTablePages, p + 1))}
+                    className="p-1 rounded border border-border hover:bg-muted disabled:opacity-40 disabled:pointer-events-none text-muted-foreground"
+                    title="Halaman Selanjutnya"
+                  >
+                    <ChevronRight className="size-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    disabled={fleetTablePage === totalFleetTablePages}
+                    onClick={() => setFleetTablePage(totalFleetTablePages)}
+                    className="p-1 rounded border border-border hover:bg-muted disabled:opacity-40 disabled:pointer-events-none text-muted-foreground"
+                    title="Halaman Terakhir"
+                  >
+                    <ChevronsRight className="size-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* SUB-TAB 3: INDIVIDUAL PIC KPI SCORECARD */}
       {activeSubTab === 'personnel' && (
         <div className="space-y-4">
           {/* Filter Bar */}
