@@ -296,8 +296,35 @@ export function FleetDemandBarChart({
     return <EmptyChartPlaceholder message="Belum ada data permintaan armada" />;
   }
 
-  const topItems = data.slice(0, 8);
-  const labels = topItems.map((d) => (d.name.length > 14 ? d.name.slice(0, 14) + '...' : d.name));
+  // Tampilkan top 7 armada agar spasi lega dan nama armada panjang terbaca utuh
+  const topItems = data.slice(0, 7);
+  const labels = topItems.map((d) => (d.name.length > 28 ? d.name.slice(0, 27) + '…' : d.name));
+
+  // Custom data labels plugin untuk mencetak angka di ujung bar horizontal
+  const horizontalDataLabelsPlugin = {
+    id: 'fleetHorizontalDataLabels',
+    afterDatasetsDraw(chart: any) {
+      const { ctx } = chart;
+      chart.data.datasets.forEach((dataset: any, datasetIndex: number) => {
+        const meta = chart.getDatasetMeta(datasetIndex);
+        if (meta.hidden) return;
+
+        meta.data.forEach((element: any, index: number) => {
+          const val = dataset.data[index];
+          if (val === undefined || val === null || val === 0) return;
+          const text = Number(val).toLocaleString('id-ID');
+
+          ctx.save();
+          ctx.font = '600 9px "JetBrains Mono", monospace, sans-serif';
+          ctx.fillStyle = datasetIndex === 0 ? '#0284c7' : '#0d9488';
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(text, element.x + 4, element.y);
+          ctx.restore();
+        });
+      });
+    },
+  };
 
   const chartData = {
     labels,
@@ -305,32 +332,67 @@ export function FleetDemandBarChart({
       {
         label: 'Qty Diminta (FPB)',
         data: topItems.map((d) => d.qtyFPB),
-        backgroundColor: '#0284c7', // Sky Blue
+        backgroundColor: '#0284c7', // Biru Sky
+        borderColor: '#0369a1',
+        borderWidth: 1,
         borderRadius: 4,
+        barPercentage: 0.72,
+        categoryPercentage: 0.82,
       },
       {
         label: 'Qty Realisasi (FSTB)',
         data: topItems.map((d) => d.qtyFSTB),
-        backgroundColor: '#10b981', // Emerald Green
+        backgroundColor: '#0d9488', // Teal
+        borderColor: '#0f766e',
+        borderWidth: 1,
         borderRadius: 4,
+        barPercentage: 0.72,
+        categoryPercentage: 0.82,
       },
     ],
   };
 
   const options = {
+    indexAxis: 'y' as const, // Horizontal Bar Chart agar nama panjang seperti DEPT. PROCUREMENT tidak terpotong
     responsive: true,
     maintainAspectRatio: false,
+    layout: {
+      padding: {
+        right: 36, // Ruang untuk data labels di sebelah kanan batang
+        left: 0,
+        top: 4,
+        bottom: 2,
+      },
+    },
     plugins: {
       legend: {
         position: 'top' as const,
-        labels: { boxWidth: 12, color: '#64748b', font: { size: 10, family: 'Inter, sans-serif' } },
+        align: 'end' as const,
+        labels: {
+          boxWidth: 12,
+          boxHeight: 12,
+          color: '#334155',
+          font: { size: 10, weight: '500', family: 'Inter, sans-serif' },
+        },
       },
       tooltip: {
+        backgroundColor: '#0f172a',
+        titleColor: '#f8fafc',
+        bodyColor: '#e2e8f0',
+        borderColor: '#334155',
+        borderWidth: 1,
+        padding: 10,
+        cornerRadius: 8,
         callbacks: {
+          label: (context: any) => {
+            const label = context.dataset.label || '';
+            const val = context.raw || 0;
+            return ` ${label}: ${Number(val).toLocaleString('id-ID')} unit`;
+          },
           afterBody: (context: any) => {
             const index = context[0]?.dataIndex;
             if (index != null && topItems[index]) {
-              return `Tingkat Pemenuhan: ${topItems[index].fulfillmentRate}%`;
+              return ` Tingkat Pemenuhan: ${topItems[index].fulfillmentRate}%`;
             }
             return '';
           },
@@ -338,74 +400,231 @@ export function FleetDemandBarChart({
       },
     },
     scales: {
-      x: {
-        grid: { display: false },
-        ticks: { color: '#64748b', font: { size: 9, family: 'Inter, sans-serif' } },
-      },
       y: {
-        grid: { color: 'rgba(128,128,128,0.12)' },
-        ticks: { color: '#64748b', font: { family: 'JetBrains Mono, monospace', size: 10 } },
+        grid: { display: false },
+        ticks: {
+          color: '#1e293b',
+          font: { size: 9.5, weight: '600', family: 'Inter, sans-serif' },
+        },
+      },
+      x: {
+        grid: { color: 'rgba(226, 232, 240, 0.85)' },
+        ticks: {
+          color: '#64748b',
+          font: { size: 9, family: 'JetBrains Mono, monospace' },
+          callback: (value: any) => Number(value).toLocaleString('id-ID'),
+        },
       },
     },
   };
 
-  return <Bar data={chartData} options={options} />;
+  return <Bar data={chartData as any} options={options as any} plugins={[horizontalDataLabelsPlugin]} />;
 }
 
 export function FleetCategoryDonutChart({
   categories,
+  defaultView = 'bar',
 }: {
   categories: Record<string, number>;
+  defaultView?: 'bar' | 'donut';
 }) {
+  const [viewMode, setViewMode] = React.useState<'bar' | 'donut'>(defaultView);
+
   const entries = Object.entries(categories).filter(([_, count]) => count > 0);
   if (entries.length === 0) {
     return <EmptyChartPlaceholder message="Belum ada rincian kategori suku cadang" />;
   }
 
   entries.sort((a, b) => b[1] - a[1]);
-  const topCategories = entries.slice(0, 6);
-  const otherCount = entries.slice(6).reduce((acc, curr) => acc + curr[1], 0);
-  if (otherCount > 0) {
-    topCategories.push(['Lainnya', otherCount]);
+  const totalItems = entries.reduce((acc, curr) => acc + curr[1], 0);
+
+  // Palet Korporat Harmonis: Biru, Teal, Ungu, Cyan, Indigo, Violet, Amber
+  const palette = [
+    '#0284c7', // Biru Sky
+    '#0d9488', // Teal
+    '#7c3aed', // Ungu
+    '#06b6d4', // Cyan
+    '#6366f1', // Indigo
+    '#14b8a6', // Teal Terang
+    '#8b5cf6', // Ungu Violet
+    '#38bdf8', // Biru Muda
+    '#f59e0b', // Amber
+  ];
+
+  if (viewMode === 'donut') {
+    const topCategories = entries.slice(0, 6);
+    const otherCount = entries.slice(6).reduce((acc, curr) => acc + curr[1], 0);
+    if (otherCount > 0) {
+      topCategories.push(['Lainnya', otherCount]);
+    }
+
+    const donutData = {
+      labels: topCategories.map(([cat]) => cat),
+      datasets: [
+        {
+          data: topCategories.map(([_, count]) => count),
+          backgroundColor: palette.slice(0, topCategories.length),
+          borderWidth: 2,
+          borderColor: '#ffffff',
+        },
+      ],
+    };
+
+    const donutOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'right' as const,
+          labels: { boxWidth: 10, color: '#475569', font: { size: 9, family: 'Inter, sans-serif' } },
+        },
+        tooltip: {
+          callbacks: {
+            label: (context: any) => {
+              const count = context.raw || 0;
+              const pct = totalItems > 0 ? Math.round((count / totalItems) * 100) : 0;
+              return ` ${context.label}: ${Number(count).toLocaleString('id-ID')} item (${pct}%)`;
+            },
+          },
+        },
+      },
+      cutout: '65%',
+    };
+
+    return (
+      <div className="w-full h-full flex flex-col justify-between">
+        <div className="flex justify-end pb-1">
+          <button
+            type="button"
+            onClick={() => setViewMode('bar')}
+            className="text-[10px] font-semibold text-primary hover:underline"
+          >
+            Lihat Breakdown Bar &rarr;
+          </button>
+        </div>
+        <div className="flex-1 min-h-[190px]">
+          <Doughnut data={donutData as any} options={donutOptions as any} />
+        </div>
+      </div>
+    );
   }
 
-  const chartData = {
-    labels: topCategories.map(([cat]) => cat),
+  // View Mode: Horizontal Bar Chart Breakdown (Default)
+  // Menampilkan kategori teratas dengan nama jelas agar kategori kecil (Deck, Listrik) terlihat proporsinya
+  const displayCategories = entries.slice(0, 7);
+  const labels = displayCategories.map(([cat]) => cat);
+  const counts = displayCategories.map(([_, count]) => count);
+
+  const categoryLabelsPlugin = {
+    id: 'categoryHorizontalLabels',
+    afterDatasetsDraw(chart: any) {
+      const { ctx } = chart;
+      const meta = chart.getDatasetMeta(0);
+      if (meta.hidden) return;
+
+      meta.data.forEach((element: any, index: number) => {
+        const val = counts[index];
+        if (val === undefined || val === null) return;
+        const pct = totalItems > 0 ? Math.round((val / totalItems) * 100) : 0;
+        const text = `${Number(val).toLocaleString('id-ID')} (${pct}%)`;
+
+        ctx.save();
+        ctx.font = '600 9px "JetBrains Mono", monospace, sans-serif';
+        ctx.fillStyle = '#334155';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text, element.x + 6, element.y);
+        ctx.restore();
+      });
+    },
+  };
+
+  const barData = {
+    labels,
     datasets: [
       {
-        data: topCategories.map(([_, count]) => count),
-        backgroundColor: [
-          '#06b6d4',
-          '#3b82f6',
-          '#f59e0b',
-          '#8b5cf6',
-          '#10b981',
-          '#ec4899',
-          '#64748b',
-        ],
-        borderWidth: 0,
+        label: 'Kuantitas Permintaan',
+        data: counts,
+        backgroundColor: palette.slice(0, displayCategories.length),
+        borderRadius: 4,
+        barPercentage: 0.72,
+        categoryPercentage: 0.85,
       },
     ],
   };
 
-  const options = {
+  const barOptions = {
+    indexAxis: 'y' as const,
     responsive: true,
     maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'right' as const,
-        labels: { boxWidth: 10, color: '#64748b', font: { size: 10, family: 'Inter, sans-serif' } },
+    layout: {
+      padding: {
+        right: 48, // Ruang untuk teks persentase & kuantitas
+        left: 0,
+        top: 2,
+        bottom: 2,
       },
     },
-    cutout: '68%',
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#0f172a',
+        titleColor: '#f8fafc',
+        bodyColor: '#e2e8f0',
+        borderColor: '#334155',
+        borderWidth: 1,
+        padding: 10,
+        cornerRadius: 8,
+        callbacks: {
+          label: (context: any) => {
+            const count = context.raw || 0;
+            const pct = totalItems > 0 ? Math.round((count / totalItems) * 100) : 0;
+            return ` Jumlah: ${Number(count).toLocaleString('id-ID')} item (${pct}% dari total)`;
+          },
+        },
+      },
+    },
+    scales: {
+      y: {
+        grid: { display: false },
+        ticks: {
+          color: '#1e293b',
+          font: { size: 9.5, weight: '600', family: 'Inter, sans-serif' },
+        },
+      },
+      x: {
+        grid: { color: 'rgba(226, 232, 240, 0.85)' },
+        ticks: {
+          color: '#64748b',
+          font: { size: 9, family: 'JetBrains Mono, monospace' },
+          callback: (value: any) => Number(value).toLocaleString('id-ID'),
+        },
+      },
+    },
   };
 
-  return <Doughnut data={chartData} options={options} />;
+  return (
+    <div className="w-full h-full flex flex-col justify-between">
+      <div className="flex items-center justify-between pb-1 text-[10px] text-muted-foreground">
+        <span className="font-semibold text-slate-600 dark:text-slate-300">Breakdown Proporsi per Kategori</span>
+        <button
+          type="button"
+          onClick={() => setViewMode('donut')}
+          className="text-primary hover:underline font-semibold"
+        >
+          Tampilan Donut &rarr;
+        </button>
+      </div>
+      <div className="flex-1 min-h-[190px]">
+        <Bar data={barData as any} options={barOptions as any} plugins={[categoryLabelsPlugin]} />
+      </div>
+    </div>
+  );
 }
 
 export function FleetMonthlyTrendChart({
   monthlyData,
-  defaultMode = 'bar',
+  defaultMode = 'combo',
 }: {
   monthlyData: Array<{
     monthName: string;

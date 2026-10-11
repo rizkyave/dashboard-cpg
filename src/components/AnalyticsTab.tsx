@@ -611,12 +611,15 @@ export default function AnalyticsTab({
   const fleetCategoryBreakdown = useMemo(() => {
     const cats: Record<string, number> = {
       'Suku Cadang Mesin': 0,
+      'Pompa & Valve': 0,
+      'Peralatan Listrik': 0,
       'Perlengkapan Deck': 0,
       'Pelumas & Oli': 0,
-      'Safety & Keselamatan': 0,
+      'Safety & Rescue': 0,
       'Consumables & Alat Kerja': 0,
-      'Peralatan Listrik': 0,
-      'Lainnya': 0,
+      'Navigasi & Komunikasi': 0,
+      'Perlengkapan Akomodasi': 0,
+      'Umum / Lainnya': 0,
     };
 
     fleetFilteredItems.forEach((it) => {
@@ -629,18 +632,50 @@ export default function AnalyticsTab({
         rawItem.includes('engine') ||
         rawItem.includes('piston') ||
         rawItem.includes('injector') ||
-        rawItem.includes('pump') ||
-        rawItem.includes('pompa') ||
-        rawItem.includes('gasket')
+        rawItem.includes('gasket') ||
+        rawItem.includes('liner') ||
+        rawItem.includes('turbo') ||
+        rawItem.includes('nozzle') ||
+        rawItem.includes('cooler')
       ) {
         cats['Suku Cadang Mesin']++;
+      } else if (
+        rawCat.includes('pompa') ||
+        rawCat.includes('pump') ||
+        rawCat.includes('valve') ||
+        rawItem.includes('pump') ||
+        rawItem.includes('pompa') ||
+        rawItem.includes('valve') ||
+        rawItem.includes('kran') ||
+        rawItem.includes('fitting') ||
+        rawItem.includes('flange') ||
+        rawItem.includes('seal')
+      ) {
+        cats['Pompa & Valve']++;
+      } else if (
+        rawCat.includes('listrik') ||
+        rawCat.includes('electric') ||
+        rawItem.includes('lampu') ||
+        rawItem.includes('kabel') ||
+        rawItem.includes('accu') ||
+        rawItem.includes('aki') ||
+        rawItem.includes('battery') ||
+        rawItem.includes('mcb') ||
+        rawItem.includes('genset') ||
+        rawItem.includes('trafo') ||
+        rawItem.includes('dynamo')
+      ) {
+        cats['Peralatan Listrik']++;
       } else if (
         rawCat.includes('deck') ||
         rawItem.includes('tali') ||
         rawItem.includes('jangkar') ||
         rawItem.includes('anchor') ||
-        rawItem.includes('cat') ||
-        rawItem.includes('wire')
+        rawItem.includes('wire') ||
+        rawItem.includes('sling') ||
+        rawItem.includes('shackle') ||
+        rawItem.includes('chain') ||
+        rawItem.includes('winch')
       ) {
         cats['Perlengkapan Deck']++;
       } else if (
@@ -649,7 +684,9 @@ export default function AnalyticsTab({
         rawItem.includes('oli') ||
         rawItem.includes('oil') ||
         rawItem.includes('grease') ||
-        rawItem.includes('lubricant')
+        rawItem.includes('lubricant') ||
+        rawItem.includes('chemical') ||
+        rawItem.includes('coolant')
       ) {
         cats['Pelumas & Oli']++;
       } else if (
@@ -658,29 +695,45 @@ export default function AnalyticsTab({
         rawItem.includes('apar') ||
         rawItem.includes('life') ||
         rawItem.includes('rompi') ||
-        rawItem.includes('helmet')
+        rawItem.includes('helmet') ||
+        rawItem.includes('flare') ||
+        rawItem.includes('breathing')
       ) {
-        cats['Safety & Keselamatan']++;
+        cats['Safety & Rescue']++;
       } else if (
-        rawCat.includes('listrik') ||
-        rawItem.includes('lampu') ||
-        rawItem.includes('kabel') ||
-        rawItem.includes('accu') ||
-        rawItem.includes('aki') ||
-        rawItem.includes('battery')
+        rawCat.includes('navigasi') ||
+        rawCat.includes('radio') ||
+        rawItem.includes('radar') ||
+        rawItem.includes('gps') ||
+        rawItem.includes('radio') ||
+        rawItem.includes('antena') ||
+        rawItem.includes('kompas')
       ) {
-        cats['Peralatan Listrik']++;
+        cats['Navigasi & Komunikasi']++;
+      } else if (
+        rawCat.includes('akomodasi') ||
+        rawItem.includes('ac') ||
+        rawItem.includes('kipas') ||
+        rawItem.includes('kulkas') ||
+        rawItem.includes('kasur') ||
+        rawItem.includes('dapur')
+      ) {
+        cats['Perlengkapan Akomodasi']++;
       } else if (
         rawCat.includes('consumable') ||
         rawItem.includes('baut') ||
         rawItem.includes('mur') ||
         rawItem.includes('majun') ||
         rawItem.includes('sabun') ||
-        rawItem.includes('lem')
+        rawItem.includes('lem') ||
+        rawItem.includes('cat') ||
+        rawItem.includes('amplas') ||
+        rawItem.includes('kunci') ||
+        rawItem.includes('las')
       ) {
         cats['Consumables & Alat Kerja']++;
       } else {
-        cats['Lainnya']++;
+        cats['Umum / Lainnya']++;
       }
     });
 
@@ -733,9 +786,9 @@ export default function AnalyticsTab({
       }
     });
 
-    if (!activeYear) activeYear = '2023';
+    if (!activeYear) activeYear = '2026';
 
-    // Urutan kronologis standar: Jun, Jul, Agu, Sep, Okt (dan bulan lain jika ada)
+    // Urutan kronologis periode aktif: Jun, Jul, Agu, Sep, Okt (Jun 2026 - Okt 2026)
     const chronologicalOrder = ['06', '07', '08', '09', '10', '11', '12', '01', '02', '03', '04', '05'];
 
     const activeList = chronologicalOrder
@@ -755,7 +808,7 @@ export default function AnalyticsTab({
           { monthKey: '06', monthName: `Jun ${activeYear}`, rawMonth: 'Jun', year: activeYear, fpbCount: 50, qtyTotal: 120 },
           { monthKey: '07', monthName: `Jul ${activeYear}`, rawMonth: 'Jul', year: activeYear, fpbCount: 900, qtyTotal: 1450 },
           { monthKey: '08', monthName: `Agu ${activeYear}`, rawMonth: 'Agu', year: activeYear, fpbCount: 420, qtyTotal: 980 },
-          { monthKey: '09', monthName: `Sep ${activeYear}`, rawMonth: 'Sep', year: activeYear, fpbCount: 650, qtyTotal: 1100 },
+          { monthKey: '09', monthName: `Sep ${activeYear}`, rawMonth: 'Sep', year: activeYear, fpbCount: 650, qtyTotal: 1239 },
           { monthKey: '10', monthName: `Okt ${activeYear}`, rawMonth: 'Okt', year: activeYear, fpbCount: 310, qtyTotal: 720 },
         ];
   }, [fleetFilteredItems, selectedYear]);
@@ -2165,112 +2218,112 @@ export default function AnalyticsTab({
           </div>
 
           {/* 2. Fleet KPI Executive Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {/* Card 1: Total Pengajuan FPB & WO */}
-            <div className="bg-card border border-border rounded-xl p-4 shadow-xs flex items-center justify-between">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+            {/* Card 1: Total Pengajuan Armada */}
+            <div className="bg-white dark:bg-card border border-slate-200/90 dark:border-border rounded-2xl p-4 sm:p-4.5 shadow-xs flex items-center justify-between transition hover:shadow-sm">
               <div>
-                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                <p className="text-[11px] font-bold text-slate-500 dark:text-muted-foreground uppercase tracking-wider">
                   Total Pengajuan Armada
                 </p>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-2xl font-bold font-mono text-foreground">
-                    {fleetSummary.totalFpbCount}
+                <div className="flex items-baseline gap-2 mt-1.5">
+                  <span className="text-2xl sm:text-3xl font-extrabold font-mono text-slate-900 dark:text-foreground">
+                    {fleetSummary.totalFpbCount.toLocaleString('id-ID')}
                   </span>
-                  <span className="text-xs text-muted-foreground">FPB</span>
+                  <span className="text-xs font-semibold text-slate-500 dark:text-muted-foreground">FPB</span>
                 </div>
-                <div className="flex items-center gap-1.5 mt-1 text-[11px] text-muted-foreground font-mono">
-                  <span className="text-sky-600 dark:text-sky-400 font-medium">
-                    {fleetSummary.totalWoCount} Tiket WO
+                <div className="flex items-center gap-1.5 mt-1 text-[11px] text-slate-500 dark:text-muted-foreground font-mono">
+                  <span className="text-sky-600 dark:text-sky-400 font-semibold">
+                    {fleetSummary.totalWoCount.toLocaleString('id-ID')} Tiket WO
                   </span>
                   <span>•</span>
-                  <span>{fleetSummary.totalVesselCount} Kapal</span>
+                  <span>{fleetSummary.totalVesselCount.toLocaleString('id-ID')} Kapal</span>
                 </div>
               </div>
-              <div className="size-11 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
-                <Ship className="size-5" />
+              <div className="size-11 sm:size-12 rounded-2xl bg-sky-50 dark:bg-sky-950/50 border border-sky-200 dark:border-sky-800/60 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
+                <Ship className="size-5 sm:size-6" />
               </div>
             </div>
 
             {/* Card 2: Kuantitas Barang & Fulfillment */}
-            <div className="bg-card border border-border rounded-xl p-4 shadow-xs flex items-center justify-between">
+            <div className="bg-white dark:bg-card border border-slate-200/90 dark:border-border rounded-2xl p-4 sm:p-4.5 shadow-xs flex items-center justify-between transition hover:shadow-sm">
               <div className="flex-1 min-w-0 mr-2">
-                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                <p className="text-[11px] font-bold text-slate-500 dark:text-muted-foreground uppercase tracking-wider">
                   Realisasi Suku Cadang
                 </p>
-                <div className="flex items-baseline gap-1.5 mt-1">
-                  <span className="text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400">
+                <div className="flex items-baseline gap-1.5 mt-1.5">
+                  <span className="text-2xl sm:text-3xl font-extrabold font-mono text-teal-600 dark:text-teal-400">
                     {fleetSummary.totalQtyFSTB.toLocaleString('id-ID')}
                   </span>
-                  <span className="text-xs text-muted-foreground font-mono">
+                  <span className="text-xs text-slate-500 dark:text-muted-foreground font-mono truncate">
                     / {fleetSummary.totalQtyFPB.toLocaleString('id-ID')} unit
                   </span>
                 </div>
-                <div className="mt-1.5 flex items-center gap-2">
-                  <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                <div className="mt-2 flex items-center gap-2">
+                  <div className="flex-1 h-1.5 bg-slate-100 dark:bg-muted rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-emerald-500 rounded-full transition-all"
+                      className="h-full bg-teal-500 rounded-full transition-all"
                       style={{ width: `${fleetSummary.fulfillmentRate}%` }}
                     />
                   </div>
-                  <span className="text-[11px] font-mono font-semibold text-emerald-600 dark:text-emerald-400">
+                  <span className="text-[11px] font-mono font-bold text-teal-600 dark:text-teal-400 shrink-0">
                     {fleetSummary.fulfillmentRate}%
                   </span>
                 </div>
               </div>
-              <div className="size-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                <PackageCheck className="size-5" />
+              <div className="size-11 sm:size-12 rounded-2xl bg-teal-50 dark:bg-teal-950/50 border border-teal-200 dark:border-teal-800/60 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0">
+                <PackageCheck className="size-5 sm:size-6" />
               </div>
             </div>
 
             {/* Card 3: Total Sisa Selisih / Backlog */}
-            <div className="bg-card border border-border rounded-xl p-4 shadow-xs flex items-center justify-between">
+            <div className="bg-white dark:bg-card border border-slate-200/90 dark:border-border rounded-2xl p-4 sm:p-4.5 shadow-xs flex items-center justify-between transition hover:shadow-sm">
               <div>
-                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                <p className="text-[11px] font-bold text-slate-500 dark:text-muted-foreground uppercase tracking-wider">
                   Total Selisih / Backlog
                 </p>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-2xl font-bold font-mono text-amber-600 dark:text-amber-400">
+                <div className="flex items-baseline gap-2 mt-1.5">
+                  <span className="text-2xl sm:text-3xl font-extrabold font-mono text-amber-600 dark:text-amber-400">
                     {fleetSummary.totalBacklogQty.toLocaleString('id-ID')}
                   </span>
-                  <span className="text-xs text-muted-foreground">unit</span>
+                  <span className="text-xs font-semibold text-slate-500 dark:text-muted-foreground">unit</span>
                 </div>
-                <p className="text-[11px] text-muted-foreground mt-1">
-                  {fleetSummary.backlogCount + fleetSummary.partialCount} item belum lengkap terkirim
+                <p className="text-[11px] text-slate-500 dark:text-muted-foreground mt-1 truncate">
+                  {(fleetSummary.backlogCount + fleetSummary.partialCount).toLocaleString('id-ID')} item belum lengkap terkirim
                 </p>
               </div>
-              <div className="size-11 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
-                <AlertTriangle className="size-5" />
+              <div className="size-11 sm:size-12 rounded-2xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                <AlertTriangle className="size-5 sm:size-6" />
               </div>
             </div>
 
             {/* Card 4: Armada Paling Intensif */}
-            <div className="bg-card border border-border rounded-xl p-4 shadow-xs flex items-center justify-between">
+            <div className="bg-white dark:bg-card border border-slate-200/90 dark:border-border rounded-2xl p-4 sm:p-4.5 shadow-xs flex items-center justify-between transition hover:shadow-sm">
               <div className="min-w-0 flex-1 mr-2">
-                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                <p className="text-[11px] font-bold text-slate-500 dark:text-muted-foreground uppercase tracking-wider">
                   Armada Paling Intensif
                 </p>
-                <p className="text-base font-bold text-foreground truncate mt-1" title={fleetSummary.topVessel?.name || '-'}>
+                <p className="text-sm sm:text-base font-bold text-slate-900 dark:text-foreground truncate mt-1.5" title={fleetSummary.topVessel?.name || '-'}>
                   {fleetSummary.topVessel?.name || '-'}
                 </p>
-                <p className="text-[11px] text-muted-foreground mt-1 truncate">
+                <p className="text-[11px] text-slate-500 dark:text-muted-foreground mt-1 truncate">
                   {fleetSummary.topVessel
-                    ? `${fleetSummary.topVessel.fpbCount} FPB (${fleetSummary.topVessel.qtyFPB.toLocaleString('id-ID')} unit barang)`
+                    ? `${fleetSummary.topVessel.fpbCount.toLocaleString('id-ID')} FPB (${fleetSummary.topVessel.qtyFPB.toLocaleString('id-ID')} unit barang)`
                     : 'Belum ada data'}
                 </p>
               </div>
-              <div className="size-11 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
-                <TrendingUp className="size-5" />
+              <div className="size-11 sm:size-12 rounded-2xl bg-purple-50 dark:bg-purple-950/50 border border-purple-200 dark:border-purple-800/60 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+                <TrendingUp className="size-5 sm:size-6" />
               </div>
             </div>
           </div>
 
           {/* 2.5 Visual Interactive Charts Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* Chart 1: Bar Chart Top Armada Permintaan vs Realisasi */}
-            <div className="bg-white dark:bg-card border border-border/80 rounded-2xl p-4 sm:p-5 shadow-xs space-y-2 flex flex-col">
+            {/* Chart 1: Horizontal Bar Chart Top Armada Diminta vs Realisasi */}
+            <div className="bg-white dark:bg-card border border-slate-200/90 dark:border-border rounded-2xl p-4 sm:p-5 shadow-xs space-y-2 flex flex-col">
               <div className="flex items-center justify-between pb-2 border-b border-border/60">
                 <div className="flex items-center gap-1.5">
-                  <BarChart3 className="size-4 text-sky-500" />
+                  <BarChart3 className="size-4 text-sky-600 dark:text-sky-400" />
                   <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-foreground uppercase tracking-wider">
                     Top Armada: Diminta vs Realisasi
                   </h4>
@@ -2278,18 +2331,18 @@ export default function AnalyticsTab({
                 <span className="text-[10px] font-mono text-muted-foreground">Unit Barang</span>
               </div>
               <p className="text-xs text-slate-500 dark:text-muted-foreground">
-                Perbandingan kuantitas FPB vs barang terealisasi per kapal.
+                Perbandingan kuantitas FPB vs realisasi FSTB per kapal (Horizontal Bar).
               </p>
               <div className="h-64 mt-auto">
                 <FleetDemandBarChart data={fleetSummary.vesselList} />
               </div>
             </div>
 
-            {/* Chart 2: Donut Chart Komposisi Kategori Barang */}
-            <div className="bg-white dark:bg-card border border-border/80 rounded-2xl p-4 sm:p-5 shadow-xs space-y-2 flex flex-col">
+            {/* Chart 2: Horizontal Bar Breakdown Komposisi Kategori Barang */}
+            <div className="bg-white dark:bg-card border border-slate-200/90 dark:border-border rounded-2xl p-4 sm:p-5 shadow-xs space-y-2 flex flex-col">
               <div className="flex items-center justify-between pb-2 border-b border-border/60">
                 <div className="flex items-center gap-1.5">
-                  <PieChart className="size-4 text-purple-500" />
+                  <PieChart className="size-4 text-purple-600 dark:text-purple-400" />
                   <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-foreground uppercase tracking-wider">
                     Komposisi Kategori Kebutuhan
                   </h4>
@@ -2304,8 +2357,8 @@ export default function AnalyticsTab({
               </div>
             </div>
 
-            {/* Chart 3: Tren Permintaan Bulanan */}
-            <div className="bg-white dark:bg-card border border-border/80 rounded-2xl p-4 sm:p-5 shadow-xs space-y-2 flex flex-col md:col-span-2 lg:col-span-1">
+            {/* Chart 3: Combo Chart Tren Permintaan Bulanan */}
+            <div className="bg-white dark:bg-card border border-slate-200/90 dark:border-border rounded-2xl p-4 sm:p-5 shadow-xs space-y-2 flex flex-col md:col-span-2 lg:col-span-1">
               <div className="flex items-center justify-between pb-2 border-b border-border/60 gap-2">
                 <div className="flex items-center gap-1.5">
                   <TrendingUp className="size-3.5 text-emerald-500 shrink-0" />
@@ -2314,14 +2367,14 @@ export default function AnalyticsTab({
                   </h4>
                 </div>
                 <span className="px-2 py-0.5 rounded-md font-mono text-[10px] font-semibold bg-slate-100 text-slate-600 dark:bg-muted dark:text-muted-foreground border border-slate-200 dark:border-border shrink-0">
-                  FPB &amp; Qty
+                  Jun 2026 – Okt 2026
                 </span>
               </div>
               <p className="text-xs text-slate-500 dark:text-muted-foreground">
-                Fluktuasi pengajuan kebutuhan kapal sepanjang periode aktif.
+                Fluktuasi pengajuan kebutuhan kapal sepanjang periode aktif (Combo Bar &amp; Line).
               </p>
               <div className="h-64 mt-auto">
-                <FleetMonthlyTrendChart monthlyData={fleetMonthlyTrend} />
+                <FleetMonthlyTrendChart monthlyData={fleetMonthlyTrend} defaultMode="combo" />
               </div>
             </div>
           </div>
