@@ -1628,21 +1628,6 @@ export default function AuditModal({
                       </span>
                     )}
                   </div>
-                  {(activeFstb || parsedTtbList.length > 0 || activeTtb) && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedTtbForPhoto(parsedTtbList[0] || activeTtb);
-                        setShowTimemarkModal(true);
-                      }}
-                      className="w-full mt-1.5 py-1 px-2 rounded-md bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-[10px] font-semibold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-2xs min-w-0 cursor-pointer"
-                      title="Bandingkan foto serah terima TimeMark dengan foto server TTB"
-                    >
-                      <Camera className="size-3 text-amber-600 dark:text-amber-400 shrink-0" />
-                      <span className="truncate">Foto {fstbLast5 ? `TimeMark (${fstbLast5})` : 'TTB'}</span>
-                      <ExternalLink className="size-2.5 opacity-60 shrink-0" />
-                    </button>
-                  )}
                 </div>
               </div>
               <div className="pt-2 border-t border-border min-w-0">
