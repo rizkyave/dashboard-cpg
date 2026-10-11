@@ -1196,7 +1196,7 @@ export default function AuditModal({
             </div>
             <div className="min-w-0 flex-1">
               <span className="text-[10px] font-mono text-muted-foreground font-semibold uppercase tracking-wider block">
-                Verifikasi Akuntabilitas Lintas Modul
+                Verifikasi
               </span>
               <div className="text-sm sm:text-base font-semibold text-foreground font-mono flex items-center gap-1.5 sm:gap-2 flex-wrap mt-0.5">
                 <span className="text-primary font-bold shrink-0">{fpbNumber}</span>
@@ -1401,7 +1401,7 @@ export default function AuditModal({
           <div className="p-3.5 rounded-xl bg-card border border-border min-w-0 flex flex-col justify-between shadow-xs">
             <div>
               <span className="text-[10px] text-muted-foreground font-mono block">
-                NOMOR PO INTERNAL
+                NOMOR PO
               </span>
               <span className="text-sm font-semibold font-mono mt-0.5 block truncate" title={activePo || ''}>
                 {activePo ? (
@@ -1632,9 +1632,6 @@ export default function AuditModal({
                   compact={true}
                 />
               )}
-              <span className="text-[10px] text-muted-foreground font-mono bg-muted px-2 py-0.5 rounded-md border border-border">
-                Detail Riwayat Lengkap
-              </span>
             </div>
           </div>
 
