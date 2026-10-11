@@ -30,7 +30,7 @@ import { ProcurementItem, ArmadaItem, InventoryItem } from '@/types/procurement'
 import StockAuditModal from './StockAuditModal';
 import TimemarkModal from './TimemarkModal';
 import { extractFstbLast5, openTimemarkWithFstb, parseTtbList } from '@/utils/timemark';
-import { updatePdfItemsCacheForFpb } from '@/utils/appStorage';
+import { updatePdfItemsCacheForFpb, loadStoredWorkOrder } from '@/utils/appStorage';
 import { formatDateDdMmYy } from '@/utils/formatDate';
 import { cleanSingleDescription, deduplicateDescriptions, cleanTujuanPeruntukan } from '@/utils/descriptionCleaner';
 import { isItemJasa, determineTransactionCategory, ProcurementCategory, normalizeJasaUnit } from '@/utils/jasaClassifier';
@@ -38,6 +38,7 @@ import { useAuth } from '@/context/AuthContext';
 import WorkflowTrafficLight from './WorkflowTrafficLight';
 import { hasValue } from '@/utils/statusWorkflow';
 import { normalizeFpbKey } from '@/utils/dataMerger';
+import { WorkOrderItem } from '@/types/workOrder';
 
 interface AuditModalProps {
   fpbNumber: string | null;
@@ -45,6 +46,7 @@ interface AuditModalProps {
   procurementList: ProcurementItem[];
   armadaList: ArmadaItem[];
   inventoryItems?: InventoryItem[];
+  workOrderItems?: WorkOrderItem[];
   onClose: () => void;
   showToast: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
   onUpdateWorkOrderNo?: (fpb: string, woNo: string) => void;
@@ -56,6 +58,7 @@ export default function AuditModal({
   procurementList,
   armadaList,
   inventoryItems = [],
+  workOrderItems = [],
   onClose,
   showToast,
   onUpdateWorkOrderNo,
@@ -96,6 +99,7 @@ export default function AuditModal({
   const [showTimemarkModal, setShowTimemarkModal] = useState<boolean>(false);
   const [selectedTtbForPhoto, setSelectedTtbForPhoto] = useState<string | null>(null);
   const [internalInventory, setInternalInventory] = useState<InventoryItem[]>([]);
+  const [internalWorkOrders, setInternalWorkOrders] = useState<WorkOrderItem[]>(workOrderItems || []);
 
   // Fallback auto-fetch inventory if not yet passed from parent
   useEffect(() => {
@@ -112,6 +116,30 @@ export default function AuditModal({
         .catch(() => {});
     }
   }, [inventoryItems]);
+
+  // Pastikan dataset Work Order selalu termuat lengkap untuk pencocokan link Google Drive (SO/WO)
+  useEffect(() => {
+    if (workOrderItems && workOrderItems.length > 0) {
+      setInternalWorkOrders(workOrderItems);
+      return;
+    }
+    loadStoredWorkOrder()
+      .then((stored) => {
+        if (stored && stored.items && stored.items.length > 0) {
+          setInternalWorkOrders(stored.items);
+        } else {
+          fetch('/api/sync-work-order')
+            .then((r) => r.json())
+            .then((res) => {
+              if (res.success && Array.isArray(res.items)) {
+                setInternalWorkOrders(res.items);
+              }
+            })
+            .catch(() => {});
+        }
+      })
+      .catch(() => {});
+  }, [workOrderItems]);
 
   const activeInventory = inventoryItems.length > 0 ? inventoryItems : internalInventory;
 
@@ -154,8 +182,61 @@ export default function AuditModal({
     ? poMatchingItems
     : armadaList.filter((i) => normalizeFpbKey(i.fpb) === normFpb);
 
-  // Nomor Work Order (terpadu dari header e-FPB maupun Form Responses 1 Google Sheets)
-  const effectiveWorkOrderNo = pdfData?.workOrderNo || itemS1?.workOrderNo || itemsS2[0]?.workOrderNo || '';
+  // Nomor Work Order awal dari metadata e-FPB / item
+  const rawWorkOrderNo = pdfData?.workOrderNo || itemS1?.workOrderNo || itemsS2[0]?.workOrderNo || '';
+
+  // Cari kecocokan data Work Order untuk mendapatkan link Google Drive (SO/WO)
+  const matchedWorkOrderItem = useMemo(() => {
+    if (!internalWorkOrders || internalWorkOrders.length === 0) return null;
+
+    // 1. Pencocokan langsung berdasarkan Nomor Work Order
+    if (rawWorkOrderNo) {
+      const cleanRawWo = rawWorkOrderNo.trim().toLowerCase().replace(/[\s\-_/\\.]+/g, '');
+      const foundByNo = internalWorkOrders.find((w) => {
+        if (!w.nomerDokumen) return false;
+        if (w.nomerDokumen.trim().toLowerCase() === rawWorkOrderNo.trim().toLowerCase()) return true;
+        const cleanDoc = w.nomerDokumen.trim().toLowerCase().replace(/[\s\-_/\\.]+/g, '');
+        return cleanDoc === cleanRawWo;
+      });
+      if (foundByNo) return foundByNo;
+    }
+
+    // 2. Pencocokan berdasarkan Nomor FPB (noFpbMrp)
+    if (normFpb) {
+      const fpbNumMatches = fpbNumber?.match(/\b\d{2}-\d{4,8}\b/);
+      const fpbNumPattern = fpbNumMatches ? fpbNumMatches[0].toLowerCase() : '';
+
+      const foundByFpb = internalWorkOrders.find((w) => {
+        if (!w.noFpbMrp) return false;
+        const rawTokens = String(w.noFpbMrp)
+          .split(/[\r\n,;|]+/)
+          .map((s) => s.trim().toLowerCase());
+        for (const tok of rawTokens) {
+          if (normalizeFpbKey(tok) === normFpb) return true;
+          if (fpbNumPattern && tok.includes(fpbNumPattern)) return true;
+        }
+        return false;
+      });
+      if (foundByFpb) return foundByFpb;
+    }
+
+    return null;
+  }, [internalWorkOrders, rawWorkOrderNo, normFpb, fpbNumber]);
+
+  // Nomor Work Order final (terpadu dari header e-FPB, Form Responses 1 Sheets, atau dataset Work Order)
+  const effectiveWorkOrderNo = rawWorkOrderNo || matchedWorkOrderItem?.nomerDokumen || '';
+
+  // URL Dokumen Work Order untuk dibuka di tab baru browser (Google Drive SO/WO)
+  const matchedWoUrl =
+    (matchedWorkOrderItem?.uploadSoWoUrl && matchedWorkOrderItem.uploadSoWoUrl.trim().startsWith('http')
+      ? matchedWorkOrderItem.uploadSoWoUrl.trim()
+      : '') ||
+    (matchedWorkOrderItem?.bastUrl && matchedWorkOrderItem.bastUrl.trim().startsWith('http')
+      ? matchedWorkOrderItem.bastUrl.trim()
+      : '') ||
+    (matchedWorkOrderItem?.efpbPdfUrl && matchedWorkOrderItem.efpbPdfUrl.trim().startsWith('http')
+      ? matchedWorkOrderItem.efpbPdfUrl.trim()
+      : '');
 
   // Compile all requested items from e-FPB / Armada / Procurement for warehouse stock matching
   const requestedFpbItems = useMemo(() => {
@@ -990,12 +1071,25 @@ export default function AuditModal({
                   )}
                 </span>
                 {effectiveWorkOrderNo && (
-                  <span
-                    className="text-cyan-600 dark:text-cyan-400 font-mono text-xs px-2 py-0.5 rounded-md bg-cyan-500/10 border border-cyan-500/20 font-semibold shrink-0"
-                    title={`Nomor Work Order Operasional: ${effectiveWorkOrderNo}`}
-                  >
-                    WO: {effectiveWorkOrderNo}
-                  </span>
+                  matchedWoUrl ? (
+                    <a
+                      href={matchedWoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 font-mono text-xs px-2 py-0.5 rounded-md bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 font-semibold shrink-0 inline-flex items-center gap-1 transition active:scale-95 cursor-pointer shadow-2xs group"
+                      title={`Buka Dokumen Work Order (${effectiveWorkOrderNo}) di Tab Baru Browser`}
+                    >
+                      <span>WO: {effectiveWorkOrderNo}</span>
+                      <ExternalLink className="size-2.5 opacity-70 group-hover:opacity-100" />
+                    </a>
+                  ) : (
+                    <span
+                      className="text-cyan-600 dark:text-cyan-400 font-mono text-xs px-2 py-0.5 rounded-md bg-cyan-500/10 border border-cyan-500/20 font-semibold shrink-0"
+                      title={`Nomor Work Order Operasional: ${effectiveWorkOrderNo}`}
+                    >
+                      WO: {effectiveWorkOrderNo}
+                    </span>
+                  )
                 )}
                 <span className="text-foreground font-sans text-xs sm:text-sm font-medium truncate max-w-full">
                   &bull; {itemsS2[0]?.armada || itemS1?.deptArmada || itemS1?.item || 'Nama Kapal / Armada'}
@@ -1157,17 +1251,44 @@ export default function AuditModal({
           {/* 2. Center Card: KOTAK MENU NOMOR WORK ORDER (WO) */}
           <div className="p-3.5 rounded-xl bg-card border border-border min-w-0 flex flex-col justify-between shadow-xs hover:border-cyan-500/40 transition-colors">
             <div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-1.5">
                 <span className="text-[10px] text-muted-foreground font-mono block">
                   NOMOR WORK ORDER (WO)
                 </span>
-                <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/20 font-semibold">
-                  WO
-                </span>
+                {matchedWoUrl ? (
+                  <a
+                    href={matchedWoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30 font-semibold inline-flex items-center gap-1 transition active:scale-95 shadow-2xs cursor-pointer group shrink-0"
+                    title={`Klik untuk Buka Link Dokumen Work Order (${effectiveWorkOrderNo}) di Tab Baru Browser`}
+                  >
+                    <FileText className="size-2.5 text-cyan-600 dark:text-cyan-400" />
+                    <span>Buka Link WO</span>
+                    <ExternalLink className="size-2.5 opacity-70 group-hover:opacity-100" />
+                  </a>
+                ) : (
+                  <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/20 font-semibold shrink-0">
+                    WO
+                  </span>
+                )}
               </div>
-              <span className="text-sm font-semibold font-mono mt-0.5 block truncate" title={effectiveWorkOrderNo || 'Belum Ada Nomor Work Order'}>
+              <span className="text-sm font-semibold font-mono mt-1 block truncate" title={effectiveWorkOrderNo || 'Belum Ada Nomor Work Order'}>
                 {effectiveWorkOrderNo ? (
-                  <span className="text-cyan-700 dark:text-cyan-400 font-bold">{effectiveWorkOrderNo}</span>
+                  matchedWoUrl ? (
+                    <a
+                      href={matchedWoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-cyan-700 dark:text-cyan-400 hover:text-cyan-600 dark:hover:text-cyan-300 font-bold hover:underline inline-flex items-center gap-1.5 transition-colors cursor-pointer group max-w-full truncate"
+                      title={`Klik untuk Buka Dokumen Work Order (${effectiveWorkOrderNo}) di Tab Baru Browser`}
+                    >
+                      <span className="truncate">{effectiveWorkOrderNo}</span>
+                      <ExternalLink className="size-3.5 shrink-0 opacity-60 group-hover:opacity-100" />
+                    </a>
+                  ) : (
+                    <span className="text-cyan-700 dark:text-cyan-400 font-bold">{effectiveWorkOrderNo}</span>
+                  )
                 ) : (
                   <span className="text-muted-foreground font-normal italic">- (Kosong)</span>
                 )}
@@ -1175,16 +1296,29 @@ export default function AuditModal({
             </div>
 
             <div className="pt-2 mt-2 border-t border-border/60 flex items-center justify-between text-xs font-mono">
-              <span className="text-[10px] text-muted-foreground uppercase">STATUS WO:</span>
-              <span
-                className={`font-semibold truncate ml-1 text-right text-[11px] ${
-                  effectiveWorkOrderNo
-                    ? 'text-cyan-700 dark:text-cyan-400'
-                    : 'text-muted-foreground italic'
-                }`}
-              >
-                {effectiveWorkOrderNo ? 'Tersinkronisasi e-FPB' : 'Belum Diterbitkan'}
-              </span>
+              <span className="text-[10px] text-muted-foreground uppercase shrink-0">STATUS WO:</span>
+              {matchedWoUrl ? (
+                <a
+                  href={matchedWoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold truncate ml-1 text-right text-[11px] text-cyan-700 dark:text-cyan-400 hover:underline inline-flex items-center gap-1 cursor-pointer"
+                  title="Dokumen SO/WO terhubung secara live dari Google Drive (Klik untuk Buka di Tab Baru)"
+                >
+                  <span className="truncate">Dokumen Tersedia</span>
+                  <ExternalLink className="size-2.5 shrink-0 opacity-80" />
+                </a>
+              ) : (
+                <span
+                  className={`font-semibold truncate ml-1 text-right text-[11px] ${
+                    effectiveWorkOrderNo
+                      ? 'text-cyan-700 dark:text-cyan-400'
+                      : 'text-muted-foreground italic'
+                  }`}
+                >
+                  {effectiveWorkOrderNo ? 'Tersinkronisasi e-FPB' : 'Belum Diterbitkan'}
+                </span>
+              )}
             </div>
           </div>
 
@@ -1411,12 +1545,25 @@ export default function AuditModal({
                   {effectiveWorkOrderNo && (
                     <div className="flex items-center justify-between min-w-0">
                       <span className="text-muted-foreground shrink-0 whitespace-nowrap">No. WO:</span>
-                      <span
-                        className="text-cyan-700 dark:text-cyan-400 font-mono font-semibold text-[10.5px] truncate text-right ml-1.5 min-w-0"
-                        title={`Work Order: ${effectiveWorkOrderNo}`}
-                      >
-                        {effectiveWorkOrderNo}
-                      </span>
+                      {matchedWoUrl ? (
+                        <a
+                          href={matchedWoUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-cyan-700 dark:text-cyan-400 hover:text-cyan-600 dark:hover:text-cyan-300 font-mono font-semibold text-[10.5px] truncate text-right ml-1.5 min-w-0 hover:underline inline-flex items-center gap-1 cursor-pointer"
+                          title={`Klik untuk Buka Dokumen Work Order: ${effectiveWorkOrderNo} di Tab Baru Browser`}
+                        >
+                          <span className="truncate">{effectiveWorkOrderNo}</span>
+                          <ExternalLink className="size-2.5 shrink-0 opacity-70" />
+                        </a>
+                      ) : (
+                        <span
+                          className="text-cyan-700 dark:text-cyan-400 font-mono font-semibold text-[10.5px] truncate text-right ml-1.5 min-w-0"
+                          title={`Work Order: ${effectiveWorkOrderNo}`}
+                        >
+                          {effectiveWorkOrderNo}
+                        </span>
+                      )}
                     </div>
                   )}
                   <div className="flex items-center justify-between min-w-0">

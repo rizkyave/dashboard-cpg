@@ -1127,6 +1127,7 @@ export default function DashboardPage() {
           procurementList={procurementData}
           armadaList={armadaData}
           inventoryItems={inventoryItems}
+          workOrderItems={workOrderItems}
           onClose={() => {
             setAuditedFpb(null);
             setAuditedPo(null);
