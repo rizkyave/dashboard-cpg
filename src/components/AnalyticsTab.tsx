@@ -48,6 +48,7 @@ import {
   FleetCategoryDonutChart,
   FleetMonthlyTrendChart,
 } from './Charts';
+import FleetGanttSchedule from './FleetGanttSchedule';
 import WorkflowTrafficLight from './WorkflowTrafficLight';
 import { evaluateFiveDivisionWorkflow } from '@/utils/statusWorkflow';
 
@@ -2378,6 +2379,13 @@ export default function AnalyticsTab({
               </div>
             </div>
           </div>
+
+          {/* 2.6 Gantt Schedule Timeline Permintaan & Realisasi Armada */}
+          <FleetGanttSchedule
+            items={fleetFilteredItems}
+            onOpenAudit={onOpenAudit}
+            selectedEntity={fleetEntityFilter}
+          />
 
           {/* 3. MODE TAMPILAN: JIKA MEMILIH 1 ARMADA SPESIFIK */}
           {selectedFleetArmada !== 'ALL' && (
