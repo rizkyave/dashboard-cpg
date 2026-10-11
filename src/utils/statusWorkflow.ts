@@ -443,7 +443,7 @@ export function getWorkflowGroupedStatuses(
 }
 
 export interface DivisionStageLight {
-  code: 'FPB' | 'PCH' | 'TTB' | 'LAP' | 'ADM' | 'FIN';
+  code: 'FPB' | 'PCH' | 'TTB' | 'LOG' | 'BAST' | 'LAP' | 'ADM' | 'FIN';
   name: string;
   stepNumber: number;
   isPassed: boolean;
@@ -529,7 +529,7 @@ export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisio
   const ttbStatus = hasTtb ? 'TTB Tercatat' : hasTglTtb ? 'Tgl TTB Ada' : 'Menunggu TTB';
 
   // 4. TIM LAPANGAN (Serah Terima Fisik & Pengantaran)
-  const picLap = item.picLap && item.picLap !== '-' && item.picLap.toLowerCase() !== '(kosong)'
+  const picLap = item.picLap && item.picLap !== '-' && item.picLap.toLowerCase() !== '(kosong)' && item.picLap.toLowerCase() !== 'null'
     ? item.picLap.trim()
     : '';
   const hasPicLap = Boolean(picLap);
@@ -537,19 +537,29 @@ export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisio
   const hasTglDiantar = hasValue(tglDiantar);
   const tglLap = item.tglTimLapKePicTtb || item.tglKeTimLapangan || item.tglKeTimLap;
   const hasTglLap = hasValue(tglLap);
-  const isPhysicalDone =
-    (typeof item.selisih === 'number' && item.selisih === 0 && typeof item.qtyFSTB === 'number' && item.qtyFSTB > 0) ||
-    item.status === 'LENGKAP' ||
-    item.status === 'SELESAI';
-  const isLapPassed = hasPicLap || hasTglDiantar || hasTglLap || isPhysicalDone;
-  const lapDetail = hasPicLap
+  const hasTglTimLapKePicTtb = hasValue(item.tglTimLapKePicTtb);
+  const hasTglTtbKePch = hasValue(item.tglTtbKePicPch);
+
+  // Validasi Ketat Tahap 4 (Tim Lapangan):
+  // Tombol & status TIDAK BOLEH "Serah Terima Lengkap" selama indikator PIC Lap, Tgl Diantar, TL ke TTB, dan TTB ke PCH masih belum tercatat / belum diantar / belum ada
+  const hasPhysicalHandoverDetails = Boolean(
+    hasPicLap && (hasTglDiantar || hasTglTimLapKePicTtb || hasTglTtbKePch)
+  );
+
+  const isLapPassed = hasPhysicalHandoverDetails;
+  const lapDetail = isLapPassed
     ? `PIC: ${picLap}${hasTglDiantar ? ` (${formatDateDdMmYyDash(tglDiantar) || tglDiantar})` : ''}`
-    : hasTglDiantar
-    ? `Diantar: ${formatDateDdMmYyDash(tglDiantar) || tglDiantar}`
-    : isPhysicalDone
+    : hasPicLap
+    ? `PIC: ${picLap} (Menunggu Diantar)`
+    : hasTglLap
+    ? `Diterima TL (${formatDateDdMmYyDash(tglLap) || tglLap})`
+    : 'Menunggu Serah Terima';
+
+  const lapStatus = isLapPassed
     ? 'Serah Terima Lengkap'
-    : 'Menunggu Lapangan';
-  const lapStatus = isLapPassed ? 'Serah Terima Lengkap' : 'Menunggu Serah Terima';
+    : (hasTglLap || hasPicLap)
+    ? 'Menunggu Serah Terima'
+    : 'Pending Lapangan';
 
   // 5. FINANCE / ADM (Penerbitan SPP & Penyelesaian Kas)
   const rawSpp = item.noSpp || item.spp;
@@ -611,7 +621,7 @@ export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisio
       activeTextClass: 'text-sky-700 dark:text-sky-400 font-bold',
     },
     {
-      code: 'TTB',
+      code: 'LOG',
       name: 'Logistik TTB',
       stepNumber: 3,
       isPassed: isTtbPassed,

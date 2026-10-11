@@ -31,7 +31,7 @@ import StockAuditModal from './StockAuditModal';
 import TimemarkModal from './TimemarkModal';
 import { extractFstbLast5, openTimemarkWithFstb, parseTtbList } from '@/utils/timemark';
 import { updatePdfItemsCacheForFpb, loadStoredWorkOrder } from '@/utils/appStorage';
-import { formatDateDdMmYy } from '@/utils/formatDate';
+import { formatDateDdMmYy, extractDateInfo } from '@/utils/formatDate';
 import { cleanSingleDescription, deduplicateDescriptions, cleanTujuanPeruntukan } from '@/utils/descriptionCleaner';
 import { isItemJasa, determineTransactionCategory, ProcurementCategory, normalizeJasaUnit } from '@/utils/jasaClassifier';
 import { useAuth } from '@/context/AuthContext';
@@ -522,6 +522,108 @@ export default function AuditModal({
       : '') ||
     '';
 
+  // Deteksi estimasi waktu delivery yang membutuhkan >= 1 hari (contoh: 1-2 HARI, 1 HARI, 2 HARI, 3-5 HARI)
+  const deliveryRequiresDays = useMemo(() => {
+    if (!activeDeliveryTime) return false;
+    const s = activeDeliveryTime.toLowerCase();
+    if (
+      s.includes('0 hari') ||
+      s.includes('0hari') ||
+      s.includes('langsung') ||
+      s.includes('same day') ||
+      s.includes('sameday') ||
+      s.includes('ekspres') ||
+      s.includes('express')
+    ) {
+      return false;
+    }
+    const match = s.match(/(\d+)\s*(?:-\s*(\d+))?\s*hari/i);
+    if (match) {
+      const minDays = parseInt(match[1], 10);
+      return minDays >= 1;
+    }
+    return false;
+  }, [activeDeliveryTime]);
+
+  // Cek apakah terdapat catatan penjelas pengiriman ekspres pada keterangan pengadaan
+  const hasExpressDeliveryExplanation = useMemo(() => {
+    const allTexts = [
+      activeDeliveryTime,
+      itemS1?.peruntukan,
+      itemsS2[0]?.keterangan,
+      pdfData?.tujuanPeruntukan,
+      itemS1?.noteCheckFpb,
+      itemS1?.item,
+      itemsS2[0]?.item,
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+
+    const expressKeywords = [
+      'ekspres',
+      'express',
+      'urgent',
+      'same day',
+      'sameday',
+      'instan',
+      'instant',
+      'bypass',
+      'titip langsung',
+      'titip marsik',
+      'titip crew',
+      'cash sindi',
+      'langsung bawa',
+      'bawa langsung',
+    ];
+
+    return expressKeywords.some((kw) => allTexts.includes(kw));
+  }, [activeDeliveryTime, itemS1, itemsS2, pdfData]);
+
+  // Validasi Anomali SLA Delivery:
+  // Jika 'Delivery' membutuhkan waktu 1-2 HARI dari Tgl PO, berikan peringatan (warning/alert)
+  // jika Tgl TTB dan Tgl Diterima TL diisi pada tanggal yang sama dengan Tgl PO tanpa penjelas pengiriman ekspres
+  const slaDeliveryAnomaly = useMemo(() => {
+    if (!deliveryRequiresDays || hasExpressDeliveryExplanation) return null;
+    if (!rawTglPo || rawTglPo === '-') return null;
+
+    const poDateInfo = extractDateInfo(rawTglPo);
+    if (!poDateInfo.fullDate) return null;
+
+    const ttbDateInfo = activeTglTtb ? extractDateInfo(activeTglTtb) : null;
+    const rawTglKeLap = (hasValue(itemS1?.tglKeTimLapangan) ? itemS1!.tglKeTimLapangan : '') ||
+                        (hasValue(itemsS2[0]?.tglKeTimLapangan) ? itemsS2[0]!.tglKeTimLapangan : '');
+    const tlDateInfo = rawTglKeLap ? extractDateInfo(rawTglKeLap) : null;
+
+    const isTtbSameDay = Boolean(ttbDateInfo?.fullDate && ttbDateInfo.fullDate === poDateInfo.fullDate);
+    const isTlSameDay = Boolean(tlDateInfo?.fullDate && tlDateInfo.fullDate === poDateInfo.fullDate);
+
+    if (isTtbSameDay || isTlSameDay) {
+      const targets: string[] = [];
+      if (isTtbSameDay) targets.push('Tgl TTB');
+      if (isTlSameDay) targets.push('Tgl Diterima TL');
+
+      return {
+        isAnomaly: true,
+        isTtbSameDay,
+        isTlSameDay,
+        poDate: formatDateDdMmYy(rawTglPo),
+        targetsText: targets.join(' & '),
+        message: `Peringatan Validasi SLA: Estimasi delivery membutuhkan ${activeDeliveryTime} dari Tgl PO (${formatDateDdMmYy(rawTglPo)}), tetapi ${targets.join(' & ')} diinput pada tanggal yang sama tanpa penjelas pengiriman ekspres.`,
+      };
+    }
+
+    return null;
+  }, [
+    deliveryRequiresDays,
+    hasExpressDeliveryExplanation,
+    rawTglPo,
+    activeTglTtb,
+    itemS1,
+    itemsS2,
+    activeDeliveryTime,
+  ]);
+
   const isPicLapFilled = Boolean(
     hasValue(itemS1?.picLap) || hasValue(itemsS2[0]?.picLap)
   );
@@ -546,10 +648,13 @@ export default function AuditModal({
   );
 
   // Status Serah Terima Fisik Barang:
-  // Untuk barang fisik, penyelesaian logistik mensyaratkan bukti aktual penyerahan fisik (tanggal barang diantar ATAU PIC Lapangan tercatat)
+  // Validasi ketat: Tombol TIDAK BOLEH "Serah Terima Lengkap" selama PIC Lap, Tgl Diantar, TL ke TTB, dan TTB ke PCH masih berstatus belum tercatat / belum diantar / belum ada.
+  const hasPhysicalHandoverDetails = Boolean(
+    isPicLapFilled && (hasTglDiantar || hasTglTimLapKePicTtb || hasTglTtbKePch)
+  );
+
   const isBarangPhysicalDone = Boolean(
-    (hasTglDiantar || isPicLapFilled || (itemsS2.length > 0 && itemsS2.every((it) => (it.qtyFSTB || 0) > 0 && it.selisih === 0 && (it.qtyTTB || 0) > 0))) &&
-    (activeTtb || activeFstb)
+    hasPhysicalHandoverDetails && (activeTtb || activeFstb)
   );
 
   const isPengantaranLogistikDone = isBarangPhysicalDone;
@@ -612,8 +717,7 @@ export default function AuditModal({
   // Status Validasi Modul ke-4 (Pengantaran Logistik vs Pelaksanaan/BAST Jasa)
   const isJasaPhysicalDone = Boolean(
     detectedServiceReportNo ||
-    hasTglDiantar ||
-    (isPicLapFilled && (hasTglKeLap || activeTtb))
+    (isPicLapFilled && (hasTglDiantar || hasTglKeLap))
   );
 
   const isCard4Done = isJasaOnly ? isJasaPhysicalDone : isBarangPhysicalDone;
@@ -805,6 +909,75 @@ export default function AuditModal({
     }
     return 'text-foreground';
   }, [statusSaatIni]);
+
+  // Evaluasi item workflow alur 5 divisi yang disinkronkan dengan data aktual AuditModal
+  const evaluatableWorkflowItem = useMemo(() => {
+    const baseItem = itemS1 || itemsS2[0];
+    if (!baseItem) return null;
+
+    const rawPicLap =
+      (hasValue(itemS1?.picLap) ? itemS1!.picLap : '') ||
+      (hasValue(itemsS2[0]?.picLap) ? itemsS2[0]!.picLap : '') ||
+      '';
+    const rawTglDiantar =
+      (hasValue(itemS1?.tglBarangDiantar) ? itemS1!.tglBarangDiantar : '') ||
+      (hasValue(itemsS2[0]?.tglBarangDiantar) ? itemsS2[0]!.tglBarangDiantar : '') ||
+      '';
+    const rawTglKeLap =
+      (hasValue(itemS1?.tglKeTimLapangan) ? itemS1!.tglKeTimLapangan : '') ||
+      (hasValue(itemsS2[0]?.tglKeTimLapangan) ? itemsS2[0]!.tglKeTimLapangan : '') ||
+      '';
+    const rawTglTimLapKePicTtb =
+      (hasValue(itemS1?.tglTimLapKePicTtb) ? itemS1!.tglTimLapKePicTtb : '') ||
+      (hasValue(itemsS2[0]?.tglTimLapKePicTtb) ? itemsS2[0]!.tglTimLapKePicTtb : '') ||
+      '';
+    const rawTglTtbKePch =
+      (hasValue(itemS1?.tglTtbKePicPch) ? itemS1!.tglTtbKePicPch : '') ||
+      (hasValue(itemsS2[0]?.tglTtbKePicPch) ? itemsS2[0]!.tglTtbKePicPch : '') ||
+      '';
+
+    const activeSpp =
+      (hasValue(itemS1?.noSpp) ? itemS1!.noSpp?.trim() : '') ||
+      (hasValue(itemsS2[0]?.noSpp) ? itemsS2[0]!.noSpp?.trim() : '') ||
+      '';
+    const activeTglKeuangan =
+      (hasValue(itemS1?.tglKeKeuangan) ? itemS1!.tglKeKeuangan?.trim() : '') ||
+      (hasValue(itemsS2[0]?.tglKeKeuangan) ? itemsS2[0]!.tglKeKeuangan?.trim() : '') ||
+      '';
+
+    const anyBase = baseItem as any;
+    return {
+      ...baseItem,
+      fpb: primaryDocNum || anyBase.fpb,
+      noPo: activePo || anyBase.noPo || anyBase.po,
+      po: activePo || anyBase.po,
+      tglPo: rawTglPo || anyBase.tglPo,
+      picPch: activePicPch || anyBase.picPch,
+      noTtb: activeTtb || anyBase.noTtb,
+      tglTtb: activeTglTtb || anyBase.tglTtb,
+      picTtb: cleanPicTtb || anyBase.picTtb,
+      picLap: rawPicLap,
+      tglBarangDiantar: rawTglDiantar,
+      tglKeTimLapangan: rawTglKeLap,
+      tglTimLapKePicTtb: rawTglTimLapKePicTtb,
+      tglTtbKePicPch: rawTglTtbKePch,
+      noSpp: activeSpp || anyBase.noSpp,
+      tglKeKeuangan: activeTglKeuangan || anyBase.tglKeKeuangan,
+      statusCheckFpb: anyBase.statusCheckFpb || (fpbCheckInfo.checkerName ? 'DONE' : undefined),
+      doneCheckFpb: anyBase.doneCheckFpb ?? Boolean(fpbCheckInfo.checkerName),
+    };
+  }, [
+    itemS1,
+    itemsS2,
+    primaryDocNum,
+    activePo,
+    rawTglPo,
+    activePicPch,
+    activeTtb,
+    activeTglTtb,
+    cleanPicTtb,
+    fpbCheckInfo,
+  ]);
 
   // Otomatis sinkronkan metadata PDF (Requested By, Tanggal, Item) saat modal dibuka
   useEffect(() => {
@@ -1497,9 +1670,9 @@ export default function AuditModal({
               <span>Alur Tanggung Jawab Fisik & PIC (5 Divisi Terverifikasi)</span>
             </h4>
             <div className="flex items-center gap-2.5 flex-wrap">
-              {(itemS1 || itemsS2[0]) && (
+              {evaluatableWorkflowItem && (
                 <WorkflowTrafficLight
-                  item={(itemS1 || itemsS2[0]) as any}
+                  item={evaluatableWorkflowItem as any}
                   showBadge={true}
                   compact={true}
                 />
@@ -1509,6 +1682,20 @@ export default function AuditModal({
               </span>
             </div>
           </div>
+
+          {slaDeliveryAnomaly && (
+            <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 flex items-start gap-2.5 text-xs shadow-xs">
+              <AlertTriangle className="size-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <span className="font-semibold block font-mono text-[11px] text-amber-900 dark:text-amber-200">
+                  Peringatan Validasi SLA Pengiriman &amp; Tanggal:
+                </span>
+                <p className="text-[11.5px] leading-relaxed mt-0.5 text-amber-800 dark:text-amber-300">
+                  {slaDeliveryAnomaly.message}
+                </p>
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 text-xs">
             {/* 1. PEMBUATAN FPB */}
@@ -1710,9 +1897,23 @@ export default function AuditModal({
                     )}
                   </div>
                   <div className="flex items-center justify-between min-w-0">
-                    <span className="text-muted-foreground shrink-0 whitespace-nowrap">Delivery:</span>
+                    <span className="text-muted-foreground shrink-0 whitespace-nowrap flex items-center gap-1">
+                      Delivery:
+                      {slaDeliveryAnomaly && (
+                        <span title={slaDeliveryAnomaly.message} className="cursor-help">
+                          <AlertTriangle className="size-2.5 text-amber-500 shrink-0" />
+                        </span>
+                      )}
+                    </span>
                     {hasValue(activeDeliveryTime) ? (
-                      <span className="text-muted-foreground font-mono text-right ml-1.5 truncate min-w-0">
+                      <span
+                        className={`font-mono text-right ml-1.5 truncate min-w-0 ${
+                          slaDeliveryAnomaly
+                            ? 'text-amber-600 dark:text-amber-400 font-semibold'
+                            : 'text-muted-foreground'
+                        }`}
+                        title={slaDeliveryAnomaly ? slaDeliveryAnomaly.message : activeDeliveryTime}
+                      >
                         {activeDeliveryTime}
                       </span>
                     ) : (
@@ -1802,13 +2003,29 @@ export default function AuditModal({
                     )}
                   </div>
                   <div className="flex items-center justify-between min-w-0">
-                    <span className="text-muted-foreground shrink-0 whitespace-nowrap">
+                    <span className="text-muted-foreground shrink-0 whitespace-nowrap flex items-center gap-1">
                       {isJasaOnly ? 'Tgl Validasi:' : 'Tgl TTB:'}
+                      {slaDeliveryAnomaly?.isTtbSameDay && (
+                        <span
+                          title={`Peringatan SLA: Tgl TTB (${formatDateDdMmYy(itemsS2[0]?.tglTtb || itemS1?.tglInputTtb)}) sama dengan Tgl PO (${slaDeliveryAnomaly.poDate}) tanpa penjelas pengiriman ekspres`}
+                          className="cursor-help"
+                        >
+                          <AlertTriangle className="size-2.5 text-amber-500 shrink-0" />
+                        </span>
+                      )}
                     </span>
                     {(itemsS2[0]?.tglTtb && itemsS2[0].tglTtb !== '-') || (itemS1?.tglInputTtb && itemS1.tglInputTtb !== '-') ? (
                       <span
-                        className="text-muted-foreground font-mono text-right ml-1.5 truncate min-w-0"
-                        title={itemsS2[0]?.tglTtb || itemS1?.tglInputTtb}
+                        className={`font-mono text-right ml-1.5 truncate min-w-0 ${
+                          slaDeliveryAnomaly?.isTtbSameDay
+                            ? 'text-amber-600 dark:text-amber-400 font-semibold'
+                            : 'text-muted-foreground'
+                        }`}
+                        title={
+                          slaDeliveryAnomaly?.isTtbSameDay
+                            ? `Peringatan SLA: Tgl TTB sama dengan Tgl PO (${slaDeliveryAnomaly.poDate})`
+                            : itemsS2[0]?.tglTtb || itemS1?.tglInputTtb
+                        }
                       >
                         {formatDateDdMmYy(itemsS2[0]?.tglTtb || itemS1?.tglInputTtb)}
                       </span>
@@ -1871,11 +2088,30 @@ export default function AuditModal({
                     )}
                   </div>
                   <div className="flex items-center justify-between min-w-0">
-                    <span className="text-muted-foreground shrink-0 whitespace-nowrap">
+                    <span className="text-muted-foreground shrink-0 whitespace-nowrap flex items-center gap-1">
                       {isJasaOnly ? 'Ke Lapangan:' : 'Tgl diterima TL:'}
+                      {slaDeliveryAnomaly?.isTlSameDay && (
+                        <span
+                          title={`Peringatan SLA: Tgl diterima TL (${formatDateDdMmYy((hasValue(itemS1?.tglKeTimLapangan) ? itemS1!.tglKeTimLapangan : '') || (hasValue(itemsS2[0]?.tglKeTimLapangan) ? itemsS2[0]!.tglKeTimLapangan : ''))}) sama dengan Tgl PO (${slaDeliveryAnomaly.poDate}) tanpa penjelas pengiriman ekspres`}
+                          className="cursor-help"
+                        >
+                          <AlertTriangle className="size-2.5 text-amber-500 shrink-0" />
+                        </span>
+                      )}
                     </span>
                     {hasTglKeLap ? (
-                      <span className="text-muted-foreground font-mono text-right ml-1.5 truncate min-w-0">
+                      <span
+                        className={`font-mono text-right ml-1.5 truncate min-w-0 ${
+                          slaDeliveryAnomaly?.isTlSameDay
+                            ? 'text-amber-600 dark:text-amber-400 font-semibold'
+                            : 'text-muted-foreground'
+                        }`}
+                        title={
+                          slaDeliveryAnomaly?.isTlSameDay
+                            ? `Peringatan SLA: Tgl diterima TL sama dengan Tgl PO (${slaDeliveryAnomaly.poDate})`
+                            : undefined
+                        }
+                      >
                         {formatDateDdMmYy(
                           (hasValue(itemS1?.tglKeTimLapangan) ? itemS1!.tglKeTimLapangan : '') ||
                           (hasValue(itemsS2[0]?.tglKeTimLapangan) ? itemsS2[0]!.tglKeTimLapangan : '')
@@ -1945,12 +2181,12 @@ export default function AuditModal({
                 ) : isTimLapFilled || activeTtb || hasTglKeLap ? (
                   <span className="inline-flex items-center justify-center gap-1 text-[10px] font-mono text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-1 rounded-md border border-amber-500/20 w-full truncate font-semibold min-w-0">
                     <Clock className="size-3 text-amber-600 dark:text-amber-400" />
-                    {isJasaOnly ? 'Pelaksanaan Lapangan' : 'Menunggu Konfirmasi Fisik'}
+                    {isJasaOnly ? 'Pelaksanaan Lapangan' : 'Menunggu Serah Terima'}
                   </span>
                 ) : (
-                  <span className="inline-flex items-center justify-center gap-1 text-[10px] font-mono text-muted-foreground bg-muted px-2 py-1 rounded-md border border-border w-full truncate font-medium min-w-0">
-                    <span className="size-1.5 rounded-full bg-muted-foreground/40 mr-0.5"></span>
-                    Menunggu Distribusi
+                  <span className="inline-flex items-center justify-center gap-1 text-[10px] font-mono text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-1 rounded-md border border-amber-500/20 w-full truncate font-medium min-w-0">
+                    <Clock className="size-3 text-amber-600 dark:text-amber-400" />
+                    Pending Lapangan
                   </span>
                 )}
               </div>
