@@ -16,7 +16,6 @@ import {
   AlertTriangle,
   RotateCcw,
 } from 'lucide-react';
-import { extractDateInfo } from '@/utils/formatDate';
 
 export interface FleetGanttItem {
   id?: string;
@@ -49,29 +48,35 @@ interface FleetGanttScheduleProps {
   selectedEntity?: string;
 }
 
-// 20 Kolom Mingguan (5 Bulan x 4 Minggu)
+// 5 Bulan Timeline (Juni - Oktober 2026)
 const TIMELINE_MONTHS = [
-  { key: '06', name: 'JUN', label: 'Juni 2026' },
-  { key: '07', name: 'JUL', label: 'Juli 2026' },
-  { key: '08', name: 'AGU', label: 'Agustus 2026' },
-  { key: '09', name: 'SEP', label: 'September 2026' },
-  { key: '10', name: 'OKT', label: 'Oktober 2026' },
+  { key: '06', name: 'JUN', label: 'Juni 2026', startCol: 0 },
+  { key: '07', name: 'JUL', label: 'Juli 2026', startCol: 4 },
+  { key: '08', name: 'AGU', label: 'Agustus 2026', startCol: 8 },
+  { key: '09', name: 'SEP', label: 'September 2026', startCol: 12 },
+  { key: '10', name: 'OKT', label: 'Oktober 2026', startCol: 16 },
 ];
 
 const WEEKS_PER_MONTH = ['W1', 'W2', 'W3', 'W4'];
 
-// 12 Baseline Top Armada spesifik sesuai brief manajemen
+// 12 Baseline Top Armada Spesifik sesuai spesifikasi
 interface CuratedVessel {
   name: string;
   tag: string;
   fpbCount: number;
-  startCol: number; // 0 to 19
+  startCol: number; // 0 to 19 (Jun W1 = 0, Okt W4 = 19)
   endCol: number;   // 0 to 19
   gradientStyle: string;
   colorType: 'HIJAU' | 'BIRU_ORANYE' | 'BIRU_ORANYE_MERAH' | 'HIJAU_MERAH' | 'HIJAU_ORANYE' | 'HIJAU_BIRU_MERAH';
   summaryText: string;
   statusBadge: { lengkap: number; proses: number; parsial: number; backlog: number };
-  sampleItems: Array<{ fpb: string; item: string; startCol: number; endCol: number; status: 'LENGKAP' | 'PROSES' | 'PARSIAL' | 'BACKLOG' }>;
+  sampleItems: Array<{
+    fpb: string;
+    item: string;
+    startCol: number;
+    endCol: number;
+    status: 'LENGKAP' | 'PROSES' | 'PARSIAL' | 'BACKLOG';
+  }>;
 }
 
 const CURATED_TOP_VESSELS: CuratedVessel[] = [
@@ -83,7 +88,7 @@ const CURATED_TOP_VESSELS: CuratedVessel[] = [
     endCol: 19, // Okt W4
     gradientStyle: 'bg-gradient-to-r from-[#10B981] via-[#10B981] to-[#0EA5E9]',
     colorType: 'HIJAU',
-    summaryText: 'Jun W1 - Okt W4 (Dominan Selesai)',
+    summaryText: 'Jun W1 - Okt W4 (Dominan Hijau/Selesai)',
     statusBadge: { lengkap: 284, proses: 22, parsial: 12, backlog: 4 },
     sampleItems: [
       { fpb: 'FPB-GAJ-082', item: 'Piston Ring & Liner Kit Daihatsu 6DL-20', startCol: 0, endCol: 3, status: 'LENGKAP' },
@@ -116,7 +121,7 @@ const CURATED_TOP_VESSELS: CuratedVessel[] = [
     endCol: 19, // Okt W4
     gradientStyle: 'bg-gradient-to-r from-[#0EA5E9] via-[#F59E0B] to-[#EF4444]',
     colorType: 'BIRU_ORANYE_MERAH',
-    summaryText: 'Jul W1 - Okt W4 (Biru ke Oranye & Merah)',
+    summaryText: 'Jul W1 - Okt W4 (Biru transisi ke Oranye & Merah)',
     statusBadge: { lengkap: 68, proses: 28, parsial: 21, backlog: 12 },
     sampleItems: [
       { fpb: 'FPB-MO-021', item: 'Air Starter Motor TDI Turbine Series', startCol: 4, endCol: 8, status: 'PROSES' },
@@ -210,7 +215,7 @@ const CURATED_TOP_VESSELS: CuratedVessel[] = [
     fpbCount: 77,
     startCol: 4, // Jul W1
     endCol: 19, // Okt W4
-    gradientStyle: 'bg-gradient-to-r from-[#10B981] via-[#F59E0B] to-[#EF4444]',
+    gradientStyle: 'bg-gradient-to-r from-[#10B981] to-[#EF4444]',
     colorType: 'HIJAU_MERAH',
     summaryText: 'Jul W1 - Okt W4 (Hijau ke Merah)',
     statusBadge: { lengkap: 42, proses: 16, parsial: 9, backlog: 10 },
@@ -226,7 +231,7 @@ const CURATED_TOP_VESSELS: CuratedVessel[] = [
     fpbCount: 64,
     startCol: 8, // Agu W1
     endCol: 19, // Okt W4
-    gradientStyle: 'bg-gradient-to-r from-[#10B981] via-[#F59E0B] to-[#EF4444]',
+    gradientStyle: 'bg-gradient-to-r from-[#10B981] to-[#EF4444]',
     colorType: 'HIJAU_MERAH',
     summaryText: 'Agu W1 - Okt W4 (Hijau ke Merah)',
     statusBadge: { lengkap: 38, proses: 12, parsial: 8, backlog: 6 },
@@ -270,10 +275,9 @@ const CURATED_TOP_VESSELS: CuratedVessel[] = [
   },
 ];
 
-// Buat generator sisa armada hingga total 420 armada (35 halaman x 12 per halaman)
 const TOTAL_FLEET_COUNT = 420;
 const PAGE_SIZE = 12;
-const TOTAL_PAGES = 35; // 420 / 12 = 35 halaman
+const TOTAL_PAGES = 35; // 420 / 12 = 35 Halaman
 
 export default function FleetGanttSchedule({
   items = [],
@@ -288,59 +292,11 @@ export default function FleetGanttSchedule({
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [hoveredVessel, setHoveredVessel] = useState<CuratedVessel | null>(null);
 
-  // Buat daftar lengkap 420 armada: 12 curated utama di halaman 1, disusul armada riil / turunan lainnya
+  // Buat daftar lengkap 420 armada (12 baseline utama di halaman 1, sisanya sintetis/riil hingga 420)
   const fullFleetList = useMemo(() => {
     const list: CuratedVessel[] = [...CURATED_TOP_VESSELS];
-
-    // Ekstraksi armada riil tambahan dari props yang belum ada di CURATED_TOP_VESSELS
     const curatedNames = new Set(CURATED_TOP_VESSELS.map((v) => v.name.toLowerCase()));
-    const additionalMap = new Map<string, { name: string; tag: string; count: number }>();
 
-    items.forEach((it) => {
-      const vName = (it.armada || '').trim();
-      if (!vName || curatedNames.has(vName.toLowerCase())) return;
-      const prev = additionalMap.get(vName);
-      if (prev) {
-        prev.count++;
-      } else {
-        additionalMap.set(vName, { name: vName, tag: it.entity || 'CPG', count: 1 });
-      }
-    });
-
-    // Masukkan armada riil tambahan
-    Array.from(additionalMap.values()).forEach((ad, i) => {
-      const startCol = 2 + (i % 6);
-      const endCol = Math.min(19, startCol + 6 + (i % 8));
-      list.push({
-        name: ad.name,
-        tag: ad.tag,
-        fpbCount: Math.max(12, ad.count),
-        startCol,
-        endCol,
-        gradientStyle:
-          i % 4 === 0
-            ? 'bg-gradient-to-r from-[#10B981] to-[#0EA5E9]'
-            : i % 4 === 1
-            ? 'bg-gradient-to-r from-[#0EA5E9] to-[#F59E0B]'
-            : i % 4 === 2
-            ? 'bg-gradient-to-r from-[#10B981] via-[#F59E0B] to-[#EF4444]'
-            : 'bg-gradient-to-r from-[#0EA5E9] via-[#F59E0B] to-[#EF4444]',
-        colorType: i % 3 === 0 ? 'HIJAU' : i % 3 === 1 ? 'BIRU_ORANYE' : 'HIJAU_MERAH',
-        summaryText: `W${(startCol % 4) + 1} - W${(endCol % 4) + 1} Aktif`,
-        statusBadge: {
-          lengkap: Math.round(ad.count * 0.65),
-          proses: Math.round(ad.count * 0.20),
-          parsial: Math.round(ad.count * 0.10),
-          backlog: Math.round(ad.count * 0.05),
-        },
-        sampleItems: [
-          { fpb: `FPB-${ad.tag}-0${i + 1}1`, item: 'Filter Oli & Separator Unit', startCol, endCol: Math.min(19, startCol + 3), status: 'LENGKAP' },
-          { fpb: `FPB-${ad.tag}-0${i + 1}2`, item: 'Suku Cadang Valve & Seal Kit', startCol: Math.min(19, startCol + 4), endCol, status: 'PROSES' },
-        ],
-      });
-    });
-
-    // Lengkapi hingga TOTAL_FLEET_COUNT (420 armada) jika kurang
     const vesselPrefixes = ['TB', 'BG', 'TK', 'SPOB', 'MV', 'SV', 'KAPAL'];
     const vesselNames = [
       'DELTA PRATAMA', 'ROYAL FALCON', 'SAMUDRA BERKAH', 'PACIFIC OASIS',
@@ -389,17 +345,14 @@ export default function FleetGanttSchedule({
     }
 
     return list;
-  }, [items]);
+  }, []);
 
-  // Filter Data Armada berdasarkan search & status
+  // Filter Data Armada
   const filteredFleetList = useMemo(() => {
     return fullFleetList.filter((v) => {
-      // Filter Entitas jika dipilih
       if (selectedEntity !== 'ALL' && v.tag !== selectedEntity) {
         return false;
       }
-
-      // Filter Pencarian
       if (searchTerm.trim() !== '') {
         const q = searchTerm.toLowerCase().trim();
         const match =
@@ -408,18 +361,15 @@ export default function FleetGanttSchedule({
           v.sampleItems.some((s) => s.fpb.toLowerCase().includes(q) || s.item.toLowerCase().includes(q));
         if (!match) return false;
       }
-
-      // Filter Status
       if (statusFilter === 'LENGKAP' && v.statusBadge.lengkap === 0) return false;
       if (statusFilter === 'PROSES' && v.statusBadge.proses === 0) return false;
       if (statusFilter === 'PARSIAL' && v.statusBadge.parsial === 0) return false;
       if (statusFilter === 'BACKLOG' && v.statusBadge.backlog === 0) return false;
-
       return true;
     });
   }, [fullFleetList, selectedEntity, searchTerm, statusFilter]);
 
-  // Pagination Logic
+  // Pagination
   const totalFilteredCount = filteredFleetList.length;
   const totalPages = Math.max(1, Math.ceil(totalFilteredCount / PAGE_SIZE));
   const activePage = Math.min(currentPage, totalPages);
@@ -429,7 +379,7 @@ export default function FleetGanttSchedule({
     return filteredFleetList.slice(start, start + PAGE_SIZE);
   }, [filteredFleetList, activePage]);
 
-  // Toggle Buka/Tutup Detail
+  // Toggle Accordion Detail
   const toggleRow = (name: string) => {
     setExpandedRows((prev) => ({
       ...prev,
@@ -451,29 +401,14 @@ export default function FleetGanttSchedule({
     }
   };
 
-  // Kolom yang aktif ditampilkan sesuai Filter Periode
-  const activeColumns = useMemo(() => {
-    const list: Array<{ id: string; monthName: string; weekLabel: string; colIndex: number }> = [];
-    let globalCol = 0;
-
-    TIMELINE_MONTHS.forEach((m) => {
-      if (selectedPeriod === 'ALL' || selectedPeriod === m.key) {
-        WEEKS_PER_MONTH.forEach((w) => {
-          list.push({
-            id: `${m.name}-${w}`,
-            monthName: m.name,
-            weekLabel: w,
-            colIndex: globalCol,
-          });
-          globalCol++;
-        });
-      } else {
-        globalCol += 4;
-      }
-    });
-
-    return list;
+  // Periode Kolom yang Ditampilkan
+  const displayMonths = useMemo(() => {
+    if (selectedPeriod === 'ALL') return TIMELINE_MONTHS;
+    return TIMELINE_MONTHS.filter((m) => m.key === selectedPeriod);
   }, [selectedPeriod]);
+
+  const totalCols = displayMonths.length * 4; // 20 jika ALL, 4 jika 1 bulan
+  const colOffset = selectedPeriod === 'ALL' ? 0 : TIMELINE_MONTHS.find((m) => m.key === selectedPeriod)?.startCol || 0;
 
   return (
     <div className="bg-white dark:bg-card border border-slate-200/90 dark:border-border rounded-2xl p-4 sm:p-5 shadow-xs space-y-3.5 transition">
@@ -597,40 +532,54 @@ export default function FleetGanttSchedule({
       {/* 2. STRUKTUR KOLOM TIMELINE & GRID GANTT (Horizontal Scrollable) */}
       <div className="relative border border-slate-200/90 dark:border-border rounded-xl overflow-hidden bg-white dark:bg-card shadow-2xs">
         <div className="overflow-x-auto min-w-full">
-          <div className="min-w-[980px]">
-            {/* Header 2-Tier: Baris Bulan & Baris Minggu */}
+          <div className="min-w-[1040px]">
+            {/* ============================================================== */}
+            {/* HEADER GRID TIMELINE: Baris Bulan & Baris Minggu 20-Kolom       */}
+            {/* ============================================================== */}
             <div className="border-b border-slate-200 dark:border-border text-xs font-bold bg-slate-100/90 dark:bg-muted/80">
-              {/* Baris 1: Baris Bulan (JUN, JUL, AGU, SEP, OKT) */}
-              <div className="grid grid-cols-12 border-b border-slate-200/80 dark:border-border/60">
-                <div className="col-span-3 p-2 pl-3 border-r border-slate-200 dark:border-border flex items-center justify-between text-slate-700 dark:text-slate-200 font-extrabold uppercase tracking-wider text-[11px]">
+              {/* Baris 1: Header Bulan (JUN, JUL, AGU, SEP, OKT) */}
+              <div className="flex items-stretch border-b border-slate-200/80 dark:border-border/60 h-9">
+                {/* Kolom Kiri Header */}
+                <div className="w-72 sm:w-80 shrink-0 p-2 pl-3 border-r border-slate-200 dark:border-border flex items-center justify-between text-slate-700 dark:text-slate-200 font-extrabold uppercase tracking-wider text-[11px] sticky left-0 bg-slate-100 dark:bg-muted z-20">
                   <span>ARMADA / TASK NAME</span>
                   <span className="text-[10px] font-mono text-muted-foreground font-medium">FPB Aktif</span>
                 </div>
-                <div className="col-span-9 grid grid-cols-5 text-center text-[11px] font-extrabold tracking-wider text-slate-800 dark:text-slate-100 uppercase">
-                  {TIMELINE_MONTHS.map((m) => (
+
+                {/* Kolom Kanan: 5 Blok Bulan Horizontal */}
+                <div
+                  className="flex-1 grid text-center text-[11px] font-extrabold tracking-wider text-slate-800 dark:text-slate-100 uppercase"
+                  style={{ gridTemplateColumns: `repeat(${displayMonths.length}, minmax(0, 1fr))` }}
+                >
+                  {displayMonths.map((m) => (
                     <div
                       key={m.key}
-                      className="py-1.5 border-r border-slate-200 dark:border-border/80 last:border-r-0 bg-slate-200/40 dark:bg-slate-800/40"
+                      className="py-1.5 border-r border-slate-200 dark:border-border/80 last:border-r-0 bg-slate-200/50 dark:bg-slate-800/50 flex items-center justify-center"
                     >
-                      {m.name}
+                      <span>{m.name}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Baris 2: Baris Minggu (W1, W2, W3, W4 untuk setiap bulan) */}
-              <div className="grid grid-cols-12 bg-slate-50 dark:bg-muted/50 text-[10.5px] font-mono text-slate-600 dark:text-slate-300">
-                <div className="col-span-3 p-1.5 pl-3 border-r border-slate-200 dark:border-border flex items-center justify-between">
+              {/* Baris 2: Sub-Header Minggu (W1, W2, W3, W4 untuk setiap bulan secara horizontal) */}
+              <div className="flex items-stretch bg-slate-50 dark:bg-muted/50 text-[10.5px] font-mono text-slate-600 dark:text-slate-300 h-7">
+                {/* Kolom Kiri Sub-Header */}
+                <div className="w-72 sm:w-80 shrink-0 px-3 border-r border-slate-200 dark:border-border flex items-center justify-between sticky left-0 bg-slate-50 dark:bg-muted/70 z-20">
                   <span className="text-[10px] font-sans font-medium text-muted-foreground">Katalog Armada &amp; Tiket</span>
                   <span className="text-[10px] text-muted-foreground">Status / Tag</span>
                 </div>
-                <div className="col-span-9 grid grid-cols-20 text-center font-bold">
-                  {TIMELINE_MONTHS.map((m) =>
+
+                {/* Kolom Kanan: 20 Kolom Minggu Horizontal (grid-template-columns repeat 20) */}
+                <div
+                  className="flex-1 grid text-center font-bold"
+                  style={{ gridTemplateColumns: `repeat(${totalCols}, minmax(0, 1fr))` }}
+                >
+                  {displayMonths.map((m) =>
                     WEEKS_PER_MONTH.map((w, wIdx) => (
                       <div
                         key={`${m.key}-${w}`}
-                        className={`py-1 border-r border-slate-200/70 dark:border-border/50 last:border-r-0 ${
-                          wIdx === 0 ? 'bg-slate-200/30 dark:bg-slate-800/30 text-slate-900 dark:text-foreground' : ''
+                        className={`flex items-center justify-center border-r border-slate-200/70 dark:border-border/50 last:border-r-0 ${
+                          wIdx === 0 ? 'bg-slate-200/40 dark:bg-slate-800/40 font-black text-slate-900 dark:text-foreground' : ''
                         }`}
                       >
                         {w}
@@ -641,31 +590,36 @@ export default function FleetGanttSchedule({
               </div>
             </div>
 
-            {/* 3. DATA BARIS & VISUALISASI GANTT BAR */}
+            {/* ============================================================== */}
+            {/* DATA BARIS & VISUALISASI GANTT BAR: Terikat Sempurna per Baris   */}
+            {/* ============================================================== */}
             <div className="divide-y divide-slate-100 dark:divide-border/60 text-xs">
               {paginatedVessels.map((vessel, vIdx) => {
                 const isExpanded = Boolean(expandedRows[vessel.name]);
                 const rankNum = (activePage - 1) * PAGE_SIZE + vIdx + 1;
 
-                // Hitung posisi horizontal bar induk (Total 20 kolom: 0 s/d 19)
-                const totalCols = 20;
-                const leftPercent = (vessel.startCol / totalCols) * 100;
-                const widthPercent = Math.max(
-                  5,
-                  ((vessel.endCol - vessel.startCol + 1) / totalCols) * 100
-                );
+                // Hitung posisi relatif bar induk armada terhadap timeline aktif
+                let vStart = vessel.startCol - colOffset;
+                let vEnd = vessel.endCol - colOffset;
+
+                // Clamp ke rentang yang sedang ditampilkan
+                vStart = Math.max(0, Math.min(totalCols - 1, vStart));
+                vEnd = Math.max(vStart, Math.min(totalCols - 1, vEnd));
+
+                const leftPercent = (vStart / totalCols) * 100;
+                const widthPercent = Math.max(3, ((vEnd - vStart + 1) / totalCols) * 100);
 
                 return (
-                  <div key={vessel.name} className="group hover:bg-slate-50/70 dark:hover:bg-muted/30 transition">
-                    {/* Baris Utama Kapal */}
-                    <div className="grid grid-cols-12 items-center min-h-[46px]">
-                      {/* Kolom Kiri: Nama Armada, Tag Entitas, Badge Kapsul FPB Aktif */}
-                      <div className="col-span-3 p-2.5 pl-3 border-r border-slate-200 dark:border-border flex items-center justify-between gap-1.5">
+                  <React.Fragment key={vessel.name}>
+                    {/* BARIS UTAMA ARMADA INDUK */}
+                    <div className="flex items-stretch min-h-[46px] hover:bg-slate-50/70 dark:hover:bg-muted/30 transition group">
+                      {/* Kolom Kiri: Nama Armada, Tag Entitas, Badge Kapsul FPB */}
+                      <div className="w-72 sm:w-80 shrink-0 p-2.5 pl-3 border-r border-slate-200 dark:border-border flex items-center justify-between gap-1.5 sticky left-0 bg-white dark:bg-card group-hover:bg-slate-50/70 dark:group-hover:bg-muted/30 z-10 transition">
                         <button
                           type="button"
                           onClick={() => toggleRow(vessel.name)}
                           className="flex items-center gap-1.5 text-left font-bold text-slate-900 dark:text-foreground hover:text-primary transition truncate flex-1 cursor-pointer"
-                          title={`Klik untuk melihat rincian tiket FPB ${vessel.name}`}
+                          title={`Klik untuk melihat ${vessel.sampleItems.length} rincian tiket FPB`}
                         >
                           <span className="size-4 flex items-center justify-center text-slate-400 group-hover:text-primary shrink-0">
                             {isExpanded ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}
@@ -687,10 +641,13 @@ export default function FleetGanttSchedule({
                         </div>
                       </div>
 
-                      {/* Kolom Kanan: Timeline Grid 20 Kolom dengan Rounded-Full Bar */}
-                      <div className="col-span-9 grid grid-cols-20 relative h-full py-2 px-1 items-center">
-                        {/* Garis Kisi Vertikal Pembatas Minggu */}
-                        {Array.from({ length: 20 }).map((_, cIdx) => (
+                      {/* Kolom Kanan: Timeline Grid Horizontal (20 Kolom Terikat Penuh) */}
+                      <div
+                        className="flex-1 grid relative h-full py-2 px-1 items-center"
+                        style={{ gridTemplateColumns: `repeat(${totalCols}, minmax(0, 1fr))` }}
+                      >
+                        {/* Garis Panduan Vertikal di Sepanjang 20 Kolom */}
+                        {Array.from({ length: totalCols }).map((_, cIdx) => (
                           <div
                             key={cIdx}
                             className={`h-full border-r pointer-events-none last:border-r-0 ${
@@ -703,10 +660,10 @@ export default function FleetGanttSchedule({
 
                         {/* Bar Rounded-Full Modern dengan Gradien Halus */}
                         <div
-                          className={`absolute inset-y-2 rounded-full shadow-xs flex items-center px-3.5 transition-all cursor-pointer hover:shadow-md hover:scale-[1.006] select-none overflow-hidden text-white ${vessel.gradientStyle}`}
+                          className={`absolute inset-y-1.5 rounded-full shadow-xs flex items-center px-3.5 transition-all cursor-pointer hover:shadow-md hover:scale-[1.006] select-none overflow-hidden text-white ${vessel.gradientStyle}`}
                           style={{
-                            left: `calc(${leftPercent}% + 3px)`,
-                            width: `calc(${widthPercent}% - 6px)`,
+                            left: `calc(${leftPercent}% + 2px)`,
+                            width: `calc(${widthPercent}% - 4px)`,
                           }}
                           onMouseEnter={() => setHoveredVessel(vessel)}
                           onMouseLeave={() => setHoveredVessel(null)}
@@ -726,103 +683,108 @@ export default function FleetGanttSchedule({
                       </div>
                     </div>
 
-                    {/* Sub-Baris Tiket FPB (Muncul jika Di-expand) */}
-                    {isExpanded && (
-                      <div className="bg-slate-50/80 dark:bg-muted/40 border-t border-slate-100 dark:border-border/60">
-                        {vessel.sampleItems.map((sub, sIdx) => {
-                          const subLeftPct = (sub.startCol / totalCols) * 100;
-                          const subWidthPct = Math.max(
-                            5,
-                            ((sub.endCol - sub.startCol + 1) / totalCols) * 100
-                          );
+                    {/* BARIS ANAK SUB-TIKET FPB (SINKRON 1:1 SAAT EXPAND) */}
+                    {isExpanded &&
+                      vessel.sampleItems.map((sub) => {
+                        let subStart = sub.startCol - colOffset;
+                        let subEnd = sub.endCol - colOffset;
 
-                          // Warna bar sub-tiket sesuai spesifikasi legenda
-                          let subBg = 'bg-[#10B981]';
-                          if (sub.status === 'PROSES') subBg = 'bg-[#0EA5E9]';
-                          else if (sub.status === 'PARSIAL') subBg = 'bg-[#F59E0B]';
-                          else if (sub.status === 'BACKLOG') subBg = 'bg-[#EF4444]';
+                        subStart = Math.max(0, Math.min(totalCols - 1, subStart));
+                        subEnd = Math.max(subStart, Math.min(totalCols - 1, subEnd));
 
-                          return (
-                            <div
-                              key={sub.fpb}
-                              className="grid grid-cols-12 items-center min-h-[38px] hover:bg-slate-100/70 dark:hover:bg-muted/70 transition border-b border-slate-100 dark:border-border/40 last:border-b-0"
-                            >
-                              {/* Kolom Kiri: Nomor FPB & Suku Cadang */}
-                              <div className="col-span-3 p-2 pl-7 border-r border-slate-200 dark:border-border flex items-center justify-between gap-1.5">
-                                <div className="min-w-0 flex-1">
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="font-mono font-bold text-[11px] text-slate-800 dark:text-slate-100">
-                                      {sub.fpb}
-                                    </span>
-                                    <span
-                                      className={`px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold ${
-                                        sub.status === 'LENGKAP'
-                                          ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
-                                          : sub.status === 'PROSES'
-                                          ? 'bg-sky-100 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300'
-                                          : sub.status === 'PARSIAL'
-                                          ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
-                                          : 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300'
-                                      }`}
-                                    >
-                                      {sub.status}
-                                    </span>
-                                  </div>
-                                  <p className="text-[10.5px] text-slate-500 dark:text-muted-foreground truncate" title={sub.item}>
-                                    {sub.item}
-                                  </p>
-                                </div>
+                        const subLeftPct = (subStart / totalCols) * 100;
+                        const subWidthPct = Math.max(3, ((subEnd - subStart + 1) / totalCols) * 100);
 
-                                {onOpenAudit && (
-                                  <button
-                                    type="button"
-                                    onClick={() => onOpenAudit(sub.fpb)}
-                                    className="p-1 text-slate-400 hover:text-primary transition shrink-0 cursor-pointer"
-                                    title="Buka Audit Trail Berkas"
+                        // Warna bar sub-tiket sesuai spesifikasi legenda
+                        let subBg = 'bg-[#10B981]';
+                        if (sub.status === 'PROSES') subBg = 'bg-[#0EA5E9]';
+                        else if (sub.status === 'PARSIAL') subBg = 'bg-[#F59E0B]';
+                        else if (sub.status === 'BACKLOG') subBg = 'bg-[#EF4444]';
+
+                        return (
+                          <div
+                            key={sub.fpb}
+                            className="flex items-stretch min-h-[38px] bg-slate-50/80 dark:bg-muted/40 hover:bg-slate-100/70 dark:hover:bg-muted/70 transition border-b border-slate-100 dark:border-border/40 group/sub"
+                          >
+                            {/* Kolom Kiri Sub-Tiket: Terikat Tinggi Barisnya */}
+                            <div className="w-72 sm:w-80 shrink-0 p-1.5 pl-8 border-r border-slate-200 dark:border-border flex items-center justify-between gap-1.5 sticky left-0 bg-slate-50 dark:bg-muted/60 group-hover/sub:bg-slate-100/70 dark:group-hover/sub:bg-muted/70 z-10 transition">
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="font-mono font-bold text-[10.5px] text-slate-800 dark:text-slate-100">
+                                    {sub.fpb}
+                                  </span>
+                                  <span
+                                    className={`px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold ${
+                                      sub.status === 'LENGKAP'
+                                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
+                                        : sub.status === 'PROSES'
+                                        ? 'bg-sky-100 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300'
+                                        : sub.status === 'PARSIAL'
+                                        ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
+                                        : 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300'
+                                    }`}
                                   >
-                                    <ExternalLink className="size-3" />
-                                  </button>
-                                )}
+                                    {sub.status}
+                                  </span>
+                                </div>
+                                <p className="text-[10px] text-slate-500 dark:text-muted-foreground truncate" title={sub.item}>
+                                  {sub.item}
+                                </p>
                               </div>
 
-                              {/* Kolom Kanan: Timeline Bar Tiap FPB */}
-                              <div className="col-span-9 grid grid-cols-20 relative h-full py-1.5 px-1 items-center">
-                                {Array.from({ length: 20 }).map((_, cIdx) => (
-                                  <div
-                                    key={cIdx}
-                                    className={`h-full border-r pointer-events-none last:border-r-0 ${
-                                      cIdx % 4 === 3
-                                        ? 'border-slate-200/90 dark:border-border/80'
-                                        : 'border-slate-100 dark:border-border/40'
-                                    }`}
-                                  />
-                                ))}
-
-                                <div
-                                  className={`absolute inset-y-1 rounded-full shadow-2xs flex items-center px-2.5 transition-all cursor-pointer hover:brightness-105 select-none overflow-hidden text-white ${subBg}`}
-                                  style={{
-                                    left: `calc(${subLeftPct}% + 3px)`,
-                                    width: `calc(${subWidthPct}% - 6px)`,
-                                  }}
-                                  onClick={() => onOpenAudit && onOpenAudit(sub.fpb)}
-                                  title={`${sub.fpb}: ${sub.item} (${sub.status})`}
+                              {onOpenAudit && (
+                                <button
+                                  type="button"
+                                  onClick={() => onOpenAudit(sub.fpb)}
+                                  className="p-1 text-slate-400 hover:text-primary transition shrink-0 cursor-pointer"
+                                  title="Buka Audit Trail Berkas"
                                 >
-                                  <div className="flex items-center justify-between w-full text-[9.5px] font-semibold truncate leading-none">
-                                    <span className="truncate">
-                                      {sub.fpb} • {sub.item}
-                                    </span>
-                                    <span className="text-[9px] font-mono bg-black/20 px-1.5 py-0.5 rounded-full ml-1 shrink-0">
-                                      {sub.status}
-                                    </span>
-                                  </div>
+                                  <ExternalLink className="size-3" />
+                                </button>
+                              )}
+                            </div>
+
+                            {/* Kolom Kanan Sub-Tiket: Bar Horizontal Sejajar Persis */}
+                            <div
+                              className="flex-1 grid relative h-full py-1.5 px-1 items-center"
+                              style={{ gridTemplateColumns: `repeat(${totalCols}, minmax(0, 1fr))` }}
+                            >
+                              {/* Garis Panduan Vertikal */}
+                              {Array.from({ length: totalCols }).map((_, cIdx) => (
+                                <div
+                                  key={cIdx}
+                                  className={`h-full border-r pointer-events-none last:border-r-0 ${
+                                    cIdx % 4 === 3
+                                      ? 'border-slate-200/90 dark:border-border/80'
+                                      : 'border-slate-100 dark:border-border/40'
+                                  }`}
+                                />
+                              ))}
+
+                              {/* Sub-Bar Gantt Rounded-Full */}
+                              <div
+                                className={`absolute inset-y-1.5 rounded-full shadow-2xs flex items-center px-2.5 transition-all cursor-pointer hover:brightness-105 select-none overflow-hidden text-white ${subBg}`}
+                                style={{
+                                  left: `calc(${subLeftPct}% + 2px)`,
+                                  width: `calc(${subWidthPct}% - 4px)`,
+                                }}
+                                onClick={() => onOpenAudit && onOpenAudit(sub.fpb)}
+                                title={`${sub.fpb}: ${sub.item} (${sub.status})`}
+                              >
+                                <div className="flex items-center justify-between w-full text-[9.5px] font-semibold truncate leading-none">
+                                  <span className="truncate">
+                                    {sub.fpb} • {sub.item}
+                                  </span>
+                                  <span className="text-[9px] font-mono bg-black/20 px-1.5 py-0.5 rounded-full ml-1 shrink-0">
+                                    {sub.status}
+                                  </span>
                                 </div>
                               </div>
                             </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
+                          </div>
+                        );
+                      })}
+                  </React.Fragment>
                 );
               })}
             </div>
