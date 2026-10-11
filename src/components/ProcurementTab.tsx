@@ -41,7 +41,8 @@ import { extractFstbLast5, openTimemarkWithFstb } from '@/utils/timemark';
 import { formatDateDdMmYy, formatDateDdMmYyDash, extractDateInfo } from '@/utils/formatDate';
 import { cleanTujuanPeruntukan } from '@/utils/descriptionCleaner';
 import { loadPdfItemsCache, savePdfItemsCache } from '@/utils/appStorage';
-import { getWorkflowGroupedStatuses } from '@/utils/statusWorkflow';
+import { getWorkflowGroupedStatuses, evaluateFiveDivisionWorkflow } from '@/utils/statusWorkflow';
+import WorkflowTrafficLight from './WorkflowTrafficLight';
 
 // Helper formatting PIC & Status Penjelasan
 const formatPicAktif = (pic?: string) => {
@@ -83,7 +84,7 @@ interface ProcurementTabProps {
   showToast?: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
 }
 
-type SortField = 'fpb' | 'po' | 'date' | 'item' | 'peruntukan' | 'statusBadge' | 'lapse';
+type SortField = 'fpb' | 'po' | 'date' | 'item' | 'peruntukan' | 'statusBadge' | 'lapse' | 'workflow';
 type LapseFilter = 'ALL' | 'NORMAL' | 'WARNING' | 'CRITICAL';
 
 export default function ProcurementTab({
@@ -518,8 +519,21 @@ export default function ProcurementTab({
           : numB.localeCompare(numA, undefined, { numeric: true, sensitivity: 'base' });
       }
 
-      const aVal = a[sortField];
-      const bVal = b[sortField];
+      if (sortField === 'workflow') {
+        const scoreA = evaluateFiveDivisionWorkflow(a).passedCount;
+        const scoreB = evaluateFiveDivisionWorkflow(b).passedCount;
+        if (scoreA !== scoreB) {
+          return sortDirection === 'asc' ? scoreA - scoreB : scoreB - scoreA;
+        }
+        const numA = (a.fpb || a.po || '').trim();
+        const numB = (b.fpb || b.po || '').trim();
+        return sortDirection === 'asc'
+          ? numA.localeCompare(numB, undefined, { numeric: true, sensitivity: 'base' })
+          : numB.localeCompare(numA, undefined, { numeric: true, sensitivity: 'base' });
+      }
+
+      const aVal = (a as Record<string, any>)[sortField];
+      const bVal = (b as Record<string, any>)[sortField];
 
       if (typeof aVal === 'string' && typeof bVal === 'string') {
         const cmp = aVal.localeCompare(bVal, undefined, { numeric: true, sensitivity: 'base' });
@@ -1438,10 +1452,18 @@ export default function ProcurementTab({
                       </div>
 
                       {/* Footer */}
-                      <div className="pt-2 border-t border-border/60 flex items-center justify-between gap-2 text-xs">
-                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-medium border truncate max-w-[160px] ${badgeClass}`}>
-                          {row.statusBadge}
-                        </span>
+                      <div className="pt-2 border-t border-border/60 flex items-center justify-between gap-2 text-xs flex-wrap">
+                        <div className="flex items-center gap-2 flex-wrap min-w-0">
+                          <span className={`px-2 py-0.5 rounded-md text-[10px] font-medium border truncate max-w-[150px] ${badgeClass}`}>
+                            {row.statusBadge}
+                          </span>
+                          <WorkflowTrafficLight
+                            item={row}
+                            compact={true}
+                            showBadge={true}
+                            onClick={() => onOpenAudit(row.fpb, row.po)}
+                          />
+                        </div>
                         <div className="flex items-center gap-1.5 shrink-0">
                           <button
                             type="button"
@@ -1586,6 +1608,20 @@ export default function ProcurementTab({
                         {renderSortIndicator('item')}
                       </span>
                     </th>
+                    {/* Alur 5 Divisi */}
+                    <th
+                      onClick={() => handleSort('workflow')}
+                      className="p-3.5 text-center cursor-pointer hover:text-foreground transition group whitespace-nowrap sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md"
+                      title="Klik untuk mengurutkan kelengkapan alur 5 divisi (5/5 Lengkap ke Belum Lengkap)"
+                    >
+                      <span className="flex items-center justify-center gap-1.5">
+                        <span className="inline-flex items-center gap-1">
+                          <span className="size-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_6px_rgba(16,185,129,0.8)]"></span>
+                          ALUR 5 DIVISI
+                        </span>
+                        {renderSortIndicator('workflow')}
+                      </span>
+                    </th>
                     <th
                       onClick={() => handleSort('statusBadge')}
                       className="p-3.5 cursor-pointer hover:text-foreground transition group sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md"
@@ -1610,7 +1646,7 @@ export default function ProcurementTab({
             <tbody className="divide-y divide-border/60">
               {paginatedItems.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-10 text-center text-muted-foreground">
+                  <td colSpan={8} className="p-10 text-center text-muted-foreground">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <FileSpreadsheet className="w-8 h-8 opacity-30 text-muted-foreground" />
                       <p className="text-sm font-medium text-foreground">
@@ -1707,6 +1743,14 @@ export default function ProcurementTab({
                             </span>
                           </div>
                         )}
+                      </td>
+
+                      {/* Indikator Traffic Light Alur 5 Divisi */}
+                      <td className="p-3.5 text-center whitespace-nowrap">
+                        <WorkflowTrafficLight
+                          item={row}
+                          onClick={() => onOpenAudit(row.fpb, row.po)}
+                        />
                       </td>
 
                       <td className="p-3.5">

@@ -35,7 +35,8 @@ import { EntityDonutChart, PipelineBarChart } from './Charts';
 import { extractFstbLast5, openTimemarkWithFstb } from '@/utils/timemark';
 import { formatDateDdMmYy, formatDateDdMmYyDash, extractDateInfo } from '@/utils/formatDate';
 import { useAuth } from '@/context/AuthContext';
-import { getWorkflowGroupedStatuses } from '@/utils/statusWorkflow';
+import { getWorkflowGroupedStatuses, evaluateFiveDivisionWorkflow } from '@/utils/statusWorkflow';
+import WorkflowTrafficLight from './WorkflowTrafficLight';
 
 const formatPicAktif = (pic?: string) => {
   if (!pic) return '-';
@@ -76,7 +77,7 @@ interface OverviewTabProps {
   showToast?: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
 }
 
-type SortField = 'fpb' | 'po' | 'date' | 'item' | 'statusBadge' | 'lapse';
+type SortField = 'fpb' | 'po' | 'date' | 'item' | 'statusBadge' | 'lapse' | 'workflow';
 type SortDirection = 'asc' | 'desc';
 
 export default function OverviewTab({
@@ -282,8 +283,21 @@ export default function OverviewTab({
 
   const sortedItems = useMemo(() => {
     return [...filteredItems].sort((a, b) => {
-      let aVal: any = a[sortField];
-      let bVal: any = b[sortField];
+      if (sortField === 'workflow') {
+        const scoreA = evaluateFiveDivisionWorkflow(a).passedCount;
+        const scoreB = evaluateFiveDivisionWorkflow(b).passedCount;
+        if (scoreA !== scoreB) {
+          return sortDirection === 'asc' ? scoreA - scoreB : scoreB - scoreA;
+        }
+        const numA = (a.fpb || a.po || '').trim();
+        const numB = (b.fpb || b.po || '').trim();
+        return sortDirection === 'asc'
+          ? numA.localeCompare(numB, undefined, { numeric: true, sensitivity: 'base' })
+          : numB.localeCompare(numA, undefined, { numeric: true, sensitivity: 'base' });
+      }
+
+      let aVal: any = (a as Record<string, any>)[sortField];
+      let bVal: any = (b as Record<string, any>)[sortField];
 
       if (sortField === 'date') {
         const aTs = extractDateInfo(a.date).timestamp || 0;
@@ -321,7 +335,7 @@ export default function OverviewTab({
       setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
     } else {
       setSortField(field);
-      setSortDirection(field === 'lapse' || field === 'date' ? 'desc' : 'asc');
+      setSortDirection(field === 'lapse' || field === 'date' || field === 'workflow' ? 'desc' : 'asc');
     }
     setCurrentPage(1);
   };
@@ -835,11 +849,19 @@ export default function OverviewTab({
                         )}
                       </div>
 
-                      {/* Card Footer: Status, PIC & Audit Button */}
-                      <div className="pt-2 border-t border-border/60 flex items-center justify-between gap-2 text-xs">
-                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-medium border truncate max-w-[160px] ${badgeClass}`}>
-                          {row.statusBadge}
-                        </span>
+                      {/* Card Footer: Status, Workflow, PIC & Audit Button */}
+                      <div className="pt-2 border-t border-border/60 flex items-center justify-between gap-2 text-xs flex-wrap">
+                        <div className="flex items-center gap-2 flex-wrap min-w-0">
+                          <span className={`px-2 py-0.5 rounded-md text-[10px] font-medium border truncate max-w-[150px] ${badgeClass}`}>
+                            {row.statusBadge}
+                          </span>
+                          <WorkflowTrafficLight
+                            item={row}
+                            compact={true}
+                            showBadge={true}
+                            onClick={() => onOpenAudit(row.fpb, row.po)}
+                          />
+                        </div>
                         <div className="flex items-center gap-1.5 shrink-0">
                           <button
                             type="button"
@@ -992,6 +1014,22 @@ export default function OverviewTab({
                         )}
                       </div>
                     </th>
+                    {/* Alur 5 Divisi */}
+                    <th
+                      className="p-3 text-center cursor-pointer hover:text-foreground select-none transition group whitespace-nowrap sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md"
+                      onClick={() => handleSort('workflow')}
+                      title="Klik untuk mengurutkan kelengkapan alur 5 divisi (5/5 Lengkap ke Belum Lengkap)"
+                    >
+                      <div className="flex items-center justify-center gap-1.5">
+                        <span className="inline-flex items-center gap-1">
+                          <span className="size-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_6px_rgba(16,185,129,0.8)]"></span>
+                          ALUR 5 DIVISI
+                        </span>
+                        {sortField === 'workflow' && (
+                          <span className="text-primary">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                        )}
+                      </div>
+                    </th>
                     <th
                       className="p-3 cursor-pointer hover:text-foreground select-none transition sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md"
                       onClick={() => handleSort('statusBadge')}
@@ -1020,7 +1058,7 @@ export default function OverviewTab({
             <tbody className="divide-y divide-border">
               {isVisitor && !searchTerm.trim() ? (
                 <tr>
-                  <td colSpan={7} className="py-16 px-6 text-center text-muted-foreground">
+                  <td colSpan={8} className="py-16 px-6 text-center text-muted-foreground">
                     <div className="flex flex-col items-center justify-center space-y-4">
                       <div className="size-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-600 dark:text-cyan-400 flex items-center justify-center shadow-xs">
                         <Search className="size-8" />
@@ -1062,7 +1100,7 @@ export default function OverviewTab({
                 </tr>
               ) : items.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-10 text-center text-muted-foreground">
+                  <td colSpan={8} className="p-10 text-center text-muted-foreground">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <FileSpreadsheet className="size-8 opacity-30 text-muted-foreground" />
                       <p className="text-sm font-medium text-foreground">Belum ada data monitoring</p>
@@ -1074,7 +1112,7 @@ export default function OverviewTab({
                 </tr>
               ) : paginatedItems.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-12 text-center text-muted-foreground">
+                  <td colSpan={8} className="p-12 text-center text-muted-foreground">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <Search className="size-8 opacity-30 text-muted-foreground" />
                       <p className="text-sm font-medium text-foreground">
@@ -1163,6 +1201,14 @@ export default function OverviewTab({
                             </span>
                           )}
                         </div>
+                      </td>
+
+                      {/* Indikator Traffic Light Alur 5 Divisi */}
+                      <td className="p-3 text-center whitespace-nowrap">
+                        <WorkflowTrafficLight
+                          item={row}
+                          onClick={() => onOpenAudit(row.fpb, row.po)}
+                        />
                       </td>
 
                       {/* Status & PIC */}
