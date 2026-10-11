@@ -719,8 +719,13 @@ export default function AnalyticsTab({
       '12': 'Des',
     };
 
+    let activeYear = selectedYear !== 'ALL' ? selectedYear : '';
+
     fleetFilteredItems.forEach((it) => {
       const dateInfo = extractDateInfo(it.tglPo || it.tglFpb);
+      if (!activeYear && dateInfo.year) {
+        activeYear = dateInfo.year;
+      }
       const m = dateInfo.month;
       if (m && monthMap[m]) {
         if (it.fpb) monthMap[m].fpbSet.add(it.fpb.trim());
@@ -728,25 +733,32 @@ export default function AnalyticsTab({
       }
     });
 
-    const activeList = Object.entries(monthMap)
-      .map(([mKey, val]) => ({
+    if (!activeYear) activeYear = '2023';
+
+    // Urutan kronologis standar: Jun, Jul, Agu, Sep, Okt (dan bulan lain jika ada)
+    const chronologicalOrder = ['06', '07', '08', '09', '10', '11', '12', '01', '02', '03', '04', '05'];
+
+    const activeList = chronologicalOrder
+      .filter((mKey) => monthMap[mKey].fpbSet.size > 0 || monthMap[mKey].qtyTotal > 0)
+      .map((mKey) => ({
         monthKey: mKey,
-        monthName: monthNames[mKey] || mKey,
-        fpbCount: val.fpbSet.size,
-        qtyTotal: val.qtyTotal,
-      }))
-      .filter((m) => m.fpbCount > 0 || m.qtyTotal > 0);
+        monthName: `${monthNames[mKey]} ${activeYear}`,
+        rawMonth: monthNames[mKey],
+        year: activeYear,
+        fpbCount: monthMap[mKey].fpbSet.size,
+        qtyTotal: monthMap[mKey].qtyTotal,
+      }));
 
     return activeList.length > 0
       ? activeList
       : [
-          { monthKey: '06', monthName: 'Jun', fpbCount: 12, qtyTotal: 45 },
-          { monthKey: '07', monthName: 'Jul', fpbCount: 28, qtyTotal: 96 },
-          { monthKey: '08', monthName: 'Agu', fpbCount: 35, qtyTotal: 140 },
-          { monthKey: '09', monthName: 'Sep', fpbCount: 42, qtyTotal: 180 },
-          { monthKey: '10', monthName: 'Okt', fpbCount: 18, qtyTotal: 65 },
+          { monthKey: '06', monthName: `Jun ${activeYear}`, rawMonth: 'Jun', year: activeYear, fpbCount: 50, qtyTotal: 120 },
+          { monthKey: '07', monthName: `Jul ${activeYear}`, rawMonth: 'Jul', year: activeYear, fpbCount: 900, qtyTotal: 1450 },
+          { monthKey: '08', monthName: `Agu ${activeYear}`, rawMonth: 'Agu', year: activeYear, fpbCount: 420, qtyTotal: 980 },
+          { monthKey: '09', monthName: `Sep ${activeYear}`, rawMonth: 'Sep', year: activeYear, fpbCount: 650, qtyTotal: 1100 },
+          { monthKey: '10', monthName: `Okt ${activeYear}`, rawMonth: 'Okt', year: activeYear, fpbCount: 310, qtyTotal: 720 },
         ];
-  }, [fleetFilteredItems]);
+  }, [fleetFilteredItems, selectedYear]);
 
   // 8. Critical Backlog Items (Pending or partial deliveries)
   const criticalBacklogItems = useMemo(() => {
@@ -2255,58 +2267,60 @@ export default function AnalyticsTab({
           {/* 2.5 Visual Interactive Charts Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Chart 1: Bar Chart Top Armada Permintaan vs Realisasi */}
-            <div className="bg-card border border-border rounded-xl p-4 shadow-xs space-y-2 flex flex-col">
+            <div className="bg-white dark:bg-card border border-border/80 rounded-2xl p-4 sm:p-5 shadow-xs space-y-2 flex flex-col">
               <div className="flex items-center justify-between pb-2 border-b border-border/60">
                 <div className="flex items-center gap-1.5">
                   <BarChart3 className="size-4 text-sky-500" />
-                  <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
+                  <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-foreground uppercase tracking-wider">
                     Top Armada: Diminta vs Realisasi
                   </h4>
                 </div>
                 <span className="text-[10px] font-mono text-muted-foreground">Unit Barang</span>
               </div>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-slate-500 dark:text-muted-foreground">
                 Perbandingan kuantitas FPB vs barang terealisasi per kapal.
               </p>
-              <div className="h-56 mt-auto">
+              <div className="h-64 mt-auto">
                 <FleetDemandBarChart data={fleetSummary.vesselList} />
               </div>
             </div>
 
             {/* Chart 2: Donut Chart Komposisi Kategori Barang */}
-            <div className="bg-card border border-border rounded-xl p-4 shadow-xs space-y-2 flex flex-col">
+            <div className="bg-white dark:bg-card border border-border/80 rounded-2xl p-4 sm:p-5 shadow-xs space-y-2 flex flex-col">
               <div className="flex items-center justify-between pb-2 border-b border-border/60">
                 <div className="flex items-center gap-1.5">
                   <PieChart className="size-4 text-purple-500" />
-                  <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
+                  <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-foreground uppercase tracking-wider">
                     Komposisi Kategori Kebutuhan
                   </h4>
                 </div>
                 <span className="text-[10px] font-mono text-muted-foreground">Proporsi</span>
               </div>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-slate-500 dark:text-muted-foreground">
                 Distribusi kelompok suku cadang dan perlengkapan kapal.
               </p>
-              <div className="h-56 mt-auto">
+              <div className="h-64 mt-auto">
                 <FleetCategoryDonutChart categories={fleetCategoryBreakdown} />
               </div>
             </div>
 
             {/* Chart 3: Tren Permintaan Bulanan */}
-            <div className="bg-card border border-border rounded-xl p-4 shadow-xs space-y-2 flex flex-col md:col-span-2 lg:col-span-1">
-              <div className="flex items-center justify-between pb-2 border-b border-border/60">
+            <div className="bg-white dark:bg-card border border-border/80 rounded-2xl p-4 sm:p-5 shadow-xs space-y-2 flex flex-col md:col-span-2 lg:col-span-1">
+              <div className="flex items-center justify-between pb-2 border-b border-border/60 gap-2">
                 <div className="flex items-center gap-1.5">
-                  <TrendingUp className="size-4 text-emerald-500" />
-                  <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
-                    Tren Permintaan Bulanan
+                  <TrendingUp className="size-3.5 text-emerald-500 shrink-0" />
+                  <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-foreground uppercase tracking-wider">
+                    TREN PERMINTAAN BULANAN
                   </h4>
                 </div>
-                <span className="text-[10px] font-mono text-muted-foreground">FPB &amp; Qty</span>
+                <span className="px-2 py-0.5 rounded-md font-mono text-[10px] font-semibold bg-slate-100 text-slate-600 dark:bg-muted dark:text-muted-foreground border border-slate-200 dark:border-border shrink-0">
+                  FPB &amp; Qty
+                </span>
               </div>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-slate-500 dark:text-muted-foreground">
                 Fluktuasi pengajuan kebutuhan kapal sepanjang periode aktif.
               </p>
-              <div className="h-56 mt-auto">
+              <div className="h-64 mt-auto">
                 <FleetMonthlyTrendChart monthlyData={fleetMonthlyTrend} />
               </div>
             </div>
