@@ -277,3 +277,189 @@ export function PicWorkloadChart({ data }: { data: ProcurementItem[] }) {
 
   return <Bar data={chartData} options={options} />;
 }
+
+export function FleetDemandBarChart({
+  data,
+}: {
+  data: Array<{
+    name: string;
+    qtyFPB: number;
+    qtyFSTB: number;
+    fulfillmentRate: number;
+  }>;
+}) {
+  if (!data || data.length === 0) {
+    return <EmptyChartPlaceholder message="Belum ada data permintaan armada" />;
+  }
+
+  const topItems = data.slice(0, 8);
+  const labels = topItems.map((d) => (d.name.length > 14 ? d.name.slice(0, 14) + '...' : d.name));
+
+  const chartData = {
+    labels,
+    datasets: [
+      {
+        label: 'Qty Diminta (FPB)',
+        data: topItems.map((d) => d.qtyFPB),
+        backgroundColor: '#0284c7', // Sky Blue
+        borderRadius: 4,
+      },
+      {
+        label: 'Qty Realisasi (FSTB)',
+        data: topItems.map((d) => d.qtyFSTB),
+        backgroundColor: '#10b981', // Emerald Green
+        borderRadius: 4,
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+        labels: { boxWidth: 12, color: '#64748b', font: { size: 10, family: 'Inter, sans-serif' } },
+      },
+      tooltip: {
+        callbacks: {
+          afterBody: (context: any) => {
+            const index = context[0]?.dataIndex;
+            if (index != null && topItems[index]) {
+              return `Tingkat Pemenuhan: ${topItems[index].fulfillmentRate}%`;
+            }
+            return '';
+          },
+        },
+      },
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: { color: '#64748b', font: { size: 9, family: 'Inter, sans-serif' } },
+      },
+      y: {
+        grid: { color: 'rgba(128,128,128,0.12)' },
+        ticks: { color: '#64748b', font: { family: 'JetBrains Mono, monospace', size: 10 } },
+      },
+    },
+  };
+
+  return <Bar data={chartData} options={options} />;
+}
+
+export function FleetCategoryDonutChart({
+  categories,
+}: {
+  categories: Record<string, number>;
+}) {
+  const entries = Object.entries(categories).filter(([_, count]) => count > 0);
+  if (entries.length === 0) {
+    return <EmptyChartPlaceholder message="Belum ada rincian kategori suku cadang" />;
+  }
+
+  entries.sort((a, b) => b[1] - a[1]);
+  const topCategories = entries.slice(0, 6);
+  const otherCount = entries.slice(6).reduce((acc, curr) => acc + curr[1], 0);
+  if (otherCount > 0) {
+    topCategories.push(['Lainnya', otherCount]);
+  }
+
+  const chartData = {
+    labels: topCategories.map(([cat]) => cat),
+    datasets: [
+      {
+        data: topCategories.map(([_, count]) => count),
+        backgroundColor: [
+          '#06b6d4',
+          '#3b82f6',
+          '#f59e0b',
+          '#8b5cf6',
+          '#10b981',
+          '#ec4899',
+          '#64748b',
+        ],
+        borderWidth: 0,
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'right' as const,
+        labels: { boxWidth: 10, color: '#64748b', font: { size: 10, family: 'Inter, sans-serif' } },
+      },
+    },
+    cutout: '68%',
+  };
+
+  return <Doughnut data={chartData} options={options} />;
+}
+
+export function FleetMonthlyTrendChart({
+  monthlyData,
+}: {
+  monthlyData: Array<{ monthName: string; fpbCount: number; qtyTotal: number }>;
+}) {
+  if (!monthlyData || monthlyData.length === 0) {
+    return <EmptyChartPlaceholder message="Belum ada data tren bulanan armada" />;
+  }
+
+  const chartData = {
+    labels: monthlyData.map((d) => d.monthName),
+    datasets: [
+      {
+        type: 'bar' as const,
+        label: 'Jumlah FPB',
+        data: monthlyData.map((d) => d.fpbCount),
+        backgroundColor: '#0ea5e9',
+        borderRadius: 4,
+        yAxisID: 'y',
+      },
+      {
+        type: 'bar' as const,
+        label: 'Total Kuantitas Barang (Unit)',
+        data: monthlyData.map((d) => d.qtyTotal),
+        backgroundColor: '#8b5cf6',
+        borderRadius: 4,
+        yAxisID: 'y1',
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+        labels: { boxWidth: 10, color: '#64748b', font: { size: 10, family: 'Inter, sans-serif' } },
+      },
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: { color: '#64748b', font: { size: 10, family: 'Inter, sans-serif' } },
+      },
+      y: {
+        type: 'linear' as const,
+        display: true,
+        position: 'left' as const,
+        grid: { color: 'rgba(128,128,128,0.12)' },
+        ticks: { color: '#64748b', font: { size: 9, family: 'JetBrains Mono, monospace' } },
+      },
+      y1: {
+        type: 'linear' as const,
+        display: true,
+        position: 'right' as const,
+        grid: { drawOnChartArea: false },
+        ticks: { color: '#8b5cf6', font: { size: 9, family: 'JetBrains Mono, monospace' } },
+      },
+    },
+  };
+
+  return <Bar data={chartData as any} options={options as any} />;
+}
