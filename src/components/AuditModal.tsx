@@ -1382,7 +1382,7 @@ export default function AuditModal({
                     ).
                   </p>
                   <p className="text-muted-foreground">
-                    Rantai pertanggungjawaban 5 divisi: Pembuatan FPB (&rarr;{' '}
+                    Rantai pertanggungjawaban 5 seksi: Pembuatan FPB (&rarr;{' '}
                     {displayPicFpb}), Purchasing (&rarr;{' '}
                     {activePo ? `${itemS1?.picPch || 'Purchasing'} - PO: ${activePo}` : 'Menunggu PO'}), TTB Logistik (&rarr;{' '}
                     {cleanPicTtb ? cleanPicTtb : parsedTtbList.length > 0 ? `TTB (${parsedTtbList.join(', ')})` : 'Belum Ada TTB'}), Lapangan (&rarr;{' '}
@@ -1622,7 +1622,7 @@ export default function AuditModal({
         <div className="space-y-2.5 pt-1">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-1.5">
-              <span>Alur Tanggung Jawab Fisik & PIC (5 Divisi Terverifikasi)</span>
+              <span>Alur Tanggung Jawab & PIC (5 Seksi)</span>
             </h4>
             <div className="flex items-center gap-2.5 flex-wrap">
               {evaluatableWorkflowItem && (
