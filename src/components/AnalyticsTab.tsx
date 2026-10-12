@@ -435,23 +435,20 @@ export default function AnalyticsTab({
         return false;
       }
       // Status Filter
+      const qFpb = Number(it.qtyFPB) || 0;
+      const qFstb = Number(it.qtyFSTB) || 0;
+      const isStatusClose = it.status?.toUpperCase() === 'CLOSE';
+      const isFullyDelivered = qFstb >= qFpb && qFpb > 0;
+      const isItemComp = isFullyDelivered && (isStatusClose || it.status?.toUpperCase().includes('LENGKAP') || it.status?.toUpperCase().includes('SELESAI') || it.status?.toUpperCase().includes('TUNTAS') || it.status?.toUpperCase().includes('DELIVERED'));
+      const isItemPart = !isItemComp && qFstb > 0 && qFstb < qFpb;
+
       if (fleetStatusFilter === 'LENGKAP') {
-        const wf = evaluateFiveDivisionWorkflow(it as any);
-        const isComp =
-          wf.isOperationalDelivered ||
-          (it.selisih === 0 && it.qtyFSTB > 0) ||
-          it.status?.toUpperCase().includes('LENGKAP') ||
-          it.status?.toUpperCase().includes('SELESAI') ||
-          it.status?.toUpperCase().includes('DELIVERED');
-        if (!isComp) return false;
+        if (!isItemComp) return false;
       } else if (fleetStatusFilter === 'PARSIAL') {
-        const isPart = it.status?.toUpperCase().includes('PARSIAL') || (it.qtyFSTB > 0 && it.selisih > 0);
-        if (!isPart) return false;
+        if (!isItemPart) return false;
       } else if (fleetStatusFilter === 'BACKLOG') {
-        const wf = evaluateFiveDivisionWorkflow(it as any);
-        if (wf.isOperationalDelivered) return false; // Barang sudah tuntas terkirim di lapangan!
-        const isBacklog = it.selisih > 0 || it.qtyFSTB === 0;
-        if (!isBacklog) return false;
+        // Backlog mencakup barang yang belum terkirim sama sekali atau masih ada selisih kuantitas
+        if (isItemComp) return false;
       }
       // Search Keyword
       if (fleetSearchTerm.trim() !== '') {
@@ -483,7 +480,6 @@ export default function AnalyticsTab({
 
     let totalQtyFPB = 0;
     let totalQtyFSTB = 0;
-    let totalBacklogQty = 0;
     let completeCount = 0;
     let partialCount = 0;
     let backlogCount = 0;
@@ -517,30 +513,20 @@ export default function AnalyticsTab({
       if (it.fpb) uniqueFpbs.add(it.fpb.trim());
       if (it.workOrderNo) uniqueWos.add(it.workOrderNo.trim());
 
-      // Evaluasi alur logistik & batas KPI serah terima fisik
-      const wfResult = evaluateFiveDivisionWorkflow(it as any);
-      const isDelivered = wfResult?.isOperationalDelivered || Boolean(
-        it.tglBarangDiantar || (it as any).tglDiantar || (it as any).picLap
-      );
-
-      const qFpb = Number(it.qtyFPB) || 1;
-      let qFstb = Number(it.qtyFSTB) || 0;
-      if (qFstb <= 0 && isDelivered) {
-        qFstb = qFpb;
-      }
-      const qSel = isDelivered ? 0 : (Number(it.selisih) || Math.max(0, qFpb - qFstb));
+      const qFpb = Number(it.qtyFPB) || 0;
+      const qFstb = Number(it.qtyFSTB) || 0;
+      const qSel = it.selisih !== undefined ? Number(it.selisih) : Math.max(0, qFpb - qFstb);
 
       totalQtyFPB += qFpb;
       totalQtyFSTB += qFstb;
-      totalBacklogQty += qSel;
 
-      const isComp =
-        isDelivered ||
-        (qSel === 0 && qFstb > 0) ||
-        it.status?.toUpperCase().includes('LENGKAP') ||
-        it.status?.toUpperCase().includes('SELESAI') ||
-        it.status?.toUpperCase().includes('DELIVERED');
-      const isPart = !isComp && (it.status?.toUpperCase().includes('PARSIAL') || (qFstb > 0 && qSel > 0));
+      // Evaluasi status item:
+      // Item dianggap Lengkap bila qFstb >= qFpb dan status bertanda selesai ('CLOSE', 'LENGKAP', dsb)
+      const isStatusClose = it.status?.toUpperCase() === 'CLOSE';
+      const isFullyDelivered = qFstb >= qFpb && qFpb > 0;
+      const isComp = isFullyDelivered && (isStatusClose || it.status?.toUpperCase().includes('LENGKAP') || it.status?.toUpperCase().includes('SELESAI') || it.status?.toUpperCase().includes('TUNTAS') || it.status?.toUpperCase().includes('DELIVERED'));
+      const isPart = !isComp && qFstb > 0 && qFstb < qFpb;
+      const isBacklog = !isComp && !isPart;
 
       if (isComp) completeCount++;
       else if (isPart) partialCount++;
@@ -601,6 +587,7 @@ export default function AnalyticsTab({
       v.lapseCount++;
 
       // Evaluasi alur logistik operasional 4-seksi (FPB -> PCH -> LOG -> LAP)
+      const wfResult = evaluateFiveDivisionWorkflow(it as any);
       v.totalPassedStages += wfResult ? wfResult.operationalPassedCount : 4;
       if (wfResult?.isFinanceSettled) {
         v.financeSettledCount++;
@@ -622,10 +609,12 @@ export default function AnalyticsTab({
       v.categories[kat] = (v.categories[kat] || 0) + 1;
     });
 
+    const totalBacklogQty = Math.max(0, totalQtyFPB - totalQtyFSTB);
     const fulfillmentRate =
       totalQtyFPB > 0 ? Math.min(100, Math.round((totalQtyFSTB / totalQtyFPB) * 100)) : 100;
 
     const vesselList = Object.values(vesselMap).map((v) => {
+      v.backlogQty = Math.max(0, v.qtyFPB - v.qtyFSTB);
       const vFulfillRate = v.qtyFPB > 0 ? Math.min(100, Math.round((v.qtyFSTB / v.qtyFPB) * 100)) : 100;
       const topItems = Object.values(v.itemFrequency).sort(
         (a, b) => b.count - a.count || b.totalQty - a.totalQty
@@ -946,15 +935,22 @@ export default function AnalyticsTab({
         ];
   }, [fleetFilteredItems, selectedYear]);
 
-  // 8. Critical Backlog Items (Pending or partial deliveries fisik yang benar-benar belum tuntas diantar ke unit)
+  // 8. Critical Backlog Items (Pending or partial deliveries fisik yang masih memiliki selisih kuantitas permintaan)
   const criticalBacklogItems = useMemo(() => {
     return fleetFilteredItems
       .filter((it) => {
-        const wf = evaluateFiveDivisionWorkflow(it as any);
-        if (wf.isOperationalDelivered) return false; // Sudah diserahterimakan fisik di lapangan, bukan backlog operasional!
-        return it.selisih > 0 || (!it.status?.toUpperCase().includes('LENGKAP') && it.qtyFSTB < it.qtyFPB);
+        const qFpb = Number(it.qtyFPB) || 0;
+        const qFstb = Number(it.qtyFSTB) || 0;
+        const qSel = it.selisih !== undefined ? Number(it.selisih) : Math.max(0, qFpb - qFstb);
+        const isClosed = (it.status?.toUpperCase() === 'CLOSE' || it.status?.toUpperCase().includes('LENGKAP')) && qFstb >= qFpb;
+        if (isClosed) return false;
+        return qSel > 0 || qFstb < qFpb;
       })
-      .sort((a, b) => (b.selisih || 0) - (a.selisih || 0));
+      .sort((a, b) => {
+        const selB = b.selisih !== undefined ? Number(b.selisih) : Math.max(0, (Number(b.qtyFPB) || 0) - (Number(b.qtyFSTB) || 0));
+        const selA = a.selisih !== undefined ? Number(a.selisih) : Math.max(0, (Number(a.qtyFPB) || 0) - (Number(a.qtyFSTB) || 0));
+        return selB - selA;
+      });
   }, [fleetFilteredItems]);
 
   // 9. High-wear / Recurring Breakdown Parts Analysis
