@@ -110,6 +110,7 @@ export interface ProcurementItem {
   tglTtbKePicPch?: string;
   tglKeAdmPch?: string;
   noSpp?: string;
+  tglSpp?: string;
   tglInputSpp?: string;
   tglKeKeuangan?: string;
   kodeBarang?: string;
@@ -180,6 +181,7 @@ export interface ArmadaItem {
   tglKeAdmPch?: string;
   tglKeKeuangan?: string;
   noSpp?: string;
+  tglSpp?: string;
   tglInputSpp?: string;
   statusBadge?: string;
   statusTone?: StatusTone;

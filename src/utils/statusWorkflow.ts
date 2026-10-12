@@ -97,10 +97,13 @@ export interface EvaluatableItem {
   qtyFSTB?: number;
   qtyTTB?: number;
   statusCheckFpb?: string;
-  doneCheckFpb?: string;
+  doneCheckFpb?: string | boolean;
   picCheckFpb?: string;
   tglApproveWeb?: string;
   verifiedByFpb?: string;
+  deliveryTime?: string;
+  receivedBy?: string;
+  approvedBy?: string;
 }
 
 /**
@@ -447,6 +450,8 @@ export interface DivisionStageLight {
   name: string;
   stepNumber: number;
   isPassed: boolean;
+  isFull: boolean;
+  isPartial: boolean;
   statusText: string;
   detail: string;
   colorName: 'green' | 'blue' | 'purple' | 'orange' | 'gray' | 'emerald';
@@ -462,6 +467,8 @@ export interface DivisionStageLight {
 export interface FiveDivisionWorkflowResult {
   stages: DivisionStageLight[];
   passedCount: number;
+  fullCount: number;
+  partialCount: number;
   totalCount: number;
   isComplete: boolean;
   completionPercentage: number;
@@ -470,12 +477,32 @@ export interface FiveDivisionWorkflowResult {
 }
 
 /**
+ * Helper untuk mendeteksi apakah suatu nilai berstatus "Belum"
+ * (kosong, '-', '(kosong)', 'null', diawali 'belum', dsb.)
+ */
+export function isFieldBelum(val?: string | number | null): boolean {
+  if (val === undefined || val === null) return true;
+  const s = String(val).trim().toLowerCase();
+  if (
+    s === '' ||
+    s === '-' ||
+    s === '(kosong)' ||
+    s === 'null' ||
+    s === 'undefined' ||
+    s.startsWith('belum') ||
+    s.includes('belum ') ||
+    s === 'nopo'
+  ) {
+    return true;
+  }
+  return false;
+}
+
+/**
  * Evaluasi status alur 5 divisi terverifikasi untuk lampu indikator traffic light:
- * 1. FPB (Pembuatan & Verifikasi FPB) -> Hijau jenuh
- * 2. PCH (Purchasing / No. PO & PIC)  -> Biru jenuh
- * 3. TTB (Logistik TTB)                -> Ungu jenuh
- * 4. LAP (Tim Lapangan / Penyerahan)   -> Oranye jenuh
- * 5. FIN (Finance / ADM & SPP)        -> Redup / Mati (jika belum lengkap)
+ * - isFull (Menyala Penuh): Seluruh data divisi terisi lengkap 100% tanpa ada rincian yang "Belum".
+ * - isPartial (Menyala Setengah): Sudah ada proses/data yang tercatat, tetapi masih ada data yang "Belum" (contoh di PCH: PO ada tapi FSTB/Delivery masih Belum Terbit/Belum Dijadwalkan).
+ * - !isPassed (Mati / Abu-Abu): Sama sekali belum ada data yang masuk pada seksi terkait.
  */
 export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisionWorkflowResult {
   // 1. FPB (Pembuatan & Verifikasi FPB)
@@ -485,28 +512,60 @@ export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisio
     item.statusCheckFpb === 'CLOSE' ||
     item.statusCheckFpb === 'DONE' ||
     item.doneCheckFpb === 'DONE' ||
+    item.doneCheckFpb === true ||
     hasValue(item.tglApproveWeb) ||
+    hasValue(item.approvedBy) ||
     hasValue(item.picCheckFpb);
-  const isFpbPassed = hasFpb;
-  const fpbDetail = hasFpb
-    ? `${rawFpb}${isFpbApproved ? ' (Terverifikasi)' : ''}`
-    : 'Menunggu FPB';
-  const fpbStatus = isFpbApproved ? 'FPB Terverifikasi' : hasFpb ? 'FPB Terbit' : 'Menunggu FPB';
 
-  // 2. PURCHASING (Penerbitan PO & PIC Purchasing)
+  const hasFpbBelum =
+    !isFpbApproved ||
+    (item.receivedBy !== undefined && isFieldBelum(item.receivedBy));
+
+  const isFpbPassed = hasFpb;
+  const isFpbFull = hasFpb && !hasFpbBelum;
+  const isFpbPartial = hasFpb && hasFpbBelum;
+
+  const fpbDetail = hasFpb
+    ? `${rawFpb}${isFpbFull ? ' (Terverifikasi Lengkap)' : ' (Sebagian / Belum Lengkap)'}`
+    : 'Menunggu FPB';
+  const fpbStatus = isFpbFull
+    ? 'FPB Lengkap'
+    : isFpbPartial
+    ? 'FPB Terbit (Belum Penuh)'
+    : 'Menunggu FPB';
+
+  // 2. PURCHASING (Penerbitan PO, PIC Purchasing, Delivery, FSTB)
   const rawPo = item.po || item.noPo;
   const hasPo = hasValue(rawPo);
   const picPch = item.picPch && item.picPch !== '-' && item.picPch.toLowerCase() !== 'purchasing'
     ? item.picPch.trim()
     : '';
   const hasPicPch = Boolean(picPch);
-  const isPchPassed = hasPo || (hasPicPch && hasValue(item.tglPo));
+  const hasPchStarted = hasPo || (hasPicPch && hasValue(item.tglPo));
+
+  // Jika ada tulisan "belum" di data seksi PCH (No PO, Tgl PO, PIC, Delivery, atau FSTB),
+  // maka lampu PCH menyala setengah karena data belum penuh
+  const hasPchBelum =
+    isFieldBelum(rawPo) ||
+    isFieldBelum(item.tglPo || item.date) ||
+    isFieldBelum(picPch) ||
+    isFieldBelum(item.deliveryTime) ||
+    isFieldBelum(item.noFstb);
+
+  const isPchPassed = hasPchStarted;
+  const isPchFull = hasPchStarted && !hasPchBelum;
+  const isPchPartial = hasPchStarted && hasPchBelum;
+
   const pchDetail = hasPo
-    ? `PO: ${rawPo}${picPch ? ` (${picPch})` : ''}`
+    ? `PO: ${rawPo}${isPchFull ? ' (Lengkap)' : ' (Data Belum Penuh)'}`
     : hasPicPch
-    ? `PIC: ${picPch}`
+    ? `PIC: ${picPch} (Menunggu PO)`
     : 'Menunggu PO';
-  const pchStatus = hasPo ? 'PO Diterbitkan' : hasPicPch ? 'PIC Ditugaskan' : 'Menunggu PO';
+  const pchStatus = isPchFull
+    ? 'PO & FSTB Lengkap'
+    : isPchPartial
+    ? 'PO Diterbitkan (Belum Penuh)'
+    : 'Menunggu PO';
 
   // 3. LOGISTIK TTB (Penerimaan & Dokumen TTB)
   const rawTtb = item.noTtb || item.ttb;
@@ -518,15 +577,30 @@ export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisio
     : '';
   const hasPicTtb = Boolean(picTtb);
   const hasQtyTtb = typeof item.qtyTTB === 'number' && item.qtyTTB > 0;
-  const isTtbPassed = hasTtb || hasTglTtb || (hasPicTtb && hasQtyTtb);
+  const hasLogStarted = hasTtb || hasTglTtb || (hasPicTtb && hasQtyTtb);
+
+  // Jika ada field TTB yang masih 'belum' (No TTB belum terbit, Tgl TTB belum ada, atau PIC belum ada)
+  const hasLogBelum =
+    isFieldBelum(rawTtb) ||
+    isFieldBelum(rawTglTtb) ||
+    isFieldBelum(picTtb);
+
+  const isTtbPassed = hasLogStarted;
+  const isTtbFull = hasLogStarted && !hasLogBelum;
+  const isTtbPartial = hasLogStarted && hasLogBelum;
+
   const ttbDetail = hasTtb
-    ? `TTB: ${rawTtb}${picTtb ? ` (${picTtb})` : ''}`
+    ? `TTB: ${rawTtb}${isTtbFull ? ' (Lengkap)' : ' (Belum Penuh)'}`
     : hasTglTtb
     ? `Tgl: ${formatDateDdMmYyDash(rawTglTtb) || rawTglTtb}`
     : hasPicTtb
     ? `PIC: ${picTtb}`
     : 'Menunggu TTB';
-  const ttbStatus = hasTtb ? 'TTB Tercatat' : hasTglTtb ? 'Tgl TTB Ada' : 'Menunggu TTB';
+  const ttbStatus = isTtbFull
+    ? 'TTB Tercatat Lengkap'
+    : isTtbPartial
+    ? 'TTB Sebagian (Belum Penuh)'
+    : 'Menunggu TTB';
 
   // 4. TIM LAPANGAN (Serah Terima Fisik & Pengantaran)
   const picLap = item.picLap && item.picLap !== '-' && item.picLap.toLowerCase() !== '(kosong)' && item.picLap.toLowerCase() !== 'null'
@@ -540,51 +614,72 @@ export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisio
   const hasTglTimLapKePicTtb = hasValue(item.tglTimLapKePicTtb);
   const hasTglTtbKePch = hasValue(item.tglTtbKePicPch);
 
-  // Validasi Ketat Tahap 4 (Tim Lapangan):
-  // Tombol & status TIDAK BOLEH "Serah Terima Lengkap" selama indikator PIC Lap, Tgl Diantar, TL ke TTB, dan TTB ke PCH masih belum tercatat / belum diantar / belum ada
-  const hasPhysicalHandoverDetails = Boolean(
-    hasPicLap && (hasTglDiantar || hasTglTimLapKePicTtb || hasTglTtbKePch)
+  const hasLapStarted = Boolean(
+    hasPicLap || hasTglDiantar || hasTglLap || hasTglTimLapKePicTtb || hasTglTtbKePch
   );
 
-  const isLapPassed = hasPhysicalHandoverDetails;
-  const lapDetail = isLapPassed
-    ? `PIC: ${picLap}${hasTglDiantar ? ` (${formatDateDdMmYyDash(tglDiantar) || tglDiantar})` : ''}`
-    : hasPicLap
-    ? `PIC: ${picLap} (Menunggu Diantar)`
-    : hasTglLap
-    ? `Diterima TL (${formatDateDdMmYyDash(tglLap) || tglLap})`
+  const hasLapBelum =
+    isFieldBelum(picLap) ||
+    isFieldBelum(tglLap) ||
+    isFieldBelum(tglDiantar) ||
+    isFieldBelum(item.tglTimLapKePicTtb) ||
+    isFieldBelum(item.tglTtbKePicPch);
+
+  const isLapPassed = hasLapStarted;
+  const isLapFull = hasLapStarted && !hasLapBelum;
+  const isLapPartial = hasLapStarted && hasLapBelum;
+
+  const lapDetail = isLapFull
+    ? `PIC: ${picLap} (Serah Terima Lengkap)`
+    : isLapPartial
+    ? `PIC: ${picLap || 'Sebagian'} (Belum Lengkap)`
     : 'Menunggu Serah Terima';
 
-  const lapStatus = isLapPassed
+  const lapStatus = isLapFull
     ? 'Serah Terima Lengkap'
-    : (hasTglLap || hasPicLap)
-    ? 'Menunggu Serah Terima'
+    : isLapPartial
+    ? 'Serah Terima Sebagian'
     : 'Pending Lapangan';
 
   // 5. FINANCE / ADM (Penerbitan SPP & Penyelesaian Kas)
   const rawSpp = item.noSpp || item.spp;
   const hasSpp = hasValue(rawSpp);
+  const rawTglSpp = item.tglSpp || item.tglInputSpp;
   const rawTglKeu = item.tglKeKeuangan || item.tglKeuangan || item.tglKeu;
   const hasTglKeu = hasValue(rawTglKeu);
+  const picAdm = item.picAdm && item.picAdm !== '-' && item.picAdm.toLowerCase() !== 'purchasing'
+    ? item.picAdm.trim()
+    : '';
+  const hasPicAdm = Boolean(picAdm);
   const rawStatusUpper = (item.statusBadge || item.statusArmada || item.status || item.rawStatus || '').toUpperCase();
   const isKeuanganStatus =
     rawStatusUpper.includes('KEUANGAN') ||
     rawStatusUpper.includes('SELESAI') ||
     rawStatusUpper.includes('SPP');
-  const isFinPassed = hasSpp || hasTglKeu || isKeuanganStatus;
-  const finDetail = hasSpp
-    ? `SPP: ${rawSpp}${hasTglKeu ? ` (${formatDateDdMmYyDash(rawTglKeu) || rawTglKeu})` : ''}`
-    : hasTglKeu
-    ? `Ke Keuangan: ${formatDateDdMmYyDash(rawTglKeu) || rawTglKeu}`
-    : isKeuanganStatus
-    ? 'Selesai di Keuangan'
+
+  const hasFinStarted = hasSpp || hasTglKeu || hasPicAdm || hasValue(rawTglSpp) || isKeuanganStatus;
+
+  // Jika ada tulisan "belum" di data seksi ADM (No SPP belum terbit, Tgl SPP belum terbit, PIC Adm belum ada, atau belum diserahkan ke keuangan)
+  const hasFinBelum =
+    isFieldBelum(rawSpp) ||
+    isFieldBelum(rawTglSpp) ||
+    isFieldBelum(picAdm) ||
+    isFieldBelum(rawTglKeu);
+
+  const isFinPassed = hasFinStarted;
+  const isFinFull = hasFinStarted && !hasFinBelum;
+  const isFinPartial = hasFinStarted && hasFinBelum;
+
+  const finDetail = isFinFull
+    ? `SPP: ${rawSpp} (Selesai di Keuangan)`
+    : isFinPartial
+    ? `ADM: ${picAdm || 'Proses'} (Belum Lengkap / Menunggu SPP)`
     : 'Menunggu Berkas ADM';
-  const finStatus = (hasSpp && hasTglKeu) || rawStatusUpper.includes('SELESAI DI KEUANGAN')
+
+  const finStatus = isFinFull
     ? 'Selesai di Keuangan'
-    : hasSpp
-    ? 'Proses SPP Kas'
-    : isKeuanganStatus
-    ? 'Selesai di Keuangan'
+    : isFinPartial
+    ? 'Proses ADM (Belum Lengkap)'
     : 'Menunggu Berkas ADM';
 
   const stages: DivisionStageLight[] = [
@@ -593,6 +688,8 @@ export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisio
       name: 'Pembuatan FPB',
       stepNumber: 1,
       isPassed: isFpbPassed,
+      isFull: isFpbFull,
+      isPartial: isFpbPartial,
       statusText: fpbStatus,
       detail: fpbDetail,
       colorName: 'green',
@@ -609,6 +706,8 @@ export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisio
       name: 'Purchasing',
       stepNumber: 2,
       isPassed: isPchPassed,
+      isFull: isPchFull,
+      isPartial: isPchPartial,
       statusText: pchStatus,
       detail: pchDetail,
       colorName: 'blue',
@@ -625,6 +724,8 @@ export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisio
       name: 'Logistik TTB',
       stepNumber: 3,
       isPassed: isTtbPassed,
+      isFull: isTtbFull,
+      isPartial: isTtbPartial,
       statusText: ttbStatus,
       detail: ttbDetail,
       colorName: 'purple',
@@ -641,6 +742,8 @@ export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisio
       name: 'Tim Lapangan',
       stepNumber: 4,
       isPassed: isLapPassed,
+      isFull: isLapFull,
+      isPartial: isLapPartial,
       statusText: lapStatus,
       detail: lapDetail,
       colorName: 'orange',
@@ -657,6 +760,8 @@ export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisio
       name: 'Purchasing / ADM',
       stepNumber: 5,
       isPassed: isFinPassed,
+      isFull: isFinFull,
+      isPartial: isFinPartial,
       statusText: finStatus,
       detail: finDetail,
       colorName: isFinPassed ? 'emerald' : 'gray',
@@ -675,7 +780,9 @@ export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisio
   ];
 
   const passedCount = stages.filter((s) => s.isPassed).length;
-  const isComplete = passedCount === 5;
+  const fullCount = stages.filter((s) => s.isFull).length;
+  const partialCount = stages.filter((s) => s.isPartial).length;
+  const isComplete = fullCount === 5;
   const completionPercentage = Math.round((passedCount / 5) * 100);
 
   let summaryBadge = `${passedCount}/5 Terisi`;
@@ -692,10 +799,11 @@ export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisio
     statusTone = 'amber';
   }
 
-
   return {
     stages,
     passedCount,
+    fullCount,
+    partialCount,
     totalCount: 5,
     isComplete,
     completionPercentage,

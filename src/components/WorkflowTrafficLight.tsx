@@ -36,16 +36,27 @@ export default function WorkflowTrafficLight({
     item.po,
     item.noPo,
     item.tglPo,
+    item.date,
     item.picPch,
+    item.deliveryTime,
+    item.noFstb,
     item.noTtb,
     item.tglTtb,
     item.picTtb,
     item.qtyTTB,
     item.picLap,
     item.tglBarangDiantar,
+    item.tglDiantar,
+    item.tglKeTimLapangan,
     item.tglTimLapKePicTtb,
+    item.tglTtbKePicPch,
+    item.picAdm,
     item.noSpp,
+    item.tglSpp,
+    item.tglInputSpp,
     item.tglKeKeuangan,
+    item.receivedBy,
+    item.approvedBy,
     item.statusBadge,
     item.status,
     item.selisih,
@@ -56,10 +67,11 @@ export default function WorkflowTrafficLight({
   const tooltipText = React.useMemo(() => {
     const header = `Alur Tanggung Jawab & PIC (5 Seksi): ${result.summaryBadge}\n`;
     const details = result.stages
-      .map(
-        (s) =>
-          `${s.stepNumber}. ${s.name} (${s.code}): ${s.isPassed ? '✓ ' + s.statusText : '○ ' + s.statusText} [${s.detail}]`
-      )
+      .map((s) => {
+        const symbol = s.isFull ? '✓' : s.isPartial ? '◐' : '○';
+        const mode = s.isFull ? 'Lengkap' : s.isPartial ? 'Menyala Setengah (Data Belum Penuh)' : 'Belum Lengkap';
+        return `${s.stepNumber}. ${s.name} (${s.code}): ${symbol} [${mode}] ${s.statusText} [${s.detail}]`;
+      })
       .join('\n');
     return header + details + (onClick ? '\n\n(Klik untuk membuka Audit Rinci 5 Seksi)' : '');
   }, [result, onClick]);
@@ -82,27 +94,57 @@ export default function WorkflowTrafficLight({
                 key={stage.code}
                 className="flex flex-col items-center gap-1.5 group/bulb"
                 title={`${stage.stepNumber}. ${stage.name} (${stage.code}): ${
-                  stage.isPassed ? '✓ ' + stage.statusText : '○ Belum Lengkap'
+                  stage.isFull
+                    ? '✓ ' + stage.statusText + ' (Penuh)'
+                    : stage.isPartial
+                    ? '◐ ' + stage.statusText + ' (Menyala Setengah - Data Belum Penuh)'
+                    : '○ Belum Lengkap'
                 } [${stage.detail}]`}
               >
                 {/* 3D Glass LED Spherical Indicator */}
                 <div
-                  className="relative flex items-center justify-center rounded-full transition-all duration-300 size-10 sm:size-11 md:size-12"
+                  className="relative flex items-center justify-center rounded-full overflow-hidden transition-all duration-300 size-10 sm:size-11 md:size-12"
                   style={{
-                    background: stage.isPassed
+                    background: stage.isFull
                       ? `radial-gradient(circle at 36% 30%, ${stage.lightColor} 0%, ${stage.baseColor} 55%, ${stage.deepColor} 100%)`
-                      : 'radial-gradient(circle at 36% 30%, #f8fafc 0%, #cbd5e1 55%, #94a3b8 100%)',
-                    boxShadow: stage.isPassed
+                      : !stage.isPassed
+                      ? 'radial-gradient(circle at 36% 30%, #f8fafc 0%, #cbd5e1 55%, #94a3b8 100%)'
+                      : undefined,
+                    boxShadow: stage.isFull
                       ? `0 0 18px ${stage.glowColor}, 0 0 34px ${stage.glowColor}66, inset 0 2.5px 4px rgba(255,255,255,0.85), inset 0 -3px 6px rgba(0,0,0,0.28)`
+                      : stage.isPartial
+                      ? `0 0 14px ${stage.glowColor}bb, 0 0 24px ${stage.glowColor}55, inset 0 2.5px 4px rgba(255,255,255,0.85), inset 0 -3px 6px rgba(0,0,0,0.28)`
                       : 'inset 0 2px 4px rgba(255,255,255,0.7), inset 0 -2px 5px rgba(71,85,105,0.35)',
                     border: stage.isPassed
-                      ? '2px solid rgba(255, 255, 255, 0.75)'
+                      ? '2px solid rgba(255, 255, 255, 0.85)'
                       : '2px solid rgba(203, 213, 225, 0.85)',
                   }}
                 >
+                  {/* Split visual for Half-Lit (Menyala Setengah: Kiri Hidup, Kanan Mati) */}
+                  {stage.isPartial && (
+                    <>
+                      {/* Left half lit */}
+                      <div
+                        className="absolute inset-y-0 left-0 w-1/2"
+                        style={{
+                          background: `radial-gradient(circle at 45% 30%, ${stage.lightColor} 0%, ${stage.baseColor} 55%, ${stage.deepColor} 100%)`,
+                        }}
+                      />
+                      {/* Right half unlit grey */}
+                      <div
+                        className="absolute inset-y-0 right-0 w-1/2"
+                        style={{
+                          background: 'radial-gradient(circle at 55% 30%, #f8fafc 0%, #cbd5e1 55%, #94a3b8 100%)',
+                        }}
+                      />
+                      {/* Subtle vertical center seam */}
+                      <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[1px] bg-black/15 dark:bg-white/15 z-10 pointer-events-none" />
+                    </>
+                  )}
+
                   {/* Glass Specular Glare (Top-Left Highlight Crescent) */}
                   <span
-                    className="absolute top-1 left-1.5 sm:top-1.5 sm:left-2 w-3.5 h-1.5 sm:w-4 sm:h-2 rounded-full pointer-events-none"
+                    className="absolute top-1 left-1.5 sm:top-1.5 sm:left-2 w-3.5 h-1.5 sm:w-4 sm:h-2 rounded-full pointer-events-none z-20"
                     style={{
                       background: 'linear-gradient(to bottom, rgba(255,255,255,0.95), rgba(255,255,255,0.2))',
                       transform: 'rotate(-25deg)',
@@ -110,26 +152,42 @@ export default function WorkflowTrafficLight({
                   />
 
                   {/* Glass Specular Dot */}
-                  <span className="absolute top-1 left-2 size-1 rounded-full bg-white/95 pointer-events-none" />
+                  <span className="absolute top-1 left-2 size-1 rounded-full bg-white/95 pointer-events-none z-20" />
 
                   {/* Core Inner Luminescence */}
-                  {stage.isPassed && (
+                  {stage.isFull && (
                     <span
-                      className="size-3.5 sm:size-4 rounded-full blur-[2px] opacity-75 pointer-events-none"
+                      className="size-3.5 sm:size-4 rounded-full blur-[2px] opacity-75 pointer-events-none z-10"
+                      style={{ background: stage.lightColor }}
+                    />
+                  )}
+                  {stage.isPartial && (
+                    <span
+                      className="absolute left-2.5 top-1/2 -translate-y-1/2 size-2.5 sm:size-3 rounded-full blur-[1.5px] opacity-80 pointer-events-none z-10"
                       style={{ background: stage.lightColor }}
                     />
                   )}
                 </div>
 
                 {/* Division Acronym Label */}
-                <span
-                  className="text-xs sm:text-[13px] font-bold font-mono tracking-wider transition-colors"
-                  style={{
-                    color: stage.isPassed ? stage.deepColor : '#64748b',
-                  }}
-                >
-                  {stage.code}
-                </span>
+                <div className="flex items-center justify-center gap-0.5">
+                  <span
+                    className="text-xs sm:text-[13px] font-bold font-mono tracking-wider transition-colors"
+                    style={{
+                      color: stage.isPassed ? stage.deepColor : '#64748b',
+                    }}
+                  >
+                    {stage.code}
+                  </span>
+                  {stage.isPartial && (
+                    <span
+                      className="text-[9px] font-mono font-bold leading-none px-0.5 rounded text-amber-600 dark:text-amber-400"
+                      title="Menyala Setengah (Data Belum Penuh)"
+                    >
+                      ◐
+                    </span>
+                  )}
+                </div>
               </div>
             );
           })}
@@ -146,7 +204,9 @@ export default function WorkflowTrafficLight({
             ) : result.passedCount > 0 ? (
               <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-mono font-medium bg-[#fef3c7]/85 dark:bg-amber-950/40 text-stone-700 dark:text-stone-300 border border-[#fde68a] dark:border-amber-800/60 shadow-xs">
                 <span className="size-1.5 rounded-full bg-amber-500 animate-pulse shrink-0" />
-                {result.passedCount}/5 Sebagian
+                {result.fullCount > 0 ? `${result.fullCount} Penuh` : ''}
+                {result.fullCount > 0 && result.partialCount > 0 ? ', ' : ''}
+                {result.partialCount > 0 ? `${result.partialCount} Setengah (Belum Penuh)` : `${result.passedCount}/5 Sebagian`}
               </span>
             ) : (
               <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-mono font-medium bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 border border-slate-200 dark:border-zinc-700 shadow-xs">
@@ -179,28 +239,55 @@ export default function WorkflowTrafficLight({
             <div
               key={stage.code}
               className="flex flex-col items-center justify-center text-center gap-1 w-5 sm:w-5.5 shrink-0"
-              title={`${stage.stepNumber}. ${stage.name}: ${
-                stage.isPassed ? '✓ ' + stage.statusText : '○ Belum Lengkap'
-              } (${stage.detail})`}
+              title={`${stage.stepNumber}. ${stage.name} (${stage.code}): ${
+                stage.isFull
+                  ? '✓ ' + stage.statusText + ' (Penuh)'
+                  : stage.isPartial
+                  ? '◐ ' + stage.statusText + ' (Menyala Setengah - Data Belum Penuh)'
+                  : '○ Belum Lengkap'
+              } [${stage.detail}]`}
             >
               {/* Lamp Bulb Indicator */}
               <div
-                className="relative flex items-center justify-center mx-auto rounded-full transition-all duration-300 size-2.5 sm:size-3 shrink-0"
+                className="relative flex items-center justify-center mx-auto rounded-full overflow-hidden transition-all duration-300 size-2.5 sm:size-3 shrink-0"
                 style={{
-                  background: stage.isPassed
+                  background: stage.isFull
                     ? `radial-gradient(circle at 36% 30%, ${stage.lightColor} 0%, ${stage.baseColor} 55%, ${stage.deepColor} 100%)`
-                    : 'radial-gradient(circle at 36% 30%, #f8fafc 0%, #cbd5e1 55%, #94a3b8 100%)',
-                  boxShadow: stage.isPassed
+                    : !stage.isPassed
+                    ? 'radial-gradient(circle at 36% 30%, #f8fafc 0%, #cbd5e1 55%, #94a3b8 100%)'
+                    : undefined,
+                  boxShadow: stage.isFull
                     ? `0 0 6px ${stage.glowColor}, inset 0 1px 1.5px rgba(255,255,255,0.85)`
+                    : stage.isPartial
+                    ? `0 0 4.5px ${stage.glowColor}bb, inset 0 1px 1.5px rgba(255,255,255,0.85)`
                     : 'inset 0 1px 1.5px rgba(255,255,255,0.7)',
                   border: stage.isPassed
                     ? '1px solid rgba(255, 255, 255, 0.8)'
                     : '1px solid rgba(203, 213, 225, 0.8)',
                 }}
               >
+                {/* Split visual for Half-Lit (Menyala Setengah) */}
+                {stage.isPartial && (
+                  <>
+                    <div
+                      className="absolute inset-y-0 left-0 w-1/2"
+                      style={{
+                        background: `linear-gradient(135deg, ${stage.lightColor} 0%, ${stage.baseColor} 100%)`,
+                      }}
+                    />
+                    <div
+                      className="absolute inset-y-0 right-0 w-1/2"
+                      style={{
+                        background: 'linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%)',
+                      }}
+                    />
+                    <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[0.5px] bg-black/20 dark:bg-white/20 z-10 pointer-events-none" />
+                  </>
+                )}
+
                 {/* Glare specular dot */}
                 {stage.isPassed && (
-                  <span className="absolute top-[1px] left-[1px] size-0.5 rounded-full bg-white/90 pointer-events-none" />
+                  <span className="absolute top-[0.5px] left-[0.5px] size-0.5 rounded-full bg-white/95 pointer-events-none z-20" />
                 )}
               </div>
 
@@ -230,7 +317,9 @@ export default function WorkflowTrafficLight({
           ) : result.passedCount > 0 ? (
             <span className="inline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono font-medium bg-[#fef3c7]/90 dark:bg-amber-950/40 text-stone-700 dark:text-stone-300 border border-[#fde68a] dark:border-amber-800/60 whitespace-nowrap mx-auto">
               <span className="size-1.5 rounded-full bg-amber-500 animate-pulse shrink-0" />
-              {result.passedCount}/5 Sebagian
+              {result.fullCount > 0 && result.partialCount > 0
+                ? `${result.fullCount}P / ${result.partialCount}S`
+                : `${result.passedCount}/5 ${result.partialCount > 0 ? 'Parsial' : 'Sebagian'}`}
             </span>
           ) : (
             <span className="inline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono text-muted-foreground bg-muted border border-border whitespace-nowrap mx-auto">

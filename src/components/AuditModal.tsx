@@ -940,6 +940,16 @@ export default function AuditModal({
       (hasValue(itemS1?.noSpp) ? itemS1!.noSpp?.trim() : '') ||
       (hasValue(itemsS2[0]?.noSpp) ? itemsS2[0]!.noSpp?.trim() : '') ||
       '';
+    const activeTglSpp =
+      (hasValue(itemS1?.tglInputSpp) ? itemS1!.tglInputSpp?.trim() : '') ||
+      (hasValue(itemS1?.tglSpp) ? itemS1!.tglSpp?.trim() : '') ||
+      (hasValue(itemsS2[0]?.tglInputSpp) ? itemsS2[0]!.tglInputSpp?.trim() : '') ||
+      (hasValue(itemsS2[0]?.tglSpp) ? itemsS2[0]!.tglSpp?.trim() : '') ||
+      '';
+    const activePicAdm =
+      (hasValue(itemS1?.picAdm) ? itemS1!.picAdm?.trim() : '') ||
+      (hasValue(itemsS2[0]?.picAdm) ? itemsS2[0]!.picAdm?.trim() : '') ||
+      '';
     const activeTglKeuangan =
       (hasValue(itemS1?.tglKeKeuangan) ? itemS1!.tglKeKeuangan?.trim() : '') ||
       (hasValue(itemsS2[0]?.tglKeKeuangan) ? itemsS2[0]!.tglKeKeuangan?.trim() : '') ||
@@ -953,16 +963,22 @@ export default function AuditModal({
       po: activePo || anyBase.po,
       tglPo: rawTglPo || anyBase.tglPo,
       picPch: activePicPch || anyBase.picPch,
-      noTtb: activeTtb || anyBase.noTtb,
-      tglTtb: activeTglTtb || anyBase.tglTtb,
-      picTtb: cleanPicTtb || anyBase.picTtb,
+      deliveryTime: activeDeliveryTime || anyBase.deliveryTime || '',
+      noFstb: activeFstb || anyBase.noFstb || '',
+      noTtb: activeTtb || anyBase.noTtb || '',
+      tglTtb: activeTglTtb || anyBase.tglTtb || '',
+      picTtb: cleanPicTtb || anyBase.picTtb || '',
       picLap: rawPicLap,
       tglBarangDiantar: rawTglDiantar,
       tglKeTimLapangan: rawTglKeLap,
       tglTimLapKePicTtb: rawTglTimLapKePicTtb,
       tglTtbKePicPch: rawTglTtbKePch,
-      noSpp: activeSpp || anyBase.noSpp,
-      tglKeKeuangan: activeTglKeuangan || anyBase.tglKeKeuangan,
+      picAdm: activePicAdm || anyBase.picAdm || '',
+      noSpp: activeSpp || anyBase.noSpp || '',
+      tglSpp: activeTglSpp || anyBase.tglSpp || '',
+      tglKeKeuangan: activeTglKeuangan || anyBase.tglKeKeuangan || '',
+      receivedBy: pdfData?.receivedBy || anyBase.receivedBy,
+      approvedBy: pdfData?.approvedBy || anyBase.approvedBy,
       statusCheckFpb: anyBase.statusCheckFpb || (fpbCheckInfo.checkerName ? 'DONE' : undefined),
       doneCheckFpb: anyBase.doneCheckFpb ?? Boolean(fpbCheckInfo.checkerName),
     };
@@ -973,10 +989,14 @@ export default function AuditModal({
     activePo,
     rawTglPo,
     activePicPch,
+    activeDeliveryTime,
+    activeFstb,
     activeTtb,
     activeTglTtb,
     cleanPicTtb,
     fpbCheckInfo,
+    pdfData?.receivedBy,
+    pdfData?.approvedBy,
   ]);
 
   // Otomatis sinkronkan metadata PDF (Requested By, Tanggal, Item) saat modal dibuka
