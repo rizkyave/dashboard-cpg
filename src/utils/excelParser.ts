@@ -768,11 +768,16 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
       else if (qtyFSTB > 0 && selisih > 0) armadaFulfillmentStatus = `Parsial (Belum Terpenuhi ${selisih})`;
       else armadaFulfillmentStatus = `Belum Terpenuhi (${qtyFPB})`;
 
+      const cleanNamaBarang =
+        namaBarang && namaBarang.toLowerCase() !== deptArmada.toLowerCase()
+          ? namaBarang
+          : (keterangan || 'Item Operasional');
+
       importedArmada.push({
         id: recordId,
         fpb,
         armada: deptArmada,
-        item: namaBarang,
+        item: cleanNamaBarang,
         qtyFPB,
         qtyFSTB,
         selisih,
@@ -878,11 +883,8 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
       const verifiedByFpb = cfMatch?.verifiedBy || (cfMatch ? 'Bu Noor' : '');
 
       const recordId = `PROC-${proc.fpb}-${proc.po || 'NOPO'}-${proc.rowIdx}`;
-      const itemDesc = proc.ket1
-        ? proc.armada
-          ? `${proc.armada} - ${proc.ket1}`
-          : proc.ket1
-        : proc.armada || 'Pengadaan Operasional';
+      const cleanKet = proc.ket1?.trim();
+      const itemDesc = cleanKet && cleanKet !== '-' ? cleanKet : 'Item Operasional';
 
       importedProcurement.push({
         id: recordId,

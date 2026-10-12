@@ -97,6 +97,190 @@ type SubTabType =
   | 'charts';
 type DivisionFilter = 'ALL' | 'PURCHASING' | 'TTB' | 'LAPANGAN' | 'ADM' | 'MASTER_DATA' | 'GUDANG';
 
+export type ItemCategoryGroup = 'SPARE_PART' | 'CONSUMABLE' | 'GENERAL' | 'CONSTRUCTION' | 'JASA' | 'OTHER';
+
+export function isInvalidItemName(name: string | undefined | null, armadaName?: string): boolean {
+  if (!name) return true;
+  const trimmed = name.trim();
+  if (
+    !trimmed ||
+    trimmed === '-' ||
+    trimmed.toLowerCase() === 'null' ||
+    trimmed.toLowerCase() === 'undefined' ||
+    trimmed.toLowerCase() === 'barang'
+  ) {
+    return true;
+  }
+  const lower = trimmed.toLowerCase();
+  const armLower = (armadaName || '').trim().toLowerCase();
+
+  // Tolak jika nama item sama persis dengan armada/departemen atau diawali nama armada murni
+  if (
+    armLower &&
+    (lower === armLower ||
+      lower === `unit ${armLower}` ||
+      lower === `armada ${armLower}` ||
+      lower === `unit armada ${armLower}`)
+  ) {
+    return true;
+  }
+
+  // Tolak string departemen/non-barang yang sering bocor ke kolom item
+  const invalidKeywords = [
+    'office gaj',
+    'cb mahlia',
+    'ahts temasek',
+    'kantor pusat',
+    'head office',
+    'workshop',
+    'docking',
+    'logistik',
+    'purchasing',
+    'finance',
+    'hrd',
+    'item operasional',
+    'pengadaan operasional',
+    'material & suku cadang',
+    'kebutuhan unit',
+    'unit armada',
+    'permintaan barang',
+    'barang operasional',
+    'biaya pengiriman',
+    'biaya kirim',
+    'ongkir',
+    'ekspedisi',
+    'jasa pengiriman',
+  ];
+
+  if (invalidKeywords.some((kw) => lower === kw || (lower.startsWith(kw) && lower.length < kw.length + 5))) {
+    return true;
+  }
+
+  return false;
+}
+
+export function classifyItemCategory(kategori?: string, name?: string): ItemCategoryGroup {
+  const k = (kategori || '').trim().toUpperCase();
+  const n = (name || '').trim().toUpperCase();
+
+  // Kategori Jasa & Biaya Pengiriman dieksklusi dari barang fisik
+  if (
+    k.includes('JASA') ||
+    n.includes('(JASA)') ||
+    n.includes('BIAYA PENGIRIMAN') ||
+    n.includes('BIAYA KIRIM') ||
+    n.includes('ONGKIR') ||
+    n.includes('EKSPEDISI') ||
+    n.includes('FREIGHT') ||
+    n.includes('SEWA ') ||
+    n.includes('LANGGANAN') ||
+    n.includes('BILL')
+  ) {
+    return 'JASA';
+  }
+
+  // Kategori Spare Part / Suku Cadang (Mechanical, Electrical, Mesin, Pompa, Valve, Spare Part)
+  if (
+    k.includes('MECHANICAL') ||
+    k.includes('ELECTRICAL') ||
+    k.includes('SPARE') ||
+    k.includes('SUKU CADANG') ||
+    k.includes('MESIN') ||
+    k.includes('POMPA') ||
+    k.includes('VALVE') ||
+    n.includes('FILTER') ||
+    n.includes('BEARING') ||
+    n.includes('KABEL') ||
+    n.includes('MCB ') ||
+    n.includes('BUSI ') ||
+    n.includes('SKUN ') ||
+    n.includes('ACCU') ||
+    n.includes('BATTERY') ||
+    n.includes('IMPELLER') ||
+    n.includes('SEAL') ||
+    n.includes('GASKET') ||
+    n.includes('VALVE') ||
+    n.includes('NOZZLE') ||
+    n.includes('RADIO HT') ||
+    n.includes('VHF')
+  ) {
+    return 'SPARE_PART';
+  }
+
+  // Kategori Consumable / Barang Habis Pakai (Oli, Pelumas, Cat, Gas, Pasta Grinding, Boraks, dsb)
+  if (
+    k.includes('CONSUMABLE') ||
+    k.includes('HABIS PAKAI') ||
+    n.includes('OLI ') ||
+    n.includes('PELUMAS') ||
+    n.includes('MEDITRAN') ||
+    n.includes('TURALIK') ||
+    n.includes('GREASE') ||
+    n.includes('CAT ') ||
+    n.includes('THINNER') ||
+    n.includes('GAS LPG') ||
+    n.includes('LPG') ||
+    n.includes('OXYGEN') ||
+    n.includes('ACETYLENE') ||
+    n.includes('BORAKS') ||
+    n.includes('PASTA GRINDING') ||
+    n.includes('GRINDING PASTE') ||
+    n.includes('KAVIT') ||
+    n.includes('LEAD SEAL') ||
+    n.includes('LEM SILICON') ||
+    n.includes('DEXTONE') ||
+    n.includes('SEALANT') ||
+    n.includes('MAJUN') ||
+    n.includes('SABUN') ||
+    n.includes('KOPI') ||
+    n.includes('GULA') ||
+    n.includes('MIE ')
+  ) {
+    return 'CONSUMABLE';
+  }
+
+  // Kategori Konstruksi (Besi, Plat, Pipa, Baut, Segel)
+  if (
+    k.includes('CONSTRUCTION') ||
+    k.includes('KONSTRUKSI') ||
+    n.includes('BESI ') ||
+    n.includes('PLAT ') ||
+    n.includes('PIPA ') ||
+    n.includes('HOLLOW') ||
+    n.includes('BAUT') ||
+    n.includes('B/N') ||
+    n.includes('MUR') ||
+    n.includes('PAKU') ||
+    n.includes('SEGEL') ||
+    n.includes('JANGKAR')
+  ) {
+    return 'CONSTRUCTION';
+  }
+
+  // Kategori Umum / Perlengkapan Kerja / Safety (General)
+  if (
+    k.includes('GENERAL') ||
+    k.includes('UMUM') ||
+    n.includes('SAFETY') ||
+    n.includes('KACA MATA') ||
+    n.includes('HELM') ||
+    n.includes('SEPATU') ||
+    n.includes('SARUNG TANGAN') ||
+    n.includes('COVERALL') ||
+    n.includes('SERAGAM') ||
+    n.includes('GEMBOK') ||
+    n.includes('PALU') ||
+    n.includes('GERGAJI') ||
+    n.includes('KUNCI') ||
+    n.includes('OBENG') ||
+    n.includes('METERAN')
+  ) {
+    return 'GENERAL';
+  }
+
+  return 'OTHER';
+}
+
 
 // Helper to parse date string or Excel serial
 function parseDateNum(val: any): number | null {
@@ -146,6 +330,7 @@ export default function AnalyticsTab({
   const [fleetSortBy, setFleetSortBy] = useState<'demand' | 'backlog' | 'fulfillment' | 'name' | 'health' | 'sla'>('demand');
   const [fleetTablePage, setFleetTablePage] = useState<number>(1);
   const [fleetTableView, setFleetTableView] = useState<'all' | 'backlog' | 'recurring'>('all');
+  const [fleetTopItemCategory, setFleetTopItemCategory] = useState<'ALL' | 'SPARE_PART' | 'CONSUMABLE'>('ALL');
   const fleetTablePageSize = 12;
 
   // Kapal Posisi Mapping Cache
@@ -342,20 +527,21 @@ export default function AnalyticsTab({
     // Sinkronisasi rincian barang dari database Sisa Layanan (29k item)
     const enrichedList = rawList.map((it) => {
       const sisaMatch = findSisaMatch(it.fpb, sisaLayananFpbMap);
-      if (!sisaMatch) return it;
-
       const currItem = (it.item || '').trim();
       const currArmada = (it.armada || '').trim();
-      const isGenericOrArmada =
-        !currItem ||
-        currItem === '-' ||
-        currItem.toLowerCase() === currArmada.toLowerCase() ||
-        currItem.toLowerCase().startsWith(currArmada.toLowerCase()) ||
-        currItem.toLowerCase().includes('operasional') ||
-        currItem.toLowerCase().includes('kebutuhan unit') ||
-        currItem.toLowerCase().startsWith('unit armada');
 
-      const realItem = isGenericOrArmada && sisaMatch.primaryName ? sisaMatch.primaryName : (currItem || sisaMatch.primaryName);
+      if (!sisaMatch) {
+        const isArmadaName = isInvalidItemName(currItem, currArmada);
+        return isArmadaName ? { ...it, item: 'Item Operasional' } : it;
+      }
+
+      const isGenericOrArmada = isInvalidItemName(currItem, currArmada);
+      let realItem = isGenericOrArmada && sisaMatch.primaryName ? sisaMatch.primaryName : (currItem || sisaMatch.primaryName);
+      if (isInvalidItemName(realItem, currArmada)) {
+        realItem = sisaMatch.primaryName && !isInvalidItemName(sisaMatch.primaryName, currArmada)
+          ? sisaMatch.primaryName
+          : 'Item Operasional';
+      }
       const realSatuan = sisaMatch.primarySatuan || it.satuan || 'UNIT';
       const realQtyFpb =
         (it.qtyFPB === 1 || !it.qtyFPB) && sisaMatch.totalQtyFpb > 0
@@ -502,7 +688,17 @@ export default function AnalyticsTab({
         lapseCount: number;
         totalPassedStages: number;
         financeSettledCount: number;
-        itemFrequency: Record<string, { name: string; count: number; totalQty: number; satuan: string }>;
+        itemFrequency: Record<
+          string,
+          {
+            name: string;
+            count: number;
+            totalQty: number;
+            satuan: string;
+            kategori: string;
+            categoryType: ItemCategoryGroup;
+          }
+        >;
         categories: Record<string, number>;
       }
     > = {};
@@ -593,17 +789,57 @@ export default function AnalyticsTab({
         v.financeSettledCount++;
       }
 
-      const cleanItemName = (it.item || 'Barang').trim();
-      if (!v.itemFrequency[cleanItemName]) {
-        v.itemFrequency[cleanItemName] = {
-          name: cleanItemName,
-          count: 0,
-          totalQty: 0,
-          satuan: it.satuan || 'UNIT',
-        };
+      // 7. Pengumpulan Frekuensi Kebutuhan Barang & Suku Cadang (Sanitasi Total)
+      if (it.sisaMatch?.allItems && it.sisaMatch.allItems.length > 0) {
+        // Ambil setiap item riil dari database Sisa Layanan
+        it.sisaMatch.allItems.forEach((sItem) => {
+          const rawName = (sItem.nama || '').trim();
+          if (isInvalidItemName(rawName, vName)) return;
+
+          const catType = classifyItemCategory(sItem.kategori || it.kategori, rawName);
+          // Eksklusi 'Jasa' agar tidak masuk ke visualisasi barang/suku cadang
+          if (catType === 'JASA') return;
+
+          const q = Number(sItem.qty) || 1;
+          const uom = (sItem.satuan || it.satuan || 'UNIT').trim();
+
+          if (!v.itemFrequency[rawName]) {
+            v.itemFrequency[rawName] = {
+              name: rawName,
+              count: 0,
+              totalQty: 0,
+              satuan: uom,
+              kategori: sItem.kategori || it.kategori || 'General',
+              categoryType: catType,
+            };
+          }
+          v.itemFrequency[rawName].count++;
+          v.itemFrequency[rawName].totalQty += q;
+        });
+      } else {
+        // Fallback ke item tunggal armada jika tidak ada match multi-item di Sisa Layanan
+        const rawName = (it.item || '').trim();
+        if (!isInvalidItemName(rawName, vName)) {
+          const catType = classifyItemCategory(it.kategori, rawName);
+          if (catType !== 'JASA') {
+            const q = qFpb > 0 ? qFpb : 1;
+            const uom = (it.satuan || 'UNIT').trim();
+
+            if (!v.itemFrequency[rawName]) {
+              v.itemFrequency[rawName] = {
+                name: rawName,
+                count: 0,
+                totalQty: 0,
+                satuan: uom,
+                kategori: it.kategori || 'General',
+                categoryType: catType,
+              };
+            }
+            v.itemFrequency[rawName].count++;
+            v.itemFrequency[rawName].totalQty += q;
+          }
+        }
       }
-      v.itemFrequency[cleanItemName].count++;
-      v.itemFrequency[cleanItemName].totalQty += qFpb;
 
       const kat = (it.kategori || 'Umum').trim();
       v.categories[kat] = (v.categories[kat] || 0) + 1;
@@ -682,23 +918,69 @@ export default function AnalyticsTab({
 
     const globalItemMap: Record<
       string,
-      { name: string; count: number; totalQty: number; vessels: Set<string>; satuan: string }
+      {
+        name: string;
+        count: number;
+        totalQty: number;
+        vessels: Set<string>;
+        satuan: string;
+        kategori: string;
+        categoryType: ItemCategoryGroup;
+      }
     > = {};
     list.forEach((it) => {
-      const name = (it.item || '').trim();
-      if (!name) return;
-      if (!globalItemMap[name]) {
-        globalItemMap[name] = {
-          name,
-          count: 0,
-          totalQty: 0,
-          vessels: new Set(),
-          satuan: it.satuan || 'UNIT',
-        };
+      const vName = (it.armada || '').trim();
+      if (it.sisaMatch?.allItems && it.sisaMatch.allItems.length > 0) {
+        it.sisaMatch.allItems.forEach((sItem) => {
+          const rawName = (sItem.nama || '').trim();
+          if (isInvalidItemName(rawName, vName)) return;
+
+          const catType = classifyItemCategory(sItem.kategori || it.kategori, rawName);
+          if (catType === 'JASA') return;
+
+          const q = Number(sItem.qty) || 1;
+          const uom = (sItem.satuan || it.satuan || 'UNIT').trim();
+
+          if (!globalItemMap[rawName]) {
+            globalItemMap[rawName] = {
+              name: rawName,
+              count: 0,
+              totalQty: 0,
+              vessels: new Set(),
+              satuan: uom,
+              kategori: sItem.kategori || it.kategori || 'General',
+              categoryType: catType,
+            };
+          }
+          globalItemMap[rawName].count++;
+          globalItemMap[rawName].totalQty += q;
+          if (vName) globalItemMap[rawName].vessels.add(vName);
+        });
+      } else {
+        const rawName = (it.item || '').trim();
+        if (!isInvalidItemName(rawName, vName)) {
+          const catType = classifyItemCategory(it.kategori, rawName);
+          if (catType !== 'JASA') {
+            const q = Number(it.qtyFPB) || 1;
+            const uom = (it.satuan || 'UNIT').trim();
+
+            if (!globalItemMap[rawName]) {
+              globalItemMap[rawName] = {
+                name: rawName,
+                count: 0,
+                totalQty: 0,
+                vessels: new Set(),
+                satuan: uom,
+                kategori: it.kategori || 'General',
+                categoryType: catType,
+              };
+            }
+            globalItemMap[rawName].count++;
+            globalItemMap[rawName].totalQty += q;
+            if (vName) globalItemMap[rawName].vessels.add(vName);
+          }
+        }
       }
-      globalItemMap[name].count++;
-      globalItemMap[name].totalQty += Number(it.qtyFPB) || 0;
-      if (it.armada) globalItemMap[name].vessels.add(it.armada.trim());
     });
     const topRequestedItemsAll = Object.values(globalItemMap)
       .map((it) => ({ ...it, vesselCount: it.vessels.size }))
@@ -722,6 +1004,17 @@ export default function AnalyticsTab({
       topRequestedItemsAll,
     };
   }, [fleetFilteredItems, fleetSortBy]);
+
+  const displayedFleetTopItems = useMemo(() => {
+    const allItems = fleetSummary.vesselList[0]?.topItems || [];
+    if (fleetTopItemCategory === 'SPARE_PART') {
+      return allItems.filter((i) => i.categoryType === 'SPARE_PART');
+    }
+    if (fleetTopItemCategory === 'CONSUMABLE') {
+      return allItems.filter((i) => i.categoryType === 'CONSUMABLE');
+    }
+    return allItems;
+  }, [fleetSummary.vesselList, fleetTopItemCategory]);
 
   const totalFleetTablePages = Math.max(1, Math.ceil(fleetFilteredItems.length / fleetTablePageSize));
   const paginatedFleetItems = useMemo(() => {
@@ -2655,24 +2948,94 @@ export default function AnalyticsTab({
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {/* Kolom Kiri: Suku Cadang Sering Diminta oleh Kapal Ini */}
                 <div className="bg-card border border-border rounded-xl p-4 shadow-xs space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
-                      <Boxes className="size-3.5 text-primary" />
-                      <span>Suku Cadang Paling Sering Diminta ({selectedFleetArmada})</span>
-                    </h4>
-                    <span className="text-[11px] text-muted-foreground font-mono">
-                      {fleetSummary.vesselList[0]?.topItems.length || 0} Jenis Item
-                    </span>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <h4 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+                        <Boxes className="size-3.5 text-primary" />
+                        <span>
+                          {fleetTopItemCategory === 'SPARE_PART'
+                            ? `Suku Cadang Paling Sering Diminta (${selectedFleetArmada})`
+                            : fleetTopItemCategory === 'CONSUMABLE'
+                            ? `Barang Habis Pakai (Consumable) (${selectedFleetArmada})`
+                            : `Item / Kebutuhan Paling Sering Diminta (${selectedFleetArmada})`}
+                        </span>
+                      </h4>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">
+                        {fleetTopItemCategory === 'SPARE_PART'
+                          ? 'Daftar suku cadang (Mechanical & Electrical) murni'
+                          : fleetTopItemCategory === 'CONSUMABLE'
+                          ? 'Daftar kebutuhan operasional habis pakai (Consumable)'
+                          : 'Daftar seluruh kebutuhan barang fisik operasional (tanpa Jasa)'}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-1 bg-muted/70 p-0.5 rounded-lg border border-border text-[10px] self-start sm:self-auto shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setFleetTopItemCategory('ALL')}
+                        className={`px-2 py-0.5 rounded font-medium transition ${
+                          fleetTopItemCategory === 'ALL'
+                            ? 'bg-primary text-primary-foreground shadow-xs'
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        Semua Barang
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFleetTopItemCategory('SPARE_PART')}
+                        className={`px-2 py-0.5 rounded font-medium transition ${
+                          fleetTopItemCategory === 'SPARE_PART'
+                            ? 'bg-primary text-primary-foreground shadow-xs'
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        Suku Cadang
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFleetTopItemCategory('CONSUMABLE')}
+                        className={`px-2 py-0.5 rounded font-medium transition ${
+                          fleetTopItemCategory === 'CONSUMABLE'
+                            ? 'bg-primary text-primary-foreground shadow-xs'
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        Habis Pakai
+                      </button>
+                    </div>
                   </div>
 
                   <div className="divide-y divide-border/60 max-h-[300px] overflow-y-auto pr-1">
-                    {fleetSummary.vesselList[0]?.topItems.slice(0, 8).map((it, idx) => (
+                    {displayedFleetTopItems.slice(0, 10).map((it, idx) => (
                       <div key={idx} className="py-2 flex items-center justify-between text-xs gap-2">
                         <div className="min-w-0 flex-1">
-                          <p className="font-medium text-foreground truncate" title={it.name}>
-                            {idx + 1}. {it.name}
-                          </p>
-                          <p className="text-[10px] text-muted-foreground font-mono">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className="font-medium text-foreground truncate" title={it.name}>
+                              {idx + 1}. {it.name}
+                            </p>
+                            {it.categoryType === 'SPARE_PART' && (
+                              <span className="px-1.5 py-0.2 rounded text-[9px] font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 shrink-0">
+                                Suku Cadang
+                              </span>
+                            )}
+                            {it.categoryType === 'CONSUMABLE' && (
+                              <span className="px-1.5 py-0.2 rounded text-[9px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shrink-0">
+                                Habis Pakai
+                              </span>
+                            )}
+                            {it.categoryType === 'GENERAL' && (
+                              <span className="px-1.5 py-0.2 rounded text-[9px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
+                                Umum/Tools
+                              </span>
+                            )}
+                            {it.categoryType === 'CONSTRUCTION' && (
+                              <span className="px-1.5 py-0.2 rounded text-[9px] font-semibold bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20 shrink-0">
+                                Konstruksi
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-muted-foreground font-mono mt-0.5">
                             Frekuensi: {it.count} kali diajukan
                           </p>
                         </div>
@@ -2683,9 +3046,9 @@ export default function AnalyticsTab({
                         </div>
                       </div>
                     ))}
-                    {(!fleetSummary.vesselList[0] || fleetSummary.vesselList[0].topItems.length === 0) && (
+                    {displayedFleetTopItems.length === 0 && (
                       <div className="p-4 text-center text-xs text-muted-foreground">
-                        Tidak ada data suku cadang yang tercatat
+                        Tidak ada data item/suku cadang yang tercatat untuk filter ini
                       </div>
                     )}
                   </div>
@@ -2837,7 +3200,7 @@ export default function AnalyticsTab({
                     <div className="flex items-center justify-between">
                       <h4 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
                         <Boxes className="size-3.5 text-sky-500" />
-                        <span>Suku Cadang Paling Banyak Diminta (Semua Armada)</span>
+                        <span>Item & Suku Cadang Teratas (Semua Armada)</span>
                       </h4>
                       <span className="text-[11px] text-muted-foreground font-mono">
                         {fleetSummary.topRequestedItemsAll.length} Item
@@ -2848,10 +3211,32 @@ export default function AnalyticsTab({
                       {fleetSummary.topRequestedItemsAll.slice(0, 5).map((it, idx) => (
                         <div key={idx} className="py-2 flex items-center justify-between text-xs gap-2">
                           <div className="min-w-0 flex-1">
-                            <p className="font-medium text-foreground truncate" title={it.name}>
-                              {idx + 1}. {it.name}
-                            </p>
-                            <p className="text-[10px] text-muted-foreground font-mono">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <p className="font-medium text-foreground truncate" title={it.name}>
+                                {idx + 1}. {it.name}
+                              </p>
+                              {it.categoryType === 'SPARE_PART' && (
+                                <span className="px-1.5 py-0.2 rounded text-[9px] font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 shrink-0">
+                                  Suku Cadang
+                                </span>
+                              )}
+                              {it.categoryType === 'CONSUMABLE' && (
+                                <span className="px-1.5 py-0.2 rounded text-[9px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shrink-0">
+                                  Habis Pakai
+                                </span>
+                              )}
+                              {it.categoryType === 'GENERAL' && (
+                                <span className="px-1.5 py-0.2 rounded text-[9px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
+                                  Umum/Tools
+                                </span>
+                              )}
+                              {it.categoryType === 'CONSTRUCTION' && (
+                                <span className="px-1.5 py-0.2 rounded text-[9px] font-semibold bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20 shrink-0">
+                                  Konstruksi
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[10px] text-muted-foreground font-mono mt-0.5">
                               Diminta oleh {it.vesselCount} armada ({it.count} transaksi)
                             </p>
                           </div>

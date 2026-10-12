@@ -271,9 +271,14 @@ export function buildSisaLayananFpbMap(items: SisaLayananItem[]): Map<string, Si
       satuan: (r.satuan || '').trim(),
       kodeBarang: (r.kodeBarang || '').trim(),
       status: (r.status || '').trim(),
+      kategori: (r.kategori || '').trim(),
+      departement: (r.departement || '').trim(),
     }));
 
-    const primaryName = allItems[0]?.nama || '-';
+    const nonJasaItem = allItems.find(
+      (it) => it.nama && it.nama !== '-' && !it.kategori?.toLowerCase().includes('jasa')
+    );
+    const primaryName = nonJasaItem?.nama || allItems[0]?.nama || '-';
     const totalItemsCount = allItems.length;
     const firstQty = allItems[0]?.qty || 0;
     const firstSatuan = allItems[0]?.satuan || '';

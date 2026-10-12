@@ -48,7 +48,15 @@ export interface SisaGoodsSummary {
   primaryName: string;
   totalItemsCount: number;
   qtyText: string;
-  allItems: Array<{ nama: string; qty: number; satuan: string; kodeBarang: string; status: string }>;
+  allItems: Array<{
+    nama: string;
+    qty: number;
+    satuan: string;
+    kodeBarang: string;
+    status: string;
+    kategori?: string;
+    departement?: string;
+  }>;
   tooltipText: string;
   allItemNames: string;
   totalQtyFpb: number;
