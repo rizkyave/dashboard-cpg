@@ -162,21 +162,21 @@ export function evaluateTransactionStatus(item: EvaluatableItem): EvaluatedStatu
     statusBadge = 'SELESAI DI KEUANGAN';
     statusTone = 'emerald';
     statusPenjelasan = `Berkas selesai di keuangan pada ${formatDateDdMmYyDash(tglKeu)} (SPP: ${noSpp})`;
-    picAktif = `${picAdm || picPch || 'Finance'} (ADM/PRC)`;
+    picAktif = picAdm ? `${picAdm} (ADM PCH)` : (picPch ? `${picPch} (Purchasing)` : 'Finance (ADM/PRC)');
   }
   // 2. MODUL 4: FINANCE (PROSES SPP)
   else if (hasValidSpp || hasValue(tglSpp)) {
     statusBadge = 'PROSES SPP';
     statusTone = 'emerald';
     statusPenjelasan = `SPP ${noSpp || '-'} diterbitkan ${tglSpp ? formatDateDdMmYyDash(tglSpp) : '-'}`;
-    picAktif = `${picAdm || picPch || 'Finance'} (ADM/PRC)`;
+    picAktif = picAdm ? `${picAdm} (ADM PCH)` : (picPch ? `${picPch} (Purchasing)` : 'Finance (ADM/PRC)');
   }
   // 3. MODUL 4: FINANCE / ADM (PROSES ADM PURCHASING)
   else if (hasValidKeu || hasValue(tglKeAdmPch) || (picAdm && picAdm !== '-')) {
     statusBadge = 'PROSES ADM PURCHASING';
     statusTone = 'cyan';
     statusPenjelasan = 'Berkas di proses administrasi purchasing (menunggu nomor SPP)';
-    picAktif = `${picAdm || 'Eka'} (ADM PCH)`;
+    picAktif = picAdm ? `${picAdm} (ADM PCH)` : 'ADM Purchasing';
   }
   // 4. MODUL 2: LOGISTIK (TTB KE PIC PCH)
   else if (hasValue(tglTtbKePicPch)) {
@@ -810,6 +810,19 @@ export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisio
     summaryBadge,
     statusTone,
   };
+}
+
+/**
+ * Membersihkan nama PIC dari string placeholder atau bug lama (misal 'Eka' yang ter-hardcode sebelumnya)
+ */
+export function cleanPicName(raw?: string | null): string {
+  if (!raw) return '-';
+  const str = raw.trim();
+  if (!str || str === '-') return '-';
+  if (/eka/i.test(str)) {
+    return 'ADM Purchasing';
+  }
+  return str;
 }
 
 

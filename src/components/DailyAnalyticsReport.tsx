@@ -34,6 +34,7 @@ import { extractDateInfo, formatDateDdMmYy } from '@/utils/formatDate';
 import {
   evaluateFiveDivisionWorkflow,
   hasValue,
+  cleanPicName,
 } from '@/utils/statusWorkflow';
 
 export interface DailyAnalyticsReportProps {
@@ -415,36 +416,53 @@ export default function DailyAnalyticsReport({
         const partialStage = wf.stages.find((s) => s.isPartial);
 
         if (partialStage) {
-          let pic = item.picAktif || '-';
-          if (partialStage.code === 'FPB') pic = item.picAktif || 'Pemohon';
-          else if (partialStage.code === 'PCH') pic = item.picPch || item.picAktif || 'Purchasing';
-          else if (partialStage.code === 'LOG') pic = item.picTtb || item.picAktif || 'Gudang';
-          else if (partialStage.code === 'LAP') pic = item.picLap || item.picAktif || 'Lapangan';
-          else if (partialStage.code === 'ADM') pic = item.picAdm || item.picAktif || 'Finance/Kasir';
+          let pic = '-';
+          if (partialStage.code === 'FPB') {
+            pic = (item.picCheckFpb && item.picCheckFpb !== '-' ? item.picCheckFpb : '') ||
+                  (item.picPch && item.picPch !== '-' ? `${item.picPch} (Purchasing)` : '') ||
+                  'Pemohon';
+          } else if (partialStage.code === 'PCH') {
+            pic = (item.picPch && item.picPch !== '-' ? `${item.picPch} (Purchasing)` : '') || 'Purchasing';
+          } else if (partialStage.code === 'LOG') {
+            pic = (item.picTtb && item.picTtb !== '-' ? `${item.picTtb} (Logistik)` : '') || 'Gudang Logistik';
+          } else if (partialStage.code === 'LAP') {
+            pic = (item.picLap && item.picLap !== '-' ? `${item.picLap} (Lapangan)` : '') || 'Tim Lapangan';
+          } else if (partialStage.code === 'ADM') {
+            pic = (item.picAdm && item.picAdm !== '-' ? `${item.picAdm} (ADM PCH)` : '') ||
+                  (item.picPch && item.picPch !== '-' ? `${item.picPch} (Purchasing)` : '') ||
+                  'ADM Purchasing';
+          }
 
           primaryBottleneck = {
             stageCode: partialStage.code as FunnelStageCode,
             stageName: partialStage.name,
             reason: partialStage.statusText,
-            responsiblePic: pic,
+            responsiblePic: cleanPicName(pic),
             isStuck: true,
           };
         } else {
           const firstUnpassedStage = wf.stages.find((s) => !s.isPassed);
           if (firstUnpassedStage) {
-            let pic = item.picAktif || '-';
+            let pic = '-';
             let reasonText = `Menunggu ${firstUnpassedStage.name}`;
-            if (firstUnpassedStage.code === 'PCH') {
-              pic = item.picPch || item.picAktif || 'Purchasing';
+            if (firstUnpassedStage.code === 'FPB') {
+              pic = (item.picCheckFpb && item.picCheckFpb !== '-' ? item.picCheckFpb : '') ||
+                    (item.picPch && item.picPch !== '-' ? `${item.picPch} (Purchasing)` : '') ||
+                    'Pemohon';
+              reasonText = 'Menunggu Verifikasi FPB';
+            } else if (firstUnpassedStage.code === 'PCH') {
+              pic = (item.picPch && item.picPch !== '-' ? `${item.picPch} (Purchasing)` : '') || 'Purchasing';
               reasonText = 'Menunggu Penerbitan PO';
             } else if (firstUnpassedStage.code === 'LOG') {
-              pic = item.picTtb || item.picAktif || 'Gudang';
+              pic = (item.picTtb && item.picTtb !== '-' ? `${item.picTtb} (Logistik)` : '') || 'Gudang Logistik';
               reasonText = 'Menunggu Penerimaan TTB';
             } else if (firstUnpassedStage.code === 'LAP') {
-              pic = item.picLap || item.picAktif || 'Lapangan';
+              pic = (item.picLap && item.picLap !== '-' ? `${item.picLap} (Lapangan)` : '') || 'Tim Lapangan';
               reasonText = 'Menunggu Diantar ke Kapal';
             } else if (firstUnpassedStage.code === 'ADM') {
-              pic = item.picAdm || item.picAktif || 'Finance/Kasir';
+              pic = (item.picAdm && item.picAdm !== '-' ? `${item.picAdm} (ADM PCH)` : '') ||
+                    (item.picPch && item.picPch !== '-' ? `${item.picPch} (Purchasing)` : '') ||
+                    'ADM Purchasing';
               reasonText = 'Menunggu SPP Kasir';
             }
 
@@ -452,7 +470,7 @@ export default function DailyAnalyticsReport({
               stageCode: firstUnpassedStage.code as FunnelStageCode,
               stageName: firstUnpassedStage.name,
               reason: reasonText,
-              responsiblePic: pic,
+              responsiblePic: cleanPicName(pic),
               isStuck: true,
             };
           } else {
@@ -666,7 +684,7 @@ ${topStuckItems
       `${idx + 1}. *FPB:* ${item.fpb} (${unitInfo.type === 'ARMADA' ? '🚢 ' : '🏢 '}${unitInfo.name})
    └ Barang: ${displayItemName}${extraItemsCount > 0 ? ` (+${extraItemsCount} item)` : ''}
    └ Kendala: [${primaryBottleneck.stageCode}] ${primaryBottleneck.reason}
-   └ PIC: ${primaryBottleneck.responsiblePic} | Aging: ${agingDays} Hari`
+   └ PIC: ${cleanPicName(primaryBottleneck.responsiblePic)} | Aging: ${agingDays} Hari`
   )
   .join('\n')}`
     : '\n✅ Seluruh dokumen pada tanggal ini berstatus tuntas!'
@@ -715,7 +733,7 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
       `"${displayQty}"`,
       `"${item.po || (item as any).noPo || '-'}"`,
       `"${formatDateDdMmYy(item.tglPo || item.date)}"`,
-      `"${primaryBottleneck.responsiblePic || '-'}"`,
+      `"${cleanPicName(primaryBottleneck.responsiblePic || '-')}"`,
       `"${wf.summaryBadge}"`,
       `"${primaryBottleneck.reason}"`,
       agingDays,
@@ -1334,7 +1352,7 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
                   const isWarning = agingDays >= 2 && agingDays <= 3;
 
                   // Template WhatsApp Deep Link untuk Hubungi PIC
-                  const picName = primaryBottleneck.responsiblePic !== '-' ? primaryBottleneck.responsiblePic : (item.picAktif || 'PIC');
+                  const picName = cleanPicName(primaryBottleneck.responsiblePic !== '-' ? primaryBottleneck.responsiblePic : (item.picAktif || 'PIC'));
                   const unitLabel = unitInfo.type === 'ARMADA' ? `Armada ${unitInfo.name}` : `Unit ${unitInfo.name}`;
                   const waMessage = `Halo Pak/Bu ${picName}, mohon update tindak lanjut untuk dokumen FPB *${fpb}* (${unitLabel}) terkait pengadaan *${displayItemName}*.\n\nSaat ini berkas tertahan di tahap *${primaryBottleneck.stageCode}* (${primaryBottleneck.reason}), dengan durasi macet *${agingDays} Hari*.\n\nMohon konfirmasi dan percepatannya. Terima kasih.`;
                   const waUrl = `https://wa.me/?text=${encodeURIComponent(waMessage)}`;
@@ -1443,7 +1461,7 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
                         <div className="flex items-center gap-1">
                           <User className="size-3 text-muted-foreground shrink-0" />
                           <span className="font-medium text-foreground truncate text-[11px]" title={primaryBottleneck.responsiblePic}>
-                            {primaryBottleneck.responsiblePic !== '-' ? primaryBottleneck.responsiblePic : (item.picAktif || '-')}
+                            {cleanPicName(primaryBottleneck.responsiblePic !== '-' ? primaryBottleneck.responsiblePic : (item.picAktif || '-'))}
                           </span>
                         </div>
                       </td>
@@ -1481,7 +1499,19 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
                           }`}>
                             {wf.isComplete
                               ? '✓ 5/5 Selesai'
-                              : `Tahap ${wf.passedCount}/5 (${primaryBottleneck.stageCode !== 'NONE' ? primaryBottleneck.stageCode : 'FPB'})`}
+                              : `Tahap ${
+                                  primaryBottleneck.stageCode === 'FPB'
+                                    ? 1
+                                    : primaryBottleneck.stageCode === 'PCH'
+                                    ? 2
+                                    : primaryBottleneck.stageCode === 'LOG'
+                                    ? 3
+                                    : primaryBottleneck.stageCode === 'LAP'
+                                    ? 4
+                                    : primaryBottleneck.stageCode === 'ADM'
+                                    ? 5
+                                    : wf.passedCount
+                                }/5 (${primaryBottleneck.stageCode !== 'NONE' ? primaryBottleneck.stageCode : 'FPB'})`}
                           </span>
                         </div>
                       </td>

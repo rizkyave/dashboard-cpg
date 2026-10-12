@@ -15,7 +15,7 @@ import {
 } from '@/types/procurement';
 import { INITIAL_PROCUREMENT_DATA, INITIAL_ARMADA_DATA } from '@/data/initialData';
 import { mergeProcurementDatasets, mergeArmadaDatasets, enrichProcurementAndArmada, normalizeFpbKey } from '@/utils/dataMerger';
-import { evaluateTransactionStatus } from '@/utils/statusWorkflow';
+import { evaluateTransactionStatus, cleanPicName } from '@/utils/statusWorkflow';
 import { ResetScope } from '@/components/ResetConfirmModal';
 import { formatDateDdMmYyDash, extractDateInfo } from '@/utils/formatDate';
 import {
@@ -371,7 +371,7 @@ export default function DashboardPage() {
 
   // Sanitasi data procurement dari storage: selalu evaluasi status agar 100% akurat
   const sanitizeProcItem = (item: any): ProcurementItem => {
-    let picAktif = item.picAktif || '-';
+    let picAktif = cleanPicName(item.picAktif || '-');
     picAktif = picAktif.replace(/\(adm\/finance\)/gi, '(ADM/PRC)');
 
     const lapse = typeof item.lapse === 'number' && item.lapse >= 0 ? item.lapse : 0;
@@ -402,15 +402,22 @@ export default function DashboardPage() {
     baseItem.statusBadge = evalResult.statusBadge;
     baseItem.statusTone = evalResult.statusTone;
     baseItem.statusPenjelasan = evalResult.statusPenjelasan;
-    if (!baseItem.picAktif || baseItem.picAktif === '-' || baseItem.picAktif.includes('Input PO')) {
-      baseItem.picAktif = evalResult.picAktif;
+    if (
+      !baseItem.picAktif ||
+      baseItem.picAktif === '-' ||
+      baseItem.picAktif.includes('Input PO') ||
+      /eka/i.test(baseItem.picAktif)
+    ) {
+      baseItem.picAktif = cleanPicName(evalResult.picAktif);
+    } else {
+      baseItem.picAktif = cleanPicName(baseItem.picAktif);
     }
 
     return baseItem;
   };
 
   const sanitizeArmItem = (item: any): ArmadaItem => {
-    let picAktif = item.picAktif || '-';
+    let picAktif = cleanPicName(item.picAktif || '-');
     picAktif = picAktif.replace(/\(adm\/finance\)/gi, '(ADM/PRC)');
 
     const baseArm: ArmadaItem = {
@@ -442,8 +449,10 @@ export default function DashboardPage() {
 
     baseArm.statusBadge = evalResult.statusBadge;
     baseArm.statusTone = evalResult.statusTone;
-    if (!baseArm.picAktif || baseArm.picAktif === '-') {
-      baseArm.picAktif = evalResult.picAktif;
+    if (!baseArm.picAktif || baseArm.picAktif === '-' || /eka/i.test(baseArm.picAktif)) {
+      baseArm.picAktif = cleanPicName(evalResult.picAktif);
+    } else {
+      baseArm.picAktif = cleanPicName(baseArm.picAktif);
     }
 
     return baseArm;
