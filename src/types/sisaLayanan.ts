@@ -44,3 +44,18 @@ export interface SisaLayananSummary {
   lastUpdated: string;
 }
 
+export interface SisaGoodsSummary {
+  primaryName: string;
+  totalItemsCount: number;
+  qtyText: string;
+  allItems: Array<{ nama: string; qty: number; satuan: string; kodeBarang: string; status: string }>;
+  tooltipText: string;
+  allItemNames: string;
+  totalQtyFpb: number;
+  totalQtyPo: number;
+  totalQtyFstb: number;
+  totalQtyTtb: number;
+  primarySatuan: string;
+}
+
+

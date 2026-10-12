@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx';
-import { SisaLayananItem, SisaLayananSummary } from '@/types/sisaLayanan';
+import { SisaLayananItem, SisaLayananSummary, SisaGoodsSummary } from '@/types/sisaLayanan';
+import { normalizeFpbKey } from '@/utils/dataMerger';
 
 export function calculateSisaLayananSummary(items: SisaLayananItem[]): SisaLayananSummary {
   const byPt: Record<string, { total: number; close: number; open: number; kurang: number; belumTtb: number }> = {};
@@ -215,4 +216,128 @@ export function parseSisaLayananWorkbook(workbook: XLSX.WorkBook): {
   const summary = calculateSisaLayananSummary(items);
   return { items, summary };
 }
+
+/**
+ * Ekstraksi variasi kunci nomor FPB guna pencocokan data yang presisi
+ */
+export function extractFpbKeys(raw?: string | null): string[] {
+  if (!raw) return [];
+  const s = raw.trim();
+  if (!s) return [];
+
+  const keys = new Set<string>();
+  keys.add(s.toLowerCase());
+
+  const norm = normalizeFpbKey(s);
+  if (norm) keys.add(norm);
+
+  const matchCore = s.match(/\d{2}-\d{4,8}/);
+  if (matchCore) keys.add(matchCore[0]);
+
+  const matchNum = s.match(/\d{5,8}/);
+  if (matchNum) keys.add(matchNum[0]);
+
+  const alnum = s.toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (alnum) keys.add(alnum);
+
+  return Array.from(keys);
+}
+
+/**
+ * Membangun indeks cepat Map (FPB -> SisaGoodsSummary) dari data Sisa Layanan Gabungan
+ */
+export function buildSisaLayananFpbMap(items: SisaLayananItem[]): Map<string, SisaGoodsSummary> {
+  const map = new Map<string, SisaGoodsSummary>();
+  if (!items || items.length === 0) return map;
+
+  const fpbGroups = new Map<string, SisaLayananItem[]>();
+
+  for (const it of items) {
+    if (!it.noFpb && !it.fpbNoBarang) continue;
+    const fpbIdentifier = (it.noFpb || '').trim();
+    if (!fpbIdentifier) continue;
+
+    const normPrimary = normalizeFpbKey(fpbIdentifier);
+    if (!fpbGroups.has(normPrimary)) {
+      fpbGroups.set(normPrimary, []);
+    }
+    fpbGroups.get(normPrimary)!.push(it);
+  }
+
+  fpbGroups.forEach((itemsInFpb, normPrimary) => {
+    const allItems = itemsInFpb.map((r) => ({
+      nama: (r.namaBarang || '').trim() || 'Item Tanpa Nama',
+      qty: r.jmlFpb || r.jmlPo || 0,
+      satuan: (r.satuan || '').trim(),
+      kodeBarang: (r.kodeBarang || '').trim(),
+      status: (r.status || '').trim(),
+    }));
+
+    const primaryName = allItems[0]?.nama || '-';
+    const totalItemsCount = allItems.length;
+    const firstQty = allItems[0]?.qty || 0;
+    const firstSatuan = allItems[0]?.satuan || '';
+    const qtyText = firstQty > 0 ? `${firstQty} ${firstSatuan}`.trim() : '';
+
+    const totalQtyFpb = itemsInFpb.reduce((sum, r) => sum + (r.jmlFpb || 0), 0);
+    const totalQtyPo = itemsInFpb.reduce((sum, r) => sum + (r.jmlPo || 0), 0);
+    const totalQtyFstb = itemsInFpb.reduce((sum, r) => sum + (r.jmlFstb || 0), 0);
+    const totalQtyTtb = itemsInFpb.reduce((sum, r) => sum + (r.jmlTtb || 0), 0);
+
+    const tooltipLines = [
+      `Data Barang Sisa Layanan (${totalItemsCount} Item):`,
+      ...allItems.map(
+        (it, idx) =>
+          `${idx + 1}. ${it.nama}${it.qty > 0 ? ` (${it.qty} ${it.satuan})` : ''}${
+            it.kodeBarang ? ` [${it.kodeBarang}]` : ''
+          }${it.status ? ` - Status: ${it.status}` : ''}`
+      ),
+    ];
+    const tooltipText = tooltipLines.join('\n');
+    const allItemNames = allItems.map((i) => i.nama).join(' ');
+
+    const summary: SisaGoodsSummary = {
+      primaryName,
+      totalItemsCount,
+      qtyText,
+      allItems,
+      tooltipText,
+      allItemNames,
+      totalQtyFpb: totalQtyFpb > 0 ? totalQtyFpb : firstQty,
+      totalQtyPo,
+      totalQtyFstb,
+      totalQtyTtb,
+      primarySatuan: firstSatuan,
+    };
+
+    const rawSample = itemsInFpb[0].noFpb || normPrimary;
+    const keys = extractFpbKeys(rawSample);
+    for (const k of keys) {
+      if (!map.has(k)) {
+        map.set(k, summary);
+      }
+    }
+    map.set(normPrimary, summary);
+  });
+
+  return map;
+}
+
+/**
+ * Helper mencari kecocokan data barang Sisa Layanan berbasis nomor FPB
+ */
+export function findSisaMatch(
+  fpb: string | undefined | null,
+  map: Map<string, SisaGoodsSummary>
+): SisaGoodsSummary | undefined {
+  if (!fpb || !map || map.size === 0) return undefined;
+  const keys = extractFpbKeys(fpb);
+  for (const k of keys) {
+    if (map.has(k)) {
+      return map.get(k);
+    }
+  }
+  return undefined;
+}
+
 

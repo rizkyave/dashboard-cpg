@@ -38,9 +38,12 @@ import {
   ChevronsRight,
   ArrowUpDown,
   PieChart,
+  Package,
 } from 'lucide-react';
 import { ProcurementItem, ArmadaItem, KapalPosisiItem } from '@/types/procurement';
-import { SisaLayananItem } from '@/types/sisaLayanan';
+import { SisaLayananItem, SisaGoodsSummary } from '@/types/sisaLayanan';
+import { loadStoredSisaLayanan } from '@/utils/sisaLayananStorage';
+import { buildSisaLayananFpbMap, findSisaMatch } from '@/utils/sisaLayananParser';
 import { extractDateInfo, formatDateDdMmYy } from '@/utils/formatDate';
 import {
   LapsePolarChart,
@@ -156,6 +159,39 @@ export default function AnalyticsTab({
     });
     return map;
   }, [kapalPosisiItems]);
+
+  // Fallback state untuk data Sisa Layanan jika props belum terisi saat navigasi
+  const [internalSisaItems, setInternalSisaItems] = useState<SisaLayananItem[]>([]);
+
+  useEffect(() => {
+    if (sisaLayananItems && sisaLayananItems.length > 0) return;
+
+    loadStoredSisaLayanan().then((stored) => {
+      if (stored && stored.items && stored.items.length > 0) {
+        setInternalSisaItems(stored.items);
+      } else {
+        fetch('/api/sisa-layanan')
+          .then((r) => r.json())
+          .then((res) => {
+            if (res.success && Array.isArray(res.items)) {
+              setInternalSisaItems(res.items);
+            }
+          })
+          .catch((err) => console.warn('Gagal memuat sisa layanan di AnalyticsTab:', err));
+      }
+    });
+  }, [sisaLayananItems]);
+
+  const effectiveSisaItems = useMemo(() => {
+    return sisaLayananItems && sisaLayananItems.length > 0
+      ? sisaLayananItems
+      : internalSisaItems;
+  }, [sisaLayananItems, internalSisaItems]);
+
+  // Index pencocokan cepat: FPB -> Data Barang Sisa Layanan (29k item database)
+  const sisaLayananFpbMap = useMemo(() => {
+    return buildSisaLayananFpbMap(effectiveSisaItems);
+  }, [effectiveSisaItems]);
 
   const getVesselPosisiInfo = (armadaName: string) => {
     const raw = (armadaName || '').toLowerCase().trim();
@@ -303,14 +339,56 @@ export default function AnalyticsTab({
         });
     }
 
+    // Sinkronisasi rincian barang dari database Sisa Layanan (29k item)
+    const enrichedList = rawList.map((it) => {
+      const sisaMatch = findSisaMatch(it.fpb, sisaLayananFpbMap);
+      if (!sisaMatch) return it;
+
+      const currItem = (it.item || '').trim();
+      const currArmada = (it.armada || '').trim();
+      const isGenericOrArmada =
+        !currItem ||
+        currItem === '-' ||
+        currItem.toLowerCase() === currArmada.toLowerCase() ||
+        currItem.toLowerCase().startsWith(currArmada.toLowerCase()) ||
+        currItem.toLowerCase().includes('operasional') ||
+        currItem.toLowerCase().includes('kebutuhan unit') ||
+        currItem.toLowerCase().startsWith('unit armada');
+
+      const realItem = isGenericOrArmada && sisaMatch.primaryName ? sisaMatch.primaryName : (currItem || sisaMatch.primaryName);
+      const realSatuan = sisaMatch.primarySatuan || it.satuan || 'UNIT';
+      const realQtyFpb =
+        (it.qtyFPB === 1 || !it.qtyFPB) && sisaMatch.totalQtyFpb > 0
+          ? sisaMatch.totalQtyFpb
+          : (it.qtyFPB || sisaMatch.totalQtyFpb || 1);
+      const realQtyFstb =
+        (it.qtyFSTB === 1 || it.qtyFSTB === 0 || !it.qtyFSTB) && sisaMatch.totalQtyFstb > 0
+          ? sisaMatch.totalQtyFstb
+          : (it.qtyFSTB ?? sisaMatch.totalQtyFstb ?? 0);
+      const realSelisih =
+        it.selisih !== undefined && it.selisih !== 0 && it.selisih !== 1
+          ? it.selisih
+          : Math.max(0, realQtyFpb - realQtyFstb);
+
+      return {
+        ...it,
+        item: realItem,
+        satuan: realSatuan,
+        qtyFPB: realQtyFpb,
+        qtyFSTB: realQtyFstb,
+        selisih: realSelisih,
+        sisaMatch,
+      };
+    });
+
     if (!isFilteredByDate) {
-      return rawList;
+      return enrichedList;
     }
 
     const startTs = startDate ? new Date(`${startDate}T00:00:00`).getTime() : null;
     const endTs = endDate ? new Date(`${endDate}T23:59:59`).getTime() : null;
 
-    return rawList.filter((it) => {
+    return enrichedList.filter((it) => {
       const dateInfo = extractDateInfo(it.tglPo || it.tglFpb || it.tglFstb);
       if (selectedYear !== 'ALL' && dateInfo.year && dateInfo.year !== selectedYear) return false;
       if (selectedMonth !== 'ALL' && dateInfo.month && dateInfo.month !== selectedMonth) return false;
@@ -318,7 +396,7 @@ export default function AnalyticsTab({
       if (endTs && dateInfo.timestamp > 0 && dateInfo.timestamp > endTs) return false;
       return true;
     });
-  }, [armadaItems, items, isFilteredByDate, selectedYear, selectedMonth, startDate, endDate]);
+  }, [armadaItems, items, isFilteredByDate, selectedYear, selectedMonth, startDate, endDate, sisaLayananFpbMap]);
 
   // 2. Unique armada list for dropdown
   const availableArmadaList = useMemo(() => {
@@ -381,6 +459,10 @@ export default function AnalyticsTab({
         const match =
           it.armada?.toLowerCase().includes(q) ||
           it.item?.toLowerCase().includes(q) ||
+          it.sisaMatch?.allItemNames?.toLowerCase().includes(q) ||
+          it.sisaMatch?.allItems?.some(
+            (item) => item.nama.toLowerCase().includes(q) || (item.kodeBarang && item.kodeBarang.toLowerCase().includes(q))
+          ) ||
           it.fpb?.toLowerCase().includes(q) ||
           it.noPo?.toLowerCase().includes(q) ||
           it.workOrderNo?.toLowerCase().includes(q) ||
@@ -890,22 +972,43 @@ export default function AnalyticsTab({
     > = {};
 
     fleetFilteredItems.forEach((it) => {
-      const name = (it.item || '').trim();
-      if (!name) return;
-      if (!map[name]) {
-        map[name] = {
-          itemName: name,
-          frequency: 0,
-          totalQtyRequested: 0,
-          totalBacklog: 0,
-          satuan: it.satuan || 'UNIT',
-          vessels: new Set(),
-        };
+      if (it.sisaMatch?.allItems && it.sisaMatch.allItems.length > 0) {
+        it.sisaMatch.allItems.forEach((sItem) => {
+          const name = (sItem.nama || '').trim();
+          if (!name) return;
+          if (!map[name]) {
+            map[name] = {
+              itemName: name,
+              frequency: 0,
+              totalQtyRequested: 0,
+              totalBacklog: 0,
+              satuan: sItem.satuan || 'UNIT',
+              vessels: new Set(),
+            };
+          }
+          map[name].frequency++;
+          map[name].totalQtyRequested += Number(sItem.qty) || 0;
+          if (it.armada) map[name].vessels.add(it.armada.trim());
+        });
+      } else {
+        const name = (it.item || '').trim();
+        if (!name) return;
+        if (name.toLowerCase() === (it.armada || '').toLowerCase()) return;
+        if (!map[name]) {
+          map[name] = {
+            itemName: name,
+            frequency: 0,
+            totalQtyRequested: 0,
+            totalBacklog: 0,
+            satuan: it.satuan || 'UNIT',
+            vessels: new Set(),
+          };
+        }
+        map[name].frequency++;
+        map[name].totalQtyRequested += Number(it.qtyFPB) || 0;
+        map[name].totalBacklog += Number(it.selisih) || 0;
+        if (it.armada) map[name].vessels.add(it.armada.trim());
       }
-      map[name].frequency++;
-      map[name].totalQtyRequested += Number(it.qtyFPB) || 0;
-      map[name].totalBacklog += Number(it.selisih) || 0;
-      if (it.armada) map[name].vessels.add(it.armada.trim());
     });
 
     return Object.values(map)
@@ -1947,7 +2050,7 @@ export default function AnalyticsTab({
         <DailyAnalyticsReport
           items={items}
           armadaItems={armadaItems}
-          sisaLayananItems={sisaLayananItems}
+          sisaLayananItems={effectiveSisaItems}
           onOpenAudit={onOpenAudit}
           showToast={showToast}
         />
@@ -3158,14 +3261,47 @@ export default function AnalyticsTab({
                               <td className="p-3 font-mono text-muted-foreground">
                                 {formatDateDdMmYy(row.tglPo || row.tglFpb)}
                               </td>
-                              <td className="p-3 max-w-[200px]">
-                                <div className="font-medium text-foreground truncate" title={row.item}>
-                                  {row.item}
-                                </div>
-                                {row.satuan && (
-                                  <span className="text-[10px] text-muted-foreground font-mono">
-                                    Satuan: {row.satuan}
-                                  </span>
+                              <td className="p-3 max-w-[260px]">
+                                {row.sisaMatch ? (
+                                  <div className="flex flex-col gap-0.5">
+                                    <div className="flex items-start gap-1.5">
+                                      <Package className="size-3.5 text-blue-500 shrink-0 mt-0.5" />
+                                      <span
+                                        className="font-medium text-foreground text-xs leading-snug line-clamp-2"
+                                        title={row.sisaMatch.tooltipText}
+                                      >
+                                        {row.sisaMatch.primaryName}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5 flex-wrap text-[10px] text-muted-foreground font-mono mt-0.5">
+                                      {row.sisaMatch.totalItemsCount > 1 && (
+                                        <span
+                                          className="px-1.5 py-0.2 rounded-full font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 cursor-help"
+                                          title={row.sisaMatch.tooltipText}
+                                        >
+                                          +{row.sisaMatch.totalItemsCount - 1} item
+                                        </span>
+                                      )}
+                                      <span>Satuan: {row.sisaMatch.primarySatuan || row.satuan || 'UNIT'}</span>
+                                      <span
+                                        className="inline-flex items-center gap-0.5 text-emerald-600 dark:text-emerald-400 font-semibold"
+                                        title={row.sisaMatch.tooltipText}
+                                      >
+                                        ✓ Sisa Layanan
+                                      </span>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div>
+                                    <div className="font-medium text-foreground truncate" title={row.item}>
+                                      {row.item}
+                                    </div>
+                                    {row.satuan && (
+                                      <span className="text-[10px] text-muted-foreground font-mono">
+                                        Satuan: {row.satuan}
+                                      </span>
+                                    )}
+                                  </div>
                                 )}
                               </td>
                               <td className="p-3 text-right font-mono text-foreground font-medium">{row.qtyFPB}</td>
@@ -3320,13 +3456,46 @@ export default function AnalyticsTab({
                                 {row.entity}
                               </span>
                             </td>
-                            <td className="p-3 max-w-[220px]">
-                              <p className="font-medium text-foreground truncate" title={row.item}>
-                                {row.item}
-                              </p>
-                              <p className="text-[10px] text-muted-foreground font-mono">
-                                Satuan: {row.satuan || 'UNIT'}
-                              </p>
+                            <td className="p-3 max-w-[260px]">
+                              {row.sisaMatch ? (
+                                <div className="flex flex-col gap-0.5">
+                                  <div className="flex items-start gap-1.5">
+                                    <Package className="size-3.5 text-amber-500 shrink-0 mt-0.5" />
+                                    <span
+                                      className="font-medium text-foreground text-xs leading-snug line-clamp-2"
+                                      title={row.sisaMatch.tooltipText}
+                                    >
+                                      {row.sisaMatch.primaryName}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-1.5 flex-wrap text-[10px] text-muted-foreground font-mono mt-0.5">
+                                    {row.sisaMatch.totalItemsCount > 1 && (
+                                      <span
+                                        className="px-1.5 py-0.2 rounded-full font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 cursor-help"
+                                        title={row.sisaMatch.tooltipText}
+                                      >
+                                        +{row.sisaMatch.totalItemsCount - 1} item
+                                      </span>
+                                    )}
+                                    <span>Satuan: {row.sisaMatch.primarySatuan || row.satuan || 'UNIT'}</span>
+                                    <span
+                                      className="inline-flex items-center gap-0.5 text-emerald-600 dark:text-emerald-400 font-semibold"
+                                      title={row.sisaMatch.tooltipText}
+                                    >
+                                      ✓ Sisa Layanan
+                                    </span>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div>
+                                  <p className="font-medium text-foreground truncate" title={row.item}>
+                                    {row.item}
+                                  </p>
+                                  <p className="text-[10px] text-muted-foreground font-mono">
+                                    Satuan: {row.satuan || 'UNIT'}
+                                  </p>
+                                </div>
+                              )}
                             </td>
                             <td className="p-3 font-mono">
                               <span className="font-semibold text-foreground block">{row.fpb || '-'}</span>

@@ -1,3 +1,5 @@
+import { SisaGoodsSummary } from '@/types/sisaLayanan';
+
 export type EntityCode = 'ALL' | 'CPL' | 'PPI' | 'HL' | 'GAJ' | 'MIL' | 'SP' | 'SSK' | 'MO';
 
 export type LapseFilterType = 'ALL' | 'NORMAL' | 'WARNING' | 'CRITICAL';
@@ -140,6 +142,7 @@ export interface ProcurementItem {
   sourceCheckFpb?: string;
   verifiedByFpb?: string;
   workOrderNo?: string;
+  sisaMatch?: SisaGoodsSummary;
 }
 
 export interface ArmadaItem {
@@ -152,6 +155,7 @@ export interface ArmadaItem {
   qtyFSTB: number;
   selisih: number;
   status: string;
+  sisaMatch?: SisaGoodsSummary;
   // Extended fields from "Monitoring Layanan Armada" sheet & Merge
   tglFpb?: string;
   noPo?: string;
