@@ -19,6 +19,11 @@ import {
   Check,
   RotateCcw,
   Layers,
+  X,
+  Building2,
+  Package,
+  User,
+  Filter,
 } from 'lucide-react';
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
 import { extractDateInfo, formatDateDdMmYy } from '@/utils/formatDate';
@@ -36,8 +41,16 @@ export interface DailyAnalyticsReportProps {
   className?: string;
 }
 
-type DateBasisFilter = 'ALL_ACTIVITY' | 'PO_DATE' | 'FPB_DATE' | 'TTB_DATE' | 'KEU_DATE';
-type TrafficLightFilter = 'ALL' | 'FULL' | 'PARTIAL' | 'OFF';
+type TrafficFilterType = 'ALL' | 'COMPLETE' | 'STUCK';
+type FunnelStageCode = 'FPB' | 'PCH' | 'LOG' | 'LAP' | 'ADM';
+
+interface PrimaryBottleneck {
+  stageCode: FunnelStageCode | 'NONE';
+  stageName: string;
+  reason: string;
+  responsiblePic: string;
+  isStuck: boolean;
+}
 
 export default function DailyAnalyticsReport({
   items,
@@ -46,7 +59,7 @@ export default function DailyAnalyticsReport({
   showToast,
   className = '',
 }: DailyAnalyticsReportProps) {
-  // 1. Gabungkan seluruh data transaksi unik
+  // 1. Gabungkan seluruh data transaksi unik tanpa duplikasi
   const allTransactions = useMemo(() => {
     const list = [...items];
     if (armadaItems && armadaItems.length > 0) {
@@ -62,7 +75,7 @@ export default function DailyAnalyticsReport({
     return list;
   }, [items, armadaItems]);
 
-  // 2. Daftar tanggal unik berurutan kronologis descending
+  // 2. Kumpulkan daftar tanggal unik berurutan kronologis descending
   const availableDates = useMemo(() => {
     const dateMap = new Map<string, { fullDate: string; timestamp: number; formatted: string }>();
     for (const it of allTransactions) {
@@ -100,18 +113,17 @@ export default function DailyAnalyticsReport({
 
   // States
   const [selectedIsoDate, setSelectedIsoDate] = useState<string>(defaultIsoDate);
-  const [dateBasis, setDateBasis] = useState<DateBasisFilter>('ALL_ACTIVITY');
   const [entityFilter, setEntityFilter] = useState<string>('ALL');
-  const [trafficFilter, setTrafficFilter] = useState<TrafficLightFilter>('ALL');
-  const [activeFunnelStage, setActiveFunnelStage] = useState<string | null>(null);
+  const [trafficFilter, setTrafficFilter] = useState<TrafficFilterType>('ALL');
+  const [activeFunnelStage, setActiveFunnelStage] = useState<FunnelStageCode | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isCopied, setIsCopied] = useState<boolean>(false);
-  const pageSize = 15;
+  const pageSize = 12;
 
   const selectedFormattedDate = useMemo(() => formatDateDdMmYy(selectedIsoDate), [selectedIsoDate]);
 
-  // Filter transaksi berdasarkan tanggal terpilih
+  // Filter transaksi berdasarkan tanggal aktivitas terpilih
   const dailyTransactions = useMemo(() => {
     if (!selectedIsoDate) return [];
 
@@ -125,11 +137,6 @@ export default function DailyAnalyticsReport({
         if (!hasValue(rawDate)) return false;
         return extractDateInfo(rawDate).fullDate === selectedIsoDate;
       };
-
-      if (dateBasis === 'PO_DATE') return matchesDate(it.tglPo) || matchesDate(it.date);
-      if (dateBasis === 'FPB_DATE') return matchesDate(it.tglFpb);
-      if (dateBasis === 'TTB_DATE') return matchesDate(it.tglTtb) || matchesDate(it.tglInputTtb);
-      if (dateBasis === 'KEU_DATE') return matchesDate(it.tglKeKeuangan) || matchesDate(it.tglSpp) || matchesDate(it.tglInputSpp);
 
       return (
         matchesDate(it.tglPo) ||
@@ -145,21 +152,12 @@ export default function DailyAnalyticsReport({
         matchesDate(it.tglKeKeuangan)
       );
     });
-  }, [allTransactions, selectedIsoDate, dateBasis, entityFilter]);
+  }, [allTransactions, selectedIsoDate, entityFilter]);
 
-  // Evaluasi alur 5 seksi & deteksi kendala
+  // Evaluasi mendalam alur 5 seksi & deteksi Primary Bottleneck yang akurat
   const dailyEvaluatedItems = useMemo(() => {
     return dailyTransactions.map((item) => {
       const wf = evaluateFiveDivisionWorkflow(item);
-      const pendingBelumDetails: { stage: string; text: string; detail: string }[] = [];
-
-      for (const st of wf.stages) {
-        if (st.isPartial) {
-          pendingBelumDetails.push({ stage: st.code, text: st.statusText, detail: st.detail });
-        } else if (!st.isPassed) {
-          pendingBelumDetails.push({ stage: st.code, text: 'Belum Dimulai', detail: st.detail });
-        }
-      }
 
       // Hitung lapse / aging days
       let agingDays = typeof item.lapse === 'number' && item.lapse > 0 ? item.lapse : 0;
@@ -170,54 +168,123 @@ export default function DailyAnalyticsReport({
         }
       }
 
+      // Tentukan PRIMARY BOTTLENECK secara presisi & berurutan (FPB -> PCH -> LOG -> LAP -> ADM)
+      let primaryBottleneck: PrimaryBottleneck;
+
+      if (wf.isComplete) {
+        primaryBottleneck = {
+          stageCode: 'NONE',
+          stageName: 'Tuntas',
+          reason: 'Lengkap 5/5 Seksi',
+          responsiblePic: '-',
+          isStuck: false,
+        };
+      } else {
+        // Cari tahapan pertama yang parsial (ada tulisan "Belum")
+        const partialStage = wf.stages.find((s) => s.isPartial);
+
+        if (partialStage) {
+          let pic = item.picAktif || '-';
+          if (partialStage.code === 'FPB') pic = item.picAktif || 'Pemohon';
+          else if (partialStage.code === 'PCH') pic = item.picPch || item.picAktif || 'Purchasing';
+          else if (partialStage.code === 'LOG') pic = item.picTtb || item.picAktif || 'Gudang';
+          else if (partialStage.code === 'LAP') pic = item.picLap || item.picAktif || 'Lapangan';
+          else if (partialStage.code === 'ADM') pic = item.picAdm || item.picAktif || 'Finance/Kasir';
+
+          primaryBottleneck = {
+            stageCode: partialStage.code as FunnelStageCode,
+            stageName: partialStage.name,
+            reason: partialStage.statusText,
+            responsiblePic: pic,
+            isStuck: true,
+          };
+        } else {
+          // Jika tidak ada yang parsial, cari tahapan pertama yang belum dimulai
+          const firstUnpassedStage = wf.stages.find((s) => !s.isPassed);
+          if (firstUnpassedStage) {
+            let pic = item.picAktif || '-';
+            let reasonText = `Menunggu ${firstUnpassedStage.name}`;
+            if (firstUnpassedStage.code === 'PCH') {
+              pic = item.picPch || item.picAktif || 'Purchasing';
+              reasonText = 'Menunggu Penerbitan PO';
+            } else if (firstUnpassedStage.code === 'LOG') {
+              pic = item.picTtb || item.picAktif || 'Gudang';
+              reasonText = 'Menunggu Penerimaan TTB';
+            } else if (firstUnpassedStage.code === 'LAP') {
+              pic = item.picLap || item.picAktif || 'Lapangan';
+              reasonText = 'Menunggu Diantar ke Kapal';
+            } else if (firstUnpassedStage.code === 'ADM') {
+              pic = item.picAdm || item.picAktif || 'Finance/Kasir';
+              reasonText = 'Menunggu SPP Kasir';
+            }
+
+            primaryBottleneck = {
+              stageCode: firstUnpassedStage.code as FunnelStageCode,
+              stageName: firstUnpassedStage.name,
+              reason: reasonText,
+              responsiblePic: pic,
+              isStuck: true,
+            };
+          } else {
+            primaryBottleneck = {
+              stageCode: 'NONE',
+              stageName: 'Tuntas',
+              reason: 'Selesai',
+              responsiblePic: '-',
+              isStuck: false,
+            };
+          }
+        }
+      }
+
       return {
         item,
         wf,
-        pendingBelumDetails,
+        primaryBottleneck,
         agingDays,
       };
     });
   }, [dailyTransactions]);
 
-  // Metrik KPI & Funnel
+  // Metrik KPI Eksekutif & Bottleneck Funnel Tracker
   const dailyMetrics = useMemo(() => {
     const total = dailyEvaluatedItems.length;
-    let fullCount = 0;
-    let partialCount = 0;
-    let offCount = 0;
+    let completeCount = 0;
+    let stuckCount = 0;
 
-    const funnelCounts = {
-      FPB: { stuck: 0, label: 'Belum Verifikasi' },
-      PCH: { stuck: 0, label: 'Delivery/FSTB Belum' },
-      LOG: { stuck: 0, label: 'Menunggu TTB' },
-      LAP: { stuck: 0, label: 'Belum Diantar' },
-      ADM: { stuck: 0, label: 'SPP Belum Terbit' },
+    const funnelCounts: Record<FunnelStageCode, { stuck: 0; name: string; action: string }> = {
+      FPB: { stuck: 0, name: 'FPB Permintaan', action: 'Verifikasi Pemohon' },
+      PCH: { stuck: 0, name: 'PCH Purchasing', action: 'Delivery PO / FSTB' },
+      LOG: { stuck: 0, name: 'LOG Gudang', action: 'Penerimaan TTB' },
+      LAP: { stuck: 0, name: 'LAP Lapangan', action: 'Serah Terima Fisik' },
+      ADM: { stuck: 0, name: 'ADM Administrasi', action: 'Penerbitan SPP Kasir' },
     };
 
     const vesselsSet = new Set<string>();
 
-    for (const { item, wf } of dailyEvaluatedItems) {
-      if (wf.isComplete) fullCount++;
-      else if (wf.passedCount === 0) offCount++;
-      else partialCount++;
+    for (const { item, primaryBottleneck, wf } of dailyEvaluatedItems) {
+      if (wf.isComplete) {
+        completeCount++;
+      } else {
+        stuckCount++;
+      }
 
-      for (const st of wf.stages) {
-        if (st.isPartial && funnelCounts[st.code as keyof typeof funnelCounts]) {
-          funnelCounts[st.code as keyof typeof funnelCounts].stuck++;
-        }
+      if (primaryBottleneck.isStuck && primaryBottleneck.stageCode !== 'NONE') {
+        funnelCounts[primaryBottleneck.stageCode].stuck++;
       }
 
       const vessel = (item as any).armada || (item as any).deptArmada || '';
-      if (vessel && vessel !== '-') vesselsSet.add(vessel.trim());
+      if (vessel && vessel !== '-' && vessel.trim().toLowerCase() !== 'non-armada') {
+        vesselsSet.add(vessel.trim());
+      }
     }
 
-    const completionRate = total > 0 ? Math.round((fullCount / total) * 100) : 0;
+    const completionRate = total > 0 ? Math.round((completeCount / total) * 100) : 0;
 
     return {
       total,
-      fullCount,
-      partialCount,
-      offCount,
+      completeCount,
+      stuckCount,
       completionRate,
       funnelCounts,
       vesselsCount: vesselsSet.size,
@@ -225,26 +292,28 @@ export default function DailyAnalyticsReport({
     };
   }, [dailyEvaluatedItems]);
 
-  // Filter daftar transaksi
+  // Filter daftar data berdasarkan interaksi pengguna
   const filteredList = useMemo(() => {
-    return dailyEvaluatedItems.filter(({ item, wf }) => {
-      if (trafficFilter === 'FULL' && !wf.isComplete) return false;
-      if (trafficFilter === 'PARTIAL' && (wf.isComplete || wf.passedCount === 0)) return false;
-      if (trafficFilter === 'OFF' && wf.passedCount > 0) return false;
+    return dailyEvaluatedItems.filter(({ item, wf, primaryBottleneck }) => {
+      // Filter KPI
+      if (trafficFilter === 'COMPLETE' && !wf.isComplete) return false;
+      if (trafficFilter === 'STUCK' && wf.isComplete) return false;
 
-      if (activeFunnelStage) {
-        const stage = wf.stages.find((s) => s.code === activeFunnelStage);
-        if (!stage || !stage.isPartial) return false;
+      // Filter Funnel Stage
+      if (activeFunnelStage && primaryBottleneck.stageCode !== activeFunnelStage) {
+        return false;
       }
 
+      // Filter Pencarian Global
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
         const fpb = (item.fpb || '').toLowerCase();
         const po = (item.po || (item as any).noPo || '').toLowerCase();
         const itName = (item.item || '').toLowerCase();
-        const pic = (item.picAktif || item.picPch || item.picTtb || '').toLowerCase();
+        const pic = (item.picAktif || item.picPch || item.picTtb || primaryBottleneck.responsiblePic || '').toLowerCase();
         const armada = ((item as any).armada || (item as any).deptArmada || '').toLowerCase();
         const ent = (item.entity || '').toLowerCase();
+        const bottleneckText = primaryBottleneck.reason.toLowerCase();
 
         return (
           fpb.includes(q) ||
@@ -252,7 +321,8 @@ export default function DailyAnalyticsReport({
           itName.includes(q) ||
           pic.includes(q) ||
           armada.includes(q) ||
-          ent.includes(q)
+          ent.includes(q) ||
+          bottleneckText.includes(q)
         );
       }
 
@@ -267,7 +337,7 @@ export default function DailyAnalyticsReport({
     return filteredList.slice(start, start + pageSize);
   }, [filteredList, currentPage, pageSize]);
 
-  // Navigasi tanggal
+  // Navigasi Tanggal
   const currentIdx = availableDates.findIndex((d) => d.fullDate === selectedIsoDate);
   const handlePrevDay = () => {
     if (currentIdx !== -1 && currentIdx < availableDates.length - 1) {
@@ -282,42 +352,64 @@ export default function DailyAnalyticsReport({
     }
   };
 
-  // Salin WhatsApp
-  const handleCopyWhatsApp = () => {
-    const text = `📋 *LAPORAN HARIAN SUPPLY CHAIN & LOGISTIK CPG*
-📅 *Tanggal:* ${selectedFormattedDate} (${selectedIsoDate})
-🏢 *Entitas:* ${entityFilter === 'ALL' ? 'Semua Entitas' : entityFilter}
+  // Reset semua filter
+  const handleResetFilters = () => {
+    setTrafficFilter('ALL');
+    setActiveFunnelStage(null);
+    setSearchQuery('');
+    setEntityFilter('ALL');
+    setCurrentPage(1);
+  };
 
-📊 *EXECUTIVE SUMMARY:*
+  const hasActiveFilters =
+    trafficFilter !== 'ALL' ||
+    activeFunnelStage !== null ||
+    searchQuery.trim() !== '' ||
+    entityFilter !== 'ALL';
+
+  // Salin Rekap WhatsApp
+  const handleCopyWhatsApp = () => {
+    const topStuckItems = dailyEvaluatedItems
+      .filter(({ wf }) => !wf.isComplete)
+      .slice(0, 4);
+
+    const text = `📋 *LAPORAN HARIAN SUPPLY CHAIN & LOGISTIK CPG*
+📅 *Tanggal Aktivitas:* ${selectedFormattedDate} (${selectedIsoDate})
+🏢 *Filter Entitas:* ${entityFilter === 'ALL' ? 'Semua Entitas' : entityFilter}
+
+📊 *RINGKASAN EKSEKUTIF:*
 • Total Berkas Aktif: *${dailyMetrics.total} Dokumen*
-• 🟢 Tuntas (5/5 Lengkap): *${dailyMetrics.fullCount} Dokumen (${dailyMetrics.completionRate}%)*
-• ◐ Tertahan / Perlu Tindak Lanjut: *${dailyMetrics.partialCount} Dokumen*
+• 🟢 Tuntas Lengkap (100%): *${dailyMetrics.completeCount} Dokumen (${dailyMetrics.completionRate}%)*
+• ⚠️ Tertahan / Butuh Tindak Lanjut: *${dailyMetrics.stuckCount} Dokumen*
 • 🚢 Armada Terdampak: *${dailyMetrics.vesselsCount} Kapal/Unit*
 
-🚦 *BOTTLENECK PER TAHAP:*
-1. FPB (Permintaan): ${dailyMetrics.funnelCounts.FPB.stuck > 0 ? `⚠️ ${dailyMetrics.funnelCounts.FPB.stuck} belum terverifikasi` : '✅ Lancar'}
-2. PCH (Purchasing): ${dailyMetrics.funnelCounts.PCH.stuck > 0 ? `⚠️ ${dailyMetrics.funnelCounts.PCH.stuck} Delivery/FSTB Belum Terbit` : '✅ Lancar'}
-3. LOG (Gudang/TTB): ${dailyMetrics.funnelCounts.LOG.stuck > 0 ? `⚠️ ${dailyMetrics.funnelCounts.LOG.stuck} Menunggu Dokumen TTB` : '✅ Lancar'}
-4. LAP (Lapangan): ${dailyMetrics.funnelCounts.LAP.stuck > 0 ? `⚠️ ${dailyMetrics.funnelCounts.LAP.stuck} Belum Diantar/Serah Terima` : '✅ Lancar'}
-5. ADM (SPP Kasir): ${dailyMetrics.funnelCounts.ADM.stuck > 0 ? `⚠️ ${dailyMetrics.funnelCounts.ADM.stuck} SPP Belum Terbit` : '✅ Lancar'}
-
-⚠️ *TOP 3 BERKAS MEMBUTUHKAN PERCEPATAN:*
-${dailyEvaluatedItems
-  .filter(({ wf }) => wf.passedCount > 0 && !wf.isComplete)
-  .slice(0, 3)
+🚦 *DISTRIBUSI KENDALA PER TAHAP:*
+1. FPB (Permintaan): ${dailyMetrics.funnelCounts.FPB.stuck > 0 ? `⚠️ *${dailyMetrics.funnelCounts.FPB.stuck} berkas* (Verifikasi Pemohon)` : '✅ Lancar'}
+2. PCH (Purchasing): ${dailyMetrics.funnelCounts.PCH.stuck > 0 ? `⚠️ *${dailyMetrics.funnelCounts.PCH.stuck} berkas* (Delivery/FSTB Belum)` : '✅ Lancar'}
+3. LOG (Gudang/TTB): ${dailyMetrics.funnelCounts.LOG.stuck > 0 ? `⚠️ *${dailyMetrics.funnelCounts.LOG.stuck} berkas* (Menunggu TTB)` : '✅ Lancar'}
+4. LAP (Lapangan): ${dailyMetrics.funnelCounts.LAP.stuck > 0 ? `⚠️ *${dailyMetrics.funnelCounts.LAP.stuck} berkas* (Serah Terima Fisik)` : '✅ Lancar'}
+5. ADM (SPP Kasir): ${dailyMetrics.funnelCounts.ADM.stuck > 0 ? `⚠️ *${dailyMetrics.funnelCounts.ADM.stuck} berkas* (SPP Belum Terbit)` : '✅ Lancar'}
+${
+  topStuckItems.length > 0
+    ? `\n🚨 *PRIORITAS PERCEPATAN HARI INI:*
+${topStuckItems
   .map(
-    ({ item, wf }, idx) =>
-      `${idx + 1}. *FPB:* ${item.fpb} (${(item as any).armada || (item as any).deptArmada || '-'}) | Kendala: [${wf.stages.filter((s) => s.isPartial).map((s) => s.code).join(', ')}]`
+    ({ item, primaryBottleneck, agingDays }, idx) =>
+      `${idx + 1}. *FPB:* ${item.fpb} (${(item as any).armada || (item as any).deptArmada || '-'})
+   └ Kendala: [${primaryBottleneck.stageCode}] ${primaryBottleneck.reason}
+   └ PIC: ${primaryBottleneck.responsiblePic} | Aging: ${agingDays} Hari`
   )
-  .join('\n')}
+  .join('\n')}`
+    : '\n✅ Seluruh dokumen pada tanggal ini berstatus tuntas!'
+}
 
-_Dashboard CPG Web Operasional & Supply Chain._`;
+_Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
 
     if (navigator.clipboard) {
       navigator.clipboard.writeText(text).then(() => {
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 2500);
-        showToast?.('Format pesan WhatsApp berhasil disalin!', 'success');
+        showToast?.('Format pesan WhatsApp berhasil disalin ke clipboard!', 'success');
       });
     }
   };
@@ -328,8 +420,20 @@ _Dashboard CPG Web Operasional & Supply Chain._`;
       showToast?.('Tidak ada data transaksi untuk diekspor.', 'warning');
       return;
     }
-    const headers = ['NO', 'NO FPB', 'ENTITAS', 'ARMADA', 'ITEM', 'NO PO', 'TGL PO', 'PIC', 'AGING (HARI)', 'KENDALA'];
-    const rows = filteredList.map(({ item, agingDays, pendingBelumDetails }, idx) => [
+    const headers = [
+      'NO',
+      'NO FPB',
+      'ENTITAS',
+      'ARMADA',
+      'ITEM / DESKRIPSI',
+      'NO PO',
+      'TGL PO',
+      'PIC TANGGUNG JAWAB',
+      'STATUS PROGRESS',
+      'KENDALA TERKINI',
+      'AGING (HARI)',
+    ];
+    const rows = filteredList.map(({ item, wf, primaryBottleneck, agingDays }, idx) => [
       idx + 1,
       `"${item.fpb || '-'}"`,
       `"${item.entity || '-'}"`,
@@ -337,9 +441,10 @@ _Dashboard CPG Web Operasional & Supply Chain._`;
       `"${(item.item || '').replace(/"/g, '""')}"`,
       `"${item.po || (item as any).noPo || '-'}"`,
       `"${formatDateDdMmYy(item.tglPo || item.date)}"`,
-      `"${item.picAktif || item.picPch || '-'}"`,
+      `"${primaryBottleneck.responsiblePic || '-'}"`,
+      `"${wf.summaryBadge}"`,
+      `"${primaryBottleneck.reason}"`,
       agingDays,
-      `"${pendingBelumDetails.map((p) => `${p.stage}: ${p.text}`).join('; ')}"`,
     ]);
 
     const csv = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
@@ -347,7 +452,7 @@ _Dashboard CPG Web Operasional & Supply Chain._`;
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Daily_Report_CPG_${selectedIsoDate}.csv`;
+    a.download = `Laporan_Harian_CPG_${selectedIsoDate}.csv`;
     a.click();
     URL.revokeObjectURL(url);
     showToast?.('File CSV berhasil diunduh.', 'success');
@@ -358,9 +463,10 @@ _Dashboard CPG Web Operasional & Supply Chain._`;
       {/* ═══════════════════════════════════════════════════════════
           1. HEADER & CONTROL HUB
           ═══════════════════════════════════════════════════════════ */}
-      <div className="bg-card border border-border rounded-2xl p-4 sm:p-5 shadow-xs space-y-3.5">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
+      <div className="bg-card border border-border rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
+        {/* Baris Atas: Judul & Tombol Aksi Utama */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shrink-0">
               <CalendarDays className="size-5" />
             </div>
@@ -374,13 +480,12 @@ _Dashboard CPG Web Operasional & Supply Chain._`;
                 </span>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Monitoring berkas aktif, pipeline kendala seksi, dan aging SLA pada tanggal aktivitas terpilih.
+                Monitoring berkas aktif, pipeline kendala seksi, dan aging SLA operasional armada.
               </p>
             </div>
           </div>
 
-          {/* Quick-Action Buttons */}
-          <div className="flex items-center gap-2 self-start lg:self-auto flex-wrap">
+          <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
             <button
               type="button"
               onClick={handleCopyWhatsApp}
@@ -389,10 +494,10 @@ _Dashboard CPG Web Operasional & Supply Chain._`;
                   ? 'bg-emerald-600 text-white'
                   : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'
               }`}
-              title="Salin rekap eksekutif ke clipboard format WhatsApp"
+              title="Salin ringkasan pesan ke clipboard format WhatsApp"
             >
               {isCopied ? <Check className="size-4" /> : <Share2 className="size-4" />}
-              <span>{isCopied ? 'Tersalin!' : 'Salin Ringkasan WhatsApp'}</span>
+              <span>{isCopied ? 'Tersalin ke WA!' : 'Salin Ringkasan WhatsApp'}</span>
             </button>
 
             <button
@@ -406,16 +511,17 @@ _Dashboard CPG Web Operasional & Supply Chain._`;
           </div>
         </div>
 
-        {/* Integrated Toolbar Filter */}
-        <div className="pt-3 border-t border-border/70 flex flex-col md:flex-row md:items-center justify-between gap-3">
-          {/* Date Picker & Presets */}
+        {/* Baris Bawah: Unified Filter Toolbar */}
+        <div className="pt-3 border-t border-border/70 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          {/* Segment Filter Tanggal */}
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex items-center bg-muted/60 p-1 rounded-xl border border-border">
+            <div className="flex items-center bg-muted/60 p-1 rounded-xl border border-border shadow-2xs">
               <button
                 type="button"
                 onClick={handlePrevDay}
                 disabled={currentIdx >= availableDates.length - 1}
                 className="p-1.5 rounded-lg hover:bg-card text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition"
+                title="Hari Sebelumnya"
               >
                 <ChevronLeft className="size-4" />
               </button>
@@ -440,6 +546,7 @@ _Dashboard CPG Web Operasional & Supply Chain._`;
                 onClick={handleNextDay}
                 disabled={currentIdx <= 0}
                 className="p-1.5 rounded-lg hover:bg-card text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition"
+                title="Hari Berikutnya"
               >
                 <ChevronRight className="size-4" />
               </button>
@@ -453,9 +560,9 @@ _Dashboard CPG Web Operasional & Supply Chain._`;
                   setCurrentPage(1);
                 }
               }}
-              className={`px-2.5 py-1.5 rounded-lg text-xs font-mono font-medium border transition ${
+              className={`h-8.5 px-2.5 rounded-xl text-xs font-mono font-medium border transition ${
                 selectedIsoDate === defaultIsoDate
-                  ? 'bg-primary text-primary-foreground border-primary font-semibold'
+                  ? 'bg-primary text-primary-foreground border-primary font-semibold shadow-xs'
                   : 'bg-card hover:bg-muted text-muted-foreground border-border'
               }`}
             >
@@ -468,48 +575,116 @@ _Dashboard CPG Web Operasional & Supply Chain._`;
                 setSelectedIsoDate(new Date().toISOString().split('T')[0]);
                 setCurrentPage(1);
               }}
-              className="px-2.5 py-1.5 rounded-lg text-xs font-mono font-medium bg-card hover:bg-muted text-muted-foreground border border-border transition"
+              className="h-8.5 px-2.5 rounded-xl text-xs font-mono font-medium bg-card hover:bg-muted text-muted-foreground border border-border transition"
             >
               Hari Ini
             </button>
           </div>
 
-          {/* Search Global & Dropdowns */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="relative w-full sm:w-56">
+          {/* Segment Filter Entitas & Global Search */}
+          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+            <div className="relative flex-1 sm:w-64">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
               <input
                 type="text"
-                placeholder="Cari FPB, PO, Kapal, PIC..."
+                placeholder="Cari FPB, PO, Kapal, PIC, Kendala..."
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full h-8.5 pl-8 pr-3 text-xs rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:border-primary transition"
+                className="w-full h-8.5 pl-8 pr-7 text-xs rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:border-primary transition"
               />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded text-muted-foreground hover:text-foreground"
+                >
+                  <X className="size-3" />
+                </button>
+              )}
             </div>
 
-            <select
-              value={entityFilter}
-              onChange={(e) => {
-                setEntityFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="h-8.5 px-3 rounded-xl bg-card border border-border text-xs text-foreground font-medium focus:outline-hidden cursor-pointer"
-            >
-              <option value="ALL">Semua Entitas</option>
-              <option value="CPL">PT CPL</option>
-              <option value="PPI">PT PPI</option>
-              <option value="HL">PT HL</option>
-              <option value="GAJ">PT GAJ</option>
-              <option value="MIL">PT MIL</option>
-              <option value="SP">PT SP</option>
-              <option value="SSK">PT SSK</option>
-              <option value="MO">PT MO</option>
-            </select>
+            <div className="relative">
+              <select
+                value={entityFilter}
+                onChange={(e) => {
+                  setEntityFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="h-8.5 pl-3 pr-8 rounded-xl bg-card border border-border text-xs text-foreground font-medium focus:outline-hidden cursor-pointer"
+              >
+                <option value="ALL">Semua Entitas</option>
+                <option value="CPL">PT CPL</option>
+                <option value="PPI">PT PPI</option>
+                <option value="HL">PT HL</option>
+                <option value="GAJ">PT GAJ</option>
+                <option value="MIL">PT MIL</option>
+                <option value="SP">PT SP</option>
+                <option value="SSK">PT SSK</option>
+                <option value="MO">PT MO</option>
+              </select>
+            </div>
           </div>
         </div>
+
+        {/* Active Filter Chips / Reset Bar */}
+        {hasActiveFilters && (
+          <div className="pt-2.5 border-t border-border/50 flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[11px] font-mono text-muted-foreground flex items-center gap-1">
+                <Filter className="size-3 text-primary" />
+                Filter Aktif:
+              </span>
+
+              {entityFilter !== 'ALL' && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-mono bg-muted border border-border text-foreground">
+                  Entitas: {entityFilter}
+                  <button onClick={() => setEntityFilter('ALL')} className="hover:text-rose-500">
+                    <X className="size-3" />
+                  </button>
+                </span>
+              )}
+
+              {trafficFilter !== 'ALL' && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-mono bg-primary/10 border border-primary/20 text-primary">
+                  Status: {trafficFilter === 'COMPLETE' ? 'Tuntas 100%' : 'Tertahan'}
+                  <button onClick={() => setTrafficFilter('ALL')} className="hover:text-rose-500">
+                    <X className="size-3" />
+                  </button>
+                </span>
+              )}
+
+              {activeFunnelStage && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-mono bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400">
+                  Tahap: {activeFunnelStage}
+                  <button onClick={() => setActiveFunnelStage(null)} className="hover:text-rose-500">
+                    <X className="size-3" />
+                  </button>
+                </span>
+              )}
+
+              {searchQuery.trim() && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-mono bg-muted border border-border text-foreground">
+                  &ldquo;{searchQuery}&rdquo;
+                  <button onClick={() => setSearchQuery('')} className="hover:text-rose-500">
+                    <X className="size-3" />
+                  </button>
+                </span>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={handleResetFilters}
+              className="text-[11px] font-mono text-rose-600 dark:text-rose-400 hover:underline flex items-center gap-1 cursor-pointer"
+            >
+              <RotateCcw className="size-3" />
+              <span>Reset Semua Filter</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ═══════════════════════════════════════════════════════════
@@ -534,12 +709,13 @@ _Dashboard CPG Web Operasional & Supply Chain._`;
 
         {/* Card 2: Berkas Tuntas (100%) */}
         <div
-          onClick={() => setTrafficFilter(trafficFilter === 'FULL' ? 'ALL' : 'FULL')}
+          onClick={() => setTrafficFilter(trafficFilter === 'COMPLETE' ? 'ALL' : 'COMPLETE')}
           className={`p-4.5 rounded-2xl bg-card border shadow-xs flex flex-col justify-between space-y-2 cursor-pointer transition hover:border-emerald-500/60 ${
-            trafficFilter === 'FULL'
+            trafficFilter === 'COMPLETE'
               ? 'ring-2 ring-emerald-500/40 border-emerald-500 bg-emerald-500/5'
               : 'border-emerald-500/30'
           }`}
+          title="Klik untuk memfilter berkas tuntas"
         >
           <div className="flex items-center justify-between text-xs text-emerald-700 dark:text-emerald-400 font-mono font-bold">
             <span>BERKAS TUNTAS (100%)</span>
@@ -548,7 +724,7 @@ _Dashboard CPG Web Operasional & Supply Chain._`;
           <div>
             <div className="flex items-baseline justify-between">
               <span className="text-3xl font-extrabold font-mono text-emerald-600 dark:text-emerald-400 tracking-tight">
-                {dailyMetrics.fullCount}
+                {dailyMetrics.completeCount}
               </span>
               <span className="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
                 {dailyMetrics.completionRate}%
@@ -562,21 +738,22 @@ _Dashboard CPG Web Operasional & Supply Chain._`;
 
         {/* Card 3: Berkas Tertahan (Outstanding) */}
         <div
-          onClick={() => setTrafficFilter(trafficFilter === 'PARTIAL' ? 'ALL' : 'PARTIAL')}
+          onClick={() => setTrafficFilter(trafficFilter === 'STUCK' ? 'ALL' : 'STUCK')}
           className={`p-4.5 rounded-2xl bg-card border shadow-xs flex flex-col justify-between space-y-2 cursor-pointer transition hover:border-amber-500/60 ${
-            trafficFilter === 'PARTIAL'
+            trafficFilter === 'STUCK'
               ? 'ring-2 ring-amber-500/40 border-amber-500 bg-amber-500/5'
               : 'border-amber-500/30'
           }`}
+          title="Klik untuk memfilter berkas tertahan"
         >
           <div className="flex items-center justify-between text-xs text-amber-700 dark:text-amber-400 font-mono font-bold">
-            <span>TERTAHAN / BUTUH TINDAK LANJUT</span>
-            <span className="text-sm font-bold leading-none text-amber-500">◐</span>
+            <span>TERTAHAN / BUTUH ACTION</span>
+            <AlertTriangle className="size-4 text-amber-500" />
           </div>
           <div>
             <div className="flex items-baseline justify-between">
               <span className="text-3xl font-extrabold font-mono text-amber-600 dark:text-amber-400 tracking-tight">
-                {dailyMetrics.partialCount}
+                {dailyMetrics.stuckCount}
               </span>
               <span className="text-[10px] font-mono font-bold text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30">
                 Outstanding
@@ -599,8 +776,11 @@ _Dashboard CPG Web Operasional & Supply Chain._`;
               {dailyMetrics.vesselsCount}
             </div>
             <p className="text-[11px] text-muted-foreground mt-1 truncate" title={dailyMetrics.vesselList.join(', ')}>
-              {dailyMetrics.vesselList.slice(0, 3).join(', ')}
-              {dailyMetrics.vesselList.length > 3 ? ` +${dailyMetrics.vesselList.length - 3} lainnya` : ''}
+              {dailyMetrics.vesselList.length > 0
+                ? `${dailyMetrics.vesselList.slice(0, 2).join(', ')}${
+                    dailyMetrics.vesselList.length > 2 ? ` +${dailyMetrics.vesselList.length - 2} lainnya` : ''
+                  }`
+                : 'Tidak ada armada aktif'}
             </p>
           </div>
         </div>
@@ -616,8 +796,8 @@ _Dashboard CPG Web Operasional & Supply Chain._`;
               <AlertTriangle className="size-3.5 text-amber-500" />
               <span>Bottleneck Funnel Tracker: Pipeline Alur 5 Seksi Berurutan</span>
             </h4>
-            <p className="text-[11px] text-muted-foreground">
-              Klik pada salah satu tahapan pipeline untuk memfilter tabel di bawah ke berkas yang tertahan di tahap tersebut:
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              Klik pada salah satu tahapan pipeline untuk memfilter tabel ke berkas yang tertahan di tahap tersebut:
             </p>
           </div>
 
@@ -633,16 +813,16 @@ _Dashboard CPG Web Operasional & Supply Chain._`;
           )}
         </div>
 
-        {/* Connected Horizontal Pipeline */}
+        {/* Pipeline Stepper Horizontal */}
         <div className="grid grid-cols-1 sm:grid-cols-5 gap-2.5 pt-1">
           {[
-            { code: 'FPB', num: 1, name: 'Permintaan / Verifikasi', color: 'emerald', sub: 'Belum Verifikasi' },
-            { code: 'PCH', num: 2, name: 'Purchasing / PO', color: 'sky', sub: 'Delivery/FSTB Belum' },
-            { code: 'LOG', num: 3, name: 'Logistik / Gudang', color: 'purple', sub: 'Menunggu TTB' },
-            { code: 'LAP', num: 4, name: 'Lapangan / Fisik', color: 'orange', sub: 'Belum Diantar' },
-            { code: 'ADM', num: 5, name: 'Administrasi / SPP', color: 'emerald', sub: 'SPP Belum Terbit' },
-          ].map((stage, sIdx) => {
-            const stuckCount = dailyMetrics.funnelCounts[stage.code as keyof typeof dailyMetrics.funnelCounts].stuck;
+            { code: 'FPB' as FunnelStageCode, num: 1, name: 'Permintaan FPB', sub: 'Verifikasi' },
+            { code: 'PCH' as FunnelStageCode, num: 2, name: 'Purchasing / PO', sub: 'Delivery/FSTB' },
+            { code: 'LOG' as FunnelStageCode, num: 3, name: 'Logistik / Gudang', sub: 'Dokumen TTB' },
+            { code: 'LAP' as FunnelStageCode, num: 4, name: 'Tim Lapangan', sub: 'Serah Terima' },
+            { code: 'ADM' as FunnelStageCode, num: 5, name: 'Administrasi', sub: 'SPP Kasir' },
+          ].map((stage) => {
+            const stuckCount = dailyMetrics.funnelCounts[stage.code].stuck;
             const isSelected = activeFunnelStage === stage.code;
             const isClean = stuckCount === 0;
 
@@ -655,10 +835,11 @@ _Dashboard CPG Web Operasional & Supply Chain._`;
                   isSelected
                     ? 'bg-amber-500/10 border-amber-500 ring-2 ring-amber-500/30 shadow-xs'
                     : isClean
-                    ? 'bg-muted/30 hover:bg-muted/60 border-border'
+                    ? 'bg-muted/20 hover:bg-muted/40 border-border/80'
                     : 'bg-card hover:border-amber-400/80 border-border shadow-xs'
                 }`}
               >
+                {/* Header Kartu Stepper */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
                     <span className="size-5 rounded-full flex items-center justify-center text-[10px] font-bold font-mono bg-muted text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
@@ -675,21 +856,26 @@ _Dashboard CPG Web Operasional & Supply Chain._`;
                   )}
                 </div>
 
-                <div className="mt-2.5">
-                  <div className="text-xl font-extrabold font-mono text-foreground">
-                    {stuckCount}
+                {/* Angka & Status */}
+                <div className="mt-3">
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-xl font-extrabold font-mono text-foreground">
+                      {stuckCount}
+                    </span>
+                    <span
+                      className={`text-[9.5px] font-mono font-medium px-1.5 py-0.2 rounded ${
+                        isClean
+                          ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
+                          : 'bg-amber-500/10 text-amber-700 dark:text-amber-400'
+                      }`}
+                    >
+                      {isClean ? 'Lancar' : 'Tertahan'}
+                    </span>
                   </div>
-                  <div className="text-[10px] font-mono leading-tight mt-0.5 truncate text-muted-foreground">
-                    {isClean ? '✓ Tuntas Lancar' : stage.sub}
+                  <div className="text-[10px] font-mono leading-tight mt-1 truncate text-muted-foreground">
+                    {stage.sub}
                   </div>
                 </div>
-
-                {/* Arrow Connector indicator (Desktop) */}
-                {sIdx < 4 && (
-                  <div className="hidden sm:block absolute -right-2 top-1/2 -translate-y-1/2 z-10 pointer-events-none text-muted-foreground/40">
-                    ➔
-                  </div>
-                )}
               </button>
             );
           })}
@@ -708,12 +894,12 @@ _Dashboard CPG Web Operasional & Supply Chain._`;
             </span>
             {trafficFilter !== 'ALL' && (
               <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-primary/10 text-primary border border-primary/20">
-                Filter Status: {trafficFilter}
+                Filter: {trafficFilter === 'COMPLETE' ? 'Tuntas 100%' : 'Tertahan'}
               </span>
             )}
             {activeFunnelStage && (
               <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
-                Tahap Macet: {activeFunnelStage}
+                Tahap: {activeFunnelStage}
               </span>
             )}
           </div>
@@ -727,13 +913,23 @@ _Dashboard CPG Web Operasional & Supply Chain._`;
             <div className="inline-flex p-3 rounded-full bg-muted text-muted-foreground">
               <CalendarDays className="size-6 text-muted-foreground" />
             </div>
-            <div className="max-w-md mx-auto space-y-1">
+            <div className="max-w-md mx-auto space-y-2">
               <h4 className="text-sm font-semibold text-foreground">
-                Tidak ada transaksi aktif pada {selectedFormattedDate}
+                Tidak ada transaksi yang cocok
               </h4>
               <p className="text-xs text-muted-foreground">
-                Silakan ganti tanggal atau reset filter pencarian Anda.
+                Tidak ditemukan data dengan filter saat ini pada tanggal {selectedFormattedDate}.
               </p>
+              {hasActiveFilters && (
+                <button
+                  type="button"
+                  onClick={handleResetFilters}
+                  className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition"
+                >
+                  <RotateCcw className="size-3.5" />
+                  <span>Reset Semua Filter</span>
+                </button>
+              )}
             </div>
           </div>
         ) : (
@@ -741,22 +937,24 @@ _Dashboard CPG Web Operasional & Supply Chain._`;
             <table className="w-full text-xs text-left border-collapse">
               <thead>
                 <tr className="border-b border-border bg-muted/40 font-mono text-[11px] text-muted-foreground uppercase">
-                  <th className="py-3 px-3.5 whitespace-nowrap">No</th>
-                  <th className="py-3 px-3.5 whitespace-nowrap">Dokumen &amp; Entitas</th>
-                  <th className="py-3 px-3.5 whitespace-nowrap">Armada / Kapal</th>
-                  <th className="py-3 px-3.5 whitespace-nowrap">PIC Bertanggung Jawab</th>
-                  <th className="py-3 px-3.5 text-center whitespace-nowrap">Progress Alur (5 Seksi)</th>
-                  <th className="py-3 px-3.5 whitespace-nowrap">Bottleneck Terkini</th>
-                  <th className="py-3 px-3.5 text-center whitespace-nowrap">Durasi / SLA</th>
-                  <th className="py-3 px-3.5 text-center whitespace-nowrap">Aksi</th>
+                  <th className="py-3 px-3 text-center whitespace-nowrap w-12">No</th>
+                  <th className="py-3 px-3.5 whitespace-nowrap min-w-[140px]">Dokumen &amp; Entitas</th>
+                  <th className="py-3 px-3.5 whitespace-nowrap min-w-[140px]">Armada / Kapal</th>
+                  <th className="py-3 px-3.5 whitespace-nowrap min-w-[180px] max-w-[240px]">Deskripsi Barang</th>
+                  <th className="py-3 px-3.5 whitespace-nowrap min-w-[130px]">PIC Bertanggung Jawab</th>
+                  <th className="py-3 px-3.5 text-center whitespace-nowrap min-w-[150px]">Progress (5 Seksi)</th>
+                  <th className="py-3 px-3.5 whitespace-nowrap min-w-[200px]">Bottleneck Terkini</th>
+                  <th className="py-3 px-3.5 text-center whitespace-nowrap w-28">Aging SLA</th>
+                  <th className="py-3 px-3 text-center whitespace-nowrap w-20">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/60">
-                {paginatedList.map(({ item, wf, pendingBelumDetails, agingDays }, idx) => {
+                {paginatedList.map(({ item, wf, primaryBottleneck, agingDays }, idx) => {
                   const globalIdx = (currentPage - 1) * pageSize + idx + 1;
                   const fpb = item.fpb || '-';
                   const po = item.po || (item as any).noPo || '-';
                   const armada = (item as any).armada || (item as any).deptArmada || '-';
+                  const itemName = item.item || '-';
 
                   // Badge warna SLA / Aging
                   const isSlaBreached = agingDays > 5;
@@ -774,13 +972,13 @@ _Dashboard CPG Web Operasional & Supply Chain._`;
                       key={item.id || `${fpb}-${idx}`}
                       className="hover:bg-muted/30 transition-colors group"
                     >
-                      {/* No */}
-                      <td className="py-3 px-3.5 font-mono text-muted-foreground text-[11px]">
+                      {/* 1. No */}
+                      <td className="py-3 px-3 font-mono text-muted-foreground text-[11px] text-center">
                         {globalIdx}
                       </td>
 
-                      {/* Dokumen & Entitas */}
-                      <td className="py-3 px-3.5 min-w-[130px]">
+                      {/* 2. Dokumen & Entitas */}
+                      <td className="py-3 px-3.5">
                         <span className="font-bold font-mono text-foreground block truncate" title={fpb}>
                           {fpb}
                         </span>
@@ -789,13 +987,13 @@ _Dashboard CPG Web Operasional & Supply Chain._`;
                             {item.entity || 'CPG'}
                           </span>
                           <span className="text-[10px] font-mono text-muted-foreground">
-                            PO: {po !== '-' ? po : 'Belum Ada'}
+                            PO: {po !== '-' ? po : 'Belum'}
                           </span>
                         </div>
                       </td>
 
-                      {/* Armada / Kapal */}
-                      <td className="py-3 px-3.5 min-w-[140px]">
+                      {/* 3. Armada / Kapal */}
+                      <td className="py-3 px-3.5">
                         <div className="flex items-center gap-1.5">
                           <Ship className="size-3 text-sky-500 shrink-0" />
                           <span className="font-medium text-foreground truncate" title={armada}>
@@ -804,60 +1002,63 @@ _Dashboard CPG Web Operasional & Supply Chain._`;
                         </div>
                       </td>
 
-                      {/* PIC Bertanggung Jawab */}
-                      <td className="py-3 px-3.5 min-w-[130px]">
-                        <span className="font-medium text-foreground block truncate">
-                          {item.picAktif || item.picPch || item.picTtb || '-'}
-                        </span>
-                        <span className="text-[10px] font-mono text-muted-foreground">
-                          {item.item ? item.item.slice(0, 20) : '-'}
-                        </span>
+                      {/* 4. Deskripsi Barang */}
+                      <td className="py-3 px-3.5">
+                        <div className="flex items-start gap-1.5">
+                          <Package className="size-3 text-muted-foreground shrink-0 mt-0.5" />
+                          <div className="min-w-0">
+                            <span className="text-foreground block truncate font-medium" title={itemName}>
+                              {itemName}
+                            </span>
+                            {(item.qtyFPB || item.qtyPO) && (
+                              <span className="text-[10px] font-mono text-muted-foreground">
+                                Qty: {item.qtyPO || item.qtyFPB}
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </td>
 
-                      {/* Progress Alur (5 Seksi) */}
+                      {/* 5. PIC Bertanggung Jawab */}
+                      <td className="py-3 px-3.5">
+                        <div className="flex items-center gap-1.5">
+                          <User className="size-3 text-muted-foreground shrink-0" />
+                          <span className="font-medium text-foreground truncate" title={primaryBottleneck.responsiblePic}>
+                            {primaryBottleneck.responsiblePic !== '-' ? primaryBottleneck.responsiblePic : (item.picAktif || '-')}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* 6. Progress Alur (5 Seksi) */}
                       <td className="py-3 px-3.5 text-center whitespace-nowrap">
                         <div className="inline-flex items-center justify-center">
                           <WorkflowTrafficLight
                             item={item}
                             compact={true}
-                            showBadge={true}
+                            showBadge={false}
                             onClick={() => onOpenAudit?.(item.fpb, item.po || (item as any).noPo)}
                           />
                         </div>
                       </td>
 
-                      {/* Bottleneck Terkini */}
-                      <td className="py-3 px-3.5 min-w-[210px] max-w-[280px]">
+                      {/* 7. Bottleneck Terkini */}
+                      <td className="py-3 px-3.5">
                         {wf.isComplete ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-mono font-medium text-emerald-700 dark:text-emerald-400">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-mono font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
                             <Check className="size-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
                             <span>Tuntas Lengkap (5/5)</span>
                           </span>
-                        ) : pendingBelumDetails.length > 0 ? (
-                          <div className="space-y-0.5">
-                            {pendingBelumDetails.slice(0, 2).map((det, dIdx) => (
-                              <div
-                                key={dIdx}
-                                className="text-[10.5px] font-mono text-amber-700 dark:text-amber-300 leading-tight truncate"
-                                title={`${det.stage}: ${det.text} [${det.detail}]`}
-                              >
-                                • <span className="font-bold">[{det.stage}]</span> {det.text}
-                              </div>
-                            ))}
-                            {pendingBelumDetails.length > 2 && (
-                              <span className="text-[10px] font-mono text-muted-foreground block">
-                                +{pendingBelumDetails.length - 2} tahap belum selesai
-                              </span>
-                            )}
-                          </div>
                         ) : (
-                          <span className="text-[11px] font-mono text-muted-foreground italic">
-                            Belum Dimulai
-                          </span>
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10.5px] font-mono bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-amber-500/20 max-w-full">
+                            <span className="font-bold shrink-0">[{primaryBottleneck.stageCode}]</span>
+                            <span className="truncate" title={primaryBottleneck.reason}>
+                              {primaryBottleneck.reason}
+                            </span>
+                          </div>
                         )}
                       </td>
 
-                      {/* Durasi Macet / SLA Aging */}
+                      {/* 8. Durasi Macet / SLA Aging */}
                       <td className="py-3 px-3.5 text-center whitespace-nowrap">
                         <span
                           className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-mono font-bold border ${slaBadgeClass}`}
@@ -867,12 +1068,12 @@ _Dashboard CPG Web Operasional & Supply Chain._`;
                         </span>
                       </td>
 
-                      {/* Aksi */}
-                      <td className="py-3 px-3.5 text-center whitespace-nowrap">
+                      {/* 9. Aksi Audit */}
+                      <td className="py-3 px-3 text-center whitespace-nowrap">
                         <button
                           type="button"
                           onClick={() => onOpenAudit?.(item.fpb, item.po || (item as any).noPo)}
-                          className="h-7.5 px-3 rounded-lg bg-muted hover:bg-primary hover:text-primary-foreground text-foreground border border-border text-[11px] font-medium transition active:scale-95 cursor-pointer inline-flex items-center gap-1"
+                          className="h-7 px-2.5 rounded-lg bg-muted hover:bg-primary hover:text-primary-foreground text-foreground border border-border text-[11px] font-medium transition active:scale-95 cursor-pointer inline-flex items-center gap-1"
                           title="Buka Audit Rinci 5 Seksi"
                         >
                           <span>Audit</span>
