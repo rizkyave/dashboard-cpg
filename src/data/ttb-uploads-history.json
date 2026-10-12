@@ -1,0 +1,34 @@
+[
+  {
+    "id": "1791816199318-uf248",
+    "noTtb": "GAJ-TTB-26-01221",
+    "cleanNoTtb": "GAJ-TTB-26-01221",
+    "armada": "OFFICE GAJ",
+    "receivedDate": "2026-10-12",
+    "keterangan": "",
+    "originalFileName": "05241.pdf",
+    "renamedFileName": "GAJ-TTB-26-01221.pdf",
+    "fileSize": 145933,
+    "fileType": "application/pdf",
+    "fileUrl": "/api/upload-ttb/file?name=GAJ-TTB-26-01221.pdf",
+    "driveFolderUrl": "https://drive.google.com/drive/folders/1Hd6FsgWiAlQ1jJyRvh8auY0FJGE9h5tf",
+    "uploadedAt": "2026-10-12T14:43:19.318Z",
+    "status": "SYNCED_TO_DRIVE"
+  },
+  {
+    "id": "1791814871849-rb5ij",
+    "noTtb": "GAJ-TTB-26-01222",
+    "cleanNoTtb": "GAJ-TTB-26-01222",
+    "armada": "OFFICE GAJ",
+    "receivedDate": "2026-10-12",
+    "keterangan": "",
+    "originalFileName": "07876301-b2cd-4c4c-b363-a6fd70993baf.jpg",
+    "renamedFileName": "GAJ-TTB-26-01222.jpg",
+    "fileSize": 83660,
+    "fileType": "image/jpeg",
+    "fileUrl": "/api/upload-ttb/file?name=GAJ-TTB-26-01222.jpg",
+    "driveFolderUrl": "https://drive.google.com/drive/folders/1Hd6FsgWiAlQ1jJyRvh8auY0FJGE9h5tf",
+    "uploadedAt": "2026-10-12T14:21:11.849Z",
+    "status": "SYNCED_TO_DRIVE"
+  }
+]

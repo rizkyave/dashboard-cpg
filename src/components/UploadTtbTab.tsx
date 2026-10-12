@@ -24,14 +24,16 @@ import {
   ShieldCheck,
   HardDrive,
   FileCheck,
+  Pencil,
+  Link2,
 } from 'lucide-react';
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
 import { SisaLayananItem } from '@/types/sisaLayanan';
 import { UploadedTtbItem, UploadTtbResponse } from '@/types/ttbUpload';
 import { sanitizeTtbNumber, formatTtbFilename, formatFileSize } from '@/utils/ttbRename';
 
-const GOOGLE_DRIVE_FOLDER_ID = '1Hd6FsgWiAlQ1jJyRvh8auY0FJGE9h5tf';
-const GOOGLE_DRIVE_FOLDER_URL = `https://drive.google.com/drive/folders/${GOOGLE_DRIVE_FOLDER_ID}`;
+const DEFAULT_DRIVE_FOLDER_ID = '1Hd6FsgWiAlQ1jJyRvh8auY0FJGE9h5tf';
+const DEFAULT_DRIVE_FOLDER_URL = `https://drive.google.com/drive/folders/${DEFAULT_DRIVE_FOLDER_ID}`;
 
 interface UploadTtbTabProps {
   procurementItems?: ProcurementItem[];
@@ -78,6 +80,45 @@ export default function UploadTtbTab({
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [uploadSuccessResult, setUploadSuccessResult] = useState<UploadTtbResponse | null>(null);
   const [copiedFilename, setCopiedFilename] = useState<string | null>(null);
+
+  // Configurable Google Drive Folder URL
+  const [driveFolderUrl, setDriveFolderUrl] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('cpg_drive_ttb_url') || DEFAULT_DRIVE_FOLDER_URL;
+    }
+    return DEFAULT_DRIVE_FOLDER_URL;
+  });
+  const [isEditingDriveUrl, setIsEditingDriveUrl] = useState<boolean>(false);
+  const [tempDriveUrl, setTempDriveUrl] = useState<string>(DEFAULT_DRIVE_FOLDER_URL);
+
+  const activeFolderId = useMemo(() => {
+    const match = driveFolderUrl.match(/folders\/([a-zA-Z0-9-_]+)/);
+    return match ? match[1] : DEFAULT_DRIVE_FOLDER_ID;
+  }, [driveFolderUrl]);
+
+  const handleSaveDriveUrl = () => {
+    const clean = tempDriveUrl.trim();
+    if (clean) {
+      setDriveFolderUrl(clean);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('cpg_drive_ttb_url', clean);
+      }
+      showToast?.('URL Folder Google Drive berhasil disimpan!', 'success');
+    }
+    setIsEditingDriveUrl(false);
+  };
+
+  const handleDownloadQueuedFile = (qf: QueuedFile, renamedName: string) => {
+    const url = URL.createObjectURL(qf.file);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = renamedName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast?.(`Mengunduh berkas: ${renamedName}`, 'info');
+  };
 
   // Autocomplete state
   const [isAutocompleteOpen, setIsAutocompleteOpen] = useState<boolean>(false);
@@ -385,7 +426,7 @@ export default function UploadTtbTab({
                 Auto-Rename Engine
               </span>
               <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium bg-muted text-muted-foreground border border-border">
-                ID: {GOOGLE_DRIVE_FOLDER_ID}
+                ID: {activeFolderId}
               </span>
             </div>
             <p className="text-xs md:text-sm text-muted-foreground leading-relaxed">
@@ -398,10 +439,10 @@ export default function UploadTtbTab({
             </p>
           </div>
 
-          {/* Tombol Akses Cepat Google Drive Folder */}
-          <div className="flex items-center gap-2 shrink-0">
+          {/* Tombol Akses Cepat Google Drive Folder & Konfigurasi URL */}
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">
             <a
-              href={GOOGLE_DRIVE_FOLDER_URL}
+              href={driveFolderUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 active:scale-95 text-white text-xs md:text-sm font-semibold transition shadow-sm cursor-pointer"
@@ -411,8 +452,79 @@ export default function UploadTtbTab({
               <span>Buka Folder Google Drive</span>
               <ExternalLink className="size-3.5 opacity-70 shrink-0" />
             </a>
+
+            <button
+              type="button"
+              onClick={() => {
+                setTempDriveUrl(driveFolderUrl);
+                setIsEditingDriveUrl((prev) => !prev);
+              }}
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground text-xs font-medium transition cursor-pointer"
+              title="Ubah tautan URL Google Drive (jika URL berbeda)"
+            >
+              <Pencil className="size-3.5" />
+              <span>Ubah URL</span>
+            </button>
           </div>
         </div>
+
+        {/* Form Pengeditan URL Google Drive */}
+        {isEditingDriveUrl && (
+          <div className="mt-4 p-4 rounded-xl bg-muted/70 border border-teal-500/30 animate-in fade-in-50 duration-200">
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <div className="space-y-0.5">
+                <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                  <Link2 className="size-3.5 text-teal-600" />
+                  <span>Kustomisasi URL Folder Google Drive</span>
+                </span>
+                <p className="text-[11px] text-muted-foreground">
+                  Jika tab Google Drive sudah terbuka di browser Anda (seperti tab &ldquo;TTB Upload&rdquo;), salin URL dari address bar tab tersebut dan tempel di bawah ini:
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsEditingDriveUrl(false)}
+                className="p-1 rounded text-muted-foreground hover:text-foreground"
+              >
+                <X className="size-3.5" />
+              </button>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2 items-center">
+              <input
+                type="text"
+                value={tempDriveUrl}
+                onChange={(e) => setTempDriveUrl(e.target.value)}
+                placeholder="https://drive.google.com/drive/folders/..."
+                className="w-full h-9 px-3 text-xs rounded-lg bg-background border border-border focus:outline-none focus:ring-1 focus:ring-teal-500 font-mono text-foreground"
+              />
+              <div className="flex items-center gap-1.5 self-end sm:self-auto shrink-0">
+                <button
+                  type="button"
+                  onClick={handleSaveDriveUrl}
+                  className="px-3.5 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold transition cursor-pointer"
+                >
+                  Simpan URL
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTempDriveUrl(DEFAULT_DRIVE_FOLDER_URL);
+                    setDriveFolderUrl(DEFAULT_DRIVE_FOLDER_URL);
+                    if (typeof window !== 'undefined') {
+                      localStorage.removeItem('cpg_drive_ttb_url');
+                    }
+                    showToast?.('URL direset ke default!', 'info');
+                    setIsEditingDriveUrl(false);
+                  }}
+                  className="px-2.5 py-2 rounded-lg border border-border hover:bg-muted text-xs text-muted-foreground transition cursor-pointer"
+                >
+                  Reset Default
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Workflow Steps Indicator */}
         <div className="mt-5 pt-4 border-t border-border grid grid-cols-2 md:grid-cols-4 gap-3 text-xs text-muted-foreground">
@@ -493,6 +605,13 @@ export default function UploadTtbTab({
                         >
                           <Eye className="size-3" />
                         </a>
+                        <a
+                          href={`${uf.fileUrl}&download=true`}
+                          className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-emerald-600 transition"
+                          title="Unduh Berkas yang Sudah Di-Rename"
+                        >
+                          <Download className="size-3" />
+                        </a>
                       </div>
                     </div>
                   ))}
@@ -502,7 +621,7 @@ export default function UploadTtbTab({
 
             <div className="flex items-center gap-2 shrink-0 self-end sm:self-start">
               <a
-                href={GOOGLE_DRIVE_FOLDER_URL}
+                href={driveFolderUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition cursor-pointer"
@@ -676,7 +795,7 @@ export default function UploadTtbTab({
                 <span>Target Folder Google Drive:</span>
               </div>
               <div className="font-mono text-[10px] break-all text-teal-700 dark:text-teal-300">
-                1Hd6FsgWiAlQ1jJyRvh8auY0FJGE9h5tf
+                {activeFolderId}
               </div>
             </div>
           </div>
@@ -813,6 +932,14 @@ export default function UploadTtbTab({
                               ) : (
                                 <Copy className="size-3" />
                               )}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDownloadQueuedFile(qf, newFilename)}
+                              className="p-1 text-muted-foreground hover:text-teal-600 transition cursor-pointer"
+                              title="Unduh Berkas yang Sudah Di-rename"
+                            >
+                              <Download className="size-3" />
                             </button>
                           </div>
                         </div>
@@ -1019,7 +1146,7 @@ export default function UploadTtbTab({
                           <Download className="size-3.5" />
                         </a>
                         <a
-                          href={GOOGLE_DRIVE_FOLDER_URL}
+                          href={driveFolderUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="p-1.5 rounded-lg border border-teal-500/30 bg-teal-500/10 hover:bg-teal-500/20 text-teal-600 dark:text-teal-400 transition"
