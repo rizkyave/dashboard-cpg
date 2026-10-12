@@ -134,18 +134,25 @@ export default function Header({
     }
   }, [searchKeyword]);
 
-  // Click outside listener for action dropdown menu
+  // Click outside and Escape key listener for action dropdown menu
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setIsMenuOpen(false);
       }
     };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsMenuOpen(false);
+      }
+    };
     if (isMenuOpen) {
       document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
     }
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [isMenuOpen]);
 
@@ -555,7 +562,17 @@ export default function Header({
 
           {/* Clean Action Dropdown Popover */}
           {isMenuOpen && (
-            <div className="absolute left-0 top-10 w-80 rounded-xl border border-border bg-card p-1.5 shadow-2xl z-50 text-xs animate-in fade-in slide-in-from-top-2 duration-150">
+            <div
+              className="absolute left-0 top-10 w-80 sm:w-88 max-h-[calc(100vh-4.25rem)] overflow-y-auto overscroll-contain rounded-xl border border-border bg-card p-1.5 shadow-2xl z-50 text-xs animate-in fade-in slide-in-from-top-2 duration-150"
+              style={{
+                scrollbarWidth: 'thin',
+                overscrollBehavior: 'contain',
+              }}
+              onWheel={(e) => {
+                // Cegah event scroll mouse tembus ke background halaman
+                e.stopPropagation();
+              }}
+            >
               {/* User Profile Banner */}
               <div className="flex items-center gap-2.5 p-2.5 border-b border-border/80 mb-1">
                 <div
