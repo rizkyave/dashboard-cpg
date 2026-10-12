@@ -7,32 +7,24 @@ import {
   CheckCircle2,
   AlertTriangle,
   Clock,
-  Copy,
-  Check,
   Search,
-  Filter,
   Download,
   Share2,
   Ship,
-  Boxes,
   ArrowRight,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-  ExternalLink,
-  ShieldCheck,
-  Building2,
+  Check,
   RotateCcw,
-  Sparkles,
+  Layers,
 } from 'lucide-react';
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
-import { extractDateInfo, formatDateDdMmYy, formatDateDdMmYyDash } from '@/utils/formatDate';
+import { extractDateInfo, formatDateDdMmYy } from '@/utils/formatDate';
 import WorkflowTrafficLight from './WorkflowTrafficLight';
 import {
   evaluateFiveDivisionWorkflow,
-  FiveDivisionWorkflowResult,
-  isFieldBelum,
   hasValue,
 } from '@/utils/statusWorkflow';
 
@@ -54,7 +46,7 @@ export default function DailyAnalyticsReport({
   showToast,
   className = '',
 }: DailyAnalyticsReportProps) {
-  // Gabungkan semua data transaksi unik (prioritas items procurement, fallback armada)
+  // 1. Gabungkan seluruh data transaksi unik
   const allTransactions = useMemo(() => {
     const list = [...items];
     if (armadaItems && armadaItems.length > 0) {
@@ -70,10 +62,9 @@ export default function DailyAnalyticsReport({
     return list;
   }, [items, armadaItems]);
 
-  // Ekstraksi seluruh tanggal aktivitas valid dalam dataset (diurutkan kronologis descending)
+  // 2. Daftar tanggal unik berurutan kronologis descending
   const availableDates = useMemo(() => {
     const dateMap = new Map<string, { fullDate: string; timestamp: number; formatted: string }>();
-
     for (const it of allTransactions) {
       const candidates = [
         it.tglPo,
@@ -86,7 +77,6 @@ export default function DailyAnalyticsReport({
         it.tglInputSpp,
         it.tglKeKeuangan,
       ];
-
       for (const c of candidates) {
         if (!hasValue(c)) continue;
         const info = extractDateInfo(c);
@@ -101,67 +91,46 @@ export default function DailyAnalyticsReport({
         }
       }
     }
-
     return Array.from(dateMap.values()).sort((a, b) => b.timestamp - a.timestamp);
   }, [allTransactions]);
 
-  // Tanggal default: tanggal data aktivitas terbaru dalam dataset (atau hari ini jika kosong)
   const defaultIsoDate = useMemo(() => {
-    if (availableDates.length > 0) {
-      return availableDates[0].fullDate;
-    }
-    const today = new Date();
-    return today.toISOString().split('T')[0];
+    return availableDates.length > 0 ? availableDates[0].fullDate : new Date().toISOString().split('T')[0];
   }, [availableDates]);
 
-  // State filter
+  // States
   const [selectedIsoDate, setSelectedIsoDate] = useState<string>(defaultIsoDate);
   const [dateBasis, setDateBasis] = useState<DateBasisFilter>('ALL_ACTIVITY');
   const [entityFilter, setEntityFilter] = useState<string>('ALL');
   const [trafficFilter, setTrafficFilter] = useState<TrafficLightFilter>('ALL');
-  const [divisionBottleneckFilter, setDivisionBottleneckFilter] = useState<string | null>(null);
+  const [activeFunnelStage, setActiveFunnelStage] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isCopied, setIsCopied] = useState<boolean>(false);
   const pageSize = 15;
 
-  // Tanggal terformat (contoh: 09/08/24)
-  const selectedFormattedDate = useMemo(() => {
-    return formatDateDdMmYy(selectedIsoDate);
-  }, [selectedIsoDate]);
+  const selectedFormattedDate = useMemo(() => formatDateDdMmYy(selectedIsoDate), [selectedIsoDate]);
 
-  // Ambil transaksi yang memiliki aktivitas pada selectedIsoDate
+  // Filter transaksi berdasarkan tanggal terpilih
   const dailyTransactions = useMemo(() => {
     if (!selectedIsoDate) return [];
 
     return allTransactions.filter((it) => {
-      // Filter Entitas
       if (entityFilter !== 'ALL') {
         const itemEnt = (it.entity || '').toUpperCase();
         if (itemEnt !== entityFilter.toUpperCase()) return false;
       }
 
-      // Filter Tanggal berdasarkan basis yang dipilih
       const matchesDate = (rawDate?: string | number | null) => {
         if (!hasValue(rawDate)) return false;
-        const info = extractDateInfo(rawDate);
-        return info.fullDate === selectedIsoDate;
+        return extractDateInfo(rawDate).fullDate === selectedIsoDate;
       };
 
-      if (dateBasis === 'PO_DATE') {
-        return matchesDate(it.tglPo) || matchesDate(it.date);
-      }
-      if (dateBasis === 'FPB_DATE') {
-        return matchesDate(it.tglFpb);
-      }
-      if (dateBasis === 'TTB_DATE') {
-        return matchesDate(it.tglTtb) || matchesDate(it.tglInputTtb);
-      }
-      if (dateBasis === 'KEU_DATE') {
-        return matchesDate(it.tglKeKeuangan) || matchesDate(it.tglSpp) || matchesDate(it.tglInputSpp);
-      }
+      if (dateBasis === 'PO_DATE') return matchesDate(it.tglPo) || matchesDate(it.date);
+      if (dateBasis === 'FPB_DATE') return matchesDate(it.tglFpb);
+      if (dateBasis === 'TTB_DATE') return matchesDate(it.tglTtb) || matchesDate(it.tglInputTtb);
+      if (dateBasis === 'KEU_DATE') return matchesDate(it.tglKeKeuangan) || matchesDate(it.tglSpp) || matchesDate(it.tglInputSpp);
 
-      // Default: ALL_ACTIVITY (Ada pergerakan PO, FPB, TTB, Lapangan, atau SPP/Keuangan)
       return (
         matchesDate(it.tglPo) ||
         matchesDate(it.date) ||
@@ -178,18 +147,26 @@ export default function DailyAnalyticsReport({
     });
   }, [allTransactions, selectedIsoDate, dateBasis, entityFilter]);
 
-  // Evaluasi workflow untuk setiap item harian
+  // Evaluasi alur 5 seksi & deteksi kendala
   const dailyEvaluatedItems = useMemo(() => {
     return dailyTransactions.map((item) => {
       const wf = evaluateFiveDivisionWorkflow(item);
+      const pendingBelumDetails: { stage: string; text: string; detail: string }[] = [];
 
-      // Hitung keterangan rincian yang masih berstatus 'Belum'
-      const pendingBelumDetails: string[] = [];
       for (const st of wf.stages) {
         if (st.isPartial) {
-          pendingBelumDetails.push(`${st.code}: ${st.statusText} [${st.detail}]`);
+          pendingBelumDetails.push({ stage: st.code, text: st.statusText, detail: st.detail });
         } else if (!st.isPassed) {
-          pendingBelumDetails.push(`${st.code}: Belum Dimulai`);
+          pendingBelumDetails.push({ stage: st.code, text: 'Belum Dimulai', detail: st.detail });
+        }
+      }
+
+      // Hitung lapse / aging days
+      let agingDays = typeof item.lapse === 'number' && item.lapse > 0 ? item.lapse : 0;
+      if (!agingDays && item.tglPo) {
+        const poDate = extractDateInfo(item.tglPo).timestamp;
+        if (poDate > 0) {
+          agingDays = Math.max(0, Math.floor((Date.now() - poDate) / (1000 * 60 * 60 * 24)));
         }
       }
 
@@ -197,47 +174,38 @@ export default function DailyAnalyticsReport({
         item,
         wf,
         pendingBelumDetails,
+        agingDays,
       };
     });
   }, [dailyTransactions]);
 
-  // Statistik Ringkasan Harian (KPI Metrics)
+  // Metrik KPI & Funnel
   const dailyMetrics = useMemo(() => {
     const total = dailyEvaluatedItems.length;
-    let fullCount = 0; // 5/5 Lengkap (semua divisi hijau penuh)
-    let partialCount = 0; // Ada divisi aktif yang menyala setengah (data belum)
-    let offCount = 0; // Belum berjalan (0/5)
+    let fullCount = 0;
+    let partialCount = 0;
+    let offCount = 0;
 
-    // Breakdown kendala per 5 divisi
-    const bottleneckCounts = {
-      FPB: 0,
-      PCH: 0,
-      LOG: 0,
-      LAP: 0,
-      ADM: 0,
+    const funnelCounts = {
+      FPB: { stuck: 0, label: 'Belum Verifikasi' },
+      PCH: { stuck: 0, label: 'Delivery/FSTB Belum' },
+      LOG: { stuck: 0, label: 'Menunggu TTB' },
+      LAP: { stuck: 0, label: 'Belum Diantar' },
+      ADM: { stuck: 0, label: 'SPP Belum Terbit' },
     };
 
-    let totalQtyFPB = 0;
-    let totalQtyTTB = 0;
     const vesselsSet = new Set<string>();
 
     for (const { item, wf } of dailyEvaluatedItems) {
-      if (wf.isComplete) {
-        fullCount++;
-      } else if (wf.passedCount === 0) {
-        offCount++;
-      } else {
-        partialCount++;
-      }
+      if (wf.isComplete) fullCount++;
+      else if (wf.passedCount === 0) offCount++;
+      else partialCount++;
 
       for (const st of wf.stages) {
-        if (st.isPartial) {
-          bottleneckCounts[st.code as keyof typeof bottleneckCounts]++;
+        if (st.isPartial && funnelCounts[st.code as keyof typeof funnelCounts]) {
+          funnelCounts[st.code as keyof typeof funnelCounts].stuck++;
         }
       }
-
-      if (typeof item.qtyFPB === 'number') totalQtyFPB += item.qtyFPB;
-      if (typeof item.qtyTTB === 'number') totalQtyTTB += item.qtyTTB;
 
       const vessel = (item as any).armada || (item as any).deptArmada || '';
       if (vessel && vessel !== '-') vesselsSet.add(vessel.trim());
@@ -251,33 +219,28 @@ export default function DailyAnalyticsReport({
       partialCount,
       offCount,
       completionRate,
-      bottleneckCounts,
-      totalQtyFPB,
-      totalQtyTTB,
-      activeVesselsCount: vesselsSet.size,
+      funnelCounts,
+      vesselsCount: vesselsSet.size,
       vesselList: Array.from(vesselsSet),
     };
   }, [dailyEvaluatedItems]);
 
-  // Filter daftar transaksi berdasarkan pencarian, traffic filter, dan bottleneck seksi
+  // Filter daftar transaksi
   const filteredList = useMemo(() => {
     return dailyEvaluatedItems.filter(({ item, wf }) => {
-      // Filter Traffic Light Status
       if (trafficFilter === 'FULL' && !wf.isComplete) return false;
       if (trafficFilter === 'PARTIAL' && (wf.isComplete || wf.passedCount === 0)) return false;
       if (trafficFilter === 'OFF' && wf.passedCount > 0) return false;
 
-      // Filter Bottleneck Divisi Spesifik
-      if (divisionBottleneckFilter) {
-        const stage = wf.stages.find((s) => s.code === divisionBottleneckFilter);
+      if (activeFunnelStage) {
+        const stage = wf.stages.find((s) => s.code === activeFunnelStage);
         if (!stage || !stage.isPartial) return false;
       }
 
-      // Search Query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
         const fpb = (item.fpb || '').toLowerCase();
-        const po = (item.po || item.noPo || '').toLowerCase();
+        const po = (item.po || (item as any).noPo || '').toLowerCase();
         const itName = (item.item || '').toLowerCase();
         const pic = (item.picAktif || item.picPch || item.picTtb || '').toLowerCase();
         const armada = ((item as any).armada || (item as any).deptArmada || '').toLowerCase();
@@ -295,7 +258,7 @@ export default function DailyAnalyticsReport({
 
       return true;
     });
-  }, [dailyEvaluatedItems, trafficFilter, divisionBottleneckFilter, searchQuery]);
+  }, [dailyEvaluatedItems, trafficFilter, activeFunnelStage, searchQuery]);
 
   // Pagination
   const totalPages = Math.ceil(filteredList.length / pageSize) || 1;
@@ -304,7 +267,7 @@ export default function DailyAnalyticsReport({
     return filteredList.slice(start, start + pageSize);
   }, [filteredList, currentPage, pageSize]);
 
-  // Navigasi tanggal cepat (Hari Sebelumnya / Hari Berikutnya)
+  // Navigasi tanggal
   const currentIdx = availableDates.findIndex((d) => d.fullDate === selectedIsoDate);
   const handlePrevDay = () => {
     if (currentIdx !== -1 && currentIdx < availableDates.length - 1) {
@@ -319,175 +282,145 @@ export default function DailyAnalyticsReport({
     }
   };
 
-  // Preset Cepat
-  const handleSelectToday = () => {
-    const today = new Date().toISOString().split('T')[0];
-    setSelectedIsoDate(today);
-    setCurrentPage(1);
-  };
-  const handleSelectLatestAvailable = () => {
-    if (availableDates.length > 0) {
-      setSelectedIsoDate(availableDates[0].fullDate);
-      setCurrentPage(1);
-    }
-  };
-
-  // Fungsi: Salin Teks Rekap Eksekutif ke WhatsApp
+  // Salin WhatsApp
   const handleCopyWhatsApp = () => {
-    const header = `📋 *LAPORAN HARIAN SUPPLY CHAIN & PROCUREMENT CPG*\n📅 *Tanggal Aktivitas:* ${selectedFormattedDate} (${selectedIsoDate})\n🏢 *Entitas:* ${entityFilter === 'ALL' ? 'Semua Entitas CPG' : entityFilter}\n\n`;
+    const text = `📋 *LAPORAN HARIAN SUPPLY CHAIN & LOGISTIK CPG*
+📅 *Tanggal:* ${selectedFormattedDate} (${selectedIsoDate})
+🏢 *Entitas:* ${entityFilter === 'ALL' ? 'Semua Entitas' : entityFilter}
 
-    const summarySection = `📊 *RINGKASAN EKSEKUTIF ALUR:*\n• Total Berkas Aktif Hari Ini: *${dailyMetrics.total} Transaksi*\n• 🟢 5/5 Lengkap (Tuntas 100%): *${dailyMetrics.fullCount} Transaksi (${dailyMetrics.completionRate}%)*\n• ◐ Menyala Setengah (Data Belum Penuh): *${dailyMetrics.partialCount} Transaksi*\n• ⚪ Belum Dimulai: *${dailyMetrics.offCount} Transaksi*\n• 🚢 Armada Dilayani: *${dailyMetrics.activeVesselsCount} Kapal/Unit*\n\n`;
+📊 *EXECUTIVE SUMMARY:*
+• Total Berkas Aktif: *${dailyMetrics.total} Dokumen*
+• 🟢 Tuntas (5/5 Lengkap): *${dailyMetrics.fullCount} Dokumen (${dailyMetrics.completionRate}%)*
+• ◐ Tertahan / Perlu Tindak Lanjut: *${dailyMetrics.partialCount} Dokumen*
+• 🚢 Armada Terdampak: *${dailyMetrics.vesselsCount} Kapal/Unit*
 
-    const bottleneckSection = `🚦 *RADAR KENDALA & STATUS 'BELUM' PER SEKSI:*\n• 1. FPB Check: ${dailyMetrics.bottleneckCounts.FPB > 0 ? `⚠️ ${dailyMetrics.bottleneckCounts.FPB} item belum terverifikasi` : '✅ Lancar'}\n• 2. Purchasing: ${dailyMetrics.bottleneckCounts.PCH > 0 ? `⚠️ ${dailyMetrics.bottleneckCounts.PCH} item Delivery/FSTB Belum Terbit` : '✅ Lancar'}\n• 3. Logistik TTB: ${dailyMetrics.bottleneckCounts.LOG > 0 ? `⚠️ ${dailyMetrics.bottleneckCounts.LOG} item Menunggu TTB` : '✅ Lancar'}\n• 4. Tim Lapangan: ${dailyMetrics.bottleneckCounts.LAP > 0 ? `⚠️ ${dailyMetrics.bottleneckCounts.LAP} item Belum Diantar/Serah Terima` : '✅ Lancar'}\n• 5. ADM / SPP: ${dailyMetrics.bottleneckCounts.ADM > 0 ? `⚠️ ${dailyMetrics.bottleneckCounts.ADM} item SPP Belum Terbit` : '✅ Lancar'}\n\n`;
+🚦 *BOTTLENECK PER TAHAP:*
+1. FPB (Permintaan): ${dailyMetrics.funnelCounts.FPB.stuck > 0 ? `⚠️ ${dailyMetrics.funnelCounts.FPB.stuck} belum terverifikasi` : '✅ Lancar'}
+2. PCH (Purchasing): ${dailyMetrics.funnelCounts.PCH.stuck > 0 ? `⚠️ ${dailyMetrics.funnelCounts.PCH.stuck} Delivery/FSTB Belum Terbit` : '✅ Lancar'}
+3. LOG (Gudang/TTB): ${dailyMetrics.funnelCounts.LOG.stuck > 0 ? `⚠️ ${dailyMetrics.funnelCounts.LOG.stuck} Menunggu Dokumen TTB` : '✅ Lancar'}
+4. LAP (Lapangan): ${dailyMetrics.funnelCounts.LAP.stuck > 0 ? `⚠️ ${dailyMetrics.funnelCounts.LAP.stuck} Belum Diantar/Serah Terima` : '✅ Lancar'}
+5. ADM (SPP Kasir): ${dailyMetrics.funnelCounts.ADM.stuck > 0 ? `⚠️ ${dailyMetrics.funnelCounts.ADM.stuck} SPP Belum Terbit` : '✅ Lancar'}
 
-    let topPendingSection = `⚠️ *DAFTAR TRANSAKSI PARSIAL (DATA BELUM PENUH):*\n`;
-    const pendingItems = dailyEvaluatedItems.filter(({ wf }) => wf.passedCount > 0 && !wf.isComplete).slice(0, 5);
-    if (pendingItems.length === 0) {
-      topPendingSection += `• Tidak ada transaksi parsial yang tertahan pada tanggal ini.\n`;
-    } else {
-      pendingItems.forEach(({ item, wf }, idx) => {
-        const fpb = item.fpb || '-';
-        const po = item.po || item.noPo || '-';
-        const armada = (item as any).armada || (item as any).deptArmada || '-';
-        const pendingStages = wf.stages
-          .filter((s) => s.isPartial)
-          .map((s) => s.code)
-          .join(', ');
-        topPendingSection += `${idx + 1}. *FPB:* ${fpb} | *Armada:* ${armada} | *PO:* ${po}\n   ↳ Kendala Seksi: [${pendingStages || 'Sebagian'}]\n`;
-      });
-      if (dailyEvaluatedItems.filter(({ wf }) => wf.passedCount > 0 && !wf.isComplete).length > 5) {
-        topPendingSection += `   _...dan ${dailyEvaluatedItems.filter(({ wf }) => wf.passedCount > 0 && !wf.isComplete).length - 5} berkas lainnya._\n`;
-      }
-    }
+⚠️ *TOP 3 BERKAS MEMBUTUHKAN PERCEPATAN:*
+${dailyEvaluatedItems
+  .filter(({ wf }) => wf.passedCount > 0 && !wf.isComplete)
+  .slice(0, 3)
+  .map(
+    ({ item, wf }, idx) =>
+      `${idx + 1}. *FPB:* ${item.fpb} (${(item as any).armada || (item as any).deptArmada || '-'}) | Kendala: [${wf.stages.filter((s) => s.isPartial).map((s) => s.code).join(', ')}]`
+  )
+  .join('\n')}
 
-    const footer = `\n_Digenerate otomatis dari Dashboard CPG Web Operasional & Supply Chain._`;
-    const fullText = header + summarySection + bottleneckSection + topPendingSection + footer;
+_Dashboard CPG Web Operasional & Supply Chain._`;
 
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(fullText).then(() => {
+      navigator.clipboard.writeText(text).then(() => {
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 2500);
-        showToast?.('Ringkasan Laporan Harian berhasil disalin ke clipboard!', 'success');
+        showToast?.('Format pesan WhatsApp berhasil disalin!', 'success');
       });
     }
   };
 
-  // Fungsi: Unduh Laporan Harian sebagai CSV
+  // Unduh CSV
   const handleDownloadCsv = () => {
     if (filteredList.length === 0) {
-      showToast?.('Tidak ada data transaksi untuk diunduh pada tanggal ini.', 'warning');
+      showToast?.('Tidak ada data transaksi untuk diekspor.', 'warning');
       return;
     }
-
-    const headers = [
-      'NO FPB',
-      'ENTITAS',
-      'ARMADA / DEPT',
-      'ITEM PENGADAAN',
-      'NO PO',
-      'TGL PO',
-      'PIC AKTIF',
-      'STATUS 5 DIVISI',
-      'STATUS LENGKAP',
-      'RINCIAN DATA BELUM',
-    ];
-
-    const rows = filteredList.map(({ item, wf, pendingBelumDetails }) => [
+    const headers = ['NO', 'NO FPB', 'ENTITAS', 'ARMADA', 'ITEM', 'NO PO', 'TGL PO', 'PIC', 'AGING (HARI)', 'KENDALA'];
+    const rows = filteredList.map(({ item, agingDays, pendingBelumDetails }, idx) => [
+      idx + 1,
       `"${item.fpb || '-'}"`,
       `"${item.entity || '-'}"`,
       `"${(item as any).armada || (item as any).deptArmada || '-'}"`,
       `"${(item.item || '').replace(/"/g, '""')}"`,
-      `"${item.po || item.noPo || '-'}"`,
+      `"${item.po || (item as any).noPo || '-'}"`,
       `"${formatDateDdMmYy(item.tglPo || item.date)}"`,
       `"${item.picAktif || item.picPch || '-'}"`,
-      `"${wf.summaryBadge}"`,
-      `"${wf.isComplete ? 'YA (5/5 Lengkap)' : wf.passedCount > 0 ? 'SEBAGIAN (Parsial)' : 'BELUM'}"`,
-      `"${pendingBelumDetails.join(' | ').replace(/"/g, '""')}"`,
+      agingDays,
+      `"${pendingBelumDetails.map((p) => `${p.stage}: ${p.text}`).join('; ')}"`,
     ]);
 
-    const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const csv = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `Laporan_Harian_CPG_${selectedIsoDate}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Daily_Report_CPG_${selectedIsoDate}.csv`;
+    a.click();
     URL.revokeObjectURL(url);
-
-    showToast?.(`File CSV Laporan Harian ${selectedIsoDate} berhasil diunduh.`, 'success');
+    showToast?.('File CSV berhasil diunduh.', 'success');
   };
 
   return (
     <div className={`space-y-4 ${className}`}>
       {/* ═══════════════════════════════════════════════════════════
-          HEADER: TITLE & ACTIONS
+          1. HEADER & CONTROL HUB
           ═══════════════════════════════════════════════════════════ */}
-      <div className="bg-card border border-border rounded-xl p-4 sm:p-5 shadow-xs space-y-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="p-2 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                <CalendarDays className="size-5 shrink-0" />
-              </span>
-              <div>
-                <h3 className="text-sm sm:text-base font-bold text-foreground tracking-tight flex items-center gap-2">
-                  <span>Laporan Harian Operasional &amp; Alur 5 Seksi</span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
-                    Live Analytics
-                  </span>
+      <div className="bg-card border border-border rounded-2xl p-4 sm:p-5 shadow-xs space-y-3.5">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shrink-0">
+              <CalendarDays className="size-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-bold text-foreground tracking-tight">
+                  Laporan Harian Operasional &amp; Alur 5 Seksi
                 </h3>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Rekap eksekutif pergerakan transaksi harian, status lampu lalu lintas, dan deteksi data bertuliskan &ldquo;Belum&rdquo;.
-                </p>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                  Live Sync
+                </span>
               </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Monitoring berkas aktif, pipeline kendala seksi, dan aging SLA pada tanggal aktivitas terpilih.
+              </p>
             </div>
           </div>
 
-          {/* Quick Action Buttons */}
-          <div className="flex items-center gap-2 flex-wrap">
+          {/* Quick-Action Buttons */}
+          <div className="flex items-center gap-2 self-start lg:self-auto flex-wrap">
             <button
+              type="button"
               onClick={handleCopyWhatsApp}
-              className={`h-8 px-3 rounded-lg text-xs font-semibold shadow-xs flex items-center gap-1.5 transition active:scale-95 cursor-pointer ${
+              className={`h-9 px-3.5 rounded-xl text-xs font-semibold shadow-xs flex items-center gap-1.5 transition active:scale-95 cursor-pointer ${
                 isCopied
                   ? 'bg-emerald-600 text-white'
                   : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'
               }`}
-              title="Salin rekap eksekutif ke clipboard dalam format WhatsApp siap kirim"
+              title="Salin rekap eksekutif ke clipboard format WhatsApp"
             >
-              {isCopied ? <Check className="size-3.5" /> : <Share2 className="size-3.5" />}
-              <span>{isCopied ? 'Tersalin!' : 'Salin Rekap WhatsApp'}</span>
+              {isCopied ? <Check className="size-4" /> : <Share2 className="size-4" />}
+              <span>{isCopied ? 'Tersalin!' : 'Salin Ringkasan WhatsApp'}</span>
             </button>
 
             <button
+              type="button"
               onClick={handleDownloadCsv}
-              className="h-8 px-3 rounded-lg text-xs font-medium bg-muted hover:bg-muted/80 text-foreground border border-border shadow-xs flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
-              title="Unduh data transaksi hari ini ke file CSV"
+              className="h-9 px-3.5 rounded-xl text-xs font-medium bg-muted hover:bg-muted/80 text-foreground border border-border shadow-xs flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
             >
-              <Download className="size-3.5 text-muted-foreground" />
-              <span>Unduh CSV</span>
+              <Download className="size-4 text-muted-foreground" />
+              <span>Export CSV</span>
             </button>
           </div>
         </div>
 
-        {/* ═══════════════════════════════════════════════════════════
-            DATE PICKER & FILTER BAR
-            ═══════════════════════════════════════════════════════════ */}
-        <div className="pt-3 border-t border-border/70 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-          {/* Tanggal Picker & Navigasi */}
+        {/* Integrated Toolbar Filter */}
+        <div className="pt-3 border-t border-border/70 flex flex-col md:flex-row md:items-center justify-between gap-3">
+          {/* Date Picker & Presets */}
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex items-center gap-1 bg-muted/60 p-1 rounded-lg border border-border">
+            <div className="flex items-center bg-muted/60 p-1 rounded-xl border border-border">
               <button
+                type="button"
                 onClick={handlePrevDay}
                 disabled={currentIdx >= availableDates.length - 1}
-                className="p-1 rounded hover:bg-card text-muted-foreground hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed transition"
-                title="Hari Sebelumnya"
+                className="p-1.5 rounded-lg hover:bg-card text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition"
               >
                 <ChevronLeft className="size-4" />
               </button>
 
-              <div className="flex items-center gap-1.5 px-2">
+              <div className="flex items-center gap-1.5 px-2.5">
                 <Calendar className="size-3.5 text-primary shrink-0" />
                 <input
                   type="date"
@@ -503,372 +436,47 @@ export default function DailyAnalyticsReport({
               </div>
 
               <button
+                type="button"
                 onClick={handleNextDay}
                 disabled={currentIdx <= 0}
-                className="p-1 rounded hover:bg-card text-muted-foreground hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed transition"
-                title="Hari Berikutnya"
+                className="p-1.5 rounded-lg hover:bg-card text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition"
               >
                 <ChevronRight className="size-4" />
               </button>
             </div>
 
-            {/* Tombol Preset Cepat */}
-            <div className="flex items-center gap-1 text-[11px] font-mono">
-              <button
-                onClick={handleSelectLatestAvailable}
-                className={`px-2 py-1 rounded-md border transition ${
-                  selectedIsoDate === defaultIsoDate
-                    ? 'bg-primary text-primary-foreground font-semibold border-primary'
-                    : 'bg-card hover:bg-muted text-muted-foreground border-border'
-                }`}
-              >
-                Data Terakhir ({formatDateDdMmYy(defaultIsoDate)})
-              </button>
-              <button
-                onClick={handleSelectToday}
-                className="px-2 py-1 rounded-md bg-card hover:bg-muted text-muted-foreground border border-border transition"
-              >
-                Hari Ini
-              </button>
-            </div>
-          </div>
-
-          {/* Filter Entitas & Basis Tanggal */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* Filter Basis Tanggal */}
-            <div className="flex items-center gap-1.5 text-xs">
-              <span className="text-[11px] text-muted-foreground font-mono">Basis:</span>
-              <select
-                value={dateBasis}
-                onChange={(e) => {
-                  setDateBasis(e.target.value as DateBasisFilter);
-                  setCurrentPage(1);
-                }}
-                className="h-8 px-2.5 rounded-lg bg-card border border-border text-xs text-foreground font-medium focus:outline-hidden cursor-pointer"
-              >
-                <option value="ALL_ACTIVITY">Semua Tanggal Aktivitas</option>
-                <option value="PO_DATE">Tanggal PO (Purchasing)</option>
-                <option value="FPB_DATE">Tanggal FPB (Permintaan)</option>
-                <option value="TTB_DATE">Tanggal TTB (Logistik)</option>
-                <option value="KEU_DATE">Tanggal Penyerahan Keuangan</option>
-              </select>
-            </div>
-
-            {/* Filter Entitas */}
-            <div className="flex items-center gap-1.5 text-xs">
-              <span className="text-[11px] text-muted-foreground font-mono">Entitas:</span>
-              <select
-                value={entityFilter}
-                onChange={(e) => {
-                  setEntityFilter(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="h-8 px-2.5 rounded-lg bg-card border border-border text-xs text-foreground font-medium focus:outline-hidden cursor-pointer"
-              >
-                <option value="ALL">Semua Entitas</option>
-                <option value="CPL">PT CPL</option>
-                <option value="PPI">PT PPI</option>
-                <option value="HL">PT HL</option>
-                <option value="GAJ">PT GAJ</option>
-                <option value="MIL">PT MIL</option>
-                <option value="SP">PT SP</option>
-                <option value="SSK">PT SSK</option>
-                <option value="MO">PT MO</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ═══════════════════════════════════════════════════════════
-          EXECUTIVE KPI SUMMARY CARDS (4 METRICS)
-          ═══════════════════════════════════════════════════════════ */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        {/* Card 1: Total Transaksi Bergerak */}
-        <div className="p-4 rounded-xl bg-card border border-border shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-xs text-muted-foreground font-mono">
-            <span>TOTAL AKTIVITAS BERKAS</span>
-            <span className="size-2 rounded-full bg-primary animate-pulse" />
-          </div>
-          <div className="flex items-baseline justify-between">
-            <span className="text-2xl sm:text-3xl font-extrabold font-mono text-foreground tracking-tight">
-              {dailyMetrics.total}
-            </span>
-            <span className="text-[11px] text-muted-foreground font-mono">
-              {selectedFormattedDate}
-            </span>
-          </div>
-          <p className="text-[11px] text-muted-foreground leading-tight">
-            Jumlah berkas PO/FPB/TTB/SPP yang tercatat aktif bergerak pada tanggal ini.
-          </p>
-        </div>
-
-        {/* Card 2: 5/5 Lengkap (Hijau Penuh) */}
-        <div
-          onClick={() => setTrafficFilter(trafficFilter === 'FULL' ? 'ALL' : 'FULL')}
-          className={`p-4 rounded-xl bg-card border shadow-xs space-y-2 cursor-pointer transition hover:border-emerald-500/50 ${
-            trafficFilter === 'FULL'
-              ? 'ring-2 ring-emerald-500/40 border-emerald-500 bg-emerald-500/5'
-              : 'border-emerald-500/30'
-          }`}
-        >
-          <div className="flex items-center justify-between text-xs text-emerald-700 dark:text-emerald-400 font-mono font-semibold">
-            <span>5/5 LENGKAP (PENUH)</span>
-            <CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-400" />
-          </div>
-          <div className="flex items-baseline justify-between">
-            <span className="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-600 dark:text-emerald-400 tracking-tight">
-              {dailyMetrics.fullCount}
-            </span>
-            <span className="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-              {dailyMetrics.completionRate}% Tuntas
-            </span>
-          </div>
-          <p className="text-[11px] text-muted-foreground leading-tight">
-            Seluruh 5 divisi tuntas 100% tanpa ada data yang bertuliskan &ldquo;Belum&rdquo;.
-          </p>
-        </div>
-
-        {/* Card 3: Menyala Setengah (◐ Parsial) */}
-        <div
-          onClick={() => setTrafficFilter(trafficFilter === 'PARTIAL' ? 'ALL' : 'PARTIAL')}
-          className={`p-4 rounded-xl bg-card border shadow-xs space-y-2 cursor-pointer transition hover:border-amber-500/50 ${
-            trafficFilter === 'PARTIAL'
-              ? 'ring-2 ring-amber-500/40 border-amber-500 bg-amber-500/5'
-              : 'border-amber-500/30'
-          }`}
-        >
-          <div className="flex items-center justify-between text-xs text-amber-700 dark:text-amber-400 font-mono font-semibold">
-            <span>MENYALA SETENGAH (◐)</span>
-            <span className="text-sm font-bold leading-none text-amber-500">◐</span>
-          </div>
-          <div className="flex items-baseline justify-between">
-            <span className="text-2xl sm:text-3xl font-extrabold font-mono text-amber-600 dark:text-amber-400 tracking-tight">
-              {dailyMetrics.partialCount}
-            </span>
-            <span className="text-[10px] font-mono font-bold text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30">
-              Perlu Tindak Lanjut
-            </span>
-          </div>
-          <p className="text-[11px] text-muted-foreground leading-tight">
-            Berkas aktif namun masih memiliki status &ldquo;Belum&rdquo; (misal: Delivery/FSTB/SPP belum terbit).
-          </p>
-        </div>
-
-        {/* Card 4: Armada & Volume */}
-        <div className="p-4 rounded-xl bg-card border border-border shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-xs text-muted-foreground font-mono">
-            <span>ARMADA &amp; VOLUME BARANG</span>
-            <Ship className="size-4 text-sky-500" />
-          </div>
-          <div className="flex items-baseline justify-between">
-            <span className="text-2xl sm:text-3xl font-extrabold font-mono text-foreground tracking-tight">
-              {dailyMetrics.activeVesselsCount}
-            </span>
-            <span className="text-xs font-mono font-semibold text-muted-foreground">
-              Kapal / Unit
-            </span>
-          </div>
-          <p className="text-[11px] text-muted-foreground leading-tight truncate" title={dailyMetrics.vesselList.join(', ')}>
-            {dailyMetrics.vesselList.length > 0 ? dailyMetrics.vesselList.slice(0, 3).join(', ') : 'Belum ada armada'}
-            {dailyMetrics.vesselList.length > 3 ? ` +${dailyMetrics.vesselList.length - 3} lainnya` : ''}
-          </p>
-        </div>
-      </div>
-
-      {/* ═══════════════════════════════════════════════════════════
-          5-DIVISION BOTTLENECK RADAR
-          ═══════════════════════════════════════════════════════════ */}
-      <div className="bg-card border border-border rounded-xl p-4 shadow-xs space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div>
-            <h4 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
-              <AlertTriangle className="size-3.5 text-amber-500" />
-              <span>Radar Kendala Alur 5 Seksi (Status &ldquo;Belum&rdquo; Hari Ini)</span>
-            </h4>
-            <p className="text-[11px] text-muted-foreground">
-              Klik pada salah satu divisi di bawah untuk memfilter transaksi yang tertahan di tahap tersebut:
-            </p>
-          </div>
-
-          {divisionBottleneckFilter && (
             <button
-              onClick={() => setDivisionBottleneckFilter(null)}
-              className="px-2 py-1 rounded bg-muted hover:bg-muted/80 text-foreground text-[11px] font-mono flex items-center gap-1 self-start sm:self-auto transition cursor-pointer"
+              type="button"
+              onClick={() => {
+                if (availableDates.length > 0) {
+                  setSelectedIsoDate(availableDates[0].fullDate);
+                  setCurrentPage(1);
+                }
+              }}
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-mono font-medium border transition ${
+                selectedIsoDate === defaultIsoDate
+                  ? 'bg-primary text-primary-foreground border-primary font-semibold'
+                  : 'bg-card hover:bg-muted text-muted-foreground border-border'
+              }`}
             >
-              <RotateCcw className="size-3 text-muted-foreground" />
-              <span>Reset Filter Divisi ({divisionBottleneckFilter})</span>
+              Data Terakhir ({formatDateDdMmYy(defaultIsoDate)})
             </button>
-          )}
-        </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5">
-          {/* 1. FPB */}
-          <button
-            type="button"
-            onClick={() =>
-              setDivisionBottleneckFilter(divisionBottleneckFilter === 'FPB' ? null : 'FPB')
-            }
-            className={`p-3 rounded-lg border text-left transition flex flex-col justify-between cursor-pointer ${
-              divisionBottleneckFilter === 'FPB'
-                ? 'bg-emerald-500/10 border-emerald-500 ring-2 ring-emerald-500/30'
-                : 'bg-muted/40 hover:bg-muted/70 border-border'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold font-mono text-emerald-700 dark:text-emerald-400">
-                1. FPB
-              </span>
-              <span className="size-2 rounded-full bg-emerald-500" />
-            </div>
-            <div className="mt-2">
-              <div className="text-lg font-bold font-mono text-foreground">
-                {dailyMetrics.bottleneckCounts.FPB}
-              </div>
-              <span className="text-[10px] text-muted-foreground font-mono">
-                {dailyMetrics.bottleneckCounts.FPB > 0 ? 'Belum Verifikasi' : 'Tuntas'}
-              </span>
-            </div>
-          </button>
-
-          {/* 2. PCH */}
-          <button
-            type="button"
-            onClick={() =>
-              setDivisionBottleneckFilter(divisionBottleneckFilter === 'PCH' ? null : 'PCH')
-            }
-            className={`p-3 rounded-lg border text-left transition flex flex-col justify-between cursor-pointer ${
-              divisionBottleneckFilter === 'PCH'
-                ? 'bg-sky-500/10 border-sky-500 ring-2 ring-sky-500/30'
-                : 'bg-muted/40 hover:bg-muted/70 border-border'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold font-mono text-sky-700 dark:text-sky-400">
-                2. PCH
-              </span>
-              <span className="size-2 rounded-full bg-sky-500" />
-            </div>
-            <div className="mt-2">
-              <div className="text-lg font-bold font-mono text-foreground">
-                {dailyMetrics.bottleneckCounts.PCH}
-              </div>
-              <span className="text-[10px] text-muted-foreground font-mono">
-                {dailyMetrics.bottleneckCounts.PCH > 0 ? 'Delivery/FSTB Belum' : 'Tuntas'}
-              </span>
-            </div>
-          </button>
-
-          {/* 3. LOG */}
-          <button
-            type="button"
-            onClick={() =>
-              setDivisionBottleneckFilter(divisionBottleneckFilter === 'LOG' ? null : 'LOG')
-            }
-            className={`p-3 rounded-lg border text-left transition flex flex-col justify-between cursor-pointer ${
-              divisionBottleneckFilter === 'LOG'
-                ? 'bg-purple-500/10 border-purple-500 ring-2 ring-purple-500/30'
-                : 'bg-muted/40 hover:bg-muted/70 border-border'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold font-mono text-purple-700 dark:text-purple-400">
-                3. LOG
-              </span>
-              <span className="size-2 rounded-full bg-purple-500" />
-            </div>
-            <div className="mt-2">
-              <div className="text-lg font-bold font-mono text-foreground">
-                {dailyMetrics.bottleneckCounts.LOG}
-              </div>
-              <span className="text-[10px] text-muted-foreground font-mono">
-                {dailyMetrics.bottleneckCounts.LOG > 0 ? 'Menunggu TTB' : 'Tuntas'}
-              </span>
-            </div>
-          </button>
-
-          {/* 4. LAP */}
-          <button
-            type="button"
-            onClick={() =>
-              setDivisionBottleneckFilter(divisionBottleneckFilter === 'LAP' ? null : 'LAP')
-            }
-            className={`p-3 rounded-lg border text-left transition flex flex-col justify-between cursor-pointer ${
-              divisionBottleneckFilter === 'LAP'
-                ? 'bg-orange-500/10 border-orange-500 ring-2 ring-orange-500/30'
-                : 'bg-muted/40 hover:bg-muted/70 border-border'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold font-mono text-orange-700 dark:text-orange-400">
-                4. LAP
-              </span>
-              <span className="size-2 rounded-full bg-orange-500" />
-            </div>
-            <div className="mt-2">
-              <div className="text-lg font-bold font-mono text-foreground">
-                {dailyMetrics.bottleneckCounts.LAP}
-              </div>
-              <span className="text-[10px] text-muted-foreground font-mono">
-                {dailyMetrics.bottleneckCounts.LAP > 0 ? 'Belum Diantar' : 'Tuntas'}
-              </span>
-            </div>
-          </button>
-
-          {/* 5. ADM */}
-          <button
-            type="button"
-            onClick={() =>
-              setDivisionBottleneckFilter(divisionBottleneckFilter === 'ADM' ? null : 'ADM')
-            }
-            className={`p-3 rounded-lg border text-left transition flex flex-col justify-between cursor-pointer ${
-              divisionBottleneckFilter === 'ADM'
-                ? 'bg-emerald-500/10 border-emerald-500 ring-2 ring-emerald-500/30'
-                : 'bg-muted/40 hover:bg-muted/70 border-border'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold font-mono text-emerald-700 dark:text-emerald-400">
-                5. ADM
-              </span>
-              <span className="size-2 rounded-full bg-emerald-500" />
-            </div>
-            <div className="mt-2">
-              <div className="text-lg font-bold font-mono text-foreground">
-                {dailyMetrics.bottleneckCounts.ADM}
-              </div>
-              <span className="text-[10px] text-muted-foreground font-mono">
-                {dailyMetrics.bottleneckCounts.ADM > 0 ? 'SPP Belum Terbit' : 'Tuntas'}
-              </span>
-            </div>
-          </button>
-        </div>
-      </div>
-
-      {/* ═══════════════════════════════════════════════════════════
-          TABLE: TRANSAKSI HARIAN & STATUS 5 SEKSI
-          ═══════════════════════════════════════════════════════════ */}
-      <div className="bg-card border border-border rounded-xl shadow-xs overflow-hidden space-y-0">
-        {/* Table Filter & Search Toolbar */}
-        <div className="p-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-muted/20">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs font-bold text-foreground font-mono uppercase tracking-wider">
-              Daftar Transaksi ({filteredList.length})
-            </span>
-            {trafficFilter !== 'ALL' && (
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-primary/10 text-primary border border-primary/20">
-                Filter: {trafficFilter}
-              </span>
-            )}
-            {divisionBottleneckFilter && (
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
-                Kendala Seksi: {divisionBottleneckFilter}
-              </span>
-            )}
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedIsoDate(new Date().toISOString().split('T')[0]);
+                setCurrentPage(1);
+              }}
+              className="px-2.5 py-1.5 rounded-lg text-xs font-mono font-medium bg-card hover:bg-muted text-muted-foreground border border-border transition"
+            >
+              Hari Ini
+            </button>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="relative w-full sm:w-64">
+          {/* Search Global & Dropdowns */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="relative w-full sm:w-56">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
               <input
                 type="text"
@@ -878,54 +486,288 @@ export default function DailyAnalyticsReport({
                   setSearchQuery(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full h-8 pl-8 pr-3 text-xs rounded-lg bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:border-primary transition"
+                className="w-full h-8.5 pl-8 pr-3 text-xs rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:border-primary transition"
               />
             </div>
+
+            <select
+              value={entityFilter}
+              onChange={(e) => {
+                setEntityFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="h-8.5 px-3 rounded-xl bg-card border border-border text-xs text-foreground font-medium focus:outline-hidden cursor-pointer"
+            >
+              <option value="ALL">Semua Entitas</option>
+              <option value="CPL">PT CPL</option>
+              <option value="PPI">PT PPI</option>
+              <option value="HL">PT HL</option>
+              <option value="GAJ">PT GAJ</option>
+              <option value="MIL">PT MIL</option>
+              <option value="SP">PT SP</option>
+              <option value="SSK">PT SSK</option>
+              <option value="MO">PT MO</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════
+          2. EXECUTIVE KPI CARDS (4 METRICS)
+          ═══════════════════════════════════════════════════════════ */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+        {/* Card 1: Total Berkas Aktif */}
+        <div className="p-4.5 rounded-2xl bg-card border border-border shadow-xs flex flex-col justify-between space-y-2">
+          <div className="flex items-center justify-between text-xs text-muted-foreground font-mono font-medium">
+            <span>TOTAL BERKAS AKTIF</span>
+            <Layers className="size-4 text-primary" />
+          </div>
+          <div>
+            <div className="text-3xl font-extrabold font-mono text-foreground tracking-tight">
+              {dailyMetrics.total}
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-1">
+              Aktivitas transaksi pada {selectedFormattedDate}
+            </p>
           </div>
         </div>
 
-        {/* Table Content */}
+        {/* Card 2: Berkas Tuntas (100%) */}
+        <div
+          onClick={() => setTrafficFilter(trafficFilter === 'FULL' ? 'ALL' : 'FULL')}
+          className={`p-4.5 rounded-2xl bg-card border shadow-xs flex flex-col justify-between space-y-2 cursor-pointer transition hover:border-emerald-500/60 ${
+            trafficFilter === 'FULL'
+              ? 'ring-2 ring-emerald-500/40 border-emerald-500 bg-emerald-500/5'
+              : 'border-emerald-500/30'
+          }`}
+        >
+          <div className="flex items-center justify-between text-xs text-emerald-700 dark:text-emerald-400 font-mono font-bold">
+            <span>BERKAS TUNTAS (100%)</span>
+            <CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-400" />
+          </div>
+          <div>
+            <div className="flex items-baseline justify-between">
+              <span className="text-3xl font-extrabold font-mono text-emerald-600 dark:text-emerald-400 tracking-tight">
+                {dailyMetrics.fullCount}
+              </span>
+              <span className="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                {dailyMetrics.completionRate}%
+              </span>
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-1">
+              5/5 seksi lengkap tanpa status &ldquo;Belum&rdquo;
+            </p>
+          </div>
+        </div>
+
+        {/* Card 3: Berkas Tertahan (Outstanding) */}
+        <div
+          onClick={() => setTrafficFilter(trafficFilter === 'PARTIAL' ? 'ALL' : 'PARTIAL')}
+          className={`p-4.5 rounded-2xl bg-card border shadow-xs flex flex-col justify-between space-y-2 cursor-pointer transition hover:border-amber-500/60 ${
+            trafficFilter === 'PARTIAL'
+              ? 'ring-2 ring-amber-500/40 border-amber-500 bg-amber-500/5'
+              : 'border-amber-500/30'
+          }`}
+        >
+          <div className="flex items-center justify-between text-xs text-amber-700 dark:text-amber-400 font-mono font-bold">
+            <span>TERTAHAN / BUTUH TINDAK LANJUT</span>
+            <span className="text-sm font-bold leading-none text-amber-500">◐</span>
+          </div>
+          <div>
+            <div className="flex items-baseline justify-between">
+              <span className="text-3xl font-extrabold font-mono text-amber-600 dark:text-amber-400 tracking-tight">
+                {dailyMetrics.partialCount}
+              </span>
+              <span className="text-[10px] font-mono font-bold text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30">
+                Outstanding
+              </span>
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-1">
+              Ada minimal 1 seksi masih bertuliskan &ldquo;Belum&rdquo;
+            </p>
+          </div>
+        </div>
+
+        {/* Card 4: Total Armada Terdampak */}
+        <div className="p-4.5 rounded-2xl bg-card border border-border shadow-xs flex flex-col justify-between space-y-2">
+          <div className="flex items-center justify-between text-xs text-muted-foreground font-mono font-medium">
+            <span>ARMADA TERDAMPAK</span>
+            <Ship className="size-4 text-sky-500" />
+          </div>
+          <div>
+            <div className="text-3xl font-extrabold font-mono text-foreground tracking-tight">
+              {dailyMetrics.vesselsCount}
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-1 truncate" title={dailyMetrics.vesselList.join(', ')}>
+              {dailyMetrics.vesselList.slice(0, 3).join(', ')}
+              {dailyMetrics.vesselList.length > 3 ? ` +${dailyMetrics.vesselList.length - 3} lainnya` : ''}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════
+          3. BOTTLENECK FUNNEL TRACKER (PIPELINE 5 SEKSI HORIZONTAL)
+          ═══════════════════════════════════════════════════════════ */}
+      <div className="bg-card border border-border rounded-2xl p-4 sm:p-5 shadow-xs space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h4 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+              <AlertTriangle className="size-3.5 text-amber-500" />
+              <span>Bottleneck Funnel Tracker: Pipeline Alur 5 Seksi Berurutan</span>
+            </h4>
+            <p className="text-[11px] text-muted-foreground">
+              Klik pada salah satu tahapan pipeline untuk memfilter tabel di bawah ke berkas yang tertahan di tahap tersebut:
+            </p>
+          </div>
+
+          {activeFunnelStage && (
+            <button
+              type="button"
+              onClick={() => setActiveFunnelStage(null)}
+              className="px-2.5 py-1 rounded-lg bg-muted hover:bg-muted/80 text-foreground text-[11px] font-mono flex items-center gap-1 self-start sm:self-auto transition cursor-pointer"
+            >
+              <RotateCcw className="size-3 text-muted-foreground" />
+              <span>Reset Filter ({activeFunnelStage})</span>
+            </button>
+          )}
+        </div>
+
+        {/* Connected Horizontal Pipeline */}
+        <div className="grid grid-cols-1 sm:grid-cols-5 gap-2.5 pt-1">
+          {[
+            { code: 'FPB', num: 1, name: 'Permintaan / Verifikasi', color: 'emerald', sub: 'Belum Verifikasi' },
+            { code: 'PCH', num: 2, name: 'Purchasing / PO', color: 'sky', sub: 'Delivery/FSTB Belum' },
+            { code: 'LOG', num: 3, name: 'Logistik / Gudang', color: 'purple', sub: 'Menunggu TTB' },
+            { code: 'LAP', num: 4, name: 'Lapangan / Fisik', color: 'orange', sub: 'Belum Diantar' },
+            { code: 'ADM', num: 5, name: 'Administrasi / SPP', color: 'emerald', sub: 'SPP Belum Terbit' },
+          ].map((stage, sIdx) => {
+            const stuckCount = dailyMetrics.funnelCounts[stage.code as keyof typeof dailyMetrics.funnelCounts].stuck;
+            const isSelected = activeFunnelStage === stage.code;
+            const isClean = stuckCount === 0;
+
+            return (
+              <button
+                key={stage.code}
+                type="button"
+                onClick={() => setActiveFunnelStage(isSelected ? null : stage.code)}
+                className={`relative p-3.5 rounded-xl border text-left transition-all duration-200 flex flex-col justify-between cursor-pointer group ${
+                  isSelected
+                    ? 'bg-amber-500/10 border-amber-500 ring-2 ring-amber-500/30 shadow-xs'
+                    : isClean
+                    ? 'bg-muted/30 hover:bg-muted/60 border-border'
+                    : 'bg-card hover:border-amber-400/80 border-border shadow-xs'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <span className="size-5 rounded-full flex items-center justify-center text-[10px] font-bold font-mono bg-muted text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                      {stage.num}
+                    </span>
+                    <span className="text-xs font-bold font-mono text-foreground">
+                      {stage.code}
+                    </span>
+                  </div>
+                  {isClean ? (
+                    <span className="size-2 rounded-full bg-emerald-500" title="Tuntas tanpa kendala" />
+                  ) : (
+                    <span className="size-2 rounded-full bg-amber-500 animate-pulse" title="Ada berkas tertahan" />
+                  )}
+                </div>
+
+                <div className="mt-2.5">
+                  <div className="text-xl font-extrabold font-mono text-foreground">
+                    {stuckCount}
+                  </div>
+                  <div className="text-[10px] font-mono leading-tight mt-0.5 truncate text-muted-foreground">
+                    {isClean ? '✓ Tuntas Lancar' : stage.sub}
+                  </div>
+                </div>
+
+                {/* Arrow Connector indicator (Desktop) */}
+                {sIdx < 4 && (
+                  <div className="hidden sm:block absolute -right-2 top-1/2 -translate-y-1/2 z-10 pointer-events-none text-muted-foreground/40">
+                    ➔
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════
+          4. INTERACTIVE DATA TABLE
+          ═══════════════════════════════════════════════════════════ */}
+      <div className="bg-card border border-border rounded-2xl shadow-xs overflow-hidden">
+        {/* Table Toolbar Header */}
+        <div className="p-4 border-b border-border flex items-center justify-between gap-3 bg-muted/20 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs font-bold text-foreground font-mono uppercase tracking-wider">
+              Daftar Transaksi ({filteredList.length})
+            </span>
+            {trafficFilter !== 'ALL' && (
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-primary/10 text-primary border border-primary/20">
+                Filter Status: {trafficFilter}
+              </span>
+            )}
+            {activeFunnelStage && (
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
+                Tahap Macet: {activeFunnelStage}
+              </span>
+            )}
+          </div>
+          <span className="text-[11px] text-muted-foreground font-mono">
+            Halaman {currentPage} dari {totalPages}
+          </span>
+        </div>
+
         {filteredList.length === 0 ? (
-          <div className="p-8 sm:p-12 text-center space-y-3">
+          <div className="p-10 text-center space-y-3">
             <div className="inline-flex p-3 rounded-full bg-muted text-muted-foreground">
               <CalendarDays className="size-6 text-muted-foreground" />
             </div>
             <div className="max-w-md mx-auto space-y-1">
               <h4 className="text-sm font-semibold text-foreground">
-                Tidak ada transaksi tercatat pada {selectedFormattedDate}
+                Tidak ada transaksi aktif pada {selectedFormattedDate}
               </h4>
               <p className="text-xs text-muted-foreground">
-                Coba pilih tanggal aktivitas lain yang tersedia atau reset filter pencarian Anda.
+                Silakan ganti tanggal atau reset filter pencarian Anda.
               </p>
             </div>
-            <button
-              onClick={handleSelectLatestAvailable}
-              className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold shadow-xs hover:opacity-90 transition cursor-pointer"
-            >
-              Lihat Data Terakhir ({formatDateDdMmYy(defaultIsoDate)})
-            </button>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left border-collapse">
               <thead>
                 <tr className="border-b border-border bg-muted/40 font-mono text-[11px] text-muted-foreground uppercase">
-                  <th className="py-2.5 px-3 whitespace-nowrap">No</th>
-                  <th className="py-2.5 px-3 whitespace-nowrap">No. FPB &amp; Entitas</th>
-                  <th className="py-2.5 px-3 whitespace-nowrap">Armada / Kapal</th>
-                  <th className="py-2.5 px-3 whitespace-nowrap">No. PO &amp; Tgl</th>
-                  <th className="py-2.5 px-3 whitespace-nowrap">Item &amp; PIC</th>
-                  <th className="py-2.5 px-3 text-center whitespace-nowrap">Status Alur 5 Seksi</th>
-                  <th className="py-2.5 px-3 whitespace-nowrap">Kendala / Rincian &ldquo;Belum&rdquo;</th>
-                  <th className="py-2.5 px-3 text-center whitespace-nowrap">Aksi</th>
+                  <th className="py-3 px-3.5 whitespace-nowrap">No</th>
+                  <th className="py-3 px-3.5 whitespace-nowrap">Dokumen &amp; Entitas</th>
+                  <th className="py-3 px-3.5 whitespace-nowrap">Armada / Kapal</th>
+                  <th className="py-3 px-3.5 whitespace-nowrap">PIC Bertanggung Jawab</th>
+                  <th className="py-3 px-3.5 text-center whitespace-nowrap">Progress Alur (5 Seksi)</th>
+                  <th className="py-3 px-3.5 whitespace-nowrap">Bottleneck Terkini</th>
+                  <th className="py-3 px-3.5 text-center whitespace-nowrap">Durasi / SLA</th>
+                  <th className="py-3 px-3.5 text-center whitespace-nowrap">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/60">
-                {paginatedList.map(({ item, wf, pendingBelumDetails }, idx) => {
+                {paginatedList.map(({ item, wf, pendingBelumDetails, agingDays }, idx) => {
                   const globalIdx = (currentPage - 1) * pageSize + idx + 1;
                   const fpb = item.fpb || '-';
-                  const po = item.po || item.noPo || '-';
+                  const po = item.po || (item as any).noPo || '-';
                   const armada = (item as any).armada || (item as any).deptArmada || '-';
+
+                  // Badge warna SLA / Aging
+                  const isSlaBreached = agingDays > 5;
+                  const isSlaWarning = agingDays >= 3 && agingDays <= 5;
+                  const slaBadgeClass = wf.isComplete
+                    ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
+                    : isSlaBreached
+                    ? 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20'
+                    : isSlaWarning
+                    ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
+                    : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20';
 
                   return (
                     <tr
@@ -933,22 +775,27 @@ export default function DailyAnalyticsReport({
                       className="hover:bg-muted/30 transition-colors group"
                     >
                       {/* No */}
-                      <td className="py-2.5 px-3 font-mono text-muted-foreground text-[11px]">
+                      <td className="py-3 px-3.5 font-mono text-muted-foreground text-[11px]">
                         {globalIdx}
                       </td>
 
-                      {/* No. FPB & Entitas */}
-                      <td className="py-2.5 px-3 min-w-[130px]">
-                        <span className="font-bold font-mono text-foreground block truncate">
+                      {/* Dokumen & Entitas */}
+                      <td className="py-3 px-3.5 min-w-[130px]">
+                        <span className="font-bold font-mono text-foreground block truncate" title={fpb}>
                           {fpb}
                         </span>
-                        <span className="text-[10px] font-mono text-muted-foreground">
-                          {item.entity || 'CPG'}
-                        </span>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-muted text-muted-foreground border border-border">
+                            {item.entity || 'CPG'}
+                          </span>
+                          <span className="text-[10px] font-mono text-muted-foreground">
+                            PO: {po !== '-' ? po : 'Belum Ada'}
+                          </span>
+                        </div>
                       </td>
 
                       {/* Armada / Kapal */}
-                      <td className="py-2.5 px-3 min-w-[140px]">
+                      <td className="py-3 px-3.5 min-w-[140px]">
                         <div className="flex items-center gap-1.5">
                           <Ship className="size-3 text-sky-500 shrink-0" />
                           <span className="font-medium text-foreground truncate" title={armada}>
@@ -957,44 +804,34 @@ export default function DailyAnalyticsReport({
                         </div>
                       </td>
 
-                      {/* No. PO & Tgl */}
-                      <td className="py-2.5 px-3 min-w-[130px]">
-                        <span className="font-mono text-foreground block truncate" title={po}>
-                          {po !== '-' ? po : <span className="text-muted-foreground italic">Menunggu PO</span>}
+                      {/* PIC Bertanggung Jawab */}
+                      <td className="py-3 px-3.5 min-w-[130px]">
+                        <span className="font-medium text-foreground block truncate">
+                          {item.picAktif || item.picPch || item.picTtb || '-'}
                         </span>
                         <span className="text-[10px] font-mono text-muted-foreground">
-                          {formatDateDdMmYy(item.tglPo || item.date)}
+                          {item.item ? item.item.slice(0, 20) : '-'}
                         </span>
                       </td>
 
-                      {/* Item & PIC */}
-                      <td className="py-2.5 px-3 min-w-[160px] max-w-[220px]">
-                        <span className="text-foreground block truncate" title={item.item}>
-                          {item.item || '-'}
-                        </span>
-                        <span className="text-[10px] font-mono text-muted-foreground">
-                          PIC: {item.picAktif || item.picPch || '-'}
-                        </span>
-                      </td>
-
-                      {/* Status Alur 5 Seksi Traffic Light */}
-                      <td className="py-2.5 px-3 text-center whitespace-nowrap">
+                      {/* Progress Alur (5 Seksi) */}
+                      <td className="py-3 px-3.5 text-center whitespace-nowrap">
                         <div className="inline-flex items-center justify-center">
                           <WorkflowTrafficLight
                             item={item}
                             compact={true}
                             showBadge={true}
-                            onClick={() => onOpenAudit?.(item.fpb, item.po || item.noPo)}
+                            onClick={() => onOpenAudit?.(item.fpb, item.po || (item as any).noPo)}
                           />
                         </div>
                       </td>
 
-                      {/* Kendala / Rincian Belum */}
-                      <td className="py-2.5 px-3 min-w-[200px] max-w-[280px]">
+                      {/* Bottleneck Terkini */}
+                      <td className="py-3 px-3.5 min-w-[210px] max-w-[280px]">
                         {wf.isComplete ? (
                           <span className="inline-flex items-center gap-1 text-[11px] font-mono font-medium text-emerald-700 dark:text-emerald-400">
                             <Check className="size-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                            <span>Lengkap (5/5 Selesai)</span>
+                            <span>Tuntas Lengkap (5/5)</span>
                           </span>
                         ) : pendingBelumDetails.length > 0 ? (
                           <div className="space-y-0.5">
@@ -1002,14 +839,14 @@ export default function DailyAnalyticsReport({
                               <div
                                 key={dIdx}
                                 className="text-[10.5px] font-mono text-amber-700 dark:text-amber-300 leading-tight truncate"
-                                title={det}
+                                title={`${det.stage}: ${det.text} [${det.detail}]`}
                               >
-                                • {det}
+                                • <span className="font-bold">[{det.stage}]</span> {det.text}
                               </div>
                             ))}
                             {pendingBelumDetails.length > 2 && (
-                              <span className="text-[10px] font-mono text-muted-foreground">
-                                +{pendingBelumDetails.length - 2} kendala lainnya
+                              <span className="text-[10px] font-mono text-muted-foreground block">
+                                +{pendingBelumDetails.length - 2} tahap belum selesai
                               </span>
                             )}
                           </div>
@@ -1020,11 +857,22 @@ export default function DailyAnalyticsReport({
                         )}
                       </td>
 
+                      {/* Durasi Macet / SLA Aging */}
+                      <td className="py-3 px-3.5 text-center whitespace-nowrap">
+                        <span
+                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-mono font-bold border ${slaBadgeClass}`}
+                        >
+                          <Clock className="size-3 shrink-0" />
+                          <span>{wf.isComplete ? 'Selesai' : `${agingDays} Hari`}</span>
+                        </span>
+                      </td>
+
                       {/* Aksi */}
-                      <td className="py-2.5 px-3 text-center whitespace-nowrap">
+                      <td className="py-3 px-3.5 text-center whitespace-nowrap">
                         <button
-                          onClick={() => onOpenAudit?.(item.fpb, item.po || item.noPo)}
-                          className="h-7 px-2.5 rounded bg-muted hover:bg-primary hover:text-primary-foreground text-foreground border border-border text-[11px] font-medium transition active:scale-95 cursor-pointer inline-flex items-center gap-1"
+                          type="button"
+                          onClick={() => onOpenAudit?.(item.fpb, item.po || (item as any).noPo)}
+                          className="h-7.5 px-3 rounded-lg bg-muted hover:bg-primary hover:text-primary-foreground text-foreground border border-border text-[11px] font-medium transition active:scale-95 cursor-pointer inline-flex items-center gap-1"
                           title="Buka Audit Rinci 5 Seksi"
                         >
                           <span>Audit</span>
@@ -1041,23 +889,26 @@ export default function DailyAnalyticsReport({
 
         {/* Pagination Toolbar */}
         {filteredList.length > pageSize && (
-          <div className="p-3 border-t border-border flex items-center justify-between text-xs text-muted-foreground bg-muted/20">
+          <div className="p-3.5 border-t border-border flex items-center justify-between text-xs text-muted-foreground bg-muted/20 flex-wrap gap-2">
             <span className="font-mono">
-              Halaman {currentPage} dari {totalPages} ({filteredList.length} transaksi)
+              Menampilkan {(currentPage - 1) * pageSize + 1} -{' '}
+              {Math.min(currentPage * pageSize, filteredList.length)} dari {filteredList.length} transaksi
             </span>
 
             <div className="flex items-center gap-1">
               <button
+                type="button"
                 onClick={() => setCurrentPage(1)}
                 disabled={currentPage <= 1}
-                className="p-1 rounded hover:bg-card disabled:opacity-40 disabled:cursor-not-allowed transition"
+                className="p-1 rounded-md hover:bg-card disabled:opacity-30 disabled:cursor-not-allowed transition"
               >
                 <ChevronsLeft className="size-4" />
               </button>
               <button
+                type="button"
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage <= 1}
-                className="p-1 rounded hover:bg-card disabled:opacity-40 disabled:cursor-not-allowed transition"
+                className="p-1 rounded-md hover:bg-card disabled:opacity-30 disabled:cursor-not-allowed transition"
               >
                 <ChevronLeft className="size-4" />
               </button>
@@ -1065,16 +916,18 @@ export default function DailyAnalyticsReport({
                 {currentPage}
               </span>
               <button
+                type="button"
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage >= totalPages}
-                className="p-1 rounded hover:bg-card disabled:opacity-40 disabled:cursor-not-allowed transition"
+                className="p-1 rounded-md hover:bg-card disabled:opacity-30 disabled:cursor-not-allowed transition"
               >
                 <ChevronRight className="size-4" />
               </button>
               <button
+                type="button"
                 onClick={() => setCurrentPage(totalPages)}
                 disabled={currentPage >= totalPages}
-                className="p-1 rounded hover:bg-card disabled:opacity-40 disabled:cursor-not-allowed transition"
+                className="p-1 rounded-md hover:bg-card disabled:opacity-30 disabled:cursor-not-allowed transition"
               >
                 <ChevronsRight className="size-4" />
               </button>
@@ -1085,4 +938,3 @@ export default function DailyAnalyticsReport({
     </div>
   );
 }
-
