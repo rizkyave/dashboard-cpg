@@ -1285,7 +1285,7 @@ export default function AuditModal({
                   )
                 )}
                 <span className="text-foreground font-sans text-xs sm:text-sm font-medium truncate max-w-full">
-                  &bull; {itemsS2[0]?.armada || itemS1?.deptArmada || itemS1?.item || 'Nama Kapal / Armada'}
+                  &bull; {itemsS2[0]?.armada || itemS1?.deptArmada || itemS1?.item || 'Unit / Pemohon'}
                 </span>
               </div>
             </div>
@@ -2749,7 +2749,7 @@ export default function AuditModal({
           isOpen={showStockModal}
           onClose={() => setShowStockModal(false)}
           fpbNumber={cleanFpb || primaryDocNum || 'FPB'}
-          armadaName={itemsS2[0]?.armada || itemS1?.deptArmada || 'Armada Kapal'}
+          armadaName={itemsS2[0]?.armada || itemS1?.deptArmada || 'Unit Pemohon'}
           requestedItems={requestedFpbItems}
           inventoryItems={activeInventory}
           showToast={showToast}

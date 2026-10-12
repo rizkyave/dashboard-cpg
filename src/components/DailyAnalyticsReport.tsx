@@ -12,6 +12,9 @@ import {
   Share2,
   Ship,
   Building2,
+  Truck,
+  Wrench,
+  Users,
   ArrowRight,
   ChevronLeft,
   ChevronRight,
@@ -48,8 +51,17 @@ export interface DailyAnalyticsReportProps {
 
 type TrafficFilterType = 'ALL' | 'COMPLETE' | 'STUCK';
 type FunnelStageCode = 'FPB' | 'PCH' | 'LOG' | 'LAP' | 'ADM';
-type QuickTableFilter = 'ALL' | 'KAPAL' | 'KANTOR' | 'OVERDUE';
-type UnitCategory = 'ARMADA' | 'KANTOR';
+type QuickTableFilter = 'ALL' | 'KAPAL' | 'DARAT' | 'KANTOR' | 'OVERDUE';
+type UnitCategory = 'ARMADA' | 'KENDARAAN' | 'ALAT_BERAT' | 'KANTOR';
+
+export interface UnitClassification {
+  type: UnitCategory;
+  name: string;
+  categoryLabel: string;
+  badgeColor: string;
+  badgeIcon: 'ship' | 'truck' | 'wrench' | 'building';
+  isArmada: boolean;
+}
 
 interface PrimaryBottleneck {
   stageCode: FunnelStageCode | 'NONE';
@@ -75,67 +87,91 @@ interface SisaGoodsSummary {
 }
 
 /**
- * Klasifikasi apakah unit merupakan Armada Kapal atau Kantor / Keagenan
+ * Klasifikasi presisi peruntukan / unit pemohon dari data asli DEPT/ ARMADA
+ * Memisahkan: Armada Kapal (🚢), Truk & Kendaraan Darat (🚛), Alat Berat (🏗️), Kantor & Departemen (🏢)
  */
-function classifyUnitType(rawUnit?: string, peruntukan?: string): {
-  type: UnitCategory;
-  name: string;
-  isArmada: boolean;
-} {
-  const combined = `${rawUnit || ''} ${peruntukan || ''}`.trim().toUpperCase();
-  const unitName = (rawUnit || peruntukan || '-').trim();
+function classifyUnitType(rawUnit?: string, peruntukan?: string): UnitClassification {
+  const raw = String(rawUnit || '').trim();
+  const ket = String(peruntukan || '').trim();
+  const name = raw || ket || 'Unit Pemohon';
+  const combined = `${raw} ${ket}`.trim().toUpperCase();
 
-  const officeKeywords = [
-    'KANTOR',
-    'OFFICE',
-    'KEAGENAN',
-    'AGEN',
-    'CABANG',
-    'GA',
-    'GENERAL AFFAIR',
-    'HRD',
-    'IT',
-    'FINANCE',
-    'LOGISTIK',
-    'WORKSHOP',
-    'GUDANG',
-    'MESS',
-    'POOL',
-    'NON-ARMADA',
-    'NON ARMADA',
-    'DARAT',
-    'OPERASIONAL DARAT',
-  ];
-
-  const vesselKeywords = [
-    'TB ', 'TB.', 'TB-', 'TUG', 'TUGBOAT',
-    'BG ', 'BG.', 'BG-', 'BARGE', 'TONGKANG',
-    'SPOB', 'SPOB.', 'MT ', 'MT.', 'MT-',
-    'KM ', 'KM.', 'KM-', 'KAPAL', 'MV ', 'MV.',
-    'BOAT', 'TRANS', 'KENCANA', 'PERKASA', 'TIRTA', 'SAMUDRA',
-    'PACIFIC', 'BAHARI', 'MARITIM', 'INDOPRIMA', 'PELAYARAN',
-  ];
-
-  const hasOfficeKeyword = officeKeywords.some((kw) => combined.includes(kw));
-  const hasVesselKeyword = vesselKeywords.some((kw) => combined.includes(kw));
-
-  if (hasOfficeKeyword && !hasVesselKeyword) {
-    return { type: 'KANTOR', name: unitName || 'Kantor / Keagenan', isArmada: false };
+  // 1. Cek Alat Berat & Mesin
+  const heavyMatch = /\b(EXCA|EXCAVATOR|CRANE|FORKLIFT|DOZER|COMPACTOR|GENSET|AIR COMPRESSOR|AIRMAN|KAESER|KOMATSU|SANY|CAT 3|PC 200)\b/i.test(combined);
+  if (heavyMatch) {
+    return {
+      type: 'ALAT_BERAT',
+      name,
+      categoryLabel: 'Alat Berat',
+      badgeColor: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
+      badgeIcon: 'wrench',
+      isArmada: false,
+    };
   }
 
-  if (hasVesselKeyword) {
-    return { type: 'ARMADA', name: unitName || 'Armada Kapal', isArmada: true };
+  // 2. Cek Kendaraan Darat & Truk (Plat Nomor atau Truk)
+  const isPlate = /\b(KT|DA|B|L|D)\s*\d{3,5}\s*[A-Z]{0,3}\b/i.test(raw);
+  const isTruck = /\b(TRUCK|TRUK|TANGKI|DUMP TRUCK|DT DOTON|TRAILER|MOBIL|KENDARAAN)\b/i.test(combined);
+  if (isPlate || isTruck) {
+    return {
+      type: 'KENDARAAN',
+      name,
+      categoryLabel: 'Truk / Darat',
+      badgeColor: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+      badgeIcon: 'truck',
+      isArmada: false,
+    };
   }
 
-  if (/^(TB|BG|MT|KM|SPOB|MV|TK)\b/i.test(unitName)) {
-    return { type: 'ARMADA', name: unitName, isArmada: true };
+  // 3. Cek Kapal Spesifik CPG (SPOB, TB, TK, MT, AHTS, SV, UB, HB, CAKRA, dll)
+  const isVesselSpecific = /\b(AHTS|SPOB|TB|TK|MT|SV|UB|HB|BARGE|TONGKANG|TUGBOAT|TWINSISTER|CAKRA|SEA LION|FERY 471|ROYAL REY|DEWA YANI|DOMINO|BARONGKO|KING OCEAN|DEWI SRI|AJ PUTRA|COASTWAY|PMI ABADI|KING STAR|CINDARA 2107|CINDARA 3112|EQUATOR|MAJENE|MAMUJU|TEMASEK|ATTAKA|SEPINGGAN|MEDIVRO|AMBER|CPL 250|CPL 235|CMPL 01|ROYAL REY 07|ROYAL REY 300|ROYAL REY 350|ROYAL REY 3001|ROYAL REY 3002|ROYAL REY 5001)\b/i.test(raw);
+
+  if (isVesselSpecific) {
+    return {
+      type: 'ARMADA',
+      name,
+      categoryLabel: 'Kapal',
+      badgeColor: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20',
+      badgeIcon: 'ship',
+      isArmada: true,
+    };
   }
 
-  if (!unitName || unitName === '-' || unitName.toLowerCase().includes('non')) {
-    return { type: 'KANTOR', name: unitName !== '-' ? unitName : 'Kantor / Umum', isArmada: false };
+  // 4. Cek Kantor, Departemen, Mess, Workshop, Site (Gunakan word boundary agar tidak salah deteksi)
+  const isOffice = /\b(OFFICE|HEAD OFFICE|KANTOR|DEPT|DEPARTEMEN|DEPARTMENT|HRD|IT|HSE|FINANCE|ACCOUNTING|KEAGENAN|KEPANDUAN|LOGISTIK|PROCUREMENT|PURCHASING|WORKSHOP|BENGKEL|GUDANG|MESS|POOL|SITE|PAGATAN|PULAU BALANG|DPA|GA|GENERAL AFFAIR)\b/i.test(raw);
+
+  if (isOffice) {
+    return {
+      type: 'KANTOR',
+      name,
+      categoryLabel: 'Kantor / Dept',
+      badgeColor: 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20',
+      badgeIcon: 'building',
+      isArmada: false,
+    };
   }
 
-  return { type: 'ARMADA', name: unitName, isArmada: true };
+  // 5. Cek kata kapal umum di peruntukan
+  if (/\b(KAPAL|BOAT|VESSEL|PELAYARAN|MARITIM|SAMUDRA|BAHARI)\b/i.test(combined)) {
+    return {
+      type: 'ARMADA',
+      name,
+      categoryLabel: 'Kapal',
+      badgeColor: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20',
+      badgeIcon: 'ship',
+      isArmada: true,
+    };
+  }
+
+  // Default: Unit Pemohon Operasional
+  return {
+    type: 'KANTOR',
+    name,
+    categoryLabel: 'Unit Pemohon',
+    badgeColor: 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20',
+    badgeIcon: 'building',
+    isArmada: false,
+  };
 }
 
 /**
@@ -516,7 +552,11 @@ export default function DailyAnalyticsReport({
       ADM: { stuck: 0, name: 'ADM Administrasi', action: 'Penerbitan SPP Kasir' },
     };
 
-    const vesselsSet = new Set<string>();
+    const unitsSet = new Set<string>();
+    let kapalCount = 0;
+    let kendaraanCount = 0;
+    let alatBeratCount = 0;
+    let kantorCount = 0;
 
     for (const { item, primaryBottleneck, wf, unitInfo } of dailyEvaluatedItems) {
       if (wf.isComplete) {
@@ -529,15 +569,26 @@ export default function DailyAnalyticsReport({
         funnelCounts[primaryBottleneck.stageCode].stuck++;
       }
 
-      if (unitInfo.isArmada && unitInfo.name && unitInfo.name !== '-') {
-        vesselsSet.add(unitInfo.name);
+      if (unitInfo.name && unitInfo.name !== '-') {
+        unitsSet.add(unitInfo.name);
       }
+
+      if (unitInfo.type === 'ARMADA') kapalCount++;
+      else if (unitInfo.type === 'KENDARAAN') kendaraanCount++;
+      else if (unitInfo.type === 'ALAT_BERAT') alatBeratCount++;
+      else kantorCount++;
     }
 
     const completionRate = total > 0 ? Math.round((completeCount / total) * 100) : 0;
-
-    // Cari tahap dengan berkas tertahan terbanyak untuk di-highlight otomatis
     const maxStuck = Math.max(...Object.values(funnelCounts).map((f) => f.stuck));
+    const unitList = Array.from(unitsSet);
+
+    const breakdownParts = [];
+    if (kapalCount > 0) breakdownParts.push(`${kapalCount} Kapal`);
+    if (kendaraanCount > 0) breakdownParts.push(`${kendaraanCount} Truk/Darat`);
+    if (alatBeratCount > 0) breakdownParts.push(`${alatBeratCount} Alat Berat`);
+    if (kantorCount > 0) breakdownParts.push(`${kantorCount} Kantor/Dept`);
+    const unitBreakdownText = breakdownParts.join(' • ') || 'Semua Unit Pemohon';
 
     return {
       total,
@@ -546,19 +597,29 @@ export default function DailyAnalyticsReport({
       completionRate,
       funnelCounts,
       maxStuck,
-      vesselsCount: vesselsSet.size,
-      vesselList: Array.from(vesselsSet),
+      unitCount: unitsSet.size,
+      unitList,
+      kapalCount,
+      kendaraanCount,
+      alatBeratCount,
+      kantorCount,
+      unitBreakdownText,
+      // Backward compatibility aliases
+      vesselsCount: unitsSet.size,
+      vesselList: unitList,
     };
   }, [dailyEvaluatedItems]);
 
   // Hitung jumlah untuk Quick Filter Tab di atas tabel
   const quickFilterCounts = useMemo(() => {
     let kapal = 0;
+    let darat = 0;
     let kantor = 0;
     let overdue = 0;
 
     for (const it of dailyEvaluatedItems) {
       if (it.unitInfo.type === 'ARMADA') kapal++;
+      else if (it.unitInfo.type === 'KENDARAAN' || it.unitInfo.type === 'ALAT_BERAT') darat++;
       else kantor++;
 
       if (it.agingDays >= 4 && !it.wf.isComplete) overdue++;
@@ -567,6 +628,7 @@ export default function DailyAnalyticsReport({
     return {
       all: dailyEvaluatedItems.length,
       kapal,
+      darat,
       kantor,
       overdue,
     };
@@ -586,6 +648,7 @@ export default function DailyAnalyticsReport({
 
       // 3. Quick Filter Tab
       if (quickFilter === 'KAPAL' && unitInfo.type !== 'ARMADA') return false;
+      if (quickFilter === 'DARAT' && unitInfo.type !== 'KENDARAAN' && unitInfo.type !== 'ALAT_BERAT') return false;
       if (quickFilter === 'KANTOR' && unitInfo.type !== 'KANTOR') return false;
       if (quickFilter === 'OVERDUE' && (agingDays < 4 || wf.isComplete)) return false;
 
@@ -667,7 +730,7 @@ export default function DailyAnalyticsReport({
 • Total Berkas Aktif: *${dailyMetrics.total} Dokumen*
 • 🟢 Tuntas Lengkap (100%): *${dailyMetrics.completeCount} Dokumen (${dailyMetrics.completionRate}%)*
 • ⚠️ Tertahan / Butuh Tindak Lanjut: *${dailyMetrics.stuckCount} Dokumen*
-• 🚢 Armada Kapal Terdampak: *${dailyMetrics.vesselsCount} Kapal/Unit*
+• 🏢/🚢 Total Unit/Dept Pemohon: *${dailyMetrics.unitCount} Unit (${dailyMetrics.unitBreakdownText})*
 
 🚦 *DISTRIBUSI KENDALA PER TAHAP:*
 1. FPB (Permintaan): ${dailyMetrics.funnelCounts.FPB.stuck > 0 ? `⚠️ *${dailyMetrics.funnelCounts.FPB.stuck} berkas* (Verifikasi Pemohon)` : '✅ Lancar'}
@@ -681,7 +744,7 @@ ${
 ${topStuckItems
   .map(
     ({ item, primaryBottleneck, agingDays, displayItemName, extraItemsCount, unitInfo }, idx) =>
-      `${idx + 1}. *FPB:* ${item.fpb} (${unitInfo.type === 'ARMADA' ? '🚢 ' : '🏢 '}${unitInfo.name})
+      `${idx + 1}. *FPB:* ${item.fpb} (${unitInfo.badgeIcon === 'ship' ? '🚢 ' : unitInfo.badgeIcon === 'truck' ? '🚛 ' : unitInfo.badgeIcon === 'wrench' ? '🏗️ ' : '🏢 '}${unitInfo.name} [${unitInfo.categoryLabel}])
    └ Barang: ${displayItemName}${extraItemsCount > 0 ? ` (+${extraItemsCount} item)` : ''}
    └ Kendala: [${primaryBottleneck.stageCode}] ${primaryBottleneck.reason}
    └ PIC: ${cleanPicName(primaryBottleneck.responsiblePic)} | Aging: ${agingDays} Hari`
@@ -711,8 +774,8 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
       'NO',
       'NO FPB',
       'ENTITAS',
-      'TIPE UNIT',
-      'NAMA ARMADA / KANTOR',
+      'KATEGORI UNIT',
+      'NAMA DEPT / UNIT PEMOHON',
       'DESKRIPSI BARANG (SISA LAYANAN)',
       'QTY & SATUAN',
       'NO PO',
@@ -727,7 +790,7 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
       idx + 1,
       `"${item.fpb || '-'}"`,
       `"${item.entity || '-'}"`,
-      `"${unitInfo.type}"`,
+      `"${unitInfo.categoryLabel}"`,
       `"${unitInfo.name}"`,
       `"${(sisaMatch ? sisaMatch.allItems.map((i) => `${i.nama}${i.qty > 0 ? ` (${i.qty} ${i.satuan})` : ''}`).join('; ') : displayItemName).replace(/"/g, '""')}"`,
       `"${displayQty}"`,
@@ -1073,22 +1136,18 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
           </div>
         </div>
 
-        {/* Card 4: Total Armada Terdampak */}
+        {/* Card 4: Total Unit / Pemohon Terdampak */}
         <div className="p-4 rounded-2xl bg-card border border-border shadow-xs flex flex-col justify-between space-y-2">
           <div className="flex items-center justify-between text-xs text-muted-foreground font-mono font-medium">
-            <span>ARMADA KAPAL AKTIF</span>
-            <Ship className="size-4 text-sky-500" />
+            <span>TOTAL UNIT / PEMOHON</span>
+            <Users className="size-4 text-sky-500" />
           </div>
           <div>
             <div className="text-3xl font-extrabold font-mono text-foreground tracking-tight">
-              {dailyMetrics.vesselsCount}
+              {dailyMetrics.unitCount}
             </div>
-            <p className="text-[11px] text-muted-foreground mt-1 truncate" title={dailyMetrics.vesselList.join(', ')}>
-              {dailyMetrics.vesselList.length > 0
-                ? `${dailyMetrics.vesselList.slice(0, 2).join(', ')}${
-                    dailyMetrics.vesselList.length > 2 ? ` +${dailyMetrics.vesselList.length - 2} lainnya` : ''
-                  }`
-                : 'Tidak ada armada aktif'}
+            <p className="text-[11px] text-muted-foreground mt-1 truncate" title={dailyMetrics.unitBreakdownText}>
+              {dailyMetrics.unitBreakdownText}
             </p>
           </div>
         </div>
@@ -1253,31 +1312,50 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
               Semua ({quickFilterCounts.all})
             </button>
 
-            <button
-              type="button"
-              onClick={() => setQuickFilter('KAPAL')}
-              className={`h-8 px-3 rounded-xl text-xs font-mono font-medium border transition flex items-center gap-1.5 cursor-pointer ${
-                quickFilter === 'KAPAL'
-                  ? 'bg-sky-600 text-white border-sky-600 font-bold shadow-xs'
-                  : 'bg-card hover:bg-muted text-muted-foreground border-border'
-              }`}
-            >
-              <Ship className="size-3.5" />
-              <span>Khusus Kapal ({quickFilterCounts.kapal})</span>
-            </button>
+            {quickFilterCounts.kapal > 0 && (
+              <button
+                type="button"
+                onClick={() => setQuickFilter('KAPAL')}
+                className={`h-8 px-3 rounded-xl text-xs font-mono font-medium border transition flex items-center gap-1.5 cursor-pointer ${
+                  quickFilter === 'KAPAL'
+                    ? 'bg-sky-600 text-white border-sky-600 font-bold shadow-xs'
+                    : 'bg-card hover:bg-muted text-muted-foreground border-border'
+                }`}
+              >
+                <Ship className="size-3.5" />
+                <span>Kapal ({quickFilterCounts.kapal})</span>
+              </button>
+            )}
 
-            <button
-              type="button"
-              onClick={() => setQuickFilter('KANTOR')}
-              className={`h-8 px-3 rounded-xl text-xs font-mono font-medium border transition flex items-center gap-1.5 cursor-pointer ${
-                quickFilter === 'KANTOR'
-                  ? 'bg-slate-700 text-white border-slate-700 font-bold shadow-xs'
-                  : 'bg-card hover:bg-muted text-muted-foreground border-border'
-              }`}
-            >
-              <Building2 className="size-3.5" />
-              <span>Khusus Kantor ({quickFilterCounts.kantor})</span>
-            </button>
+            {quickFilterCounts.darat > 0 && (
+              <button
+                type="button"
+                onClick={() => setQuickFilter('DARAT')}
+                className={`h-8 px-3 rounded-xl text-xs font-mono font-medium border transition flex items-center gap-1.5 cursor-pointer ${
+                  quickFilter === 'DARAT'
+                    ? 'bg-amber-600 text-white border-amber-600 font-bold shadow-xs'
+                    : 'bg-card hover:bg-muted text-muted-foreground border-border'
+                }`}
+              >
+                <Truck className="size-3.5" />
+                <span>Truk / Darat ({quickFilterCounts.darat})</span>
+              </button>
+            )}
+
+            {quickFilterCounts.kantor > 0 && (
+              <button
+                type="button"
+                onClick={() => setQuickFilter('KANTOR')}
+                className={`h-8 px-3 rounded-xl text-xs font-mono font-medium border transition flex items-center gap-1.5 cursor-pointer ${
+                  quickFilter === 'KANTOR'
+                    ? 'bg-slate-700 text-white border-slate-700 font-bold shadow-xs'
+                    : 'bg-card hover:bg-muted text-muted-foreground border-border'
+                }`}
+              >
+                <Building2 className="size-3.5" />
+                <span>Kantor / Dept ({quickFilterCounts.kantor})</span>
+              </button>
+            )}
 
             <button
               type="button"
@@ -1331,7 +1409,7 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
                 <tr className="border-b border-border bg-muted/40 font-mono text-[10.5px] text-muted-foreground uppercase">
                   <th className="py-2.5 px-2.5 text-center whitespace-nowrap w-9">No</th>
                   <th className="py-2.5 px-3 whitespace-nowrap w-32 min-w-[125px]">Dokumen &amp; Entitas</th>
-                  <th className="py-2.5 px-3 whitespace-nowrap w-36 min-w-[135px]">Armada / Unit</th>
+                  <th className="py-2.5 px-3 whitespace-nowrap w-40 min-w-[140px]">Dept / Unit Pemohon</th>
                   <th className="py-2.5 px-3 whitespace-nowrap min-w-[150px] max-w-[200px]">Deskripsi Barang</th>
                   <th className="py-2.5 px-3 whitespace-nowrap w-24 min-w-[100px]">PIC Terkait</th>
                   <th className="py-2.5 px-3 text-center whitespace-nowrap w-32 min-w-[120px]">Progress (5 Seksi)</th>
@@ -1353,7 +1431,7 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
 
                   // Template WhatsApp Deep Link untuk Hubungi PIC
                   const picName = cleanPicName(primaryBottleneck.responsiblePic !== '-' ? primaryBottleneck.responsiblePic : (item.picAktif || 'PIC'));
-                  const unitLabel = unitInfo.type === 'ARMADA' ? `Armada ${unitInfo.name}` : `Unit ${unitInfo.name}`;
+                  const unitLabel = `${unitInfo.categoryLabel} ${unitInfo.name}`;
                   const waMessage = `Halo Pak/Bu ${picName}, mohon update tindak lanjut untuk dokumen FPB *${fpb}* (${unitLabel}) terkait pengadaan *${displayItemName}*.\n\nSaat ini berkas tertahan di tahap *${primaryBottleneck.stageCode}* (${primaryBottleneck.reason}), dengan durasi macet *${agingDays} Hari*.\n\nMohon konfirmasi dan percepatannya. Terima kasih.`;
                   const waUrl = `https://wa.me/?text=${encodeURIComponent(waMessage)}`;
 
@@ -1382,31 +1460,24 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
                         </div>
                       </td>
 
-                      {/* 3. Armada / Unit (Badge Kapal vs Kantor) */}
+                      {/* 3. Dept / Unit Pemohon (Badge Tipe Unit Akurat) */}
                       <td className="py-2.5 px-3">
                         <div className="flex items-center gap-1.5">
                           <span
-                            className={`p-1 rounded-md shrink-0 border ${
-                              unitInfo.type === 'ARMADA'
-                                ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20'
-                                : 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20'
-                            }`}
-                            title={unitInfo.type === 'ARMADA' ? 'Armada Kapal' : 'Kantor / Operasional Darat'}
+                            className={`p-1 rounded-md shrink-0 border ${unitInfo.badgeColor}`}
+                            title={unitInfo.categoryLabel}
                           >
-                            {unitInfo.type === 'ARMADA' ? (
-                              <Ship className="size-3.5" />
-                            ) : (
-                              <Building2 className="size-3.5" />
-                            )}
+                            {unitInfo.badgeIcon === 'ship' && <Ship className="size-3.5" />}
+                            {unitInfo.badgeIcon === 'truck' && <Truck className="size-3.5" />}
+                            {unitInfo.badgeIcon === 'wrench' && <Wrench className="size-3.5" />}
+                            {unitInfo.badgeIcon === 'building' && <Building2 className="size-3.5" />}
                           </span>
                           <div className="min-w-0">
                             <span className="font-semibold text-foreground block truncate text-[11px]" title={unitInfo.name}>
                               {unitInfo.name}
                             </span>
-                            <span className={`text-[9px] font-mono ${
-                              unitInfo.type === 'ARMADA' ? 'text-sky-600 dark:text-sky-400' : 'text-muted-foreground'
-                            }`}>
-                              {unitInfo.type === 'ARMADA' ? 'Kapal' : 'Kantor'}
+                            <span className="text-[9px] font-mono text-muted-foreground">
+                              {unitInfo.categoryLabel}
                             </span>
                           </div>
                         </div>

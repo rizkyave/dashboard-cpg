@@ -48,7 +48,7 @@ export default function StockAuditModal({
   isOpen,
   onClose,
   fpbNumber,
-  armadaName = 'Armada Kapal',
+  armadaName = 'Unit Pemohon',
   requestedItems,
   inventoryItems,
   showToast,

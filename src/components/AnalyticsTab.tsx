@@ -1680,7 +1680,7 @@ export default function AnalyticsTab({
               }`}
             >
               <Ship className="w-3.5 h-3.5 text-sky-500 shrink-0" />
-              <span>Permintaan Armada</span>
+              <span>Permintaan Unit & Armada</span>
               {fleetSummary.totalVesselCount > 0 && (
                 <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 font-mono">
                   {fleetSummary.totalVesselCount}
@@ -2109,7 +2109,7 @@ export default function AnalyticsTab({
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                    <span>Analisis Permintaan Armada Kapal</span>
+                    <span>Analisis Permintaan Unit & Armada (DEPT / ARMADA)</span>
                     <span className="text-[11px] font-normal px-2 py-0.5 rounded-full bg-muted border border-border text-muted-foreground font-mono">
                       {displayPeriodText}
                     </span>
