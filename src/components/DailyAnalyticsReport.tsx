@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   CalendarDays,
   Calendar,
@@ -20,12 +20,14 @@ import {
   RotateCcw,
   Layers,
   X,
-  Building2,
   Package,
   User,
   Filter,
 } from 'lucide-react';
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
+import { SisaLayananItem } from '@/types/sisaLayanan';
+import { loadStoredSisaLayanan } from '@/utils/sisaLayananStorage';
+import { normalizeFpbKey } from '@/utils/dataMerger';
 import { extractDateInfo, formatDateDdMmYy } from '@/utils/formatDate';
 import WorkflowTrafficLight from './WorkflowTrafficLight';
 import {
@@ -36,6 +38,7 @@ import {
 export interface DailyAnalyticsReportProps {
   items: ProcurementItem[];
   armadaItems?: ArmadaItem[];
+  sisaLayananItems?: SisaLayananItem[];
   onOpenAudit?: (fpb: string, po?: string) => void;
   showToast?: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
   className?: string;
@@ -52,13 +55,151 @@ interface PrimaryBottleneck {
   isStuck: boolean;
 }
 
+interface SisaGoodsSummary {
+  primaryName: string;
+  totalItemsCount: number;
+  qtyText: string;
+  allItems: Array<{
+    nama: string;
+    qty: number;
+    satuan: string;
+    kodeBarang: string;
+    status: string;
+  }>;
+  tooltipText: string;
+  allItemNames: string;
+}
+
+/**
+ * Helper untuk mengekstrak variasi kunci nomor FPB guna pencocokan data yang akurat
+ */
+function extractFpbKeys(raw?: string | null): string[] {
+  if (!raw) return [];
+  const s = raw.trim();
+  if (!s) return [];
+
+  const keys = new Set<string>();
+  keys.add(s.toLowerCase());
+
+  const norm = normalizeFpbKey(s);
+  if (norm) keys.add(norm);
+
+  const matchCore = s.match(/\d{2}-\d{4,8}/);
+  if (matchCore) keys.add(matchCore[0]);
+
+  const matchNum = s.match(/\d{5,8}/);
+  if (matchNum) keys.add(matchNum[0]);
+
+  const alnum = s.toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (alnum) keys.add(alnum);
+
+  return Array.from(keys);
+}
+
 export default function DailyAnalyticsReport({
   items,
   armadaItems = [],
+  sisaLayananItems = [],
   onOpenAudit,
   showToast,
   className = '',
 }: DailyAnalyticsReportProps) {
+  // Fallback state untuk data Sisa Layanan jika belum terisi dari props
+  const [internalSisaItems, setInternalSisaItems] = useState<SisaLayananItem[]>([]);
+
+  useEffect(() => {
+    if (sisaLayananItems && sisaLayananItems.length > 0) return;
+
+    loadStoredSisaLayanan().then((stored) => {
+      if (stored && stored.items && stored.items.length > 0) {
+        setInternalSisaItems(stored.items);
+      } else {
+        fetch('/api/sisa-layanan')
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success && Array.isArray(data.items)) {
+              setInternalSisaItems(data.items);
+            }
+          })
+          .catch((err) => console.warn('Gagal memuat sisa layanan di DailyAnalyticsReport:', err));
+      }
+    });
+  }, [sisaLayananItems]);
+
+  const effectiveSisaItems = useMemo(() => {
+    return sisaLayananItems && sisaLayananItems.length > 0
+      ? sisaLayananItems
+      : internalSisaItems;
+  }, [sisaLayananItems, internalSisaItems]);
+
+  // Index pencocokan cepat: FPB -> Data Barang Sisa Layanan
+  const sisaLayananFpbMap = useMemo(() => {
+    const map = new Map<string, SisaGoodsSummary>();
+    if (!effectiveSisaItems || effectiveSisaItems.length === 0) return map;
+
+    const fpbGroups = new Map<string, SisaLayananItem[]>();
+
+    for (const it of effectiveSisaItems) {
+      if (!it.noFpb && !it.fpbNoBarang) continue;
+      const fpbIdentifier = (it.noFpb || '').trim();
+      if (!fpbIdentifier) continue;
+
+      const normPrimary = normalizeFpbKey(fpbIdentifier);
+      if (!fpbGroups.has(normPrimary)) {
+        fpbGroups.set(normPrimary, []);
+      }
+      fpbGroups.get(normPrimary)!.push(it);
+    }
+
+    fpbGroups.forEach((itemsInFpb, normPrimary) => {
+      const allItems = itemsInFpb.map((r) => ({
+        nama: (r.namaBarang || '').trim() || 'Item Tanpa Nama',
+        qty: r.jmlFpb || r.jmlPo || 0,
+        satuan: (r.satuan || '').trim(),
+        kodeBarang: (r.kodeBarang || '').trim(),
+        status: (r.status || '').trim(),
+      }));
+
+      const primaryName = allItems[0]?.nama || '-';
+      const totalItemsCount = allItems.length;
+      const firstQty = allItems[0]?.qty || 0;
+      const firstSatuan = allItems[0]?.satuan || '';
+      const qtyText = firstQty > 0 ? `${firstQty} ${firstSatuan}`.trim() : '';
+
+      const tooltipLines = [
+        `Data Barang Sisa Layanan (${totalItemsCount} Item):`,
+        ...allItems.map(
+          (it, idx) =>
+            `${idx + 1}. ${it.nama}${it.qty > 0 ? ` (${it.qty} ${it.satuan})` : ''}${
+              it.kodeBarang ? ` [${it.kodeBarang}]` : ''
+            }${it.status ? ` - Status: ${it.status}` : ''}`
+        ),
+      ];
+      const tooltipText = tooltipLines.join('\n');
+      const allItemNames = allItems.map((i) => i.nama).join(' ');
+
+      const summary: SisaGoodsSummary = {
+        primaryName,
+        totalItemsCount,
+        qtyText,
+        allItems,
+        tooltipText,
+        allItemNames,
+      };
+
+      const rawSample = itemsInFpb[0].noFpb || normPrimary;
+      const keys = extractFpbKeys(rawSample);
+      for (const k of keys) {
+        if (!map.has(k)) {
+          map.set(k, summary);
+        }
+      }
+      map.set(normPrimary, summary);
+    });
+
+    return map;
+  }, [effectiveSisaItems]);
+
   // 1. Gabungkan seluruh data transaksi unik tanpa duplikasi
   const allTransactions = useMemo(() => {
     const list = [...items];
@@ -154,12 +295,29 @@ export default function DailyAnalyticsReport({
     });
   }, [allTransactions, selectedIsoDate, entityFilter]);
 
-  // Evaluasi mendalam alur 5 seksi & deteksi Primary Bottleneck yang akurat
+  // Evaluasi mendalam alur 5 seksi & deteksi Primary Bottleneck serta sinkronisasi Deskripsi Barang Sisa Layanan
   const dailyEvaluatedItems = useMemo(() => {
     return dailyTransactions.map((item) => {
       const wf = evaluateFiveDivisionWorkflow(item);
 
-      // Hitung lapse / aging days
+      // 1. Cocokkan FPB dengan data Sisa Layanan
+      let sisaMatch: SisaGoodsSummary | undefined;
+      const candidateKeys = extractFpbKeys(item.fpb);
+      for (const k of candidateKeys) {
+        if (sisaLayananFpbMap.has(k)) {
+          sisaMatch = sisaLayananFpbMap.get(k);
+          break;
+        }
+      }
+
+      const displayItemName = sisaMatch?.primaryName || item.item || '-';
+      const displayQty = sisaMatch?.qtyText || (item.qtyPO || item.qtyFPB ? `Qty: ${item.qtyPO || item.qtyFPB}` : '');
+      const isMatchedSisa = Boolean(sisaMatch);
+      const extraItemsCount = sisaMatch ? Math.max(0, sisaMatch.totalItemsCount - 1) : 0;
+      const itemTooltip = sisaMatch ? sisaMatch.tooltipText : (item.item || '-');
+      const searchableGoods = sisaMatch ? `${displayItemName} ${sisaMatch.allItemNames}` : (item.item || '');
+
+      // 2. Hitung lapse / aging days
       let agingDays = typeof item.lapse === 'number' && item.lapse > 0 ? item.lapse : 0;
       if (!agingDays && item.tglPo) {
         const poDate = extractDateInfo(item.tglPo).timestamp;
@@ -168,7 +326,7 @@ export default function DailyAnalyticsReport({
         }
       }
 
-      // Tentukan PRIMARY BOTTLENECK secara presisi & berurutan (FPB -> PCH -> LOG -> LAP -> ADM)
+      // 3. Tentukan PRIMARY BOTTLENECK secara presisi & berurutan (FPB -> PCH -> LOG -> LAP -> ADM)
       let primaryBottleneck: PrimaryBottleneck;
 
       if (wf.isComplete) {
@@ -180,7 +338,6 @@ export default function DailyAnalyticsReport({
           isStuck: false,
         };
       } else {
-        // Cari tahapan pertama yang parsial (ada tulisan "Belum")
         const partialStage = wf.stages.find((s) => s.isPartial);
 
         if (partialStage) {
@@ -199,7 +356,6 @@ export default function DailyAnalyticsReport({
             isStuck: true,
           };
         } else {
-          // Jika tidak ada yang parsial, cari tahapan pertama yang belum dimulai
           const firstUnpassedStage = wf.stages.find((s) => !s.isPassed);
           if (firstUnpassedStage) {
             let pic = item.picAktif || '-';
@@ -242,9 +398,16 @@ export default function DailyAnalyticsReport({
         wf,
         primaryBottleneck,
         agingDays,
+        displayItemName,
+        displayQty,
+        isMatchedSisa,
+        extraItemsCount,
+        itemTooltip,
+        searchableGoods,
+        sisaMatch,
       };
     });
-  }, [dailyTransactions]);
+  }, [dailyTransactions, sisaLayananFpbMap]);
 
   // Metrik KPI Eksekutif & Bottleneck Funnel Tracker
   const dailyMetrics = useMemo(() => {
@@ -294,22 +457,19 @@ export default function DailyAnalyticsReport({
 
   // Filter daftar data berdasarkan interaksi pengguna
   const filteredList = useMemo(() => {
-    return dailyEvaluatedItems.filter(({ item, wf, primaryBottleneck }) => {
-      // Filter KPI
+    return dailyEvaluatedItems.filter(({ item, wf, primaryBottleneck, searchableGoods }) => {
       if (trafficFilter === 'COMPLETE' && !wf.isComplete) return false;
       if (trafficFilter === 'STUCK' && wf.isComplete) return false;
 
-      // Filter Funnel Stage
       if (activeFunnelStage && primaryBottleneck.stageCode !== activeFunnelStage) {
         return false;
       }
 
-      // Filter Pencarian Global
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
         const fpb = (item.fpb || '').toLowerCase();
         const po = (item.po || (item as any).noPo || '').toLowerCase();
-        const itName = (item.item || '').toLowerCase();
+        const itName = searchableGoods.toLowerCase();
         const pic = (item.picAktif || item.picPch || item.picTtb || primaryBottleneck.responsiblePic || '').toLowerCase();
         const armada = ((item as any).armada || (item as any).deptArmada || '').toLowerCase();
         const ent = (item.entity || '').toLowerCase();
@@ -352,7 +512,6 @@ export default function DailyAnalyticsReport({
     }
   };
 
-  // Reset semua filter
   const handleResetFilters = () => {
     setTrafficFilter('ALL');
     setActiveFunnelStage(null);
@@ -367,7 +526,7 @@ export default function DailyAnalyticsReport({
     searchQuery.trim() !== '' ||
     entityFilter !== 'ALL';
 
-  // Salin Rekap WhatsApp
+  // Salin Rekap WhatsApp dengan nama barang riil
   const handleCopyWhatsApp = () => {
     const topStuckItems = dailyEvaluatedItems
       .filter(({ wf }) => !wf.isComplete)
@@ -394,8 +553,9 @@ ${
     ? `\n🚨 *PRIORITAS PERCEPATAN HARI INI:*
 ${topStuckItems
   .map(
-    ({ item, primaryBottleneck, agingDays }, idx) =>
+    ({ item, primaryBottleneck, agingDays, displayItemName, extraItemsCount }, idx) =>
       `${idx + 1}. *FPB:* ${item.fpb} (${(item as any).armada || (item as any).deptArmada || '-'})
+   └ Barang: ${displayItemName}${extraItemsCount > 0 ? ` (+${extraItemsCount} item)` : ''}
    └ Kendala: [${primaryBottleneck.stageCode}] ${primaryBottleneck.reason}
    └ PIC: ${primaryBottleneck.responsiblePic} | Aging: ${agingDays} Hari`
   )
@@ -425,7 +585,8 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
       'NO FPB',
       'ENTITAS',
       'ARMADA',
-      'ITEM / DESKRIPSI',
+      'DESKRIPSI BARANG (SISA LAYANAN)',
+      'QTY & SATUAN',
       'NO PO',
       'TGL PO',
       'PIC TANGGUNG JAWAB',
@@ -433,12 +594,13 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
       'KENDALA TERKINI',
       'AGING (HARI)',
     ];
-    const rows = filteredList.map(({ item, wf, primaryBottleneck, agingDays }, idx) => [
+    const rows = filteredList.map(({ item, wf, primaryBottleneck, agingDays, displayItemName, displayQty, sisaMatch }, idx) => [
       idx + 1,
       `"${item.fpb || '-'}"`,
       `"${item.entity || '-'}"`,
       `"${(item as any).armada || (item as any).deptArmada || '-'}"`,
-      `"${(item.item || '').replace(/"/g, '""')}"`,
+      `"${(sisaMatch ? sisaMatch.allItems.map((i) => `${i.nama}${i.qty > 0 ? ` (${i.qty} ${i.satuan})` : ''}`).join('; ') : displayItemName).replace(/"/g, '""')}"`,
+      `"${displayQty}"`,
       `"${item.po || (item as any).noPo || '-'}"`,
       `"${formatDateDdMmYy(item.tglPo || item.date)}"`,
       `"${primaryBottleneck.responsiblePic || '-'}"`,
@@ -478,9 +640,15 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
                   Live Sync
                 </span>
+                {effectiveSisaItems.length > 0 && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/20 hidden md:inline-flex items-center gap-1">
+                    <Package className="size-2.5" />
+                    <span>Sisa Layanan: {effectiveSisaItems.length.toLocaleString('id-ID')} Item Terhubung</span>
+                  </span>
+                )}
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Monitoring berkas aktif, pipeline kendala seksi, dan aging SLA operasional armada.
+                Monitoring berkas aktif, deskripsi suku cadang Sisa Layanan, pipeline kendala, dan SLA armada.
               </p>
             </div>
           </div>
@@ -583,11 +751,11 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
 
           {/* Segment Filter Entitas & Global Search */}
           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-            <div className="relative flex-1 sm:w-64">
+            <div className="relative flex-1 sm:w-72">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
               <input
                 type="text"
-                placeholder="Cari FPB, PO, Kapal, PIC, Kendala..."
+                placeholder="Cari FPB, Nama Barang Sisa Layanan, PIC..."
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
@@ -924,7 +1092,7 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
                 <button
                   type="button"
                   onClick={handleResetFilters}
-                  className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition"
+                  className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition cursor-pointer"
                 >
                   <RotateCcw className="size-3.5" />
                   <span>Reset Semua Filter</span>
@@ -940,7 +1108,7 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
                   <th className="py-3 px-3 text-center whitespace-nowrap w-12">No</th>
                   <th className="py-3 px-3.5 whitespace-nowrap min-w-[140px]">Dokumen &amp; Entitas</th>
                   <th className="py-3 px-3.5 whitespace-nowrap min-w-[140px]">Armada / Kapal</th>
-                  <th className="py-3 px-3.5 whitespace-nowrap min-w-[180px] max-w-[240px]">Deskripsi Barang</th>
+                  <th className="py-3 px-3.5 whitespace-nowrap min-w-[200px] max-w-[280px]">Deskripsi Barang (Sisa Layanan)</th>
                   <th className="py-3 px-3.5 whitespace-nowrap min-w-[130px]">PIC Bertanggung Jawab</th>
                   <th className="py-3 px-3.5 text-center whitespace-nowrap min-w-[150px]">Progress (5 Seksi)</th>
                   <th className="py-3 px-3.5 whitespace-nowrap min-w-[200px]">Bottleneck Terkini</th>
@@ -949,12 +1117,11 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/60">
-                {paginatedList.map(({ item, wf, primaryBottleneck, agingDays }, idx) => {
+                {paginatedList.map(({ item, wf, primaryBottleneck, agingDays, displayItemName, displayQty, isMatchedSisa, extraItemsCount, itemTooltip }, idx) => {
                   const globalIdx = (currentPage - 1) * pageSize + idx + 1;
                   const fpb = item.fpb || '-';
                   const po = item.po || (item as any).noPo || '-';
                   const armada = (item as any).armada || (item as any).deptArmada || '-';
-                  const itemName = item.item || '-';
 
                   // Badge warna SLA / Aging
                   const isSlaBreached = agingDays > 5;
@@ -1002,19 +1169,46 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
                         </div>
                       </td>
 
-                      {/* 4. Deskripsi Barang */}
+                      {/* 4. Deskripsi Barang (Sinkron Sisa Layanan) */}
                       <td className="py-3 px-3.5">
                         <div className="flex items-start gap-1.5">
-                          <Package className="size-3 text-muted-foreground shrink-0 mt-0.5" />
-                          <div className="min-w-0">
-                            <span className="text-foreground block truncate font-medium" title={itemName}>
-                              {itemName}
-                            </span>
-                            {(item.qtyFPB || item.qtyPO) && (
-                              <span className="text-[10px] font-mono text-muted-foreground">
-                                Qty: {item.qtyPO || item.qtyFPB}
+                          <Package
+                            className={`size-3 shrink-0 mt-0.5 ${
+                              isMatchedSisa ? 'text-primary' : 'text-muted-foreground'
+                            }`}
+                          />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span
+                                className="text-foreground font-medium block truncate max-w-[190px]"
+                                title={itemTooltip}
+                              >
+                                {displayItemName}
                               </span>
-                            )}
+                              {extraItemsCount > 0 && (
+                                <span
+                                  className="px-1.5 py-0.2 rounded text-[9px] font-mono font-semibold bg-primary/10 text-primary border border-primary/20 shrink-0"
+                                  title={itemTooltip}
+                                >
+                                  +{extraItemsCount} item
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                              {displayQty && (
+                                <span className="text-[10px] font-mono text-muted-foreground">
+                                  {displayQty}
+                                </span>
+                              )}
+                              {isMatchedSisa && (
+                                <span
+                                  className="text-[9px] font-mono px-1 py-0.2 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20"
+                                  title="Data barang terverifikasi sesuai spreadsheet Sisa Layanan Gabungan"
+                                >
+                                  ✓ Sisa Layanan
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </td>
@@ -1101,7 +1295,7 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
                 type="button"
                 onClick={() => setCurrentPage(1)}
                 disabled={currentPage <= 1}
-                className="p-1 rounded-md hover:bg-card disabled:opacity-30 disabled:cursor-not-allowed transition"
+                className="p-1 rounded-md hover:bg-card disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
               >
                 <ChevronsLeft className="size-4" />
               </button>
@@ -1109,7 +1303,7 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage <= 1}
-                className="p-1 rounded-md hover:bg-card disabled:opacity-30 disabled:cursor-not-allowed transition"
+                className="p-1 rounded-md hover:bg-card disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
               >
                 <ChevronLeft className="size-4" />
               </button>
@@ -1120,7 +1314,7 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage >= totalPages}
-                className="p-1 rounded-md hover:bg-card disabled:opacity-30 disabled:cursor-not-allowed transition"
+                className="p-1 rounded-md hover:bg-card disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
               >
                 <ChevronRight className="size-4" />
               </button>
@@ -1128,7 +1322,7 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
                 type="button"
                 onClick={() => setCurrentPage(totalPages)}
                 disabled={currentPage >= totalPages}
-                className="p-1 rounded-md hover:bg-card disabled:opacity-30 disabled:cursor-not-allowed transition"
+                className="p-1 rounded-md hover:bg-card disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
               >
                 <ChevronsRight className="size-4" />
               </button>

@@ -1132,6 +1132,7 @@ export default function DashboardPage() {
               items={filteredProcurement}
               armadaItems={armadaData}
               kapalPosisiItems={kapalPosisiItems}
+              sisaLayananItems={sisaLayananItems}
               onSyncSheets={handleSyncGoogleSheets}
               isSyncingSheets={isSyncingSheets}
               onOpenAudit={handleOpenAudit}

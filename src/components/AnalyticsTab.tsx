@@ -40,6 +40,7 @@ import {
   PieChart,
 } from 'lucide-react';
 import { ProcurementItem, ArmadaItem, KapalPosisiItem } from '@/types/procurement';
+import { SisaLayananItem } from '@/types/sisaLayanan';
 import { extractDateInfo, formatDateDdMmYy } from '@/utils/formatDate';
 import {
   LapsePolarChart,
@@ -73,6 +74,7 @@ interface AnalyticsTabProps {
   items: ProcurementItem[];
   armadaItems?: ArmadaItem[];
   kapalPosisiItems?: KapalPosisiItem[];
+  sisaLayananItems?: SisaLayananItem[];
   onSyncSheets?: () => Promise<void> | void;
   isSyncingSheets?: boolean;
   onOpenAudit?: (fpb: string, po?: string) => void;
@@ -122,6 +124,7 @@ export default function AnalyticsTab({
   items,
   armadaItems = [],
   kapalPosisiItems = [],
+  sisaLayananItems = [],
   onSyncSheets,
   isSyncingSheets,
   onOpenAudit,
@@ -1903,6 +1906,7 @@ export default function AnalyticsTab({
         <DailyAnalyticsReport
           items={items}
           armadaItems={armadaItems}
+          sisaLayananItems={sisaLayananItems}
           onOpenAudit={onOpenAudit}
           showToast={showToast}
         />
