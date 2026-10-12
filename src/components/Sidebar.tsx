@@ -27,6 +27,7 @@ import {
   ExternalLink,
   Wrench,
   Layers,
+  UploadCloud,
 } from 'lucide-react';
 
 import * as XLSX from 'xlsx';
@@ -543,6 +544,29 @@ export default function Sidebar({
                       ? `${(sisaLayananCount / 1000).toFixed(0)}k`
                       : `${sisaLayananCount}`
                     : '28k'}
+                </span>
+              </button>
+
+              {/* Modul Baru: Upload TTB (Auto-Rename & Google Drive) */}
+              <button
+                onClick={() => handleSelectTab('upload-ttb')}
+                className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation cursor-pointer ${
+                  activeTab === 'upload-ttb'
+                    ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-border'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                }`}
+                title="Upload Dokumen TTB ke Google Drive dengan Format Otomatis Sesuai No. TTB"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <UploadCloud
+                    className={`size-4 shrink-0 ${
+                      activeTab === 'upload-ttb' ? 'text-teal-500' : 'text-muted-foreground'
+                    }`}
+                  />
+                  <span className="truncate whitespace-nowrap">Upload TTB</span>
+                </div>
+                <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20">
+                  Drive
                 </span>
               </button>
             </nav>
