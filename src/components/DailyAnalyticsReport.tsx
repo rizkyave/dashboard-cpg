@@ -86,6 +86,86 @@ interface SisaGoodsSummary {
   allItemNames: string;
 }
 
+export interface OperationalDeliveryInfo {
+  isDelivered: boolean;
+  deliveryDateIso: string | null;
+  deliveryDateFormatted: string;
+  deliveryPic: string;
+  deliveryNote: string;
+}
+
+/**
+ * Ekstraksi tanggal dan PIC serah terima tuntas fisik di lapangan (tahap LAP).
+ * Mengutamakan tanggal saat PIC Lapangan (BARDI dkk) selesai melakukan pengantaran ke lapangan.
+ * TIDAK PERNAH menggunakan tanggal SPP/Keuangan (AMY).
+ */
+export function getOperationalDeliveryInfo(item: ProcurementItem): OperationalDeliveryInfo {
+  const pic = cleanPicName(
+    item.picLap && item.picLap !== '-' && item.picLap !== 'null'
+      ? item.picLap
+      : (item as any).picTl || item.picTtb || 'Tim Lapangan'
+  );
+
+  // Urutan prioritas tanggal penyelesaian fisik oleh tim lapangan (BARDI dkk):
+  // 1. Tanggal barang diantar ke lapangan (tglBarangDiantar / tglDiantar)
+  // 2. Tanggal Tim Lapangan serahkan ke TTB (tglTimLapKePicTtb)
+  // 3. Tanggal TTB diserahkan kembali ke PCH (tglTtbKePicPch)
+  // 4. Tanggal diterima tim lapangan (tglKeTimLapangan)
+  // 5. Tanggal penerbitan TTB (tglTtb / tglInputTtb)
+  const candidateDates = [
+    item.tglBarangDiantar,
+    (item as any).tglDiantar,
+    item.tglTimLapKePicTtb,
+    item.tglTtbKePicPch,
+    item.tglKeTimLapangan,
+    (item as any).tglKeTimLap,
+    item.tglTtb,
+    item.tglInputTtb,
+  ];
+
+  let foundDateIso: string | null = null;
+  let foundDateFormatted = '-';
+
+  for (const c of candidateDates) {
+    if (hasValue(c)) {
+      const info = extractDateInfo(c);
+      if (info.fullDate && info.year && parseInt(info.year, 10) >= 2020) {
+        foundDateIso = info.fullDate;
+        foundDateFormatted = formatDateDdMmYy(info.fullDate);
+        break;
+      }
+    }
+  }
+
+  const hasDeliveryDate = Boolean(
+    hasValue(item.tglBarangDiantar) ||
+    hasValue((item as any).tglDiantar) ||
+    hasValue(item.tglTimLapKePicTtb) ||
+    hasValue(item.tglTtbKePicPch)
+  );
+
+  const isDelivered = Boolean(
+    hasDeliveryDate ||
+    (Boolean(item.picLap && item.picLap !== '-') && foundDateIso !== null)
+  );
+
+  const deliveryNote = hasValue(item.tglBarangDiantar) || hasValue((item as any).tglDiantar)
+    ? `Diantar ${foundDateFormatted}`
+    : hasValue(item.tglTimLapKePicTtb)
+    ? `TL ke TTB ${foundDateFormatted}`
+    : foundDateFormatted !== '-'
+    ? `Serah terima ${foundDateFormatted}`
+    : 'Tuntas Terkirim';
+
+  return {
+    isDelivered,
+    deliveryDateIso: foundDateIso,
+    deliveryDateFormatted: foundDateFormatted,
+    deliveryPic: pic,
+    deliveryNote,
+  };
+}
+
 /**
  * Klasifikasi presisi peruntukan / unit pemohon dari data asli DEPT/ ARMADA
  * Memisahkan: Armada Kapal (🚢), Truk & Kendaraan Darat (🚛), Alat Berat (🏗️), Kantor & Departemen (🏢)
@@ -320,20 +400,24 @@ export default function DailyAnalyticsReport({
     return list;
   }, [items, armadaItems]);
 
-  // 2. Kumpulkan daftar tanggal unik berurutan kronologis descending
+  // 2. Kumpulkan daftar tanggal unik berurutan kronologis descending (MURNI OPERASIONAL LOGISTIK: FPB -> PCH -> LOG -> LAP)
   const availableDates = useMemo(() => {
     const dateMap = new Map<string, { fullDate: string; timestamp: number; formatted: string }>();
     for (const it of allTransactions) {
       const candidates = [
-        it.tglPo,
-        it.date,
-        it.tglFpb,
+        it.tglBarangDiantar,
+        (it as any).tglDiantar,
+        it.tglTimLapKePicTtb,
+        it.tglTtbKePicPch,
+        it.tglKeTimLapangan,
+        (it as any).tglKeTimLap,
         it.tglTtb,
         it.tglInputTtb,
-        it.tglBarangDiantar,
-        it.tglSpp,
-        it.tglInputSpp,
-        it.tglKeKeuangan,
+        it.tglPo,
+        it.date,
+        it.tglInputFstb,
+        it.tglFstb,
+        it.tglFpb,
       ];
       for (const c of candidates) {
         if (!hasValue(c)) continue;
@@ -369,7 +453,7 @@ export default function DailyAnalyticsReport({
 
   const selectedFormattedDate = useMemo(() => formatDateDdMmYy(selectedIsoDate), [selectedIsoDate]);
 
-  // Filter transaksi berdasarkan tanggal aktivitas terpilih
+  // Filter transaksi berdasarkan tanggal aktivitas terpilih (MURNI OPERASIONAL LOGISTIK: FPB -> PCH -> LOG -> LAP)
   const dailyTransactions = useMemo(() => {
     if (!selectedIsoDate) return [];
 
@@ -384,26 +468,31 @@ export default function DailyAnalyticsReport({
         return extractDateInfo(rawDate).fullDate === selectedIsoDate;
       };
 
+      // HANYA mencocokkan tanggal aktivitas fisik/operasional logistik (BARDI dkk).
+      // DILARANG mencocokkan tglSpp, tglInputSpp, tglKeKeuangan (AMY / Seksi ADM Keuangan).
       return (
-        matchesDate(it.tglPo) ||
-        matchesDate(it.date) ||
-        matchesDate(it.tglFpb) ||
+        matchesDate(it.tglBarangDiantar) ||
+        matchesDate((it as any).tglDiantar) ||
+        matchesDate(it.tglTimLapKePicTtb) ||
+        matchesDate(it.tglTtbKePicPch) ||
+        matchesDate(it.tglKeTimLapangan) ||
+        matchesDate((it as any).tglKeTimLap) ||
         matchesDate(it.tglTtb) ||
         matchesDate(it.tglInputTtb) ||
-        matchesDate(it.tglBarangDiantar) ||
-        matchesDate(it.tglTimLapKePicTtb) ||
-        matchesDate(it.tglKeTimLapangan) ||
-        matchesDate(it.tglSpp) ||
-        matchesDate(it.tglInputSpp) ||
-        matchesDate(it.tglKeKeuangan)
+        matchesDate(it.tglPo) ||
+        matchesDate(it.date) ||
+        matchesDate(it.tglInputFstb) ||
+        matchesDate(it.tglFstb) ||
+        matchesDate(it.tglFpb)
       );
     });
   }, [allTransactions, selectedIsoDate, entityFilter]);
 
-  // Evaluasi mendalam alur 5 seksi & deteksi Primary Bottleneck serta sinkronisasi Deskripsi Barang Sisa Layanan
+  // Evaluasi mendalam alur 4 seksi & deteksi Primary Bottleneck serta sinkronisasi Deskripsi Barang Sisa Layanan
   const dailyEvaluatedItems = useMemo(() => {
     return dailyTransactions.map((item) => {
       const wf = evaluateFiveDivisionWorkflow(item);
+      const deliveryInfo = getOperationalDeliveryInfo(item);
 
       // 1. Cocokkan FPB dengan data Sisa Layanan
       let sisaMatch: SisaGoodsSummary | undefined;
@@ -437,16 +526,20 @@ export default function DailyAnalyticsReport({
         }
       }
 
+      // Evaluasi status tuntas operasional: serah terima fisik di lapangan (oleh BARDI dkk)
+      const isOpsComplete = wf.isOperationalDelivered || deliveryInfo.isDelivered;
+      const isOpsStuck = !isOpsComplete;
+
       // 4. Tentukan PRIMARY BOTTLENECK secara presisi & berurutan (4 Seksi Operasional: FPB -> PCH -> LOG -> LAP)
       let primaryBottleneck: PrimaryBottleneck;
 
-      if (wf.isOperationalDelivered) {
-        // Titik 100% tuntas operasional mutlak tercapai saat barang diserahkan di lapangan (tahap LAP/TTB)
+      if (isOpsComplete) {
+        // Titik 100% tuntas operasional mutlak tercapai saat barang diserahkan di lapangan (tahap LAP/TTB) oleh BARDI dkk
         primaryBottleneck = {
           stageCode: 'NONE',
           stageName: 'Tuntas Terkirim',
-          reason: 'Serah Terima Selesai',
-          responsiblePic: cleanPicName(item.picLap || item.picTtb || '-'),
+          reason: deliveryInfo.deliveryNote || 'Serah Terima Selesai',
+          responsiblePic: cleanPicName(deliveryInfo.deliveryPic || item.picLap || item.picTtb || 'Tim Lapangan'),
           isStuck: false,
         };
       } else {
@@ -465,7 +558,9 @@ export default function DailyAnalyticsReport({
           } else if (partialStage.code === 'LOG') {
             pic = (item.picTtb && item.picTtb !== '-' ? `${item.picTtb} (Logistik)` : '') || 'Gudang Logistik';
           } else if (partialStage.code === 'LAP') {
-            pic = (item.picLap && item.picLap !== '-' ? `${item.picLap} (Lapangan)` : '') || 'Tim Lapangan';
+            pic = (deliveryInfo.deliveryPic && deliveryInfo.deliveryPic !== '-' && deliveryInfo.deliveryPic !== 'Tim Lapangan' ? deliveryInfo.deliveryPic : '') ||
+                  (item.picLap && item.picLap !== '-' ? `${item.picLap} (Lapangan)` : '') ||
+                  'Tim Lapangan';
           }
 
           primaryBottleneck = {
@@ -492,7 +587,9 @@ export default function DailyAnalyticsReport({
               pic = (item.picTtb && item.picTtb !== '-' ? `${item.picTtb} (Logistik)` : '') || 'Gudang Logistik';
               reasonText = 'Menunggu Penerimaan TTB (Gudang)';
             } else if (firstUnpassedStage.code === 'LAP') {
-              pic = (item.picLap && item.picLap !== '-' ? `${item.picLap} (Lapangan)` : '') || 'Tim Lapangan';
+              pic = (deliveryInfo.deliveryPic && deliveryInfo.deliveryPic !== '-' && deliveryInfo.deliveryPic !== 'Tim Lapangan' ? deliveryInfo.deliveryPic : '') ||
+                    (item.picLap && item.picLap !== '-' ? `${item.picLap} (Lapangan)` : '') ||
+                    'Tim Lapangan';
               reasonText = 'Menunggu Serah Terima Fisik (Lapangan)';
             }
 
@@ -507,22 +604,21 @@ export default function DailyAnalyticsReport({
             primaryBottleneck = {
               stageCode: 'NONE',
               stageName: 'Tuntas Terkirim',
-              reason: 'Serah Terima Selesai',
-              responsiblePic: cleanPicName(item.picLap || '-'),
+              reason: deliveryInfo.deliveryNote || 'Serah Terima Selesai',
+              responsiblePic: cleanPicName(deliveryInfo.deliveryPic || item.picLap || 'Tim Lapangan'),
               isStuck: false,
             };
           }
         }
       }
 
-      const isOpsComplete = wf.isOperationalDelivered;
-      const isOpsStuck = !wf.isOperationalDelivered;
       // On Delivery: Berkas aktif yang sudah melewati PO atau gudang dan sedang dalam proses pengiriman ke armada
       const isOnDelivery = !isOpsComplete && (wf.stages[1].isPassed || wf.stages[2].isPassed || Boolean(item.po));
 
       return {
         item,
         wf,
+        deliveryInfo,
         primaryBottleneck,
         agingDays,
         displayItemName,
@@ -799,7 +895,7 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 4 Seksi Logistik_`;
       'AGING (HARI)',
       'STATUS OVERDUE',
     ];
-    const rows = filteredList.map(({ item, wf, primaryBottleneck, agingDays, displayItemName, displayQty, sisaMatch, unitInfo }, idx) => [
+    const rows = filteredList.map(({ item, wf, deliveryInfo, primaryBottleneck, agingDays, displayItemName, displayQty, sisaMatch, unitInfo, isOpsComplete }, idx) => [
       idx + 1,
       `"${item.fpb || '-'}"`,
       `"${item.entity || '-'}"`,
@@ -809,11 +905,11 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 4 Seksi Logistik_`;
       `"${displayQty}"`,
       `"${item.po || (item as any).noPo || '-'}"`,
       `"${formatDateDdMmYy(item.tglPo || item.date)}"`,
-      `"${cleanPicName(primaryBottleneck.responsiblePic || '-')}"`,
-      `"${wf.summaryBadge}"`,
+      `"${cleanPicName(primaryBottleneck.responsiblePic || (isOpsComplete ? deliveryInfo.deliveryPic : '-'))}"`,
+      `"${isOpsComplete ? '✓ TUNTAS TERKIRIM' : wf.summaryBadge}"`,
       `"${primaryBottleneck.reason}"`,
       agingDays,
-      agingDays >= 4 && !wf.isOperationalDelivered ? 'OVERDUE' : agingDays >= 2 && !wf.isOperationalDelivered ? 'PERHATIAN' : 'NORMAL',
+      agingDays >= 4 && !isOpsComplete ? 'OVERDUE' : agingDays >= 2 && !isOpsComplete ? 'PERHATIAN' : 'NORMAL',
     ]);
 
     const csv = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
@@ -1465,7 +1561,7 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 4 Seksi Logistik_`;
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/60">
-                {paginatedList.map(({ item, wf, primaryBottleneck, agingDays, displayItemName, displayQty, isMatchedSisa, extraItemsCount, itemTooltip, unitInfo }, idx) => {
+                {paginatedList.map(({ item, wf, deliveryInfo, primaryBottleneck, agingDays, displayItemName, displayQty, isMatchedSisa, extraItemsCount, itemTooltip, unitInfo, isOpsComplete }, idx) => {
                   const globalIdx = (currentPage - 1) * pageSize + idx + 1;
                   const fpb = item.fpb || '-';
                   const po = item.po || (item as any).noPo || '-';
@@ -1476,10 +1572,16 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 4 Seksi Logistik_`;
                   const isWarning = agingDays >= 2 && agingDays <= 3;
 
                   // Template WhatsApp Deep Link untuk Hubungi PIC
-                  const picName = cleanPicName(primaryBottleneck.responsiblePic !== '-' ? primaryBottleneck.responsiblePic : (item.picAktif || 'PIC'));
+                  const picName = cleanPicName(
+                    primaryBottleneck.responsiblePic !== '-'
+                      ? primaryBottleneck.responsiblePic
+                      : isOpsComplete
+                      ? deliveryInfo.deliveryPic
+                      : item.picAktif || 'PIC'
+                  );
                   const unitLabel = `${unitInfo.categoryLabel} ${unitInfo.name}`;
-                  const waMessage = wf.isOperationalDelivered
-                    ? `Halo Pak/Bu ${picName}, dokumen FPB *${fpb}* (${unitLabel}) terkait pengadaan *${displayItemName}* tercatat telah tuntas diserahterimakan di lapangan.\n\nTerima kasih atas kerja samanya.`
+                  const waMessage = isOpsComplete
+                    ? `Halo Pak/Bu ${picName}, dokumen FPB *${fpb}* (${unitLabel}) terkait pengadaan *${displayItemName}* tercatat telah tuntas diserahterimakan di lapangan (${deliveryInfo.deliveryNote} oleh ${deliveryInfo.deliveryPic}).\n\nTerima kasih atas kerja samanya.`
                     : `Halo Pak/Bu ${picName}, mohon update tindak lanjut untuk dokumen FPB *${fpb}* (${unitLabel}) terkait pengadaan *${displayItemName}*.\n\nSaat ini berkas tertahan di tahap *${primaryBottleneck.stageCode}* (${primaryBottleneck.reason}), dengan durasi macet *${agingDays} Hari*.\n\nMohon konfirmasi dan percepatannya. Terima kasih.`;
                   const waUrl = `https://wa.me/?text=${encodeURIComponent(waMessage)}`;
 
@@ -1580,7 +1682,13 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 4 Seksi Logistik_`;
                         <div className="flex items-center gap-1">
                           <User className="size-3 text-muted-foreground shrink-0" />
                           <span className="font-medium text-foreground truncate text-[11px]" title={primaryBottleneck.responsiblePic}>
-                            {cleanPicName(primaryBottleneck.responsiblePic !== '-' ? primaryBottleneck.responsiblePic : (item.picAktif || '-'))}
+                            {cleanPicName(
+                              primaryBottleneck.responsiblePic !== '-'
+                                ? primaryBottleneck.responsiblePic
+                                : isOpsComplete
+                                ? deliveryInfo.deliveryPic
+                                : item.picAktif || '-'
+                            )}
                           </span>
                         </div>
                       </td>
@@ -1612,11 +1720,11 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 4 Seksi Logistik_`;
 
                           {/* Linear Step Text Label */}
                           <span className={`text-[10px] font-mono font-semibold ${
-                            wf.isOperationalDelivered
+                            isOpsComplete
                               ? 'text-emerald-700 dark:text-emerald-400'
                               : 'text-muted-foreground group-hover/step:text-foreground'
                           }`}>
-                            {wf.isOperationalDelivered
+                            {isOpsComplete
                               ? '✓ Tuntas Terkirim'
                               : `Tahap ${
                                   primaryBottleneck.stageCode === 'FPB'
@@ -1630,16 +1738,26 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 4 Seksi Logistik_`;
                                     : Math.min(wf.passedCount, 4)
                                 }/4 (${primaryBottleneck.stageCode !== 'NONE' ? primaryBottleneck.stageCode : 'FPB'})`}
                           </span>
+                          {isOpsComplete && deliveryInfo.deliveryDateFormatted !== '-' && (
+                            <span className="text-[9px] font-mono text-emerald-600/80 dark:text-emerald-400/80 block">
+                              {deliveryInfo.deliveryNote}
+                            </span>
+                          )}
                         </div>
                       </td>
 
                       {/* 7. Bottleneck Terkini */}
                       <td className="py-2.5 px-3">
-                        {wf.isOperationalDelivered ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
-                            <Check className="size-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                            <span>✓ Tuntas Terkirim</span>
-                          </span>
+                        {isOpsComplete ? (
+                          <div className="inline-flex flex-col">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                              <Check className="size-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                              <span>✓ Tuntas ({deliveryInfo.deliveryDateFormatted !== '-' ? deliveryInfo.deliveryDateFormatted : 'Lapangan'})</span>
+                            </span>
+                            <span className="text-[8.5px] font-mono text-muted-foreground mt-0.5 pl-1">
+                              PIC: {cleanPicName(deliveryInfo.deliveryPic)}
+                            </span>
+                          </div>
                         ) : (
                           <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-mono bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-amber-500/20 max-w-full">
                             <span className="font-bold shrink-0">[{primaryBottleneck.stageCode}]</span>
@@ -1652,10 +1770,10 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 4 Seksi Logistik_`;
 
                       {/* 8. Durasi Macet (Aging SLA dengan Conditional Styling Tegas) */}
                       <td className="py-2.5 px-3 text-center whitespace-nowrap">
-                        {wf.isOperationalDelivered ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20" title="Barang fisik telah diterima unit di lapangan. Tidak ada kendala operasional logistik.">
+                        {isOpsComplete ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20" title={`Barang fisik telah diserahkan oleh ${deliveryInfo.deliveryPic} pada ${deliveryInfo.deliveryDateFormatted}. Tidak ada kendala operasional logistik.`}>
                             <Check className="size-3 shrink-0 text-emerald-600" />
-                            <span>Tuntas Terkirim</span>
+                            <span>Tuntas ({deliveryInfo.deliveryDateFormatted})</span>
                           </span>
                         ) : isOverdue ? (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-extrabold border bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500 shadow-xs animate-pulse" title="Melebihi SLA (> 3 Hari) - Butuh Tindak Lanjut Mendesak">
@@ -1690,7 +1808,7 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 4 Seksi Logistik_`;
                           </button>
 
                           {/* Tombol Hubungi PIC via WhatsApp Deep Link */}
-                          {!wf.isOperationalDelivered && (
+                          {!isOpsComplete && (
                             <a
                               href={waUrl}
                               target="_blank"

@@ -438,7 +438,7 @@ export default function AnalyticsTab({
       // Evaluasi alur logistik & batas KPI serah terima fisik
       const wfResult = evaluateFiveDivisionWorkflow(it as any);
       const isDelivered = wfResult?.isOperationalDelivered || Boolean(
-        it.tglBarangDiantar || (it as any).picLap || (it as any).noSpp
+        it.tglBarangDiantar || (it as any).tglDiantar || (it as any).picLap
       );
 
       const qFpb = Number(it.qtyFPB) || 1;

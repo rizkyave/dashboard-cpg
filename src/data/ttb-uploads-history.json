@@ -1,5 +1,21 @@
 [
   {
+    "id": "1791818642149-y4j9z",
+    "noTtb": "GAJ-TTB-26-01222",
+    "cleanNoTtb": "GAJ-TTB-26-01222",
+    "armada": "GENSET WEICHAI 6 CYLINDER",
+    "receivedDate": "2026-10-12",
+    "keterangan": "",
+    "originalFileName": "CPL-TTB-26-00449.jpg",
+    "renamedFileName": "GAJ-TTB-26-01222.jpg",
+    "fileSize": 83660,
+    "fileType": "image/jpeg",
+    "fileUrl": "/api/upload-ttb/file?name=GAJ-TTB-26-01222.jpg",
+    "driveFolderUrl": "https://drive.google.com/drive/folders/1Hd6FsgWiALq1jJyRvh8auY0FJGE9h5tf",
+    "uploadedAt": "2026-10-12T15:24:02.149Z",
+    "status": "SYNCED_TO_DRIVE"
+  },
+  {
     "id": "1791816782732-272pu",
     "noTtb": "CPL-TTB-26-00449",
     "cleanNoTtb": "CPL-TTB-26-00449",

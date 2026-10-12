@@ -816,19 +816,23 @@ export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisio
   const operationalPercentage = Math.round((operationalPassedCount / 4) * 100);
 
   // Titik Pemenuhan Fisik (Fulfillment Cut-off Point):
-  // Transaksi tuntas secara operasional bila serah terima fisik di lapangan (tahap LAP) tuntas,
-  // atau berkas sudah masuk ke tahap ADM/Finance (yang membuktikan bahwa barang sudah selesai diserahkan ke kapal/unit),
-  // atau tanggal barang diantar telah terisi.
-  const isOperationalDelivered = Boolean(
-    isLapPassed ||
-    isFinPassed ||
+  // Transaksi tuntas secara operasional murni bila serah terima fisik di lapangan (tahap LAP) selesai,
+  // yang dibuktikan dengan tanggal barang diantar ke lapangan (BARDI dkk) atau serah terima TL/TTB.
+  // CATATAN: Tahap ADM/Finance (AMY) BUKAN penentu tuntas operasional fisik.
+  const hasPhysicalDelivery = Boolean(
     hasValue(item.tglBarangDiantar) ||
     hasValue(item.tglDiantar) ||
     hasValue(item.tglTimLapKePicTtb) ||
     hasValue(item.tglTtbKePicPch)
   );
 
-  const isOperationalComplete = operationalPassedCount === 4 && (isLapFull || isLapPassed || isFinPassed);
+  const isOperationalDelivered = Boolean(
+    hasPhysicalDelivery ||
+    isLapFull ||
+    (isLapPassed && hasPicLap)
+  );
+
+  const isOperationalComplete = operationalPassedCount === 4 && (isLapFull || isLapPassed || hasPhysicalDelivery);
 
   // Status Kliring Dokumen Keuangan (Finance Settlement):
   const isFinanceSettled = isFinFull || (Boolean(rawSpp) && hasValue(rawTglKeu));
