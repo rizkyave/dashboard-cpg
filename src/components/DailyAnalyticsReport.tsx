@@ -16,6 +16,9 @@ import {
   Wrench,
   Users,
   ArrowRight,
+  ArrowUpDown,
+  ArrowDown,
+  ArrowUp,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
@@ -449,6 +452,7 @@ export default function DailyAnalyticsReport({
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isCopied, setIsCopied] = useState<boolean>(false);
+  const [sortByDateDirection, setSortByDateDirection] = useState<'desc' | 'asc' | null>(null);
   const pageSize = 12;
 
   const selectedFormattedDate = useMemo(() => formatDateDdMmYy(selectedIsoDate), [selectedIsoDate]);
@@ -612,6 +616,37 @@ export default function DailyAnalyticsReport({
         }
       }
 
+      // Tanggal efektif untuk pengurutan kronologis (Terbaru / Terlama)
+      let effectiveDateIso: string | null = deliveryInfo.deliveryDateIso;
+      let effectiveTimestamp = 0;
+
+      if (effectiveDateIso) {
+        effectiveTimestamp = extractDateInfo(effectiveDateIso).timestamp;
+      } else {
+        const dateCandidates = [
+          item.tglBarangDiantar,
+          (item as any).tglDiantar,
+          item.tglTimLapKePicTtb,
+          item.tglTtb,
+          item.tglInputTtb,
+          item.tglPo,
+          item.date,
+          item.tglInputFstb,
+          item.tglFstb,
+          item.tglFpb,
+        ];
+        for (const cand of dateCandidates) {
+          if (hasValue(cand)) {
+            const dInfo = extractDateInfo(cand);
+            if (dInfo.fullDate && dInfo.timestamp > 0) {
+              effectiveDateIso = dInfo.fullDate;
+              effectiveTimestamp = dInfo.timestamp;
+              break;
+            }
+          }
+        }
+      }
+
       // On Delivery: Berkas aktif yang sudah melewati PO atau gudang dan sedang dalam proses pengiriman ke armada
       const isOnDelivery = !isOpsComplete && (wf.stages[1].isPassed || wf.stages[2].isPassed || Boolean(item.po));
 
@@ -619,6 +654,8 @@ export default function DailyAnalyticsReport({
         item,
         wf,
         deliveryInfo,
+        effectiveDateIso,
+        effectiveTimestamp,
         primaryBottleneck,
         agingDays,
         displayItemName,
@@ -744,7 +781,7 @@ export default function DailyAnalyticsReport({
 
   // Filter daftar data berdasarkan seluruh parameter
   const filteredList = useMemo(() => {
-    return dailyEvaluatedItems.filter(({ item, wf, primaryBottleneck, searchableGoods, unitInfo, agingDays, isOpsComplete, isOpsStuck, isOnDelivery }) => {
+    const list = dailyEvaluatedItems.filter(({ item, wf, primaryBottleneck, searchableGoods, unitInfo, agingDays, isOpsComplete, isOpsStuck, isOnDelivery }) => {
       // 1. Filter KPI Cards
       if (trafficFilter === 'OPS_DELIVERED' && !isOpsComplete) return false;
       if (trafficFilter === 'OPS_STUCK' && !isOpsStuck) return false;
@@ -785,7 +822,26 @@ export default function DailyAnalyticsReport({
 
       return true;
     });
-  }, [dailyEvaluatedItems, trafficFilter, activeFunnelStage, quickFilter, searchQuery]);
+
+    // Pengurutan berdasarkan tanggal di header Aging SLA (Terbaru di atas / Terlama)
+    if (sortByDateDirection) {
+      list.sort((a, b) => {
+        const timeA = a.effectiveTimestamp || 0;
+        const timeB = b.effectiveTimestamp || 0;
+        if (sortByDateDirection === 'desc') {
+          // Tanggal terbaru di atas (descending)
+          if (timeB !== timeA) return timeB - timeA;
+          return a.agingDays - b.agingDays;
+        } else {
+          // Tanggal terlama di atas (ascending)
+          if (timeA !== timeB) return timeA - timeB;
+          return b.agingDays - a.agingDays;
+        }
+      });
+    }
+
+    return list;
+  }, [dailyEvaluatedItems, trafficFilter, activeFunnelStage, quickFilter, searchQuery, sortByDateDirection]);
 
   // Pagination
   const totalPages = Math.ceil(filteredList.length / pageSize) || 1;
@@ -815,6 +871,7 @@ export default function DailyAnalyticsReport({
     setQuickFilter('ALL');
     setSearchQuery('');
     setEntityFilter('ALL');
+    setSortByDateDirection(null);
     setCurrentPage(1);
   };
 
@@ -823,7 +880,8 @@ export default function DailyAnalyticsReport({
     activeFunnelStage !== null ||
     quickFilter !== 'ALL' ||
     searchQuery.trim() !== '' ||
-    entityFilter !== 'ALL';
+    entityFilter !== 'ALL' ||
+    sortByDateDirection !== null;
 
   // Salin Rekap WhatsApp dengan nama barang riil & tipe unit
   const handleCopyWhatsApp = () => {
@@ -907,7 +965,7 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 4 Seksi Logistik_`;
       `"${formatDateDdMmYy(item.tglPo || item.date)}"`,
       `"${cleanPicName(primaryBottleneck.responsiblePic || (isOpsComplete ? deliveryInfo.deliveryPic : '-'))}"`,
       `"${isOpsComplete ? '✓ TUNTAS TERKIRIM' : wf.summaryBadge}"`,
-      `"${primaryBottleneck.reason}"`,
+      `"${isOpsComplete ? '-' : primaryBottleneck.reason}"`,
       agingDays,
       agingDays >= 4 && !isOpsComplete ? 'OVERDUE' : agingDays >= 2 && !isOpsComplete ? 'PERHATIAN' : 'NORMAL',
     ]);
@@ -1556,7 +1614,33 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 4 Seksi Logistik_`;
                   <th className="py-2.5 px-3 whitespace-nowrap w-24 min-w-[100px]">PIC Terkait</th>
                   <th className="py-2.5 px-3 text-center whitespace-nowrap w-32 min-w-[120px]">Progress (4 Seksi)</th>
                   <th className="py-2.5 px-3 whitespace-nowrap min-w-[150px] max-w-[190px]">Bottleneck Terkini</th>
-                  <th className="py-2.5 px-3 text-center whitespace-nowrap w-28 min-w-[110px]">Aging SLA</th>
+                  <th
+                    onClick={() => {
+                      setSortByDateDirection((prev) => (prev === 'desc' ? 'asc' : 'desc'));
+                      setCurrentPage(1);
+                    }}
+                    className="py-2.5 px-3 text-center whitespace-nowrap w-36 min-w-[125px] cursor-pointer select-none group/sort hover:bg-muted/80 transition-colors"
+                    title="Klik untuk mengurutkan: tanggal terbaru di atas ke tanggal terlama"
+                  >
+                    <div className="inline-flex items-center gap-1.5 justify-center">
+                      <span className="group-hover/sort:text-foreground transition-colors">
+                        Aging SLA
+                      </span>
+                      {sortByDateDirection === 'desc' ? (
+                        <span className="inline-flex items-center gap-0.5 text-[9px] font-mono text-primary bg-primary/10 px-1 py-0.2 rounded border border-primary/20">
+                          <ArrowDown className="size-3 shrink-0" />
+                          <span>Terbaru</span>
+                        </span>
+                      ) : sortByDateDirection === 'asc' ? (
+                        <span className="inline-flex items-center gap-0.5 text-[9px] font-mono text-primary bg-primary/10 px-1 py-0.2 rounded border border-primary/20">
+                          <ArrowUp className="size-3 shrink-0" />
+                          <span>Terlama</span>
+                        </span>
+                      ) : (
+                        <ArrowUpDown className="size-3 text-muted-foreground/50 group-hover/sort:text-foreground shrink-0 transition-colors" />
+                      )}
+                    </div>
+                  </th>
                   <th className="py-2.5 px-3 text-center whitespace-nowrap w-36 min-w-[135px]">Aksi &amp; Follow-Up</th>
                 </tr>
               </thead>
@@ -1749,15 +1833,7 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 4 Seksi Logistik_`;
                       {/* 7. Bottleneck Terkini */}
                       <td className="py-2.5 px-3">
                         {isOpsComplete ? (
-                          <div className="inline-flex flex-col">
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
-                              <Check className="size-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                              <span>✓ Tuntas ({deliveryInfo.deliveryDateFormatted !== '-' ? deliveryInfo.deliveryDateFormatted : 'Lapangan'})</span>
-                            </span>
-                            <span className="text-[8.5px] font-mono text-muted-foreground mt-0.5 pl-1">
-                              PIC: {cleanPicName(deliveryInfo.deliveryPic)}
-                            </span>
-                          </div>
+                          <span className="text-muted-foreground/50 font-mono text-xs block pl-1">-</span>
                         ) : (
                           <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-mono bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-amber-500/20 max-w-full">
                             <span className="font-bold shrink-0">[{primaryBottleneck.stageCode}]</span>
