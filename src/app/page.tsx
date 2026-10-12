@@ -60,6 +60,13 @@ import InventoryTab from '@/components/InventoryTab';
 import TimemarkTab from '@/components/TimemarkTab';
 import TtbGalleryTab from '@/components/TtbGalleryTab';
 import AdminSettingsTab from '@/components/AdminSettingsTab';
+import SisaLayananTab from '@/components/SisaLayananTab';
+import { SisaLayananItem, SisaLayananSummary } from '@/types/sisaLayanan';
+import {
+  saveStoredSisaLayanan,
+  loadStoredSisaLayanan,
+  clearStoredSisaLayanan,
+} from '@/utils/sisaLayananStorage';
 import AuditModal from '@/components/AuditModal';
 import NewRecordModal from '@/components/NewRecordModal';
 import LoginPage from '@/components/LoginPage';
@@ -254,6 +261,43 @@ export default function DashboardPage() {
     saveStoredSmVendors(configs);
   };
 
+  // State untuk modul Laporan Sisa Layanan Gabungan Semua Unit (PT Cindara Pratama Group)
+  const [sisaLayananItems, setSisaLayananItems] = useState<SisaLayananItem[]>([]);
+  const [sisaLayananSummary, setSisaLayananSummary] = useState<SisaLayananSummary | null>(null);
+  const [isLoadingSisaLayanan, setIsLoadingSisaLayanan] = useState<boolean>(false);
+
+  // Fungsi sinkronisasi / muat ulang data Sisa Layanan Gabungan
+  const handleRefreshSisaLayanan = async () => {
+    setIsLoadingSisaLayanan(true);
+    showToast('Memuat data Laporan Sisa Layanan Gabungan Semua Unit...', 'info');
+    try {
+      const res = await fetch('/api/sisa-layanan');
+      const data = await res.json();
+      if (data.success && Array.isArray(data.items)) {
+        setSisaLayananItems(data.items);
+        if (data.summary) setSisaLayananSummary(data.summary);
+        await saveStoredSisaLayanan(data.items, data.summary || null);
+        showToast(
+          `Berhasil memuat ${data.items.length.toLocaleString('id-ID')} data Sisa Layanan Gabungan!`,
+          'success'
+        );
+      } else {
+        throw new Error(data.message || 'Gagal memuat data Sisa Layanan.');
+      }
+    } catch (err: any) {
+      console.error('Gagal mengambil data Sisa Layanan:', err);
+      showToast(err.message || 'Gagal memuat data Sisa Layanan.', 'error');
+    } finally {
+      setIsLoadingSisaLayanan(false);
+    }
+  };
+
+  const handleUploadSisaLayananExcel = (newItems: SisaLayananItem[], summary: SisaLayananSummary) => {
+    setSisaLayananItems(newItems);
+    setSisaLayananSummary(summary);
+    saveStoredSisaLayanan(newItems, summary);
+  };
+
   // State untuk sinkronisasi live Google Sheets
   const [isSyncingSheets, setIsSyncingSheets] = useState<boolean>(false);
 
@@ -410,13 +454,14 @@ export default function DashboardPage() {
     let isMounted = true;
     const initData = async () => {
       try {
-        const [savedProc, savedArm, savedInv, savedKapal, savedWo, savedSm] = await Promise.all([
+        const [savedProc, savedArm, savedInv, savedKapal, savedWo, savedSm, savedSisa] = await Promise.all([
           loadStoredProcurement(),
           loadStoredArmada(),
           loadStoredInventory(),
           loadStoredKapalPosisi(),
           loadStoredWorkOrder(),
           loadStoredServiceMaintenance(),
+          loadStoredSisaLayanan(),
         ]);
 
         if (!isMounted) return;
@@ -509,6 +554,23 @@ export default function DashboardPage() {
           if (savedSm.summary) setSmSummary(savedSm.summary);
         }
         setSmVendors(loadStoredSmVendors());
+
+        if (savedSisa && savedSisa.items && savedSisa.items.length > 0) {
+          setSisaLayananItems(savedSisa.items);
+          if (savedSisa.summary) setSisaLayananSummary(savedSisa.summary);
+        } else {
+          // Muat otomatis dari backend API saat pertama kali buka
+          fetch('/api/sisa-layanan')
+            .then((r) => r.json())
+            .then((res) => {
+              if (res.success && Array.isArray(res.items)) {
+                setSisaLayananItems(res.items);
+                if (res.summary) setSisaLayananSummary(res.summary);
+                saveStoredSisaLayanan(res.items, res.summary || null);
+              }
+            })
+            .catch((e) => console.warn('Auto-fetch Sisa Layanan initial load:', e));
+        }
 
       } catch (e) {
         console.error('Gagal memuat data tersimpan dari IndexedDB/storage:', e);
@@ -690,6 +752,9 @@ export default function DashboardPage() {
       setArmadaData([]);
       setInventoryItems([]);
       setInventorySummary(null);
+      setSisaLayananItems([]);
+      setSisaLayananSummary(null);
+      await clearStoredSisaLayanan();
       await clearStoredData('all');
       if (typeof window !== 'undefined') {
         localStorage.removeItem('CPG_LAST_SYNC_TIME');
@@ -850,6 +915,7 @@ export default function DashboardPage() {
         kapalPosisiCount={kapalPosisiItems.length}
         workOrderCount={workOrderItems.length}
         serviceMaintenanceCount={smItems.length}
+        sisaLayananCount={sisaLayananItems.length}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={toggleSidebar}
         onOpenNewRecord={() => setIsNewRecordOpen(true)}
@@ -905,6 +971,8 @@ export default function DashboardPage() {
                   ? 'Monitoring Service & Maintenance (SM) Vendor'
                   : activeTab === 'inventory'
                   ? 'Cek Stok Persediaan Gudang'
+                  : activeTab === 'sisa-layanan'
+                  ? 'Laporan Sisa Layanan Permintaan (Gabungan)'
                   : activeTab === 'admin-settings'
                   ? 'Pengaturan Administrator & Pengguna'
                   : 'Analisis SLA & Lead Time'}
@@ -930,6 +998,8 @@ export default function DashboardPage() {
                   ? 'Pelacakan pekerjaan jasa perbaikan mesin kapal, bubut, servis bengkel rekanan (Karindo, Surabaya Teknik, Sidomukti, Panca Teknik, Tjokro), dan integrasi FPB-PO.'
                   : activeTab === 'inventory'
                   ? 'Pemeriksaan stok barang konsolidasi Accurate (CPL, Hana Lines, Mandar Ocean) & pencocokan kebutuhan pengadaan.'
+                  : activeTab === 'sisa-layanan'
+                  ? 'Monitoring pemenuhan pengajuan barang (FPB, PO, FSTB, TTB) gabungan seluruh unit armada kapal & divisi PT Cindara Pratama Group.'
                   : activeTab === 'admin-settings'
                   ? 'Kelola akun operasional staf purchasing (User) dan akun tamu/peninjau (Visitor). Tambahkan pengguna baru dan konfigurasi wewenang hak akses.'
                   : 'Distribusi waktu perputaran berkas fisik (lead time) dan beban kerja produktivitas staf PIC operasional.'}
@@ -937,7 +1007,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Tombol Sembunyikan Ringkasan Metrik KPI */}
-            {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'admin-settings' && (!isVisitor || searchKeyword.trim() !== '') && (
+            {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'admin-settings' && (!isVisitor || searchKeyword.trim() !== '') && (
               <button
                 type="button"
                 onClick={toggleKpiHidden}
@@ -955,7 +1025,7 @@ export default function DashboardPage() {
           </div>
 
           {/* 4 Pillar Executive Metric Cards (procurement tabs only) */}
-          {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'admin-settings' && !isKpiHidden && (!isVisitor || searchKeyword.trim() !== '') && (
+          {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'admin-settings' && !isKpiHidden && (!isVisitor || searchKeyword.trim() !== '') && (
             <div className="animate-in fade-in-50 duration-200">
               <KpiCards
                 procurementList={filteredProcurement}
@@ -1083,6 +1153,19 @@ export default function DashboardPage() {
                 if (newSummary) setInventorySummary(newSummary);
               }}
               onLoadSampleInventory={handleLoadSampleInventory}
+              showToast={showToast}
+            />
+          )}
+
+          {/* Tab Modul Tambahan: Sisa Layanan Gabungan Semua Unit */}
+          {activeTab === 'sisa-layanan' && (
+            <SisaLayananTab
+              items={sisaLayananItems}
+              summary={sisaLayananSummary}
+              isLoading={isLoadingSisaLayanan}
+              onRefresh={handleRefreshSisaLayanan}
+              onUploadExcel={handleUploadSisaLayananExcel}
+              onOpenAudit={handleOpenAudit}
               showToast={showToast}
             />
           )}

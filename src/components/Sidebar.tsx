@@ -26,6 +26,7 @@ import {
   FileSpreadsheet,
   ExternalLink,
   Wrench,
+  Layers,
 } from 'lucide-react';
 
 import * as XLSX from 'xlsx';
@@ -45,6 +46,7 @@ interface SidebarProps {
   kapalPosisiCount?: number;
   workOrderCount?: number;
   serviceMaintenanceCount?: number;
+  sisaLayananCount?: number;
   isCollapsed: boolean;
   onToggleCollapse: () => void;
   onOpenNewRecord?: () => void;
@@ -63,6 +65,7 @@ export default function Sidebar({
   kapalPosisiCount,
   workOrderCount,
   serviceMaintenanceCount,
+  sisaLayananCount,
   isCollapsed,
   onToggleCollapse,
   onOpenNewRecord,
@@ -513,6 +516,33 @@ export default function Sidebar({
                   {serviceMaintenanceCount !== undefined && serviceMaintenanceCount > 0
                     ? `${serviceMaintenanceCount}`
                     : 'Vendor'}
+                </span>
+              </button>
+
+              {/* Modul Baru: Sisa Layanan (Gabungan Seluruh Unit CPG) */}
+              <button
+                onClick={() => handleSelectTab('sisa-layanan')}
+                className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation cursor-pointer ${
+                  activeTab === 'sisa-layanan'
+                    ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-border'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                }`}
+                title="Buka Modul Laporan Sisa Layanan Gabungan Semua Unit (FPB-PO-FSTB-TTB)"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <Layers
+                    className={`size-4 shrink-0 ${
+                      activeTab === 'sisa-layanan' ? 'text-indigo-500' : 'text-muted-foreground'
+                    }`}
+                  />
+                  <span className="truncate whitespace-nowrap">Sisa Layanan</span>
+                </div>
+                <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                  {sisaLayananCount !== undefined && sisaLayananCount > 0
+                    ? sisaLayananCount >= 1000
+                      ? `${(sisaLayananCount / 1000).toFixed(0)}k`
+                      : `${sisaLayananCount}`
+                    : '28k'}
                 </span>
               </button>
             </nav>
