@@ -11,6 +11,7 @@ import {
   Download,
   Share2,
   Ship,
+  Building2,
   ArrowRight,
   ChevronLeft,
   ChevronRight,
@@ -23,13 +24,13 @@ import {
   Package,
   User,
   Filter,
+  MessageCircle,
 } from 'lucide-react';
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
 import { SisaLayananItem } from '@/types/sisaLayanan';
 import { loadStoredSisaLayanan } from '@/utils/sisaLayananStorage';
 import { normalizeFpbKey } from '@/utils/dataMerger';
 import { extractDateInfo, formatDateDdMmYy } from '@/utils/formatDate';
-import WorkflowTrafficLight from './WorkflowTrafficLight';
 import {
   evaluateFiveDivisionWorkflow,
   hasValue,
@@ -46,6 +47,8 @@ export interface DailyAnalyticsReportProps {
 
 type TrafficFilterType = 'ALL' | 'COMPLETE' | 'STUCK';
 type FunnelStageCode = 'FPB' | 'PCH' | 'LOG' | 'LAP' | 'ADM';
+type QuickTableFilter = 'ALL' | 'KAPAL' | 'KANTOR' | 'OVERDUE';
+type UnitCategory = 'ARMADA' | 'KANTOR';
 
 interface PrimaryBottleneck {
   stageCode: FunnelStageCode | 'NONE';
@@ -71,7 +74,71 @@ interface SisaGoodsSummary {
 }
 
 /**
- * Helper untuk mengekstrak variasi kunci nomor FPB guna pencocokan data yang akurat
+ * Klasifikasi apakah unit merupakan Armada Kapal atau Kantor / Keagenan
+ */
+function classifyUnitType(rawUnit?: string, peruntukan?: string): {
+  type: UnitCategory;
+  name: string;
+  isArmada: boolean;
+} {
+  const combined = `${rawUnit || ''} ${peruntukan || ''}`.trim().toUpperCase();
+  const unitName = (rawUnit || peruntukan || '-').trim();
+
+  const officeKeywords = [
+    'KANTOR',
+    'OFFICE',
+    'KEAGENAN',
+    'AGEN',
+    'CABANG',
+    'GA',
+    'GENERAL AFFAIR',
+    'HRD',
+    'IT',
+    'FINANCE',
+    'LOGISTIK',
+    'WORKSHOP',
+    'GUDANG',
+    'MESS',
+    'POOL',
+    'NON-ARMADA',
+    'NON ARMADA',
+    'DARAT',
+    'OPERASIONAL DARAT',
+  ];
+
+  const vesselKeywords = [
+    'TB ', 'TB.', 'TB-', 'TUG', 'TUGBOAT',
+    'BG ', 'BG.', 'BG-', 'BARGE', 'TONGKANG',
+    'SPOB', 'SPOB.', 'MT ', 'MT.', 'MT-',
+    'KM ', 'KM.', 'KM-', 'KAPAL', 'MV ', 'MV.',
+    'BOAT', 'TRANS', 'KENCANA', 'PERKASA', 'TIRTA', 'SAMUDRA',
+    'PACIFIC', 'BAHARI', 'MARITIM', 'INDOPRIMA', 'PELAYARAN',
+  ];
+
+  const hasOfficeKeyword = officeKeywords.some((kw) => combined.includes(kw));
+  const hasVesselKeyword = vesselKeywords.some((kw) => combined.includes(kw));
+
+  if (hasOfficeKeyword && !hasVesselKeyword) {
+    return { type: 'KANTOR', name: unitName || 'Kantor / Keagenan', isArmada: false };
+  }
+
+  if (hasVesselKeyword) {
+    return { type: 'ARMADA', name: unitName || 'Armada Kapal', isArmada: true };
+  }
+
+  if (/^(TB|BG|MT|KM|SPOB|MV|TK)\b/i.test(unitName)) {
+    return { type: 'ARMADA', name: unitName, isArmada: true };
+  }
+
+  if (!unitName || unitName === '-' || unitName.toLowerCase().includes('non')) {
+    return { type: 'KANTOR', name: unitName !== '-' ? unitName : 'Kantor / Umum', isArmada: false };
+  }
+
+  return { type: 'ARMADA', name: unitName, isArmada: true };
+}
+
+/**
+ * Ekstraksi variasi kunci nomor FPB guna pencocokan data yang akurat
  */
 function extractFpbKeys(raw?: string | null): string[] {
   if (!raw) return [];
@@ -257,6 +324,7 @@ export default function DailyAnalyticsReport({
   const [entityFilter, setEntityFilter] = useState<string>('ALL');
   const [trafficFilter, setTrafficFilter] = useState<TrafficFilterType>('ALL');
   const [activeFunnelStage, setActiveFunnelStage] = useState<FunnelStageCode | null>(null);
+  const [quickFilter, setQuickFilter] = useState<QuickTableFilter>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isCopied, setIsCopied] = useState<boolean>(false);
@@ -317,7 +385,13 @@ export default function DailyAnalyticsReport({
       const itemTooltip = sisaMatch ? sisaMatch.tooltipText : (item.item || '-');
       const searchableGoods = sisaMatch ? `${displayItemName} ${sisaMatch.allItemNames}` : (item.item || '');
 
-      // 2. Hitung lapse / aging days
+      // 2. Deteksi tipe unit (Armada vs Kantor)
+      const unitInfo = classifyUnitType(
+        (item as any).armada || (item as any).deptArmada,
+        item.peruntukan
+      );
+
+      // 3. Hitung lapse / aging days
       let agingDays = typeof item.lapse === 'number' && item.lapse > 0 ? item.lapse : 0;
       if (!agingDays && item.tglPo) {
         const poDate = extractDateInfo(item.tglPo).timestamp;
@@ -326,7 +400,7 @@ export default function DailyAnalyticsReport({
         }
       }
 
-      // 3. Tentukan PRIMARY BOTTLENECK secara presisi & berurutan (FPB -> PCH -> LOG -> LAP -> ADM)
+      // 4. Tentukan PRIMARY BOTTLENECK secara presisi & berurutan (FPB -> PCH -> LOG -> LAP -> ADM)
       let primaryBottleneck: PrimaryBottleneck;
 
       if (wf.isComplete) {
@@ -405,6 +479,7 @@ export default function DailyAnalyticsReport({
         itemTooltip,
         searchableGoods,
         sisaMatch,
+        unitInfo,
       };
     });
   }, [dailyTransactions, sisaLayananFpbMap]);
@@ -425,7 +500,7 @@ export default function DailyAnalyticsReport({
 
     const vesselsSet = new Set<string>();
 
-    for (const { item, primaryBottleneck, wf } of dailyEvaluatedItems) {
+    for (const { item, primaryBottleneck, wf, unitInfo } of dailyEvaluatedItems) {
       if (wf.isComplete) {
         completeCount++;
       } else {
@@ -436,13 +511,15 @@ export default function DailyAnalyticsReport({
         funnelCounts[primaryBottleneck.stageCode].stuck++;
       }
 
-      const vessel = (item as any).armada || (item as any).deptArmada || '';
-      if (vessel && vessel !== '-' && vessel.trim().toLowerCase() !== 'non-armada') {
-        vesselsSet.add(vessel.trim());
+      if (unitInfo.isArmada && unitInfo.name && unitInfo.name !== '-') {
+        vesselsSet.add(unitInfo.name);
       }
     }
 
     const completionRate = total > 0 ? Math.round((completeCount / total) * 100) : 0;
+
+    // Cari tahap dengan berkas tertahan terbanyak untuk di-highlight otomatis
+    const maxStuck = Math.max(...Object.values(funnelCounts).map((f) => f.stuck));
 
     return {
       total,
@@ -450,28 +527,58 @@ export default function DailyAnalyticsReport({
       stuckCount,
       completionRate,
       funnelCounts,
+      maxStuck,
       vesselsCount: vesselsSet.size,
       vesselList: Array.from(vesselsSet),
     };
   }, [dailyEvaluatedItems]);
 
-  // Filter daftar data berdasarkan interaksi pengguna
+  // Hitung jumlah untuk Quick Filter Tab di atas tabel
+  const quickFilterCounts = useMemo(() => {
+    let kapal = 0;
+    let kantor = 0;
+    let overdue = 0;
+
+    for (const it of dailyEvaluatedItems) {
+      if (it.unitInfo.type === 'ARMADA') kapal++;
+      else kantor++;
+
+      if (it.agingDays >= 4 && !it.wf.isComplete) overdue++;
+    }
+
+    return {
+      all: dailyEvaluatedItems.length,
+      kapal,
+      kantor,
+      overdue,
+    };
+  }, [dailyEvaluatedItems]);
+
+  // Filter daftar data berdasarkan seluruh parameter
   const filteredList = useMemo(() => {
-    return dailyEvaluatedItems.filter(({ item, wf, primaryBottleneck, searchableGoods }) => {
+    return dailyEvaluatedItems.filter(({ item, wf, primaryBottleneck, searchableGoods, unitInfo, agingDays }) => {
+      // 1. Filter KPI Cards
       if (trafficFilter === 'COMPLETE' && !wf.isComplete) return false;
       if (trafficFilter === 'STUCK' && wf.isComplete) return false;
 
+      // 2. Filter Funnel Stage
       if (activeFunnelStage && primaryBottleneck.stageCode !== activeFunnelStage) {
         return false;
       }
 
+      // 3. Quick Filter Tab
+      if (quickFilter === 'KAPAL' && unitInfo.type !== 'ARMADA') return false;
+      if (quickFilter === 'KANTOR' && unitInfo.type !== 'KANTOR') return false;
+      if (quickFilter === 'OVERDUE' && (agingDays < 4 || wf.isComplete)) return false;
+
+      // 4. Pencarian Global
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
         const fpb = (item.fpb || '').toLowerCase();
         const po = (item.po || (item as any).noPo || '').toLowerCase();
         const itName = searchableGoods.toLowerCase();
         const pic = (item.picAktif || item.picPch || item.picTtb || primaryBottleneck.responsiblePic || '').toLowerCase();
-        const armada = ((item as any).armada || (item as any).deptArmada || '').toLowerCase();
+        const unit = unitInfo.name.toLowerCase();
         const ent = (item.entity || '').toLowerCase();
         const bottleneckText = primaryBottleneck.reason.toLowerCase();
 
@@ -480,7 +587,7 @@ export default function DailyAnalyticsReport({
           po.includes(q) ||
           itName.includes(q) ||
           pic.includes(q) ||
-          armada.includes(q) ||
+          unit.includes(q) ||
           ent.includes(q) ||
           bottleneckText.includes(q)
         );
@@ -488,7 +595,7 @@ export default function DailyAnalyticsReport({
 
       return true;
     });
-  }, [dailyEvaluatedItems, trafficFilter, activeFunnelStage, searchQuery]);
+  }, [dailyEvaluatedItems, trafficFilter, activeFunnelStage, quickFilter, searchQuery]);
 
   // Pagination
   const totalPages = Math.ceil(filteredList.length / pageSize) || 1;
@@ -515,6 +622,7 @@ export default function DailyAnalyticsReport({
   const handleResetFilters = () => {
     setTrafficFilter('ALL');
     setActiveFunnelStage(null);
+    setQuickFilter('ALL');
     setSearchQuery('');
     setEntityFilter('ALL');
     setCurrentPage(1);
@@ -523,10 +631,11 @@ export default function DailyAnalyticsReport({
   const hasActiveFilters =
     trafficFilter !== 'ALL' ||
     activeFunnelStage !== null ||
+    quickFilter !== 'ALL' ||
     searchQuery.trim() !== '' ||
     entityFilter !== 'ALL';
 
-  // Salin Rekap WhatsApp dengan nama barang riil
+  // Salin Rekap WhatsApp dengan nama barang riil & tipe unit
   const handleCopyWhatsApp = () => {
     const topStuckItems = dailyEvaluatedItems
       .filter(({ wf }) => !wf.isComplete)
@@ -540,7 +649,7 @@ export default function DailyAnalyticsReport({
 • Total Berkas Aktif: *${dailyMetrics.total} Dokumen*
 • 🟢 Tuntas Lengkap (100%): *${dailyMetrics.completeCount} Dokumen (${dailyMetrics.completionRate}%)*
 • ⚠️ Tertahan / Butuh Tindak Lanjut: *${dailyMetrics.stuckCount} Dokumen*
-• 🚢 Armada Terdampak: *${dailyMetrics.vesselsCount} Kapal/Unit*
+• 🚢 Armada Kapal Terdampak: *${dailyMetrics.vesselsCount} Kapal/Unit*
 
 🚦 *DISTRIBUSI KENDALA PER TAHAP:*
 1. FPB (Permintaan): ${dailyMetrics.funnelCounts.FPB.stuck > 0 ? `⚠️ *${dailyMetrics.funnelCounts.FPB.stuck} berkas* (Verifikasi Pemohon)` : '✅ Lancar'}
@@ -553,8 +662,8 @@ ${
     ? `\n🚨 *PRIORITAS PERCEPATAN HARI INI:*
 ${topStuckItems
   .map(
-    ({ item, primaryBottleneck, agingDays, displayItemName, extraItemsCount }, idx) =>
-      `${idx + 1}. *FPB:* ${item.fpb} (${(item as any).armada || (item as any).deptArmada || '-'})
+    ({ item, primaryBottleneck, agingDays, displayItemName, extraItemsCount, unitInfo }, idx) =>
+      `${idx + 1}. *FPB:* ${item.fpb} (${unitInfo.type === 'ARMADA' ? '🚢 ' : '🏢 '}${unitInfo.name})
    └ Barang: ${displayItemName}${extraItemsCount > 0 ? ` (+${extraItemsCount} item)` : ''}
    └ Kendala: [${primaryBottleneck.stageCode}] ${primaryBottleneck.reason}
    └ PIC: ${primaryBottleneck.responsiblePic} | Aging: ${agingDays} Hari`
@@ -584,7 +693,8 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
       'NO',
       'NO FPB',
       'ENTITAS',
-      'ARMADA',
+      'TIPE UNIT',
+      'NAMA ARMADA / KANTOR',
       'DESKRIPSI BARANG (SISA LAYANAN)',
       'QTY & SATUAN',
       'NO PO',
@@ -593,12 +703,14 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
       'STATUS PROGRESS',
       'KENDALA TERKINI',
       'AGING (HARI)',
+      'STATUS OVERDUE',
     ];
-    const rows = filteredList.map(({ item, wf, primaryBottleneck, agingDays, displayItemName, displayQty, sisaMatch }, idx) => [
+    const rows = filteredList.map(({ item, wf, primaryBottleneck, agingDays, displayItemName, displayQty, sisaMatch, unitInfo }, idx) => [
       idx + 1,
       `"${item.fpb || '-'}"`,
       `"${item.entity || '-'}"`,
-      `"${(item as any).armada || (item as any).deptArmada || '-'}"`,
+      `"${unitInfo.type}"`,
+      `"${unitInfo.name}"`,
       `"${(sisaMatch ? sisaMatch.allItems.map((i) => `${i.nama}${i.qty > 0 ? ` (${i.qty} ${i.satuan})` : ''}`).join('; ') : displayItemName).replace(/"/g, '""')}"`,
       `"${displayQty}"`,
       `"${item.po || (item as any).noPo || '-'}"`,
@@ -607,6 +719,7 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
       `"${wf.summaryBadge}"`,
       `"${primaryBottleneck.reason}"`,
       agingDays,
+      agingDays >= 4 && !wf.isComplete ? 'OVERDUE' : agingDays >= 2 && !wf.isComplete ? 'PERHATIAN' : 'NORMAL',
     ]);
 
     const csv = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
@@ -755,7 +868,7 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
               <input
                 type="text"
-                placeholder="Cari FPB, Nama Barang Sisa Layanan, PIC..."
+                placeholder="Cari FPB, Barang Sisa Layanan, PIC..."
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
@@ -833,6 +946,15 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
                 </span>
               )}
 
+              {quickFilter !== 'ALL' && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-mono bg-sky-500/10 border border-sky-500/20 text-sky-700 dark:text-sky-300">
+                  Tipe: {quickFilter === 'KAPAL' ? 'Khusus Kapal' : quickFilter === 'KANTOR' ? 'Khusus Kantor' : 'Overdue > 3H'}
+                  <button onClick={() => setQuickFilter('ALL')} className="hover:text-rose-500">
+                    <X className="size-3" />
+                  </button>
+                </span>
+              )}
+
               {searchQuery.trim() && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-mono bg-muted border border-border text-foreground">
                   &ldquo;{searchQuery}&rdquo;
@@ -860,7 +982,7 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
           ═══════════════════════════════════════════════════════════ */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         {/* Card 1: Total Berkas Aktif */}
-        <div className="p-4.5 rounded-2xl bg-card border border-border shadow-xs flex flex-col justify-between space-y-2">
+        <div className="p-4 rounded-2xl bg-card border border-border shadow-xs flex flex-col justify-between space-y-2">
           <div className="flex items-center justify-between text-xs text-muted-foreground font-mono font-medium">
             <span>TOTAL BERKAS AKTIF</span>
             <Layers className="size-4 text-primary" />
@@ -878,7 +1000,7 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
         {/* Card 2: Berkas Tuntas (100%) */}
         <div
           onClick={() => setTrafficFilter(trafficFilter === 'COMPLETE' ? 'ALL' : 'COMPLETE')}
-          className={`p-4.5 rounded-2xl bg-card border shadow-xs flex flex-col justify-between space-y-2 cursor-pointer transition hover:border-emerald-500/60 ${
+          className={`p-4 rounded-2xl bg-card border shadow-xs flex flex-col justify-between space-y-2 cursor-pointer transition hover:border-emerald-500/60 ${
             trafficFilter === 'COMPLETE'
               ? 'ring-2 ring-emerald-500/40 border-emerald-500 bg-emerald-500/5'
               : 'border-emerald-500/30'
@@ -899,7 +1021,7 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
               </span>
             </div>
             <p className="text-[11px] text-muted-foreground mt-1">
-              5/5 seksi lengkap tanpa status &ldquo;Belum&rdquo;
+              5/5 seksi lengkap tanpa kendala
             </p>
           </div>
         </div>
@@ -907,7 +1029,7 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
         {/* Card 3: Berkas Tertahan (Outstanding) */}
         <div
           onClick={() => setTrafficFilter(trafficFilter === 'STUCK' ? 'ALL' : 'STUCK')}
-          className={`p-4.5 rounded-2xl bg-card border shadow-xs flex flex-col justify-between space-y-2 cursor-pointer transition hover:border-amber-500/60 ${
+          className={`p-4 rounded-2xl bg-card border shadow-xs flex flex-col justify-between space-y-2 cursor-pointer transition hover:border-amber-500/60 ${
             trafficFilter === 'STUCK'
               ? 'ring-2 ring-amber-500/40 border-amber-500 bg-amber-500/5'
               : 'border-amber-500/30'
@@ -928,15 +1050,15 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
               </span>
             </div>
             <p className="text-[11px] text-muted-foreground mt-1">
-              Ada minimal 1 seksi masih bertuliskan &ldquo;Belum&rdquo;
+              Ada minimal 1 seksi masih terhambat
             </p>
           </div>
         </div>
 
         {/* Card 4: Total Armada Terdampak */}
-        <div className="p-4.5 rounded-2xl bg-card border border-border shadow-xs flex flex-col justify-between space-y-2">
+        <div className="p-4 rounded-2xl bg-card border border-border shadow-xs flex flex-col justify-between space-y-2">
           <div className="flex items-center justify-between text-xs text-muted-foreground font-mono font-medium">
-            <span>ARMADA TERDAMPAK</span>
+            <span>ARMADA KAPAL AKTIF</span>
             <Ship className="size-4 text-sky-500" />
           </div>
           <div>
@@ -955,17 +1077,17 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
       </div>
 
       {/* ═══════════════════════════════════════════════════════════
-          3. BOTTLENECK FUNNEL TRACKER (PIPELINE 5 SEKSI HORIZONTAL)
+          3. PIPELINE 5 SEKSI (CONNECTED CHEVRON / FUNNEL BAR)
           ═══════════════════════════════════════════════════════════ */}
       <div className="bg-card border border-border rounded-2xl p-4 sm:p-5 shadow-xs space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <h4 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
               <AlertTriangle className="size-3.5 text-amber-500" />
-              <span>Bottleneck Funnel Tracker: Pipeline Alur 5 Seksi Berurutan</span>
+              <span>Pipeline Funnel Alur 5 Seksi (Volume &amp; Bottleneck Tracker)</span>
             </h4>
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              Klik pada salah satu tahapan pipeline untuk memfilter tabel ke berkas yang tertahan di tahap tersebut:
+              Alur proses linear berantai. Tahap dengan tumpukan tertinggi diberi sorotan merah otomatis:
             </p>
           </div>
 
@@ -976,104 +1098,188 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
               className="px-2.5 py-1 rounded-lg bg-muted hover:bg-muted/80 text-foreground text-[11px] font-mono flex items-center gap-1 self-start sm:self-auto transition cursor-pointer"
             >
               <RotateCcw className="size-3 text-muted-foreground" />
-              <span>Reset Filter ({activeFunnelStage})</span>
+              <span>Reset Filter Pipeline ({activeFunnelStage})</span>
             </button>
           )}
         </div>
 
-        {/* Pipeline Stepper Horizontal */}
-        <div className="grid grid-cols-1 sm:grid-cols-5 gap-2.5 pt-1">
+        {/* Connected Chevron / Funnel Bar */}
+        <div className="grid grid-cols-1 sm:grid-cols-5 gap-2 lg:gap-2.5 pt-1">
           {[
-            { code: 'FPB' as FunnelStageCode, num: 1, name: 'Permintaan FPB', sub: 'Verifikasi' },
-            { code: 'PCH' as FunnelStageCode, num: 2, name: 'Purchasing / PO', sub: 'Delivery/FSTB' },
-            { code: 'LOG' as FunnelStageCode, num: 3, name: 'Logistik / Gudang', sub: 'Dokumen TTB' },
-            { code: 'LAP' as FunnelStageCode, num: 4, name: 'Tim Lapangan', sub: 'Serah Terima' },
-            { code: 'ADM' as FunnelStageCode, num: 5, name: 'Administrasi', sub: 'SPP Kasir' },
-          ].map((stage) => {
+            { code: 'FPB' as FunnelStageCode, num: 1, name: 'Permintaan', sub: 'Verifikasi Pemohon' },
+            { code: 'PCH' as FunnelStageCode, num: 2, name: 'Purchasing', sub: 'Delivery PO / FSTB' },
+            { code: 'LOG' as FunnelStageCode, num: 3, name: 'Logistik', sub: 'Penerimaan TTB' },
+            { code: 'LAP' as FunnelStageCode, num: 4, name: 'Lapangan', sub: 'Serah Terima Fisik' },
+            { code: 'ADM' as FunnelStageCode, num: 5, name: 'Administrasi', sub: 'Penerbitan SPP Kasir' },
+          ].map((stage, sIdx) => {
             const stuckCount = dailyMetrics.funnelCounts[stage.code].stuck;
             const isSelected = activeFunnelStage === stage.code;
+            const isMaxBottleneck = stuckCount === dailyMetrics.maxStuck && dailyMetrics.maxStuck > 0;
             const isClean = stuckCount === 0;
+            const volumePercent =
+              dailyMetrics.stuckCount > 0
+                ? Math.round((stuckCount / dailyMetrics.stuckCount) * 100)
+                : 0;
+
+            // Conditional Border & Background Styling
+            let cardStyle = 'bg-card border-border hover:border-amber-400/80 shadow-xs';
+            let barColor = 'bg-amber-500';
+
+            if (isSelected) {
+              cardStyle = 'bg-primary/5 border-primary ring-2 ring-primary/30 shadow-md';
+            } else if (isMaxBottleneck) {
+              cardStyle = 'bg-rose-500/10 border-rose-500 text-rose-700 dark:text-rose-300 ring-2 ring-rose-500/20 shadow-xs';
+              barColor = 'bg-rose-500';
+            } else if (isClean) {
+              cardStyle = 'bg-emerald-500/5 border-emerald-500/25 hover:border-emerald-500/50';
+              barColor = 'bg-emerald-500';
+            }
 
             return (
-              <button
-                key={stage.code}
-                type="button"
-                onClick={() => setActiveFunnelStage(isSelected ? null : stage.code)}
-                className={`relative p-3.5 rounded-xl border text-left transition-all duration-200 flex flex-col justify-between cursor-pointer group ${
-                  isSelected
-                    ? 'bg-amber-500/10 border-amber-500 ring-2 ring-amber-500/30 shadow-xs'
-                    : isClean
-                    ? 'bg-muted/20 hover:bg-muted/40 border-border/80'
-                    : 'bg-card hover:border-amber-400/80 border-border shadow-xs'
-                }`}
-              >
-                {/* Header Kartu Stepper */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <span className="size-5 rounded-full flex items-center justify-center text-[10px] font-bold font-mono bg-muted text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                      {stage.num}
-                    </span>
-                    <span className="text-xs font-bold font-mono text-foreground">
-                      {stage.code}
-                    </span>
-                  </div>
-                  {isClean ? (
-                    <span className="size-2 rounded-full bg-emerald-500" title="Tuntas tanpa kendala" />
-                  ) : (
-                    <span className="size-2 rounded-full bg-amber-500 animate-pulse" title="Ada berkas tertahan" />
-                  )}
-                </div>
+              <div key={stage.code} className="relative flex items-center">
+                <button
+                  type="button"
+                  onClick={() => setActiveFunnelStage(isSelected ? null : stage.code)}
+                  className={`w-full p-3 sm:p-3.5 rounded-xl border text-left transition-all duration-200 flex flex-col justify-between cursor-pointer group ${cardStyle}`}
+                >
+                  {/* Top: Step Number, Stage Code, and Badge */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <span className={`size-5 rounded-full flex items-center justify-center text-[10px] font-bold font-mono ${
+                        isMaxBottleneck
+                          ? 'bg-rose-600 text-white'
+                          : isClean
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-muted text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground'
+                      } transition-colors`}>
+                        {stage.num}
+                      </span>
+                      <span className="text-xs font-bold font-mono text-foreground">
+                        {stage.code}
+                      </span>
+                    </div>
 
-                {/* Angka & Status */}
-                <div className="mt-3">
-                  <div className="flex items-baseline justify-between">
-                    <span className="text-xl font-extrabold font-mono text-foreground">
-                      {stuckCount}
-                    </span>
-                    <span
-                      className={`text-[9.5px] font-mono font-medium px-1.5 py-0.2 rounded ${
-                        isClean
-                          ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
-                          : 'bg-amber-500/10 text-amber-700 dark:text-amber-400'
-                      }`}
-                    >
-                      {isClean ? 'Lancar' : 'Tertahan'}
-                    </span>
+                    {isMaxBottleneck ? (
+                      <span className="px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold bg-rose-600 text-white animate-pulse">
+                        Max Bottleneck
+                      </span>
+                    ) : isClean ? (
+                      <span className="px-1.5 py-0.2 rounded-full text-[9px] font-mono font-medium bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">
+                        ✓ Lancar
+                      </span>
+                    ) : (
+                      <span className="px-1.5 py-0.2 rounded-full text-[9px] font-mono font-medium bg-amber-500/10 text-amber-700 dark:text-amber-400">
+                        {stuckCount} Tertahan
+                      </span>
+                    )}
                   </div>
-                  <div className="text-[10px] font-mono leading-tight mt-1 truncate text-muted-foreground">
-                    {stage.sub}
+
+                  {/* Middle: Volume Number & Subtitle */}
+                  <div className="mt-2.5">
+                    <div className="flex items-baseline justify-between">
+                      <span className={`text-2xl font-black font-mono tracking-tight ${
+                        isMaxBottleneck ? 'text-rose-600 dark:text-rose-400' : 'text-foreground'
+                      }`}>
+                        {stuckCount}
+                      </span>
+                      <span className="text-[10px] font-mono text-muted-foreground">
+                        {volumePercent}% beban
+                      </span>
+                    </div>
+                    <div className="text-[10.5px] font-medium leading-tight mt-0.5 truncate text-muted-foreground">
+                      {stage.sub}
+                    </div>
                   </div>
-                </div>
-              </button>
+
+                  {/* Bottom: Volume Bar Indicator (Persentase Tumpukan) */}
+                  <div className="mt-2.5 pt-2 border-t border-border/50">
+                    <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-300 ${barColor}`}
+                        style={{ width: `${Math.max(isClean ? 100 : 8, volumePercent)}%` }}
+                        title={`${volumePercent}% dari total seluruh berkas tertahan`}
+                      />
+                    </div>
+                  </div>
+                </button>
+
+                {/* Chevron Arrow Connector between stages on desktop */}
+                {sIdx < 4 && (
+                  <div className="hidden lg:block absolute -right-2 top-1/2 -translate-y-1/2 z-10 pointer-events-none text-muted-foreground/40 font-bold">
+                    ➔
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>
       </div>
 
       {/* ═══════════════════════════════════════════════════════════
-          4. INTERACTIVE DATA TABLE
+          4. INTERACTIVE DATA TABLE (PROBLEM-SOLVING ORIENTED)
           ═══════════════════════════════════════════════════════════ */}
-      <div className="bg-card border border-border rounded-2xl shadow-xs overflow-hidden">
-        {/* Table Toolbar Header */}
-        <div className="p-4 border-b border-border flex items-center justify-between gap-3 bg-muted/20 flex-wrap">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs font-bold text-foreground font-mono uppercase tracking-wider">
-              Daftar Transaksi ({filteredList.length})
-            </span>
-            {trafficFilter !== 'ALL' && (
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-primary/10 text-primary border border-primary/20">
-                Filter: {trafficFilter === 'COMPLETE' ? 'Tuntas 100%' : 'Tertahan'}
-              </span>
-            )}
-            {activeFunnelStage && (
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
-                Tahap: {activeFunnelStage}
-              </span>
-            )}
+      <div className="bg-card border border-border rounded-2xl shadow-xs overflow-hidden space-y-0">
+        {/* Table Toolbar Header with Quick Filter Tabs */}
+        <div className="p-3.5 sm:p-4 border-b border-border bg-muted/20 flex flex-col md:flex-row md:items-center justify-between gap-3 flex-wrap">
+          {/* Quick Filter Tabs */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <button
+              type="button"
+              onClick={() => setQuickFilter('ALL')}
+              className={`h-8 px-3 rounded-xl text-xs font-mono font-medium border transition cursor-pointer ${
+                quickFilter === 'ALL'
+                  ? 'bg-primary text-primary-foreground border-primary font-bold shadow-xs'
+                  : 'bg-card hover:bg-muted text-muted-foreground border-border'
+              }`}
+            >
+              Semua ({quickFilterCounts.all})
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setQuickFilter('KAPAL')}
+              className={`h-8 px-3 rounded-xl text-xs font-mono font-medium border transition flex items-center gap-1.5 cursor-pointer ${
+                quickFilter === 'KAPAL'
+                  ? 'bg-sky-600 text-white border-sky-600 font-bold shadow-xs'
+                  : 'bg-card hover:bg-muted text-muted-foreground border-border'
+              }`}
+            >
+              <Ship className="size-3.5" />
+              <span>Khusus Kapal ({quickFilterCounts.kapal})</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setQuickFilter('KANTOR')}
+              className={`h-8 px-3 rounded-xl text-xs font-mono font-medium border transition flex items-center gap-1.5 cursor-pointer ${
+                quickFilter === 'KANTOR'
+                  ? 'bg-slate-700 text-white border-slate-700 font-bold shadow-xs'
+                  : 'bg-card hover:bg-muted text-muted-foreground border-border'
+              }`}
+            >
+              <Building2 className="size-3.5" />
+              <span>Khusus Kantor ({quickFilterCounts.kantor})</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setQuickFilter('OVERDUE')}
+              className={`h-8 px-3 rounded-xl text-xs font-mono font-medium border transition flex items-center gap-1.5 cursor-pointer ${
+                quickFilter === 'OVERDUE'
+                  ? 'bg-rose-600 text-white border-rose-600 font-bold shadow-xs'
+                  : 'bg-card hover:bg-muted text-muted-foreground border-border'
+              }`}
+            >
+              <AlertTriangle className="size-3.5 text-rose-500" />
+              <span>Macet &gt; 3 Hari ({quickFilterCounts.overdue})</span>
+            </button>
           </div>
-          <span className="text-[11px] text-muted-foreground font-mono">
-            Halaman {currentPage} dari {totalPages}
-          </span>
+
+          <div className="flex items-center gap-2 self-start md:self-auto text-[11px] text-muted-foreground font-mono">
+            <span>Menampilkan <strong>{filteredList.length}</strong> transaksi</span>
+            <span>•</span>
+            <span>Hal {currentPage} / {totalPages}</span>
+          </div>
         </div>
 
         {filteredList.length === 0 ? (
@@ -1102,37 +1308,36 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left border-collapse">
+            <table className="w-full text-xs text-left border-collapse table-auto">
               <thead>
-                <tr className="border-b border-border bg-muted/40 font-mono text-[11px] text-muted-foreground uppercase">
-                  <th className="py-3 px-3 text-center whitespace-nowrap w-12">No</th>
-                  <th className="py-3 px-3.5 whitespace-nowrap min-w-[140px]">Dokumen &amp; Entitas</th>
-                  <th className="py-3 px-3.5 whitespace-nowrap min-w-[140px]">Armada / Kapal</th>
-                  <th className="py-3 px-3.5 whitespace-nowrap min-w-[200px] max-w-[280px]">Deskripsi Barang (Sisa Layanan)</th>
-                  <th className="py-3 px-3.5 whitespace-nowrap min-w-[130px]">PIC Bertanggung Jawab</th>
-                  <th className="py-3 px-3.5 text-center whitespace-nowrap min-w-[150px]">Progress (5 Seksi)</th>
-                  <th className="py-3 px-3.5 whitespace-nowrap min-w-[200px]">Bottleneck Terkini</th>
-                  <th className="py-3 px-3.5 text-center whitespace-nowrap w-28">Aging SLA</th>
-                  <th className="py-3 px-3 text-center whitespace-nowrap w-20">Aksi</th>
+                <tr className="border-b border-border bg-muted/40 font-mono text-[10.5px] text-muted-foreground uppercase">
+                  <th className="py-2.5 px-2.5 text-center whitespace-nowrap w-9">No</th>
+                  <th className="py-2.5 px-3 whitespace-nowrap w-32 min-w-[125px]">Dokumen &amp; Entitas</th>
+                  <th className="py-2.5 px-3 whitespace-nowrap w-36 min-w-[135px]">Armada / Unit</th>
+                  <th className="py-2.5 px-3 whitespace-nowrap min-w-[150px] max-w-[200px]">Deskripsi Barang</th>
+                  <th className="py-2.5 px-3 whitespace-nowrap w-24 min-w-[100px]">PIC Terkait</th>
+                  <th className="py-2.5 px-3 text-center whitespace-nowrap w-32 min-w-[120px]">Progress (5 Seksi)</th>
+                  <th className="py-2.5 px-3 whitespace-nowrap min-w-[150px] max-w-[190px]">Bottleneck Terkini</th>
+                  <th className="py-2.5 px-3 text-center whitespace-nowrap w-28 min-w-[110px]">Aging SLA</th>
+                  <th className="py-2.5 px-3 text-center whitespace-nowrap w-36 min-w-[135px]">Aksi &amp; Follow-Up</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/60">
-                {paginatedList.map(({ item, wf, primaryBottleneck, agingDays, displayItemName, displayQty, isMatchedSisa, extraItemsCount, itemTooltip }, idx) => {
+                {paginatedList.map(({ item, wf, primaryBottleneck, agingDays, displayItemName, displayQty, isMatchedSisa, extraItemsCount, itemTooltip, unitInfo }, idx) => {
                   const globalIdx = (currentPage - 1) * pageSize + idx + 1;
                   const fpb = item.fpb || '-';
                   const po = item.po || (item as any).noPo || '-';
-                  const armada = (item as any).armada || (item as any).deptArmada || '-';
 
-                  // Badge warna SLA / Aging
-                  const isSlaBreached = agingDays > 5;
-                  const isSlaWarning = agingDays >= 3 && agingDays <= 5;
-                  const slaBadgeClass = wf.isComplete
-                    ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
-                    : isSlaBreached
-                    ? 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20'
-                    : isSlaWarning
-                    ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
-                    : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20';
+                  // Strict Conditional SLA Aging Styling:
+                  // 0-1 Hari: Normal (Hijau) | 2-3 Hari: Perhatian (Kuning) | >= 4 Hari: Overdue (Merah Tebal)
+                  const isOverdue = agingDays >= 4;
+                  const isWarning = agingDays >= 2 && agingDays <= 3;
+
+                  // Template WhatsApp Deep Link untuk Hubungi PIC
+                  const picName = primaryBottleneck.responsiblePic !== '-' ? primaryBottleneck.responsiblePic : (item.picAktif || 'PIC');
+                  const unitLabel = unitInfo.type === 'ARMADA' ? `Armada ${unitInfo.name}` : `Unit ${unitInfo.name}`;
+                  const waMessage = `Halo Pak/Bu ${picName}, mohon update tindak lanjut untuk dokumen FPB *${fpb}* (${unitLabel}) terkait pengadaan *${displayItemName}*.\n\nSaat ini berkas tertahan di tahap *${primaryBottleneck.stageCode}* (${primaryBottleneck.reason}), dengan durasi macet *${agingDays} Hari*.\n\nMohon konfirmasi dan percepatannya. Terima kasih.`;
+                  const waUrl = `https://wa.me/?text=${encodeURIComponent(waMessage)}`;
 
                   return (
                     <tr
@@ -1140,37 +1345,57 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
                       className="hover:bg-muted/30 transition-colors group"
                     >
                       {/* 1. No */}
-                      <td className="py-3 px-3 font-mono text-muted-foreground text-[11px] text-center">
+                      <td className="py-2.5 px-2.5 font-mono text-muted-foreground text-[11px] text-center">
                         {globalIdx}
                       </td>
 
                       {/* 2. Dokumen & Entitas */}
-                      <td className="py-3 px-3.5">
+                      <td className="py-2.5 px-3">
                         <span className="font-bold font-mono text-foreground block truncate" title={fpb}>
                           {fpb}
                         </span>
                         <div className="flex items-center gap-1.5 mt-0.5">
-                          <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-muted text-muted-foreground border border-border">
+                          <span className="text-[9.5px] font-mono px-1.5 py-0.2 rounded bg-muted text-muted-foreground border border-border">
                             {item.entity || 'CPG'}
                           </span>
-                          <span className="text-[10px] font-mono text-muted-foreground">
+                          <span className="text-[9.5px] font-mono text-muted-foreground">
                             PO: {po !== '-' ? po : 'Belum'}
                           </span>
                         </div>
                       </td>
 
-                      {/* 3. Armada / Kapal */}
-                      <td className="py-3 px-3.5">
+                      {/* 3. Armada / Unit (Badge Kapal vs Kantor) */}
+                      <td className="py-2.5 px-3">
                         <div className="flex items-center gap-1.5">
-                          <Ship className="size-3 text-sky-500 shrink-0" />
-                          <span className="font-medium text-foreground truncate" title={armada}>
-                            {armada}
+                          <span
+                            className={`p-1 rounded-md shrink-0 border ${
+                              unitInfo.type === 'ARMADA'
+                                ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20'
+                                : 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20'
+                            }`}
+                            title={unitInfo.type === 'ARMADA' ? 'Armada Kapal' : 'Kantor / Operasional Darat'}
+                          >
+                            {unitInfo.type === 'ARMADA' ? (
+                              <Ship className="size-3.5" />
+                            ) : (
+                              <Building2 className="size-3.5" />
+                            )}
                           </span>
+                          <div className="min-w-0">
+                            <span className="font-semibold text-foreground block truncate text-[11px]" title={unitInfo.name}>
+                              {unitInfo.name}
+                            </span>
+                            <span className={`text-[9px] font-mono ${
+                              unitInfo.type === 'ARMADA' ? 'text-sky-600 dark:text-sky-400' : 'text-muted-foreground'
+                            }`}>
+                              {unitInfo.type === 'ARMADA' ? 'Kapal' : 'Kantor'}
+                            </span>
+                          </div>
                         </div>
                       </td>
 
                       {/* 4. Deskripsi Barang (Sinkron Sisa Layanan) */}
-                      <td className="py-3 px-3.5">
+                      <td className="py-2.5 px-3">
                         <div className="flex items-start gap-1.5">
                           <Package
                             className={`size-3 shrink-0 mt-0.5 ${
@@ -1178,34 +1403,34 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
                             }`}
                           />
                           <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-1.5 flex-wrap">
+                            <div className="flex items-center gap-1 flex-wrap">
                               <span
-                                className="text-foreground font-medium block truncate max-w-[190px]"
+                                className="text-foreground font-medium block truncate max-w-[145px] text-[11px]"
                                 title={itemTooltip}
                               >
                                 {displayItemName}
                               </span>
                               {extraItemsCount > 0 && (
                                 <span
-                                  className="px-1.5 py-0.2 rounded text-[9px] font-mono font-semibold bg-primary/10 text-primary border border-primary/20 shrink-0"
+                                  className="px-1 py-0.2 rounded text-[8.5px] font-mono font-semibold bg-primary/10 text-primary border border-primary/20 shrink-0"
                                   title={itemTooltip}
                                 >
-                                  +{extraItemsCount} item
+                                  +{extraItemsCount}
                                 </span>
                               )}
                             </div>
                             <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                               {displayQty && (
-                                <span className="text-[10px] font-mono text-muted-foreground">
+                                <span className="text-[9.5px] font-mono text-muted-foreground">
                                   {displayQty}
                                 </span>
                               )}
                               {isMatchedSisa && (
                                 <span
-                                  className="text-[9px] font-mono px-1 py-0.2 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20"
-                                  title="Data barang terverifikasi sesuai spreadsheet Sisa Layanan Gabungan"
+                                  className="text-[8.5px] font-mono px-1 py-0.1 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20"
+                                  title="Data barang terverifikasi dari Database Sisa Layanan"
                                 >
-                                  ✓ Sisa Layanan
+                                  ✓ Sisa
                                 </span>
                               )}
                             </div>
@@ -1214,36 +1439,62 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
                       </td>
 
                       {/* 5. PIC Bertanggung Jawab */}
-                      <td className="py-3 px-3.5">
-                        <div className="flex items-center gap-1.5">
+                      <td className="py-2.5 px-3">
+                        <div className="flex items-center gap-1">
                           <User className="size-3 text-muted-foreground shrink-0" />
-                          <span className="font-medium text-foreground truncate" title={primaryBottleneck.responsiblePic}>
+                          <span className="font-medium text-foreground truncate text-[11px]" title={primaryBottleneck.responsiblePic}>
                             {primaryBottleneck.responsiblePic !== '-' ? primaryBottleneck.responsiblePic : (item.picAktif || '-')}
                           </span>
                         </div>
                       </td>
 
-                      {/* 6. Progress Alur (5 Seksi) */}
-                      <td className="py-3 px-3.5 text-center whitespace-nowrap">
-                        <div className="inline-flex items-center justify-center">
-                          <WorkflowTrafficLight
-                            item={item}
-                            compact={true}
-                            showBadge={false}
-                            onClick={() => onOpenAudit?.(item.fpb, item.po || (item as any).noPo)}
-                          />
+                      {/* 6. Progress (5 Seksi): Linear Step Badge Ringkas */}
+                      <td className="py-2.5 px-3 text-center whitespace-nowrap">
+                        <div
+                          onClick={() => onOpenAudit?.(item.fpb, item.po || (item as any).noPo)}
+                          className="inline-flex flex-col items-center justify-center gap-1 cursor-pointer group/step hover:opacity-90"
+                          title="Klik untuk membuka Audit Alur 5 Seksi"
+                        >
+                          {/* 5-Segment Mini Step Progress Bar */}
+                          <div className="flex items-center gap-1 w-24">
+                            {wf.stages.map((st) => {
+                              let segColor = 'bg-muted-foreground/20';
+                              if (st.isFull) segColor = 'bg-emerald-500';
+                              else if (st.isPartial) segColor = 'bg-amber-500 animate-pulse';
+                              else if (st.isPassed) segColor = 'bg-sky-500';
+
+                              return (
+                                <div
+                                  key={st.code}
+                                  className={`h-1.5 flex-1 rounded-full transition-colors ${segColor}`}
+                                  title={`${st.stepNumber}. ${st.code}: ${st.statusText}`}
+                                />
+                              );
+                            })}
+                          </div>
+
+                          {/* Linear Step Text Label */}
+                          <span className={`text-[10px] font-mono font-semibold ${
+                            wf.isComplete
+                              ? 'text-emerald-700 dark:text-emerald-400'
+                              : 'text-muted-foreground group-hover/step:text-foreground'
+                          }`}>
+                            {wf.isComplete
+                              ? '✓ 5/5 Selesai'
+                              : `Tahap ${wf.passedCount}/5 (${primaryBottleneck.stageCode !== 'NONE' ? primaryBottleneck.stageCode : 'FPB'})`}
+                          </span>
                         </div>
                       </td>
 
                       {/* 7. Bottleneck Terkini */}
-                      <td className="py-3 px-3.5">
+                      <td className="py-2.5 px-3">
                         {wf.isComplete ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-mono font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
                             <Check className="size-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                            <span>Tuntas Lengkap (5/5)</span>
+                            <span>Tuntas (5/5)</span>
                           </span>
                         ) : (
-                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10.5px] font-mono bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-amber-500/20 max-w-full">
+                          <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-mono bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-amber-500/20 max-w-full">
                             <span className="font-bold shrink-0">[{primaryBottleneck.stageCode}]</span>
                             <span className="truncate" title={primaryBottleneck.reason}>
                               {primaryBottleneck.reason}
@@ -1252,27 +1503,59 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
                         )}
                       </td>
 
-                      {/* 8. Durasi Macet / SLA Aging */}
-                      <td className="py-3 px-3.5 text-center whitespace-nowrap">
-                        <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-mono font-bold border ${slaBadgeClass}`}
-                        >
-                          <Clock className="size-3 shrink-0" />
-                          <span>{wf.isComplete ? 'Selesai' : `${agingDays} Hari`}</span>
-                        </span>
+                      {/* 8. Durasi Macet (Aging SLA dengan Conditional Styling Tegas) */}
+                      <td className="py-2.5 px-3 text-center whitespace-nowrap">
+                        {wf.isComplete ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20">
+                            <Check className="size-3 shrink-0" />
+                            <span>Selesai</span>
+                          </span>
+                        ) : isOverdue ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-extrabold border bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500 shadow-xs animate-pulse" title="Melebihi SLA (> 3 Hari) - Butuh Tindak Lanjut Mendesak">
+                            <AlertTriangle className="size-3 shrink-0 text-rose-600 dark:text-rose-400" />
+                            <span>{agingDays}H Overdue</span>
+                          </span>
+                        ) : isWarning ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30" title="Masa Waktu Peringatan (2-3 Hari)">
+                            <Clock className="size-3 shrink-0" />
+                            <span>{agingDays}H Perhatian</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20" title="Dalam Batas SLA Aman (0-1 Hari)">
+                            <Clock className="size-3 shrink-0" />
+                            <span>{agingDays}H Normal</span>
+                          </span>
+                        )}
                       </td>
 
-                      {/* 9. Aksi Audit */}
-                      <td className="py-3 px-3 text-center whitespace-nowrap">
-                        <button
-                          type="button"
-                          onClick={() => onOpenAudit?.(item.fpb, item.po || (item as any).noPo)}
-                          className="h-7 px-2.5 rounded-lg bg-muted hover:bg-primary hover:text-primary-foreground text-foreground border border-border text-[11px] font-medium transition active:scale-95 cursor-pointer inline-flex items-center gap-1"
-                          title="Buka Audit Rinci 5 Seksi"
-                        >
-                          <span>Audit</span>
-                          <ArrowRight className="size-3" />
-                        </button>
+                      {/* 9. Aksi & Quick Follow-Up PIC */}
+                      <td className="py-2.5 px-3 text-center whitespace-nowrap">
+                        <div className="inline-flex items-center gap-1.5 justify-center">
+                          {/* Tombol Audit */}
+                          <button
+                            type="button"
+                            onClick={() => onOpenAudit?.(item.fpb, item.po || (item as any).noPo)}
+                            className="h-7 px-2 rounded-lg bg-muted hover:bg-primary hover:text-primary-foreground text-foreground border border-border text-[10.5px] font-medium transition active:scale-95 cursor-pointer inline-flex items-center gap-1"
+                            title="Buka Audit Rinci 5 Seksi"
+                          >
+                            <span>Audit</span>
+                            <ArrowRight className="size-3" />
+                          </button>
+
+                          {/* Tombol Hubungi PIC via WhatsApp Deep Link */}
+                          {!wf.isComplete && (
+                            <a
+                              href={waUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="h-7 px-2 rounded-lg bg-emerald-500/10 hover:bg-emerald-600 hover:text-white text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-[10.5px] font-medium transition active:scale-95 inline-flex items-center gap-1 cursor-pointer"
+                              title={`Hubungi ${picName} via WhatsApp mengenai berkas ini`}
+                            >
+                              <MessageCircle className="size-3 text-emerald-600 dark:text-emerald-400 group-hover:text-white" />
+                              <span>WA PIC</span>
+                            </a>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -1285,7 +1568,7 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
         {/* Pagination Toolbar */}
         {filteredList.length > pageSize && (
           <div className="p-3.5 border-t border-border flex items-center justify-between text-xs text-muted-foreground bg-muted/20 flex-wrap gap-2">
-            <span className="font-mono">
+            <span className="font-mono text-[11px]">
               Menampilkan {(currentPage - 1) * pageSize + 1} -{' '}
               {Math.min(currentPage * pageSize, filteredList.length)} dari {filteredList.length} transaksi
             </span>
