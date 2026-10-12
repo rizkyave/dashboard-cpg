@@ -9,7 +9,7 @@ import { UploadedTtbItem, UploadTtbResponse } from '@/types/ttbUpload';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const GOOGLE_DRIVE_FOLDER_ID = '1Hd6FsgWiAlQ1jJyRvh8auY0FJGE9h5tf';
+const GOOGLE_DRIVE_FOLDER_ID = process.env.GOOGLE_DRIVE_TTB_FOLDER_ID || '1Hd6FsgWiALq1jJyRvh8auY0FJGE9h5tf';
 const GOOGLE_DRIVE_FOLDER_URL = `https://drive.google.com/drive/folders/${GOOGLE_DRIVE_FOLDER_ID}`;
 
 const ALLOWED_EXT = /\.(jpe?g|png|webp|gif|pdf)$/i;

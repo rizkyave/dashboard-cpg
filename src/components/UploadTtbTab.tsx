@@ -32,8 +32,36 @@ import { SisaLayananItem } from '@/types/sisaLayanan';
 import { UploadedTtbItem, UploadTtbResponse } from '@/types/ttbUpload';
 import { sanitizeTtbNumber, formatTtbFilename, formatFileSize } from '@/utils/ttbRename';
 
-const DEFAULT_DRIVE_FOLDER_ID = '1Hd6FsgWiAlQ1jJyRvh8auY0FJGE9h5tf';
+const DEFAULT_DRIVE_FOLDER_ID = '1Hd6FsgWiALq1jJyRvh8auY0FJGE9h5tf';
 const DEFAULT_DRIVE_FOLDER_URL = `https://drive.google.com/drive/folders/${DEFAULT_DRIVE_FOLDER_ID}`;
+
+/**
+ * Ekstraksi ID Folder Google Drive secara utuh dan aman
+ * Menghindari pemotongan karakter atau query parameter tambahan.
+ */
+export function extractDriveFolderId(inputUrlOrId: string): string {
+  const trimmed = (inputUrlOrId || '').trim();
+  if (!trimmed) return DEFAULT_DRIVE_FOLDER_ID;
+
+  // 1. Jika pengguna langsung memasukkan string ID utuh (base64url 20-50 karakter)
+  if (/^[a-zA-Z0-9_-]{20,50}$/.test(trimmed)) {
+    return trimmed;
+  }
+
+  // 2. Ekstraksi dari path /folders/<ID>
+  const matchFolders = trimmed.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+  if (matchFolders && matchFolders[1]) {
+    return matchFolders[1];
+  }
+
+  // 3. Ekstraksi dari parameter ?id=<ID> atau &id=<ID>
+  const matchQuery = trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (matchQuery && matchQuery[1]) {
+    return matchQuery[1];
+  }
+
+  return DEFAULT_DRIVE_FOLDER_ID;
+}
 
 interface UploadTtbTabProps {
   procurementItems?: ProcurementItem[];
@@ -79,12 +107,19 @@ export default function UploadTtbTab({
   // Upload state
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [uploadSuccessResult, setUploadSuccessResult] = useState<UploadTtbResponse | null>(null);
+  const [uploadErrorMessage, setUploadErrorMessage] = useState<string | null>(null);
   const [copiedFilename, setCopiedFilename] = useState<string | null>(null);
 
   // Configurable Google Drive Folder URL
   const [driveFolderUrl, setDriveFolderUrl] = useState<string>(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('cpg_drive_ttb_url') || DEFAULT_DRIVE_FOLDER_URL;
+      const stored = localStorage.getItem('cpg_drive_ttb_url');
+      // Auto-migrate jika ada cache ID lama yang salah (WiAlQ) atau rusak
+      if (stored && (stored.includes('1Hd6FsgWiAlQ1jJyRvh8auY0FJGE9h5tf') || stored.includes('WiAlQ'))) {
+        localStorage.setItem('cpg_drive_ttb_url', DEFAULT_DRIVE_FOLDER_URL);
+        return DEFAULT_DRIVE_FOLDER_URL;
+      }
+      return stored || DEFAULT_DRIVE_FOLDER_URL;
     }
     return DEFAULT_DRIVE_FOLDER_URL;
   });
@@ -92,18 +127,22 @@ export default function UploadTtbTab({
   const [tempDriveUrl, setTempDriveUrl] = useState<string>(DEFAULT_DRIVE_FOLDER_URL);
 
   const activeFolderId = useMemo(() => {
-    const match = driveFolderUrl.match(/folders\/([a-zA-Z0-9-_]+)/);
-    return match ? match[1] : DEFAULT_DRIVE_FOLDER_ID;
+    return extractDriveFolderId(driveFolderUrl);
   }, [driveFolderUrl]);
 
   const handleSaveDriveUrl = () => {
     const clean = tempDriveUrl.trim();
     if (clean) {
-      setDriveFolderUrl(clean);
+      const extractedId = extractDriveFolderId(clean);
+      const fullUrl = clean.startsWith('http')
+        ? clean
+        : `https://drive.google.com/drive/folders/${extractedId}`;
+
+      setDriveFolderUrl(fullUrl);
       if (typeof window !== 'undefined') {
-        localStorage.setItem('cpg_drive_ttb_url', clean);
+        localStorage.setItem('cpg_drive_ttb_url', fullUrl);
       }
-      showToast?.('URL Folder Google Drive berhasil disimpan!', 'success');
+      showToast?.(`URL Folder Google Drive disimpan! ID: ${extractedId}`, 'success');
     }
     setIsEditingDriveUrl(false);
   };
@@ -338,6 +377,7 @@ export default function UploadTtbTab({
 
     setIsUploading(true);
     setUploadSuccessResult(null);
+    setUploadErrorMessage(null);
 
     try {
       const formData = new FormData();
@@ -355,14 +395,20 @@ export default function UploadTtbTab({
         body: formData,
       });
 
-      const data: UploadTtbResponse = await res.json();
+      let data: UploadTtbResponse;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error('Gagal terhubung ke Google Drive, periksa izin akses atau URL folder.');
+      }
 
       if (!res.ok || !data.success) {
-        throw new Error(data.message || data.error || 'Terjadi kesalahan saat upload.');
+        throw new Error(data.message || data.error || 'Gagal terhubung ke Google Drive, periksa izin akses atau URL folder.');
       }
 
       // Success
       setUploadSuccessResult(data);
+      setUploadErrorMessage(null);
       showToast?.(data.message, 'success');
 
       // Perbarui riwayat
@@ -385,8 +431,12 @@ export default function UploadTtbTab({
         // Non-fatal
       }
     } catch (err) {
-      const msg = (err as Error).message;
-      showToast?.(`Gagal upload: ${msg}`, 'error');
+      const msg = (err as Error).message || 'Gagal terhubung ke Google Drive, periksa izin akses atau URL folder.';
+      const formattedError = msg.includes('Google Drive')
+        ? msg
+        : `Gagal terhubung ke Google Drive, periksa izin akses atau URL folder: ${msg}`;
+      setUploadErrorMessage(formattedError);
+      showToast?.(formattedError, 'error');
     } finally {
       setIsUploading(false);
     }
@@ -451,6 +501,19 @@ export default function UploadTtbTab({
               <FolderUp className="size-4 shrink-0" />
               <span>Buka Folder Google Drive</span>
               <ExternalLink className="size-3.5 opacity-70 shrink-0" />
+            </a>
+
+            {/* Tombol Cadangan: Buka Folder TTB Manual */}
+            <a
+              href={DEFAULT_DRIVE_FOLDER_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-teal-500/30 bg-teal-500/10 hover:bg-teal-500/20 active:scale-95 text-teal-700 dark:text-teal-300 text-xs md:text-sm font-semibold transition cursor-pointer"
+              title="Buka Folder TTB Manual (Tautan Resmi Terverifikasi)"
+            >
+              <FolderUp className="size-3.5 shrink-0 text-teal-600 dark:text-teal-400" />
+              <span>Buka Folder TTB Manual</span>
+              <ExternalLink className="size-3 opacity-70 shrink-0" />
             </a>
 
             <button
@@ -555,7 +618,53 @@ export default function UploadTtbTab({
         </div>
       </div>
 
-      {/* 2. Success Banner (Jika Baru Upload Berhasil) */}
+      {/* 2. Error Fallback Banner (Jika Upload / Folder Gagal atau Tidak Ditemukan) */}
+      {uploadErrorMessage && (
+        <div className="bg-rose-500/10 border border-rose-500/30 rounded-2xl p-4 md:p-5 text-rose-800 dark:text-rose-200 animate-in slide-in-from-top-3 duration-200">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <span className="p-2 rounded-xl bg-rose-500/20 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5">
+                <AlertCircle className="size-5" />
+              </span>
+              <div className="space-y-1.5">
+                <h3 className="text-sm md:text-base font-bold text-rose-900 dark:text-rose-100">
+                  Kendala Akses Google Drive
+                </h3>
+                <p className="text-xs text-rose-700 dark:text-rose-300 leading-relaxed font-medium">
+                  {uploadErrorMessage}
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  Gagal terhubung ke Google Drive, periksa izin akses atau URL folder. Anda dapat membuka folder target secara langsung menggunakan tombol di samping.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0 self-end sm:self-start flex-wrap">
+              <a
+                href={DEFAULT_DRIVE_FOLDER_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-xs transition active:scale-95 cursor-pointer"
+                title="Buka Folder TTB Manual di Tab Baru"
+              >
+                <FolderUp className="size-3.5" />
+                <span>Buka Folder TTB Manual</span>
+                <ExternalLink className="size-3" />
+              </a>
+              <button
+                type="button"
+                onClick={() => setUploadErrorMessage(null)}
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition cursor-pointer"
+                title="Tutup Pesan Error"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3. Success Banner (Jika Baru Upload Berhasil) */}
       {uploadSuccessResult && uploadSuccessResult.success && (
         <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-5 animate-in slide-in-from-top-3 duration-300">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
