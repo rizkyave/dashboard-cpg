@@ -50,6 +50,7 @@ import {
 } from './Charts';
 import FleetGanttSchedule from './FleetGanttSchedule';
 import WorkflowTrafficLight from './WorkflowTrafficLight';
+import DailyAnalyticsReport from './DailyAnalyticsReport';
 import { evaluateFiveDivisionWorkflow } from '@/utils/statusWorkflow';
 
 const MONTH_OPTIONS: Array<{ value: string; label: string }> = [
@@ -79,7 +80,16 @@ interface AnalyticsTabProps {
   showToast?: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
 }
 
-type SubTabType = 'overview' | 'armada' | 'personnel' | 'ranking' | 'pipeline' | 'recommendations' | 'swot' | 'charts';
+type SubTabType =
+  | 'overview'
+  | 'daily-report'
+  | 'armada'
+  | 'personnel'
+  | 'ranking'
+  | 'pipeline'
+  | 'recommendations'
+  | 'swot'
+  | 'charts';
 type DivisionFilter = 'ALL' | 'PURCHASING' | 'TTB' | 'LAPANGAN' | 'ADM' | 'MASTER_DATA' | 'GUDANG';
 
 
@@ -1645,6 +1655,20 @@ export default function AnalyticsTab({
               📊 Ringkasan Eksekutif
             </button>
             <button
+              onClick={() => setActiveSubTab('daily-report')}
+              className={`px-3 py-1.5 rounded-md font-medium transition-colors flex items-center gap-1.5 ${
+                activeSubTab === 'daily-report'
+                  ? 'bg-card text-foreground shadow-xs font-semibold border border-amber-300/80 dark:border-amber-700'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <CalendarDays className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              <span>📅 Laporan Harian</span>
+              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500/10 text-amber-700 dark:text-amber-300 font-mono font-bold">
+                Baru
+              </span>
+            </button>
+            <button
               onClick={() => setActiveSubTab('armada')}
               className={`px-3 py-1.5 rounded-md font-medium transition-colors flex items-center gap-1.5 ${
                 activeSubTab === 'armada'
@@ -1872,6 +1896,16 @@ export default function AnalyticsTab({
             </button>
           </div>
         </div>
+      )}
+
+      {/* SUB-TAB: LAPORAN HARIAN (DAILY REPORT) */}
+      {activeSubTab === 'daily-report' && (
+        <DailyAnalyticsReport
+          items={items}
+          armadaItems={armadaItems}
+          onOpenAudit={onOpenAudit}
+          showToast={showToast}
+        />
       )}
 
       {/* SUB-TAB 1: EXECUTIVE DASHBOARD OVERVIEW */}

@@ -83,6 +83,7 @@ export interface ProcurementItem {
   fpb: string;
   entity: string;
   po: string;
+  noPo?: string;
   date: string;
   item: string;
   peruntukan: string;
