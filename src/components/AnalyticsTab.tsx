@@ -2939,9 +2939,6 @@ export default function AnalyticsTab({
                         <th className="p-3 text-center">Entitas</th>
                         <th className="p-3 text-center">FPB</th>
                         <th className="p-3 text-center">Tiket WO</th>
-                        <th className="p-3 text-right">Qty Diminta</th>
-                        <th className="p-3 text-right">Realisasi</th>
-                        <th className="p-3 text-right">Backlog</th>
                         <th className="p-3 text-center min-w-[120px]">Pemenuhan</th>
                         <th className="p-3 text-center min-w-[100px]">Rata-rata SLA</th>
                         <th className="p-3 text-center min-w-[120px]">Skor Kesehatan</th>
@@ -3029,15 +3026,6 @@ export default function AnalyticsTab({
                           </td>
                           <td className="p-3 text-center font-mono text-amber-600 dark:text-amber-400">
                             {v.woCount > 0 ? `${v.woCount} WO` : '-'}
-                          </td>
-                          <td className="p-3 text-right font-mono text-foreground">
-                            {(v?.qtyFPB ?? 0).toLocaleString('id-ID')}
-                          </td>
-                          <td className="p-3 text-right font-mono text-emerald-600 dark:text-emerald-400 font-medium">
-                            {(v?.qtyFSTB ?? 0).toLocaleString('id-ID')}
-                          </td>
-                          <td className="p-3 text-right font-mono text-amber-600 dark:text-amber-400">
-                            {(v?.backlogQty ?? 0) > 0 ? (v.backlogQty ?? 0).toLocaleString('id-ID') : '0'}
                           </td>
                           <td className="p-3 text-center">
                             <div className="flex items-center gap-1.5 justify-center">
