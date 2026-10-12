@@ -107,6 +107,11 @@ export interface FleetGanttItem {
   kategori?: string;
   priority?: string;
   waktuProses?: string | number;
+  tglBarangDiantar?: string;
+  picLap?: string;
+  tglTimLapKePicTtb?: string;
+  tglTtbKePicPch?: string;
+  noSpp?: string;
 }
 
 interface FleetGanttScheduleProps {
@@ -411,17 +416,27 @@ export default function FleetGanttSchedule({
         const qSel = Number(it.selisih) || Math.max(0, qFpb - qFstb);
 
         const statusUpper = (it.status || '').toUpperCase();
+        const isDelivered = Boolean(
+          it.tglBarangDiantar ||
+          (it as any).picLap ||
+          it.tglTimLapKePicTtb ||
+          it.tglTtbKePicPch ||
+          (it as any).noSpp
+        );
         const isComp =
+          isDelivered ||
           (qSel === 0 && qFstb > 0) ||
           statusUpper.includes('LENGKAP') ||
           statusUpper.includes('SELESAI') ||
+          statusUpper.includes('DELIVERED') ||
           Boolean(it.noTtb);
-        const isPart = statusUpper.includes('PARSIAL') || (qFstb > 0 && qSel > 0);
+        const isPart = !isComp && (statusUpper.includes('PARSIAL') || (qFstb > 0 && qSel > 0));
         const isBacklog =
-          statusUpper.includes('BACKLOG') ||
-          statusUpper.includes('KRITIS') ||
-          statusUpper.includes('BELUM TERPENUHI') ||
-          (!isComp && !isPart && (it.noPo === '-' || !it.noPo));
+          !isComp &&
+          (statusUpper.includes('BACKLOG') ||
+            statusUpper.includes('KRITIS') ||
+            statusUpper.includes('BELUM TERPENUHI') ||
+            (!isPart && (it.noPo === '-' || !it.noPo)));
 
         if (isComp) entry.lengkap++;
         else if (isPart) entry.parsial++;

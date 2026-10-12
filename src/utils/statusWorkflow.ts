@@ -474,6 +474,17 @@ export interface FiveDivisionWorkflowResult {
   completionPercentage: number;
   summaryBadge: string;
   statusTone: 'emerald' | 'amber' | 'blue';
+  // Batas KPI Logistik Operasional (Fulfillment Point) & Pemisahan ADM
+  isOperationalDelivered: boolean;
+  isOperationalComplete: boolean;
+  operationalPassedCount: number;
+  operationalPercentage: number;
+  isFinanceSettled: boolean;
+  isFinancePending: boolean;
+  operationalStatusBadge: string;
+  operationalStatusTone: 'emerald' | 'amber' | 'blue';
+  financeStatusBadge: string;
+  financeStatusTone: 'emerald' | 'amber' | 'slate';
 }
 
 /**
@@ -799,6 +810,62 @@ export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisio
     statusTone = 'amber';
   }
 
+  // OPERASIONAL LOGISTIK (4 Seksi Pertama: FPB -> PCH -> LOG -> LAP)
+  const operationalStages = stages.slice(0, 4);
+  const operationalPassedCount = operationalStages.filter((s) => s.isPassed).length;
+  const operationalPercentage = Math.round((operationalPassedCount / 4) * 100);
+
+  // Titik Pemenuhan Fisik (Fulfillment Cut-off Point):
+  // Transaksi tuntas secara operasional bila serah terima fisik di lapangan (tahap LAP) tuntas,
+  // atau berkas sudah masuk ke tahap ADM/Finance (yang membuktikan bahwa barang sudah selesai diserahkan ke kapal/unit),
+  // atau tanggal barang diantar telah terisi.
+  const isOperationalDelivered = Boolean(
+    isLapPassed ||
+    isFinPassed ||
+    hasValue(item.tglBarangDiantar) ||
+    hasValue(item.tglDiantar) ||
+    hasValue(item.tglTimLapKePicTtb) ||
+    hasValue(item.tglTtbKePicPch)
+  );
+
+  const isOperationalComplete = operationalPassedCount === 4 && (isLapFull || isLapPassed || isFinPassed);
+
+  // Status Kliring Dokumen Keuangan (Finance Settlement):
+  const isFinanceSettled = isFinFull || (Boolean(rawSpp) && hasValue(rawTglKeu));
+  const isFinancePending = isOperationalDelivered && !isFinanceSettled;
+
+  // Dual Status Badges
+  let operationalStatusBadge = 'MENUNGGU PROSES';
+  let operationalStatusTone: 'emerald' | 'amber' | 'blue' = 'blue';
+
+  if (isOperationalDelivered) {
+    operationalStatusBadge = 'TUNTAS (DELIVERED)';
+    operationalStatusTone = 'emerald';
+  } else if (isLapPassed || hasLapStarted) {
+    operationalStatusBadge = 'DALAM PENGIRIMAN';
+    operationalStatusTone = 'amber';
+  } else if (isTtbPassed) {
+    operationalStatusBadge = 'GUDANG (SIAP ANTAR)';
+    operationalStatusTone = 'amber';
+  } else if (isPchPassed) {
+    operationalStatusBadge = 'PROSES PENGADAAN (PO)';
+    operationalStatusTone = 'blue';
+  }
+
+  let financeStatusBadge = 'BELUM MASUK ADM';
+  let financeStatusTone: 'emerald' | 'amber' | 'slate' = 'slate';
+
+  if (isFinanceSettled) {
+    financeStatusBadge = 'SPP KEUANGAN TUNTAS';
+    financeStatusTone = 'emerald';
+  } else if (isFinPassed || hasFinStarted) {
+    financeStatusBadge = 'PROSES DOKUMEN SPP';
+    financeStatusTone = 'amber';
+  } else if (isOperationalDelivered) {
+    financeStatusBadge = 'PENDING BERKAS ADM';
+    financeStatusTone = 'amber';
+  }
+
   return {
     stages,
     passedCount,
@@ -809,6 +876,16 @@ export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisio
     completionPercentage,
     summaryBadge,
     statusTone,
+    isOperationalDelivered,
+    isOperationalComplete,
+    operationalPassedCount,
+    operationalPercentage,
+    isFinanceSettled,
+    isFinancePending,
+    operationalStatusBadge,
+    operationalStatusTone,
+    financeStatusBadge,
+    financeStatusTone,
   };
 }
 

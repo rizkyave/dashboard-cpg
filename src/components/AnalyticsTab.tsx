@@ -272,27 +272,35 @@ export default function AnalyticsTab({
       // Graceful fallback from procurement items if armada sheet is not loaded
       rawList = items
         .filter((it) => Boolean(it.deptArmada))
-        .map((it) => ({
-          fpb: it.fpb,
-          armada: it.deptArmada || 'Armada CPG',
-          workOrderNo: it.workOrderNo,
-          item: it.item,
-          qtyFPB: it.qtyFPB || 1,
-          qtyFSTB:
-            it.qtyFSTB ||
-            (it.statusBadge?.includes('SELESAI') || it.statusBadge?.includes('LENGKAP') ? it.qtyFPB || 1 : 0),
-          selisih: it.selisih || 0,
-          status: it.statusBadge || 'TERDATA',
-          entity: it.entity,
-          tglFpb: it.tglFpb || it.date,
-          noPo: it.po,
-          tglPo: it.tglPo || it.date,
-          satuan: it.satuan || 'UNIT',
-          picPch: it.picPch,
-          kategori: it.kategori || 'Suku Cadang',
-          priority: it.priority,
-          waktuProses: it.waktuProses,
-        }));
+        .map((it) => {
+          const wf = evaluateFiveDivisionWorkflow(it as any);
+          const isDelivered = wf.isOperationalDelivered;
+          const qFpb = it.qtyFPB || 1;
+          const qFstb = it.qtyFSTB || (isDelivered ? qFpb : (it.noTtb ? qFpb : 0));
+          const selisih = isDelivered ? 0 : (it.selisih !== undefined ? it.selisih : Math.max(0, qFpb - qFstb));
+          return {
+            ...it,
+            fpb: it.fpb,
+            armada: it.deptArmada || 'Armada CPG',
+            workOrderNo: it.workOrderNo,
+            item: it.item,
+            qtyFPB: qFpb,
+            qtyFSTB: qFstb,
+            selisih,
+            status: isDelivered
+              ? (it.noSpp ? 'SELESAI (SPP TUNTAS)' : 'TUNTAS (DELIVERED)')
+              : (it.statusBadge || 'TERDATA'),
+            entity: it.entity,
+            tglFpb: it.tglFpb || it.date,
+            noPo: it.po,
+            tglPo: it.tglPo || it.date,
+            satuan: it.satuan || 'UNIT',
+            picPch: it.picPch,
+            kategori: it.kategori || 'Suku Cadang',
+            priority: it.priority,
+            waktuProses: it.waktuProses,
+          };
+        });
     }
 
     if (!isFilteredByDate) {
@@ -350,15 +358,20 @@ export default function AnalyticsTab({
       }
       // Status Filter
       if (fleetStatusFilter === 'LENGKAP') {
+        const wf = evaluateFiveDivisionWorkflow(it as any);
         const isComp =
+          wf.isOperationalDelivered ||
           (it.selisih === 0 && it.qtyFSTB > 0) ||
           it.status?.toUpperCase().includes('LENGKAP') ||
-          it.status?.toUpperCase().includes('SELESAI');
+          it.status?.toUpperCase().includes('SELESAI') ||
+          it.status?.toUpperCase().includes('DELIVERED');
         if (!isComp) return false;
       } else if (fleetStatusFilter === 'PARSIAL') {
         const isPart = it.status?.toUpperCase().includes('PARSIAL') || (it.qtyFSTB > 0 && it.selisih > 0);
         if (!isPart) return false;
       } else if (fleetStatusFilter === 'BACKLOG') {
+        const wf = evaluateFiveDivisionWorkflow(it as any);
+        if (wf.isOperationalDelivered) return false; // Barang sudah tuntas terkirim di lapangan!
         const isBacklog = it.selisih > 0 || it.qtyFSTB === 0;
         if (!isBacklog) return false;
       }
@@ -410,6 +423,7 @@ export default function AnalyticsTab({
         totalLapse: number;
         lapseCount: number;
         totalPassedStages: number;
+        financeSettledCount: number;
         itemFrequency: Record<string, { name: string; count: number; totalQty: number; satuan: string }>;
         categories: Record<string, number>;
       }
@@ -421,19 +435,30 @@ export default function AnalyticsTab({
       if (it.fpb) uniqueFpbs.add(it.fpb.trim());
       if (it.workOrderNo) uniqueWos.add(it.workOrderNo.trim());
 
-      const qFpb = Number(it.qtyFPB) || 0;
-      const qFstb = Number(it.qtyFSTB) || 0;
-      const qSel = Number(it.selisih) || Math.max(0, qFpb - qFstb);
+      // Evaluasi alur logistik & batas KPI serah terima fisik
+      const wfResult = evaluateFiveDivisionWorkflow(it as any);
+      const isDelivered = wfResult?.isOperationalDelivered || Boolean(
+        it.tglBarangDiantar || (it as any).picLap || (it as any).noSpp
+      );
+
+      const qFpb = Number(it.qtyFPB) || 1;
+      let qFstb = Number(it.qtyFSTB) || 0;
+      if (qFstb <= 0 && isDelivered) {
+        qFstb = qFpb;
+      }
+      const qSel = isDelivered ? 0 : (Number(it.selisih) || Math.max(0, qFpb - qFstb));
 
       totalQtyFPB += qFpb;
       totalQtyFSTB += qFstb;
       totalBacklogQty += qSel;
 
       const isComp =
+        isDelivered ||
         (qSel === 0 && qFstb > 0) ||
         it.status?.toUpperCase().includes('LENGKAP') ||
-        it.status?.toUpperCase().includes('SELESAI');
-      const isPart = it.status?.toUpperCase().includes('PARSIAL') || (qFstb > 0 && qSel > 0);
+        it.status?.toUpperCase().includes('SELESAI') ||
+        it.status?.toUpperCase().includes('DELIVERED');
+      const isPart = !isComp && (it.status?.toUpperCase().includes('PARSIAL') || (qFstb > 0 && qSel > 0));
 
       if (isComp) completeCount++;
       else if (isPart) partialCount++;
@@ -455,6 +480,7 @@ export default function AnalyticsTab({
           totalLapse: 0,
           lapseCount: 0,
           totalPassedStages: 0,
+          financeSettledCount: 0,
           itemFrequency: {},
           categories: {},
         };
@@ -492,9 +518,11 @@ export default function AnalyticsTab({
       v.totalLapse += itLapse;
       v.lapseCount++;
 
-      // 5-division workflow compliance tracking
-      const wfResult = evaluateFiveDivisionWorkflow(it as any);
-      v.totalPassedStages += wfResult ? wfResult.passedCount : 3;
+      // Evaluasi alur logistik operasional 4-seksi (FPB -> PCH -> LOG -> LAP)
+      v.totalPassedStages += wfResult ? wfResult.operationalPassedCount : 4;
+      if (wfResult?.isFinanceSettled) {
+        v.financeSettledCount++;
+      }
 
       const cleanItemName = (it.item || 'Barang').trim();
       if (!v.itemFrequency[cleanItemName]) {
@@ -524,9 +552,12 @@ export default function AnalyticsTab({
       // Lead time / SLA calculation
       const avgLeadTime = v.lapseCount > 0 ? Math.round((v.totalLapse / v.lapseCount) * 10) / 10 : 2.5;
 
-      // 5-Section Workflow compliance calculation
+      // 4-Section Operational Workflow compliance calculation (FPB -> PCH -> LOG -> LAP)
       const avgPassedSections = v.itemCount > 0 ? v.totalPassedStages / v.itemCount : 4;
-      const workflowScore = Math.min(100, Math.round((avgPassedSections / 5) * 100));
+      const operationalWorkflowScore = Math.min(100, Math.round((avgPassedSections / 4) * 100));
+
+      // Financial Document Settlement Rate (Dokumen SPP / Keuangan)
+      const financeSettlementRate = v.itemCount > 0 ? Math.min(100, Math.round((v.financeSettledCount / v.itemCount) * 100)) : 100;
 
       // SLA Score (35%)
       let slaScore = 100;
@@ -535,10 +566,14 @@ export default function AnalyticsTab({
       else if (avgLeadTime > 3) slaScore = 80;
       else if (avgLeadTime > 2) slaScore = 90;
 
-      // Combined Fleet Health Score (0 - 100)
+      // Formula Baru Skor Kesehatan Armada Logistik (0 - 100) yang Adil:
+      // - Pemenuhan Fisik Lapangan: 45% (Batas KPI serah terima LAP/TTB)
+      // - SLA Kecepatan Pengantaran: 35% (Lead time fisik)
+      // - Alur Operasional 4-Seksi: 20% (FPB -> PCH -> LOG -> LAP)
+      // *Catatan: Proses berkas SPP/Kasir Keuangan dipisahkan ke financeSettlementRate, tidak mengurangi kesehatan armada fisik.
       const healthScore = Math.min(
         100,
-        Math.max(0, Math.round(vFulfillRate * 0.40 + slaScore * 0.35 + workflowScore * 0.25))
+        Math.max(0, Math.round(vFulfillRate * 0.45 + slaScore * 0.35 + operationalWorkflowScore * 0.20))
       );
 
       let healthStatus: 'PRIMA' | 'BAIK' | 'WASPADA' | 'KRITIS' = 'PRIMA';
@@ -553,6 +588,8 @@ export default function AnalyticsTab({
         fpbCount: v.fpbs.size,
         woCount: v.wos.size,
         fulfillmentRate: vFulfillRate,
+        operationalWorkflowScore,
+        financeSettlementRate,
         avgLeadTime,
         healthScore,
         healthStatus,
@@ -827,10 +864,14 @@ export default function AnalyticsTab({
         ];
   }, [fleetFilteredItems, selectedYear]);
 
-  // 8. Critical Backlog Items (Pending or partial deliveries)
+  // 8. Critical Backlog Items (Pending or partial deliveries fisik yang benar-benar belum tuntas diantar ke unit)
   const criticalBacklogItems = useMemo(() => {
     return fleetFilteredItems
-      .filter((it) => it.selisih > 0 || (!it.status?.toUpperCase().includes('LENGKAP') && it.qtyFSTB < it.qtyFPB))
+      .filter((it) => {
+        const wf = evaluateFiveDivisionWorkflow(it as any);
+        if (wf.isOperationalDelivered) return false; // Sudah diserahterimakan fisik di lapangan, bukan backlog operasional!
+        return it.selisih > 0 || (!it.status?.toUpperCase().includes('LENGKAP') && it.qtyFSTB < it.qtyFPB);
+      })
       .sort((a, b) => (b.selisih || 0) - (a.selisih || 0));
   }, [fleetFilteredItems]);
 
@@ -2951,7 +2992,7 @@ export default function AnalyticsTab({
                               }
 
                               return (
-                                <div className="flex flex-col items-center gap-0.5" title={`Skor Kesehatan Logistik: ${score}/100 (${status})\nKomponen: Pemenuhan Fisik (40%), SLA (35%), Alur 5 Seksi (25%)`}>
+                                <div className="flex flex-col items-center gap-0.5" title={`Skor Kesehatan Logistik: ${score}/100 (${status})\nKomponen Bobot: Pemenuhan Fisik (45%), SLA (35%), Alur 4-Seksi (20%)\n*Kliring Dokumen Keuangan SPP (${v.financeSettlementRate}%) dipisahkan & tidak memotong fisik armada.`}>
                                   <div className="flex items-center gap-1.5">
                                     <div className="w-10 h-1.5 bg-muted rounded-full overflow-hidden">
                                       <div className={`h-full ${barBg} rounded-full`} style={{ width: `${score}%` }} />

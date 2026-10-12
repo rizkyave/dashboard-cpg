@@ -49,7 +49,7 @@ export interface DailyAnalyticsReportProps {
   className?: string;
 }
 
-type TrafficFilterType = 'ALL' | 'COMPLETE' | 'STUCK';
+type TrafficFilterType = 'ALL' | 'OPS_DELIVERED' | 'OPS_STUCK' | 'FIN_PENDING' | 'COMPLETE';
 type FunnelStageCode = 'FPB' | 'PCH' | 'LOG' | 'LAP' | 'ADM';
 type QuickTableFilter = 'ALL' | 'KAPAL' | 'DARAT' | 'KANTOR' | 'OVERDUE';
 type UnitCategory = 'ARMADA' | 'KENDARAAN' | 'ALAT_BERAT' | 'KANTOR';
@@ -469,10 +469,15 @@ export default function DailyAnalyticsReport({
                   'ADM Purchasing';
           }
 
+          let reason = partialStage.statusText;
+          if (partialStage.code === 'ADM' && wf.isOperationalDelivered) {
+            reason = 'Fisik Terkirim • Menunggu SPP Kasir';
+          }
+
           primaryBottleneck = {
             stageCode: partialStage.code as FunnelStageCode,
             stageName: partialStage.name,
-            reason: partialStage.statusText,
+            reason,
             responsiblePic: cleanPicName(pic),
             isStuck: true,
           };
@@ -499,7 +504,7 @@ export default function DailyAnalyticsReport({
               pic = (item.picAdm && item.picAdm !== '-' ? `${item.picAdm} (ADM PCH)` : '') ||
                     (item.picPch && item.picPch !== '-' ? `${item.picPch} (Purchasing)` : '') ||
                     'ADM Purchasing';
-              reasonText = 'Menunggu SPP Kasir';
+              reasonText = wf.isOperationalDelivered ? 'Fisik Terkirim • Menunggu SPP Kasir' : 'Menunggu SPP Kasir';
             }
 
             primaryBottleneck = {
@@ -521,6 +526,10 @@ export default function DailyAnalyticsReport({
         }
       }
 
+      const isOpsComplete = wf.isOperationalDelivered;
+      const isOpsStuck = !wf.isOperationalDelivered;
+      const isFinancePending = wf.isOperationalDelivered && !wf.isFinanceSettled;
+
       return {
         item,
         wf,
@@ -534,6 +543,9 @@ export default function DailyAnalyticsReport({
         searchableGoods,
         sisaMatch,
         unitInfo,
+        isOpsComplete,
+        isOpsStuck,
+        isFinancePending,
       };
     });
   }, [dailyTransactions, sisaLayananFpbMap]);
@@ -543,13 +555,17 @@ export default function DailyAnalyticsReport({
     const total = dailyEvaluatedItems.length;
     let completeCount = 0;
     let stuckCount = 0;
+    let opsDeliveredCount = 0;
+    let opsStuckCount = 0;
+    let finPendingCount = 0;
+    let finSettledCount = 0;
 
     const funnelCounts: Record<FunnelStageCode, { stuck: 0; name: string; action: string }> = {
       FPB: { stuck: 0, name: 'FPB Permintaan', action: 'Verifikasi Pemohon' },
       PCH: { stuck: 0, name: 'PCH Purchasing', action: 'Delivery PO / FSTB' },
       LOG: { stuck: 0, name: 'LOG Gudang', action: 'Penerimaan TTB' },
       LAP: { stuck: 0, name: 'LAP Lapangan', action: 'Serah Terima Fisik' },
-      ADM: { stuck: 0, name: 'ADM Administrasi', action: 'Penerbitan SPP Kasir' },
+      ADM: { stuck: 0, name: 'ADM Keuangan', action: 'Penerbitan SPP Kasir' },
     };
 
     const unitsSet = new Set<string>();
@@ -558,12 +574,17 @@ export default function DailyAnalyticsReport({
     let alatBeratCount = 0;
     let kantorCount = 0;
 
-    for (const { item, primaryBottleneck, wf, unitInfo } of dailyEvaluatedItems) {
+    for (const { item, primaryBottleneck, wf, unitInfo, isOpsComplete, isOpsStuck, isFinancePending } of dailyEvaluatedItems) {
       if (wf.isComplete) {
         completeCount++;
       } else {
         stuckCount++;
       }
+
+      if (isOpsComplete) opsDeliveredCount++;
+      if (isOpsStuck) opsStuckCount++;
+      if (isFinancePending) finPendingCount++;
+      if (wf.isFinanceSettled) finSettledCount++;
 
       if (primaryBottleneck.isStuck && primaryBottleneck.stageCode !== 'NONE') {
         funnelCounts[primaryBottleneck.stageCode].stuck++;
@@ -579,6 +600,7 @@ export default function DailyAnalyticsReport({
       else kantorCount++;
     }
 
+    const opsFulfillmentRate = total > 0 ? Math.round((opsDeliveredCount / total) * 100) : 0;
     const completionRate = total > 0 ? Math.round((completeCount / total) * 100) : 0;
     const maxStuck = Math.max(...Object.values(funnelCounts).map((f) => f.stuck));
     const unitList = Array.from(unitsSet);
@@ -595,6 +617,11 @@ export default function DailyAnalyticsReport({
       completeCount,
       stuckCount,
       completionRate,
+      opsDeliveredCount,
+      opsStuckCount,
+      opsFulfillmentRate,
+      finPendingCount,
+      finSettledCount,
       funnelCounts,
       maxStuck,
       unitCount: unitsSet.size,
@@ -622,7 +649,7 @@ export default function DailyAnalyticsReport({
       else if (it.unitInfo.type === 'KENDARAAN' || it.unitInfo.type === 'ALAT_BERAT') darat++;
       else kantor++;
 
-      if (it.agingDays >= 4 && !it.wf.isComplete) overdue++;
+      if (it.agingDays >= 4 && !it.isOpsComplete) overdue++;
     }
 
     return {
@@ -636,10 +663,12 @@ export default function DailyAnalyticsReport({
 
   // Filter daftar data berdasarkan seluruh parameter
   const filteredList = useMemo(() => {
-    return dailyEvaluatedItems.filter(({ item, wf, primaryBottleneck, searchableGoods, unitInfo, agingDays }) => {
+    return dailyEvaluatedItems.filter(({ item, wf, primaryBottleneck, searchableGoods, unitInfo, agingDays, isOpsComplete, isOpsStuck, isFinancePending }) => {
       // 1. Filter KPI Cards
+      if (trafficFilter === 'OPS_DELIVERED' && !isOpsComplete) return false;
+      if (trafficFilter === 'OPS_STUCK' && !isOpsStuck) return false;
+      if (trafficFilter === 'FIN_PENDING' && !isFinancePending) return false;
       if (trafficFilter === 'COMPLETE' && !wf.isComplete) return false;
-      if (trafficFilter === 'STUCK' && wf.isComplete) return false;
 
       // 2. Filter Funnel Stage
       if (activeFunnelStage && primaryBottleneck.stageCode !== activeFunnelStage) {
@@ -650,7 +679,7 @@ export default function DailyAnalyticsReport({
       if (quickFilter === 'KAPAL' && unitInfo.type !== 'ARMADA') return false;
       if (quickFilter === 'DARAT' && unitInfo.type !== 'KENDARAAN' && unitInfo.type !== 'ALAT_BERAT') return false;
       if (quickFilter === 'KANTOR' && unitInfo.type !== 'KANTOR') return false;
-      if (quickFilter === 'OVERDUE' && (agingDays < 4 || wf.isComplete)) return false;
+      if (quickFilter === 'OVERDUE' && (agingDays < 4 || isOpsComplete)) return false;
 
       // 4. Pencarian Global
       if (searchQuery.trim()) {
@@ -719,28 +748,31 @@ export default function DailyAnalyticsReport({
   // Salin Rekap WhatsApp dengan nama barang riil & tipe unit
   const handleCopyWhatsApp = () => {
     const topStuckItems = dailyEvaluatedItems
-      .filter(({ wf }) => !wf.isComplete)
+      .filter(({ isOpsComplete }) => !isOpsComplete)
       .slice(0, 4);
 
     const text = `📋 *LAPORAN HARIAN SUPPLY CHAIN & LOGISTIK CPG*
 📅 *Tanggal Aktivitas:* ${selectedFormattedDate} (${selectedIsoDate})
 🏢 *Filter Entitas:* ${entityFilter === 'ALL' ? 'Semua Entitas' : entityFilter}
 
-📊 *RINGKASAN EKSEKUTIF:*
+📊 *RINGKASAN EKSEKUTIF PEMENUHAN:*
 • Total Berkas Aktif: *${dailyMetrics.total} Dokumen*
-• 🟢 Tuntas Lengkap (100%): *${dailyMetrics.completeCount} Dokumen (${dailyMetrics.completionRate}%)*
-• ⚠️ Tertahan / Butuh Tindak Lanjut: *${dailyMetrics.stuckCount} Dokumen*
+• 🟢 Tuntas Operasional (Barang Diterima): *${dailyMetrics.opsDeliveredCount} Dokumen (${dailyMetrics.opsFulfillmentRate}%)*
+• 🔴 Backlog Fisik Logistik (Butuh Antar): *${dailyMetrics.opsStuckCount} Dokumen*
+• 📑 Pending Dokumen Keuangan (SPP Kasir): *${dailyMetrics.finPendingCount} Dokumen*
 • 🏢/🚢 Total Unit/Dept Pemohon: *${dailyMetrics.unitCount} Unit (${dailyMetrics.unitBreakdownText})*
 
 🚦 *DISTRIBUSI KENDALA PER TAHAP:*
+🚚 *Jalur Distribusi Fisik Operasional:*
 1. FPB (Permintaan): ${dailyMetrics.funnelCounts.FPB.stuck > 0 ? `⚠️ *${dailyMetrics.funnelCounts.FPB.stuck} berkas* (Verifikasi Pemohon)` : '✅ Lancar'}
 2. PCH (Purchasing): ${dailyMetrics.funnelCounts.PCH.stuck > 0 ? `⚠️ *${dailyMetrics.funnelCounts.PCH.stuck} berkas* (Delivery/FSTB Belum)` : '✅ Lancar'}
 3. LOG (Gudang/TTB): ${dailyMetrics.funnelCounts.LOG.stuck > 0 ? `⚠️ *${dailyMetrics.funnelCounts.LOG.stuck} berkas* (Menunggu TTB)` : '✅ Lancar'}
 4. LAP (Lapangan): ${dailyMetrics.funnelCounts.LAP.stuck > 0 ? `⚠️ *${dailyMetrics.funnelCounts.LAP.stuck} berkas* (Serah Terima Fisik)` : '✅ Lancar'}
-5. ADM (SPP Kasir): ${dailyMetrics.funnelCounts.ADM.stuck > 0 ? `⚠️ *${dailyMetrics.funnelCounts.ADM.stuck} berkas* (SPP Belum Terbit)` : '✅ Lancar'}
+📑 *Kliring Dokumen Keuangan:*
+5. ADM (SPP Kasir): ${dailyMetrics.funnelCounts.ADM.stuck > 0 ? `📑 *${dailyMetrics.funnelCounts.ADM.stuck} berkas* (Antrean SPP / Kliring Kasir)` : '✅ Selesai'}
 ${
   topStuckItems.length > 0
-    ? `\n🚨 *PRIORITAS PERCEPATAN HARI INI:*
+    ? `\n🚨 *PRIORITAS PERCEPATAN FISIK LOGISTIK HARI INI:*
 ${topStuckItems
   .map(
     ({ item, primaryBottleneck, agingDays, displayItemName, extraItemsCount, unitInfo }, idx) =>
@@ -1011,7 +1043,14 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
 
               {trafficFilter !== 'ALL' && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-mono bg-primary/10 border border-primary/20 text-primary">
-                  Status: {trafficFilter === 'COMPLETE' ? 'Tuntas 100%' : 'Tertahan'}
+                  Status:{' '}
+                  {trafficFilter === 'OPS_DELIVERED'
+                    ? 'Tuntas Operasional (Barang Diterima)'
+                    : trafficFilter === 'OPS_STUCK'
+                    ? 'Backlog Fisik Logistik'
+                    : trafficFilter === 'FIN_PENDING'
+                    ? 'Pending Dokumen SPP'
+                    : 'Tuntas Lengkap (5/5)'}
                   <button onClick={() => setTrafficFilter('ALL')} className="hover:text-rose-500">
                     <X className="size-3" />
                   </button>
@@ -1059,9 +1098,9 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
       </div>
 
       {/* ═══════════════════════════════════════════════════════════
-          2. EXECUTIVE KPI CARDS (4 METRICS)
+          2. EXECUTIVE KPI CARDS (5 METRICS - DUAL-TRACK PEMENUHAN)
           ═══════════════════════════════════════════════════════════ */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
         {/* Card 1: Total Berkas Aktif */}
         <div className="p-4 rounded-2xl bg-card border border-border shadow-xs flex flex-col justify-between space-y-2">
           <div className="flex items-center justify-between text-xs text-muted-foreground font-mono font-medium">
@@ -1078,65 +1117,94 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
           </div>
         </div>
 
-        {/* Card 2: Berkas Tuntas (100%) */}
+        {/* Card 2: Tuntas Operasional (Batas KPI Logistik Lapangan / Realisasi 100%) */}
         <div
-          onClick={() => setTrafficFilter(trafficFilter === 'COMPLETE' ? 'ALL' : 'COMPLETE')}
+          onClick={() => setTrafficFilter(trafficFilter === 'OPS_DELIVERED' ? 'ALL' : 'OPS_DELIVERED')}
           className={`p-4 rounded-2xl bg-card border shadow-xs flex flex-col justify-between space-y-2 cursor-pointer transition hover:border-emerald-500/60 ${
-            trafficFilter === 'COMPLETE'
+            trafficFilter === 'OPS_DELIVERED'
               ? 'ring-2 ring-emerald-500/40 border-emerald-500 bg-emerald-500/5'
               : 'border-emerald-500/30'
           }`}
-          title="Klik untuk memfilter berkas tuntas"
+          title="Batas KPI Logistik: Transaksi selesai begitu barang diserahkan di lapangan (tahap LAP/TTB)"
         >
           <div className="flex items-center justify-between text-xs text-emerald-700 dark:text-emerald-400 font-mono font-bold">
-            <span>BERKAS TUNTAS (100%)</span>
+            <span>TUNTAS OPERASIONAL</span>
             <CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-400" />
           </div>
           <div>
             <div className="flex items-baseline justify-between">
               <span className="text-3xl font-extrabold font-mono text-emerald-600 dark:text-emerald-400 tracking-tight">
-                {dailyMetrics.completeCount}
+                {dailyMetrics.opsDeliveredCount}
               </span>
               <span className="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                {dailyMetrics.completionRate}%
+                {dailyMetrics.opsFulfillmentRate}%
               </span>
             </div>
             <p className="text-[11px] text-muted-foreground mt-1">
-              5/5 seksi lengkap tanpa kendala
+              Barang diterima di lapangan (LAP/TTB)
             </p>
           </div>
         </div>
 
-        {/* Card 3: Berkas Tertahan (Outstanding) */}
+        {/* Card 3: Backlog Fisik Logistik (Kendala Riil Distribusi Barang) */}
         <div
-          onClick={() => setTrafficFilter(trafficFilter === 'STUCK' ? 'ALL' : 'STUCK')}
-          className={`p-4 rounded-2xl bg-card border shadow-xs flex flex-col justify-between space-y-2 cursor-pointer transition hover:border-amber-500/60 ${
-            trafficFilter === 'STUCK'
-              ? 'ring-2 ring-amber-500/40 border-amber-500 bg-amber-500/5'
-              : 'border-amber-500/30'
+          onClick={() => setTrafficFilter(trafficFilter === 'OPS_STUCK' ? 'ALL' : 'OPS_STUCK')}
+          className={`p-4 rounded-2xl bg-card border shadow-xs flex flex-col justify-between space-y-2 cursor-pointer transition hover:border-rose-500/60 ${
+            trafficFilter === 'OPS_STUCK'
+              ? 'ring-2 ring-rose-500/40 border-rose-500 bg-rose-500/5'
+              : 'border-rose-500/30'
           }`}
-          title="Klik untuk memfilter berkas tertahan"
+          title="Klik untuk memfilter berkas yang barang fisiknya masih tertahan"
         >
-          <div className="flex items-center justify-between text-xs text-amber-700 dark:text-amber-400 font-mono font-bold">
-            <span>TERTAHAN / BUTUH ACTION</span>
-            <AlertTriangle className="size-4 text-amber-500" />
+          <div className="flex items-center justify-between text-xs text-rose-700 dark:text-rose-400 font-mono font-bold">
+            <span>BACKLOG FISIK</span>
+            <AlertTriangle className="size-4 text-rose-500" />
           </div>
           <div>
             <div className="flex items-baseline justify-between">
-              <span className="text-3xl font-extrabold font-mono text-amber-600 dark:text-amber-400 tracking-tight">
-                {dailyMetrics.stuckCount}
+              <span className="text-3xl font-extrabold font-mono text-rose-600 dark:text-rose-400 tracking-tight">
+                {dailyMetrics.opsStuckCount}
               </span>
-              <span className="text-[10px] font-mono font-bold text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30">
-                Outstanding
+              <span className="text-[10px] font-mono font-bold text-rose-700 dark:text-rose-300 px-2 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/30">
+                Butuh Antar
               </span>
             </div>
             <p className="text-[11px] text-muted-foreground mt-1">
-              Ada minimal 1 seksi masih terhambat
+              Tertahan di FPB / PO / Gudang / Lapangan
             </p>
           </div>
         </div>
 
-        {/* Card 4: Total Unit / Pemohon Terdampak */}
+        {/* Card 4: Pending Dokumen Keuangan (Antrean Invoice SPP - Metrik Terpisah ADM) */}
+        <div
+          onClick={() => setTrafficFilter(trafficFilter === 'FIN_PENDING' ? 'ALL' : 'FIN_PENDING')}
+          className={`p-4 rounded-2xl bg-card border shadow-xs flex flex-col justify-between space-y-2 cursor-pointer transition hover:border-sky-500/60 ${
+            trafficFilter === 'FIN_PENDING'
+              ? 'ring-2 ring-sky-500/40 border-sky-500 bg-sky-500/5'
+              : 'border-sky-500/30'
+          }`}
+          title="Fisik barang telah diserahkan di lapangan. Berkas sedang antre pembuatan SPP di ADM/Keuangan."
+        >
+          <div className="flex items-center justify-between text-xs text-sky-700 dark:text-sky-400 font-mono font-bold">
+            <span>PENDING DOKUMEN SPP</span>
+            <Clock className="size-4 text-sky-500" />
+          </div>
+          <div>
+            <div className="flex items-baseline justify-between">
+              <span className="text-3xl font-extrabold font-mono text-sky-600 dark:text-sky-400 tracking-tight">
+                {dailyMetrics.finPendingCount}
+              </span>
+              <span className="text-[10px] font-mono font-bold text-sky-700 dark:text-sky-300 px-2 py-0.5 rounded-full bg-sky-500/10 border border-sky-500/30">
+                Kliring ADM
+              </span>
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-1">
+              Barang terkirim • Antrean SPP Finance
+            </p>
+          </div>
+        </div>
+
+        {/* Card 5: Total Unit / Pemohon Terdampak */}
         <div className="p-4 rounded-2xl bg-card border border-border shadow-xs flex flex-col justify-between space-y-2">
           <div className="flex items-center justify-between text-xs text-muted-foreground font-mono font-medium">
             <span>TOTAL UNIT / PEMOHON</span>
@@ -1163,9 +1231,15 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
               <AlertTriangle className="size-3.5 text-amber-500" />
               <span>Pipeline Funnel Alur 5 Seksi (Volume &amp; Bottleneck Tracker)</span>
             </h4>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
-              Alur proses linear berantai. Tahap dengan tumpukan tertinggi diberi sorotan merah otomatis:
-            </p>
+            <div className="flex items-center gap-2 mt-0.5 flex-wrap text-[11px] text-muted-foreground">
+              <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400 font-semibold">
+                🚚 Tahap 1–4: Jalur Distribusi Fisik (Batas Akhir Pemenuhan Lapangan)
+              </span>
+              <span>•</span>
+              <span className="inline-flex items-center gap-1 text-sky-700 dark:text-sky-400 font-semibold">
+                📑 Tahap 5: Kliring Dokumen Finance (SPP)
+              </span>
+            </div>
           </div>
 
           {activeFunnelStage && (
@@ -1187,11 +1261,12 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
             { code: 'PCH' as FunnelStageCode, num: 2, name: 'Purchasing', sub: 'Delivery PO / FSTB' },
             { code: 'LOG' as FunnelStageCode, num: 3, name: 'Logistik', sub: 'Penerimaan TTB' },
             { code: 'LAP' as FunnelStageCode, num: 4, name: 'Lapangan', sub: 'Serah Terima Fisik' },
-            { code: 'ADM' as FunnelStageCode, num: 5, name: 'Administrasi', sub: 'Penerbitan SPP Kasir' },
+            { code: 'ADM' as FunnelStageCode, num: 5, name: 'ADM Finance', sub: 'Penerbitan SPP Kasir' },
           ].map((stage, sIdx) => {
+            const isAdm = stage.code === 'ADM';
             const stuckCount = dailyMetrics.funnelCounts[stage.code].stuck;
             const isSelected = activeFunnelStage === stage.code;
-            const isMaxBottleneck = stuckCount === dailyMetrics.maxStuck && dailyMetrics.maxStuck > 0;
+            const isMaxBottleneck = !isAdm && stuckCount === dailyMetrics.maxStuck && dailyMetrics.maxStuck > 0;
             const isClean = stuckCount === 0;
             const volumePercent =
               dailyMetrics.stuckCount > 0
@@ -1204,6 +1279,9 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
 
             if (isSelected) {
               cardStyle = 'bg-primary/5 border-primary ring-2 ring-primary/30 shadow-md';
+            } else if (isAdm) {
+              cardStyle = 'bg-sky-500/5 border-sky-500/30 text-sky-800 dark:text-sky-300 hover:border-sky-500/60 shadow-xs';
+              barColor = 'bg-sky-500';
             } else if (isMaxBottleneck) {
               cardStyle = 'bg-rose-500/10 border-rose-500 text-rose-700 dark:text-rose-300 ring-2 ring-rose-500/20 shadow-xs';
               barColor = 'bg-rose-500';
@@ -1223,7 +1301,9 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
                       <span className={`size-5 rounded-full flex items-center justify-center text-[10px] font-bold font-mono ${
-                        isMaxBottleneck
+                        isAdm
+                          ? 'bg-sky-600 text-white'
+                          : isMaxBottleneck
                           ? 'bg-rose-600 text-white'
                           : isClean
                           ? 'bg-emerald-600 text-white'
@@ -1236,7 +1316,11 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
                       </span>
                     </div>
 
-                    {isMaxBottleneck ? (
+                    {isAdm ? (
+                      <span className="px-1.5 py-0.2 rounded-full text-[9px] font-mono font-medium bg-sky-500/15 text-sky-700 dark:text-sky-400">
+                        {stuckCount > 0 ? `${stuckCount} SPP Finance` : '✓ Selesai'}
+                      </span>
+                    ) : isMaxBottleneck ? (
                       <span className="px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold bg-rose-600 text-white animate-pulse">
                         Max Bottleneck
                       </span>
@@ -1432,7 +1516,9 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
                   // Template WhatsApp Deep Link untuk Hubungi PIC
                   const picName = cleanPicName(primaryBottleneck.responsiblePic !== '-' ? primaryBottleneck.responsiblePic : (item.picAktif || 'PIC'));
                   const unitLabel = `${unitInfo.categoryLabel} ${unitInfo.name}`;
-                  const waMessage = `Halo Pak/Bu ${picName}, mohon update tindak lanjut untuk dokumen FPB *${fpb}* (${unitLabel}) terkait pengadaan *${displayItemName}*.\n\nSaat ini berkas tertahan di tahap *${primaryBottleneck.stageCode}* (${primaryBottleneck.reason}), dengan durasi macet *${agingDays} Hari*.\n\nMohon konfirmasi dan percepatannya. Terima kasih.`;
+                  const waMessage = wf.isOperationalDelivered
+                    ? `Halo Pak/Bu ${picName}, mohon update penyelesaian berkas SPP/Finance untuk dokumen FPB *${fpb}* (${unitLabel}) terkait pengadaan *${displayItemName}*.\n\nBarang fisik telah tuntas diserahterimakan di lapangan, saat ini menunggu proses SPP di bagian ADM Keuangan.\n\nMohon konfirmasi dan bantuannya. Terima kasih.`
+                    : `Halo Pak/Bu ${picName}, mohon update tindak lanjut untuk dokumen FPB *${fpb}* (${unitLabel}) terkait pengadaan *${displayItemName}*.\n\nSaat ini berkas tertahan di tahap *${primaryBottleneck.stageCode}* (${primaryBottleneck.reason}), dengan durasi macet *${agingDays} Hari*.\n\nMohon konfirmasi dan percepatannya. Terima kasih.`;
                   const waUrl = `https://wa.me/?text=${encodeURIComponent(waMessage)}`;
 
                   return (
@@ -1566,10 +1652,14 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
                           <span className={`text-[10px] font-mono font-semibold ${
                             wf.isComplete
                               ? 'text-emerald-700 dark:text-emerald-400'
+                              : wf.isOperationalDelivered
+                              ? 'text-emerald-600 dark:text-emerald-400'
                               : 'text-muted-foreground group-hover/step:text-foreground'
                           }`}>
                             {wf.isComplete
                               ? '✓ 5/5 Selesai'
+                              : wf.isOperationalDelivered
+                              ? '✓ Terkirim (Pending SPP)'
                               : `Tahap ${
                                   primaryBottleneck.stageCode === 'FPB'
                                     ? 1
@@ -1594,6 +1684,12 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
                             <Check className="size-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
                             <span>Tuntas (5/5)</span>
                           </span>
+                        ) : wf.isOperationalDelivered ? (
+                          <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-mono bg-sky-500/10 text-sky-800 dark:text-sky-300 border border-sky-500/20 max-w-full" title="Barang fisik telah diserahterimakan di lapangan. Berkas sedang antre SPP di ADM Keuangan.">
+                            <span className="font-bold shrink-0 text-emerald-600 dark:text-emerald-400">✓ Terkirim</span>
+                            <span className="text-muted-foreground">•</span>
+                            <span className="truncate text-sky-700 dark:text-sky-300">Pending SPP (ADM)</span>
+                          </div>
                         ) : (
                           <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-mono bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-amber-500/20 max-w-full">
                             <span className="font-bold shrink-0">[{primaryBottleneck.stageCode}]</span>
@@ -1610,6 +1706,11 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 5 Seksi_`;
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20">
                             <Check className="size-3 shrink-0" />
                             <span>Selesai</span>
+                          </span>
+                        ) : wf.isOperationalDelivered ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20" title="Barang fisik telah diterima unit di lapangan. Tidak ada kendala operasional logistik.">
+                            <Check className="size-3 shrink-0 text-emerald-600" />
+                            <span>Terkirim Fisik</span>
                           </span>
                         ) : isOverdue ? (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-extrabold border bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500 shadow-xs animate-pulse" title="Melebihi SLA (> 3 Hari) - Butuh Tindak Lanjut Mendesak">
