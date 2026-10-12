@@ -1,5 +1,37 @@
 [
   {
+    "id": "1791816782732-272pu",
+    "noTtb": "CPL-TTB-26-00449",
+    "cleanNoTtb": "CPL-TTB-26-00449",
+    "armada": "SV TWINSISTER 307",
+    "receivedDate": "2026-10-12",
+    "keterangan": "",
+    "originalFileName": "07876301-b2cd-4c4c-b363-a6fd70993baf.jpg",
+    "renamedFileName": "CPL-TTB-26-00449.jpg",
+    "fileSize": 83660,
+    "fileType": "image/jpeg",
+    "fileUrl": "/api/upload-ttb/file?name=CPL-TTB-26-00449.jpg",
+    "driveFolderUrl": "https://drive.google.com/drive/folders/1Hd6FsgWiAlQ1jJyRvh8auY0FJGE9h5tf",
+    "uploadedAt": "2026-10-12T14:53:02.732Z",
+    "status": "SYNCED_TO_DRIVE"
+  },
+  {
+    "id": "1791816730103-wardk",
+    "noTtb": "CPL-TTB-26-00449",
+    "cleanNoTtb": "CPL-TTB-26-00449",
+    "armada": "SV TWINSISTER 307",
+    "receivedDate": "2026-10-12",
+    "keterangan": "",
+    "originalFileName": "07876301-b2cd-4c4c-b363-a6fd70993baf.jpg",
+    "renamedFileName": "CPL-TTB-26-00449.jpg",
+    "fileSize": 83660,
+    "fileType": "image/jpeg",
+    "fileUrl": "/api/upload-ttb/file?name=CPL-TTB-26-00449.jpg",
+    "driveFolderUrl": "https://drive.google.com/drive/folders/1Hd6FsgWiAlQ1jJyRvh8auY0FJGE9h5tf",
+    "uploadedAt": "2026-10-12T14:52:10.103Z",
+    "status": "SYNCED_TO_DRIVE"
+  },
+  {
     "id": "1791816199318-uf248",
     "noTtb": "GAJ-TTB-26-01221",
     "cleanNoTtb": "GAJ-TTB-26-01221",
