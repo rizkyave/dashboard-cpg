@@ -27,6 +27,7 @@ import {
   Printer,
   Database,
   Navigation,
+  ChevronDown,
 } from 'lucide-react';
 import { ProcurementItem, ArmadaItem, InventoryItem, KapalPosisiItem } from '@/types/procurement';
 import StockAuditModal from './StockAuditModal';
@@ -126,6 +127,13 @@ export default function AuditModal({
 }: AuditModalProps) {
   const { isVisitor } = useAuth();
   const [showAiRisk, setShowAiRisk] = useState<boolean>(false);
+  const [showSlaAnomaly, setShowSlaAnomaly] = useState<boolean>(false);
+
+  // Reset collapse status saat berganti dokumen FPB
+  useEffect(() => {
+    setShowSlaAnomaly(false);
+  }, [fpbNumber]);
+
   const [pdfData, setPdfData] = useState<{
     fpbNo: string;
     fpbDate?: string;
@@ -1982,6 +1990,22 @@ export default function AuditModal({
               <span>Alur Tanggung Jawab & PIC (5 Seksi)</span>
             </h4>
             <div className="flex items-center gap-2.5 flex-wrap">
+              {slaDeliveryAnomaly && (
+                <button
+                  type="button"
+                  onClick={() => setShowSlaAnomaly((prev) => !prev)}
+                  className={`h-6 px-2 rounded-md border text-[10.5px] font-mono font-medium flex items-center gap-1.5 transition cursor-pointer select-none ${
+                    showSlaAnomaly
+                      ? 'bg-amber-500/20 text-amber-800 dark:text-amber-200 border-amber-500/40 shadow-xs'
+                      : 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/30'
+                  }`}
+                  title={showSlaAnomaly ? 'Sembunyikan Peringatan SLA' : 'Tampilkan Peringatan SLA'}
+                >
+                  <AlertTriangle className="size-3 text-amber-600 dark:text-amber-400 shrink-0" />
+                  <span>Peringatan SLA</span>
+                  <ChevronDown className={`size-3 transition-transform duration-200 ${showSlaAnomaly ? 'rotate-180' : ''}`} />
+                </button>
+              )}
               {evaluatableWorkflowItem && (
                 <WorkflowTrafficLight
                   item={evaluatableWorkflowItem as any}
@@ -1993,16 +2017,36 @@ export default function AuditModal({
           </div>
 
           {slaDeliveryAnomaly && (
-            <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 flex items-start gap-2.5 text-xs shadow-xs">
-              <AlertTriangle className="size-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-              <div className="flex-1 min-w-0">
-                <span className="font-semibold block font-mono text-[11px] text-amber-900 dark:text-amber-200">
-                  Peringatan Validasi SLA Pengiriman &amp; Tanggal:
-                </span>
-                <p className="text-[11.5px] leading-relaxed mt-0.5 text-amber-800 dark:text-amber-300">
-                  {slaDeliveryAnomaly.message}
-                </p>
-              </div>
+            <div className="rounded-lg border border-amber-500/30 overflow-hidden shadow-2xs">
+              <button
+                type="button"
+                onClick={() => setShowSlaAnomaly((prev) => !prev)}
+                className="w-full px-3 py-2 bg-amber-500/10 hover:bg-amber-500/15 text-amber-800 dark:text-amber-300 flex items-center justify-between gap-2 text-xs transition cursor-pointer select-none"
+                title={showSlaAnomaly ? 'Klik untuk menyembunyikan rincian peringatan validasi SLA' : 'Klik untuk menampilkan rincian peringatan validasi SLA'}
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <AlertTriangle className="size-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                  <span className="font-semibold font-mono text-[11px] text-amber-900 dark:text-amber-200 truncate">
+                    Peringatan Validasi SLA Pengiriman &amp; Tanggal:
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-800 dark:text-amber-300 font-medium shrink-0">
+                    {showSlaAnomaly ? 'Sembunyikan' : 'Klik untuk Menampilkan'}
+                  </span>
+                </div>
+                <ChevronDown
+                  className={`size-3.5 text-amber-600 dark:text-amber-400 shrink-0 transition-transform duration-200 ${
+                    showSlaAnomaly ? 'rotate-180' : ''
+                  }`}
+                />
+              </button>
+
+              {showSlaAnomaly && (
+                <div className="p-3 bg-amber-500/5 border-t border-amber-500/20 text-amber-800 dark:text-amber-300 text-xs animate-in fade-in duration-150">
+                  <p className="text-[11.5px] leading-relaxed text-amber-800 dark:text-amber-300">
+                    {slaDeliveryAnomaly.message}
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
