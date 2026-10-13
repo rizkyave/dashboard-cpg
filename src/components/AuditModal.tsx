@@ -26,12 +26,13 @@ import {
   AlertTriangle,
   Printer,
   Database,
+  Navigation,
 } from 'lucide-react';
-import { ProcurementItem, ArmadaItem, InventoryItem } from '@/types/procurement';
+import { ProcurementItem, ArmadaItem, InventoryItem, KapalPosisiItem } from '@/types/procurement';
 import StockAuditModal from './StockAuditModal';
 import TimemarkModal from './TimemarkModal';
 import { extractFstbLast5, openTimemarkWithFstb, parseTtbList } from '@/utils/timemark';
-import { updatePdfItemsCacheForFpb, loadStoredWorkOrder } from '@/utils/appStorage';
+import { updatePdfItemsCacheForFpb, loadStoredWorkOrder, loadStoredKapalPosisi } from '@/utils/appStorage';
 import { formatDateDdMmYy, extractDateInfo } from '@/utils/formatDate';
 import { cleanSingleDescription, deduplicateDescriptions, cleanTujuanPeruntukan } from '@/utils/descriptionCleaner';
 import { isItemJasa, determineTransactionCategory, ProcurementCategory, normalizeJasaUnit } from '@/utils/jasaClassifier';
@@ -44,6 +45,58 @@ import { SisaLayananItem } from '@/types/sisaLayanan';
 import { loadStoredSisaLayanan } from '@/utils/sisaLayananStorage';
 import { extractFpbKeys } from '@/utils/sisaLayananParser';
 
+function normalizeVesselName(name: string): string {
+  return (name || '')
+    .toLowerCase()
+    .replace(/[^\w\s]/g, ' ')
+    .replace(/\b(spob|tb|bg|tk|tugboat|barge|ob|lct|km|kl|motor|vessel|ub)\b/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function findMatchingVessel(
+  armadaName: string,
+  vesselList: KapalPosisiItem[]
+): KapalPosisiItem | null {
+  if (!armadaName || !vesselList || vesselList.length === 0) return null;
+
+  const rawArmada = armadaName.toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  const cleanArmada = normalizeVesselName(armadaName);
+
+  // 1. Direct match on raw name, clean name, or slug
+  for (const kp of vesselList) {
+    const rawKp = (kp.namaKapal || '').toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
+    const cleanKp = normalizeVesselName(kp.namaKapal || '');
+    const slugKp = (kp.kapalSlug || '').toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
+
+    if (
+      rawArmada === rawKp ||
+      (cleanArmada && cleanArmada === cleanKp) ||
+      rawArmada === slugKp ||
+      (cleanArmada && cleanArmada === slugKp)
+    ) {
+      return kp;
+    }
+  }
+
+  // 2. Substring matching (if cleanArmada length >= 3)
+  if (cleanArmada.length >= 3) {
+    for (const kp of vesselList) {
+      const cleanKp = normalizeVesselName(kp.namaKapal || '');
+      const slugKp = (kp.kapalSlug || '').toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
+
+      if (cleanKp.length >= 3 && (cleanArmada.includes(cleanKp) || cleanKp.includes(cleanArmada))) {
+        return kp;
+      }
+      if (slugKp.length >= 3 && (cleanArmada.includes(slugKp) || slugKp.includes(cleanArmada))) {
+        return kp;
+      }
+    }
+  }
+
+  return null;
+}
+
 interface AuditModalProps {
   fpbNumber: string | null;
   targetPo?: string | null;
@@ -52,6 +105,7 @@ interface AuditModalProps {
   inventoryItems?: InventoryItem[];
   workOrderItems?: WorkOrderItem[];
   sisaLayananItems?: SisaLayananItem[];
+  kapalPosisiItems?: KapalPosisiItem[];
   onClose: () => void;
   showToast: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
   onUpdateWorkOrderNo?: (fpb: string, woNo: string) => void;
@@ -65,6 +119,7 @@ export default function AuditModal({
   inventoryItems = [],
   workOrderItems = [],
   sisaLayananItems = [],
+  kapalPosisiItems = [],
   onClose,
   showToast,
   onUpdateWorkOrderNo,
@@ -174,8 +229,35 @@ export default function AuditModal({
       .catch(() => {});
   }, [sisaLayananItems]);
 
+  // Fallback loading Posisi Kapal jika tidak dipasok via props
+  const [internalKapalPosisi, setInternalKapalPosisi] = useState<KapalPosisiItem[]>([]);
+
+  useEffect(() => {
+    if (kapalPosisiItems && kapalPosisiItems.length > 0) {
+      setInternalKapalPosisi(kapalPosisiItems);
+      return;
+    }
+    loadStoredKapalPosisi()
+      .then((stored) => {
+        if (stored && Array.isArray(stored.items) && stored.items.length > 0) {
+          setInternalKapalPosisi(stored.items);
+        } else {
+          fetch('/api/posisi-kapal')
+            .then((r) => r.json())
+            .then((res) => {
+              if (res?.success && Array.isArray(res.items)) {
+                setInternalKapalPosisi(res.items);
+              }
+            })
+            .catch(() => {});
+        }
+      })
+      .catch(() => {});
+  }, [kapalPosisiItems]);
+
   const activeInventory = inventoryItems.length > 0 ? inventoryItems : internalInventory;
   const activeSisaLayanan = sisaLayananItems.length > 0 ? sisaLayananItems : internalSisaLayanan;
+  const activeKapalPosisi = kapalPosisiItems.length > 0 ? kapalPosisiItems : internalKapalPosisi;
 
   // Check if target PO is empty / '-' / '(kosong)'
   const hasTargetPo = Boolean(targetPo && hasValue(targetPo));
@@ -317,6 +399,23 @@ export default function AuditModal({
       ? sisaMatching.fpbMatches
       : sisaMatching.poMatches;
   }, [sisaMatching, sisaScopeFilter]);
+
+  // Nama Armada / Unit aktif untuk identifikasi operasional
+  const activeArmadaName = useMemo(() => {
+    return (
+      itemsS2[0]?.armada ||
+      itemS1?.deptArmada ||
+      pdfData?.userArmada ||
+      effectiveSisaItems[0]?.departement ||
+      itemS1?.item ||
+      ''
+    ).trim();
+  }, [itemsS2, itemS1, pdfData, effectiveSisaItems]);
+
+  // Pencocokan data posisi kapal realtime dari Daily Report FMS
+  const matchedKapalPosisi = useMemo(() => {
+    return findMatchingVessel(activeArmadaName, activeKapalPosisi);
+  }, [activeArmadaName, activeKapalPosisi]);
 
   const effectiveItemSource = useMemo(() => {
     if (selectedItemSource !== 'AUTO') return selectedItemSource;
@@ -1461,8 +1560,70 @@ export default function AuditModal({
                   )
                 )}
                 <span className="text-foreground font-sans text-xs sm:text-sm font-medium truncate max-w-full">
-                  &bull; {itemsS2[0]?.armada || itemS1?.deptArmada || itemS1?.item || 'Unit / Pemohon'}
+                  &bull; {activeArmadaName || 'Unit / Pemohon'}
                 </span>
+                {matchedKapalPosisi && (
+                  <div
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg font-mono text-[11px] font-semibold border shadow-2xs shrink-0 cursor-help transition select-none ${
+                      matchedKapalPosisi.statusKode === 'ON'
+                        ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
+                        : matchedKapalPosisi.statusKode === 'SB'
+                        ? 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30'
+                        : matchedKapalPosisi.statusKode === 'MT'
+                        ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30'
+                        : matchedKapalPosisi.statusKode === 'BD'
+                        ? 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30'
+                        : 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30'
+                    }`}
+                    title={`Live Monitoring Posisi Kapal (FMS Daily Report):\n` +
+                      `• Nama Kapal: ${matchedKapalPosisi.namaKapal}${matchedKapalPosisi.callsign ? ` (${matchedKapalPosisi.callsign})` : ''}\n` +
+                      `• Posisi: ${matchedKapalPosisi.posisi || '-'}\n` +
+                      `• Status: ${matchedKapalPosisi.statusKode} (${
+                        matchedKapalPosisi.statusKode === 'ON'
+                          ? 'Operating / Beroperasi'
+                          : matchedKapalPosisi.statusKode === 'SB'
+                          ? 'Standby'
+                          : matchedKapalPosisi.statusKode === 'MT'
+                          ? 'Maintenance / Perbaikan'
+                          : matchedKapalPosisi.statusKode === 'BD'
+                          ? 'Breakdown'
+                          : 'Docking'
+                      })\n` +
+                      `• Aktivitas: ${matchedKapalPosisi.activity || '-'}${
+                        matchedKapalPosisi.kerusakan && matchedKapalPosisi.kerusakan !== '-'
+                          ? `\n• Catatan/Pekerjaan: ${matchedKapalPosisi.kerusakan}`
+                          : ''
+                      }\n• Tanggal Update: ${formatDateDdMmYy(matchedKapalPosisi.tanggal) || matchedKapalPosisi.tanggal}`
+                    }
+                  >
+                    <Navigation className="size-3 shrink-0 text-current" />
+                    <span>
+                      Posisi: <strong className="font-bold underline decoration-dotted underline-offset-2">{matchedKapalPosisi.posisi || '-'}</strong>
+                    </span>
+                    <span className="opacity-40">&bull;</span>
+                    <span className="inline-flex items-center gap-1 font-bold">
+                      <span
+                        className={`size-1.5 rounded-full ${
+                          matchedKapalPosisi.statusKode === 'ON'
+                            ? 'bg-emerald-500 animate-pulse'
+                            : matchedKapalPosisi.statusKode === 'SB'
+                            ? 'bg-sky-500'
+                            : matchedKapalPosisi.statusKode === 'MT'
+                            ? 'bg-amber-500'
+                            : matchedKapalPosisi.statusKode === 'BD'
+                            ? 'bg-rose-500 animate-ping'
+                            : 'bg-purple-500'
+                        }`}
+                      />
+                      {matchedKapalPosisi.statusKode}
+                    </span>
+                    {matchedKapalPosisi.activity && matchedKapalPosisi.activity !== '-' && (
+                      <span className="hidden sm:inline opacity-85 text-[10px] font-sans font-normal truncate max-w-[130px]" title={matchedKapalPosisi.activity}>
+                        ({matchedKapalPosisi.activity})
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>

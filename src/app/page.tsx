@@ -1242,6 +1242,7 @@ export default function DashboardPage() {
           inventoryItems={inventoryItems}
           workOrderItems={workOrderItems}
           sisaLayananItems={sisaLayananItems}
+          kapalPosisiItems={kapalPosisiItems}
           onClose={() => {
             setAuditedFpb(null);
             setAuditedPo(null);
