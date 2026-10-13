@@ -25,6 +25,7 @@ import {
   ClipboardCheck,
   AlertTriangle,
   Printer,
+  Database,
 } from 'lucide-react';
 import { ProcurementItem, ArmadaItem, InventoryItem } from '@/types/procurement';
 import StockAuditModal from './StockAuditModal';
@@ -39,6 +40,9 @@ import WorkflowTrafficLight from './WorkflowTrafficLight';
 import { hasValue } from '@/utils/statusWorkflow';
 import { normalizeFpbKey } from '@/utils/dataMerger';
 import { WorkOrderItem } from '@/types/workOrder';
+import { SisaLayananItem } from '@/types/sisaLayanan';
+import { loadStoredSisaLayanan } from '@/utils/sisaLayananStorage';
+import { extractFpbKeys } from '@/utils/sisaLayananParser';
 
 interface AuditModalProps {
   fpbNumber: string | null;
@@ -47,6 +51,7 @@ interface AuditModalProps {
   armadaList: ArmadaItem[];
   inventoryItems?: InventoryItem[];
   workOrderItems?: WorkOrderItem[];
+  sisaLayananItems?: SisaLayananItem[];
   onClose: () => void;
   showToast: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
   onUpdateWorkOrderNo?: (fpb: string, woNo: string) => void;
@@ -59,6 +64,7 @@ export default function AuditModal({
   armadaList,
   inventoryItems = [],
   workOrderItems = [],
+  sisaLayananItems = [],
   onClose,
   showToast,
   onUpdateWorkOrderNo,
@@ -100,6 +106,9 @@ export default function AuditModal({
   const [selectedTtbForPhoto, setSelectedTtbForPhoto] = useState<string | null>(null);
   const [internalInventory, setInternalInventory] = useState<InventoryItem[]>([]);
   const [internalWorkOrders, setInternalWorkOrders] = useState<WorkOrderItem[]>(workOrderItems || []);
+  const [internalSisaLayanan, setInternalSisaLayanan] = useState<SisaLayananItem[]>(sisaLayananItems || []);
+  const [selectedItemSource, setSelectedItemSource] = useState<'AUTO' | 'SISA_LAYANAN' | 'PDF' | 'ARMADA'>('AUTO');
+  const [sisaScopeFilter, setSisaScopeFilter] = useState<'PO' | 'ALL'>('PO');
 
   // Fallback auto-fetch inventory if not yet passed from parent
   useEffect(() => {
@@ -141,7 +150,32 @@ export default function AuditModal({
       .catch(() => {});
   }, [workOrderItems]);
 
+  // Pastikan dataset Sisa Layanan 2026 Gabungan selalu termuat lengkap untuk rincian item barang
+  useEffect(() => {
+    if (sisaLayananItems && sisaLayananItems.length > 0) {
+      setInternalSisaLayanan(sisaLayananItems);
+      return;
+    }
+    loadStoredSisaLayanan()
+      .then((stored) => {
+        if (stored && Array.isArray(stored.items) && stored.items.length > 0) {
+          setInternalSisaLayanan(stored.items);
+        } else {
+          fetch('/api/sisa-layanan')
+            .then((r) => r.json())
+            .then((res) => {
+              if (res.success && Array.isArray(res.items)) {
+                setInternalSisaLayanan(res.items);
+              }
+            })
+            .catch(() => {});
+        }
+      })
+      .catch(() => {});
+  }, [sisaLayananItems]);
+
   const activeInventory = inventoryItems.length > 0 ? inventoryItems : internalInventory;
+  const activeSisaLayanan = sisaLayananItems.length > 0 ? sisaLayananItems : internalSisaLayanan;
 
   // Check if target PO is empty / '-' / '(kosong)'
   const hasTargetPo = Boolean(targetPo && hasValue(targetPo));
@@ -181,6 +215,59 @@ export default function AuditModal({
   const itemsS2 = poMatchingItems.length > 0
     ? poMatchingItems
     : armadaList.filter((i) => normalizeFpbKey(i.fpb) === normFpb);
+
+  // Pencocokan item dari database Sisa Layanan 2026 Gabungan (berdasarkan PO spesifik & FPB)
+  const sisaMatching = useMemo(() => {
+    if (!activeSisaLayanan || activeSisaLayanan.length === 0) {
+      return { poMatches: [] as SisaLayananItem[], fpbMatches: [] as SisaLayananItem[] };
+    }
+
+    const candidatesFpb = new Set<string>();
+    if (fpbNumber) {
+      extractFpbKeys(fpbNumber).forEach((k) => candidatesFpb.add(k));
+    }
+    if (itemS1?.fpb) {
+      extractFpbKeys(itemS1.fpb).forEach((k) => candidatesFpb.add(k));
+    }
+    const candidatesList = Array.from(candidatesFpb);
+
+    // 1. PO matching
+    const poMatches = normPo
+      ? activeSisaLayanan.filter((it) => it.noPo && it.noPo.trim().toLowerCase() === normPo)
+      : [];
+
+    // 2. FPB matching
+    const fpbMatches = activeSisaLayanan.filter((it) => {
+      if (!it.noFpb && !it.fpbNoBarang) return false;
+      const itemKeys = extractFpbKeys(it.noFpb);
+      if (itemKeys.some((k) => candidatesFpb.has(k))) return true;
+      if (it.fpbNoBarang) {
+        const lowerNoBarang = it.fpbNoBarang.toLowerCase();
+        if (candidatesList.some((k) => lowerNoBarang.includes(k))) return true;
+      }
+      return false;
+    });
+
+    return { poMatches, fpbMatches };
+  }, [activeSisaLayanan, normPo, fpbNumber, itemS1?.fpb]);
+
+  const effectiveSisaItems = useMemo(() => {
+    if (sisaScopeFilter === 'PO' && sisaMatching.poMatches.length > 0) {
+      return sisaMatching.poMatches;
+    }
+    return sisaMatching.fpbMatches.length > 0
+      ? sisaMatching.fpbMatches
+      : sisaMatching.poMatches;
+  }, [sisaMatching, sisaScopeFilter]);
+
+  const effectiveItemSource = useMemo(() => {
+    if (selectedItemSource !== 'AUTO') return selectedItemSource;
+    // Prioritaskan Sisa Layanan 2026 Gabungan jika ditemukan item yang cocok
+    if (effectiveSisaItems.length > 0) return 'SISA_LAYANAN';
+    if (pdfData && Array.isArray(pdfData.items) && pdfData.items.length > 0) return 'PDF';
+    if (itemsS2.length > 0) return 'ARMADA';
+    return 'SISA_LAYANAN';
+  }, [selectedItemSource, effectiveSisaItems.length, pdfData, itemsS2.length]);
 
   // Nomor Work Order awal dari metadata e-FPB / item
   const rawWorkOrderNo = pdfData?.workOrderNo || itemS1?.workOrderNo || itemsS2[0]?.workOrderNo || '';
@@ -238,7 +325,7 @@ export default function AuditModal({
       ? matchedWorkOrderItem.efpbPdfUrl.trim()
       : '');
 
-  // Compile all requested items from e-FPB / Armada / Procurement for warehouse stock matching
+  // Compile all requested items from Sisa Layanan / e-FPB / Armada / Procurement for warehouse stock matching
   const requestedFpbItems = useMemo(() => {
     const list: Array<{
       id: string;
@@ -249,7 +336,29 @@ export default function AuditModal({
       rawUnit?: string;
     }> = [];
 
-    // Priority 1: From parsed PDF e-FPB items
+    // Priority 1: From Sisa Layanan 2026 Gabungan items
+    if (effectiveSisaItems && effectiveSisaItems.length > 0) {
+      effectiveSisaItems.forEach((it, idx) => {
+        const itIsJasa = isItemJasa({
+          code: it.kodeBarang,
+          name: it.namaBarang,
+          unit: it.satuan,
+          description: it.keterangan,
+        });
+        const cleanUnit = itIsJasa ? normalizeJasaUnit(it.satuan, it.namaBarang) : it.satuan || 'unit';
+        list.push({
+          id: `sisa-${idx}`,
+          name: it.namaBarang || it.keterangan || 'Item Barang',
+          code: it.kodeBarang || '',
+          qty: it.jmlFpb || it.jmlPo || 1,
+          unit: cleanUnit,
+          rawUnit: it.satuan,
+        });
+      });
+      return list;
+    }
+
+    // Priority 2: From parsed PDF e-FPB items
     if (pdfData?.items && pdfData.items.length > 0) {
       pdfData.items.forEach((it, idx) => {
         const itIsJasa = isItemJasa({
@@ -271,7 +380,7 @@ export default function AuditModal({
       return list;
     }
 
-    // Priority 2: From armada items matching this FPB
+    // Priority 3: From armada items matching this FPB
     if (itemsS2 && itemsS2.length > 0) {
       itemsS2.forEach((it, idx) => {
         if (it.item) {
@@ -295,7 +404,7 @@ export default function AuditModal({
       if (list.length > 0) return list;
     }
 
-    // Priority 3: Fallback from procurement item
+    // Priority 4: Fallback from procurement item
     if (itemS1 && itemS1.item) {
       const itIsJasa = isItemJasa({
         code: itemS1.kodeBarang,
@@ -315,11 +424,17 @@ export default function AuditModal({
     }
 
     return list;
-  }, [pdfData, itemsS2, itemS1]);
+  }, [effectiveSisaItems, pdfData, itemsS2, itemS1]);
 
   // Ambil Keterangan Tujuan & Peruntukan Pengadaan:
   // HANYA ambil jika ada data keterangan asli yang valid (bukan dummy/fallback)
   const dummyTexts = ['-', 'U/ Operasional Rutin', 'U/ Kebutuhan Operasional Armada', 'Pengadaan Operasional'];
+
+  const sisaKeterangans = deduplicateDescriptions(
+    effectiveSisaItems
+      .map((i) => i.keterangan?.trim())
+      .filter((k): k is string => typeof k === 'string' && k.length > 0 && !dummyTexts.includes(k))
+  );
 
   const armadaKeterangans = deduplicateDescriptions(
     itemsS2
@@ -333,9 +448,11 @@ export default function AuditModal({
   }
 
   // Jika tidak ada keterangan, dikosongkan saja (tidak dipaksa masukkan data dummy)
-  // Bisa diperkaya otomatis jika data ditarik dari PDF e-FPB resmi
+  // Bisa diperkaya otomatis jika data ditarik dari Sisa Layanan 2026 atau PDF e-FPB resmi
   const basePeruntukan =
-    armadaKeterangans.length > 0
+    sisaKeterangans.length > 0
+      ? sisaKeterangans.join(' • ')
+      : armadaKeterangans.length > 0
       ? armadaKeterangans.join(' • ')
       : rawPeruntukan;
 
@@ -1113,6 +1230,7 @@ export default function AuditModal({
           updatePdfItemsCacheForFpb(json.data.fpbNo || primaryDocNum, itemNames).catch(() => {});
         }
         if (!isSilent) {
+          setSelectedItemSource('PDF');
           showToast(
             `Berhasil menarik ${json.data.items?.length || 0} rincian item & peruntukan dari PDF e-FPB!`,
             'success'
@@ -2345,15 +2463,60 @@ export default function AuditModal({
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-mono text-muted-foreground">
-                {pdfData && Array.isArray(pdfData.items) && pdfData.items.length > 0
-                  ? `${pdfData.items.length} item (dari PDF e-FPB)`
-                  : `${itemsS2.length} item ditemukan`}
-              </span>
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* Source Switcher Pills */}
+              <div className="inline-flex items-center p-0.5 rounded-lg bg-muted border border-border">
+                {effectiveSisaItems.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedItemSource('SISA_LAYANAN')}
+                    className={`h-6 px-2.5 rounded-md text-[11px] font-medium transition flex items-center gap-1.5 ${
+                      effectiveItemSource === 'SISA_LAYANAN'
+                        ? 'bg-indigo-600 text-white shadow-2xs font-semibold'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    title="Tampilkan rincian barang dari database Sisa Layanan 2026 Gabungan"
+                  >
+                    <Database className="size-3" />
+                    <span>Sisa Layanan 2026 ({effectiveSisaItems.length})</span>
+                  </button>
+                )}
+                {pdfData && Array.isArray(pdfData.items) && pdfData.items.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedItemSource('PDF')}
+                    className={`h-6 px-2.5 rounded-md text-[11px] font-medium transition flex items-center gap-1.5 ${
+                      effectiveItemSource === 'PDF'
+                        ? 'bg-emerald-600 text-white shadow-2xs font-semibold'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    title="Tampilkan rincian barang hasil ekstraksi PDF e-FPB resmi"
+                  >
+                    <FileText className="size-3" />
+                    <span>PDF e-FPB ({pdfData.items.length})</span>
+                  </button>
+                )}
+                {itemsS2.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedItemSource('ARMADA')}
+                    className={`h-6 px-2.5 rounded-md text-[11px] font-medium transition flex items-center gap-1.5 ${
+                      effectiveItemSource === 'ARMADA'
+                        ? 'bg-blue-600 text-white shadow-2xs font-semibold'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    title="Tampilkan rincian barang dari Worksheet Armada"
+                  >
+                    <Boxes className="size-3" />
+                    <span>Worksheet Armada ({itemsS2.length})</span>
+                  </button>
+                )}
+              </div>
+
               {fpbPdfUrl && (
                 <button
-                  onClick={handleFetchPdfData}
+                  type="button"
+                  onClick={() => handleFetchPdfData(false)}
                   disabled={isLoadingPdf}
                   className="h-6 px-2.5 rounded-md border border-blue-500/30 bg-blue-500/10 hover:bg-blue-500/20 text-blue-700 dark:text-blue-400 text-[11px] font-medium flex items-center gap-1 transition shadow-2xs active:scale-95"
                   title="Tarik data rincian item langsung dari PDF e-FPB resmi"
@@ -2365,8 +2528,8 @@ export default function AuditModal({
             </div>
           </div>
 
-          {/* Callout box when Excel has 0 items but PDF exists */}
-          {itemsS2.length === 0 && !pdfData && fpbPdfUrl && (
+          {/* Callout box when Excel and Sisa Layanan have 0 items but PDF exists */}
+          {effectiveSisaItems.length === 0 && itemsS2.length === 0 && !pdfData && fpbPdfUrl && (
             <div className="p-3.5 rounded-xl border border-blue-500/30 bg-blue-500/10 flex items-center justify-between flex-wrap gap-3">
               <div className="flex items-center gap-3">
                 <div className="size-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
@@ -2385,7 +2548,7 @@ export default function AuditModal({
                 </div>
               </div>
               <button
-                onClick={handleFetchPdfData}
+                onClick={() => handleFetchPdfData(false)}
                 disabled={isLoadingPdf}
                 className="h-8 px-3.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow-xs active:scale-95 shrink-0"
               >
@@ -2404,8 +2567,54 @@ export default function AuditModal({
             </div>
           )}
 
+          {/* Banner when data is loaded from Sisa Layanan 2026 Gabungan */}
+          {effectiveItemSource === 'SISA_LAYANAN' && effectiveSisaItems.length > 0 && (
+            <div className="p-3 rounded-xl border border-indigo-500/30 bg-indigo-500/10 flex items-center justify-between flex-wrap gap-2 text-xs">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="size-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                <span className="text-foreground font-medium">
+                  Rincian barang berhasil disinkronkan dari database Sisa Layanan 2026 Gabungan ({effectiveSisaItems.length} item ditemukan)
+                  {effectiveSisaItems[0]?.departement ? ` • Armada/Unit: ${effectiveSisaItems[0].departement}` : ''}
+                  {effectiveSisaItems[0]?.pt ? ` • PT: ${effectiveSisaItems[0].pt}` : ''}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {sisaMatching.poMatches.length > 0 && sisaMatching.fpbMatches.length > sisaMatching.poMatches.length && (
+                  <div className="inline-flex items-center p-0.5 rounded bg-indigo-500/20 border border-indigo-500/30 text-[10px] font-mono">
+                    <button
+                      type="button"
+                      onClick={() => setSisaScopeFilter('PO')}
+                      className={`px-1.5 py-0.5 rounded transition ${
+                        sisaScopeFilter === 'PO' ? 'bg-indigo-600 text-white font-semibold shadow-xs' : 'text-indigo-700 dark:text-indigo-300 hover:text-indigo-900'
+                      }`}
+                    >
+                      PO Ini ({sisaMatching.poMatches.length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSisaScopeFilter('ALL')}
+                      className={`px-1.5 py-0.5 rounded transition ${
+                        sisaScopeFilter === 'ALL' ? 'bg-indigo-600 text-white font-semibold shadow-xs' : 'text-indigo-700 dark:text-indigo-300 hover:text-indigo-900'
+                      }`}
+                    >
+                      Semua FPB ({sisaMatching.fpbMatches.length})
+                    </button>
+                  </div>
+                )}
+                <span className="text-[10px] font-mono text-indigo-700 dark:text-indigo-300 bg-indigo-500/20 px-2 py-0.5 rounded border border-indigo-500/30 font-medium">
+                  Sisa Layanan 2026 Gabungan
+                </span>
+                {effectiveSisaItems.some((i) => (i.status || '').toUpperCase() === 'CLOSE') && (
+                  <span className="text-[10px] font-mono text-emerald-700 dark:text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded border border-emerald-500/30 font-medium">
+                    {effectiveSisaItems.filter((i) => (i.status || '').toUpperCase() === 'CLOSE').length}/{effectiveSisaItems.length} Terpenuhi
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Banner when data was successfully loaded from PDF */}
-          {pdfData && Array.isArray(pdfData.items) && pdfData.items.length > 0 && (
+          {effectiveItemSource === 'PDF' && pdfData && Array.isArray(pdfData.items) && pdfData.items.length > 0 && (
             <div className="p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 flex items-center justify-between flex-wrap gap-2 text-xs">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
@@ -2416,6 +2625,22 @@ export default function AuditModal({
               </div>
               <span className="text-[10px] font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded border border-emerald-500/30 font-medium">
                 100% terverifikasi
+              </span>
+            </div>
+          )}
+
+          {/* Banner when data was loaded from Worksheet Armada */}
+          {effectiveItemSource === 'ARMADA' && itemsS2.length > 0 && (
+            <div className="p-3 rounded-xl border border-blue-500/30 bg-blue-500/10 flex items-center justify-between flex-wrap gap-2 text-xs">
+              <div className="flex items-center gap-2">
+                <Boxes className="size-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                <span className="text-foreground font-medium">
+                  Rincian barang ditampilkan dari Worksheet Armada ({itemsS2.length} item ditemukan)
+                  {itemsS2[0]?.armada ? ` • Armada: ${itemsS2[0].armada}` : ''}
+                </span>
+              </div>
+              <span className="text-[10px] font-mono text-blue-700 dark:text-blue-400 bg-blue-500/20 px-2 py-0.5 rounded border border-blue-500/30 font-medium">
+                Worksheet Armada
               </span>
             </div>
           )}
@@ -2435,7 +2660,168 @@ export default function AuditModal({
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/60 font-mono text-xs">
-                {pdfData && Array.isArray(pdfData.items) && pdfData.items.length > 0 ? (
+                {effectiveItemSource === 'SISA_LAYANAN' && effectiveSisaItems.length > 0 ? (
+                  effectiveSisaItems.map((si, idx) => {
+                    const itemSatuan = si.satuan || itemS1?.satuan;
+                    const itIsJasa = isItemJasa({
+                      code: si.kodeBarang,
+                      name: si.namaBarang,
+                      unit: itemSatuan,
+                      description: si.keterangan,
+                    });
+
+                    const valQtyPo =
+                      typeof si.jmlPo === 'number' && si.jmlPo > 0
+                        ? si.jmlPo
+                        : si.noPo
+                        ? (si.jmlPo ?? 0)
+                        : activePo
+                        ? 0
+                        : '-';
+
+                    const valQtyFstb =
+                      typeof si.jmlFstb === 'number' && si.jmlFstb > 0
+                        ? si.jmlFstb
+                        : si.noFstb
+                        ? (si.jmlFstb ?? 0)
+                        : '-';
+
+                    const valQtyTtb =
+                      typeof si.jmlTtb === 'number' && si.jmlTtb > 0
+                        ? si.jmlTtb
+                        : si.noTtb
+                        ? (si.jmlTtb ?? 0)
+                        : '-';
+
+                    const katNorm = (si.kategori || '').toUpperCase().trim();
+                    let categoryBadge = null;
+                    if (katNorm.includes('JASA') || itIsJasa) {
+                      categoryBadge = (
+                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-mono bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 font-semibold shrink-0" title="Item Kategori Jasa / Pekerjaan">
+                          <Wrench className="size-2.5 shrink-0" />
+                          JASA
+                        </span>
+                      );
+                    } else if (katNorm.includes('CONSUMABLE') || katNorm.includes('HABIS')) {
+                      categoryBadge = (
+                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-mono bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30 font-semibold shrink-0" title="Item Kategori Habis Pakai">
+                          HABIS PAKAI
+                        </span>
+                      );
+                    } else if (katNorm.includes('ELECTRICAL')) {
+                      categoryBadge = (
+                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-mono bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30 font-semibold shrink-0" title="Item Kategori Electrical">
+                          ELECTRICAL
+                        </span>
+                      );
+                    } else {
+                      categoryBadge = (
+                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-mono bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30 font-semibold shrink-0" title="Item Kategori Spare Part / Material Fisik">
+                          {katNorm || 'BARANG'}
+                        </span>
+                      );
+                    }
+
+                    const statusNorm = (si.status || '').toUpperCase().trim();
+                    let statusBadgeClass = 'bg-muted text-muted-foreground border-border';
+                    if (statusNorm === 'CLOSE') {
+                      statusBadgeClass = 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20';
+                    } else if (statusNorm === 'OPEN') {
+                      statusBadgeClass = 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20';
+                    } else if (statusNorm === 'KURANG') {
+                      statusBadgeClass = 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20';
+                    } else if (statusNorm === 'BELUM TTB') {
+                      statusBadgeClass = 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20';
+                    }
+
+                    return (
+                      <tr key={`sisa-${si.id || idx}`} className="hover:bg-muted/40 transition bg-indigo-500/5">
+                        <td className="p-2.5 text-foreground font-sans min-w-[220px] max-w-[340px] break-words">
+                          <div className="font-medium text-foreground flex items-center gap-1.5 flex-wrap">
+                            <span className="break-words">{si.namaBarang}</span>
+                            {categoryBadge}
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-mono bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 font-semibold shrink-0">
+                              Sisa Layanan 2026
+                            </span>
+                          </div>
+                          {si.kodeBarang && (
+                            <div className="text-[10px] text-muted-foreground font-mono mt-0.5">
+                              Kode: {si.kodeBarang}
+                            </div>
+                          )}
+                          {si.keterangan && (
+                            <div className="text-[11px] text-muted-foreground font-mono mt-0.5 break-words">
+                              <span className="text-muted-foreground/70 font-sans mr-1">Tujuan:</span>
+                              {cleanSingleDescription(si.keterangan)}
+                            </div>
+                          )}
+                          {si.departement && (
+                            <div className="text-[10px] text-muted-foreground font-mono mt-0.5 flex items-center gap-1">
+                              <span className="text-muted-foreground/70 font-sans">Armada/Unit:</span>
+                              <span className="text-primary font-semibold">{si.departement}</span>
+                              {si.pt && <span className="text-muted-foreground">({si.pt})</span>}
+                            </div>
+                          )}
+                          {(si.noPo || si.noFstb || si.noTtb) && (
+                            <div className="text-[9px] text-muted-foreground font-mono mt-1 flex flex-wrap gap-1.5">
+                              {si.noPo && (
+                                <span className="bg-muted px-1.5 py-0.5 rounded border border-border">
+                                  PO: {si.noPo} {si.tglPo ? `(${si.tglPo})` : ''}
+                                </span>
+                              )}
+                              {si.noFstb && (
+                                <span className="bg-muted px-1.5 py-0.5 rounded border border-border">
+                                  FSTB: {si.noFstb} {si.tglFstb ? `(${si.tglFstb})` : ''}
+                                </span>
+                              )}
+                              {si.noTtb && (
+                                <span className="bg-muted px-1.5 py-0.5 rounded border border-border">
+                                  TTB: {si.noTtb} {si.tglTtb ? `(${si.tglTtb})` : ''}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </td>
+                        <td className="p-2.5 text-center">
+                          {renderPriorityBadge(si.priority || itemS1?.priority)}
+                        </td>
+                        <td className="p-2.5 text-center font-mono">
+                          {itemSatuan ? (
+                            <span
+                              className="inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold bg-muted text-foreground border border-border"
+                              title={
+                                itIsJasa && ['PCS', 'PC', 'BUAH', 'BH'].includes(itemSatuan.toUpperCase())
+                                  ? `Satuan standar operasional untuk jasa (mengoreksi '${itemSatuan}')`
+                                  : undefined
+                              }
+                            >
+                              {itIsJasa ? normalizeJasaUnit(itemSatuan, si.namaBarang) : itemSatuan}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground/60 text-[11px]">-</span>
+                          )}
+                        </td>
+                        <td className="p-2.5 text-center text-foreground font-semibold font-mono">
+                          {typeof si.jmlFpb === 'number' ? si.jmlFpb.toLocaleString('id-ID') : si.jmlFpb}
+                        </td>
+                        <td className="p-2.5 text-center text-foreground font-semibold font-mono">
+                          {typeof valQtyPo === 'number' ? valQtyPo.toLocaleString('id-ID') : valQtyPo}
+                        </td>
+                        <td className="p-2.5 text-center text-muted-foreground font-mono">
+                          {typeof valQtyFstb === 'number' ? valQtyFstb.toLocaleString('id-ID') : valQtyFstb}
+                        </td>
+                        <td className="p-2.5 text-center text-muted-foreground font-mono">
+                          {typeof valQtyTtb === 'number' ? valQtyTtb.toLocaleString('id-ID') : valQtyTtb}
+                        </td>
+                        <td className="p-2.5 text-center">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${statusBadgeClass}`}>
+                            {si.status || 'OPEN'}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : effectiveItemSource === 'PDF' && pdfData && Array.isArray(pdfData.items) && pdfData.items.length > 0 ? (
                   pdfData.items.map((pi, idx) => {
                     // Cek korelasi ke worksheet Armada/Procurement untuk data PO, FSTB, TTB jika tersedia
                     const matchedS2 = itemsS2.find(
