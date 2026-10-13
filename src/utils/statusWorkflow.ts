@@ -906,4 +906,175 @@ export function cleanPicName(raw?: string | null): string {
   return str;
 }
 
+export interface ArmadaFulfillmentResult {
+  status: string;
+  isComplete: boolean;
+  isPartial: boolean;
+  colorTone: 'emerald' | 'amber' | 'rose' | 'sky';
+  badgeClass: string;
+  detail: string;
+}
+
+/**
+ * Single source of truth untuk evaluasi status pemenuhan Layanan Armada (Fulfillment Status).
+ * ATURAN BISNIS MUTLAK:
+ * "Lengkap jika sampai LAP" - Suatu pengajuan kebutuhan armada HANYA boleh berstatus "Lengkap"
+ * jika tahapan alur secara fisik sudah sampai ke Tim Lapangan (LAP) / diserahterimakan ke armada,
+ * dan kuantitas selisih telah terpenuhi (selisih === 0 / qtyFSTB >= qtyFPB).
+ *
+ * Jika alur 5 seksi belum sampai LAP (masih di Purchasing/PO, Logistik TTB, dsb.):
+ * Status TIDAK BOLEH "Lengkap", melainkan menampilkan tahapan aktual yang sedang berjalan.
+ */
+export function evaluateArmadaFulfillment(item: EvaluatableItem): ArmadaFulfillmentResult {
+  const rawStatusUpper = (item.rawStatus || item.statusArmada || item.status || '').toUpperCase().trim();
+
+  // 1. Cek Pembatalan / Reject
+  if (
+    rawStatusUpper.includes('BATAL') ||
+    rawStatusUpper.includes('CANCEL') ||
+    rawStatusUpper.includes('VOID') ||
+    rawStatusUpper.includes('REJECT')
+  ) {
+    return {
+      status: 'Batal / Reject',
+      isComplete: false,
+      isPartial: false,
+      colorTone: 'rose',
+      badgeClass: 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20',
+      detail: 'Pengajuan FPB dibatalkan',
+    };
+  }
+
+  const workflow = evaluateFiveDivisionWorkflow(item);
+  const lapStage = workflow.stages.find((s) => s.code === 'LAP');
+  const logStage = workflow.stages.find((s) => s.code === 'LOG');
+  const pchStage = workflow.stages.find((s) => s.code === 'PCH');
+
+  // Deteksi apakah berkas sudah sampai tahap Tim Lapangan (LAP)
+  const isLapReached = Boolean(
+    lapStage?.isPassed ||
+    workflow.isOperationalDelivered ||
+    hasValue(item.tglBarangDiantar) ||
+    hasValue(item.tglDiantar) ||
+    hasValue(item.tglTimLapKePicTtb) ||
+    (hasValue(item.picLap) && item.picLap !== '-')
+  );
+
+  const qtyFPB = Number(item.qtyFPB || 0);
+  const qtyFSTB = Number(item.qtyFSTB || 0);
+  const selisih = typeof item.selisih === 'number' ? item.selisih : Math.max(0, qtyFPB - qtyFSTB);
+
+  // KONDISI 1: SUDAH SAMPAI TAHAP LAPANGAN (LAP)
+  if (isLapReached) {
+    // Jika masih ada selisih kuantitas dan sudah ada sebagian FSTB yang diterima di lapangan
+    if (selisih > 0 && qtyFSTB > 0) {
+      return {
+        status: `Parsial (Belum Terpenuhi ${selisih})`,
+        isComplete: false,
+        isPartial: true,
+        colorTone: 'amber',
+        badgeClass: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20',
+        detail: `Diterima sebagian di lapangan (${qtyFSTB} dari ${qtyFPB}), sisa ${selisih}`,
+      };
+    }
+
+    // Jika selisih === 0 atau kuantitas terpenuhi penuh (qtyFSTB >= qtyFPB) atau lampu LAP sudah penuh (isLapFull)
+    if (selisih === 0 || (qtyFPB > 0 && qtyFSTB >= qtyFPB) || lapStage?.isFull) {
+      return {
+        status: 'Lengkap',
+        isComplete: true,
+        isPartial: false,
+        colorTone: 'emerald',
+        badgeClass: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20',
+        detail: 'Barang telah diserahterimakan lengkap ke tim lapangan / armada',
+      };
+    }
+
+    // Jika selisih > 0 dan belum ada FSTB
+    return {
+      status: `Belum Terpenuhi (${selisih})`,
+      isComplete: false,
+      isPartial: false,
+      colorTone: 'rose',
+      badgeClass: 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20',
+      detail: `Menunggu serah terima barang (${selisih} item)`,
+    };
+  }
+
+  // KONDISI 2: BELUM SAMPAI TAHAP LAPANGAN (LAP) -> TIDAK BOLEH "Lengkap"!
+  // Sekalipun rawStatus 'CLOSE' atau selisih === 0, jika belum sampai LAP maka pemenuhan fisik ke armada belum tuntas.
+
+  // 2A. Ada FSTB diterbitkan sebagian
+  if (qtyFSTB > 0 && selisih > 0) {
+    return {
+      status: `Parsial (Belum ke Lapangan)`,
+      isComplete: false,
+      isPartial: true,
+      colorTone: 'amber',
+      badgeClass: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20',
+      detail: `FSTB terbit ${qtyFSTB}/${qtyFPB}, berkas dalam alur menuju lapangan`,
+    };
+  }
+
+  // 2B. Sudah masuk Gudang Logistik (TTB) tapi belum diantar ke kapal
+  const isLogReached = Boolean(
+    logStage?.isPassed ||
+    hasValue(item.noTtb) ||
+    hasValue(item.ttb) ||
+    hasValue(item.tglTtb) ||
+    hasValue(item.tglInputTtb)
+  );
+  if (isLogReached) {
+    return {
+      status: 'Gudang Logistik (Menunggu Lapangan)',
+      isComplete: false,
+      isPartial: false,
+      colorTone: 'amber',
+      badgeClass: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20',
+      detail: 'Barang sudah masuk logistik (TTB), menunggu serah terima ke tim lapangan / kapal',
+    };
+  }
+
+  // 2C. Sudah terbit FSTB di purchasing tapi belum ada TTB/LAP
+  if (qtyFSTB > 0 || hasValue(item.noFstb) || hasValue(item.tglFstb)) {
+    return {
+      status: 'Proses FSTB (Menunggu Lapangan)',
+      isComplete: false,
+      isPartial: false,
+      colorTone: 'amber',
+      badgeClass: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20',
+      detail: 'FSTB telah terbit, berkas dalam perjalanan menuju gudang logistik dan lapangan',
+    };
+  }
+
+  // 2D. Sudah terbit PO di Purchasing tapi belum ada FSTB/TTB/LAP
+  const isPchReached = Boolean(
+    pchStage?.isPassed ||
+    hasValue(item.po) ||
+    hasValue(item.noPo) ||
+    hasValue(item.tglPo)
+  );
+  if (isPchReached) {
+    return {
+      status: 'Proses Purchasing (PO)',
+      isComplete: false,
+      isPartial: false,
+      colorTone: 'sky',
+      badgeClass: 'bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-500/20',
+      detail: 'PO telah diterbitkan oleh purchasing, belum serah terima ke tim lapangan',
+    };
+  }
+
+  // 2E. Baru tahap awal FPB (belum ada PO)
+  const remainingQty = selisih > 0 ? selisih : qtyFPB > 0 ? qtyFPB : 0;
+  return {
+    status: remainingQty > 0 ? `Belum Terpenuhi (${remainingQty})` : 'Belum Terpenuhi',
+    isComplete: false,
+    isPartial: false,
+    colorTone: 'rose',
+    badgeClass: 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20',
+    detail: 'Pengajuan FPB belum diproses pengadaan',
+  };
+}
+
 

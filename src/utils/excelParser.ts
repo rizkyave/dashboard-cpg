@@ -1,7 +1,7 @@
 import * as XLSX from 'xlsx';
 import { ProcurementItem, ArmadaItem, StatusTone } from '@/types/procurement';
 import { formatDateDdMmYyDash } from '@/utils/formatDate';
-import { evaluateTransactionStatus, hasValue } from '@/utils/statusWorkflow';
+import { evaluateTransactionStatus, evaluateArmadaFulfillment, hasValue } from '@/utils/statusWorkflow';
 import { enrichProcurementAndArmada } from '@/utils/dataMerger';
 import { isInvalidOrGenericItem } from '@/utils/itemResolver';
 
@@ -785,11 +785,43 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
         verifiedByFpb,
       });
 
-      let armadaFulfillmentStatus = 'OPEN';
-      if (rawStatus === 'CLOSE') armadaFulfillmentStatus = 'Lengkap';
-      else if (selisih === 0 && qtyFSTB > 0) armadaFulfillmentStatus = 'Lengkap';
-      else if (qtyFSTB > 0 && selisih > 0) armadaFulfillmentStatus = `Parsial (Belum Terpenuhi ${selisih})`;
-      else armadaFulfillmentStatus = `Belum Terpenuhi (${qtyFPB})`;
+      const fulfillmentResult = evaluateArmadaFulfillment({
+        fpb,
+        po,
+        noPo: po,
+        tglPo,
+        tglFpb,
+        noFstb,
+        tglFstb: tglInputFstb,
+        noTtb,
+        tglTtb: tglInputTtb,
+        tglKePicTtb,
+        tglKeTimLapangan,
+        tglBarangDiantar,
+        tglTimLapKePicTtb,
+        tglTtbKePicPch,
+        tglKeAdmPch,
+        picAdm,
+        picPch,
+        picTtb,
+        picLap,
+        noSpp,
+        tglInputSpp,
+        tglKeKeuangan,
+        qtyFPB,
+        qtyPO,
+        qtyFSTB,
+        qtyTTB,
+        selisih,
+        rawStatus,
+        statusArmada: rawStatus,
+        deliveryTime,
+        statusCheckFpb,
+        doneCheckFpb,
+        picCheckFpb,
+      });
+
+      const armadaFulfillmentStatus = fulfillmentResult.status;
 
       const finalArmadaItem =
         cleanNamaBarang ||
@@ -963,10 +995,40 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
       // Jika file Excel murni Procurement tanpa sheet Monitoring Layanan Armada terpisah,
       // buatkan entri ArmadaItem agar Tab Armada tetap berfungsi optimal
       if (!mlaSheetName) {
-        let armadaStatus = 'Belum Terpenuhi';
-        if (proc.tglKeu || proc.spp || proc.tglSpp) armadaStatus = 'Lengkap';
-        else if (proc.fstb || proc.ttb) armadaStatus = 'Lengkap';
-        else if (proc.po && proc.po !== '-') armadaStatus = 'Proses PO';
+        const fallbackFulfillment = evaluateArmadaFulfillment({
+          fpb: proc.fpb,
+          po: proc.po,
+          noPo: proc.po,
+          tglPo: proc.tglPo,
+          tglFpb: proc.tglPo,
+          noFstb: proc.fstb,
+          tglFstb: proc.tglFstb,
+          noTtb: proc.ttb,
+          tglTtb: proc.tglTtb,
+          tglKePicTtb: proc.tglKePicTtb,
+          tglKeTimLapangan: proc.tglKeTimLap,
+          tglBarangDiantar: proc.tglDiantar,
+          tglTimLapKePicTtb: proc.tglTimLapKePicTtb,
+          tglTtbKePicPch: proc.tglTtbKePicPch,
+          tglKeAdmPch: proc.tglKeAdmPch,
+          picAdm: proc.picAdm,
+          picPch: proc.picPch,
+          picTtb: proc.picTtb,
+          picLap: proc.picLap,
+          noSpp: proc.spp,
+          tglInputSpp: proc.tglSpp,
+          tglKeKeuangan: proc.tglKeu,
+          qtyFPB: 1,
+          qtyPO: proc.po ? 1 : 0,
+          qtyFSTB: proc.fstb ? 1 : 0,
+          qtyTTB: proc.ttb ? 1 : 0,
+          selisih: proc.fstb ? 0 : 1,
+          rawStatus: '',
+          deliveryTime: proc.deliveryTime,
+          statusCheckFpb,
+          doneCheckFpb,
+          picCheckFpb,
+        });
 
         importedArmada.push({
           id: recordId,
@@ -976,7 +1038,7 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
           qtyFPB: 1,
           qtyFSTB: proc.fstb ? 1 : 0,
           selisih: proc.fstb ? 0 : 1,
-          status: armadaStatus,
+          status: fallbackFulfillment.status,
           tglFpb: proc.tglPo,
           noPo: proc.po || '-',
           tglPo: proc.tglPo,

@@ -39,7 +39,7 @@ import { cleanSingleDescription, deduplicateDescriptions, cleanTujuanPeruntukan 
 import { isItemJasa, determineTransactionCategory, ProcurementCategory, normalizeJasaUnit } from '@/utils/jasaClassifier';
 import { useAuth } from '@/context/AuthContext';
 import WorkflowTrafficLight from './WorkflowTrafficLight';
-import { hasValue } from '@/utils/statusWorkflow';
+import { hasValue, evaluateArmadaFulfillment } from '@/utils/statusWorkflow';
 import { normalizeFpbKey } from '@/utils/dataMerger';
 import { WorkOrderItem } from '@/types/workOrder';
 import { SisaLayananItem } from '@/types/sisaLayanan';
@@ -3290,15 +3290,23 @@ export default function AuditModal({
                           {typeof valQtyPo === 'number' ? valQtyPo.toLocaleString('id-ID') : valQtyPo}
                         </td>
                         <td className="p-2.5 text-center">
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${
-                              matchedS2?.selisih === 0
-                                ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
-                                : 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20'
-                            }`}
-                          >
-                            {matchedS2?.status || (activePo ? 'PO Diterbitkan' : 'Disetujui di e-FPB')}
-                          </span>
+                          {(() => {
+                            const matchedFulfillment = matchedS2 ? evaluateArmadaFulfillment(matchedS2) : undefined;
+                            return (
+                              <span
+                                className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${
+                                  matchedFulfillment
+                                    ? matchedFulfillment.badgeClass
+                                    : activePo
+                                    ? 'bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-500/20'
+                                    : 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20'
+                                }`}
+                                title={matchedFulfillment?.detail}
+                              >
+                                {matchedFulfillment?.status || (activePo ? 'PO Diterbitkan' : 'Disetujui di e-FPB')}
+                              </span>
+                            );
+                          })()}
                         </td>
                       </tr>
                     );
@@ -3397,15 +3405,17 @@ export default function AuditModal({
                           {typeof valQtyTtb === 'number' ? valQtyTtb.toLocaleString('id-ID') : valQtyTtb}
                         </td>
                         <td className="p-2.5 text-center">
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${
-                              i.selisih === 0
-                                ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
-                                : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
-                            }`}
-                          >
-                            {i.status}
-                          </span>
+                          {(() => {
+                            const iFulfillment = evaluateArmadaFulfillment(i);
+                            return (
+                              <span
+                                className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${iFulfillment.badgeClass}`}
+                                title={iFulfillment.detail}
+                              >
+                                {iFulfillment.status}
+                              </span>
+                            );
+                          })()}
                         </td>
                       </tr>
                     );

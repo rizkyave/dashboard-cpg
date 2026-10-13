@@ -1,6 +1,6 @@
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
 import { WorkOrderItem } from '@/types/workOrder';
-import { evaluateTransactionStatus, hasValue } from '@/utils/statusWorkflow';
+import { evaluateTransactionStatus, evaluateArmadaFulfillment, hasValue } from '@/utils/statusWorkflow';
 import { isInvalidOrGenericItem } from '@/utils/itemResolver';
 
 /**
@@ -658,6 +658,7 @@ export function enrichProcurementAndArmada(
         noTtb: arm.noTtb,
         tglTtb: arm.tglTtb,
         tglTimLapKePicTtb: arm.tglTimLapKePicTtb,
+        tglBarangDiantar: arm.tglBarangDiantar,
         noSpp: arm.noSpp,
         tglKeKeuangan: arm.tglKeKeuangan,
         picPch: arm.picPch,
@@ -673,6 +674,10 @@ export function enrichProcurementAndArmada(
       arm.statusTone = evaluated.statusTone;
       if (!arm.picAktif || arm.picAktif === '-') arm.picAktif = evaluated.picAktif;
     }
+
+    // Selaraskan status pemenuhan layanan armada dengan aturan bisnis 5 seksi (lengkap jika sampai LAP)
+    const fulfillment = evaluateArmadaFulfillment(arm);
+    arm.status = fulfillment.status;
 
     // Sinkronkan nomor WO dari Google Sheets jika armada belum memiliki workOrderNo
     if (!hasValue(arm.workOrderNo) && woMaps) {

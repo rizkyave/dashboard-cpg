@@ -37,7 +37,7 @@ import {
 import { formatDateDdMmYy, extractDateInfo } from '@/utils/formatDate';
 import { loadPdfItemsCache, savePdfItemsCache } from '@/utils/appStorage';
 import WorkflowTrafficLight from '@/components/WorkflowTrafficLight';
-import { evaluateFiveDivisionWorkflow } from '@/utils/statusWorkflow';
+import { evaluateFiveDivisionWorkflow, evaluateArmadaFulfillment } from '@/utils/statusWorkflow';
 import { formatFpbTooltip } from '@/utils/itemResolver';
 import { SisaLayananItem } from '@/types/sisaLayanan';
 import { buildSisaLayananFpbMap, findSisaMatch } from '@/utils/sisaLayananParser';
@@ -267,9 +267,10 @@ export default function ArmadaTab({
       totalQtyFPB += it.qtyFPB;
       totalQtyFSTB += it.qtyFSTB;
       totalBacklogQty += it.selisih;
-      if (it.selisih === 0 && it.qtyFSTB > 0) {
+      const fulfillment = evaluateArmadaFulfillment(it);
+      if (fulfillment.isComplete) {
         completeItemCount++;
-      } else if (it.qtyFSTB > 0 && it.selisih > 0) {
+      } else if (fulfillment.isPartial) {
         partialItemCount++;
         backlogItemCount++;
       } else {
@@ -322,9 +323,10 @@ export default function ArmadaTab({
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
       // 1. Status Filter
-      if (statusFilter === 'BACKLOG' && item.selisih <= 0) return false;
-      if (statusFilter === 'LENGKAP' && (item.selisih > 0 || item.qtyFSTB === 0)) return false;
-      if (statusFilter === 'PARSIAL' && !item.status.toUpperCase().includes('PARSIAL')) return false;
+      const fulfillment = evaluateArmadaFulfillment(item);
+      if (statusFilter === 'BACKLOG' && fulfillment.isComplete) return false;
+      if (statusFilter === 'LENGKAP' && !fulfillment.isComplete) return false;
+      if (statusFilter === 'PARSIAL' && !fulfillment.isPartial) return false;
 
       // 2. Entity Filter
       if (entityFilter !== 'ALL' && item.entity?.trim().toUpperCase() !== entityFilter) {
@@ -1400,7 +1402,8 @@ export default function ArmadaTab({
 
                   const sisaMatch = findSisaMatch(row.fpb, sisaMap);
                   const sisaItems = sisaMatch?.allItems?.map((i) => i.nama) || [];
-                  const isBacklog = row.selisih > 0;
+                  const fulfillment = evaluateArmadaFulfillment(row);
+                  const isBacklog = !fulfillment.isComplete;
 
                   return (
                     <div
@@ -1523,12 +1526,11 @@ export default function ArmadaTab({
                       {/* Footer */}
                       <div className="pt-2 border-t border-border/60 flex items-center justify-between gap-2 text-xs flex-wrap">
                         <div className="flex items-center gap-2 min-w-0 flex-wrap">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-medium border truncate inline-block ${
-                            row.status === 'SELESAI' || row.status === 'MATCH'
-                              ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
-                              : 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20'
-                          }`}>
-                            {row.status}
+                          <span
+                            className={`px-2 py-0.5 rounded text-[10px] font-medium border truncate inline-block ${fulfillment.badgeClass}`}
+                            title={fulfillment.detail}
+                          >
+                            {fulfillment.status}
                           </span>
                           <WorkflowTrafficLight item={row} compact={true} showBadge={false} />
                         </div>
@@ -1719,8 +1721,9 @@ export default function ArmadaTab({
                 </tr>
               ) : (
                 paginatedItems.map((row, idx) => {
-                  const isComplete = row.selisih === 0;
-                  const isPartial = row.selisih > 0 && row.qtyFSTB > 0;
+                  const fulfillment = evaluateArmadaFulfillment(row);
+                  const isComplete = fulfillment.isComplete;
+                  const isPartial = fulfillment.isPartial;
                   const cleanRowFpb = (row.fpb || '').trim().replace(/^["']|["']$/g, '');
                   const fpbDocNum = cleanRowFpb || (row.noPo || '').trim().replace(/^["']|["']$/g, '');
                   const rowPdfUrl = fpbDocNum
@@ -1848,15 +1851,10 @@ export default function ArmadaTab({
                       <td className="p-3.5 text-center whitespace-nowrap">
                         <div className="space-y-1">
                           <span
-                            className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-medium border ${
-                              isComplete
-                                ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
-                                : isPartial
-                                ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
-                                : 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20'
-                            }`}
+                            className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-medium border ${fulfillment.badgeClass}`}
+                            title={fulfillment.detail}
                           >
-                            {row.status}
+                            {fulfillment.status}
                           </span>
                           {row.statusBadge && (
                             <div>

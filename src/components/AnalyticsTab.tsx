@@ -56,7 +56,7 @@ import {
 import FleetGanttSchedule from './FleetGanttSchedule';
 import WorkflowTrafficLight from './WorkflowTrafficLight';
 import DailyAnalyticsReport from './DailyAnalyticsReport';
-import { evaluateFiveDivisionWorkflow } from '@/utils/statusWorkflow';
+import { evaluateFiveDivisionWorkflow, evaluateArmadaFulfillment } from '@/utils/statusWorkflow';
 
 const MONTH_OPTIONS: Array<{ value: string; label: string }> = [
   { value: 'ALL', label: 'Semua Bulan' },
@@ -3594,18 +3594,10 @@ export default function AnalyticsTab({
                         </tr>
                       ) : (
                         paginatedFleetItems.map((row, idx) => {
-                          const isComplete =
-                            (row.selisih === 0 && row.qtyFSTB > 0) ||
-                            row.status?.toUpperCase().includes('LENGKAP') ||
-                            row.status?.toUpperCase().includes('SELESAI');
-                          const isPartial =
-                            row.status?.toUpperCase().includes('PARSIAL') || (row.qtyFSTB > 0 && row.selisih > 0);
-
-                          const badgeClass = isComplete
-                            ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
-                            : isPartial
-                            ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
-                            : 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20';
+                          const fulfillment = evaluateArmadaFulfillment(row);
+                          const isComplete = fulfillment.isComplete;
+                          const isPartial = fulfillment.isPartial;
+                          const badgeClass = fulfillment.badgeClass;
 
                           return (
                             <tr key={idx} className="hover:bg-muted/30 transition">
@@ -3689,8 +3681,9 @@ export default function AnalyticsTab({
                               <td className="p-3 text-center">
                                 <span
                                   className={`px-2 py-0.5 rounded-full font-mono text-[10px] font-semibold border ${badgeClass}`}
+                                  title={fulfillment.detail}
                                 >
-                                  {row.status || 'TERDATA'}
+                                  {fulfillment.status}
                                 </span>
                               </td>
                               <td className="p-3 text-center whitespace-nowrap">
