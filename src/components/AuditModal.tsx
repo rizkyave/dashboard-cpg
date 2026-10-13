@@ -236,9 +236,26 @@ export default function AuditModal({
     }
     const candidatesList = Array.from(candidatesFpb);
 
-    // 1. FPB matching (Dokumen resmi e-FPB sebagai acuan utama)
+    // Ekstraksi kode entitas PT dari nomor FPB / dokumen aktif (misal 'MO', 'CPL', 'HL', 'GAJ')
+    const primaryPt = (
+      fpbNumber?.match(/^(MO|CPL|HL|GAJ)/i)?.[1] ||
+      itemS1?.entity ||
+      itemS1?.deptArmada?.match(/^(MO|CPL|HL|GAJ)/i)?.[1] ||
+      ''
+    ).toUpperCase();
+
+    // 1. FPB matching (Dokumen resmi e-FPB sebagai acuan utama dengan isolasi entitas PT)
     const fpbMatches = activeSisaLayanan.filter((it) => {
       if (!it.noFpb && !it.fpbNoBarang) return false;
+
+      // Isolasi Entitas: Cegah tabrakan nomor urut antar PT yang kebetulan sama (misal MO-FPB-26-0001797 vs CPL-FPB-26-0001797)
+      if (primaryPt) {
+        const itemPt = (it.pt || it.noFpb?.match(/^(MO|CPL|HL|GAJ)/i)?.[1] || '').toUpperCase();
+        if (itemPt && itemPt !== primaryPt) {
+          return false;
+        }
+      }
+
       const itemKeys = extractFpbKeys(it.noFpb);
       if (itemKeys.some((k) => candidatesFpb.has(k))) return true;
       if (it.fpbNoBarang) {
@@ -255,7 +272,14 @@ export default function AuditModal({
 
     // 3. PO matching global (untuk mendeteksi salah input / typo nomor PO lintas FPB)
     const foreignPoMatches = normPo
-      ? activeSisaLayanan.filter((it) => it.noPo && it.noPo.trim().toLowerCase() === normPo)
+      ? activeSisaLayanan.filter((it) => {
+          if (!it.noPo || it.noPo.trim().toLowerCase() !== normPo) return false;
+          if (primaryPt) {
+            const itemPt = (it.pt || it.noPo?.match(/^(MO|CPL|HL|GAJ)/i)?.[1] || '').toUpperCase();
+            if (itemPt && itemPt !== primaryPt) return false;
+          }
+          return true;
+        })
       : [];
 
     // Proteksi: Terdeteksi Cross-FPB Mismatch jika No PO yang diklik ada di database
