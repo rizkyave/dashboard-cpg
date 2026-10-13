@@ -2767,8 +2767,12 @@ export default function AuditModal({
                   <th className="p-2.5 text-center whitespace-nowrap">Satuan</th>
                   <th className="p-2.5 text-center whitespace-nowrap">Qty FPB</th>
                   <th className="p-2.5 text-center whitespace-nowrap">Qty PO</th>
-                  <th className="p-2.5 text-center whitespace-nowrap">Qty FSTB</th>
-                  <th className="p-2.5 text-center whitespace-nowrap">Qty TTB</th>
+                  {effectiveItemSource !== 'PDF' && (
+                    <>
+                      <th className="p-2.5 text-center whitespace-nowrap">Qty FSTB</th>
+                      <th className="p-2.5 text-center whitespace-nowrap">Qty TTB</th>
+                    </>
+                  )}
                   <th className="p-2.5 text-center whitespace-nowrap">Status Pemenuhan</th>
                 </tr>
               </thead>
@@ -2949,14 +2953,6 @@ export default function AuditModal({
                         : activePo
                         ? pi.qty
                         : '-';
-                    const valQtyFstb =
-                      matchedS2?.qtyFSTB !== undefined && matchedS2.qtyFSTB !== null
-                        ? matchedS2.qtyFSTB
-                        : '-';
-                    const valQtyTtb =
-                      matchedS2?.qtyTTB !== undefined && matchedS2.qtyTTB !== null
-                        ? matchedS2.qtyTTB
-                        : '-';
 
                     const itIsJasa = isItemJasa({
                       code: pi.itemCode,
@@ -3027,12 +3023,6 @@ export default function AuditModal({
                         <td className="p-2.5 text-center text-foreground font-semibold font-mono">
                           {typeof valQtyPo === 'number' ? valQtyPo.toLocaleString('id-ID') : valQtyPo}
                         </td>
-                        <td className="p-2.5 text-center text-muted-foreground font-mono">
-                          {typeof valQtyFstb === 'number' ? valQtyFstb.toLocaleString('id-ID') : valQtyFstb}
-                        </td>
-                        <td className="p-2.5 text-center text-muted-foreground font-mono">
-                          {typeof valQtyTtb === 'number' ? valQtyTtb.toLocaleString('id-ID') : valQtyTtb}
-                        </td>
                         <td className="p-2.5 text-center">
                           <span
                             className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${
@@ -3049,7 +3039,7 @@ export default function AuditModal({
                   })
                 ) : isLoadingPdf ? (
                   <tr>
-                    <td colSpan={8} className="p-8 text-center text-muted-foreground">
+                    <td colSpan={effectiveItemSource === 'PDF' ? 6 : 8} className="p-8 text-center text-muted-foreground">
                       <div className="flex flex-col items-center justify-center gap-2">
                         <RefreshCw className="size-5 animate-spin text-primary" />
                         <span className="text-xs font-mono">
