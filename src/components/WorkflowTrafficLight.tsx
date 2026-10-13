@@ -65,7 +65,7 @@ export default function WorkflowTrafficLight({
   ]);
 
   const tooltipText = React.useMemo(() => {
-    const header = `Alur Tanggung Jawab & PIC (6 Seksi): ${result.summaryBadge}\n`;
+    const header = `Alur Tanggung Jawab & PIC (6 Fase): ${result.summaryBadge}\n`;
     const details = result.stages
       .map((s) => {
         const symbol = s.isFull ? '✓' : s.isPartial ? '◐' : '○';
@@ -73,7 +73,7 @@ export default function WorkflowTrafficLight({
         return `${s.stepNumber}. ${s.name} (${s.code}): ${symbol} [${mode}] ${s.statusText} [${s.detail}]`;
       })
       .join('\n');
-    return header + details + (onClick ? '\n\n(Klik untuk membuka Audit Rinci 6 Seksi)' : '');
+    return header + details + (onClick ? '\n\n(Klik untuk membuka Audit Rinci 6 Fase)' : '');
   }, [result, onClick]);
 
   // Render PROMINENT variant (Center-top centerpiece in Audit Modal)

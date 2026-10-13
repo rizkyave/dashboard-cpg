@@ -983,7 +983,7 @@ export interface ArmadaFulfillmentResult {
  * jika tahapan alur secara fisik sudah sampai ke Tim Lapangan (LAP) / diserahterimakan ke armada,
  * dan kuantitas selisih telah terpenuhi (selisih === 0 / qtyFSTB >= qtyFPB).
  *
- * Jika alur 6 seksi belum sampai LAP (masih di Purchasing/PO, FSTB, Logistik TTB, dsb.):
+ * Jika alur 6 fase belum sampai LAP (masih di Purchasing/PO, FSTB, Logistik TTB, dsb.):
  * Status TIDAK BOLEH "Lengkap", melainkan menampilkan tahapan aktual yang sedang berjalan.
  */
 export function evaluateArmadaFulfillment(item: EvaluatableItem): ArmadaFulfillmentResult {

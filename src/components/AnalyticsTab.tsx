@@ -3573,7 +3573,7 @@ export default function AnalyticsTab({
                         <th className="p-3 text-right">Realisasi</th>
                         <th className="p-3 text-right">Selisih</th>
                         <th className="p-3 text-center">Status</th>
-                        <th className="p-3 text-center whitespace-nowrap">Alur 6 Seksi</th>
+                        <th className="p-3 text-center whitespace-nowrap">Alur 6 Fase</th>
                         <th className="p-3 text-center">Aksi</th>
                       </tr>
                     </thead>
@@ -3796,7 +3796,7 @@ export default function AnalyticsTab({
                         <th className="p-3 text-right">Realisasi</th>
                         <th className="p-3 text-right font-bold text-amber-600 dark:text-amber-400">Selisih Backlog</th>
                         <th className="p-3 text-center">Status</th>
-                        <th className="p-3 text-center whitespace-nowrap">Alur 6 Seksi</th>
+                        <th className="p-3 text-center whitespace-nowrap">Alur 6 Fase</th>
                         <th className="p-3 text-center">Aksi</th>
                       </tr>
                     </thead>

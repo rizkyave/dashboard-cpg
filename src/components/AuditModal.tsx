@@ -1217,7 +1217,7 @@ export default function AuditModal({
     return 'text-foreground';
   }, [statusSaatIni]);
 
-  // Evaluasi item workflow alur 6 seksi yang disinkronkan dengan data aktual AuditModal
+  // Evaluasi item workflow alur 6 fase yang disinkronkan dengan data aktual AuditModal
   const evaluatableWorkflowItem = useMemo(() => {
     const baseItem = itemS1 || itemsS2[0];
     if (!baseItem) return null;
@@ -1841,7 +1841,7 @@ export default function AuditModal({
                     ).
                   </p>
                   <p className="text-muted-foreground">
-                    Rantai pertanggungjawaban 6 seksi: Pembuatan FPB (&rarr;{' '}
+                    Rantai pertanggungjawaban 6 fase: Pembuatan FPB (&rarr;{' '}
                     {displayPicFpb}), Purchasing (&rarr;{' '}
                     {activePo ? `${itemS1?.picPch || 'Purchasing'} - PO: ${activePo}` : 'Menunggu PO'}), Serah Terima Barang (&rarr;{' '}
                     {effectiveNoFstb ? `FSTB: ${effectiveNoFstb}` : 'Menunggu FSTB'}), TTB Logistik (&rarr;{' '}
@@ -2072,7 +2072,7 @@ export default function AuditModal({
         )}
 
         {/* ═══════════════════════════════════════════════════════════
-            ALUR TANGGUNG JAWAB & PIC (6 SEKSI)
+            ALUR TANGGUNG JAWAB & PIC (6 FASE)
             1. PEMBUATAN FPB
             2. PURCHASING
             3. SERAH TERIMA BARANG (FSTB)
@@ -2083,7 +2083,7 @@ export default function AuditModal({
         <div className="space-y-2.5 pt-1">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-1.5">
-              <span>ALUR TANGGUNG JAWAB & PIC (6 SEKSI)</span>
+              <span>ALUR TANGGUNG JAWAB & PIC (6 FASE)</span>
             </h4>
             <div className="flex items-center gap-2.5 flex-wrap">
               {slaDeliveryAnomaly && (

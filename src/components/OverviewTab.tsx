@@ -1095,16 +1095,16 @@ export default function OverviewTab({
                         )}
                       </div>
                     </th>
-                    {/* Alur 6 Seksi */}
+                    {/* Alur 6 Fase */}
                     <th
                       className="p-3 text-center cursor-pointer hover:text-foreground select-none transition group whitespace-nowrap sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md"
                       onClick={() => handleSort('workflow')}
-                      title="Klik untuk mengurutkan kelengkapan alur 6 seksi (6/6 Lengkap ke Belum Lengkap)"
+                      title="Klik untuk mengurutkan kelengkapan alur 6 fase (6/6 Lengkap ke Belum Lengkap)"
                     >
                       <div className="flex items-center justify-center gap-1.5">
                         <span className="inline-flex items-center gap-1">
                           <span className="size-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_6px_rgba(16,185,129,0.8)]"></span>
-                          ALUR 6 SEKSI
+                          ALUR 6 FASE
                         </span>
                         {sortField === 'workflow' && (
                           <span className="text-primary">{sortDirection === 'asc' ? '↑' : '↓'}</span>
@@ -1319,7 +1319,7 @@ export default function OverviewTab({
                         </div>
                       </td>
 
-                      {/* Indikator Traffic Light Alur 6 Seksi */}
+                      {/* Indikator Traffic Light Alur 6 Fase */}
                       <td className="p-3 text-center whitespace-nowrap">
                         <WorkflowTrafficLight
                           item={row}
