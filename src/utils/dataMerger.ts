@@ -1,6 +1,7 @@
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
 import { WorkOrderItem } from '@/types/workOrder';
 import { evaluateTransactionStatus, hasValue } from '@/utils/statusWorkflow';
+import { isInvalidOrGenericItem } from '@/utils/itemResolver';
 
 /**
  * Normalisasi format nomor FPB untuk pencocokan kunci unik
@@ -157,9 +158,9 @@ export function mergeProcurementDatasets(
         target.date = incoming.date;
       }
       if (
-        (!hasValue(target.item) || target.item.startsWith('Pengadaan Kebutuhan')) &&
+        (!hasValue(target.item) || isInvalidOrGenericItem(target.item, target.deptArmada)) &&
         hasValue(incoming.item) &&
-        !incoming.item.startsWith('Pengadaan Kebutuhan')
+        !isInvalidOrGenericItem(incoming.item, target.deptArmada)
       ) {
         target.item = incoming.item;
       }

@@ -29,11 +29,11 @@ import {
   Navigation,
   ChevronDown,
 } from 'lucide-react';
-import { ProcurementItem, ArmadaItem, InventoryItem, KapalPosisiItem } from '@/types/procurement';
+import { ProcurementItem, ArmadaItem, InventoryItem, KapalPosisiItem, PdfItemsCache } from '@/types/procurement';
 import StockAuditModal from './StockAuditModal';
 import TimemarkModal from './TimemarkModal';
 import { extractFstbLast5, openTimemarkWithFstb, parseTtbList } from '@/utils/timemark';
-import { updatePdfItemsCacheForFpb, loadStoredWorkOrder, loadStoredKapalPosisi } from '@/utils/appStorage';
+import { updatePdfItemsCacheForFpb, loadPdfItemsCache, loadStoredWorkOrder, loadStoredKapalPosisi } from '@/utils/appStorage';
 import { formatDateDdMmYy, extractDateInfo } from '@/utils/formatDate';
 import { cleanSingleDescription, deduplicateDescriptions, cleanTujuanPeruntukan } from '@/utils/descriptionCleaner';
 import { isItemJasa, determineTransactionCategory, ProcurementCategory, normalizeJasaUnit } from '@/utils/jasaClassifier';
@@ -45,6 +45,7 @@ import { WorkOrderItem } from '@/types/workOrder';
 import { SisaLayananItem } from '@/types/sisaLayanan';
 import { loadStoredSisaLayanan } from '@/utils/sisaLayananStorage';
 import { extractFpbKeys } from '@/utils/sisaLayananParser';
+import { formatFpbTooltip, isInvalidOrGenericItem } from '@/utils/itemResolver';
 
 function normalizeVesselName(name: string): string {
   return (name || '')
@@ -172,6 +173,13 @@ export default function AuditModal({
   const [internalSisaLayanan, setInternalSisaLayanan] = useState<SisaLayananItem[]>(sisaLayananItems || []);
   const [selectedItemSource, setSelectedItemSource] = useState<'AUTO' | 'SISA_LAYANAN' | 'PDF' | 'ARMADA'>('AUTO');
   const [sisaScopeFilter, setSisaScopeFilter] = useState<'PO' | 'ALL' | 'FOREIGN'>('PO');
+  const [pdfCache, setPdfCache] = useState<PdfItemsCache>({});
+
+  useEffect(() => {
+    loadPdfItemsCache().then((cached) => {
+      if (cached) setPdfCache(cached);
+    }).catch(() => {});
+  }, []);
 
   // Fallback auto-fetch inventory if not yet passed from parent
   useEffect(() => {
@@ -1481,39 +1489,35 @@ export default function AuditModal({
 
   // Tooltip ringkasan barang & keterangan untuk No. FPB
   const fpbTooltipText = useMemo(() => {
-    const itemNames: string[] = [];
-    if (pdfData?.items && pdfData.items.length > 0) {
-      pdfData.items.forEach((it) => {
-        if (it.itemName && !itemNames.includes(it.itemName)) itemNames.push(it.itemName);
-      });
-    } else if (effectiveSisaItems && effectiveSisaItems.length > 0) {
-      effectiveSisaItems.forEach((it) => {
-        const name = it.namaBarang;
-        if (name && !itemNames.includes(name)) itemNames.push(name);
-      });
-    } else if (itemsS2 && itemsS2.length > 0) {
-      itemsS2.forEach((it) => {
-        if (it.item && !itemNames.includes(it.item)) itemNames.push(it.item);
-      });
-    } else if (itemS1?.item) {
-      itemNames.push(itemS1.item);
-    }
+    const pdfNames = (pdfData?.items || []).map((it) => it.itemName).filter(Boolean) as string[];
+    const cachedNames = (fpbNumber && pdfCache[fpbNumber]) || [];
+    const sisaNames = (effectiveSisaItems || []).map((it) => it.namaBarang).filter(Boolean) as string[];
+    const s2Names = (itemsS2 || []).map((it) => it.item).filter(Boolean) as string[];
 
-    const itemsSummary =
-      itemNames.length > 0
-        ? itemNames.slice(0, 5).join(', ') + (itemNames.length > 5 ? ` (+${itemNames.length - 5} item lainnya)` : '')
-        : '-';
+    const effectivePdf = pdfNames.length > 0 ? pdfNames : cachedNames;
 
-    const rawKet =
-      pdfData?.tujuanPeruntukan ||
-      cleanTujuanPeruntukan(itemS1?.peruntukan || '') ||
-      (armadaKeterangans.length > 0 ? armadaKeterangans.join('; ') : '') ||
-      effectiveSisaItems[0]?.keterangan ||
-      itemsS2[0]?.keterangan ||
-      '-';
-
-    return `No. FPB: ${fpbNumber}\n• Nama Barang: ${itemsSummary}\n• Keterangan: ${rawKet}`;
-  }, [fpbNumber, pdfData, effectiveSisaItems, itemsS2, itemS1, armadaKeterangans]);
+    return formatFpbTooltip({
+      fpb: fpbNumber || '-',
+      deptArmada: activeArmadaName,
+      currentItem: itemS1?.item,
+      pdfItems: effectivePdf,
+      sisaItems: sisaNames,
+      armadaItems: s2Names,
+      pdfKeterangan: pdfData?.tujuanPeruntukan,
+      currentKeterangan: cleanTujuanPeruntukan(itemS1?.peruntukan || ''),
+      armadaKeterangan: armadaKeterangans.length > 0 ? armadaKeterangans.join('; ') : itemsS2[0]?.keterangan,
+      sisaKeterangan: effectiveSisaItems[0]?.keterangan,
+    });
+  }, [
+    fpbNumber,
+    activeArmadaName,
+    pdfData,
+    pdfCache,
+    effectiveSisaItems,
+    itemsS2,
+    itemS1,
+    armadaKeterangans,
+  ]);
 
   if (!fpbNumber) return null;
 

@@ -30,13 +30,15 @@ import {
   Pin,
   ChevronUp,
 } from 'lucide-react';
-import { ProcurementItem, StatusTone } from '@/types/procurement';
+import { ProcurementItem, StatusTone, PdfItemsCache } from '@/types/procurement';
 import { EntityDonutChart, PipelineBarChart } from './Charts';
 import { extractFstbLast5, openTimemarkWithFstb } from '@/utils/timemark';
 import { formatDateDdMmYy, formatDateDdMmYyDash, extractDateInfo } from '@/utils/formatDate';
+import { loadPdfItemsCache } from '@/utils/appStorage';
 import { useAuth } from '@/context/AuthContext';
 import { getWorkflowGroupedStatuses, evaluateFiveDivisionWorkflow } from '@/utils/statusWorkflow';
 import WorkflowTrafficLight from './WorkflowTrafficLight';
+import { formatFpbTooltip } from '@/utils/itemResolver';
 
 const formatPicAktif = (pic?: string) => {
   if (!pic) return '-';
@@ -115,6 +117,13 @@ export default function OverviewTab({
 
   const [viewMode, setViewMode] = useState<'card' | 'table'>('table');
   const [showMobileFilters, setShowMobileFilters] = useState<boolean>(false);
+  const [pdfCache, setPdfCache] = useState<PdfItemsCache>({});
+
+  useEffect(() => {
+    loadPdfItemsCache().then((cached) => {
+      if (cached) setPdfCache(cached);
+    }).catch(() => {});
+  }, []);
 
   // Split View & Freeze Header Pane State
   const [splitHeight, setSplitHeight] = useState<'compact' | 'default' | 'expanded'>('default');
@@ -803,7 +812,13 @@ export default function OverviewTab({
                           <div className="min-w-0">
                             <span
                               className="font-mono font-bold text-xs text-foreground group-hover:text-cyan-500 transition truncate block cursor-help"
-                              title={`No. FPB: ${row.fpb}\n• Nama Barang: ${row.item || '-'}\n• Keterangan: ${row.peruntukan || row.statusPenjelasan || '-'}`}
+                              title={formatFpbTooltip({
+                                fpb: row.fpb,
+                                currentItem: row.item,
+                                deptArmada: row.deptArmada,
+                                pdfItems: row.fpb ? pdfCache[row.fpb] : undefined,
+                                currentKeterangan: row.peruntukan || row.statusPenjelasan,
+                              })}
                             >
                               {row.fpb}
                             </span>
@@ -1162,7 +1177,13 @@ export default function OverviewTab({
                           <div>
                             <div
                               className="font-mono font-semibold text-xs text-foreground group-hover:text-cyan-400 transition flex items-center gap-1 cursor-help"
-                              title={`No. FPB: ${row.fpb}\n• Nama Barang: ${row.item || '-'}\n• Keterangan: ${row.peruntukan || row.statusPenjelasan || '-'}`}
+                              title={formatFpbTooltip({
+                                fpb: row.fpb,
+                                currentItem: row.item,
+                                deptArmada: row.deptArmada,
+                                pdfItems: row.fpb ? pdfCache[row.fpb] : undefined,
+                                currentKeterangan: row.peruntukan || row.statusPenjelasan,
+                              })}
                             >
                               <span>{row.fpb}</span>
                               <ExternalLink className="size-3 opacity-0 group-hover:opacity-100 transition" />

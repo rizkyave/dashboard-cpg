@@ -45,6 +45,7 @@ import { SisaLayananItem, SisaGoodsSummary } from '@/types/sisaLayanan';
 import { loadStoredSisaLayanan } from '@/utils/sisaLayananStorage';
 import { buildSisaLayananFpbMap, findSisaMatch } from '@/utils/sisaLayananParser';
 import { extractDateInfo, formatDateDdMmYy } from '@/utils/formatDate';
+import { cleanItemName, isInvalidOrGenericItem } from '@/utils/itemResolver';
 import {
   LapsePolarChart,
   PicWorkloadChart,
@@ -531,16 +532,16 @@ export default function AnalyticsTab({
       const currArmada = (it.armada || '').trim();
 
       if (!sisaMatch) {
-        const isArmadaName = isInvalidItemName(currItem, currArmada);
-        return isArmadaName ? { ...it, item: 'Item Operasional' } : it;
+        const isArmadaName = isInvalidItemName(currItem, currArmada) || isInvalidOrGenericItem(currItem, currArmada);
+        return isArmadaName ? { ...it, item: '-' } : it;
       }
 
-      const isGenericOrArmada = isInvalidItemName(currItem, currArmada);
+      const isGenericOrArmada = isInvalidItemName(currItem, currArmada) || isInvalidOrGenericItem(currItem, currArmada);
       let realItem = isGenericOrArmada && sisaMatch.primaryName ? sisaMatch.primaryName : (currItem || sisaMatch.primaryName);
-      if (isInvalidItemName(realItem, currArmada)) {
-        realItem = sisaMatch.primaryName && !isInvalidItemName(sisaMatch.primaryName, currArmada)
+      if (isInvalidItemName(realItem, currArmada) || isInvalidOrGenericItem(realItem, currArmada)) {
+        realItem = sisaMatch.primaryName && !isInvalidItemName(sisaMatch.primaryName, currArmada) && !isInvalidOrGenericItem(sisaMatch.primaryName, currArmada)
           ? sisaMatch.primaryName
-          : 'Item Operasional';
+          : '-';
       }
       const realSatuan = sisaMatch.primarySatuan || it.satuan || 'UNIT';
       const realQtyFpb =
@@ -3617,7 +3618,7 @@ export default function AnalyticsTab({
                               <td className="p-3 font-mono">
                                 <div
                                   className="font-semibold text-foreground cursor-help"
-                                  title={`No. FPB: ${row.fpb || '-'}\n• Nama Barang: ${row.sisaMatch?.primaryName || row.item || '-'}\n• Keterangan: ${row.keterangan || '-'}`}
+                                  title={`No. FPB: ${row.fpb || '-'}\n• Nama Barang: ${cleanItemName(row.sisaMatch?.primaryName || row.item, row.armada) || '-'}\n• Keterangan: ${row.keterangan || '-'}`}
                                 >
                                   {row.fpb || '-'}
                                 </div>
@@ -3874,7 +3875,7 @@ export default function AnalyticsTab({
                             <td className="p-3 font-mono">
                               <span
                                 className="font-semibold text-foreground block cursor-help"
-                                title={`No. FPB: ${row.fpb || '-'}\n• Nama Barang: ${row.item || '-'}\n• Keterangan: ${row.keterangan || '-'}`}
+                                title={`No. FPB: ${row.fpb || '-'}\n• Nama Barang: ${cleanItemName(row.item, row.armada) || '-'}\n• Keterangan: ${row.keterangan || '-'}`}
                               >
                                 {row.fpb || '-'}
                               </span>

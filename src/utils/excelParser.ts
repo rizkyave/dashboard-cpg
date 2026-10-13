@@ -3,6 +3,7 @@ import { ProcurementItem, ArmadaItem, StatusTone } from '@/types/procurement';
 import { formatDateDdMmYyDash } from '@/utils/formatDate';
 import { evaluateTransactionStatus, hasValue } from '@/utils/statusWorkflow';
 import { enrichProcurementAndArmada } from '@/utils/dataMerger';
+import { isInvalidOrGenericItem } from '@/utils/itemResolver';
 
 // Helper: Convert Excel date / serial date number to YYYY-MM-DD string
 export const excelDateToString = (val: any): string => {
@@ -481,6 +482,8 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
   // 4. MAIN PROCESS: Parse "Monitoring Layanan Armada" as PRIMARY REFERENCE
   const importedProcurement: ProcurementItem[] = [];
   const importedArmada: ArmadaItem[] = [];
+  const mlaItemsByFpb = new Map<string, string[]>();
+  const mlaItemsByPo = new Map<string, string[]>();
 
   let totalMlaRows = 0;
   let matchedMlaCount = 0;
@@ -559,7 +562,7 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
       const tglTtbMla = excelDateToString(aTglTTB >= 0 ? r[aTglTTB] : '');
 
       const kodeBarang = String(aKode >= 0 ? r[aKode] : '').trim();
-      const namaBarang = String(aNama >= 0 ? r[aNama] : '').trim() || 'Item Operasional';
+      const rawNamaBarang = String(aNama >= 0 ? r[aNama] : '').trim();
       const rawJmlFPB = aJmlFPB >= 0 ? r[aJmlFPB] : '';
       const rawJmlPO = aJmlPO >= 0 ? r[aJmlPO] : '';
       const rawJmlFSTB = aJmlFSTB >= 0 ? r[aJmlFSTB] : '';
@@ -646,6 +649,26 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
         bnMatch?.armada ||
         (entity ? `Unit Armada ${entity}` : 'Armada Operasional');
 
+      // Sanitasi nama barang: hindari teks generik, nama armada, atau 'Item Operasional'
+      const cleanNamaBarang =
+        rawNamaBarang && !isInvalidOrGenericItem(rawNamaBarang, deptArmada)
+          ? rawNamaBarang
+          : (keterangan && !isInvalidOrGenericItem(keterangan, deptArmada) ? keterangan : '');
+      const namaBarang = cleanNamaBarang;
+
+      if (cleanNamaBarang) {
+        if (normFpb) {
+          const curList = mlaItemsByFpb.get(normFpb) || [];
+          if (!curList.includes(cleanNamaBarang)) curList.push(cleanNamaBarang);
+          mlaItemsByFpb.set(normFpb, curList);
+        }
+        if (normPo && normPo !== '-') {
+          const curList = mlaItemsByPo.get(normPo) || [];
+          if (!curList.includes(cleanNamaBarang)) curList.push(cleanNamaBarang);
+          mlaItemsByPo.set(normPo, curList);
+        }
+      }
+
       let lapse = 0;
       let lapseText: string | undefined = undefined;
 
@@ -708,7 +731,7 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
         entity,
         po: po || '-',
         date: tglPo || tglFpb || new Date().toISOString().slice(0, 10),
-        item: namaBarang,
+        item: cleanNamaBarang || '-',
         peruntukan,
         lapse,
         lapseText,
@@ -768,16 +791,15 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
       else if (qtyFSTB > 0 && selisih > 0) armadaFulfillmentStatus = `Parsial (Belum Terpenuhi ${selisih})`;
       else armadaFulfillmentStatus = `Belum Terpenuhi (${qtyFPB})`;
 
-      const cleanNamaBarang =
-        namaBarang && namaBarang.toLowerCase() !== deptArmada.toLowerCase()
-          ? namaBarang
-          : (keterangan || 'Item Operasional');
+      const finalArmadaItem =
+        cleanNamaBarang ||
+        (keterangan && !isInvalidOrGenericItem(keterangan, deptArmada) ? keterangan : '-');
 
       importedArmada.push({
         id: recordId,
         fpb,
         armada: deptArmada,
-        item: cleanNamaBarang,
+        item: finalArmadaItem,
         qtyFPB,
         qtyFSTB,
         selisih,
@@ -883,8 +905,12 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
       const verifiedByFpb = cfMatch?.verifiedBy || (cfMatch ? 'Bu Noor' : '');
 
       const recordId = `PROC-${proc.fpb}-${proc.po || 'NOPO'}-${proc.rowIdx}`;
+      const normFpb = normalizeKey(proc.fpb);
+      const normPo = normalizeKey(proc.po);
+      const mlaItems = (normFpb ? mlaItemsByFpb.get(normFpb) : undefined) || (normPo ? mlaItemsByPo.get(normPo) : undefined) || [];
       const cleanKet = proc.ket1?.trim();
-      const itemDesc = cleanKet && cleanKet !== '-' ? cleanKet : 'Item Operasional';
+      const validKet = cleanKet && cleanKet !== '-' && !isInvalidOrGenericItem(cleanKet, proc.armada) ? cleanKet : '';
+      const itemDesc = mlaItems.length > 0 ? mlaItems.join(', ') : (validKet || '-');
 
       importedProcurement.push({
         id: recordId,

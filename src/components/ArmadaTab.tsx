@@ -38,6 +38,7 @@ import { formatDateDdMmYy, extractDateInfo } from '@/utils/formatDate';
 import { loadPdfItemsCache, savePdfItemsCache } from '@/utils/appStorage';
 import WorkflowTrafficLight from '@/components/WorkflowTrafficLight';
 import { evaluateFiveDivisionWorkflow } from '@/utils/statusWorkflow';
+import { formatFpbTooltip } from '@/utils/itemResolver';
 
 interface ArmadaTabProps {
   items: ArmadaItem[];
@@ -1382,7 +1383,13 @@ export default function ArmadaTab({
                             <div className="flex items-center gap-1.5 flex-wrap">
                               <span
                                 className="font-mono font-bold text-xs text-foreground group-hover:text-primary transition truncate cursor-help"
-                                title={`No. FPB: ${row.fpb}\n• Nama Barang: ${row.item || (row.fpb && pdfCache[row.fpb]?.length ? pdfCache[row.fpb].join(', ') : '-')}\n• Keterangan: ${row.keterangan || '-'}`}
+                                title={formatFpbTooltip({
+                                  fpb: row.fpb,
+                                  currentItem: row.item,
+                                  deptArmada: row.armada,
+                                  pdfItems: row.fpb ? pdfCache[row.fpb] : undefined,
+                                  armadaKeterangan: row.keterangan,
+                                })}
                               >
                                 {row.fpb}
                               </span>
@@ -1685,7 +1692,13 @@ export default function ArmadaTab({
                           <button
                             onClick={() => onOpenAudit && onOpenAudit(row.fpb, row.noPo)}
                             className="font-medium text-foreground hover:underline flex items-center gap-1 cursor-help"
-                            title={`No. FPB: ${row.fpb}\n• Nama Barang: ${row.item || (row.fpb && pdfCache[row.fpb]?.length ? pdfCache[row.fpb].join(', ') : '-')}\n• Keterangan: ${row.keterangan || '-'}`}
+                            title={formatFpbTooltip({
+                              fpb: row.fpb,
+                              currentItem: row.item,
+                              deptArmada: row.armada,
+                              pdfItems: row.fpb ? pdfCache[row.fpb] : undefined,
+                              armadaKeterangan: row.keterangan,
+                            })}
                           >
                             <span>{row.fpb}</span>
                             <ExternalLink className="w-3 h-3 text-muted-foreground group-hover:text-foreground transition-colors" />

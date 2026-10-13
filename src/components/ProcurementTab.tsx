@@ -43,6 +43,7 @@ import { cleanTujuanPeruntukan } from '@/utils/descriptionCleaner';
 import { loadPdfItemsCache, savePdfItemsCache } from '@/utils/appStorage';
 import { getWorkflowGroupedStatuses, evaluateFiveDivisionWorkflow } from '@/utils/statusWorkflow';
 import WorkflowTrafficLight from './WorkflowTrafficLight';
+import { formatFpbTooltip } from '@/utils/itemResolver';
 
 // Helper formatting PIC & Status Penjelasan
 const formatPicAktif = (pic?: string) => {
@@ -1404,7 +1405,13 @@ export default function ProcurementTab({
                             <div className="flex items-center gap-1.5 flex-wrap">
                               <span
                                 className="font-mono font-bold text-xs text-foreground group-hover:text-primary transition truncate cursor-help"
-                                title={`No. FPB: ${row.fpb}\n• Nama Barang: ${row.item || (row.fpb && pdfCache[row.fpb]?.length ? pdfCache[row.fpb].join(', ') : '-')}\n• Keterangan: ${row.peruntukan || row.statusPenjelasan || '-'}`}
+                                title={formatFpbTooltip({
+                                  fpb: row.fpb,
+                                  currentItem: row.item,
+                                  deptArmada: row.deptArmada,
+                                  pdfItems: row.fpb ? pdfCache[row.fpb] : undefined,
+                                  currentKeterangan: row.peruntukan || row.statusPenjelasan,
+                                })}
                               >
                                 {row.fpb}
                               </span>
@@ -1701,7 +1708,13 @@ export default function ProcurementTab({
                               onOpenAudit(row.fpb, row.po);
                             }}
                             className="font-mono font-medium text-foreground hover:underline flex items-center gap-1.5 text-left cursor-help"
-                            title={`No. FPB: ${row.fpb}\n• Nama Barang: ${row.item || (row.fpb && pdfCache[row.fpb]?.length ? pdfCache[row.fpb].join(', ') : '-')}\n• Keterangan: ${row.peruntukan || row.statusPenjelasan || '-'}`}
+                            title={formatFpbTooltip({
+                              fpb: row.fpb,
+                              currentItem: row.item,
+                              deptArmada: row.deptArmada,
+                              pdfItems: row.fpb ? pdfCache[row.fpb] : undefined,
+                              currentKeterangan: row.peruntukan || row.statusPenjelasan,
+                            })}
                           >
                             <span>{row.fpb}</span>
                             <ExternalLink className="w-3 h-3 text-muted-foreground group-hover:text-foreground transition-colors" />
