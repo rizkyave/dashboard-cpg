@@ -709,10 +709,6 @@ export default function AuditModal({
     (hasValue(itemS1?.tglFstb) ? itemS1!.tglFstb : '') ||
     '';
 
-  const fstbPdfUrl = effectiveNoFstb && !isFieldBelum(effectiveNoFstb)
-    ? `https://e-fpb.cindaragroup.com/files/${encodeURIComponent(effectiveNoFstb)}.pdf`
-    : null;
-
   // Metadata Nomor TTB untuk integrasi foto lapangan langsung di aplikasi
   const activeTtb =
     itemsS2.find((i) => hasValue(i.noTtb))?.noTtb?.trim() ||
@@ -2396,7 +2392,7 @@ export default function AuditModal({
             <div className="p-3.5 rounded-lg bg-card border border-border flex flex-col justify-between space-y-2.5 shadow-xs hover:border-foreground/20 transition min-w-0">
               <div className="min-w-0">
                 <div className="flex items-center justify-between pb-2 border-b border-border gap-1 min-w-0">
-                  <span className="text-[11px] font-semibold text-foreground font-mono flex items-center gap-1.5 min-w-0 truncate">
+                  <span className="text-[10px] xl:text-[11px] font-semibold text-foreground font-mono flex items-center gap-1.5 min-w-0 truncate" title="3. SERAH TERIMA BARANG">
                     <Boxes className="size-3.5 text-teal-600 dark:text-teal-400 shrink-0" />
                     <span className="truncate">3. SERAH TERIMA BARANG</span>
                   </span>
@@ -2465,30 +2461,17 @@ export default function AuditModal({
                   </div>
                 </div>
               </div>
-              <div className="pt-2 border-t border-border flex flex-col gap-1.5 min-w-0">
+              <div className="pt-2 border-t border-border min-w-0">
                 {isFstbDone ? (
-                  <span className="inline-flex items-center justify-center gap-1 text-[10px] font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-md border border-emerald-500/20 w-full truncate font-semibold min-w-0">
-                    <Check className="size-3 text-emerald-600 dark:text-emerald-400" />
-                    ✓ FSTB Diterbitkan / Diterima
+                  <span className="inline-flex items-center justify-center gap-1 text-[10px] font-mono text-teal-700 dark:text-teal-400 bg-teal-500/10 px-2 py-1 rounded-md border border-teal-500/20 w-full truncate font-semibold min-w-0">
+                    <Check className="size-3 text-teal-600 dark:text-teal-400" />
+                    FSTB Diterbitkan
                   </span>
                 ) : (
                   <span className="inline-flex items-center justify-center gap-1 text-[10px] font-mono text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-1 rounded-md border border-amber-500/20 w-full truncate font-medium min-w-0">
                     <Clock className="size-3 text-amber-600 dark:text-amber-400" />
                     Menunggu FSTB
                   </span>
-                )}
-                {fstbPdfUrl && (
-                  <a
-                    href={fstbPdfUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[10px] font-mono text-teal-700 dark:text-teal-300 bg-teal-500/10 hover:bg-teal-500/20 active:scale-95 px-2 py-1 rounded-md border border-teal-500/30 flex items-center justify-center gap-1.5 text-center truncate font-medium transition cursor-pointer shadow-2xs group min-w-0"
-                    title={`Klik untuk Buka Dokumen PDF FSTB (${effectiveNoFstb})`}
-                  >
-                    <FileText className="size-3 text-teal-600 dark:text-teal-400 shrink-0" />
-                    <span className="truncate">Buka PDF FSTB</span>
-                    <ExternalLink className="size-2.5 opacity-60 group-hover:opacity-100 shrink-0" />
-                  </a>
                 )}
               </div>
             </div>
@@ -2735,7 +2718,7 @@ export default function AuditModal({
             <div className="p-3.5 rounded-lg bg-card border border-border flex flex-col justify-between space-y-2.5 shadow-xs hover:border-foreground/20 transition min-w-0">
               <div className="min-w-0">
                 <div className="flex items-center justify-between pb-2 border-b border-border gap-1 min-w-0">
-                  <span className="text-[11px] font-semibold text-foreground font-mono flex items-center gap-1.5 min-w-0 truncate">
+                  <span className="text-[10px] xl:text-[11px] font-semibold text-foreground font-mono flex items-center gap-1.5 min-w-0 truncate" title="6. PURCHASING / ADM">
                     <Landmark className="size-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                     <span className="truncate">6. PURCHASING / ADM</span>
                   </span>
