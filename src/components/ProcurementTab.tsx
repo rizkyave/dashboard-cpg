@@ -1402,7 +1402,10 @@ export default function ProcurementTab({
                           </div>
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="font-mono font-bold text-xs text-foreground group-hover:text-primary transition truncate">
+                              <span
+                                className="font-mono font-bold text-xs text-foreground group-hover:text-primary transition truncate cursor-help"
+                                title={`No. FPB: ${row.fpb}\n• Nama Barang: ${row.item || (row.fpb && pdfCache[row.fpb]?.length ? pdfCache[row.fpb].join(', ') : '-')}\n• Keterangan: ${row.peruntukan || row.statusPenjelasan || '-'}`}
+                              >
                                 {row.fpb}
                               </span>
                             </div>
@@ -1697,7 +1700,8 @@ export default function ProcurementTab({
                               e.stopPropagation();
                               onOpenAudit(row.fpb, row.po);
                             }}
-                            className="font-mono font-medium text-foreground hover:underline flex items-center gap-1.5 text-left"
+                            className="font-mono font-medium text-foreground hover:underline flex items-center gap-1.5 text-left cursor-help"
+                            title={`No. FPB: ${row.fpb}\n• Nama Barang: ${row.item || (row.fpb && pdfCache[row.fpb]?.length ? pdfCache[row.fpb].join(', ') : '-')}\n• Keterangan: ${row.peruntukan || row.statusPenjelasan || '-'}`}
                           >
                             <span>{row.fpb}</span>
                             <ExternalLink className="w-3 h-3 text-muted-foreground group-hover:text-foreground transition-colors" />

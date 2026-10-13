@@ -1479,6 +1479,42 @@ export default function AuditModal({
     );
   };
 
+  // Tooltip ringkasan barang & keterangan untuk No. FPB
+  const fpbTooltipText = useMemo(() => {
+    const itemNames: string[] = [];
+    if (pdfData?.items && pdfData.items.length > 0) {
+      pdfData.items.forEach((it) => {
+        if (it.itemName && !itemNames.includes(it.itemName)) itemNames.push(it.itemName);
+      });
+    } else if (effectiveSisaItems && effectiveSisaItems.length > 0) {
+      effectiveSisaItems.forEach((it) => {
+        const name = it.namaBarang;
+        if (name && !itemNames.includes(name)) itemNames.push(name);
+      });
+    } else if (itemsS2 && itemsS2.length > 0) {
+      itemsS2.forEach((it) => {
+        if (it.item && !itemNames.includes(it.item)) itemNames.push(it.item);
+      });
+    } else if (itemS1?.item) {
+      itemNames.push(itemS1.item);
+    }
+
+    const itemsSummary =
+      itemNames.length > 0
+        ? itemNames.slice(0, 5).join(', ') + (itemNames.length > 5 ? ` (+${itemNames.length - 5} item lainnya)` : '')
+        : '-';
+
+    const rawKet =
+      pdfData?.tujuanPeruntukan ||
+      cleanTujuanPeruntukan(itemS1?.peruntukan || '') ||
+      (armadaKeterangans.length > 0 ? armadaKeterangans.join('; ') : '') ||
+      effectiveSisaItems[0]?.keterangan ||
+      itemsS2[0]?.keterangan ||
+      '-';
+
+    return `No. FPB: ${fpbNumber}\n• Nama Barang: ${itemsSummary}\n• Keterangan: ${rawKet}`;
+  }, [fpbNumber, pdfData, effectiveSisaItems, itemsS2, itemS1, armadaKeterangans]);
+
   if (!fpbNumber) return null;
 
   return (
@@ -1502,7 +1538,12 @@ export default function AuditModal({
                 Verifikasi
               </span>
               <div className="text-sm sm:text-base font-semibold text-foreground font-mono flex items-center gap-1.5 sm:gap-2 flex-wrap mt-0.5">
-                <span className="text-primary font-bold shrink-0">{fpbNumber}</span>
+                <span
+                  className="text-primary font-bold shrink-0 cursor-help underline decoration-dotted underline-offset-4"
+                  title={fpbTooltipText}
+                >
+                  {fpbNumber}
+                </span>
                 {activePo ? (
                   <span className="text-amber-400 font-mono text-xs px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 shrink-0 font-medium">
                     PO: {activePo}

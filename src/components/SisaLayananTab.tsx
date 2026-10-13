@@ -849,10 +849,14 @@ export default function SisaLayananTab({
                         {globalIdx}
                       </td>
 
-                      {/* No. FPB & Tanggal */}
                       <td className="py-2.5 px-3">
                         <div className="font-mono font-medium text-foreground text-[11px] flex items-center gap-1">
-                          <span>{item.noFpb || '-'}</span>
+                          <span
+                            className="cursor-help"
+                            title={`No. FPB: ${item.noFpb || '-'}\n• Nama Barang: ${item.namaBarang || '-'}\n• Keterangan: ${item.keterangan || '-'}`}
+                          >
+                            {item.noFpb || '-'}
+                          </span>
                           {item.noFpb && (
                             <button
                               onClick={() => handleCopy(item.noFpb, `FPB ${item.noFpb}`)}

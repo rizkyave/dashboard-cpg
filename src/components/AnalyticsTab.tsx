@@ -3615,7 +3615,12 @@ export default function AnalyticsTab({
                                 </span>
                               </td>
                               <td className="p-3 font-mono">
-                                <div className="font-semibold text-foreground">{row.fpb || '-'}</div>
+                                <div
+                                  className="font-semibold text-foreground cursor-help"
+                                  title={`No. FPB: ${row.fpb || '-'}\n• Nama Barang: ${row.sisaMatch?.primaryName || row.item || '-'}\n• Keterangan: ${row.keterangan || '-'}`}
+                                >
+                                  {row.fpb || '-'}
+                                </div>
                                 <div className="text-[11px] text-muted-foreground">PO: {row.noPo || '-'}</div>
                               </td>
                               <td className="p-3">
@@ -3867,7 +3872,12 @@ export default function AnalyticsTab({
                               )}
                             </td>
                             <td className="p-3 font-mono">
-                              <span className="font-semibold text-foreground block">{row.fpb || '-'}</span>
+                              <span
+                                className="font-semibold text-foreground block cursor-help"
+                                title={`No. FPB: ${row.fpb || '-'}\n• Nama Barang: ${row.item || '-'}\n• Keterangan: ${row.keterangan || '-'}`}
+                              >
+                                {row.fpb || '-'}
+                              </span>
                               <span className="text-[11px] text-muted-foreground">PO: {row.noPo || '-'}</span>
                             </td>
                             <td className="p-3">

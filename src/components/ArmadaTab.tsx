@@ -1380,7 +1380,10 @@ export default function ArmadaTab({
                           </div>
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="font-mono font-bold text-xs text-foreground group-hover:text-primary transition truncate">
+                              <span
+                                className="font-mono font-bold text-xs text-foreground group-hover:text-primary transition truncate cursor-help"
+                                title={`No. FPB: ${row.fpb}\n• Nama Barang: ${row.item || (row.fpb && pdfCache[row.fpb]?.length ? pdfCache[row.fpb].join(', ') : '-')}\n• Keterangan: ${row.keterangan || '-'}`}
+                              >
                                 {row.fpb}
                               </span>
                             </div>
@@ -1681,8 +1684,8 @@ export default function ArmadaTab({
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <button
                             onClick={() => onOpenAudit && onOpenAudit(row.fpb, row.noPo)}
-                            className="font-medium text-foreground hover:underline flex items-center gap-1"
-                            title="Buka detail modal FPB"
+                            className="font-medium text-foreground hover:underline flex items-center gap-1 cursor-help"
+                            title={`No. FPB: ${row.fpb}\n• Nama Barang: ${row.item || (row.fpb && pdfCache[row.fpb]?.length ? pdfCache[row.fpb].join(', ') : '-')}\n• Keterangan: ${row.keterangan || '-'}`}
                           >
                             <span>{row.fpb}</span>
                             <ExternalLink className="w-3 h-3 text-muted-foreground group-hover:text-foreground transition-colors" />

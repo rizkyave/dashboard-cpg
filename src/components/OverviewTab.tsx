@@ -801,7 +801,10 @@ export default function OverviewTab({
                             <FileText className="size-3.5" />
                           </div>
                           <div className="min-w-0">
-                            <span className="font-mono font-bold text-xs text-foreground group-hover:text-cyan-500 transition truncate block">
+                            <span
+                              className="font-mono font-bold text-xs text-foreground group-hover:text-cyan-500 transition truncate block cursor-help"
+                              title={`No. FPB: ${row.fpb}\n• Nama Barang: ${row.item || '-'}\n• Keterangan: ${row.peruntukan || row.statusPenjelasan || '-'}`}
+                            >
                               {row.fpb}
                             </span>
                             <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
@@ -1157,7 +1160,10 @@ export default function OverviewTab({
                             <FileText className="size-3.5 text-cyan-400" />
                           </div>
                           <div>
-                            <div className="font-mono font-semibold text-xs text-foreground group-hover:text-cyan-400 transition flex items-center gap-1">
+                            <div
+                              className="font-mono font-semibold text-xs text-foreground group-hover:text-cyan-400 transition flex items-center gap-1 cursor-help"
+                              title={`No. FPB: ${row.fpb}\n• Nama Barang: ${row.item || '-'}\n• Keterangan: ${row.peruntukan || row.statusPenjelasan || '-'}`}
+                            >
                               <span>{row.fpb}</span>
                               <ExternalLink className="size-3 opacity-0 group-hover:opacity-100 transition" />
                             </div>
