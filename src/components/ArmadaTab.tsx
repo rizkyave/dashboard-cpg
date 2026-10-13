@@ -39,6 +39,9 @@ import { loadPdfItemsCache, savePdfItemsCache } from '@/utils/appStorage';
 import WorkflowTrafficLight from '@/components/WorkflowTrafficLight';
 import { evaluateFiveDivisionWorkflow } from '@/utils/statusWorkflow';
 import { formatFpbTooltip } from '@/utils/itemResolver';
+import { SisaLayananItem } from '@/types/sisaLayanan';
+import { buildSisaLayananFpbMap, findSisaMatch } from '@/utils/sisaLayananParser';
+import { loadStoredSisaLayanan } from '@/utils/sisaLayananStorage';
 
 interface ArmadaTabProps {
   items: ArmadaItem[];
@@ -46,6 +49,7 @@ interface ArmadaTabProps {
   onSearchKeywordChange?: (kw: string) => void;
   onOpenAudit?: (fpb: string, po?: string) => void;
   initialEntity?: string;
+  sisaLayananItems?: SisaLayananItem[];
   showToast?: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
 }
 
@@ -74,6 +78,7 @@ export default function ArmadaTab({
   onSearchKeywordChange,
   onOpenAudit,
   initialEntity = 'ALL',
+  sisaLayananItems = [],
   showToast,
 }: ArmadaTabProps) {
   // Filters state
@@ -81,6 +86,29 @@ export default function ArmadaTab({
   const [statusFilter, setStatusFilter] = useState<StatusFilterType>('ALL');
   const [entityFilter, setEntityFilter] = useState<string>(initialEntity);
   const [armadaFilter, setArmadaFilter] = useState<string>('ALL');
+
+  // Sinkronisasi data barang dari database Sisa Layanan Gabungan
+  const [internalSisaLayanan, setInternalSisaLayanan] = useState<SisaLayananItem[]>(sisaLayananItems || []);
+
+  useEffect(() => {
+    if (sisaLayananItems && sisaLayananItems.length > 0) {
+      setInternalSisaLayanan(sisaLayananItems);
+    } else {
+      loadStoredSisaLayanan()
+        .then((stored) => {
+          if (stored && stored.items && stored.items.length > 0) {
+            setInternalSisaLayanan(stored.items);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [sisaLayananItems]);
+
+  const activeSisaItems = sisaLayananItems && sisaLayananItems.length > 0 ? sisaLayananItems : internalSisaLayanan;
+
+  const sisaMap = useMemo(() => {
+    return buildSisaLayananFpbMap(activeSisaItems);
+  }, [activeSisaItems]);
 
   // Date / Month / Year Filters
   const [selectedYear, setSelectedYear] = useState<string>('ALL');
@@ -331,10 +359,12 @@ export default function ArmadaTab({
       // 5. Keyword Search (Search Utama Atas)
       if (searchTerm.trim() !== '') {
         const q = searchTerm.toLowerCase().trim();
+        const sisaMatch = findSisaMatch(item.fpb, sisaMap);
         const matchFpb = item.fpb?.toLowerCase().includes(q);
         const matchWo = item.workOrderNo?.toLowerCase().includes(q);
         const matchArmada = item.armada?.toLowerCase().includes(q);
         const matchItem = item.item?.toLowerCase().includes(q);
+        const matchSisa = sisaMatch?.allItemNames?.toLowerCase().includes(q);
         const matchKet = item.keterangan?.toLowerCase().includes(q);
         const matchKode = item.kodeBarang?.toLowerCase().includes(q);
         const matchPo = item.noPo?.toLowerCase().includes(q);
@@ -352,6 +382,7 @@ export default function ArmadaTab({
           !matchWo &&
           !matchArmada &&
           !matchItem &&
+          !matchSisa &&
           !matchKet &&
           !matchKode &&
           !matchPo &&
@@ -368,10 +399,12 @@ export default function ArmadaTab({
         }
       }
 
-      // 6. Advanced Search: Spesifik Nama Barang / Deskripsi Item (termasuk hasil scan PDF e-FPB)
+      // 6. Advanced Search: Spesifik Nama Barang / Deskripsi Item (termasuk hasil Sisa Layanan & scan PDF e-FPB)
       if (searchBarang.trim() !== '') {
         const qb = searchBarang.toLowerCase().trim();
+        const sisaMatch = findSisaMatch(item.fpb, sisaMap);
         const matchItem = item.item?.toLowerCase().includes(qb);
+        const matchSisa = sisaMatch?.allItemNames?.toLowerCase().includes(qb);
         const matchKet = item.keterangan?.toLowerCase().includes(qb);
         const matchKode = item.kodeBarang?.toLowerCase().includes(qb);
         const matchSatuan = item.satuan?.toLowerCase().includes(qb);
@@ -380,7 +413,7 @@ export default function ArmadaTab({
         const pdfItems = item.fpb ? pdfCache[item.fpb] : undefined;
         const matchPdf = pdfItems && pdfItems.some((pi) => pi.toLowerCase().includes(qb));
 
-        if (!matchItem && !matchKet && !matchKode && !matchSatuan && !matchPdf) {
+        if (!matchItem && !matchSisa && !matchKet && !matchKode && !matchSatuan && !matchPdf) {
           return false;
         }
       }
@@ -1365,6 +1398,8 @@ export default function ArmadaTab({
                     ? `https://e-fpb.cindaragroup.com/files/logistik_Approved_rev_sign_${encodeURIComponent(cleanRowFpb || fpbDocNum)}.pdf`
                     : null;
 
+                  const sisaMatch = findSisaMatch(row.fpb, sisaMap);
+                  const sisaItems = sisaMatch?.allItems?.map((i) => i.nama) || [];
                   const isBacklog = row.selisih > 0;
 
                   return (
@@ -1387,6 +1422,9 @@ export default function ArmadaTab({
                                   fpb: row.fpb,
                                   currentItem: row.item,
                                   deptArmada: row.armada,
+                                  sisaItems,
+                                  sisaTooltipText: sisaMatch?.tooltipText,
+                                  sisaKeterangan: sisaMatch?.allItems?.[0]?.departement,
                                   pdfItems: row.fpb ? pdfCache[row.fpb] : undefined,
                                   armadaKeterangan: row.keterangan,
                                 })}
@@ -1430,8 +1468,16 @@ export default function ArmadaTab({
                             <span>PO: <strong className="text-foreground">{row.noPo}</strong></span>
                           </div>
                         )}
-                        <p className="font-medium text-foreground text-xs line-clamp-2">
-                          {row.item}
+                        <p 
+                          className="font-medium text-foreground text-xs line-clamp-2 cursor-help"
+                          title={sisaMatch?.tooltipText || undefined}
+                        >
+                          {sisaMatch?.primaryName || row.item}
+                          {sisaMatch && sisaMatch.totalItemsCount > 1 && (
+                            <span className="ml-1 px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-mono">
+                              +{sisaMatch.totalItemsCount - 1} item
+                            </span>
+                          )}
                         </p>
                         {row.keterangan && (
                           <p className="text-[11px] text-muted-foreground line-clamp-1">
@@ -1681,6 +1727,9 @@ export default function ArmadaTab({
                     ? `https://e-fpb.cindaragroup.com/files/logistik_Approved_rev_sign_${encodeURIComponent(cleanRowFpb || fpbDocNum)}.pdf`
                     : null;
 
+                  const sisaMatch = findSisaMatch(row.fpb, sisaMap);
+                  const sisaItems = sisaMatch?.allItems?.map((i) => i.nama) || [];
+
                   return (
                     <tr
                       key={`${row.fpb}-${row.item}-${idx}`}
@@ -1696,6 +1745,9 @@ export default function ArmadaTab({
                               fpb: row.fpb,
                               currentItem: row.item,
                               deptArmada: row.armada,
+                              sisaItems,
+                              sisaTooltipText: sisaMatch?.tooltipText,
+                              sisaKeterangan: sisaMatch?.allItems?.[0]?.departement,
                               pdfItems: row.fpb ? pdfCache[row.fpb] : undefined,
                               armadaKeterangan: row.keterangan,
                             })}
@@ -1742,7 +1794,17 @@ export default function ArmadaTab({
 
                       {/* Item Description */}
                       <td className="p-3.5 max-w-[280px]">
-                        <div className="text-foreground font-medium">{row.item}</div>
+                        <div 
+                          className="text-foreground font-medium cursor-help flex items-center gap-1.5 flex-wrap"
+                          title={sisaMatch?.tooltipText || undefined}
+                        >
+                          <span>{sisaMatch?.primaryName || row.item}</span>
+                          {sisaMatch && sisaMatch.totalItemsCount > 1 && (
+                            <span className="px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[9px] font-mono">
+                              +{sisaMatch.totalItemsCount - 1} item
+                            </span>
+                          )}
+                        </div>
                         {row.fpb && pdfCache[row.fpb] && pdfCache[row.fpb].length > 0 && (
                           <div className="mt-1 flex items-center gap-1 flex-wrap">
                             <span className="px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[9px] font-medium inline-flex items-center gap-0.5" title={`Rincian PDF: ${pdfCache[row.fpb].join(', ')}`}>

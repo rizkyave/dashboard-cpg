@@ -1496,12 +1496,28 @@ export default function AuditModal({
 
     const effectivePdf = pdfNames.length > 0 ? pdfNames : cachedNames;
 
+    let sisaTooltipText: string | undefined = undefined;
+    if (effectiveSisaItems && effectiveSisaItems.length > 0) {
+      const lines = [
+        `Data Barang Sisa Layanan (${effectiveSisaItems.length} Item):`,
+        ...effectiveSisaItems.map((it, idx) => {
+          const qty = it.jmlFpb || it.jmlPo || 0;
+          const sat = it.satuan || '';
+          return `${idx + 1}. ${it.namaBarang}${qty > 0 ? ` (${qty} ${sat})` : ''}${
+            it.kodeBarang ? ` [${it.kodeBarang}]` : ''
+          }${it.status ? ` - Status: ${it.status}` : ''}`;
+        }),
+      ];
+      sisaTooltipText = lines.join('\n');
+    }
+
     return formatFpbTooltip({
       fpb: fpbNumber || '-',
       deptArmada: activeArmadaName,
       currentItem: itemS1?.item,
       pdfItems: effectivePdf,
       sisaItems: sisaNames,
+      sisaTooltipText,
       armadaItems: s2Names,
       pdfKeterangan: pdfData?.tujuanPeruntukan,
       currentKeterangan: cleanTujuanPeruntukan(itemS1?.peruntukan || ''),

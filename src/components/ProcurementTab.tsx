@@ -44,6 +44,9 @@ import { loadPdfItemsCache, savePdfItemsCache } from '@/utils/appStorage';
 import { getWorkflowGroupedStatuses, evaluateFiveDivisionWorkflow } from '@/utils/statusWorkflow';
 import WorkflowTrafficLight from './WorkflowTrafficLight';
 import { formatFpbTooltip } from '@/utils/itemResolver';
+import { SisaLayananItem } from '@/types/sisaLayanan';
+import { buildSisaLayananFpbMap, findSisaMatch } from '@/utils/sisaLayananParser';
+import { loadStoredSisaLayanan } from '@/utils/sisaLayananStorage';
 
 // Helper formatting PIC & Status Penjelasan
 const formatPicAktif = (pic?: string) => {
@@ -82,6 +85,7 @@ interface ProcurementTabProps {
   onSearchKeywordChange?: (kw: string) => void;
   onOpenNewRecord: () => void;
   onOpenAudit: (fpb: string, po?: string) => void;
+  sisaLayananItems?: SisaLayananItem[];
   showToast?: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
 }
 
@@ -95,6 +99,7 @@ export default function ProcurementTab({
   onSearchKeywordChange,
   onOpenNewRecord,
   onOpenAudit,
+  sisaLayananItems = [],
   showToast,
 }: ProcurementTabProps) {
   const handleOpenTimemark = (e: React.MouseEvent, fstb?: string) => {
@@ -147,6 +152,29 @@ export default function ProcurementTab({
       if (cached) setPdfCache(cached);
     }).catch(() => {});
   }, []);
+
+  // Sinkronisasi data barang dari database Sisa Layanan Gabungan
+  const [internalSisaLayanan, setInternalSisaLayanan] = useState<SisaLayananItem[]>(sisaLayananItems || []);
+
+  useEffect(() => {
+    if (sisaLayananItems && sisaLayananItems.length > 0) {
+      setInternalSisaLayanan(sisaLayananItems);
+    } else {
+      loadStoredSisaLayanan()
+        .then((stored) => {
+          if (stored && stored.items && stored.items.length > 0) {
+            setInternalSisaLayanan(stored.items);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [sisaLayananItems]);
+
+  const activeSisaItems = sisaLayananItems && sisaLayananItems.length > 0 ? sisaLayananItems : internalSisaLayanan;
+
+  const sisaMap = useMemo(() => {
+    return buildSisaLayananFpbMap(activeSisaItems);
+  }, [activeSisaItems]);
 
   // Fungsi Scan / Tarik Nama Barang dari PDF FPB yang belum ada di cache
   const handleScanPdfItems = async () => {
@@ -390,10 +418,12 @@ export default function ProcurementTab({
       // Search Keyword
       if (searchTerm.trim() !== '') {
         const q = searchTerm.toLowerCase().trim();
+        const sisaMatch = findSisaMatch(row.fpb, sisaMap);
         const matchFpb = row.fpb?.toLowerCase().includes(q);
         const matchWo = row.workOrderNo?.toLowerCase().includes(q);
         const matchPo = row.po?.toLowerCase().includes(q);
         const matchItem = row.item?.toLowerCase().includes(q);
+        const matchSisa = sisaMatch?.allItemNames?.toLowerCase().includes(q);
         const matchPeruntukan = row.peruntukan?.toLowerCase().includes(q);
         const matchDeptArmada = row.deptArmada?.toLowerCase().includes(q);
         const matchEntity = row.entity?.toLowerCase().includes(q);
@@ -414,6 +444,7 @@ export default function ProcurementTab({
           !matchWo &&
           !matchPo &&
           !matchItem &&
+          !matchSisa &&
           !matchPeruntukan &&
           !matchDeptArmada &&
           !matchEntity &&
@@ -433,10 +464,12 @@ export default function ProcurementTab({
         }
       }
 
-      // Advanced Search: Spesifik Nama Barang / Item & Peruntukan (termasuk hasil scan PDF e-FPB)
+      // Advanced Search: Spesifik Nama Barang / Item & Peruntukan (termasuk hasil Sisa Layanan & scan PDF e-FPB)
       if (searchBarang.trim() !== '') {
         const qb = searchBarang.toLowerCase().trim();
+        const sisaMatch = findSisaMatch(row.fpb, sisaMap);
         const matchItem = row.item?.toLowerCase().includes(qb);
+        const matchSisa = sisaMatch?.allItemNames?.toLowerCase().includes(qb);
         const matchPeruntukan = row.peruntukan?.toLowerCase().includes(qb);
         const matchKode = row.kodeBarang?.toLowerCase().includes(qb);
         const matchSatuan = row.satuan?.toLowerCase().includes(qb);
@@ -445,7 +478,7 @@ export default function ProcurementTab({
         const pdfItems = row.fpb ? pdfCache[row.fpb] : undefined;
         const matchPdf = pdfItems && pdfItems.some((pi) => pi.toLowerCase().includes(qb));
 
-        if (!matchItem && !matchPeruntukan && !matchKode && !matchSatuan && !matchPdf) {
+        if (!matchItem && !matchSisa && !matchPeruntukan && !matchKode && !matchSatuan && !matchPdf) {
           return false;
         }
       }
@@ -1389,6 +1422,9 @@ export default function ProcurementTab({
                     ? `https://e-fpb.cindaragroup.com/files/logistik_Approved_rev_sign_${encodeURIComponent(cleanRowFpb || fpbDocNum)}.pdf`
                     : null;
 
+                  const sisaMatch = findSisaMatch(row.fpb, sisaMap);
+                  const sisaItems = sisaMatch?.allItems?.map((i) => i.nama) || [];
+
                   return (
                     <div
                       key={row.id || `${row.fpb}-${row.po}-${row.item}-${row.date}`}
@@ -1409,6 +1445,9 @@ export default function ProcurementTab({
                                   fpb: row.fpb,
                                   currentItem: row.item,
                                   deptArmada: row.deptArmada,
+                                  sisaItems,
+                                  sisaTooltipText: sisaMatch?.tooltipText,
+                                  sisaKeterangan: sisaMatch?.allItems?.[0]?.departement,
                                   pdfItems: row.fpb ? pdfCache[row.fpb] : undefined,
                                   currentKeterangan: row.peruntukan || row.statusPenjelasan,
                                 })}
@@ -1446,8 +1485,16 @@ export default function ProcurementTab({
                           <span>PO: <strong className="text-foreground">{row.po && row.po !== '-' ? row.po : 'Belum Ada'}</strong></span>
                           <span>{formatDateDdMmYy(row.date)}</span>
                         </div>
-                        <p className="font-medium text-foreground text-xs line-clamp-2 mt-1">
-                          {row.item}
+                        <p 
+                          className="font-medium text-foreground text-xs line-clamp-2 mt-1 cursor-help"
+                          title={sisaMatch?.tooltipText || undefined}
+                        >
+                          {sisaMatch?.primaryName || row.deptArmada || row.item}
+                          {sisaMatch && sisaMatch.totalItemsCount > 1 && (
+                            <span className="ml-1 px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-mono">
+                              +{sisaMatch.totalItemsCount - 1} item
+                            </span>
+                          )}
                         </p>
                         {row.qtyFPB !== undefined && row.qtyFPB > 0 && (
                           <span className="inline-block px-1.5 py-0.2 rounded bg-muted text-[10px] font-mono text-muted-foreground border border-border/80">
@@ -1694,6 +1741,9 @@ export default function ProcurementTab({
                     ? `https://e-fpb.cindaragroup.com/files/logistik_Approved_rev_sign_${encodeURIComponent(cleanRowFpb || fpbDocNum)}.pdf`
                     : null;
 
+                  const sisaMatch = findSisaMatch(row.fpb, sisaMap);
+                  const sisaItems = sisaMatch?.allItems?.map((i) => i.nama) || [];
+
                   return (
                     <tr
                       key={row.id || `${row.fpb}-${row.po}-${row.item}-${row.date}`}
@@ -1712,6 +1762,9 @@ export default function ProcurementTab({
                               fpb: row.fpb,
                               currentItem: row.item,
                               deptArmada: row.deptArmada,
+                              sisaItems,
+                              sisaTooltipText: sisaMatch?.tooltipText,
+                              sisaKeterangan: sisaMatch?.allItems?.[0]?.departement,
                               pdfItems: row.fpb ? pdfCache[row.fpb] : undefined,
                               currentKeterangan: row.peruntukan || row.statusPenjelasan,
                             })}
@@ -1744,8 +1797,16 @@ export default function ProcurementTab({
                       </td>
                       <td className="p-3.5 font-mono text-muted-foreground">{formatDateDdMmYy(row.date)}</td>
                       <td className="p-3.5 max-w-[290px]">
-                        <div className="font-medium text-foreground flex items-center gap-1.5 flex-wrap">
-                          <span>{row.deptArmada || row.item}</span>
+                        <div 
+                          className="font-medium text-foreground flex items-center gap-1.5 flex-wrap cursor-help"
+                          title={sisaMatch?.tooltipText || undefined}
+                        >
+                          <span>{sisaMatch?.primaryName || row.deptArmada || row.item}</span>
+                          {sisaMatch && sisaMatch.totalItemsCount > 1 && (
+                            <span className="px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[9px] font-mono">
+                              +{sisaMatch.totalItemsCount - 1} item
+                            </span>
+                          )}
                           {row.qtyFPB !== undefined && row.qtyFPB > 0 && (
                             <span className="px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground border border-border text-[10px] font-mono whitespace-nowrap">
                               {row.qtyFPB} {row.satuan || ''}

@@ -39,6 +39,9 @@ import { useAuth } from '@/context/AuthContext';
 import { getWorkflowGroupedStatuses, evaluateFiveDivisionWorkflow } from '@/utils/statusWorkflow';
 import WorkflowTrafficLight from './WorkflowTrafficLight';
 import { formatFpbTooltip } from '@/utils/itemResolver';
+import { SisaLayananItem } from '@/types/sisaLayanan';
+import { buildSisaLayananFpbMap, findSisaMatch } from '@/utils/sisaLayananParser';
+import { loadStoredSisaLayanan } from '@/utils/sisaLayananStorage';
 
 const formatPicAktif = (pic?: string) => {
   if (!pic) return '-';
@@ -76,6 +79,7 @@ interface OverviewTabProps {
   onSearchKeywordChange?: (kw: string) => void;
   onOpenAudit: (fpb: string, po?: string) => void;
   onTriggerAiAudit: () => void;
+  sisaLayananItems?: SisaLayananItem[];
   showToast?: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
 }
 
@@ -89,9 +93,33 @@ export default function OverviewTab({
   onSearchKeywordChange,
   onOpenAudit,
   onTriggerAiAudit,
+  sisaLayananItems = [],
   showToast,
 }: OverviewTabProps) {
   const { isVisitor } = useAuth();
+
+  // Sinkronisasi data barang dari database Sisa Layanan Gabungan
+  const [internalSisaLayanan, setInternalSisaLayanan] = useState<SisaLayananItem[]>(sisaLayananItems || []);
+
+  useEffect(() => {
+    if (sisaLayananItems && sisaLayananItems.length > 0) {
+      setInternalSisaLayanan(sisaLayananItems);
+    } else {
+      loadStoredSisaLayanan()
+        .then((stored) => {
+          if (stored && stored.items && stored.items.length > 0) {
+            setInternalSisaLayanan(stored.items);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [sisaLayananItems]);
+
+  const activeSisaItems = sisaLayananItems && sisaLayananItems.length > 0 ? sisaLayananItems : internalSisaLayanan;
+
+  const sisaMap = useMemo(() => {
+    return buildSisaLayananFpbMap(activeSisaItems);
+  }, [activeSisaItems]);
 
   const handleOpenTimemark = (e: React.MouseEvent, fstb?: string) => {
     e.stopPropagation();
@@ -256,10 +284,12 @@ export default function OverviewTab({
 
       if (searchTerm.trim() !== '') {
         const q = searchTerm.toLowerCase().trim();
+        const sisaMatch = findSisaMatch(row.fpb, sisaMap);
         const fpbMatch = row.fpb?.toLowerCase().includes(q);
         const woMatch = row.workOrderNo?.toLowerCase().includes(q);
         const poMatch = row.po?.toLowerCase().includes(q);
         const itemMatch = row.item?.toLowerCase().includes(q);
+        const sisaItemMatch = sisaMatch?.allItemNames?.toLowerCase().includes(q);
         const peruntukanMatch = row.peruntukan?.toLowerCase().includes(q);
         const armadaMatch = row.deptArmada?.toLowerCase().includes(q);
         const entityMatch = row.entity?.toLowerCase().includes(q);
@@ -270,7 +300,7 @@ export default function OverviewTab({
           row.picLap?.toLowerCase().includes(q) ||
           row.picAktif?.toLowerCase().includes(q);
         const statusMatch = row.statusBadge?.toLowerCase().includes(q);
-        if (!fpbMatch && !woMatch && !poMatch && !itemMatch && !peruntukanMatch && !armadaMatch && !entityMatch && !picMatch && !statusMatch) {
+        if (!fpbMatch && !woMatch && !poMatch && !itemMatch && !sisaItemMatch && !peruntukanMatch && !armadaMatch && !entityMatch && !picMatch && !statusMatch) {
           return false;
         }
       }
@@ -288,6 +318,7 @@ export default function OverviewTab({
     endDate,
     searchTerm,
     isVisitor,
+    sisaMap,
   ]);
 
   const sortedItems = useMemo(() => {
@@ -797,6 +828,9 @@ export default function OverviewTab({
                     ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
                     : 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20';
 
+                  const sisaMatch = findSisaMatch(row.fpb, sisaMap);
+                  const sisaItems = sisaMatch?.allItems?.map((i) => i.nama) || [];
+
                   return (
                     <div
                       key={row.id || `${row.fpb}-${row.po}-${row.item}-${row.date}`}
@@ -816,6 +850,9 @@ export default function OverviewTab({
                                 fpb: row.fpb,
                                 currentItem: row.item,
                                 deptArmada: row.deptArmada,
+                                sisaItems,
+                                sisaTooltipText: sisaMatch?.tooltipText,
+                                sisaKeterangan: sisaMatch?.allItems?.[0]?.departement,
                                 pdfItems: row.fpb ? pdfCache[row.fpb] : undefined,
                                 currentKeterangan: row.peruntukan || row.statusPenjelasan,
                               })}
@@ -852,8 +889,16 @@ export default function OverviewTab({
                           <span>PO: <strong className="text-foreground">{row.po && row.po !== '-' ? row.po : 'Belum Ada'}</strong></span>
                           <span>{formatDateDdMmYy(row.date)}</span>
                         </div>
-                        <p className="font-medium text-foreground text-xs line-clamp-2 mt-1">
-                          {row.item}
+                        <p 
+                          className="font-medium text-foreground text-xs line-clamp-2 mt-1 cursor-help"
+                          title={sisaMatch?.tooltipText || undefined}
+                        >
+                          {sisaMatch?.primaryName || row.deptArmada || row.item}
+                          {sisaMatch && sisaMatch.totalItemsCount > 1 && (
+                            <span className="ml-1 px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-mono">
+                              +{sisaMatch.totalItemsCount - 1} item
+                            </span>
+                          )}
                         </p>
                         {row.qtyFPB !== undefined && row.qtyFPB > 0 && (
                           <span className="inline-block px-1.5 py-0.2 rounded bg-muted text-[10px] font-mono text-muted-foreground border border-border/80">
@@ -1162,6 +1207,9 @@ export default function OverviewTab({
                     ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
                     : 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20';
 
+                  const sisaMatch = findSisaMatch(row.fpb, sisaMap);
+                  const sisaItems = sisaMatch?.allItems?.map((i) => i.nama) || [];
+
                   return (
                     <tr
                       key={row.id || `${row.fpb}-${row.po}-${row.item}-${row.date}`}
@@ -1181,6 +1229,9 @@ export default function OverviewTab({
                                 fpb: row.fpb,
                                 currentItem: row.item,
                                 deptArmada: row.deptArmada,
+                                sisaItems,
+                                sisaTooltipText: sisaMatch?.tooltipText,
+                                sisaKeterangan: sisaMatch?.allItems?.[0]?.departement,
                                 pdfItems: row.fpb ? pdfCache[row.fpb] : undefined,
                                 currentKeterangan: row.peruntukan || row.statusPenjelasan,
                               })}
@@ -1220,8 +1271,16 @@ export default function OverviewTab({
 
                       {/* Item / Armada */}
                       <td className="p-3 max-w-[280px]">
-                        <div className="font-medium text-xs text-foreground flex items-center gap-1.5 flex-wrap">
-                          <span>{row.deptArmada || row.item}</span>
+                        <div 
+                          className="font-medium text-xs text-foreground flex items-center gap-1.5 flex-wrap cursor-help"
+                          title={sisaMatch?.tooltipText || undefined}
+                        >
+                          <span>{sisaMatch?.primaryName || row.deptArmada || row.item}</span>
+                          {sisaMatch && sisaMatch.totalItemsCount > 1 && (
+                            <span className="px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[9px] font-mono">
+                              +{sisaMatch.totalItemsCount - 1} item
+                            </span>
+                          )}
                           {row.qtyFPB !== undefined && row.qtyFPB > 0 && (
                             <span className="px-1.5 py-0.2 rounded-md bg-muted border border-border text-[10px] font-mono text-muted-foreground">
                               {row.qtyFPB} {row.satuan && row.satuan.toLowerCase() !== 'paket' ? row.satuan : ''}

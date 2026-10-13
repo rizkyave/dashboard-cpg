@@ -119,18 +119,21 @@ export default function Sidebar({
           label: 'Overview',
           icon: LayoutDashboard,
           badge: 'Main',
+          title: 'Ringkasan Monitoring Procurement (Terintegrasi Database Barang Sisa Layanan 2026)',
         },
         {
           id: 'procurement' as TabType,
           label: 'Procurement',
           icon: ShoppingBag,
           badge: totalCount > 0 ? (totalCount >= 1000 ? `${(totalCount / 1000).toFixed(0)}k` : `${totalCount}`) : undefined,
+          title: 'Monitoring Alur Procurement & Lead Time (Hover FPB / Item untuk Nama Barang Sisa Layanan)',
         },
         {
           id: 'armada' as TabType,
           label: 'Layanan Armada',
           icon: Anchor,
           badge: 'FSTB',
+          title: 'Monitoring Layanan Armada & FSTB (Hover FPB / Item untuk Nama Barang Sisa Layanan)',
         },
         {
           id: 'galeri-ttb' as TabType,
@@ -313,6 +316,7 @@ export default function Sidebar({
                 <button
                   key={item.id}
                   onClick={() => handleSelectTab(item.id)}
+                  title={(item as any).title || item.label}
                   className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation ${
                     isActive
                       ? 'bg-muted text-foreground font-semibold shadow-xs'

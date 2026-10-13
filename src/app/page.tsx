@@ -1057,6 +1057,7 @@ export default function DashboardPage() {
               onSearchKeywordChange={setSearchKeyword}
               onOpenAudit={handleOpenAudit}
               onTriggerAiAudit={triggerAiBottleneckAudit}
+              sisaLayananItems={sisaLayananItems}
               showToast={showToast}
             />
           )}
@@ -1070,6 +1071,7 @@ export default function DashboardPage() {
               onSearchKeywordChange={setSearchKeyword}
               onOpenNewRecord={() => setIsNewRecordOpen(true)}
               onOpenAudit={handleOpenAudit}
+              sisaLayananItems={sisaLayananItems}
               showToast={showToast}
             />
           )}
@@ -1082,6 +1084,7 @@ export default function DashboardPage() {
               onSearchKeywordChange={setSearchKeyword}
               onOpenAudit={handleOpenAudit}
               initialEntity={selectedEntity}
+              sisaLayananItems={sisaLayananItems}
               showToast={showToast}
             />
           )}

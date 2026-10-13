@@ -152,14 +152,14 @@ export function resolveDisplayItemName(options: ResolveDisplayItemOptions): stri
     }
   };
 
-  // Prioritas 1: PDF e-FPB
-  if (pdfItems.length > 0) {
-    addItems(pdfItems);
+  // Prioritas 1: Database Sisa Layanan (28k+ item - Sumber Utama yang diminta Pengguna)
+  if (sisaItems.length > 0) {
+    addItems(sisaItems);
   }
 
-  // Prioritas 2: Database Sisa Layanan 2026 (29k item)
-  if (validItems.length === 0 && sisaItems.length > 0) {
-    addItems(sisaItems);
+  // Prioritas 2: PDF e-FPB
+  if (validItems.length === 0 && pdfItems.length > 0) {
+    addItems(pdfItems);
   }
 
   // Prioritas 3: Sheet 2 MLA (Monitoring Layanan Armada)
@@ -197,6 +197,7 @@ export interface FormatFpbTooltipOptions extends ResolveDisplayItemOptions {
   pdfKeterangan?: string;
   sisaKeterangan?: string;
   armadaKeterangan?: string;
+  sisaTooltipText?: string;
 }
 
 /**
@@ -209,6 +210,7 @@ export function formatFpbTooltip(options: FormatFpbTooltipOptions): string {
     pdfKeterangan,
     sisaKeterangan,
     armadaKeterangan,
+    sisaTooltipText,
     ...itemOptions
   } = options;
 
@@ -236,6 +238,13 @@ export function formatFpbTooltip(options: FormatFpbTooltipOptions): string {
     }
   }
 
-  return `No. FPB: ${fpb}\n• Nama Barang: ${itemSummary}\n• Keterangan: ${cleanKet}`;
+  const hasSisa = (itemOptions.sisaItems && itemOptions.sisaItems.length > 0) || Boolean(sisaTooltipText);
+
+  if (sisaTooltipText && sisaTooltipText.trim()) {
+    return `No. FPB: ${fpb}\n• ${sisaTooltipText.trim()}\n• Keterangan: ${cleanKet}`;
+  }
+
+  const itemLabel = hasSisa ? '• Nama Barang (Sisa Layanan)' : '• Nama Barang';
+  return `No. FPB: ${fpb}\n${itemLabel}: ${itemSummary}\n• Keterangan: ${cleanKet}`;
 }
 
