@@ -108,7 +108,7 @@ export default function AuditModal({
   const [internalWorkOrders, setInternalWorkOrders] = useState<WorkOrderItem[]>(workOrderItems || []);
   const [internalSisaLayanan, setInternalSisaLayanan] = useState<SisaLayananItem[]>(sisaLayananItems || []);
   const [selectedItemSource, setSelectedItemSource] = useState<'AUTO' | 'SISA_LAYANAN' | 'PDF' | 'ARMADA'>('AUTO');
-  const [sisaScopeFilter, setSisaScopeFilter] = useState<'PO' | 'ALL'>('PO');
+  const [sisaScopeFilter, setSisaScopeFilter] = useState<'PO' | 'ALL' | 'FOREIGN'>('PO');
 
   // Fallback auto-fetch inventory if not yet passed from parent
   useEffect(() => {
@@ -216,10 +216,15 @@ export default function AuditModal({
     ? poMatchingItems
     : armadaList.filter((i) => normalizeFpbKey(i.fpb) === normFpb);
 
-  // Pencocokan item dari database Sisa Layanan 2026 Gabungan (berdasarkan PO spesifik & FPB)
+  // Pencocokan item dari database Sisa Layanan 2026 Gabungan (dengan proteksi integritas FPB)
   const sisaMatching = useMemo(() => {
     if (!activeSisaLayanan || activeSisaLayanan.length === 0) {
-      return { poMatches: [] as SisaLayananItem[], fpbMatches: [] as SisaLayananItem[] };
+      return {
+        poMatches: [] as SisaLayananItem[],
+        fpbMatches: [] as SisaLayananItem[],
+        foreignPoMatches: [] as SisaLayananItem[],
+        isCrossFpbMismatch: false,
+      };
     }
 
     const candidatesFpb = new Set<string>();
@@ -231,12 +236,7 @@ export default function AuditModal({
     }
     const candidatesList = Array.from(candidatesFpb);
 
-    // 1. PO matching
-    const poMatches = normPo
-      ? activeSisaLayanan.filter((it) => it.noPo && it.noPo.trim().toLowerCase() === normPo)
-      : [];
-
-    // 2. FPB matching
+    // 1. FPB matching (Dokumen resmi e-FPB sebagai acuan utama)
     const fpbMatches = activeSisaLayanan.filter((it) => {
       if (!it.noFpb && !it.fpbNoBarang) return false;
       const itemKeys = extractFpbKeys(it.noFpb);
@@ -248,10 +248,44 @@ export default function AuditModal({
       return false;
     });
 
-    return { poMatches, fpbMatches };
+    // 2. PO matching yang berada di DALAM FPB yang sama
+    const poMatchesInSameFpb = normPo
+      ? fpbMatches.filter((it) => it.noPo && it.noPo.trim().toLowerCase() === normPo)
+      : [];
+
+    // 3. PO matching global (untuk mendeteksi salah input / typo nomor PO lintas FPB)
+    const foreignPoMatches = normPo
+      ? activeSisaLayanan.filter((it) => it.noPo && it.noPo.trim().toLowerCase() === normPo)
+      : [];
+
+    // Proteksi: Terdeteksi Cross-FPB Mismatch jika No PO yang diklik ada di database
+    // namun tercatat pada FPB lain, sementara FPB saat ini memiliki item resmi tersendiri
+    const isCrossFpbMismatch = Boolean(
+      normPo &&
+      fpbMatches.length > 0 &&
+      poMatchesInSameFpb.length === 0 &&
+      foreignPoMatches.length > 0
+    );
+
+    // Prioritaskan PO di dalam FPB yang sama jika ada; jika FPB tidak memiliki item sama sekali, baru fallback ke foreign PO
+    const poMatches = poMatchesInSameFpb.length > 0
+      ? poMatchesInSameFpb
+      : fpbMatches.length === 0
+      ? foreignPoMatches
+      : [];
+
+    return {
+      poMatches,
+      fpbMatches,
+      foreignPoMatches,
+      isCrossFpbMismatch,
+    };
   }, [activeSisaLayanan, normPo, fpbNumber, itemS1?.fpb]);
 
   const effectiveSisaItems = useMemo(() => {
+    if (sisaScopeFilter === 'FOREIGN' && sisaMatching.foreignPoMatches.length > 0) {
+      return sisaMatching.foreignPoMatches;
+    }
     if (sisaScopeFilter === 'PO' && sisaMatching.poMatches.length > 0) {
       return sisaMatching.poMatches;
     }
@@ -2455,7 +2489,13 @@ export default function AuditModal({
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Daftar Rincian Item Barang {activePo ? `(Khusus PO: ${activePo})` : '(Layanan Armada Matching)'}:
+                Daftar Rincian Item Barang{' '}
+                {sisaMatching.isCrossFpbMismatch
+                  ? `(FPB Dokumen Resmi: ${fpbNumber} • ${sisaMatching.fpbMatches[0]?.departement || 'Unit Pemohon'})`
+                  : activePo
+                  ? `(Khusus PO: ${activePo})`
+                  : '(Layanan Armada Matching)'}
+                :
               </span>
               {effectiveWorkOrderNo && (
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/20 font-medium">
@@ -2567,19 +2607,63 @@ export default function AuditModal({
             </div>
           )}
 
+          {/* Alert Callout saat terdeteksi Cross-FPB PO Mismatch (Salah ketik PO di Sheet Procurement) */}
+          {effectiveItemSource === 'SISA_LAYANAN' && sisaMatching.isCrossFpbMismatch && (
+            <div className="p-3.5 rounded-xl border border-amber-500/30 bg-amber-500/10 flex items-start gap-3 text-xs">
+              <div className="size-7 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+                <AlertTriangle className="size-4" />
+              </div>
+              <div className="space-y-1.5 flex-1">
+                <div className="font-semibold text-amber-900 dark:text-amber-200 flex items-center gap-1.5 flex-wrap">
+                  <span>Proteksi Integritas Data: Terdeteksi Salah Input No. PO pada Baris Ini</span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30 font-medium">
+                    Koreksi Otomatis Aktif
+                  </span>
+                </div>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  No. PO <strong className="text-foreground font-mono">{activePo}</strong> pada database Sisa Layanan tercatat milik armada{' '}
+                  <strong className="text-amber-700 dark:text-amber-300">
+                    {sisaMatching.foreignPoMatches[0]?.departement || 'Lain'}
+                  </strong>{' '}
+                  (FPB: <span className="font-mono">{sisaMatching.foreignPoMatches[0]?.noFpb}</span>). Sedangkan FPB resmi{' '}
+                  <strong className="text-foreground font-mono">{fpbNumber}</strong> ({sisaMatching.fpbMatches[0]?.departement || 'Unit Pemohon'}) di Sisa Layanan memiliki No. PO resmi{' '}
+                  <strong className="text-emerald-700 dark:text-emerald-400 font-mono">
+                    {sisaMatching.fpbMatches[0]?.noPo || '(Belum Terbit PO)'}
+                  </strong>.
+                  Sistem secara cerdas memproteksi data dan menampilkan rincian barang sesuai FPB dokumen resmi (<strong>{sisaMatching.fpbMatches[0]?.departement}</strong>).
+                </p>
+                {sisaMatching.foreignPoMatches.length > 0 && (
+                  <div className="pt-0.5 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSisaScopeFilter((prev) => (prev === 'FOREIGN' ? 'ALL' : 'FOREIGN'))}
+                      className="px-2 py-0.5 rounded text-[11px] font-mono bg-amber-500/20 hover:bg-amber-500/30 text-amber-800 dark:text-amber-200 border border-amber-500/30 transition flex items-center gap-1 font-medium"
+                    >
+                      {sisaScopeFilter === 'FOREIGN'
+                        ? `← Tampilkan Kembali Item FPB Resmi (${sisaMatching.fpbMatches.length} item)`
+                        : `Lihat Barang yang Salah Terpaut di PO ${activePo} (${sisaMatching.foreignPoMatches.length} item)`}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Banner when data is loaded from Sisa Layanan 2026 Gabungan */}
           {effectiveItemSource === 'SISA_LAYANAN' && effectiveSisaItems.length > 0 && (
             <div className="p-3 rounded-xl border border-indigo-500/30 bg-indigo-500/10 flex items-center justify-between flex-wrap gap-2 text-xs">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="size-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
                 <span className="text-foreground font-medium">
-                  Rincian barang berhasil disinkronkan dari database Sisa Layanan 2026 Gabungan ({effectiveSisaItems.length} item ditemukan)
-                  {effectiveSisaItems[0]?.departement ? ` • Armada/Unit: ${effectiveSisaItems[0].departement}` : ''}
+                  {sisaScopeFilter === 'FOREIGN'
+                    ? `Menampilkan barang terpaut di PO ${activePo} (${effectiveSisaItems.length} item) • Armada: ${effectiveSisaItems[0]?.departement || '-'}`
+                    : `Rincian barang berhasil disinkronkan dari database Sisa Layanan 2026 Gabungan (${effectiveSisaItems.length} item ditemukan)`}
+                  {sisaScopeFilter !== 'FOREIGN' && effectiveSisaItems[0]?.departement ? ` • Armada/Unit: ${effectiveSisaItems[0].departement}` : ''}
                   {effectiveSisaItems[0]?.pt ? ` • PT: ${effectiveSisaItems[0].pt}` : ''}
                 </span>
               </div>
               <div className="flex items-center gap-1.5 flex-wrap">
-                {sisaMatching.poMatches.length > 0 && sisaMatching.fpbMatches.length > sisaMatching.poMatches.length && (
+                {sisaMatching.poMatches.length > 0 && sisaMatching.fpbMatches.length > sisaMatching.poMatches.length && !sisaMatching.isCrossFpbMismatch && (
                   <div className="inline-flex items-center p-0.5 rounded bg-indigo-500/20 border border-indigo-500/30 text-[10px] font-mono">
                     <button
                       type="button"
@@ -2600,6 +2684,11 @@ export default function AuditModal({
                       Semua FPB ({sisaMatching.fpbMatches.length})
                     </button>
                   </div>
+                )}
+                {sisaMatching.isCrossFpbMismatch && sisaScopeFilter !== 'FOREIGN' && (
+                  <span className="text-[10px] font-mono text-emerald-700 dark:text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded border border-emerald-500/30 font-medium">
+                    FPB Resmi Terproteksi
+                  </span>
                 )}
                 <span className="text-[10px] font-mono text-indigo-700 dark:text-indigo-300 bg-indigo-500/20 px-2 py-0.5 rounded border border-indigo-500/30 font-medium">
                   Sisa Layanan 2026 Gabungan
