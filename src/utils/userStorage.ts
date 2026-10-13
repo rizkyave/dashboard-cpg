@@ -87,11 +87,11 @@ export function authenticate(usernameInput: string, passwordInput: string): { su
   );
 
   if (!found) {
-    return { success: false, message: 'Username atau email tidak terdaftar.' };
+    return { success: false, message: 'Kombinasi username/email atau kata sandi tidak valid.' };
   }
 
   if (found.status === 'inactive') {
-    return { success: false, message: 'Akun ini dinonaktifkan oleh Administrator. Hubungi admin untuk mengaktifkan kembali.' };
+    return { success: false, message: 'Akun ini dinonaktifkan oleh Administrator. Hubungi Tim MIS / Admin untuk verifikasi.' };
   }
 
   const uName = found.username.toLowerCase();
@@ -115,11 +115,7 @@ export function authenticate(usernameInput: string, passwordInput: string): { su
   if (!isMatch) {
     return {
       success: false,
-      message: (uName === 'admin' || uName === 'hermansyah')
-        ? 'Password admin salah. Silakan coba: "admin" atau "admin123".'
-        : uName === 'guest'
-        ? 'Password akun guest salah. Silakan masukkan: "0123".'
-        : 'Password salah. Periksa kembali huruf besar/kecil.',
+      message: 'Kombinasi username/email atau kata sandi tidak valid. Periksa kembali huruf besar/kecil.',
     };
   }
 
