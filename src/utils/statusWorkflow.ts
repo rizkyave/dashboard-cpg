@@ -446,7 +446,7 @@ export function getWorkflowGroupedStatuses(
 }
 
 export interface DivisionStageLight {
-  code: 'FPB' | 'PCH' | 'TTB' | 'LOG' | 'BAST' | 'LAP' | 'ADM' | 'FIN';
+  code: 'FPB' | 'PCH' | 'FSTB' | 'TTB' | 'LOG' | 'BAST' | 'LAP' | 'ADM' | 'FIN';
   name: string;
   stepNumber: number;
   isPassed: boolean;
@@ -454,7 +454,7 @@ export interface DivisionStageLight {
   isPartial: boolean;
   statusText: string;
   detail: string;
-  colorName: 'green' | 'blue' | 'purple' | 'orange' | 'gray' | 'emerald';
+  colorName: 'green' | 'blue' | 'teal' | 'purple' | 'orange' | 'gray' | 'emerald';
   glowColor: string;
   lightColor: string;
   baseColor: string;
@@ -463,6 +463,8 @@ export interface DivisionStageLight {
   activeBulbClass: string;
   activeTextClass: string;
 }
+
+export type SixDivisionWorkflowResult = FiveDivisionWorkflowResult;
 
 export interface FiveDivisionWorkflowResult {
   stages: DivisionStageLight[];
@@ -545,7 +547,7 @@ export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisio
     ? 'FPB Terbit (Belum Penuh)'
     : 'Menunggu FPB';
 
-  // 2. PURCHASING (Penerbitan PO, PIC Purchasing, Delivery, FSTB)
+  // 2. PURCHASING (Penerbitan PO, PIC Purchasing, Delivery Time)
   const rawPo = item.po || item.noPo;
   const hasPo = hasValue(rawPo);
   const picPch = item.picPch && item.picPch !== '-' && item.picPch.toLowerCase() !== 'purchasing'
@@ -554,14 +556,12 @@ export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisio
   const hasPicPch = Boolean(picPch);
   const hasPchStarted = hasPo || (hasPicPch && hasValue(item.tglPo));
 
-  // Jika ada tulisan "belum" di data seksi PCH (No PO, Tgl PO, PIC, Delivery, atau FSTB),
-  // maka lampu PCH menyala setengah karena data belum penuh
+  // Data seksi PCH sekarang khusus fokus pada: No PO, Tgl PO, PIC, dan Delivery Time
   const hasPchBelum =
     isFieldBelum(rawPo) ||
     isFieldBelum(item.tglPo || item.date) ||
     isFieldBelum(picPch) ||
-    isFieldBelum(item.deliveryTime) ||
-    isFieldBelum(item.noFstb);
+    isFieldBelum(item.deliveryTime);
 
   const isPchPassed = hasPchStarted;
   const isPchFull = hasPchStarted && !hasPchBelum;
@@ -573,12 +573,52 @@ export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisio
     ? `PIC: ${picPch} (Menunggu PO)`
     : 'Menunggu PO';
   const pchStatus = isPchFull
-    ? 'PO & FSTB Lengkap'
+    ? 'PO Terbit Lengkap'
     : isPchPartial
     ? 'PO Diterbitkan (Belum Penuh)'
     : 'Menunggu PO';
 
-  // 3. LOGISTIK TTB (Penerimaan & Dokumen TTB)
+  // 3. SERAH TERIMA BARANG (FSTB)
+  const rawFstb = item.noFstb;
+  const hasFstb = hasValue(rawFstb);
+  const rawTglFstb = item.tglFstb || item.tglInputFstb;
+  const hasTglFstb = hasValue(rawTglFstb);
+  const qtyFstb = typeof item.qtyFSTB === 'number' ? item.qtyFSTB : 0;
+  const qtyFpb = typeof item.qtyFPB === 'number' ? item.qtyFPB : 0;
+  const selisihFstb = typeof item.selisih === 'number' ? item.selisih : Math.max(0, qtyFpb - qtyFstb);
+
+  const hasFstbStarted = Boolean(hasFstb || hasTglFstb || qtyFstb > 0);
+  const isFstbPartial = Boolean(
+    hasFstbStarted && (
+      (qtyFstb > 0 && selisihFstb > 0) ||
+      isFieldBelum(rawFstb) ||
+      !hasTglFstb
+    )
+  );
+  const isFstbFull = Boolean(
+    hasFstbStarted &&
+    hasFstb &&
+    !isFieldBelum(rawFstb) &&
+    (selisihFstb === 0 || (qtyFpb > 0 && qtyFstb >= qtyFpb) || hasTglFstb) &&
+    !isFstbPartial
+  );
+  const isFstbPassed = hasFstbStarted;
+
+  const fstbDetail = hasFstb
+    ? `FSTB: ${rawFstb}${isFstbFull ? ' (Lengkap)' : ' (Parsial / Belum Lengkap)'}`
+    : hasTglFstb
+    ? `Tgl: ${formatDateDdMmYyDash(rawTglFstb) || rawTglFstb}`
+    : qtyFstb > 0
+    ? `Terealisasi: ${qtyFstb} item`
+    : 'Menunggu FSTB';
+
+  const fstbStatus = isFstbFull
+    ? 'FSTB Diterbitkan Lengkap'
+    : isFstbPartial
+    ? 'FSTB Parsial / Belum Lengkap'
+    : 'Menunggu FSTB';
+
+  // 4. LOGISTIK TTB (Penerimaan & Dokumen TTB)
   const rawTtb = item.noTtb || item.ttb;
   const hasTtb = hasValue(rawTtb);
   const rawTglTtb = item.tglTtb || item.tglInputTtb;
@@ -613,7 +653,7 @@ export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisio
     ? 'TTB Sebagian (Belum Penuh)'
     : 'Menunggu TTB';
 
-  // 4. TIM LAPANGAN (Serah Terima Fisik & Pengantaran)
+  // 5. TIM LAPANGAN (Serah Terima Fisik & Pengantaran)
   const picLap = item.picLap && item.picLap !== '-' && item.picLap.toLowerCase() !== '(kosong)' && item.picLap.toLowerCase() !== 'null'
     ? item.picLap.trim()
     : '';
@@ -652,7 +692,7 @@ export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisio
     ? 'Serah Terima Sebagian'
     : 'Pending Lapangan';
 
-  // 5. FINANCE / ADM (Penerbitan SPP & Penyelesaian Kas)
+  // 6. FINANCE / ADM (Penerbitan SPP & Penyelesaian Kas)
   const rawSpp = item.noSpp || item.spp;
   const hasSpp = hasValue(rawSpp);
   const rawTglSpp = item.tglSpp || item.tglInputSpp;
@@ -731,9 +771,27 @@ export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisio
       activeTextClass: 'text-sky-700 dark:text-sky-400 font-bold',
     },
     {
+      code: 'FSTB',
+      name: 'Serah Terima Barang',
+      stepNumber: 3,
+      isPassed: isFstbPassed,
+      isFull: isFstbFull,
+      isPartial: isFstbPartial,
+      statusText: fstbStatus,
+      detail: fstbDetail,
+      colorName: 'teal',
+      glowColor: '#14b8a6',
+      lightColor: '#5eead4',
+      baseColor: '#0d9488',
+      deepColor: '#0f766e',
+      borderColor: '#0d9488',
+      activeBulbClass: 'bg-teal-500 shadow-[0_0_16px_rgba(20,184,166,0.7),0_0_6px_rgba(20,184,166,0.95)] ring-2 ring-teal-400/50',
+      activeTextClass: 'text-teal-700 dark:text-teal-400 font-bold',
+    },
+    {
       code: 'LOG',
       name: 'Logistik TTB',
-      stepNumber: 3,
+      stepNumber: 4,
       isPassed: isTtbPassed,
       isFull: isTtbFull,
       isPartial: isTtbPartial,
@@ -751,7 +809,7 @@ export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisio
     {
       code: 'LAP',
       name: 'Tim Lapangan',
-      stepNumber: 4,
+      stepNumber: 5,
       isPassed: isLapPassed,
       isFull: isLapFull,
       isPartial: isLapPartial,
@@ -769,7 +827,7 @@ export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisio
     {
       code: 'ADM',
       name: 'Purchasing / ADM',
-      stepNumber: 5,
+      stepNumber: 6,
       isPassed: isFinPassed,
       isFull: isFinFull,
       isPartial: isFinPartial,
@@ -793,27 +851,30 @@ export function evaluateFiveDivisionWorkflow(item: EvaluatableItem): FiveDivisio
   const passedCount = stages.filter((s) => s.isPassed).length;
   const fullCount = stages.filter((s) => s.isFull).length;
   const partialCount = stages.filter((s) => s.isPartial).length;
-  const isComplete = fullCount === 5;
-  const completionPercentage = Math.round((passedCount / 5) * 100);
+  const isComplete = fullCount === 6;
+  const completionPercentage = Math.round((passedCount / 6) * 100);
 
-  let summaryBadge = `${passedCount}/5 Terisi`;
+  let summaryBadge = `${passedCount}/6 Terisi`;
   let statusTone: 'emerald' | 'amber' | 'blue' = 'amber';
 
   if (isComplete) {
-    summaryBadge = '5/5 Lengkap';
+    summaryBadge = '6/6 Lengkap';
     statusTone = 'emerald';
   } else if (passedCount === 0) {
-    summaryBadge = '0/5 Menunggu';
+    summaryBadge = '0/6 Menunggu';
     statusTone = 'blue';
+  } else if (fullCount > 0 && partialCount > 0) {
+    summaryBadge = `${fullCount}P / ${partialCount}S`;
+    statusTone = 'amber';
   } else {
-    summaryBadge = `${passedCount}/5 Sebagian`;
+    summaryBadge = `${passedCount}/6 Sebagian`;
     statusTone = 'amber';
   }
 
-  // OPERASIONAL LOGISTIK (4 Seksi Pertama: FPB -> PCH -> LOG -> LAP)
-  const operationalStages = stages.slice(0, 4);
+  // OPERASIONAL LOGISTIK (5 Seksi Pertama: FPB -> PCH -> FSTB -> LOG -> LAP)
+  const operationalStages = stages.slice(0, 5);
   const operationalPassedCount = operationalStages.filter((s) => s.isPassed).length;
-  const operationalPercentage = Math.round((operationalPassedCount / 4) * 100);
+  const operationalPercentage = Math.round((operationalPassedCount / 5) * 100);
 
   // Titik Pemenuhan Fisik (Fulfillment Cut-off Point):
   // Transaksi tuntas secara operasional murni bila serah terima fisik di lapangan (tahap LAP) selesai,
@@ -922,7 +983,7 @@ export interface ArmadaFulfillmentResult {
  * jika tahapan alur secara fisik sudah sampai ke Tim Lapangan (LAP) / diserahterimakan ke armada,
  * dan kuantitas selisih telah terpenuhi (selisih === 0 / qtyFSTB >= qtyFPB).
  *
- * Jika alur 5 seksi belum sampai LAP (masih di Purchasing/PO, Logistik TTB, dsb.):
+ * Jika alur 6 seksi belum sampai LAP (masih di Purchasing/PO, FSTB, Logistik TTB, dsb.):
  * Status TIDAK BOLEH "Lengkap", melainkan menampilkan tahapan aktual yang sedang berjalan.
  */
 export function evaluateArmadaFulfillment(item: EvaluatableItem): ArmadaFulfillmentResult {

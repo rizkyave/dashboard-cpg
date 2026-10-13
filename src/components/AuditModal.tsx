@@ -39,7 +39,7 @@ import { cleanSingleDescription, deduplicateDescriptions, cleanTujuanPeruntukan 
 import { isItemJasa, determineTransactionCategory, ProcurementCategory, normalizeJasaUnit } from '@/utils/jasaClassifier';
 import { useAuth } from '@/context/AuthContext';
 import WorkflowTrafficLight from './WorkflowTrafficLight';
-import { hasValue, evaluateArmadaFulfillment } from '@/utils/statusWorkflow';
+import { hasValue, evaluateArmadaFulfillment, evaluateFiveDivisionWorkflow, isFieldBelum } from '@/utils/statusWorkflow';
 import { normalizeFpbKey } from '@/utils/dataMerger';
 import { WorkOrderItem } from '@/types/workOrder';
 import { SisaLayananItem } from '@/types/sisaLayanan';
@@ -697,6 +697,22 @@ export default function AuditModal({
     '';
   const fstbLast5 = extractFstbLast5(activeFstb);
 
+  const effectiveNoFstb =
+    activeFstb ||
+    (hasValue(itemsS2[0]?.noFstb) ? itemsS2[0].noFstb!.trim() : '') ||
+    (hasValue(itemS1?.noFstb) ? itemS1!.noFstb!.trim() : '') ||
+    '';
+
+  const displayTglFstb =
+    itemsS2.find((i) => hasValue(i.tglFstb))?.tglFstb ||
+    (hasValue(itemS1?.tglInputFstb) ? itemS1!.tglInputFstb : '') ||
+    (hasValue(itemS1?.tglFstb) ? itemS1!.tglFstb : '') ||
+    '';
+
+  const fstbPdfUrl = effectiveNoFstb && !isFieldBelum(effectiveNoFstb)
+    ? `https://e-fpb.cindaragroup.com/files/${encodeURIComponent(effectiveNoFstb)}.pdf`
+    : null;
+
   // Metadata Nomor TTB untuk integrasi foto lapangan langsung di aplikasi
   const activeTtb =
     itemsS2.find((i) => hasValue(i.noTtb))?.noTtb?.trim() ||
@@ -1028,6 +1044,11 @@ export default function AuditModal({
     (itemS1?.picCheckFpb && itemS1.picCheckFpb !== 'e-FPB Server' ? itemS1.picCheckFpb : '') ||
     '-';
   const displayTglFpb = pdfData?.requestedDate || itemS1?.tglCheckFpb || itemsS2[0]?.tglCheckFpb || itemS1?.tglFpb || '-';
+  const effectivePicFstb =
+    (isValidPicName(pdfData?.receivedBy) ? pdfData?.receivedBy?.trim() : '') ||
+    (cleanPicTtb ? cleanPicTtb : '') ||
+    (activePicPch ? activePicPch : '') ||
+    '';
 
   // Menentukan sumber verifikasi data FPB Check (Bu Noor atau Bu Melinda)
   const fpbCheckInfo = useMemo(() => {
@@ -1200,7 +1221,7 @@ export default function AuditModal({
     return 'text-foreground';
   }, [statusSaatIni]);
 
-  // Evaluasi item workflow alur 5 seksi yang disinkronkan dengan data aktual AuditModal
+  // Evaluasi item workflow alur 6 seksi yang disinkronkan dengan data aktual AuditModal
   const evaluatableWorkflowItem = useMemo(() => {
     const baseItem = itemS1 || itemsS2[0];
     if (!baseItem) return null;
@@ -1254,7 +1275,11 @@ export default function AuditModal({
       tglPo: rawTglPo || anyBase.tglPo,
       picPch: activePicPch || anyBase.picPch,
       deliveryTime: activeDeliveryTime || anyBase.deliveryTime || '',
-      noFstb: activeFstb || anyBase.noFstb || '',
+      noFstb: effectiveNoFstb || anyBase.noFstb || '',
+      tglFstb: displayTglFstb || anyBase.tglFstb || anyBase.tglInputFstb || '',
+      qtyFSTB: anyBase.qtyFSTB,
+      qtyFPB: anyBase.qtyFPB,
+      selisih: anyBase.selisih,
       noTtb: activeTtb || anyBase.noTtb || '',
       tglTtb: activeTglTtb || anyBase.tglTtb || '',
       picTtb: cleanPicTtb || anyBase.picTtb || '',
@@ -1281,6 +1306,8 @@ export default function AuditModal({
     activePicPch,
     activeDeliveryTime,
     activeFstb,
+    effectiveNoFstb,
+    displayTglFstb,
     activeTtb,
     activeTglTtb,
     cleanPicTtb,
@@ -1288,6 +1315,16 @@ export default function AuditModal({
     pdfData?.receivedBy,
     pdfData?.approvedBy,
   ]);
+
+  const fstbStage = useMemo(() => {
+    if (!evaluatableWorkflowItem) return null;
+    const res = evaluateFiveDivisionWorkflow(evaluatableWorkflowItem as any);
+    return res.stages.find((s) => s.code === 'FSTB') || null;
+  }, [evaluatableWorkflowItem]);
+
+  const isFstbDone = Boolean(fstbStage?.isFull);
+  const isFstbPartial = Boolean(fstbStage?.isPartial);
+  const fstbStatusLabel = isFstbDone ? 'Lengkap' : isFstbPartial ? 'Parsial' : 'Pending';
 
   // Otomatis sinkronkan metadata PDF (Requested By, Tanggal, Item) saat modal dibuka
   useEffect(() => {
@@ -1808,9 +1845,10 @@ export default function AuditModal({
                     ).
                   </p>
                   <p className="text-muted-foreground">
-                    Rantai pertanggungjawaban 5 seksi: Pembuatan FPB (&rarr;{' '}
+                    Rantai pertanggungjawaban 6 seksi: Pembuatan FPB (&rarr;{' '}
                     {displayPicFpb}), Purchasing (&rarr;{' '}
-                    {activePo ? `${itemS1?.picPch || 'Purchasing'} - PO: ${activePo}` : 'Menunggu PO'}), TTB Logistik (&rarr;{' '}
+                    {activePo ? `${itemS1?.picPch || 'Purchasing'} - PO: ${activePo}` : 'Menunggu PO'}), Serah Terima Barang (&rarr;{' '}
+                    {effectiveNoFstb ? `FSTB: ${effectiveNoFstb}` : 'Menunggu FSTB'}), TTB Logistik (&rarr;{' '}
                     {cleanPicTtb ? cleanPicTtb : parsedTtbList.length > 0 ? `TTB (${parsedTtbList.join(', ')})` : 'Belum Ada TTB'}), Lapangan (&rarr;{' '}
                     {isPicLapFilled ? itemS1?.picLap : hasTglDiantar ? `Diantar tgl ${formatDateDdMmYy(itemS1?.tglBarangDiantar)}` : 'Belum Dikonfirmasi'}), dan Purchasing / ADM (&rarr;{' '}
                     {hasValidSpp ? `${itemS1?.picAdm || 'Purchasing/ADM'} - SPP: ${itemS1?.noSpp}` : 'Menunggu Berkas ADM'}).
@@ -2038,17 +2076,18 @@ export default function AuditModal({
         )}
 
         {/* ═══════════════════════════════════════════════════════════
-            RANTAI TANGGUNG JAWAB & AUDIT DETAIL (5 SEKSI LENGKAP)
-            1. VERIFIKASI FPB
+            ALUR TANGGUNG JAWAB & PIC (6 SEKSI)
+            1. PEMBUATAN FPB
             2. PURCHASING
-            3. LOGISTIK TTB
-            4. TIM LAPANGAN
-            5. PURCHASING / ADM
+            3. SERAH TERIMA BARANG (FSTB)
+            4. LOGISTIK TTB
+            5. TIM LAPANGAN
+            6. PURCHASING / ADM
             ═══════════════════════════════════════════════════════════ */}
         <div className="space-y-2.5 pt-1">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-1.5">
-              <span>Alur Tanggung Jawab & PIC (5 Seksi)</span>
+              <span>ALUR TANGGUNG JAWAB & PIC (6 SEKSI)</span>
             </h4>
             <div className="flex items-center gap-2.5 flex-wrap">
               {slaDeliveryAnomaly && (
@@ -2111,7 +2150,7 @@ export default function AuditModal({
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3 text-xs">
             {/* 1. PEMBUATAN FPB */}
             <div className="p-3.5 rounded-lg bg-card border border-border flex flex-col justify-between space-y-2.5 shadow-xs hover:border-foreground/20 transition min-w-0">
               <div className="min-w-0">
@@ -2336,21 +2375,6 @@ export default function AuditModal({
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center justify-between min-w-0">
-                    <span className="text-muted-foreground shrink-0 whitespace-nowrap">No. FSTB:</span>
-                    {hasValue(activeFstb) || hasValue(itemsS2[0]?.noFstb) || hasValue(itemS1?.noFstb) ? (
-                      <span
-                        className="font-semibold text-foreground font-mono truncate text-right ml-1.5 min-w-0"
-                        title={activeFstb || (hasValue(itemsS2[0]?.noFstb) ? itemsS2[0].noFstb : '') || (hasValue(itemS1?.noFstb) ? itemS1?.noFstb : '') || ''}
-                      >
-                        {activeFstb || (hasValue(itemsS2[0]?.noFstb) ? itemsS2[0].noFstb : '') || (hasValue(itemS1?.noFstb) ? itemS1?.noFstb : '')}
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
-                        Belum Terbit
-                      </span>
-                    )}
-                  </div>
                 </div>
               </div>
               <div className="pt-2 border-t border-border min-w-0">
@@ -2368,7 +2392,108 @@ export default function AuditModal({
               </div>
             </div>
 
-            {/* 3. LOGISTIK TTB / ADMINISTRASI BAST */}
+            {/* 3. SERAH TERIMA BARANG (FSTB) */}
+            <div className="p-3.5 rounded-lg bg-card border border-border flex flex-col justify-between space-y-2.5 shadow-xs hover:border-foreground/20 transition min-w-0">
+              <div className="min-w-0">
+                <div className="flex items-center justify-between pb-2 border-b border-border gap-1 min-w-0">
+                  <span className="text-[11px] font-semibold text-foreground font-mono flex items-center gap-1.5 min-w-0 truncate">
+                    <Boxes className="size-3.5 text-teal-600 dark:text-teal-400 shrink-0" />
+                    <span className="truncate">3. SERAH TERIMA BARANG</span>
+                  </span>
+                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-teal-500/10 text-teal-700 dark:text-teal-300 border border-teal-500/20 font-semibold shrink-0">
+                    FSTB
+                  </span>
+                </div>
+                <div className="mt-2.5 space-y-1.5 text-[11px]">
+                  <div className="flex items-center justify-between min-w-0">
+                    <span className="text-muted-foreground shrink-0 whitespace-nowrap">PIC / Penerima:</span>
+                    {effectivePicFstb ? (
+                      <span
+                        className="font-semibold text-foreground font-mono truncate text-right ml-1.5 min-w-0"
+                        title={effectivePicFstb}
+                      >
+                        {effectivePicFstb}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
+                        Belum Tercatat
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between min-w-0">
+                    <span className="text-muted-foreground shrink-0 whitespace-nowrap">No. FSTB:</span>
+                    {hasValue(effectiveNoFstb) && !isFieldBelum(effectiveNoFstb) ? (
+                      <span
+                        className="font-semibold text-foreground font-mono truncate text-right ml-1.5 min-w-0"
+                        title={effectiveNoFstb}
+                      >
+                        {effectiveNoFstb}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
+                        Belum Terbit
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between min-w-0">
+                    <span className="text-muted-foreground shrink-0 whitespace-nowrap">Tgl FSTB:</span>
+                    {displayTglFstb && displayTglFstb !== '-' ? (
+                      <span className="text-muted-foreground font-mono text-right ml-1.5 truncate min-w-0">
+                        {formatDateDdMmYy(displayTglFstb)}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
+                        Belum Terbit
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between min-w-0">
+                    <span className="text-muted-foreground shrink-0 whitespace-nowrap">Status:</span>
+                    {fstbStatusLabel === 'Lengkap' ? (
+                      <span className="font-semibold text-emerald-600 dark:text-emerald-400 font-mono text-right ml-1.5 truncate min-w-0">
+                        Lengkap
+                      </span>
+                    ) : fstbStatusLabel === 'Parsial' ? (
+                      <span className="font-semibold text-amber-600 dark:text-amber-400 font-mono text-right ml-1.5 truncate min-w-0">
+                        Parsial
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
+                        Pending
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="pt-2 border-t border-border flex flex-col gap-1.5 min-w-0">
+                {isFstbDone ? (
+                  <span className="inline-flex items-center justify-center gap-1 text-[10px] font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-md border border-emerald-500/20 w-full truncate font-semibold min-w-0">
+                    <Check className="size-3 text-emerald-600 dark:text-emerald-400" />
+                    ✓ FSTB Diterbitkan / Diterima
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center justify-center gap-1 text-[10px] font-mono text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-1 rounded-md border border-amber-500/20 w-full truncate font-medium min-w-0">
+                    <Clock className="size-3 text-amber-600 dark:text-amber-400" />
+                    Menunggu FSTB
+                  </span>
+                )}
+                {fstbPdfUrl && (
+                  <a
+                    href={fstbPdfUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[10px] font-mono text-teal-700 dark:text-teal-300 bg-teal-500/10 hover:bg-teal-500/20 active:scale-95 px-2 py-1 rounded-md border border-teal-500/30 flex items-center justify-center gap-1.5 text-center truncate font-medium transition cursor-pointer shadow-2xs group min-w-0"
+                    title={`Klik untuk Buka Dokumen PDF FSTB (${effectiveNoFstb})`}
+                  >
+                    <FileText className="size-3 text-teal-600 dark:text-teal-400 shrink-0" />
+                    <span className="truncate">Buka PDF FSTB</span>
+                    <ExternalLink className="size-2.5 opacity-60 group-hover:opacity-100 shrink-0" />
+                  </a>
+                )}
+              </div>
+            </div>
+
+            {/* 4. LOGISTIK TTB / ADMINISTRASI BAST */}
             <div className="p-3.5 rounded-lg bg-card border border-border flex flex-col justify-between space-y-2.5 shadow-xs hover:border-foreground/20 transition min-w-0">
               <div className="min-w-0">
                 <div className="flex items-center justify-between pb-2 border-b border-border gap-1 min-w-0">
@@ -2378,7 +2503,7 @@ export default function AuditModal({
                     ) : (
                       <PackageCheck className="size-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
                     )}
-                    <span className="truncate">{isJasaOnly ? '3. TTB / BAST' : isCampuran ? '3. TTB & BAST' : '3. LOGISTIK TTB'}</span>
+                    <span className="truncate">{isJasaOnly ? '4. TTB / BAST' : isCampuran ? '4. TTB & BAST' : '4. LOGISTIK TTB'}</span>
                   </span>
                   <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border font-semibold shrink-0">
                     {isJasaOnly ? 'BAST' : 'LOG'}
@@ -2466,7 +2591,7 @@ export default function AuditModal({
               </div>
             </div>
 
-            {/* 4. TIM LAPANGAN / PENGAWAS & TEKNISI */}
+            {/* 5. TIM LAPANGAN / PENGAWAS & TEKNISI */}
             <div className="p-3.5 rounded-lg bg-card border border-border flex flex-col justify-between space-y-2.5 shadow-xs hover:border-foreground/20 transition min-w-0">
               <div className="min-w-0">
                 <div className="flex items-center justify-between pb-2 border-b border-border gap-1 min-w-0">
@@ -2476,7 +2601,7 @@ export default function AuditModal({
                     ) : (
                       <HardHat className="size-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
                     )}
-                    <span className="truncate">{isJasaOnly ? '4. TEKNISI LAPANGAN' : isCampuran ? '4. TIM LAPANGAN & TEK' : '4. TIM LAPANGAN'}</span>
+                    <span className="truncate">{isJasaOnly ? '5. TEKNISI LAPANGAN' : isCampuran ? '5. TIM LAPANGAN & TEK' : '5. TIM LAPANGAN'}</span>
                   </span>
                   <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border font-semibold shrink-0">
                     {isJasaOnly ? 'TEK' : 'LAP'}
@@ -2606,13 +2731,13 @@ export default function AuditModal({
               </div>
             </div>
 
-            {/* 5. PURCHASING / ADM */}
+            {/* 6. PURCHASING / ADM */}
             <div className="p-3.5 rounded-lg bg-card border border-border flex flex-col justify-between space-y-2.5 shadow-xs hover:border-foreground/20 transition min-w-0">
               <div className="min-w-0">
                 <div className="flex items-center justify-between pb-2 border-b border-border gap-1 min-w-0">
                   <span className="text-[11px] font-semibold text-foreground font-mono flex items-center gap-1.5 min-w-0 truncate">
                     <Landmark className="size-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                    <span className="truncate">5. PURCHASING / ADM</span>
+                    <span className="truncate">6. PURCHASING / ADM</span>
                   </span>
                   <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border font-semibold shrink-0">
                     ADM

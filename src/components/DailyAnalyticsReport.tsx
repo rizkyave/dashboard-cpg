@@ -1877,7 +1877,7 @@ _Dashboard Operasional CPG - Sistem Monitoring Alur 4 Seksi Logistik_`;
                             type="button"
                             onClick={() => onOpenAudit?.(item.fpb, item.po || (item as any).noPo)}
                             className="h-7 px-2 rounded-lg bg-muted hover:bg-primary hover:text-primary-foreground text-foreground border border-border text-[10.5px] font-medium transition active:scale-95 cursor-pointer inline-flex items-center gap-1"
-                            title="Buka Audit Rinci 5 Seksi"
+                            title="Buka Audit Rinci 6 Seksi"
                           >
                             <span>Audit</span>
                             <ArrowRight className="size-3" />

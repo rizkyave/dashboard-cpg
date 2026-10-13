@@ -675,7 +675,7 @@ export function enrichProcurementAndArmada(
       if (!arm.picAktif || arm.picAktif === '-') arm.picAktif = evaluated.picAktif;
     }
 
-    // Selaraskan status pemenuhan layanan armada dengan aturan bisnis 5 seksi (lengkap jika sampai LAP)
+    // Selaraskan status pemenuhan layanan armada dengan aturan bisnis 6 seksi (lengkap jika sampai LAP)
     const fulfillment = evaluateArmadaFulfillment(arm);
     arm.status = fulfillment.status;
 

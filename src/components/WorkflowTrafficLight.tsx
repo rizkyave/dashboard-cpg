@@ -65,7 +65,7 @@ export default function WorkflowTrafficLight({
   ]);
 
   const tooltipText = React.useMemo(() => {
-    const header = `Alur Tanggung Jawab & PIC (5 Seksi): ${result.summaryBadge}\n`;
+    const header = `Alur Tanggung Jawab & PIC (6 Seksi): ${result.summaryBadge}\n`;
     const details = result.stages
       .map((s) => {
         const symbol = s.isFull ? '✓' : s.isPartial ? '◐' : '○';
@@ -73,7 +73,7 @@ export default function WorkflowTrafficLight({
         return `${s.stepNumber}. ${s.name} (${s.code}): ${symbol} [${mode}] ${s.statusText} [${s.detail}]`;
       })
       .join('\n');
-    return header + details + (onClick ? '\n\n(Klik untuk membuka Audit Rinci 5 Seksi)' : '');
+    return header + details + (onClick ? '\n\n(Klik untuk membuka Audit Rinci 6 Seksi)' : '');
   }, [result, onClick]);
 
   // Render PROMINENT variant (Center-top centerpiece in Audit Modal)
@@ -199,18 +199,18 @@ export default function WorkflowTrafficLight({
             {result.isComplete ? (
               <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-mono font-medium bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border border-emerald-300/80 dark:border-emerald-700 shadow-xs">
                 <Check className="size-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                5/5 Lengkap
+                6/6 Lengkap
               </span>
             ) : result.passedCount > 0 ? (
               <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-mono font-medium bg-[#fef3c7]/85 dark:bg-amber-950/40 text-stone-700 dark:text-stone-300 border border-[#fde68a] dark:border-amber-800/60 shadow-xs">
                 <span className="size-1.5 rounded-full bg-amber-500 animate-pulse shrink-0" />
                 {result.fullCount > 0 ? `${result.fullCount} Penuh` : ''}
                 {result.fullCount > 0 && result.partialCount > 0 ? ', ' : ''}
-                {result.partialCount > 0 ? `${result.partialCount} Setengah (Belum Penuh)` : `${result.passedCount}/5 Sebagian`}
+                {result.partialCount > 0 ? `${result.partialCount} Setengah (Belum Penuh)` : `${result.passedCount}/6 Sebagian`}
               </span>
             ) : (
               <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-mono font-medium bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 border border-slate-200 dark:border-zinc-700 shadow-xs">
-                0/5 Menunggu
+                0/6 Menunggu
               </span>
             )}
           </div>
@@ -312,18 +312,18 @@ export default function WorkflowTrafficLight({
           {result.isComplete ? (
             <span className="inline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 whitespace-nowrap mx-auto">
               <Check className="size-2.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-              5/5 Lengkap
+              6/6 Lengkap
             </span>
           ) : result.passedCount > 0 ? (
             <span className="inline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono font-medium bg-[#fef3c7]/90 dark:bg-amber-950/40 text-stone-700 dark:text-stone-300 border border-[#fde68a] dark:border-amber-800/60 whitespace-nowrap mx-auto">
               <span className="size-1.5 rounded-full bg-amber-500 animate-pulse shrink-0" />
               {result.fullCount > 0 && result.partialCount > 0
                 ? `${result.fullCount}P / ${result.partialCount}S`
-                : `${result.passedCount}/5 ${result.partialCount > 0 ? 'Parsial' : 'Sebagian'}`}
+                : `${result.passedCount}/6 ${result.partialCount > 0 ? 'Parsial' : 'Sebagian'}`}
             </span>
           ) : (
             <span className="inline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono text-muted-foreground bg-muted border border-border whitespace-nowrap mx-auto">
-              0/5 Belum
+              0/6 Belum
             </span>
           )}
         </div>
