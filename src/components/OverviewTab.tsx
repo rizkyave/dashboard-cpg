@@ -29,6 +29,7 @@ import {
   Camera,
   Pin,
   ChevronUp,
+  Anchor,
 } from 'lucide-react';
 import { ProcurementItem, StatusTone, PdfItemsCache } from '@/types/procurement';
 import { EntityDonutChart, PipelineBarChart } from './Charts';
@@ -83,7 +84,7 @@ interface OverviewTabProps {
   showToast?: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
 }
 
-type SortField = 'fpb' | 'po' | 'date' | 'item' | 'statusBadge' | 'lapse' | 'workflow';
+type SortField = 'fpb' | 'po' | 'date' | 'deptArmada' | 'item' | 'statusBadge' | 'lapse' | 'workflow';
 type SortDirection = 'asc' | 'desc';
 
 export default function OverviewTab({
@@ -883,32 +884,38 @@ export default function OverviewTab({
                         </span>
                       </div>
 
-                      {/* Card Body: PO, Date, Item */}
-                      <div className="space-y-1 text-xs">
+                      {/* Card Body: PO, Date, Armada, Item */}
+                      <div className="space-y-1.5 text-xs">
                         <div className="flex items-center justify-between text-[11px] text-muted-foreground font-mono">
                           <span>PO: <strong className="text-foreground">{row.po && row.po !== '-' ? row.po : 'Belum Ada'}</strong></span>
                           <span>{formatDateDdMmYy(row.date)}</span>
                         </div>
-                        <p 
-                          className="font-medium text-foreground text-xs line-clamp-2 mt-1 cursor-help"
-                          title={sisaMatch?.tooltipText || undefined}
-                        >
-                          {sisaMatch?.primaryName || row.deptArmada || row.item}
-                          {sisaMatch && sisaMatch.totalItemsCount > 1 && (
-                            <span className="ml-1 px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-mono">
-                              +{sisaMatch.totalItemsCount - 1} item
-                            </span>
-                          )}
-                        </p>
+
+                        {/* Info Armada */}
+                        <div className="flex items-center gap-1.5 text-xs font-medium text-cyan-600 dark:text-cyan-400">
+                          <Anchor className="size-3.5 shrink-0" />
+                          <span className="truncate">Armada: <strong className="text-foreground">{row.deptArmada && row.deptArmada !== '-' ? row.deptArmada : (row.entity ? `Armada ${row.entity}` : '-')}</strong></span>
+                        </div>
+
+                        {/* Info Nama Barang */}
+                        <div>
+                          <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Nama Barang:</div>
+                          <p 
+                            className="font-medium text-foreground text-xs line-clamp-2 mt-0.5 cursor-help"
+                            title={sisaMatch?.tooltipText || undefined}
+                          >
+                            {sisaMatch?.primaryName || (row.item && row.item !== '-' && row.item !== row.deptArmada ? row.item : '-')}
+                            {sisaMatch && sisaMatch.totalItemsCount > 1 && (
+                              <span className="ml-1 px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-mono">
+                                +{sisaMatch.totalItemsCount - 1} item
+                              </span>
+                            )}
+                          </p>
+                        </div>
                         {row.qtyFPB !== undefined && row.qtyFPB > 0 && (
                           <span className="inline-block px-1.5 py-0.2 rounded bg-muted text-[10px] font-mono text-muted-foreground border border-border/80">
                             Qty: {row.qtyFPB} {row.satuan && row.satuan.toLowerCase() !== 'paket' ? row.satuan : ''}
                           </span>
-                        )}
-                        {row.deptArmada && (
-                          <p className="text-[11px] text-cyan-600 dark:text-cyan-400 font-mono truncate">
-                            Armada: {row.deptArmada}
-                          </p>
                         )}
                       </div>
 
@@ -1068,10 +1075,21 @@ export default function OverviewTab({
                     </th>
                     <th
                       className="p-3 cursor-pointer hover:text-foreground select-none transition sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md"
-                      onClick={() => handleSort('item')}
+                      onClick={() => handleSort('deptArmada')}
                     >
                       <div className="flex items-center gap-1">
                         <span>Armada</span>
+                        {sortField === 'deptArmada' && (
+                          <span className="text-primary">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                        )}
+                      </div>
+                    </th>
+                    <th
+                      className="p-3 cursor-pointer hover:text-foreground select-none transition sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md"
+                      onClick={() => handleSort('item')}
+                    >
+                      <div className="flex items-center gap-1">
+                        <span>Nama Barang</span>
                         {sortField === 'item' && (
                           <span className="text-primary">{sortDirection === 'asc' ? '↑' : '↓'}</span>
                         )}
@@ -1121,7 +1139,7 @@ export default function OverviewTab({
             <tbody className="divide-y divide-border">
               {isVisitor && !searchTerm.trim() ? (
                 <tr>
-                  <td colSpan={8} className="py-16 px-6 text-center text-muted-foreground">
+                  <td colSpan={9} className="py-16 px-6 text-center text-muted-foreground">
                     <div className="flex flex-col items-center justify-center space-y-4">
                       <div className="size-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-600 dark:text-cyan-400 flex items-center justify-center shadow-xs">
                         <Search className="size-8" />
@@ -1163,7 +1181,7 @@ export default function OverviewTab({
                 </tr>
               ) : items.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="p-10 text-center text-muted-foreground">
+                  <td colSpan={9} className="p-10 text-center text-muted-foreground">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <FileSpreadsheet className="size-8 opacity-30 text-muted-foreground" />
                       <p className="text-sm font-medium text-foreground">Belum ada data monitoring</p>
@@ -1175,7 +1193,7 @@ export default function OverviewTab({
                 </tr>
               ) : paginatedItems.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="p-12 text-center text-muted-foreground">
+                  <td colSpan={9} className="p-12 text-center text-muted-foreground">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <Search className="size-8 opacity-30 text-muted-foreground" />
                       <p className="text-sm font-medium text-foreground">
@@ -1269,13 +1287,25 @@ export default function OverviewTab({
                       {/* Date */}
                       <td className="p-3 font-mono text-xs text-muted-foreground">{formatDateDdMmYy(row.date)}</td>
 
-                      {/* Item / Armada */}
+                      {/* Armada */}
+                      <td className="p-3 max-w-[170px]">
+                        <div className="font-medium text-xs text-foreground flex items-center gap-1.5">
+                          <Anchor className="size-3 text-cyan-500 shrink-0" />
+                          <span className="truncate" title={row.deptArmada || undefined}>
+                            {row.deptArmada && row.deptArmada !== '-' ? row.deptArmada : (row.entity ? `Armada ${row.entity}` : '-')}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Nama Barang */}
                       <td className="p-3 max-w-[280px]">
                         <div 
                           className="font-medium text-xs text-foreground flex items-center gap-1.5 flex-wrap cursor-help"
                           title={sisaMatch?.tooltipText || undefined}
                         >
-                          <span>{sisaMatch?.primaryName || row.deptArmada || row.item}</span>
+                          <span>
+                            {sisaMatch?.primaryName || (row.item && row.item !== '-' && row.item !== row.deptArmada ? row.item : '-')}
+                          </span>
                           {sisaMatch && sisaMatch.totalItemsCount > 1 && (
                             <span className="px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[9px] font-mono">
                               +{sisaMatch.totalItemsCount - 1} item

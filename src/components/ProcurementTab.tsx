@@ -34,6 +34,7 @@ import {
   Loader2,
   Pin,
   ChevronUp,
+  Anchor,
 } from 'lucide-react';
 
 import { ProcurementItem, StatusTone, PdfItemsCache } from '@/types/procurement';
@@ -89,7 +90,7 @@ interface ProcurementTabProps {
   showToast?: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
 }
 
-type SortField = 'fpb' | 'po' | 'date' | 'item' | 'peruntukan' | 'statusBadge' | 'lapse' | 'workflow';
+type SortField = 'fpb' | 'po' | 'date' | 'deptArmada' | 'item' | 'peruntukan' | 'statusBadge' | 'lapse' | 'workflow';
 type LapseFilter = 'ALL' | 'NORMAL' | 'WARNING' | 'CRITICAL';
 
 export default function ProcurementTab({
@@ -1480,22 +1481,33 @@ export default function ProcurementTab({
                       </div>
 
                       {/* Body */}
-                      <div className="space-y-1 text-xs">
+                      <div className="space-y-1.5 text-xs">
                         <div className="flex items-center justify-between text-[11px] text-muted-foreground font-mono">
                           <span>PO: <strong className="text-foreground">{row.po && row.po !== '-' ? row.po : 'Belum Ada'}</strong></span>
                           <span>{formatDateDdMmYy(row.date)}</span>
                         </div>
-                        <p 
-                          className="font-medium text-foreground text-xs line-clamp-2 mt-1 cursor-help"
-                          title={sisaMatch?.tooltipText || undefined}
-                        >
-                          {sisaMatch?.primaryName || row.deptArmada || row.item}
-                          {sisaMatch && sisaMatch.totalItemsCount > 1 && (
-                            <span className="ml-1 px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-mono">
-                              +{sisaMatch.totalItemsCount - 1} item
-                            </span>
-                          )}
-                        </p>
+
+                        {/* Info Armada */}
+                        <div className="flex items-center gap-1.5 text-xs font-medium text-cyan-600 dark:text-cyan-400">
+                          <Anchor className="size-3.5 shrink-0" />
+                          <span className="truncate">Armada: <strong className="text-foreground">{row.deptArmada && row.deptArmada !== '-' ? row.deptArmada : (row.entity ? `Armada ${row.entity}` : '-')}</strong></span>
+                        </div>
+
+                        {/* Info Nama Barang */}
+                        <div>
+                          <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Nama Barang:</div>
+                          <p 
+                            className="font-medium text-foreground text-xs line-clamp-2 mt-0.5 cursor-help"
+                            title={sisaMatch?.tooltipText || undefined}
+                          >
+                            {sisaMatch?.primaryName || (row.item && row.item !== '-' && row.item !== row.deptArmada ? row.item : '-')}
+                            {sisaMatch && sisaMatch.totalItemsCount > 1 && (
+                              <span className="ml-1 px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-mono">
+                                +{sisaMatch.totalItemsCount - 1} item
+                              </span>
+                            )}
+                          </p>
+                        </div>
                         {row.qtyFPB !== undefined && row.qtyFPB > 0 && (
                           <span className="inline-block px-1.5 py-0.2 rounded bg-muted text-[10px] font-mono text-muted-foreground border border-border/80">
                             Qty: {row.qtyFPB} {row.satuan || ''}
@@ -1657,11 +1669,20 @@ export default function ProcurementTab({
                       </span>
                     </th>
                     <th
+                      onClick={() => handleSort('deptArmada')}
+                      className="p-3.5 cursor-pointer hover:text-foreground transition group whitespace-nowrap sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md"
+                    >
+                      <span className="flex items-center">
+                        ARMADA
+                        {renderSortIndicator('deptArmada')}
+                      </span>
+                    </th>
+                    <th
                       onClick={() => handleSort('item')}
                       className="p-3.5 cursor-pointer hover:text-foreground transition group sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md"
                     >
                       <span className="flex items-center">
-                        ARMADA
+                        NAMA BARANG
                         {renderSortIndicator('item')}
                       </span>
                     </th>
@@ -1703,7 +1724,7 @@ export default function ProcurementTab({
             <tbody className="divide-y divide-border/60">
               {paginatedItems.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="p-10 text-center text-muted-foreground">
+                  <td colSpan={9} className="p-10 text-center text-muted-foreground">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <FileSpreadsheet className="w-8 h-8 opacity-30 text-muted-foreground" />
                       <p className="text-sm font-medium text-foreground">
@@ -1796,12 +1817,26 @@ export default function ProcurementTab({
                         )}
                       </td>
                       <td className="p-3.5 font-mono text-muted-foreground">{formatDateDdMmYy(row.date)}</td>
-                      <td className="p-3.5 max-w-[290px]">
+
+                      {/* Armada */}
+                      <td className="p-3.5 max-w-[190px]">
+                        <div className="font-medium text-foreground flex items-center gap-1.5">
+                          <Anchor className="size-3.5 text-cyan-500 shrink-0" />
+                          <span className="truncate" title={row.deptArmada || undefined}>
+                            {row.deptArmada && row.deptArmada !== '-' ? row.deptArmada : (row.entity ? `Armada ${row.entity}` : '-')}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Nama Barang */}
+                      <td className="p-3.5 max-w-[280px]">
                         <div 
                           className="font-medium text-foreground flex items-center gap-1.5 flex-wrap cursor-help"
                           title={sisaMatch?.tooltipText || undefined}
                         >
-                          <span>{sisaMatch?.primaryName || row.deptArmada || row.item}</span>
+                          <span>
+                            {sisaMatch?.primaryName || (row.item && row.item !== '-' && row.item !== row.deptArmada ? row.item : '-')}
+                          </span>
                           {sisaMatch && sisaMatch.totalItemsCount > 1 && (
                             <span className="px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[9px] font-mono">
                               +{sisaMatch.totalItemsCount - 1} item
