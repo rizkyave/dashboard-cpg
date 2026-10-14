@@ -32,6 +32,8 @@ import {
 import { ProcurementItem, ArmadaItem, InventoryItem, KapalPosisiItem, PdfItemsCache } from '@/types/procurement';
 import StockAuditModal from './StockAuditModal';
 import TimemarkModal from './TimemarkModal';
+import OperationalUpdateModal from './OperationalUpdateModal';
+import { getOperationalOverride, OperationalOverride } from '@/utils/operationalProgressStorage';
 import { extractFstbLast5, openTimemarkWithFstb, parseTtbList } from '@/utils/timemark';
 import { updatePdfItemsCacheForFpb, loadPdfItemsCache, loadStoredWorkOrder, loadStoredKapalPosisi } from '@/utils/appStorage';
 import { formatDateDdMmYy, extractDateInfo } from '@/utils/formatDate';
@@ -167,6 +169,8 @@ export default function AuditModal({
   const [isLoadingPdf, setIsLoadingPdf] = useState<boolean>(false);
   const [showStockModal, setShowStockModal] = useState<boolean>(false);
   const [showTimemarkModal, setShowTimemarkModal] = useState<boolean>(false);
+  const [showOperationalModal, setShowOperationalModal] = useState<boolean>(false);
+  const [operationalOverride, setOperationalOverride] = useState<OperationalOverride | null>(null);
   const [selectedTtbForPhoto, setSelectedTtbForPhoto] = useState<string | null>(null);
   const [internalInventory, setInternalInventory] = useState<InventoryItem[]>([]);
   const [internalWorkOrders, setInternalWorkOrders] = useState<WorkOrderItem[]>(workOrderItems || []);
@@ -671,6 +675,28 @@ export default function AuditModal({
   const cleanFpb = docFpb.replace(/^["']|["']$/g, '');
   const cleanPo = docPo.replace(/^["']|["']$/g, '');
   const primaryDocNum = cleanFpb || cleanPo;
+
+  // Sinkronisasi status operasional fase 4 & 5 (TTB/BAST & Teknisi Lapangan)
+  useEffect(() => {
+    if (!primaryDocNum) {
+      setOperationalOverride(null);
+      return;
+    }
+    setOperationalOverride(getOperationalOverride(primaryDocNum));
+
+    const handleOverrideChange = (e: any) => {
+      const targetFpb = e?.detail?.fpb;
+      if (!targetFpb || normalizeFpbKey(targetFpb) === normalizeFpbKey(primaryDocNum)) {
+        setOperationalOverride(getOperationalOverride(primaryDocNum));
+      }
+    };
+
+    window.addEventListener('cpg_operational_override_changed', handleOverrideChange);
+    return () => {
+      window.removeEventListener('cpg_operational_override_changed', handleOverrideChange);
+    };
+  }, [primaryDocNum]);
+
   const directApprovedPdfUrl = primaryDocNum
     ? `https://e-fpb.cindaragroup.com/files/Approved_rev_sign_${encodeURIComponent(cleanFpb || primaryDocNum)}.pdf`
     : null;
@@ -709,8 +735,8 @@ export default function AuditModal({
     (hasValue(itemS1?.tglFstb) ? itemS1!.tglFstb : '') ||
     '';
 
-  // Metadata Nomor TTB untuk integrasi foto lapangan langsung di aplikasi
-  const activeTtb =
+  // Metadata Nomor TTB untuk integrasi foto lapangan langsung di aplikasi (termasuk override operasional)
+  const baseActiveTtb =
     itemsS2.find((i) => hasValue(i.noTtb))?.noTtb?.trim() ||
     (hasValue(itemS1?.noTtb) ? itemS1!.noTtb!.trim() : '') ||
     (normPo
@@ -722,6 +748,7 @@ export default function AuditModal({
         armadaList.find((i) => normalizeFpbKey(i.fpb) === normFpb && hasValue(i.noTtb))?.noTtb?.trim()
       : '') ||
     '';
+  const activeTtb = operationalOverride?.noTtb?.trim() || baseActiveTtb;
 
   // Daftar nomor TTB yang telah di-parse & dirapikan (memisahkan entri koma/garis miring seperti CPL-TTB-26-06713,06714)
   const parsedTtbList = useMemo(() => {
@@ -741,10 +768,11 @@ export default function AuditModal({
   }, [activeTtb, itemS1?.noTtb, itemsS2]);
 
   // Validasi keterisian Logistik TTB dan Tim Lapangan untuk penentuan status PENGANTARAN LOGISTIK
-  const activeTglTtb =
+  const baseActiveTglTtb =
     itemsS2.find((i) => i.tglTtb && i.tglTtb.trim() !== '' && i.tglTtb !== '-')?.tglTtb ||
     (itemS1?.tglInputTtb && itemS1.tglInputTtb.trim() !== '' && itemS1.tglInputTtb !== '-' ? itemS1.tglInputTtb : '') ||
     '';
+  const activeTglTtb = operationalOverride?.tglTtb?.trim() || baseActiveTglTtb;
 
   const isRealPicTtb = (pic?: string): boolean => {
     if (!pic) return false;
@@ -774,19 +802,20 @@ export default function AuditModal({
     );
   };
 
-  const cleanPicTtb = isRealPicTtb(itemS1?.picTtb)
+  const baseCleanPicTtb = isRealPicTtb(itemS1?.picTtb)
     ? itemS1!.picTtb.trim()
     : itemsS2.find((i) => isRealPicTtb(i.picTtb))?.picTtb?.trim() || '';
+  const cleanPicTtb = operationalOverride?.picTtb?.trim() || baseCleanPicTtb;
 
   const isPicTtbFilled = Boolean(cleanPicTtb);
 
-  // Status TTB Tercatat: harus ada dokumen nomor TTB atau tanggal terbit TTB resmi
+  // Status TTB Tercatat: harus ada dokumen nomor TTB atau tanggal terbit TTB resmi atau override operasional
   const hasValidTtbDoc = Boolean(
     (activeTtb && activeTtb !== '-' && activeTtb.trim() !== '' && activeTtb !== '(kosong)') ||
     parsedTtbList.length > 0
   );
   const hasValidTglTtb = Boolean(activeTglTtb && activeTglTtb !== '-' && activeTglTtb.trim() !== '');
-  const isLogistikTtbFilled = hasValidTtbDoc || hasValidTglTtb;
+  const isLogistikTtbFilled = hasValidTtbDoc || hasValidTglTtb || Boolean(operationalOverride?.isCompleted);
 
   // PIC Purchasing (Kotak 2) & FSTB (Kotak 3): dikerjakan oleh orang yang sama (staf Purchasing / Pembuat PO)
   const activePicPch =
@@ -944,21 +973,36 @@ export default function AuditModal({
     activeDeliveryTime,
   ]);
 
-  const isPicLapFilled = Boolean(
-    hasValue(itemS1?.picLap) || hasValue(itemsS2[0]?.picLap)
-  );
-  const hasTglDiantar = Boolean(
-    hasValue(itemS1?.tglBarangDiantar) || hasValue(itemsS2[0]?.tglBarangDiantar)
-  );
-  const hasTglKeLap = Boolean(
-    hasValue(itemS1?.tglKeTimLapangan) || hasValue(itemsS2[0]?.tglKeTimLapangan)
-  );
-  const hasTglTimLapKePicTtb = Boolean(
-    hasValue(itemS1?.tglTimLapKePicTtb) || hasValue(itemsS2[0]?.tglTimLapKePicTtb)
-  );
-  const hasTglTtbKePch = Boolean(
-    hasValue(itemS1?.tglTtbKePicPch) || hasValue(itemsS2[0]?.tglTtbKePicPch)
-  );
+  const effectivePicLap =
+    operationalOverride?.picLap?.trim() ||
+    (hasValue(itemS1?.picLap) ? itemS1!.picLap : '') ||
+    (hasValue(itemsS2[0]?.picLap) ? itemsS2[0]!.picLap : '');
+
+  const effectiveTglDiantar =
+    operationalOverride?.tglDiantar?.trim() ||
+    (hasValue(itemS1?.tglBarangDiantar) ? itemS1!.tglBarangDiantar : '') ||
+    (hasValue(itemsS2[0]?.tglBarangDiantar) ? itemsS2[0]!.tglBarangDiantar : '');
+
+  const effectiveTglKeLap =
+    operationalOverride?.tglKeTimLapangan?.trim() ||
+    (hasValue(itemS1?.tglKeTimLapangan) ? itemS1!.tglKeTimLapangan : '') ||
+    (hasValue(itemsS2[0]?.tglKeTimLapangan) ? itemsS2[0]!.tglKeTimLapangan : '');
+
+  const effectiveTglTimLapKePicTtb =
+    operationalOverride?.tglTimLapKePicTtb?.trim() ||
+    (hasValue(itemS1?.tglTimLapKePicTtb) ? itemS1!.tglTimLapKePicTtb : '') ||
+    (hasValue(itemsS2[0]?.tglTimLapKePicTtb) ? itemsS2[0]!.tglTimLapKePicTtb : '');
+
+  const effectiveTglTtbKePch =
+    operationalOverride?.tglTtbKePicPch?.trim() ||
+    (hasValue(itemS1?.tglTtbKePicPch) ? itemS1!.tglTtbKePicPch : '') ||
+    (hasValue(itemsS2[0]?.tglTtbKePicPch) ? itemsS2[0]!.tglTtbKePicPch : '');
+
+  const isPicLapFilled = Boolean(hasValue(effectivePicLap));
+  const hasTglDiantar = Boolean(hasValue(effectiveTglDiantar));
+  const hasTglKeLap = Boolean(hasValue(effectiveTglKeLap));
+  const hasTglTimLapKePicTtb = Boolean(hasValue(effectiveTglTimLapKePicTtb));
+  const hasTglTtbKePch = Boolean(hasValue(effectiveTglTtbKePch));
   const isTimLapFilled = Boolean(
     isPicLapFilled ||
     hasTglDiantar ||
@@ -974,7 +1018,8 @@ export default function AuditModal({
   );
 
   const isBarangPhysicalDone = Boolean(
-    hasPhysicalHandoverDetails && (activeTtb || activeFstb)
+    operationalOverride?.isCompleted ||
+    (hasPhysicalHandoverDetails && (activeTtb || activeFstb))
   );
 
   const isPengantaranLogistikDone = isBarangPhysicalDone;
@@ -1018,8 +1063,11 @@ export default function AuditModal({
   const isCampuran = transactionCategory === 'CAMPURAN';
   const hasJasaComponent = isJasaOnly || isCampuran;
 
-  // Deteksi nomor Service Report MTC jika tercantum di teks/keterangan/WO
+  // Deteksi nomor Service Report MTC jika tercantum di teks/keterangan/WO atau diisi dari override operasional
   const detectedServiceReportNo = useMemo(() => {
+    if (operationalOverride?.serviceReportNo?.trim()) {
+      return operationalOverride.serviceReportNo.trim().toUpperCase();
+    }
     const allTexts = [
       pdfData?.workOrderNo,
       itemS1?.noteCheckFpb,
@@ -1032,10 +1080,11 @@ export default function AuditModal({
 
     const match = allTexts.match(/\b(CPG-SR[DM]-\d+)\b/i);
     return match ? match[1].toUpperCase() : null;
-  }, [pdfData, itemS1, itemsS2]);
+  }, [operationalOverride?.serviceReportNo, pdfData, itemS1, itemsS2]);
 
   // Status Validasi Modul ke-4 (Pengantaran Logistik vs Pelaksanaan/BAST Jasa)
   const isJasaPhysicalDone = Boolean(
+    operationalOverride?.isCompleted ||
     detectedServiceReportNo ||
     (isPicLapFilled && (hasTglDiantar || hasTglKeLap))
   );
@@ -1243,26 +1292,11 @@ export default function AuditModal({
     const baseItem = itemS1 || itemsS2[0];
     if (!baseItem) return null;
 
-    const rawPicLap =
-      (hasValue(itemS1?.picLap) ? itemS1!.picLap : '') ||
-      (hasValue(itemsS2[0]?.picLap) ? itemsS2[0]!.picLap : '') ||
-      '';
-    const rawTglDiantar =
-      (hasValue(itemS1?.tglBarangDiantar) ? itemS1!.tglBarangDiantar : '') ||
-      (hasValue(itemsS2[0]?.tglBarangDiantar) ? itemsS2[0]!.tglBarangDiantar : '') ||
-      '';
-    const rawTglKeLap =
-      (hasValue(itemS1?.tglKeTimLapangan) ? itemS1!.tglKeTimLapangan : '') ||
-      (hasValue(itemsS2[0]?.tglKeTimLapangan) ? itemsS2[0]!.tglKeTimLapangan : '') ||
-      '';
-    const rawTglTimLapKePicTtb =
-      (hasValue(itemS1?.tglTimLapKePicTtb) ? itemS1!.tglTimLapKePicTtb : '') ||
-      (hasValue(itemsS2[0]?.tglTimLapKePicTtb) ? itemsS2[0]!.tglTimLapKePicTtb : '') ||
-      '';
-    const rawTglTtbKePch =
-      (hasValue(itemS1?.tglTtbKePicPch) ? itemS1!.tglTtbKePicPch : '') ||
-      (hasValue(itemsS2[0]?.tglTtbKePicPch) ? itemsS2[0]!.tglTtbKePicPch : '') ||
-      '';
+    const rawPicLap = effectivePicLap;
+    const rawTglDiantar = effectiveTglDiantar;
+    const rawTglKeLap = effectiveTglKeLap;
+    const rawTglTimLapKePicTtb = effectiveTglTimLapKePicTtb;
+    const rawTglTtbKePch = effectiveTglTtbKePch;
 
     const activeSpp =
       (hasValue(itemS1?.noSpp) ? itemS1!.noSpp?.trim() : '') ||
@@ -1328,6 +1362,12 @@ export default function AuditModal({
     activeTtb,
     activeTglTtb,
     cleanPicTtb,
+    effectivePicLap,
+    effectiveTglDiantar,
+    effectiveTglKeLap,
+    effectiveTglTimLapKePicTtb,
+    effectiveTglTtbKePch,
+    operationalOverride,
     fpbCheckInfo,
     pdfData?.receivedBy,
     pdfData?.approvedBy,
@@ -1849,8 +1889,8 @@ export default function AuditModal({
                   </p>
                   <p className="text-muted-foreground">
                     PIC Logistik: <strong className="text-foreground">{cleanPicTtb || 'Belum Tercatat'}</strong>,{' '}
-                    PIC Lapangan: <strong className="text-foreground">{isPicLapFilled ? itemS1?.picLap : 'Belum Tercatat'}</strong>,{' '}
-                    Tanggal Diantar: <strong className="text-foreground">{hasTglDiantar ? formatDateDdMmYy(itemS1?.tglBarangDiantar) : 'Belum Diantar'}</strong>.
+                    PIC Lapangan: <strong className="text-foreground">{isPicLapFilled ? (effectivePicLap || itemS1?.picLap) : 'Belum Tercatat'}</strong>,{' '}
+                    Tanggal Diantar: <strong className="text-foreground">{hasTglDiantar ? formatDateDdMmYy(effectiveTglDiantar || itemS1?.tglBarangDiantar) : 'Belum Diantar'}</strong>.
                     Perlu konfirmasi serah terima fisik aktual sebelum berkas dinyatakan selesai secara operasional.
                   </p>
                 </>
@@ -1867,7 +1907,7 @@ export default function AuditModal({
                     {activePo ? `${itemS1?.picPch || 'Purchasing'} - PO: ${activePo}` : 'Menunggu PO'}), Serah Terima Barang (&rarr;{' '}
                     {effectiveNoFstb ? `FSTB: ${effectiveNoFstb}` : 'Menunggu FSTB'}), TTB Logistik (&rarr;{' '}
                     {cleanPicTtb ? cleanPicTtb : parsedTtbList.length > 0 ? `TTB (${parsedTtbList.join(', ')})` : 'Belum Ada TTB'}), Lapangan (&rarr;{' '}
-                    {isPicLapFilled ? itemS1?.picLap : hasTglDiantar ? `Diantar tgl ${formatDateDdMmYy(itemS1?.tglBarangDiantar)}` : 'Belum Dikonfirmasi'}), dan Purchasing / ADM (&rarr;{' '}
+                    {isPicLapFilled ? (effectivePicLap || itemS1?.picLap) : hasTglDiantar ? `Diantar tgl ${formatDateDdMmYy(effectiveTglDiantar || itemS1?.tglBarangDiantar)}` : 'Belum Dikonfirmasi'}), dan Purchasing / ADM (&rarr;{' '}
                     {hasValidSpp ? `${itemS1?.picAdm || 'Purchasing/ADM'} - SPP: ${itemS1?.noSpp}` : 'Menunggu Berkas ADM'}).
                   </p>
                 </>
@@ -2561,14 +2601,14 @@ export default function AuditModal({
                       {isJasaOnly ? 'Tgl Validasi:' : 'Tgl TTB:'}
                       {slaDeliveryAnomaly?.isTtbSameDay && (
                         <span
-                          title={`Peringatan SLA: Tgl TTB (${formatDateDdMmYy(itemsS2[0]?.tglTtb || itemS1?.tglInputTtb)}) sama dengan Tgl PO (${slaDeliveryAnomaly.poDate}) tanpa penjelas pengiriman ekspres`}
+                          title={`Peringatan SLA: Tgl TTB (${formatDateDdMmYy(activeTglTtb || itemsS2[0]?.tglTtb || itemS1?.tglInputTtb)}) sama dengan Tgl PO (${slaDeliveryAnomaly.poDate}) tanpa penjelas pengiriman ekspres`}
                           className="cursor-help"
                         >
                           <AlertTriangle className="size-2.5 text-amber-500 shrink-0" />
                         </span>
                       )}
                     </span>
-                    {(itemsS2[0]?.tglTtb && itemsS2[0].tglTtb !== '-') || (itemS1?.tglInputTtb && itemS1.tglInputTtb !== '-') ? (
+                    {(activeTglTtb && activeTglTtb !== '-') || (itemsS2[0]?.tglTtb && itemsS2[0].tglTtb !== '-') || (itemS1?.tglInputTtb && itemS1.tglInputTtb !== '-') ? (
                       <span
                         className={`font-mono text-right ml-1.5 truncate min-w-0 ${
                           slaDeliveryAnomaly?.isTtbSameDay
@@ -2578,10 +2618,10 @@ export default function AuditModal({
                         title={
                           slaDeliveryAnomaly?.isTtbSameDay
                             ? `Peringatan SLA: Tgl TTB sama dengan Tgl PO (${slaDeliveryAnomaly.poDate})`
-                            : itemsS2[0]?.tglTtb || itemS1?.tglInputTtb
+                            : activeTglTtb || itemsS2[0]?.tglTtb || itemS1?.tglInputTtb
                         }
                       >
-                        {formatDateDdMmYy(itemsS2[0]?.tglTtb || itemS1?.tglInputTtb)}
+                        {formatDateDdMmYy(activeTglTtb || itemsS2[0]?.tglTtb || itemS1?.tglInputTtb)}
                       </span>
                     ) : (
                       <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
@@ -2592,7 +2632,7 @@ export default function AuditModal({
                 </div>
               </div>
               <div className="pt-2 border-t border-border min-w-0">
-                {isLogistikTtbFilled ? (
+                {isCard4Done || isLogistikTtbFilled ? (
                   <span className="inline-flex items-center justify-center gap-1 text-[10px] font-mono text-purple-700 dark:text-purple-400 bg-purple-500/10 px-2 py-1 rounded-md border border-purple-500/20 w-full truncate font-semibold min-w-0">
                     <Check className="size-3 text-purple-600 dark:text-purple-400" />
                     {isJasaOnly ? 'BAST Tercatat' : 'TTB Tercatat'}
@@ -2602,6 +2642,16 @@ export default function AuditModal({
                     <Clock className="size-3 text-amber-600 dark:text-amber-400" />
                     {isJasaOnly ? 'Menunggu BAST' : 'Menunggu TTB'}
                   </span>
+                )}
+                {!isVisitor && (
+                  <button
+                    type="button"
+                    onClick={() => setShowOperationalModal(true)}
+                    className="flex items-center justify-center gap-1.5 text-[10.5px] font-medium text-purple-700 dark:text-purple-300 hover:text-purple-900 dark:hover:text-purple-100 bg-purple-500/10 hover:bg-purple-500/20 px-2 py-1 rounded border border-purple-500/30 transition w-full mt-1.5 cursor-pointer"
+                  >
+                    <PackageCheck className="size-3 shrink-0" />
+                    <span>{operationalOverride ? 'Ubah BAST / TTB' : '+ Input BAST / TTB'}</span>
+                  </button>
                 )}
               </div>
             </div>
@@ -2629,7 +2679,7 @@ export default function AuditModal({
                     </span>
                     {isPicLapFilled ? (
                       <span className="font-semibold text-foreground font-mono truncate text-right ml-1.5 min-w-0">
-                        {hasValue(itemS1?.picLap) ? itemS1!.picLap : itemsS2[0]?.picLap}
+                        {effectivePicLap}
                       </span>
                     ) : (
                       <span
@@ -2646,7 +2696,7 @@ export default function AuditModal({
                       {isJasaOnly ? 'Ke Lapangan:' : 'Tgl diterima TL:'}
                       {slaDeliveryAnomaly?.isTlSameDay && (
                         <span
-                          title={`Peringatan SLA: Tgl diterima TL (${formatDateDdMmYy((hasValue(itemS1?.tglKeTimLapangan) ? itemS1!.tglKeTimLapangan : '') || (hasValue(itemsS2[0]?.tglKeTimLapangan) ? itemsS2[0]!.tglKeTimLapangan : ''))}) sama dengan Tgl PO (${slaDeliveryAnomaly.poDate}) tanpa penjelas pengiriman ekspres`}
+                          title={`Peringatan SLA: Tgl diterima TL (${formatDateDdMmYy(effectiveTglKeLap)}) sama dengan Tgl PO (${slaDeliveryAnomaly.poDate}) tanpa penjelas pengiriman ekspres`}
                           className="cursor-help"
                         >
                           <AlertTriangle className="size-2.5 text-amber-500 shrink-0" />
@@ -2666,10 +2716,7 @@ export default function AuditModal({
                             : undefined
                         }
                       >
-                        {formatDateDdMmYy(
-                          (hasValue(itemS1?.tglKeTimLapangan) ? itemS1!.tglKeTimLapangan : '') ||
-                          (hasValue(itemsS2[0]?.tglKeTimLapangan) ? itemsS2[0]!.tglKeTimLapangan : '')
-                        )}
+                        {formatDateDdMmYy(effectiveTglKeLap)}
                       </span>
                     ) : (
                       <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
@@ -2683,10 +2730,7 @@ export default function AuditModal({
                     </span>
                     {hasTglDiantar ? (
                       <span className="text-amber-600 dark:text-amber-400 font-mono text-right ml-1.5 truncate min-w-0 font-medium">
-                        {formatDateDdMmYy(
-                          (hasValue(itemS1?.tglBarangDiantar) ? itemS1!.tglBarangDiantar : '') ||
-                          (hasValue(itemsS2[0]?.tglBarangDiantar) ? itemsS2[0]!.tglBarangDiantar : '')
-                        )}
+                        {formatDateDdMmYy(effectiveTglDiantar)}
                       </span>
                     ) : (
                       <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
@@ -2698,10 +2742,7 @@ export default function AuditModal({
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">TL ke TTB:</span>
                     {hasTglTimLapKePicTtb ? (
                       <span className="text-muted-foreground font-mono text-right ml-1.5 truncate min-w-0">
-                        {formatDateDdMmYy(
-                          (hasValue(itemS1?.tglTimLapKePicTtb) ? itemS1!.tglTimLapKePicTtb : '') ||
-                          (hasValue(itemsS2[0]?.tglTimLapKePicTtb) ? itemsS2[0]!.tglTimLapKePicTtb : '')
-                        )}
+                        {formatDateDdMmYy(effectiveTglTimLapKePicTtb)}
                       </span>
                     ) : (
                       <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
@@ -2713,10 +2754,7 @@ export default function AuditModal({
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">TTB ke PCH:</span>
                     {hasTglTtbKePch ? (
                       <span className="text-muted-foreground font-mono text-right ml-1.5 truncate min-w-0">
-                        {formatDateDdMmYy(
-                          (hasValue(itemS1?.tglTtbKePicPch) ? itemS1!.tglTtbKePicPch : '') ||
-                          (hasValue(itemsS2[0]?.tglTtbKePicPch) ? itemsS2[0]!.tglTtbKePicPch : '')
-                        )}
+                        {formatDateDdMmYy(effectiveTglTtbKePch)}
                       </span>
                     ) : (
                       <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
@@ -2724,6 +2762,27 @@ export default function AuditModal({
                       </span>
                     )}
                   </div>
+                  {operationalOverride?.attachments && operationalOverride.attachments.length > 0 && (
+                    <div className="pt-1.5 border-t border-border/50 space-y-1">
+                      <span className="text-[9.5px] text-muted-foreground font-mono block">Lampiran Drive:</span>
+                      <div className="flex flex-wrap gap-1">
+                        {operationalOverride.attachments.map((att, idx) => (
+                          <a
+                            key={att.id || `${att.name}-${idx}`}
+                            href={att.driveViewUrl || att.viewUrl || att.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-[9.5px] font-mono px-1.5 py-0.5 rounded bg-muted hover:bg-muted/80 text-foreground border border-border transition truncate max-w-full"
+                            title={`Buka berkas di Google Drive: ${att.name}`}
+                          >
+                            <Camera className="size-2.5 text-blue-500 shrink-0" />
+                            <span className="truncate max-w-[110px]">{att.name}</span>
+                            <ExternalLink className="size-2 text-muted-foreground shrink-0" />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="pt-2 border-t border-border min-w-0">
@@ -2742,6 +2801,16 @@ export default function AuditModal({
                     <Clock className="size-3 text-amber-600 dark:text-amber-400" />
                     Pending Lapangan
                   </span>
+                )}
+                {!isVisitor && (
+                  <button
+                    type="button"
+                    onClick={() => setShowOperationalModal(true)}
+                    className="flex items-center justify-center gap-1.5 text-[10.5px] font-medium text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100 bg-amber-500/10 hover:bg-amber-500/20 px-2 py-1 rounded border border-amber-500/30 transition w-full mt-1.5 cursor-pointer"
+                  >
+                    <HardHat className="size-3 shrink-0" />
+                    <span>{operationalOverride ? 'Ubah Hasil Lapangan' : (isJasaOnly ? '+ Input Teknisi' : '+ Input Hasil Lapangan')}</span>
+                  </button>
                 )}
               </div>
             </div>
@@ -3674,6 +3743,36 @@ export default function AuditModal({
           fpb={primaryDocNum}
           armada={itemsS2[0]?.armada || itemS1?.deptArmada}
           item={itemsS2[0]?.item || itemS1?.item}
+          showToast={showToast}
+        />
+      )}
+
+      {/* Pop-up Box: Update Progres Operasional Fase 4 & 5 (TTB/BAST & Teknisi Lapangan) */}
+      {showOperationalModal && primaryDocNum && (
+        <OperationalUpdateModal
+          isOpen={showOperationalModal}
+          onClose={() => setShowOperationalModal(false)}
+          fpb={primaryDocNum}
+          armada={itemsS2[0]?.armada || itemS1?.deptArmada}
+          isJasaOnly={isJasaOnly}
+          isCampuran={isCampuran}
+          initialData={{
+            picTtb: operationalOverride?.picTtb || cleanPicTtb,
+            noTtb: operationalOverride?.noTtb || activeTtb,
+            tglTtb: operationalOverride?.tglTtb || activeTglTtb,
+            picLap: operationalOverride?.picLap || effectivePicLap,
+            serviceReportNo: operationalOverride?.serviceReportNo || detectedServiceReportNo || '',
+            tglDiantar: operationalOverride?.tglDiantar || effectiveTglDiantar,
+            tglKeTimLapangan: operationalOverride?.tglKeTimLapangan || effectiveTglKeLap,
+            tglTimLapKePicTtb: operationalOverride?.tglTimLapKePicTtb || effectiveTglTimLapKePicTtb,
+            tglTtbKePicPch: operationalOverride?.tglTtbKePicPch || effectiveTglTtbKePch,
+            attachments: operationalOverride?.attachments,
+            keterangan: operationalOverride?.keterangan,
+          }}
+          onSave={(saved) => {
+            setOperationalOverride(saved);
+            showToast('Progres operasional fase 4 & 5 berhasil disimpan!', 'success');
+          }}
           showToast={showToast}
         />
       )}

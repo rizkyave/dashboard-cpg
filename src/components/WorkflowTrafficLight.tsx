@@ -8,6 +8,8 @@ import {
   FiveDivisionWorkflowResult,
   DivisionStageLight,
 } from '@/utils/statusWorkflow';
+import { getOperationalOverride } from '@/utils/operationalProgressStorage';
+import { normalizeFpbKey } from '@/utils/dataMerger';
 
 export interface WorkflowTrafficLightProps {
   item: EvaluatableItem;
@@ -29,9 +31,39 @@ export default function WorkflowTrafficLight({
   // Determine effective variant
   const effectiveVariant = variant || (compact ? 'compact' : 'compact');
 
+  const [overrideVersion, setOverrideVersion] = React.useState<number>(0);
+  React.useEffect(() => {
+    const handler = (e: any) => {
+      if (!e?.detail?.fpb || (item.fpb && normalizeFpbKey(e.detail.fpb) === normalizeFpbKey(item.fpb))) {
+        setOverrideVersion((v) => v + 1);
+      }
+    };
+    window.addEventListener('cpg_operational_override_changed', handler);
+    return () => window.removeEventListener('cpg_operational_override_changed', handler);
+  }, [item.fpb]);
+
   const result: FiveDivisionWorkflowResult = React.useMemo(() => {
-    return evaluateFiveDivisionWorkflow(item);
+    let effectiveItem = item;
+    if (item.fpb) {
+      const override = getOperationalOverride(item.fpb);
+      if (override) {
+        effectiveItem = {
+          ...item,
+          picTtb: override.picTtb || item.picTtb,
+          noTtb: override.noTtb || item.noTtb,
+          tglTtb: override.tglTtb || item.tglTtb,
+          picLap: override.picLap || item.picLap,
+          tglBarangDiantar: override.tglDiantar || item.tglBarangDiantar,
+          tglKeTimLapangan: override.tglKeTimLapangan || item.tglKeTimLapangan,
+          tglTimLapKePicTtb: override.tglTimLapKePicTtb || item.tglTimLapKePicTtb,
+          tglTtbKePicPch: override.tglTtbKePicPch || item.tglTtbKePicPch,
+        };
+      }
+    }
+    return evaluateFiveDivisionWorkflow(effectiveItem);
   }, [
+    item,
+    overrideVersion,
     item.fpb,
     item.po,
     item.noPo,

@@ -62,7 +62,6 @@ import TtbGalleryTab from '@/components/TtbGalleryTab';
 import AdminSettingsTab from '@/components/AdminSettingsTab';
 import SisaLayananTab from '@/components/SisaLayananTab';
 import UploadTtbTab from '@/components/UploadTtbTab';
-import KargoLogistikTab from '@/components/KargoLogistikTab';
 import { SisaLayananItem, SisaLayananSummary } from '@/types/sisaLayanan';
 import {
   saveStoredSisaLayanan,
@@ -986,8 +985,6 @@ export default function DashboardPage() {
                   ? 'Laporan Sisa Layanan Permintaan (Gabungan)'
                   : activeTab === 'upload-ttb'
                   ? 'Upload Dokumen TTB ke Google Drive'
-                  : activeTab === 'ops-kargo'
-                  ? 'Sistem Manajemen Operasional Kargo & Angkutan Barang'
                   : activeTab === 'admin-settings'
                   ? 'Pengaturan Administrator & Pengguna'
                   : 'Analisis SLA & Lead Time'}
@@ -1017,8 +1014,6 @@ export default function DashboardPage() {
                   ? 'Monitoring pemenuhan pengajuan barang (FPB, PO, FSTB, TTB) gabungan seluruh unit armada kapal & divisi PT Cindara Pratama Group.'
                   : activeTab === 'upload-ttb'
                   ? 'Unggah foto fisik & dokumen scan tanda terima barang (TTB) ke Google Drive dengan sistem penamaan otomatis sesuai Nomor TTB resmi.'
-                  : activeTab === 'ops-kargo'
-                  ? 'Pengelolaan pesanan resi, sinkronisasi alur penugasan PIC 6 fase, pemantauan armada angkutan logistik, dan portal pelacakan publik real-time.'
                   : activeTab === 'admin-settings'
                   ? 'Kelola akun operasional staf purchasing (User) dan akun tamu/peninjau (Visitor). Tambahkan pengguna baru dan konfigurasi wewenang hak akses.'
                   : 'Distribusi waktu perputaran berkas fisik (lead time) dan beban kerja produktivitas staf PIC operasional.'}
@@ -1026,7 +1021,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Tombol Sembunyikan Ringkasan Metrik KPI */}
-            {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'upload-ttb' && activeTab !== 'ops-kargo' && activeTab !== 'admin-settings' && (!isVisitor || searchKeyword.trim() !== '') && (
+            {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'upload-ttb' && activeTab !== 'admin-settings' && (!isVisitor || searchKeyword.trim() !== '') && (
               <button
                 type="button"
                 onClick={toggleKpiHidden}
@@ -1201,11 +1196,6 @@ export default function DashboardPage() {
               sisaLayananItems={sisaLayananItems}
               showToast={showToast}
             />
-          )}
-
-          {/* Tab Modul: Operasional Kargo & Angkutan Barang Logistik */}
-          {activeTab === 'ops-kargo' && (
-            <KargoLogistikTab showToast={showToast} />
           )}
 
           {/* Tab 6: Admin Settings - Manajemen Pengguna & Visitor */}

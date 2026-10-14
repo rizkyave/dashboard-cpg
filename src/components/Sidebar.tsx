@@ -28,7 +28,6 @@ import {
   Wrench,
   Layers,
   UploadCloud,
-  Truck,
 } from 'lucide-react';
 
 import * as XLSX from 'xlsx';
@@ -572,29 +571,6 @@ export default function Sidebar({
                 </div>
                 <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20">
                   Drive
-                </span>
-              </button>
-
-              {/* Modul Baru: Kargo & Logistik (Sistem Manajemen Operasional & Resi) */}
-              <button
-                onClick={() => handleSelectTab('ops-kargo')}
-                className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation cursor-pointer ${
-                  activeTab === 'ops-kargo'
-                    ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-border'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                }`}
-                title="Sistem Manajemen Operasional Angkutan Barang, Kargo, Alur 6 Fase & Lacak Resi"
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <Truck
-                    className={`size-4 shrink-0 ${
-                      activeTab === 'ops-kargo' ? 'text-sky-500' : 'text-muted-foreground'
-                    }`}
-                  />
-                  <span className="truncate whitespace-nowrap">Kargo & Logistik</span>
-                </div>
-                <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
-                  Kargo
                 </span>
               </button>
             </nav>
