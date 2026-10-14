@@ -3,6 +3,8 @@
  * untuk modul Upload Dokumen TTB Logistik CPG.
  */
 
+import { UploadedTtbItem } from '@/types/ttbUpload';
+
 export const DEFAULT_DRIVE_FOLDER_ID = '1Hd6FsgWiALq1jJyRvh8auY0FJGE9h5tf';
 export const DEFAULT_DRIVE_FOLDER_URL = `https://drive.google.com/drive/folders/${DEFAULT_DRIVE_FOLDER_ID}`;
 
@@ -61,10 +63,11 @@ function doPost(e) {
 function doGet(e) {
   try {
     var action = (e && e.parameter && e.parameter.action) || "ping";
+    var folderId = (e && e.parameter && e.parameter.folderId) || DEFAULT_TARGET_FOLDER_ID;
     if (action === "list") {
-      return handleList();
+      return handleList(folderId);
     }
-    return handlePing();
+    return handlePing({ folderId: folderId });
   } catch (err) {
     return createJsonResponse({ success: false, error: err.toString() });
   }
@@ -182,43 +185,61 @@ function handleUpload(data) {
   });
 }
 
-function handleList() {
+function handleList(folderId) {
   try {
-    var folder = DriveApp.getFolderById(DEFAULT_TARGET_FOLDER_ID);
+    var targetFolderId = folderId || DEFAULT_TARGET_FOLDER_ID;
+    var folder;
+    try {
+      folder = DriveApp.getFolderById(targetFolderId);
+    } catch (err) {
+      folder = DriveApp.getRootFolder();
+    }
+
     var ssFile = getOrCreateDatabaseSheet(folder);
     var ss = SpreadsheetApp.open(ssFile);
     var sheet = ss.getActiveSheet();
     var data = sheet.getDataRange().getValues();
 
     if (data.length <= 1) {
-      return createJsonResponse({ success: true, items: [] });
+      return createJsonResponse({ success: true, spreadsheetUrl: ssFile.getUrl(), items: [] });
     }
 
     var items = [];
     for (var r = 1; r < data.length; r++) {
       var row = data[r];
+      if (!row[0] && !row[2]) continue;
+
+      var dateVal = row[0];
+      var dateStr = (dateVal instanceof Date) ? dateVal.toISOString() : (dateVal ? String(dateVal) : new Date().toISOString());
+
       items.push({
-        uploadedAt: row[0],
-        id: row[1],
-        noTtb: row[2],
-        cleanNoTtb: row[3],
-        armada: row[4],
-        receivedDate: row[5],
-        keterangan: row[6],
-        originalFileName: row[7],
-        renamedFileName: row[8],
-        fileSize: row[9],
-        fileType: row[10],
-        driveFileId: row[11],
-        driveViewUrl: row[12],
-        driveDownloadUrl: row[13],
-        fileUrl: row[12],
-        driveFolderUrl: row[14],
+        uploadedAt: dateStr,
+        id: String(row[1] || ("REC-" + r)),
+        noTtb: String(row[2] || "-"),
+        cleanNoTtb: String(row[3] || "-"),
+        armada: String(row[4] || "-"),
+        receivedDate: String(row[5] || "-"),
+        keterangan: String(row[6] || ""),
+        originalFileName: String(row[7] || ""),
+        renamedFileName: String(row[8] || ""),
+        fileSize: Number(row[9] || 0),
+        fileType: String(row[10] || "image/jpeg"),
+        driveFileId: String(row[11] || ""),
+        driveViewUrl: String(row[12] || ""),
+        driveDownloadUrl: String(row[13] || ""),
+        fileUrl: String(row[12] || ""),
+        driveFolderUrl: String(row[14] || folder.getUrl()),
+        spreadsheetUrl: ssFile.getUrl(),
         status: "SAVED_TO_DRIVE_DATABASE"
       });
     }
 
-    return createJsonResponse({ success: true, items: items.reverse() });
+    return createJsonResponse({
+      success: true,
+      spreadsheetUrl: ssFile.getUrl(),
+      total: items.length,
+      items: items.reverse()
+    });
   } catch (err) {
     return createJsonResponse({ success: false, error: err.toString() });
   }
@@ -389,3 +410,40 @@ export async function pingGoogleDriveAppsScript(
     return { success: false, error: (err as Error).message };
   }
 }
+
+/**
+ * Mengambil daftar berkas riwayat langsung dari Database Spreadsheet Google Drive
+ */
+export async function listGoogleDriveDatabaseItems(
+  scriptUrl: string,
+  folderId: string = DEFAULT_DRIVE_FOLDER_ID,
+  timeoutMs: number = 15000
+): Promise<{ success: boolean; items?: UploadedTtbItem[]; spreadsheetUrl?: string; total?: number; error?: string }> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const targetUrl = new URL(scriptUrl);
+    targetUrl.searchParams.set('action', 'list');
+    targetUrl.searchParams.set('folderId', folderId);
+
+    const res = await fetch(targetUrl.toString(), {
+      method: 'GET',
+      signal: controller.signal,
+      redirect: 'follow',
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      return { success: false, error: `Google Apps Script merespons status ${res.status}` };
+    }
+
+    const json = await res.json();
+    return json;
+  } catch (err) {
+    clearTimeout(timeoutId);
+    return { success: false, error: (err as Error).message };
+  }
+}
+

@@ -9,6 +9,7 @@ import {
   DEFAULT_DRIVE_FOLDER_ID,
   DEFAULT_DRIVE_FOLDER_URL,
   uploadToGoogleDriveAppsScript,
+  listGoogleDriveDatabaseItems,
   GoogleDriveUploadPayloadFile,
 } from '@/utils/googleDriveAppsScript';
 
@@ -61,22 +62,73 @@ async function saveHistory(records: UploadedTtbItem[]) {
   }
 }
 
-// GET: Ambil riwayat berkas TTB yang pernah diunggah
+// GET: Ambil riwayat berkas TTB yang pernah diunggah (mendukung baca langsung dari Database Google Drive di Vercel)
 export async function GET(req: NextRequest) {
   try {
-    const history = await getHistory();
-    const sorted = [...history].sort(
+    const urlParam = req.nextUrl.searchParams.get('scriptUrl') || '';
+    const headerUrl = req.headers.get('x-google-drive-script-url') || '';
+    const driveScriptUrl = urlParam || headerUrl || process.env.GOOGLE_DRIVE_SCRIPT_URL || '';
+
+    const folderIdParam = req.nextUrl.searchParams.get('folderId') || '';
+    const targetFolderId = folderIdParam || GOOGLE_DRIVE_FOLDER_ID;
+    const targetFolderUrl = `https://drive.google.com/drive/folders/${targetFolderId}`;
+
+    // 1. Ambil riwayat lokal/cache sebagai basis awal
+    const localHistory = await getHistory();
+
+    // 2. Jika Google Apps Script Web App tersedia, baca langsung Database Spreadsheet Google Drive
+    if (driveScriptUrl) {
+      try {
+        const driveResult = await listGoogleDriveDatabaseItems(driveScriptUrl, targetFolderId);
+        if (driveResult.success && driveResult.items) {
+          // Gabungkan data dari Google Drive Database (prioritas tinggi) dengan data lokal
+          const mergedMap = new Map<string, UploadedTtbItem>();
+
+          // Masukkan item dari Google Drive Spreadsheet terlebih dahulu
+          for (const item of driveResult.items) {
+            const key = (item.cleanNoTtb || item.noTtb) + '_' + item.renamedFileName;
+            mergedMap.set(key, item);
+          }
+
+          // Tambahkan item lokal yang belum tercatat di Drive
+          for (const item of localHistory) {
+            const key = (item.cleanNoTtb || item.noTtb) + '_' + item.renamedFileName;
+            if (!mergedMap.has(key)) {
+              mergedMap.set(key, item);
+            }
+          }
+
+          const mergedItems = Array.from(mergedMap.values()).sort(
+            (a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
+          );
+
+          return NextResponse.json({
+            success: true,
+            folderId: targetFolderId,
+            driveFolderUrl: targetFolderUrl,
+            spreadsheetUrl: driveResult.spreadsheetUrl || localHistory.find((s) => s.spreadsheetUrl)?.spreadsheetUrl,
+            isDriveDatabaseActive: true,
+            items: mergedItems,
+          });
+        }
+      } catch (driveErr) {
+        console.warn('Gagal membaca database Google Drive secara langsung, menggunakan cadangan lokal:', driveErr);
+      }
+    }
+
+    // 3. Fallback jika scriptUrl belum diatur atau offline
+    const sorted = [...localHistory].sort(
       (a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
     );
 
-    // Cari spreadsheetUrl terbaru jika ada
     const latestSpreadsheet = sorted.find((s) => s.spreadsheetUrl)?.spreadsheetUrl;
 
     return NextResponse.json({
       success: true,
-      folderId: GOOGLE_DRIVE_FOLDER_ID,
-      driveFolderUrl: GOOGLE_DRIVE_FOLDER_URL,
+      folderId: targetFolderId,
+      driveFolderUrl: targetFolderUrl,
       spreadsheetUrl: latestSpreadsheet,
+      isDriveDatabaseActive: !!driveScriptUrl,
       items: sorted,
     });
   } catch (err) {

@@ -240,13 +240,16 @@ export default function UploadTtbTab({
     if (typeof window !== 'undefined') {
       if (clean) {
         localStorage.setItem('cpg_drive_script_url', clean);
-        showToast?.('Pengaturan Database Google Drive berhasil disimpan!', 'success');
+        showToast?.('Pengaturan Database Google Drive berhasil disimpan! Memuat data...', 'success');
       } else {
         localStorage.removeItem('cpg_drive_script_url');
         showToast?.('Integrasi Database Google Drive dinonaktifkan (mode lokal).', 'info');
       }
     }
     setIsDriveDatabaseModalOpen(false);
+    setTimeout(() => {
+      fetchUploadHistory();
+    }, 150);
   };
 
   // Salin Kode Google Apps Script
@@ -350,11 +353,27 @@ export default function UploadTtbTab({
       .slice(0, 8);
   }, [noTtbInput, ttbSuggestions]);
 
-  // Fetch riwayat upload dari API
+  // Fetch riwayat upload dari API (membaca langsung database Google Drive / Sheets di Vercel)
   const fetchUploadHistory = async () => {
     setIsLoadingHistory(true);
     try {
-      const res = await fetch('/api/upload-ttb');
+      const activeScriptUrl =
+        driveScriptUrl ||
+        (typeof window !== 'undefined' ? localStorage.getItem('cpg_drive_script_url') || '' : '');
+
+      const params = new URLSearchParams();
+      if (activeScriptUrl) {
+        params.set('scriptUrl', activeScriptUrl);
+      }
+      if (activeFolderId) {
+        params.set('folderId', activeFolderId);
+      }
+
+      const queryString = params.toString() ? `?${params.toString()}` : '';
+      const res = await fetch(`/api/upload-ttb${queryString}`, {
+        headers: activeScriptUrl ? { 'x-google-drive-script-url': activeScriptUrl } : {},
+      });
+
       if (res.ok) {
         const data = await res.json();
         if (data.items) {
