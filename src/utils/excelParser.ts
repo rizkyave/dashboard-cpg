@@ -152,6 +152,7 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
     deliveryTime: string;
     fstb: string;
     tglFstb: string;
+    picFstb?: string;
     tglKePicTtb: string;
     waktuKePicTtb: string;
     ket1: string;
@@ -201,6 +202,7 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
     const cDelivery  = findCol(colMap, 'DELIVERY TIME', 'DELIVERY', 'WAKTU DELIVERY', 'WAKTU PROSES');
     const cFSTB      = findCol(colMap, 'NO. FSTB', 'NO FSTB', 'NOMOR FSTB', 'FSTB');
     const cTglFSTB   = findCol(colMap, 'TANGGAL INPUT FSTB', 'TGL INPUT FSTB', 'TANGGAL FSTB', 'TGL FSTB');
+    const cPicFstb   = findCol(colMap, 'PIC FSTB', 'PIC PENERIMA', 'PENERIMA FSTB', 'PENERIMA BARANG', 'PIC SERAH TERIMA');
     const cTglPicTtb = findCol(colMap, 'TANGGAL KE PIC TTB', 'TGL KE PIC TTB', 'KE PIC TTB');
     const cWaktuPicTtb = findCol(colMap, 'WAKTU KE PIC TTB', 'JAM KE PIC TTB', 'WAKTU PIC TTB');
     const cKet1      = findCol(colMap, 'KETERANGAN');
@@ -301,6 +303,7 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
         deliveryTime: String(cDelivery >= 0 ? r[cDelivery] : '').trim(),
         fstb: String(cFSTB >= 0 ? r[cFSTB] : '').trim(),
         tglFstb: excelDateToString(cTglFSTB >= 0 ? r[cTglFSTB] : ''),
+        picFstb: String(cPicFstb >= 0 ? r[cPicFstb] : '').trim(),
         tglKePicTtb: excelDateToString(cTglPicTtb >= 0 ? r[cTglPicTtb] : ''),
         waktuKePicTtb: String(cWaktuPicTtb >= 0 ? r[cWaktuPicTtb] : '').trim(),
         ket1: String(cKet1 >= 0 ? r[cKet1] : '').trim(),
@@ -334,6 +337,7 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
           if (!hasValue(target.deliveryTime) && hasValue(record.deliveryTime)) target.deliveryTime = record.deliveryTime;
           if (!hasValue(target.fstb) && hasValue(record.fstb)) target.fstb = record.fstb;
           if (!hasValue(target.tglFstb) && hasValue(record.tglFstb)) target.tglFstb = record.tglFstb;
+          if (!hasValue(target.picFstb) && hasValue(record.picFstb)) target.picFstb = record.picFstb;
           if (!hasValue(target.picTtb) && hasValue(record.picTtb)) target.picTtb = record.picTtb;
           if (!hasValue(target.ttb) && hasValue(record.ttb)) target.ttb = record.ttb;
           if (!hasValue(target.tglTtb) && hasValue(record.tglTtb)) target.tglTtb = record.tglTtb;
@@ -365,6 +369,7 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
           if (!hasValue(target.deliveryTime) && hasValue(record.deliveryTime)) target.deliveryTime = record.deliveryTime;
           if (!hasValue(target.fstb) && hasValue(record.fstb)) target.fstb = record.fstb;
           if (!hasValue(target.tglFstb) && hasValue(record.tglFstb)) target.tglFstb = record.tglFstb;
+          if (!hasValue(target.picFstb) && hasValue(record.picFstb)) target.picFstb = record.picFstb;
           if (!hasValue(target.picTtb) && hasValue(record.picTtb)) target.picTtb = record.picTtb;
           if (!hasValue(target.ttb) && hasValue(record.ttb)) target.ttb = record.ttb;
           if (!hasValue(target.tglTtb) && hasValue(record.tglTtb)) target.tglTtb = record.tglTtb;
@@ -746,6 +751,7 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
         deptArmada,
         deliveryTime,
         noFstb,
+        picFstb: pMatch?.picFstb || '',
         tglInputFstb,
         tglKePicTtb,
         noTtb,
@@ -840,6 +846,7 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
         noPo: po || '-',
         tglPo,
         noFstb,
+        picFstb: pMatch?.picFstb || '',
         tglFstb: tglInputFstb,
         noTtb,
         tglTtb: tglInputTtb,
@@ -965,6 +972,7 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
         deptArmada: proc.armada,
         deliveryTime: proc.deliveryTime,
         noFstb: proc.fstb,
+        picFstb: proc.picFstb || '',
         tglInputFstb: proc.tglFstb,
         tglKePicTtb: proc.tglKePicTtb,
         noTtb: proc.ttb,

@@ -103,6 +103,7 @@ export interface ProcurementItem {
   deptArmada?: string;
   deliveryTime?: string;
   noFstb?: string;
+  picFstb?: string;
   tglInputFstb?: string;
   tglKePicTtb?: string;
   noTtb?: string;
@@ -174,6 +175,7 @@ export interface ArmadaItem {
   qtyPO?: number;
   qtyTTB?: number;
   picPch?: string;
+  picFstb?: string;
   picTtb?: string;
   picLap?: string;
   picAdm?: string;

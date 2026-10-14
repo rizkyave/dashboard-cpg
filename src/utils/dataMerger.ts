@@ -80,6 +80,7 @@ export function mergeProcurementDatasets(
         if (!hasValue(target.tglInputSpp) && hasValue(item.tglInputSpp)) target.tglInputSpp = item.tglInputSpp;
         if (!hasValue(target.tglKeKeuangan) && hasValue(item.tglKeKeuangan)) target.tglKeKeuangan = item.tglKeKeuangan;
         if (!hasValue(target.picPch) && hasValue(item.picPch)) target.picPch = item.picPch;
+        if (!hasValue(target.picFstb) && hasValue(item.picFstb)) target.picFstb = item.picFstb;
         if (!hasValue(target.picTtb) && hasValue(item.picTtb)) target.picTtb = item.picTtb;
         if (!hasValue(target.picLap) && hasValue(item.picLap)) target.picLap = item.picLap;
         if (!hasValue(target.picAdm) && hasValue(item.picAdm)) target.picAdm = item.picAdm;
@@ -221,6 +222,9 @@ export function mergeProcurementDatasets(
       if (!hasValue(target.picPch) && hasValue(incoming.picPch)) {
         target.picPch = incoming.picPch;
       }
+      if (!hasValue(target.picFstb) && hasValue(incoming.picFstb)) {
+        target.picFstb = incoming.picFstb;
+      }
       if (!hasValue(target.picTtb) && hasValue(incoming.picTtb)) {
         target.picTtb = incoming.picTtb;
       }
@@ -354,6 +358,7 @@ export function mergeArmadaDatasets(
       if (!hasValue(target.tglTtb) && hasValue(incoming.tglTtb)) target.tglTtb = incoming.tglTtb;
       if (!hasValue(target.deliveryTime) && hasValue(incoming.deliveryTime)) target.deliveryTime = incoming.deliveryTime;
       if (!hasValue(target.picPch) && hasValue(incoming.picPch)) target.picPch = incoming.picPch;
+      if (!hasValue(target.picFstb) && hasValue(incoming.picFstb)) target.picFstb = incoming.picFstb;
       if (!hasValue(target.picTtb) && hasValue(incoming.picTtb)) target.picTtb = incoming.picTtb;
       if (!hasValue(target.picLap) && hasValue(incoming.picLap)) target.picLap = incoming.picLap;
       if (!hasValue(target.picAdm) && hasValue(incoming.picAdm)) target.picAdm = incoming.picAdm;
@@ -518,6 +523,7 @@ export function enrichProcurementAndArmada(
         if (!hasValue(existing.tglInputTtb) && hasValue(proc.tglInputTtb)) existing.tglInputTtb = proc.tglInputTtb;
         if (!hasValue(existing.deliveryTime) && hasValue(proc.deliveryTime)) existing.deliveryTime = proc.deliveryTime;
         if (!hasValue(existing.picPch) && hasValue(proc.picPch)) existing.picPch = proc.picPch;
+        if (!hasValue(existing.picFstb) && hasValue(proc.picFstb)) existing.picFstb = proc.picFstb;
         if (!hasValue(existing.picTtb) && hasValue(proc.picTtb)) existing.picTtb = proc.picTtb;
         if (!hasValue(existing.picLap) && hasValue(proc.picLap)) existing.picLap = proc.picLap;
         if (!hasValue(existing.picAdm) && hasValue(proc.picAdm)) existing.picAdm = proc.picAdm;
@@ -590,6 +596,7 @@ export function enrichProcurementAndArmada(
       if (!hasValue(proc.tglKeKeuangan) && hasValue(arm.tglKeKeuangan)) proc.tglKeKeuangan = String(arm.tglKeKeuangan);
       if (!hasValue(proc.deptArmada) && hasValue(arm.armada)) proc.deptArmada = String(arm.armada);
       if (!hasValue(proc.picPch) && hasValue(arm.picPch)) proc.picPch = String(arm.picPch);
+      if (!hasValue(proc.picFstb) && hasValue(arm.picFstb)) proc.picFstb = String(arm.picFstb);
       if (!hasValue(proc.picTtb) && hasValue(arm.picTtb)) proc.picTtb = String(arm.picTtb);
       if (!hasValue(proc.picLap) && hasValue(arm.picLap)) proc.picLap = String(arm.picLap);
       if (!hasValue(proc.picAdm) && hasValue(arm.picAdm)) proc.picAdm = String(arm.picAdm);
@@ -638,6 +645,7 @@ export function enrichProcurementAndArmada(
       if (!hasValue(arm.tglInputSpp) && hasValue(matchedProc.tglInputSpp)) arm.tglInputSpp = String(matchedProc.tglInputSpp);
       if (!hasValue(arm.tglKeKeuangan) && hasValue(matchedProc.tglKeKeuangan)) arm.tglKeKeuangan = String(matchedProc.tglKeKeuangan);
       if (!hasValue(arm.picPch) && hasValue(matchedProc.picPch)) arm.picPch = String(matchedProc.picPch);
+      if (!hasValue(arm.picFstb) && hasValue(matchedProc.picFstb)) arm.picFstb = String(matchedProc.picFstb);
       if (!hasValue(arm.picTtb) && hasValue(matchedProc.picTtb)) arm.picTtb = String(matchedProc.picTtb);
       if (!hasValue(arm.picLap) && hasValue(matchedProc.picLap)) arm.picLap = String(matchedProc.picLap);
       if (!hasValue(arm.picAdm) && hasValue(matchedProc.picAdm)) arm.picAdm = String(matchedProc.picAdm);
