@@ -220,7 +220,11 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
 
     const cleanNoTtb = sanitizeTtbNumber(noTtbRaw);
     const targetPhotosDir = getPhotosDir();
-    await fs.mkdir(targetPhotosDir, { recursive: true });
+    try {
+      await fs.mkdir(targetPhotosDir, { recursive: true });
+    } catch (mkdirErr) {
+      console.warn('Lewati mkdir lokal (berjalan di Vercel/serverless):', mkdirErr);
+    }
 
     const currentHistory = await getHistory();
     const newlyUploadedItems: UploadedTtbItem[] = [];
@@ -248,9 +252,13 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
       const isPdf = renamedFileName.toLowerCase().endsWith('.pdf');
       const mimeType = getMimeType(renamedFileName, f.type);
 
-      // 1. Simpan ke local storage
-      const localFilePath = path.join(targetPhotosDir, renamedFileName);
-      await fs.writeFile(localFilePath, buffer);
+      // 1. Simpan ke local storage (safe try/catch di Vercel)
+      try {
+        const localFilePath = path.join(targetPhotosDir, renamedFileName);
+        await fs.writeFile(localFilePath, buffer);
+      } catch (writeErr) {
+        console.warn('Lewati penyimpanan disk lokal (berjalan di Vercel/serverless):', writeErr);
+      }
 
       let publicUrl = `/api/upload-ttb/file?name=${encodeURIComponent(renamedFileName)}`;
 
@@ -335,6 +343,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
               item.driveFileId = matchedDriveFile.fileId;
               item.driveViewUrl = matchedDriveFile.webViewLink;
               item.driveDownloadUrl = matchedDriveFile.downloadUrl;
+              item.fileUrl = matchedDriveFile.webViewLink;
               item.spreadsheetUrl = driveResponse.spreadsheetUrl;
               item.status = 'SAVED_TO_DRIVE_DATABASE';
             }

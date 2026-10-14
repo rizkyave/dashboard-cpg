@@ -48,7 +48,8 @@ export async function GET(req: NextRequest) {
 
     return new NextResponse(new Uint8Array(data), { headers });
   } catch {
-    return new NextResponse('Berkas tidak ditemukan pada server.', { status: 404 });
+    const driveFolderId = process.env.GOOGLE_DRIVE_TTB_FOLDER_ID || '1Hd6FsgWiALq1jJyRvh8auY0FJGE9h5tf';
+    return NextResponse.redirect(`https://drive.google.com/drive/folders/${driveFolderId}`, 302);
   }
 }
 
