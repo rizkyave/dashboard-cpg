@@ -759,6 +759,21 @@ export default function AuditModal({
     );
   };
 
+  const isValidPicName = (name?: string) => {
+    if (!name) return false;
+    const n = name.trim().toLowerCase();
+    return (
+      n !== '' &&
+      n !== '-' &&
+      n !== '(kosong)' &&
+      n !== 'null' &&
+      n !== 'undefined' &&
+      n !== 'end user' &&
+      n !== '(end user)' &&
+      n !== 'e-fpb server'
+    );
+  };
+
   const cleanPicTtb = isRealPicTtb(itemS1?.picTtb)
     ? itemS1!.picTtb.trim()
     : itemsS2.find((i) => isRealPicTtb(i.picTtb))?.picTtb?.trim() || '';
@@ -773,6 +788,7 @@ export default function AuditModal({
   const hasValidTglTtb = Boolean(activeTglTtb && activeTglTtb !== '-' && activeTglTtb.trim() !== '');
   const isLogistikTtbFilled = hasValidTtbDoc || hasValidTglTtb;
 
+  // PIC Purchasing (Kotak 2) & FSTB (Kotak 3): dikerjakan oleh orang yang sama (staf Purchasing / Pembuat PO)
   const activePicPch =
     (hasValue(itemS1?.picPch) ? itemS1!.picPch.trim() : '') ||
     itemsS2.find((i) => hasValue(i.picPch))?.picPch?.trim() ||
@@ -784,6 +800,8 @@ export default function AuditModal({
       ? procurementList.find((i) => normalizeFpbKey(i.fpb) === normFpb && hasValue(i.picPch))?.picPch?.trim() ||
         armadaList.find((i) => normalizeFpbKey(i.fpb) === normFpb && hasValue(i.picPch))?.picPch?.trim()
       : '') ||
+    (hasValue((itemS1 as any)?.picFstb) ? String((itemS1 as any).picFstb).trim() : '') ||
+    (isValidPicName(pdfData?.receivedBy) ? pdfData?.receivedBy?.trim() : '') ||
     '';
 
   // Logika Kotak 2 (Purchasing): jika PIC dan No. PO belum terisi, Tgl PO otomatis kosong (-)
@@ -1026,12 +1044,6 @@ export default function AuditModal({
 
   // PIC & Tanggal Verifikasi FPB:
   // Prioritas utama diambil langsung dari 'Requested By' & tanggal tanda tangan digital PDF jika tersedia
-  const isValidPicName = (name?: string) => {
-    if (!name) return false;
-    const n = name.trim().toLowerCase();
-    return n !== '' && n !== '-' && n !== 'end user' && n !== '(end user)' && n !== 'e-fpb server';
-  };
-
   const displayPicFpb =
     (isValidPicName(pdfData?.requestedBy) ? pdfData?.requestedBy : '') ||
     (isValidPicName(itemS1?.picCheckFpb) ? itemS1?.picCheckFpb : '') ||
@@ -1040,56 +1052,20 @@ export default function AuditModal({
     (itemS1?.picCheckFpb && itemS1.picCheckFpb !== 'e-FPB Server' ? itemS1.picCheckFpb : '') ||
     '-';
   const displayTglFpb = pdfData?.requestedDate || itemS1?.tglCheckFpb || itemsS2[0]?.tglCheckFpb || itemS1?.tglFpb || '-';
-  // Helper untuk memvalidasi apakah suatu nama adalah PIC Purchasing / Pembuat PO
-  const isPicPembuatPoOrPurchasing = (name?: string): boolean => {
-    if (!name) return false;
-    const clean = name.trim().toLowerCase();
-    if (!clean || clean === '-' || clean === 'null' || clean === 'undefined') return false;
 
-    // Cek kecocokan dengan nama PIC Purchasing aktif (pembuat PO)
-    const activePch = (activePicPch || itemS1?.picPch || '').trim().toLowerCase();
-    if (activePch && (clean === activePch || clean.includes(activePch) || activePch.includes(clean))) {
-      return true;
-    }
-
-    // Cek nama umum staf Purchasing / Pembuat PO
-    if (
-      clean.includes('purchasing') ||
-      clean.includes('noor') ||
-      clean.includes('hasanah') ||
-      clean.includes('melinda') ||
-      clean.includes('pch')
-    ) {
-      return true;
-    }
-
-    return false;
-  };
-
-  // PIC FSTB / Penerima Barang Fisik:
-  // Catatan: Pembuat PO (Purchasing / Bu Noor / Bu Melinda) BUKAN penerima barang di tahap FSTB.
-  // Tahap FSTB hanya mencatat nama staf penerima fisik (misal PIC FSTB eksplisit, atau staf logistik gudang jika ada).
-  // pdfData?.receivedBy (tanda tangan penerimaan berkas FPB di kantor) dan activePicPch (pembuat PO)
-  // secara eksplisit TIDAK DIGUNAKAN di tahap FSTB. Jika tidak ada penerima fisik yang sah, tampilkan 'Belum Tercatat'.
+  // PIC Kotak 2 (Purchasing / PO) dan Kotak 3 (FSTB) dikerjakan oleh orang yang sama (staf Purchasing / Pembuat PO)
   const rawExplicitPicFstb =
     (isValidPicName((itemS1 as any)?.picFstb) ? String((itemS1 as any).picFstb).trim() : '') ||
-    (isValidPicName((itemsS2[0] as any)?.picFstb) ? String((itemsS2[0] as any).picFstb).trim() : '') ||
-    (isValidPicName((itemS1 as any)?.penerimaFstb) ? String((itemS1 as any).penerimaFstb).trim() : '') ||
-    (isValidPicName((itemsS2[0] as any)?.penerimaFstb) ? String((itemsS2[0] as any).penerimaFstb).trim() : '');
+    (isValidPicName((itemsS2[0] as any)?.picFstb) ? String((itemsS2[0] as any).picFstb).trim() : '');
 
   const effectivePicFstb = useMemo(() => {
-    // 1. Cek field eksplisit PIC FSTB jika ada dan bukan pembuat PO
-    if (rawExplicitPicFstb && !isPicPembuatPoOrPurchasing(rawExplicitPicFstb)) {
-      return rawExplicitPicFstb;
-    }
-
-    // 2. Cek apakah ada PIC TTB / Logistik yang sah dan BUKAN pembuat PO
-    if (cleanPicTtb && !isPicPembuatPoOrPurchasing(cleanPicTtb)) {
-      return cleanPicTtb;
-    }
-
-    return '';
-  }, [rawExplicitPicFstb, cleanPicTtb, activePicPch, itemS1?.picPch]);
+    return (
+      rawExplicitPicFstb ||
+      activePicPch ||
+      (isValidPicName(pdfData?.receivedBy) ? pdfData?.receivedBy?.trim() : '') ||
+      ''
+    );
+  }, [rawExplicitPicFstb, activePicPch, pdfData?.receivedBy]);
 
   // Menentukan sumber verifikasi data FPB Check (Bu Noor atau Bu Melinda)
   const fpbCheckInfo = useMemo(() => {
@@ -2352,7 +2328,7 @@ export default function AuditModal({
                 </div>
                 <div className="mt-2.5 space-y-1.5 text-[11px]">
                   <div className="flex items-center justify-between min-w-0">
-                    <span className="text-muted-foreground shrink-0 whitespace-nowrap" title="PIC Purchasing / Staf Pembuat PO">PIC / Pembuat PO:</span>
+                    <span className="text-muted-foreground shrink-0 whitespace-nowrap" title="PIC Purchasing / Staf Pembuat PO">PIC Purchasing:</span>
                     {hasPicPch ? (
                       <span
                         className="font-semibold text-foreground font-mono truncate text-right ml-1.5 min-w-0"
@@ -2452,21 +2428,21 @@ export default function AuditModal({
                   <div className="flex items-center justify-between min-w-0">
                     <span
                       className="text-muted-foreground shrink-0 whitespace-nowrap"
-                      title="PIC Penerima Fisik Barang (Staf Logistik/Gudang/Lapangan)"
+                      title="PIC FSTB (Dikerjakan bersama staf Purchasing / Pembuat PO)"
                     >
-                      PIC / Penerima:
+                      PIC FSTB:
                     </span>
                     {effectivePicFstb ? (
                       <span
                         className="font-semibold text-foreground font-mono truncate text-right ml-1.5 min-w-0"
-                        title={`Penerima Fisik FSTB: ${effectivePicFstb}`}
+                        title={`PIC FSTB: ${effectivePicFstb}`}
                       >
                         {effectivePicFstb}
                       </span>
                     ) : (
                       <span
                         className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0"
-                        title="Penerima fisik barang belum tercatat (pembuat PO tidak dicatat sebagai penerima FSTB)"
+                        title="PIC FSTB belum tercatat"
                       >
                         Belum Tercatat
                       </span>
