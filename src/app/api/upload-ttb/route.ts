@@ -5,16 +5,41 @@ import { put } from '@vercel/blob';
 import { sanitizeTtbNumber, formatTtbFilename } from '@/utils/ttbRename';
 import { getPhotosDir } from '@/utils/ttbPhotosDir';
 import { UploadedTtbItem, UploadTtbResponse } from '@/types/ttbUpload';
+import {
+  DEFAULT_DRIVE_FOLDER_ID,
+  DEFAULT_DRIVE_FOLDER_URL,
+  uploadToGoogleDriveAppsScript,
+  GoogleDriveUploadPayloadFile,
+} from '@/utils/googleDriveAppsScript';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const GOOGLE_DRIVE_FOLDER_ID = process.env.GOOGLE_DRIVE_TTB_FOLDER_ID || '1Hd6FsgWiALq1jJyRvh8auY0FJGE9h5tf';
+const GOOGLE_DRIVE_FOLDER_ID = process.env.GOOGLE_DRIVE_TTB_FOLDER_ID || DEFAULT_DRIVE_FOLDER_ID;
 const GOOGLE_DRIVE_FOLDER_URL = `https://drive.google.com/drive/folders/${GOOGLE_DRIVE_FOLDER_ID}`;
 
 const ALLOWED_EXT = /\.(jpe?g|png|webp|gif|pdf)$/i;
 const HISTORY_FILE_PATH = path.join(process.cwd(), 'src', 'data', 'ttb-uploads-history.json');
 const MANIFEST_PATH = path.join(process.cwd(), 'src', 'data', 'ttb-photos-manifest.json');
+
+// Helper penentuan MIME Type
+function getMimeType(fileName: string, fallbackType?: string): string {
+  const ext = path.extname(fileName).toLowerCase();
+  switch (ext) {
+    case '.pdf':
+      return 'application/pdf';
+    case '.png':
+      return 'image/png';
+    case '.webp':
+      return 'image/webp';
+    case '.gif':
+      return 'image/gif';
+    case '.jpg':
+    case '.jpeg':
+    default:
+      return fallbackType || 'image/jpeg';
+  }
+}
 
 // Baca riwayat upload dari disk
 async function getHistory(): Promise<UploadedTtbItem[]> {
@@ -43,10 +68,15 @@ export async function GET(req: NextRequest) {
     const sorted = [...history].sort(
       (a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
     );
+
+    // Cari spreadsheetUrl terbaru jika ada
+    const latestSpreadsheet = sorted.find((s) => s.spreadsheetUrl)?.spreadsheetUrl;
+
     return NextResponse.json({
       success: true,
       folderId: GOOGLE_DRIVE_FOLDER_ID,
       driveFolderUrl: GOOGLE_DRIVE_FOLDER_URL,
+      spreadsheetUrl: latestSpreadsheet,
       items: sorted,
     });
   } catch (err) {
@@ -57,7 +87,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST: Unggah berkas baru, lakukan auto-rename berbasis No. TTB, dan simpan
+// POST: Unggah berkas baru, auto-rename, upload ke Google Drive Apps Script & simpan ke Database Google Sheets
 export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResponse>> {
   try {
     const formData = await req.formData();
@@ -66,13 +96,22 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
     const receivedDate = ((formData.get('receivedDate') as string) || '').trim();
     const keterangan = ((formData.get('keterangan') as string) || '').trim();
 
+    // Script URL & Folder ID dari form data, header, atau env
+    const scriptUrlParam = ((formData.get('driveScriptUrl') as string) || '').trim();
+    const headerScriptUrl = req.headers.get('x-google-drive-script-url') || '';
+    const driveScriptUrl = scriptUrlParam || headerScriptUrl || process.env.GOOGLE_DRIVE_SCRIPT_URL || '';
+
+    const folderIdParam = ((formData.get('folderId') as string) || '').trim();
+    const targetFolderId = folderIdParam || GOOGLE_DRIVE_FOLDER_ID;
+    const targetFolderUrl = `https://drive.google.com/drive/folders/${targetFolderId}`;
+
     if (!noTtbRaw) {
       return NextResponse.json(
         {
           success: false,
           message: 'Nomor TTB wajib diisi.',
-          driveFolderUrl: GOOGLE_DRIVE_FOLDER_URL,
-          folderId: GOOGLE_DRIVE_FOLDER_ID,
+          driveFolderUrl: targetFolderUrl,
+          folderId: targetFolderId,
           uploadedFiles: [],
           error: 'Nomor TTB wajib diisi.',
         },
@@ -100,8 +139,8 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
         {
           success: false,
           message: 'Minimal pilih 1 file gambar atau dokumen scan PDF.',
-          driveFolderUrl: GOOGLE_DRIVE_FOLDER_URL,
-          folderId: GOOGLE_DRIVE_FOLDER_ID,
+          driveFolderUrl: targetFolderUrl,
+          folderId: targetFolderId,
           uploadedFiles: [],
           error: 'Berkas tidak ditemukan.',
         },
@@ -117,8 +156,8 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
           {
             success: false,
             message: `Format file "${f.name}" tidak didukung. Harap unggah format JPG, PNG, WEBP, atau PDF.`,
-            driveFolderUrl: GOOGLE_DRIVE_FOLDER_URL,
-            folderId: GOOGLE_DRIVE_FOLDER_ID,
+            driveFolderUrl: targetFolderUrl,
+            folderId: targetFolderId,
             uploadedFiles: [],
             error: 'Format file tidak didukung.',
           },
@@ -146,11 +185,16 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
       }
     }
 
+    // Siapkan list payload untuk Google Apps Script
+    const appsScriptFilesPayload: GoogleDriveUploadPayloadFile[] = [];
+
+    // Loop proses simpan lokal & siapkan payload
     for (let i = 0; i < files.length; i++) {
       const f = files[i];
       const renamedFileName = formatTtbFilename(cleanNoTtb, f.name, i, files.length);
       const buffer = Buffer.from(await f.arrayBuffer());
       const isPdf = renamedFileName.toLowerCase().endsWith('.pdf');
+      const mimeType = getMimeType(renamedFileName, f.type);
 
       // 1. Simpan ke local storage
       const localFilePath = path.join(targetPhotosDir, renamedFileName);
@@ -174,6 +218,14 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
         }
       }
 
+      // Siapkan payload base64 untuk Google Drive
+      appsScriptFilesPayload.push({
+        fileName: renamedFileName,
+        originalFileName: f.name,
+        mimeType,
+        base64: buffer.toString('base64'),
+      });
+
       const record: UploadedTtbItem = {
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         noTtb: noTtbRaw,
@@ -184,15 +236,67 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
         originalFileName: f.name,
         renamedFileName,
         fileSize: f.size,
-        fileType: isPdf ? 'application/pdf' : f.type || 'image/jpeg',
+        fileType: mimeType,
         fileUrl: publicUrl,
-        driveFolderUrl: GOOGLE_DRIVE_FOLDER_URL,
+        driveFolderUrl: targetFolderUrl,
         uploadedAt: new Date().toISOString(),
         status: 'SYNCED_TO_DRIVE',
       };
 
       newlyUploadedItems.push(record);
-      currentHistory.unshift(record);
+    }
+
+    // 3. Kirim ke Database Google Drive (via Google Apps Script Web App jika URL tersedia)
+    let isDriveDatabaseActive = false;
+    let driveSpreadsheetUrl: string | undefined = undefined;
+
+    if (driveScriptUrl) {
+      try {
+        const driveResponse = await uploadToGoogleDriveAppsScript(
+          driveScriptUrl,
+          {
+            action: 'upload',
+            folderId: targetFolderId,
+            metadata: {
+              noTtb: noTtbRaw,
+              cleanNoTtb,
+              armada: armada || '-',
+              receivedDate: receivedDate || new Date().toISOString().slice(0, 10),
+              keterangan,
+            },
+            files: appsScriptFilesPayload,
+          },
+          45000 // 45 detik timeout untuk pengiriman file besar
+        );
+
+        if (driveResponse.success && driveResponse.files) {
+          isDriveDatabaseActive = true;
+          driveSpreadsheetUrl = driveResponse.spreadsheetUrl;
+
+          // Cocokkan metadata file dari Google Drive
+          for (const item of newlyUploadedItems) {
+            const matchedDriveFile = driveResponse.files.find(
+              (df) => df.fileName === item.renamedFileName
+            );
+
+            if (matchedDriveFile) {
+              item.driveFileId = matchedDriveFile.fileId;
+              item.driveViewUrl = matchedDriveFile.webViewLink;
+              item.driveDownloadUrl = matchedDriveFile.downloadUrl;
+              item.spreadsheetUrl = driveResponse.spreadsheetUrl;
+              item.status = 'SAVED_TO_DRIVE_DATABASE';
+            }
+          }
+        }
+      } catch (driveErr) {
+        console.warn('Gagal sinkron langsung ke Google Apps Script:', driveErr);
+        // Tetap lanjut, file sudah aman di lokal storage
+      }
+    }
+
+    // Masukkan ke history
+    for (const item of newlyUploadedItems) {
+      currentHistory.unshift(item);
     }
 
     // Perbarui riwayat di file JSON
@@ -208,12 +312,17 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
     }
 
     const renamedSummary = newlyUploadedItems.map((item) => item.renamedFileName).join(', ');
+    const successMsg = isDriveDatabaseActive
+      ? `Berhasil mengunggah ${newlyUploadedItems.length} berkas ke Google Drive & Database Google Sheets (${renamedSummary}).`
+      : `File berhasil disimpan lokal & di-rename: ${renamedSummary}`;
 
     return NextResponse.json({
       success: true,
-      message: `File berhasil disimpan sebagai: ${renamedSummary}`,
-      driveFolderUrl: GOOGLE_DRIVE_FOLDER_URL,
-      folderId: GOOGLE_DRIVE_FOLDER_ID,
+      message: successMsg,
+      driveFolderUrl: targetFolderUrl,
+      folderId: targetFolderId,
+      spreadsheetUrl: driveSpreadsheetUrl,
+      isDriveDatabaseActive,
       uploadedFiles: newlyUploadedItems,
     });
   } catch (error) {
@@ -231,4 +340,3 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
     );
   }
 }
-

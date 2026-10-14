@@ -11,8 +11,12 @@ export interface UploadedTtbItem {
   fileType: string;
   fileUrl: string;
   driveFolderUrl: string;
+  driveFileId?: string;
+  driveViewUrl?: string;
+  driveDownloadUrl?: string;
+  spreadsheetUrl?: string;
   uploadedAt: string;
-  status: 'UPLOADED_TO_SYSTEM' | 'SYNCED_TO_DRIVE';
+  status: 'UPLOADED_TO_SYSTEM' | 'SYNCED_TO_DRIVE' | 'SAVED_TO_DRIVE_DATABASE';
 }
 
 export interface UploadTtbResponse {
@@ -20,6 +24,8 @@ export interface UploadTtbResponse {
   message: string;
   driveFolderUrl: string;
   folderId: string;
+  spreadsheetUrl?: string;
+  isDriveDatabaseActive?: boolean;
   uploadedFiles: UploadedTtbItem[];
   error?: string;
 }
