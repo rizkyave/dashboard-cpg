@@ -1,0 +1,634 @@
+No. ID,No. Kapal,Nama Kapal,Tipe Kapal,No. Kru,NIK,Nama Personel,Status Slot,Jabatan,Departemen,No. Handphone,Ijazah / Sertifikat,Tahun Ijazah,Tgl On Board,Status Penugasan,Asal Kampus / Sekolah (Cadet),Riwayat / Catatan Mutasi,Catatan Audit Data
+1,I,SPOB. CINTIANA PRATAMA,SPOB,1,CPL-VSL-0790,Hasnawir,AKTIF,Nakhoda,Deck,081351747201,ANT-III (M),-,2017-11-10,New Hire / New Join,-,New Hire on Board tgl. 10-11-17,-
+2,I,SPOB. CINTIANA PRATAMA,SPOB,2,CPL-VSL-0304,Lukman,AKTIF,Mualim I,Deck,081346582004,ANT-II,2013,2012-06-09,Mutasi Internal,-,Mutasi dari 307 tgl. 30-10-14,Standarisasi tanggal: '09 Juni 2012' -> '2012-06-09'
+3,I,SPOB. CINTIANA PRATAMA,SPOB,3,CPL-VSL-0567,Suhael,AKTIF,Mualim II,Deck,081345458304,ANT-IV (O),2014,2014-11-19,Mutasi Internal,-,Mutasi dr JM tgl. 14-2-18,-
+4,I,SPOB. CINTIANA PRATAMA,SPOB,4,CPL-VSL-0012,Baharuddin,AKTIF,KKM,Engine,081347976594,ATT-III (M),2002,2009-11-17,Mutasi Internal,-,mutasi dr Cintiana P tgl. 1-11-14,-
+5,I,SPOB. CINTIANA PRATAMA,SPOB,5,CPL-VSL-0070,Abas,AKTIF,Masinis II,Engine,081256608931,ATT-IV (M),2002,2009-01-02,Mutasi Internal,-,Mutasi dari King Star tgl. 30-10-14,-
+6,I,SPOB. CINTIANA PRATAMA,SPOB,6,CPL-VSL-0017,Iswardana Dzul Fadhan,AKTIF,Masinis III,Engine,085348372801,ATT-III (M),2013,2009-11-17,Mutasi Internal,-,Mutasi dari Oiler tgl. 1-2-14,Standarisasi tanggal: '17 Nopember 2009' -> '2009-11-17'
+7,I,SPOB. CINTIANA PRATAMA,SPOB,7,CPL-VSL-0524,Winardi,AKTIF,Juru Mudi I,Deck,081253359514,ANT-V (O),2012,2014-08-09,On Board,-,-,-
+8,I,SPOB. CINTIANA PRATAMA,SPOB,8,CPL-VSL-1302,Julman,AKTIF,Juru Mudi II,Deck,085366696572,ANT-V (O),-,2022-12-07,New Hire / New Join,-,New Hire on Board tgl. 07-12-2022,-
+9,I,SPOB. CINTIANA PRATAMA,SPOB,9,CPL-VSL-0515,Darwis Farid,AKTIF,Oiler I,Engine,085248752696,ATT-IV (M),2013,2014-05-20,On Board,-,-,-
+10,I,SPOB. CINTIANA PRATAMA,SPOB,10,CPL-VSL-0687,Ardi Srinandar,AKTIF,Oiler II,Engine,081212223319,ATT-V (O),2016,2017-01-12,New Hire / New Join,-,New Hire on Board tgl. 12-1-17,-
+11,I,SPOB. CINTIANA PRATAMA,SPOB,11,CPL-VSL-1572,Tamam Achda,AKTIF,Koki,Catering / Galley,085213551004,ANT-V (O),-,2025-11-03,New Hire / New Join,-,New hire on board tgl. 03-11-2025,-
+12,I,SPOB. CINTIANA PRATAMA,SPOB,12,-,Khairul Putra,CADET (MAGANG),Cadet Engine,Engine (Cadet),0882022919337,BST,-,2025-08-22,On Board,Politeknik Pelayaran Barombong,Poltekpel Barombong,-
+13,I,SPOB. CINTIANA PRATAMA,SPOB,13,-,Ahmad Fadli,CADET (MAGANG),Cadet Deck,Deck (Cadet),085824819099,BST,-,2026-01-23,On Board,SMK Pelayaran Samudera Palopo,SMK PELAYARAN SAMUDERA PALOPO,Standarisasi tanggal: '23 Januari 2026' -> '2026-01-23'
+14,II,SPOB. CINDARA,SPOB,1,CPL-VSL-0685,Firdaus R.,AKTIF,Nakhoda,Deck,087878647696,ANT-V (M),-,2016-12-10,New Hire / New Join,-,New Hire On board tgl. 16-12-16,-
+15,II,SPOB. CINDARA,SPOB,2,CPL-VSL-0701,Junaedi,AKTIF,KKM,Engine,08126662330,ATT-V (M),-,2017-03-21,Mutasi Internal,-,Mutasi dari TS.306 tgl. 23-9-17,-
+16,II,SPOB. CINDARA,SPOB,3,CPL-VSL-1136,Fhirzal,AKTIF,Oiler,Engine,085845957429,Rating,-,2021-04-01,New Hire / New Join,-,New Hire on Board tgl. 6-4-21,-
+17,II,SPOB. CINDARA,SPOB,4,CPL-VSL-0213,Amran,AKTIF,Juru Mudi I,Deck,085701136260,Able,2009,2011-11-09,Mutasi Internal,-,Mutasi dari TS 306 tgl. 10-4-17,Standarisasi tanggal: '09 Nopember 2011' -> '2011-11-09'
+18,II,SPOB. CINDARA,SPOB,5,CPL-VSL-1247,Fadlan,AKTIF,A/B,Deck,081355641093,ANT-V,-,2022-02-07,New Hire / New Join,-,New hire on board tgl. 7-2-22,-
+19,III,SPOB. MUARA MAS JAYA,SPOB,1,CPL-VSL-0187,Hans Millian Degama,AKTIF,Nakhoda,Deck,085349779648,ANT-III (M),-,2011-10-08,Mutasi Internal,-,Mutasi dari AJ Putra tgl. 17-12-14,Standarisasi tanggal: '08 Oktober 2011' -> '2011-10-08'
+20,III,SPOB. MUARA MAS JAYA,SPOB,2,CPL-VSL-1007,Adi Ashari,AKTIF,Mualim I,Deck,081253823999,ANT-III (M),-,2019-07-09,New Hire / New Join,-,New Hire on Board tgl. 9-7-19,-
+21,III,SPOB. MUARA MAS JAYA,SPOB,3,CPL-VSL-1430,Akbar Abadi,AKTIF,Mualim II,Deck,085255485166,ANT-III (O),-,2024-08-31,New Hire / New Join,-,New Hire on Board tgl. 31-08-2024,-
+22,III,SPOB. MUARA MAS JAYA,SPOB,4,CPL-VSL-1147,Hasbi Samad,AKTIF,KKM,Engine,082280444377,ATT-III (M),-,2021-05-18,New Hire / New Join,-,New Hire on Board tgl. 19-5-21,-
+23,III,SPOB. MUARA MAS JAYA,SPOB,5,CPL-VSL-0166,Ramli,AKTIF,Masinis II,Engine,085228342834,ATT-V (M),2007,2011-09-09,Mutasi Internal,-,Mutasi dr. Equa. 15 tgl. 5-7-17,Standarisasi tanggal: '09 September 2011' -> '2011-09-09'
+24,III,SPOB. MUARA MAS JAYA,SPOB,6,CPL-VSL-0356,Irham,AKTIF,Masinis III,Engine,081253406287,ATT-V (M),2010,2012-09-29,Mutasi Internal,-,Mutasi dr Equator 07 / tgl. 13-8-16,Standarisasi tanggal: '29 September 2012' -> '2012-09-29'
+25,III,SPOB. MUARA MAS JAYA,SPOB,7,CPL-VSL-0760,Suryadi,AKTIF,Juru Mudi I,Deck,085391000111,ANT-V (M),-,2017-09-08,New Hire / New Join,-,New Hire on Board tgl. 8-9-17,-
+26,III,SPOB. MUARA MAS JAYA,SPOB,8,CPL-VSL-0136,Herman,AKTIF,Juru Mudi II,Deck,081352568544,ANT-V (O),2011,2011-07-05,Mutasi Internal,-,mutasi dr cpl 250 tgl. 27-7-17,Standarisasi tanggal: '05 Juli 2011' -> '2011-07-05'
+27,III,SPOB. MUARA MAS JAYA,SPOB,9,CPL-VSL-0813,Ardiansyah,AKTIF,Juru Mudi III,Deck,082148779597,Able,-,2018-01-10,New Hire / New Join,-,New Hire on Board tgl. 10-1-18,-
+28,III,SPOB. MUARA MAS JAYA,SPOB,10,CPL-VSL-0835,Riswan Ependi,AKTIF,Oiler,Engine,082292523154,ATT-V (O),-,2018-03-14,New Hire / New Join,-,New Hire on Board tgl. 15-3-18,-
+29,III,SPOB. MUARA MAS JAYA,SPOB,11,CPL-VSL-1171,Muhammad Akbar,AKTIF,Koki,Catering / Galley,085348149188,ANT-V (O),-,2021-09-28,New Hire / New Join,-,New Hire on Board tgl. 3-10-2021,-
+30,III,SPOB. MUARA MAS JAYA,SPOB,12,-,Muh Agung Saleh,CADET (MAGANG),Cadet Deck,Deck (Cadet),-,BST,-,2026-08-05,On Board,-,-,-
+31,III,SPOB. MUARA MAS JAYA,SPOB,13,-,Lingga Dani Pratama,CADET (MAGANG),Cadet Engine,Engine (Cadet),-,BST,-,2026-08-05,On Board,-,-,-
+32,IV,SPOB. SEA LION,SPOB,1,CPL-VSL-0697,Aldi Ahmad,AKTIF,Nakhoda,Deck,082385862270,ANT-IV (M),2016,2017-02-13,Mutasi Internal,-,Mutasi dari CMPL 01 tgl. 27-9-17,-
+33,IV,SPOB. SEA LION,SPOB,2,CPL-VSL-1280,Hendra Purnariansyah,AKTIF,Mualim I,Deck,08115401388,ANT-III (M),-,2022-09-17,New Hire / New Join,-,New Hire on Board tgl. 22-9-2022,-
+34,IV,SPOB. SEA LION,SPOB,3,CPL-VSL-1358,Ardianto,AKTIF,Mualim II,Deck,085246776460,ANT-IV (M),-,2023-07-05,New Hire / New Join,-,New Hire on Board tgl. 5-7-2023,-
+35,IV,SPOB. SEA LION,SPOB,4,CPL-VSL-0988,Fatur Rahman,AKTIF,KKM,Engine,085240256524,ATT-IV (M),-,2019-05-22,New Hire / New Join,-,New Hire on Board tgl. 20-6-19,-
+36,IV,SPOB. SEA LION,SPOB,5,CPL-VSL-1122,Abd. Gaffar,AKTIF,Masinis II,Engine,081344402186,ATT-IV (M),-,2021-01-27,New Hire / New Join,-,New Hire on Board tgl. 28-1-21,-
+37,IV,SPOB. SEA LION,SPOB,6,CPL-VSL-0712,Andri Eka Satria,AKTIF,Masinis III,Engine,082159759544,ATT-V (M),2016,2017-05-10,New Hire / New Join,-,New Hire on Board tgl. 17-5-17,-
+38,IV,SPOB. SEA LION,SPOB,7,CPL-VSL-0782,Selamet Effendi,AKTIF,Juru Mudi I,Deck,081348821255,ANT-V (O),-,2017-10-20,Mutasi Internal,-,Mutasi dari M. Mega tgl. 21-2-18,-
+39,IV,SPOB. SEA LION,SPOB,8,CPL-VSL-0514,La Muna,AKTIF,Juru Mudi II,Deck,085249820189,ANT-V (O),2009,2014-05-09,Mutasi Internal,-,Mutasi dari AJ Putra tgl. .......,-
+40,IV,SPOB. SEA LION,SPOB,9,CPL-VSL-1100,Nurul Zul Yakin,AKTIF,Juru Mudi III,Deck,081243165095,ANT-V (O),-,2020-10-09,New Hire / New Join,-,New hire On Board tgl. 12-10-20,-
+41,IV,SPOB. SEA LION,SPOB,10,CPL-VSL-1120,Suliadi,AKTIF,Oiler,Engine,082255492956,ATT-V (O),-,2021-01-18,New Hire / New Join,-,New Hire on Board tgl. 18-1-21,-
+42,IV,SPOB. SEA LION,SPOB,11,CPL-VSL-1656,Aripullah,AKTIF,Koki,Catering / Galley,082350980933,Rating,-,2026-04-06,New Hire / New Join,-,New Hire on Board tgl. 07-04-2026,-
+43,V,SPOB. OCEAN MANDAR,SPOB,1,CPL-VSL-1296,Subadri,AKTIF,Nakhoda,Deck,081328198088,ANT-II,-,2022-12-01,New Hire / New Join,-,New hire on board tgl. 1-12-22,-
+44,V,SPOB. OCEAN MANDAR,SPOB,2,CPL-VSL-1464,Muh. Amin,AKTIF,Mualim I,Deck,081355107050,ANT-IV (M) / ANT-III,-,2025-04-28,New Hire / New Join,-,New Hire On Board tgl. 03-05-2025,-
+45,V,SPOB. OCEAN MANDAR,SPOB,3,CPL-VSL-1519,Jufri,AKTIF,Mualim II,Deck,082189339122,ANT-II,-,2025-07-02,New Hire / New Join,-,New Hire on Board tgl. 02-07-2025,-
+46,V,SPOB. OCEAN MANDAR,SPOB,4,CPL-VSL-0513,Andry Irawan,AKTIF,KKM,Engine,081242055888,ATT-II,2014,2014-05-09,Mutasi Internal,-,Mutasi dr MM Jaya tgl. 19-9-14,-
+47,V,SPOB. OCEAN MANDAR,SPOB,5,CPL-VSL-0494,Nuran Miha,AKTIF,Masinis II,Engine,081352152891,ATT-IV (M),2013,2013-12-18,Mutasi Internal,-,Mutasi dr Mas II ke KKM tgl. 15-12-15,-
+48,V,SPOB. OCEAN MANDAR,SPOB,6,CPL-VSL-0040,Sattar,AKTIF,Masinis III,Engine,081391820333,ATT-IV (M),2012,2010-05-18,Mutasi Internal,-,Mutasi dari King Star tgl. 9-9-14,Standarisasi tanggal: '18 Mei 2010' -> '2010-05-18'
+49,V,SPOB. OCEAN MANDAR,SPOB,7,CPL-VSL-0255,Edi Susanto,AKTIF,Juru Mudi I,Deck,085248298094,ANT-V (O),-,2012-01-18,Mutasi Internal,-,Mutasi dari cindara 3112 tgl. 12-1-16,Standarisasi tanggal: '18 Januari 2012' -> '2012-01-18'
+50,V,SPOB. OCEAN MANDAR,SPOB,8,CPL-VSL-0630,M. Ashar Adriansyah,AKTIF,Juru Mudi I,Deck,085230769253,ANT-V (O),2015,2015-10-07,Mutasi Internal,-,Mutasi dari M. Mega tgl. 20-10-17,-
+51,V,SPOB. OCEAN MANDAR,SPOB,9,CPL-VSL-0671,Abdullah,AKTIF,Juru Mudi III,Deck,081253230601,ANT-V (O),-,2016-01-30,Mutasi Internal,-,Mutasi dr Galangan / tgl. 15-7-16,-
+52,V,SPOB. OCEAN MANDAR,SPOB,10,CPL-VSL-0196,Rahim,AKTIF,Koki,Catering / Galley,081343606868,ANT-V (O),2011,2011-10-18,Mutasi Internal,-,Mutasi dari Equator 02 / tgl. 9-9-14,Standarisasi tanggal: '18 Oktober 2011' -> '2011-10-18'
+53,V,SPOB. OCEAN MANDAR,SPOB,11,CPL-VSL-1041,Rasbi,AKTIF,Oiler II,Engine,082393999852,ATT-V (O),-,2019-11-04,New Hire / New Join,-,New Hire On board tgl. 5-11-19,-
+54,V,SPOB. OCEAN MANDAR,SPOB,12,-,M Fauzan Cakra Tammaka,CADET (MAGANG),Cadet Deck,Deck (Cadet),-,BST,-,2026-08-03,On Board,-,-,-
+55,V,SPOB. OCEAN MANDAR,SPOB,13,-,Muh Ismail,CADET (MAGANG),Cadet Engine,Engine (Cadet),-,BST,-,2026-05-29,On Board,-,-,-
+56,VI,TB. MUARA MEGA,Tug Boat (TB),1,CPL-VSL-1165,Syuaib Anwar,AKTIF,Nakhoda,Deck,081251113781,ANT-IV (M),-,2021-09-08,New Hire / New Join,-,New Hire on Board tgl. 9-9-21,-
+57,VI,TB. MUARA MEGA,Tug Boat (TB),2,CPL-VSL-1145,Chaerudin Yakup,AKTIF,Mualim I,Deck,08125890661,ANT-IV (M),2001,2021-04-28,New Hire / New Join,-,New Hire on Board tgl. 28-4-21,-
+58,VI,TB. MUARA MEGA,Tug Boat (TB),3,-,[POSISI LOWONG],LOWONG (VACANT),Mualim II,Deck,-,ANT-IV (O),-,-,Belum Terisi,-,-,-
+59,VI,TB. MUARA MEGA,Tug Boat (TB),4,-,[POSISI LOWONG],LOWONG (VACANT),KKM,Engine,-,-,-,-,Belum Terisi,-,-,-
+60,VI,TB. MUARA MEGA,Tug Boat (TB),5,CPL-VSL-1381,Bennoni Aprildo Imuly,AKTIF,Masinis II,Engine,085320183752,ATT-III (O),2022,2023-09-29,New Hire / New Join,-,New Hire on Board tgl. 30-09-23,-
+61,VI,TB. MUARA MEGA,Tug Boat (TB),6,-,[POSISI LOWONG],LOWONG (VACANT),Masinis III,Engine,-,ATT-III (O),2022,-,Belum Terisi,-,-,-
+62,VI,TB. MUARA MEGA,Tug Boat (TB),7,CPL-VSL-0135,Abdul Rasyid,AKTIF,Juru Mudi I,Deck,085250207515,ANT-V (O),2011,2011-07-13,Mutasi Internal,-,Mutasi dr 23536 tgl. 28-4-16,-
+63,VI,TB. MUARA MEGA,Tug Boat (TB),8,CPL-VSL-1287,Khaliq Imran,AKTIF,Juru Mudi II,Deck,082267287611,ANT-V (O),-,2022-10-12,New Hire / New Join,-,New Hire on Board tgl. 14-10-2022,-
+64,VI,TB. MUARA MEGA,Tug Boat (TB),9,CPL-VSL-1683,Nur Husain,AKTIF,Juru Mudi III,Deck,081241968049,ANT-V (O),-,2026-06-10,New Hire / New Join,-,New Hire on Board tgl. 2-12--22,-
+65,VI,TB. MUARA MEGA,Tug Boat (TB),10,CPL-VSL-1062,Basri,AKTIF,Oiler,Engine,082159576122,Rating,-,2020-06-03,New Hire / New Join,-,New Hire on Board tgl. 4-6-2020,-
+66,VII,TB EQUATOR 15,Tug Boat (TB),1,CPL-VSL-0872,Abd. Wahid,AKTIF,Nakhoda,Deck,085211813375,ANT-III (M),-,2018-09-03,New Hire / New Join,-,New hire On Board tgl. 10-9-18,-
+67,VII,TB EQUATOR 15,Tug Boat (TB),2,CPL-VSL-1178,M. Ruslan,AKTIF,Mualim I,Deck,081331670391,ANT-IV (M),2021,2021-11-12,Rencana Resign,-,Rencana Mengundurkan diri tgl,Peringatan: Rencana mengundurkan diri
+68,VII,TB EQUATOR 15,Tug Boat (TB),3,CPL-VSL-1384,Ardi Pratama,AKTIF,Mualim II,Deck,085657008149,ANT-V (M),2019,2023-10-02,New Hire / New Join,-,New Hire on Board tgl. 02-10-23,-
+69,VII,TB EQUATOR 15,Tug Boat (TB),4,CPL-VSL-1657,Solihin,AKTIF,KKM,Engine,085248451597,ATT-IV - M,-,2025-05-13,New Hire / New Join,-,New Hire on Board tgl. 16-03-2025,-
+70,VII,TB EQUATOR 15,Tug Boat (TB),5,CPL-VSL-0757,Jenni Irawan,AKTIF,Masinis II,Engine,081254305305,ATT-V (M),-,2017-09-08,New Hire / New Join,-,New hire On Board tgl. 8-9-17,-
+71,VII,TB EQUATOR 15,Tug Boat (TB),6,CPL-VSL-1659,James Peter Lloyd Laheba,AKTIF,Masinis III,Engine,082154238155,ATT-IV (M),-,2026-04-07,New Hire / New Join,-,New Hire on Board tgl. 08-04-2026,-
+72,VII,TB EQUATOR 15,Tug Boat (TB),7,CPL-VSL-0902,Sawaluddin Ansari,AKTIF,Juru Mudi I,Deck,085342786046,ANT-V (O),-,2018-12-22,New Hire / New Join,-,New hire On Board tgl. 26-12-18,-
+73,VII,TB EQUATOR 15,Tug Boat (TB),8,CPL-VSL-1356,Wais Ramadhan,AKTIF,Juru Mudi II,Deck,081350157987,ANT-V,-,2023-07-02,New Hire / New Join,-,New Hire on Board tgl. 2-7-2023,-
+74,VII,TB EQUATOR 15,Tug Boat (TB),9,CPL-VSL-1177,Supardi,AKTIF,Juru Mudi III,Deck,085333389413,ANT-V (O),-,2021-11-09,New Hire / New Join,-,New Hire on Board tgl. 10-11-2021,-
+75,VII,TB EQUATOR 15,Tug Boat (TB),10,CPL-VSL-1101,Ishak,AKTIF,Koki,Catering / Galley,082346117172,ANT-IV (O),-,2020-10-09,New Hire / New Join,-,New hire On Board tgl. 12-10-20,-
+76,VII,TB EQUATOR 15,Tug Boat (TB),11,CPL-VSL-1304,Ridwan,AKTIF,Oiler,Engine,082196692522,ATT-V (O),-,2022-12-15,New Hire / New Join,-,New Hire on Board tgl. 19-12-2022,-
+77,VIII,TB. EQUATOR 02,Tug Boat (TB),1,CPL-VSL-0635,Syafaruddin,AKTIF,Nakhoda,Deck,081350321111,ANT-IV (M),-,2015-10-08,New Hire / New Join,-,New Hire on Board tgl. 9-10-2015,-
+78,VIII,TB. EQUATOR 02,Tug Boat (TB),2,CPL-VSL-1217,Muh. Yusuf,AKTIF,Mualim I,Deck,081349571300,ANT-IV (M),-,2021-10-26,New Hire / New Join,-,New hire on board tgl. 26-10-21,-
+79,VIII,TB. EQUATOR 02,Tug Boat (TB),3,CPL-VSL-1712,Ilham Aidid,AKTIF,Mualim II,Deck,085397057795,ANT-IV (M),-,2026-09-26,New Hire / New Join,-,New Hire on Board tgl. 26-09-2026,-
+80,VIII,TB. EQUATOR 02,Tug Boat (TB),4,CPL-VSL-1355,Muhammad Darwis,AKTIF,KKM,Engine,081238824571,ATT-IV (M),-,2023-06-26,New Hire / New Join,-,New Hire on Board tgl. 5-7-2023,-
+81,VIII,TB. EQUATOR 02,Tug Boat (TB),5,CPL-VSL-1561,Mukhrizar,AKTIF,Masinis II,Engine,081397272279,ATT-V (M),-,2025-09-24,New Hire / New Join,-,New Hire on Board tgl. 24-09-2025,-
+82,VIII,TB. EQUATOR 02,Tug Boat (TB),6,CPL-VSL-1418,Muhammad Aldy,AKTIF,Masinis III,Engine,081383220665,ATT-IV (O),-,2024-06-28,New Hire / New Join,-,New hire on board tgl. 01-07-24,-
+83,VIII,TB. EQUATOR 02,Tug Boat (TB),7,CPL-VSL-1431,Adi,AKTIF,Juru Mudi I,Deck,081244752362,ANT-V (O),-,2024-09-09,New Hire / New Join,-,New Hire on Board tgl. 11-09-2024,-
+84,VIII,TB. EQUATOR 02,Tug Boat (TB),8,CPL-VSL-1577,Kurniawan,AKTIF,Juru Mudi II,Deck,085256350380,Rating,-,2025-11-07,New Hire / New Join,-,New Hire on Board tgl. 07-11-2025,-
+85,VIII,TB. EQUATOR 02,Tug Boat (TB),9,CPL-VSL-1405,Mas'ud,AKTIF,Juru Mudi III,Deck,085757785702,ANT-V (O),-,2024-01-23,New Hire / New Join,-,New Hire On Board tgl. 23-01-24,-
+86,VIII,TB. EQUATOR 02,Tug Boat (TB),10,CPL-VSL-1435,Agussalim Najamuddin,AKTIF,Oiler,Engine,085242487915,Rating,-,2024-10-14,New Hire / New Join,-,New hire on board tgl. 14-10-24,-
+87,IX,TB. EQUATOR 07,Tug Boat (TB),1,CPL-VSL-1392,Amirullah,AKTIF,Nakhoda,Deck,082351323176,ANT-IV (M),-,2023-11-02,New Hire / New Join,-,New hire on board tgl. 02-11-23,-
+88,IX,TB. EQUATOR 07,Tug Boat (TB),2,CPL-VSL-1444,Muhammad Fadly DJ,AKTIF,Mualim I,Deck,085343633436,ANT-III (M),-,2025-01-10,New Hire / New Join,-,New hire on board tgl. 10-01-2025,-
+89,IX,TB. EQUATOR 07,Tug Boat (TB),3,CPL-VSL-1105,Suardi Aidid,AKTIF,Mualim II,Deck,081253961161,ANT-V (M),-,2020-11-18,New Hire / New Join,-,New Hire on Board tgl. 20-11-2020,-
+90,IX,TB. EQUATOR 07,Tug Boat (TB),4,CPL-VSL-1325,La Ode Nur Chandra Lianda Saida,AKTIF,KKM,Engine,085246999078,ATT-III (M),-,2023-02-16,New Hire / New Join,-,New Hire on Board tgl. 17-2-2023,-
+91,IX,TB. EQUATOR 07,Tug Boat (TB),5,CPL-VSL-1382,Reski Ardiansyah A,AKTIF,Masinis II,Engine,081298797856,ATT-IV (M),-,2023-09-29,New Hire / New Join,-,New Hire on Board tgl. 30-9-23,-
+92,IX,TB. EQUATOR 07,Tug Boat (TB),6,CPL-VSL-0636,Muhammad Rudiani,AKTIF,Masinis III,Engine,081346678178,ATT-V,-,2015-10-09,Mutasi Internal,-,Mutasi dr. AJ. Putra / tgl. 16-5-17,-
+93,IX,TB. EQUATOR 07,Tug Boat (TB),7,CPL-VSL-1371,Yusril Mahendra,AKTIF,Juru Mudi I,Deck,082350834727,Rating,-,2023-08-11,New Hire / New Join,-,New Hire on Board tgl. 12-8-2023,-
+94,IX,TB. EQUATOR 07,Tug Boat (TB),8,CPL-VSL-1211,Tri Novianto,AKTIF,Juru Mudi II,Deck,08115903031,ANT-V (M),-,2022-03-21,New Hire / New Join,-,New Hire on Board tgl. 22-3-22,-
+95,IX,TB. EQUATOR 07,Tug Boat (TB),9,CPL-VSL-1081,Tasrik,AKTIF,Juru Mudi III,Deck,085215564284,ANT-V (O),-,2020-08-10,New Hire / New Join,-,New hire On Board tgl. 14-8-20,-
+96,IX,TB. EQUATOR 07,Tug Boat (TB),10,CPL-VSL-1388,Irsan Sandi,AKTIF,Oiler,Engine,081248225509,Rating,-,2023-11-01,New Hire / New Join,-,New Hire on Board tgl. 02-11-2023,-
+97,IX,TB. EQUATOR 07,Tug Boat (TB),11,-,,AKTIF,,Lainnya,-,-,-,-,On Board,-,-,-
+98,X,TB. CPL 88 / GAJ 02,Tug Boat (TB),1,-,[POSISI LOWONG],LOWONG (VACANT),Nakhoda,Deck,-,-,-,-,Belum Terisi,-,-,-
+99,X,TB. CPL 88 / GAJ 02,Tug Boat (TB),2,-,[POSISI LOWONG],LOWONG (VACANT),Mualim I,Deck,-,-,-,-,Belum Terisi,-,-,-
+100,X,TB. CPL 88 / GAJ 02,Tug Boat (TB),3,-,,AKTIF,,Lainnya,-,-,-,-,On Board,-,-,-
+101,X,TB. CPL 88 / GAJ 02,Tug Boat (TB),4,-,[POSISI LOWONG],LOWONG (VACANT),KKM,Engine,-,-,-,-,Belum Terisi,-,-,-
+102,X,TB. CPL 88 / GAJ 02,Tug Boat (TB),5,-,[POSISI LOWONG],LOWONG (VACANT),Masinis,Engine,-,-,-,-,Belum Terisi,-,-,-
+103,X,TB. CPL 88 / GAJ 02,Tug Boat (TB),6,-,[POSISI LOWONG],LOWONG (VACANT),Oiler,Engine,-,-,-,-,Belum Terisi,-,-,-
+104,X,TB. CPL 88 / GAJ 02,Tug Boat (TB),7,CPL-VSL-1298,Sahril,AKTIF,Juru Mudi,Deck,089507416852,Able,-,2022-12-02,New Hire / New Join,-,New Hire on Board tgl. 2-12-22,-
+105,X,TB. CPL 88 / GAJ 02,Tug Boat (TB),8,-,[POSISI LOWONG],LOWONG (VACANT),Juru Mudi,Deck,-,-,-,-,Belum Terisi,-,-,-
+106,XI,TB. KING BORNEO,Tug Boat (TB),1,CPL-VSL-1249,Andi Syafaruddin,AKTIF,Nakhoda,Deck,081241671631,ANT-III (M),-,2022-05-09,New Hire / New Join,-,New hire on board tgl. 12-5-22,-
+107,XI,TB. KING BORNEO,Tug Boat (TB),2,CPL-VSL-1673,Asis Wabula,AKTIF,Mualim I,Deck,082190012556,ANT-III (M),-,2026-05-05,New Hire / New Join,-,New hire on board tgl. 05-05-2026,-
+108,XI,TB. KING BORNEO,Tug Boat (TB),3,CPL-VSL-1440,Sigit Mayestu Laksa Nugraha,AKTIF,Mualim II,Deck,0895800030037,ANT-III (O),-,2024-11-16,New Hire / New Join,-,New hire on board tgl. 16-11-24,-
+109,XI,TB. KING BORNEO,Tug Boat (TB),4,CPL-VSL-1282,Muhammad Ihsan,AKTIF,KKM,Engine,081391049317,ATT-II,-,2022-09-28,New Hire / New Join,-,New Hire on Board tgl. 1-10-22,-
+110,XI,TB. KING BORNEO,Tug Boat (TB),5,CPL-VSL-1575,Andry Wilyanto,AKTIF,Masinis II,Engine,081343677387,ATT-III (M),-,2025-11-17,New Hire / New Join,-,New hire on board tgl. 24-11-2025,-
+111,XI,TB. KING BORNEO,Tug Boat (TB),6,CPL-VSL-1086,Chaeril Abdul Malik,AKTIF,Masinis III,Engine,081231183119,ATT-IV (M),-,2020-08-24,New Hire / New Join,-,New Hire on Board tgl. 27-8-2020,-
+112,XI,TB. KING BORNEO,Tug Boat (TB),7,CPL-VSL-0610,Abriansyah,AKTIF,Juru Mudi I,Deck,081256678557,ANT-V (O),2014,2015-07-10,Mutasi Internal,-,Mutasi dr. Equator 02 tgl. 8-8-16,-
+113,XI,TB. KING BORNEO,Tug Boat (TB),8,CPL-VSL-1142,M. Arif Kurniawan,AKTIF,Juru Mudi II,Deck,081258634729,ANT-V (O),-,2021-04-16,New Hire / New Join,-,New Hire on Board tgl. 20-4-21,-
+114,XI,TB. KING BORNEO,Tug Boat (TB),9,CPL-VSL-1201,Muhammad Sari Assaqathi,AKTIF,Juru Mudi III,Deck,081254530828,ANT-V (O),-,2022-02-12,New Hire / New Join,-,New Hire on Board tgl. 15-2-2022,-
+115,XI,TB. KING BORNEO,Tug Boat (TB),10,CPL-VSL-0606,Muhammad Idris,AKTIF,Oiler,Engine,081340013807,Rating,2014,2015-05-05,New Hire / New Join,-,New hire On Board tgl. 7-5-2015,-
+116,XI,TB. KING BORNEO,Tug Boat (TB),11,CPL-VSL-1208,Muh. Alamsyah Nur Abdullah,AKTIF,Koki,Catering / Galley,085222444003,ANT-V (O),-,2022-03-17,New Hire / New Join,-,New Hire on Board tgl. 19-3-22,-
+117,XII,TB. CMPL 01,Tug Boat (TB),1,CPL-VSL-1716,Muttaqin Ashar,AKTIF,Nakhoda,Deck,087737787732,ANT-III (M),-,2026-10-02,On Board,-,-,-
+118,XII,TB. CMPL 01,Tug Boat (TB),2,CPL-VSL-1691,Abdul Rahman,AKTIF,Mualim I,Deck,081242874819,ANT-IV (M),-,2026-06-22,New Hire / New Join,-,New hire on board tgl. 23-06-2026,-
+119,XII,TB. CMPL 01,Tug Boat (TB),3,CPL-VSL-1461,Muh Taqwa,AKTIF,Mualim II,Deck,081317426371,ANT-IV (O),-,2025-04-14,Rejoin,-,Rejoin on Board tgl. 14-04-2025,-
+120,XII,TB. CMPL 01,Tug Boat (TB),4,CPL-VSL-1709,Muliono Tandewa,AKTIF,KKM,Engine,085398898028,ATT-III (M),-,2026-09-11,New Hire / New Join,-,New hire on board tgl. 11-09-2026,-
+121,XII,TB. CMPL 01,Tug Boat (TB),5,CPL-VSL-1429,Muhammad Ramdan Panggih,AKTIF,Masinis II,Engine,082159494960,ATT-III (M),-,2024-08-26,New Hire / New Join,-,New Hire on Board tgl. 26-08-2024,-
+122,XII,TB. CMPL 01,Tug Boat (TB),6,CPL-VSL-0102,Rudin Adam,AKTIF,Masinis III,Engine,082156498621,ATT-V,2003,2010-12-17,Mutasi Internal,-,Mutasi dari AJ Putra tgl. 22-7-15,Standarisasi tanggal: '17 Desember 2010' -> '2010-12-17'
+123,XII,TB. CMPL 01,Tug Boat (TB),7,CPL-VSL-1338,Erlan Saputra,AKTIF,Juru Mudi,Deck,087804021195,ANT-V (O),-,2023-03-09,New Hire / New Join,-,New Hire on Board tgl. 14-3-2023,-
+124,XII,TB. CMPL 01,Tug Boat (TB),8,CPL-VSL-1375,Dimas Agung Prayogo,AKTIF,Juru Mudi,Deck,085754538610,ANT-V (O),-,2023-09-11,New Hire / New Join,-,New hire on board tgl. 11-9-2023,-
+125,XII,TB. CMPL 01,Tug Boat (TB),9,CPL-VSL-1139,Alkan Maulana,AKTIF,Juru Mudi,Deck,081354067292,ANT-V (O),-,2021-04-06,New Hire / New Join,-,New Hire on Board tgl. 6-4-21,-
+126,XII,TB. CMPL 01,Tug Boat (TB),10,CPL-VSL-1439,Rustam,AKTIF,Juru Mudi,Deck,082194336101,ANT-V (O),-,2024-11-11,New Hire / New Join,-,New Hire on Board tgl. 11-11-2024,-
+127,XII,TB. CMPL 01,Tug Boat (TB),11,CPL-VSL-1407,Muh Sulhan Fitra S.,AKTIF,Oiler,Engine,081351771825,ATT-V (O),-,2024-02-06,New Hire / New Join,-,New hire on board tgl. 06-02-24,-
+128,XII,TB. CMPL 01,Tug Boat (TB),12,-,Muh Anugrah P,CADET (MAGANG),Cadet Engine,Engine (Cadet),-,BST,-,2026-10-09,On Board,-,-,-
+129,XIII,SV. TWIN SISTER 306,Supply Vessel (SV),1,CPL-VSL-1408,Muh. Amin Al Syukur,AKTIF,Nakhoda,Deck,085289415047,ANT-II,-,2024-02-23,New Hire / New Join,-,New hire on board tgl. 24-02-2024,-
+130,XIII,SV. TWIN SISTER 306,Supply Vessel (SV),2,CPL-VSL-1636,Ferry Setiawan,AKTIF,Mualim I,Deck,081347222654,ANT-IV (M),-,2026-03-13,New Hire / New Join,-,New hire on board tgl. 13-03-2026,-
+131,XIII,SV. TWIN SISTER 306,Supply Vessel (SV),3,CPL-VSL-1359,Fahruddin,AKTIF,Mualim II,Deck,085341706381,ANT-IV (O),-,2023-07-05,New Hire / New Join,-,New Hire on Board tgl. 9-7-2023,-
+132,XIII,SV. TWIN SISTER 306,Supply Vessel (SV),4,CPL-VSL-1455,Alimin,AKTIF,KKM,Engine,082354845222,ATT-IV (M),-,2025-03-06,New Hire / New Join,-,New Hire on Board tgl. 07-03-2025,-
+133,XIII,SV. TWIN SISTER 306,Supply Vessel (SV),5,CPL-VSL-1416,Sulisman,AKTIF,Masinis II,Engine,085347446198,ATT-III (O),-,2024-06-26,New Hire / New Join,-,New hire On Board tgl. 26-06-24,-
+134,XIII,SV. TWIN SISTER 306,Supply Vessel (SV),6,CPL-VSL-1514,Mukhamad Kafindi,AKTIF,Masinis III,Engine,085253836536,ATT-III (O),-,2025-06-24,New Hire / New Join,-,"New Join 24-06-2025, eks perusahaan sebelumnya",-
+135,XIII,SV. TWIN SISTER 306,Supply Vessel (SV),7,CPL-VSL-1184,Sarman,AKTIF,Juru Mudi I,Deck,085243133461,ANT-V (O),-,2021-12-30,New Hire / New Join,-,New Hire on Board tgl. 3-1-2022,-
+136,XIII,SV. TWIN SISTER 306,Supply Vessel (SV),8,CPL-VSL-1662,Supendi,AKTIF,Juru Mudi II,Deck,082192978029,ANT-V (O),-,2026-04-09,New Hire / New Join,-,New Hire on Board tgl. 09-04-2026,-
+137,XIII,SV. TWIN SISTER 306,Supply Vessel (SV),9,CPL-VSL-1421,Adnan Efendi Saputra,AKTIF,Juru Mudi I,Deck,085333926094,Rating,-,2024-07-11,New Hire / New Join,-,New hire on board tgl. 16-7-2024,-
+138,XIII,SV. TWIN SISTER 306,Supply Vessel (SV),10,CPL-VSL-1436,Cakra Afaat,AKTIF,Oiler,Engine,082156583195,Rating,-,2024-10-14,New Hire / New Join,-,New Hire on Board tgl. 22-10-2024,-
+139,XIII,SV. TWIN SISTER 306,Supply Vessel (SV),11,CPL-VSL-1449,Muh Taufik Hidayat,AKTIF,Oiler,Engine,085796630646,Rating,-,2025-02-10,New Hire / New Join,-,New hire on board tgl. 10-02-2025,-
+140,XIII,SV. TWIN SISTER 306,Supply Vessel (SV),12,CPL-VSL-1285,Muh. Asran Awaluddin,AKTIF,Koki,Catering / Galley,081258395331,Rating,-,2022-10-10,New Hire / New Join,-,New Hire on Board tgl. 12-10-2022,-
+141,XIII,SV. TWIN SISTER 306,Supply Vessel (SV),13,-,Muhammad Izhran Ramadhan G,CADET (MAGANG),Cadet Deck,Deck (Cadet),-,BST,-,2026-04-09,On Board,-,-,-
+142,XIII,SV. TWIN SISTER 306,Supply Vessel (SV),14,-,Muhammad Ibnu Arfah,CADET (MAGANG),Cadet Engine,Engine (Cadet),-,BST,-,2026-07-16,On Board,-,-,-
+143,XIV,SV. TWIN SISTER 305,Supply Vessel (SV),1,CPL-VSL-1445,Hermani,AKTIF,Nakhoda,Deck,081240194899,ANT-II,-,2025-01-12,New Hire / New Join,-,New Hire on Board tgl. 12-01-2025,Tahun ijazah keliru nama kapal
+144,XIV,SV. TWIN SISTER 305,Supply Vessel (SV),2,-,[POSISI LOWONG],LOWONG (VACANT),Mualim I,Deck,-,ANT-III (M),-,-,Belum Terisi,-,-,-
+145,XIV,SV. TWIN SISTER 305,Supply Vessel (SV),3,CPL-VSL-0564,Arifuddin H,AKTIF,Mualim II,Deck,081298976840,ANT-IV (O),2014,2014-11-10,New Hire / New Join,-,New Hire on Board tgl. 10-11-14,-
+146,XIV,SV. TWIN SISTER 305,Supply Vessel (SV),4,-,[POSISI LOWONG],LOWONG (VACANT),KKM,Engine,-,ATT-III (M),-,-,Belum Terisi,-,-,-
+147,XIV,SV. TWIN SISTER 305,Supply Vessel (SV),5,CPL-VSL-1470,Asrul,AKTIF,Masinis II,Engine,085343633411,ATT-III (M),-,2025-05-26,New Hire / New Join,-,New Hire on Board tgl. 27-05-2025,-
+148,XIV,SV. TWIN SISTER 305,Supply Vessel (SV),6,CPL-VSL-1457,Fadliansyah,AKTIF,Masinis IV,Engine,085849459124,ATT-III (O),-,2025-03-12,New Hire / New Join,-,New Hire on Board tgl. 31-3-2023,Koreksi Masinis IIII -> Masinis IV
+149,XIV,SV. TWIN SISTER 305,Supply Vessel (SV),7,CPL-VSL-0691,Kanto,AKTIF,Juru Mudi I,Deck,085249370098,Able,2004,2017-01-12,New Hire / New Join,-,New Hire on Board tgl. 12-1-17,-
+150,XIV,SV. TWIN SISTER 305,Supply Vessel (SV),8,CPL-VSL-1321,Iswandi,AKTIF,Juru Mudi II,Deck,082333202882,Rating,-,2023-02-11,New Hire / New Join,-,New Hire on Board tgl. 11-2-2023,-
+151,XIV,SV. TWIN SISTER 305,Supply Vessel (SV),9,CPL-VSL-0999,Abdul Karim,AKTIF,Juru Mudi,Deck,082158893981,Rating,-,2019-06-22,New Hire / New Join,-,New Hire on Board tgl. 1-7-19,-
+152,XIV,SV. TWIN SISTER 305,Supply Vessel (SV),10,CPL-VSL-1465,Bagus Cahyono Putra,AKTIF,Oiler,Engine,085335227490,Rating,-,2025-04-30,New Hire / New Join,-,New Hire On board tgl. 01-05-2025,-
+153,XIV,SV. TWIN SISTER 305,Supply Vessel (SV),11,CPL-VSL-1469,Sapri,AKTIF,Oiler,Engine,085340697574,ATT-V (O),-,2025-05-22,New Hire / New Join,-,New Hire on Board tgl. 27-05-2025,-
+154,XIV,SV. TWIN SISTER 305,Supply Vessel (SV),12,CPL-VSL-1288,Busman,AKTIF,Juru Mudi I,Deck,085342731702,Rating,-,2022-10-12,New Hire / New Join,-,New hire on board tgl. 14-10-22,-
+155,XIV,SV. TWIN SISTER 305,Supply Vessel (SV),13,-,Sahir,CADET (MAGANG),Cadet Engine,Engine (Cadet),08388098239,BST,-,2025-06-23,On Board,SMK Pelayaran Katangka Makassar,SMKP Katangka Makassar,-
+156,XIV,SV. TWIN SISTER 305,Supply Vessel (SV),14,-,Rifal Nando,CADET (MAGANG),Cadet Deck,Deck (Cadet),085787409568,BST,-,2025-11-10,On Board,SMKN 5 Balikpapan,SMKN 5 Balikpapan,-
+157,XV,OB. Putra Pasifik 02,Oil Barge (OB),1,CPL-VSL-0997,Diki Inrawan Saputra,AKTIF,Barge Master,Deck,082255137860,ANT-IV (M),-,2019-06-21,New Hire / New Join,-,New Hire on Board tgl. 2-7-19,-
+158,XV,OB. Putra Pasifik 02,Oil Barge (OB),2,CPL-VSL-1039,Anshar,AKTIF,Oiler,Engine,085398024636,ATT-V (O),-,2019-10-21,New Hire / New Join,-,New Hire on Board tgl. 22-10-19,Pembersihan format no HP
+159,XV,OB. Putra Pasifik 02,Oil Barge (OB),3,CPL-VSL-1203,Ilham Rusdi,AKTIF,Oiler,Engine,085248668293,ATT-V (O),-,2022-02-25,New Hire / New Join,-,New Hire on Board tgl. 26-2-22,-
+160,XV,OB. Putra Pasifik 02,Oil Barge (OB),4,CPL-VSL-1137,Utsman Ali,AKTIF,Oiler,Engine,085231487199,ATT-V (O),-,2021-04-01,New Hire / New Join,-,New Hire on Board tgl. 4-4-21,-
+161,XVI,OB. COASTWAY 1803 C,Oil Barge (OB),1,CPL-VSL-0588,Agus Sail Sutiawan,AKTIF,Barge Master,Deck,081344484575,ANT-V (M),2014,2015-02-27,New Hire / New Join,-,New Hire on Board tgl. 2-3-2015,-
+162,XVI,OB. COASTWAY 1803 C,Oil Barge (OB),2,CPL-VSL-1289,Rafly Rasya,AKTIF,Oiler I,Engine,081285233847,ATT-V (O),-,2022-10-22,New Hire / New Join,-,New Hire on Board tgl. 26-10-22,-
+163,XVI,OB. COASTWAY 1803 C,Oil Barge (OB),3,CPL-VSL-0930,Muh. Aswad,AKTIF,A / B,Deck,082148291695,ANT-V (O),-,2019-04-24,New Hire / New Join,-,New Hire on Board tgl. 1-05-19,-
+164,XVI,OB. COASTWAY 1803 C,Oil Barge (OB),4,CPL-VSL-1024,Suwandi,AKTIF,Asisten BM,Deck,081341816224,ATT-IV (M),-,2019-08-12,New Hire / New Join,-,New hire On Board tgl. 22-8-19,-
+165,XVI,OB. COASTWAY 1803 C,Oil Barge (OB),5,CPL-VSL-0059,M. Amir,AKTIF,Pengawas,Deck,081350514142,BST,-,2010-06-18,Mutasi Internal,-,Mutasi dari BB 003/ tgl. 14-11-16,Standarisasi tanggal: '18 Juni 2010' -> '2010-06-18'
+166,XVI,OB. COASTWAY 1803 C,Oil Barge (OB),6,-,Dika,CADET (MAGANG),Cadet,Trainee (Cadet),-,BST,-,2026-05-26,On Board,-,-,-
+167,XVII,OB. COASTWAY 20102,Oil Barge (OB),1,CPL-VSL-0281,Eko Suwitho,AKTIF,Barge Master,Deck,087842963437,ATT-V (M),2010,2012-03-17,Mutasi Internal,-,Mutasi dari TS 305 tgl. 10-4-17,Standarisasi tanggal: '17 Maret 2012' -> '2012-03-17'
+168,XVII,OB. COASTWAY 20102,Oil Barge (OB),2,CPL-VSL-1018,Amirullah,AKTIF,A / B,Deck,082156626073,ANT-V (O),-,2019-08-01,New Hire / New Join,-,New Hire On board tgl. 2-8-19,-
+169,XVII,OB. COASTWAY 20102,Oil Barge (OB),3,CPL-VSL-1221,Mustari,AKTIF,A / B,Deck,082293946825,ANT-V (O),-,2022-04-27,New Hire / New Join,-,New hire on board tgl. 28-4-22,-
+170,XVII,OB. COASTWAY 20102,Oil Barge (OB),4,CPL-VSL-1617,Muliyadi,AKTIF,Oiler,Engine,-,ATT-IV (O),-,2026-02-10,New Hire / New Join,-,New hire on board tgl. 11-02-2026,-
+171,XVII,OB. COASTWAY 20102,Oil Barge (OB),5,-,Sulhan Ahmad,CADET (MAGANG),Cadet,Trainee (Cadet),-,BST,-,2026-07-09,On Board,SMKN 3 Majene,SMKN 3 Majene,-
+172,XVII,OB. COASTWAY 20102,Oil Barge (OB),6,-,Zulkifli,CADET (MAGANG),Cadet,Trainee (Cadet),-,BST,-,2026-07-09,On Board,SMKN 3 Majene,SMKN 3 Majene,-
+173,XVIII,OB. CINDARA 1100,Oil Barge (OB),1,HL-DAO-0002,Ashar,AKTIF,Ka. Kerja,Deck,081347595525,-,-,-,On Board,-,-,-
+174,XVIII,OB. CINDARA 1100,Oil Barge (OB),2,CPL-VSL-0927,Muhammad Ihsan Hamid,AKTIF,Barge Master,Deck,085397080133,ANT-V (O),-,2019-03-29,New Hire / New Join,-,New Hire on Board tgl. 17-4-19,-
+175,XVIII,OB. CINDARA 1100,Oil Barge (OB),3,CPL-VSL-0106,Ahmad Yani,AKTIF,A / B,Deck,081350038209,BST,-,2011-03-01,Mutasi Internal,-,Mutasi dari Mapan 200 tgl. 30-1-17,Standarisasi tanggal: '01 Maret 2011' -> '2011-03-01'
+176,XVIII,OB. CINDARA 1100,Oil Barge (OB),4,CPL-VSL-1176,Amiruddin,AKTIF,Oiler,Engine,085342745557,ATT-V (M),-,2021-11-09,New Hire / New Join,-,New Hire on Board tgl. 10-11-2021,-
+177,XVIII,OB. CINDARA 1100,Oil Barge (OB),5,CPL-VSL-1337,Fahriadi,AKTIF,Oiler,Engine,085822937361,Rating,-,2023-03-07,New Hire / New Join,-,New Hire on Board tgl. 17-3-2023,-
+178,XIX,OB. WAY 23,Oil Barge (OB),1,CPL-VSL-0066,Supriyadi,AKTIF,Barge Master,Deck,081347244408,ATT-IV (M),2011,2005-11-01,On Board,-,-,-
+179,XIX,OB. WAY 23,Oil Barge (OB),2,CPL-VSL-1308,Darmawan,AKTIF,A/B,Deck,081228474877,Rating,-,2023-01-11,New Hire / New Join,-,New Hire on Board tgl. 12-1-2023,-
+180,XIX,OB. WAY 23,Oil Barge (OB),3,CPL-VSL-0594,Husman,AKTIF,Oiler I,Engine,085391238199,Rating,2012,2015-03-20,Mutasi Internal,-,Mutasi  dari mapan 200 tgl. 15-10-15,-
+181,XIX,OB. WAY 23,Oil Barge (OB),4,CPL-VSL-1199,Suhardi,AKTIF,Oiler,Engine,085242598591,ATT-V (O),-,2022-02-12,New Hire / New Join,-,New Hire on Board tgl. 18-2-22,-
+182,XIX,OB. WAY 23,Oil Barge (OB),5,-,Darwin,CADET (MAGANG),Cadet,Trainee (Cadet),-,BST,-,2026-07-14,On Board,SMKN 3 Majene,SMKN 3 Majene,-
+183,XIX,OB. WAY 23,Oil Barge (OB),6,-,Muhammad Reza,CADET (MAGANG),Cadet,Trainee (Cadet),-,BST,-,2026-07-14,On Board,SMKN 3 Majene,SMKN 3 Majene,-
+184,XX,TK. CPL 235,Tongkang / Barge (TK),1,CPL-VSL-0550,Muhammad Amin,AKTIF,Barge Master,Deck,081244684814,ANT-IV,2014,2014-10-18,Mutasi Internal,-,mutasi dr 23536 tgl. 28-4-16,-
+185,XX,TK. CPL 235,Tongkang / Barge (TK),2,CPL-VSL-1059,Dermawan,AKTIF,Oiler,Engine,082189254560,ATT-IV,-,2020-06-03,New Hire / New Join,-,New Hire on Board tgl. 4-6-2020,-
+186,XX,TK. CPL 235,Tongkang / Barge (TK),3,CPL-VSL-1307,Rahmat Hidayat,AKTIF,Oiler,Engine,081251701310,ATT-V,-,2023-01-11,New Hire / New Join,-,New hire on board tgl. 12-1-2023,-
+187,XX,TK. CPL 235,Tongkang / Barge (TK),4,CPL-VSL-0881,Jamiluddin,AKTIF,Oiler,Engine,085248558813,ATT-V,-,2018-10-16,New Hire / New Join,-,New Hire on Board tgl. 20-10-18,-
+188,XXI,TK. CPL 250,Tongkang / Barge (TK),1,CPL-VSL-0420,Ibrahim Rismanata,AKTIF,Barge Master,Deck,082154336212,ATT-V,2008,2008-05-08,Mutasi Internal,-,Mutasi dari 23536 /,Standarisasi tanggal: '08 Mei 2008' -> '2008-05-08'
+189,XXI,TK. CPL 250,Tongkang / Barge (TK),2,CPL-VSL-0744,Hairil Amri,AKTIF,Oiler,Engine,085348627385,ATT-V,-,2017-08-14,Mutasi Internal,-,Mutasi dari CMPL 01 tgl. 3-5-18,-
+190,XXI,TK. CPL 250,Tongkang / Barge (TK),3,CPL-VSL-0121,Hamzah,AKTIF,A/B,Deck,085248558150,BST,2010,2012-04-20,Mutasi Internal,-,mutasi dr CPL 235 tgl. 28-4-16,-
+191,XXI,TK. CPL 250,Tongkang / Barge (TK),4,CPL-VSL-0072,Abdul Razak,AKTIF,A / B,Deck,082153389363,Able,2009,2009-08-13,Mutasi Internal,-,Mutasi dr HL 270 tgl. 22-12-16,-
+192,XXI,TK. CPL 250,Tongkang / Barge (TK),5,-,Habib Ahmad Al Habsy,CADET (MAGANG),Cadet,Trainee (Cadet),-,BST,-,2026-03-13,On Board,-,-,-
+193,XXI,TK. CPL 250,Tongkang / Barge (TK),6,-,Radit,CADET (MAGANG),Cadet,Trainee (Cadet),-,BST,-,2026-03-13,On Board,-,-,-
+194,XXII,SPOB. Putra Pasifik 01,SPOB,1,CPL-VSL-0095,Yanwar,AKTIF,Nakhoda,Deck,085345042797,ANT-IV (M),-,2010-10-02,On Board,-,onboard di MMJ tgl 02-10-2010,-
+195,XXII,SPOB. Putra Pasifik 01,SPOB,2,CPL-VSL-0794,Gilang Resky Ramadhan,AKTIF,Mualim II,Deck,082251608963,ANT-IV (O),-,2017-11-16,Mutasi Internal,-,Mutasi dari TS. 306 tgl. 4-4-18,-
+196,XXII,SPOB. Putra Pasifik 01,SPOB,3,CPL-VSL-0627,S. Machmud Assagaf,AKTIF,KKM,Engine,082248677779,ATT-IV (M),2005,2015-09-28,Mutasi Internal,-,Mutasi dari AJ Putra tgl. 26-3-16,-
+197,XXII,SPOB. Putra Pasifik 01,SPOB,4,CPL-VSL-1002,Anjas Samudra,AKTIF,Masinis III,Engine,081254313707,ATT-V,-,2019-07-04,New Hire / New Join,-,New Hire on Board tgl. 6-7-19,-
+198,XXII,SPOB. Putra Pasifik 01,SPOB,5,CPL-VSL-0235,Muhammad Joko,AKTIF,Oiler I,Engine,082233660601,ATT-V (O),2011,2011-12-17,Mutasi Internal,-,Mutasi dari TS. 305 tgl. 14-11-16,Standarisasi tanggal: '17 Desember 2011' -> '2011-12-17'
+199,XXII,SPOB. Putra Pasifik 01,SPOB,6,CPL-VSL-1119,Nasrum,AKTIF,Oiler II,Engine,081245400452,ATT-V,-,2021-01-18,New Hire / New Join,-,New Hire on Board tgl. 26-1-21,-
+200,XXII,SPOB. Putra Pasifik 01,SPOB,7,CPL-VSL-0784,Nardi,AKTIF,Juru Mudi,Deck,081351036656,ANT-V,-,2017-10-20,New Hire / New Join,-,New Hire on Board tgl. 21-11-17,-
+201,XXII,SPOB. Putra Pasifik 01,SPOB,8,CPL-VSL-1155,Muh. Taher,AKTIF,Juru Mudi,Deck,081241863488,Rating,-,2021-06-05,New Hire / New Join,-,New Hire on Board tgl. 5-6-21,-
+202,XXII,SPOB. Putra Pasifik 01,SPOB,9,-,Muh Alif Alrifaldi,CADET (MAGANG),Cadet Deck,Deck (Cadet),081527106921,BST,-,2026-01-28,On Board,SMKN 3 Majene,SMK 3 Majene,Standarisasi tanggal: '28 Januari 2026' -> '2026-01-28'
+203,XXII,SPOB. Putra Pasifik 01,SPOB,10,-,M. Ismail T,CADET (MAGANG),Cadet Engine,Engine (Cadet),-,BST,-,2026-05-06,On Board,Politeknik Ilmu Pelayaran Makassar,PIP Makassar,-
+204,XXIII,SPOB. AJ. PUTRA,SPOB,1,CPL-VSL-0475,Herry Prasetyo Widodo,AKTIF,Nakhoda,Deck,081347472267,ANT-III (M),2007,2013-10-05,New Hire / New Join,-,New Hire on Board tgl. 5-10-13,-
+205,XXIII,SPOB. AJ. PUTRA,SPOB,2,CPL-VSL-1674,Karyo Saputro,AKTIF,Mualim I,Deck,081346334688,ANT-IV (M),-,2026-05-05,New Hire / New Join,-,New hire on board tgl. 06-05-2026,-
+206,XXIII,SPOB. AJ. PUTRA,SPOB,3,CPL-VSL-1611,Gunawan,AKTIF,Mualim II,Deck,082192442330,ANT-IV (O),2024,2026-01-15,New Hire / New Join,-,New hire on board tgl. 15-01-2026,-
+207,XXIII,SPOB. AJ. PUTRA,SPOB,4,CPL-VSL-1608,Yusri,AKTIF,KKM,Engine,085377992377,ATT-IV (M),2010,2026-01-15,New Hire / New Join,-,New hire on board tgl. 15-01-2026,-
+208,XXIII,SPOB. AJ. PUTRA,SPOB,5,CPL-VSL-1610,Isnandar Taufik,AKTIF,Masinis II,Engine,082351895838,ATT-IV (M),2012,2026-01-15,New Hire / New Join,-,New hire on board tgl. 15-01-2026,-
+209,XXIII,SPOB. AJ. PUTRA,SPOB,6,CPL-VSL-1613,Gema Aldiansyah,AKTIF,Masinis III,Engine,081242957696,ATT-III (O),-,2026-01-28,New Hire / New Join,-,New hire on board tgl. 29-01-2026,-
+210,XXIII,SPOB. AJ. PUTRA,SPOB,7,CPL-VSL-1603,Kaheri Noor,AKTIF,Juru Mudi,Deck,085705856056,ANT-V (O),-,2026-01-09,New Hire / New Join,-,New hire on board tgl. 09-01-2026,-
+211,XXIII,SPOB. AJ. PUTRA,SPOB,8,CPL-VSL-1604,Muhammad Idris,AKTIF,Juru Mudi,Deck,085256126952,ANT-V (O),-,2026-01-09,New Hire / New Join,-,New hire on board tgl. 09-01-2026,-
+212,XXIII,SPOB. AJ. PUTRA,SPOB,9,CPL-VSL-1605,Aswad,AKTIF,Juru Mudi,Deck,082197114883,ANT-V (O),-,2026-01-10,New Hire / New Join,-,New hire on board tgl. 10-01-2026,-
+213,XXIII,SPOB. AJ. PUTRA,SPOB,10,CPL-VSL-1606,Yusril,AKTIF,Oiler,Engine,085715550454,ABLE,-,2026-01-12,New Hire / New Join,-,New hire on board tgl. 12-01-2026,-
+214,RELIEF,"KAPTEN & KOKI RELIEF (SEA LION, OCEAN MAJENE & MAMUJU)",Relief Pool,1,-,,AKTIF,,Lainnya,-,-,-,-,On Board,-,-,-
+215,XXIV,TK. HL. 270,Tongkang / Barge (TK),1,CPL-VSL-0277,Abd. Rahman,AKTIF,Barge Master,Deck,082187163476,ATT-V (M),2009,2012-03-13,Mutasi Internal,-,Mutasi dr. CMPL 1 / tgl. 19-9-16,Standarisasi tanggal: '13 Maret 2012' -> '2012-03-13'
+216,XXIV,TK. HL. 270,Tongkang / Barge (TK),2,CPL-VSL-1568,Mastang,AKTIF,Oiler,Engine,082144866776,ATT-V (O),-,2025-10-29,New Hire / New Join,-,New hire on board tgl. 10-11-2025,-
+217,XXIV,TK. HL. 270,Tongkang / Barge (TK),3,CPL-VSL-1412,Muhammad Syibli,AKTIF,Oiler,Engine,081242352814,ATT-V (O),-,2024-03-04,New Hire / New Join,-,New hire on board tgl. 04-03-24,-
+218,XXIV,TK. HL. 270,Tongkang / Barge (TK),4,-,,AKTIF,,Lainnya,-,-,-,-,On Board,-,-,-
+219,XXIV,TK. HL. 270,Tongkang / Barge (TK),5,-,Ridho,CADET (MAGANG),Cadet,Trainee (Cadet),-,BST,-,2026-03-13,On Board,-,-,-
+220,XXIV,TK. HL. 270,Tongkang / Barge (TK),6,-,M. Ramlli,CADET (MAGANG),Cadet,Trainee (Cadet),-,BST,-,2026-03-13,On Board,-,-,-
+221,XXV,TB. KING STAR,Tug Boat (TB),1,CPL-VSL-0816,Abdul Rauf Wakano,AKTIF,Nakhoda,Deck,085321059021,ANT-III (M),-,2018-01-22,New Hire / New Join,-,New Hire on Board tgl. 22-1-18,-
+222,XXV,TB. KING STAR,Tug Boat (TB),2,CPL-VSL-1459,Hermawan Hendrik,AKTIF,Mualim I,Deck,085340715006,ANT-IV (M),-,2025-03-24,New Hire / New Join,-,New Hire on Board tgl. 24-03-2025,-
+223,XXV,TB. KING STAR,Tug Boat (TB),3,CPL-VSL-1292,Sepryanto Tombe,AKTIF,Mualim II,Deck,082217450218,ANT-IV (M),-,2022-11-07,New Hire / New Join,-,New Hire on Board tgl. 10-11-22,-
+224,XXV,TB. KING STAR,Tug Boat (TB),4,CPL-VSL-1264,Muh Fahrul Rozi Rasjid,AKTIF,KKM,Engine,082111555715,ATT-IV (M),-,2022-07-12,New Hire / New Join,-,New hire on board tgl. 12-7-22,-
+225,XXV,TB. KING STAR,Tug Boat (TB),5,CPL-VSL-1403,Ali Wafi,AKTIF,Masinis II,Engine,087803859543,ATT-III (O),-,2024-01-15,New Hire / New Join,-,New hire on board tgl. 15-01-2024,Koreksi typo tahun 1924 -> 2024
+226,XXV,TB. KING STAR,Tug Boat (TB),6,CPL-VSL-1682,Muh Aidil,AKTIF,Masinis III,Engine,085242343513,ATT-IV (O),-,2026-06-05,New Hire / New Join,-,New Hire on Board tgl. 11-06-2026,-
+227,XXV,TB. KING STAR,Tug Boat (TB),7,CPL-VSL-0355,Al Fahri,AKTIF,Juru Mudi I,Deck,082154223336,Able,2011,2012-09-27,New Hire / New Join,-,New Hire on Board tgl. 27-9-2012,Standarisasi tanggal: '27 September 2012' -> '2012-09-27'
+228,XXV,TB. KING STAR,Tug Boat (TB),8,-,[POSISI LOWONG],LOWONG (VACANT),Juru Mudi,Deck,-,ANT-V (O),-,-,Belum Terisi,-,-,-
+229,XXV,TB. KING STAR,Tug Boat (TB),9,CPL-VSL-1404,Husain,AKTIF,Juru Mudi,Deck,085221273025,Rating,-,2024-01-16,On Board,-,-,-
+230,XXV,TB. KING STAR,Tug Boat (TB),10,CPL-VSL-1397,Abdul Thalib,AKTIF,Oiler,Engine,085251546543,Rating,-,2023-11-21,New Hire / New Join,-,New Hire On board tgl. 23-11-23,-
+231,XXV,TB. KING STAR,Tug Boat (TB),11,CPL-VSL-1420,Rahmat,AKTIF,Koki,Catering / Galley,082213477827,Rating,-,2024-07-11,New Hire / New Join,-,New Hire On board tgl. 12-07-24,-
+232,XXV,TB. KING STAR,Tug Boat (TB),12,-,Andi Arung Ardhani,CADET (MAGANG),Cadet Engine,Engine (Cadet),085742256072,BST,-,2026-01-25,On Board,Politeknik Pelayaran Barombong,Poltekpel Barombong,Standarisasi tanggal: '25 Januari 2026' -> '2026-01-25'
+233,XXV,TB. KING STAR,Tug Boat (TB),13,-,Ramli,CADET (MAGANG),Cadet,Trainee (Cadet),-,BST,-,2026-04-17,On Board,-,-,-
+234,XXVI,SPOB. OCEAN MAMUJU,SPOB,1,CPL-VSL-0479,Ronny Wahyudi,AKTIF,Nakhoda,Deck,081253160690,ANT-III (M),2013,2013-10-16,Mutasi Internal,-,Mutasi dr CMPL 01. Tgl. 27-9-2017,-
+235,XXVI,SPOB. OCEAN MAMUJU,SPOB,2,CPL-VSL-1209,Sahlan Soean,AKTIF,Mualim I,Deck,085247002123,ANT-III (M),-,2022-03-21,New Hire / New Join,-,New Hire on Board tgl. 22-3-22,-
+236,XXVI,SPOB. OCEAN MAMUJU,SPOB,3,-,[POSISI LOWONG],LOWONG (VACANT),Mualim II,Deck,-,ANT-IV (M),-,-,Belum Terisi,-,-,-
+237,XXVI,SPOB. OCEAN MAMUJU,SPOB,4,CPL-VSL-0556,Sudarmin Baso,AKTIF,KKM,Engine,082188865331,ATT-III (M),2014,2014-10-28,New Hire / New Join,-,New Hire On Board tgl. 01-1-2014,-
+238,XXVI,SPOB. OCEAN MAMUJU,SPOB,5,CPL-VSL-1438,Hendra,AKTIF,Masinis II,Engine,081350620238,ATT-IV (M)/ATT-III (O),-,2024-10-31,New Hire / New Join,-,New Hire on Board tgl. 01-11-2024,-
+239,XXVI,SPOB. OCEAN MAMUJU,SPOB,6,CPL-VSL-1167,Usman Toro,AKTIF,Masinis III,Engine,082293964541,ATT-III (O),-,2021-09-09,New Hire / New Join,-,New Hire on Board tgl. 17-9-21,-
+240,XXVI,SPOB. OCEAN MAMUJU,SPOB,7,CPL-VSL-0732,Muliyadi,AKTIF,Juru Mudi I,Deck,082150605857,ANT-V (O),2016,2017-07-07,New Hire / New Join,-,New Hire On board tgl. 7-7-17,-
+241,XXVI,SPOB. OCEAN MAMUJU,SPOB,8,CPL-VSL-1005,Darmin,AKTIF,Juru Mudi II,Deck,082395639967,ANT-V (O),-,2019-07-19,New Hire / New Join,-,New hire On Board tgl. 19-7-19,-
+242,XXVI,SPOB. OCEAN MAMUJU,SPOB,9,CPL-VSL-1150,Badri,AKTIF,Juru Mudi III,Deck,082293208947,ANT-V (O),-,2021-05-20,New Hire / New Join,-,New Hire on Board tgl. 29-5-21,-
+243,XXVI,SPOB. OCEAN MAMUJU,SPOB,10,CPL-VSL-1104,Sahrul Khamit,AKTIF,Oiler,Engine,082257015655,ATT-V (O),-,2020-11-17,New Hire / New Join,-,New Hire on Board tgl. 20-11-20,-
+244,XXVI,SPOB. OCEAN MAMUJU,SPOB,11,CPL-VSL-1194,Suyitno,AKTIF,Koki,Catering / Galley,081253364561,Able,-,2022-02-09,New Hire / New Join,-,New Hire on Board tgl. 11-2-22,-
+245,XXVII,SV. TWIN SISTER 307,Supply Vessel (SV),1,CPL-VSL-0834,Firatno,AKTIF,Nakhoda,Deck,081351751819,ANT-II,-,2018-04-17,New Hire / New Join,-,New Hire on Board tgl. 3-5-18,-
+246,XXVII,SV. TWIN SISTER 307,Supply Vessel (SV),2,CPL-VSL-0425,Anwar Rasyid,AKTIF,R. Nakhoda,Deck,085215115734,ANT-IV (M),2013,2013-03-16,Mutasi Internal,-,mutasi dari Sea Lion,-
+247,XXVII,SV. TWIN SISTER 307,Supply Vessel (SV),3,CPL-VSL-1152,Syaharuddin Caco,AKTIF,Mualim II,Deck,081354381787,ANT-III (M),-,2021-05-27,New Hire / New Join,-,New hire On Board tgl. 2-6-21,-
+248,XXVII,SV. TWIN SISTER 307,Supply Vessel (SV),4,CPL-VSL-0854,Ahmad Helmi,AKTIF,KKM,Engine,081350512749,ATT-III (M),-,2018-07-09,New Hire / New Join,-,New Hire on Board tgl. 18-7-18,-
+249,XXVII,SV. TWIN SISTER 307,Supply Vessel (SV),5,CPL-VSL-0740,Rusdiansyah Syahrir,AKTIF,Masinis II,Engine,081343714841,ATT-II,-,2017-07-31,Mutasi Internal,-,Mutasi dari CMPL tgl. 15-9-17,-
+250,XXVII,SV. TWIN SISTER 307,Supply Vessel (SV),6,CPL-VSL-0707,Pariadi,AKTIF,Masinis III,Engine,085346444333,ATT-V,-,2017-04-04,Mutasi Internal,-,Mutasi dari CMPL 01 tgl. 24-1-18,-
+251,XXVII,SV. TWIN SISTER 307,Supply Vessel (SV),7,CPL-VSL-1401,Sulhan,AKTIF,Juru Mudi II,Deck,085256406317,Able,-,2024-01-04,New Hire / New Join,-,New Hire on Board tgl. 04-01-24,-
+252,XXVII,SV. TWIN SISTER 307,Supply Vessel (SV),8,CPL-VSL-0865,Dedy Bintoro,AKTIF,Juru Mudi II,Deck,085386166191,ANT-IV - M,-,2018-08-04,New Hire / New Join,-,New Hire on Board tgl. 24-8-18,-
+253,XXVII,SV. TWIN SISTER 307,Supply Vessel (SV),9,CPL-VSL-0887,Indarto,AKTIF,Juru Mudi III,Deck,085386166191,ANT-V (O),-,2018-10-19,New Hire / New Join,-,New Hire on Board tgl. 22-10-18,-
+254,XXVII,SV. TWIN SISTER 307,Supply Vessel (SV),10,CPL-VSL-0920,Bhayu Maulana,AKTIF,Oiler I,Engine,085256084116,ATT-V (O),-,2019-02-25,New Hire / New Join,-,New Hire on Board tgl. 25-2-19,-
+255,XXVII,SV. TWIN SISTER 307,Supply Vessel (SV),11,CPL-VSL-1187,Darmawansah,AKTIF,Oiler II,Engine,082327999461,ATT-V (O),-,2022-01-05,New Hire / New Join,-,New Hire on Board tgl. 13-1-22,-
+256,XXVII,SV. TWIN SISTER 307,Supply Vessel (SV),12,CPL-VSL-1271,Kadar Taufik,AKTIF,Koki,Catering / Galley,082259297159,ATT-V (O),-,2022-08-02,New Hire / New Join,-,New Hire on Board tgl. 4-8-22,-
+257,XXVII,SV. TWIN SISTER 307,Supply Vessel (SV),1,CPL-VSL-0824,Rinaldi Hamzah,AKTIF,Masinis II Relief,Engine,081325073953,ATT-IV (O),-,2018-01-29,New Hire / New Join,-,New Hire on Board tgl. 1-2-18,-
+258,XXVII,SV. TWIN SISTER 307,Supply Vessel (SV),2,CPL-VSL-1386,Taufik Hidayat,AKTIF,Mualim II,Deck,081350147886,ANT-III (O),2022,2023-10-13,New Hire / New Join,-,New Hire on Board tgl. 13-10-2023,-
+259,XXVIII,SPOB. OCEAN MAJENE,SPOB,1,CPL-VSL-0666,Nurdin,AKTIF,Nakhoda,Deck,082371726666,ANT-IV (M)/ANT-III (O),2013,2016-01-22,New Hire / New Join,-,New Hire on Board tgl. 22-1-16,-
+260,XXVIII,SPOB. OCEAN MAJENE,SPOB,2,CPL-VSL-1022,Agussalim,AKTIF,Mualim I,Deck,085242905302,ANT-IV (M) / ANT-III (O)ps,-,2019-08-08,New Hire / New Join,-,New Hire on Board tgl. 15-8-19,-
+261,XXVIII,SPOB. OCEAN MAJENE,SPOB,3,CPL-VSL-0683,Risal Mahmud,AKTIF,Mualim II,Deck,085347355957,ANT-V,-,2016-12-10,Mutasi Internal,-,Mutasi dari O. Mamuju tgl. 29-5-17,-
+262,XXVIII,SPOB. OCEAN MAJENE,SPOB,4,CPL-VSL-0993,Mahrus Hapip,AKTIF,KKM,Engine,081350104589,ATT-III (M),-,2019-06-13,New Hire / New Join,-,New Hire on Board tgl. 13-7-19,-
+263,XXVIII,SPOB. OCEAN MAJENE,SPOB,5,CPL-VSL-1151,Arya Munandar,AKTIF,Masinis II,Engine,081345527657,ATT-IV (M),-,2021-05-20,New Hire / New Join,-,New Hire on Board tgl. 24-5-21,-
+264,XXVIII,SPOB. OCEAN MAJENE,SPOB,6,CPL-VSL-1159,Rislam,AKTIF,Masinis III,Engine,082238670271,ATT-IV (O),-,2021-07-01,New Hire / New Join,-,New Hire on Board tgl. 5-7-21,-
+265,XXVIII,SPOB. OCEAN MAJENE,SPOB,7,CPL-VSL-0801,Agustian,AKTIF,Juru Mudi I,Deck,085298240300,ANT-V (O),-,2017-12-09,New Hire / New Join,-,New Hire On board tgl. 11-12-17,-
+266,XXVIII,SPOB. OCEAN MAJENE,SPOB,8,CPL-VSL-0309,Muhammad Taslim,AKTIF,Juru Mudi II,Deck,081244059960,ANT-V (O),2011,2012-07-20,Mutasi Internal,-,Mutasi dari TS. 306 / tgl. 20-6-16,Standarisasi tanggal: '20 Juli 2012' -> '2012-07-20'
+267,XXVIII,SPOB. OCEAN MAJENE,SPOB,9,CPL-VSL-1048,Andi Dedy Akbar,AKTIF,Juru Mudi III,Deck,085348493575,ANT-V (O),-,2020-02-05,New Hire / New Join,-,New hire On Board tgl. 6-2-2020,-
+268,XXVIII,SPOB. OCEAN MAJENE,SPOB,10,CPL-VSL-1067,Alfyan Rusyandi,AKTIF,Oiler,Engine,082347842181,ATT-V (O),-,2020-07-03,New Hire / New Join,-,New Hire on Board tgl. 5-7-20,-
+269,XXVIII,SPOB. OCEAN MAJENE,SPOB,11,CPL-VSL-1073,Eddy Irawan,AKTIF,Koki,Catering / Galley,082353777222,ANT-V (O),-,2020-07-24,New Hire / New Join,-,New Hire on Board tgl. 28-7-20,-
+270,XXIX,TK. OCEAN BRAVE 23536,Tongkang / Barge (TK),1,CPL-VSL-0485,Jufri,AKTIF,Barge Master,Deck,08970826570,ANT-V (O),2013,2013-11-06,New Hire / New Join,-,New Hire on Board tgl. 6-11-13,-
+271,XXIX,TK. OCEAN BRAVE 23536,Tongkang / Barge (TK),2,CPL-VSL-0704,J. Hery Saputra,AKTIF,Masinis,Engine,08125498943,ATT-V (M),-,2017-03-21,New Hire / New Join,-,New Hire On board tgl. 1-4-17,-
+272,XXIX,TK. OCEAN BRAVE 23536,Tongkang / Barge (TK),3,CPL-VSL-1132,Abd. Rahim R,AKTIF,A/B,Deck,081257568492,ANT-V (O),-,2021-03-10,New Hire / New Join,-,New Hire on Board tgl. 14-3-21,-
+273,XXIX,TK. OCEAN BRAVE 23536,Tongkang / Barge (TK),4,CPL-VSL-1380,Ahmad Tedi Sukarta,AKTIF,Oiler,Engine,08239605290,ATT-V (O),-,2023-09-23,New Hire / New Join,-,New Hire on Board tgl. 24-09-2023,-
+274,XXIX,TK. OCEAN BRAVE 23536,Tongkang / Barge (TK),5,-,Awal Ramadani,CADET (MAGANG),Cadet,Trainee (Cadet),-,BST,-,2026-07-24,On Board,-,-,-
+275,XXIX,TK. OCEAN BRAVE 23536,Tongkang / Barge (TK),6,-,Muhammad Aulia Azkur,CADET (MAGANG),Cadet,Trainee (Cadet),-,BST,-,2026-07-14,On Board,SMKN 3 Majene,SMK 3 Majene,-
+276,XXX,SPOB. KING OCEAN,SPOB,1,CPL-VSL-0735,Nawir,AKTIF,Nakhoda,Deck,081211469750,ANT-II,-,2017-07-13,New Hire / New Join,-,New Hire on Board tgl. 13-7-17,-
+277,XXX,SPOB. KING OCEAN,SPOB,2,CPL-VSL-0746,Aliansyah,AKTIF,Mualim I,Deck,085212170630,ANT-II,-,2017-08-22,New Hire / New Join,-,New Hire On board tgl. 24-8-17,-
+278,XXX,SPOB. KING OCEAN,SPOB,3,CPL-VSL-0833,Wahyudi Abu,AKTIF,Mualim II,Deck,082353855717,ANT-IV (M),-,2018-02-20,New Hire / New Join,-,New Hire on Board tgl21-2-18,-
+279,XXX,SPOB. KING OCEAN,SPOB,4,CPL-VSL-0647,Eviyanto,AKTIF,KKM,Engine,081348775662,ATT-I,2009,2015-11-20,Mutasi Internal,-,Mutasi dr. CMPL 01 tgl. 10-4-17,-
+280,XXX,SPOB. KING OCEAN,SPOB,5,CPL-VSL-0667,Hardin Abbas,AKTIF,Masinis II,Engine,085334110099,ATT-II,2013,2016-01-15,New Hire / New Join,-,New Hire on Board tgl. 26-1-16,-
+281,XXX,SPOB. KING OCEAN,SPOB,6,CPL-VSL-1166,Ahmad Mahjir Pratama,AKTIF,Masinis III,Engine,081251242631,ATT-IV (M),-,2021-09-08,New Hire / New Join,-,New Hire on Board tgl. 11-9-21,-
+282,XXX,SPOB. KING OCEAN,SPOB,7,CPL-VSL-0377,Muh Patry,AKTIF,Juru Mudi I,Deck,081350140705,ANT-V (O),2009,2012-10-30,Mutasi Internal,-,Mutasi dr Ocean Mamuju tgl. 21-4-14,-
+283,XXX,SPOB. KING OCEAN,SPOB,8,CPL-VSL-0536,Mansyur,AKTIF,Juru Mudi II,Deck,081347422229,ANT-V (O),2013,2014-09-26,New Hire / New Join,-,New Hire On board tgl. 26-9-14,-
+284,XXX,SPOB. KING OCEAN,SPOB,9,CPL-VSL-1019,Lukman,AKTIF,Juru Mudi III,Deck,081352664365,ANT-V (O),-,2019-08-01,New Hire / New Join,-,New Hire on Board tgl. 12-8-19,-
+285,XXX,SPOB. KING OCEAN,SPOB,10,CPL-VSL-0108,Mujiyono Agus Waluyo,AKTIF,Oiler I,Engine,081352181839,Able,2008,2011-03-10,Mutasi Internal,-,Mutasi dari Muara Mega tgl. 11-5-15,Standarisasi tanggal: '10 Maret 2011' -> '2011-03-10'
+286,XXX,SPOB. KING OCEAN,SPOB,11,CPL-VSL-1162,Gusnandi,AKTIF,Oiler II,Engine,082255647074,ATT-V (O),-,2021-07-31,New Hire / New Join,-,New Hire on Board tgl. 7-8-21,-
+287,XXX,SPOB. KING OCEAN,SPOB,12,CPL-VSL-1172,Candra Wicaksono,AKTIF,Koki,Catering / Galley,081347139771,ANT-V (O),-,2021-09-30,New Hire / New Join,-,New Hire on Board tgl. 7-9-10-21,-
+288,XXX,SPOB. KING OCEAN,SPOB,13,-,Muhammad Shaifan Yazid A,CADET (MAGANG),Cadet Deck,Deck (Cadet),085787666972,BST,-,2025-12-09,On Board,Politeknik Ilmu Pelayaran Balikpapan,PIP Balikpapan,Standarisasi tanggal: '09 Desember 2025' -> '2025-12-09'
+289,XXX,SPOB. KING OCEAN,SPOB,14,-,Muhammad Farel,CADET (MAGANG),Cadet Engine,Engine (Cadet),-,BST,-,2026-04-02,On Board,-,-,-
+290,XXXI,TK. MAPAN 27027,Tongkang / Barge (TK),1,CPL-VSL-0064,Bambang Supriansyah,AKTIF,Barge Master,Deck,081346607408,Able,-,2006-03-01,Mutasi Internal,-,Mutasi dr. GB. 001 tgl. 8-6-18,-
+291,XXXI,TK. MAPAN 27027,Tongkang / Barge (TK),2,CPL-VSL-1340,Sahrul Salim,AKTIF,Masinis II,Engine,082222208548,ATT-V (O),-,2023-03-17,New Hire / New Join,-,New Hire on Board tgl. 17-3-2023,-
+292,XXXI,TK. MAPAN 27027,Tongkang / Barge (TK),3,CPL-VSL-1161,Yusran,AKTIF,A / B,Deck,082349691996,ANT-V (O),-,2021-07-24,New Hire / New Join,-,New Hire on Board tgl. 26-7-21,-
+293,XXXI,TK. MAPAN 27027,Tongkang / Barge (TK),4,CPL-VSL-1417,M. Jaelani,AKTIF,Oiler II,Engine,08387124960,Rating,-,2024-08-26,New Hire / New Join,-,New hire On Board tgl. 26-06-24,-
+294,XXXII,TB. MAPAN 1405,Tug Boat (TB),1,CPL-VSL-0598,Sumarlin,AKTIF,Nakhoda,Deck,081347193536,ANT-IV (M),2013,2015-04-06,Mutasi Internal,-,Mutasi dari Equator 07 tgl. 3-8-16,-
+295,XXXII,TB. MAPAN 1405,Tug Boat (TB),2,CPL-VSL-0775,Harianto,AKTIF,Mualim I,Deck,081244298293,ANT-IV (M),-,2017-10-07,New Hire / New Join,-,New Hire On board tgl. 9-10-17,-
+296,XXXII,TB. MAPAN 1405,Tug Boat (TB),3,CPL-VSL-1079,Rustan,AKTIF,Mualim II,Deck,085242493323,ANT-V (M),-,2020-08-07,New Hire / New Join,-,New Hire on Board tgl. 8-8-20,-
+297,XXXII,TB. MAPAN 1405,Tug Boat (TB),4,CPL-VSL-0870,Muhammad Yusuf,AKTIF,KKM,Engine,085299871843,ATT-III (M),-,2018-08-16,On Board,-,Rencana Off per tgl. 31-8-21,-
+298,XXXII,TB. MAPAN 1405,Tug Boat (TB),5,-,[POSISI LOWONG],LOWONG (VACANT),Masinis II,Engine,-,ATT-III (M),-,-,Belum Terisi,-,-,-
+299,XXXII,TB. MAPAN 1405,Tug Boat (TB),6,-,[POSISI LOWONG],LOWONG (VACANT),Masinis III,Engine,-,ATT-III (O),-,-,Belum Terisi,-,-,-
+300,XXXII,TB. MAPAN 1405,Tug Boat (TB),7,CPL-VSL-0825,Muhlis Hamid,AKTIF,Juru Mudi I,Deck,081355384733,ANT-V (O),-,2018-01-29,New Hire / New Join,-,New Hire on Board tgl. 29-1-18,-
+301,XXXII,TB. MAPAN 1405,Tug Boat (TB),8,CPL-VSL-1020,Idham Jibril,AKTIF,Juru Mudi II,Deck,082192085577,Rating,-,2019-08-01,New Hire / New Join,-,New Hire on Board tgl. 9-8-19,-
+302,XXXII,TB. MAPAN 1405,Tug Boat (TB),9,CPL-VSL-0060,Ismail,AKTIF,Juru Mudi III,Deck,082155224861,ANT-V (O),-,2009-11-14,New Hire / New Join,-,New Hire on Board tgl. 14-11-2009,-
+303,XXXII,TB. MAPAN 1405,Tug Boat (TB),10,CPL-VSL-1169,Amirullah,AKTIF,Oiler,Engine,082193031155,ATT-V (O),-,2021-09-28,New Hire / New Join,-,New Hire on Board tgl. 2-10-2021,-
+304,XXXII,TB. MAPAN 1405,Tug Boat (TB),11,CPL-VSL-1503,Muhammad Kamil A,AKTIF,Koki,Catering / Galley,085194011823,Rating,-,2025-06-20,New Hire / New Join,-,New Hire on Board tgl. 20-06-2025,-
+305,XXXII,TB. MAPAN 1405,Tug Boat (TB),12,-,Adnan Rifa'i,CADET (MAGANG),Cadet Deck,Deck (Cadet),082182383217,BST,-,2025-11-10,On Board,Politeknik Pelayaran Barombong,Poltekpel Barombong,-
+306,XXXIII,LCT. ANTASENA BUMI SURYA,LCT,1,CPL-VSL-1347,Aminul Kholik,AKTIF,Nakhoda,Deck,082398972461,ANT-IV (M),-,2023-05-15,New Hire / New Join,-,New Hire on Board tgl. 15-5-2023,-
+307,XXXIII,LCT. ANTASENA BUMI SURYA,LCT,2,CPL-VSL-1335,Muhammad Rizqullah,AKTIF,Mualim I,Deck,082395610306,ANT-III (M),-,2023-02-27,New Hire / New Join,-,New Hire on Board tgl. 2-3-2023,-
+308,XXXIII,LCT. ANTASENA BUMI SURYA,LCT,3,CPL-VSL-1713,Abd. Rahman,AKTIF,KKM,Engine,082352016372,ATT-IV,-,2026-09-29,New Hire / New Join,-,New Hire on Board tgl. 29-9-2026,-
+309,XXXIII,LCT. ANTASENA BUMI SURYA,LCT,4,CPL-VSL-1578,Muh Hardinal,AKTIF,Masinis II,Engine,082352197308,ATT-IV (O),-,2025-11-07,New Hire / New Join,-,New Hire on Board tgl. 07-11-2025,-
+310,XXXIII,LCT. ANTASENA BUMI SURYA,LCT,5,CPL-VSL-1286,Risal,AKTIF,Juru Mudi,Deck,085255303817,ANT-V (O),-,2022-10-12,New Hire / New Join,-,New Hire on Board tgl. 14-10-2022,-
+311,XXXIII,LCT. ANTASENA BUMI SURYA,LCT,6,CPL-VSL-1582,Musytajuddin Ilham Ramadhan,AKTIF,Juru Mudi,Deck,082159014336,ANT-V (O),-,2025-11-13,New Hire / New Join,-,New Hire on Board tgl. 14-11-2025,-
+312,XXXIII,LCT. ANTASENA BUMI SURYA,LCT,7,CPL-VSL-1192,Muhammad Zikrullah,AKTIF,Oiler,Engine,085248472510,ATT-V (O),-,2022-01-21,New Hire / New Join,-,New Hire on Board tgl. 22-1-22,-
+313,XXXIII,LCT. ANTASENA BUMI SURYA,LCT,8,CPL-VSL-1714,Chaerul Kasfin,AKTIF,Oiler,Engine,081355202808,ATT-V (O),-,2026-09-29,New Hire / New Join,-,New Hire on Board tgl. 29-9-2026,-
+314,XXXIV,TK. MAPAN 200,Tongkang / Barge (TK),1,CPL-VSL-0586,Abdul Gapar,AKTIF,Barge Master,Deck,085248775553,ATT-V,2001,2015-01-31,New Hire / New Join,-,New Hire on Board tgl. 1-2-2015,-
+315,XXXIV,TK. MAPAN 200,Tongkang / Barge (TK),2,CPL-VSL-0787,Fajriansyah,AKTIF,A / B,Deck,081357408459,ANT-V,-,2017-10-28,New Hire / New Join,-,New Hire on Board tgl. 30-10-17,-
+316,XXXIV,TK. MAPAN 200,Tongkang / Barge (TK),3,CPL-VSL-0737,Muhammad Ikbal,AKTIF,Oiler I,Engine,082125103498,Rating,2017,2017-07-24,New Hire / New Join,-,New Hire on Board tgl. 24-7-17,-
+317,XXXIV,TK. MAPAN 200,Tongkang / Barge (TK),4,-,[POSISI LOWONG],LOWONG (VACANT),A / B,Deck,-,ANT-V,-,-,Belum Terisi,-,-,-
+318,XXXIV,TK. MAPAN 200,Tongkang / Barge (TK),5,-,M. Fiqram,CADET (MAGANG),Cadet,Trainee (Cadet),-,BST,-,2026-07-14,On Board,SMKN 3 Majene,SMK 3 Majene,-
+319,XXXIV,TK. MAPAN 200,Tongkang / Barge (TK),6,-,Haeril Fikri,CADET (MAGANG),Cadet,Trainee (Cadet),-,BST,-,2026-07-14,On Board,SMKN 3 Majene,SMK 3 Majene,-
+320,XXXV,TB. CINDARA 3112,Tug Boat (TB),1,CPL-VSL-1362,Hendri Rusmawardana,AKTIF,Nakhoda,Deck,085246781355,ANT-III (M),-,2023-07-21,New Hire / New Join,-,New Hire on Board tgl. 22-7-2023,-
+321,XXXV,TB. CINDARA 3112,Tug Boat (TB),2,CPL-VSL-1320,Nasrullah,AKTIF,Mualim I,Deck,085241670696,ANT-IV (M),-,2023-02-10,New Hire / New Join,-,New hire on board tgl. 11-2-2023,-
+322,XXXV,TB. CINDARA 3112,Tug Boat (TB),3,CPL-VSL-1467,Muhammad Aslam,AKTIF,Mualim II,Deck,085397151174,ANT-IV (O),-,2025-05-22,New Hire / New Join,-,New hire on board tgl. 22-05-2025,-
+323,XXXV,TB. CINDARA 3112,Tug Boat (TB),4,CPL-VSL-0996,Kamaluddin,AKTIF,KKM,Engine,081256824059,ATT-IV (M),-,2019-06-21,New Hire / New Join,-,New Hire on Board tgl. 26-6-19,-
+324,XXXV,TB. CINDARA 3112,Tug Boat (TB),5,CPL-VSL-1411,Saldi Bin Muh Said,AKTIF,Masinis II,Engine,085255729458,ATT-III (M),-,2024-03-08,New Hire / New Join,-,New Hire on Board tgl. 19/3/24,-
+325,XXXV,TB. CINDARA 3112,Tug Boat (TB),6,CPL-VSL-1456,Muhammad Rizal,AKTIF,Masinis III,Engine,082148684065,ATT-III (O),-,2025-03-06,New Hire / New Join,-,New hire on board tgl. 07-03-2025,-
+326,XXXV,TB. CINDARA 3112,Tug Boat (TB),7,CPL-VSL-1690,Putra Malik Maulana,AKTIF,Juru Mudi,Deck,082346140799,ANT-V (O),-,2026-06-19,New Hire / New Join,-,New Hire on Board tgl. 25-06-2026,-
+327,XXXV,TB. CINDARA 3112,Tug Boat (TB),8,CPL-VSL-1200,Usman,AKTIF,Juru Mudi II,Deck,085386054444,ANT-V (O),-,2015-02-13,New Hire / New Join,-,New Hire on Board tgl. 15-2-22,-
+328,XXXV,TB. CINDARA 3112,Tug Boat (TB),9,CPL-VSL-1291,M. Syukrianto,AKTIF,Juru Mudi III,Deck,082244724460,ANT-V (O),-,2022-11-07,New Hire / New Join,-,New Hire on Board tgl. 10-11-22,-
+329,XXXV,TB. CINDARA 3112,Tug Boat (TB),10,CPL-VSL-1446,Andy Setiawan,AKTIF,Oiler II,Engine,085256617776,ATT-V (O),-,2025-01-24,New Hire / New Join,-,New hire on board tgl. 24-01-25,-
+330,XXXV,TB. CINDARA 3112,Tug Boat (TB),11,CPL-VSL-1700,Eko Prasetyo Ramadan,AKTIF,Koki,Catering / Galley,085825071251,Rating,-,2026-08-06,New Hire / New Join,-,New Hire on Board tgl. 06-08-2026,-
+331,XXXV,TB. CINDARA 3112,Tug Boat (TB),12,-,Alif Panca Pratama,CADET (MAGANG),Cadet Engine,Engine (Cadet),-,BST,-,2026-04-01,On Board,-,-,-
+332,XXXVI,TK. COASTWAY 20100,Tongkang / Barge (TK),1,CPL-VSL-0509,Miftahul Khair Ahmad,AKTIF,Barge Master,Deck,082219999094,ANT-III (O),2012,2014-04-23,Mutasi Internal,-,Mutasi dr OB Way 23 tgl. 31-8-17,-
+333,XXXVI,TK. COASTWAY 20100,Tongkang / Barge (TK),2,CPL-VSL-0644,Muhammad Yamin,AKTIF,Oiler,Engine,081250358100,ATT-V (O),2015,2015-10-29,New Hire / New Join,-,New Hire on Board tgl 1-11-2015,-
+334,XXXVI,TK. COASTWAY 20100,Tongkang / Barge (TK),3,CPL-VSL-0653,Fadliansyah,AKTIF,A / B,Deck,082154193431,ANT-V (O),2015,2015-12-15,New Hire / New Join,-,New Hire on Board tgl 15-12-2015,-
+335,XXXVI,TK. COASTWAY 20100,Tongkang / Barge (TK),4,CPL-VSL-0706,Irwan,AKTIF,A / B,Deck,082250605076,ANT-V (O),2017,2017-03-30,New Hire / New Join,-,New Hire on Board tgl 1-4-17,-
+336,XXXVII,SPOB. OCEAN POLMAN,SPOB,1,CPL-VSL-0664,Anta Choiruroziqin,AKTIF,Nakhoda,Deck,085250277702,ANT-IV (M),2014,2016-01-22,Mutasi Internal,-,Mutasi dr. AJ. Putra tgl. 25-4-17,-
+337,XXXVII,SPOB. OCEAN POLMAN,SPOB,2,CPL-VSL-0431,Nur Affandi,AKTIF,Mualim I,Deck,081254533555,ANT-IV (M),2010,2013-04-08,Mutasi Internal,-,Mutasi dari MMJ/ tgl 16-11-16,-
+338,XXXVII,SPOB. OCEAN POLMAN,SPOB,3,CPL-VSL-0519,Agus,AKTIF,Mualim II,Deck,085387372059,ANT-V (M),2013,2014-06-10,Mutasi Internal,-,Mutasi dari MMJ/ tgl 22-1-17,-
+339,XXXVII,SPOB. OCEAN POLMAN,SPOB,4,CPL-VSL-1168,Hamkah,AKTIF,KKM,Engine,085396115067,ATT-III (M),-,2021-09-20,New Hire / New Join,-,New Hire on Board tgl. 23-9-2021,-
+340,XXXVII,SPOB. OCEAN POLMAN,SPOB,5,CPL-VSL-1144,Hasrul,AKTIF,Masinis II,Engine,082151447128,ATT-IV (M),-,2021-04-30,New Hire / New Join,-,New Hire on Board tgl. 17-5-21,-
+341,XXXVII,SPOB. OCEAN POLMAN,SPOB,6,CPL-VSL-1134,Alfin,AKTIF,Masinis III,Engine,085241098381,ATT-IV (O),-,2021-03-26,New Hire / New Join,-,New Hire on Board tgl. 1-4-21,-
+342,XXXVII,SPOB. OCEAN POLMAN,SPOB,7,CPL-VSL-0366,Suarman,AKTIF,Juru Mudi I,Deck,082354641100,ANT-V (O),2012,2012-10-22,Mutasi Internal,-,Mutasi dari MMJ/ tgl 22-6-17,-
+343,XXXVII,SPOB. OCEAN POLMAN,SPOB,8,CPL-VSL-0527,Abd. Halik T,AKTIF,Juru Mudi II,Deck,081253465999,ANT-V (O),2004,2014-09-12,Mutasi Internal,-,Mutasi dari Equat. 07/ tgl 16-11-16,-
+344,XXXVII,SPOB. OCEAN POLMAN,SPOB,9,CPL-VSL-0682,Talib,AKTIF,Juru Mudi I,Deck,082189009734,Able,-,2016-12-08,New Hire / New Join,-,New Hire on Board tgl. 8-12-16,-
+345,XXXVII,SPOB. OCEAN POLMAN,SPOB,10,CPL-VSL-0128,Endang Sumarna,AKTIF,Oiler I,Engine,085252194954,Able,2005,2011-06-06,Mutasi Internal,-,Mutasi dari Equat. 07/ tgl 16-11-16,Standarisasi tanggal: '06 Juni 2011' -> '2011-06-06'
+346,XXXVII,SPOB. OCEAN POLMAN,SPOB,11,CPL-VSL-1569,M. Anwar,AKTIF,Koki,Catering / Galley,081346247814,ANT-V (O),-,2025-10-29,New Hire / New Join,-,New hire on board tgl. 29-10-25,-
+347,XXXVII,SPOB. OCEAN POLMAN,SPOB,12,-,Aldiansyah,CADET (MAGANG),Cadet Deck,Deck (Cadet),083848347504,BST,-,2025-09-23,On Board,Politeknik Pelayaran Barombong,Poltekpel Barombong,-
+348,XXXVII,SPOB. OCEAN POLMAN,SPOB,13,-,Anwar,CADET (MAGANG),Cadet Engine,Engine (Cadet),-,BST,-,2026-05-08,On Board,-,-,-
+349,XXXVIII,SPOB. FERY 471,SPOB,1,CPL-VSL-1098,Samsuriadi,AKTIF,Nakhoda,Deck,08125759986,ANT-III (M),-,2020-09-30,New Hire / New Join,-,New Hire on Board tgl. 1-10-20,-
+350,XXXVIII,SPOB. FERY 471,SPOB,2,CPL-VSL-0773,Safaruddin,AKTIF,Mualim I,Deck,081253147611,ANT-IV (M),-,2017-10-06,New Hire / New Join,-,New hire On Board tgl. 7-10-17,-
+351,XXXVIII,SPOB. FERY 471,SPOB,3,CPL-VSL-1327,Muh. Irfan Alfiansyah,AKTIF,Mualim II,Deck,085397055642,ANT-III (O),-,2023-02-20,New Hire / New Join,-,New Hire on Board tgl. 20-2-2023,-
+352,XXXVIII,SPOB. FERY 471,SPOB,4,CPL-VSL-1363,Deka Wardhana,AKTIF,KKM,Engine,081380676819,ATT-III (M),-,2023-07-25,New Hire / New Join,-,New Hire on Board tgl. 26-7-2023,-
+353,XXXVIII,SPOB. FERY 471,SPOB,5,CPL-VSL-1318,Willyam Pasiakan,AKTIF,Masinis II,Engine,082156947833,ATT-III (M),-,2023-02-07,New Hire / New Join,-,New hire on board tgl. 9-2-23,-
+354,XXXVIII,SPOB. FERY 471,SPOB,6,CPL-VSL-1357,Muhammad Nawir,AKTIF,Masinis III,Engine,085348678949,ATT-IV (M),-,2023-07-03,New Hire / New Join,-,New hire on board tgl. 3-7-23,-
+355,XXXVIII,SPOB. FERY 471,SPOB,7,CPL-VSL-0282,Hamiruddin,AKTIF,Juru Mudi I,Deck,081253558292,ANT-V,2007,2012-03-30,Mutasi Internal,-,Mutasi dari TS 305 tgl. 20-4-17,Standarisasi tanggal: '30 Maret 2012' -> '2012-03-30'
+356,XXXVIII,SPOB. FERY 471,SPOB,8,CPL-VSL-0753,Bahri,AKTIF,Juru Mudi II,Deck,082350008025,ANT-V,-,2017-09-04,New Hire / New Join,-,New Hire on Board tgl. 4-9-17,-
+357,XXXVIII,SPOB. FERY 471,SPOB,9,CPL-VSL-0867,Irman,AKTIF,Juru Mudi III,Deck,085245965145,ANT-V,-,2019-10-14,New Hire / New Join,-,New Hire on Board tgl. 11-8-18,-
+358,XXXVIII,SPOB. FERY 471,SPOB,10,CPL-VSL-1309,Muhammad Arifin,AKTIF,Oiler,Engine,082192710040,ATT-V,-,2023-01-19,New Hire / New Join,-,New Hire on Board tgl. 20-1-23,-
+359,XXXVIII,SPOB. FERY 471,SPOB,11,CPL-VSL-1414,Ridwan M,AKTIF,Oiler,Engine,082367772607,ATT-V,-,2024-06-25,New Hire / New Join,-,New Hire on Board tgl. 25-06-2024,-
+360,XXXVIII,SPOB. FERY 471,SPOB,12,CPL-VSL-1389,Syahrul,AKTIF,Koki,Catering / Galley,0895401415167,ANT-V,-,2023-11-01,New Hire / New Join,-,New Hire on Board tgl. 02-11-2023,-
+361,XXXVIII,SPOB. FERY 471,SPOB,13,-,Haswandi,CADET (MAGANG),Cadet Engine,Engine (Cadet),082193780220,BST,-,2025-10-07,On Board,Politeknik Pelayaran Barombong,Poltekpel Barombong,Standarisasi tanggal: '07 Oktober 2025' -> '2025-10-07'
+362,XXXVIII,SPOB. FERY 471,SPOB,14,-,Fadhil Imdad Manyyompi,CADET (MAGANG),Cadet,Trainee (Cadet),-,BST,-,2026-03-18,On Board,-,-,-
+363,XXXIX,TB. CINDARA 2107,Tug Boat (TB),1,CPL-VSL-1637,Ansar Randanan,AKTIF,Nakhoda,Deck,081253477078,ANT-III (M),-,2026-03-16,New Hire / New Join,-,New Hire on Board tgl. 16-03-2026,-
+364,XXXIX,TB. CINDARA 2107,Tug Boat (TB),2,CPL-VSL-1064,Andi Saparuddin Mapi Sabbi,AKTIF,Mualim I,Deck,081351204449,ANT-III (M),-,2020-06-15,New Hire / New Join,-,New hire On Board tgl. 22-6-20,-
+365,XXXIX,TB. CINDARA 2107,Tug Boat (TB),3,CPL-VSL-1085,Supriadi,AKTIF,Mualim II,Deck,081348420780,ANT-IV (M),-,2020-08-24,New Hire / New Join,-,New Hire on Board tgl. 24-8-20,-
+366,XXXIX,TB. CINDARA 2107,Tug Boat (TB),4,CPL-VSL-0770,Suhardi,AKTIF,KKM,Engine,085398373744,ATT-III (M),-,2017-09-29,New Hire / New Join,-,New Hire on Board tgl. 3-10-2017,-
+367,XXXIX,TB. CINDARA 2107,Tug Boat (TB),5,CPL-VSL-1499,Hasrul,AKTIF,Masinis II,Engine,082358242431,ATT-III,-,2025-06-09,New Hire / New Join,-,New Hire on Board tgl. 14-06-25,-
+368,XXXIX,TB. CINDARA 2107,Tug Boat (TB),6,CPL-VSL-0859,Muhammad Ashri,AKTIF,Masinis III,Engine,081240693548,ATT-V (M),-,2018-07-30,New Hire / New Join,-,New hire On Board tgl. 1-8-18,-
+369,XXXIX,TB. CINDARA 2107,Tug Boat (TB),7,CPL-VSL-1091,Masrur,AKTIF,Juru Mudi I,Deck,081343819823,ANT-V (O),-,2020-09-01,New Hire / New Join,-,New Hire on Board tgl. 3-9-20,-
+370,XXXIX,TB. CINDARA 2107,Tug Boat (TB),8,CPL-VSL-1088,Busran,AKTIF,Juru Mudi II,Deck,081242363938,ANT-V (O),-,2020-08-24,New Hire / New Join,-,New Hire on Board tgl. 27-8-20,-
+371,XXXIX,TB. CINDARA 2107,Tug Boat (TB),9,CPL-VSL-1373,Anwar Syarifuddin,AKTIF,Juru Mudi III,Deck,081355634103,ANT-V (O),-,2023-09-12,New Hire / New Join,-,New Hire on Board tgl. 12-9-2023,-
+372,XXXIX,TB. CINDARA 2107,Tug Boat (TB),10,CPL-VSL-1437,Fikri,AKTIF,Koki,Catering / Galley,082159038782,Rating,-,2024-10-14,New Hire / New Join,-,New Hire on Board tgl. 22-10-2024,-
+373,XXXIX,TB. CINDARA 2107,Tug Boat (TB),11,CPL-VSL-1655,Deni Fitrianto,AKTIF,Oiler,Engine,081334154802,ATT-V (O),-,2026-04-06,New Hire / New Join,-,New Hire on Board tgl. 07-04-2026,-
+374,XXXIX,TB. CINDARA 2107,Tug Boat (TB),12,-,Muh Arhamn,CADET (MAGANG),Cadet Engine,Engine (Cadet),087841605911,BST,-,2025-08-22,On Board,Politeknik Pelayaran Barombong,Poltekpel Barombong,Standarisasi tanggal: '22 Agustus 2025' -> '2025-08-22'
+375,XL,TK. WINBUILD 141,Tongkang / Barge (TK),1,CPL-VSL-0888,Yusdar,AKTIF,Oiler,Engine,081354933393,ATT-V (O),-,2018-10-17,New Hire / New Join,-,New Hire On board tgl. 25-10-18,-
+376,XL,TK. WINBUILD 141,Tongkang / Barge (TK),2,CPL-VSL-1653,Muh Nabil,AKTIF,A/B,Deck,08134222647,Rating,-,2026-03-30,New Hire / New Join,-,New Hire On board tgl. 31-03-2026,-
+377,XL,TK. WINBUILD 141,Tongkang / Barge (TK),3,-,[POSISI LOWONG],LOWONG (VACANT),Oiler,Engine,-,-,-,-,Belum Terisi,-,-,-
+378,XLI,SPOB. ROYAL REY,SPOB,1,CPL-VSL-1117,Harris Fadillah,AKTIF,Nakhoda,Deck,081277787166,ANT-I,-,2020-12-23,New Hire / New Join,-,New hire On Board tgl. 26-12-20,-
+379,XLI,SPOB. ROYAL REY,SPOB,2,CPL-VSL-1068,M. Sahlan,AKTIF,Mualim I,Deck,081211469750,ANT-III (M),-,2020-07-08,New Hire / New Join,-,New Hire on Board tgl. 8-7-20,-
+380,XLI,SPOB. ROYAL REY,SPOB,3,CPL-VSL-1306,Muh. Ardianto,AKTIF,Mualim II,Deck,085246906526,ANT-III (M),-,2022-12-30,New Hire / New Join,-,New hire on board tgl. 2-1-2023,-
+381,XLI,SPOB. ROYAL REY,SPOB,4,CPL-VSL-0738,Supriadi,AKTIF,Mualim III,Deck,081281379761,ANT-IV,-,2017-07-24,New Hire / New Join,-,New Hire on Board tgl. 27-7-2017,-
+382,XLI,SPOB. ROYAL REY,SPOB,5,CPL-VSL-1580,Jumardi,AKTIF,KKM,Engine,085340986623,ATT-I,-,2025-11-13,New Hire / New Join,-,New Hire on Board tgl. 14-11-2025,-
+383,XLI,SPOB. ROYAL REY,SPOB,6,CPL-VSL-0819,Arief Syaiful Huda,AKTIF,Masinis II,Engine,085343879001,ATT-III (M),-,2018-01-22,New Hire / New Join,-,New Hire on Board tgl. 11-2-22,-
+384,XLI,SPOB. ROYAL REY,SPOB,7,CPL-VSL-0261,Sunarno,AKTIF,Masinis III,Engine,081350415979,ATT-IV (O),2007,2012-02-08,Mutasi Internal,-,Mutasi dari Equa. 15 tgl. 5-7-17,Standarisasi tanggal: '08 Februari 2012' -> '2012-02-08'
+385,XLI,SPOB. ROYAL REY,SPOB,8,CPL-VSL-0991,Selamat,AKTIF,Bosun,Deck,081350415979,ANT-IV (M),-,2019-05-29,New Hire / New Join,-,New Hire on Board tgl. 14-6-19,-
+386,XLI,SPOB. ROYAL REY,SPOB,9,CPL-VSL-0703,Abd. Jabar,AKTIF,Juru Mudi I,Deck,081241544451,ANT-V (O),-,2017-03-21,New Hire / New Join,-,New Hire on Board tgl. 27-3-17,-
+387,XLI,SPOB. ROYAL REY,SPOB,10,CPL-VSL-0906,Nasaruddin,AKTIF,Juru Mudi II,Deck,082158232994,ANT-V (O),-,2018-12-29,New Hire / New Join,-,New Hire on Board tgl. 11-1-19,-
+388,XLI,SPOB. ROYAL REY,SPOB,11,CPL-VSL-0692,Muhammad Zein,AKTIF,Juru Mudi III,Deck,085332082591,ANT-V (O),2016,2017-01-20,New Hire / New Join,-,New Hire on Board tgl. 23-1-17,-
+389,XLI,SPOB. ROYAL REY,SPOB,12,CPL-VSL-1156,Diky Saputra,AKTIF,Oiler I,Engine,081348167893,ATT-V (M),-,2021-06-05,New Hire / New Join,-,New hire On Board tgl. 7-6-21,-
+390,XLI,SPOB. ROYAL REY,SPOB,13,CPL-VSL-0041,Salman,AKTIF,Oiler II,Engine,081349361659,ATT-V (O),2004,2010-02-09,Mutasi Internal,-,Mutasi dari Equator 15/tgl. 17-7-13,Standarisasi tanggal: '09 Februari 2010' -> '2010-02-09'
+391,XLI,SPOB. ROYAL REY,SPOB,14,CPL-VSL-1213,Buhari,AKTIF,Koki,Catering / Galley,085350546855,Able,-,2022-03-21,New Hire / New Join,-,New Hire on Board tgl. 6-4-22,-
+392,XLI,SPOB. ROYAL REY,SPOB,15,-,Roushan Fikri Alfirdausi,CADET (MAGANG),Cadet Deck,Deck (Cadet),085705248621,BST,-,2025-10-07,On Board,Politeknik Pelayaran Barombong,Politeknik Pelayaran Barombong,-
+393,XLI,SPOB. ROYAL REY,SPOB,16,-,Muhammad Hilmi Noval A,CADET (MAGANG),Cadet Engine,Engine (Cadet),0895635246735,BST,-,2025-10-07,On Board,Politeknik Pelayaran Barombong,Politeknik Pelayaran Barombong,Catatan: Terdaftar ganda di SPOB Royal Rey 350 (28-01-2026)
+394,XLI,SPOB. ROYAL REY,SPOB,17,-,Anas,CADET (MAGANG),Cadet Engine,Engine (Cadet),082151264051,BST,-,2026-02-18,On Board,Politeknik Maritim AMI Makassar,Politeknik Maritim AMI Makassar,Standarisasi tanggal: '18 Februari 2026' -> '2026-02-18'
+395,XLI,SPOB. ROYAL REY,SPOB,18,-,Verianta Suramana,CADET (MAGANG),Cadet,Trainee (Cadet),-,BST,-,2026-03-13,On Board,-,-,-
+396,XLII,CREW BOAT MAHLIA,Crew Boat,1,-,[POSISI LOWONG],LOWONG (VACANT),Nakhoda,Deck,-,-,-,-,Belum Terisi,-,-,-
+397,XLII,CREW BOAT MAHLIA,Crew Boat,2,CPL-VSL-1433,Rudi Hartono,AKTIF,Juru Mudi,Deck,082154432591,Able,-,2024-10-02,New Hire / New Join,-,New Hire on Board tgl. 03-10-2024,-
+398,XLII,CREW BOAT MAHLIA,Crew Boat,3,-,,AKTIF,,Lainnya,-,-,-,-,On Board,-,-,-
+399,XLIII,SPOB. PERKASA INDONESIA,SPOB,1,CPL-VSL-0693,Ilyas,AKTIF,Nakhoda,Deck,081254252414,ANT-IV (M),-,2017-02-01,New Hire / New Join,-,New hire on board tgl. 3-2-17,-
+400,XLIII,SPOB. PERKASA INDONESIA,SPOB,2,CPL-VSL-0699,Usman,AKTIF,Mualim I,Deck,085347044945,ANT-V,-,2017-03-21,New Hire / New Join,-,New Hire on Board tgl. 25-3-17,-
+401,XLIII,SPOB. PERKASA INDONESIA,SPOB,3,CPL-VSL-1364,Muhammad Zaenal,AKTIF,KKM,Engine,085255221965,ATT-III (M),-,2023-07-25,New Hire / New Join,-,New hire on board tgl. 26-07-23,-
+402,XLIII,SPOB. PERKASA INDONESIA,SPOB,4,CPL-VSL-0481,Amran,AKTIF,Masinis II,Engine,085281495837,ATT-V (O),-,2013-10-10,New Hire / New Join,-,New Hire on Board tgl. 10-10-2013,-
+403,XLIII,SPOB. PERKASA INDONESIA,SPOB,5,CPL-VSL-0928,Sulkifli,AKTIF,Juru Mudi I,Deck,085344084925,Rating,-,2019-08-22,New Hire / New Join,-,New Hire on Board tgl. 4-4-19,-
+404,XLIII,SPOB. PERKASA INDONESIA,SPOB,6,CPL-VSL-1170,Firdaus Batjtji,AKTIF,Juru Mudi II,Deck,085255127667,ANT-V (O),-,2021-09-28,New Hire / New Join,-,New Hire on Board tgl. 6-10-21,-
+405,XLIII,SPOB. PERKASA INDONESIA,SPOB,7,CPL-VSL-0919,Nur Rahmat Sayuti,AKTIF,Oiler,Engine,081251356607,ATT-V (O),-,2019-02-25,New Hire / New Join,-,New Hire on Board tgl. 3-3-19,-
+406,XLIV,TK. CPL 400,Tongkang / Barge (TK),1,CPL-VSL-0836,Ikhsan Noor,AKTIF,Barge Master,Deck,082195890002,ATT-IV (O),-,2018-03-14,New Hire / New Join,-,New hire On Board tgl. 9-4-18,-
+407,XLIV,TK. CPL 400,Tongkang / Barge (TK),2,CPL-VSL-0728,Hariadi,AKTIF,A / B,Deck,085242453298,ATT-V (O),2016,2017-06-20,New Hire / New Join,-,New hire On Board tgl. 21-6-17,-
+408,XLIV,TK. CPL 400,Tongkang / Barge (TK),3,-,[POSISI LOWONG],LOWONG (VACANT),Oiler,Engine,-,-,-,-,Belum Terisi,-,-,-
+409,XLIV,TK. CPL 400,Tongkang / Barge (TK),4,CPL-VSL-1185,Abdul Rahim,AKTIF,Oiler,Engine,082250976234,Rating,-,2022-01-04,New Hire / New Join,-,New Hire on Board tgl. 4-1-22,-
+410,XLIV,TK. CPL 400,Tongkang / Barge (TK),5,-,Rahman,CADET (MAGANG),Cadet,Trainee (Cadet),-,BST,-,2026-05-08,On Board,-,-,-
+411,XLIV,TK. CPL 400,Tongkang / Barge (TK),6,-,Ahmad Nabiel Yamani,CADET (MAGANG),Cadet,Trainee (Cadet),-,BST,-,2026-05-09,On Board,-,-,-
+412,XLV,SPOB. ROYAL REY 300,SPOB,1,CPL-VSL-0525,Idar,AKTIF,Nakhoda,Deck,082253608210,ANT-III (M),2015,2014-09-12,Mutasi Internal,-,Mutasi dari O. Mandar tgl. 1-4-15,-
+413,XLV,SPOB. ROYAL REY 300,SPOB,2,CPL-VSL-0268,La Rahman,AKTIF,Mualim I,Deck,082254585582,ANT-III (O),2012,2012-02-08,Mutasi Internal,-,Mutasi dari AJ. Putra,Standarisasi tanggal: '08 Februari 2012' -> '2012-02-08'
+414,XLV,SPOB. ROYAL REY 300,SPOB,3,CPL-VSL-1106,Ferdiansyah,AKTIF,Mualim II,Deck,082291843717,ANT-II,-,2020-11-23,New Hire / New Join,-,New Hire on Board tgl. 27-11-2020,-
+415,XLV,SPOB. ROYAL REY 300,SPOB,4,CPL-VSL-1294,Fanis Setyo Armodo,AKTIF,KKM,Engine,081332202312,ATT-III (M),-,2022-11-09,New Hire / New Join,-,New Hire on Board tgl. 11-11-22,-
+416,XLV,SPOB. ROYAL REY 300,SPOB,5,CPL-VSL-0013,Suryana,AKTIF,Masinis II,Engine,08125315514,ATT-IV (M),2008,2009-11-18,Mutasi Internal,-,mutasi dr TS. 307 tgl.  18-10-14,-
+417,XLV,SPOB. ROYAL REY 300,SPOB,6,CPL-VSL-0900,Haslan Tausir,AKTIF,Masinis III,Engine,081346363699,ATT-III (O),-,2018-12-14,New Hire / New Join,-,New Hire on Board tgl. 14-12-18,-
+418,XLV,SPOB. ROYAL REY 300,SPOB,7,CPL-VSL-0342,Jumadi,AKTIF,Juru Mudi I,Deck,082158677273,ANT-V (O),2011,2012-09-06,Mutasi Internal,-,Mutasi dari 23532 tgl. 15-5-15,Standarisasi tanggal: '06 September 2012' -> '2012-09-06'
+419,XLV,SPOB. ROYAL REY 300,SPOB,8,CPL-VSL-0030,Deni Hidayat,AKTIF,Juru Mudi II,Deck,085246522638,ANT-V (O),2010,2010-06-11,Mutasi Internal,-,Mutasi dari O. Mamuju tgl. 22-1-15,Standarisasi tanggal: '11 Juni 2010' -> '2010-06-11'
+420,XLV,SPOB. ROYAL REY 300,SPOB,9,CPL-VSL-1087,Wahyudi,AKTIF,Juru Mudi III,Deck,081244922318,ANT-V (O),-,2020-08-24,New Hire / New Join,-,New hire On Board tgl. 4-9-20,-
+421,XLV,SPOB. ROYAL REY 300,SPOB,10,CPL-VSL-0396,Irwan Pandala,AKTIF,Oiler I,Engine,082153782928,ATT-V (O),2012,2012-11-01,Mutasi Internal,-,Mutasi dari TK. BB 003 tgl. 11-3- 13,Standarisasi tanggal: '01 Nopember 2012' -> '2012-11-01'
+422,XLV,SPOB. ROYAL REY 300,SPOB,11,CPL-VSL-0122,Hadi Susanto,AKTIF,Oiler,Engine,082350333837,ATT-IV (O),2013,2011-05-09,Mutasi Internal,-,Mutasi dari Equator 02 / tgl. 9-9-14,Standarisasi tanggal: '09 Mei 2011' -> '2011-05-09'
+423,XLV,SPOB. ROYAL REY 300,SPOB,12,CPL-VSL-1696,Dirga Pratama,AKTIF,Koki,Catering / Galley,08135434764,Rating,-,2026-07-01,New Hire / New Join,-,New Hire on Board tgl. 02-07-2026,-
+424,XLV,SPOB. ROYAL REY 300,SPOB,13,-,Saldi,CADET (MAGANG),Cadet Engine,Engine (Cadet),082247089849,BST,-,2025-09-15,On Board,Politeknik Pelayaran Barombong,POLITEKNIK PELAYARAN BAROMBONG,-
+425,XLV,SPOB. ROYAL REY 300,SPOB,14,-,Iyansyah Putra,CADET (MAGANG),Cadet Deck,Deck (Cadet),-,BST,-,2026-05-26,On Board,-,-,-
+426,XLV,SPOB. ROYAL REY 300,SPOB,15,-,Sahril,CADET (MAGANG),Cadet Deck,Deck (Cadet),-,BST,-,2026-07-01,On Board,-,-,-
+427,XLVI,TB. PMI ABADI,Tug Boat (TB),1,CPL-VSL-1698,Jismal Ismail,AKTIF,Nakhoda,Deck,082154624462,ANT-IV (M),-,2026-08-04,On Board,-,-,-
+428,XLVI,TB. PMI ABADI,Tug Boat (TB),2,CPL-VSL-0820,Adnan,AKTIF,Mualim I / Nakhoda,Deck,081347936451,ANT-V (M),2017,2007-04-01,Mutasi Internal,-,Mutasi dr. P.Pasifik tgl. 20-11-17,Standarisasi tanggal: '01 April 2007' -> '2007-04-01'
+429,XLVI,TB. PMI ABADI,Tug Boat (TB),3,CPL-VSL-1658,Muhammad Iqbal Syahril,AKTIF,Mualim II,Deck,085387995260,ANT-IV (M),-,2026-04-14,New Hire / New Join,-,New Hire on Board tgl. 14-04-2026,-
+430,XLVI,TB. PMI ABADI,Tug Boat (TB),4,CPL-VSL-1660,Sainuddin,AKTIF,KKM,Engine,082244849818,ATT-IV (M),-,2026-04-08,New Hire / New Join,-,New Hire on Board tgl. -04-2026,-
+431,XLVI,TB. PMI ABADI,Tug Boat (TB),5,CPL-VSL-1351,Muh. Aslam,AKTIF,Masinis II,Engine,085750237219,ATT-V (M),-,2023-05-24,New Hire / New Join,-,New hire on board tgl. 25-5-23,-
+432,XLVI,TB. PMI ABADI,Tug Boat (TB),6,CPL-VSL-1275,Nuralim,AKTIF,Masinis III,Engine,085394135298,ATT-V,2024,2022-08-13,New Hire / New Join,-,New hire on board tgl. 24-8-22,-
+433,XLVI,TB. PMI ABADI,Tug Boat (TB),7,CPL-VSL-1222,Hamzah,AKTIF,Juru Mudi II,Deck,085241579699,Rating,-,2022-04-27,New Hire / New Join,-,New hire on board tgl. 28-4-22,-
+434,XLVI,TB. PMI ABADI,Tug Boat (TB),8,CPL-VSL-1323,Ahmad Nawawi,AKTIF,Juru Mudi III,Deck,085343839763,ANT-V (O),-,2023-02-16,New Hire / New Join,-,New hire on board tgl. 17-2-2023,-
+435,XLVI,TB. PMI ABADI,Tug Boat (TB),9,CPL-VSL-1354,Dedi,AKTIF,Oiler,Engine,081390463106,ATT-V (O),-,2023-06-16,New Hire / New Join,-,New Hire on Board tgl. 19-6-2023,-
+436,XLVI,TB. PMI ABADI,Tug Boat (TB),10,CPL-VSL-1453,M. Akram,AKTIF,Koki,Catering / Galley,085823392656,Rating,-,2025-03-02,New Hire / New Join,-,New Hire on Board tgl. 02-03-2025,-
+437,XLVII,SP. HOPPER BARGE CAKRA VII,Hopper Barge,1,CPL-VSL-1549,Vinsentius Theo Prasetyo,AKTIF,Nakhoda,Deck,082143832804,ANT-IV (M),-,2025-08-14,New Hire / New Join,-,New hire on board tgl. 14-08-2025,-
+438,XLVII,SP. HOPPER BARGE CAKRA VII,Hopper Barge,2,CPL-VSL-1225,Sugiyanto,AKTIF,Mualim I,Deck,081325948800,ANT-IV (M),-,2021-10-25,New Hire / New Join,-,New hire on board tgl. 25-10-21,-
+439,XLVII,SP. HOPPER BARGE CAKRA VII,Hopper Barge,3,CPL-VSL-1692,Erwin Riyaldi,AKTIF,Mualim II,Deck,085252219679,ANT-IV (O),-,2026-06-22,New Hire / New Join,-,New hire on board tgl. 23-06-2026,-
+440,XLVII,SP. HOPPER BARGE CAKRA VII,Hopper Barge,4,CPL-VSL-1701,Boman,AKTIF,KKM,Engine,081348271150,ATT-IV (M),-,2026-08-07,New Hire / New Join,-,New hire on board tgl. 07-08-2026,-
+441,XLVII,SP. HOPPER BARGE CAKRA VII,Hopper Barge,5,CPL-VSL-1717,Iwan Dwi Septian,AKTIF,Masinis II,Engine,081398000166,ATT-III (O),-,2026-10-05,New Hire / New Join,-,New hire on board tgl. 5-10-2026,-
+442,XLVII,SP. HOPPER BARGE CAKRA VII,Hopper Barge,6,CPL-VSL-1571,Saldi,AKTIF,Masinis III,Engine,085248743659,ATT-IV (O),-,2025-10-31,New Hire / New Join,-,New hire on board tgl. 03-11-2025,-
+443,XLVII,SP. HOPPER BARGE CAKRA VII,Hopper Barge,7,CPL-VSL-0054,Agus Salim,AKTIF,Juru Mudi,Deck,082252777732,RATING,2009,2009-05-20,Mutasi Internal,-,mutasi dr CPL 235 tgl. 28-4-16,Standarisasi tanggal: '20 Mei 2009' -> '2009-05-20'
+444,XLVII,SP. HOPPER BARGE CAKRA VII,Hopper Barge,8,CPL-VSL-1711,Zulfahmi,AKTIF,Juru Mudi,Deck,0895338912738,ANT-V (O),-,2026-09-21,New Hire / New Join,-,New hire on board tgl. 21-09-26,-
+445,XLVII,SP. HOPPER BARGE CAKRA VII,Hopper Barge,9,CPL-VSL-1616,Abd Rahman,AKTIF,Juru Mudi,Deck,082394876584,ANT-V (O),-,2026-02-10,New Hire / New Join,-,New hire on board tgl. 12-02-2026,-
+446,XLVII,SP. HOPPER BARGE CAKRA VII,Hopper Barge,10,CPL-VSL-1232,Erwin Mardian,AKTIF,Oiler I,Engine,081331122912,Rating,-,2021-10-25,New Hire / New Join,-,New hire on board tgl. 25-10-21,-
+447,XLVII,SP. HOPPER BARGE CAKRA VII,Hopper Barge,11,CPL-VSL-1710,Husain,AKTIF,Koki,Catering / Galley,085258592121,Rating,-,2026-09-21,New Hire / New Join,-,New hire on board tgl. 21-09-26,Tahun ijazah keliru nomor HP
+448,XLVIII,SP. HOPPER BARGE CAKRA VIII,Hopper Barge,1,CPL-VSL-1708,Tito Asnan,AKTIF,Nakhoda,Deck,081325004633,ANT-IV (M),-,2026-09-04,New Hire / New Join,-,New hire on board tgl. 04 -09-2026,-
+449,XLVIII,SP. HOPPER BARGE CAKRA VIII,Hopper Barge,2,CPL-VSL-1413,Ardian Syahputra,AKTIF,Mualim I,Deck,082194294703,ANT-II,-,2024-05-15,New Hire / New Join,-,New Hire on Board tgl. 15-05-24,-
+450,XLVIII,SP. HOPPER BARGE CAKRA VIII,Hopper Barge,3,CPL-VSL-0374,Moh Arif,AKTIF,Mualim II,Deck,082350671118,ANT-IV (M),2012,2012-10-30,Mutasi Internal,-,Mutasi dr Sea Lion tgl. 27-1-18,-
+451,XLVIII,SP. HOPPER BARGE CAKRA VIII,Hopper Barge,4,CPL-VSL-1705,Kusnan Kurniawan,AKTIF,KKM,Engine,081380323314,ATT-III (M),-,2026-08-14,New Hire / New Join,-,New hire on board tgl. 14 -08-2026,Tahun ijazah keliru nama kapal
+452,XLVIII,SP. HOPPER BARGE CAKRA VIII,Hopper Barge,5,CPL-VSL-1706,Sahril,AKTIF,Masinis II,Engine,085311720760,ATT-IV (M),-,2026-08-18,New Hire / New Join,-,New hire on board tgl. 18 -08-2026,Tahun ijazah keliru nama kapal
+453,XLVIII,SP. HOPPER BARGE CAKRA VIII,Hopper Barge,6,CPL-VSL-1718,Wahyu Dwi Racmadi,AKTIF,Masinis III,Engine,082247653221,ATT-IV (O),-,2026-10-09,New Hire / New Join,-,New hire on board tgl. 9-10-2026,-
+454,XLVIII,SP. HOPPER BARGE CAKRA VIII,Hopper Barge,7,CPL-VSL-1688,Muh Syukur,AKTIF,Juru Mudi,Deck,082281958495,ANT-V (O),-,2026-06-19,New Hire / New Join,-,New hire on board tgl. 19-06-2026,-
+455,XLVIII,SP. HOPPER BARGE CAKRA VIII,Hopper Barge,8,CPL-VSL-1442,Baso Amri,AKTIF,Juru Mudi,Deck,082388851696,Rating,-,2024-11-25,New Hire / New Join,-,New Hire on Board tgl. 25-11-2024,-
+456,XLVIII,SP. HOPPER BARGE CAKRA VIII,Hopper Barge,9,CPL-VSL-1654,Resky Ramadhan Ismail,AKTIF,Juru Mudi,Deck,089677664976,ANT-V (O),-,2026-04-02,New Hire / New Join,-,New hire on board tgl. 03-04-2026,-
+457,XLVIII,SP. HOPPER BARGE CAKRA VIII,Hopper Barge,10,CPL-VSL-1454,M. Hudri,AKTIF,Oiler,Engine,085337334509,Rating,-,2025-03-02,New Hire / New Join,-,New hire on board tgl. 02-03-2025,-
+458,XLVIII,SP. HOPPER BARGE CAKRA VIII,Hopper Barge,11,CPL-VSL-1158,Firman,AKTIF,Oiler,Engine,089627804330,Rating,-,2021-07-01,New Hire / New Join,-,New Hire on Board tgl. 5-7-21,-
+459,XLVIII,SP. HOPPER BARGE CAKRA VIII,Hopper Barge,12,CPL-VSL-1702,Ruli Deswanto,AKTIF,Koki,Catering / Galley,082335746350,Rating,-,2026-08-07,New Hire / New Join,-,New hire on board tgl. 07-08-2026,-
+460,XLVIII,SP. HOPPER BARGE CAKRA VIII,Hopper Barge,13,-,Ahmad Nawawi Sudirman,CADET (MAGANG),Cadet Deck,Deck (Cadet),-,BST,-,2026-07-17,On Board,-,-,-
+461,XLIX,CRANE BARGE CAKRA  X,Crane Barge,1,CPL-VSL-1250,Ispriyanto,AKTIF,Operator I,Deck,082111857002,SIO/BST,-,2022-03-10,New Hire / New Join,-,New hire on board tgl. 10-3-22,-
+462,XLIX,CRANE BARGE CAKRA  X,Crane Barge,2,CPL-VSL-1251,Purwadi,AKTIF,Operator II,Deck,081226603183,SIO,-,2022-03-10,New Hire / New Join,-,New hire on board tgl. 10-3-22,-
+463,XLIX,CRANE BARGE CAKRA  X,Crane Barge,3,CPL-VSL-1310,Budiono,AKTIF,Operator III,Deck,081290095827,SIO/BST,-,2023-01-19,New Hire / New Join,-,New hire on board tgl. 19-1-23,-
+464,XLIX,CRANE BARGE CAKRA  X,Crane Barge,4,CPL-VSL-1253,Bambang Sugiatno,AKTIF,KKM,Engine,087713400627,ATT-V,-,2021-10-25,New Hire / New Join,-,New hire on board tgl. 25-10-21,-
+465,XLIX,CRANE BARGE CAKRA  X,Crane Barge,5,CPL-VSL-1283,Endi Yulianto,AKTIF,Oiler,Engine,082198485791,Able,-,2022-09-28,New Hire / New Join,-,New hire on board tgl. 1-10-22,-
+466,XLIX,CRANE BARGE CAKRA  X,Crane Barge,6,CPL-VSL-1704,Afdilla,AKTIF,Oiler,Engine,081354818350,ATT-V,-,2026-08-12,New Hire / New Join,-,New hire on board tgl. 12-08-2026,Tahun ijazah keliru nama kapal; Pembersihan format no HP
+467,XLIX,CRANE BARGE CAKRA  X,Crane Barge,7,CPL-VSL-1071,Saparuddin,AKTIF,Oiler,Engine,085776045900,ATT-V (O),-,2020-07-10,New Hire / New Join,-,New Hire on Board tgl. 1-8-20,-
+468,XLIX,CRANE BARGE CAKRA  X,Crane Barge,8,CPL-VSL-1255,Imam Bajuri,AKTIF,Serang,Deck,085705539111,BST,-,2021-10-25,New Hire / New Join,-,New hire on board tgl. 26-10-21,-
+469,XLIX,CRANE BARGE CAKRA  X,Crane Barge,9,CPL-VSL-1245,Hartono,AKTIF,Kelasi,Deck,081352611388,Rating,-,2021-11-12,New Hire / New Join,-,New hire on board tgl. 12-11-21,-
+470,XLIX,CRANE BARGE CAKRA  X,Crane Barge,10,CPL-VSL-1370,Roy Saputra,AKTIF,Kelasi,Deck,081222707997,BST,-,2023-08-11,New Hire / New Join,-,New hire on board tgl. 12-8-2023,-
+471,XLIX,CRANE BARGE CAKRA  X,Crane Barge,11,CPL-VSL-1694,Irsal,AKTIF,A/B,Deck,082154965542,ANT-V,-,2026-06-30,New Hire / New Join,-,New hire on board tgl.,-
+472,L,SPOB. ROYAL REY 350,SPOB,1,CPL-VSL-0100,Israfil,AKTIF,Nakhoda,Deck,085255111471,ANT-II,-,2010-10-25,New Hire / New Join,-,New Hire on Board tgl. 25-10-10,Standarisasi tanggal: '25 Oktober 2010' -> '2010-10-25'
+473,L,SPOB. ROYAL REY 350,SPOB,2,CPL-VSL-1293,Syaipullah,AKTIF,Mualim I,Deck,085391254884,ANT-II,-,2022-11-07,New Hire / New Join,-,New Hire on Board tgl. 1-12-22,-
+474,L,SPOB. ROYAL REY 350,SPOB,3,CPL-VSL-1037,Heri Setiawan,AKTIF,Mualim II,Deck,085299772669,ANT-III (O),2024,2019-10-14,New Hire / New Join,-,New Hire on Board tgl. 25-10-19,-
+475,L,SPOB. ROYAL REY 350,SPOB,4,CPL-VSL-1103,Edi Sunyoto,AKTIF,KKM,Engine,08115064535,ATT-III (M),-,2020-10-26,New Hire / New Join,-,New Hire On board tgl. 8-11-20,-
+476,L,SPOB. ROYAL REY 350,SPOB,5,CPL-VSL-1121,Harianto,AKTIF,Masinis II,Engine,082350168546,ATT-IV (M),-,2021-01-27,New Hire / New Join,-,New Hire on Board tgl. 2-2-21,-
+477,L,SPOB. ROYAL REY 350,SPOB,6,CPL-VSL-0821,M. Syahrir,AKTIF,Masinis III,Engine,081249017133,ATT-V,-,2018-01-22,New Hire / New Join,-,New Hire on Board tgl. 24-1-18,-
+478,L,SPOB. ROYAL REY 350,SPOB,7,CPL-VSL-1447,Kurniadi Husain,AKTIF,Juru Mudi,Deck,085350550784,ANT-V (O),-,2025-01-28,New Hire / New Join,-,New hire on board tgl. 28-01-25,Peringatan: NIK CPL-VSL-1447 terduplikasi pada 2 crew di kapal yang sama
+479,L,SPOB. ROYAL REY 350,SPOB,8,CPL-VSL-1025,Firman,AKTIF,Juru Mudi,Deck,081295859561,ANT-V (O),-,2019-08-22,New Hire / New Join,-,New Hire on Board tgl. 2-9-19,-
+480,L,SPOB. ROYAL REY 350,SPOB,9,CPL-VSL-1029,Irsan,AKTIF,Juru Mudi,Deck,082195467535,Rating,-,2019-08-26,New Hire / New Join,-,New Hire On board tgl. 27-8-19,-
+481,L,SPOB. ROYAL REY 350,SPOB,10,CPL-VSL-1684,Daffah Hakira Ilahi,AKTIF,Oiler,Engine,085191983736,ATT-V (O),-,2026-06-10,New Hire / New Join,-,New hire on board tgl. 10-06-2026,-
+482,L,SPOB. ROYAL REY 350,SPOB,11,CPL-VSL-1270,Afdi Ashwandi Soum,AKTIF,Oiler,Engine,082153109052,ATT-V (O),-,2022-08-01,New Hire / New Join,-,New Hire On board tgl. 3-8-22,-
+483,L,SPOB. ROYAL REY 350,SPOB,12,CPL-VSL-1447,Sutikno,AKTIF,Koki,Catering / Galley,081227574049,Able,-,2026-05-22,New Hire / New Join,-,New hire on board tgl. 22-05-2026,Peringatan: NIK CPL-VSL-1447 terduplikasi pada 2 crew di kapal yang sama
+484,L,SPOB. ROYAL REY 350,SPOB,13,-,Muh Aditiya Wijaya,CADET (MAGANG),Cadet Deck,Deck (Cadet),085230007860,BST,-,2025-01-13,On Board,Politeknik Ilmu Pelayaran Makassar,Politeknik Ilmu Pelayaran Makassar,-
+485,L,SPOB. ROYAL REY 350,SPOB,14,-,Muhammad Hilmi Noval A,CADET (MAGANG),Cadet Engine,Engine (Cadet),0895635246735,BST,-,2026-01-28,On Board,Politeknik Pelayaran Barombong,Politeknik Pelayaran Barombong,Standarisasi tanggal: '28 Januari 2026' -> '2026-01-28'; Catatan: Penempatan terbaru (mutasi dari SPOB Royal Rey)
+486,LI,MT. DOMINO,Motor Tanker (MT),1,HL-DAO-0017,Fajrin,AKTIF,Nakhoda,Deck,0811546809,ANT-I,-,-,On Board,-,-,-
+487,LI,MT. DOMINO,Motor Tanker (MT),2,CPL-VSL-1703,Herman Zega,AKTIF,Mualim I,Deck,085272448717,ANT-II,-,2026-08-12,New Hire / New Join,-,New Hire On Board tgl.  12-08-2026,-
+488,LI,MT. DOMINO,Motor Tanker (MT),3,CPL-VSL-0714,Ramli,AKTIF,Mualim II,Deck,082148073085,ANT-III (O),2016,2017-05-19,New Hire / New Join,-,New Hire On Board tgl.  26-5-17,-
+489,LI,MT. DOMINO,Motor Tanker (MT),4,-,[POSISI LOWONG],LOWONG (VACANT),Mualim III,Deck,-,ANT-III (O),2016,-,Belum Terisi,-,-,-
+490,LI,MT. DOMINO,Motor Tanker (MT),5,CPL-VSL-0839,Naharto,AKTIF,KKM,Engine,085215114606,ATT-I,-,2018-04-17,New Hire / New Join,-,New Hire on Board tgl. 19-4-18,-
+491,LI,MT. DOMINO,Motor Tanker (MT),6,CPL-VSL-0698,Muhajir,AKTIF,Masinis II,Engine,081317116456,ATT-II,-,2017-03-21,Mutasi Internal,-,Mutasi dr Sea Lion tgl. 27-1-18,-
+492,LI,MT. DOMINO,Motor Tanker (MT),7,CPL-VSL-1614,Arham,AKTIF,Masinis III,Engine,082255829766,ATT-III (M),-,2026-02-06,New Hire / New Join,-,New Hire on Board tgl. 06-02-2026,-
+493,LI,MT. DOMINO,Motor Tanker (MT),8,-,[POSISI LOWONG],LOWONG (VACANT),Masinis IV,Engine,-,ATT-IV (O),-,-,Belum Terisi,-,-,-
+494,LI,MT. DOMINO,Motor Tanker (MT),9,CPL-VSL-1183,Kamaluddin. NY,AKTIF,Bosun,Deck,081245273901,ANT-IV (M),-,2021-12-30,New Hire / New Join,-,New Hire on Board tgl. 3-1-2022,-
+495,LI,MT. DOMINO,Motor Tanker (MT),10,CPL-VSL-1366,Indra,AKTIF,Electrician,Engine,082122421338,Able,-,2023-07-28,New Hire / New Join,-,New Hire on Board tgl. 28-7-2023,-
+496,LI,MT. DOMINO,Motor Tanker (MT),11,CPL-VSL-0103,Salman,AKTIF,Juru Mudi I,Deck,082353425135,ANT-V (O),2006,2008-11-08,Mutasi Internal,-,Mutasi dari P. Pasifik tgl. 22-8-17,Standarisasi tanggal: '08 Nopember 2008' -> '2008-11-08'
+497,LI,MT. DOMINO,Motor Tanker (MT),12,CPL-VSL-0492,Rudi Susanto,AKTIF,Juru Mudi II,Deck,082399633608,ANT-V (O),2009,2013-11-23,Mutasi Internal,-,Mutasi dari Equator 07 tgl. 16-7-15,-
+498,LI,MT. DOMINO,Motor Tanker (MT),13,CPL-VSL-1061,Darmawan,AKTIF,Juru Mudi III,Deck,082196485456,ANT-V (O),-,2020-06-03,New Hire / New Join,-,New Hire on Board tgl. 4-6-2020,-
+499,LI,MT. DOMINO,Motor Tanker (MT),14,CPL-VSL-0528,Moh. Fadly Umarella,AKTIF,Oiler I,Engine,081325099347,ATT-V (O),2013,2014-09-18,Mutasi Internal,-,Mutasi dr. Equator 02 tgl. 5-5-15,-
+500,LI,MT. DOMINO,Motor Tanker (MT),15,CPL-VSL-1077,Ahmad Sayadi,AKTIF,Oiler II,Engine,082118942321,Able,-,2020-08-07,New Hire / New Join,-,New Hire on Board tgl. 11-8-20,-
+501,LI,MT. DOMINO,Motor Tanker (MT),16,CPL-VSL-1316,Ridwan Hendra,AKTIF,Oiler III,Engine,085313057976,ATT-V (O),-,2023-02-07,New Hire / New Join,-,New Hire on Board tgl. 15-2-2023,-
+502,LI,MT. DOMINO,Motor Tanker (MT),17,CPL-VSL-1189,Sarmang,AKTIF,Messboy,Catering / Galley,082139304935,Rating,-,2022-01-17,New Hire / New Join,-,New Hire on Board tgl. 19-1-22,-
+503,LI,MT. DOMINO,Motor Tanker (MT),18,CPL-VSL-1378,Tarmizi Yusuf,AKTIF,Koki,Catering / Galley,081346502244,ANT-V (O),-,2023-09-15,New Hire / New Join,-,New Hire on Board tgl. 15-9-2023,-
+504,LI,MT. DOMINO,Motor Tanker (MT),19,-,Muh Ariel,CADET (MAGANG),Cadet Deck,Deck (Cadet),082320294952,BST,-,2025-10-10,On Board,Politeknik Pelayaran Barombong,Poltekpel Barombong,-
+505,LI,MT. DOMINO,Motor Tanker (MT),20,-,Aldi Saputra,CADET (MAGANG),Cadet Deck,Deck (Cadet),083140492416,BST,-,2026-02-06,On Board,Politeknik Maritim AMI Makassar,Polimarin AMI Makassar,-
+506,LI,MT. DOMINO,Motor Tanker (MT),21,-,Reihan Aditya Prawira,CADET (MAGANG),Cadet Engine,Engine (Cadet),08884766241,BST,-,2025-09-23,On Board,Politeknik Pelayaran Barombong,Poltekpel Barombong,-
+507,LI,MT. DOMINO,Motor Tanker (MT),22,-,Muhammad Fauzi Sabir,CADET (MAGANG),Cadet Engine,Engine (Cadet),-,BST,-,2026-06-12,On Board,-,-,-
+508,LII,CREW BOAT. CITRA INDAH 99,Crew Boat,1,-,[POSISI LOWONG],LOWONG (VACANT),Nakhoda,Deck,-,-,-,-,Belum Terisi,-,-,-
+509,LII,CREW BOAT. CITRA INDAH 99,Crew Boat,2,CPL-VSL-1664,Nuryakin,AKTIF,Mualim I,Deck,082148681923,ANT-V (M),-,2026-04-17,New Hire / New Join,-,New Hire on Board tgl. 17-04-2026,-
+510,LII,CREW BOAT. CITRA INDAH 99,Crew Boat,3,CPL-VSL-1586,Hermawan,AKTIF,Masinis II,Engine,081251827711,ATT-V (M),-,2025-11-20,New Hire / New Join,-,New Hire on Board tgl. 24-11-2025,-
+511,LII,CREW BOAT. CITRA INDAH 99,Crew Boat,4,-,[POSISI LOWONG],LOWONG (VACANT),Juru mudi,Deck,-,-,-,-,Belum Terisi,-,-,-
+512,LIII,MT BLUE PETROL,Motor Tanker (MT),1,CPL-VSL-1471,Andri Ardian Akbar,AKTIF,Nakhoda,Deck,081225579179,ANT-II,-,2025-06-03,Sign PKL,-,Sign PKL  tgl 08-06-2024,-
+513,LIII,MT BLUE PETROL,Motor Tanker (MT),2,CPL-VSL-1472,Faiz Firmansyah,AKTIF,Mualim I,Deck,082297774095,ANT-III (M),-,2025-06-03,Sign PKL,-,Sign PKL  tgl 13-06-2024,-
+514,LIII,MT BLUE PETROL,Motor Tanker (MT),3,CPL-VSL-1473,Tri Pri Hartanta,AKTIF,Mualim II,Deck,082296986221,ANT-III (O),-,2025-06-03,Sign PKL,-,Sign PKL  tgl 09-04-2025,-
+515,LIII,MT BLUE PETROL,Motor Tanker (MT),4,CPL-VSL-1475,Dyantri Andi Peranata Sembiring,AKTIF,KKM,Engine,085373249767,ATT-II,-,2025-06-03,Sign PKL,-,Sign PKL  tgl 12-08-2024,-
+516,LIII,MT BLUE PETROL,Motor Tanker (MT),5,CPL-VSL-1476,Rangga Aditya,AKTIF,Masinis II,Engine,089527157724,ATT-III (M),-,2025-06-03,Sign PKL,-,Sign PKL  tgl 12-08-2024,-
+517,LIII,MT BLUE PETROL,Motor Tanker (MT),6,CPL-VSL-1550,Gunarno,AKTIF,Masinis III,Engine,081254357779,ATT-II,-,2025-08-14,New Hire / New Join,-,New Hire on Board tgl. 16-08-2025,-
+518,LIII,MT BLUE PETROL,Motor Tanker (MT),7,CPL-VSL-1477,Supri Fajar Ramadhan,AKTIF,Bosun,Deck,082111454376,Able,-,2025-06-03,Sign PKL,-,Sign PKL  tgl 28-01-2024,-
+519,LIII,MT BLUE PETROL,Motor Tanker (MT),8,CPL-VSL-1663,Adrian Aji Nugroho,AKTIF,Juru mudi,Deck,081353800317,ANT-V (O),-,2026-04-14,New Hire / New Join,-,New Hire on Board tgl. 14-04-2026,-
+520,LIII,MT BLUE PETROL,Motor Tanker (MT),9,CPL-VSL-1479,Arifin,AKTIF,Juru Mudi II,Deck,082334561790,Able,-,2025-06-03,Sign PKL,-,Sign PKL  tgl 01-02-2025,-
+521,LIII,MT BLUE PETROL,Motor Tanker (MT),10,CPL-VSL-1480,Bebi Kristian Zega,AKTIF,Juru Mudi III,Deck,082267123487,Able,-,2025-06-03,Sign PKL,-,Sign PKL  tgl 28-01-2025,-
+522,LIII,MT BLUE PETROL,Motor Tanker (MT),11,CPL-VSL-1481,Rianto Rapi,AKTIF,Oiler,Engine,081244619415,Able,-,2025-06-03,Sign PKL,-,Sign PKL  tgl 26-02-2025,-
+523,LIII,MT BLUE PETROL,Motor Tanker (MT),12,CPL-VSL-1482,Saifullah,AKTIF,Oiler,Engine,085256502508,ATT-V,-,2025-06-03,Sign PKL,-,Sign PKL  tgl 08-09-2024,-
+524,LIII,MT BLUE PETROL,Motor Tanker (MT),13,CPL-VSL-1570,Icang Darsuandi,AKTIF,Oiler,Engine,081214974152,ATT-V,-,2025-10-30,New Hire / New Join,-,New Hire on Board tgl. 30-10-2025,-
+525,LIII,MT BLUE PETROL,Motor Tanker (MT),14,CPL-VSL-1484,Wahyu Khakim Alwi,AKTIF,Koki,Catering / Galley,082156687040,Able,-,2025-06-03,Sign PKL,-,Sign PKL  tgl 07-03-2025,-
+526,LIV,MT BARONGKO ( EKS. FALCON 18),Motor Tanker (MT),1,CPL-VSL-1667,Wartam,AKTIF,Nakhoda,Deck,081296861679,ANT-I,-,2026-04-27,New Hire / New Join,-,New Hire on Board tgl. 27-04-2026,-
+527,LIV,MT BARONGKO ( EKS. FALCON 18),Motor Tanker (MT),2,CPL-VSL-1668,Imam Purnomo,AKTIF,Mualim I,Deck,085975364031,ANT-I,-,2026-04-29,New Hire / New Join,-,New Hire on Board tgl. 29-04-2026,-
+528,LIV,MT BARONGKO ( EKS. FALCON 18),Motor Tanker (MT),3,CPL-VSL-1596,Muh Farhan Fahdillah Syahputra Oktavianu,AKTIF,Mualim II,Deck,085398932979,ANT-III,-,2025-12-05,New Hire / New Join,-,New Hire on Board tgl. 06-12-2025,-
+529,LIV,MT BARONGKO ( EKS. FALCON 18),Motor Tanker (MT),4,CPL-VSL-1589,Suhardi,AKTIF,Mualim III,Deck,085211152716,ANT-III (M),-,2025-12-01,New Hire / New Join,-,New Hire on Board tgl. 01-12-2025,-
+530,LIV,MT BARONGKO ( EKS. FALCON 18),Motor Tanker (MT),5,CPL-VSL-1532,Muhammad Farhan Saharuddin,AKTIF,KKM,Engine,085299792229,ATT-II,-,2025-07-10,New Hire / New Join,-,New Hire on Board tgl. 16-07-2025,-
+531,LIV,MT BARONGKO ( EKS. FALCON 18),Motor Tanker (MT),6,CPL-VSL-1652,Ruslan,AKTIF,Masinis II,Engine,081277091200/082346413122,ATT-III (M),-,2026-03-27,New Hire / New Join,-,New Hire on Board tgl. 27-03-2026,-
+532,LIV,MT BARONGKO ( EKS. FALCON 18),Motor Tanker (MT),7,CPL-VSL-1564,Arya Dwi Rachman,AKTIF,Masinis III,Engine,082255106998,ATT-III (M),-,2025-10-07,New Hire / New Join,-,New Hire on Board tgl. 07-10-2025,-
+533,LIV,MT BARONGKO ( EKS. FALCON 18),Motor Tanker (MT),8,CPL-VSL-1676,Fany Naufal Pratama,AKTIF,Bosun,Deck,081399818445,ANT-IV (O),-,2026-05-11,New Hire / New Join,-,New Hire on Board tgl. 11-05-2026,-
+534,LIV,MT BARONGKO ( EKS. FALCON 18),Motor Tanker (MT),9,CPL-VSL-1679,Muhammad Reza Alfarizi,AKTIF,Juru Mudi,Deck,089649301090,ANT-V (O),-,2026-05-22,New Hire / New Join,-,New Hire on Board tgl. 26-05-2026,-
+535,LIV,MT BARONGKO ( EKS. FALCON 18),Motor Tanker (MT),10,CPL-VSL-1565,Abdul Azis,AKTIF,Juru mudi,Deck,082261965003,ANT-V (O),-,2025-10-10,New Hire / New Join,-,New Hire on Board tgl. 10-10-2025,-
+536,LIV,MT BARONGKO ( EKS. FALCON 18),Motor Tanker (MT),11,CPL-VSL-1597,Mohammad Muzaky Alwi,AKTIF,Juru mudi,Deck,082278334905,ANT-V (O),-,2025-12-08,New Hire / New Join,-,New Hire on Board tgl. 08-12-2025,-
+537,LIV,MT BARONGKO ( EKS. FALCON 18),Motor Tanker (MT),12,CPL-VSL-1681,Hamruddin,AKTIF,Oiler,Engine,081255057970,ATT-V (O),-,2026-06-02,New Hire / New Join,-,New Hire on Board tgl. 02-06-2026,-
+538,LIV,MT BARONGKO ( EKS. FALCON 18),Motor Tanker (MT),13,CPL-VSL-1598,Muhammad Alwi,AKTIF,Oiler,Engine,085350500865,ATT-V (O),-,2025-12-23,New Hire / New Join,-,New Hire on Board tgl. 23-12-2025,-
+539,LIV,MT BARONGKO ( EKS. FALCON 18),Motor Tanker (MT),14,CPL-VSL-1599,Muh Irsan,AKTIF,Koki,Catering / Galley,085298558802,ANT-V (O),-,2025-12-29,New Hire / New Join,-,New Hire on Board tgl. 31-12-2025,-
+540,LIV,MT BARONGKO ( EKS. FALCON 18),Motor Tanker (MT),15,-,Muhammad Dzakki,CADET (MAGANG),Cadet,Trainee (Cadet),082256197546,BST,-,2026-01-28,On Board,SMKN Pelayaran Kalimantan Samarinda,SMKNPelayaran Kalimantan Samarinda,-
+541,LIV,MT BARONGKO ( EKS. FALCON 18),Motor Tanker (MT),16,-,Theobaldus Aprius,CADET (MAGANG),Cadet,Trainee (Cadet),0895412550591,BST,-,2026-02-18,On Board,SMKN Pelayaran Kalimantan Samarinda,SMKNPelayaran Kalimantan Samarinda,-
+542,LIV,MT BARONGKO ( EKS. FALCON 18),Motor Tanker (MT),17,-,Rival Istan Rhamadan,CADET (MAGANG),Cadet Engine,Engine (Cadet),-,BST,-,2026-04-06,On Board,-,-,-
+543,LV,MT. DEWAYANI,Motor Tanker (MT),1,-,[POSISI LOWONG],LOWONG (VACANT),Nakhoda,Deck,-,ANT-II,-,-,Belum Terisi,-,-,-
+544,LV,MT. DEWAYANI,Motor Tanker (MT),2,-,[POSISI LOWONG],LOWONG (VACANT),Mualim I,Deck,-,-,-,-,Belum Terisi,-,-,-
+545,LV,MT. DEWAYANI,Motor Tanker (MT),3,-,,AKTIF,,Lainnya,-,-,-,-,On Board,-,-,-
+546,LV,MT. DEWAYANI,Motor Tanker (MT),4,CPL-VSL-1581,Moch Fahrizal Allam,AKTIF,Mualim III,Deck,081223730518,ANT-III,-,2025-11-13,New Hire / New Join,-,New Join 13-11-2025,-
+547,LV,MT. DEWAYANI,Motor Tanker (MT),5,CPL-VSL-1620,Antonius Kende,AKTIF,KKM,Engine,085213363444,ATT-II,-,2026-02-23,New Hire / New Join,-,New Hire on Board tgl. 24-02-2026,-
+548,LV,MT. DEWAYANI,Motor Tanker (MT),6,CPL-VSL-1508,Ricardo Liustono Ruruk Salo,AKTIF,Masinis II,Engine,082190260620,ATT-II,-,2025-06-24,New Hire / New Join,-,"New Join 24-06-2025, eks perusahaan sebelumnya",-
+549,LV,MT. DEWAYANI,Motor Tanker (MT),7,CPL-VSL-1621,Budi Suhartono,AKTIF,Masinis III,Engine,085851371295,ATT-III (M),-,2026-03-02,New Hire / New Join,-,New Hire on Board tgl. 02-03-2026,-
+550,LV,MT. DEWAYANI,Motor Tanker (MT),8,-,[POSISI LOWONG],LOWONG (VACANT),Bosun,Deck,-,-,-,-,Belum Terisi,-,-,-
+551,LV,MT. DEWAYANI,Motor Tanker (MT),9,CPL-VSL-1685,Aswandi,AKTIF,Juru Mudi,Deck,082362828145,ANT-V (O),-,2026-06-12,New Hire / New Join,-,New Hire on Board tgl. 12-06-2026,-
+552,LV,MT. DEWAYANI,Motor Tanker (MT),10,-,[POSISI LOWONG],LOWONG (VACANT),Juru Mudi,Deck,-,-,-,-,Belum Terisi,-,-,-
+553,LV,MT. DEWAYANI,Motor Tanker (MT),11,-,[POSISI LOWONG],LOWONG (VACANT),Juru Mudi,Deck,-,-,-,-,Belum Terisi,-,-,-
+554,LV,MT. DEWAYANI,Motor Tanker (MT),12,-,,AKTIF,,Lainnya,-,-,-,-,On Board,-,-,-
+555,LV,MT. DEWAYANI,Motor Tanker (MT),13,-,[POSISI LOWONG],LOWONG (VACANT),Oiler,Engine,-,-,-,-,Belum Terisi,-,-,-
+556,LV,MT. DEWAYANI,Motor Tanker (MT),14,CPL-VSL-1622,Danny Andreas Kuera,AKTIF,Oiler,Engine,085604161514,ATT-V (O),-,2026-03-09,New Hire / New Join,-,New hire on board tgl. 09-03-2026,-
+557,LV,MT. DEWAYANI,Motor Tanker (MT),15,-,[POSISI LOWONG],LOWONG (VACANT),Oiler,Engine,-,-,-,-,Belum Terisi,-,-,-
+558,LV,MT. DEWAYANI,Motor Tanker (MT),16,-,[POSISI LOWONG],LOWONG (VACANT),Koki,Catering / Galley,-,-,-,-,Belum Terisi,-,-,-
+559,LVI,MT. DEWI SRI,Motor Tanker (MT),1,CPL-VSL-1601,Soleh,AKTIF,Nakhoda,Deck,081256339631,ANT-I,-,2025-12-31,New Hire / New Join,-,New Join 02-01-2026,-
+560,LVI,MT. DEWI SRI,Motor Tanker (MT),2,CPL-VSL-1715,Andrew Valentino,AKTIF,Mualim I,Deck,081213279855,ANT-II,-,2026-09-29,New Hire / New Join,-,New Hire on Board tgl. 29-09-2026,-
+561,LVI,MT. DEWI SRI,Motor Tanker (MT),3,CPL-VSL-1520,Helmi Abdul Maajid,AKTIF,Mualim II,Deck,081326529192,ANT-III,-,2025-07-02,On Board,-,-,-
+562,LVI,MT. DEWI SRI,Motor Tanker (MT),4,CPL-VSL-1521,Fakhmi Yarid Firmansyah,AKTIF,Mualim III,Deck,08122004412,ANT-III,-,2025-07-02,On Board,-,-,-
+563,LVI,MT. DEWI SRI,Motor Tanker (MT),5,CPL-VSL-1538,Dominggus Sarira,AKTIF,KKM,Engine,085342712414,ATT-II,-,2025-07-02,On Board,-,-,-
+564,LVI,MT. DEWI SRI,Motor Tanker (MT),6,CPL-VSL-1537,Ilyas Rangga Ramadhan,AKTIF,Masinis II,Engine,081389506695,ATT-I,-,2025-07-18,New Hire / New Join,-,New Join 18-07-2025,-
+565,LVI,MT. DEWI SRI,Motor Tanker (MT),7,CPL-VSL-1666,Muh Izzul Haq,AKTIF,Masinis III,Engine,085359551776,ATT-II,-,2025-07-02,On Board,-,-,-
+566,LVI,MT. DEWI SRI,Motor Tanker (MT),8,-,[POSISI LOWONG],LOWONG (VACANT),Mandor,Engine,-,-,-,-,Belum Terisi,-,-,-
+567,LVI,MT. DEWI SRI,Motor Tanker (MT),9,CPL-VSL-1511,Timbul Dikky Suhendra Sihombing,AKTIF,Bosun,Deck,082392530222,Able,-,2025-06-24,New Hire / New Join,-,"New Join 24-06-2025, eks perusahaan sebelumnya",-
+568,LVI,MT. DEWI SRI,Motor Tanker (MT),10,CPL-VSL-1526,Saharuddin Sakaria,AKTIF,Juru Mudi,Deck,081391445596,Able,-,2025-07-02,On Board,-,-,-
+569,LVI,MT. DEWI SRI,Motor Tanker (MT),11,CPL-VSL-1527,Asnawir,AKTIF,Juru Mudi,Deck,082260099824,Able,-,2025-07-02,On Board,-,-,-
+570,LVI,MT. DEWI SRI,Motor Tanker (MT),12,CPL-VSL-1547,Ismail Malawat,AKTIF,Juru Mudi,Deck,085283883071,ANT-V (O),-,2025-08-08,New Hire / New Join,-,New Hire on Board tgl. 08-08-2025,-
+571,LVI,MT. DEWI SRI,Motor Tanker (MT),13,CPL-VSL-1548,Faisal Jafar,AKTIF,Oiler,Engine,085340209663,ATT-IV (O),-,2025-08-12,New Hire / New Join,-,New Join 12-08-2025,-
+572,LVI,MT. DEWI SRI,Motor Tanker (MT),14,CPL-VSL-1529,Jeremia Yusuf Rumalatea,AKTIF,Oiler,Engine,089636224331,Able,-,2025-07-02,On Board,-,-,-
+573,LVI,MT. DEWI SRI,Motor Tanker (MT),15,CPL-VSL-1670,Yahya Sakaria,AKTIF,Oiler,Engine,-,ATT-V (O),-,2026-04-29,New Hire / New Join,-,New Hire on Board tgl. 30-04-2026,-
+574,LVI,MT. DEWI SRI,Motor Tanker (MT),16,CPL-VSL-1678,Topan Jaya,AKTIF,Koki,Catering / Galley,085398737154,Rating,-,2026-05-21,New Hire / New Join,-,New Hire on Board tgl. 22-05-2026,-
+575,LVI,MT. DEWI SRI,Motor Tanker (MT),17,-,Arif,CADET (MAGANG),Cadet Deck,Deck (Cadet),081253951079,BST,-,2026-02-18,On Board,Politeknik Maritim AMI Makassar,POLITEKNIK MARITIM AMI MAKASSAR,Standarisasi tanggal: '18 Februari 2026' -> '2026-02-18'
+576,LVI,MT. DEWI SRI,Motor Tanker (MT),18,-,Riza Abdillah,CADET (MAGANG),Cadet Engine,Engine (Cadet),085348074908,BST,-,2026-02-18,On Board,Politeknik Negeri Samarinda,POLITEKNIK NEGERI SAMARINDA,Standarisasi tanggal: '18 Februari 2026' -> '2026-02-18'
+577,LVI,MT. DEWI SRI,Motor Tanker (MT),19,-,Sultan Ersa,CADET (MAGANG),Cadet Engine,Engine (Cadet),-,BST,-,2026-03-13,On Board,-,-,-
+578,LVII,SPOB. ROYAL REY 5001,SPOB,1,CPL-VSL-1035,Irfan Hidayat,AKTIF,Nakhoda,Deck,08125759986,ANT-I,-,2019-09-23,New Hire / New Join,-,New Hire on Board tgl. 23-9-19,-
+579,LVII,SPOB. ROYAL REY 5001,SPOB,2,CPL-VSL-1697,Mardono,AKTIF,Mualim I,Deck,085342477867,ANT-II,-,2026-07-20,New Hire / New Join,-,New Hire on Board tgl. 21-07-2026,-
+580,LVII,SPOB. ROYAL REY 5001,SPOB,3,CPL-VSL-1531,Gilang Ramadhan,AKTIF,Mualim II,Deck,081253106724,ANT-III (O),-,2025-07-10,New Hire / New Join,-,New Hire on Board tgl. 16-07-2025,-
+581,LVII,SPOB. ROYAL REY 5001,SPOB,4,CPL-VSL-1665,Bahtiar,AKTIF,KKM,Engine,081351917298,ATT-II,-,2026-04-21,New Hire / New Join,-,New Hire on Board tgl. 23-04-2026,-
+582,LVII,SPOB. ROYAL REY 5001,SPOB,5,CPL-VSL-1687,Hendri Silalahi,AKTIF,Masinis II,Engine,081287943607,ATT-II,-,2026-06-17,New Hire / New Join,-,New Hire on Board tgl. 17-06-2026,-
+583,LVII,SPOB. ROYAL REY 5001,SPOB,6,CPL-VSL-1452,Tamrin,AKTIF,Masinis III,Engine,081356407256,ATT-III (O),-,2025-02-21,New Hire / New Join,-,New Hire on Board tgl. 22-02-2025,-
+584,LVII,SPOB. ROYAL REY 5001,SPOB,7,CPL-VSL-1555,Muhammad Asbar,AKTIF,Juru Mudi,Deck,082256945800,ANT-V (O),-,2025-08-29,New Hire / New Join,-,New Hire on Board tgl. 29-08-2025,-
+585,LVII,SPOB. ROYAL REY 5001,SPOB,8,CPL-VSL-1533,Muh Yusuf,AKTIF,Juru Mudi,Deck,082255213015,ANT-V (O),-,2025-07-10,New Hire / New Join,-,New Hire on Board tgl. 16-07-2025,-
+586,LVII,SPOB. ROYAL REY 5001,SPOB,9,CPL-VSL-1534,Yusriadi,AKTIF,Juru Mudi,Deck,082239985410,ANT-V (O),-,2025-07-10,New Hire / New Join,-,New Hire on Board tgl. 16-07-2025,-
+587,LVII,SPOB. ROYAL REY 5001,SPOB,10,CPL-VSL-1535,Sattu,AKTIF,Oiler,Engine,082394545403,ATT-IV (O),-,2025-07-10,New Hire / New Join,-,New Hire on Board tgl. 16-07-2025,-
+588,LVII,SPOB. ROYAL REY 5001,SPOB,11,CPL-VSL-1556,Nasrung,AKTIF,Oiler,Engine,085245060870,ATT-V (O),-,2025-09-01,New Hire / New Join,-,New Hire on Board tgl. 01-09-2025,-
+589,LVII,SPOB. ROYAL REY 5001,SPOB,12,CPL-VSL-1707,Safariyanto,AKTIF,Koki,Catering / Galley,082313341188,Rating,-,2026-08-24,New Hire / New Join,-,New Hire on Board tgl. 24-08-2026,Pembersihan format no HP
+590,LVII,SPOB. ROYAL REY 5001,SPOB,13,-,A Muh Fadil,CADET (MAGANG),Cadet Deck,Deck (Cadet),-,BST,-,2025-08-29,On Board,-,-,-
+591,LVII,SPOB. ROYAL REY 5001,SPOB,14,-,Ridho Sahban Noor,CADET (MAGANG),Cadet Engine,Engine (Cadet),-,BST,-,2025-09-01,On Board,-,-,-
+592,LVII,SPOB. ROYAL REY 5001,SPOB,15,-,Rafael Geopry Gadhi Hareva,CADET (MAGANG),Cadet Deck,Deck (Cadet),-,BST,-,2026-04-27,On Board,-,-,-
+593,LVII,SPOB. ROYAL REY 5001,SPOB,16,-,Muhammad Syafiq,CADET (MAGANG),Cadet,Trainee (Cadet),-,BST,-,2026-07-15,On Board,-,-,-
+594,LVIII,SPOB. HL 5001,SPOB,1,CPL-VSL-1609,Anwar,AKTIF,Nakhoda,Deck,081243577819,ANT-I,-,2026-01-14,New Hire / New Join,-,New Hire on Board tgl. 14-01-2026,-
+595,LVIII,SPOB. HL 5001,SPOB,2,CPL-VSL-1639,Muhammad Iqbal,AKTIF,Mualim I,Deck,082246583426,ANT-II,-,2026-03-17,New Hire / New Join,-,New Hire on Board tgl. 18-03-2026,-
+596,LVIII,SPOB. HL 5001,SPOB,3,CPL-VSL-1590,Erwinsyah Putra Tarigan,AKTIF,Mualim II,Deck,082144401987,ANT-III (O),-,2025-11-21,New Hire / New Join,-,New Hire on Board tgl. 08-12-2025,-
+597,LVIII,SPOB. HL 5001,SPOB,4,CPL-VSL-1432,Trio Hari Nugroho Iskandar,AKTIF,KKM,Engine,082148827704,ATT-II,-,2024-10-02,New Hire / New Join,-,New Hire on Board tgl. 03-10-2024,-
+598,LVIII,SPOB. HL 5001,SPOB,5,CPL-VSL-1009,Andi Firman Pananrangi,AKTIF,Masinis II,Engine,082293409341,ATT-III (M),-,2019-07-15,New Hire / New Join,-,New Hire on Board tgl. 15-7-19,-
+599,LVIII,SPOB. HL 5001,SPOB,6,CPL-VSL-1591,Edi Prayitno,AKTIF,Masinis III,Engine,087830052525,ATT-III (M),-,2025-11-21,New Hire / New Join,-,New Hire on Board tgl. 08-12-2025,-
+600,LVIII,SPOB. HL 5001,SPOB,7,CPL-VSL-1592,Supriadi,AKTIF,Juru Mudi,Deck,082211713416,ANT-IV (O),-,2025-11-21,New Hire / New Join,-,New Hire on Board tgl. 08-12-2025,-
+601,LVIII,SPOB. HL 5001,SPOB,8,CPL-VSL-1675,Muhammad Irwaldi,AKTIF,Juru Mudi,Deck,081253505002,ANT-V (O),-,2026-05-07,New Hire / New Join,-,New Hire on Board tgl. 08-05-2026,-
+602,LVIII,SPOB. HL 5001,SPOB,9,CPL-VSL-1594,Ibrahim,AKTIF,Juru Mudi,Deck,081277745282,ANT-V (O),-,2025-11-21,New Hire / New Join,-,New Hire on Board tgl. 08-12-2025,-
+603,LVIII,SPOB. HL 5001,SPOB,10,CPL-VSL-1595,Alfa Prayogi Himawan,AKTIF,Oiler,Engine,081215825729,ATT-V (M),-,2025-11-21,New Hire / New Join,-,New Hire on Board tgl. 08-12-2025,-
+604,LVIII,SPOB. HL 5001,SPOB,11,CPL-VSL-1557,Weddy Saputra,AKTIF,Koki,Catering / Galley,081258712314,Able,-,2025-08-29,New Hire / New Join,-,New hire on board tgl. 03-09-2025,-
+605,LVIII,SPOB. HL 5001,SPOB,12,-,Deyana Kiss Faragiana,CADET (MAGANG),Cadet Deck,Deck (Cadet),081919460431,BST,-,2026-01-13,On Board,Politeknik Ilmu Pelayaran Balikpapan,Politeknik Ilmu Pelayaran Balikpapan,-
+606,LVIII,SPOB. HL 5001,SPOB,13,-,Arya Pratama Putra,CADET (MAGANG),Cadet Engine,Engine (Cadet),085242222446,BST,-,2026-01-13,On Board,Politeknik Maritim AMI Makassar,POLITEKNIK MARITIM AMI MAKASSAR,-
+607,LVIII,SPOB. HL 5001,SPOB,14,-,Muh Rafi Ahmmadani,CADET (MAGANG),Cadet Engine,Engine (Cadet),-,BST,-,2026-06-12,On Board,-,-,-
+608,LIX,SPOB. RR 3001,SPOB,1,CPL-VSL-1623,Muhammad Gusran Ratuan,AKTIF,Nakhoda,Deck,081395442710,ANT-I,-,2026-02-26,On Board,-,-,-
+609,LIX,SPOB. RR 3001,SPOB,2,CPL-VSL-1624,Bambang Anggoro Saputro,AKTIF,Mualim I,Deck,082242222546,ANT-III (M),-,2026-02-26,On Board,-,-,-
+610,LIX,SPOB. RR 3001,SPOB,3,CPL-VSL-1625,Samsir,AKTIF,Mualim II,Deck,082248117425,ANT-III (M),-,2026-02-26,On Board,-,-,-
+611,LIX,SPOB. RR 3001,SPOB,4,CPL-VSL-1626,Tawaqqal Kahar,AKTIF,KKM,Engine,081343693266,ATT-II,-,2026-02-26,On Board,-,-,-
+612,LIX,SPOB. RR 3001,SPOB,5,CPL-VSL-1627,Arik Riyanto,AKTIF,Masinis II,Engine,081230422646,ATT-III (M),-,2026-02-26,On Board,-,-,-
+613,LIX,SPOB. RR 3001,SPOB,6,CPL-VSL-1628,Istiono,AKTIF,Masinis III,Engine,081352110926,ATT-III (O),-,2026-02-26,On Board,-,-,-
+614,LIX,SPOB. RR 3001,SPOB,7,CPL-VSL-1629,Lukman Nur,AKTIF,Juru Mudi,Deck,085796465269,ANT-V (O),-,2026-02-26,On Board,-,-,-
+615,LIX,SPOB. RR 3001,SPOB,8,CPL-VSL-1630,Ahmad,AKTIF,Juru Mudi,Deck,085247363888,ANT-V (O),-,2026-02-26,On Board,-,-,-
+616,LIX,SPOB. RR 3001,SPOB,9,CPL-VSL-1631,Irvan,AKTIF,Juru Mudi,Deck,081290399911,ANT-V (O),-,2026-02-26,On Board,-,-,-
+617,LIX,SPOB. RR 3001,SPOB,10,CPL-VSL-1632,Muh Ashar,AKTIF,Oiler,Engine,082190192092,ATT-V (O),-,2026-02-26,On Board,-,-,-
+618,LIX,SPOB. RR 3001,SPOB,11,CPL-VSL-1633,Firman,AKTIF,Koki,Catering / Galley,082347372227,Able,-,2026-02-26,On Board,-,-,-
+619,LIX,SPOB. RR 3001,SPOB,12,-,Zafki Maulana,CADET (MAGANG),Cadet Deck,Deck (Cadet),-,BST,-,2026-05-26,On Board,-,-,-
+620,LIX,SPOB. RR 3001,SPOB,13,-,M Rafhi Andriano,CADET (MAGANG),Cadet Deck,Deck (Cadet),-,BST,-,2026-05-26,On Board,-,-,-
+621,LX,RR 3002,Lainnya,1,CPL-VSL-1640,Ahmad,AKTIF,Nakhoda,Deck,081372819048,ANT-I,-,2026-03-23,On Board,-,on Board di HL 5001 tgl. 29-04-2026,-
+622,LX,RR 3002,Lainnya,2,CPL-VSL-1641,Muh Shalehuddin A,AKTIF,Mualim I,Deck,082271220738,ANT-II,-,2026-03-23,On Board,-,-,-
+623,LX,RR 3002,Lainnya,3,CPL-VSL-1642,Roma Ardiansyah,AKTIF,Mualim II,Deck,085230760490,ANT-III (M),-,2026-03-23,On Board,-,-,-
+624,LX,RR 3002,Lainnya,4,CPL-VSL-1643,Israil,AKTIF,KKM,Engine,085397148997,ATT-II,-,2026-03-23,On Board,-,-,-
+625,LX,RR 3002,Lainnya,5,CPL-VSL-1672,Mirsan L.S,AKTIF,Masinis II,Engine,082297466580,ATT-II,-,2026-05-04,On Board,-,-,-
+626,LX,RR 3002,Lainnya,6,CPL-VSL-1645,Riksawan,AKTIF,Masinis III,Engine,08123477721,ATT-III (O),-,2026-03-23,On Board,-,-,-
+627,LX,RR 3002,Lainnya,7,CPL-VSL-1671,Muhammad Iqbal,AKTIF,Juru Mudi,Deck,08134354175,ANT-IV (O),-,2026-05-04,On Board,-,-,-
+628,LX,RR 3002,Lainnya,8,CPL-VSL-1647,Dulham,AKTIF,Juru Mudi,Deck,081354997093,ANT-IV (O),-,2026-03-23,On Board,-,-,-
+629,LX,RR 3002,Lainnya,9,CPL-VSL-1648,Silpano,AKTIF,Juru Mudi,Deck,082251054422,ANT-V (O),-,2026-03-23,On Board,-,-,-
+630,LX,RR 3002,Lainnya,10,CPL-VSL-1649,Supriadi,AKTIF,Oiler,Engine,081366676504,ATT-V (O),-,2026-03-23,On Board,-,-,-
+631,LX,RR 3002,Lainnya,11,CPL-VSL-1650,Amunawir,AKTIF,Koki,Catering / Galley,085341777472,Able,-,2026-03-23,On Board,-,-,-
+632,LX,RR 3002,Lainnya,12,-,Yusri Rahmadan,CADET (MAGANG),Cadet Deck,Deck (Cadet),-,BST,-,2026-07-20,On Board,Politeknik Pelayaran Barombong,Poltekpel Barombong,-
+633,LX,RR 3002,Lainnya,13,-,Aidin Hasri,CADET (MAGANG),Cadet Engine,Engine (Cadet),-,BST,-,2026-07-27,On Board,Politeknik Pelayaran Barombong,Poltekpel Barombong,-
