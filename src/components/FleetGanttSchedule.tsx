@@ -151,201 +151,7 @@ interface CuratedVessel {
   }>;
 }
 
-const CURATED_TOP_VESSELS: CuratedVessel[] = [
-  {
-    name: 'OFFICE GAJ',
-    tag: 'GAJ',
-    fpbCount: 322,
-    startCol: 0, // Jun W1
-    endCol: 19, // Okt W4
-    gradientStyle: 'bg-gradient-to-r from-[#10B981] via-[#10B981] to-[#0EA5E9]',
-    colorType: 'HIJAU',
-    summaryText: 'Jun W1 - Okt W4 (Dominan Hijau/Selesai)',
-    statusBadge: { lengkap: 284, proses: 22, parsial: 12, backlog: 4 },
-    sampleItems: [
-      { fpb: 'FPB-GAJ-082', item: 'Piston Ring & Liner Kit Daihatsu 6DL-20', startCol: 0, endCol: 3, status: 'LENGKAP' },
-      { fpb: 'FPB-GAJ-104', item: 'Fuel Injection Pump Unit & Nozzle Tip', startCol: 4, endCol: 8, status: 'LENGKAP' },
-      { fpb: 'FPB-GAJ-145', item: 'Main Bearing Standard & Thrust Washer', startCol: 8, endCol: 13, status: 'LENGKAP' },
-      { fpb: 'FPB-GAJ-210', item: 'Centrifugal Pump Impeller Bronze 3 Inch', startCol: 14, endCol: 19, status: 'PROSES' },
-    ],
-  },
-  {
-    name: 'SPOB SEA LION',
-    tag: 'HL',
-    fpbCount: 183,
-    startCol: 4, // Jul W1
-    endCol: 19, // Okt W4
-    gradientStyle: 'bg-gradient-to-r from-[#0EA5E9] via-[#0EA5E9] to-[#F59E0B]',
-    colorType: 'BIRU_ORANYE',
-    summaryText: 'Jul W1 - Okt W4 (Biru transisi ke Oranye)',
-    statusBadge: { lengkap: 110, proses: 45, parsial: 24, backlog: 4 },
-    sampleItems: [
-      { fpb: 'FPB-HL-034', item: 'Gate Valve JIS 10K Cast Iron 4 Inch', startCol: 4, endCol: 7, status: 'LENGKAP' },
-      { fpb: 'FPB-HL-067', item: 'Oli Mesin Meditran SX SAE 15W-40 (Drum)', startCol: 8, endCol: 12, status: 'PROSES' },
-      { fpb: 'FPB-HL-112', item: 'Safety Life Jacket SOLAS with Whistle', startCol: 13, endCol: 19, status: 'PARSIAL' },
-    ],
-  },
-  {
-    name: 'SPOB FERY 471',
-    tag: 'MO',
-    fpbCount: 129,
-    startCol: 4, // Jul W1
-    endCol: 19, // Okt W4
-    gradientStyle: 'bg-gradient-to-r from-[#0EA5E9] via-[#F59E0B] to-[#EF4444]',
-    colorType: 'BIRU_ORANYE_MERAH',
-    summaryText: 'Jul W1 - Okt W4 (Biru transisi ke Oranye & Merah)',
-    statusBadge: { lengkap: 68, proses: 28, parsial: 21, backlog: 12 },
-    sampleItems: [
-      { fpb: 'FPB-MO-021', item: 'Air Starter Motor TDI Turbine Series', startCol: 4, endCol: 8, status: 'PROSES' },
-      { fpb: 'FPB-MO-055', item: 'Flexible Exhaust Hose Bellow SS304', startCol: 9, endCol: 14, status: 'PARSIAL' },
-      { fpb: 'FPB-MO-089', item: 'Pressure Gauge 0-25 Bar Glycerin Filled', startCol: 15, endCol: 19, status: 'BACKLOG' },
-    ],
-  },
-  {
-    name: 'SV TWINSISTER 307',
-    tag: 'CPL',
-    fpbCount: 129,
-    startCol: 5, // Jul W2
-    endCol: 19, // Okt W4
-    gradientStyle: 'bg-gradient-to-r from-[#0EA5E9] via-[#38BDF8] to-[#F59E0B]',
-    colorType: 'BIRU_ORANYE',
-    summaryText: 'Jul W2 - Okt W4 (Biru ke Oranye)',
-    statusBadge: { lengkap: 75, proses: 32, parsial: 18, backlog: 4 },
-    sampleItems: [
-      { fpb: 'FPB-CPL-099', item: 'Oil Filter Cartridge LF9009 Fleetguard', startCol: 5, endCol: 9, status: 'LENGKAP' },
-      { fpb: 'FPB-CPL-130', item: 'Fuel Water Separator Racor 1000FH', startCol: 10, endCol: 15, status: 'PROSES' },
-      { fpb: 'FPB-CPL-178', item: 'Marine Battery Dry Charge 12V 200AH', startCol: 16, endCol: 19, status: 'PARSIAL' },
-    ],
-  },
-  {
-    name: 'SITE PAGATAN',
-    tag: 'MO',
-    fpbCount: 117,
-    startCol: 4, // Jul W1
-    endCol: 19, // Okt W4
-    gradientStyle: 'bg-gradient-to-r from-[#10B981] via-[#F59E0B] to-[#EF4444]',
-    colorType: 'HIJAU_MERAH',
-    summaryText: 'Jul W1 - Okt W4 (Hijau ke Oranye & Merah)',
-    statusBadge: { lengkap: 62, proses: 24, parsial: 19, backlog: 12 },
-    sampleItems: [
-      { fpb: 'FPB-MO-110', item: 'Hydraulic Hose 4SP 3/4 Inch x 10 Meter', startCol: 4, endCol: 8, status: 'LENGKAP' },
-      { fpb: 'FPB-MO-138', item: 'Grease Chassis EP2 Pertamina (Pail)', startCol: 9, endCol: 14, status: 'PARSIAL' },
-      { fpb: 'FPB-MO-172', item: 'Solenoid Valve 24VDC Danfoss EV220B', startCol: 15, endCol: 19, status: 'BACKLOG' },
-    ],
-  },
-  {
-    name: 'TB PMI ABADI',
-    tag: 'CPL',
-    fpbCount: 94,
-    startCol: 4, // Jul W1
-    endCol: 19, // Okt W4
-    gradientStyle: 'bg-gradient-to-r from-[#0EA5E9] via-[#0EA5E9] to-[#F59E0B]',
-    colorType: 'BIRU_ORANYE',
-    summaryText: 'Jul W1 - Okt W4 (Biru ke Oranye)',
-    statusBadge: { lengkap: 55, proses: 22, parsial: 13, backlog: 4 },
-    sampleItems: [
-      { fpb: 'FPB-CPL-204', item: 'Zinc Anode Hull Protection 5 Kg', startCol: 4, endCol: 8, status: 'LENGKAP' },
-      { fpb: 'FPB-CPL-242', item: 'Wire Rope Galvanized 6x36 WS IWRC 28mm', startCol: 9, endCol: 15, status: 'PROSES' },
-      { fpb: 'FPB-CPL-271', item: 'Shackle Bow Safety Pin Crosby 8.5 Ton', startCol: 16, endCol: 19, status: 'PARSIAL' },
-    ],
-  },
-  {
-    name: 'SPOB OCEAN MANDAR',
-    tag: 'CPL',
-    fpbCount: 80,
-    startCol: 2, // Jun W3
-    endCol: 15, // Sep W4
-    gradientStyle: 'bg-gradient-to-r from-[#10B981] via-[#0EA5E9] to-[#EF4444]',
-    colorType: 'HIJAU_BIRU_MERAH',
-    summaryText: 'Jun W3 - Sep W4 (Hijau, Biru, Merah/Backlog)',
-    statusBadge: { lengkap: 46, proses: 18, parsial: 6, backlog: 10 },
-    sampleItems: [
-      { fpb: 'FPB-CPL-050', item: 'Bilge Pump Submersible Rule 2000GPH', startCol: 2, endCol: 5, status: 'LENGKAP' },
-      { fpb: 'FPB-CPL-078', item: 'Tali Tambat Polypropylene 8 Strand 3 Inch', startCol: 6, endCol: 10, status: 'PROSES' },
-      { fpb: 'FPB-CPL-119', item: 'Marine GPS Antenna Furuno GPA-017', startCol: 11, endCol: 15, status: 'BACKLOG' },
-    ],
-  },
-  {
-    name: 'UB CMPL 01',
-    tag: 'CPL',
-    fpbCount: 79,
-    startCol: 2, // Jun W3
-    endCol: 19, // Okt W4
-    gradientStyle: 'bg-gradient-to-r from-[#0EA5E9] via-[#0EA5E9] to-[#F59E0B]',
-    colorType: 'BIRU_ORANYE',
-    summaryText: 'Jun W3 - Okt W4 (Biru ke Oranye)',
-    statusBadge: { lengkap: 44, proses: 21, parsial: 11, backlog: 3 },
-    sampleItems: [
-      { fpb: 'FPB-CPL-061', item: 'Gasket Sheet Klingerit 1000 Tebal 3mm', startCol: 2, endCol: 6, status: 'LENGKAP' },
-      { fpb: 'FPB-CPL-114', item: 'Lampu Sorot Deck LED Marine 200W IP66', startCol: 7, endCol: 13, status: 'PROSES' },
-      { fpb: 'FPB-CPL-188', item: 'Baut Mur SS316 Hexagon M16 x 60mm', startCol: 14, endCol: 19, status: 'PARSIAL' },
-    ],
-  },
-  {
-    name: 'DEPT. PROCUREMENT',
-    tag: 'CPL',
-    fpbCount: 77,
-    startCol: 4, // Jul W1
-    endCol: 19, // Okt W4
-    gradientStyle: 'bg-gradient-to-r from-[#10B981] to-[#EF4444]',
-    colorType: 'HIJAU_MERAH',
-    summaryText: 'Jul W1 - Okt W4 (Hijau ke Merah)',
-    statusBadge: { lengkap: 42, proses: 16, parsial: 9, backlog: 10 },
-    sampleItems: [
-      { fpb: 'FPB-CPL-302', item: 'Alat Las Mesin Inverter ARC 200A', startCol: 4, endCol: 8, status: 'LENGKAP' },
-      { fpb: 'FPB-CPL-331', item: 'Kawat Las Kobelco LB-52 3.2mm (Dus)', startCol: 9, endCol: 14, status: 'PARSIAL' },
-      { fpb: 'FPB-CPL-370', item: 'Gas Oxygen & Acetylene Refill Tabung', startCol: 15, endCol: 19, status: 'BACKLOG' },
-    ],
-  },
-  {
-    name: 'HEAD OFFICE',
-    tag: 'CPL',
-    fpbCount: 64,
-    startCol: 8, // Agu W1
-    endCol: 19, // Okt W4
-    gradientStyle: 'bg-gradient-to-r from-[#10B981] to-[#EF4444]',
-    colorType: 'HIJAU_MERAH',
-    summaryText: 'Agu W1 - Okt W4 (Hijau ke Merah)',
-    statusBadge: { lengkap: 38, proses: 12, parsial: 8, backlog: 6 },
-    sampleItems: [
-      { fpb: 'FPB-CPL-401', item: 'Kertas HVS A4 80gr Sinar Dunia (Rim)', startCol: 8, endCol: 11, status: 'LENGKAP' },
-      { fpb: 'FPB-CPL-425', item: 'Cartridge Toner HP LaserJet 85A Original', startCol: 12, endCol: 16, status: 'PARSIAL' },
-      { fpb: 'FPB-CPL-460', item: 'UPS APC Easy UPS 1000VA 230V AVR', startCol: 17, endCol: 19, status: 'BACKLOG' },
-    ],
-  },
-  {
-    name: 'TK COASTWAY 1803',
-    tag: 'SP',
-    fpbCount: 57,
-    startCol: 4, // Jul W1
-    endCol: 19, // Okt W4
-    gradientStyle: 'bg-gradient-to-r from-[#10B981] via-[#10B981] to-[#F59E0B]',
-    colorType: 'HIJAU_ORANYE',
-    summaryText: 'Jul W1 - Okt W4 (Hijau ke Oranye)',
-    statusBadge: { lengkap: 36, proses: 11, parsial: 8, backlog: 2 },
-    sampleItems: [
-      { fpb: 'FPB-SP-012', item: 'Rubber Fender Type M 250H x 1500L', startCol: 4, endCol: 9, status: 'LENGKAP' },
-      { fpb: 'FPB-SP-035', item: 'Cat Dasar Anti Korosi Epodur Primer', startCol: 10, endCol: 15, status: 'LENGKAP' },
-      { fpb: 'FPB-SP-054', item: 'Thinner Epoxy International Paint (Galon)', startCol: 16, endCol: 19, status: 'PARSIAL' },
-    ],
-  },
-  {
-    name: 'TK COASTWAY 20102',
-    tag: 'HL',
-    fpbCount: 56,
-    startCol: 4, // Jul W1
-    endCol: 19, // Okt W4
-    gradientStyle: 'bg-gradient-to-r from-[#10B981] via-[#F59E0B] to-[#EF4444]',
-    colorType: 'HIJAU_MERAH',
-    summaryText: 'Jul W1 - Okt W4 (Hijau ke Merah Kritis)',
-    statusBadge: { lengkap: 30, proses: 10, parsial: 7, backlog: 9 },
-    sampleItems: [
-      { fpb: 'FPB-HL-101', item: 'Bollard Mooring T-Head Cast Steel 25T', startCol: 4, endCol: 8, status: 'LENGKAP' },
-      { fpb: 'FPB-HL-128', item: 'Rantai Jangkar Grade U2 Studlink 22mm', startCol: 9, endCol: 14, status: 'PARSIAL' },
-      { fpb: 'FPB-HL-152', item: 'Anchor Kenter Shackle Joiner 22mm', startCol: 15, endCol: 19, status: 'BACKLOG' },
-    ],
-  },
-];
+const CURATED_TOP_VESSELS: CuratedVessel[] = (REAL_FLEET_DATA as CuratedVessel[]).slice(0, 15);
 
 const PAGE_SIZE = 12;
 
@@ -453,14 +259,14 @@ export default function FleetGanttSchedule({
 
       if (map.size > 0) {
         const months = ['Jun', 'Jul', 'Agu', 'Sep', 'Okt'];
-        const curatedMap = new Map<string, CuratedVessel>(
-          CURATED_TOP_VESSELS.map((v) => [v.name.toUpperCase(), v])
+        const realFleetMap = new Map<string, CuratedVessel>(
+          (REAL_FLEET_DATA as CuratedVessel[]).map((v) => [v.name.toUpperCase(), v])
         );
 
         const dynamicList: CuratedVessel[] = [];
 
         for (const entry of Array.from(map.values())) {
-          const curatedMatch = curatedMap.get(entry.name.toUpperCase());
+          const curatedMatch = realFleetMap.get(entry.name.toUpperCase());
           const fpbCount = Math.max(entry.fpbs.size, 1);
           const minCol = entry.startCols.length > 0 ? Math.min(...entry.startCols) : (curatedMatch?.startCol ?? 4);
           const maxCol = entry.endCols.length > 0 ? Math.max(...entry.endCols) : (curatedMatch?.endCol ?? 19);
@@ -492,41 +298,50 @@ export default function FleetGanttSchedule({
           const summaryText = `${sM} ${sW} - ${eM} ${eW}`;
 
           let sampleItems: CuratedVessel['sampleItems'] = [];
-          if (curatedMatch && curatedMatch.sampleItems.length > 0) {
-            sampleItems = curatedMatch.sampleItems;
-          } else {
-            const seenFpbs = new Set<string>();
-            for (const child of entry.items) {
-              const fpbNum = child.fpb || `${entry.tag}-FPB-26-${sampleItems.length + 1}`;
-              if (seenFpbs.has(fpbNum) && sampleItems.length >= 4) continue;
-              seenFpbs.add(fpbNum);
+          const seenKeys = new Set<string>();
 
-              const childCol = dateToTimelineCol(child.tglFstb || child.tglPo || child.tglFpb) ?? startCol;
-              const cStart = Math.max(0, Math.min(childCol, 18));
-              const cEnd = Math.max(cStart + 1, Math.min(childCol + 3, 19));
+          for (const child of entry.items) {
+            const fpbNum = (child.fpb || '').trim();
+            if (!fpbNum) continue;
 
-              const childQSel = Number(child.selisih) || 0;
-              const childQFstb = Number(child.qtyFSTB) || 0;
-              let childStatus: 'LENGKAP' | 'PROSES' | 'PARSIAL' | 'BACKLOG' = 'PROSES';
+            const rawItemName = (child.item || '').trim();
+            const comboKey = `${fpbNum}_${rawItemName}`;
+            if (seenKeys.has(comboKey) && sampleItems.length >= 4) continue;
+            seenKeys.add(comboKey);
 
-              if (child.status?.toUpperCase().includes('LENGKAP') || (childQSel === 0 && childQFstb > 0) || child.noTtb) {
-                childStatus = 'LENGKAP';
-              } else if (child.status?.toUpperCase().includes('PARSIAL') || (childQFstb > 0 && childQSel > 0)) {
-                childStatus = 'PARSIAL';
-              } else if (child.status?.toUpperCase().includes('BACKLOG') || (childQFstb === 0 && childQSel > 0)) {
-                childStatus = 'BACKLOG';
-              }
+            const childCol = dateToTimelineCol(child.tglFstb || child.tglPo || child.tglFpb) ?? startCol;
+            const cStart = Math.max(0, Math.min(childCol, 18));
+            const cEnd = Math.max(cStart + 1, Math.min(childCol + 3, 19));
 
-              sampleItems.push({
-                fpb: fpbNum,
-                item: child.item || `Kebutuhan ${entry.name}`,
-                startCol: cStart,
-                endCol: cEnd,
-                status: childStatus,
-              });
+            const childQSel = Number(child.selisih) || 0;
+            const childQFstb = Number(child.qtyFSTB) || 0;
+            let childStatus: 'LENGKAP' | 'PROSES' | 'PARSIAL' | 'BACKLOG' = 'PROSES';
 
-              if (sampleItems.length >= 8) break;
+            if (child.status?.toUpperCase().includes('LENGKAP') || (childQSel === 0 && childQFstb > 0) || child.noTtb) {
+              childStatus = 'LENGKAP';
+            } else if (child.status?.toUpperCase().includes('PARSIAL') || (childQFstb > 0 && childQSel > 0)) {
+              childStatus = 'PARSIAL';
+            } else if (child.status?.toUpperCase().includes('BACKLOG') || (childQFstb === 0 && childQSel > 0)) {
+              childStatus = 'BACKLOG';
             }
+
+            const itemName = rawItemName && rawItemName !== '-' && !rawItemName.toLowerCase().startsWith('kebutuhan')
+              ? rawItemName
+              : (curatedMatch?.sampleItems?.find((s) => s.fpb === fpbNum)?.item || `Suku Cadang & Perlengkapan`);
+
+            sampleItems.push({
+              fpb: fpbNum,
+              item: itemName,
+              startCol: cStart,
+              endCol: cEnd,
+              status: childStatus,
+            });
+
+            if (sampleItems.length >= 8) break;
+          }
+
+          if (sampleItems.length === 0 && curatedMatch && curatedMatch.sampleItems?.length > 0) {
+            sampleItems = curatedMatch.sampleItems;
           }
 
           dynamicList.push({
@@ -544,7 +359,7 @@ export default function FleetGanttSchedule({
               parsial: entry.parsial,
               backlog: entry.backlog,
             },
-            sampleItems: sampleItems.length > 0 ? sampleItems : [
+            sampleItems: sampleItems.length > 0 ? sampleItems : (curatedMatch?.sampleItems || [
               {
                 fpb: Array.from(entry.fpbs)[0] || `${entry.tag}-FPB-26-0001`,
                 item: `Suku Cadang & Perlengkapan ${entry.name}`,
@@ -552,7 +367,7 @@ export default function FleetGanttSchedule({
                 endCol,
                 status: colorType === 'HIJAU' ? 'LENGKAP' : 'PROSES',
               },
-            ],
+            ]),
           });
         }
 
@@ -561,13 +376,8 @@ export default function FleetGanttSchedule({
       }
     }
 
-    // 2. Fallback: 100% data armada riil dari dataset (CURATED_TOP_VESSELS + REAL_FLEET_DATA)
-    const curatedNames = new Set(CURATED_TOP_VESSELS.map((v) => v.name.toUpperCase()));
-    const remainingRealVessels = (REAL_FLEET_DATA as CuratedVessel[]).filter(
-      (v) => !curatedNames.has(v.name.toUpperCase())
-    );
-
-    return [...CURATED_TOP_VESSELS, ...remainingRealVessels];
+    // 2. Fallback: 100% data armada riil dari dataset
+    return REAL_FLEET_DATA as CuratedVessel[];
   }, [items]);
 
   // Filter Data Armada
