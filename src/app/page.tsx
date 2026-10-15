@@ -526,9 +526,21 @@ export default function DashboardPage() {
           });
           setArmadaData(sanitized);
         }
-        if (savedInv && savedInv.items && savedInv.items.length > 0) {
+        if (savedInv && savedInv.items && savedInv.items.length >= 10000 && savedInv.items[0]?.uom) {
           setInventoryItems(savedInv.items);
           if (savedInv.summary) setInventorySummary(savedInv.summary);
+        } else {
+          // Auto-fetch latest 10,049 consolidated inventory items from /api/inventory
+          fetch('/api/inventory')
+            .then((r) => r.json())
+            .then((res) => {
+              if (res.success && Array.isArray(res.items)) {
+                setInventoryItems(res.items);
+                if (res.summary) setInventorySummary(res.summary);
+                saveStoredInventory(res.items, res.summary || null);
+              }
+            })
+            .catch((err) => console.error('Auto-load inventory error:', err));
         }
         if (savedKapal && savedKapal.items && savedKapal.items.length > 0) {
           setKapalPosisiItems(savedKapal.items);

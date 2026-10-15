@@ -45,6 +45,12 @@ export interface InventoryItem {
   inventoryType: string;
   category: string;
   level?: 'Induk' | 'Sub-Barang' | string;
+  kategoriUtama?: string;
+  subKategori?: string;
+  uom?: string;
+  sifatEntitas?: 'Barang Fisik' | 'Jasa (Non-Fisik)' | 'Akun Akuntansi' | string;
+  statusStok?: 'Stok Aktif (>0)' | 'Stok Kosong (0)' | 'Stok Minus (<0)' | string;
+  rekomendasi?: string;
 }
 
 export interface InventoryCompanySummary {
@@ -59,6 +65,13 @@ export interface InventoryCompanySummary {
   negativeStock: number;
 }
 
+export interface InventoryCategorySummary {
+  category: string;
+  totalItems: number;
+  activeItems: number;
+  totalQuantity: number;
+}
+
 export interface InventorySummary {
   totalItems: number;
   parentItems: number;
@@ -67,7 +80,11 @@ export interface InventorySummary {
   activeStock: number;
   zeroStock: number;
   negativeStock: number;
+  physicalItems?: number;
+  serviceItems?: number;
+  accountingItems?: number;
   byCompany: InventoryCompanySummary[];
+  byCategory?: InventoryCategorySummary[];
   topItems: {
     rank: number;
     company: string;
@@ -77,6 +94,8 @@ export interface InventorySummary {
     itemType: string;
     category?: string;
     level: string;
+    uom?: string;
+    rekomendasi?: string;
   }[];
 }
 

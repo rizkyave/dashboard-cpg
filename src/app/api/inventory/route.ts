@@ -9,14 +9,32 @@ import { InventoryItem, InventorySummary } from '@/types/procurement';
 let cachedItems: InventoryItem[] | null = null;
 let cachedSummary: InventorySummary | null = null;
 
-function loadInitialFromDisk() {
-  if (cachedItems && cachedSummary) {
+function loadInitialFromDisk(forceReload: boolean = false) {
+  if (!forceReload && cachedItems && cachedSummary) {
     return { items: cachedItems, summary: cachedSummary };
   }
 
-  // Priority paths to search for the consolidated inventory file
+  // 1. Try reading pre-generated fast JSON file
+  const jsonPath = path.join(process.cwd(), 'src', 'data', 'initialInventoryData.json');
+  if (!forceReload && fs.existsSync(jsonPath)) {
+    try {
+      const raw = fs.readFileSync(jsonPath, 'utf-8');
+      const items: InventoryItem[] = JSON.parse(raw);
+      if (Array.isArray(items) && items.length > 0) {
+        const summary = calculateInventorySummary(items);
+        cachedItems = items;
+        cachedSummary = summary;
+        return { items, summary };
+      }
+    } catch (err) {
+      console.warn('Failed reading initialInventoryData.json, falling back to Excel:', err);
+    }
+  }
+
+  // 2. Priority paths to search for the consolidated inventory file
   const candidatePaths = [
     path.join(process.cwd(), 'Daftar_Barang_Gabungan_Semua_Perusahaan.xlsx'),
+    path.join(process.cwd(), 'Daftar_Barang_Gabungan_Semua_Perusahaan_Enriched.xlsx'),
     path.join(process.cwd(), '..', 'Daftar_Barang_Gabungan_Semua_Perusahaan.xlsx'),
     path.join(process.cwd(), 'Daftar_Barang_PT_CINDARA_PRATAMA_LINES.xlsx'),
   ];
@@ -30,6 +48,10 @@ function loadInitialFromDisk() {
         if (result.items.length > 0) {
           cachedItems = result.items;
           cachedSummary = result.summary;
+          // Asynchronously update json cache
+          try {
+            fs.writeFileSync(jsonPath, JSON.stringify(result.items), 'utf-8');
+          } catch {}
           return result;
         }
       } catch (err) {
@@ -43,9 +65,10 @@ function loadInitialFromDisk() {
 
 export async function GET(req: NextRequest) {
   try {
-    const { items, summary } = loadInitialFromDisk();
-
     const { searchParams } = new URL(req.url);
+    const force = searchParams.get('force') === 'true' || searchParams.get('refresh') === 'true';
+    const { items, summary } = loadInitialFromDisk(force);
+
     const q = searchParams.get('q')?.toLowerCase()?.trim();
     const entity = searchParams.get('entity');
     const status = searchParams.get('status');
