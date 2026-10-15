@@ -62,6 +62,7 @@ import TtbGalleryTab from '@/components/TtbGalleryTab';
 import AdminSettingsTab from '@/components/AdminSettingsTab';
 import SisaLayananTab from '@/components/SisaLayananTab';
 import UploadTtbTab from '@/components/UploadTtbTab';
+import CrewKapalTab from '@/components/CrewKapalTab';
 import { SisaLayananItem, SisaLayananSummary } from '@/types/sisaLayanan';
 import {
   saveStoredSisaLayanan,
@@ -975,6 +976,8 @@ export default function DashboardPage() {
                   ? 'Dokumentasi Foto TimeMark'
                   : activeTab === 'pos-kapal'
                   ? 'Posisi Kapal'
+                  : activeTab === 'crew-kapal'
+                  ? 'Data Crew & Monitoring Armada Kapal'
                   : activeTab === 'work-order'
                   ? 'Monitoring Work Order (WO)'
                   : activeTab === 'list-sm'
@@ -1004,6 +1007,8 @@ export default function DashboardPage() {
                   ? 'Verifikasi dokumentasi bukti foto fisik lapangan TimeMark dengan pencarian 5 digit nomor FSTB.'
                   : activeTab === 'pos-kapal'
                   ? 'Laporan posisi, rute, aktivitas, status armada dan pekerjaan pemeliharaan kapal.'
+                  : activeTab === 'crew-kapal'
+                  ? 'Data formasi awak kapal, status manning, posisi lowong mandatori, monitoring cadet prala, dan audit cleansing data armada kapal PT CPL 2026.'
                   : activeTab === 'work-order'
                   ? 'Rekap dan Validasi WO Armada'
                   : activeTab === 'list-sm'
@@ -1021,7 +1026,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Tombol Sembunyikan Ringkasan Metrik KPI */}
-            {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'upload-ttb' && activeTab !== 'admin-settings' && (!isVisitor || searchKeyword.trim() !== '') && (
+            {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && activeTab !== 'crew-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'upload-ttb' && activeTab !== 'admin-settings' && (!isVisitor || searchKeyword.trim() !== '') && (
               <button
                 type="button"
                 onClick={toggleKpiHidden}
@@ -1098,6 +1103,11 @@ export default function DashboardPage() {
               onRefresh={handleRefreshPosisiKapal}
               showToast={showToast}
             />
+          )}
+
+          {/* Tab Modul Tambahan: Data Crew & Monitoring Armada Kapal */}
+          {activeTab === 'crew-kapal' && (
+            <CrewKapalTab showToast={showToast} />
           )}
 
           {/* Tab Work Order (Form Responses 1 Google Sheets) */}

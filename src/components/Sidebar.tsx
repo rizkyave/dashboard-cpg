@@ -28,6 +28,7 @@ import {
   Wrench,
   Layers,
   UploadCloud,
+  Users,
 } from 'lucide-react';
 
 import * as XLSX from 'xlsx';
@@ -471,6 +472,29 @@ export default function Sidebar({
                   {kapalPosisiCount !== undefined && kapalPosisiCount > 0
                     ? `${kapalPosisiCount}`
                     : 'Live'}
+                </span>
+              </button>
+
+              {/* Modul Baru: Data Crew & Monitoring Armada Kapal */}
+              <button
+                onClick={() => handleSelectTab('crew-kapal')}
+                className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation cursor-pointer ${
+                  activeTab === 'crew-kapal'
+                    ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-border'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                }`}
+                title="Buka Modul Data Crew & Monitoring Awak Armada Kapal (60 Kapal, 633 Kru)"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <Users
+                    className={`size-4 shrink-0 ${
+                      activeTab === 'crew-kapal' ? 'text-blue-500' : 'text-muted-foreground'
+                    }`}
+                  />
+                  <span className="truncate whitespace-nowrap">Crew &amp; Armada</span>
+                </div>
+                <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                  60 Kpl
                 </span>
               </button>
 
