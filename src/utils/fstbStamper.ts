@@ -37,50 +37,51 @@ export interface StampFstbOptions {
  */
 export const FSTB_DELIVERED_BY_COORDINATES = {
   // Delivered By : Purchasing Staff (Kolom 1)
-  sigXRatio: 0.075,
-  sigYRatio: 0.178,
-  sigWidthRatio: 0.145,
-  sigHeightRatio: 0.082,
-  nameXRatio: 0.095,
-  nameYRatio: 0.135,
-  dateXRatio: 0.090,
-  dateYRatio: 0.108,
+  // Form Geometry: Label y=134.5, Line y=98.5, Role y=86.5, Name y=74.5, Date y=61.5
+  sigXRatio: 0.0651,      // x = 39 pt (aligns with Delivered By text & line)
+  sigYRatio: 0.2394,      // y = 101.5 pt (sits 3pt cleanly above signature line y=98.5)
+  sigWidthRatio: 0.1469,  // width = 88 pt
+  sigHeightRatio: 0.0708, // height = 30 pt (top at y=131.5, below label y=134.5)
+  nameXRatio: 0.1336,     // x = 80 pt (right after 'Name :' label)
+  nameYRatio: 0.1757,     // y = 74.5 pt (on 'Name :' baseline)
+  dateXRatio: 0.1336,     // x = 80 pt (right after 'Date :' label)
+  dateYRatio: 0.1450,     // y = 61.5 pt (on 'Date :' baseline)
 };
 
 export const FSTB_RECEIVED_BY_COORDINATES = {
   // Received By : Logistic Staff (Kolom 2)
-  sigXRatio: 0.280,
-  sigYRatio: 0.178,
-  sigWidthRatio: 0.145,
-  sigHeightRatio: 0.082,
-  nameXRatio: 0.300,
-  nameYRatio: 0.135,
-  dateXRatio: 0.295,
-  dateYRatio: 0.108,
+  sigXRatio: 0.3005,      // x = 180 pt
+  sigYRatio: 0.2394,      // y = 101.5 pt
+  sigWidthRatio: 0.1469,  // width = 88 pt
+  sigHeightRatio: 0.0708, // height = 30 pt
+  nameXRatio: 0.3673,     // x = 220 pt (right after 'Name :' label)
+  nameYRatio: 0.1757,     // y = 74.5 pt
+  dateXRatio: 0.3673,     // x = 220 pt (right after 'Date :' label)
+  dateYRatio: 0.1450,     // y = 61.5 pt
 };
 
 export const FSTB_APPROVED_BY_COORDINATES = {
   // Approved By : Purchasing Supervisor (Kolom 3)
-  sigXRatio: 0.505,
-  sigYRatio: 0.178,
-  sigWidthRatio: 0.145,
-  sigHeightRatio: 0.082,
-  nameXRatio: 0.525,
-  nameYRatio: 0.135,
-  dateXRatio: 0.520,
-  dateYRatio: 0.108,
+  sigXRatio: 0.5326,      // x = 319 pt
+  sigYRatio: 0.2394,      // y = 101.5 pt
+  sigWidthRatio: 0.1469,  // width = 88 pt
+  sigHeightRatio: 0.0708, // height = 30 pt
+  nameXRatio: 0.6010,     // x = 360 pt (right after 'Name :' label)
+  nameYRatio: 0.1757,     // y = 74.5 pt
+  dateXRatio: 0.6010,     // x = 360 pt (right after 'Date :' label)
+  dateYRatio: 0.1450,     // y = 61.5 pt
 };
 
 export const FSTB_ACKNOWLEDGED_BY_COORDINATES = {
   // Acknowledged By : Logistic Supervisor (Kolom 4)
-  sigXRatio: 0.725,
-  sigYRatio: 0.178,
-  sigWidthRatio: 0.145,
-  sigHeightRatio: 0.082,
-  nameXRatio: 0.745,
-  nameYRatio: 0.135,
-  dateXRatio: 0.740,
-  dateYRatio: 0.108,
+  sigXRatio: 0.7596,      // x = 455 pt
+  sigYRatio: 0.2394,      // y = 101.5 pt
+  sigWidthRatio: 0.1469,  // width = 88 pt
+  sigHeightRatio: 0.0708, // height = 30 pt
+  nameXRatio: 0.8264,     // x = 495 pt (right after 'Name :' label)
+  nameYRatio: 0.1757,     // y = 74.5 pt
+  dateXRatio: 0.8264,     // x = 495 pt (right after 'Date :' label)
+  dateYRatio: 0.1450,     // y = 61.5 pt
 };
 
 // Aliases for backwards compatibility
@@ -204,9 +205,23 @@ export async function stampFstbPdf(options: StampFstbOptions): Promise<Buffer> {
         borderWidth: 1.2,
       });
 
-      targetPage.drawText('✓ VALIDASI DIGITAL', {
-        x: sigX + 4,
-        y: sigY + sigH - 10,
+      // Vector checkmark (WinAnsi safe)
+      targetPage.drawLine({
+        start: { x: sigX + 5, y: sigY + sigH - 7 },
+        end: { x: sigX + 7.5, y: sigY + sigH - 10 },
+        thickness: 1.2,
+        color: rgb(0.05, 0.55, 0.28),
+      });
+      targetPage.drawLine({
+        start: { x: sigX + 7.5, y: sigY + sigH - 10 },
+        end: { x: sigX + 11.5, y: sigY + sigH - 5 },
+        thickness: 1.2,
+        color: rgb(0.05, 0.55, 0.28),
+      });
+
+      targetPage.drawText('VALIDASI DIGITAL', {
+        x: sigX + 14,
+        y: sigY + sigH - 9,
         size: 6.5,
         font: fontBold,
         color: rgb(0.05, 0.55, 0.28),
@@ -214,7 +229,7 @@ export async function stampFstbPdf(options: StampFstbOptions): Promise<Buffer> {
 
       const displayName = (uploaderName || 'PETUGAS CPG').slice(0, 18).toUpperCase();
       targetPage.drawText(displayName, {
-        x: sigX + 4,
+        x: sigX + 5,
         y: sigY + sigH - 18,
         size: 6,
         font: fontBold,
@@ -223,8 +238,8 @@ export async function stampFstbPdf(options: StampFstbOptions): Promise<Buffer> {
 
       const tokenText = (verificationToken || `VAL-FSTB-${Date.now().toString(36).toUpperCase()}`).slice(0, 20);
       targetPage.drawText(tokenText, {
-        x: sigX + 4,
-        y: sigY + 5,
+        x: sigX + 5,
+        y: sigY + 4,
         size: 5,
         font: fontNorm,
         color: rgb(0.35, 0.45, 0.55),
@@ -239,19 +254,16 @@ export async function stampFstbPdf(options: StampFstbOptions): Promise<Buffer> {
     const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
     const fontNorm = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-    const isLandscape = pageWidth >= pageHeight;
-    const baseFontSize = isLandscape ? pageHeight * 0.020 : pageWidth * 0.020;
-    const fontSize = Math.max(7, Math.min(9.5, baseFontSize));
-
     if (uploaderName && uploaderName.trim()) {
       const cleanName = uploaderName.trim().toUpperCase();
       const nameX = nameXRatio * pageWidth;
       const nameY = nameYRatio * pageHeight;
+      const nameFontSize = cleanName.length > 20 ? 6.5 : cleanName.length > 15 ? 7 : 7.5;
 
       targetPage.drawText(cleanName, {
         x: nameX,
         y: nameY,
-        size: fontSize,
+        size: nameFontSize,
         font: fontBold,
         color: rgb(0, 0, 0),
       });
@@ -265,7 +277,7 @@ export async function stampFstbPdf(options: StampFstbOptions): Promise<Buffer> {
       targetPage.drawText(cleanDate, {
         x: dateX,
         y: dateY,
-        size: fontSize,
+        size: 7.5,
         font: fontNorm,
         color: rgb(0, 0, 0),
       });
