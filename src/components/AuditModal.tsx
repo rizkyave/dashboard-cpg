@@ -32,6 +32,7 @@ import {
 import { ProcurementItem, ArmadaItem, InventoryItem, KapalPosisiItem, PdfItemsCache } from '@/types/procurement';
 import StockAuditModal from './StockAuditModal';
 import TimemarkModal from './TimemarkModal';
+import FstbMediaModal from './FstbMediaModal';
 import OperationalUpdateModal from './OperationalUpdateModal';
 import { getOperationalOverride, OperationalOverride } from '@/utils/operationalProgressStorage';
 import { extractFstbLast5, openTimemarkWithFstb, parseTtbList } from '@/utils/timemark';
@@ -169,6 +170,7 @@ export default function AuditModal({
   const [isLoadingPdf, setIsLoadingPdf] = useState<boolean>(false);
   const [showStockModal, setShowStockModal] = useState<boolean>(false);
   const [showTimemarkModal, setShowTimemarkModal] = useState<boolean>(false);
+  const [showFstbModal, setShowFstbModal] = useState<boolean>(false);
   const [showOperationalModal, setShowOperationalModal] = useState<boolean>(false);
   const [operationalOverride, setOperationalOverride] = useState<OperationalOverride | null>(null);
   const [selectedTtbForPhoto, setSelectedTtbForPhoto] = useState<string | null>(null);
@@ -2492,12 +2494,14 @@ export default function AuditModal({
                   <div className="flex items-center justify-between min-w-0">
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">No. FSTB:</span>
                     {hasValue(effectiveNoFstb) && !isFieldBelum(effectiveNoFstb) ? (
-                      <span
-                        className="font-semibold text-foreground font-mono truncate text-right ml-1.5 min-w-0"
-                        title={effectiveNoFstb}
+                      <button
+                        type="button"
+                        onClick={() => setShowFstbModal(true)}
+                        className="font-semibold text-foreground hover:text-teal-600 dark:hover:text-teal-400 hover:underline font-mono truncate text-right ml-1.5 min-w-0 cursor-pointer"
+                        title={`Klik untuk Buka Dokumen FSTB: ${effectiveNoFstb}`}
                       >
                         {effectiveNoFstb}
-                      </span>
+                      </button>
                     ) : (
                       <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
                         Belum Terbit
@@ -2535,17 +2539,28 @@ export default function AuditModal({
                 </div>
               </div>
               <div className="pt-2 border-t border-border min-w-0">
-                {isFstbDone ? (
-                  <span className="inline-flex items-center justify-center gap-1 text-[10px] font-mono text-teal-700 dark:text-teal-400 bg-teal-500/10 px-2 py-1 rounded-md border border-teal-500/20 w-full truncate font-semibold min-w-0">
-                    <Check className="size-3 text-teal-600 dark:text-teal-400" />
-                    FSTB Diterbitkan
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center justify-center gap-1 text-[10px] font-mono text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-1 rounded-md border border-amber-500/20 w-full truncate font-medium min-w-0">
-                    <Clock className="size-3 text-amber-600 dark:text-amber-400" />
-                    Menunggu FSTB
-                  </span>
-                )}
+                <button
+                  type="button"
+                  onClick={() => setShowFstbModal(true)}
+                  className={`inline-flex items-center justify-center gap-1.5 text-[10px] font-mono px-2 py-1 rounded-md border w-full truncate font-semibold min-w-0 transition cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.98] group ${
+                    isFstbDone
+                      ? 'text-teal-700 dark:text-teal-300 bg-teal-500/10 hover:bg-teal-500/25 border-teal-500/30 hover:border-teal-500/50'
+                      : 'text-amber-700 dark:text-amber-300 bg-amber-500/10 hover:bg-amber-500/25 border-amber-500/30 hover:border-amber-500/50'
+                  }`}
+                  title={
+                    isFstbDone
+                      ? `Klik untuk Melihat Dokumen FSTB Resmi (${effectiveNoFstb || 'Lihat FSTB'}) yang Diunggah`
+                      : 'Klik untuk Mengecek Dokumen FSTB di Sistem Upload FSTB'
+                  }
+                >
+                  {isFstbDone ? (
+                    <Check className="size-3 text-teal-600 dark:text-teal-400 shrink-0" />
+                  ) : (
+                    <Clock className="size-3 text-amber-600 dark:text-amber-400 shrink-0" />
+                  )}
+                  <span className="truncate">{isFstbDone ? 'FSTB Diterbitkan' : 'Menunggu FSTB'}</span>
+                  <ExternalLink className="size-2.5 opacity-60 group-hover:opacity-100 shrink-0 ml-0.5" />
+                </button>
               </div>
             </div>
 
@@ -3731,6 +3746,22 @@ export default function AuditModal({
           picTtb={itemS1?.picTtb}
           picLap={itemS1?.picLap}
           picAdm={itemS1?.picAdm}
+          showToast={showToast}
+        />
+      )}
+
+      {/* Pop-up Box: Pratinjau Dokumen FSTB Resmi dari Cloudflare R2 */}
+      {showFstbModal && (
+        <FstbMediaModal
+          isOpen={showFstbModal}
+          onClose={() => setShowFstbModal(false)}
+          noFstb={effectiveNoFstb || activeFstb}
+          noPo={docPo || activePo || itemS1?.po}
+          noFpb={primaryDocNum}
+          armada={itemsS2[0]?.armada || itemS1?.deptArmada}
+          itemDesc={itemsS2[0]?.item || itemS1?.item}
+          picFstb={effectivePicFstb}
+          tglFstb={displayTglFstb}
           showToast={showToast}
         />
       )}
