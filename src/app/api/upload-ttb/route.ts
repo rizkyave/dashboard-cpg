@@ -4,20 +4,10 @@ import path from 'path';
 import { sanitizeTtbNumber, formatTtbFilename } from '@/utils/ttbRename';
 import { getPhotosDir } from '@/utils/ttbPhotosDir';
 import { UploadedTtbItem, UploadTtbResponse } from '@/types/ttbUpload';
-import { uploadToR2, isR2Configured, getR2FileUrl } from '@/utils/r2Client';
-import {
-  DEFAULT_DRIVE_FOLDER_ID,
-  DEFAULT_DRIVE_FOLDER_URL,
-  uploadToGoogleDriveAppsScript,
-  listGoogleDriveDatabaseItems,
-  GoogleDriveUploadPayloadFile,
-} from '@/utils/googleDriveAppsScript';
+import { uploadToR2, isR2Configured, getR2FileUrl, getR2Config } from '@/utils/r2Client';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-
-const GOOGLE_DRIVE_FOLDER_ID = process.env.GOOGLE_DRIVE_TTB_FOLDER_ID || DEFAULT_DRIVE_FOLDER_ID;
-const GOOGLE_DRIVE_FOLDER_URL = `https://drive.google.com/drive/folders/${GOOGLE_DRIVE_FOLDER_ID}`;
 
 const ALLOWED_EXT = /\.(jpe?g|png|webp|gif|pdf)$/i;
 const HISTORY_FILE_PATH = path.join(process.cwd(), 'src', 'data', 'ttb-uploads-history.json');
@@ -62,23 +52,14 @@ async function saveHistory(records: UploadedTtbItem[]) {
   }
 }
 
-// GET: Ambil riwayat berkas TTB yang pernah diunggah
-export async function GET(req: NextRequest) {
+// GET: Ambil riwayat berkas TTB yang pernah diunggah ke Cloudflare R2
+export async function GET() {
   try {
-    const urlParam = req.nextUrl.searchParams.get('scriptUrl') || '';
-    const headerUrl = req.headers.get('x-google-drive-script-url') || '';
-    const driveScriptUrl = urlParam || headerUrl || process.env.GOOGLE_DRIVE_SCRIPT_URL || '';
-
-    const folderIdParam = req.nextUrl.searchParams.get('folderId') || '';
-    const targetFolderId = folderIdParam || GOOGLE_DRIVE_FOLDER_ID;
-    const targetFolderUrl = `https://drive.google.com/drive/folders/${targetFolderId}`;
-
     const isR2Active = isR2Configured();
-
-    // 1. Ambil riwayat lokal/cache sebagai basis awal
+    const config = getR2Config();
     const localHistory = await getHistory();
 
-    // Pastikan URL file ter-resolve ke Cloudflare R2 jika key R2 tersedia
+    // Pastikan URL file ter-resolve ke Cloudflare R2
     const formattedHistory = localHistory.map((item) => {
       if (item.r2Key && isR2Active) {
         return {
@@ -89,59 +70,14 @@ export async function GET(req: NextRequest) {
       return item;
     });
 
-    // 2. Jika Google Apps Script Web App tersedia, baca langsung Database Spreadsheet Google Drive
-    if (driveScriptUrl) {
-      try {
-        const driveResult = await listGoogleDriveDatabaseItems(driveScriptUrl, targetFolderId);
-        if (driveResult.success && driveResult.items) {
-          const mergedMap = new Map<string, UploadedTtbItem>();
-
-          // Masukkan item dari Google Drive Spreadsheet terlebih dahulu
-          for (const item of driveResult.items) {
-            const key = (item.cleanNoTtb || item.noTtb) + '_' + item.renamedFileName;
-            mergedMap.set(key, item);
-          }
-
-          // Tambahkan item lokal yang belum tercatat di Drive
-          for (const item of formattedHistory) {
-            const key = (item.cleanNoTtb || item.noTtb) + '_' + item.renamedFileName;
-            if (!mergedMap.has(key)) {
-              mergedMap.set(key, item);
-            }
-          }
-
-          const mergedItems = Array.from(mergedMap.values()).sort(
-            (a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
-          );
-
-          return NextResponse.json({
-            success: true,
-            folderId: targetFolderId,
-            driveFolderUrl: targetFolderUrl,
-            spreadsheetUrl: driveResult.spreadsheetUrl || formattedHistory.find((s) => s.spreadsheetUrl)?.spreadsheetUrl,
-            isDriveDatabaseActive: true,
-            isR2StorageActive: isR2Active,
-            items: mergedItems,
-          });
-        }
-      } catch (driveErr) {
-        console.warn('Gagal membaca database Google Drive secara langsung, menggunakan cadangan lokal:', driveErr);
-      }
-    }
-
-    // 3. Fallback jika scriptUrl belum diatur atau offline
     const sorted = [...formattedHistory].sort(
       (a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
     );
 
-    const latestSpreadsheet = sorted.find((s) => s.spreadsheetUrl)?.spreadsheetUrl;
-
     return NextResponse.json({
       success: true,
-      folderId: targetFolderId,
-      driveFolderUrl: targetFolderUrl,
-      spreadsheetUrl: latestSpreadsheet,
-      isDriveDatabaseActive: !!driveScriptUrl,
+      storageProvider: isR2Active ? 'CLOUDFLARE_R2' : 'LOCAL',
+      bucketName: config.bucketName,
       isR2StorageActive: isR2Active,
       items: sorted,
     });
@@ -153,7 +89,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST: Unggah berkas baru, auto-rename, upload ke Cloudflare R2 & simpan ke Google Drive / Sheets
+// POST: Unggah berkas baru, auto-rename, dan simpan langsung ke Cloudflare Storage (R2)
 export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResponse>> {
   try {
     const formData = await req.formData();
@@ -162,22 +98,12 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
     const receivedDate = ((formData.get('receivedDate') as string) || '').trim();
     const keterangan = ((formData.get('keterangan') as string) || '').trim();
 
-    // Script URL & Folder ID dari form data, header, atau env
-    const scriptUrlParam = ((formData.get('driveScriptUrl') as string) || '').trim();
-    const headerScriptUrl = req.headers.get('x-google-drive-script-url') || '';
-    const driveScriptUrl = scriptUrlParam || headerScriptUrl || process.env.GOOGLE_DRIVE_SCRIPT_URL || '';
-
-    const folderIdParam = ((formData.get('folderId') as string) || '').trim();
-    const targetFolderId = folderIdParam || GOOGLE_DRIVE_FOLDER_ID;
-    const targetFolderUrl = `https://drive.google.com/drive/folders/${targetFolderId}`;
-
     if (!noTtbRaw) {
       return NextResponse.json(
         {
           success: false,
           message: 'Nomor TTB wajib diisi.',
-          driveFolderUrl: targetFolderUrl,
-          folderId: targetFolderId,
+          storageProvider: 'CLOUDFLARE_R2',
           uploadedFiles: [],
           error: 'Nomor TTB wajib diisi.',
         },
@@ -205,8 +131,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
         {
           success: false,
           message: 'Minimal pilih 1 file gambar atau dokumen scan PDF.',
-          driveFolderUrl: targetFolderUrl,
-          folderId: targetFolderId,
+          storageProvider: 'CLOUDFLARE_R2',
           uploadedFiles: [],
           error: 'Berkas tidak ditemukan.',
         },
@@ -222,8 +147,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
           {
             success: false,
             message: `Format file "${f.name}" tidak didukung. Harap unggah format JPG, PNG, WEBP, atau PDF.`,
-            driveFolderUrl: targetFolderUrl,
-            folderId: targetFolderId,
+            storageProvider: 'CLOUDFLARE_R2',
             uploadedFiles: [],
             error: 'Format file tidak didukung.',
           },
@@ -236,13 +160,14 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
     const targetPhotosDir = getPhotosDir();
     try {
       await fs.mkdir(targetPhotosDir, { recursive: true });
-    } catch (mkdirErr) {
-      console.warn('Lewati mkdir lokal:', mkdirErr);
+    } catch {
+      // Abaikan jika serverless readonly
     }
 
     const currentHistory = await getHistory();
     const newlyUploadedItems: UploadedTtbItem[] = [];
     const isR2Active = isR2Configured();
+    const r2Config = getR2Config();
 
     // Baca manifest galeri foto jika ada untuk auto-sinkron foto baru
     let photoManifest: Record<string, string> = {};
@@ -253,10 +178,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
       photoManifest = {};
     }
 
-    // Siapkan list payload untuk Google Apps Script
-    const appsScriptFilesPayload: GoogleDriveUploadPayloadFile[] = [];
-
-    // Loop proses upload ke Cloudflare R2 & storage lokal
+    // Loop proses upload ke Cloudflare R2 & fallback lokal
     for (let i = 0; i < files.length; i++) {
       const f = files[i];
       const renamedFileName = formatTtbFilename(cleanNoTtb, f.name, i, files.length);
@@ -264,13 +186,13 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
       const isPdf = renamedFileName.toLowerCase().endsWith('.pdf');
       const mimeType = getMimeType(renamedFileName, f.type);
 
-      // Tentukan folder di Cloudflare R2
+      // Tentukan lokasi prefix folder di Cloudflare R2
       const r2Key = isPdf ? `ttb-documents/${renamedFileName}` : `ttb-photos/${renamedFileName}`;
 
       let publicUrl = `/api/upload-ttb/file?name=${encodeURIComponent(renamedFileName)}`;
       let storageProvider: 'CLOUDFLARE_R2' | 'LOCAL' = 'LOCAL';
 
-      // 1. Upload ke Cloudflare R2 jika aktif
+      // 1. Upload ke Cloudflare R2
       if (isR2Active) {
         try {
           const r2Res = await uploadToR2({
@@ -287,7 +209,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
           publicUrl = r2Res.url;
           storageProvider = 'CLOUDFLARE_R2';
 
-          // Jika berupa gambar, daftarkan juga ke manifest galeri foto TTB
+          // Jika berupa gambar, daftarkan juga ke manifest galeri foto TTB agar langsung muncul
           if (!isPdf) {
             photoManifest[renamedFileName] = publicUrl;
           }
@@ -300,17 +222,9 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
       try {
         const localFilePath = path.join(targetPhotosDir, renamedFileName);
         await fs.writeFile(localFilePath, buffer);
-      } catch (writeErr) {
-        console.warn('Lewati penyimpanan disk lokal (serverless):', writeErr);
+      } catch {
+        // Non-fatal di serverless
       }
-
-      // Siapkan payload base64 untuk Google Drive
-      appsScriptFilesPayload.push({
-        fileName: renamedFileName,
-        originalFileName: f.name,
-        mimeType,
-        base64: buffer.toString('base64'),
-      });
 
       const record: UploadedTtbItem = {
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -327,65 +241,14 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
         r2Key: isR2Active ? r2Key : undefined,
         r2Url: isR2Active ? publicUrl : undefined,
         storageProvider,
-        driveFolderUrl: targetFolderUrl,
         uploadedAt: new Date().toISOString(),
-        status: 'SYNCED_TO_DRIVE',
+        status: 'STORED_IN_CLOUDFLARE_R2',
       };
 
       newlyUploadedItems.push(record);
     }
 
-    // 3. Kirim ke Database Google Drive (via Google Apps Script Web App jika URL tersedia)
-    let isDriveDatabaseActive = false;
-    let driveSpreadsheetUrl: string | undefined = undefined;
-
-    if (driveScriptUrl) {
-      try {
-        const driveResponse = await uploadToGoogleDriveAppsScript(
-          driveScriptUrl,
-          {
-            action: 'upload',
-            folderId: targetFolderId,
-            metadata: {
-              noTtb: noTtbRaw,
-              cleanNoTtb,
-              armada: armada || '-',
-              receivedDate: receivedDate || new Date().toISOString().slice(0, 10),
-              keterangan,
-            },
-            files: appsScriptFilesPayload,
-          },
-          45000
-        );
-
-        if (driveResponse.success && driveResponse.files) {
-          isDriveDatabaseActive = true;
-          driveSpreadsheetUrl = driveResponse.spreadsheetUrl;
-
-          for (const item of newlyUploadedItems) {
-            const matchedDriveFile = driveResponse.files.find(
-              (df) => df.fileName === item.renamedFileName
-            );
-
-            if (matchedDriveFile) {
-              item.driveFileId = matchedDriveFile.fileId;
-              item.driveViewUrl = matchedDriveFile.webViewLink;
-              item.driveDownloadUrl = matchedDriveFile.downloadUrl;
-              // Jika R2 aktif, simpan fileUrl dari R2; namun jika R2 belum ada, gunakan webViewLink Drive
-              if (!isR2Active) {
-                item.fileUrl = matchedDriveFile.webViewLink;
-              }
-              item.spreadsheetUrl = driveResponse.spreadsheetUrl;
-              item.status = 'SAVED_TO_DRIVE_DATABASE';
-            }
-          }
-        }
-      } catch (driveErr) {
-        console.warn('Gagal sinkron ke Google Apps Script:', driveErr);
-      }
-    }
-
-    // Masukkan ke riwayat
+    // Masukkan ke riwayat paling atas
     for (const item of newlyUploadedItems) {
       currentHistory.unshift(item);
     }
@@ -402,18 +265,13 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
     }
 
     const renamedSummary = newlyUploadedItems.map((item) => item.renamedFileName).join(', ');
-    const destinationText = isR2Active ? 'Cloudflare R2' : 'Penyimpanan Lokal';
-    const successMsg = isDriveDatabaseActive
-      ? `Berhasil mengunggah ${newlyUploadedItems.length} berkas ke ${destinationText} & Google Drive Database (${renamedSummary}).`
-      : `File berhasil diunggah ke ${destinationText}: ${renamedSummary}`;
+    const destinationText = isR2Active ? `Cloudflare Storage (${r2Config.bucketName})` : 'Penyimpanan Lokal';
 
     return NextResponse.json({
       success: true,
-      message: successMsg,
-      driveFolderUrl: targetFolderUrl,
-      folderId: targetFolderId,
-      spreadsheetUrl: driveSpreadsheetUrl,
-      isDriveDatabaseActive,
+      message: `Berhasil mengunggah ${newlyUploadedItems.length} berkas ke ${destinationText}: ${renamedSummary}`,
+      storageProvider: isR2Active ? 'CLOUDFLARE_R2' : 'LOCAL',
+      bucketName: r2Config.bucketName,
       isR2StorageActive: isR2Active,
       uploadedFiles: newlyUploadedItems,
     });
@@ -423,8 +281,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
       {
         success: false,
         message: `Gagal mengunggah berkas: ${(error as Error).message}`,
-        driveFolderUrl: GOOGLE_DRIVE_FOLDER_URL,
-        folderId: GOOGLE_DRIVE_FOLDER_ID,
+        storageProvider: 'CLOUDFLARE_R2',
         uploadedFiles: [],
         error: (error as Error).message,
       },

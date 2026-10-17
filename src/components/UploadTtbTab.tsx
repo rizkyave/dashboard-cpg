@@ -22,51 +22,14 @@ import {
   Layers,
   ArrowRight,
   ShieldCheck,
-  HardDrive,
-  FileCheck,
-  Pencil,
-  Link2,
   Database,
-  FileSpreadsheet,
-  Code2,
+  FileCheck,
   Sparkles,
 } from 'lucide-react';
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
 import { SisaLayananItem } from '@/types/sisaLayanan';
 import { UploadedTtbItem, UploadTtbResponse } from '@/types/ttbUpload';
 import { sanitizeTtbNumber, formatTtbFilename, formatFileSize } from '@/utils/ttbRename';
-import { GOOGLE_APPS_SCRIPT_TEMPLATE } from '@/utils/googleDriveAppsScript';
-
-const DEFAULT_DRIVE_FOLDER_ID = '1Hd6FsgWiALq1jJyRvh8auY0FJGE9h5tf';
-const DEFAULT_DRIVE_FOLDER_URL = `https://drive.google.com/drive/folders/${DEFAULT_DRIVE_FOLDER_ID}`;
-
-/**
- * Ekstraksi ID Folder Google Drive secara utuh dan aman
- * Menghindari pemotongan karakter atau query parameter tambahan.
- */
-export function extractDriveFolderId(inputUrlOrId: string): string {
-  const trimmed = (inputUrlOrId || '').trim();
-  if (!trimmed) return DEFAULT_DRIVE_FOLDER_ID;
-
-  // 1. Jika pengguna langsung memasukkan string ID utuh (base64url 20-50 karakter)
-  if (/^[a-zA-Z0-9_-]{20,50}$/.test(trimmed)) {
-    return trimmed;
-  }
-
-  // 2. Ekstraksi dari path /folders/<ID>
-  const matchFolders = trimmed.match(/\/folders\/([a-zA-Z0-9_-]+)/);
-  if (matchFolders && matchFolders[1]) {
-    return matchFolders[1];
-  }
-
-  // 3. Ekstraksi dari parameter ?id=<ID> atau &id=<ID>
-  const matchQuery = trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-  if (matchQuery && matchQuery[1]) {
-    return matchQuery[1];
-  }
-
-  return DEFAULT_DRIVE_FOLDER_ID;
-}
 
 interface UploadTtbTabProps {
   procurementItems?: ProcurementItem[];
@@ -103,8 +66,6 @@ export default function UploadTtbTab({
     return new Date().toISOString().slice(0, 10);
   });
   const [keteranganInput, setKeteranganInput] = useState<string>('');
-
-  // Dropzone & Queued Files
   const [queuedFiles, setQueuedFiles] = useState<QueuedFile[]>([]);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -115,149 +76,55 @@ export default function UploadTtbTab({
   const [uploadErrorMessage, setUploadErrorMessage] = useState<string | null>(null);
   const [copiedFilename, setCopiedFilename] = useState<string | null>(null);
 
-  // Configurable Google Drive Folder URL
-  const [driveFolderUrl, setDriveFolderUrl] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('cpg_drive_ttb_url');
-      // Auto-migrate jika ada cache ID lama yang salah (WiAlQ) atau rusak
-      if (stored && (stored.includes('1Hd6FsgWiAlQ1jJyRvh8auY0FJGE9h5tf') || stored.includes('WiAlQ'))) {
-        localStorage.setItem('cpg_drive_ttb_url', DEFAULT_DRIVE_FOLDER_URL);
-        return DEFAULT_DRIVE_FOLDER_URL;
-      }
-      return stored || DEFAULT_DRIVE_FOLDER_URL;
-    }
-    return DEFAULT_DRIVE_FOLDER_URL;
-  });
-  const [isEditingDriveUrl, setIsEditingDriveUrl] = useState<boolean>(false);
-  const [tempDriveUrl, setTempDriveUrl] = useState<string>(DEFAULT_DRIVE_FOLDER_URL);
-
-  // Google Drive Database & Apps Script Integration
-  const [driveScriptUrl, setDriveScriptUrl] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('cpg_drive_script_url') || '';
-    }
-    return '';
-  });
-  const [tempScriptUrl, setTempScriptUrl] = useState<string>('');
-  const [spreadsheetUrl, setSpreadsheetUrl] = useState<string | null>(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('cpg_drive_spreadsheet_url') || null;
-    }
-    return null;
-  });
-  const [isDriveDatabaseModalOpen, setIsDriveDatabaseModalOpen] = useState<boolean>(false);
-  const [modalActiveTab, setModalActiveTab] = useState<'config' | 'guide'>('config');
-  const [isTestingDriveConnection, setIsTestingDriveConnection] = useState<boolean>(false);
-  const [testConnectionResult, setTestConnectionResult] = useState<{
+  // Cloudflare R2 Storage Connection Test State
+  const [isTestingStorage, setIsTestingStorage] = useState<boolean>(false);
+  const [storageTestResult, setStorageTestResult] = useState<{
     success: boolean;
     message: string;
     latencyMs?: number;
-    spreadsheetUrl?: string;
+    bucket?: string;
   } | null>(null);
-  const [isCopiedScript, setIsCopiedScript] = useState<boolean>(false);
 
-  const activeFolderId = useMemo(() => {
-    return extractDriveFolderId(driveFolderUrl);
-  }, [driveFolderUrl]);
+  // Autocomplete state
+  const [isAutocompleteOpen, setIsAutocompleteOpen] = useState<boolean>(false);
+  const autocompleteRef = useRef<HTMLDivElement | null>(null);
 
-  const handleSaveDriveUrl = () => {
-    const clean = tempDriveUrl.trim();
-    if (clean) {
-      const extractedId = extractDriveFolderId(clean);
-      const fullUrl = clean.startsWith('http')
-        ? clean
-        : `https://drive.google.com/drive/folders/${extractedId}`;
+  // Upload History
+  const [historyItems, setHistoryItems] = useState<UploadedTtbItem[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState<boolean>(true);
+  const [historySearch, setHistorySearch] = useState<string>('');
 
-      setDriveFolderUrl(fullUrl);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('cpg_drive_ttb_url', fullUrl);
-      }
-      showToast?.(`URL Folder Google Drive disimpan! ID: ${extractedId}`, 'success');
-    }
-    setIsEditingDriveUrl(false);
-  };
-
-  // Uji koneksi Web App Google Apps Script
-  const handleTestDriveConnection = async () => {
-    const urlToTest = (tempScriptUrl || driveScriptUrl).trim();
-    if (!urlToTest) {
-      showToast?.('Masukkan URL Web App Google Apps Script terlebih dahulu.', 'warning');
-      return;
-    }
-
-    setIsTestingDriveConnection(true);
-    setTestConnectionResult(null);
-
+  // Uji koneksi ke Cloudflare R2 Storage
+  const handleTestStorageConnection = async () => {
+    setIsTestingStorage(true);
     try {
-      const res = await fetch('/api/upload-ttb/test-connection', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          scriptUrl: urlToTest,
-          folderId: activeFolderId,
-        }),
-      });
-
+      const res = await fetch('/api/upload-ttb/test-connection');
       const data = await res.json();
       if (res.ok && data.success) {
-        setTestConnectionResult({
+        setStorageTestResult({
           success: true,
-          message: data.message || 'Koneksi ke Google Drive & Database Spreadsheet aktif!',
+          message: data.message,
           latencyMs: data.latencyMs,
-          spreadsheetUrl: data.spreadsheetUrl,
+          bucket: data.bucket,
         });
-        if (data.spreadsheetUrl) {
-          setSpreadsheetUrl(data.spreadsheetUrl);
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('cpg_drive_spreadsheet_url', data.spreadsheetUrl);
-          }
-        }
-        showToast?.(`Koneksi Database Google Drive Berhasil! (${data.latencyMs}ms)`, 'success');
+        showToast?.(`Cloudflare Storage (${data.bucket || 'R2'}) terhubung! (${data.latencyMs}ms)`, 'success');
       } else {
-        setTestConnectionResult({
+        setStorageTestResult({
           success: false,
-          message: data.error || 'Gagal tersambung ke Google Apps Script.',
-          latencyMs: data.latencyMs,
+          message: data.error || 'Gagal terhubung ke Cloudflare R2.',
         });
-        showToast?.(data.error || 'Gagal tersambung ke Google Apps Script.', 'error');
+        showToast?.(data.error || 'Gagal terhubung ke Cloudflare R2.', 'error');
       }
     } catch (err) {
       const msg = (err as Error).message || 'Gagal menguji koneksi.';
-      setTestConnectionResult({
+      setStorageTestResult({
         success: false,
         message: msg,
       });
       showToast?.(msg, 'error');
     } finally {
-      setIsTestingDriveConnection(false);
+      setIsTestingStorage(false);
     }
-  };
-
-  // Simpan konfigurasi Script Google Drive
-  const handleSaveDriveDatabaseConfig = () => {
-    const clean = tempScriptUrl.trim();
-    setDriveScriptUrl(clean);
-    if (typeof window !== 'undefined') {
-      if (clean) {
-        localStorage.setItem('cpg_drive_script_url', clean);
-        showToast?.('Pengaturan Database Google Drive berhasil disimpan! Memuat data...', 'success');
-      } else {
-        localStorage.removeItem('cpg_drive_script_url');
-        showToast?.('Integrasi Database Google Drive dinonaktifkan (mode lokal).', 'info');
-      }
-    }
-    setIsDriveDatabaseModalOpen(false);
-    setTimeout(() => {
-      fetchUploadHistory();
-    }, 150);
-  };
-
-  // Salin Kode Google Apps Script
-  const handleCopyScriptCode = () => {
-    navigator.clipboard.writeText(GOOGLE_APPS_SCRIPT_TEMPLATE);
-    setIsCopiedScript(true);
-    showToast?.('Kode Google Apps Script disalin ke clipboard!', 'success');
-    setTimeout(() => setIsCopiedScript(false), 3000);
   };
 
   const handleDownloadQueuedFile = (qf: QueuedFile, renamedName: string) => {
@@ -271,15 +138,6 @@ export default function UploadTtbTab({
     URL.revokeObjectURL(url);
     showToast?.(`Mengunduh berkas: ${renamedName}`, 'info');
   };
-
-  // Autocomplete state
-  const [isAutocompleteOpen, setIsAutocompleteOpen] = useState<boolean>(false);
-  const autocompleteRef = useRef<HTMLDivElement | null>(null);
-
-  // Upload History
-  const [historyItems, setHistoryItems] = useState<UploadedTtbItem[]>([]);
-  const [isLoadingHistory, setIsLoadingHistory] = useState<boolean>(true);
-  const [historySearch, setHistorySearch] = useState<string>('');
 
   // Buat database saran nomor TTB dari seluruh dataset yang ada
   const ttbSuggestions = useMemo<TtbSuggestion[]>(() => {
@@ -353,37 +211,15 @@ export default function UploadTtbTab({
       .slice(0, 8);
   }, [noTtbInput, ttbSuggestions]);
 
-  // Fetch riwayat upload dari API (membaca langsung database Google Drive / Sheets di Vercel)
+  // Fetch riwayat upload dari Cloudflare R2
   const fetchUploadHistory = async () => {
     setIsLoadingHistory(true);
     try {
-      const activeScriptUrl =
-        driveScriptUrl ||
-        (typeof window !== 'undefined' ? localStorage.getItem('cpg_drive_script_url') || '' : '');
-
-      const params = new URLSearchParams();
-      if (activeScriptUrl) {
-        params.set('scriptUrl', activeScriptUrl);
-      }
-      if (activeFolderId) {
-        params.set('folderId', activeFolderId);
-      }
-
-      const queryString = params.toString() ? `?${params.toString()}` : '';
-      const res = await fetch(`/api/upload-ttb${queryString}`, {
-        headers: activeScriptUrl ? { 'x-google-drive-script-url': activeScriptUrl } : {},
-      });
-
+      const res = await fetch('/api/upload-ttb');
       if (res.ok) {
         const data = await res.json();
         if (data.items) {
           setHistoryItems(data.items);
-        }
-        if (data.spreadsheetUrl) {
-          setSpreadsheetUrl(data.spreadsheetUrl);
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('cpg_drive_spreadsheet_url', data.spreadsheetUrl);
-          }
         }
       }
     } catch (err) {
@@ -428,11 +264,13 @@ export default function UploadTtbTab({
       const isPdf = /\.pdf$/i.test(ext);
 
       if (!isImage && !isPdf) {
-        showToast?.(`Berkas "${file.name}" dilewati karena bukan gambar atau PDF.`, 'warning');
+        showToast?.(
+          `Format file "${file.name}" tidak didukung. Harap unggah foto JPG/PNG atau scan PDF.`,
+          'warning'
+        );
         continue;
       }
 
-      // Preview URL
       const previewUrl = isImage ? URL.createObjectURL(file) : '';
       validFiles.push({
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -445,68 +283,67 @@ export default function UploadTtbTab({
 
     if (validFiles.length > 0) {
       setQueuedFiles((prev) => [...prev, ...validFiles]);
-      setUploadSuccessResult(null);
+      showToast?.(`Menambahkan ${validFiles.length} berkas ke antrean.`, 'info');
     }
   };
 
-  // Remove single file
   const handleRemoveFile = (id: string) => {
     setQueuedFiles((prev) => {
-      const item = prev.find((f) => f.id === id);
-      if (item && item.previewUrl) {
-        URL.revokeObjectURL(item.previewUrl);
+      const target = prev.find((f) => f.id === id);
+      if (target?.previewUrl) {
+        URL.revokeObjectURL(target.previewUrl);
       }
       return prev.filter((f) => f.id !== id);
     });
   };
 
-  // Clear all queued files
   const handleClearAllFiles = () => {
     queuedFiles.forEach((f) => {
       if (f.previewUrl) URL.revokeObjectURL(f.previewUrl);
     });
     setQueuedFiles([]);
-    setUploadSuccessResult(null);
   };
 
   // Drag & drop handlers
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
+    e.stopPropagation();
     setIsDragging(true);
   };
 
-  const handleDragLeave = (e: React.DragEvent) => {
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
+    e.stopPropagation();
     setIsDragging(false);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
+    e.stopPropagation();
     setIsDragging(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       addFilesToQueue(e.dataTransfer.files);
     }
   };
 
-  // Copy to clipboard helper
   const handleCopyText = (text: string) => {
     navigator.clipboard.writeText(text);
     setCopiedFilename(text);
-    showToast?.(`Disalin: ${text}`, 'info');
+    showToast?.(`Teks disalin: ${text}`, 'info');
     setTimeout(() => setCopiedFilename(null), 2500);
   };
 
-  // Submit Upload
+  // Submit Upload ke Cloudflare R2
   const handleSubmitUpload = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!noTtbInput.trim()) {
-      showToast?.('Nomor TTB wajib diisi sebelum mengunggah berkas!', 'error');
+      showToast?.('Nomor TTB wajib diisi.', 'warning');
       return;
     }
 
     if (queuedFiles.length === 0) {
-      showToast?.('Pilih atau tarik minimal 1 berkas foto/dokumen TTB.', 'warning');
+      showToast?.('Silakan pilih minimal 1 berkas foto atau dokumen PDF.', 'warning');
       return;
     }
 
@@ -520,10 +357,6 @@ export default function UploadTtbTab({
       formData.append('armada', armadaInput.trim());
       formData.append('receivedDate', receivedDate);
       formData.append('keterangan', keteranganInput.trim());
-      if (driveScriptUrl.trim()) {
-        formData.append('driveScriptUrl', driveScriptUrl.trim());
-      }
-      formData.append('folderId', activeFolderId);
 
       queuedFiles.forEach((qf) => {
         formData.append('files', qf.file);
@@ -538,22 +371,16 @@ export default function UploadTtbTab({
       try {
         data = await res.json();
       } catch {
-        throw new Error('Gagal terhubung ke Google Drive, periksa izin akses atau URL folder.');
+        throw new Error('Gagal terhubung ke server penyimpanan Cloudflare.');
       }
 
       if (!res.ok || !data.success) {
-        throw new Error(data.message || data.error || 'Gagal terhubung ke Google Drive, periksa izin akses atau URL folder.');
+        throw new Error(data.message || data.error || 'Gagal mengunggah berkas.');
       }
 
       // Success
       setUploadSuccessResult(data);
       setUploadErrorMessage(null);
-      if (data.spreadsheetUrl) {
-        setSpreadsheetUrl(data.spreadsheetUrl);
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('cpg_drive_spreadsheet_url', data.spreadsheetUrl);
-        }
-      }
       showToast?.(data.message, 'success');
 
       // Perbarui riwayat
@@ -576,255 +403,125 @@ export default function UploadTtbTab({
         // Non-fatal
       }
     } catch (err) {
-      const msg = (err as Error).message || 'Gagal terhubung ke Google Drive, periksa izin akses atau URL folder.';
-      const formattedError = msg.includes('Google Drive')
-        ? msg
-        : `Gagal terhubung ke Google Drive, periksa izin akses atau URL folder: ${msg}`;
-      setUploadErrorMessage(formattedError);
-      showToast?.(formattedError, 'error');
+      const msg = (err as Error).message || 'Gagal mengunggah berkas ke Cloudflare Storage.';
+      setUploadErrorMessage(msg);
+      showToast?.(msg, 'error');
     } finally {
       setIsUploading(false);
     }
   };
 
-  // Filter history items by search
+  // Filter history search
   const filteredHistory = useMemo(() => {
     const q = historySearch.trim().toLowerCase();
     if (!q) return historyItems;
-    return historyItems.filter(
-      (h) =>
-        h.noTtb.toLowerCase().includes(q) ||
-        h.armada.toLowerCase().includes(q) ||
-        h.renamedFileName.toLowerCase().includes(q) ||
-        (h.keterangan && h.keterangan.toLowerCase().includes(q))
-    );
+    return historyItems.filter((item) => {
+      return (
+        item.noTtb.toLowerCase().includes(q) ||
+        item.armada.toLowerCase().includes(q) ||
+        item.renamedFileName.toLowerCase().includes(q) ||
+        item.originalFileName.toLowerCase().includes(q) ||
+        (item.keterangan && item.keterangan.toLowerCase().includes(q))
+      );
+    });
   }, [historyItems, historySearch]);
 
-  const cleanCurrentNoTtb = sanitizeTtbNumber(noTtbInput);
-
   return (
-    <div className="space-y-6 animate-in fade-in-50 duration-200">
-      {/* 1. Header Banner & Quick Action Google Drive */}
+    <div className="space-y-6 animate-in fade-in-50 duration-300">
+      {/* 1. Header Banner */}
       <div className="bg-card border border-border rounded-2xl p-5 md:p-6 shadow-xs relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500/5 rounded-full blur-3xl -z-10 pointer-events-none" />
 
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative z-10">
-          <div className="space-y-1.5 max-w-2xl">
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <span className="p-2 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20 shrink-0">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="space-y-1.5 max-w-3xl">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="p-1.5 rounded-lg bg-teal-500/10 text-teal-600 dark:text-teal-400">
                 <UploadCloud className="size-5" />
               </span>
-              <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">
-                Upload Dokumen TTB ke Google Drive
+              <h1 className="text-lg md:text-xl font-bold text-foreground">
+                Upload &amp; Arsip Dokumen TTB
               </h1>
+              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20 flex items-center gap-1.5">
+                <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+                Cloudflare Storage (R2)
+              </span>
               <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20">
                 Auto-Rename Engine
               </span>
               <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium bg-muted text-muted-foreground border border-border">
-                Folder: {activeFolderId}
+                Bucket: cpg-storage
               </span>
-              {driveScriptUrl ? (
-                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
-                  <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-                  Database Drive &amp; Sheets Terhubung
-                </span>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setTempScriptUrl(driveScriptUrl);
-                    setIsDriveDatabaseModalOpen(true);
-                  }}
-                  className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 flex items-center gap-1.5 cursor-pointer transition"
-                  title="Klik untuk konfigurasi dan menghubungkan database Google Drive"
-                >
-                  <Database className="size-3 text-amber-500" />
-                  Hubungkan Database Drive
-                </button>
-              )}
             </div>
             <p className="text-xs md:text-sm text-muted-foreground leading-relaxed">
-              Unggah berkas bukti tanda terima barang (TTB) fisik atau scan dokumen lapangan. 
+              Unggah berkas bukti tanda terima barang (TTB) fisik atau scan dokumen lapangan (PDF / Foto). 
               Sistem secara otomatis akan mengganti nama file ke format resmi{' '}
               <code className="text-teal-600 dark:text-teal-400 font-mono font-semibold bg-teal-500/10 px-1 py-0.5 rounded">
                 [NO_TTB].[ekstensi]
               </code>{' '}
-              sebelum diarsipkan ke Google Drive &amp; dicatat dalam Database Spreadsheet logistik operasional CPG.
+              dan menyimpannya langsung ke database <strong>Cloudflare Storage (R2)</strong> secara terenkripsi dan permanen.
             </p>
           </div>
 
-          {/* Tombol Akses Cepat Google Drive Folder & Konfigurasi URL */}
+          {/* Tombol Akses Cepat Cloudflare Storage */}
           <div className="flex items-center gap-2 shrink-0 flex-wrap">
-            {/* Tombol Database Spreadsheet jika tersedia */}
-            {spreadsheetUrl && (
-              <a
-                href={spreadsheetUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs md:text-sm font-semibold transition shadow-sm cursor-pointer"
-                title="Buka Database Spreadsheet TTB di Google Sheets"
-              >
-                <FileSpreadsheet className="size-4 shrink-0" />
-                <span>Spreadsheet Database</span>
-                <ExternalLink className="size-3.5 opacity-70 shrink-0" />
-              </a>
-            )}
-
-            {/* Tombol Buka Folder Google Drive */}
-            <a
-              href={driveFolderUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 active:scale-95 text-white text-xs md:text-sm font-semibold transition shadow-sm cursor-pointer"
-              title="Buka Folder Google Drive Penyimpanan Berkas TTB"
-            >
-              <FolderUp className="size-4 shrink-0" />
-              <span>Buka Folder Google Drive</span>
-              <ExternalLink className="size-3.5 opacity-70 shrink-0" />
-            </a>
-
-            {/* Tombol Konfigurasi Database Google Drive */}
             <button
               type="button"
-              onClick={() => {
-                setTempScriptUrl(driveScriptUrl);
-                setTestConnectionResult(null);
-                setIsDriveDatabaseModalOpen(true);
-              }}
-              className={`inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl border text-xs md:text-sm font-semibold transition cursor-pointer active:scale-95 ${
-                driveScriptUrl
-                  ? 'border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
-                  : 'border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300'
-              }`}
-              title="Kelola Koneksi Database Google Drive & Google Sheets"
+              onClick={handleTestStorageConnection}
+              disabled={isTestingStorage}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-orange-500/30 bg-orange-500/10 hover:bg-orange-500/20 active:scale-95 text-orange-700 dark:text-orange-300 text-xs md:text-sm font-semibold transition shadow-xs cursor-pointer"
+              title="Uji Koneksi Langsung ke Cloudflare R2"
             >
-              <Database className="size-3.5 shrink-0" />
-              <span>Database Google Drive</span>
-              {driveScriptUrl ? (
-                <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-              ) : (
-                <span className="size-2 rounded-full bg-amber-500" />
-              )}
+              <Database className={`size-4 shrink-0 ${isTestingStorage ? 'animate-spin' : ''}`} />
+              <span>{isTestingStorage ? 'Menguji Koneksi...' : 'Uji Koneksi Storage'}</span>
+              <span className="size-2 rounded-full bg-emerald-500" />
             </button>
 
-            {/* Tombol Cadangan: Buka Folder TTB Manual */}
-            <a
-              href={DEFAULT_DRIVE_FOLDER_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-teal-500/30 bg-teal-500/10 hover:bg-teal-500/20 active:scale-95 text-teal-700 dark:text-teal-300 text-xs md:text-sm font-semibold transition cursor-pointer"
-              title="Buka Folder TTB Manual (Tautan Resmi Terverifikasi)"
-            >
-              <FolderUp className="size-3.5 shrink-0 text-teal-600 dark:text-teal-400" />
-              <span>Folder Manual</span>
-              <ExternalLink className="size-3 opacity-70 shrink-0" />
-            </a>
-
             <button
               type="button"
-              onClick={() => {
-                setTempDriveUrl(driveFolderUrl);
-                setIsEditingDriveUrl((prev) => !prev);
-              }}
+              onClick={fetchUploadHistory}
               className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground text-xs font-medium transition cursor-pointer"
-              title="Ubah tautan URL Google Drive (jika URL berbeda)"
+              title="Segarkan Riwayat"
             >
-              <Pencil className="size-3.5" />
-              <span>Ubah URL</span>
+              <RefreshCw className={`size-3.5 ${isLoadingHistory ? 'animate-spin' : ''}`} />
+              <span>Refresh</span>
             </button>
           </div>
         </div>
 
-        {/* Form Pengeditan URL Google Drive */}
-        {isEditingDriveUrl && (
-          <div className="mt-4 p-4 rounded-xl bg-muted/70 border border-teal-500/30 animate-in fade-in-50 duration-200">
-            <div className="flex items-start justify-between gap-2 mb-2">
-              <div className="space-y-0.5">
-                <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                  <Link2 className="size-3.5 text-teal-600" />
-                  <span>Kustomisasi URL Folder Google Drive</span>
+        {/* Status Koneksi Storage Real-time jika diuji */}
+        {storageTestResult && (
+          <div className={`mt-3 p-3 rounded-xl border text-xs flex items-center justify-between gap-2 animate-in fade-in-50 duration-200 ${
+            storageTestResult.success
+              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-200'
+              : 'bg-rose-500/10 border-rose-500/30 text-rose-800 dark:text-rose-200'
+          }`}>
+            <div className="flex items-center gap-2">
+              {storageTestResult.success ? (
+                <CheckCircle2 className="size-4 text-emerald-600 shrink-0" />
+              ) : (
+                <AlertCircle className="size-4 text-rose-600 shrink-0" />
+              )}
+              <span>{storageTestResult.message}</span>
+              {storageTestResult.latencyMs !== undefined && (
+                <span className="font-mono text-[11px] opacity-75">
+                  ({storageTestResult.latencyMs} ms)
                 </span>
-                <p className="text-[11px] text-muted-foreground">
-                  Jika tab Google Drive sudah terbuka di browser Anda (seperti tab &ldquo;TTB Upload&rdquo;), salin URL dari address bar tab tersebut dan tempel di bawah ini:
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsEditingDriveUrl(false)}
-                className="p-1 rounded text-muted-foreground hover:text-foreground"
-              >
-                <X className="size-3.5" />
-              </button>
+              )}
             </div>
-
-            <div className="flex flex-col sm:flex-row gap-2 items-center">
-              <input
-                type="text"
-                value={tempDriveUrl}
-                onChange={(e) => setTempDriveUrl(e.target.value)}
-                placeholder="https://drive.google.com/drive/folders/..."
-                className="w-full h-9 px-3 text-xs rounded-lg bg-background border border-border focus:outline-none focus:ring-1 focus:ring-teal-500 font-mono text-foreground"
-              />
-              <div className="flex items-center gap-1.5 self-end sm:self-auto shrink-0">
-                <button
-                  type="button"
-                  onClick={handleSaveDriveUrl}
-                  className="px-3.5 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold transition cursor-pointer"
-                >
-                  Simpan URL
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setTempDriveUrl(DEFAULT_DRIVE_FOLDER_URL);
-                    setDriveFolderUrl(DEFAULT_DRIVE_FOLDER_URL);
-                    if (typeof window !== 'undefined') {
-                      localStorage.removeItem('cpg_drive_ttb_url');
-                    }
-                    showToast?.('URL direset ke default!', 'info');
-                    setIsEditingDriveUrl(false);
-                  }}
-                  className="px-2.5 py-2 rounded-lg border border-border hover:bg-muted text-xs text-muted-foreground transition cursor-pointer"
-                >
-                  Reset Default
-                </button>
-              </div>
-            </div>
+            <button
+              type="button"
+              onClick={() => setStorageTestResult(null)}
+              className="p-1 text-muted-foreground hover:text-foreground"
+            >
+              <X className="size-3.5" />
+            </button>
           </div>
         )}
-
-        {/* Workflow Steps Indicator */}
-        <div className="mt-5 pt-4 border-t border-border grid grid-cols-2 md:grid-cols-4 gap-3 text-xs text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <span className="size-5 rounded-full bg-teal-500/15 text-teal-600 dark:text-teal-400 flex items-center justify-center font-bold text-[10px] shrink-0">
-              1
-            </span>
-            <span className="truncate">Input Nomor TTB</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="size-5 rounded-full bg-teal-500/15 text-teal-600 dark:text-teal-400 flex items-center justify-center font-bold text-[10px] shrink-0">
-              2
-            </span>
-            <span className="truncate">Auto-Fill Unit Armada</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="size-5 rounded-full bg-teal-500/15 text-teal-600 dark:text-teal-400 flex items-center justify-center font-bold text-[10px] shrink-0">
-              3
-            </span>
-            <span className="truncate">Preview Auto-Rename</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="size-5 rounded-full bg-teal-500/15 text-teal-600 dark:text-teal-400 flex items-center justify-center font-bold text-[10px] shrink-0">
-              4
-            </span>
-            <span className="truncate">Tersimpan &amp; Sinkron</span>
-          </div>
-        </div>
       </div>
 
-      {/* 2. Error Fallback Banner (Jika Upload / Folder Gagal atau Tidak Ditemukan) */}
+      {/* 2. Error Banner */}
       {uploadErrorMessage && (
-        <div className="bg-rose-500/10 border border-rose-500/30 rounded-2xl p-4 md:p-5 text-rose-800 dark:text-rose-200 animate-in slide-in-from-top-3 duration-200">
+        <div className="bg-rose-500/10 border border-rose-500/30 rounded-2xl p-4 md:p-5 animate-in slide-in-from-top-2 duration-200">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
             <div className="flex items-start gap-3">
               <span className="p-2 rounded-xl bg-rose-500/20 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5">
@@ -832,38 +529,25 @@ export default function UploadTtbTab({
               </span>
               <div className="space-y-1.5">
                 <h3 className="text-sm md:text-base font-bold text-rose-900 dark:text-rose-100">
-                  Kendala Akses Google Drive
+                  Kendala Upload Berkas
                 </h3>
                 <p className="text-xs text-rose-700 dark:text-rose-300 leading-relaxed font-medium">
                   {uploadErrorMessage}
                 </p>
                 <p className="text-[11px] text-muted-foreground">
-                  Gagal terhubung ke Google Drive, periksa izin akses atau URL folder. Anda dapat membuka folder target secara langsung menggunakan tombol di samping.
+                  Pastikan koneksi internet stabil dan kredensial Cloudflare R2 sudah aktif di environment variables.
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0 self-end sm:self-start flex-wrap">
-              <a
-                href={DEFAULT_DRIVE_FOLDER_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-xs transition active:scale-95 cursor-pointer"
-                title="Buka Folder TTB Manual di Tab Baru"
-              >
-                <FolderUp className="size-3.5" />
-                <span>Buka Folder TTB Manual</span>
-                <ExternalLink className="size-3" />
-              </a>
-              <button
-                type="button"
-                onClick={() => setUploadErrorMessage(null)}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition cursor-pointer"
-                title="Tutup Pesan Error"
-              >
-                <X className="size-4" />
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setUploadErrorMessage(null)}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition cursor-pointer self-end sm:self-start"
+              title="Tutup Pesan Error"
+            >
+              <X className="size-4" />
+            </button>
           </div>
         </div>
       )}
@@ -881,23 +565,8 @@ export default function UploadTtbTab({
                   {uploadSuccessResult.message}
                 </h3>
                 <p className="text-xs text-emerald-700/80 dark:text-emerald-300/80">
-                  Berkas telah diproses, diganti nama sesuai Nomor TTB resmi, dan siap diakses di Google Drive.
+                  Berkas telah diproses, diganti nama sesuai Nomor TTB resmi, dan tersimpan aman di Cloudflare Storage (R2).
                 </p>
-
-                {uploadSuccessResult.spreadsheetUrl && (
-                  <div className="pt-1">
-                    <a
-                      href={uploadSuccessResult.spreadsheetUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-600/15 hover:bg-emerald-600/25 border border-emerald-500/30 text-emerald-800 dark:text-emerald-200 text-xs font-semibold transition"
-                    >
-                      <FileSpreadsheet className="size-3.5" />
-                      <span>Buka Catatan di Google Sheets Database</span>
-                      <ExternalLink className="size-3 opacity-70" />
-                    </a>
-                  </div>
-                )}
 
                 {/* List berkas yang baru diupload */}
                 <div className="mt-3 space-y-1.5">
@@ -924,30 +593,19 @@ export default function UploadTtbTab({
                             <Copy className="size-3" />
                           )}
                         </button>
-                        {uf.driveViewUrl && (
-                          <a
-                            href={uf.driveViewUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-emerald-600 transition"
-                            title="Buka Berkas di Google Drive"
-                          >
-                            <ExternalLink className="size-3" />
-                          </a>
-                        )}
                         <a
                           href={uf.fileUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-teal-600 transition"
-                          title="Buka Berkas"
+                          title="Buka / Preview Berkas"
                         >
                           <Eye className="size-3" />
                         </a>
                         <a
-                          href={uf.driveDownloadUrl || `${uf.fileUrl}&download=true`}
+                          href={`${uf.fileUrl}&download=true`}
                           className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-emerald-600 transition"
-                          title="Unduh Berkas yang Sudah Di-Rename"
+                          title="Unduh Berkas dari Cloudflare Storage"
                         >
                           <Download className="size-3" />
                         </a>
@@ -958,66 +616,37 @@ export default function UploadTtbTab({
               </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0 self-end sm:self-start flex-wrap">
-              {uploadSuccessResult.spreadsheetUrl && (
-                <a
-                  href={uploadSuccessResult.spreadsheetUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition cursor-pointer"
-                >
-                  <FileSpreadsheet className="size-3.5" />
-                  <span>Google Sheets</span>
-                  <ExternalLink className="size-3" />
-                </a>
-              )}
-              <a
-                href={driveFolderUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold shadow-xs transition cursor-pointer"
-              >
-                <FolderUp className="size-3.5" />
-                <span>Buka di Google Drive</span>
-                <ExternalLink className="size-3" />
-              </a>
-              <button
-                type="button"
-                onClick={() => setUploadSuccessResult(null)}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition cursor-pointer"
-                title="Tutup Notifikasi"
-              >
-                <X className="size-4" />
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setUploadSuccessResult(null)}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition cursor-pointer self-end sm:self-start"
+              title="Tutup Notifikasi"
+            >
+              <X className="size-4" />
+            </button>
           </div>
         </div>
       )}
 
-      {/* 3. Form Upload & Dropzone Layout */}
+      {/* 4. Form Upload & Dropzone Layout */}
       <form onSubmit={handleSubmitUpload} className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Kolom Kiri: Metadata Form (5 Kolom) */}
         <div className="lg:col-span-5 space-y-4">
           <div className="bg-card border border-border rounded-2xl p-5 space-y-4 shadow-xs">
-            <div className="flex items-center justify-between pb-3 border-b border-border">
-              <div className="flex items-center gap-2">
-                <FileText className="size-4 text-teal-600 dark:text-teal-400" />
-                <h2 className="text-sm font-bold text-foreground">Metadata Dokumen TTB</h2>
-              </div>
-              <span className="text-[11px] text-rose-500 font-semibold">* Wajib diisi</span>
+            <div className="flex items-center gap-2 pb-3 border-b border-border">
+              <FileText className="size-4 text-teal-600 dark:text-teal-400" />
+              <h2 className="text-sm font-bold text-foreground">Data Identitas TTB</h2>
             </div>
 
-            {/* Input No. TTB dengan Autocomplete */}
+            {/* Field Nomor TTB dengan Autocomplete */}
             <div className="space-y-1.5 relative" ref={autocompleteRef}>
               <label className="text-xs font-semibold text-foreground flex items-center justify-between">
                 <span>
                   Nomor TTB <span className="text-rose-500">*</span>
                 </span>
-                {cleanCurrentNoTtb && (
-                  <span className="text-[10px] font-mono text-teal-600 dark:text-teal-400">
-                    Format: {cleanCurrentNoTtb}
-                  </span>
-                )}
+                <span className="text-[10px] text-muted-foreground font-normal">
+                  Ketik untuk saran otomatis
+                </span>
               </label>
 
               <div className="relative">
@@ -1029,64 +658,47 @@ export default function UploadTtbTab({
                     setNoTtbInput(e.target.value);
                     setIsAutocompleteOpen(true);
                   }}
-                  onFocus={() => {
-                    if (noTtbInput.trim().length >= 2) {
-                      setIsAutocompleteOpen(true);
-                    }
-                  }}
-                  placeholder="Contoh: CPL-TTB-26-00449 atau 04975"
-                  className="w-full h-10 px-3.5 pr-9 text-xs rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 font-mono text-foreground transition placeholder:text-muted-foreground/60"
+                  onFocus={() => setIsAutocompleteOpen(true)}
+                  placeholder="Contoh: 04975 atau CPL-TTB 04975"
+                  className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 text-foreground transition placeholder:text-muted-foreground/60 font-mono"
                 />
-                {noTtbInput ? (
+                {noTtbInput && (
                   <button
                     type="button"
-                    onClick={() => {
-                      setNoTtbInput('');
-                      setIsAutocompleteOpen(false);
-                    }}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground transition cursor-pointer"
+                    onClick={() => setNoTtbInput('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 text-muted-foreground hover:text-foreground"
                   >
                     <X className="size-3.5" />
                   </button>
-                ) : (
-                  <Search className="size-3.5 text-muted-foreground absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 )}
               </div>
 
               {/* Autocomplete Dropdown */}
               {isAutocompleteOpen && filteredSuggestions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-popover border border-border rounded-xl shadow-xl overflow-hidden max-h-60 overflow-y-auto no-scrollbar animate-in fade-in-50 duration-150">
-                  <div className="px-3 py-1.5 bg-muted/60 text-[10px] font-semibold text-muted-foreground border-b border-border flex items-center justify-between">
-                    <span>Saran dari Database Pengadaan &amp; Layanan</span>
-                    <span>{filteredSuggestions.length} ditemukan</span>
+                <div className="absolute left-0 right-0 top-full mt-1.5 z-30 bg-popover border border-border rounded-xl shadow-lg overflow-hidden max-h-60 overflow-y-auto no-scrollbar">
+                  <div className="p-1.5 text-[10px] font-semibold text-muted-foreground bg-muted/50 border-b border-border flex items-center gap-1.5">
+                    <Sparkles className="size-3 text-teal-500" />
+                    <span>Ditemukan {filteredSuggestions.length} data TTB:</span>
                   </div>
-                  {filteredSuggestions.map((sug, idx) => (
+                  {filteredSuggestions.map((sug, i) => (
                     <button
-                      key={`${sug.noTtb}-${idx}`}
+                      key={i}
                       type="button"
                       onClick={() => handleSelectSuggestion(sug)}
-                      className="w-full text-left px-3.5 py-2 hover:bg-muted transition border-b border-border/50 last:border-b-0 cursor-pointer text-xs"
+                      className="w-full text-left px-3 py-2 text-xs hover:bg-muted/60 transition flex flex-col gap-0.5 border-b border-border/40 last:border-0 cursor-pointer"
                     >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="font-mono font-bold text-teal-600 dark:text-teal-400">
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono font-bold text-foreground">
                           {sug.noTtb}
                         </span>
-                        {sug.noFpb && (
-                          <span className="text-[10px] font-mono text-muted-foreground">
-                            {sug.noFpb}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 mt-0.5 text-[11px] text-muted-foreground">
                         {sug.armada && (
-                          <span className="flex items-center gap-1 font-medium text-foreground">
-                            <Ship className="size-3 text-sky-500" />
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-teal-500/10 text-teal-600 dark:text-teal-400 font-medium">
                             {sug.armada}
                           </span>
                         )}
-                        {sug.description && (
-                          <span className="truncate">&bull; {sug.description}</span>
-                        )}
+                      </div>
+                      <div className="text-[10px] text-muted-foreground truncate">
+                        {sug.description || sug.noFpb || 'Data TTB Sistem'}
                       </div>
                     </button>
                   ))}
@@ -1094,42 +706,38 @@ export default function UploadTtbTab({
               )}
             </div>
 
-            {/* Input Nama Armada / Unit (Auto-filled or manual) */}
+            {/* Field Armada / Peruntukan */}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                <Ship className="size-3.5 text-sky-500" />
-                <span>Nama Armada / Unit</span>
-                <span className="text-[10px] text-muted-foreground font-normal">(Auto-fill / manual)</span>
+                <Ship className="size-3.5 text-muted-foreground" />
+                <span>Armada / Departemen (Opsional)</span>
               </label>
               <input
                 type="text"
                 value={armadaInput}
                 onChange={(e) => setArmadaInput(e.target.value)}
-                placeholder="Contoh: TB. CINDARA 2107 / KANTOR PUSAT"
-                className="w-full h-10 px-3.5 text-xs rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 text-foreground transition placeholder:text-muted-foreground/60"
+                placeholder="Contoh: SPOB SEA LION, WORKSHOP 01"
+                className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 text-foreground transition placeholder:text-muted-foreground/60"
               />
             </div>
 
-            {/* Input Tanggal Penerimaan / TTB */}
+            {/* Field Tanggal Terima */}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                <Calendar className="size-3.5 text-amber-500" />
-                <span>Tanggal Penerimaan Barang / TTB</span>
+                <Calendar className="size-3.5 text-muted-foreground" />
+                <span>Tanggal Serah Terima</span>
               </label>
               <input
                 type="date"
                 value={receivedDate}
                 onChange={(e) => setReceivedDate(e.target.value)}
-                className="w-full h-10 px-3.5 text-xs rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 text-foreground transition font-mono"
+                className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 text-foreground transition"
               />
             </div>
 
-            {/* Input Keterangan Tambahan */}
+            {/* Field Keterangan */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                <Info className="size-3.5 text-indigo-500" />
-                <span>Keterangan Tambahan (Opsional)</span>
-              </label>
+              <label className="text-xs font-semibold text-foreground">Keterangan / Catatan Tambahan</label>
               <textarea
                 rows={2}
                 value={keteranganInput}
@@ -1139,14 +747,15 @@ export default function UploadTtbTab({
               />
             </div>
 
-            {/* Info Card Google Drive Path */}
-            <div className="p-3 rounded-xl bg-muted/60 border border-border text-[11px] space-y-1 text-muted-foreground">
+            {/* Info Card Cloudflare Storage */}
+            <div className="p-3.5 rounded-xl bg-muted/60 border border-border text-[11px] space-y-1.5 text-muted-foreground">
               <div className="flex items-center gap-1.5 font-semibold text-foreground">
-                <HardDrive className="size-3.5 text-teal-600" />
-                <span>Target Folder Google Drive:</span>
+                <Database className="size-3.5 text-orange-500" />
+                <span>Penyimpanan Berkas: Cloudflare Storage (R2)</span>
               </div>
-              <div className="font-mono text-[10px] break-all text-teal-700 dark:text-teal-300">
-                {activeFolderId}
+              <div className="text-[10px] space-y-0.5 leading-relaxed">
+                <div>&bull; <strong>ttb-documents/</strong>: Berkas dokumen scan PDF resmi</div>
+                <div>&bull; <strong>ttb-photos/</strong>: Foto bukti fisik (langsung masuk ke Galeri Foto TTB)</div>
               </div>
             </div>
           </div>
@@ -1338,13 +947,13 @@ export default function UploadTtbTab({
                 {isUploading ? (
                   <>
                     <RefreshCw className="size-4 animate-spin" />
-                    <span>Mengunggah &amp; Menyimpan...</span>
+                    <span>Menyimpan ke Cloudflare R2...</span>
                   </>
                 ) : (
                   <>
                     <UploadCloud className="size-4" />
                     <span>
-                      Upload ke Google Drive ({queuedFiles.length || 0})
+                      Unggah ke Cloudflare Storage ({queuedFiles.length || 0})
                     </span>
                   </>
                 )}
@@ -1354,47 +963,34 @@ export default function UploadTtbTab({
         </div>
       </form>
 
-      {/* 4. Tabel Riwayat Upload Dokumen TTB */}
+      {/* 5. Tabel Riwayat Upload Dokumen TTB */}
       <div className="bg-card border border-border rounded-2xl p-5 md:p-6 space-y-4 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
           <div className="space-y-0.5">
             <h2 className="text-sm md:text-base font-bold text-foreground flex items-center gap-2">
-              <HardDrive className="size-4 text-teal-600 dark:text-teal-400" />
-              <span>Riwayat Berkas TTB Terunggah</span>
+              <Database className="size-4 text-orange-500" />
+              <span>Riwayat Berkas TTB Terunggah (Cloudflare Storage)</span>
             </h2>
             <p className="text-xs text-muted-foreground">
-              Daftar seluruh berkas foto dan scan dokumen TTB yang telah di-rename dan diarsipkan ke sistem cloud.
+              Daftar seluruh berkas foto dan scan dokumen TTB yang telah di-rename dan tersimpan di bucket Cloudflare R2.
             </p>
           </div>
 
           <div className="flex items-center gap-2">
-            {spreadsheetUrl && (
-              <a
-                href={spreadsheetUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-semibold transition"
-                title="Buka Spreadsheet Database TTB"
-              >
-                <FileSpreadsheet className="size-3.5" />
-                <span className="hidden sm:inline">Database Spreadsheet</span>
-                <ExternalLink className="size-3 opacity-70" />
-              </a>
-            )}
-
-            <div className="relative">
+            <div className="relative w-48 sm:w-64">
+              <Search className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input
                 type="text"
                 value={historySearch}
                 onChange={(e) => setHistorySearch(e.target.value)}
-                placeholder="Cari No. TTB, armada, nama file..."
-                className="h-8.5 px-3 pl-8 text-xs rounded-lg bg-background border border-border focus:outline-none focus:ring-1 focus:ring-teal-500 w-52 md:w-64 transition placeholder:text-muted-foreground/60"
+                placeholder="Cari TTB / Armada / File..."
+                className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 text-foreground transition"
               />
-              <Search className="size-3.5 text-muted-foreground absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               {historySearch && (
                 <button
+                  type="button"
                   onClick={() => setHistorySearch('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-muted-foreground hover:text-foreground"
                 >
                   <X className="size-3" />
                 </button>
@@ -1402,10 +998,11 @@ export default function UploadTtbTab({
             </div>
 
             <button
+              type="button"
               onClick={fetchUploadHistory}
-              title="Refresh Riwayat"
               disabled={isLoadingHistory}
-              className="p-2 rounded-lg border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition cursor-pointer"
+              className="p-2 rounded-xl border border-border hover:bg-muted text-muted-foreground hover:text-foreground transition cursor-pointer"
+              title="Segarkan Riwayat"
             >
               <RefreshCw className={`size-3.5 ${isLoadingHistory ? 'animate-spin' : ''}`} />
             </button>
@@ -1420,9 +1017,9 @@ export default function UploadTtbTab({
                 <th className="py-2.5 px-3">No</th>
                 <th className="py-2.5 px-3">Nomor TTB</th>
                 <th className="py-2.5 px-3">Armada / Unit</th>
-                <th className="py-2.5 px-3">Nama Berkas di Google Drive</th>
+                <th className="py-2.5 px-3">Nama Berkas Resmi TTB</th>
                 <th className="py-2.5 px-3">Ukuran</th>
-                <th className="py-2.5 px-3">Status Arsip</th>
+                <th className="py-2.5 px-3">Penyimpanan</th>
                 <th className="py-2.5 px-3">Waktu Upload</th>
                 <th className="py-2.5 px-3 text-right">Aksi</th>
               </tr>
@@ -1478,22 +1075,10 @@ export default function UploadTtbTab({
                       {formatFileSize(item.fileSize)}
                     </td>
                     <td className="py-2.5 px-3">
-                      {item.storageProvider === 'CLOUDFLARE_R2' || item.r2Key ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20">
-                          <Database className="size-3" />
-                          <span>Cloudflare R2</span>
-                        </span>
-                      ) : item.status === 'SAVED_TO_DRIVE_DATABASE' ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                          <FileSpreadsheet className="size-3" />
-                          <span>Drive &amp; Sheets</span>
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
-                          <ShieldCheck className="size-3" />
-                          <span>Lokal</span>
-                        </span>
-                      )}
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20">
+                        <Database className="size-3" />
+                        <span>Cloudflare R2</span>
+                      </span>
                     </td>
                     <td className="py-2.5 px-3 text-[11px] text-muted-foreground whitespace-nowrap">
                       {new Date(item.uploadedAt).toLocaleString('id-ID', {
@@ -1507,29 +1092,20 @@ export default function UploadTtbTab({
                     <td className="py-2.5 px-3 text-right">
                       <div className="inline-flex items-center gap-1.5">
                         <a
-                          href={item.driveViewUrl || item.fileUrl}
+                          href={item.fileUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="p-1.5 rounded-lg border border-border hover:bg-muted text-muted-foreground hover:text-teal-600 transition"
-                          title={item.driveViewUrl ? "Buka File di Google Drive" : "Buka / Preview Berkas"}
+                          title="Buka / Preview Berkas"
                         >
                           <Eye className="size-3.5" />
                         </a>
                         <a
-                          href={item.driveDownloadUrl || `${item.fileUrl}&download=true`}
+                          href={`${item.fileUrl}&download=true`}
                           className="p-1.5 rounded-lg border border-border hover:bg-muted text-muted-foreground hover:text-foreground transition"
-                          title="Unduh Berkas"
+                          title="Unduh Berkas dari Cloudflare Storage"
                         >
                           <Download className="size-3.5" />
-                        </a>
-                        <a
-                          href={item.driveViewUrl || driveFolderUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-1.5 rounded-lg border border-teal-500/30 bg-teal-500/10 hover:bg-teal-500/20 text-teal-600 dark:text-teal-400 transition"
-                          title={item.driveViewUrl ? "Buka File di Google Drive" : "Buka Folder Google Drive"}
-                        >
-                          <ExternalLink className="size-3.5" />
                         </a>
                       </div>
                     </td>
@@ -1540,312 +1116,6 @@ export default function UploadTtbTab({
           </table>
         </div>
       </div>
-
-      {/* 5. Modal Konfigurasi Database Google Drive & Google Sheets */}
-      {isDriveDatabaseModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in-50 duration-200">
-          <div className="bg-card border border-border rounded-2xl max-w-2xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden my-auto animate-in zoom-in-95 duration-200">
-            {/* Modal Header */}
-            <div className="p-4 sm:p-5 border-b border-border flex items-center justify-between bg-muted/40 shrink-0">
-              <div className="flex items-center gap-2.5">
-                <span className="p-2 rounded-xl bg-teal-500/15 text-teal-600 dark:text-teal-400 border border-teal-500/30">
-                  <Database className="size-5" />
-                </span>
-                <div>
-                  <h3 className="text-sm sm:text-base font-bold text-foreground flex items-center gap-1.5">
-                    <span>Integrasi Database Google Drive</span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20">
-                      Google Sheets
-                    </span>
-                  </h3>
-                  <p className="text-xs text-muted-foreground">
-                    Simpan berkas foto/scan TTB langsung ke Google Drive &amp; catat riwayatnya ke Google Sheets.
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsDriveDatabaseModalOpen(false)}
-                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition cursor-pointer"
-              >
-                <X className="size-5" />
-              </button>
-            </div>
-
-            {/* Modal Tabs */}
-            <div className="flex items-center border-b border-border bg-muted/20 px-4 sm:px-5 shrink-0">
-              <button
-                type="button"
-                onClick={() => setModalActiveTab('config')}
-                className={`py-3 px-3 text-xs font-semibold border-b-2 transition flex items-center gap-1.5 cursor-pointer ${
-                  modalActiveTab === 'config'
-                    ? 'border-teal-600 text-teal-600 dark:text-teal-400'
-                    : 'border-transparent text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <Database className="size-3.5" />
-                <span>Pengaturan &amp; Status Koneksi</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setModalActiveTab('guide')}
-                className={`py-3 px-3 text-xs font-semibold border-b-2 transition flex items-center gap-1.5 cursor-pointer ${
-                  modalActiveTab === 'guide'
-                    ? 'border-teal-600 text-teal-600 dark:text-teal-400'
-                    : 'border-transparent text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <Code2 className="size-3.5" />
-                <span>Panduan 1-Menit &amp; Salin Script (Code.gs)</span>
-              </button>
-            </div>
-
-            {/* Modal Content */}
-            <div className="p-4 sm:p-5 overflow-y-auto space-y-4 text-xs">
-              {modalActiveTab === 'config' ? (
-                <div className="space-y-4">
-                  {/* Status Card */}
-                  <div className="p-3.5 rounded-xl border bg-muted/40 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-foreground flex items-center gap-1.5">
-                        <Sparkles className="size-3.5 text-teal-500" />
-                        Status Integrasi Database:
-                      </span>
-                      {driveScriptUrl ? (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 border border-emerald-500/30 flex items-center gap-1">
-                          <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                          Terhubung
-                        </span>
-                      ) : (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-600 border border-amber-500/30">
-                          Mode Standalone (Cadangan Lokal Aktif)
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-[11px] text-muted-foreground leading-relaxed">
-                      {driveScriptUrl
-                        ? 'Setiap berkas TTB yang diunggah akan otomatis disimpan ke Google Drive dan transaksi dicatat ke Spreadsheet Database secara real-time.'
-                        : 'Saat ini berkas disimpan di Cloudflare R2 & penyimpanan lokal. Masukkan Web App URL di bawah ini untuk menghubungkan juga ke Google Drive & Sheets Anda.'}
-                    </p>
-                    {spreadsheetUrl && (
-                      <div className="pt-1 flex items-center gap-2">
-                        <span className="text-[11px] text-muted-foreground">Database Google Sheets:</span>
-                        <a
-                          href={spreadsheetUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="font-mono text-xs text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 font-semibold"
-                        >
-                          <span>Buka Spreadsheet DATABASE_UPLOAD_TTB</span>
-                          <ExternalLink className="size-3" />
-                        </a>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Input Form URL Google Apps Script */}
-                  <div className="space-y-1.5">
-                    <label className="font-semibold text-foreground flex items-center justify-between">
-                      <span>URL Web App Google Apps Script</span>
-                      <span className="text-[10px] text-muted-foreground font-normal">
-                        (Berakhiran /exec)
-                      </span>
-                    </label>
-                    <input
-                      type="url"
-                      value={tempScriptUrl}
-                      onChange={(e) => setTempScriptUrl(e.target.value)}
-                      placeholder="https://script.google.com/macros/s/AKfycbx.../exec"
-                      className="w-full h-10 px-3.5 text-xs rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 font-mono text-foreground"
-                    />
-                    <p className="text-[11px] text-muted-foreground">
-                      Dapatkan URL ini setelah melakukan Deploy Web App di script.google.com (lihat tab &quot;Panduan 1-Menit&quot;).
-                    </p>
-                  </div>
-
-                  {/* Target Folder ID */}
-                  <div className="space-y-1">
-                    <label className="font-semibold text-foreground">Target Folder ID Google Drive</label>
-                    <div className="h-9 px-3 rounded-lg bg-muted/60 border border-border font-mono text-xs flex items-center text-muted-foreground">
-                      {activeFolderId}
-                    </div>
-                  </div>
-
-                  {/* Hasil Uji Koneksi */}
-                  {testConnectionResult && (
-                    <div
-                      className={`p-3 rounded-xl border text-xs flex items-start gap-2.5 ${
-                        testConnectionResult.success
-                          ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-200'
-                          : 'bg-rose-500/10 border-rose-500/30 text-rose-800 dark:text-rose-200'
-                      }`}
-                    >
-                      {testConnectionResult.success ? (
-                        <CheckCircle2 className="size-4 shrink-0 text-emerald-600 mt-0.5" />
-                      ) : (
-                        <AlertCircle className="size-4 shrink-0 text-rose-600 mt-0.5" />
-                      )}
-                      <div className="space-y-0.5 min-w-0">
-                        <div className="font-semibold">{testConnectionResult.message}</div>
-                        {testConnectionResult.latencyMs && (
-                          <div className="text-[10px] opacity-80">
-                            Waktu respons server Google: {testConnectionResult.latencyMs} ms
-                          </div>
-                        )}
-                        {testConnectionResult.spreadsheetUrl && (
-                          <div className="pt-1">
-                            <a
-                              href={testConnectionResult.spreadsheetUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="font-semibold underline inline-flex items-center gap-1"
-                            >
-                              <span>Buka Google Spreadsheet Database</span>
-                              <ExternalLink className="size-3" />
-                            </a>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Action Buttons */}
-                  <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-2">
-                    <button
-                      type="button"
-                      onClick={handleTestDriveConnection}
-                      disabled={isTestingDriveConnection || !tempScriptUrl.trim()}
-                      className="w-full sm:w-auto px-4 py-2 rounded-xl border border-teal-500/30 bg-teal-500/10 hover:bg-teal-500/20 text-teal-700 dark:text-teal-300 font-semibold flex items-center justify-center gap-2 transition disabled:opacity-50 cursor-pointer"
-                    >
-                      <RefreshCw className={`size-3.5 ${isTestingDriveConnection ? 'animate-spin' : ''}`} />
-                      <span>{isTestingDriveConnection ? 'Menguji Koneksi...' : 'Uji Koneksi Database'}</span>
-                    </button>
-
-                    <div className="flex items-center gap-2 w-full sm:w-auto">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setTempScriptUrl('');
-                          setDriveScriptUrl('');
-                          if (typeof window !== 'undefined') {
-                            localStorage.removeItem('cpg_drive_script_url');
-                          }
-                          showToast?.('URL dibersihkan.', 'info');
-                        }}
-                        className="px-3 py-2 rounded-xl border border-border hover:bg-muted text-muted-foreground text-xs transition cursor-pointer"
-                      >
-                        Hapus
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleSaveDriveDatabaseConfig}
-                        className="flex-1 sm:flex-none px-5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold transition cursor-pointer shadow-xs active:scale-95"
-                      >
-                        Simpan Pengaturan
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {/* Panduan 1-Menit */}
-                  <div className="space-y-2">
-                    <h4 className="font-bold text-foreground">
-                      Langkah Mudah Menghubungkan Google Drive &amp; Sheets (1 Menit):
-                    </h4>
-                    <ol className="list-decimal list-inside space-y-1.5 text-muted-foreground leading-relaxed pl-1">
-                      <li>
-                        Buka{' '}
-                        <a
-                          href="https://script.google.com/home/start"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-teal-600 dark:text-teal-400 font-semibold underline underline-offset-2 inline-flex items-center gap-0.5"
-                        >
-                          script.google.com
-                          <ExternalLink className="size-3" />
-                        </a>{' '}
-                        di browser dengan akun Google Anda.
-                      </li>
-                      <li>Klik <strong>&ldquo;New Project&rdquo;</strong> (Beri judul: <em>CPG TTB Drive Database</em>).</li>
-                      <li>
-                        Hapus kode bawaan, lalu klik tombol <strong>&ldquo;Salin Kode Script (Code.gs)&rdquo;</strong> di bawah dan tempel seluruh kodenya.
-                      </li>
-                      <li>
-                        Klik tombol biru <strong>&ldquo;Deploy&rdquo;</strong> (kanan atas) &gt; pilih <strong>&ldquo;New deployment&rdquo;</strong>.
-                      </li>
-                      <li>
-                        Klik icon Gear (⚙) di samping <em>Select type</em> &gt; pilih <strong>Web app</strong>.
-                      </li>
-                      <li>
-                        Atur:
-                        <ul className="list-disc list-inside pl-4 mt-0.5 space-y-0.5">
-                          <li><strong>Execute as:</strong> Me (email Anda)</li>
-                          <li><strong>Who has access:</strong> Anyone (agar dashboard dapat mengunggah berkas)</li>
-                        </ul>
-                      </li>
-                      <li>
-                        Klik <strong>Deploy</strong>, izinkan akses Google jika diminta, lalu salin <strong>Web app URL</strong> dan tempel di tab Pengaturan.
-                      </li>
-                    </ol>
-                  </div>
-
-                  {/* Kode Apps Script Viewer & Copy */}
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-foreground flex items-center gap-1.5 font-mono text-[11px]">
-                        <Code2 className="size-3.5 text-teal-600" />
-                        <span>Code.gs (Google Apps Script)</span>
-                      </span>
-                      <button
-                        type="button"
-                        onClick={handleCopyScriptCode}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs transition cursor-pointer active:scale-95 shadow-xs"
-                      >
-                        {isCopiedScript ? (
-                          <>
-                            <Check className="size-3.5" />
-                            <span>Tersalin!</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="size-3.5" />
-                            <span>Salin Kode Script (1-Click)</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-
-                    <pre className="p-3.5 rounded-xl bg-muted/80 border border-border font-mono text-[10px] leading-relaxed max-h-56 overflow-y-auto no-scrollbar text-foreground select-all">
-                      {GOOGLE_APPS_SCRIPT_TEMPLATE}
-                    </pre>
-                  </div>
-
-                  <div className="pt-2 flex items-center justify-between border-t border-border">
-                    <a
-                      href="https://script.google.com/home/start"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-border hover:bg-muted text-foreground font-semibold transition"
-                    >
-                      <span>Buka Google Apps Script Editor</span>
-                      <ExternalLink className="size-3.5" />
-                    </a>
-                    <button
-                      type="button"
-                      onClick={() => setModalActiveTab('config')}
-                      className="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold transition cursor-pointer"
-                    >
-                      Lanjut ke Pengaturan URL &rarr;
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
-

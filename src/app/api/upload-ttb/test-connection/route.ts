@@ -1,50 +1,50 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { pingGoogleDriveAppsScript, DEFAULT_DRIVE_FOLDER_ID } from '@/utils/googleDriveAppsScript';
+import { NextResponse } from 'next/server';
+import { getR2Client, getR2Config, isR2Configured } from '@/utils/r2Client';
+import { ListObjectsV2Command } from '@aws-sdk/client-s3';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function POST(req: NextRequest) {
+export async function GET() {
+  return handleTest();
+}
+
+export async function POST() {
+  return handleTest();
+}
+
+async function handleTest() {
   try {
-    const body = await req.json().catch(() => ({}));
-    const scriptUrl =
-      (body.scriptUrl as string) ||
-      process.env.GOOGLE_DRIVE_SCRIPT_URL ||
-      '';
+    const config = getR2Config();
 
-    const folderId = (body.folderId as string) || process.env.GOOGLE_DRIVE_TTB_FOLDER_ID || DEFAULT_DRIVE_FOLDER_ID;
-
-    if (!scriptUrl) {
+    if (!isR2Configured()) {
       return NextResponse.json(
         {
           success: false,
-          error: 'URL Google Apps Script belum diisi.',
+          error: 'Kredensial Cloudflare R2 belum lengkap di environment variables.',
+          isConfigured: false,
         },
         { status: 400 }
       );
     }
 
     const startTime = Date.now();
-    const result = await pingGoogleDriveAppsScript(scriptUrl, folderId);
+    const client = getR2Client();
+    const res = await client.send(
+      new ListObjectsV2Command({
+        Bucket: config.bucketName,
+        MaxKeys: 5,
+      })
+    );
     const latencyMs = Date.now() - startTime;
-
-    if (!result.success) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: result.error || 'Gagal tersambung ke Google Apps Script.',
-          latencyMs,
-        },
-        { status: 502 }
-      );
-    }
 
     return NextResponse.json({
       success: true,
-      message: result.message || 'Database Google Drive terhubung!',
+      message: `Database Cloudflare Storage (${config.bucketName}) terhubung normal!`,
+      bucket: config.bucketName,
+      endpoint: config.endpoint,
+      objectCountSample: (res.Contents || []).length,
       latencyMs,
-      folderId,
-      spreadsheetUrl: result.spreadsheetUrl,
     });
   } catch (err) {
     return NextResponse.json(
@@ -56,4 +56,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-
