@@ -45,6 +45,9 @@ interface QueuedFile {
   previewUrl: string;
   isImage: boolean;
   isPdf: boolean;
+  noTtb: string;
+  armada: string;
+  isAutoMatched: boolean;
 }
 
 interface TtbSuggestion {
@@ -52,6 +55,68 @@ interface TtbSuggestion {
   armada: string;
   noFpb?: string;
   description?: string;
+}
+
+/**
+ * Mendeteksi Nomor TTB dan Armada secara cerdas dari nama berkas (contoh: "CPL-TTB-26-00449.pdf", "04975.jpg")
+ */
+function detectTtbAndArmada(
+  fileName: string,
+  suggestions: TtbSuggestion[] = []
+): { noTtb: string; armada: string; isAutoMatched: boolean } {
+  const baseName = fileName.replace(/\.[a-z0-9]+$/i, '').trim();
+
+  // 1. Ekstrak pola TTB: (CPL|SP|MO|HL|GAJ|MIL|SSK)?[-_\s]*T?TB[-_\s]*(?:(\d{2})[-_\s]+)?(\d{3,6})
+  const ttbRegex = /(?:([A-Z]{2,4})[-_\s]*)?T?TB[-_\s]*(?:(\d{2})[-_\s]+)?(\d{3,6})/i;
+  const match = baseName.match(ttbRegex);
+
+  let rawDetectedTtb = '';
+  let targetNumber = '';
+
+  if (match) {
+    const prefix = match[1] ? match[1].toUpperCase() : '';
+    const yr = match[2] ? match[2].trim() : '';
+    const num = match[3] ? match[3].padStart(5, '0') : '';
+    targetNumber = match[3];
+
+    if (prefix && yr) {
+      rawDetectedTtb = `${prefix}-TTB-${yr}-${num}`;
+    } else if (prefix) {
+      rawDetectedTtb = `${prefix}-TTB ${num}`;
+    } else {
+      rawDetectedTtb = `TTB ${num}`;
+    }
+  } else {
+    // Coba deteksi angka 4-6 digit mandiri (misal "04975.pdf" atau "Scan_04975.jpg")
+    const numMatch = baseName.match(/\b\d{4,6}\b/);
+    if (numMatch) {
+      targetNumber = numMatch[0];
+      rawDetectedTtb = `TTB ${targetNumber.padStart(5, '0')}`;
+    }
+  }
+
+  // 2. Cocokkan targetNumber dengan ttbSuggestions (dari Sisa Layanan & Procurement)
+  let matchedArmada = '';
+  let finalNoTtb = rawDetectedTtb;
+
+  if (targetNumber && suggestions.length > 0) {
+    const padded = targetNumber.padStart(5, '0');
+    const found = suggestions.find((s) => {
+      const cleanS = s.noTtb.replace(/\D/g, '');
+      return cleanS.endsWith(targetNumber) || cleanS.endsWith(padded);
+    });
+
+    if (found) {
+      finalNoTtb = found.noTtb;
+      matchedArmada = found.armada || '';
+    }
+  }
+
+  return {
+    noTtb: finalNoTtb,
+    armada: matchedArmada,
+    isAutoMatched: Boolean(finalNoTtb),
+  };
 }
 
 export default function UploadTtbTab({
@@ -70,6 +135,14 @@ export default function UploadTtbTab({
   const [queuedFiles, setQueuedFiles] = useState<QueuedFile[]>([]);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Upload mode: 'batch' (Multi-TTB per berkas) atau 'single' (Satu TTB untuk semua berkas)
+  const [uploadMode, setUploadMode] = useState<'batch' | 'single'>('batch');
+  const [batchProgress, setBatchProgress] = useState<{
+    current: number;
+    total: number;
+    currentFileName: string;
+  } | null>(null);
 
   // Upload state
   const [isUploading, setIsUploading] = useState<boolean>(false);
@@ -304,7 +377,7 @@ export default function UploadTtbTab({
     setIsAutocompleteOpen(false);
   };
 
-  // Tambahkan file ke antrean
+  // Tambahkan file ke antrean (dengan deteksi otomatis Nomor TTB & Armada per berkas)
   const addFilesToQueue = (files: FileList | File[]) => {
     const validFiles: QueuedFile[] = [];
     const arrayFiles = Array.from(files);
@@ -323,19 +396,54 @@ export default function UploadTtbTab({
       }
 
       const previewUrl = isImage ? URL.createObjectURL(file) : '';
+      const detected = detectTtbAndArmada(file.name, ttbSuggestions);
+
       validFiles.push({
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         file,
         previewUrl,
         isImage,
         isPdf,
+        noTtb: detected.noTtb || noTtbInput || '',
+        armada: detected.armada || armadaInput || '',
+        isAutoMatched: detected.isAutoMatched,
       });
     }
 
     if (validFiles.length > 0) {
       setQueuedFiles((prev) => [...prev, ...validFiles]);
-      showToast?.(`Menambahkan ${validFiles.length} berkas ke antrean.`, 'info');
+      const autoCount = validFiles.filter((f) => f.isAutoMatched).length;
+      if (autoCount > 0) {
+        showToast?.(
+          `Menambahkan ${validFiles.length} berkas (${autoCount} No. TTB otomatis terdeteksi).`,
+          'success'
+        );
+      } else {
+        showToast?.(`Menambahkan ${validFiles.length} berkas ke antrean.`, 'info');
+      }
     }
+  };
+
+  // Update properti No. TTB atau Armada pada berkas tertentu di antrean
+  const updateQueuedFile = (id: string, field: 'noTtb' | 'armada', value: string) => {
+    setQueuedFiles((prev) =>
+      prev.map((item) => {
+        if (item.id === id) {
+          const updated = { ...item, [field]: value };
+          if (field === 'noTtb') {
+            const cleanDigits = value.replace(/\D/g, '');
+            if (cleanDigits.length >= 3 && !updated.armada) {
+              const found = ttbSuggestions.find((s) => s.noTtb.replace(/\D/g, '').endsWith(cleanDigits));
+              if (found && found.armada) {
+                updated.armada = found.armada;
+              }
+            }
+          }
+          return updated;
+        }
+        return item;
+      })
+    );
   };
 
   const handleRemoveFile = (id: string) => {
@@ -384,17 +492,119 @@ export default function UploadTtbTab({
     setTimeout(() => setCopiedFilename(null), 2500);
   };
 
-  // Submit Upload ke Cloudflare R2
+  // Submit Upload ke Cloudflare R2 (Mendukung Multi-TTB Batch & Single TTB)
   const handleSubmitUpload = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!noTtbInput.trim()) {
-      showToast?.('Nomor TTB wajib diisi.', 'warning');
+    if (queuedFiles.length === 0) {
+      showToast?.('Silakan pilih minimal 1 berkas foto atau dokumen PDF.', 'warning');
       return;
     }
 
-    if (queuedFiles.length === 0) {
-      showToast?.('Silakan pilih minimal 1 berkas foto atau dokumen PDF.', 'warning');
+    // MODE 1: MULTI-TTB BATCH UPLOAD (Setiap berkas menggunakan No. TTB masing-masing)
+    if (uploadMode === 'batch') {
+      const missingTtbFiles = queuedFiles.filter((f) => !f.noTtb.trim());
+      if (missingTtbFiles.length > 0) {
+        showToast?.(
+          `Ada ${missingTtbFiles.length} berkas yang belum memiliki Nomor TTB. Harap lengkapi nomor TTB pada berkas yang bersangkutan.`,
+          'warning'
+        );
+        return;
+      }
+
+      setIsUploading(true);
+      setUploadSuccessResult(null);
+      setUploadErrorMessage(null);
+
+      const newlyUploaded: UploadedTtbItem[] = [];
+      const failedFiles: string[] = [];
+
+      for (let i = 0; i < queuedFiles.length; i++) {
+        const qf = queuedFiles[i];
+        const targetNoTtb = qf.noTtb.trim();
+        const targetArmada = qf.armada.trim();
+
+        setBatchProgress({
+          current: i + 1,
+          total: queuedFiles.length,
+          currentFileName: `${qf.file.name} → ${targetNoTtb}`,
+        });
+
+        try {
+          const formData = new FormData();
+          formData.append('noTtb', targetNoTtb);
+          formData.append('armada', targetArmada);
+          formData.append('receivedDate', receivedDate);
+          formData.append('keterangan', keteranganInput.trim());
+          formData.append('files', qf.file);
+
+          const res = await fetch('/api/upload-ttb', {
+            method: 'POST',
+            body: formData,
+          });
+
+          const data: UploadTtbResponse = await res.json();
+          if (res.ok && data.success && data.uploadedFiles && data.uploadedFiles.length > 0) {
+            newlyUploaded.push(...data.uploadedFiles);
+          } else {
+            failedFiles.push(`"${qf.file.name}" (${targetNoTtb}): ${data.message || data.error || 'Gagal'}`);
+          }
+        } catch (err) {
+          failedFiles.push(`"${qf.file.name}": ${(err as Error).message}`);
+        }
+      }
+
+      setIsUploading(false);
+      setBatchProgress(null);
+
+      if (newlyUploaded.length > 0) {
+        setHistoryItems((prev) => [...newlyUploaded, ...prev]);
+
+        // Simpan status TTB di localStorage
+        try {
+          const uploadedList = JSON.parse(localStorage.getItem('cpg_uploaded_ttb_list') || '[]');
+          newlyUploaded.forEach((u) => uploadedList.push(sanitizeTtbNumber(u.noTtb)));
+          localStorage.setItem('cpg_uploaded_ttb_list', JSON.stringify(Array.from(new Set(uploadedList))));
+        } catch {
+          // Non-fatal
+        }
+
+        setUploadSuccessResult({
+          success: true,
+          message: `Sukses! Berhasil mengunggah ${newlyUploaded.length} dari ${queuedFiles.length} berkas ke Cloudflare R2 sesuai Nomor TTB masing-masing.`,
+          storageProvider: 'CLOUDFLARE_R2',
+          uploadedFiles: newlyUploaded,
+        });
+
+        showToast?.(
+          `Berhasil mengunggah ${newlyUploaded.length} berkas TTB ke Cloudflare R2!`,
+          'success'
+        );
+
+        // Bersihkan berkas yang sukses dari antrean
+        const successOriginalNames = new Set(newlyUploaded.map((u) => u.originalFileName));
+        setQueuedFiles((prev) => {
+          prev.forEach((f) => {
+            if (successOriginalNames.has(f.file.name) && f.previewUrl) {
+              URL.revokeObjectURL(f.previewUrl);
+            }
+          });
+          return prev.filter((f) => !successOriginalNames.has(f.file.name));
+        });
+      }
+
+      if (failedFiles.length > 0) {
+        const errorMsg = `Sebagian berkas mengalami kendala upload (${failedFiles.length} gagal):\n${failedFiles.join('\n')}`;
+        setUploadErrorMessage(errorMsg);
+        showToast?.(errorMsg, 'error');
+      }
+
+      return;
+    }
+
+    // MODE 2: SATU TTB UNTUK SEMUA BERKAS (Single TTB Mode)
+    if (!noTtbInput.trim()) {
+      showToast?.('Nomor TTB wajib diisi.', 'warning');
       return;
     }
 
@@ -445,7 +655,6 @@ export default function UploadTtbTab({
       });
       setQueuedFiles([]);
 
-      // Simpan status TTB di localStorage agar sinkron dengan modul internal
       try {
         const uploadedList = JSON.parse(localStorage.getItem('cpg_uploaded_ttb_list') || '[]');
         uploadedList.push(sanitizeTtbNumber(noTtbInput));
@@ -679,168 +888,85 @@ export default function UploadTtbTab({
         </div>
       )}
 
-      {/* 4. Form Upload & Dropzone Layout */}
-      <form onSubmit={handleSubmitUpload} className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Kolom Kiri: Metadata Form (5 Kolom) */}
-        <div className="lg:col-span-5 space-y-4">
-          <div className="bg-card border border-border rounded-2xl p-5 space-y-4 shadow-xs">
-            <div className="flex items-center gap-2 pb-3 border-b border-border">
-              <FileText className="size-4 text-teal-600 dark:text-teal-400" />
-              <h2 className="text-sm font-bold text-foreground">Data Identitas TTB</h2>
-            </div>
+      {/* Mode Switcher Bar */}
+      <div className="bg-card border border-border rounded-2xl p-2.5 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        <div className="flex items-center gap-1.5 p-1 bg-muted/50 rounded-xl border border-border/60">
+          <button
+            type="button"
+            onClick={() => setUploadMode('batch')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
+              uploadMode === 'batch'
+                ? 'bg-background text-teal-600 dark:text-teal-400 shadow-xs border border-border'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Sparkles className="size-3.5 text-teal-500" />
+            <span>Multi-TTB / Batch (Auto-Detect)</span>
+            <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-teal-500/10 text-teal-600 dark:text-teal-400 font-mono font-medium">
+              Rekomendasi
+            </span>
+          </button>
 
-            {/* Field Nomor TTB dengan Autocomplete */}
-            <div className="space-y-1.5 relative" ref={autocompleteRef}>
-              <label className="text-xs font-semibold text-foreground flex items-center justify-between">
-                <span>
-                  Nomor TTB <span className="text-rose-500">*</span>
-                </span>
-                <span className="text-[10px] text-muted-foreground font-normal">
-                  Ketik untuk saran otomatis
-                </span>
-              </label>
-
-              <div className="relative">
-                <input
-                  type="text"
-                  required
-                  value={noTtbInput}
-                  onChange={(e) => {
-                    setNoTtbInput(e.target.value);
-                    setIsAutocompleteOpen(true);
-                  }}
-                  onFocus={() => setIsAutocompleteOpen(true)}
-                  placeholder="Contoh: 04975 atau CPL-TTB 04975"
-                  className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 text-foreground transition placeholder:text-muted-foreground/60 font-mono"
-                />
-                {noTtbInput && (
-                  <button
-                    type="button"
-                    onClick={() => setNoTtbInput('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 text-muted-foreground hover:text-foreground"
-                  >
-                    <X className="size-3.5" />
-                  </button>
-                )}
-              </div>
-
-              {/* Autocomplete Dropdown */}
-              {isAutocompleteOpen && filteredSuggestions.length > 0 && (
-                <div className="absolute left-0 right-0 top-full mt-1.5 z-30 bg-popover border border-border rounded-xl shadow-lg overflow-hidden max-h-60 overflow-y-auto no-scrollbar">
-                  <div className="p-1.5 text-[10px] font-semibold text-muted-foreground bg-muted/50 border-b border-border flex items-center gap-1.5">
-                    <Sparkles className="size-3 text-teal-500" />
-                    <span>Ditemukan {filteredSuggestions.length} data TTB:</span>
-                  </div>
-                  {filteredSuggestions.map((sug, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => handleSelectSuggestion(sug)}
-                      className="w-full text-left px-3 py-2 text-xs hover:bg-muted/60 transition flex flex-col gap-0.5 border-b border-border/40 last:border-0 cursor-pointer"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-mono font-bold text-foreground">
-                          {sug.noTtb}
-                        </span>
-                        {sug.armada && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-teal-500/10 text-teal-600 dark:text-teal-400 font-medium">
-                            {sug.armada}
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-[10px] text-muted-foreground truncate">
-                        {sug.description || sug.noFpb || 'Data TTB Sistem'}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Field Armada / Peruntukan */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                <Ship className="size-3.5 text-muted-foreground" />
-                <span>Armada / Departemen (Opsional)</span>
-              </label>
-              <input
-                type="text"
-                value={armadaInput}
-                onChange={(e) => setArmadaInput(e.target.value)}
-                placeholder="Contoh: SPOB SEA LION, WORKSHOP 01"
-                className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 text-foreground transition placeholder:text-muted-foreground/60"
-              />
-            </div>
-
-            {/* Field Tanggal Terima */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                <Calendar className="size-3.5 text-muted-foreground" />
-                <span>Tanggal Serah Terima</span>
-              </label>
-              <input
-                type="date"
-                value={receivedDate}
-                onChange={(e) => setReceivedDate(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 text-foreground transition"
-              />
-            </div>
-
-            {/* Field Keterangan */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground">Keterangan / Catatan Tambahan</label>
-              <textarea
-                rows={2}
-                value={keteranganInput}
-                onChange={(e) => setKeteranganInput(e.target.value)}
-                placeholder="Catatan kondisi serah terima, nama penerima lapangan, dll."
-                className="w-full p-3 text-xs rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 text-foreground transition placeholder:text-muted-foreground/60 resize-none"
-              />
-            </div>
-
-            {/* Info Card Cloudflare Storage */}
-            <div className="p-3.5 rounded-xl bg-muted/60 border border-border text-[11px] space-y-1.5 text-muted-foreground">
-              <div className="flex items-center gap-1.5 font-semibold text-foreground">
-                <Database className="size-3.5 text-orange-500" />
-                <span>Penyimpanan Berkas: Cloudflare Storage (R2)</span>
-              </div>
-              <div className="text-[10px] space-y-0.5 leading-relaxed">
-                <div>&bull; <strong>ttb-documents/</strong>: Berkas dokumen scan PDF resmi</div>
-                <div>&bull; <strong>ttb-photos/</strong>: Foto bukti fisik (langsung masuk ke Galeri Foto TTB)</div>
-              </div>
-            </div>
-          </div>
+          <button
+            type="button"
+            onClick={() => setUploadMode('single')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
+              uploadMode === 'single'
+                ? 'bg-background text-teal-600 dark:text-teal-400 shadow-xs border border-border'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <FileText className="size-3.5" />
+            <span>Satu TTB (Single)</span>
+          </button>
         </div>
 
-        {/* Kolom Kanan: Dropzone & File Auto-Rename Preview (7 Kolom) */}
-        <div className="lg:col-span-7 space-y-4">
-          <div className="bg-card border border-border rounded-2xl p-5 space-y-4 shadow-xs">
-            <div className="flex items-center justify-between pb-3 border-b border-border">
-              <div className="flex items-center gap-2">
-                <FolderUp className="size-4 text-teal-600 dark:text-teal-400" />
-                <h2 className="text-sm font-bold text-foreground">Berkas Foto &amp; Scan Dokumen TTB</h2>
-              </div>
-              {queuedFiles.length > 0 && (
-                <button
-                  type="button"
-                  onClick={handleClearAllFiles}
-                  className="text-xs text-rose-500 hover:text-rose-600 font-medium transition cursor-pointer"
-                >
-                  Hapus Semua ({queuedFiles.length})
-                </button>
-              )}
-            </div>
+        <div className="text-[11px] text-muted-foreground px-2 flex items-center gap-1.5">
+          <Info className="size-3.5 text-teal-500 shrink-0" />
+          {uploadMode === 'batch' ? (
+            <span>
+              Nomor TTB &amp; Armada otomatis terdeteksi per berkas. Tiap berkas disimpan di Cloudflare R2 sesuai nomor TTB aslinya.
+            </span>
+          ) : (
+            <span>
+              Unggah berkas foto/scan di mana semua berkas menggunakan satu Nomor TTB yang sama.
+            </span>
+          )}
+        </div>
+      </div>
 
-            {/* Drag & Drop Area */}
+      {/* Datalist bantuan untuk autocomplete instan pada input batch */}
+      <datalist id="ttb-batch-suggestions">
+        {ttbSuggestions.slice(0, 100).map((sug, idx) => (
+          <option key={idx} value={sug.noTtb}>
+            {sug.armada ? `${sug.armada} - ${sug.description || ''}` : sug.description || ''}
+          </option>
+        ))}
+      </datalist>
+
+      <datalist id="armada-batch-suggestions">
+        {Array.from(new Set(ttbSuggestions.map((s) => s.armada).filter(Boolean))).map((arm, idx) => (
+          <option key={idx} value={arm} />
+        ))}
+      </datalist>
+
+      {/* 4. Form Upload Berkas (Mendukung Multi-TTB Batch & Single TTB) */}
+      <form onSubmit={handleSubmitUpload} className="space-y-6">
+        {uploadMode === 'batch' ? (
+          /* ========================================================================= */
+          /* MODE 1: MULTI-TTB BATCH UPLOAD (Setiap Berkas Punya No. TTB Masing-Masing)  */
+          /* ========================================================================= */
+          <div className="space-y-5">
+            {/* Dropzone Multi-TTB */}
             <div
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
-              className={`border-2 border-dashed rounded-2xl p-6 text-center transition cursor-pointer flex flex-col items-center justify-center gap-3 ${
+              className={`border-2 border-dashed rounded-2xl p-7 md:p-9 text-center transition cursor-pointer flex flex-col items-center justify-center gap-3.5 ${
                 isDragging
-                  ? 'border-teal-500 bg-teal-500/10'
-                  : 'border-border/80 hover:border-teal-500/60 bg-muted/20 hover:bg-muted/40'
+                  ? 'border-teal-500 bg-teal-500/10 scale-[1.005]'
+                  : 'border-border/80 hover:border-teal-500/60 bg-card hover:bg-muted/30 shadow-xs'
               }`}
             >
               <input
@@ -857,161 +983,612 @@ export default function UploadTtbTab({
                 }}
               />
 
-              <div className="size-12 rounded-2xl bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center shadow-xs">
-                <UploadCloud className="size-6" />
+              <div className="size-14 rounded-2xl bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center shadow-xs">
+                <UploadCloud className="size-7" />
               </div>
 
-              <div className="space-y-1">
-                <p className="text-xs md:text-sm font-semibold text-foreground">
-                  Tarik berkas foto/scan ke sini, atau{' '}
-                  <span className="text-teal-600 dark:text-teal-400 underline underline-offset-2">
+              <div className="space-y-1.5 max-w-xl">
+                <p className="text-sm md:text-base font-bold text-foreground">
+                  Tarik &amp; lepas berkas dokumen scan PDF atau foto di sini, atau{' '}
+                  <span className="text-teal-600 dark:text-teal-400 underline underline-offset-4">
                     pilih dari komputer
                   </span>
                 </p>
-                <p className="text-[11px] text-muted-foreground">
-                  Mendukung foto JPG, JPEG, PNG, WebP dan dokumen scan PDF. Bisa pilih lebih dari 1 file sekaligus.
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Unggah beberapa file sekaligus dengan nomor TTB berbeda (misal 5 berkas sekaligus). Sistem secara otomatis membaca nomor TTB dari nama file (contoh:{' '}
+                  <code className="text-teal-600 dark:text-teal-400 font-mono font-semibold">CPL-TTB-26-00449.pdf</code> atau{' '}
+                  <code className="text-teal-600 dark:text-teal-400 font-mono font-semibold">04975.jpg</code>) dan mencocokkan armadanya.
                 </p>
               </div>
             </div>
 
-            {/* Preview Auto-Rename List */}
-            {queuedFiles.length > 0 && (
-              <div className="space-y-3 pt-2">
-                <div className="flex items-center justify-between text-xs font-semibold text-foreground">
-                  <span className="flex items-center gap-1.5">
-                    <Layers className="size-3.5 text-teal-600" />
-                    <span>Daftar Berkas &amp; Transformasi Nama Otomatis:</span>
-                  </span>
-                  <span className="text-[11px] font-mono text-muted-foreground">
-                    {queuedFiles.length} berkas siap diupload
-                  </span>
+            {/* Antrean Berkas Batch */}
+            {queuedFiles.length > 0 ? (
+              <div className="bg-card border border-border rounded-2xl p-5 md:p-6 space-y-4 shadow-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <Layers className="size-4 text-teal-600 dark:text-teal-400" />
+                      <h3 className="text-sm md:text-base font-bold text-foreground">
+                        Daftar Berkas Batch ({queuedFiles.length} berkas)
+                      </h3>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Periksa &amp; sesuaikan Nomor TTB serta Armada untuk masing-masing berkas di bawah sebelum diunggah.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleClearAllFiles}
+                    className="inline-flex items-center gap-1.5 text-xs text-rose-500 hover:text-rose-600 font-medium px-3 py-1.5 rounded-lg hover:bg-rose-500/10 transition cursor-pointer self-start sm:self-center"
+                  >
+                    <Trash2 className="size-3.5" />
+                    <span>Hapus Semua Antrean</span>
+                  </button>
                 </div>
 
-                <div className="space-y-2 max-h-80 overflow-y-auto no-scrollbar pr-1">
+                {/* List Berkas Batch */}
+                <div className="space-y-3">
                   {queuedFiles.map((qf, index) => {
-                    const newFilename = formatTtbFilename(
-                      noTtbInput,
-                      qf.file.name,
-                      index,
-                      queuedFiles.length
-                    );
+                    const cleanTtb = sanitizeTtbNumber(qf.noTtb);
+                    const targetPreviewName = qf.isPdf
+                      ? (cleanTtb ? `${cleanTtb}.pdf` : `[NO_TTB].pdf`)
+                      : (cleanTtb ? `${qf.armada ? `${qf.armada}_` : ''}${cleanTtb}.jpg` : `[NO_TTB].jpg`);
 
                     return (
                       <div
                         key={qf.id}
-                        className="bg-muted/30 border border-border rounded-xl p-3 flex items-center gap-3 transition hover:border-border"
+                        className="bg-muted/20 hover:bg-muted/40 border border-border rounded-xl p-3.5 md:p-4 transition space-y-3"
                       >
-                        {/* Thumbnail or Document Icon */}
-                        <div className="size-12 rounded-lg overflow-hidden bg-background border border-border flex items-center justify-center shrink-0">
-                          {qf.isImage && qf.previewUrl ? (
-                            <img
-                              src={qf.previewUrl}
-                              alt={qf.file.name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <FileText className="size-6 text-rose-500" />
-                          )}
-                        </div>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-border/60">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <span className="font-mono text-xs font-bold text-muted-foreground size-6 rounded-md bg-muted flex items-center justify-center shrink-0">
+                              #{index + 1}
+                            </span>
 
-                        {/* File Name Transformation Details */}
-                        <div className="min-w-0 flex-1 space-y-1">
-                          {/* Original Name */}
-                          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                            <span className="truncate max-w-[160px] md:max-w-[200px]" title={qf.file.name}>
-                              {qf.file.name}
-                            </span>
-                            <span className="shrink-0 font-mono text-[10px]">
-                              ({formatFileSize(qf.file.size)})
-                            </span>
-                          </div>
-
-                          {/* New Renamed File Target */}
-                          <div className="flex items-center gap-1.5">
-                            <ArrowRight className="size-3 text-teal-500 shrink-0" />
-                            <span className="font-mono font-bold text-xs text-teal-600 dark:text-teal-400 bg-teal-500/10 px-2 py-0.5 rounded border border-teal-500/20 truncate">
-                              {newFilename}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => handleCopyText(newFilename)}
-                              className="p-1 text-muted-foreground hover:text-foreground transition cursor-pointer"
-                              title="Salin Nama Baru"
-                            >
-                              {copiedFilename === newFilename ? (
-                                <Check className="size-3 text-teal-600" />
+                            {/* Thumbnail / PDF Icon */}
+                            <div className="size-10 rounded-lg overflow-hidden bg-background border border-border flex items-center justify-center shrink-0">
+                              {qf.isImage && qf.previewUrl ? (
+                                <img src={qf.previewUrl} alt={qf.file.name} className="w-full h-full object-cover" />
                               ) : (
-                                <Copy className="size-3" />
+                                <FileText className="size-5 text-rose-500" />
                               )}
-                            </button>
+                            </div>
+
+                            {/* Filename & size */}
+                            <div className="min-w-0">
+                              <div className="text-xs font-semibold text-foreground truncate max-w-xs md:max-w-md" title={qf.file.name}>
+                                {qf.file.name}
+                              </div>
+                              <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-mono">
+                                <span>{formatFileSize(qf.file.size)}</span>
+                                <span>&bull;</span>
+                                <span className={qf.isPdf ? 'text-rose-600 dark:text-rose-400 font-semibold' : 'text-blue-600 dark:text-blue-400 font-semibold'}>
+                                  {qf.isPdf ? 'Dokumen Scan PDF' : 'Foto Serah Terima'}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Status Badges & Delete */}
+                          <div className="flex items-center gap-2 shrink-0">
+                            {qf.isAutoMatched && qf.noTtb ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                                <Sparkles className="size-3 text-emerald-500" />
+                                Auto-Detect
+                              </span>
+                            ) : qf.noTtb ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20">
+                                Manual
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/20 animate-pulse">
+                                <AlertCircle className="size-3 text-rose-500" />
+                                TTB Belum Diisi
+                              </span>
+                            )}
+
                             <button
                               type="button"
-                              onClick={() => handleDownloadQueuedFile(qf, newFilename)}
-                              className="p-1 text-muted-foreground hover:text-teal-600 transition cursor-pointer"
-                              title="Unduh Berkas yang Sudah Di-rename"
+                              onClick={() => handleRemoveFile(qf.id)}
+                              className="p-1.5 rounded-lg text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition cursor-pointer"
+                              title="Hapus berkas ini dari antrean"
                             >
-                              <Download className="size-3" />
+                              <X className="size-4" />
                             </button>
                           </div>
                         </div>
 
-                        {/* Remove button */}
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveFile(qf.id)}
-                          className="p-1.5 rounded-lg text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition cursor-pointer shrink-0"
-                          title="Hapus berkas ini"
-                        >
-                          <X className="size-4" />
-                        </button>
+                        {/* Editable Fields Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+                          {/* No TTB Input */}
+                          <div className="md:col-span-5 space-y-1">
+                            <label className="text-[11px] font-semibold text-foreground flex items-center justify-between">
+                              <span>
+                                Nomor TTB Berkas Ini <span className="text-rose-500">*</span>
+                              </span>
+                              <span className="text-[10px] text-muted-foreground font-normal">Ketik atau pilih saran</span>
+                            </label>
+                            <input
+                              type="text"
+                              list="ttb-batch-suggestions"
+                              value={qf.noTtb}
+                              onChange={(e) => updateQueuedFile(qf.id, 'noTtb', e.target.value)}
+                              placeholder="Contoh: 04975 atau CPL-TTB 04975"
+                              className={`w-full px-3 py-2 text-xs rounded-xl bg-background border transition font-mono ${
+                                !qf.noTtb.trim()
+                                  ? 'border-rose-500 focus:ring-2 focus:ring-rose-500/20'
+                                  : 'border-border focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500'
+                              }`}
+                            />
+                          </div>
+
+                          {/* Armada Input */}
+                          <div className="md:col-span-4 space-y-1">
+                            <label className="text-[11px] font-semibold text-foreground flex items-center gap-1">
+                              <Ship className="size-3 text-muted-foreground" />
+                              <span>Armada / Departemen</span>
+                            </label>
+                            <input
+                              type="text"
+                              list="armada-batch-suggestions"
+                              value={qf.armada}
+                              onChange={(e) => updateQueuedFile(qf.id, 'armada', e.target.value)}
+                              placeholder="Contoh: SPOB SEA LION"
+                              className="w-full px-3 py-2 text-xs rounded-xl bg-background border border-border focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition"
+                            />
+                          </div>
+
+                          {/* Rename Output Target */}
+                          <div className="md:col-span-3 space-y-1">
+                            <span className="text-[11px] text-muted-foreground block font-medium">Output Cloudflare:</span>
+                            <div className="flex items-center gap-1.5 font-mono text-[11px] font-semibold text-teal-600 dark:text-teal-400 bg-teal-500/10 px-2.5 py-2 rounded-xl border border-teal-500/20 truncate">
+                              <ArrowRight className="size-3 shrink-0 text-teal-500" />
+                              <span className="truncate">{targetPreviewName}</span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     );
                   })}
                 </div>
+
+                {/* Shared Metadata & Catatan */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-border">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                      <Calendar className="size-3.5 text-muted-foreground" />
+                      <span>Tanggal Serah Terima (Serentak)</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={receivedDate}
+                      onChange={(e) => setReceivedDate(e.target.value)}
+                      className="w-full px-3 py-2 text-xs rounded-xl bg-background border border-border focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-foreground">Keterangan / Catatan Serah Terima (Opsional)</label>
+                    <input
+                      type="text"
+                      value={keteranganInput}
+                      onChange={(e) => setKeteranganInput(e.target.value)}
+                      placeholder="Catatan kondisi serah terima, nama penerima lapangan, dll."
+                      className="w-full px-3 py-2 text-xs rounded-xl bg-background border border-border focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition placeholder:text-muted-foreground/60"
+                    />
+                  </div>
+                </div>
+
+                {/* Batch Progress Bar during upload */}
+                {batchProgress && (
+                  <div className="bg-teal-500/10 border border-teal-500/30 rounded-xl p-4 space-y-2 animate-in fade-in-50">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-semibold text-teal-800 dark:text-teal-200 flex items-center gap-2">
+                        <RefreshCw className="size-3.5 animate-spin text-teal-600" />
+                        Mengunggah ke Cloudflare R2 ({batchProgress.current} dari {batchProgress.total} berkas)
+                      </span>
+                      <span className="font-mono font-bold text-teal-700 dark:text-teal-300">
+                        {Math.round((batchProgress.current / batchProgress.total) * 100)}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-teal-950/20 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="bg-teal-500 h-2 rounded-full transition-all duration-300 ease-out"
+                        style={{ width: `${(batchProgress.current / batchProgress.total) * 100}%` }}
+                      />
+                    </div>
+                    <p className="text-[11px] text-teal-700/80 dark:text-teal-300/80 font-mono truncate">
+                      Sedang memproses: {batchProgress.currentFileName}
+                    </p>
+                  </div>
+                )}
+
+                {/* Bottom Action Footer */}
+                <div className="pt-3 border-t border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="text-xs text-muted-foreground space-y-0.5">
+                    <div>
+                      Total: <strong className="text-foreground">{queuedFiles.length} berkas</strong> (
+                      {formatFileSize(queuedFiles.reduce((acc, f) => acc + f.file.size, 0))})
+                    </div>
+                    {queuedFiles.some((f) => !f.noTtb.trim()) && (
+                      <div className="text-rose-500 font-semibold text-[11px] flex items-center gap-1">
+                        <AlertCircle className="size-3" />
+                        <span>Ada {queuedFiles.filter((f) => !f.noTtb.trim()).length} berkas yang belum memiliki Nomor TTB.</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isUploading || queuedFiles.length === 0 || queuedFiles.some((f) => !f.noTtb.trim())}
+                    className={`px-6 py-2.5 rounded-xl text-xs md:text-sm font-semibold flex items-center justify-center gap-2 transition shadow-xs cursor-pointer ${
+                      isUploading || queuedFiles.length === 0 || queuedFiles.some((f) => !f.noTtb.trim())
+                        ? 'bg-muted text-muted-foreground cursor-not-allowed opacity-60'
+                        : 'bg-teal-600 hover:bg-teal-700 text-white active:scale-95 shadow-teal-600/20'
+                    }`}
+                  >
+                    {isUploading ? (
+                      <>
+                        <RefreshCw className="size-4 animate-spin" />
+                        <span>Menyimpan ke Cloudflare R2...</span>
+                      </>
+                    ) : (
+                      <>
+                        <UploadCloud className="size-4" />
+                        <span>
+                          Unggah Semua Berkas ({queuedFiles.length}) ke Cloudflare R2
+                        </span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="p-4 rounded-xl bg-muted/30 border border-border/60 text-center text-xs text-muted-foreground">
+                Belum ada berkas dalam antrean. Tarik dan lepas berkas di area atas untuk memulai upload Multi-TTB.
               </div>
             )}
+          </div>
+        ) : (
+          /* ========================================================================= */
+          /* MODE 2: SATU TTB (Single TTB - Semua Berkas Menggunakan 1 Nomor TTB)       */
+          /* ========================================================================= */
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Kolom Kiri: Metadata Form (5 Kolom) */}
+            <div className="lg:col-span-5 space-y-4">
+              <div className="bg-card border border-border rounded-2xl p-5 space-y-4 shadow-xs">
+                <div className="flex items-center gap-2 pb-3 border-b border-border">
+                  <FileText className="size-4 text-teal-600 dark:text-teal-400" />
+                  <h2 className="text-sm font-bold text-foreground">Data Identitas TTB</h2>
+                </div>
 
-            {/* Tombol Eksekusi Upload */}
-            <div className="pt-3 border-t border-border flex items-center justify-between gap-3">
-              <div className="text-[11px] text-muted-foreground">
-                {queuedFiles.length > 0 ? (
-                  <span>
-                    Total ukuran:{' '}
-                    <strong className="text-foreground">
-                      {formatFileSize(queuedFiles.reduce((acc, f) => acc + f.file.size, 0))}
-                    </strong>
-                  </span>
-                ) : (
-                  <span>Belum ada berkas dipilih</span>
-                )}
-              </div>
-
-              <button
-                type="submit"
-                disabled={isUploading || queuedFiles.length === 0 || !noTtbInput.trim()}
-                className={`px-5 py-2.5 rounded-xl text-xs md:text-sm font-semibold flex items-center gap-2 transition shadow-xs cursor-pointer ${
-                  isUploading || queuedFiles.length === 0 || !noTtbInput.trim()
-                    ? 'bg-muted text-muted-foreground cursor-not-allowed opacity-60'
-                    : 'bg-teal-600 hover:bg-teal-700 text-white active:scale-95 shadow-teal-600/20'
-                }`}
-              >
-                {isUploading ? (
-                  <>
-                    <RefreshCw className="size-4 animate-spin" />
-                    <span>Menyimpan ke Cloudflare R2...</span>
-                  </>
-                ) : (
-                  <>
-                    <UploadCloud className="size-4" />
+                {/* Field Nomor TTB dengan Autocomplete */}
+                <div className="space-y-1.5 relative" ref={autocompleteRef}>
+                  <label className="text-xs font-semibold text-foreground flex items-center justify-between">
                     <span>
-                      Unggah ke Cloudflare Storage ({queuedFiles.length || 0})
+                      Nomor TTB <span className="text-rose-500">*</span>
                     </span>
-                  </>
+                    <span className="text-[10px] text-muted-foreground font-normal">
+                      Ketik untuk saran otomatis
+                    </span>
+                  </label>
+
+                  <div className="relative">
+                    <input
+                      type="text"
+                      required
+                      value={noTtbInput}
+                      onChange={(e) => {
+                        setNoTtbInput(e.target.value);
+                        setIsAutocompleteOpen(true);
+                      }}
+                      onFocus={() => setIsAutocompleteOpen(true)}
+                      placeholder="Contoh: 04975 atau CPL-TTB 04975"
+                      className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 text-foreground transition placeholder:text-muted-foreground/60 font-mono"
+                    />
+                    {noTtbInput && (
+                      <button
+                        type="button"
+                        onClick={() => setNoTtbInput('')}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 text-muted-foreground hover:text-foreground"
+                      >
+                        <X className="size-3.5" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Autocomplete Dropdown */}
+                  {isAutocompleteOpen && filteredSuggestions.length > 0 && (
+                    <div className="absolute left-0 right-0 top-full mt-1.5 z-30 bg-popover border border-border rounded-xl shadow-lg overflow-hidden max-h-60 overflow-y-auto no-scrollbar">
+                      <div className="p-1.5 text-[10px] font-semibold text-muted-foreground bg-muted/50 border-b border-border flex items-center gap-1.5">
+                        <Sparkles className="size-3 text-teal-500" />
+                        <span>Ditemukan {filteredSuggestions.length} data TTB:</span>
+                      </div>
+                      {filteredSuggestions.map((sug, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => handleSelectSuggestion(sug)}
+                          className="w-full text-left px-3 py-2 text-xs hover:bg-muted/60 transition flex flex-col gap-0.5 border-b border-border/40 last:border-0 cursor-pointer"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-mono font-bold text-foreground">
+                              {sug.noTtb}
+                            </span>
+                            {sug.armada && (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-teal-500/10 text-teal-600 dark:text-teal-400 font-medium">
+                                {sug.armada}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-[10px] text-muted-foreground truncate">
+                            {sug.description || sug.noFpb || 'Data TTB Sistem'}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Field Armada / Peruntukan */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                    <Ship className="size-3.5 text-muted-foreground" />
+                    <span>Armada / Departemen (Opsional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={armadaInput}
+                    onChange={(e) => setArmadaInput(e.target.value)}
+                    placeholder="Contoh: SPOB SEA LION, WORKSHOP 01"
+                    className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 text-foreground transition placeholder:text-muted-foreground/60"
+                  />
+                </div>
+
+                {/* Field Tanggal Terima */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                    <Calendar className="size-3.5 text-muted-foreground" />
+                    <span>Tanggal Serah Terima</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={receivedDate}
+                    onChange={(e) => setReceivedDate(e.target.value)}
+                    className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 text-foreground transition"
+                  />
+                </div>
+
+                {/* Field Keterangan */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-foreground">Keterangan / Catatan Tambahan</label>
+                  <textarea
+                    rows={2}
+                    value={keteranganInput}
+                    onChange={(e) => setKeteranganInput(e.target.value)}
+                    placeholder="Catatan kondisi serah terima, nama penerima lapangan, dll."
+                    className="w-full p-3 text-xs rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 text-foreground transition placeholder:text-muted-foreground/60 resize-none"
+                  />
+                </div>
+
+                {/* Info Card Cloudflare Storage */}
+                <div className="p-3.5 rounded-xl bg-muted/60 border border-border text-[11px] space-y-1.5 text-muted-foreground">
+                  <div className="flex items-center gap-1.5 font-semibold text-foreground">
+                    <Database className="size-3.5 text-orange-500" />
+                    <span>Penyimpanan Berkas: Cloudflare Storage (R2)</span>
+                  </div>
+                  <div className="text-[10px] space-y-0.5 leading-relaxed">
+                    <div>&bull; <strong>ttb-documents/</strong>: Berkas dokumen scan PDF resmi</div>
+                    <div>&bull; <strong>ttb-photos/</strong>: Foto bukti fisik (langsung masuk ke Galeri Foto TTB)</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Kolom Kanan: Dropzone & File Auto-Rename Preview (7 Kolom) */}
+            <div className="lg:col-span-7 space-y-4">
+              <div className="bg-card border border-border rounded-2xl p-5 space-y-4 shadow-xs">
+                <div className="flex items-center justify-between pb-3 border-b border-border">
+                  <div className="flex items-center gap-2">
+                    <FolderUp className="size-4 text-teal-600 dark:text-teal-400" />
+                    <h2 className="text-sm font-bold text-foreground">Berkas Foto &amp; Scan Dokumen TTB</h2>
+                  </div>
+                  {queuedFiles.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleClearAllFiles}
+                      className="text-xs text-rose-500 hover:text-rose-600 font-medium transition cursor-pointer"
+                    >
+                      Hapus Semua ({queuedFiles.length})
+                    </button>
+                  )}
+                </div>
+
+                {/* Drag & Drop Area */}
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-2xl p-6 text-center transition cursor-pointer flex flex-col items-center justify-center gap-3 ${
+                    isDragging
+                      ? 'border-teal-500 bg-teal-500/10'
+                      : 'border-border/80 hover:border-teal-500/60 bg-muted/20 hover:bg-muted/40'
+                  }`}
+                >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    accept="image/*,application/pdf"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files.length > 0) {
+                        addFilesToQueue(e.target.files);
+                      }
+                      e.target.value = '';
+                    }}
+                  />
+
+                  <div className="size-12 rounded-2xl bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center shadow-xs">
+                    <UploadCloud className="size-6" />
+                  </div>
+
+                  <div className="space-y-1">
+                    <p className="text-xs md:text-sm font-semibold text-foreground">
+                      Tarik berkas foto/scan ke sini, atau{' '}
+                      <span className="text-teal-600 dark:text-teal-400 underline underline-offset-2">
+                        pilih dari komputer
+                      </span>
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">
+                      Mendukung foto JPG, JPEG, PNG, WebP dan dokumen scan PDF. Bisa pilih lebih dari 1 file sekaligus.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Preview Auto-Rename List */}
+                {queuedFiles.length > 0 && (
+                  <div className="space-y-3 pt-2">
+                    <div className="flex items-center justify-between text-xs font-semibold text-foreground">
+                      <span className="flex items-center gap-1.5">
+                        <Layers className="size-3.5 text-teal-600" />
+                        <span>Daftar Berkas &amp; Transformasi Nama Otomatis:</span>
+                      </span>
+                      <span className="text-[11px] font-mono text-muted-foreground">
+                        {queuedFiles.length} berkas siap diupload
+                      </span>
+                    </div>
+
+                    <div className="space-y-2 max-h-80 overflow-y-auto no-scrollbar pr-1">
+                      {queuedFiles.map((qf, index) => {
+                        const newFilename = formatTtbFilename(
+                          noTtbInput,
+                          qf.file.name,
+                          index,
+                          queuedFiles.length
+                        );
+
+                        return (
+                          <div
+                            key={qf.id}
+                            className="bg-muted/30 border border-border rounded-xl p-3 flex items-center gap-3 transition hover:border-border"
+                          >
+                            {/* Thumbnail or Document Icon */}
+                            <div className="size-12 rounded-lg overflow-hidden bg-background border border-border flex items-center justify-center shrink-0">
+                              {qf.isImage && qf.previewUrl ? (
+                                <img
+                                  src={qf.previewUrl}
+                                  alt={qf.file.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <FileText className="size-6 text-rose-500" />
+                              )}
+                            </div>
+
+                            {/* File Name Transformation Details */}
+                            <div className="min-w-0 flex-1 space-y-1">
+                              {/* Original Name */}
+                              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                                <span className="truncate max-w-[160px] md:max-w-[200px]" title={qf.file.name}>
+                                  {qf.file.name}
+                                </span>
+                                <span className="shrink-0 font-mono text-[10px]">
+                                  ({formatFileSize(qf.file.size)})
+                                </span>
+                              </div>
+
+                              {/* New Renamed File Target */}
+                              <div className="flex items-center gap-1.5">
+                                <ArrowRight className="size-3 text-teal-500 shrink-0" />
+                                <span className="font-mono font-bold text-xs text-teal-600 dark:text-teal-400 bg-teal-500/10 px-2 py-0.5 rounded border border-teal-500/20 truncate">
+                                  {newFilename}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleCopyText(newFilename)}
+                                  className="p-1 text-muted-foreground hover:text-foreground transition cursor-pointer"
+                                  title="Salin Nama Baru"
+                                >
+                                  {copiedFilename === newFilename ? (
+                                    <Check className="size-3 text-teal-600" />
+                                  ) : (
+                                    <Copy className="size-3" />
+                                  )}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDownloadQueuedFile(qf, newFilename)}
+                                  className="p-1 text-muted-foreground hover:text-teal-600 transition cursor-pointer"
+                                  title="Unduh Berkas yang Sudah Di-rename"
+                                >
+                                  <Download className="size-3" />
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Remove button */}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveFile(qf.id)}
+                              className="p-1.5 rounded-lg text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition cursor-pointer shrink-0"
+                              title="Hapus berkas ini"
+                            >
+                              <X className="size-4" />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 )}
-              </button>
+
+                {/* Tombol Eksekusi Upload */}
+                <div className="pt-3 border-t border-border flex items-center justify-between gap-3">
+                  <div className="text-[11px] text-muted-foreground">
+                    {queuedFiles.length > 0 ? (
+                      <span>
+                        Total ukuran:{' '}
+                        <strong className="text-foreground">
+                          {formatFileSize(queuedFiles.reduce((acc, f) => acc + f.file.size, 0))}
+                        </strong>
+                      </span>
+                    ) : (
+                      <span>Belum ada berkas dipilih</span>
+                    )}
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isUploading || queuedFiles.length === 0 || !noTtbInput.trim()}
+                    className={`px-5 py-2.5 rounded-xl text-xs md:text-sm font-semibold flex items-center gap-2 transition shadow-xs cursor-pointer ${
+                      isUploading || queuedFiles.length === 0 || !noTtbInput.trim()
+                        ? 'bg-muted text-muted-foreground cursor-not-allowed opacity-60'
+                        : 'bg-teal-600 hover:bg-teal-700 text-white active:scale-95 shadow-teal-600/20'
+                    }`}
+                  >
+                    {isUploading ? (
+                      <>
+                        <RefreshCw className="size-4 animate-spin" />
+                        <span>Menyimpan ke Cloudflare R2...</span>
+                      </>
+                    ) : (
+                      <>
+                        <UploadCloud className="size-4" />
+                        <span>
+                          Unggah ke Cloudflare Storage ({queuedFiles.length || 0})
+                        </span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </form>
 
       {/* 5. Tabel Riwayat Upload Dokumen TTB */}
