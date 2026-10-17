@@ -43,6 +43,107 @@ import {
 } from '@/types/serahTerima';
 import { useAuth } from '@/context/AuthContext';
 import TtbMediaModal from './TtbMediaModal';
+import { loadCrewData, StoredCrewData } from '@/utils/crewKapalStorage';
+import { CrewMasterItem, KapalRekapItem } from '@/types/crewKapal';
+
+/**
+ * Normalisasi nama kapal/armada untuk pencocokan toleran
+ */
+function normalizeShipNameForMatch(str: string): string {
+  if (!str) return '';
+  return str
+    .toUpperCase()
+    .replace(/\b(TK|OB|TB|SPOB|SV|MT|LCT|SP|BG|KM|KL|MV|CRANE BARGE|HOPPER BARGE|CREW BOAT)\b/g, '')
+    .replace(/PASIFIC/g, 'PASIFIK')
+    .replace(/PACIFIC/g, 'PASIFIK')
+    .replace(/TWIN\s*SISTER/g, 'TWINSISTER')
+    .replace(/[^A-Z0-9]/g, '');
+}
+
+/**
+ * Mencari daftar kru kapal berdasarkan nama armada dari TTB
+ */
+function findCrewByArmada(
+  armada: string,
+  masterCrew: CrewMasterItem[],
+  kapalRekap: KapalRekapItem[] = []
+): { crewList: CrewMasterItem[]; shipPhone?: string; matchedShipName?: string } {
+  if (!armada || armada === '-' || armada.toLowerCase() === 'null') {
+    return { crewList: [] };
+  }
+
+  const rawQ = armada.trim().toLowerCase();
+  const validCrew = masterCrew.filter(
+    (c) =>
+      c.namaPersonel &&
+      c.namaPersonel !== '-' &&
+      !c.statusSlot.toLowerCase().includes('lowong')
+  );
+
+  // 1. Exact match nama kapal
+  let matched = validCrew.filter((c) => c.namaKapal.toLowerCase() === rawQ);
+  let matchedShipName = matched[0]?.namaKapal;
+
+  // 2. Normalized exact match
+  if (matched.length === 0) {
+    const normQ = normalizeShipNameForMatch(armada);
+    if (normQ) {
+      matched = validCrew.filter(
+        (c) => normalizeShipNameForMatch(c.namaKapal) === normQ
+      );
+      matchedShipName = matched[0]?.namaKapal;
+    }
+  }
+
+  // 3. Slash split match (e.g. TB CPL 88 / GAJ 02)
+  if (matched.length === 0) {
+    const normQ = normalizeShipNameForMatch(armada);
+    if (normQ) {
+      matched = validCrew.filter((c) => {
+        const parts = c.namaKapal.split('/').map((p) => normalizeShipNameForMatch(p));
+        return parts.some((p) => p && (p === normQ || p.includes(normQ) || normQ.includes(p)));
+      });
+      matchedShipName = matched[0]?.namaKapal;
+    }
+  }
+
+  // 4. Substring match
+  if (matched.length === 0) {
+    const normQ = normalizeShipNameForMatch(armada);
+    if (normQ && normQ.length >= 3) {
+      matched = validCrew.filter((c) => {
+        const normC = normalizeShipNameForMatch(c.namaKapal);
+        return normC.includes(normQ) || normQ.includes(normC);
+      });
+      matchedShipName = matched[0]?.namaKapal;
+    }
+  }
+
+  // Cari no telepon kapal dari kapalRekap
+  let shipPhone: string | undefined;
+  if (matchedShipName) {
+    const k = kapalRekap.find(
+      (kr) => kr.namaKapal.toLowerCase() === matchedShipName?.toLowerCase()
+    );
+    if (k && k.noTelp && k.noTelp !== '-') {
+      shipPhone = k.noTelp;
+    }
+  } else {
+    const normQ = normalizeShipNameForMatch(armada);
+    const k = kapalRekap.find(
+      (kr) => normalizeShipNameForMatch(kr.namaKapal) === normQ
+    );
+    if (k && k.noTelp && k.noTelp !== '-') {
+      shipPhone = k.noTelp;
+      matchedShipName = k.namaKapal;
+    }
+  }
+
+  // Urutkan kru berdasarkan noKru (hierarki perwira -> AB/Oiler)
+  matched.sort((a, b) => (a.noKru || 99) - (b.noKru || 99));
+
+  return { crewList: matched, shipPhone, matchedShipName };
+}
 
 interface SerahTerimaLapanganTabProps {
   procurementItems?: ProcurementItem[];
@@ -101,6 +202,20 @@ export default function SerahTerimaLapanganTab({
   });
   const [penerimaNama, setPenerimaNama] = useState<string>('');
   const [kontakPenerima, setKontakPenerima] = useState<string>('');
+
+  // Data Crew & Armada dari modul Crew & Armada
+  const [crewData, setCrewData] = useState<StoredCrewData>(() => loadCrewData());
+  const [selectedCrewId, setSelectedCrewId] = useState<number | 'MANUAL' | ''>('');
+  const [isManualPenerima, setIsManualPenerima] = useState<boolean>(false);
+
+  // Sinkronisasi jika data crew di-update di modul Crew & Armada
+  useEffect(() => {
+    const handleCrewChange = () => {
+      setCrewData(loadCrewData());
+    };
+    window.addEventListener('cpg_crew_data_changed', handleCrewChange);
+    return () => window.removeEventListener('cpg_crew_data_changed', handleCrewChange);
+  }, []);
   const [waktuSerahTerima, setWaktuSerahTerima] = useState<string>(() => {
     const d = new Date();
     const yyyy = d.getFullYear();
@@ -217,6 +332,59 @@ export default function SerahTerimaLapanganTab({
       .slice(0, 15);
   }, [ttbReferenceCatalog, ttbSearchTerm]);
 
+  // Nama armada aktif saat ini (dari TTB referensi yang dipilih atau input manual)
+  const currentArmada = isManualTtb ? manualArmada : (selectedTtbRef?.armada || '');
+
+  // Otomatis deteksi daftar kru & kontak kapal berdasarkan armada aktif
+  const { crewList: matchedCrewList, shipPhone: matchedShipPhone, matchedShipName } = useMemo(() => {
+    return findCrewByArmada(currentArmada, crewData.masterCrew, crewData.kapalRekap);
+  }, [currentArmada, crewData.masterCrew, crewData.kapalRekap]);
+
+  // Otomatis isi penerima dan no telp saat armada dari TTB terdeteksi
+  useEffect(() => {
+    if (!currentArmada || currentArmada === '-' || currentArmada.toLowerCase() === 'null') {
+      setSelectedCrewId('');
+      setIsManualPenerima(false);
+      return;
+    }
+
+    if (matchedCrewList.length > 0) {
+      // Otomatis pilih perwira/kru teratas (misal Nakhoda / Barge Master / Mualim)
+      const topCrew = matchedCrewList[0];
+      setSelectedCrewId(topCrew.id);
+      setIsManualPenerima(false);
+      setPenerimaNama(`${topCrew.namaPersonel} (${topCrew.jabatan})`);
+      const phone = topCrew.noHp && topCrew.noHp !== '-' ? topCrew.noHp : (matchedShipPhone || '');
+      setKontakPenerima(phone);
+    } else {
+      setSelectedCrewId('MANUAL');
+      setIsManualPenerima(true);
+      if (matchedShipPhone) {
+        setKontakPenerima(matchedShipPhone);
+      }
+    }
+  }, [currentArmada, matchedCrewList, matchedShipPhone]);
+
+  const handleSelectCrew = (crewIdOrManual: string) => {
+    if (crewIdOrManual === 'MANUAL') {
+      setSelectedCrewId('MANUAL');
+      setIsManualPenerima(true);
+      setPenerimaNama('');
+      setKontakPenerima(matchedShipPhone || '');
+      return;
+    }
+
+    const idNum = Number(crewIdOrManual);
+    const found = matchedCrewList.find((c) => c.id === idNum);
+    if (found) {
+      setSelectedCrewId(found.id);
+      setIsManualPenerima(false);
+      setPenerimaNama(`${found.namaPersonel} (${found.jabatan})`);
+      const phone = found.noHp && found.noHp !== '-' ? found.noHp : (matchedShipPhone || '');
+      setKontakPenerima(phone);
+    }
+  };
+
   // Fetch riwayat serah terima dari API
   const fetchHistory = async () => {
     setIsLoadingHistory(true);
@@ -314,6 +482,8 @@ export default function SerahTerimaLapanganTab({
     setManualItemSummary('');
     setPenerimaNama('');
     setKontakPenerima('');
+    setSelectedCrewId('');
+    setIsManualPenerima(false);
     setCatatan('');
     setKondisi('LENGKAP_BAIK');
     setUploadProgressMsg('');
@@ -784,33 +954,123 @@ export default function SerahTerimaLapanganTab({
                 />
               </div>
 
+              {/* Kolom Penerima Barang (End User) - Otomatis Dropdown Kru & Manual */}
               <div>
-                <label className="text-xs font-semibold text-foreground flex items-center gap-1.5 mb-1.5">
-                  <User className="size-3.5 text-emerald-500" />
-                  <span>Penerima Barang (End User) *</span>
+                <label className="text-xs font-semibold text-foreground flex items-center justify-between mb-1.5">
+                  <span className="flex items-center gap-1.5">
+                    <User className="size-3.5 text-emerald-500" />
+                    <span>Penerima Barang (End User) *</span>
+                  </span>
+                  {matchedCrewList.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (isManualPenerima) {
+                          setIsManualPenerima(false);
+                          if (matchedCrewList[0]) handleSelectCrew(String(matchedCrewList[0].id));
+                        } else {
+                          setIsManualPenerima(true);
+                          setSelectedCrewId('MANUAL');
+                        }
+                      }}
+                      className="text-[10px] font-semibold text-cyan-600 dark:text-cyan-400 hover:underline cursor-pointer"
+                    >
+                      {isManualPenerima ? `← Pilih dari Kru (${matchedCrewList.length})` : 'Ketik Manual'}
+                    </button>
+                  )}
                 </label>
-                <input
-                  type="text"
-                  required
-                  value={penerimaNama}
-                  onChange={(e) => setPenerimaNama(e.target.value)}
-                  placeholder="Contoh: Mualim 1 Budi / Chief Eng. Anton"
-                  className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-background border border-border focus:ring-2 focus:ring-emerald-500"
-                />
+
+                {matchedCrewList.length > 0 && !isManualPenerima ? (
+                  <div className="space-y-1.5">
+                    <select
+                      value={selectedCrewId}
+                      onChange={(e) => handleSelectCrew(e.target.value)}
+                      className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-background border border-border focus:ring-2 focus:ring-emerald-500 font-medium text-foreground cursor-pointer"
+                    >
+                      <option value="" disabled>-- Pilih Kru Penerima ({matchedCrewList.length} Personel) --</option>
+                      {matchedCrewList.map((crew) => (
+                        <option key={crew.id} value={crew.id}>
+                          {crew.jabatan} - {crew.namaPersonel} {crew.noHp && crew.noHp !== '-' ? `(WA: ${crew.noHp})` : ''}
+                        </option>
+                      ))}
+                      <option value="MANUAL">✏️ Input Manual (Nama di Luar Daftar Kru)</option>
+                    </select>
+
+                    <div className="flex items-center justify-between text-[10px] text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20 font-medium">
+                      <span className="flex items-center gap-1 truncate">
+                        <CheckCircle2 className="size-3 text-emerald-500 shrink-0" />
+                        <span>Kru Terverifikasi: <strong>{matchedShipName || currentArmada}</strong></span>
+                      </span>
+                      <span className="text-muted-foreground font-mono text-[9px] shrink-0">
+                        {matchedCrewList.find((c) => c.id === selectedCrewId)?.departemen || 'Deck/Engine'}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    <input
+                      type="text"
+                      required
+                      value={penerimaNama}
+                      onChange={(e) => setPenerimaNama(e.target.value)}
+                      placeholder={matchedCrewList.length > 0 ? "Ketik nama penerima..." : "Contoh: Mualim 1 Budi / Chief Eng. Anton"}
+                      className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-background border border-border focus:ring-2 focus:ring-emerald-500"
+                    />
+                    {matchedCrewList.length === 0 && currentArmada && currentArmada !== '-' && (
+                      <p className="text-[10px] text-muted-foreground italic">
+                        Tidak ada kru di modul Crew &amp; Armada untuk {currentArmada} (ketik manual).
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
 
+              {/* Kolom No. Telp / WA Penerima - Otomatis terisi & dapat diedit */}
               <div>
-                <label className="text-xs font-semibold text-foreground flex items-center gap-1.5 mb-1.5">
-                  <Phone className="size-3.5 text-indigo-500" />
-                  <span>No. Telp / WA Penerima (Opsional)</span>
+                <label className="text-xs font-semibold text-foreground flex items-center justify-between mb-1.5">
+                  <span className="flex items-center gap-1.5">
+                    <Phone className="size-3.5 text-indigo-500" />
+                    <span>No. Telp / WA Penerima</span>
+                  </span>
+                  {kontakPenerima && (
+                    <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-0.5">
+                      <Sparkles className="size-2.5" />
+                      <span>Otomatis</span>
+                    </span>
+                  )}
                 </label>
-                <input
-                  type="tel"
-                  value={kontakPenerima}
-                  onChange={(e) => setKontakPenerima(e.target.value)}
-                  placeholder="Contoh: 0812-3456-7890"
-                  className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-background border border-border focus:ring-2 focus:ring-indigo-500"
-                />
+                <div className="relative">
+                  <input
+                    type="tel"
+                    value={kontakPenerima}
+                    onChange={(e) => setKontakPenerima(e.target.value)}
+                    placeholder="Contoh: 0812-3456-7890"
+                    className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-background border border-border focus:ring-2 focus:ring-indigo-500 font-mono"
+                  />
+                  {kontakPenerima && (
+                    <button
+                      type="button"
+                      onClick={() => setKontakPenerima('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5"
+                      title="Hapus no telp"
+                    >
+                      <X className="size-3" />
+                    </button>
+                  )}
+                </div>
+                {matchedShipPhone && kontakPenerima !== matchedShipPhone && (
+                  <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1">
+                    <span>No. Telp Kapal:</span>
+                    <button
+                      type="button"
+                      onClick={() => setKontakPenerima(matchedShipPhone)}
+                      className="text-indigo-600 dark:text-indigo-400 font-mono underline cursor-pointer"
+                      title="Gunakan no telp kapal ini"
+                    >
+                      {matchedShipPhone}
+                    </button>
+                  </p>
+                )}
               </div>
 
               <div>
