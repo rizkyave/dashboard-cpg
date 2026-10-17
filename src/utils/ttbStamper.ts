@@ -39,6 +39,26 @@ export const DEFAULT_TTB_COORDINATES = {
 };
 
 /**
+ * Rasio koordinat untuk kolom Penerima Barang (Received By : User)
+ * Pada formulir TTB resmi CPG (CPL-PRC-SOP-004-F02)
+ */
+export const TTB_RECIPIENT_COORDINATES = {
+  // Kotak Tanda Tangan (Received By : User)
+  sigXRatio: 0.312,
+  sigYRatio: 0.235,
+  sigWidthRatio: 0.141,
+  sigHeightRatio: 0.088,
+
+  // Kotak Teks Nama (Name : [NAMA PENERIMA AKHIR])
+  nameXRatio: 0.378,
+  nameYRatio: 0.155,
+
+  // Kotak Teks Tanggal (Date : [DD/MM/YYYY])
+  dateXRatio: 0.378,
+  dateYRatio: 0.115,
+};
+
+/**
  * Format tanggal Indonesia ringkas (DD/MM/YYYY)
  */
 export function formatTtbStampDate(dateInput?: string | Date): string {
@@ -161,6 +181,128 @@ export async function stampTtbPdf(options: StampTtbOptions): Promise<Buffer> {
     }
   } catch (textErr) {
     console.warn('Gagal menulis teks nama/tanggal ke PDF:', textErr);
+  }
+
+  const modifiedBytes = await pdfDoc.save();
+  return Buffer.from(modifiedBytes);
+}
+
+export interface StampTtbRecipientOptions {
+  pdfBuffer: Buffer | Uint8Array;
+  recipientSignatureDataUrl?: string; // PNG or JPEG base64 Data URL
+  recipientName: string;
+  receiptDate: string;
+  customCoordinates?: {
+    sigXRatio?: number;
+    sigYRatio?: number;
+    sigWidthRatio?: number;
+    sigHeightRatio?: number;
+    nameXRatio?: number;
+    nameYRatio?: number;
+    dateXRatio?: number;
+    dateYRatio?: number;
+  };
+}
+
+/**
+ * Stempel Tanda Tangan Digital, Nama, dan Tanggal Penerima Barang (Received By : User)
+ * Pada Dokumen PDF TTB Resmi
+ */
+export async function stampTtbRecipientPdf(options: StampTtbRecipientOptions): Promise<Buffer> {
+  const {
+    pdfBuffer,
+    recipientSignatureDataUrl,
+    recipientName,
+    receiptDate,
+    customCoordinates = {},
+  } = options;
+
+  const pdfDoc = await PDFDocument.load(pdfBuffer);
+  const pages = pdfDoc.getPages();
+  if (pages.length === 0) {
+    throw new Error('Dokumen PDF tidak memiliki halaman.');
+  }
+
+  const firstPage = pages[0];
+  const { width: pageWidth, height: pageHeight } = firstPage.getSize();
+
+  const coords = {
+    ...TTB_RECIPIENT_COORDINATES,
+    ...customCoordinates,
+  };
+
+  // 1. Sematkan Gambar Tanda Tangan Digital Penerima Akhir
+  if (recipientSignatureDataUrl && recipientSignatureDataUrl.startsWith('data:image/')) {
+    try {
+      const isPng = recipientSignatureDataUrl.startsWith('data:image/png');
+      const isJpg =
+        recipientSignatureDataUrl.startsWith('data:image/jpeg') ||
+        recipientSignatureDataUrl.startsWith('data:image/jpg');
+
+      const base64Index = recipientSignatureDataUrl.indexOf('base64,');
+      if (base64Index !== -1 && (isPng || isJpg)) {
+        const base64Data = recipientSignatureDataUrl.substring(base64Index + 7);
+        const imageBytes = Buffer.from(base64Data, 'base64');
+
+        const embeddedImage = isPng
+          ? await pdfDoc.embedPng(imageBytes)
+          : await pdfDoc.embedJpg(imageBytes);
+
+        const sigX = coords.sigXRatio * pageWidth;
+        const sigY = coords.sigYRatio * pageHeight;
+        const sigW = coords.sigWidthRatio * pageWidth;
+        const sigH = coords.sigHeightRatio * pageHeight;
+
+        firstPage.drawImage(embeddedImage, {
+          x: sigX,
+          y: sigY,
+          width: sigW,
+          height: sigH,
+        });
+      }
+    } catch (sigErr) {
+      console.warn('Gagal menyematkan tanda tangan penerima ke PDF:', sigErr);
+    }
+  }
+
+  // 2. Sematkan Teks Nama Lengkap Penerima dan Tanggal Serah Terima
+  try {
+    const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    const fontNorm = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+    const fontSize = Math.max(6.5, Math.min(9.5, pageHeight * 0.019));
+
+    // Nama Penerima Barang
+    if (recipientName && recipientName.trim()) {
+      const cleanName = recipientName.trim().toUpperCase();
+      const nameX = coords.nameXRatio * pageWidth;
+      const nameY = coords.nameYRatio * pageHeight;
+
+      firstPage.drawText(cleanName, {
+        x: nameX,
+        y: nameY,
+        size: fontSize,
+        font: fontBold,
+        color: rgb(0, 0, 0),
+      });
+    }
+
+    // Tanggal Penerimaan
+    if (receiptDate && receiptDate.trim()) {
+      const cleanDate = receiptDate.trim();
+      const dateX = coords.dateXRatio * pageWidth;
+      const dateY = coords.dateYRatio * pageHeight;
+
+      firstPage.drawText(cleanDate, {
+        x: dateX,
+        y: dateY,
+        size: fontSize,
+        font: fontNorm,
+        color: rgb(0, 0, 0),
+      });
+    }
+  } catch (textErr) {
+    console.warn('Gagal menulis teks penerima ke PDF:', textErr);
   }
 
   const modifiedBytes = await pdfDoc.save();

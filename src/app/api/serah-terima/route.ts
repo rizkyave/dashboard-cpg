@@ -12,6 +12,8 @@ import { getPhotosDir } from '@/utils/ttbPhotosDir';
 import { extractTakenAt, parseNoTtb, extractTtbFromFilename } from '@/utils/ttbPhotoMatch';
 import { sanitizeTtbNumber } from '@/utils/ttbRename';
 import { SerahTerimaItem, SerahTerimaResponse, SerahTerimaPhoto, KondisiSerahTerima } from '@/types/serahTerima';
+import { UploadedTtbItem } from '@/types/ttbUpload';
+import { stampTtbRecipientPdf, formatTtbStampDate } from '@/utils/ttbStamper';
 import rawManifest from '@/data/ttb-photos-manifest.json';
 
 export const runtime = 'nodejs';
@@ -20,6 +22,7 @@ export const dynamic = 'force-dynamic';
 const IMAGE_EXT = /\.(jpe?g|png|webp|gif)$/i;
 const R2_METADATA_HISTORY_KEY = 'ttb-metadata/serah-terima-history.json';
 const LOCAL_HISTORY_PATH = path.join(process.cwd(), 'src', 'data', 'serah-terima-history.json');
+const TTB_HISTORY_FILE_PATH = path.join(process.cwd(), 'src', 'data', 'ttb-uploads-history.json');
 const MANIFEST_PATH = path.join(process.cwd(), 'src', 'data', 'ttb-photos-manifest.json');
 
 let photoManifest: Record<string, string> = { ...(rawManifest as Record<string, string>) };
@@ -138,6 +141,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<SerahTerimaRe
     const tanggalSerahTerima = ((formData.get('tanggalSerahTerima') as string) || '').trim();
     const kondisi = (((formData.get('kondisi') as string) || 'LENGKAP_BAIK') as KondisiSerahTerima);
     const catatan = ((formData.get('catatan') as string) || '').trim();
+    const penerimaSignature = ((formData.get('penerimaSignature') as string) || '').trim();
 
     if (!noTtbRaw) {
       return NextResponse.json(
@@ -273,6 +277,113 @@ export async function POST(req: NextRequest): Promise<NextResponse<SerahTerimaRe
       // Non-fatal
     }
 
+    // Auto-Stamp tanda tangan digital penerima ke dokumen TTB resmi (kolom Received By : User)
+    let isTtbStamped = false;
+    let ttbDocUrl: string | undefined = undefined;
+
+    if (penerimaSignature) {
+      try {
+        let ttbHistory: UploadedTtbItem[] = [];
+        try {
+          const rawHistory = await fs.readFile(TTB_HISTORY_FILE_PATH, 'utf8');
+          ttbHistory = JSON.parse(rawHistory);
+        } catch {
+          ttbHistory = [];
+        }
+
+        const cleanSearch = sanitizeTtbNumber(cleanTtb);
+        const matchedTtbIndex = ttbHistory.findIndex(
+          (t) =>
+            sanitizeTtbNumber(t.noTtb) === cleanSearch ||
+            (cleanSearch.length >= 4 && sanitizeTtbNumber(t.noTtb).includes(cleanSearch))
+        );
+
+        const ttbItem = matchedTtbIndex !== -1 ? ttbHistory[matchedTtbIndex] : null;
+        let pdfBuffer: Buffer | null = null;
+        let targetKey = ttbItem?.r2Key;
+        const targetFileName = ttbItem?.renamedFileName || `${cleanSearch}.pdf`;
+
+        // 1. Coba baca dari berkas lokal
+        const localCandidatePath = path.join(targetPhotosDir, targetFileName);
+        const fallbackPublicPath = path.join(process.cwd(), 'src', 'app', 'public', 'photos_TTB', targetFileName);
+
+        try {
+          pdfBuffer = await fs.readFile(localCandidatePath);
+        } catch {
+          try {
+            pdfBuffer = await fs.readFile(fallbackPublicPath);
+          } catch {
+            // Coba ambil dari Cloudflare R2 jika belum ada di lokal
+            if (isR2Active) {
+              const r2KeyToTry = targetKey || `ttb-documents/${targetFileName}`;
+              try {
+                const r2Obj = await getObjectFromR2(r2KeyToTry);
+                if (r2Obj && r2Obj.body) {
+                  pdfBuffer = Buffer.from(r2Obj.body);
+                  targetKey = r2KeyToTry;
+                }
+              } catch (r2Err) {
+                console.warn('Gagal membaca PDF TTB dari R2:', r2Err);
+              }
+            }
+          }
+        }
+
+        if (pdfBuffer && pdfBuffer.length > 0) {
+          const stampedPdfBuffer = await stampTtbRecipientPdf({
+            pdfBuffer,
+            recipientSignatureDataUrl: penerimaSignature,
+            recipientName: penerima,
+            receiptDate: formatTtbStampDate(tanggalSerahTerima),
+          });
+
+          // Simpan kembali ke Cloudflare R2
+          if (isR2Active) {
+            const finalKey = targetKey || `ttb-documents/${targetFileName}`;
+            const uploadRes = await uploadToR2({
+              key: finalKey,
+              body: stampedPdfBuffer,
+              contentType: 'application/pdf',
+              metadata: {
+                noTtb: cleanTtb,
+                recipientName: penerima,
+                isRecipientStamped: 'true',
+              },
+            });
+            ttbDocUrl = uploadRes.url;
+          }
+
+          // Simpan ke lokal
+          try {
+            await fs.writeFile(localCandidatePath, stampedPdfBuffer);
+          } catch {
+            // Non-fatal
+          }
+
+          isTtbStamped = true;
+
+          // Update data di ttb-uploads-history.json
+          if (matchedTtbIndex !== -1 && ttbItem) {
+            ttbHistory[matchedTtbIndex] = {
+              ...ttbItem,
+              fileSize: stampedPdfBuffer.length,
+              isRecipientStamped: true,
+              recipientName: penerima,
+              recipientSignatureDataUrl: penerimaSignature,
+              recipientStampedAt: new Date().toISOString(),
+            };
+            try {
+              await fs.writeFile(TTB_HISTORY_FILE_PATH, JSON.stringify(ttbHistory, null, 2), 'utf8');
+            } catch {
+              // Non-fatal
+            }
+          }
+        }
+      } catch (stampErr) {
+        console.warn('Gagal membubuhkan tanda tangan penerima ke dokumen TTB:', stampErr);
+      }
+    }
+
     // Susun rekaman data Serah Terima Lapangan
     const newRecord: SerahTerimaItem = {
       id: `str-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -290,6 +401,9 @@ export async function POST(req: NextRequest): Promise<NextResponse<SerahTerimaRe
       kondisi,
       catatan: catatan || undefined,
       photos: uploadedPhotos,
+      penerimaSignature: penerimaSignature || undefined,
+      isTtbDocumentStamped: isTtbStamped || undefined,
+      ttbDocumentUrl: ttbDocUrl || undefined,
       storageProvider: isR2Active ? 'CLOUDFLARE_R2' : 'LOCAL',
       createdAt: new Date().toISOString(),
     };
@@ -300,7 +414,9 @@ export async function POST(req: NextRequest): Promise<NextResponse<SerahTerimaRe
 
     return NextResponse.json({
       success: true,
-      message: `Bukti serah terima TTB ${cleanTtb} berhasil disimpan dan disinkronkan ke Cloudflare R2!`,
+      message: isTtbStamped
+        ? `Sukses! Bukti serah terima tersimpan & dokumen resmi TTB ${cleanTtb} telah otomatis dibubuhi tanda tangan digital penerima!`
+        : `Bukti serah terima TTB ${cleanTtb} berhasil disimpan dan disinkronkan ke Cloudflare R2!`,
       record: newRecord,
       isR2Active,
     });

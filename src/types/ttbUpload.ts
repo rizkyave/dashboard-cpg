@@ -23,6 +23,11 @@ export interface UploadedTtbItem {
   uploaderJabatan?: string;
   isAutoStamped?: boolean;
   stampedAt?: string;
+  // Identitas & Tanda Tangan Penerima Akhir (Received By)
+  isRecipientStamped?: boolean;
+  recipientName?: string;
+  recipientSignatureDataUrl?: string;
+  recipientStampedAt?: string;
   // Legacy fields untuk kompatibilitas data riwayat lama
   driveFolderUrl?: string;
   driveFileId?: string;

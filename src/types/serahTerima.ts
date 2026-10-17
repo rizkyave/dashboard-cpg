@@ -23,6 +23,9 @@ export interface SerahTerimaItem {
   kondisi: KondisiSerahTerima;
   catatan?: string;
   photos: SerahTerimaPhoto[];
+  penerimaSignature?: string; // Digital signature evidence base64 Data URL
+  isTtbDocumentStamped?: boolean; // Status apakah dokumen PDF TTB resmi telah dibubuhi TTD penerima
+  ttbDocumentUrl?: string; // URL dokumen PDF TTB resmi yang telah ditandatangani
   storageProvider: 'CLOUDFLARE_R2' | 'LOCAL';
   createdAt: string;
 }

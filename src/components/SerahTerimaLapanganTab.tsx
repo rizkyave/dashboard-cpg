@@ -32,6 +32,10 @@ import {
   Maximize2,
   ChevronRight,
   Filter,
+  FileSignature,
+  PenTool,
+  RotateCcw,
+  Upload,
 } from 'lucide-react';
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
 import { SisaLayananItem } from '@/types/sisaLayanan';
@@ -237,6 +241,127 @@ export default function SerahTerimaLapanganTab({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [uploadProgressMsg, setUploadProgressMsg] = useState<string>('');
   const [lastSubmittedRecord, setLastSubmittedRecord] = useState<SerahTerimaItem | null>(null);
+
+  // --- DIGITAL SIGNATURE EVIDENCE STATE (PENERIMA AKHIR) ---
+  const sigCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [isDrawingSig, setIsDrawingSig] = useState<boolean>(false);
+  const [hasDrawnSig, setHasDrawnSig] = useState<boolean>(false);
+  const [sigDataUrl, setSigDataUrl] = useState<string>('');
+  const sigFileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const getCanvasCoordinates = (
+    e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>
+  ) => {
+    const canvas = sigCanvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    let clientX = 0;
+    let clientY = 0;
+    if ('touches' in e && e.touches && e.touches[0]) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else if ('clientX' in e) {
+      clientX = (e as React.MouseEvent<HTMLCanvasElement>).clientX;
+      clientY = (e as React.MouseEvent<HTMLCanvasElement>).clientY;
+    }
+
+    return {
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY,
+    };
+  };
+
+  const startDrawingSig = (
+    e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>
+  ) => {
+    e.preventDefault();
+    const canvas = sigCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const { x, y } = getCanvasCoordinates(e);
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    setIsDrawingSig(true);
+  };
+
+  const drawSig = (
+    e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>
+  ) => {
+    if (!isDrawingSig) return;
+    e.preventDefault();
+    const canvas = sigCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const { x, y } = getCanvasCoordinates(e);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    setHasDrawnSig(true);
+  };
+
+  const stopDrawingSig = () => {
+    if (!isDrawingSig) return;
+    const canvas = sigCanvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      if (ctx) ctx.closePath();
+      setSigDataUrl(canvas.toDataURL('image/png'));
+    }
+    setIsDrawingSig(false);
+  };
+
+  const clearSig = () => {
+    const canvas = sigCanvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    setHasDrawnSig(false);
+    setSigDataUrl('');
+  };
+
+  const handleSigFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      showToast?.('Format file tidak didukung. Harap pilih gambar PNG/JPG.', 'warning');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const result = evt.target?.result as string;
+      if (result) {
+        setSigDataUrl(result);
+        setHasDrawnSig(true);
+
+        // Render ke canvas jika ada
+        const canvas = sigCanvasRef.current;
+        if (canvas) {
+          const img = new Image();
+          img.onload = () => {
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            }
+          };
+          img.src = result;
+        }
+      }
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
 
   // --- HISTORY STATE ---
   const [historyRecords, setHistoryRecords] = useState<SerahTerimaItem[]>([]);
@@ -487,6 +612,7 @@ export default function SerahTerimaLapanganTab({
     setCatatan('');
     setKondisi('LENGKAP_BAIK');
     setUploadProgressMsg('');
+    clearSig();
   };
 
   // Submit Penyerahan Lapangan
@@ -530,6 +656,14 @@ export default function SerahTerimaLapanganTab({
       formData.append('tanggalSerahTerima', waktuSerahTerima.replace('T', ' '));
       formData.append('kondisi', kondisi);
       if (catatan.trim()) formData.append('catatan', catatan.trim());
+
+      let finalSig = sigDataUrl;
+      if (hasDrawnSig && sigCanvasRef.current) {
+        finalSig = sigCanvasRef.current.toDataURL('image/png');
+      }
+      if (finalSig) {
+        formData.append('penerimaSignature', finalSig);
+      }
 
       queuedPhotos.forEach((p) => {
         formData.append('photos', p.file);
@@ -1088,6 +1222,114 @@ export default function SerahTerimaLapanganTab({
               </div>
             </div>
 
+            {/* EVIDENCE DIGITAL SIGNATURE PENERIMA AKHIR (Received By : User) */}
+            <div className="pt-2">
+              <div className="p-4 rounded-xl border border-indigo-500/30 bg-gradient-to-br from-indigo-50/50 via-background to-blue-50/30 dark:from-indigo-950/20 dark:via-background dark:to-blue-950/10 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                      <FileSignature className="size-4" />
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                        <span>Bukti Tanda Terima (Digital Signature Penerima Akhir)</span>
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                          Auto-Stamp TTB
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">
+                        Tanda tangan digital penerima barang akan otomatis dibubuhkan ke dokumen PDF TTB resmi pada kolom <strong className="text-foreground">"Received By : User"</strong>.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 self-end sm:self-auto">
+                    <input
+                      ref={sigFileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleSigFileUpload}
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => sigFileInputRef.current?.click()}
+                      className="px-2.5 py-1 text-[11px] font-medium rounded-lg border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground flex items-center gap-1 transition cursor-pointer"
+                      title="Upload file gambar tanda tangan (PNG/JPG)"
+                    >
+                      <Upload className="size-3" />
+                      <span>Upload TTD</span>
+                    </button>
+                    {(hasDrawnSig || sigDataUrl) && (
+                      <button
+                        type="button"
+                        onClick={clearSig}
+                        className="px-2.5 py-1 text-[11px] font-medium rounded-lg border border-rose-200 dark:border-rose-900/40 bg-rose-50/60 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/50 flex items-center gap-1 transition cursor-pointer"
+                        title="Hapus tanda tangan"
+                      >
+                        <RotateCcw className="size-3" />
+                        <span>Hapus</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Canvas Signature Pad */}
+                <div className="relative border-2 border-dashed border-indigo-200 dark:border-indigo-900/60 rounded-xl bg-white dark:bg-slate-950 overflow-hidden shadow-inner">
+                  <canvas
+                    ref={sigCanvasRef}
+                    width={500}
+                    height={150}
+                    onMouseDown={startDrawingSig}
+                    onMouseMove={drawSig}
+                    onMouseUp={stopDrawingSig}
+                    onMouseLeave={stopDrawingSig}
+                    onTouchStart={startDrawingSig}
+                    onTouchMove={drawSig}
+                    onTouchEnd={stopDrawingSig}
+                    className="w-full h-32 sm:h-36 block touch-none cursor-crosshair bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] dark:bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:12px_12px]"
+                  />
+                  {!hasDrawnSig && !sigDataUrl && (
+                    <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center text-muted-foreground/60 gap-1.5 p-4 select-none">
+                      <PenTool className="size-5 stroke-[1.5]" />
+                      <p className="text-xs font-medium text-center">
+                        Tanda tangani di sini menggunakan mouse, stylus, atau sentuhan layar ponsel/tablet
+                      </p>
+                      <p className="text-[10px] text-muted-foreground/50">
+                        Penerima: {penerimaNama ? <strong>{penerimaNama}</strong> : 'Nama penerima di atas'}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Garis tanda tangan bawah */}
+                  <div className="absolute bottom-5 left-8 right-8 border-b border-indigo-200 dark:border-indigo-900/50 pointer-events-none flex justify-between text-[9px] text-muted-foreground/50 pt-0.5 select-none">
+                    <span>X</span>
+                    <span>Tanda Tangan Penerima Barang</span>
+                  </div>
+                </div>
+
+                {/* Footer preview info */}
+                <div className="flex flex-wrap items-center justify-between text-[11px] text-muted-foreground px-1 gap-2">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="size-1.5 rounded-full bg-indigo-500" />
+                    <span>
+                      Penerima: <strong className="text-foreground">{penerimaNama || '(Belum diisi)'}</strong>
+                    </span>
+                    <span className="text-muted-foreground/40">•</span>
+                    <span>
+                      Tanggal: <strong className="text-foreground">{waktuSerahTerima ? waktuSerahTerima.split('T')[0] : 'Hari ini'}</strong>
+                    </span>
+                  </div>
+                  {(hasDrawnSig || sigDataUrl) && (
+                    <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+                      <Check className="size-3" />
+                      Tanda tangan siap distempel ke TTB
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
             {/* Kondisi Serah Terima */}
             <div className="space-y-2 pt-2">
               <label className="text-xs font-semibold text-foreground block">
@@ -1483,6 +1725,13 @@ export default function SerahTerimaLapanganTab({
                             ? 'Parsial'
                             : 'Catatan Fisik'}
                         </span>
+
+                        {rec.isTtbDocumentStamped && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 flex items-center gap-1">
+                            <FileSignature className="size-2.5" />
+                            <span>TTB Stamped</span>
+                          </span>
+                        )}
                       </div>
 
                       <div className="text-[11px] font-mono text-muted-foreground flex items-center gap-1 shrink-0">
@@ -1539,6 +1788,48 @@ export default function SerahTerimaLapanganTab({
                           <div className="italic text-[11px] bg-muted/30 px-2.5 py-1.5 rounded-lg border border-border/50">
                             "{rec.catatan}"
                           </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Recipient Digital Signature Evidence */}
+                    {rec.penerimaSignature && (
+                      <div className="p-2.5 rounded-xl bg-indigo-50/40 dark:bg-indigo-950/20 border border-indigo-200/60 dark:border-indigo-900/50 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="size-10 rounded-lg border border-border bg-white dark:bg-slate-900 p-0.5 shrink-0 flex items-center justify-center overflow-hidden shadow-xs">
+                            <img
+                              src={rec.penerimaSignature}
+                              alt={`TTD ${rec.penerima}`}
+                              className="size-full object-contain"
+                            />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-[11px] font-semibold text-foreground flex items-center gap-1.5 truncate">
+                              <FileSignature className="size-3 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                              <span className="truncate">Evidence TTD: {rec.penerima}</span>
+                            </div>
+                            <div className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
+                              {rec.isTtbDocumentStamped ? (
+                                <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-0.5">
+                                  <Check className="size-2.5" />
+                                  <span>Telah distempel ke dokumen PDF resmi TTB</span>
+                                </span>
+                              ) : (
+                                <span>Tersimpan sebagai otentifikasi bukti serah terima</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        {rec.ttbDocumentUrl && (
+                          <a
+                            href={rec.ttbDocumentUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-2 py-1 text-[10px] font-medium rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 flex items-center gap-1 shrink-0 transition"
+                          >
+                            <span>Lihat PDF</span>
+                            <ExternalLink className="size-2.5" />
+                          </a>
                         )}
                       </div>
                     )}
