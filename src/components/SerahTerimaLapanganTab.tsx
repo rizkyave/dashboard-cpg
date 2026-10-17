@@ -184,6 +184,8 @@ interface TtbReferenceOption {
   signedAt?: string;
 }
 
+export type TtbDateRangeType = 'H-4' | 'H-7' | 'H-14' | 'H-30' | 'ALL' | 'CUSTOM';
+
 export default function SerahTerimaLapanganTab({
   procurementItems = [],
   armadaItems = [],
@@ -202,6 +204,10 @@ export default function SerahTerimaLapanganTab({
   const [isSearchingTtb, setIsSearchingTtb] = useState<boolean>(false);
   const [selectedTtbRef, setSelectedTtbRef] = useState<TtbReferenceOption | null>(null);
   const [ttbStatusFilter, setTtbStatusFilter] = useState<'ALL' | 'BELUM' | 'SUDAH'>('ALL');
+  // Pilihan rentang waktu terbit TTB: default H-4 (4 hari terakhir) agar data tidak berat
+  const [ttbDateRange, setTtbDateRange] = useState<TtbDateRangeType>('H-4');
+  const [customStartDate, setCustomStartDate] = useState<string>('');
+  const [customEndDate, setCustomEndDate] = useState<string>('');
   const [uploadedTtbs, setUploadedTtbs] = useState<UploadedTtbItem[]>([]);
   const [isManualTtb, setIsManualTtb] = useState<boolean>(false);
   const [manualNoTtb, setManualNoTtb] = useState<string>('');
@@ -542,24 +548,98 @@ export default function SerahTerimaLapanganTab({
     return catalog;
   }, [sisaLayananItems, procurementItems, uploadedTtbs, signedTtbMap]);
 
-  // Statistik jumlah TTB belum vs sudah TTD digital
+  // Perhitungan batas waktu rentang terbit TTB (Default: H-4)
+  const dateRangeBounds = useMemo(() => {
+    const now = new Date();
+    // Tentukan acuan tanggal terbaru: max antara tanggal lokal hari ini dan tanggal TTB terbaru di database
+    const latestTimestamp = ttbReferenceCatalog[0]?.tglTtbTimestamp || 0;
+    const baseTimestamp = latestTimestamp > now.getTime() ? latestTimestamp : now.getTime();
+    const baseDate = new Date(baseTimestamp);
+    const endOfDay = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), 23, 59, 59, 999).getTime();
+
+    if (ttbDateRange === 'ALL') {
+      return {
+        startMs: 0,
+        endMs: Infinity,
+        label: 'Semua Waktu',
+        description: 'Menampilkan seluruh arsip data TTB',
+        isAll: true,
+      };
+    }
+
+    if (ttbDateRange === 'CUSTOM') {
+      const startMs = customStartDate ? new Date(`${customStartDate}T00:00:00`).getTime() : 0;
+      const endMs = customEndDate ? new Date(`${customEndDate}T23:59:59.999`).getTime() : Infinity;
+      const startLbl = customStartDate ? formatDateDdMmYy(customStartDate) : 'Awal';
+      const endLbl = customEndDate ? formatDateDdMmYy(customEndDate) : 'Hari Ini';
+      return {
+        startMs,
+        endMs,
+        label: `${startLbl} - ${endLbl}`,
+        description: `Rentang Kustom: ${startLbl} s/d ${endLbl}`,
+        isAll: false,
+      };
+    }
+
+    let days = 4;
+    let labelPrefix = 'H-4';
+    if (ttbDateRange === 'H-7') {
+      days = 7;
+      labelPrefix = 'H-7';
+    } else if (ttbDateRange === 'H-14') {
+      days = 14;
+      labelPrefix = 'H-14';
+    } else if (ttbDateRange === 'H-30') {
+      days = 30;
+      labelPrefix = 'H-30';
+    }
+
+    const startDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), 0, 0, 0, 0);
+    startDate.setDate(startDate.getDate() - days);
+    const startMs = startDate.getTime();
+
+    const startFormatted = formatDateDdMmYy(startDate.toISOString());
+    const endFormatted = formatDateDdMmYy(baseDate.toISOString());
+
+    return {
+      startMs,
+      endMs: endOfDay,
+      label: `${startFormatted} - ${endFormatted}`,
+      description: `${labelPrefix} (${startFormatted} s/d ${endFormatted})`,
+      isAll: false,
+    };
+  }, [ttbReferenceCatalog, ttbDateRange, customStartDate, customEndDate]);
+
+  // 1. Filter Katalog berdasarkan rentang waktu terbit TTB (Agar data ringan & cepat)
+  const dateFilteredCatalog = useMemo(() => {
+    if (dateRangeBounds.isAll) {
+      return ttbReferenceCatalog;
+    }
+    return ttbReferenceCatalog.filter((opt) => {
+      if (!opt.tglTtbTimestamp) return false;
+      return opt.tglTtbTimestamp >= dateRangeBounds.startMs && opt.tglTtbTimestamp <= dateRangeBounds.endMs;
+    });
+  }, [ttbReferenceCatalog, dateRangeBounds]);
+
+  // Statistik jumlah TTB belum vs sudah TTD digital di dalam rentang waktu aktif
   const ttbStats = useMemo(() => {
     let belumCount = 0;
     let sudahCount = 0;
-    ttbReferenceCatalog.forEach((opt) => {
+    dateFilteredCatalog.forEach((opt) => {
       if (opt.isRecipientSigned) sudahCount++;
       else belumCount++;
     });
     return {
-      total: ttbReferenceCatalog.length,
+      total: dateFilteredCatalog.length,
       belum: belumCount,
       sudah: sudahCount,
+      grandTotal: ttbReferenceCatalog.length,
     };
-  }, [ttbReferenceCatalog]);
+  }, [dateFilteredCatalog, ttbReferenceCatalog]);
 
-  // Autocomplete matching & filter results
+  // Autocomplete matching & filter results (Status TTD & Pencarian)
   const filteredTtbOptions = useMemo(() => {
-    let result = ttbReferenceCatalog;
+    let result = dateFilteredCatalog;
 
     // Filter status TTD digital penerima
     if (ttbStatusFilter === 'BELUM') {
@@ -584,7 +664,21 @@ export default function SerahTerimaLapanganTab({
     }
 
     return result;
-  }, [ttbReferenceCatalog, ttbStatusFilter, ttbSearchTerm]);
+  }, [dateFilteredCatalog, ttbStatusFilter, ttbSearchTerm]);
+
+  // Hitung apakah ada kecocokan di arsip luar rentang saat pencarian tidak menemukan hasil di rentang aktif
+  const searchMatchesInGrandCatalog = useMemo(() => {
+    if (!ttbSearchTerm.trim() || ttbDateRange === 'ALL') return 0;
+    const q = ttbSearchTerm.toLowerCase();
+    return ttbReferenceCatalog.filter(
+      (opt) =>
+        opt.noTtb.toLowerCase().includes(q) ||
+        opt.armada.toLowerCase().includes(q) ||
+        (opt.noFpb && opt.noFpb.toLowerCase().includes(q)) ||
+        (opt.noPo && opt.noPo.toLowerCase().includes(q)) ||
+        opt.itemSummary.toLowerCase().includes(q)
+    ).length;
+  }, [ttbSearchTerm, ttbDateRange, ttbReferenceCatalog]);
 
   // Nama armada aktif saat ini (dari TTB referensi yang dipilih atau input manual)
   const currentArmada = isManualTtb ? manualArmada : (selectedTtbRef?.armada || '');
@@ -985,8 +1079,8 @@ export default function SerahTerimaLapanganTab({
         <form onSubmit={handleSubmitDelivery} className="space-y-6">
           {/* STEP 1: PILIH DATA TTB REFERENSI */}
           <div className="bg-card border border-border rounded-2xl p-5 shadow-xs space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border pb-3">
-              <div className="flex items-center gap-2.5">
+            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 border-b border-border pb-3">
+              <div className="flex items-center gap-2.5 shrink-0">
                 <div className="size-7 rounded-lg bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-xs">
                   1
                 </div>
@@ -1003,17 +1097,107 @@ export default function SerahTerimaLapanganTab({
                 </div>
               </div>
 
+              {/* KOTAK HITAM: Kontrol Pilihan Rentang Waktu (Default: H-4) */}
+              {!isManualTtb && (
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1.5 bg-muted/70 dark:bg-muted/40 border border-border/80 rounded-xl px-2.5 py-1.5 shadow-2xs">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground whitespace-nowrap">
+                    <Calendar className="size-3.5 text-indigo-500 shrink-0" />
+                    <span>Rentang Terbit:</span>
+                  </div>
+
+                  <div className="flex items-center gap-1 flex-wrap">
+                    {(['H-4', 'H-7', 'H-14', 'H-30', 'ALL', 'CUSTOM'] as const).map((rng) => {
+                      const isActive = ttbDateRange === rng;
+                      const labelMap: Record<typeof rng, string> = {
+                        'H-4': 'H-4 (Default)',
+                        'H-7': 'H-7',
+                        'H-14': 'H-14',
+                        'H-30': 'H-30',
+                        'ALL': 'Semua',
+                        'CUSTOM': 'Kustom',
+                      };
+                      return (
+                        <button
+                          key={rng}
+                          type="button"
+                          onClick={() => setTtbDateRange(rng)}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                            isActive
+                              ? 'bg-indigo-600 text-white shadow-2xs ring-1 ring-indigo-500/40'
+                              : 'text-muted-foreground hover:text-foreground hover:bg-background/80'
+                          }`}
+                          title={
+                            rng === 'H-4'
+                              ? 'Default: 4 Hari Terakhir (H-4 s/d Hari ini)'
+                              : rng === 'ALL'
+                              ? 'Tampilkan semua arsip berkas TTB'
+                              : `Rentang ${rng}`
+                          }
+                        >
+                          {labelMap[rng]}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Badge rentang tanggal aktif */}
+                  <div className="hidden lg:flex items-center gap-1 pl-1.5 border-l border-border/60 text-[10.5px] font-mono text-indigo-600 dark:text-indigo-400 font-medium whitespace-nowrap">
+                    <span>{dateRangeBounds.label}</span>
+                  </div>
+                </div>
+              )}
+
               <button
                 type="button"
                 onClick={() => {
                   setIsManualTtb(!isManualTtb);
                   setSelectedTtbRef(null);
                 }}
-                className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 font-medium cursor-pointer self-start sm:self-auto"
+                className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 font-medium cursor-pointer self-start xl:self-auto shrink-0"
               >
                 {isManualTtb ? '← Pilih dari Database TTB' : '+ Input Nomor TTB Manual'}
               </button>
             </div>
+
+            {/* Input Rentang Tanggal Kustom (jika Kustom dipilih) */}
+            {!isManualTtb && ttbDateRange === 'CUSTOM' && (
+              <div className="flex flex-wrap items-center gap-3 p-3 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800/40 text-xs animate-in fade-in duration-150">
+                <div className="flex items-center gap-1.5 font-bold text-indigo-900 dark:text-indigo-300">
+                  <Calendar className="size-3.5 text-indigo-500" />
+                  <span>Tentukan Rentang Tanggal Terbit TTB:</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-muted-foreground">Dari:</span>
+                  <input
+                    type="date"
+                    value={customStartDate}
+                    onChange={(e) => setCustomStartDate(e.target.value)}
+                    className="px-2.5 py-1 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-muted-foreground">Sampai:</span>
+                  <input
+                    type="date"
+                    value={customEndDate}
+                    onChange={(e) => setCustomEndDate(e.target.value)}
+                    className="px-2.5 py-1 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  />
+                </div>
+                {(customStartDate || customEndDate) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCustomStartDate('');
+                      setCustomEndDate('');
+                    }}
+                    className="text-[11px] text-rose-600 dark:text-rose-400 font-semibold underline cursor-pointer ml-auto"
+                  >
+                    Reset Tanggal
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* Mode 1: Search & Autocomplete from Preloaded TTB database */}
             {!isManualTtb ? (
@@ -1086,7 +1270,7 @@ export default function SerahTerimaLapanganTab({
 
                       <div className="text-[11px] text-muted-foreground flex items-center gap-1 font-mono">
                         <Calendar className="size-3 text-indigo-500" />
-                        <span>Urutan: Tanggal TTB Terbaru ↓</span>
+                        <span>Urutan: Tanggal TTB Terbaru ↓ ({dateRangeBounds.label})</span>
                       </div>
                     </div>
 
@@ -1110,20 +1294,52 @@ export default function SerahTerimaLapanganTab({
                               <tr>
                                 <td colSpan={7} className="py-10 text-center text-xs text-muted-foreground">
                                   {ttbSearchTerm ? (
-                                    <span>Tidak ditemukan data TTB sesuai kata kunci &quot;{ttbSearchTerm}&quot;.</span>
+                                    <div className="space-y-1.5">
+                                      <p>
+                                        Tidak ditemukan data TTB sesuai kata kunci &quot;<strong className="text-foreground">{ttbSearchTerm}</strong>&quot; di rentang {ttbDateRange} ({dateRangeBounds.label}).
+                                      </p>
+                                      {searchMatchesInGrandCatalog > 0 ? (
+                                        <p className="text-amber-600 dark:text-amber-400 font-medium">
+                                          💡 Ditemukan <strong>{searchMatchesInGrandCatalog}</strong> data TTB yang cocok di arsip tanggal lainnya.{' '}
+                                          <button
+                                            type="button"
+                                            onClick={() => setTtbDateRange('ALL')}
+                                            className="text-indigo-600 dark:text-indigo-400 font-bold underline ml-1 cursor-pointer"
+                                          >
+                                            Buka Rentang ke Semua Data
+                                          </button>
+                                        </p>
+                                      ) : null}
+                                      <div>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setTtbSearchTerm('');
+                                            setTtbStatusFilter('ALL');
+                                          }}
+                                          className="text-indigo-600 dark:text-indigo-400 font-bold underline cursor-pointer"
+                                        >
+                                          Reset Pencarian
+                                        </button>
+                                      </div>
+                                    </div>
                                   ) : (
-                                    <span>Tidak ada berkas TTB pada kategori ini.</span>
-                                  )}{' '}
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setTtbSearchTerm('');
-                                      setTtbStatusFilter('ALL');
-                                    }}
-                                    className="text-indigo-600 dark:text-indigo-400 font-bold underline ml-1 cursor-pointer"
-                                  >
-                                    Reset Filter
-                                  </button>
+                                    <div className="space-y-1.5">
+                                      <p>
+                                        Tidak ada berkas TTB pada rentang <strong>{ttbDateRange}</strong> ({dateRangeBounds.label}).
+                                      </p>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setTtbDateRange('ALL');
+                                          setTtbStatusFilter('ALL');
+                                        }}
+                                        className="text-indigo-600 dark:text-indigo-400 font-bold underline cursor-pointer"
+                                      >
+                                        Tampilkan Semua Arsip ({ttbStats.grandTotal} TTB)
+                                      </button>
+                                    </div>
+                                  )}
                                 </td>
                               </tr>
                             ) : (
@@ -1244,7 +1460,12 @@ export default function SerahTerimaLapanganTab({
                       <div className="px-3.5 py-2 border-t border-border bg-muted/30 text-[11px] text-muted-foreground flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                         <span>
                           Menampilkan <strong className="text-foreground font-mono">{filteredTtbOptions.length}</strong> dari{' '}
-                          <strong className="text-foreground font-mono">{ttbReferenceCatalog.length}</strong> data TTB
+                          <strong className="text-foreground font-mono">{dateFilteredCatalog.length}</strong> data TTB
+                          {ttbDateRange !== 'ALL' && (
+                            <span className="text-muted-foreground/80 font-mono">
+                              {' '}(Rentang {ttbDateRange}: {dateRangeBounds.label} • dari total {ttbStats.grandTotal} TTB di arsip)
+                            </span>
+                          )}
                         </span>
                         <span className="text-[10px] text-muted-foreground/80 font-mono">
                           Klik baris atau tombol &quot;Pilih TTB&quot; untuk memilih referensi serah terima
