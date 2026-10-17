@@ -1,11 +1,24 @@
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 
+export type FstbStampRoleType =
+  | 'purchasing' // alias for delivered_by
+  | 'logistic' // alias for received_by
+  | 'delivered_by' // Delivered By: Purchasing Staff (Kolom 1)
+  | 'received_by' // Received By: Logistic Staff (Kolom 2)
+  | 'approved_by' // Approved By: Purchasing Supervisor (Kolom 3)
+  | 'acknowledged_by' // Acknowledged By: Logistic Supervisor (Kolom 4)
+  | 'purchasing_staff'
+  | 'logistic_staff'
+  | 'purchasing_spv'
+  | 'logistic_spv';
+
 export interface StampFstbOptions {
   pdfBuffer: Buffer | Uint8Array;
   signatureDataUrl?: string; // PNG or JPEG base64 Data URL
   uploaderName: string;
   uploadDate: string;
-  roleType?: 'purchasing' | 'logistic'; // Default purchasing (Delivered By) atau logistic (Received By)
+  roleType?: FstbStampRoleType;
+  verificationToken?: string;
   customCoordinates?: {
     sigXRatio?: number;
     sigYRatio?: number;
@@ -20,31 +33,59 @@ export interface StampFstbOptions {
 
 /**
  * Koordinat standar tanda tangan pada formulir FSTB resmi CPG (CPL-PRC-SOP-001-F03)
- * Tanda tangan ditempatkan pada halaman TERAKHIR (lembar tanda tangan).
+ * Tanda tangan ditempatkan pada halaman TERAKHIR (lembar tanda tangan halaman 2).
  */
-export const FSTB_PURCHASING_COORDINATES = {
+export const FSTB_DELIVERED_BY_COORDINATES = {
   // Delivered By : Purchasing Staff (Kolom 1)
-  sigXRatio: 0.080,
-  sigYRatio: 0.180,
-  sigWidthRatio: 0.140,
-  sigHeightRatio: 0.080,
-  nameXRatio: 0.115,
-  nameYRatio: 0.138,
-  dateXRatio: 0.115,
-  dateYRatio: 0.112,
+  sigXRatio: 0.075,
+  sigYRatio: 0.178,
+  sigWidthRatio: 0.145,
+  sigHeightRatio: 0.082,
+  nameXRatio: 0.095,
+  nameYRatio: 0.135,
+  dateXRatio: 0.090,
+  dateYRatio: 0.108,
 };
 
-export const FSTB_LOGISTIC_COORDINATES = {
+export const FSTB_RECEIVED_BY_COORDINATES = {
   // Received By : Logistic Staff (Kolom 2)
   sigXRatio: 0.280,
-  sigYRatio: 0.180,
-  sigWidthRatio: 0.140,
-  sigHeightRatio: 0.080,
-  nameXRatio: 0.335,
-  nameYRatio: 0.138,
-  dateXRatio: 0.335,
-  dateYRatio: 0.112,
+  sigYRatio: 0.178,
+  sigWidthRatio: 0.145,
+  sigHeightRatio: 0.082,
+  nameXRatio: 0.300,
+  nameYRatio: 0.135,
+  dateXRatio: 0.295,
+  dateYRatio: 0.108,
 };
+
+export const FSTB_APPROVED_BY_COORDINATES = {
+  // Approved By : Purchasing Supervisor (Kolom 3)
+  sigXRatio: 0.505,
+  sigYRatio: 0.178,
+  sigWidthRatio: 0.145,
+  sigHeightRatio: 0.082,
+  nameXRatio: 0.525,
+  nameYRatio: 0.135,
+  dateXRatio: 0.520,
+  dateYRatio: 0.108,
+};
+
+export const FSTB_ACKNOWLEDGED_BY_COORDINATES = {
+  // Acknowledged By : Logistic Supervisor (Kolom 4)
+  sigXRatio: 0.725,
+  sigYRatio: 0.178,
+  sigWidthRatio: 0.145,
+  sigHeightRatio: 0.082,
+  nameXRatio: 0.745,
+  nameYRatio: 0.135,
+  dateXRatio: 0.740,
+  dateYRatio: 0.108,
+};
+
+// Aliases for backwards compatibility
+export const FSTB_PURCHASING_COORDINATES = FSTB_DELIVERED_BY_COORDINATES;
+export const FSTB_LOGISTIC_COORDINATES = FSTB_RECEIVED_BY_COORDINATES;
 
 export function formatFstbStampDate(dateInput?: string | Date): string {
   if (!dateInput) {
@@ -87,7 +128,8 @@ export async function stampFstbPdf(options: StampFstbOptions): Promise<Buffer> {
     signatureDataUrl,
     uploaderName,
     uploadDate,
-    roleType = 'purchasing',
+    roleType = 'delivered_by',
+    verificationToken,
     customCoordinates,
   } = options;
 
@@ -101,8 +143,14 @@ export async function stampFstbPdf(options: StampFstbOptions): Promise<Buffer> {
   const targetPage = pages[pages.length - 1];
   const { width: pageWidth, height: pageHeight } = targetPage.getSize();
 
-  const baseCoords =
-    roleType === 'logistic' ? FSTB_LOGISTIC_COORDINATES : FSTB_PURCHASING_COORDINATES;
+  let baseCoords = FSTB_DELIVERED_BY_COORDINATES;
+  if (roleType === 'received_by' || roleType === 'logistic' || roleType === 'logistic_staff') {
+    baseCoords = FSTB_RECEIVED_BY_COORDINATES;
+  } else if (roleType === 'approved_by' || roleType === 'purchasing_spv') {
+    baseCoords = FSTB_APPROVED_BY_COORDINATES;
+  } else if (roleType === 'acknowledged_by' || roleType === 'logistic_spv') {
+    baseCoords = FSTB_ACKNOWLEDGED_BY_COORDINATES;
+  }
 
   const sigXRatio = customCoordinates?.sigXRatio ?? baseCoords.sigXRatio;
   const sigYRatio = customCoordinates?.sigYRatio ?? baseCoords.sigYRatio;
@@ -113,24 +161,20 @@ export async function stampFstbPdf(options: StampFstbOptions): Promise<Buffer> {
   const dateXRatio = customCoordinates?.dateXRatio ?? baseCoords.dateXRatio;
   const dateYRatio = customCoordinates?.dateYRatio ?? baseCoords.dateYRatio;
 
-  // 1. Sematkan Gambar Tanda Tangan Digital jika ada
-  if (signatureDataUrl && signatureDataUrl.startsWith('data:image/')) {
+  const sigX = sigXRatio * pageWidth;
+  const sigY = sigYRatio * pageHeight;
+  const sigW = sigWidthRatio * pageWidth;
+  const sigH = sigHeightRatio * pageHeight;
+
+  // 1. Sematkan Gambar Tanda Tangan Digital atau Cap Verifikasi Hash
+  let hasEmbeddedImage = false;
+  if (signatureDataUrl && (signatureDataUrl.startsWith('data:image/png') || signatureDataUrl.startsWith('data:image/jpeg') || signatureDataUrl.startsWith('data:image/jpg'))) {
     try {
       const isPng = signatureDataUrl.startsWith('data:image/png');
       const base64Data = signatureDataUrl.replace(/^data:image\/[a-zA-Z]+;base64,/, '');
       const imgBytes = Buffer.from(base64Data, 'base64');
 
-      let embeddedImage;
-      if (isPng) {
-        embeddedImage = await pdfDoc.embedPng(imgBytes);
-      } else {
-        embeddedImage = await pdfDoc.embedJpg(imgBytes);
-      }
-
-      const sigX = sigXRatio * pageWidth;
-      const sigY = sigYRatio * pageHeight;
-      const sigW = sigWidthRatio * pageWidth;
-      const sigH = sigHeightRatio * pageHeight;
+      const embeddedImage = isPng ? await pdfDoc.embedPng(imgBytes) : await pdfDoc.embedJpg(imgBytes);
 
       targetPage.drawImage(embeddedImage, {
         x: sigX,
@@ -138,8 +182,55 @@ export async function stampFstbPdf(options: StampFstbOptions): Promise<Buffer> {
         width: sigW,
         height: sigH,
       });
+      hasEmbeddedImage = true;
     } catch (sigErr) {
-      console.warn('Gagal menyematkan tanda tangan ke PDF FSTB:', sigErr);
+      console.warn('Gagal menyematkan tanda tangan ke PDF FSTB, beralih ke cap digital:', sigErr);
+    }
+  }
+
+  if (!hasEmbeddedImage) {
+    // Gambar cap digital stempel verifikasi profesional langsung di atas kotak tanda tangan
+    try {
+      const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+      const fontNorm = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+      targetPage.drawRectangle({
+        x: sigX,
+        y: sigY,
+        width: sigW,
+        height: sigH,
+        color: rgb(0.96, 0.99, 0.97),
+        borderColor: rgb(0.05, 0.55, 0.28),
+        borderWidth: 1.2,
+      });
+
+      targetPage.drawText('✓ VALIDASI DIGITAL', {
+        x: sigX + 4,
+        y: sigY + sigH - 10,
+        size: 6.5,
+        font: fontBold,
+        color: rgb(0.05, 0.55, 0.28),
+      });
+
+      const displayName = (uploaderName || 'PETUGAS CPG').slice(0, 18).toUpperCase();
+      targetPage.drawText(displayName, {
+        x: sigX + 4,
+        y: sigY + sigH - 18,
+        size: 6,
+        font: fontBold,
+        color: rgb(0.09, 0.14, 0.23),
+      });
+
+      const tokenText = (verificationToken || `VAL-FSTB-${Date.now().toString(36).toUpperCase()}`).slice(0, 20);
+      targetPage.drawText(tokenText, {
+        x: sigX + 4,
+        y: sigY + 5,
+        size: 5,
+        font: fontNorm,
+        color: rgb(0.35, 0.45, 0.55),
+      });
+    } catch (sealErr) {
+      console.warn('Gagal membubuhkan cap digital verifikasi:', sealErr);
     }
   }
 

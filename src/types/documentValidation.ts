@@ -53,6 +53,14 @@ export interface DocumentValidationRecord {
     signatureDataUrl?: string;
   };
 
+  // 4 Slot Pengesahan Khusus Berkas FSTB (Halaman 2: Delivered By, Received By, Approved By, Acknowledged By)
+  fstbSlots?: {
+    deliveredBy?: ValidationSignatureRecord; // Purchasing Staff
+    receivedBy?: ValidationSignatureRecord; // Logistic Staff
+    approvedBy?: ValidationSignatureRecord; // Purchasing Supervisor
+    acknowledgedBy?: ValidationSignatureRecord; // Logistic Supervisor
+  };
+
   // Status & Indikator Agregat
   overallStatus: OverallValidationStatus;
   completedLinesCount: number; // 0, 1, 2, atau 3
@@ -60,6 +68,8 @@ export interface DocumentValidationRecord {
   createdAt: string;
   updatedAt: string;
 }
+
+export type FstbSlotKey = 'deliveredBy' | 'receivedBy' | 'approvedBy' | 'acknowledgedBy';
 
 export interface ValidationSummaryMetrics {
   totalDocuments: number;

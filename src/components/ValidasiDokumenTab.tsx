@@ -32,6 +32,7 @@ import {
   OverallValidationStatus,
 } from '@/types/documentValidation';
 import ValidationSignatureModal from './ValidationSignatureModal';
+import FstbValidationModal from './FstbValidationModal';
 import { useAuth } from '@/context/AuthContext';
 
 export interface ValidasiDokumenTabProps {
@@ -557,16 +558,29 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
 
       {/* Modal Interaktif Validasi & Tanda Tangan Digital */}
       {isModalOpen && selectedRecord && (
-        <ValidationSignatureModal
-          isOpen={isModalOpen}
-          onClose={() => {
-            setIsModalOpen(false);
-            setSelectedRecord(null);
-          }}
-          record={selectedRecord}
-          onValidationSuccess={handleValidationUpdated}
-          showToast={showToast}
-        />
+        selectedRecord.docType === 'FSTB' ? (
+          <FstbValidationModal
+            isOpen={isModalOpen}
+            onClose={() => {
+              setIsModalOpen(false);
+              setSelectedRecord(null);
+            }}
+            record={selectedRecord}
+            onValidationSuccess={handleValidationUpdated}
+            showToast={showToast}
+          />
+        ) : (
+          <ValidationSignatureModal
+            isOpen={isModalOpen}
+            onClose={() => {
+              setIsModalOpen(false);
+              setSelectedRecord(null);
+            }}
+            record={selectedRecord}
+            onValidationSuccess={handleValidationUpdated}
+            showToast={showToast}
+          />
+        )
       )}
     </div>
   );
