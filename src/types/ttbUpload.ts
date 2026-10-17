@@ -26,6 +26,7 @@ export interface UploadedTtbItem {
   // Identitas & Tanda Tangan Penerima Akhir (Received By)
   isRecipientStamped?: boolean;
   recipientName?: string;
+  recipientPhone?: string;
   recipientSignatureDataUrl?: string;
   recipientStampedAt?: string;
   // Legacy fields untuk kompatibilitas data riwayat lama

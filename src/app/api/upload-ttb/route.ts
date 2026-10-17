@@ -220,11 +220,16 @@ export async function GET(req: NextRequest) {
         return sClean === cleanItemTtb || (cleanItemTtb.length >= 4 && sClean.includes(cleanItemTtb));
       });
 
-      if (strMatch && strMatch.penerimaSignature && !updatedItem.isRecipientStamped) {
-        updatedItem.isRecipientStamped = true;
-        updatedItem.recipientName = strMatch.penerima;
-        updatedItem.recipientSignatureDataUrl = strMatch.penerimaSignature;
-        updatedItem.recipientStampedAt = strMatch.createdAt || strMatch.tanggalSerahTerima;
+      if (strMatch) {
+        if (strMatch.penerimaSignature && !updatedItem.isRecipientStamped) {
+          updatedItem.isRecipientStamped = true;
+          updatedItem.recipientName = strMatch.penerima;
+          updatedItem.recipientSignatureDataUrl = strMatch.penerimaSignature;
+          updatedItem.recipientStampedAt = strMatch.createdAt || strMatch.tanggalSerahTerima;
+        }
+        if (strMatch.kontakPenerima && !updatedItem.recipientPhone) {
+          updatedItem.recipientPhone = strMatch.kontakPenerima;
+        }
       }
 
       if (updatedItem.r2Key && isR2Active) {

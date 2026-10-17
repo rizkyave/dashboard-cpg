@@ -1941,6 +1941,12 @@ export default function UploadTtbTab({
                           <div className="text-xs font-bold text-foreground truncate" title={item.recipientName}>
                             Penerima: {item.recipientName}
                           </div>
+                          {item.recipientPhone && (
+                            <div className="text-[10px] text-muted-foreground font-mono flex items-center gap-1 truncate">
+                              <span>Telp/WA:</span>
+                              <span className="font-semibold text-foreground/80">{item.recipientPhone}</span>
+                            </div>
+                          )}
                           <div className="text-[10px] text-muted-foreground flex items-center gap-1 truncate">
                             <span>Uploader:</span>
                             <span className="truncate">{item.uploaderName || 'Staf Dokumen TTB'}</span>

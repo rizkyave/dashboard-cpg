@@ -30,12 +30,12 @@ export const DEFAULT_TTB_COORDINATES = {
   sigHeightRatio: 0.088,
 
   // Kotak Teks Nama (Name : [NAMA UPLOADER])
-  nameXRatio: 0.126,
-  nameYRatio: 0.155,
+  nameXRatio: 0.135,
+  nameYRatio: 0.168,
 
   // Kotak Teks Tanggal (Date : [DD/MM/YYYY])
-  dateXRatio: 0.126,
-  dateYRatio: 0.115,
+  dateXRatio: 0.135,
+  dateYRatio: 0.138,
 };
 
 /**
@@ -50,12 +50,18 @@ export const TTB_RECIPIENT_COORDINATES = {
   sigHeightRatio: 0.088,
 
   // Kotak Teks Nama (Name : [NAMA PENERIMA AKHIR])
-  nameXRatio: 0.378,
-  nameYRatio: 0.155,
+  nameXRatio: 0.365,
+  nameYRatio: 0.168,
 
   // Kotak Teks Tanggal (Date : [DD/MM/YYYY])
-  dateXRatio: 0.378,
-  dateYRatio: 0.115,
+  dateXRatio: 0.365,
+  dateYRatio: 0.138,
+
+  // Kotak Hitam No WA/Telp Kapal / No. Penerima (Header Kanan TTB di bawah TANDA TERIMA BARANG)
+  phoneBoxXRatio: 0.665,
+  phoneBoxYRatio: 0.785,
+  phoneBoxWidthRatio: 0.245,
+  phoneBoxHeightRatio: 0.050,
 };
 
 /**
@@ -192,6 +198,7 @@ export interface StampTtbRecipientOptions {
   recipientSignatureDataUrl?: string; // PNG or JPEG base64 Data URL
   recipientName: string;
   receiptDate: string;
+  recipientPhone?: string; // No WA / Telp Kapal atau Penerima
   customCoordinates?: {
     sigXRatio?: number;
     sigYRatio?: number;
@@ -201,12 +208,16 @@ export interface StampTtbRecipientOptions {
     nameYRatio?: number;
     dateXRatio?: number;
     dateYRatio?: number;
+    phoneBoxXRatio?: number;
+    phoneBoxYRatio?: number;
+    phoneBoxWidthRatio?: number;
+    phoneBoxHeightRatio?: number;
   };
 }
 
 /**
- * Stempel Tanda Tangan Digital, Nama, dan Tanggal Penerima Barang (Received By : User)
- * Pada Dokumen PDF TTB Resmi
+ * Stempel Tanda Tangan Digital, Nama, Tanggal, dan No Telp/WA Penerima (Received By : User)
+ * Serta Kotak Hitam No. WA/Telp Kapal pada Dokumen PDF TTB Resmi
  */
 export async function stampTtbRecipientPdf(options: StampTtbRecipientOptions): Promise<Buffer> {
   const {
@@ -214,6 +225,7 @@ export async function stampTtbRecipientPdf(options: StampTtbRecipientOptions): P
     recipientSignatureDataUrl,
     recipientName,
     receiptDate,
+    recipientPhone,
     customCoordinates = {},
   } = options;
 
@@ -298,6 +310,45 @@ export async function stampTtbRecipientPdf(options: StampTtbRecipientOptions): P
         y: dateY,
         size: fontSize,
         font: fontNorm,
+        color: rgb(0, 0, 0),
+      });
+    }
+
+    // 3. Sematkan Kotak Hitam No. WA/Telp Kapal atau No. Penerima (Header Kanan TTB)
+    if (recipientPhone && recipientPhone.trim()) {
+      const cleanPhone = recipientPhone.trim();
+      const isLandscape = pageWidth >= pageHeight;
+
+      // Rasio posisi kotak hitam di header kanan di bawah "(TTB)" dan di kiri "1 of 1"
+      const boxX = (coords.phoneBoxXRatio ?? 0.665) * pageWidth;
+      const boxY = (isLandscape ? (coords.phoneBoxYRatio ?? 0.785) : 0.885) * pageHeight;
+      const boxW = (coords.phoneBoxWidthRatio ?? 0.245) * pageWidth;
+      const boxH = (coords.phoneBoxHeightRatio ?? 0.050) * pageHeight;
+
+      // Gambar bingkai kotak hitam rapi (border hitam tebal 1.5 pt, latar belakang putih)
+      firstPage.drawRectangle({
+        x: boxX,
+        y: boxY,
+        width: boxW,
+        height: boxH,
+        borderWidth: 1.5,
+        borderColor: rgb(0, 0, 0),
+        color: rgb(1, 1, 1),
+      });
+
+      const phoneText = `No. Telp/WA: ${cleanPhone}`;
+      const phoneFontSize = Math.max(6.5, Math.min(8.5, pageHeight * 0.021));
+      const textWidth = fontBold.widthOfTextAtSize(phoneText, phoneFontSize);
+
+      // Posisi teks persis di tengah kotak hitam (horizontal & vertical center)
+      const textX = boxX + Math.max(4, (boxW - textWidth) / 2);
+      const textY = boxY + (boxH - phoneFontSize) / 2 + 1;
+
+      firstPage.drawText(phoneText, {
+        x: textX,
+        y: textY,
+        size: phoneFontSize,
+        font: fontBold,
         color: rgb(0, 0, 0),
       });
     }

@@ -403,12 +403,13 @@ export async function POST(req: NextRequest): Promise<NextResponse<SerahTerimaRe
         }
 
         if (pdfBuffer && pdfBuffer.length > 0) {
-          // Bubuhi tanda tangan digital penerima (kolom Received By : User)
+          // Bubuhi tanda tangan digital penerima (kolom Received By : User) dan nomor kontak di kotak hitam
           const stampedPdfBuffer = await stampTtbRecipientPdf({
             pdfBuffer,
             recipientSignatureDataUrl: penerimaSignature,
             recipientName: penerima,
             receiptDate: formatTtbStampDate(tanggalSerahTerima),
+            recipientPhone: kontakPenerima,
           });
 
           const finalKey = targetKey || `ttb-documents/${targetFileName}`;
@@ -424,6 +425,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<SerahTerimaRe
               metadata: {
                 noTtb: cleanTtb,
                 recipientName: penerima,
+                recipientPhone: kontakPenerima || '',
                 isRecipientStamped: 'true',
                 recipientStampedAt: new Date().toISOString(),
               },
@@ -451,6 +453,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<SerahTerimaRe
               r2Url: freshUrl,
               isRecipientStamped: true,
               recipientName: penerima,
+              recipientPhone: kontakPenerima || undefined,
               recipientSignatureDataUrl: penerimaSignature,
               recipientStampedAt: nowIso,
               status: 'STORED_IN_CLOUDFLARE_R2',
@@ -478,6 +481,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<SerahTerimaRe
               isAutoStamped: true,
               isRecipientStamped: true,
               recipientName: penerima,
+              recipientPhone: kontakPenerima || undefined,
               recipientSignatureDataUrl: penerimaSignature,
               recipientStampedAt: nowIso,
             };
