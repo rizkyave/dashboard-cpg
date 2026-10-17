@@ -95,7 +95,16 @@ export default function Sidebar({
     });
   };
 
-  const dashboards = isVisitor
+  interface DashboardNavItem {
+    id: TabType;
+    label: string;
+    icon: any;
+    badge?: string;
+    badgeVariant?: 'default' | 'destructive' | string;
+    title?: string;
+  }
+
+  const dashboards: DashboardNavItem[] = isVisitor
     ? [
         {
           id: 'overview' as TabType,
@@ -176,24 +185,6 @@ export default function Sidebar({
           badge: 'R2',
           title: 'Upload Dokumen TTB ke Cloudflare R2 dengan Format Otomatis Sesuai No. TTB',
         },
-        {
-          id: 'analytics' as TabType,
-          label: 'Analytics',
-          icon: BarChart3,
-          badge: criticalCount > 0 ? (criticalCount >= 1000 ? `${(criticalCount / 1000).toFixed(0)}k` : `${criticalCount}`) : undefined,
-          badgeVariant: criticalCount > 0 ? 'destructive' : 'default',
-        },
-        ...(isAdmin
-          ? [
-              {
-                id: 'admin-settings' as TabType,
-                label: 'Admin Settings',
-                icon: ShieldCheck,
-                badge: 'Users',
-                badgeVariant: 'default' as const,
-              },
-            ]
-          : []),
       ];
 
   const slaFilters: { id: LapseFilterType; label: string; icon: any; count?: number }[] = [
@@ -602,6 +593,73 @@ export default function Sidebar({
                     : '28k'}
                 </span>
               </button>
+            </nav>
+          </div>
+        )}
+
+        {/* Modul Khusus (Analytics & Admin Settings) */}
+        {!isVisitor && (
+          <div className="space-y-1 pt-2 border-t border-border">
+            <div className="px-2 py-1 text-[11px] font-medium text-muted-foreground flex items-center justify-between">
+              <span>Modul Khusus</span>
+              <span className="text-[10px] font-mono text-purple-600 dark:text-purple-400 font-semibold bg-purple-500/10 px-1.5 py-0.5 rounded border border-purple-500/20">
+                Sistem &amp; SLA
+              </span>
+            </div>
+            <nav className="space-y-0.5">
+              {/* Analytics */}
+              <button
+                onClick={() => handleSelectTab('analytics')}
+                className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation cursor-pointer ${
+                  activeTab === 'analytics'
+                    ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-border'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                }`}
+                title="Analisis Lead Time SLA, Bottleneck & Kinerja PIC Procurement"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <BarChart3
+                    className={`size-4 shrink-0 ${
+                      activeTab === 'analytics' ? 'text-purple-500' : 'text-muted-foreground'
+                    }`}
+                  />
+                  <span className="truncate whitespace-nowrap">Analytics</span>
+                </div>
+                {criticalCount > 0 ? (
+                  <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                    {criticalCount >= 1000 ? `${(criticalCount / 1000).toFixed(0)}k` : `${criticalCount}`}
+                  </span>
+                ) : (
+                  <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-medium leading-none whitespace-nowrap bg-background text-muted-foreground border border-border">
+                    SLA
+                  </span>
+                )}
+              </button>
+
+              {/* Admin Settings (Khusus Admin) */}
+              {isAdmin && (
+                <button
+                  onClick={() => handleSelectTab('admin-settings')}
+                  className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation cursor-pointer ${
+                    activeTab === 'admin-settings'
+                      ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-border'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  }`}
+                  title="Pengaturan Administrator & Manajemen Pengguna"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <ShieldCheck
+                      className={`size-4 shrink-0 ${
+                        activeTab === 'admin-settings' ? 'text-indigo-500' : 'text-muted-foreground'
+                      }`}
+                    />
+                    <span className="truncate whitespace-nowrap">Admin Settings</span>
+                  </div>
+                  <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-background text-muted-foreground border border-border">
+                    Users
+                  </span>
+                </button>
+              )}
             </nav>
           </div>
         )}
