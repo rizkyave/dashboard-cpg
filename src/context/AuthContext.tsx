@@ -32,6 +32,8 @@ interface AuthContextType {
   createUser: (data: {
     username: string;
     name: string;
+    nik?: string;
+    jabatan?: string;
     password?: string;
     role: UserRole;
     department?: string;
@@ -91,6 +93,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const createUser = async (data: {
     username: string;
     name: string;
+    nik?: string;
+    jabatan?: string;
     password?: string;
     role: UserRole;
     department?: string;

@@ -40,6 +40,7 @@ import {
   Copy,
   Upload,
   ShieldAlert,
+  RefreshCw,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -58,7 +59,7 @@ interface AdminSettingsTabProps {
 }
 
 export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
-  const { user: currentUser, users, createUser, updateUser, deleteUser, refreshUsers } = useAuth();
+  const { user: currentUser, users, createUser, updateUser, deleteUser, refreshUsers, resetDefaults } = useAuth();
   const isAdmin = currentUser?.role === 'admin';
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -88,6 +89,8 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
   // Form State for Add User
   const [newUsername, setNewUsername] = useState('');
   const [newName, setNewName] = useState('');
+  const [newNik, setNewNik] = useState('');
+  const [newJabatan, setNewJabatan] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newRole, setNewRole] = useState<UserRole>('user');
   const [newDepartment, setNewDepartment] = useState('');
@@ -97,6 +100,8 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
   // Form State for Edit User
   const [editingUser, setEditingUser] = useState<AuthUser | null>(null);
   const [editName, setEditName] = useState('');
+  const [editNik, setEditNik] = useState('');
+  const [editJabatan, setEditJabatan] = useState('');
   const [editRole, setEditRole] = useState<UserRole>('user');
   const [editDepartment, setEditDepartment] = useState('');
   const [editEmail, setEditEmail] = useState('');
@@ -115,6 +120,8 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
         !q ||
         u.name.toLowerCase().includes(q) ||
         u.username.toLowerCase().includes(q) ||
+        (u.nik && u.nik.toLowerCase().includes(q)) ||
+        (u.jabatan && u.jabatan.toLowerCase().includes(q)) ||
         (u.email && u.email.toLowerCase().includes(q)) ||
         (u.department && u.department.toLowerCase().includes(q));
 
@@ -176,12 +183,14 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
   const handleOpenAddModal = (presetRole?: UserRole) => {
     setNewUsername('');
     setNewName('');
+    setNewNik('');
+    setNewJabatan('');
     setNewPassword('');
     const targetRole = presetRole || 'staf_ttb';
     setNewRole(targetRole);
     setNewDepartment(
       targetRole === 'visitor'
-        ? 'Tamu / Observer Eksternal'
+        ? 'Purchasing & Procurement'
         : targetRole === 'staf_ttb'
         ? 'Dokumen & Arsip TTB Logistik'
         : targetRole === 'staf_lapangan'
@@ -204,6 +213,8 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
       const res = await createUser({
         username: newUsername,
         name: newName,
+        nik: newNik.trim() || undefined,
+        jabatan: newJabatan.trim() || undefined,
         password: newPassword || (newUsername.trim() + '123'),
         role: newRole,
         department: newDepartment,
@@ -229,6 +240,8 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
   const handleOpenEdit = (userItem: AuthUser) => {
     setEditingUser(userItem);
     setEditName(userItem.name);
+    setEditNik(userItem.nik || '');
+    setEditJabatan(userItem.jabatan || '');
     setEditRole(userItem.role);
     setEditDepartment(userItem.department || '');
     setEditEmail(userItem.email || '');
@@ -245,6 +258,8 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
     try {
       const updates: any = {
         name: editName.trim(),
+        nik: editNik.trim() || undefined,
+        jabatan: editJabatan.trim() || undefined,
         role: editRole,
         department: editDepartment.trim(),
         email: editEmail.trim(),
@@ -265,6 +280,21 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
       showToast(err.message || 'Gagal memperbarui akun.', 'error');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleSyncOfficialEmployees = () => {
+    if (!isAdmin) {
+      showToast('Akses ditolak: Hanya Administrator yang berwenang menyinkronkan data karyawan.', 'warning');
+      return;
+    }
+    if (
+      window.confirm(
+        'Sinkronisasi 25 data karyawan CPG sesuai data resmi terkini? Akun default akan diperbarui lengkap dengan NIK dan Jabatan resmi.'
+      )
+    ) {
+      resetDefaults();
+      showToast('Berhasil menyinkronkan data 25 karyawan resmi CPG.', 'success');
     }
   };
 
@@ -673,6 +703,18 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
               <span>+ Tanda Tangan Digital</span>
             </button>
           )}
+
+          {/* Sync 25 CPG Personnel for Admin */}
+          {isAdmin && (
+            <button
+              onClick={handleSyncOfficialEmployees}
+              className="flex-1 md:flex-initial h-9 px-3 rounded-lg border border-slate-500/30 bg-slate-500/10 hover:bg-slate-500/20 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-xs cursor-pointer active:scale-95"
+              title="Sinkronisasi / Muat 25 Karyawan Resmi CPG (NIK, Jabatan, Role)"
+            >
+              <RefreshCw className="size-3.5" />
+              <span>Sinkron 25 Karyawan</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -861,15 +903,28 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5 font-semibold text-foreground truncate">
                               <span>{item.name}</span>
+                              {item.nik && (
+                                <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-medium bg-muted text-foreground/80 border border-border">
+                                  {item.nik}
+                                </span>
+                              )}
                               {isCurrent && (
                                 <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-medium bg-primary/10 text-primary border border-primary/20">
                                   Anda
                                 </span>
                               )}
                             </div>
-                            <span className="text-[11px] text-muted-foreground font-mono">
-                              @{item.username}
-                            </span>
+                            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground font-mono truncate">
+                              <span>@{item.username}</span>
+                              {item.jabatan && (
+                                <>
+                                  <span className="text-muted-foreground/40">&bull;</span>
+                                  <span className="text-foreground/80 font-sans text-[10px] truncate" title={item.jabatan}>
+                                    {item.jabatan}
+                                  </span>
+                                </>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </td>
@@ -1328,6 +1383,35 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                 </div>
               </div>
 
+              {/* NIK & Jabatan Resmi */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-foreground mb-1">
+                    NIK Karyawan (Opsional)
+                  </label>
+                  <input
+                    type="text"
+                    value={newNik}
+                    onChange={(e) => setNewNik(e.target.value.toUpperCase())}
+                    placeholder="misal: MP-DAO-0871"
+                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary font-mono uppercase"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-foreground mb-1">
+                    Jabatan Resmi (Opsional)
+                  </label>
+                  <input
+                    type="text"
+                    value={newJabatan}
+                    onChange={(e) => setNewJabatan(e.target.value)}
+                    placeholder="misal: Staf Logistik lapangan"
+                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+              </div>
+
               {/* Password & Department */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
@@ -1523,6 +1607,35 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                   onChange={(e) => setEditName(e.target.value)}
                   className="w-full px-3 py-1.5 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                 />
+              </div>
+
+              {/* NIK & Jabatan Resmi */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-foreground mb-1">
+                    NIK Karyawan
+                  </label>
+                  <input
+                    type="text"
+                    value={editNik}
+                    onChange={(e) => setEditNik(e.target.value.toUpperCase())}
+                    placeholder="misal: MP-DAO-0871"
+                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary font-mono uppercase"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-foreground mb-1">
+                    Jabatan Resmi
+                  </label>
+                  <input
+                    type="text"
+                    value={editJabatan}
+                    onChange={(e) => setEditJabatan(e.target.value)}
+                    placeholder="misal: Staf Logistik lapangan"
+                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

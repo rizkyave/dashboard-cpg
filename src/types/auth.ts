@@ -18,6 +18,8 @@ export interface AuthUser {
   username: string;
   name: string;
   role: UserRole;
+  nik?: string;
+  jabatan?: string;
   department?: string;
   email?: string;
   avatar?: string;
