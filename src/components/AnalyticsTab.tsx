@@ -55,6 +55,7 @@ import {
 } from './Charts';
 import FleetGanttSchedule from './FleetGanttSchedule';
 import TopFleetPieInfographic from './TopFleetPieInfographic';
+import { DashboardContainer as FleetInteractiveDashboard } from './fleet-dashboard';
 import WorkflowTrafficLight from './WorkflowTrafficLight';
 import DailyAnalyticsReport from './DailyAnalyticsReport';
 import { evaluateFiveDivisionWorkflow, evaluateArmadaFulfillment } from '@/utils/statusWorkflow';
@@ -2853,18 +2854,12 @@ export default function AnalyticsTab({
             </div>
           </div>
 
-          {/* 2.5.1 Visualizer Infografis 3D Pie Chart 12 Armada Terbanyak */}
-          <TopFleetPieInfographic
-            onSelectFleet={(name) => {
-              setSelectedFleetArmada(name);
-            }}
-          />
-
-          {/* 2.6 Gantt Schedule Timeline Permintaan & Realisasi Armada */}
-          <FleetGanttSchedule
-            items={fleetFilteredItems}
+          {/* 2.5.1 Dashboard Visualisasi Interaktif & Terhubung: Donut Chart, Tren Bulanan & Gantt Schedule */}
+          <FleetInteractiveDashboard
+            items={armadaItems && armadaItems.length > 0 ? armadaItems : items}
             onOpenAudit={onOpenAudit}
-            selectedEntity={fleetEntityFilter}
+            initialMonth={selectedMonth !== 'ALL' ? selectedMonth : '10'}
+            initialYear={selectedYear !== 'ALL' ? selectedYear : '2026'}
           />
 
           {/* 3. MODE TAMPILAN: JIKA MEMILIH 1 ARMADA SPESIFIK */}
