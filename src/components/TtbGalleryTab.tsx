@@ -197,8 +197,12 @@ export default function TtbGalleryTab({ showToast }: TtbGalleryTabProps) {
                 <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20">
                   {totalPhotos.toLocaleString('id-ID')} Foto
                 </span>
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border uppercase">
-                  {source === 'blob' ? 'Vercel Blob CDN' : 'Server'}
+                <span className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full border uppercase ${
+                  source === 'r2'
+                    ? 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/30'
+                    : 'bg-muted text-muted-foreground border-border'
+                }`}>
+                  {source === 'r2' ? 'Cloudflare R2' : 'Server'}
                 </span>
               </div>
               <p className="text-xs text-muted-foreground">

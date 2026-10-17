@@ -10,6 +10,9 @@ export interface UploadedTtbItem {
   fileSize: number;
   fileType: string;
   fileUrl: string;
+  r2Key?: string;
+  r2Url?: string;
+  storageProvider?: 'CLOUDFLARE_R2' | 'LOCAL' | 'GOOGLE_DRIVE';
   driveFolderUrl: string;
   driveFileId?: string;
   driveViewUrl?: string;
@@ -26,7 +29,7 @@ export interface UploadTtbResponse {
   folderId: string;
   spreadsheetUrl?: string;
   isDriveDatabaseActive?: boolean;
+  isR2StorageActive?: boolean;
   uploadedFiles: UploadedTtbItem[];
   error?: string;
 }
-

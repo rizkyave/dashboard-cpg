@@ -1,22 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { put } from '@vercel/blob';
 import { extractTakenAt, filenameMatchesTtb, parseNoTtb, extractTtbFromFilename } from '@/utils/ttbPhotoMatch';
 import { getPhotosDir } from '@/utils/ttbPhotosDir';
-import blobManifest from '@/data/ttb-photos-manifest.json';
+import { uploadToR2, isR2Configured, getR2FileUrl, listR2Objects } from '@/utils/r2Client';
+import rawManifest from '@/data/ttb-photos-manifest.json';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const IMAGE_EXT = /\.(jpe?g|png|webp|gif)$/i;
 
-const SOURCE: 'blob' | 'local' =
-  (process.env.TTB_PHOTOS_SOURCE as 'blob' | 'local') || (process.env.VERCEL ? 'blob' : 'local');
-
-// Manifest file path jika di lokal untuk update
+// Manifest file path untuk update lokal
 const MANIFEST_PATH = path.join(process.cwd(), 'src', 'data', 'ttb-photos-manifest.json');
-let manifest: Record<string, string> = { ...(blobManifest as Record<string, string>) };
+let manifest: Record<string, string> = { ...(rawManifest as Record<string, string>) };
 
 let cache: { at: number; files: string[] } | null = null;
 const listLocalFiles = async (): Promise<string[]> => {
@@ -30,7 +27,21 @@ const listLocalFiles = async (): Promise<string[]> => {
   }
 };
 
-// GET /api/ttb-photos?ttb=... ATAU /api/ttb-photos?all=true&q=...&page=1&limit=60
+/**
+ * Menentukan URL foto terbaik (Cloudflare R2, Proxy Stream, atau Disk Lokal)
+ */
+function resolvePhotoUrl(filename: string): string {
+  if (isR2Configured()) {
+    return getR2FileUrl(`ttb-photos/${filename}`);
+  }
+  // Jika manifest sudah punya URL selain vercel-storage (cth: R2 direct URL)
+  if (manifest[filename] && !manifest[filename].includes('vercel-storage.com')) {
+    return manifest[filename];
+  }
+  return `/api/ttb-photos/file?name=${encodeURIComponent(filename)}`;
+}
+
+// GET /api/ttb-photos?ttb=... ATAU /api/ttb-photos?all=true&q=...&page=1&limit=36
 export async function GET(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;
   const noTtb = searchParams.get('ttb') || '';
@@ -38,8 +49,14 @@ export async function GET(req: NextRequest) {
   const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
   const limit = Math.min(120, Math.max(12, parseInt(searchParams.get('limit') || '36', 10)));
 
+  const sourceName = isR2Configured() ? 'r2' : 'local';
+
   try {
-    const files = SOURCE === 'blob' ? Object.keys(manifest) : await listLocalFiles();
+    // Kumpulkan daftar nama file: dari manifest dan disk lokal
+    const localFiles = await listLocalFiles();
+    const manifestKeys = Object.keys(manifest);
+    const fileSet = new Set<string>([...manifestKeys, ...localFiles]);
+    const files = Array.from(fileSet);
 
     // Mode 1: Pencarian spesifik nomor TTB (untuk popup/modal)
     if (noTtb) {
@@ -52,16 +69,19 @@ export async function GET(req: NextRequest) {
         .filter((f) => filenameMatchesTtb(f, target))
         .map((name) => ({
           name,
-          url:
-            SOURCE === 'blob'
-              ? manifest[name]
-              : `/api/ttb-photos/file?name=${encodeURIComponent(name)}`,
+          url: resolvePhotoUrl(name),
           takenAt: extractTakenAt(name),
           ttbInfo: extractTtbFromFilename(name),
         }))
         .sort((a, b) => b.name.localeCompare(a.name));
 
-      return NextResponse.json({ ttb: noTtb, number: target.numbers[0], source: SOURCE, photos });
+      return NextResponse.json({
+        ttb: noTtb,
+        number: target.numbers[0],
+        source: sourceName,
+        photos,
+        isR2Active: isR2Configured(),
+      });
     }
 
     // Mode 2: Galeri Semua Foto TTB (dengan search & pagination)
@@ -82,16 +102,14 @@ export async function GET(req: NextRequest) {
 
     const photos = pagedFiles.map((name) => ({
       name,
-      url:
-        SOURCE === 'blob'
-          ? manifest[name]
-          : `/api/ttb-photos/file?name=${encodeURIComponent(name)}`,
+      url: resolvePhotoUrl(name),
       takenAt: extractTakenAt(name),
       ttbInfo: extractTtbFromFilename(name),
     }));
 
     return NextResponse.json({
-      source: SOURCE,
+      source: sourceName,
+      isR2Active: isR2Configured(),
       total,
       page,
       limit,
@@ -100,13 +118,13 @@ export async function GET(req: NextRequest) {
     });
   } catch (err) {
     return NextResponse.json(
-      { photos: [], source: SOURCE, error: `Gagal memuat galeri foto: ${(err as Error).message}` },
+      { photos: [], source: sourceName, error: `Gagal memuat galeri foto: ${(err as Error).message}` },
       { status: 500 }
     );
   }
 }
 
-// POST /api/ttb-photos: Upload foto baru dengan No TTB dan Armada/Keterangan
+// POST /api/ttb-photos: Upload foto baru dengan No TTB dan Armada ke Cloudflare R2
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
@@ -122,7 +140,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Nomor TTB wajib diisi.' }, { status: 400 });
     }
 
-    // Validasi ekstensi
+    // Validasi format gambar
     const originalExt = path.extname(file.name).toLowerCase() || '.jpeg';
     if (!IMAGE_EXT.test(originalExt)) {
       return NextResponse.json({ error: 'Format file harus berupa gambar (JPG, PNG, WEBP).' }, { status: 400 });
@@ -147,52 +165,59 @@ export async function POST(req: NextRequest) {
 
     const armadaPrefix = armada ? `${armada.toUpperCase()} ` : '';
     const generatedFilename = `${armadaPrefix}${cleanTtb} ${timeStamp}${originalExt}`;
-
     const buffer = Buffer.from(await file.arrayBuffer());
-    let publicUrl = '';
 
-    // Coba simpan ke Vercel Blob jika token tersedia
-    const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
-    if (blobToken) {
+    let publicUrl = '';
+    let storageProvider = 'LOCAL';
+
+    // 1. Simpan ke Cloudflare R2 jika telah dikonfigurasi
+    if (isR2Configured()) {
       try {
-        const blobRes = await put(`ttb-photos/${generatedFilename}`, buffer, {
-          access: 'public',
-          addRandomSuffix: false,
-          allowOverwrite: true,
-          token: blobToken,
+        const r2Result = await uploadToR2({
+          key: `ttb-photos/${generatedFilename}`,
+          body: buffer,
+          contentType: file.type || 'image/jpeg',
+          metadata: {
+            noTtb: cleanTtb,
+            armada: armada || '',
+            originalFileName: file.name,
+          },
         });
-        publicUrl = blobRes.url;
+        publicUrl = r2Result.url;
+        storageProvider = 'CLOUDFLARE_R2';
         manifest[generatedFilename] = publicUrl;
 
-        // Jika di lokal, simpan juga ke manifest.json agar persisten
+        // Simpan ke manifest file agar terindeks cepat
         try {
           await fs.writeFile(MANIFEST_PATH, JSON.stringify(manifest, null, 1), 'utf8');
         } catch {
           // Non-fatal di serverless
         }
-      } catch (blobErr) {
-        console.warn('Vercel Blob put error, fallback ke local storage:', blobErr);
+      } catch (r2Err) {
+        console.warn('Cloudflare R2 upload error, fallback ke local storage:', r2Err);
       }
     }
 
-    // Simpan ke storage lokal jika di laptop atau jika Vercel Blob tidak tersedia
-    if (!publicUrl) {
-      try {
-        const localDir = getPhotosDir();
-        await fs.mkdir(localDir, { recursive: true });
-        await fs.writeFile(path.join(localDir, generatedFilename), buffer);
+    // 2. Simpan juga ke disk lokal sebagai salinan lokal jika di lingkungan lokal
+    try {
+      const localDir = getPhotosDir();
+      await fs.mkdir(localDir, { recursive: true });
+      await fs.writeFile(path.join(localDir, generatedFilename), buffer);
+      cache = null; // Reset cache lokal
+      if (!publicUrl) {
         publicUrl = `/api/ttb-photos/file?name=${encodeURIComponent(generatedFilename)}`;
-        cache = null; // Reset cache file lokal
-      } catch (fsErr) {
-        if (!publicUrl) {
-          throw new Error(`Gagal menyimpan file: ${(fsErr as Error).message}`);
-        }
+      }
+    } catch (fsErr) {
+      if (!publicUrl) {
+        throw new Error(`Gagal menyimpan file ke penyimpanan: ${(fsErr as Error).message}`);
       }
     }
 
     return NextResponse.json({
       success: true,
-      message: `Foto untuk ${cleanTtb} berhasil diupload!`,
+      message: `Foto untuk ${cleanTtb} berhasil diupload ke ${storageProvider === 'CLOUDFLARE_R2' ? 'Cloudflare R2' : 'penyimpanan lokal'}!`,
+      storageProvider,
+      isR2Active: isR2Configured(),
       photo: {
         name: generatedFilename,
         url: publicUrl,

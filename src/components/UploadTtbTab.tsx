@@ -1478,15 +1478,20 @@ export default function UploadTtbTab({
                       {formatFileSize(item.fileSize)}
                     </td>
                     <td className="py-2.5 px-3">
-                      {item.status === 'SAVED_TO_DRIVE_DATABASE' ? (
+                      {item.storageProvider === 'CLOUDFLARE_R2' || item.r2Key ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20">
+                          <Database className="size-3" />
+                          <span>Cloudflare R2</span>
+                        </span>
+                      ) : item.status === 'SAVED_TO_DRIVE_DATABASE' ? (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                           <FileSpreadsheet className="size-3" />
-                          <span>Drive &amp; Sheets Synced</span>
+                          <span>Drive &amp; Sheets</span>
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
                           <ShieldCheck className="size-3" />
-                          <span>Lokal &bull; Drive Ready</span>
+                          <span>Lokal</span>
                         </span>
                       )}
                     </td>
@@ -1620,7 +1625,7 @@ export default function UploadTtbTab({
                     <p className="text-[11px] text-muted-foreground leading-relaxed">
                       {driveScriptUrl
                         ? 'Setiap berkas TTB yang diunggah akan otomatis disimpan ke Google Drive dan transaksi dicatat ke Spreadsheet Database secara real-time.'
-                        : 'Saat ini berkas disimpan di server lokal & Vercel Blob. Masukkan Web App URL di bawah ini untuk menghubungkan langsung ke Google Drive & Sheets Anda.'}
+                        : 'Saat ini berkas disimpan di Cloudflare R2 & penyimpanan lokal. Masukkan Web App URL di bawah ini untuk menghubungkan juga ke Google Drive & Sheets Anda.'}
                     </p>
                     {spreadsheetUrl && (
                       <div className="pt-1 flex items-center gap-2">

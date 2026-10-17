@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { getPhotosDir } from '@/utils/ttbPhotosDir';
+import { getObjectFromR2, isR2Configured } from '@/utils/r2Client';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -31,6 +32,7 @@ export async function GET(req: NextRequest) {
     return new NextResponse('Format file tidak didukung.', { status: 415 });
   }
 
+  // 1. Coba baca dari disk lokal
   try {
     const filePath = path.join(getPhotosDir(), name);
     const data = await fs.readFile(filePath);
@@ -41,15 +43,47 @@ export async function GET(req: NextRequest) {
     };
 
     if (download) {
-      headers['Content-Disposition'] = `attachment; filename="${name}"`;
+      headers['Content-Disposition'] = `attachment; filename="${encodeURIComponent(name)}"`;
     } else {
-      headers['Content-Disposition'] = `inline; filename="${name}"`;
+      headers['Content-Disposition'] = `inline; filename="${encodeURIComponent(name)}"`;
     }
 
     return new NextResponse(new Uint8Array(data), { headers });
   } catch {
+    // 2. Jika tidak ada di lokal, coba ambil dari Cloudflare R2
+    if (isR2Configured()) {
+      try {
+        const isPdf = ext === '.pdf';
+        const r2Key = isPdf ? `ttb-documents/${name}` : `ttb-photos/${name}`;
+        let r2Object = await getObjectFromR2(r2Key);
+
+        // Fallback coba prefix sebaliknya jika tidak ditemukan
+        if (!r2Object) {
+          const altKey = isPdf ? `ttb-photos/${name}` : `ttb-documents/${name}`;
+          r2Object = await getObjectFromR2(altKey);
+        }
+
+        if (r2Object) {
+          const headers: Record<string, string> = {
+            'Content-Type': r2Object.contentType || mime,
+            'Cache-Control': 'public, max-age=31536000, immutable',
+          };
+
+          if (download) {
+            headers['Content-Disposition'] = `attachment; filename="${encodeURIComponent(name)}"`;
+          } else {
+            headers['Content-Disposition'] = `inline; filename="${encodeURIComponent(name)}"`;
+          }
+
+          return new NextResponse(new Uint8Array(r2Object.body), { headers });
+        }
+      } catch (r2Err) {
+        console.warn('Gagal membaca berkas dari Cloudflare R2:', r2Err);
+      }
+    }
+
+    // 3. Fallback terakhir ke folder Google Drive
     const driveFolderId = process.env.GOOGLE_DRIVE_TTB_FOLDER_ID || '1Hd6FsgWiALq1jJyRvh8auY0FJGE9h5tf';
     return NextResponse.redirect(`https://drive.google.com/drive/folders/${driveFolderId}`, 302);
   }
 }
-

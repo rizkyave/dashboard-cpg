@@ -1014,7 +1014,7 @@ export default function DashboardPage() {
                   : activeTab === 'armada'
                   ? 'Rekonsiliasi FPB–FSTB & Distribusi Logistik'
                   : activeTab === 'galeri-ttb'
-                  ? 'Galeri foto penerimaan dan serah terima dokumen fisik TTB dari server terpusat & Vercel Blob.'
+                  ? 'Galeri foto penerimaan dan serah terima dokumen fisik TTB terintegrasi Cloudflare R2 Storage.'
                   : activeTab === 'timemark'
                   ? 'Verifikasi dokumentasi bukti foto fisik lapangan TimeMark dengan pencarian 5 digit nomor FSTB.'
                   : activeTab === 'pos-kapal'
@@ -1149,7 +1149,7 @@ export default function DashboardPage() {
             />
           )}
 
-          {/* Tab Galeri Seluruh Foto TTB (Vercel Blob / Server) */}
+          {/* Tab Galeri Seluruh Foto TTB (Cloudflare R2 / Server) */}
           {activeTab === 'galeri-ttb' && (
             <TtbGalleryTab showToast={showToast} />
           )}

@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { put } from '@vercel/blob';
 import { sanitizeTtbNumber, formatTtbFilename } from '@/utils/ttbRename';
 import { getPhotosDir } from '@/utils/ttbPhotosDir';
 import { UploadedTtbItem, UploadTtbResponse } from '@/types/ttbUpload';
+import { uploadToR2, isR2Configured, getR2FileUrl } from '@/utils/r2Client';
 import {
   DEFAULT_DRIVE_FOLDER_ID,
   DEFAULT_DRIVE_FOLDER_URL,
@@ -62,7 +62,7 @@ async function saveHistory(records: UploadedTtbItem[]) {
   }
 }
 
-// GET: Ambil riwayat berkas TTB yang pernah diunggah (mendukung baca langsung dari Database Google Drive di Vercel)
+// GET: Ambil riwayat berkas TTB yang pernah diunggah
 export async function GET(req: NextRequest) {
   try {
     const urlParam = req.nextUrl.searchParams.get('scriptUrl') || '';
@@ -73,15 +73,27 @@ export async function GET(req: NextRequest) {
     const targetFolderId = folderIdParam || GOOGLE_DRIVE_FOLDER_ID;
     const targetFolderUrl = `https://drive.google.com/drive/folders/${targetFolderId}`;
 
+    const isR2Active = isR2Configured();
+
     // 1. Ambil riwayat lokal/cache sebagai basis awal
     const localHistory = await getHistory();
+
+    // Pastikan URL file ter-resolve ke Cloudflare R2 jika key R2 tersedia
+    const formattedHistory = localHistory.map((item) => {
+      if (item.r2Key && isR2Active) {
+        return {
+          ...item,
+          fileUrl: getR2FileUrl(item.r2Key),
+        };
+      }
+      return item;
+    });
 
     // 2. Jika Google Apps Script Web App tersedia, baca langsung Database Spreadsheet Google Drive
     if (driveScriptUrl) {
       try {
         const driveResult = await listGoogleDriveDatabaseItems(driveScriptUrl, targetFolderId);
         if (driveResult.success && driveResult.items) {
-          // Gabungkan data dari Google Drive Database (prioritas tinggi) dengan data lokal
           const mergedMap = new Map<string, UploadedTtbItem>();
 
           // Masukkan item dari Google Drive Spreadsheet terlebih dahulu
@@ -91,7 +103,7 @@ export async function GET(req: NextRequest) {
           }
 
           // Tambahkan item lokal yang belum tercatat di Drive
-          for (const item of localHistory) {
+          for (const item of formattedHistory) {
             const key = (item.cleanNoTtb || item.noTtb) + '_' + item.renamedFileName;
             if (!mergedMap.has(key)) {
               mergedMap.set(key, item);
@@ -106,8 +118,9 @@ export async function GET(req: NextRequest) {
             success: true,
             folderId: targetFolderId,
             driveFolderUrl: targetFolderUrl,
-            spreadsheetUrl: driveResult.spreadsheetUrl || localHistory.find((s) => s.spreadsheetUrl)?.spreadsheetUrl,
+            spreadsheetUrl: driveResult.spreadsheetUrl || formattedHistory.find((s) => s.spreadsheetUrl)?.spreadsheetUrl,
             isDriveDatabaseActive: true,
+            isR2StorageActive: isR2Active,
             items: mergedItems,
           });
         }
@@ -117,7 +130,7 @@ export async function GET(req: NextRequest) {
     }
 
     // 3. Fallback jika scriptUrl belum diatur atau offline
-    const sorted = [...localHistory].sort(
+    const sorted = [...formattedHistory].sort(
       (a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
     );
 
@@ -129,6 +142,7 @@ export async function GET(req: NextRequest) {
       driveFolderUrl: targetFolderUrl,
       spreadsheetUrl: latestSpreadsheet,
       isDriveDatabaseActive: !!driveScriptUrl,
+      isR2StorageActive: isR2Active,
       items: sorted,
     });
   } catch (err) {
@@ -139,7 +153,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST: Unggah berkas baru, auto-rename, upload ke Google Drive Apps Script & simpan ke Database Google Sheets
+// POST: Unggah berkas baru, auto-rename, upload ke Cloudflare R2 & simpan ke Google Drive / Sheets
 export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResponse>> {
   try {
     const formData = await req.formData();
@@ -171,7 +185,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
       );
     }
 
-    // Ambil semua file yang diupload (baik dari 'files' maupun 'file')
+    // Ambil semua file yang diupload
     const files: File[] = [];
     const allFiles = formData.getAll('files');
     if (allFiles.length > 0) {
@@ -200,7 +214,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
       );
     }
 
-    // Validasi ekstensi setiap file
+    // Validasi format
     for (const f of files) {
       const ext = path.extname(f.name).toLowerCase();
       if (!ALLOWED_EXT.test(ext)) {
@@ -223,28 +237,26 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
     try {
       await fs.mkdir(targetPhotosDir, { recursive: true });
     } catch (mkdirErr) {
-      console.warn('Lewati mkdir lokal (berjalan di Vercel/serverless):', mkdirErr);
+      console.warn('Lewati mkdir lokal:', mkdirErr);
     }
 
     const currentHistory = await getHistory();
     const newlyUploadedItems: UploadedTtbItem[] = [];
-    const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
+    const isR2Active = isR2Configured();
 
-    // Baca manifest blob jika ada untuk sync gambar
-    let manifest: Record<string, string> = {};
-    if (blobToken) {
-      try {
-        const rawManifest = await fs.readFile(MANIFEST_PATH, 'utf8');
-        manifest = JSON.parse(rawManifest);
-      } catch {
-        manifest = {};
-      }
+    // Baca manifest galeri foto jika ada untuk auto-sinkron foto baru
+    let photoManifest: Record<string, string> = {};
+    try {
+      const rawManifest = await fs.readFile(MANIFEST_PATH, 'utf8');
+      photoManifest = JSON.parse(rawManifest);
+    } catch {
+      photoManifest = {};
     }
 
     // Siapkan list payload untuk Google Apps Script
     const appsScriptFilesPayload: GoogleDriveUploadPayloadFile[] = [];
 
-    // Loop proses simpan lokal & siapkan payload
+    // Loop proses upload ke Cloudflare R2 & storage lokal
     for (let i = 0; i < files.length; i++) {
       const f = files[i];
       const renamedFileName = formatTtbFilename(cleanNoTtb, f.name, i, files.length);
@@ -252,30 +264,44 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
       const isPdf = renamedFileName.toLowerCase().endsWith('.pdf');
       const mimeType = getMimeType(renamedFileName, f.type);
 
-      // 1. Simpan ke local storage (safe try/catch di Vercel)
+      // Tentukan folder di Cloudflare R2
+      const r2Key = isPdf ? `ttb-documents/${renamedFileName}` : `ttb-photos/${renamedFileName}`;
+
+      let publicUrl = `/api/upload-ttb/file?name=${encodeURIComponent(renamedFileName)}`;
+      let storageProvider: 'CLOUDFLARE_R2' | 'LOCAL' = 'LOCAL';
+
+      // 1. Upload ke Cloudflare R2 jika aktif
+      if (isR2Active) {
+        try {
+          const r2Res = await uploadToR2({
+            key: r2Key,
+            body: buffer,
+            contentType: mimeType,
+            metadata: {
+              noTtb: noTtbRaw,
+              cleanNoTtb,
+              armada: armada || '-',
+              originalName: f.name,
+            },
+          });
+          publicUrl = r2Res.url;
+          storageProvider = 'CLOUDFLARE_R2';
+
+          // Jika berupa gambar, daftarkan juga ke manifest galeri foto TTB
+          if (!isPdf) {
+            photoManifest[renamedFileName] = publicUrl;
+          }
+        } catch (r2Err) {
+          console.warn('Cloudflare R2 upload error, fallback ke penyimpanan lokal:', r2Err);
+        }
+      }
+
+      // 2. Simpan salinan ke local storage jika diizinkan sistem file
       try {
         const localFilePath = path.join(targetPhotosDir, renamedFileName);
         await fs.writeFile(localFilePath, buffer);
       } catch (writeErr) {
-        console.warn('Lewati penyimpanan disk lokal (berjalan di Vercel/serverless):', writeErr);
-      }
-
-      let publicUrl = `/api/upload-ttb/file?name=${encodeURIComponent(renamedFileName)}`;
-
-      // 2. Jika Vercel Blob aktif dan file gambar, upload ke Vercel Blob
-      if (blobToken && !isPdf) {
-        try {
-          const blobRes = await put(`ttb-photos/${renamedFileName}`, buffer, {
-            access: 'public',
-            addRandomSuffix: false,
-            allowOverwrite: true,
-            token: blobToken,
-          });
-          publicUrl = blobRes.url;
-          manifest[renamedFileName] = publicUrl;
-        } catch (blobErr) {
-          console.warn('Vercel Blob upload skipped/failed:', blobErr);
-        }
+        console.warn('Lewati penyimpanan disk lokal (serverless):', writeErr);
       }
 
       // Siapkan payload base64 untuk Google Drive
@@ -298,6 +324,9 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
         fileSize: f.size,
         fileType: mimeType,
         fileUrl: publicUrl,
+        r2Key: isR2Active ? r2Key : undefined,
+        r2Url: isR2Active ? publicUrl : undefined,
+        storageProvider,
         driveFolderUrl: targetFolderUrl,
         uploadedAt: new Date().toISOString(),
         status: 'SYNCED_TO_DRIVE',
@@ -326,14 +355,13 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
             },
             files: appsScriptFilesPayload,
           },
-          45000 // 45 detik timeout untuk pengiriman file besar
+          45000
         );
 
         if (driveResponse.success && driveResponse.files) {
           isDriveDatabaseActive = true;
           driveSpreadsheetUrl = driveResponse.spreadsheetUrl;
 
-          // Cocokkan metadata file dari Google Drive
           for (const item of newlyUploadedItems) {
             const matchedDriveFile = driveResponse.files.find(
               (df) => df.fileName === item.renamedFileName
@@ -343,39 +371,41 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
               item.driveFileId = matchedDriveFile.fileId;
               item.driveViewUrl = matchedDriveFile.webViewLink;
               item.driveDownloadUrl = matchedDriveFile.downloadUrl;
-              item.fileUrl = matchedDriveFile.webViewLink;
+              // Jika R2 aktif, simpan fileUrl dari R2; namun jika R2 belum ada, gunakan webViewLink Drive
+              if (!isR2Active) {
+                item.fileUrl = matchedDriveFile.webViewLink;
+              }
               item.spreadsheetUrl = driveResponse.spreadsheetUrl;
               item.status = 'SAVED_TO_DRIVE_DATABASE';
             }
           }
         }
       } catch (driveErr) {
-        console.warn('Gagal sinkron langsung ke Google Apps Script:', driveErr);
-        // Tetap lanjut, file sudah aman di lokal storage
+        console.warn('Gagal sinkron ke Google Apps Script:', driveErr);
       }
     }
 
-    // Masukkan ke history
+    // Masukkan ke riwayat
     for (const item of newlyUploadedItems) {
       currentHistory.unshift(item);
     }
 
-    // Perbarui riwayat di file JSON
     await saveHistory(currentHistory);
 
-    // Perbarui manifest Vercel Blob jika ada perubahan
-    if (blobToken && Object.keys(manifest).length > 0) {
+    // Perbarui manifest galeri foto jika ada foto baru
+    if (Object.keys(photoManifest).length > 0) {
       try {
-        await fs.writeFile(MANIFEST_PATH, JSON.stringify(manifest, null, 1), 'utf8');
+        await fs.writeFile(MANIFEST_PATH, JSON.stringify(photoManifest, null, 1), 'utf8');
       } catch {
         // Non-fatal
       }
     }
 
     const renamedSummary = newlyUploadedItems.map((item) => item.renamedFileName).join(', ');
+    const destinationText = isR2Active ? 'Cloudflare R2' : 'Penyimpanan Lokal';
     const successMsg = isDriveDatabaseActive
-      ? `Berhasil mengunggah ${newlyUploadedItems.length} berkas ke Google Drive & Database Google Sheets (${renamedSummary}).`
-      : `File berhasil disimpan lokal & di-rename: ${renamedSummary}`;
+      ? `Berhasil mengunggah ${newlyUploadedItems.length} berkas ke ${destinationText} & Google Drive Database (${renamedSummary}).`
+      : `File berhasil diunggah ke ${destinationText}: ${renamedSummary}`;
 
     return NextResponse.json({
       success: true,
@@ -384,6 +414,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
       folderId: targetFolderId,
       spreadsheetUrl: driveSpreadsheetUrl,
       isDriveDatabaseActive,
+      isR2StorageActive: isR2Active,
       uploadedFiles: newlyUploadedItems,
     });
   } catch (error) {
