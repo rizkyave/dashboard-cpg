@@ -1,5 +1,28 @@
 [
   {
+    "id": "1792280631359-jbgjh",
+    "noTtb": "CPL-TTB-26-07252",
+    "cleanNoTtb": "CPL-TTB-26-07252",
+    "armada": "UB CMPL 01",
+    "receivedDate": "2026-10-17",
+    "keterangan": "",
+    "originalFileName": "CPL-TTB-26-07252.jpeg",
+    "renamedFileName": "CPL-TTB-26-07252.jpeg",
+    "fileSize": 103955,
+    "fileType": "image/jpeg",
+    "fileUrl": "/api/r2-file?key=ttb-photos%2FCPL-TTB-26-07252.jpeg",
+    "r2Key": "ttb-photos/CPL-TTB-26-07252.jpeg",
+    "r2Url": "/api/r2-file?key=ttb-photos%2FCPL-TTB-26-07252.jpeg",
+    "storageProvider": "CLOUDFLARE_R2",
+    "uploadedAt": "2026-10-17T23:43:51.359Z",
+    "status": "STORED_IN_CLOUDFLARE_R2",
+    "uploaderName": "NURUL HAFIFAH ALIM",
+    "uploaderUsername": "nurul.hafifah",
+    "uploaderRole": "staf_ttb",
+    "uploaderNik": "MP-DAO-0490",
+    "uploaderJabatan": "Admin Logistik"
+  },
+  {
     "id": "1792266082436-6gh80",
     "noTtb": "GAJ-TTB-26-01124",
     "cleanNoTtb": "GAJ-TTB-26-01124",

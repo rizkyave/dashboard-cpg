@@ -8,6 +8,7 @@ import {
   OverallValidationStatus,
   ValidationSignatureRecord,
   FstbSlotKey,
+  TtbSlotKey,
 } from '@/types/documentValidation';
 import { UploadedFstbItem } from '@/types/fstbUpload';
 import { UploadedTtbItem } from '@/types/ttbUpload';
@@ -18,6 +19,8 @@ import {
 } from '@/utils/r2Client';
 import { stampFstbPdf, formatFstbStampDate, FstbStampRoleType } from '@/utils/fstbStamper';
 import { getFstbPhotosDir } from '@/utils/fstbPhotosDir';
+import { stampTtbPdf, formatTtbStampDate, TtbStampRoleType } from '@/utils/ttbStamper';
+import { getPhotosDir as getTtbPhotosDir } from '@/utils/ttbPhotosDir';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -101,7 +104,13 @@ async function getTtbHistory(): Promise<UploadedTtbItem[]> {
 function computeValidationStatus(
   record: Pick<
     DocumentValidationRecord,
-    'docType' | 'purchasingValidation' | 'logistikValidation' | 'lapanganValidation' | 'recipientValidation' | 'fstbSlots'
+    | 'docType'
+    | 'purchasingValidation'
+    | 'logistikValidation'
+    | 'lapanganValidation'
+    | 'recipientValidation'
+    | 'fstbSlots'
+    | 'ttbSlots'
   >
 ): { completedCount: number; status: OverallValidationStatus; isReady: boolean } {
   if (record.docType === 'FSTB' && record.fstbSlots) {
@@ -132,6 +141,38 @@ function computeValidationStatus(
     if (s.deliveredBy?.isValidated) count++;
     if (s.receivedBy?.isValidated) count++;
     if (s.approvedBy?.isValidated || s.acknowledgedBy?.isValidated) count++;
+
+    return { completedCount: count, status, isReady };
+  }
+
+  if (record.docType === 'TTB' && record.ttbSlots) {
+    const s = record.ttbSlots;
+    let slotCount = 0;
+    if (s.deliveredBy?.isValidated) slotCount++;
+    if (s.receivedBy?.isValidated) slotCount++;
+    if (s.approvedBy?.isValidated) slotCount++;
+    if (s.acknowledgedBy?.isValidated) slotCount++;
+
+    const isReady = slotCount >= 3;
+    let status: OverallValidationStatus = 'MENUNGGU_VALIDASI';
+    if (record.recipientValidation?.isSigned || s.receivedBy?.isValidated) {
+      status = 'SUDAH_DITERIMA_ARMADA';
+    } else if (isReady) {
+      status = 'SIAP_KIRIM_ARMADA';
+    } else if (slotCount > 0) {
+      status = 'PROSES_VALIDASI';
+    } else {
+      status = 'MENUNGGU_VALIDASI';
+    }
+
+    // Pemetaan ke 3 Lini indikator dashboard (PCH, LOG, LAP):
+    // PCH: acknowledgedBy (Procurement Manager)
+    // LOG: deliveredBy (Logistic Staff) & approvedBy (Logistic Spv)
+    // LAP: receivedBy (User / Lapangan)
+    let count = 0;
+    if (s.acknowledgedBy?.isValidated || record.purchasingValidation?.isValidated) count++;
+    if (s.deliveredBy?.isValidated || s.approvedBy?.isValidated || record.logistikValidation?.isValidated) count++;
+    if (s.receivedBy?.isValidated || record.lapanganValidation?.isValidated) count++;
 
     return { completedCount: count, status, isReady };
   }
@@ -410,9 +451,8 @@ export async function POST(req: NextRequest) {
       action = 'sign', // 'sign' | 'revoke'
     } = body;
 
-    const isFstb = docType === 'FSTB' || Boolean(slotKey) || Boolean(slotKeys && slotKeys.length > 0);
-
-    if (!isFstb && (!line || !['purchasing', 'logistik', 'lapangan'].includes(line))) {
+    const hasSlot = Boolean(slotKey) || Boolean(slotKeys && slotKeys.length > 0);
+    if (!hasSlot && (!line || !['purchasing', 'logistik', 'lapangan'].includes(line))) {
       return NextResponse.json(
         { success: false, error: 'Lini validasi tidak valid (harus purchasing, logistik, atau lapangan).' },
         { status: 400 }
@@ -458,6 +498,32 @@ export async function POST(req: NextRequest) {
             }
           }
         }
+      } else if (record.docType === 'TTB' && (slotKey || (slotKeys && slotKeys.length > 0))) {
+        const revSlots: TtbSlotKey[] = slotKeys && Array.isArray(slotKeys) ? slotKeys : slotKey ? [slotKey] : [];
+        record.ttbSlots = record.ttbSlots || {};
+        for (const s of revSlots) {
+          record.ttbSlots[s] = {
+            isValidated: false,
+            notes: notes ? `Validasi dibatalkan: ${notes}` : 'Validasi dibatalkan oleh pengguna.',
+          };
+          if (s === 'deliveredBy') {
+            if (!record.ttbSlots.approvedBy?.isValidated) {
+              record.logistikValidation = { isValidated: false, notes };
+            }
+          }
+          if (s === 'receivedBy') {
+            record.lapanganValidation = { isValidated: false, notes };
+            if (record.recipientValidation) record.recipientValidation.isSigned = false;
+          }
+          if (s === 'approvedBy') {
+            if (!record.ttbSlots.deliveredBy?.isValidated) {
+              record.logistikValidation = { isValidated: false, notes };
+            }
+          }
+          if (s === 'acknowledgedBy') {
+            record.purchasingValidation = { isValidated: false, notes };
+          }
+        }
       } else {
         const lineKey =
           line === 'purchasing'
@@ -469,6 +535,17 @@ export async function POST(req: NextRequest) {
           isValidated: false,
           notes: notes ? `Validasi dibatalkan: ${notes}` : 'Validasi dibatalkan oleh pengguna.',
         };
+        if (record.docType === 'TTB' && record.ttbSlots) {
+          if (line === 'purchasing') record.ttbSlots.acknowledgedBy = { isValidated: false };
+          if (line === 'logistik') {
+            record.ttbSlots.deliveredBy = { isValidated: false };
+            record.ttbSlots.approvedBy = { isValidated: false };
+          }
+          if (line === 'lapangan') {
+            record.ttbSlots.receivedBy = { isValidated: false };
+            if (record.recipientValidation) record.recipientValidation.isSigned = false;
+          }
+        }
       }
     } else {
       // Pembubuhan tanda tangan & validasi resmi
@@ -630,40 +707,161 @@ export async function POST(req: NextRequest) {
           record.lapanganValidation = record.fstbSlots.acknowledgedBy;
         }
       } else {
-        // Alur validasi standar TTB (3 Lini)
-        const lineKey =
-          line === 'purchasing'
-            ? 'purchasingValidation'
-            : line === 'logistik'
-            ? 'logistikValidation'
-            : 'lapanganValidation';
+        // Alur validasi formulir TTB (4 Kolom Pengesahan: Delivered By, Received By, Approved By, Acknowledge By)
+        let targetSlots: TtbSlotKey[] = [];
+        if (slotKeys && Array.isArray(slotKeys) && slotKeys.length > 0) {
+          targetSlots = slotKeys;
+        } else if (slotKey) {
+          targetSlots = [slotKey];
+        } else if (line === 'purchasing') {
+          targetSlots = ['acknowledgedBy'];
+        } else if (line === 'logistik') {
+          targetSlots = ['deliveredBy'];
+        } else if (line === 'lapangan') {
+          targetSlots = ['receivedBy'];
+        } else {
+          targetSlots = ['deliveredBy'];
+        }
 
-        const prefix = line === 'purchasing' ? 'PCH' : line === 'logistik' ? 'LOG' : 'LAP';
-        const token = `VAL-${prefix}-${Date.now().toString(36).toUpperCase()}-${Math.random()
-          .toString(36)
-          .substring(2, 6)
-          .toUpperCase()}`;
+        // Ambil berkas fisik PDF TTB untuk dibubuhi stempel digital resmi
+        let pdfBuffer: Buffer | null = null;
+        const filename = record.renamedFileName || `${record.cleanDocNumber}.pdf`;
+        const r2Key = record.r2Key || `ttb-documents/${filename}`;
 
-        record[lineKey] = {
-          isValidated: true,
-          validatorName,
-          validatorUsername,
-          validatorRole,
-          validatorNik,
-          validatorJabatan:
-            validatorJabatan ||
-            (validatorRole === 'manager'
-              ? 'Manager Procurement'
-              : line === 'purchasing'
-              ? 'Staf Purchasing / Pengadaan'
-              : line === 'logistik'
-              ? 'Staf Logistik & Pergudangan'
-              : 'Tim Lapangan / QC Distribusi'),
-          signatureDataUrl,
-          validatedAt: nowIso,
-          notes: notes || 'Telah diverifikasi dan disetujui sesuai prosedur operasional standar.',
-          verificationToken: token,
+        if (isR2Configured()) {
+          try {
+            const r2Obj = await getObjectFromR2(r2Key);
+            if (r2Obj && r2Obj.body) {
+              pdfBuffer = Buffer.from(r2Obj.body);
+            }
+          } catch (r2Err) {
+            console.warn('Gagal membaca PDF TTB dari Cloudflare R2, mencoba lokal:', r2Err);
+          }
+        }
+
+        if (!pdfBuffer) {
+          const localDir = getTtbPhotosDir();
+          const localPath = path.join(localDir, filename);
+          try {
+            pdfBuffer = await fs.readFile(localPath);
+          } catch {
+            const altPath = path.join(process.cwd(), 'src', 'app', 'public', 'photos_TTB', filename);
+            try {
+              pdfBuffer = await fs.readFile(altPath);
+            } catch {
+              console.warn('Berkas fisik PDF TTB tidak ditemukan di disk lokal.');
+            }
+          }
+        }
+
+        record.ttbSlots = record.ttbSlots || {
+          deliveredBy: record.logistikValidation?.isValidated ? record.logistikValidation : { isValidated: false },
+          receivedBy: record.lapanganValidation?.isValidated ? record.lapanganValidation : { isValidated: false },
+          approvedBy: { isValidated: false },
+          acknowledgedBy: record.purchasingValidation?.isValidated ? record.purchasingValidation : { isValidated: false },
         };
+
+        const stampDate = formatTtbStampDate(new Date());
+
+        for (const slot of targetSlots) {
+          let roleType: TtbStampRoleType = 'delivered_by';
+          let defaultJabatan = 'Logistic Staff';
+          let prefix = 'LOG';
+
+          if (slot === 'receivedBy') {
+            roleType = 'received_by';
+            defaultJabatan = 'User / Tim Lapangan';
+            prefix = 'LAP';
+          } else if (slot === 'approvedBy') {
+            roleType = 'approved_by';
+            defaultJabatan = 'Logistic Supervisor';
+            prefix = 'LOG-SPV';
+          } else if (slot === 'acknowledgedBy') {
+            roleType = 'acknowledged_by';
+            defaultJabatan = validatorRole === 'manager' ? 'Procurement Manager' : 'Manager Procurement';
+            prefix = 'PCH-MGR';
+          }
+
+          const token = `VAL-TTB-${prefix}-${Date.now().toString(36).toUpperCase()}-${Math.random()
+            .toString(36)
+            .substring(2, 6)
+            .toUpperCase()}`;
+
+          if (pdfBuffer) {
+            try {
+              pdfBuffer = await stampTtbPdf({
+                pdfBuffer,
+                signatureDataUrl: signatureDataUrl || undefined,
+                uploaderName: validatorName,
+                uploadDate: stampDate,
+                roleType,
+                verificationToken: token,
+              });
+            } catch (stampErr) {
+              console.warn(`Gagal membubuhkan stempel pada slot TTB ${slot}:`, stampErr);
+            }
+          }
+
+          record.ttbSlots[slot] = {
+            isValidated: true,
+            validatorName,
+            validatorUsername,
+            validatorRole,
+            validatorNik,
+            validatorJabatan: validatorJabatan || defaultJabatan,
+            signatureDataUrl,
+            validatedAt: nowIso,
+            notes: notes || `Disetujui dan disahkan sesuai wewenang ${defaultJabatan}.`,
+            verificationToken: token,
+          };
+        }
+
+        // Simpan berkas PDF yang telah dibubuhi stempel kembali ke storage
+        if (pdfBuffer) {
+          if (isR2Configured()) {
+            try {
+              await uploadToR2({
+                key: r2Key,
+                body: pdfBuffer,
+                contentType: 'application/pdf',
+              });
+            } catch (r2SaveErr) {
+              console.warn('Gagal menyimpan PDF TTB terstempel ke R2:', r2SaveErr);
+            }
+          }
+
+          try {
+            const localDir = getTtbPhotosDir();
+            await fs.mkdir(localDir, { recursive: true });
+            await fs.writeFile(path.join(localDir, filename), pdfBuffer);
+            const altDir = path.join(process.cwd(), 'src', 'app', 'public', 'photos_TTB');
+            await fs.mkdir(altDir, { recursive: true });
+            await fs.writeFile(path.join(altDir, filename), pdfBuffer);
+          } catch {
+            // Non-fatal
+          }
+
+          record.fileUrl = `/api/r2-file?key=${encodeURIComponent(r2Key)}&v=${Date.now()}`;
+        }
+
+        // Sinkronkan ke 3 Lini agregat:
+        if (record.ttbSlots.acknowledgedBy?.isValidated) {
+          record.purchasingValidation = record.ttbSlots.acknowledgedBy;
+        }
+        if (record.ttbSlots.deliveredBy?.isValidated) {
+          record.logistikValidation = record.ttbSlots.deliveredBy;
+        } else if (record.ttbSlots.approvedBy?.isValidated) {
+          record.logistikValidation = record.ttbSlots.approvedBy;
+        }
+        if (record.ttbSlots.receivedBy?.isValidated) {
+          record.lapanganValidation = record.ttbSlots.receivedBy;
+          record.recipientValidation = {
+            isSigned: true,
+            recipientName: validatorName,
+            signedAt: nowIso,
+            signatureDataUrl,
+          };
+        }
       }
     }
 

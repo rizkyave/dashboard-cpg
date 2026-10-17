@@ -61,6 +61,14 @@ export interface DocumentValidationRecord {
     acknowledgedBy?: ValidationSignatureRecord; // Logistic Supervisor
   };
 
+  // 4 Slot Pengesahan Khusus Berkas TTB (Delivered By, Received By, Approved By, Acknowledge By)
+  ttbSlots?: {
+    deliveredBy?: ValidationSignatureRecord; // Logistic Staff
+    receivedBy?: ValidationSignatureRecord; // User / Lapangan
+    approvedBy?: ValidationSignatureRecord; // Logistic Supervisor
+    acknowledgedBy?: ValidationSignatureRecord; // Procurement Manager
+  };
+
   // Status & Indikator Agregat
   overallStatus: OverallValidationStatus;
   completedLinesCount: number; // 0, 1, 2, atau 3
@@ -70,6 +78,7 @@ export interface DocumentValidationRecord {
 }
 
 export type FstbSlotKey = 'deliveredBy' | 'receivedBy' | 'approvedBy' | 'acknowledgedBy';
+export type TtbSlotKey = 'deliveredBy' | 'receivedBy' | 'approvedBy' | 'acknowledgedBy';
 
 export interface ValidationSummaryMetrics {
   totalDocuments: number;

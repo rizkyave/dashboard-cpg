@@ -33,6 +33,7 @@ import {
 } from '@/types/documentValidation';
 import ValidationSignatureModal from './ValidationSignatureModal';
 import FstbValidationModal from './FstbValidationModal';
+import TtbValidationModal from './TtbValidationModal';
 import { useAuth } from '@/context/AuthContext';
 
 export interface ValidasiDokumenTabProps {
@@ -570,7 +571,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
             showToast={showToast}
           />
         ) : (
-          <ValidationSignatureModal
+          <TtbValidationModal
             isOpen={isModalOpen}
             onClose={() => {
               setIsModalOpen(false);

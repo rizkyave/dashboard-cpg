@@ -1,11 +1,22 @@
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 
+export type TtbStampRoleType =
+  | 'delivered_by' // Kolom 1: Delivered By : Logistic Staff
+  | 'received_by' // Kolom 2: Received By : User
+  | 'approved_by' // Kolom 3: Approved By : Logistic Supervisor
+  | 'acknowledged_by' // Kolom 4: Acknowledge By : Procurement Manager
+  | 'logistic'
+  | 'lapangan'
+  | 'logistic_spv'
+  | 'purchasing_manager';
+
 export interface StampTtbOptions {
   pdfBuffer: Buffer | Uint8Array;
   signatureDataUrl?: string; // PNG or JPEG base64 Data URL
   uploaderName: string;
   uploadDate: string;
-  // Opsi custom koordinat jika diperlukan di masa depan
+  roleType?: TtbStampRoleType;
+  verificationToken?: string;
   customCoordinates?: {
     sigXRatio?: number;
     sigYRatio?: number;
@@ -21,48 +32,67 @@ export interface StampTtbOptions {
 /**
  * Rasio koordinat standar untuk formulir TTB resmi CPG (CPL-PRC-SOP-004-F02)
  * Koordinat dihitung dari kiri-bawah (standard PDF coordinate system)
+ * Form Geometry 4 Kolom:
+ * 1. Delivered By : Logistic Staff (Kolom 1)
+ * 2. Received By : User / Lapangan (Kolom 2)
+ * 3. Approved By : Logistic Supervisor (Kolom 3)
+ * 4. Acknowledge By : Procurement Manager (Kolom 4)
  */
-export const DEFAULT_TTB_COORDINATES = {
-  // Kotak Tanda Tangan (Delivered By : Logistic Staff)
-  sigXRatio: 0.082,
-  sigYRatio: 0.235,
-  sigWidthRatio: 0.141,
-  sigHeightRatio: 0.088,
-
-  // Kotak Teks Nama (Name : [NAMA UPLOADER])
-  nameXRatio: 0.135,
-  nameYRatio: 0.168,
-
-  // Kotak Teks Tanggal (Date : [DD/MM/YYYY])
-  dateXRatio: 0.135,
-  dateYRatio: 0.138,
+export const TTB_DELIVERED_BY_COORDINATES = {
+  // Delivered By : Logistic Staff (Kolom 1)
+  sigXRatio: 0.0651,
+  sigYRatio: 0.2394,
+  sigWidthRatio: 0.1469,
+  sigHeightRatio: 0.0708,
+  nameXRatio: 0.1336,
+  nameYRatio: 0.1757,
+  dateXRatio: 0.1336,
+  dateYRatio: 0.1450,
 };
 
-/**
- * Rasio koordinat untuk kolom Penerima Barang (Received By : User)
- * Pada formulir TTB resmi CPG (CPL-PRC-SOP-004-F02)
- */
-export const TTB_RECIPIENT_COORDINATES = {
-  // Kotak Tanda Tangan (Received By : User)
-  sigXRatio: 0.312,
-  sigYRatio: 0.235,
-  sigWidthRatio: 0.141,
-  sigHeightRatio: 0.088,
-
-  // Kotak Teks Nama (Name : [NAMA PENERIMA AKHIR])
-  nameXRatio: 0.365,
-  nameYRatio: 0.168,
-
-  // Kotak Teks Tanggal (Date : [DD/MM/YYYY])
-  dateXRatio: 0.365,
-  dateYRatio: 0.138,
-
-  // Kotak Hitam No WA/Telp Kapal / No. Penerima (Footer Bawah di bawah kolom Received By)
+export const TTB_RECEIVED_BY_COORDINATES = {
+  // Received By : User (Kolom 2)
+  sigXRatio: 0.3005,
+  sigYRatio: 0.2394,
+  sigWidthRatio: 0.1469,
+  sigHeightRatio: 0.0708,
+  nameXRatio: 0.3673,
+  nameYRatio: 0.1757,
+  dateXRatio: 0.3673,
+  dateYRatio: 0.1450,
   phoneBoxXRatio: 0.257,
   phoneBoxYRatio: 0.010,
   phoneBoxWidthRatio: 0.243,
   phoneBoxHeightRatio: 0.075,
 };
+
+export const TTB_APPROVED_BY_COORDINATES = {
+  // Approved By : Logistic Supervisor (Kolom 3)
+  sigXRatio: 0.5326,
+  sigYRatio: 0.2394,
+  sigWidthRatio: 0.1469,
+  sigHeightRatio: 0.0708,
+  nameXRatio: 0.6010,
+  nameYRatio: 0.1757,
+  dateXRatio: 0.6010,
+  dateYRatio: 0.1450,
+};
+
+export const TTB_ACKNOWLEDGED_BY_COORDINATES = {
+  // Acknowledge By : Procurement Manager (Kolom 4)
+  sigXRatio: 0.7596,
+  sigYRatio: 0.2394,
+  sigWidthRatio: 0.1469,
+  sigHeightRatio: 0.0708,
+  nameXRatio: 0.8264,
+  nameYRatio: 0.1757,
+  dateXRatio: 0.8264,
+  dateYRatio: 0.1450,
+};
+
+// Default alias untuk backwards compatibility
+export const DEFAULT_TTB_COORDINATES = TTB_DELIVERED_BY_COORDINATES;
+export const TTB_RECIPIENT_COORDINATES = TTB_RECEIVED_BY_COORDINATES;
 
 /**
  * Format tanggal Indonesia ringkas (DD/MM/YYYY)
@@ -87,7 +117,7 @@ export function formatTtbStampDate(dateInput?: string | Date): string {
 }
 
 /**
- * Stempel Tanda Tangan Digital, Nama Uploader, dan Tanggal pada Dokumen PDF TTB
+ * Stempel Tanda Tangan Digital, Nama Validator, dan Tanggal pada Dokumen PDF TTB
  */
 export async function stampTtbPdf(options: StampTtbOptions): Promise<Buffer> {
   const {
@@ -95,56 +125,133 @@ export async function stampTtbPdf(options: StampTtbOptions): Promise<Buffer> {
     signatureDataUrl,
     uploaderName,
     uploadDate,
+    roleType = 'delivered_by',
+    verificationToken,
     customCoordinates = {},
   } = options;
 
-  const pdfDoc = await PDFDocument.load(pdfBuffer);
+  const pdfDoc = await PDFDocument.load(pdfBuffer, { ignoreEncryption: true });
   const pages = pdfDoc.getPages();
   if (pages.length === 0) {
     throw new Error('Dokumen PDF tidak memiliki halaman.');
   }
 
   // Gunakan halaman pertama untuk stempel TTB
-  const firstPage = pages[0];
-  const { width: pageWidth, height: pageHeight } = firstPage.getSize();
+  const targetPage = pages[0];
+  const { width: pageWidth, height: pageHeight } = targetPage.getSize();
 
-  const coords = {
-    ...DEFAULT_TTB_COORDINATES,
-    ...customCoordinates,
-  };
+  // Tentukan koordinat dasar berdasarkan kolom pengesahan (roleType)
+  let baseCoords = TTB_DELIVERED_BY_COORDINATES;
+  if (roleType === 'received_by' || roleType === 'lapangan') {
+    baseCoords = TTB_RECEIVED_BY_COORDINATES;
+  } else if (roleType === 'approved_by' || roleType === 'logistic_spv') {
+    baseCoords = TTB_APPROVED_BY_COORDINATES;
+  } else if (roleType === 'acknowledged_by' || roleType === 'purchasing_manager') {
+    baseCoords = TTB_ACKNOWLEDGED_BY_COORDINATES;
+  }
 
-  // 1. Sematkan Gambar Tanda Tangan Digital (jika ada)
-  if (signatureDataUrl && signatureDataUrl.startsWith('data:image/')) {
+  const sigXRatio = customCoordinates?.sigXRatio ?? baseCoords.sigXRatio;
+  const sigYRatio = customCoordinates?.sigYRatio ?? baseCoords.sigYRatio;
+  const sigWidthRatio = customCoordinates?.sigWidthRatio ?? baseCoords.sigWidthRatio;
+  const sigHeightRatio = customCoordinates?.sigHeightRatio ?? baseCoords.sigHeightRatio;
+  const nameXRatio = customCoordinates?.nameXRatio ?? baseCoords.nameXRatio;
+  const nameYRatio = customCoordinates?.nameYRatio ?? baseCoords.nameYRatio;
+  const dateXRatio = customCoordinates?.dateXRatio ?? baseCoords.dateXRatio;
+  const dateYRatio = customCoordinates?.dateYRatio ?? baseCoords.dateYRatio;
+
+  const sigX = sigXRatio * pageWidth;
+  const sigY = sigYRatio * pageHeight;
+  const sigW = sigWidthRatio * pageWidth;
+  const sigH = sigHeightRatio * pageHeight;
+
+  // 1. Sematkan Gambar Tanda Tangan Digital (jika ada) atau Cap Verifikasi Digital
+  let hasEmbeddedImage = false;
+  if (
+    signatureDataUrl &&
+    (signatureDataUrl.startsWith('data:image/png') ||
+      signatureDataUrl.startsWith('data:image/jpeg') ||
+      signatureDataUrl.startsWith('data:image/jpg'))
+  ) {
     try {
       const isPng = signatureDataUrl.startsWith('data:image/png');
-      const isJpg =
-        signatureDataUrl.startsWith('data:image/jpeg') ||
-        signatureDataUrl.startsWith('data:image/jpg');
+      const base64Data = signatureDataUrl.replace(/^data:image\/[a-zA-Z]+;base64,/, '');
+      const imageBytes = Buffer.from(base64Data, 'base64');
 
-      const base64Index = signatureDataUrl.indexOf('base64,');
-      if (base64Index !== -1 && (isPng || isJpg)) {
-        const base64Data = signatureDataUrl.substring(base64Index + 7);
-        const imageBytes = Buffer.from(base64Data, 'base64');
+      const embeddedImage = isPng
+        ? await pdfDoc.embedPng(imageBytes)
+        : await pdfDoc.embedJpg(imageBytes);
 
-        const embeddedImage = isPng
-          ? await pdfDoc.embedPng(imageBytes)
-          : await pdfDoc.embedJpg(imageBytes);
-
-        const sigX = coords.sigXRatio * pageWidth;
-        const sigY = coords.sigYRatio * pageHeight;
-        const sigW = coords.sigWidthRatio * pageWidth;
-        const sigH = coords.sigHeightRatio * pageHeight;
-
-        firstPage.drawImage(embeddedImage, {
-          x: sigX,
-          y: sigY,
-          width: sigW,
-          height: sigH,
-        });
-      }
+      targetPage.drawImage(embeddedImage, {
+        x: sigX,
+        y: sigY,
+        width: sigW,
+        height: sigH,
+      });
+      hasEmbeddedImage = true;
     } catch (sigErr) {
-      console.warn('Gagal menyematkan spesimen tanda tangan ke PDF:', sigErr);
-      // Tetap lanjutkan untuk membubuhkan Nama & Tanggal
+      console.warn('Gagal menyematkan spesimen tanda tangan ke PDF TTB:', sigErr);
+    }
+  }
+
+  if (!hasEmbeddedImage) {
+    // Gambar cap digital stempel verifikasi profesional langsung di atas kotak tanda tangan
+    try {
+      const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+      const fontNorm = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+      targetPage.drawRectangle({
+        x: sigX,
+        y: sigY,
+        width: sigW,
+        height: sigH,
+        color: rgb(0.96, 0.99, 0.97),
+        borderColor: rgb(0.05, 0.55, 0.28),
+        borderWidth: 1.2,
+      });
+
+      // Vector checkmark (WinAnsi safe)
+      targetPage.drawLine({
+        start: { x: sigX + 5, y: sigY + sigH - 7 },
+        end: { x: sigX + 7.5, y: sigY + sigH - 10 },
+        thickness: 1.2,
+        color: rgb(0.05, 0.55, 0.28),
+      });
+      targetPage.drawLine({
+        start: { x: sigX + 7.5, y: sigY + sigH - 10 },
+        end: { x: sigX + 11.5, y: sigY + sigH - 5 },
+        thickness: 1.2,
+        color: rgb(0.05, 0.55, 0.28),
+      });
+
+      targetPage.drawText('VALIDASI DIGITAL', {
+        x: sigX + 14,
+        y: sigY + sigH - 9,
+        size: 6.5,
+        font: fontBold,
+        color: rgb(0.05, 0.55, 0.28),
+      });
+
+      const displayName = (uploaderName || 'PETUGAS CPG').slice(0, 18).toUpperCase();
+      targetPage.drawText(displayName, {
+        x: sigX + 5,
+        y: sigY + sigH - 18,
+        size: 6,
+        font: fontBold,
+        color: rgb(0.09, 0.14, 0.23),
+      });
+
+      const tokenText = (
+        verificationToken || `VAL-TTB-${Date.now().toString(36).toUpperCase()}`
+      ).slice(0, 20);
+      targetPage.drawText(tokenText, {
+        x: sigX + 5,
+        y: sigY + 4,
+        size: 5,
+        font: fontNorm,
+        color: rgb(0.35, 0.45, 0.55),
+      });
+    } catch (sealErr) {
+      console.warn('Gagal membubuhkan cap digital verifikasi TTB:', sealErr);
     }
   }
 
@@ -153,40 +260,38 @@ export async function stampTtbPdf(options: StampTtbOptions): Promise<Buffer> {
     const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
     const fontNorm = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-    // Ukuran font proporsional terhadap tinggi halaman (standar ~7.5 pt untuk tinggi ~400 pt)
-    const fontSize = Math.max(6.5, Math.min(9.5, pageHeight * 0.019));
-
-    // Nama Uploader
+    // Nama Uploader / Validator
     if (uploaderName && uploaderName.trim()) {
       const cleanName = uploaderName.trim().toUpperCase();
-      const nameX = coords.nameXRatio * pageWidth;
-      const nameY = coords.nameYRatio * pageHeight;
+      const nameX = nameXRatio * pageWidth;
+      const nameY = nameYRatio * pageHeight;
+      const nameFontSize = cleanName.length > 20 ? 6.5 : cleanName.length > 15 ? 7 : 7.5;
 
-      firstPage.drawText(cleanName, {
+      targetPage.drawText(cleanName, {
         x: nameX,
         y: nameY,
-        size: fontSize,
+        size: nameFontSize,
         font: fontBold,
         color: rgb(0, 0, 0),
       });
     }
 
-    // Tanggal Upload
+    // Tanggal
     if (uploadDate && uploadDate.trim()) {
       const cleanDate = uploadDate.trim();
-      const dateX = coords.dateXRatio * pageWidth;
-      const dateY = coords.dateYRatio * pageHeight;
+      const dateX = dateXRatio * pageWidth;
+      const dateY = dateYRatio * pageHeight;
 
-      firstPage.drawText(cleanDate, {
+      targetPage.drawText(cleanDate, {
         x: dateX,
         y: dateY,
-        size: fontSize,
+        size: 7.5,
         font: fontNorm,
         color: rgb(0, 0, 0),
       });
     }
   } catch (textErr) {
-    console.warn('Gagal menulis teks nama/tanggal ke PDF:', textErr);
+    console.warn('Gagal menulis teks nama/tanggal ke PDF TTB:', textErr);
   }
 
   const modifiedBytes = await pdfDoc.save();
