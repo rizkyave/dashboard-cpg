@@ -1,4 +1,52 @@
-import { UserAccount } from '@/types/auth';
+import { UserAccount, DigitalSignatureInfo } from '@/types/auth';
+
+const SAMPLE_ADMIN_SIGNATURE: DigitalSignatureInfo = {
+  signatureDataUrl:
+    'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 100" width="300" height="100"><path d="M 20 70 Q 50 10, 80 50 T 130 40 Q 160 80, 190 30 T 250 50 Q 270 20, 280 60" fill="none" stroke="%231e3a8a" stroke-width="4" stroke-linecap="round"/><path d="M 40 85 L 260 80" fill="none" stroke="%231e3a8a" stroke-width="2.5" stroke-linecap="round"/></svg>',
+  uploadedAt: '2026-01-15T08:30:00.000Z',
+  verifiedBy: 'admin',
+  verifiedByName: 'Administrator CPG',
+  certificateId: 'CPG-AUTH-2026-ADM01',
+  signeeTitle: 'Head of Management Information System',
+  notes: 'Spesimen tanda tangan digital sah otentifikasi sistem',
+  status: 'verified',
+};
+
+const SAMPLE_HERMAN_SIGNATURE: DigitalSignatureInfo = {
+  signatureDataUrl:
+    'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 100" width="300" height="100"><path d="M 25 75 C 40 20, 70 20, 85 70 C 100 30, 130 30, 145 65 Q 180 15, 210 55 T 275 45" fill="none" stroke="%231e3a8a" stroke-width="3.8" stroke-linecap="round"/><path d="M 30 85 Q 150 90, 270 80" fill="none" stroke="%231e3a8a" stroke-width="2.5" stroke-linecap="round"/></svg>',
+  uploadedAt: '2026-01-15T09:00:00.000Z',
+  verifiedBy: 'admin',
+  verifiedByName: 'Administrator CPG',
+  certificateId: 'CPG-AUTH-2026-PRC01',
+  signeeTitle: 'Lead Procurement & Supply Chain',
+  notes: 'Spesimen tanda tangan verifikasi dokumen PO, e-FPB, dan persetujuan barang',
+  status: 'verified',
+};
+
+const SAMPLE_TTB_SIGNATURE: DigitalSignatureInfo = {
+  signatureDataUrl:
+    'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 100" width="300" height="100"><path d="M 30 65 Q 60 20, 90 60 T 150 45 Q 180 75, 220 35 T 270 60" fill="none" stroke="%230f172a" stroke-width="3.5" stroke-linecap="round"/><path d="M 50 82 L 250 82" fill="none" stroke="%230f172a" stroke-width="2" stroke-linecap="round"/></svg>',
+  uploadedAt: '2026-02-01T10:00:00.000Z',
+  verifiedBy: 'admin',
+  verifiedByName: 'Administrator CPG',
+  certificateId: 'CPG-AUTH-2026-TTB01',
+  signeeTitle: 'Staf Dokumen TTB Logistik',
+  notes: 'Spesimen tanda tangan verifikasi penerimaan berkas fisik TTB',
+  status: 'verified',
+};
+
+const SAMPLE_LAPANGAN_SIGNATURE: DigitalSignatureInfo = {
+  signatureDataUrl:
+    'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 100" width="300" height="100"><path d="M 25 70 C 45 25, 75 35, 95 65 Q 130 20, 165 60 T 235 40 Q 255 70, 275 45" fill="none" stroke="%230f172a" stroke-width="3.5" stroke-linecap="round"/><path d="M 35 85 L 265 85" fill="none" stroke="%230f172a" stroke-width="2" stroke-linecap="round"/></svg>',
+  uploadedAt: '2026-02-01T11:00:00.000Z',
+  verifiedBy: 'admin',
+  verifiedByName: 'Administrator CPG',
+  certificateId: 'CPG-AUTH-2026-LAP01',
+  signeeTitle: 'Staf Serah Terima Lapangan & Dermaga',
+  notes: 'Spesimen tanda tangan bukti penyerahan barang lapangan & TimeMark',
+  status: 'verified',
+};
 
 export const DEFAULT_USERS: UserAccount[] = [
   {
@@ -12,6 +60,7 @@ export const DEFAULT_USERS: UserAccount[] = [
     avatar: 'A',
     status: 'active',
     createdAt: '2026-01-01T00:00:00.000Z',
+    signature: SAMPLE_ADMIN_SIGNATURE,
   },
   {
     id: 'usr-admin-02',
@@ -24,6 +73,7 @@ export const DEFAULT_USERS: UserAccount[] = [
     avatar: 'H',
     status: 'active',
     createdAt: '2026-01-01T00:00:00.000Z',
+    signature: SAMPLE_HERMAN_SIGNATURE,
   },
   {
     id: 'usr-ttb-01',
@@ -36,6 +86,7 @@ export const DEFAULT_USERS: UserAccount[] = [
     avatar: 'T',
     status: 'active',
     createdAt: '2026-01-01T00:00:00.000Z',
+    signature: SAMPLE_TTB_SIGNATURE,
   },
   {
     id: 'usr-lap-01',
@@ -48,6 +99,7 @@ export const DEFAULT_USERS: UserAccount[] = [
     avatar: 'L',
     status: 'active',
     createdAt: '2026-01-01T00:00:00.000Z',
+    signature: SAMPLE_LAPANGAN_SIGNATURE,
   },
   {
     id: 'usr-staff-01',

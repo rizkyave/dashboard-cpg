@@ -17,16 +17,28 @@ export function getStoredUsers(): UserAccount[] {
     }
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length > 0) {
-      // Pastikan semua akun default (termasuk guest baru) tersinkronisasi
+      // Pastikan semua akun default dan spesimen tanda tangan tersinkronisasi
+      let needsSave = false;
+      const synced = parsed.map((p: any) => {
+        const defaultMatch = DEFAULT_USERS.find(
+          (def) => def.username.toLowerCase() === p.username?.toLowerCase()
+        );
+        if (defaultMatch && !p.signature && defaultMatch.signature) {
+          needsSave = true;
+          return { ...p, signature: defaultMatch.signature };
+        }
+        return p;
+      });
+
       const missingDefaults = DEFAULT_USERS.filter(
-        (def) => !parsed.some((p: any) => p.username?.toLowerCase() === def.username.toLowerCase())
+        (def) => !synced.some((p: any) => p.username?.toLowerCase() === def.username.toLowerCase())
       );
-      if (missingDefaults.length > 0) {
-        const merged = [...parsed, ...missingDefaults];
+      if (missingDefaults.length > 0 || needsSave) {
+        const merged = [...synced, ...missingDefaults];
         localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(merged));
         return merged;
       }
-      return parsed;
+      return synced;
     }
   } catch (err) {
     console.error('Gagal membaca users dari localStorage:', err);
@@ -87,13 +99,15 @@ export function authenticate(usernameInput: string, passwordInput: string): { su
   );
 
   if (!found) {
-    return { success: false, message: 'Kombinasi username/email atau kata sandi tidak valid.' };
+    return { success: false, message: 'Username atau email tidak terdaftar.' };
   }
 
   if (found.status === 'inactive') {
-    return { success: false, message: 'Akun ini dinonaktifkan oleh Administrator. Hubungi Tim MIS / Admin untuk verifikasi.' };
+    return { success: false, message: 'Akun ini dinonaktifkan oleh Administrator. Hubungi admin untuk mengaktifkan kembali.' };
   }
 
+  if (found.password !== cleanPassword) {
+    return { success: false, message: 'Password salah. Periksa kembali huruf besar/kecil.' };
   const uName = found.username.toLowerCase();
   const isMatch = (() => {
     if (found.password === cleanPassword) return true;
@@ -106,26 +120,27 @@ export function authenticate(usernameInput: string, passwordInput: string): { su
     if (uName === 'visitor' && (cleanPassword === 'visitor' || cleanPassword === 'visitor123')) {
       return true;
     }
-    if (uName === 'guest' && (cleanPassword === '0123' || cleanPassword === 'guest' || cleanPassword === 'guest123')) {
-      return true;
-    }
     return false;
   })();
 
   if (!isMatch) {
     return {
       success: false,
-      message: 'Kombinasi username/email atau kata sandi tidak valid. Periksa kembali huruf besar/kecil.',
+      message: (uName === 'admin' || uName === 'hermansyah')
+        ? 'Password admin salah. Silakan coba: "admin" atau "admin123".'
+        : 'Password salah. Periksa kembali huruf besar/kecil.',
     };
   }
 
   const now = new Date().toISOString();
+  const updatedUsers = users.map((u) => (u.id === found.id ? { ...u, lastLogin: now } : u));
   // Jika cocok dengan password alias, selaraskan password ke yang dimasukkan user
   const updatedUsers = users.map((u) =>
     u.id === found.id ? { ...u, password: cleanPassword, lastLogin: now } : u
   );
   saveStoredUsers(updatedUsers);
 
+  const { password, ...authUser } = { ...found, lastLogin: now };
   const { password, ...authUser } = { ...found, password: cleanPassword, lastLogin: now };
   setStoredSessionUser(authUser);
 

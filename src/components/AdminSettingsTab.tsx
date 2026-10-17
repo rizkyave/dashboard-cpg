@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import {
   Users,
   UserPlus,
@@ -32,6 +32,14 @@ import {
   Camera,
   Images,
   FileSpreadsheet,
+  FileSignature,
+  PenTool,
+  BadgeCheck,
+  Download,
+  Eraser,
+  Copy,
+  Upload,
+  ShieldAlert,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -42,6 +50,7 @@ import {
   RolePermissionRule,
   MODULE_PERMISSIONS_MATRIX,
   getRoleDisplayName,
+  DigitalSignatureInfo,
 } from '@/types/auth';
 
 interface AdminSettingsTabProps {
@@ -50,6 +59,7 @@ interface AdminSettingsTabProps {
 
 export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
   const { user: currentUser, users, createUser, updateUser, deleteUser, refreshUsers } = useAuth();
+  const isAdmin = currentUser?.role === 'admin';
 
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<'ALL' | UserRole>('ALL');
@@ -58,6 +68,22 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  // Digital Signature Modal State (Admin Only)
+  const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
+  const [signatureTargetUser, setSignatureTargetUser] = useState<AuthUser | null>(null);
+  const [signatureTab, setSignatureTab] = useState<'view' | 'upload' | 'draw'>('view');
+  const [uploadedPreviewUrl, setUploadedPreviewUrl] = useState<string>('');
+  const [signeeTitle, setSigneeTitle] = useState<string>('');
+  const [verificationNotes, setVerificationNotes] = useState<string>('');
+  const [penColor, setPenColor] = useState<string>('#1e3a8a');
+  const [copiedCertId, setCopiedCertId] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  // Canvas Drawing Ref & State
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [hasDrawn, setHasDrawn] = useState(false);
 
   // Form State for Add User
   const [newUsername, setNewUsername] = useState('');
@@ -286,6 +312,298 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
     }
   };
 
+  // =========================================================================
+  // DIGITAL SIGNATURE & AUTHENTICATION HANDLERS (ADMIN ONLY)
+  // =========================================================================
+  const getDefaultSigneeTitle = (role: UserRole) => {
+    switch (role) {
+      case 'admin':
+        return 'Head of Management Information System';
+      case 'staf_ttb':
+        return 'Staf Dokumen TTB Logistik';
+      case 'staf_lapangan':
+        return 'Staf Serah Terima Lapangan & Dermaga';
+      case 'user':
+        return 'Staf Operasional Logistik';
+      case 'visitor':
+        return 'Tamu / Observer Eksternal';
+      default:
+        return 'Staf Operasional';
+    }
+  };
+
+  const handleOpenSignatureModal = (targetUser?: AuthUser) => {
+    if (!isAdmin) {
+      showToast('Akses ditolak: Hanya Administrator yang berwenang mengelola tanda tangan digital.', 'warning');
+      return;
+    }
+
+    const target = targetUser || users.find((u) => u.id === currentUser?.id) || users[0] || null;
+    if (!target) {
+      showToast('Tidak ada data pengguna yang dipilih.', 'warning');
+      return;
+    }
+
+    setSignatureTargetUser(target);
+    setUploadedPreviewUrl(target.signature?.signatureDataUrl || '');
+    setSigneeTitle(target.signature?.signeeTitle || getDefaultSigneeTitle(target.role));
+    setVerificationNotes(
+      target.signature?.notes ||
+        'Spesimen tanda tangan digital sah otentifikasi sistem pengadaan dan logistik maritim.'
+    );
+    setSignatureTab(target.signature?.signatureDataUrl ? 'view' : 'upload');
+    setHasDrawn(false);
+    setIsSignatureModalOpen(true);
+  };
+
+  const handleSwitchSignatureUser = (newUserId: string) => {
+    const target = users.find((u) => u.id === newUserId);
+    if (!target) return;
+    setSignatureTargetUser(target);
+    setUploadedPreviewUrl(target.signature?.signatureDataUrl || '');
+    setSigneeTitle(target.signature?.signeeTitle || getDefaultSigneeTitle(target.role));
+    setVerificationNotes(
+      target.signature?.notes ||
+        'Spesimen tanda tangan digital sah otentifikasi sistem pengadaan dan logistik maritim.'
+    );
+    setSignatureTab(target.signature?.signatureDataUrl ? 'view' : 'upload');
+    setHasDrawn(false);
+    if (canvasRef.current) {
+      const ctx = canvasRef.current.getContext('2d');
+      if (ctx) ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    }
+  };
+
+  const handleSignatureFileSelect = (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      showToast('Mohon pilih berkas gambar (PNG transparan, JPG, SVG, atau WebP).', 'warning');
+      return;
+    }
+    if (file.size > 3 * 1024 * 1024) {
+      showToast('Ukuran gambar maksimal 3MB.', 'warning');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      setUploadedPreviewUrl(dataUrl);
+      showToast('Berkas gambar tanda tangan berhasil dimuat.', 'info');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleDropSignatureFile = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleSignatureFileSelect(e.dataTransfer.files[0]);
+    }
+  };
+
+  const getCanvasCoordinates = (
+    e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>
+  ) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    let clientX = 0;
+    let clientY = 0;
+
+    if ('touches' in e) {
+      if (e.touches && e.touches[0]) {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+      }
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+
+    return {
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY,
+    };
+  };
+
+  const startDrawing = (
+    e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>
+  ) => {
+    e.preventDefault();
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const { x, y } = getCanvasCoordinates(e);
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.strokeStyle = penColor;
+    ctx.lineWidth = 3.5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    setIsDrawing(true);
+  };
+
+  const draw = (
+    e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>
+  ) => {
+    if (!isDrawing) return;
+    e.preventDefault();
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const { x, y } = getCanvasCoordinates(e);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    setHasDrawn(true);
+  };
+
+  const stopDrawing = () => {
+    if (!isDrawing) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.closePath();
+    }
+    setIsDrawing(false);
+  };
+
+  const clearCanvas = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    setHasDrawn(false);
+  };
+
+  const handleSaveSignature = async () => {
+    if (!isAdmin) {
+      showToast('Akses ditolak: Hanya Administrator yang berwenang menyimpan tanda tangan digital.', 'error');
+      return;
+    }
+    if (!signatureTargetUser) return;
+
+    let finalDataUrl = uploadedPreviewUrl;
+
+    if (signatureTab === 'draw') {
+      if (!hasDrawn || !canvasRef.current) {
+        showToast('Mohon goreskan tanda tangan terlebih dahulu pada kanvas.', 'warning');
+        return;
+      }
+      finalDataUrl = canvasRef.current.toDataURL('image/png');
+    }
+
+    if (!finalDataUrl) {
+      showToast('Mohon upload berkas gambar atau gores tanda tangan pada kanvas.', 'warning');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const rolePrefix =
+        signatureTargetUser.role === 'admin'
+          ? 'ADM'
+          : signatureTargetUser.role === 'staf_ttb'
+          ? 'TTB'
+          : signatureTargetUser.role === 'staf_lapangan'
+          ? 'LAP'
+          : signatureTargetUser.role === 'visitor'
+          ? 'VIS'
+          : 'OPR';
+
+      const certificateId =
+        signatureTargetUser.signature?.certificateId ||
+        `CPG-AUTH-2026-${rolePrefix}${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+
+      const newSignature: DigitalSignatureInfo = {
+        signatureDataUrl: finalDataUrl,
+        uploadedAt: new Date().toISOString(),
+        verifiedBy: currentUser?.username || 'admin',
+        verifiedByName: currentUser?.name || 'Administrator CPG',
+        certificateId,
+        signeeTitle: signeeTitle.trim() || getDefaultSigneeTitle(signatureTargetUser.role),
+        notes:
+          verificationNotes.trim() ||
+          'Spesimen tanda tangan digital sah otentifikasi sistem',
+        status: 'verified',
+      };
+
+      const res = await updateUser(signatureTargetUser.id, { signature: newSignature });
+      if (res.success) {
+        showToast(
+          `Tanda tangan digital @${signatureTargetUser.username} (${signatureTargetUser.name}) berhasil diverifikasi dan disimpan.`,
+          'success'
+        );
+        setIsSignatureModalOpen(false);
+      } else {
+        showToast(res.message || 'Gagal menyimpan tanda tangan digital.', 'error');
+      }
+    } catch (err: any) {
+      showToast(err.message || 'Terjadi kesalahan sistem.', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleRemoveSignature = async () => {
+    if (!isAdmin) {
+      showToast('Akses ditolak: Hanya Administrator yang berwenang mencabut tanda tangan digital.', 'error');
+      return;
+    }
+    if (!signatureTargetUser) return;
+
+    if (!window.confirm(`Apakah Anda yakin ingin mencabut dan menghapus spesimen tanda tangan digital untuk @${signatureTargetUser.username}?`)) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const res = await updateUser(signatureTargetUser.id, { signature: undefined });
+      if (res.success) {
+        showToast(`Tanda tangan digital @${signatureTargetUser.username} berhasil dicabut.`, 'success');
+        setUploadedPreviewUrl('');
+        setHasDrawn(false);
+        clearCanvas();
+        setIsSignatureModalOpen(false);
+      } else {
+        showToast(res.message || 'Gagal menghapus tanda tangan digital.', 'error');
+      }
+    } catch (err: any) {
+      showToast(err.message || 'Gagal menghapus tanda tangan digital.', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDownloadSignature = () => {
+    const dataUrl = uploadedPreviewUrl || signatureTargetUser?.signature?.signatureDataUrl;
+    if (!dataUrl || !signatureTargetUser) {
+      showToast('Tidak ada spesimen tanda tangan untuk diunduh.', 'warning');
+      return;
+    }
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = `TTD_CPG_${signatureTargetUser.username}_${signatureTargetUser.signature?.certificateId || 'specimen'}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    showToast('Spesimen tanda tangan digital berhasil diunduh.', 'info');
+  };
+
+  const handleCopyCertId = (certId: string) => {
+    navigator.clipboard.writeText(certId);
+    setCopiedCertId(true);
+    setTimeout(() => setCopiedCertId(false), 2000);
+    showToast(`ID Sertifikat ${certId} disalin ke papan klip.`, 'info');
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in-50 duration-300">
       {/* Top Banner & Header */}
@@ -343,6 +661,18 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
             <UserPlus className="size-3.5" />
             <span>+ Pengguna</span>
           </button>
+
+          {/* Quick Digital Signature Modal for Admin */}
+          {isAdmin && (
+            <button
+              onClick={() => handleOpenSignatureModal()}
+              className="flex-1 md:flex-initial h-9 px-3 rounded-lg border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 dark:text-purple-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-xs cursor-pointer active:scale-95"
+              title="Upload atau Atur Tanda Tangan Digital Staf & Otentifikasi Dokumen"
+            >
+              <FileSignature className="size-3.5" />
+              <span>+ Tanda Tangan Digital</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -483,6 +813,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                 <th className="py-3 px-4">Pengguna</th>
                 <th className="py-3 px-4">Role / Peran</th>
                 <th className="py-3 px-4">Departemen &amp; Email</th>
+                <th className="py-3 px-4">Tanda Tangan (TTD)</th>
                 <th className="py-3 px-4">Status</th>
                 <th className="py-3 px-4">Terdaftar</th>
                 <th className="py-3 px-4 text-right">Aksi</th>
@@ -491,7 +822,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
             <tbody className="divide-y divide-border">
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-10 text-center text-muted-foreground">
+                  <td colSpan={7} className="py-10 text-center text-muted-foreground">
                     <Users className="size-8 mx-auto mb-2 opacity-40" />
                     <p className="font-medium text-xs">Tidak ada data pengguna yang cocok</p>
                     <p className="text-[11px] text-muted-foreground mt-0.5">
@@ -585,6 +916,59 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                         </div>
                       </td>
 
+                      {/* Tanda Tangan (TTD) */}
+                      <td className="py-3 px-4">
+                        {item.signature?.signatureDataUrl ? (
+                          <div className="flex items-center gap-2.5">
+                            <button
+                              type="button"
+                              onClick={() => handleOpenSignatureModal(item)}
+                              className="group/ttd relative size-10 rounded-lg border border-border bg-slate-100 dark:bg-slate-900/60 flex items-center justify-center overflow-hidden p-1 hover:border-purple-500/50 hover:shadow-xs transition cursor-pointer shrink-0"
+                              title="Klik untuk melihat detail otentifikasi & spesimen tanda tangan"
+                            >
+                              <div
+                                className="absolute inset-0 opacity-20 pointer-events-none"
+                                style={{
+                                  backgroundImage: 'radial-gradient(circle, #888888 1px, transparent 1px)',
+                                  backgroundSize: '4px 4px',
+                                }}
+                              />
+                              <img
+                                src={item.signature.signatureDataUrl}
+                                alt={`TTD ${item.name}`}
+                                className="w-full h-full object-contain filter group-hover/ttd:scale-105 transition duration-150"
+                              />
+                            </button>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1">
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[9px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 whitespace-nowrap">
+                                  <BadgeCheck className="size-2.5 text-emerald-600 dark:text-emerald-400" />
+                                  <span>Terverifikasi</span>
+                                </span>
+                              </div>
+                              <span
+                                className="text-[9px] text-muted-foreground font-mono truncate block max-w-[110px] mt-0.5"
+                                title={`ID Sertifikat: ${item.signature.certificateId}`}
+                              >
+                                {item.signature.certificateId}
+                              </span>
+                            </div>
+                          </div>
+                        ) : isAdmin ? (
+                          <button
+                            type="button"
+                            onClick={() => handleOpenSignatureModal(item)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold border border-dashed border-purple-500/40 bg-purple-500/5 hover:bg-purple-500/10 text-purple-700 dark:text-purple-300 transition cursor-pointer"
+                            title="Upload atau buat tanda tangan digital untuk pengguna ini"
+                          >
+                            <FileSignature className="size-3" />
+                            <span>+ Upload TTD</span>
+                          </button>
+                        ) : (
+                          <span className="text-[10px] text-muted-foreground/60 italic">Belum Ada</span>
+                        )}
+                      </td>
+
                       {/* Status */}
                       <td className="py-3 px-4">
                         <button
@@ -614,6 +998,17 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                       {/* Actions */}
                       <td className="py-3 px-4 text-right">
                         <div className="flex items-center justify-end gap-1">
+                          {isAdmin && (
+                            <button
+                              type="button"
+                              onClick={() => handleOpenSignatureModal(item)}
+                              className="p-1.5 rounded-lg text-purple-600 dark:text-purple-400 hover:text-purple-700 hover:bg-purple-500/10 transition cursor-pointer"
+                              title="Kelola Tanda Tangan Digital & Otentifikasi"
+                            >
+                              <FileSignature className="size-3.5" />
+                            </button>
+                          )}
+
                           <button
                             onClick={() => handleOpenEdit(item)}
                             className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition cursor-pointer"
@@ -1235,6 +1630,526 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
               >
                 {isSubmitting ? 'Menghapus...' : 'Ya, Hapus Akun'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* MODAL: UPLOAD & OTENTIFIKASI TANDA TANGAN DIGITAL (ADMIN ONLY) */}
+      {/* ============================================================== */}
+      {isSignatureModalOpen && signatureTargetUser && isAdmin && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in-50 duration-200">
+          <div className="bg-card border border-border rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
+            {/* Modal Header */}
+            <div className="p-5 border-b border-border flex items-center justify-between bg-muted/20">
+              <div className="flex items-center gap-3">
+                <div className="size-10 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 flex items-center justify-center">
+                  <FileSignature className="size-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-bold text-foreground">
+                      Otentifikasi &amp; Tanda Tangan Digital
+                    </h3>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20 flex items-center gap-1">
+                      <Shield className="size-2.5" />
+                      <span>Hanya Admin</span>
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    Verifikasi spesimen tanda tangan resmi untuk pengesahan TTB, Serah Terima Lapangan, dan audit dokumen logistik.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsSignatureModalOpen(false)}
+                className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted transition cursor-pointer"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            {/* Modal Body (Scrollable) */}
+            <div className="p-5 md:p-6 space-y-4 overflow-y-auto">
+              {/* User Switcher / Target Information */}
+              <div className="bg-muted/30 border border-border rounded-xl p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div
+                    className={`size-10 rounded-full flex items-center justify-center font-bold text-sm text-white shrink-0 ${
+                      signatureTargetUser.role === 'admin'
+                        ? 'bg-linear-to-tr from-purple-600 to-indigo-600'
+                        : signatureTargetUser.role === 'staf_ttb'
+                        ? 'bg-linear-to-tr from-blue-600 to-cyan-600'
+                        : signatureTargetUser.role === 'staf_lapangan'
+                        ? 'bg-linear-to-tr from-amber-600 to-emerald-600'
+                        : signatureTargetUser.role === 'visitor'
+                        ? 'bg-linear-to-tr from-emerald-600 to-teal-600'
+                        : 'bg-linear-to-tr from-sky-600 to-blue-600'
+                    }`}
+                  >
+                    {signatureTargetUser.avatar || signatureTargetUser.name[0]?.toUpperCase() || 'U'}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-sm text-foreground truncate">
+                        {signatureTargetUser.name}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground font-mono">
+                        @{signatureTargetUser.username}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[11px] text-muted-foreground">
+                        {signatureTargetUser.department || 'Operasional Logistik'}
+                      </span>
+                      <span className="text-muted-foreground/40">&bull;</span>
+                      <span className="text-[10px] font-semibold text-primary capitalize">
+                        {getRoleDisplayName(signatureTargetUser.role)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 self-stretch sm:self-auto shrink-0">
+                  <label className="text-[11px] font-medium text-muted-foreground whitespace-nowrap">
+                    Pilih Pengguna:
+                  </label>
+                  <select
+                    value={signatureTargetUser.id}
+                    onChange={(e) => handleSwitchSignatureUser(e.target.value)}
+                    className="px-2.5 py-1 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  >
+                    {users.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.name} (@{u.username}) - {u.role.toUpperCase()}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Status Alert Banner */}
+              {signatureTargetUser.signature ? (
+                <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3.5 flex items-start gap-3">
+                  <div className="p-1 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5">
+                    <BadgeCheck className="size-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300">
+                        Spesimen Tanda Tangan Terverifikasi &amp; Sah
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-background text-foreground border border-border">
+                          {signatureTargetUser.signature.certificateId}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyCertId(signatureTargetUser.signature!.certificateId)}
+                          className="p-1 text-muted-foreground hover:text-foreground rounded transition cursor-pointer"
+                          title="Salin ID Sertifikat"
+                        >
+                          <Copy className="size-3" />
+                        </button>
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-emerald-700/90 dark:text-emerald-400/90 mt-1">
+                      Diverifikasi oleh <strong>{signatureTargetUser.signature.verifiedByName || signatureTargetUser.signature.verifiedBy}</strong> pada{' '}
+                      {new Date(signatureTargetUser.signature.uploadedAt).toLocaleString('id-ID', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                      . Spesimen ini diakui secara sistem untuk verifikasi dokumen TTB dan serah terima.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3.5 flex items-start gap-3">
+                  <div className="p-1 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5">
+                    <Info className="size-4" />
+                  </div>
+                  <div className="text-xs text-amber-800 dark:text-amber-300">
+                    <p className="font-semibold">Belum Ada Spesimen Tanda Tangan Digital Terverifikasi</p>
+                    <p className="text-[11px] text-amber-700/80 dark:text-amber-400/80 mt-0.5">
+                      Silakan unggah berkas gambar tanda tangan (format PNG transparan disarankan) atau buat tanda tangan langsung menggunakan kanvas digital di bawah ini.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Mode Tabs */}
+              <div className="flex items-center gap-1 p-1 rounded-lg bg-muted border border-border">
+                {signatureTargetUser.signature && (
+                  <button
+                    type="button"
+                    onClick={() => setSignatureTab('view')}
+                    className={`flex-1 py-1.5 px-3 rounded-md text-xs font-semibold transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                      signatureTab === 'view'
+                        ? 'bg-card text-foreground shadow-xs'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    <BadgeCheck className="size-3.5 text-emerald-600" />
+                    <span>Pratinjau &amp; Sertifikat</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setSignatureTab('upload')}
+                  className={`flex-1 py-1.5 px-3 rounded-md text-xs font-semibold transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                    signatureTab === 'upload'
+                      ? 'bg-card text-foreground shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <Upload className="size-3.5" />
+                  <span>Upload Berkas (PNG / SVG)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSignatureTab('draw')}
+                  className={`flex-1 py-1.5 px-3 rounded-md text-xs font-semibold transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                    signatureTab === 'draw'
+                      ? 'bg-card text-foreground shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <PenTool className="size-3.5" />
+                  <span>Tulis di Kanvas</span>
+                </button>
+              </div>
+
+              {/* Tab 1: Pratinjau Spesimen Aktif & Sertifikat */}
+              {signatureTab === 'view' && signatureTargetUser.signature && (
+                <div className="space-y-4">
+                  <div className="border border-border rounded-xl p-4 bg-muted/10">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-semibold text-foreground">
+                        Spesimen Tanda Tangan Terdaftar
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">
+                        Latar belakang transparan
+                      </span>
+                    </div>
+                    {/* Checkerboard preview container */}
+                    <div
+                      className="h-36 rounded-lg border border-border bg-slate-50 dark:bg-slate-900/60 relative flex items-center justify-center p-3 overflow-hidden shadow-inner"
+                      style={{
+                        backgroundImage:
+                          'radial-gradient(circle, #94a3b8 1px, transparent 1px)',
+                        backgroundSize: '8px 8px',
+                      }}
+                    >
+                      <img
+                        src={signatureTargetUser.signature.signatureDataUrl}
+                        alt="Spesimen TTD"
+                        className="max-h-full max-w-full object-contain filter drop-shadow-xs"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Certificate Specs Card */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-card border border-border rounded-xl p-3.5">
+                    <div>
+                      <span className="text-[10px] text-muted-foreground block font-medium">
+                        ID SERTIFIKAT OTENTIFIKASI
+                      </span>
+                      <span className="font-mono font-bold text-foreground text-xs">
+                        {signatureTargetUser.signature.certificateId}
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] text-muted-foreground block font-medium">
+                        JABATAN RESMI PENANDATANGAN
+                      </span>
+                      <span className="font-semibold text-foreground text-xs">
+                        {signatureTargetUser.signature.signeeTitle || '-'}
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] text-muted-foreground block font-medium">
+                        ADMIN VERIFIKATOR
+                      </span>
+                      <span className="font-medium text-foreground text-xs">
+                        {signatureTargetUser.signature.verifiedByName} (@{signatureTargetUser.signature.verifiedBy})
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] text-muted-foreground block font-medium">
+                        WAKTU VERIFIKASI
+                      </span>
+                      <span className="font-medium text-foreground text-xs">
+                        {new Date(signatureTargetUser.signature.uploadedAt).toLocaleString('id-ID')}
+                      </span>
+                    </div>
+
+                    <div className="sm:col-span-2 pt-2 border-t border-border">
+                      <span className="text-[10px] text-muted-foreground block font-medium">
+                        CATATAN OTENTIFIKASI
+                      </span>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {signatureTargetUser.signature.notes || 'Spesimen tanda tangan sah otentifikasi sistem.'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Tab 2: Upload File */}
+              {signatureTab === 'upload' && (
+                <div className="space-y-4">
+                  <div
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setIsDragOver(true);
+                    }}
+                    onDragLeave={() => setIsDragOver(false)}
+                    onDrop={handleDropSignatureFile}
+                    className={`border-2 border-dashed rounded-xl p-6 text-center transition cursor-pointer ${
+                      isDragOver
+                        ? 'border-primary bg-primary/10'
+                        : 'border-border bg-muted/10 hover:border-primary/50 hover:bg-muted/30'
+                    }`}
+                    onClick={() => {
+                      const input = document.getElementById('signature-file-input');
+                      if (input) input.click();
+                    }}
+                  >
+                    <input
+                      id="signature-file-input"
+                      type="file"
+                      accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                      className="hidden"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          handleSignatureFileSelect(e.target.files[0]);
+                        }
+                      }}
+                    />
+                    <div className="size-12 rounded-full bg-primary/10 text-primary mx-auto flex items-center justify-center mb-3">
+                      <Upload className="size-6" />
+                    </div>
+                    <p className="text-xs font-semibold text-foreground">
+                      Tarik berkas gambar ke sini, atau klik untuk memilih
+                    </p>
+                    <p className="text-[11px] text-muted-foreground mt-1">
+                      Mendukung format PNG transparan, JPG, SVG, atau WebP (maks. 3MB)
+                    </p>
+                  </div>
+
+                  {uploadedPreviewUrl && (
+                    <div className="border border-border rounded-xl p-4 bg-card">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-semibold text-foreground">
+                          Pratinjau Berkas Unggahan
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setUploadedPreviewUrl('')}
+                          className="text-xs text-rose-500 hover:text-rose-600 transition cursor-pointer"
+                        >
+                          Hapus Pilihan
+                        </button>
+                      </div>
+                      <div
+                        className="h-32 rounded-lg border border-border bg-slate-50 dark:bg-slate-900/60 relative flex items-center justify-center p-3 overflow-hidden shadow-inner"
+                        style={{
+                          backgroundImage:
+                            'radial-gradient(circle, #94a3b8 1px, transparent 1px)',
+                          backgroundSize: '8px 8px',
+                        }}
+                      >
+                        <img
+                          src={uploadedPreviewUrl}
+                          alt="Preview TTD Unggahan"
+                          className="max-h-full max-w-full object-contain filter drop-shadow-xs"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Tab 3: Canvas Digital Drawing Pad */}
+              {signatureTab === 'draw' && (
+                <div className="space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-foreground">
+                        Pilihan Warna Tinta:
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setPenColor('#1e3a8a')}
+                        className={`size-6 rounded-full border-2 transition cursor-pointer flex items-center justify-center ${
+                          penColor === '#1e3a8a'
+                            ? 'border-primary ring-2 ring-primary/30 scale-110'
+                            : 'border-transparent'
+                        }`}
+                        style={{ backgroundColor: '#1e3a8a' }}
+                        title="Biru Resmi CPG (#1e3a8a)"
+                      >
+                        {penColor === '#1e3a8a' && <Check className="size-3 text-white" />}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setPenColor('#0f172a')}
+                        className={`size-6 rounded-full border-2 transition cursor-pointer flex items-center justify-center ${
+                          penColor === '#0f172a'
+                            ? 'border-primary ring-2 ring-primary/30 scale-110'
+                            : 'border-transparent'
+                        }`}
+                        style={{ backgroundColor: '#0f172a' }}
+                        title="Hitam Dokumen (#0f172a)"
+                      >
+                        {penColor === '#0f172a' && <Check className="size-3 text-white" />}
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={clearCanvas}
+                      className="px-2.5 py-1 rounded-lg border border-border hover:bg-muted text-xs font-medium text-muted-foreground hover:text-foreground flex items-center gap-1.5 transition cursor-pointer"
+                    >
+                      <Eraser className="size-3.5" />
+                      <span>Bersihkan Kanvas</span>
+                    </button>
+                  </div>
+
+                  {/* Interactive Canvas */}
+                  <div className="border border-border rounded-xl p-2 bg-slate-50 dark:bg-slate-900/80 shadow-inner relative overflow-hidden">
+                    <canvas
+                      ref={canvasRef}
+                      width={640}
+                      height={180}
+                      className="w-full h-44 rounded-lg bg-white dark:bg-slate-950/40 cursor-crosshair touch-none border border-border/40"
+                      onMouseDown={startDrawing}
+                      onMouseMove={draw}
+                      onMouseUp={stopDrawing}
+                      onMouseLeave={stopDrawing}
+                      onTouchStart={startDrawing}
+                      onTouchMove={draw}
+                      onTouchEnd={stopDrawing}
+                    />
+
+                    {/* Signature baseline guide */}
+                    <div className="absolute left-8 right-8 bottom-10 border-b border-dashed border-slate-300 dark:border-slate-700 pointer-events-none" />
+                    <span className="absolute right-9 bottom-11 text-[9px] text-muted-foreground/50 pointer-events-none font-mono">
+                      Garis Tanda Tangan
+                    </span>
+
+                    {!hasDrawn && (
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <span className="text-xs text-muted-foreground/40 font-medium">
+                          Goreskan tanda tangan di sini menggunakan mouse, stylus, atau jari
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Form Metadata Otentifikasi & Verifikasi */}
+              <div className="space-y-3 pt-3 border-t border-border">
+                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
+                  Data Otentifikasi &amp; Legalitas Dokumen
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-foreground mb-1">
+                      Jabatan Resmi Penandatangan
+                    </label>
+                    <input
+                      type="text"
+                      value={signeeTitle}
+                      onChange={(e) => setSigneeTitle(e.target.value)}
+                      placeholder="Contoh: Staf Dokumen TTB Logistik"
+                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-foreground mb-1">
+                      Admin Verifikator (Saat Ini)
+                    </label>
+                    <div className="w-full px-3 py-1.5 text-xs rounded-lg border border-border bg-muted/40 text-muted-foreground font-mono flex items-center justify-between">
+                      <span>{currentUser?.name || 'Administrator CPG'} (@{currentUser?.username || 'admin'})</span>
+                      <ShieldCheck className="size-3.5 text-purple-600 dark:text-purple-400" />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-foreground mb-1">
+                    Catatan Verifikasi &amp; Otentifikasi
+                  </label>
+                  <input
+                    type="text"
+                    value={verificationNotes}
+                    onChange={(e) => setVerificationNotes(e.target.value)}
+                    placeholder="Catatan keabsahan spesimen untuk verifikasi masa depan..."
+                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-border bg-muted/20 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                {signatureTargetUser.signature && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleRemoveSignature}
+                      disabled={isSubmitting}
+                      className="px-3 py-1.5 rounded-lg border border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 text-xs font-semibold transition cursor-pointer disabled:opacity-50"
+                      title="Cabut dan hapus spesimen tanda tangan ini"
+                    >
+                      Cabut TTD
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDownloadSignature}
+                      className="px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted text-xs font-medium transition cursor-pointer flex items-center gap-1"
+                      title="Unduh berkas PNG tanda tangan digital"
+                    >
+                      <Download className="size-3.5" />
+                      <span>Unduh PNG</span>
+                    </button>
+                  </>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2 ml-auto">
+                <button
+                  type="button"
+                  onClick={() => setIsSignatureModalOpen(false)}
+                  className="px-4 py-2 rounded-lg text-xs font-medium text-muted-foreground hover:bg-muted transition cursor-pointer"
+                >
+                  Tutup
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveSignature}
+                  disabled={isSubmitting}
+                  className="px-5 py-2 rounded-lg bg-purple-600 text-white text-xs font-semibold hover:bg-purple-700 transition shadow-xs cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  <BadgeCheck className="size-4" />
+                  <span>{isSubmitting ? 'Menyimpan...' : 'Simpan & Otentifikasi TTD'}</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -2,6 +2,17 @@ import { TabType } from './procurement';
 
 export type UserRole = 'admin' | 'staf_ttb' | 'staf_lapangan' | 'visitor' | 'user';
 
+export interface DigitalSignatureInfo {
+  signatureDataUrl: string; // Base64 data URL (PNG/SVG)
+  uploadedAt: string;
+  verifiedBy: string; // Username admin yang mengotentifikasi
+  verifiedByName?: string; // Nama lengkap admin verifikator
+  certificateId: string; // Kode otentifikasi unik misal CPG-AUTH-2026-XXXX
+  signeeTitle?: string; // Jabatan resmi penandatangan
+  notes?: string;
+  status: 'verified' | 'pending' | 'revoked';
+}
+
 export interface AuthUser {
   id: string;
   username: string;
@@ -13,6 +24,7 @@ export interface AuthUser {
   lastLogin?: string;
   status: 'active' | 'inactive';
   createdAt?: string;
+  signature?: DigitalSignatureInfo;
 }
 
 export interface UserAccount extends AuthUser {
