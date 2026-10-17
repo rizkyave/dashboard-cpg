@@ -1,6 +1,6 @@
 import { TabType } from './procurement';
 
-export type UserRole = 'admin' | 'staf_ttb' | 'staf_lapangan' | 'visitor' | 'user';
+export type UserRole = 'admin' | 'manager' | 'staf_ttb' | 'staf_lapangan' | 'visitor' | 'user';
 
 export interface DigitalSignatureInfo {
   signatureDataUrl: string; // Base64 data URL (PNG/SVG)
@@ -60,6 +60,7 @@ export interface ModulePermissionItem {
   description: string;
   permissions: {
     admin: RolePermissionRule;
+    manager: RolePermissionRule;
     staf_ttb: RolePermissionRule;
     staf_lapangan: RolePermissionRule;
     visitor: RolePermissionRule;
@@ -77,6 +78,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     description: 'Ringkasan visual KPI monitoring procurement, pipeline lead time, dan status pengadaan',
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
+      manager: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Monitoring menyeluruh seluruh KPI procurement & logistik' },
       staf_ttb: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
       staf_lapangan: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
       visitor: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
@@ -89,6 +91,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     description: 'Monitoring alur berkas FPB-PO, SLA lead time, verifikasi barang sisa layanan',
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
+      manager: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Otorisasi FPB-PO, pemantauan SLA lead time & audit pengadaan' },
       staf_ttb: { allowed: true, level: 'View & Verifikasi', badgeTone: 'blue', notes: 'View & verifikasi kecocokan dokumen PO/FPB' },
       staf_lapangan: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
@@ -101,6 +104,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     description: 'Monitoring layanan armada kapal, status FSTB, dan log servis operasional',
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
+      manager: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Monitoring status layanan armada & FSTB' },
       staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_lapangan: { allowed: true, level: 'Input & Upload', badgeTone: 'emerald', notes: 'Input update operasional & servis armada' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
@@ -113,6 +117,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     description: 'Upload berkas FSTB resmi ke Cloudflare R2 / Drive dengan penamaan otomatis no. FSTB',
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
+      manager: { allowed: true, level: 'Upload & Kelola', badgeTone: 'emerald', notes: 'Upload & validasi berkas FSTB resmi' },
       staf_ttb: { allowed: true, level: 'Upload & Kelola', badgeTone: 'emerald', notes: 'Full access upload berkas FSTB ke cloud' },
       staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
@@ -125,6 +130,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     description: 'Upload berkas TTB resmi ke Cloudflare R2 / Drive dengan penamaan otomatis no. TTB',
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
+      manager: { allowed: true, level: 'Upload & Kelola', badgeTone: 'emerald', notes: 'Upload & review berkas TTB resmi' },
       staf_ttb: { allowed: true, level: 'Upload & Kelola', badgeTone: 'emerald', notes: 'Full access upload berkas ke cloud' },
       staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
@@ -137,6 +143,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     description: 'Validasi tanda tangan digital multi-lini (Purchasing, Logistik, Lapangan) untuk berkas FSTB dan TTB sebelum dikirimkan ke armada',
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
+      manager: { allowed: true, level: 'Validasi & TTD', badgeTone: 'emerald', notes: 'Otorisasi & TTD digital Manager (Approved By FSTB & Lini Purchasing TTB)' },
       staf_ttb: { allowed: true, level: 'Validasi & TTD', badgeTone: 'emerald', notes: 'Validasi lini Logistik/Gudang' },
       staf_lapangan: { allowed: true, level: 'Validasi & TTD', badgeTone: 'emerald', notes: 'Validasi lini Tim Lapangan/QC' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
@@ -149,6 +156,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     description: 'Portal input data serah terima barang di lapangan/dermaga berbasis referensi TTB',
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
+      manager: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Pemantauan bukti serah terima dermaga & armada' },
       staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_lapangan: { allowed: true, level: 'Full Access', badgeTone: 'emerald', notes: 'Input data fisik & upload bukti serah terima' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
@@ -161,6 +169,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     description: 'Katalog arsip foto serah terima TTB dari lapangan dan pencarian dokumen',
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
+      manager: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Akses peninjauan katalog arsip foto TTB lapangan' },
       staf_ttb: { allowed: true, level: 'Upload & Kelola', badgeTone: 'emerald', notes: 'Upload, view, dan kelola arsip foto TTB' },
       staf_lapangan: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
       visitor: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
@@ -173,6 +182,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     description: 'Dokumentasi foto berstempel waktu (5 Digit No. Lambung) pembongkaran muatan',
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
+      manager: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Review dokumentasi foto berstempel waktu 5 digit' },
       staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_lapangan: { allowed: true, level: 'Input & Upload', badgeTone: 'emerald', notes: 'Upload bukti foto timestamp pangkalan' },
       visitor: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
@@ -189,6 +199,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     description: 'Pengecekan fisik stok gudang dan katalog persediaan konsolidasi Accurate CPG',
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
+      manager: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Pengecekan fisik stok gudang & katalog Accurate' },
       staf_ttb: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Read-only untuk validasi fisik stok' },
       staf_lapangan: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
@@ -201,6 +212,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     description: 'Monitoring posisi koordinat harian kapal FMS dan status operasional laut',
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
+      manager: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Pemantauan posisi harian armada & status laut' },
       staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_lapangan: { allowed: true, level: 'Update Status', badgeTone: 'sky', notes: 'Update status pekerjaan lapangan' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
@@ -213,6 +225,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     description: 'Database 60 kapal & 633 kru kapal aktif CPG, kontak nahkoda, & alokasi armada',
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
+      manager: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Akses data armada kapal & kontak operasional kru' },
       staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_lapangan: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Akses kontak nahkoda / kru' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
@@ -225,6 +238,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     description: 'Monitoring surat perintah kerja (WO) lapangan & log tindak lanjut perbaikan',
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
+      manager: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Monitoring SPK & Work Order perawatan armada' },
       staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_lapangan: { allowed: true, level: 'Update Status', badgeTone: 'sky', notes: 'Update status pekerjaan lapangan' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
@@ -237,6 +251,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     description: 'Monitoring Service & Maintenance armada pada bengkel vendor rekanan',
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
+      manager: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Monitoring Service & Maintenance armada vendor' },
       staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_lapangan: { allowed: true, level: 'Update Status', badgeTone: 'sky', notes: 'Pantau & update servis kapal' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
@@ -249,6 +264,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     description: 'Laporan rekonsiliasi sisa layanan gabungan FPB-PO-FSTB-TTB seluruh unit',
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
+      manager: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Rekonsiliasi & evaluasi barang sisa layanan' },
       staf_ttb: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
       staf_lapangan: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
@@ -265,6 +281,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     description: 'Analisis bottleneck SLA pengadaan, evaluasi vendor, dan performa PIC',
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
+      manager: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Analisis bottleneck SLA pengadaan & evaluasi vendor' },
       staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
@@ -277,6 +294,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     description: 'Manajemen hak akses RBAC, pembuatan user kredensial, dan konfigurasi sistem',
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
+      manager: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu konfigurasi sistem khusus Administrator' },
       staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
@@ -289,6 +307,10 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
  */
 export function canAccessTab(role: UserRole | undefined, tab: TabType): boolean {
   if (!role || role === 'admin') return true;
+
+  if (role === 'manager') {
+    return tab !== 'admin-settings';
+  }
 
   if (role === 'visitor') {
     return tab === 'overview' || tab === 'galeri-ttb' || tab === 'timemark';
@@ -328,6 +350,8 @@ export function getRoleDisplayName(role: UserRole | undefined): string {
   switch (role) {
     case 'admin':
       return 'Administrator';
+    case 'manager':
+      return 'Manager Procurement';
     case 'staf_ttb':
       return 'Staf Dokumen TTB';
     case 'staf_lapangan':

@@ -87,7 +87,9 @@ export default function ValidationSignatureModal({
     }
 
     // Tentukan lini aktif otomatis berdasarkan role pengguna atau status lini yang masih kosong
-    if (user?.role === 'staf_ttb') {
+    if (user?.role === 'manager') {
+      setActiveSigningLine('purchasing');
+    } else if (user?.role === 'staf_ttb') {
       setActiveSigningLine('logistik');
     } else if (user?.role === 'staf_lapangan') {
       setActiveSigningLine('lapangan');
@@ -108,8 +110,14 @@ export default function ValidationSignatureModal({
   // Update default jabatan ketika lini aktif berubah
   useEffect(() => {
     if (activeSigningLine === 'purchasing') {
-      setValidatorJabatan('Staf Purchasing / Pengadaan');
-      setValidationNotes('Kesesuaian PO, spesifikasi item, dan harga telah diverifikasi.');
+      setValidatorJabatan(
+        user?.jabatan || (user?.role === 'manager' ? 'Manager Procurement' : 'Staf Purchasing / Pengadaan')
+      );
+      setValidationNotes(
+        user?.role === 'manager'
+          ? 'Kesesuaian PO, spesifikasi item, dan kelayakan pengadaan telah diverifikasi & disahkan resmi oleh Manager Procurement.'
+          : 'Kesesuaian PO, spesifikasi item, dan harga telah diverifikasi.'
+      );
     } else if (activeSigningLine === 'logistik') {
       setValidatorJabatan('Staf Logistik & Pergudangan');
       setValidationNotes('Fisik barang, jumlah kuantitas, dan kondisi kemasan telah diperiksa.');
@@ -117,7 +125,7 @@ export default function ValidationSignatureModal({
       setValidatorJabatan('Tim Lapangan / QC Distribusi');
       setValidationNotes('Pemeriksaan pra-distribusi selesai. Barang siap diserahterimakan ke kapal.');
     }
-  }, [activeSigningLine]);
+  }, [activeSigningLine, user]);
 
   // Canvas Drawing Handlers
   const getCanvasCoordinates = (

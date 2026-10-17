@@ -24,6 +24,18 @@ const SAMPLE_HERMAN_SIGNATURE: DigitalSignatureInfo = {
   status: 'verified',
 };
 
+const SAMPLE_MANAGER_SIGNATURE: DigitalSignatureInfo = {
+  signatureDataUrl:
+    'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 100" width="300" height="100"><path d="M 30 75 C 50 15, 80 25, 105 60 Q 140 15, 175 55 T 240 35 Q 265 65, 285 40" fill="none" stroke="%234338ca" stroke-width="4" stroke-linecap="round"/><path d="M 40 85 L 270 82" fill="none" stroke="%234338ca" stroke-width="2.5" stroke-linecap="round"/></svg>',
+  uploadedAt: '2026-01-20T08:00:00.000Z',
+  verifiedBy: 'admin',
+  verifiedByName: 'Administrator CPG',
+  certificateId: 'CPG-AUTH-2026-MGR01',
+  signeeTitle: 'Manager Procurement & Supply Chain',
+  notes: 'Spesimen tanda tangan digital sah otentifikasi manajerial pengadaan & approval berkas',
+  status: 'verified',
+};
+
 const SAMPLE_TTB_SIGNATURE: DigitalSignatureInfo = {
   signatureDataUrl:
     'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 100" width="300" height="100"><path d="M 30 65 Q 60 20, 90 60 T 150 45 Q 180 75, 220 35 T 270 60" fill="none" stroke="%230f172a" stroke-width="3.5" stroke-linecap="round"/><path d="M 50 82 L 250 82" fill="none" stroke="%230f172a" stroke-width="2" stroke-linecap="round"/></svg>',
@@ -84,7 +96,26 @@ export const DEFAULT_USERS: UserAccount[] = [
   },
 
   // =========================================================================
-  // 2. STAF DOKUMEN TTB (staf_ttb)
+  // 2. MANAGER PROCUREMENT (manager)
+  // =========================================================================
+  {
+    id: 'usr-mgr-0001',
+    username: 'manager.procurement',
+    name: 'MANAGER PROCUREMENT',
+    nik: 'CPG-MGR-0001',
+    jabatan: 'Manager Procurement & Supply Chain',
+    password: 'admin',
+    role: 'manager',
+    department: 'Purchasing & Procurement',
+    email: 'manager.procurement@cindaragroup.com',
+    avatar: 'M',
+    status: 'active',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    signature: SAMPLE_MANAGER_SIGNATURE,
+  },
+
+  // =========================================================================
+  // 3. STAF DOKUMEN TTB (staf_ttb)
   // =========================================================================
   {
     id: 'usr-ttb-0662',

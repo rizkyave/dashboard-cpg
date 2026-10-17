@@ -6,6 +6,7 @@ import {
   Shield,
   ShieldCheck,
   Eye,
+  Briefcase,
   Search,
   CheckCircle2,
   XCircle,
@@ -132,6 +133,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
   // Metric counts
   const totalUsers = users.length;
   const adminCount = users.filter((u) => u.role === 'admin').length;
+  const managerCount = users.filter((u) => u.role === 'manager').length;
   const stafTtbCount = users.filter((u) => u.role === 'staf_ttb').length;
   const stafLapanganCount = users.filter((u) => u.role === 'staf_lapangan').length;
   const visitorCount = users.filter((u) => u.role === 'visitor').length;
@@ -189,7 +191,11 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
     const targetRole = presetRole || 'staf_ttb';
     setNewRole(targetRole);
     setNewDepartment(
-      targetRole === 'visitor'
+      targetRole === 'admin'
+        ? 'Management Information System'
+        : targetRole === 'manager'
+        ? 'Purchasing & Procurement'
+        : targetRole === 'visitor'
         ? 'Purchasing & Procurement'
         : targetRole === 'staf_ttb'
         ? 'Dokumen & Arsip TTB Logistik'
@@ -349,6 +355,8 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
     switch (role) {
       case 'admin':
         return 'Head of Management Information System';
+      case 'manager':
+        return 'Manager Procurement & Supply Chain';
       case 'staf_ttb':
         return 'Staf Dokumen TTB Logistik';
       case 'staf_lapangan':
@@ -540,6 +548,8 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
       const rolePrefix =
         signatureTargetUser.role === 'admin'
           ? 'ADM'
+          : signatureTargetUser.role === 'manager'
+          ? 'MGR'
           : signatureTargetUser.role === 'staf_ttb'
           ? 'TTB'
           : signatureTargetUser.role === 'staf_lapangan'
@@ -653,6 +663,16 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 self-stretch md:self-auto">
+          {/* Quick Add Manager */}
+          <button
+            onClick={() => handleOpenAddModal('manager')}
+            className="flex-1 md:flex-initial h-9 px-3 rounded-lg border border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-xs cursor-pointer active:scale-95"
+            title="Tambah Akun Manager Procurement (Otorisasi & TTD Digital)"
+          >
+            <Briefcase className="size-3.5" />
+            <span>+ Manager</span>
+          </button>
+
           {/* Quick Add Staf TTB */}
           <button
             onClick={() => handleOpenAddModal('staf_ttb')}
@@ -718,8 +738,8 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
         </div>
       </div>
 
-      {/* KPI Cards - 5 Kolom Sesuai RBAC Logistik Maritim */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+      {/* KPI Cards - 6 Kolom Sesuai RBAC Logistik Maritim */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
         {/* Total Akun */}
         <div className="bg-card border border-border rounded-xl p-4 shadow-xs">
           <div className="flex items-center justify-between text-muted-foreground mb-2">
@@ -743,6 +763,20 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
           </div>
           <span className="text-[11px] text-muted-foreground mt-1 block">
             Kontrol penuh &amp; kelola user
+          </span>
+        </div>
+
+        {/* Manager Procurement */}
+        <div className="bg-card border border-indigo-500/20 bg-indigo-500/5 rounded-xl p-4 shadow-xs">
+          <div className="flex items-center justify-between text-indigo-600 dark:text-indigo-400 mb-2">
+            <span className="text-xs font-medium">Manager Procurement</span>
+            <Briefcase className="size-4" />
+          </div>
+          <div className="text-2xl font-bold font-mono text-indigo-700 dark:text-indigo-300">
+            {managerCount}
+          </div>
+          <span className="text-[11px] text-muted-foreground mt-1 block">
+            Otorisasi, TTD &amp; validasi
           </span>
         </div>
 
@@ -815,13 +849,15 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
 
           {/* Role Filter Tabs */}
           <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
-            {(['ALL', 'admin', 'staf_ttb', 'staf_lapangan', 'visitor', 'user'] as const).map((r) => {
+            {(['ALL', 'admin', 'manager', 'staf_ttb', 'staf_lapangan', 'visitor', 'user'] as const).map((r) => {
               const isActive = roleFilter === r;
               const label =
                 r === 'ALL'
                   ? 'Semua Akun'
                   : r === 'admin'
                   ? 'Admin'
+                  : r === 'manager'
+                  ? 'Manager'
                   : r === 'staf_ttb'
                   ? 'Staf TTB'
                   : r === 'staf_lapangan'
@@ -935,6 +971,11 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20">
                             <Shield className="size-3" />
                             <span>Administrator</span>
+                          </span>
+                        ) : item.role === 'manager' ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20">
+                            <Briefcase className="size-3" />
+                            <span>Manager Procurement</span>
                           </span>
                         ) : item.role === 'staf_ttb' ? (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20">
@@ -1104,7 +1145,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                 Matriks Hak Akses &amp; Perizinan (Role-Based Access Control)
               </h3>
               <p className="text-[11px] text-muted-foreground">
-                Pemetaan hak akses operasional 15 modul dashboard antara Administrator, Staf Dokumen TTB, Staf Serah Terima Lapangan, dan Tamu Visitor
+                Pemetaan hak akses operasional 15 modul dashboard antara Administrator, Manager Procurement, Staf Dokumen TTB, Staf Serah Terima Lapangan, dan Tamu Visitor
               </p>
             </div>
           </div>
@@ -1137,6 +1178,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                 <th className="py-2.5 px-3 min-w-[170px]">Modul / Fitur Sistem</th>
                 <th className="py-2.5 px-3 min-w-[240px]">Deskripsi Wewenang</th>
                 <th className="py-2.5 px-3 text-center w-36">👑 Admin</th>
+                <th className="py-2.5 px-3 text-center w-40">👔 Manager</th>
                 <th className="py-2.5 px-3 text-center w-40">📄 Staf Dokumen TTB</th>
                 <th className="py-2.5 px-3 text-center w-44">🚚 Staf Serah Terima Lap.</th>
                 <th className="py-2.5 px-3 text-center w-36">👁️ Visitor</th>
@@ -1150,7 +1192,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                 return (
                   <React.Fragment key={category}>
                     <tr className="bg-muted/60 border-y border-border">
-                      <td colSpan={6} className="py-2 px-3 font-bold text-xs uppercase tracking-wider text-foreground">
+                      <td colSpan={7} className="py-2 px-3 font-bold text-xs uppercase tracking-wider text-foreground">
                         <div className="flex items-center gap-2">
                           <span
                             className={`size-2 rounded-full ${
@@ -1179,6 +1221,9 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                         </td>
                         <td className="py-2.5 px-3 text-center">
                           {renderPermissionBadge(perm.permissions.admin)}
+                        </td>
+                        <td className="py-2.5 px-3 text-center">
+                          {renderPermissionBadge(perm.permissions.manager)}
                         </td>
                         <td className="py-2.5 px-3 text-center">
                           {renderPermissionBadge(perm.permissions.staf_ttb)}
@@ -1236,7 +1281,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                 <label className="block text-xs font-semibold text-foreground mb-1.5">
                   Tipe Akun (Role)
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                   <button
                     type="button"
                     onClick={() => {
@@ -1255,6 +1300,27 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                     </div>
                     <span className="text-[9px] mt-1 text-muted-foreground leading-tight">
                       Full Access
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewRole('manager');
+                      if (!newDepartment) setNewDepartment('Purchasing & Procurement');
+                    }}
+                    className={`p-2.5 rounded-lg border text-left transition cursor-pointer flex flex-col justify-between ${
+                      newRole === 'manager'
+                        ? 'border-indigo-500 bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 ring-1 ring-indigo-500'
+                        : 'border-border bg-card text-muted-foreground hover:border-border/80'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 font-bold text-xs">
+                      <Briefcase className="size-3.5" />
+                      <span>Manager</span>
+                    </div>
+                    <span className="text-[9px] mt-1 text-muted-foreground leading-tight">
+                      Otorisasi &amp; TTD
                     </span>
                   </button>
 
@@ -1324,6 +1390,11 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
 
                 {/* Role Description Helper */}
                 <div className="mt-2.5 p-2.5 rounded-lg bg-muted/40 border border-border text-[11px] text-muted-foreground leading-relaxed">
+                  {newRole === 'manager' && (
+                    <p>
+                      <strong className="text-indigo-600 dark:text-indigo-400">Peran Manager Procurement:</strong> Wewenang otorisasi penuh pada modul Procurement &amp; Analytics, validasi dan tanda tangan digital resmi berkas FSTB (area Approved By / PCH Spv) dan berkas TTB (area Lini Purchasing), serta pemantauan menyeluruh seluruh modul logistik maritim.
+                    </p>
+                  )}
                   {newRole === 'staf_ttb' && (
                     <p>
                       <strong className="text-blue-600 dark:text-blue-400">Peran Staf Dokumen TTB:</strong> Wewenang penuh mengunggah berkas TTB resmi, mengelola Galeri Foto TTB, verifikasi PO/FPB di Procurement, dan validasi fisik stok di Cek Persediaan. Menu operasional lapangan (Serah Terima Lapangan, TimeMark, Layanan Armada, Posisi Kapal) dan Admin Settings dinonaktifkan secara otomatis.
@@ -1512,7 +1583,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                 <label className="block text-xs font-semibold text-foreground mb-1.5">
                   Tipe Akun (Role)
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                   <button
                     type="button"
                     onClick={() => setEditRole('admin')}
@@ -1524,6 +1595,19 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                   >
                     <div className="font-bold text-xs">👑 Admin</div>
                     <span className="text-[9px] text-muted-foreground">Full Control</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setEditRole('manager')}
+                    className={`p-2.5 rounded-lg border text-left transition cursor-pointer flex flex-col justify-between ${
+                      editRole === 'manager'
+                        ? 'border-indigo-500 bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 ring-1 ring-indigo-500'
+                        : 'border-border bg-card text-muted-foreground hover:border-border/80'
+                    }`}
+                  >
+                    <div className="font-bold text-xs">👔 Manager</div>
+                    <span className="text-[9px] text-muted-foreground">Otorisasi &amp; TTD</span>
                   </button>
 
                   <button
@@ -1568,6 +1652,11 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
 
                 {/* Role Description Helper */}
                 <div className="mt-2.5 p-2.5 rounded-lg bg-muted/40 border border-border text-[11px] text-muted-foreground leading-relaxed">
+                  {editRole === 'manager' && (
+                    <p>
+                      <strong className="text-indigo-600 dark:text-indigo-400">Manager Procurement:</strong> Akses otorisasi penuh Procurement &amp; Analytics, validasi dan tanda tangan digital resmi berkas FSTB (Approved By) &amp; TTB (Purchasing), serta pemantauan modul logistik.
+                    </p>
+                  )}
                   {editRole === 'staf_ttb' && (
                     <p>
                       <strong className="text-blue-600 dark:text-blue-400">Staf Dokumen TTB:</strong> Akses Upload FSTB, Upload TTB, Galeri Foto TTB, verifikasi PO/FPB Procurement, dan Cek Persediaan. Modul lapangan &amp; admin disembunyikan.

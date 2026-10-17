@@ -122,13 +122,14 @@ function checkUserSlotAuthority(
   switch (slotKey) {
     case 'deliveredBy':
       if (
+        role === 'manager' ||
         jabatan.includes('purchasing') ||
         jabatan.includes('pengadaan') ||
         dept.includes('procurement') ||
         dept.includes('purchasing') ||
         role === 'user'
       ) {
-        return { allowed: true, reason: 'Wewenang Sah: Staf Purchasing' };
+        return { allowed: true, reason: 'Wewenang Sah: Staf / Manager Purchasing' };
       }
       return { allowed: false, reason: 'Hanya dapat divalidasi oleh Staf Purchasing' };
 
@@ -145,16 +146,17 @@ function checkUserSlotAuthority(
 
     case 'approvedBy':
       if (
+        role === 'manager' ||
         (jabatan.includes('supervisor') ||
           jabatan.includes('spv') ||
           jabatan.includes('lead') ||
           jabatan.includes('head') ||
           jabatan.includes('manager')) &&
-        (jabatan.includes('purchasing') || jabatan.includes('procurement') || dept.includes('procurement'))
+        (jabatan.includes('purchasing') || jabatan.includes('procurement') || dept.includes('procurement') || dept.includes('purchasing'))
       ) {
-        return { allowed: true, reason: 'Wewenang Sah: Purchasing Supervisor' };
+        return { allowed: true, reason: 'Wewenang Sah: Purchasing Supervisor / Manager' };
       }
-      return { allowed: false, reason: 'Hanya dapat disahkan oleh Purchasing Supervisor / Lead' };
+      return { allowed: false, reason: 'Hanya dapat disahkan oleh Purchasing Supervisor / Manager' };
 
     case 'acknowledgedBy':
       if (

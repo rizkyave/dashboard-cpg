@@ -11,7 +11,7 @@
     "receivedDate": "2026-10-17",
     "originalFileName": "CPL-FSTB-26-05241.pdf",
     "renamedFileName": "CPL-FSTB-26-05241.pdf",
-    "fileUrl": "/api/r2-file?key=fstb-documents%2FCPL-FSTB-26-05241.pdf&v=1792275510947",
+    "fileUrl": "/api/r2-file?key=fstb-documents%2FCPL-FSTB-26-05241.pdf&v=1792275775833",
     "r2Key": "fstb-documents/CPL-FSTB-26-05241.pdf",
     "storageProvider": "CLOUDFLARE_R2",
     "purchasingValidation": {
@@ -37,13 +37,22 @@
       "verificationToken": "VAL-LOG-MVCYBOO1-H518"
     },
     "lapanganValidation": {
-      "isValidated": false
+      "isValidated": true,
+      "validatorName": "Administrator CPG",
+      "validatorUsername": "admin",
+      "validatorRole": "admin",
+      "validatorNik": "CPG-MIS-0001",
+      "validatorJabatan": "Head of MIS & IT Systems",
+      "signatureDataUrl": "",
+      "validatedAt": "2026-10-17T22:22:32.059Z",
+      "notes": "Diverifikasi dan disetujui melalui sistem terpadu CPG",
+      "verificationToken": "VAL-FSTB-PCH-SPV-MVCYPH4B-XR1B"
     },
-    "overallStatus": "PROSES_VALIDASI",
-    "completedLinesCount": 2,
-    "isReadyForDispatch": false,
+    "overallStatus": "SIAP_KIRIM_ARMADA",
+    "completedLinesCount": 3,
+    "isReadyForDispatch": true,
     "createdAt": "2026-10-17T20:41:07.907Z",
-    "updatedAt": "2026-10-17T22:18:30.493Z",
+    "updatedAt": "2026-10-17T22:22:55.436Z",
     "fstbSlots": {
       "deliveredBy": {
         "isValidated": true,
@@ -68,10 +77,28 @@
         "verificationToken": "VAL-LOG-MVCYBOO1-H518"
       },
       "approvedBy": {
-        "isValidated": false
+        "isValidated": true,
+        "validatorName": "Administrator CPG",
+        "validatorUsername": "admin",
+        "validatorRole": "admin",
+        "validatorNik": "CPG-MIS-0001",
+        "validatorJabatan": "Head of MIS & IT Systems",
+        "signatureDataUrl": "",
+        "validatedAt": "2026-10-17T22:22:32.059Z",
+        "notes": "Diverifikasi dan disetujui melalui sistem terpadu CPG",
+        "verificationToken": "VAL-FSTB-PCH-SPV-MVCYPH4B-XR1B"
       },
       "acknowledgedBy": {
-        "isValidated": false
+        "isValidated": true,
+        "validatorName": "Administrator CPG",
+        "validatorUsername": "admin",
+        "validatorRole": "admin",
+        "validatorNik": "CPG-MIS-0001",
+        "validatorJabatan": "Head of MIS & IT Systems",
+        "signatureDataUrl": "",
+        "validatedAt": "2026-10-17T22:22:55.436Z",
+        "notes": "Diverifikasi dan disetujui melalui sistem terpadu CPG",
+        "verificationToken": "VAL-FSTB-LOG-SPV-MVCYPZ5L-ITJ8"
       }
     }
   },

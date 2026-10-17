@@ -652,7 +652,9 @@ export async function POST(req: NextRequest) {
           validatorNik,
           validatorJabatan:
             validatorJabatan ||
-            (line === 'purchasing'
+            (validatorRole === 'manager'
+              ? 'Manager Procurement'
+              : line === 'purchasing'
               ? 'Staf Purchasing / Pengadaan'
               : line === 'logistik'
               ? 'Staf Logistik & Pergudangan'
