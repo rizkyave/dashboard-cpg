@@ -106,6 +106,18 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     },
   },
   {
+    tabId: 'upload-fstb',
+    category: 'Dashboards',
+    name: 'Upload FSTB',
+    description: 'Upload berkas FSTB resmi ke Cloudflare R2 / Drive dengan penamaan otomatis no. FSTB',
+    permissions: {
+      admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
+      staf_ttb: { allowed: true, level: 'Upload & Kelola', badgeTone: 'emerald', notes: 'Full access upload berkas FSTB ke cloud' },
+      staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
+      visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
+    },
+  },
+  {
     tabId: 'upload-ttb',
     category: 'Dashboards',
     name: 'Upload TTB',
@@ -285,7 +297,7 @@ export function canAccessTab(role: UserRole | undefined, tab: TabType): boolean 
   }
 
   if (role === 'staf_lapangan') {
-    const forbidden: TabType[] = ['upload-ttb', 'analytics', 'admin-settings'];
+    const forbidden: TabType[] = ['upload-fstb', 'upload-ttb', 'analytics', 'admin-settings'];
     return !forbidden.includes(tab);
   }
 

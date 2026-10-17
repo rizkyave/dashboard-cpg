@@ -128,6 +128,13 @@ export default function Sidebar({
       title: 'Monitoring Layanan Armada & FSTB (Hover FPB / Item untuk Nama Barang Sisa Layanan)',
     },
     {
+      id: 'upload-fstb' as TabType,
+      label: 'Upload FSTB',
+      icon: PackageCheck,
+      badge: 'R2',
+      title: 'Upload Dokumen FSTB ke Cloudflare R2 dengan Format Otomatis Sesuai No. FSTB',
+    },
+    {
       id: 'upload-ttb' as TabType,
       label: 'Upload TTB',
       icon: UploadCloud,

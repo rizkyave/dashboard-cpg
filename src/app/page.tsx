@@ -61,6 +61,7 @@ import TimemarkTab from '@/components/TimemarkTab';
 import TtbGalleryTab from '@/components/TtbGalleryTab';
 import AdminSettingsTab from '@/components/AdminSettingsTab';
 import SisaLayananTab from '@/components/SisaLayananTab';
+import UploadFstbTab from '@/components/UploadFstbTab';
 import UploadTtbTab from '@/components/UploadTtbTab';
 import SerahTerimaLapanganTab from '@/components/SerahTerimaLapanganTab';
 import CrewKapalTab from '@/components/CrewKapalTab';
@@ -1013,6 +1014,8 @@ export default function DashboardPage() {
                   ? 'Laporan Sisa Layanan Permintaan (Gabungan)'
                   : activeTab === 'serah-terima-lapangan'
                   ? 'Serah Terima Lapangan & Bukti Kirim TTB'
+                  : activeTab === 'upload-fstb'
+                  ? 'Upload Dokumen FSTB ke Cloudflare Storage'
                   : activeTab === 'upload-ttb'
                   ? 'Upload Dokumen TTB ke Cloudflare Storage'
                   : activeTab === 'admin-settings'
@@ -1046,6 +1049,8 @@ export default function DashboardPage() {
                   ? 'Monitoring pemenuhan pengajuan barang (FPB, PO, FSTB, TTB) gabungan seluruh unit armada kapal & divisi PT Cindara Pratama Group.'
                   : activeTab === 'serah-terima-lapangan'
                   ? 'Portal Tim Lapangan untuk dokumentasi dan upload bukti foto serah terima barang ke end user berbasis referensi data TTB resmi.'
+                  : activeTab === 'upload-fstb'
+                  ? 'Unggah berkas Form Serah Terima Barang (FSTB) resmi ke Cloudflare R2 dengan sistem penamaan otomatis sesuai Nomor FSTB.'
                   : activeTab === 'upload-ttb'
                   ? 'Unggah foto fisik & dokumen scan tanda terima barang (TTB) ke Cloudflare R2 dengan sistem penamaan otomatis sesuai Nomor TTB resmi.'
                   : activeTab === 'admin-settings'
@@ -1055,7 +1060,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Tombol Sembunyikan Ringkasan Metrik KPI */}
-            {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && activeTab !== 'crew-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'serah-terima-lapangan' && activeTab !== 'upload-ttb' && activeTab !== 'admin-settings' && (!isVisitor || searchKeyword.trim() !== '') && (
+            {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && activeTab !== 'crew-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'serah-terima-lapangan' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'admin-settings' && (!isVisitor || searchKeyword.trim() !== '') && (
               <button
                 type="button"
                 onClick={toggleKpiHidden}
@@ -1073,7 +1078,7 @@ export default function DashboardPage() {
           </div>
 
           {/* 4 Pillar Executive Metric Cards (procurement tabs only) */}
-          {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'upload-ttb' && activeTab !== 'admin-settings' && !isKpiHidden && (!isVisitor || searchKeyword.trim() !== '') && (
+          {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'admin-settings' && !isKpiHidden && (!isVisitor || searchKeyword.trim() !== '') && (
             <div className="animate-in fade-in-50 duration-200">
               <KpiCards
                 procurementList={filteredProcurement}
@@ -1234,6 +1239,16 @@ export default function DashboardPage() {
               armadaItems={armadaData}
               sisaLayananItems={sisaLayananItems}
               onOpenAudit={handleOpenAudit}
+              showToast={showToast}
+            />
+          )}
+
+          {/* Tab Modul Tambahan: Upload Data FSTB (Auto-Rename & Cloudflare Storage) */}
+          {activeTab === 'upload-fstb' && (
+            <UploadFstbTab
+              procurementItems={procurementData}
+              armadaItems={armadaData}
+              sisaLayananItems={sisaLayananItems}
               showToast={showToast}
             />
           )}

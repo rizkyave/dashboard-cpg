@@ -1331,7 +1331,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                   )}
                   {newRole === 'staf_lapangan' && (
                     <p>
-                      <strong className="text-amber-600 dark:text-amber-400">Peran Staf Serah Terima Lapangan:</strong> Wewenang penuh input bukti serah terima barang atau fisik pekerjaan dermaga, upload bukti foto TimeMark berstempel waktu, input update servis armada, serta update status Posisi Kapal &amp; List WO. Menu Upload TTB dan Admin Settings dinonaktifkan.
+                      <strong className="text-amber-600 dark:text-amber-400">Peran Staf Serah Terima Lapangan:</strong> Wewenang penuh input bukti serah terima barang atau fisik pekerjaan dermaga, upload bukti foto TimeMark berstempel waktu, input update servis armada, serta update status Posisi Kapal &amp; List WO. Menu Upload FSTB, Upload TTB, dan Admin Settings dinonaktifkan.
                     </p>
                   )}
                   {newRole === 'visitor' && (
@@ -1570,12 +1570,12 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                 <div className="mt-2.5 p-2.5 rounded-lg bg-muted/40 border border-border text-[11px] text-muted-foreground leading-relaxed">
                   {editRole === 'staf_ttb' && (
                     <p>
-                      <strong className="text-blue-600 dark:text-blue-400">Staf Dokumen TTB:</strong> Akses Upload TTB, Galeri Foto TTB, verifikasi PO/FPB Procurement, dan Cek Persediaan. Modul lapangan &amp; admin disembunyikan.
+                      <strong className="text-blue-600 dark:text-blue-400">Staf Dokumen TTB:</strong> Akses Upload FSTB, Upload TTB, Galeri Foto TTB, verifikasi PO/FPB Procurement, dan Cek Persediaan. Modul lapangan &amp; admin disembunyikan.
                     </p>
                   )}
                   {editRole === 'staf_lapangan' && (
                     <p>
-                      <strong className="text-amber-600 dark:text-amber-400">Staf Serah Terima Lapangan:</strong> Akses Serah Terima Lapangan, Foto TimeMark, Layanan Armada, Posisi Kapal, &amp; List WO. Upload TTB &amp; admin dinonaktifkan.
+                      <strong className="text-amber-600 dark:text-amber-400">Staf Serah Terima Lapangan:</strong> Akses Serah Terima Lapangan, Foto TimeMark, Layanan Armada, Posisi Kapal, &amp; List WO. Upload FSTB, Upload TTB, &amp; admin dinonaktifkan.
                     </p>
                   )}
                   {editRole === 'visitor' && (

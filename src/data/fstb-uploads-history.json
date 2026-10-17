@@ -1,0 +1,23 @@
+[
+  {
+    "id": "1792269240174-8oj95",
+    "noFstb": "CPL-FSTB-26-05241",
+    "cleanNoFstb": "CPL-FSTB-26-05241",
+    "armada": "UB CMPL 01",
+    "doNo": "CPL-PO-26-04738",
+    "receivedDate": "2026-10-17",
+    "keterangan": "",
+    "originalFileName": "FSTB_Scan_05241.pdf",
+    "renamedFileName": "CPL-FSTB-26-05241.pdf",
+    "fileSize": 576,
+    "fileType": "application/pdf",
+    "fileUrl": "/api/r2-file?key=fstb-documents%2FCPL-FSTB-26-05241.pdf",
+    "r2Key": "fstb-documents/CPL-FSTB-26-05241.pdf",
+    "r2Url": "/api/r2-file?key=fstb-documents%2FCPL-FSTB-26-05241.pdf",
+    "storageProvider": "CLOUDFLARE_R2",
+    "uploadedAt": "2026-10-17T20:34:00.174Z",
+    "status": "STORED_IN_CLOUDFLARE_R2",
+    "uploaderName": "HERMANSYAH",
+    "isAutoStamped": false
+  }
+]
