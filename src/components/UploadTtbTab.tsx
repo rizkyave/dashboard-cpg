@@ -25,6 +25,7 @@ import {
   Database,
   FileCheck,
   Sparkles,
+  Trash2,
 } from 'lucide-react';
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
 import { SisaLayananItem } from '@/types/sisaLayanan';
@@ -224,6 +225,56 @@ export default function UploadTtbTab({
       }
     } catch (err) {
       console.warn('Gagal memuat riwayat upload:', err);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
+
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Hapus berkas dari Cloudflare R2 & riwayat
+  const handleDeleteHistoryItem = async (item: UploadedTtbItem) => {
+    const confirmDelete = window.confirm(
+      `Apakah Anda yakin ingin menghapus berkas "${item.renamedFileName}" dari Cloudflare Storage (R2)?`
+    );
+    if (!confirmDelete) return;
+
+    setDeletingId(item.id);
+    try {
+      const res = await fetch(
+        `/api/upload-ttb?id=${encodeURIComponent(item.id)}&key=${encodeURIComponent(item.r2Key || '')}&fileName=${encodeURIComponent(item.renamedFileName)}`,
+        { method: 'DELETE' }
+      );
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setHistoryItems((prev) => prev.filter((h) => h.id !== item.id));
+        showToast?.(`Berkas "${item.renamedFileName}" berhasil dihapus dari Cloudflare R2!`, 'success');
+      } else {
+        showToast?.(data.error || 'Gagal menghapus berkas.', 'error');
+      }
+    } catch {
+      showToast?.('Terjadi kesalahan saat menghapus berkas.', 'error');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  // Sinkronisasi manual live dengan Cloudflare R2
+  const handleForceSyncWithR2 = async () => {
+    setIsLoadingHistory(true);
+    try {
+      const res = await fetch('/api/upload-ttb');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.items) {
+          setHistoryItems(data.items);
+          showToast?.(`Sinkronisasi Cloudflare R2 berhasil! Total ${data.items.length} berkas aktif.`, 'success');
+        }
+      } else {
+        showToast?.('Gagal menyinkronkan dengan Cloudflare R2.', 'error');
+      }
+    } catch {
+      showToast?.('Terjadi kesalahan saat sinkronisasi Cloudflare R2.', 'error');
     } finally {
       setIsLoadingHistory(false);
     }
@@ -999,6 +1050,17 @@ export default function UploadTtbTab({
 
             <button
               type="button"
+              onClick={handleForceSyncWithR2}
+              disabled={isLoadingHistory}
+              className="h-8 px-3 rounded-xl border border-teal-500/30 bg-teal-500/10 hover:bg-teal-500/20 text-teal-700 dark:text-teal-300 text-xs font-semibold inline-flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-xs"
+              title="Sinkronkan live dengan Cloudflare R2 (membersihkan berkas yang telah dihapus)"
+            >
+              <RefreshCw className={`size-3.5 ${isLoadingHistory ? 'animate-spin text-teal-600' : ''}`} />
+              <span>Sinkronkan R2</span>
+            </button>
+
+            <button
+              type="button"
               onClick={fetchUploadHistory}
               disabled={isLoadingHistory}
               className="p-2 rounded-xl border border-border hover:bg-muted text-muted-foreground hover:text-foreground transition cursor-pointer"
@@ -1107,6 +1169,19 @@ export default function UploadTtbTab({
                         >
                           <Download className="size-3.5" />
                         </a>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteHistoryItem(item)}
+                          disabled={deletingId === item.id}
+                          className="p-1.5 rounded-lg border border-border hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600 transition disabled:opacity-40 cursor-pointer"
+                          title="Hapus berkas dari Cloudflare Storage & riwayat"
+                        >
+                          {deletingId === item.id ? (
+                            <RefreshCw className="size-3.5 animate-spin text-rose-600" />
+                          ) : (
+                            <Trash2 className="size-3.5 text-rose-500 hover:text-rose-600" />
+                          )}
+                        </button>
                       </div>
                     </td>
                   </tr>

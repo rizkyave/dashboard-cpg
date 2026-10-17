@@ -12,6 +12,7 @@ import {
   getObjectFromR2,
   listR2Objects,
   getHeadObjectFromR2,
+  deleteFromR2,
 } from '@/utils/r2Client';
 
 export const runtime = 'nodejs';
@@ -101,14 +102,43 @@ export async function GET(req: NextRequest) {
     const config = getR2Config();
     let history = await getHistory();
 
-    // Jika R2 aktif, scan berkas fisik di ttb-documents/ untuk menjamin dokumen R2 selalu muncul
+    // Jika R2 aktif, sinkronisasi dua arah dengan berkas fisik di Cloudflare R2
     if (isR2Active) {
       try {
         const docs = await listR2Objects('ttb-documents/', 1000);
+        const liveR2Keys = new Set(docs.map((d) => d.key));
+        const liveFileNames = new Set(docs.map((d) => d.name));
+        let hasChanges = false;
+
+        // 1. SINKRONISASI PENGHAPUSAN (PURGE):
+        // Jika berkas yang berstatus R2 sudah dihapus dari bucket Cloudflare R2, bersihkan dari riwayat!
+        const initialCount = history.length;
+        history = history.filter((h) => {
+          const isR2Doc =
+            h.storageProvider === 'CLOUDFLARE_R2' ||
+            h.status === 'STORED_IN_CLOUDFLARE_R2' ||
+            (h.r2Key && h.r2Key.startsWith('ttb-documents/')) ||
+            (h.renamedFileName && h.renamedFileName.toLowerCase().endsWith('.pdf'));
+
+          if (isR2Doc) {
+            const fileKey = h.r2Key || `ttb-documents/${h.renamedFileName}`;
+            const stillExists = liveR2Keys.has(fileKey) || liveFileNames.has(h.renamedFileName);
+            if (!stillExists) {
+              return false; // Berkas fisik sudah dihapus dari Cloudflare R2 -> buang dari riwayat!
+            }
+          }
+          return true;
+        });
+
+        if (history.length !== initialCount) {
+          hasChanges = true;
+        }
+
+        // 2. SINKRONISASI PENAMBAHAN (DISCOVER):
+        // Jika ada berkas baru di bucket R2 yang belum tercatat di riwayat, tambahkan ke riwayat
         const existingKeys = new Set(
           history.map((h) => h.r2Key || `ttb-documents/${h.renamedFileName}`)
         );
-        let hasNewDocs = false;
 
         for (const doc of docs) {
           if (!existingKeys.has(doc.key)) {
@@ -141,11 +171,11 @@ export async function GET(req: NextRequest) {
                 : new Date().toISOString(),
               status: 'STORED_IN_CLOUDFLARE_R2',
             });
-            hasNewDocs = true;
+            hasChanges = true;
           }
         }
 
-        if (hasNewDocs) {
+        if (hasChanges) {
           history.sort(
             (a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
           );
@@ -412,6 +442,77 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
         uploadedFiles: [],
         error: (error as Error).message,
       },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE: Hapus berkas TTB dari Cloudflare R2 dan sinkronkan riwayat
+export async function DELETE(req: NextRequest) {
+  try {
+    const searchParams = req.nextUrl.searchParams;
+    const id = searchParams.get('id') || '';
+    const r2KeyParam = searchParams.get('key') || '';
+    const fileName = searchParams.get('fileName') || '';
+
+    if (!id && !r2KeyParam && !fileName) {
+      return NextResponse.json(
+        { success: false, error: 'ID atau nama berkas wajib disertakan.' },
+        { status: 400 }
+      );
+    }
+
+    const isR2Active = isR2Configured();
+    let history = await getHistory();
+
+    const targetIndex = history.findIndex(
+      (h) =>
+        (id && h.id === id) ||
+        (r2KeyParam && h.r2Key === r2KeyParam) ||
+        (fileName && h.renamedFileName === fileName)
+    );
+
+    const targetItem = targetIndex >= 0 ? history[targetIndex] : null;
+    const targetKey =
+      r2KeyParam ||
+      targetItem?.r2Key ||
+      (fileName ? `ttb-documents/${fileName}` : '');
+
+    // 1. Hapus berkas fisik dari Cloudflare R2 jika ada
+    if (isR2Active && targetKey) {
+      try {
+        await deleteFromR2(targetKey);
+      } catch (err) {
+        console.warn('Gagal menghapus berkas fisik dari R2:', err);
+      }
+    }
+
+    // 2. Hapus salinan berkas lokal jika ada
+    if (fileName || targetItem?.renamedFileName) {
+      const targetPhotosDir = getPhotosDir();
+      const localFile = path.join(targetPhotosDir, fileName || targetItem!.renamedFileName);
+      try {
+        await fs.unlink(localFile);
+      } catch {
+        // Non-fatal
+      }
+    }
+
+    // 3. Hapus dari riwayat dan simpan ulang
+    if (targetIndex >= 0) {
+      history.splice(targetIndex, 1);
+      await saveHistory(history);
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: `Berkas ${targetItem?.renamedFileName || fileName || id} berhasil dihapus dari Cloudflare R2.`,
+      remainingCount: history.length,
+    });
+  } catch (err) {
+    console.error('Delete TTB error:', err);
+    return NextResponse.json(
+      { success: false, error: (err as Error).message },
       { status: 500 }
     );
   }
