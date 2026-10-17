@@ -1,2 +1,98 @@
-[]
-
+[
+  {
+    "id": "str-1792241414883-tkdny",
+    "noTtb": "HL-TTB-26-02247",
+    "cleanNoTtb": "HL-TTB-26-02247",
+    "armada": "HB CAKRA 10",
+    "noFpb": "HL-FPB-26-0001428",
+    "noPo": "HL-PO-26-01733",
+    "itemSummary": "- (1 )",
+    "petugas": "Administrator CPG (Tim Lapangan)",
+    "penerima": "masih di log",
+    "tanggalSerahTerima": "2026-10-17 20:48",
+    "kondisi": "LENGKAP_BAIK",
+    "photos": [
+      {
+        "name": "HB CAKRA 10 HL-TTB-26-02247 2026-10-17 at 20.50.13.jpg",
+        "originalName": "HL-TTB-26-02247.jpg",
+        "url": "/api/r2-file?key=ttb-photos%2FHB%20CAKRA%2010%20HL-TTB-26-02247%202026-10-17%20at%2020.50.13.jpg",
+        "r2Key": "ttb-photos/HB CAKRA 10 HL-TTB-26-02247 2026-10-17 at 20.50.13.jpg",
+        "size": 195671
+      }
+    ],
+    "storageProvider": "CLOUDFLARE_R2",
+    "createdAt": "2026-10-17T12:50:14.883Z"
+  },
+  {
+    "id": "str-1792240264100-weide",
+    "noTtb": "CPL-TTB-26-06113",
+    "cleanNoTtb": "CPL-TTB-26-06113",
+    "armada": "UB CMPL 01",
+    "noFpb": "CPL-FPB-26-0003993",
+    "noPo": "CPL-PO-26-04766",
+    "itemSummary": "AMPLAS NO. 240 ROLL (00) (2 MTR), AMPLAS NO. 180 ROLL (00), AMPLAS NO. 400 ROLL (00), -",
+    "petugas": "Administrator CPG (Tim Lapangan)",
+    "penerima": "Ardiyan",
+    "tanggalSerahTerima": "2026-10-17 20:29",
+    "kondisi": "LENGKAP_BAIK",
+    "photos": [
+      {
+        "name": "UB CMPL 01 CPL-TTB-26-06113 2026-10-17 at 12.31.03.jpg",
+        "originalName": "amplas1.jpg",
+        "url": "/api/r2-file?key=ttb-photos%2FUB%20CMPL%2001%20CPL-TTB-26-06113%202026-10-17%20at%2012.31.03.jpg",
+        "r2Key": "ttb-photos/UB CMPL 01 CPL-TTB-26-06113 2026-10-17 at 12.31.03.jpg",
+        "size": 120503
+      }
+    ],
+    "storageProvider": "CLOUDFLARE_R2",
+    "createdAt": "2026-10-17T12:31:04.100Z"
+  },
+  {
+    "id": "str-1792238704558-lg2aj",
+    "noTtb": "GAJ-TTB-26-01228",
+    "cleanNoTtb": "GAJ-TTB-26-01228",
+    "armada": "OFFICE GAJ",
+    "noFpb": "GAJ-FPB-26-0000978",
+    "noPo": "GAJ-PO-26-01142",
+    "itemSummary": "- (1 )",
+    "petugas": "Administrator CPG (Tim Lapangan)",
+    "penerima": "Pak Ciko",
+    "tanggalSerahTerima": "2026-10-16 20:04",
+    "kondisi": "LENGKAP_BAIK",
+    "photos": [
+      {
+        "name": "OFFICE GAJ GAJ-TTB-26-01228 2026-10-17 at 12.05.03.jpg",
+        "originalName": "01214.jpg",
+        "url": "/api/r2-file?key=ttb-photos%2FOFFICE%20GAJ%20GAJ-TTB-26-01228%202026-10-17%20at%2012.05.03.jpg",
+        "r2Key": "ttb-photos/OFFICE GAJ GAJ-TTB-26-01228 2026-10-17 at 12.05.03.jpg",
+        "size": 192106
+      }
+    ],
+    "storageProvider": "CLOUDFLARE_R2",
+    "createdAt": "2026-10-17T12:05:04.559Z"
+  },
+  {
+    "id": "str-1792238596476-ivk96",
+    "noTtb": "GAJ-TTB-26-01228",
+    "cleanNoTtb": "GAJ-TTB-26-01228",
+    "armada": "OFFICE GAJ",
+    "noFpb": "GAJ-FPB-26-0000978",
+    "noPo": "GAJ-PO-26-01142",
+    "itemSummary": "- (1 )",
+    "petugas": "Administrator CPG (Tim Lapangan)",
+    "penerima": "PAK CIKO",
+    "tanggalSerahTerima": "2026-10-17 20:02",
+    "kondisi": "LENGKAP_BAIK",
+    "photos": [
+      {
+        "name": "OFFICE GAJ GAJ-TTB-26-01228 2026-10-17 at 12.03.15.jpg",
+        "originalName": "01214.jpg",
+        "url": "/api/r2-file?key=ttb-photos%2FOFFICE%20GAJ%20GAJ-TTB-26-01228%202026-10-17%20at%2012.03.15.jpg",
+        "r2Key": "ttb-photos/OFFICE GAJ GAJ-TTB-26-01228 2026-10-17 at 12.03.15.jpg",
+        "size": 192106
+      }
+    ],
+    "storageProvider": "CLOUDFLARE_R2",
+    "createdAt": "2026-10-17T12:03:16.476Z"
+  }
+]

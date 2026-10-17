@@ -117,9 +117,15 @@ export default function Sidebar({
         },
         {
           id: 'serah-terima-lapangan' as TabType,
-          label: 'Serah Terima Lapangan',
+          label: 'Serah Terima Lap.',
           icon: Truck,
           badge: 'Tim Lap',
+        },
+        {
+          id: 'upload-ttb' as TabType,
+          label: 'Upload TTB',
+          icon: UploadCloud,
+          badge: 'R2',
         },
       ]
     : [
@@ -155,6 +161,20 @@ export default function Sidebar({
           label: 'Foto TimeMark',
           icon: Camera,
           badge: '5 Digit',
+        },
+        {
+          id: 'serah-terima-lapangan' as TabType,
+          label: 'Serah Terima Lap.',
+          icon: Truck,
+          badge: 'Tim Lap',
+          title: 'Portal Tim Lapangan: Upload Bukti Foto Penyerahan Barang Berdasarkan Referensi TTB Resmi',
+        },
+        {
+          id: 'upload-ttb' as TabType,
+          label: 'Upload TTB',
+          icon: UploadCloud,
+          badge: 'R2',
+          title: 'Upload Dokumen TTB ke Cloudflare R2 dengan Format Otomatis Sesuai No. TTB',
         },
         {
           id: 'analytics' as TabType,
@@ -580,52 +600,6 @@ export default function Sidebar({
                       ? `${(sisaLayananCount / 1000).toFixed(0)}k`
                       : `${sisaLayananCount}`
                     : '28k'}
-                </span>
-              </button>
-
-              {/* Modul Baru: Serah Terima Lapangan (Tim Lapangan & Bukti Kirim TTB) */}
-              <button
-                onClick={() => handleSelectTab('serah-terima-lapangan')}
-                className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation cursor-pointer ${
-                  activeTab === 'serah-terima-lapangan'
-                    ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-border'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                }`}
-                title="Serah Terima Lapangan: Portal Tim Lapangan untuk Upload Bukti Foto Penyerahan Barang Berdasarkan Referensi TTB Resmi"
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <Truck
-                    className={`size-4 shrink-0 ${
-                      activeTab === 'serah-terima-lapangan' ? 'text-emerald-500' : 'text-muted-foreground'
-                    }`}
-                  />
-                  <span className="truncate whitespace-nowrap">Serah Terima Lap.</span>
-                </div>
-                <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                  Tim Lap
-                </span>
-              </button>
-
-              {/* Modul: Upload TTB (Dokumen & Scan Cloudflare R2) */}
-              <button
-                onClick={() => handleSelectTab('upload-ttb')}
-                className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation cursor-pointer ${
-                  activeTab === 'upload-ttb'
-                    ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-border'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                }`}
-                title="Upload Dokumen TTB ke Cloudflare R2 dengan Format Otomatis Sesuai No. TTB"
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <UploadCloud
-                    className={`size-4 shrink-0 ${
-                      activeTab === 'upload-ttb' ? 'text-teal-500' : 'text-muted-foreground'
-                    }`}
-                  />
-                  <span className="truncate whitespace-nowrap">Upload TTB</span>
-                </div>
-                <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20">
-                  R2
                 </span>
               </button>
             </nav>
