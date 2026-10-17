@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { GlobalFilterState, KPIMetrics, ArmadaDataPoint, MonthlyTrendPoint } from './types';
 import GlobalFilterBar from './GlobalFilterBar';
 import KPISummary from './KPISummary';
 import TopArmadaDonutChart from './TopArmadaDonutChart';
 import TopArmadaDemandBar from './TopArmadaDemandBar';
 import MonthlyTrendChart from './MonthlyTrendChart';
+import OperationalSummaryWidget from './OperationalSummaryWidget';
 import ArmadaGanttSchedule from './ArmadaGanttSchedule';
 import REAL_FLEET_DATA from '@/data/realFleetData.json';
 import {
@@ -29,6 +30,8 @@ export default function DashboardContainer({
   initialMonth = '10', // Default: Oktober 2026
   initialYear = '2026',
 }: DashboardContainerProps) {
+  const ganttRef = useRef<HTMLDivElement>(null);
+
   // ==========================================================================
   // 1. STATE MANAJEMEN & FILTER GLOBAL TERPUSAT (Single Source of Truth)
   // ==========================================================================
@@ -48,13 +51,18 @@ export default function DashboardContainer({
     }));
   };
 
+  const handleScrollToGantt = () => {
+    if (ganttRef.current) {
+      ganttRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   // ==========================================================================
   // 2. DATA SOURCE: Menggabungkan data riil props atau fallback database kurasi
   // ==========================================================================
   const rawDataSource = useMemo(() => {
     if (items && items.length > 0) return items;
 
-    // Fallback: Ekstrak dari database realFleetData.json
     const expanded: any[] = [];
     (REAL_FLEET_DATA as any[]).forEach((v) => {
       (v.sampleItems || []).forEach((item: any, idx: number) => {
@@ -205,7 +213,6 @@ export default function DashboardContainer({
 
     const totalFpbCount = allVessels.reduce((acc, curr) => acc + curr.fpbCount, 0);
 
-    // Ambil 12 Armada Teratas
     const top12 = allVessels.slice(0, 12);
     const remainder = allVessels.slice(12);
 
@@ -223,7 +230,6 @@ export default function DashboardContainer({
       items: v.items,
     }));
 
-    // Tambahkan irisan ke-13: "Armada Lainnya" (Others) jika ada sisa
     if (remainder.length > 0) {
       const remainderFpb = remainder.reduce((acc, curr) => acc + curr.fpbCount, 0);
       const remainderQtyFPB = remainder.reduce((acc, curr) => acc + curr.qtyFPB, 0);
@@ -279,7 +285,6 @@ export default function DashboardContainer({
     return monthKeys.map((mk) => {
       const entry = map.get(mk);
       let totalFpb = entry ? entry.fpbSet.size : 0;
-      // Jika filter bulan aktif adalah bulan ini, pastikan nilai persis sama dengan totalFpbPeriod
       if (filterState.bulan === mk && totalFpbPeriod > 0) {
         totalFpb = totalFpbPeriod;
       }
@@ -298,7 +303,6 @@ export default function DashboardContainer({
   // 6. KALKULASI METRIK KPI (Dukungan Respons Saat Armada Dipilih)
   // ==========================================================================
   const kpiMetrics = useMemo<KPIMetrics>(() => {
-    // Jika ada armada terpilih, hitung KPI spesifik untuk unit tersebut
     const targetData = filterState.selectedArmadaId
       ? filteredData.filter((it) => {
           const rawName = (it.armada || (it as any).deptArmada || '').trim();
@@ -362,11 +366,11 @@ export default function DashboardContainer({
       ? `${MONTH_NAMES_ID[filterState.bulan] || filterState.bulan} ${filterState.tahun !== 'ALL' ? filterState.tahun : '2026'}`
       : filterState.tahun !== 'ALL'
       ? `Tahun ${filterState.tahun}`
-      : 'Semua Periode (Jun – Okt 2026)';
+      : 'Semua Periode';
 
   return (
-    <div className="bg-slate-950 text-slate-100 p-4 sm:p-6 rounded-3xl border border-slate-800 shadow-2xl space-y-6 transition">
-      {/* 1. Global Filter Bar Terpusat */}
+    <div className="bg-slate-950 text-slate-100 p-4 sm:p-5 rounded-2xl border border-slate-800 shadow-xl space-y-4 transition">
+      {/* 1. Global Filter Bar Terpusat (Single-Row Compact) */}
       <GlobalFilterBar
         filterState={filterState}
         onFilterChange={handleFilterChange}
@@ -374,7 +378,7 @@ export default function DashboardContainer({
         totalVesselCount={kpiMetrics.vesselCount}
       />
 
-      {/* 2. Kartu KPI Eksekutif Terhubung Real-Time */}
+      {/* 2. Kartu KPI Eksekutif (Tinggi Seragam h-24, Aligned Baselines) */}
       <KPISummary
         metrics={kpiMetrics}
         selectedArmadaName={filterState.selectedArmadaId}
@@ -382,44 +386,63 @@ export default function DashboardContainer({
         periodLabel={activePeriodLabel}
       />
 
-      {/* 3. Grid Visualisasi: Modern 2D Donut Chart, Tren Bulanan, & Bar Diminta vs Realisasi */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Kolom 1: Donut Chart Top Armada (7 Kolom) */}
-        <div className="lg:col-span-7">
-          <TopArmadaDonutChart
-            armadaList={topArmadas}
-            totalFpb={totalFpbPeriod}
-            selectedArmadaId={filterState.selectedArmadaId}
-            onSelectArmada={(name) => handleFilterChange({ selectedArmadaId: name })}
-            periodLabel={activePeriodLabel}
-          />
+      {/* 3. Sistem Grid 2-Kolom Seimbang (Equal Height & Flush Baselines) */}
+      <div className="grid grid-cols-12 gap-4 items-stretch">
+        {/* Kolom Kiri (col-span-12 lg:col-span-7): Donut Chart + Horizontal Bar Di Bawahnya */}
+        <div className="col-span-12 lg:col-span-7 flex flex-col gap-4 justify-between">
+          {/* Card 1: Donut Chart 2D Top Armada (Horizontal Inline Compact) */}
+          <div className="flex-1">
+            <TopArmadaDonutChart
+              armadaList={topArmadas}
+              totalFpb={totalFpbPeriod}
+              selectedArmadaId={filterState.selectedArmadaId}
+              onSelectArmada={(name) => handleFilterChange({ selectedArmadaId: name })}
+              periodLabel={activePeriodLabel}
+            />
+          </div>
+
+          {/* Card 2: Top Armada Diminta vs Realisasi (Horizontal Bar Chart) */}
+          <div className="flex-1">
+            <TopArmadaDemandBar
+              armadaList={topArmadas}
+              selectedArmadaId={filterState.selectedArmadaId}
+              onSelectArmada={(name) => handleFilterChange({ selectedArmadaId: name })}
+            />
+          </div>
         </div>
 
-        {/* Kolom 2: Tren Permintaan Bulanan & Bar Diminta vs Realisasi (5 Kolom) */}
-        <div className="lg:col-span-5 space-y-4 flex flex-col justify-between">
-          <MonthlyTrendChart
-            data={monthlyTrendData}
-            activeMonth={filterState.bulan}
-            onSelectMonth={(m) => handleFilterChange({ bulan: m })}
-          />
+        {/* Kolom Kanan (col-span-12 lg:col-span-5): Tren Bulanan + Widget Status SLA Mini-Gantt */}
+        <div className="col-span-12 lg:col-span-5 flex flex-col gap-4 justify-between">
+          {/* Card 1: Tren Permintaan Bulanan (Combo Bar + Line) */}
+          <div className="flex-1">
+            <MonthlyTrendChart
+              data={monthlyTrendData}
+              activeMonth={filterState.bulan}
+              onSelectMonth={(m) => handleFilterChange({ bulan: m })}
+            />
+          </div>
 
-          <TopArmadaDemandBar
-            armadaList={topArmadas}
-            selectedArmadaId={filterState.selectedArmadaId}
-            onSelectArmada={(name) => handleFilterChange({ selectedArmadaId: name })}
-          />
+          {/* Card 2: Widget Ringkasan Status Operasional & SLA Mini-Gantt Preview (Flush dengan Kolom Kiri) */}
+          <div className="flex-1">
+            <OperationalSummaryWidget
+              metrics={kpiMetrics}
+              selectedPeriod={filterState.bulan}
+              onScrollToGantt={handleScrollToGantt}
+            />
+          </div>
         </div>
       </div>
 
       {/* 4. Sub-Chart Gantt Timeline Terhubung Dinamis */}
-      <ArmadaGanttSchedule
-        items={filteredData}
-        selectedArmadaId={filterState.selectedArmadaId}
-        onSelectArmada={(name) => handleFilterChange({ selectedArmadaId: name })}
-        selectedPeriod={filterState.bulan}
-        onOpenAudit={onOpenAudit}
-      />
+      <div ref={ganttRef}>
+        <ArmadaGanttSchedule
+          items={filteredData}
+          selectedArmadaId={filterState.selectedArmadaId}
+          onSelectArmada={(name) => handleFilterChange({ selectedArmadaId: name })}
+          selectedPeriod={filterState.bulan}
+          onOpenAudit={onOpenAudit}
+        />
+      </div>
     </div>
   );
 }
-

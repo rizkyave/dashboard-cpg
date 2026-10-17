@@ -9,7 +9,7 @@ import {
 } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
 import { ArmadaDataPoint } from './types';
-import { Ship, PieChart, Sparkles, Filter, X, Check } from 'lucide-react';
+import { PieChart, X } from 'lucide-react';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -37,17 +37,15 @@ export default function TopArmadaDonutChart({
           data: armadaList.map((a) => a.fpbCount),
           backgroundColor: armadaList.map((a) => {
             if (!selectedArmadaId) return a.color;
-            // Highlight selected slice, dim others
             return a.name === selectedArmadaId ? a.color : `${a.color}35`;
           }),
           borderColor: armadaList.map((a) => {
             if (!selectedArmadaId) return '#0f172a';
             return a.name === selectedArmadaId ? '#ffffff' : '#1e293b';
           }),
-          borderWidth: armadaList.map((a) => (a.name === selectedArmadaId ? 3 : 1)),
-          hoverOffset: 10,
-          // Pull-out effect untuk irisan yang dipilih
-          offset: armadaList.map((a) => (a.name === selectedArmadaId ? 14 : 0)),
+          borderWidth: armadaList.map((a) => (a.name === selectedArmadaId ? 2.5 : 1)),
+          hoverOffset: 8,
+          offset: armadaList.map((a) => (a.name === selectedArmadaId ? 10 : 0)),
         },
       ],
     };
@@ -62,7 +60,7 @@ export default function TopArmadaDonutChart({
       animation: {
         animateRotate: true,
         animateScale: false,
-        duration: 500,
+        duration: 400,
       },
       plugins: {
         legend: {
@@ -74,15 +72,15 @@ export default function TopArmadaDonutChart({
           bodyColor: '#38BDF8',
           borderColor: '#334155',
           borderWidth: 1,
-          padding: 10,
-          boxPadding: 6,
-          cornerRadius: 10,
+          padding: 8,
+          boxPadding: 4,
+          cornerRadius: 8,
           displayColors: true,
           callbacks: {
             label: (context: any) => {
               const val = context.raw || 0;
               const pct = totalFpb > 0 ? ((val / totalFpb) * 100).toFixed(1) : '0';
-              return ` ${context.label}: ${val.toLocaleString('id-ID')} Tiket FPB (${pct}%)`;
+              return ` ${context.label}: ${val.toLocaleString('id-ID')} FPB (${pct}%)`;
             },
           },
         },
@@ -92,11 +90,7 @@ export default function TopArmadaDonutChart({
           const idx = elements[0].index;
           const clicked = armadaList[idx];
           if (clicked) {
-            if (selectedArmadaId === clicked.name) {
-              onSelectArmada(null);
-            } else {
-              onSelectArmada(clicked.name);
-            }
+            onSelectArmada(selectedArmadaId === clicked.name ? null : clicked.name);
           }
         } else {
           onSelectArmada(null);
@@ -106,132 +100,113 @@ export default function TopArmadaDonutChart({
   }, [armadaList, selectedArmadaId, totalFpb, onSelectArmada]);
 
   return (
-    <div className="bg-slate-900/95 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl backdrop-blur-md space-y-4">
-      {/* Header Donut Chart */}
-      <div className="flex items-center justify-between pb-3 border-b border-slate-800/80 flex-wrap gap-2">
+    <div className="bg-slate-900/80 border border-slate-800/80 rounded-xl p-4 shadow-md backdrop-blur-md flex flex-col justify-between h-full">
+      {/* Header Donut Chart Compact */}
+      <div className="flex items-center justify-between pb-2.5 border-b border-slate-800/80 gap-2">
         <div className="flex items-center gap-2">
-          <div className="size-8 rounded-lg bg-pink-500/10 border border-pink-500/30 text-pink-400 flex items-center justify-center shrink-0">
-            <PieChart className="size-4" />
+          <div className="size-7 rounded-lg bg-pink-500/10 border border-pink-500/30 text-pink-400 flex items-center justify-center shrink-0">
+            <PieChart className="size-3.5" />
           </div>
           <div>
-            <h4 className="text-xs sm:text-sm font-extrabold text-white uppercase tracking-wider flex items-center gap-2">
+            <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
               <span>12 ARMADA DENGAN PERMINTAAN FPB TERBANYAK</span>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-pink-500/20 text-pink-300 border border-pink-500/30">
-                Modern 2D Donut
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-pink-500/20 text-pink-300 border border-pink-500/30">
+                2D Donut
               </span>
             </h4>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Proporsi riil pengajuan FPB (12 armada teratas + Armada Lainnya). Klik irisan untuk memfilter sub-chart.
+            <p className="text-[11px] text-slate-400">
+              Proporsi riil pengajuan FPB armada. Klik irisan atau nama untuk memfilter.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="px-2.5 py-1 rounded-md font-mono text-[11px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">
+        <div className="flex items-center gap-1.5 shrink-0">
+          <span className="px-2 py-0.5 rounded font-mono text-[10px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">
             {periodLabel}
           </span>
           {selectedArmadaId && (
             <button
               type="button"
               onClick={() => onSelectArmada(null)}
-              className="text-xs px-2.5 py-1 rounded-md bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 flex items-center gap-1 font-mono cursor-pointer transition"
+              className="text-[10px] px-1.5 py-0.5 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 flex items-center gap-0.5 font-mono cursor-pointer transition"
             >
-              <X className="size-3" />
-              <span>Reset Pilihan</span>
+              <X className="size-2.5" />
+              <span>Reset</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* Konten Chart & Legenda Interaktif */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
-        {/* Kolom Donut Chart dengan Center Text Overlay */}
-        <div className="lg:col-span-5 flex flex-col items-center justify-center relative">
-          <div className="w-full max-w-[280px] sm:max-w-[320px] aspect-square relative flex items-center justify-center">
-            {armadaList.length > 0 ? (
-              <Doughnut data={chartData} options={chartOptions as any} />
-            ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 text-xs font-mono">
-                Tidak ada data pada periode ini
-              </div>
-            )}
+      {/* Konten Horizontal Inline: Donut Kiri + 2 Kolom Legenda Kanan */}
+      <div className="flex flex-col sm:flex-row items-center gap-4 pt-2">
+        {/* Sisi Kiri: Donut Chart Proporsional (~200px - 220px) */}
+        <div className="w-[200px] h-[200px] sm:w-[210px] sm:h-[210px] relative shrink-0 flex items-center justify-center">
+          {armadaList.length > 0 ? (
+            <Doughnut data={chartData} options={chartOptions as any} />
+          ) : (
+            <div className="text-slate-500 text-xs font-mono">Tidak ada data</div>
+          )}
 
-            {/* Teks Agregat di Tengah Donut Cutout (Transparent 2D Center) */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none text-center px-4">
-              <span className="text-[10px] font-mono font-bold tracking-widest text-slate-400 uppercase">
-                TOTAL FPB
-              </span>
-              <span className="text-3xl sm:text-4xl font-extrabold font-mono text-white tracking-tight drop-shadow-md my-0.5">
-                {totalFpb.toLocaleString('id-ID')}
-              </span>
-              <span className="text-[11px] font-semibold text-teal-400 truncate max-w-[190px]">
-                {selectedArmadaId ? selectedArmadaId : '12 Armada + Lainnya'}
-              </span>
-              {selectedArmadaId && (
-                <span className="mt-1 px-2 py-0.5 rounded-full text-[9px] font-mono bg-sky-500/20 text-sky-300 border border-sky-500/40 animate-pulse">
-                  Klik untuk Reset
-                </span>
-              )}
-            </div>
+          {/* Teks Agregat di Tengah Donut Cutout */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none text-center px-2">
+            <span className="text-[9px] font-mono font-bold tracking-widest text-slate-400 uppercase">
+              TOTAL FPB
+            </span>
+            <span className="text-2xl font-extrabold font-mono text-white tracking-tight drop-shadow-sm my-0.5">
+              {totalFpb.toLocaleString('id-ID')}
+            </span>
+            <span className="text-[10px] font-semibold text-teal-400 truncate max-w-[130px]">
+              {selectedArmadaId ? selectedArmadaId : '12 Armada + Lainnya'}
+            </span>
           </div>
         </div>
 
-        {/* Kolom Legenda Interaktif (Responsive Grid) */}
-        <div className="lg:col-span-7">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-            {armadaList.map((item, idx) => {
-              const isSelected = selectedArmadaId === item.name;
-              const rankText = idx < 12 ? `#${idx + 1}` : '•';
+        {/* Sisi Kanan: 2 Kolom List Legenda Armada yang Padat (py-1 text-xs) */}
+        <div className="flex-1 w-full grid grid-cols-2 gap-1.5 text-xs">
+          {armadaList.map((item, idx) => {
+            const isSelected = selectedArmadaId === item.name;
+            const rankText = idx < 12 ? `#${idx + 1}` : '•';
 
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => {
-                    if (selectedArmadaId === item.name) {
-                      onSelectArmada(null);
-                    } else {
-                      onSelectArmada(item.name);
-                    }
-                  }}
-                  className={`flex items-center justify-between p-2 rounded-xl border text-left transition-all cursor-pointer group ${
-                    isSelected
-                      ? 'bg-sky-500/20 border-sky-400 text-white shadow-lg ring-1 ring-sky-400/50'
-                      : selectedArmadaId
-                      ? 'bg-slate-800/40 border-slate-800/80 text-slate-400 opacity-60 hover:opacity-100 hover:bg-slate-800'
-                      : 'bg-slate-800/70 hover:bg-slate-800 border-slate-700/60 text-slate-200'
-                  }`}
-                  title={`Klik untuk melihat detail ${item.name} (${item.fpbCount} FPB)`}
-                >
-                  <div className="flex items-center gap-2 min-w-0 flex-1 mr-2">
-                    {/* Color Swatch Dot */}
-                    <span
-                      className="size-3 rounded-full shrink-0 border border-white/20 shadow-xs"
-                      style={{ backgroundColor: item.color }}
-                    />
-                    <span className="font-mono text-[10px] text-slate-400 font-bold shrink-0">
-                      {rankText}
-                    </span>
-                    <span className="truncate font-medium text-[11px] group-hover:text-white transition">
-                      {item.name}
-                    </span>
-                  </div>
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => onSelectArmada(selectedArmadaId === item.name ? null : item.name)}
+                className={`flex items-center justify-between py-1 px-2 rounded-lg border text-left transition cursor-pointer group ${
+                  isSelected
+                    ? 'bg-sky-500/25 border-sky-400 text-white shadow-sm ring-1 ring-sky-400/50'
+                    : selectedArmadaId
+                    ? 'bg-slate-800/40 border-slate-800/80 text-slate-500 opacity-60 hover:opacity-100 hover:bg-slate-800'
+                    : 'bg-slate-800/60 hover:bg-slate-800 border-slate-700/60 text-slate-300'
+                }`}
+                title={`${item.name} (${item.fpbCount} FPB - ${item.percentage.toFixed(1)}%)`}
+              >
+                <div className="flex items-center gap-1.5 min-w-0 flex-1 mr-1.5">
+                  <span
+                    className="size-2 rounded-full shrink-0 border border-white/20"
+                    style={{ backgroundColor: item.color }}
+                  />
+                  <span className="font-mono text-[9px] text-slate-400 font-bold shrink-0">
+                    {rankText}
+                  </span>
+                  <span className="truncate text-[11px] font-medium group-hover:text-white transition">
+                    {item.name}
+                  </span>
+                </div>
 
-                  <div className="flex items-center gap-1.5 shrink-0 font-mono text-[11px]">
-                    <span className="font-bold text-white">
-                      {item.fpbCount.toLocaleString('id-ID')}
-                    </span>
-                    <span className="text-[10px] text-slate-400">
-                      ({item.percentage.toFixed(1)}%)
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+                <div className="flex items-center gap-1 shrink-0 font-mono text-[10px]">
+                  <span className="font-bold text-white">
+                    {item.fpbCount}
+                  </span>
+                  <span className="text-slate-400 text-[9px]">
+                    ({item.percentage.toFixed(1)}%)
+                  </span>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
   );
 }
-

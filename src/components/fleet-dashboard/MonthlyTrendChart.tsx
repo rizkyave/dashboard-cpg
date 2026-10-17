@@ -12,7 +12,7 @@ import {
   Legend,
 } from 'chart.js';
 import { Chart } from 'react-chartjs-2';
-import { TrendingUp, Calendar } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
 import { MonthlyTrendPoint } from './types';
 
 ChartJS.register(
@@ -42,34 +42,34 @@ export default function MonthlyTrendChart({
       datasets: [
         {
           type: 'line' as const,
-          label: 'Tren Kebutuhan',
+          label: 'Tren Permintaan',
           data: data.map((d) => d.totalFpb),
-          borderColor: '#38BDF8', // sky-400
-          borderWidth: 2.5,
+          borderColor: '#38BDF8',
+          borderWidth: 2,
           tension: 0.35,
           pointBackgroundColor: data.map((d) =>
-            d.monthKey === activeMonth ? '#06B6D4' : '#38BDF8'
+            d.monthKey === activeMonth ? '#10B981' : '#38BDF8'
           ),
           pointBorderColor: '#0f172a',
           pointBorderWidth: 2,
-          pointRadius: data.map((d) => (d.monthKey === activeMonth ? 6 : 4)),
-          pointHoverRadius: 7,
+          pointRadius: data.map((d) => (d.monthKey === activeMonth ? 5 : 3.5)),
+          pointHoverRadius: 6,
           yAxisID: 'y',
         },
         {
           type: 'bar' as const,
-          label: 'Total Tiket FPB',
+          label: 'Total FPB',
           data: data.map((d) => d.totalFpb),
           backgroundColor: data.map((d) => {
             if (activeMonth === 'ALL') return '#0EA5E980';
-            return d.monthKey === activeMonth ? '#10B981' : '#33415560';
+            return d.monthKey === activeMonth ? '#10B981' : '#33415550';
           }),
           borderColor: data.map((d) => {
             if (activeMonth === 'ALL') return '#0EA5E9';
             return d.monthKey === activeMonth ? '#34D399' : '#475569';
           }),
-          borderWidth: 1.5,
-          borderRadius: 6,
+          borderWidth: 1,
+          borderRadius: 4,
           yAxisID: 'y',
         },
       ],
@@ -90,9 +90,9 @@ export default function MonthlyTrendChart({
           bodyColor: '#38BDF8',
           borderColor: '#334155',
           borderWidth: 1,
-          padding: 10,
-          boxPadding: 6,
-          cornerRadius: 10,
+          padding: 8,
+          boxPadding: 4,
+          cornerRadius: 8,
           callbacks: {
             label: (context: any) => {
               const val = context.raw || 0;
@@ -109,19 +109,19 @@ export default function MonthlyTrendChart({
           ticks: {
             color: '#94A3B8',
             font: {
-              size: 11,
+              size: 10,
               family: 'monospace',
             },
           },
         },
         y: {
           grid: {
-            color: 'rgba(51, 65, 85, 0.4)',
+            color: 'rgba(51, 65, 85, 0.3)',
           },
           ticks: {
             color: '#94A3B8',
             font: {
-              size: 10,
+              size: 9.5,
               family: 'monospace',
             },
           },
@@ -140,31 +140,30 @@ export default function MonthlyTrendChart({
   }, [data, activeMonth, onSelectMonth]);
 
   return (
-    <div className="bg-slate-900/95 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl backdrop-blur-md space-y-3 flex flex-col">
+    <div className="bg-slate-900/80 border border-slate-800/80 rounded-xl p-4 shadow-md backdrop-blur-md flex flex-col justify-between h-full space-y-2.5">
       <div className="flex items-center justify-between pb-2 border-b border-slate-800/80 gap-2">
         <div className="flex items-center gap-2">
-          <div className="size-8 rounded-lg bg-teal-500/10 border border-teal-500/30 text-teal-400 flex items-center justify-center shrink-0">
-            <TrendingUp className="size-4" />
+          <div className="size-7 rounded-lg bg-teal-500/10 border border-teal-500/30 text-teal-400 flex items-center justify-center shrink-0">
+            <TrendingUp className="size-3.5" />
           </div>
           <div>
-            <h4 className="text-xs sm:text-sm font-extrabold text-white uppercase tracking-wider">
+            <h4 className="text-xs font-bold text-white uppercase tracking-wider">
               TREN PERMINTAAN BULANAN
             </h4>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Sinkron dengan total donut chart. Klik batang bulan untuk memfilter.
+            <p className="text-[11px] text-slate-400">
+              Sinkron dengan total donut chart. Klik batang untuk filter.
             </p>
           </div>
         </div>
 
-        <span className="px-2 py-0.5 rounded-md font-mono text-[10px] font-semibold bg-slate-800 text-slate-300 border border-slate-700 shrink-0">
+        <span className="px-2 py-0.5 rounded font-mono text-[10px] font-semibold bg-slate-800 text-slate-300 border border-slate-700 shrink-0">
           Jun – Okt 2026
         </span>
       </div>
 
-      <div className="h-56 w-full mt-auto">
+      <div className="h-44 sm:h-48 w-full mt-auto">
         <Chart type="bar" data={chartData as any} options={chartOptions as any} />
       </div>
     </div>
   );
 }
-
