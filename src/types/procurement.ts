@@ -4,7 +4,7 @@ export type EntityCode = 'ALL' | 'CPL' | 'PPI' | 'HL' | 'GAJ' | 'MIL' | 'SP' | '
 
 export type LapseFilterType = 'ALL' | 'NORMAL' | 'WARNING' | 'CRITICAL';
 
-export type TabType = 'overview' | 'procurement' | 'armada' | 'pos-kapal' | 'crew-kapal' | 'work-order' | 'list-sm' | 'analytics' | 'inventory' | 'timemark' | 'galeri-ttb' | 'admin-settings' | 'sisa-layanan' | 'upload-ttb';
+export type TabType = 'overview' | 'procurement' | 'armada' | 'pos-kapal' | 'crew-kapal' | 'work-order' | 'list-sm' | 'analytics' | 'inventory' | 'timemark' | 'galeri-ttb' | 'admin-settings' | 'sisa-layanan' | 'upload-ttb' | 'serah-terima-lapangan';
 
 export type StatusTone = 'emerald' | 'cyan' | 'purple' | 'amber' | 'rose';
 

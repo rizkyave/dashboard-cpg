@@ -62,6 +62,7 @@ import TtbGalleryTab from '@/components/TtbGalleryTab';
 import AdminSettingsTab from '@/components/AdminSettingsTab';
 import SisaLayananTab from '@/components/SisaLayananTab';
 import UploadTtbTab from '@/components/UploadTtbTab';
+import SerahTerimaLapanganTab from '@/components/SerahTerimaLapanganTab';
 import CrewKapalTab from '@/components/CrewKapalTab';
 import { SisaLayananItem, SisaLayananSummary } from '@/types/sisaLayanan';
 import {
@@ -998,8 +999,10 @@ export default function DashboardPage() {
                   ? 'Cek Stok Persediaan Gudang'
                   : activeTab === 'sisa-layanan'
                   ? 'Laporan Sisa Layanan Permintaan (Gabungan)'
+                  : activeTab === 'serah-terima-lapangan'
+                  ? 'Serah Terima Lapangan & Bukti Kirim TTB'
                   : activeTab === 'upload-ttb'
-                  ? 'Upload Dokumen TTB ke Google Drive'
+                  ? 'Upload Dokumen TTB ke Cloudflare Storage'
                   : activeTab === 'admin-settings'
                   ? 'Pengaturan Administrator & Pengguna'
                   : 'Analisis SLA & Lead Time'}
@@ -1029,8 +1032,10 @@ export default function DashboardPage() {
                   ? 'Pemeriksaan stok barang konsolidasi Accurate (CPL, Hana Lines, Mandar Ocean) & pencocokan kebutuhan pengadaan.'
                   : activeTab === 'sisa-layanan'
                   ? 'Monitoring pemenuhan pengajuan barang (FPB, PO, FSTB, TTB) gabungan seluruh unit armada kapal & divisi PT Cindara Pratama Group.'
+                  : activeTab === 'serah-terima-lapangan'
+                  ? 'Portal Tim Lapangan untuk dokumentasi dan upload bukti foto serah terima barang ke end user berbasis referensi data TTB resmi.'
                   : activeTab === 'upload-ttb'
-                  ? 'Unggah foto fisik & dokumen scan tanda terima barang (TTB) ke Google Drive dengan sistem penamaan otomatis sesuai Nomor TTB resmi.'
+                  ? 'Unggah foto fisik & dokumen scan tanda terima barang (TTB) ke Cloudflare R2 dengan sistem penamaan otomatis sesuai Nomor TTB resmi.'
                   : activeTab === 'admin-settings'
                   ? 'Kelola akun operasional staf purchasing (User) dan akun tamu/peninjau (Visitor). Tambahkan pengguna baru dan konfigurasi wewenang hak akses.'
                   : 'Distribusi waktu perputaran berkas fisik (lead time) dan beban kerja produktivitas staf PIC operasional.'}
@@ -1038,7 +1043,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Tombol Sembunyikan Ringkasan Metrik KPI */}
-            {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && activeTab !== 'crew-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'upload-ttb' && activeTab !== 'admin-settings' && (!isVisitor || searchKeyword.trim() !== '') && (
+            {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && activeTab !== 'crew-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'serah-terima-lapangan' && activeTab !== 'upload-ttb' && activeTab !== 'admin-settings' && (!isVisitor || searchKeyword.trim() !== '') && (
               <button
                 type="button"
                 onClick={toggleKpiHidden}
@@ -1210,7 +1215,18 @@ export default function DashboardPage() {
             />
           )}
 
-          {/* Tab Modul Tambahan: Upload Data TTB (Auto-Rename & Google Drive) */}
+          {/* Tab Modul Tambahan: Serah Terima Lapangan (Tim Lapangan & Bukti Kirim TTB) */}
+          {activeTab === 'serah-terima-lapangan' && (
+            <SerahTerimaLapanganTab
+              procurementItems={procurementData}
+              armadaItems={armadaData}
+              sisaLayananItems={sisaLayananItems}
+              onOpenAudit={handleOpenAudit}
+              showToast={showToast}
+            />
+          )}
+
+          {/* Tab Modul Tambahan: Upload Data TTB (Auto-Rename & Cloudflare Storage) */}
           {activeTab === 'upload-ttb' && (
             <UploadTtbTab
               procurementItems={procurementData}

@@ -28,9 +28,9 @@ const listLocalFiles = async (): Promise<string[]> => {
 };
 
 let r2Cache: { at: number; files: string[] } | null = null;
-const listR2PhotoFiles = async (): Promise<string[]> => {
+const listR2PhotoFiles = async (forceFresh = false): Promise<string[]> => {
   if (!isR2Configured()) return [];
-  if (r2Cache && Date.now() - r2Cache.at < 60_000) return r2Cache.files;
+  if (!forceFresh && r2Cache && Date.now() - r2Cache.at < 15_000) return r2Cache.files;
   try {
     const objects = await listR2Objects('ttb-photos/', 1000);
     const files = objects
@@ -73,8 +73,19 @@ export async function GET(req: NextRequest) {
   const sourceName = isR2Configured() ? 'r2' : 'local';
 
   try {
+    const forceFresh = searchParams.get('fresh') === 'true' || searchParams.get('bust') === 'true';
+    if (forceFresh) {
+      r2Cache = null;
+      cache = null;
+      try {
+        const raw = await fs.readFile(MANIFEST_PATH, 'utf8');
+        manifest = JSON.parse(raw);
+      } catch {
+        // keep manifest
+      }
+    }
     // Kumpulkan daftar nama file: dari manifest, disk lokal, dan Cloudflare R2
-    const [localFiles, r2Files] = await Promise.all([listLocalFiles(), listR2PhotoFiles()]);
+    const [localFiles, r2Files] = await Promise.all([listLocalFiles(), listR2PhotoFiles(forceFresh)]);
     const r2FileSet = new Set<string>(r2Files);
     const manifestKeys = Object.keys(manifest);
     const fileSet = new Set<string>([...manifestKeys, ...localFiles, ...r2Files]);
