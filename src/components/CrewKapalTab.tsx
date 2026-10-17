@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import {
   Users,
   Anchor,
@@ -26,7 +26,9 @@ import {
   Calendar,
   Award,
   Layers,
+  Upload,
 } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import {
   KapalRekapItem,
   CrewMasterItem,
@@ -40,6 +42,7 @@ import {
   saveCrewData,
   resetCrewData,
   exportCrewDataToExcel,
+  parseCrewWorkbook,
   StoredCrewData,
 } from '@/utils/crewKapalStorage';
 
@@ -50,6 +53,9 @@ interface CrewKapalTabProps {
 export default function CrewKapalTab({ showToast }: CrewKapalTabProps) {
   const [data, setData] = useState<StoredCrewData>(() => loadCrewData());
   const [activeSubTab, setActiveSubTab] = useState<'rekap' | 'crew' | 'lowong' | 'cadet' | 'audit'>('rekap');
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
 
   // Search & Filter state
   const [searchQuery, setSearchQuery] = useState('');
@@ -172,6 +178,39 @@ export default function CrewKapalTab({ showToast }: CrewKapalTabProps) {
     }
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    showToast?.('Membaca & memproses berkas Excel Data Crew & Armada...', 'info');
+
+    try {
+      const buffer = await file.arrayBuffer();
+      const workbook = XLSX.read(new Uint8Array(buffer), { type: 'array' });
+      const parsed = parseCrewWorkbook(workbook);
+
+      if (parsed.masterCrew.length === 0 && parsed.kapalRekap.length === 0) {
+        showToast?.('Tidak ditemukan data kru atau armada yang valid pada berkas Excel.', 'error');
+        return;
+      }
+
+      setData(parsed);
+      saveCrewData(parsed);
+
+      showToast?.(
+        `Berhasil memuat ${parsed.masterCrew.length} data kru pada ${parsed.summary.totalArmada} armada kapal!`,
+        'success'
+      );
+    } catch (err: any) {
+      console.error('Error uploading crew excel:', err);
+      showToast?.(`Gagal memproses berkas Excel: ${err.message || 'Format tidak valid'}`, 'error');
+    } finally {
+      setIsUploading(false);
+      e.target.value = '';
+    }
+  };
+
   const handleExportExcel = () => {
     try {
       exportCrewDataToExcel(data);
@@ -207,6 +246,15 @@ export default function CrewKapalTab({ showToast }: CrewKapalTabProps) {
 
   return (
     <div className="space-y-4 pb-12 animate-in fade-in duration-200">
+      {/* Hidden File Input untuk Unggah Excel */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileUpload}
+        accept=".xlsx, .xls, .csv"
+        className="hidden"
+      />
+
       {/* Top Banner & Title */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4 rounded-xl bg-card border border-border shadow-xs">
         <div className="space-y-1">
@@ -230,6 +278,18 @@ export default function CrewKapalTab({ showToast }: CrewKapalTabProps) {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2 flex-wrap">
+          {/* Tombol Unggah Excel (Posisi Kotak Hitam di sebelah kiri Ekspor Excel) */}
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+            className="h-8 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-xs cursor-pointer active:scale-95 disabled:opacity-50"
+            title="Unggah berkas Excel Data Crew & Monitoring Armada Kapal (.xlsx / .xls)"
+          >
+            <Upload className="size-3.5" />
+            <span>{isUploading ? 'Memproses...' : 'Unggah Excel'}</span>
+          </button>
+
           <button
             type="button"
             onClick={handleExportExcel}

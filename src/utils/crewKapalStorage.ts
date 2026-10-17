@@ -185,3 +185,335 @@ export function exportCrewDataToExcel(data: StoredCrewData): void {
   XLSX.writeFile(wb, `DATA_CREW_KAPAL_PT_CPL_${new Date().toISOString().slice(0, 10)}.xlsx`);
 }
 
+function findHeaderRow(rows: any[][], requiredCols: string[]): number {
+  for (let r = 0; r < Math.min(25, rows.length); r++) {
+    const rowStr = (rows[r] || []).map((x) => String(x || '').trim().toUpperCase()).join(' | ');
+    const allFound = requiredCols.every((col) => rowStr.includes(col.toUpperCase()));
+    if (allFound) return r;
+  }
+  return -1;
+}
+
+function formatExcelDate(val: any): string {
+  if (!val) return '';
+  if (typeof val === 'number' && val > 20000 && val < 60000) {
+    const date = new Date(Math.round((val - 25569) * 86400 * 1000));
+    if (!isNaN(date.getTime())) {
+      return date.toISOString().slice(0, 10);
+    }
+  }
+  return String(val).trim();
+}
+
+function formatExcelPhone(val: any): string {
+  if (!val) return '';
+  let str = String(val).trim().replace(/[`\s]/g, '');
+  if (str.startsWith('8') && str.length >= 10 && str.length <= 13) {
+    str = '0' + str;
+  }
+  return str;
+}
+
+/**
+ * Parsing berkas Excel Data Crew & Monitoring Armada Kapal
+ * Mendukung template lengkap 5 sheet maupun sheet Master Crew tunggal.
+ */
+export function parseCrewWorkbook(wb: XLSX.WorkBook): StoredCrewData {
+  let masterCrew: CrewMasterItem[] = [];
+  let kapalRekap: KapalRekapItem[] = [];
+  let posisiLowong: LowongItem[] = [];
+  let cadetMonitoring: CadetMonitoringItem[] = [];
+  let auditLogs: AuditLogItem[] = [];
+
+  // 1. Data Master Crew
+  const crewSheetName = wb.SheetNames.find((s) => /master|crew/i.test(s));
+  if (crewSheetName) {
+    const sheet = wb.Sheets[crewSheetName];
+    const rows = XLSX.utils.sheet_to_json<any[]>(sheet, { header: 1 });
+    const hIdx =
+      findHeaderRow(rows, ['Nama Personel']) !== -1
+        ? findHeaderRow(rows, ['Nama Personel'])
+        : findHeaderRow(rows, ['NIK', 'Jabatan']);
+
+    if (hIdx !== -1) {
+      const json = XLSX.utils.sheet_to_json<Record<string, any>>(sheet, { range: hIdx, defval: '' });
+      masterCrew = json
+        .map((r, i) => {
+          return {
+            id: Number(r['No. ID'] || r['No'] || i + 1),
+            noKapal: String(r['No. Kapal'] || r['No Kapal'] || '').trim(),
+            namaKapal: String(r['Nama Kapal'] || '').trim(),
+            tipeKapal: String(r['Tipe Kapal'] || '').trim(),
+            noKru: Number(r['No. Kru'] || r['No Kru'] || i + 1),
+            nik: String(r['NIK'] || '').trim(),
+            namaPersonel: String(r['Nama Personel'] || r['Nama'] || '').trim(),
+            statusSlot: String(r['Status Slot'] || 'AKTIF').trim(),
+            jabatan: String(r['Jabatan'] || '').trim(),
+            departemen: String(r['Departemen'] || '').trim(),
+            noHp: formatExcelPhone(r['No. Handphone'] || r['No Handphone'] || r['No HP'] || ''),
+            ijazah: String(r['Ijazah / Sertifikat'] || r['Ijazah'] || '').trim(),
+            tahunIjazah: String(r['Tahun Ijazah'] || '-').trim(),
+            tglOnBoard: formatExcelDate(r['Tgl On Board'] || r['Tanggal On Board'] || ''),
+            statusPenugasan: String(r['Status Penugasan'] || '-').trim(),
+            asalKampus: String(r['Asal Kampus / Sekolah (Cadet)'] || r['Asal Kampus'] || '-').trim(),
+            catatanMutasi: String(r['Riwayat / Catatan Mutasi'] || r['Riwayat Mutasi'] || '-').trim(),
+            catatanAudit: String(r['Catatan Audit Data'] || r['Catatan Audit'] || '-').trim(),
+          };
+        })
+        .filter((c) => c.namaKapal && c.namaPersonel);
+    }
+  }
+
+  // 2. Ringkasan Rekap Armada
+  const rekapSheetName = wb.SheetNames.find((s) => /rekap|armada/i.test(s));
+  if (rekapSheetName) {
+    const sheet = wb.Sheets[rekapSheetName];
+    const rows = XLSX.utils.sheet_to_json<any[]>(sheet, { header: 1 });
+    const hIdx =
+      findHeaderRow(rows, ['Nama Kapal', 'Total Kuota']) !== -1
+        ? findHeaderRow(rows, ['Nama Kapal', 'Total Kuota'])
+        : findHeaderRow(rows, ['Nama Kapal', 'Kuota']);
+
+    if (hIdx !== -1) {
+      const json = XLSX.utils.sheet_to_json<Record<string, any>>(sheet, { range: hIdx, defval: '' });
+      kapalRekap = json
+        .map((r, i) => {
+          const totalKuota = Number(r['Total Kuota'] || r['Kuota'] || 0);
+          const kruAktif = Number(r['Kru Aktif'] || 0);
+          const cadet = Number(r['Cadet'] || 0);
+          const posisiLowong = Number(r['Posisi Lowong'] || 0);
+          const terisi = kruAktif + cadet;
+          const ratio = totalKuota > 0 ? (terisi / totalKuota) * 100 : 100;
+          return {
+            no: Number(r['No'] || i + 1),
+            noKapal: String(r['No. Kapal'] || r['No Kapal'] || '').trim(),
+            namaKapal: String(r['Nama Kapal'] || '').trim(),
+            tipeKapal: String(r['Tipe Kapal'] || '').trim(),
+            gt: String(r['GT'] || '').trim(),
+            mesinHp: String(r['Mesin (HP)'] || r['Mesin'] || '').trim(),
+            dayaKwPs: String(r['Daya (KW/PS)'] || r['Daya'] || '').trim(),
+            noTelp: formatExcelPhone(r['No. Telp / Call Kapal'] || r['No. Telp'] || ''),
+            totalKuota,
+            kruAktif,
+            cadet,
+            posisiLowong,
+            persentaseTerisi: String(r['Persentase Terisi'] || Math.round(ratio) + '%'),
+            terisiRatio: ratio,
+          };
+        })
+        .filter((k) => k.namaKapal);
+    }
+  }
+
+  // 3. Posisi Lowong
+  const lowongSheetName = wb.SheetNames.find((s) => /lowong|vacant/i.test(s));
+  if (lowongSheetName) {
+    const sheet = wb.Sheets[lowongSheetName];
+    const rows = XLSX.utils.sheet_to_json<any[]>(sheet, { header: 1 });
+    const hIdx = findHeaderRow(rows, ['Jabatan', 'Kapal']);
+    if (hIdx !== -1) {
+      const json = XLSX.utils.sheet_to_json<Record<string, any>>(sheet, { range: hIdx, defval: '' });
+      posisiLowong = json
+        .map((r, i) => {
+          const rec = String(r['Rekomendasi Tindakan HR'] || r['Rekomendasi'] || '').trim();
+          const jab = String(
+            r['Jabatan yang Dibutuhkan'] || r['Jabatan Dibutuhkan'] || r['Jabatan'] || ''
+          ).trim();
+          const isMandatory = rec.toUpperCase().includes('MANDATORI') || /nakhoda|kkm/i.test(jab);
+          return {
+            no: Number(r['No'] || i + 1),
+            noKapal: String(r['No. Kapal'] || '').trim(),
+            namaKapal: String(r['Nama Kapal'] || '').trim(),
+            tipeKapal: String(r['Tipe Kapal'] || '').trim(),
+            jabatan: jab,
+            departemen: String(r['Departemen'] || '').trim(),
+            kualifikasi: String(
+              r['Kualifikasi Ijazah Standar'] || r['Kualifikasi Standar'] || r['Kualifikasi'] || ''
+            ).trim(),
+            noTelpKapal: formatExcelPhone(r['No. Telp Kapal'] || ''),
+            rekomendasi: rec,
+            isMandatory,
+          };
+        })
+        .filter((l) => l.namaKapal && l.jabatan);
+    }
+  }
+
+  // 4. Monitoring Cadet
+  const cadetSheetName = wb.SheetNames.find((s) => /cadet|taruna|prala/i.test(s));
+  if (cadetSheetName) {
+    const sheet = wb.Sheets[cadetSheetName];
+    const rows = XLSX.utils.sheet_to_json<any[]>(sheet, { header: 1 });
+    const hIdx =
+      findHeaderRow(rows, ['Nama Cadet', 'Nama Kapal']) !== -1
+        ? findHeaderRow(rows, ['Nama Cadet', 'Nama Kapal'])
+        : findHeaderRow(rows, ['Nama Cadet']);
+
+    if (hIdx !== -1) {
+      const json = XLSX.utils.sheet_to_json<Record<string, any>>(sheet, { range: hIdx, defval: '' });
+      cadetMonitoring = json
+        .map((r, i) => {
+          return {
+            no: Number(r['No'] || i + 1),
+            noKapal: String(r['No. Kapal'] || '').trim(),
+            namaKapal: String(r['Nama Kapal'] || '').trim(),
+            namaCadet: String(r['Nama Cadet'] || r['Nama'] || '').trim(),
+            jabatan: String(r['Jabatan'] || 'Cadet').trim(),
+            departemen: String(r['Departemen'] || '').trim(),
+            noHp: formatExcelPhone(r['No. Handphone'] || r['No HP'] || ''),
+            sertifikat: String(r['Sertifikat'] || 'BST').trim(),
+            tglOnBoard: formatExcelDate(r['Tgl On Board'] || ''),
+            asalKampus: String(
+              r['Asal Kampus / Sekolah Pelayaran'] || r['Asal Kampus'] || '-'
+            ).trim(),
+            catatan: String(r['Catatan'] || '-').trim(),
+          };
+        })
+        .filter((c) => c.namaCadet);
+    }
+  }
+
+  // 5. Log Audit Data
+  const auditSheetName = wb.SheetNames.find((s) => /audit|log/i.test(s));
+  if (auditSheetName) {
+    const sheet = wb.Sheets[auditSheetName];
+    const rows = XLSX.utils.sheet_to_json<any[]>(sheet, { header: 1 });
+    const hIdx = findHeaderRow(rows, ['Kategori Masalah', 'Deskripsi']);
+    if (hIdx !== -1) {
+      const json = XLSX.utils.sheet_to_json<Record<string, any>>(sheet, { range: hIdx, defval: '' });
+      auditLogs = json
+        .map((r, i) => {
+          return {
+            no: Number(r['No'] || i + 1),
+            barisSumber: r['Baris Sumber'] || '',
+            kategoriMasalah: String(r['Kategori Masalah'] || '').trim(),
+            deskripsi: String(
+              r['Deskripsi Temuan & Tindakan Perbaikan'] ||
+                r['Deskripsi Temuan'] ||
+                r['Deskripsi'] ||
+                ''
+            ).trim(),
+          };
+        })
+        .filter((a) => a.kategoriMasalah || a.deskripsi);
+    }
+  }
+
+  // Fallback: Jika hanya sheet Master Crew yang diunggah, hitung rekap & lowong otomatis
+  if (kapalRekap.length === 0 && masterCrew.length > 0) {
+    const vesselMap = new Map<string, any>();
+    masterCrew.forEach((c) => {
+      if (!vesselMap.has(c.namaKapal)) {
+        vesselMap.set(c.namaKapal, {
+          namaKapal: c.namaKapal,
+          noKapal: c.noKapal,
+          tipeKapal: c.tipeKapal,
+          totalKuota: 0,
+          kruAktif: 0,
+          cadet: 0,
+          posisiLowong: 0,
+        });
+      }
+      const v = vesselMap.get(c.namaKapal);
+      v.totalKuota++;
+      if (c.statusSlot === 'AKTIF') v.kruAktif++;
+      else if (c.statusSlot === 'CADET (MAGANG)') v.cadet++;
+      else if (c.statusSlot === 'LOWONG (VACANT)') v.posisiLowong++;
+    });
+
+    let vIdx = 1;
+    vesselMap.forEach((v) => {
+      const terisi = v.kruAktif + v.cadet;
+      const ratio = v.totalKuota > 0 ? (terisi / v.totalKuota) * 100 : 100;
+      kapalRekap.push({
+        no: vIdx++,
+        noKapal: v.noKapal,
+        namaKapal: v.namaKapal,
+        tipeKapal: v.tipeKapal,
+        gt: '',
+        mesinHp: '',
+        dayaKwPs: '',
+        noTelp: '',
+        totalKuota: v.totalKuota,
+        kruAktif: v.kruAktif,
+        cadet: v.cadet,
+        posisiLowong: v.posisiLowong,
+        persentaseTerisi: Math.round(ratio) + '%',
+        terisiRatio: ratio,
+      });
+    });
+  }
+
+  if (posisiLowong.length === 0 && masterCrew.length > 0) {
+    masterCrew
+      .filter((c) => c.statusSlot === 'LOWONG (VACANT)')
+      .forEach((c, idx) => {
+        const isMandatory = /nakhoda|kkm/i.test(c.jabatan);
+        posisiLowong.push({
+          no: idx + 1,
+          noKapal: c.noKapal,
+          namaKapal: c.namaKapal,
+          tipeKapal: c.tipeKapal,
+          jabatan: c.jabatan,
+          departemen: c.departemen,
+          kualifikasi: c.ijazah || 'Sesuai Standar Safe Manning',
+          noTelpKapal: '',
+          rekomendasi: isMandatory ? 'MANDATORI: Segera rekrut / mutasi' : 'Prioritas Rekrutmen',
+          isMandatory,
+        });
+      });
+  }
+
+  if (cadetMonitoring.length === 0 && masterCrew.length > 0) {
+    masterCrew
+      .filter((c) => c.statusSlot === 'CADET (MAGANG)')
+      .forEach((c, idx) => {
+        cadetMonitoring.push({
+          no: idx + 1,
+          noKapal: c.noKapal,
+          namaKapal: c.namaKapal,
+          namaCadet: c.namaPersonel,
+          jabatan: c.jabatan,
+          departemen: c.departemen,
+          noHp: c.noHp,
+          sertifikat: c.ijazah || 'BST',
+          tglOnBoard: c.tglOnBoard,
+          asalKampus: c.asalKampus,
+          catatan: c.catatanAudit || '-',
+        });
+      });
+  }
+
+  const totalArmada = kapalRekap.length;
+  const totalKuota = kapalRekap.reduce((acc, k) => acc + k.totalKuota, 0);
+  const kruAktif = masterCrew.filter((c) => c.statusSlot === 'AKTIF').length;
+  const cadet = masterCrew.filter((c) => c.statusSlot === 'CADET (MAGANG)').length;
+  const lowong =
+    masterCrew.filter((c) => c.statusSlot === 'LOWONG (VACANT)').length || posisiLowong.length;
+  const pTerisi = totalKuota > 0 ? ((kruAktif + cadet) / totalKuota * 100).toFixed(1) + '%' : '0%';
+
+  const now = new Date();
+  const lastUpdated = now.toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+
+  return {
+    summary: {
+      totalArmada,
+      totalKuota,
+      kruAktif,
+      cadet,
+      posisiLowong: lowong,
+      persentaseTerisi: pTerisi,
+    },
+    kapalRekap,
+    masterCrew,
+    posisiLowong,
+    cadetMonitoring,
+    auditLogs,
+    lastUpdated,
+  };
+}
+
