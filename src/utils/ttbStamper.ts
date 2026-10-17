@@ -57,11 +57,11 @@ export const TTB_RECIPIENT_COORDINATES = {
   dateXRatio: 0.365,
   dateYRatio: 0.138,
 
-  // Kotak Hitam No WA/Telp Kapal / No. Penerima (Header Kanan TTB di bawah TANDA TERIMA BARANG)
-  phoneBoxXRatio: 0.665,
-  phoneBoxYRatio: 0.785,
-  phoneBoxWidthRatio: 0.245,
-  phoneBoxHeightRatio: 0.050,
+  // Kotak Hitam No WA/Telp Kapal / No. Penerima (Footer Bawah di bawah kolom Received By)
+  phoneBoxXRatio: 0.257,
+  phoneBoxYRatio: 0.010,
+  phoneBoxWidthRatio: 0.243,
+  phoneBoxHeightRatio: 0.075,
 };
 
 /**
@@ -314,16 +314,15 @@ export async function stampTtbRecipientPdf(options: StampTtbRecipientOptions): P
       });
     }
 
-    // 3. Sematkan Kotak Hitam No. WA/Telp Kapal atau No. Penerima (Header Kanan TTB)
+    // 3. Sematkan Kotak Hitam No. WA/Telp Kapal atau No. Penerima (Footer Bawah di bawah kolom Received By)
     if (recipientPhone && recipientPhone.trim()) {
       const cleanPhone = recipientPhone.trim();
-      const isLandscape = pageWidth >= pageHeight;
 
-      // Rasio posisi kotak hitam di header kanan di bawah "(TTB)" dan di kiri "1 of 1"
-      const boxX = (coords.phoneBoxXRatio ?? 0.665) * pageWidth;
-      const boxY = (isLandscape ? (coords.phoneBoxYRatio ?? 0.785) : 0.885) * pageHeight;
-      const boxW = (coords.phoneBoxWidthRatio ?? 0.245) * pageWidth;
-      const boxH = (coords.phoneBoxHeightRatio ?? 0.050) * pageHeight;
+      // Rasio posisi kotak hitam di footer bawah di bawah kolom Received By
+      const boxX = (coords.phoneBoxXRatio ?? 0.257) * pageWidth;
+      const boxY = (coords.phoneBoxYRatio ?? 0.010) * pageHeight;
+      const boxW = (coords.phoneBoxWidthRatio ?? 0.243) * pageWidth;
+      const boxH = (coords.phoneBoxHeightRatio ?? 0.075) * pageHeight;
 
       // Gambar bingkai kotak hitam rapi (border hitam tebal 1.5 pt, latar belakang putih)
       firstPage.drawRectangle({
@@ -337,20 +336,47 @@ export async function stampTtbRecipientPdf(options: StampTtbRecipientOptions): P
       });
 
       const phoneText = `No. Telp/WA: ${cleanPhone}`;
-      const phoneFontSize = Math.max(6.5, Math.min(8.5, pageHeight * 0.021));
+      const phoneFontSize = Math.max(7, Math.min(8.5, pageHeight * 0.021));
       const textWidth = fontBold.widthOfTextAtSize(phoneText, phoneFontSize);
 
-      // Posisi teks persis di tengah kotak hitam (horizontal & vertical center)
-      const textX = boxX + Math.max(4, (boxW - textWidth) / 2);
-      const textY = boxY + (boxH - phoneFontSize) / 2 + 1;
+      if (textWidth <= boxW - 8) {
+        // Muat 1 baris di tengah-tengah kotak
+        const textX = boxX + (boxW - textWidth) / 2;
+        const textY = boxY + (boxH - phoneFontSize) / 2 + 1;
 
-      firstPage.drawText(phoneText, {
-        x: textX,
-        y: textY,
-        size: phoneFontSize,
-        font: fontBold,
-        color: rgb(0, 0, 0),
-      });
+        firstPage.drawText(phoneText, {
+          x: textX,
+          y: textY,
+          size: phoneFontSize,
+          font: fontBold,
+          color: rgb(0, 0, 0),
+        });
+      } else {
+        // Jika nomor panjang, bagi menjadi 2 baris terpusat rapi
+        const labelText = 'No. Telp/WA:';
+        const labelW = fontBold.widthOfTextAtSize(labelText, phoneFontSize);
+        const phoneW = fontBold.widthOfTextAtSize(cleanPhone, phoneFontSize);
+
+        const lineGap = 2;
+        const totalTextH = phoneFontSize * 2 + lineGap;
+        const startY = boxY + (boxH - totalTextH) / 2 + phoneFontSize + lineGap;
+
+        firstPage.drawText(labelText, {
+          x: boxX + (boxW - labelW) / 2,
+          y: startY,
+          size: phoneFontSize,
+          font: fontBold,
+          color: rgb(0, 0, 0),
+        });
+
+        firstPage.drawText(cleanPhone, {
+          x: boxX + (boxW - phoneW) / 2,
+          y: startY - phoneFontSize - lineGap,
+          size: phoneFontSize,
+          font: fontBold,
+          color: rgb(0, 0, 0),
+        });
+      }
     }
   } catch (textErr) {
     console.warn('Gagal menulis teks penerima ke PDF:', textErr);
