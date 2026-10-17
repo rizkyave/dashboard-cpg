@@ -41,6 +41,7 @@ export type AccessLevel =
   | 'Upload & Kelola'
   | 'Input & Upload'
   | 'View & Verifikasi'
+  | 'Validasi & TTD'
   | 'Update Status'
   | 'Read-only'
   | 'Dilarang';
@@ -126,6 +127,18 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
       staf_ttb: { allowed: true, level: 'Upload & Kelola', badgeTone: 'emerald', notes: 'Full access upload berkas ke cloud' },
       staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
+      visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
+    },
+  },
+  {
+    tabId: 'validasi-dokumen',
+    category: 'Dashboards',
+    name: 'Validasi FSTB & TTB',
+    description: 'Validasi tanda tangan digital multi-lini (Purchasing, Logistik, Lapangan) untuk berkas FSTB dan TTB sebelum dikirimkan ke armada',
+    permissions: {
+      admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
+      staf_ttb: { allowed: true, level: 'Validasi & TTD', badgeTone: 'emerald', notes: 'Validasi lini Logistik/Gudang' },
+      staf_lapangan: { allowed: true, level: 'Validasi & TTD', badgeTone: 'emerald', notes: 'Validasi lini Tim Lapangan/QC' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
     },
   },

@@ -63,6 +63,7 @@ import AdminSettingsTab from '@/components/AdminSettingsTab';
 import SisaLayananTab from '@/components/SisaLayananTab';
 import UploadFstbTab from '@/components/UploadFstbTab';
 import UploadTtbTab from '@/components/UploadTtbTab';
+import ValidasiDokumenTab from '@/components/ValidasiDokumenTab';
 import SerahTerimaLapanganTab from '@/components/SerahTerimaLapanganTab';
 import CrewKapalTab from '@/components/CrewKapalTab';
 import { SisaLayananItem, SisaLayananSummary } from '@/types/sisaLayanan';
@@ -1018,6 +1019,8 @@ export default function DashboardPage() {
                   ? 'Upload Dokumen FSTB ke Cloudflare Storage'
                   : activeTab === 'upload-ttb'
                   ? 'Upload Dokumen TTB ke Cloudflare Storage'
+                  : activeTab === 'validasi-dokumen'
+                  ? 'Validasi & Tanda Tangan Digital Multi-Lini FSTB & TTB'
                   : activeTab === 'admin-settings'
                   ? 'Pengaturan Administrator & Pengguna'
                   : 'Analisis SLA & Lead Time'}
@@ -1053,6 +1056,8 @@ export default function DashboardPage() {
                   ? 'Unggah berkas Form Serah Terima Barang (FSTB) resmi ke Cloudflare R2 dengan sistem penamaan otomatis sesuai Nomor FSTB.'
                   : activeTab === 'upload-ttb'
                   ? 'Unggah foto fisik & dokumen scan tanda terima barang (TTB) ke Cloudflare R2 dengan sistem penamaan otomatis sesuai Nomor TTB resmi.'
+                  : activeTab === 'validasi-dokumen'
+                  ? 'Sistem verifikasi dan pembubuhan tanda tangan digital dari 3 lini (Purchasing, Logistik, Tim Lapangan) untuk berkas FSTB dan TTB sebelum diserahkan ke armada.'
                   : activeTab === 'admin-settings'
                   ? 'Kelola akun operasional staf purchasing (User) dan akun tamu/peninjau (Visitor). Tambahkan pengguna baru dan konfigurasi wewenang hak akses.'
                   : 'Distribusi waktu perputaran berkas fisik (lead time) dan beban kerja produktivitas staf PIC operasional.'}
@@ -1060,7 +1065,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Tombol Sembunyikan Ringkasan Metrik KPI */}
-            {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && activeTab !== 'crew-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'serah-terima-lapangan' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'admin-settings' && (!isVisitor || searchKeyword.trim() !== '') && (
+            {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && activeTab !== 'crew-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'serah-terima-lapangan' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'validasi-dokumen' && activeTab !== 'admin-settings' && (!isVisitor || searchKeyword.trim() !== '') && (
               <button
                 type="button"
                 onClick={toggleKpiHidden}
@@ -1078,7 +1083,7 @@ export default function DashboardPage() {
           </div>
 
           {/* 4 Pillar Executive Metric Cards (procurement tabs only) */}
-          {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'admin-settings' && !isKpiHidden && (!isVisitor || searchKeyword.trim() !== '') && (
+          {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'validasi-dokumen' && activeTab !== 'admin-settings' && !isKpiHidden && (!isVisitor || searchKeyword.trim() !== '') && (
             <div className="animate-in fade-in-50 duration-200">
               <KpiCards
                 procurementList={filteredProcurement}
@@ -1261,6 +1266,11 @@ export default function DashboardPage() {
               sisaLayananItems={sisaLayananItems}
               showToast={showToast}
             />
+          )}
+
+          {/* Tab Modul Tambahan: Validasi Dokumen FSTB & TTB Multi-Lini */}
+          {activeTab === 'validasi-dokumen' && (
+            <ValidasiDokumenTab showToast={showToast} />
           )}
 
           {/* Tab 6: Admin Settings - Manajemen Pengguna & Visitor */}

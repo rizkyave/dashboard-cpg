@@ -31,6 +31,7 @@ import {
   Users,
   Truck,
   PackageCheck,
+  FileSignature,
 } from 'lucide-react';
 
 import * as XLSX from 'xlsx';
@@ -140,6 +141,13 @@ export default function Sidebar({
       icon: UploadCloud,
       badge: 'R2',
       title: 'Upload Dokumen TTB ke Cloudflare R2 dengan Format Otomatis Sesuai No. TTB',
+    },
+    {
+      id: 'validasi-dokumen' as TabType,
+      label: 'Validasi FSTB & TTB',
+      icon: FileSignature,
+      badge: 'Multi-Lini',
+      title: 'Validasi Tanda Tangan Digital Multi-Lini (Purchasing, Logistik, Lapangan) Dokumen FSTB & TTB',
     },
     {
       id: 'serah-terima-lapangan' as TabType,
