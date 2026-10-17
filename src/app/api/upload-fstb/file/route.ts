@@ -73,3 +73,4 @@ export async function GET(req: NextRequest) {
     return new NextResponse('Berkas FSTB tidak ditemukan di server.', { status: 404 });
   }
 }
+

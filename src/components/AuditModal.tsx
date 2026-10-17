@@ -2644,16 +2644,6 @@ export default function AuditModal({
                     {isJasaOnly ? 'Menunggu BAST' : 'Menunggu TTB'}
                   </span>
                 )}
-                {!isVisitor && (
-                  <button
-                    type="button"
-                    onClick={() => setShowOperationalModal(true)}
-                    className="flex items-center justify-center gap-1.5 text-[10.5px] font-medium text-purple-700 dark:text-purple-300 hover:text-purple-900 dark:hover:text-purple-100 bg-purple-500/10 hover:bg-purple-500/20 px-2 py-1 rounded border border-purple-500/30 transition w-full mt-1.5 cursor-pointer"
-                  >
-                    <PackageCheck className="size-3 shrink-0" />
-                    <span>{operationalOverride ? 'Ubah BAST / TTB' : '+ Input BAST / TTB'}</span>
-                  </button>
-                )}
               </div>
             </div>
 
@@ -2802,16 +2792,6 @@ export default function AuditModal({
                     <Clock className="size-3 text-amber-600 dark:text-amber-400" />
                     Pending Lapangan
                   </span>
-                )}
-                {!isVisitor && (
-                  <button
-                    type="button"
-                    onClick={() => setShowOperationalModal(true)}
-                    className="flex items-center justify-center gap-1.5 text-[10.5px] font-medium text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100 bg-amber-500/10 hover:bg-amber-500/20 px-2 py-1 rounded border border-amber-500/30 transition w-full mt-1.5 cursor-pointer"
-                  >
-                    <HardHat className="size-3 shrink-0" />
-                    <span>{operationalOverride ? 'Ubah Hasil Lapangan' : (isJasaOnly ? '+ Input Teknisi' : '+ Input Hasil Lapangan')}</span>
-                  </button>
                 )}
               </div>
             </div>

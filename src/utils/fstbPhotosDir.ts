@@ -13,3 +13,4 @@ export const getFstbPhotosDir = () => {
   }
   return path.join(process.cwd(), 'src', 'app', 'public', 'photos_FSTB');
 };
+

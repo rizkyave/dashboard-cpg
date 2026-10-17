@@ -44,3 +44,4 @@ export interface UploadFstbResponse {
   uploadedFiles: UploadedFstbItem[];
   error?: string;
 }
+
