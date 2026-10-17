@@ -286,3 +286,34 @@ export async function deleteFromR2(key: string): Promise<boolean> {
   }
 }
 
+/**
+ * Mengambil metadata objek dari Cloudflare R2
+ */
+export async function getHeadObjectFromR2(key: string): Promise<{
+  metadata: Record<string, string>;
+  contentType?: string;
+  contentLength?: number;
+  lastModified?: Date;
+} | null> {
+  try {
+    const config = getR2Config();
+    const client = getR2Client();
+    const cleanKey = key.replace(/^\/+/, '');
+
+    const command = new HeadObjectCommand({
+      Bucket: config.bucketName,
+      Key: cleanKey,
+    });
+
+    const res = await client.send(command);
+    return {
+      metadata: res.Metadata || {},
+      contentType: res.ContentType,
+      contentLength: res.ContentLength,
+      lastModified: res.LastModified,
+    };
+  } catch {
+    return null;
+  }
+}
+

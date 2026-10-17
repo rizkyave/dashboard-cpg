@@ -4,7 +4,15 @@ import path from 'path';
 import { sanitizeTtbNumber, formatTtbFilename } from '@/utils/ttbRename';
 import { getPhotosDir } from '@/utils/ttbPhotosDir';
 import { UploadedTtbItem, UploadTtbResponse } from '@/types/ttbUpload';
-import { uploadToR2, isR2Configured, getR2FileUrl, getR2Config } from '@/utils/r2Client';
+import {
+  uploadToR2,
+  isR2Configured,
+  getR2FileUrl,
+  getR2Config,
+  getObjectFromR2,
+  listR2Objects,
+  getHeadObjectFromR2,
+} from '@/utils/r2Client';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -12,6 +20,7 @@ export const dynamic = 'force-dynamic';
 const ALLOWED_EXT = /\.(jpe?g|png|webp|gif|pdf)$/i;
 const HISTORY_FILE_PATH = path.join(process.cwd(), 'src', 'data', 'ttb-uploads-history.json');
 const MANIFEST_PATH = path.join(process.cwd(), 'src', 'data', 'ttb-photos-manifest.json');
+const R2_METADATA_HISTORY_KEY = 'ttb-metadata/history.json';
 
 // Helper penentuan MIME Type
 function getMimeType(fileName: string, fallbackType?: string): string {
@@ -32,8 +41,25 @@ function getMimeType(fileName: string, fallbackType?: string): string {
   }
 }
 
-// Baca riwayat upload dari disk
+// Baca riwayat upload dari Cloudflare R2 (dengan fallback ke disk lokal)
 async function getHistory(): Promise<UploadedTtbItem[]> {
+  // 1. Ambil dari Cloudflare R2 terlebih dahulu jika dikonfigurasi
+  if (isR2Configured()) {
+    try {
+      const r2Obj = await getObjectFromR2(R2_METADATA_HISTORY_KEY);
+      if (r2Obj && r2Obj.body) {
+        const text = Buffer.from(r2Obj.body).toString('utf8');
+        const parsed = JSON.parse(text);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (err) {
+      console.warn('Gagal membaca history dari Cloudflare R2:', err);
+    }
+  }
+
+  // 2. Fallback disk lokal
   try {
     const raw = await fs.readFile(HISTORY_FILE_PATH, 'utf8');
     return JSON.parse(raw);
@@ -42,25 +68,96 @@ async function getHistory(): Promise<UploadedTtbItem[]> {
   }
 }
 
-// Simpan riwayat upload ke disk
+// Simpan riwayat upload ke Cloudflare R2 dan disk lokal
 async function saveHistory(records: UploadedTtbItem[]) {
+  const jsonStr = JSON.stringify(records, null, 2);
+
+  // 1. Simpan ke Cloudflare R2 agar persisten di serverless Vercel & Cloudflare Pages
+  if (isR2Configured()) {
+    try {
+      await uploadToR2({
+        key: R2_METADATA_HISTORY_KEY,
+        body: Buffer.from(jsonStr, 'utf8'),
+        contentType: 'application/json',
+      });
+    } catch (err) {
+      console.warn('Gagal menyimpan history ke Cloudflare R2:', err);
+    }
+  }
+
+  // 2. Simpan salinan ke disk lokal
   try {
     await fs.mkdir(path.dirname(HISTORY_FILE_PATH), { recursive: true });
-    await fs.writeFile(HISTORY_FILE_PATH, JSON.stringify(records, null, 2), 'utf8');
-  } catch (err) {
-    console.warn('Gagal menyimpan file riwayat upload:', err);
+    await fs.writeFile(HISTORY_FILE_PATH, jsonStr, 'utf8');
+  } catch {
+    // Non-fatal di serverless
   }
 }
 
-// GET: Ambil riwayat berkas TTB yang pernah diunggah ke Cloudflare R2
+// GET: Ambil riwayat berkas TTB yang ada di Cloudflare R2
 export async function GET() {
   try {
     const isR2Active = isR2Configured();
     const config = getR2Config();
-    const localHistory = await getHistory();
+    let history = await getHistory();
 
-    // Pastikan URL file ter-resolve ke Cloudflare R2
-    const formattedHistory = localHistory.map((item) => {
+    // Jika R2 aktif, scan berkas fisik di ttb-documents/ untuk menjamin dokumen R2 selalu muncul
+    if (isR2Active) {
+      try {
+        const docs = await listR2Objects('ttb-documents/', 1000);
+        const existingKeys = new Set(
+          history.map((h) => h.r2Key || `ttb-documents/${h.renamedFileName}`)
+        );
+        let hasNewDocs = false;
+
+        for (const doc of docs) {
+          if (!existingKeys.has(doc.key)) {
+            const head = await getHeadObjectFromR2(doc.key);
+            const fileName = doc.name;
+            const meta = head?.metadata || {};
+            const cleanTtb =
+              meta.cleannottb ||
+              meta.nottb ||
+              sanitizeTtbNumber(fileName.replace(/\.pdf$/i, ''));
+
+            history.push({
+              id: `r2-${cleanTtb}-${doc.size}`,
+              noTtb: meta.nottb || cleanTtb,
+              cleanNoTtb: cleanTtb,
+              armada: meta.armada || '-',
+              receivedDate: doc.lastModified
+                ? doc.lastModified.toISOString().slice(0, 10)
+                : new Date().toISOString().slice(0, 10),
+              keterangan: meta.keterangan || '',
+              originalFileName: meta.originalname || fileName,
+              renamedFileName: fileName,
+              fileSize: doc.size,
+              fileType: 'application/pdf',
+              fileUrl: getR2FileUrl(doc.key),
+              r2Key: doc.key,
+              storageProvider: 'CLOUDFLARE_R2',
+              uploadedAt: doc.lastModified
+                ? doc.lastModified.toISOString()
+                : new Date().toISOString(),
+              status: 'STORED_IN_CLOUDFLARE_R2',
+            });
+            hasNewDocs = true;
+          }
+        }
+
+        if (hasNewDocs) {
+          history.sort(
+            (a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
+          );
+          await saveHistory(history);
+        }
+      } catch (scanErr) {
+        console.warn('Gagal scan berkas R2 secara live:', scanErr);
+      }
+    }
+
+    // Pastikan URL file selalu merujuk ke endpoint yang valid
+    const formattedHistory = history.map((item) => {
       if (item.r2Key && isR2Active) {
         return {
           ...item,
@@ -70,7 +167,7 @@ export async function GET() {
       return item;
     });
 
-    const sorted = [...formattedHistory].sort(
+    formattedHistory.sort(
       (a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
     );
 
@@ -79,7 +176,7 @@ export async function GET() {
       storageProvider: isR2Active ? 'CLOUDFLARE_R2' : 'LOCAL',
       bucketName: config.bucketName,
       isR2StorageActive: isR2Active,
-      items: sorted,
+      items: formattedHistory,
     });
   } catch (err) {
     return NextResponse.json(
