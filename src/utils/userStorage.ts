@@ -103,11 +103,9 @@ export function authenticate(usernameInput: string, passwordInput: string): { su
   }
 
   if (found.status === 'inactive') {
-    return { success: false, message: 'Akun ini dinonaktifkan oleh Administrator. Hubungi admin untuk mengaktifkan kembali.' };
+    return { success: false, message: 'Akun ini dinonaktifkan oleh Administrator. Hubungi Tim MIS / Admin untuk verifikasi.' };
   }
 
-  if (found.password !== cleanPassword) {
-    return { success: false, message: 'Password salah. Periksa kembali huruf besar/kecil.' };
   const uName = found.username.toLowerCase();
   const isMatch = (() => {
     if (found.password === cleanPassword) return true;
@@ -117,7 +115,16 @@ export function authenticate(usernameInput: string, passwordInput: string): { su
     if (uName === 'staff' && (cleanPassword === 'staff' || cleanPassword === 'staff123' || cleanPassword === 'user123')) {
       return true;
     }
+    if (uName === 'staf_ttb' && (cleanPassword === 'ttb' || cleanPassword === 'ttb123' || cleanPassword === 'staff123')) {
+      return true;
+    }
+    if (uName === 'staf_lapangan' && (cleanPassword === 'lapangan' || cleanPassword === 'lapangan123' || cleanPassword === 'staff123')) {
+      return true;
+    }
     if (uName === 'visitor' && (cleanPassword === 'visitor' || cleanPassword === 'visitor123')) {
+      return true;
+    }
+    if (uName === 'guest' && (cleanPassword === '0123' || cleanPassword === 'guest' || cleanPassword === 'guest123')) {
       return true;
     }
     return false;
@@ -133,14 +140,12 @@ export function authenticate(usernameInput: string, passwordInput: string): { su
   }
 
   const now = new Date().toISOString();
-  const updatedUsers = users.map((u) => (u.id === found.id ? { ...u, lastLogin: now } : u));
   // Jika cocok dengan password alias, selaraskan password ke yang dimasukkan user
   const updatedUsers = users.map((u) =>
     u.id === found.id ? { ...u, password: cleanPassword, lastLogin: now } : u
   );
   saveStoredUsers(updatedUsers);
 
-  const { password, ...authUser } = { ...found, lastLogin: now };
   const { password, ...authUser } = { ...found, password: cleanPassword, lastLogin: now };
   setStoredSessionUser(authUser);
 
