@@ -28,10 +28,13 @@ import {
   AlertTriangle,
   ChevronDown,
   Info,
+  Camera,
+  FileText,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { SisaLayananItem, SisaLayananSummary } from '@/types/sisaLayanan';
 import { parseSisaLayananWorkbook, calculateSisaLayananSummary } from '@/utils/sisaLayananParser';
+import TtbMediaModal from './TtbMediaModal';
 
 interface SisaLayananTabProps {
   items: SisaLayananItem[];
@@ -73,6 +76,15 @@ export default function SisaLayananTab({
   const [selectedItem, setSelectedItem] = useState<SisaLayananItem | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState<boolean>(false);
+  const [mediaModalData, setMediaModalData] = useState<{
+    noTtb?: string;
+    noFstb?: string;
+    fpb?: string;
+    po?: string;
+    item?: string;
+    armada?: string;
+    entity?: string;
+  } | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -888,13 +900,47 @@ export default function SisaLayananTab({
                       <td className="py-2.5 px-3">
                         <div className="font-mono text-[10px] text-foreground">
                           {item.noTtb ? (
-                            <span className="text-emerald-700 dark:text-emerald-400 font-medium">
-                              TTB: {item.noTtb}
-                            </span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setMediaModalData({
+                                  noTtb: item.noTtb,
+                                  noFstb: item.noFstb,
+                                  fpb: item.noFpb,
+                                  po: item.noPo,
+                                  item: item.namaBarang,
+                                  armada: item.departement,
+                                  entity: item.pt,
+                                });
+                              }}
+                              className="inline-flex items-center gap-1 text-[10px] text-cyan-700 dark:text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20 px-1.5 py-0.5 rounded border border-cyan-500/30 font-semibold transition active:scale-95 cursor-pointer shadow-xs"
+                              title={`Lihat Dokumen Scan PDF & Galeri Foto TTB (${item.noTtb})`}
+                            >
+                              <FileText className="size-2.5 text-cyan-500 shrink-0" />
+                              <Camera className="size-2.5 text-purple-500 shrink-0" />
+                              <span>TTB: {item.noTtb}</span>
+                            </button>
                           ) : item.noFstb ? (
-                            <span className="text-sky-700 dark:text-sky-400">
-                              FSTB: {item.noFstb}
-                            </span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setMediaModalData({
+                                  noFstb: item.noFstb,
+                                  fpb: item.noFpb,
+                                  po: item.noPo,
+                                  item: item.namaBarang,
+                                  armada: item.departement,
+                                  entity: item.pt,
+                                });
+                              }}
+                              className="inline-flex items-center gap-1 text-[10px] text-amber-700 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 px-1.5 py-0.5 rounded border border-amber-500/25 transition active:scale-95 cursor-pointer"
+                              title={`Cek Foto TimeMark & Berkas (${item.noFstb})`}
+                            >
+                              <Camera className="size-2.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                              <span>FSTB: {item.noFstb}</span>
+                            </button>
                           ) : (
                             <span className="text-muted-foreground/60 italic">-</span>
                           )}
@@ -1142,26 +1188,68 @@ export default function SisaLayananTab({
                     </span>
                   </div>
 
-                  {/* Step 3: FSTB */}
-                  <div className="p-2.5 rounded-lg border border-border bg-background">
-                    <span className="text-[10px] text-muted-foreground block">3. FSTB (Kirim)</span>
-                    <span className="font-mono font-semibold text-foreground text-xs block truncate mt-0.5">
-                      {selectedItem.noFstb || '-'}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground block mt-1">
-                      {selectedItem.tglFstb || 'Tanpa Tgl'}
-                    </span>
-                  </div>
+                    {/* Step 3: FSTB */}
+                    <div className="p-2.5 rounded-lg border border-border bg-background">
+                      <span className="text-[10px] text-muted-foreground block">3. FSTB (Kirim)</span>
+                      <span className="font-mono font-semibold text-foreground text-xs block truncate mt-0.5">
+                        {selectedItem.noFstb || '-'}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground block mt-1">
+                        {selectedItem.tglFstb || 'Tanpa Tgl'}
+                      </span>
+                      {selectedItem.noFstb && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMediaModalData({
+                              noFstb: selectedItem.noFstb,
+                              noTtb: selectedItem.noTtb,
+                              fpb: selectedItem.noFpb,
+                              po: selectedItem.noPo,
+                              item: selectedItem.namaBarang,
+                              armada: selectedItem.departement,
+                              entity: selectedItem.pt,
+                            });
+                          }}
+                          className="mt-1.5 w-full h-6 px-1.5 rounded text-[10px] font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 hover:bg-amber-500/25 transition cursor-pointer flex items-center justify-center gap-1"
+                        >
+                          <Camera className="size-2.5" />
+                          <span>TimeMark</span>
+                        </button>
+                      )}
+                    </div>
 
-                  {/* Step 4: TTB */}
-                  <div className="p-2.5 rounded-lg border border-border bg-background">
-                    <span className="text-[10px] text-muted-foreground block">4. TTB (Terima)</span>
-                    <span className="font-mono font-semibold text-foreground text-xs block truncate mt-0.5">
-                      {selectedItem.noTtb || '-'}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground block mt-1">
-                      {selectedItem.tglTtb || 'Tanpa Tgl'}
-                    </span>
+                    {/* Step 4: TTB */}
+                    <div className="p-2.5 rounded-lg border border-border bg-background">
+                      <span className="text-[10px] text-muted-foreground block">4. TTB (Terima)</span>
+                      <span className="font-mono font-semibold text-foreground text-xs block truncate mt-0.5">
+                        {selectedItem.noTtb || '-'}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground block mt-1">
+                        {selectedItem.tglTtb || 'Tanpa Tgl'}
+                      </span>
+                      {selectedItem.noTtb && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMediaModalData({
+                              noTtb: selectedItem.noTtb,
+                              noFstb: selectedItem.noFstb,
+                              fpb: selectedItem.noFpb,
+                              po: selectedItem.noPo,
+                              item: selectedItem.namaBarang,
+                              armada: selectedItem.departement,
+                              entity: selectedItem.pt,
+                            });
+                          }}
+                          className="mt-1.5 w-full h-6 px-1.5 rounded text-[10px] font-semibold bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/25 transition cursor-pointer flex items-center justify-center gap-1"
+                        >
+                          <FileText className="size-2.5" />
+                          <Camera className="size-2.5" />
+                          <span>Berkas & Foto</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1286,7 +1374,22 @@ export default function SisaLayananTab({
               </div>
             </div>
           </div>
-        </div>
+      )}
+
+      {/* Modal Terpadu Dokumen Scan TTB (PDF) & Galeri Foto Lapangan */}
+      {mediaModalData && (
+        <TtbMediaModal
+          isOpen={true}
+          onClose={() => setMediaModalData(null)}
+          noTtb={mediaModalData.noTtb}
+          noFstb={mediaModalData.noFstb}
+          fpb={mediaModalData.fpb}
+          po={mediaModalData.po}
+          item={mediaModalData.item}
+          armada={mediaModalData.armada}
+          entity={mediaModalData.entity}
+          showToast={showToast}
+        />
       )}
     </div>
   );

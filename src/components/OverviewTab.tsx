@@ -43,6 +43,7 @@ import { formatFpbTooltip } from '@/utils/itemResolver';
 import { SisaLayananItem } from '@/types/sisaLayanan';
 import { buildSisaLayananFpbMap, findSisaMatch } from '@/utils/sisaLayananParser';
 import { loadStoredSisaLayanan } from '@/utils/sisaLayananStorage';
+import TtbMediaModal from './TtbMediaModal';
 
 const formatPicAktif = (pic?: string) => {
   if (!pic) return '-';
@@ -122,10 +123,45 @@ export default function OverviewTab({
     return buildSisaLayananFpbMap(activeSisaItems);
   }, [activeSisaItems]);
 
-  const handleOpenTimemark = (e: React.MouseEvent, fstb?: string) => {
+  const [selectedTtbMedia, setSelectedTtbMedia] = useState<{
+    noTtb?: string;
+    noFstb?: string;
+    fpb?: string;
+    po?: string;
+    item?: string;
+    armada?: string;
+    entity?: string;
+    statusBadge?: string;
+    picPch?: string;
+    picTtb?: string;
+    picLap?: string;
+    picAdm?: string;
+  } | null>(null);
+
+  const handleOpenTtbMedia = (row: ProcurementItem, specificTtb?: string, specificFstb?: string) => {
+    setSelectedTtbMedia({
+      noTtb: specificTtb || row.noTtb,
+      noFstb: specificFstb || row.noFstb,
+      fpb: row.fpb,
+      po: row.po,
+      item: row.item,
+      armada: row.deptArmada && row.deptArmada !== '-' ? row.deptArmada : (row.entity ? `Armada ${row.entity}` : undefined),
+      entity: row.entity,
+      statusBadge: row.statusBadge,
+      picPch: row.picPch,
+      picTtb: row.picTtb,
+      picLap: row.picLap,
+      picAdm: row.picAdm,
+    });
+  };
+
+  const handleOpenTimemark = (e: React.MouseEvent, fstb?: string, row?: ProcurementItem) => {
     e.stopPropagation();
-    if (!fstb) return;
-    openTimemarkWithFstb(fstb, showToast);
+    if (row) {
+      handleOpenTtbMedia(row, undefined, fstb);
+    } else if (fstb) {
+      openTimemarkWithFstb(fstb, showToast);
+    }
   };
 
   const [searchTerm, setSearchTerm] = useState(searchKeyword);
@@ -301,7 +337,29 @@ export default function OverviewTab({
           row.picLap?.toLowerCase().includes(q) ||
           row.picAktif?.toLowerCase().includes(q);
         const statusMatch = row.statusBadge?.toLowerCase().includes(q);
-        if (!fpbMatch && !woMatch && !poMatch && !itemMatch && !sisaItemMatch && !peruntukanMatch && !armadaMatch && !entityMatch && !picMatch && !statusMatch) {
+        const ttbMatch =
+          row.noTtb?.toLowerCase().includes(q) ||
+          sisaMatch?.primaryTtb?.toLowerCase().includes(q) ||
+          sisaMatch?.allTtbs?.some((t) => t.toLowerCase().includes(q));
+        const fstbMatch =
+          row.noFstb?.toLowerCase().includes(q) ||
+          sisaMatch?.primaryFstb?.toLowerCase().includes(q) ||
+          sisaMatch?.allFstbs?.some((f) => f.toLowerCase().includes(q));
+
+        if (
+          !fpbMatch &&
+          !woMatch &&
+          !poMatch &&
+          !itemMatch &&
+          !sisaItemMatch &&
+          !peruntukanMatch &&
+          !armadaMatch &&
+          !entityMatch &&
+          !picMatch &&
+          !statusMatch &&
+          !ttbMatch &&
+          !fstbMatch
+        ) {
           return false;
         }
       }
@@ -917,6 +975,41 @@ export default function OverviewTab({
                             Qty: {row.qtyFPB} {row.satuan && row.satuan.toLowerCase() !== 'paket' ? row.satuan : ''}
                           </span>
                         )}
+
+                        {/* Tombol TTB (PDF & Foto) dan FSTB (TimeMark) */}
+                        {(row.noTtb || sisaMatch?.primaryTtb || row.noFstb) && (
+                          <div className="flex items-center gap-1.5 flex-wrap pt-1 border-t border-border/40">
+                            {(row.noTtb || sisaMatch?.primaryTtb) && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenTtbMedia(row, row.noTtb || sisaMatch?.primaryTtb);
+                                }}
+                                className="inline-flex items-center gap-1 text-[10px] font-semibold text-cyan-700 dark:text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20 px-2 py-0.5 rounded border border-cyan-500/30 transition active:scale-95 shadow-xs cursor-pointer"
+                                title={`Lihat Dokumen Scan PDF & Galeri Foto TTB (${row.noTtb || sisaMatch?.primaryTtb})`}
+                              >
+                                <FileText className="size-3 text-cyan-500 shrink-0" />
+                                <Camera className="size-3 text-purple-500 shrink-0" />
+                                <span className="truncate max-w-[150px]">TTB: {row.noTtb || sisaMatch?.primaryTtb}</span>
+                              </button>
+                            )}
+                            {row.noFstb && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenTtbMedia(row, row.noTtb || sisaMatch?.primaryTtb, row.noFstb);
+                                }}
+                                className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-700 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 px-1.5 py-0.5 rounded border border-amber-500/20 transition active:scale-95 cursor-pointer"
+                                title={`Cek Foto TimeMark & Berkas (${extractFstbLast5(row.noFstb)})`}
+                              >
+                                <Camera className="size-2.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                                <span>FSTB: {extractFstbLast5(row.noFstb)}</span>
+                              </button>
+                            )}
+                          </div>
+                        )}
                       </div>
 
                       {/* Card Footer: Status, Workflow, PIC & Audit Button */}
@@ -1344,19 +1437,38 @@ export default function OverviewTab({
                           <div className="text-[11px] text-muted-foreground leading-tight">
                             {formatStatusPenjelasan(row.statusPenjelasan)}
                           </div>
-                          {row.noFstb && (
-                            <div className="pt-0.5">
+                          {/* Tombol TTB (PDF & Foto) dan FSTB (TimeMark) */}
+                          <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                            {(row.noTtb || sisaMatch?.primaryTtb) && (
                               <button
                                 type="button"
-                                onClick={(e) => handleOpenTimemark(e, row.noFstb)}
-                                className="inline-flex items-center gap-1 text-[10px] text-amber-700 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 px-1.5 py-0.5 rounded border border-amber-500/20 font-medium transition active:scale-95"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenTtbMedia(row, row.noTtb || sisaMatch?.primaryTtb);
+                                }}
+                                className="inline-flex items-center gap-1 text-[10px] text-cyan-700 dark:text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20 px-2 py-0.5 rounded border border-cyan-500/30 font-semibold transition active:scale-95 shadow-xs cursor-pointer"
+                                title={`Lihat Dokumen Scan PDF & Galeri Foto TTB (${row.noTtb || sisaMatch?.primaryTtb})`}
+                              >
+                                <FileText className="size-2.5 text-cyan-500 shrink-0" />
+                                <Camera className="size-2.5 text-purple-500 shrink-0" />
+                                <span className="truncate max-w-[140px]">TTB: {row.noTtb || sisaMatch?.primaryTtb}</span>
+                              </button>
+                            )}
+                            {row.noFstb && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenTtbMedia(row, row.noTtb || sisaMatch?.primaryTtb, row.noFstb);
+                                }}
+                                className="inline-flex items-center gap-1 text-[10px] text-amber-700 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 px-1.5 py-0.5 rounded border border-amber-500/20 font-medium transition active:scale-95 cursor-pointer"
                                 title={`Cek Foto TimeMark (${extractFstbLast5(row.noFstb)})`}
                               >
-                                <Camera className="size-2.5 text-amber-600 dark:text-amber-400" />
+                                <Camera className="size-2.5 text-amber-600 dark:text-amber-400 shrink-0" />
                                 <span>FSTB: {extractFstbLast5(row.noFstb)}</span>
                               </button>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
                       </td>
 
@@ -1465,6 +1577,27 @@ export default function OverviewTab({
           </div>
         )}
       </div>
+
+      {/* Modal Terpadu Dokumen Scan TTB (PDF) & Galeri Foto Lapangan */}
+      {selectedTtbMedia && (
+        <TtbMediaModal
+          isOpen={true}
+          onClose={() => setSelectedTtbMedia(null)}
+          noTtb={selectedTtbMedia.noTtb}
+          noFstb={selectedTtbMedia.noFstb}
+          fpb={selectedTtbMedia.fpb}
+          po={selectedTtbMedia.po}
+          item={selectedTtbMedia.item}
+          armada={selectedTtbMedia.armada}
+          entity={selectedTtbMedia.entity}
+          statusBadge={selectedTtbMedia.statusBadge}
+          picPch={selectedTtbMedia.picPch}
+          picTtb={selectedTtbMedia.picTtb}
+          picLap={selectedTtbMedia.picLap}
+          picAdm={selectedTtbMedia.picAdm}
+          showToast={showToast}
+        />
+      )}
     </div>
   );
 }

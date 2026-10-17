@@ -94,8 +94,8 @@ async function saveHistory(records: UploadedTtbItem[]) {
   }
 }
 
-// GET: Ambil riwayat berkas TTB yang ada di Cloudflare R2
-export async function GET() {
+// GET: Ambil riwayat berkas TTB yang ada di Cloudflare R2 (mendukung filter ?ttb=...)
+export async function GET(req: NextRequest) {
   try {
     const isR2Active = isR2Configured();
     const config = getR2Config();
@@ -171,12 +171,42 @@ export async function GET() {
       (a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
     );
 
+    // Filter opsional berdasarkan ?ttb=...
+    const ttbQuery = (req.nextUrl.searchParams.get('ttb') || '').trim();
+    let finalItems = formattedHistory;
+    if (ttbQuery) {
+      const q = ttbQuery.toLowerCase();
+      const digitsOnly = q.replace(/\D/g, '');
+      const padded5 = digitsOnly && digitsOnly.length <= 5 ? digitsOnly.padStart(5, '0') : '';
+
+      finalItems = formattedHistory.filter((item) => {
+        const itemRaw = (item.noTtb || '').toLowerCase();
+        const itemClean = (item.cleanNoTtb || '').toLowerCase();
+        const fileName = (item.renamedFileName || item.originalFileName || '').toLowerCase();
+
+        // Exact / substring match
+        if (itemRaw.includes(q) || itemClean.includes(q) || fileName.includes(q)) return true;
+
+        // Numeric match
+        if (digitsOnly && digitsOnly.length >= 3) {
+          const itemDigits = itemClean.replace(/\D/g, '');
+          const fileDigits = fileName.replace(/\D/g, '');
+          if (itemDigits.includes(digitsOnly) || fileDigits.includes(digitsOnly)) return true;
+          if (padded5 && (itemDigits.includes(padded5) || fileDigits.includes(padded5))) return true;
+        }
+
+        return false;
+      });
+    }
+
     return NextResponse.json({
       success: true,
       storageProvider: isR2Active ? 'CLOUDFLARE_R2' : 'LOCAL',
       bucketName: config.bucketName,
       isR2StorageActive: isR2Active,
-      items: formattedHistory,
+      items: finalItems,
+      total: finalItems.length,
+      allTotal: formattedHistory.length,
     });
   } catch (err) {
     return NextResponse.json(

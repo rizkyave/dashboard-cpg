@@ -1804,18 +1804,19 @@ export default function AuditModal({
               <span className="truncate">{auditRisk.tag}</span>
             </div>
 
-            {/* Tombol: Cek Foto TimeMark (FSTB / TTB) - Dapat diakses oleh semua pengguna termasuk Visitor */}
+            {/* Tombol: Cek Dokumen PDF & Foto TimeMark/R2 TTB - Dapat diakses oleh semua pengguna termasuk Visitor */}
             {(activeFstb || parsedTtbList.length > 0 || activeTtb) && (
               <button
                 onClick={() => {
                   setSelectedTtbForPhoto(parsedTtbList[0] || activeTtb);
                   setShowTimemarkModal(true);
                 }}
-                className="h-8 px-2.5 sm:px-3 rounded-lg border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-xs font-semibold shadow-xs flex items-center gap-1.5 transition active:scale-95 touch-manipulation cursor-pointer"
-                title={`Verifikasi foto serah terima fisik TimeMark / Server TTB (${fstbLast5 || activeTtb || '-'})`}
+                className="h-8 px-2.5 sm:px-3 rounded-lg border border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 text-xs font-semibold shadow-xs flex items-center gap-1.5 transition active:scale-95 touch-manipulation cursor-pointer"
+                title={`Verifikasi Dokumen PDF & Foto Serah Terima Fisik TTB (${selectedTtbForPhoto || parsedTtbList[0] || activeTtb || fstbLast5 || '-'})`}
               >
-                <Camera className="size-3.5 text-amber-600 dark:text-amber-400" />
-                <span>Foto {fstbLast5 ? `TimeMark (${fstbLast5})` : 'TTB'}</span>
+                <FileText className="size-3.5 text-cyan-600 dark:text-cyan-400" />
+                <Camera className="size-3.5 text-purple-600 dark:text-purple-400" />
+                <span>Dokumen & Foto TTB</span>
               </button>
             )}
 
@@ -3730,7 +3731,7 @@ export default function AuditModal({
         />
       )}
 
-      {/* Pop-up Box: Verifikasi Bukti Foto TimeMark & Foto Server TTB (Dapat diakses juga oleh Visitor) */}
+      {/* Pop-up Box: Verifikasi Bukti Dokumen PDF & Foto Server TTB (Dapat diakses juga oleh Visitor) */}
       {showTimemarkModal && (activeFstb || parsedTtbList.length > 0 || activeTtb) && (
         <TimemarkModal
           isOpen={showTimemarkModal}
@@ -3741,8 +3742,15 @@ export default function AuditModal({
           noFstb={activeFstb}
           noTtb={selectedTtbForPhoto || parsedTtbList[0] || activeTtb}
           fpb={primaryDocNum}
+          po={docPo || activePo || itemS1?.po}
           armada={itemsS2[0]?.armada || itemS1?.deptArmada}
           item={itemsS2[0]?.item || itemS1?.item}
+          entity={itemS1?.entity}
+          statusBadge={itemS1?.statusBadge || itemsS2[0]?.status}
+          picPch={itemS1?.picPch}
+          picTtb={itemS1?.picTtb}
+          picLap={itemS1?.picLap}
+          picAdm={itemS1?.picAdm}
           showToast={showToast}
         />
       )}

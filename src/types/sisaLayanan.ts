@@ -64,6 +64,10 @@ export interface SisaGoodsSummary {
   totalQtyFstb: number;
   totalQtyTtb: number;
   primarySatuan: string;
+  primaryTtb?: string;
+  allTtbs?: string[];
+  primaryFstb?: string;
+  allFstbs?: string[];
 }
 
 

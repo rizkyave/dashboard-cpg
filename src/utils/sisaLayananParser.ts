@@ -289,6 +289,21 @@ export function buildSisaLayananFpbMap(items: SisaLayananItem[]): Map<string, Si
     const totalQtyFstb = itemsInFpb.reduce((sum, r) => sum + (r.jmlFstb || 0), 0);
     const totalQtyTtb = itemsInFpb.reduce((sum, r) => sum + (r.jmlTtb || 0), 0);
 
+    const ttbList = Array.from(
+      new Set(
+        itemsInFpb
+          .map((r) => (r.noTtb || '').trim())
+          .filter((t) => t && t !== '-' && t.toLowerCase() !== 'null' && t.toLowerCase() !== 'undefined')
+      )
+    );
+    const fstbList = Array.from(
+      new Set(
+        itemsInFpb
+          .map((r) => (r.noFstb || '').trim())
+          .filter((f) => f && f !== '-' && f.toLowerCase() !== 'null' && f.toLowerCase() !== 'undefined')
+      )
+    );
+
     const tooltipLines = [
       `Data Barang Sisa Layanan (${totalItemsCount} Item):`,
       ...allItems.map(
@@ -313,6 +328,10 @@ export function buildSisaLayananFpbMap(items: SisaLayananItem[]): Map<string, Si
       totalQtyFstb,
       totalQtyTtb,
       primarySatuan: firstSatuan,
+      primaryTtb: ttbList[0] || '',
+      allTtbs: ttbList,
+      primaryFstb: fstbList[0] || '',
+      allFstbs: fstbList,
     };
 
     const rawSample = itemsInFpb[0].noFpb || normPrimary;
