@@ -27,6 +27,22 @@ const listLocalFiles = async (): Promise<string[]> => {
   }
 };
 
+let r2Cache: { at: number; files: string[] } | null = null;
+const listR2PhotoFiles = async (): Promise<string[]> => {
+  if (!isR2Configured()) return [];
+  if (r2Cache && Date.now() - r2Cache.at < 60_000) return r2Cache.files;
+  try {
+    const objects = await listR2Objects('ttb-photos/', 1000);
+    const files = objects
+      .map((o) => o.key.replace(/^ttb-photos\//, ''))
+      .filter((name) => IMAGE_EXT.test(name));
+    r2Cache = { at: Date.now(), files };
+    return files;
+  } catch {
+    return [];
+  }
+};
+
 /**
  * Menentukan URL foto terbaik (Cloudflare R2, Proxy Stream, atau Disk Lokal)
  */
@@ -52,10 +68,10 @@ export async function GET(req: NextRequest) {
   const sourceName = isR2Configured() ? 'r2' : 'local';
 
   try {
-    // Kumpulkan daftar nama file: dari manifest dan disk lokal
-    const localFiles = await listLocalFiles();
+    // Kumpulkan daftar nama file: dari manifest, disk lokal, dan Cloudflare R2
+    const [localFiles, r2Files] = await Promise.all([listLocalFiles(), listR2PhotoFiles()]);
     const manifestKeys = Object.keys(manifest);
-    const fileSet = new Set<string>([...manifestKeys, ...localFiles]);
+    const fileSet = new Set<string>([...manifestKeys, ...localFiles, ...r2Files]);
     const files = Array.from(fileSet);
 
     // Mode 1: Pencarian spesifik nomor TTB (untuk popup/modal)
