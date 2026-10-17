@@ -504,8 +504,18 @@ export default function TtbMediaModal({
                         <p className="font-semibold text-foreground truncate" title={selectedDoc?.renamedFileName}>
                           {selectedDoc?.renamedFileName}
                         </p>
-                        <p className="text-[10px] text-muted-foreground">
-                          Ukuran: {formatFileSize(selectedDoc?.fileSize || 0)} • Tgl: {selectedDoc?.receivedDate || '-'}
+                        <p className="text-[10px] text-muted-foreground flex items-center gap-1.5 flex-wrap">
+                          <span>Ukuran: {formatFileSize(selectedDoc?.fileSize || 0)}</span>
+                          <span>&bull;</span>
+                          <span>Tgl: {selectedDoc?.receivedDate || '-'}</span>
+                          {selectedDoc?.uploaderName && (
+                            <>
+                              <span>&bull;</span>
+                              <span className="text-foreground/80 font-medium">
+                                Uploader: {selectedDoc.uploaderName} {selectedDoc.uploaderNik ? `(${selectedDoc.uploaderNik})` : ''}
+                              </span>
+                            </>
+                          )}
                         </p>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">

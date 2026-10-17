@@ -254,6 +254,11 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
     const armada = ((formData.get('armada') as string) || '').trim();
     const receivedDate = ((formData.get('receivedDate') as string) || '').trim();
     const keterangan = ((formData.get('keterangan') as string) || '').trim();
+    const uploaderName = ((formData.get('uploaderName') as string) || '').trim();
+    const uploaderUsername = ((formData.get('uploaderUsername') as string) || '').trim();
+    const uploaderRole = ((formData.get('uploaderRole') as string) || '').trim();
+    const uploaderNik = ((formData.get('uploaderNik') as string) || '').trim();
+    const uploaderJabatan = ((formData.get('uploaderJabatan') as string) || '').trim();
 
     if (!noTtbRaw) {
       return NextResponse.json(
@@ -361,6 +366,9 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
               cleanNoTtb,
               armada: armada || '-',
               originalName: f.name,
+              uploaderName: uploaderName || '',
+              uploaderNik: uploaderNik || '',
+              uploaderJabatan: uploaderJabatan || '',
             },
           });
           publicUrl = r2Res.url;
@@ -400,6 +408,11 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
         storageProvider,
         uploadedAt: new Date().toISOString(),
         status: 'STORED_IN_CLOUDFLARE_R2',
+        uploaderName: uploaderName || undefined,
+        uploaderUsername: uploaderUsername || undefined,
+        uploaderRole: uploaderRole || undefined,
+        uploaderNik: uploaderNik || undefined,
+        uploaderJabatan: uploaderJabatan || undefined,
       };
 
       newlyUploadedItems.push(record);

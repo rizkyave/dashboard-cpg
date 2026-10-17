@@ -15,6 +15,12 @@ export interface UploadedTtbItem {
   storageProvider?: 'CLOUDFLARE_R2' | 'LOCAL';
   uploadedAt: string;
   status: 'STORED_IN_CLOUDFLARE_R2' | 'UPLOADED_TO_SYSTEM';
+  // Identitas Pengunggah (Uploader)
+  uploaderName?: string;
+  uploaderUsername?: string;
+  uploaderRole?: string;
+  uploaderNik?: string;
+  uploaderJabatan?: string;
   // Legacy fields untuk kompatibilitas data riwayat lama
   driveFolderUrl?: string;
   driveFileId?: string;

@@ -26,7 +26,9 @@ import {
   FileCheck,
   Sparkles,
   Trash2,
+  User,
 } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
 import { SisaLayananItem } from '@/types/sisaLayanan';
 import { UploadedTtbItem, UploadTtbResponse } from '@/types/ttbUpload';
@@ -125,6 +127,8 @@ export default function UploadTtbTab({
   sisaLayananItems = [],
   showToast,
 }: UploadTtbTabProps) {
+  const { user } = useAuth();
+
   // Form State
   const [noTtbInput, setNoTtbInput] = useState<string>('');
   const [armadaInput, setArmadaInput] = useState<string>('');
@@ -537,6 +541,11 @@ export default function UploadTtbTab({
           formData.append('receivedDate', receivedDate);
           formData.append('keterangan', keteranganInput.trim());
           formData.append('files', qf.file);
+          if (user?.name) formData.append('uploaderName', user.name);
+          if (user?.username) formData.append('uploaderUsername', user.username);
+          if (user?.role) formData.append('uploaderRole', user.role);
+          if (user?.nik) formData.append('uploaderNik', user.nik);
+          if (user?.jabatan) formData.append('uploaderJabatan', user.jabatan);
 
           const res = await fetch('/api/upload-ttb', {
             method: 'POST',
@@ -618,6 +627,11 @@ export default function UploadTtbTab({
       formData.append('armada', armadaInput.trim());
       formData.append('receivedDate', receivedDate);
       formData.append('keterangan', keteranganInput.trim());
+      if (user?.name) formData.append('uploaderName', user.name);
+      if (user?.username) formData.append('uploaderUsername', user.username);
+      if (user?.role) formData.append('uploaderRole', user.role);
+      if (user?.nik) formData.append('uploaderNik', user.nik);
+      if (user?.jabatan) formData.append('uploaderJabatan', user.jabatan);
 
       queuedFiles.forEach((qf) => {
         formData.append('files', qf.file);
@@ -681,7 +695,11 @@ export default function UploadTtbTab({
         item.armada.toLowerCase().includes(q) ||
         item.renamedFileName.toLowerCase().includes(q) ||
         item.originalFileName.toLowerCase().includes(q) ||
-        (item.keterangan && item.keterangan.toLowerCase().includes(q))
+        (item.keterangan && item.keterangan.toLowerCase().includes(q)) ||
+        (item.uploaderName && item.uploaderName.toLowerCase().includes(q)) ||
+        (item.uploaderUsername && item.uploaderUsername.toLowerCase().includes(q)) ||
+        (item.uploaderNik && item.uploaderNik.toLowerCase().includes(q)) ||
+        (item.uploaderJabatan && item.uploaderJabatan.toLowerCase().includes(q))
       );
     });
   }, [historyItems, historySearch]);
@@ -1660,13 +1678,14 @@ export default function UploadTtbTab({
                 <th className="py-2.5 px-3">Ukuran</th>
                 <th className="py-2.5 px-3">Penyimpanan</th>
                 <th className="py-2.5 px-3">Waktu Upload</th>
+                <th className="py-2.5 px-3">Pengunggah (Uploader)</th>
                 <th className="py-2.5 px-3 text-right">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
               {filteredHistory.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-8 text-center text-muted-foreground">
+                  <td colSpan={9} className="py-8 text-center text-muted-foreground">
                     {isLoadingHistory ? (
                       <div className="flex items-center justify-center gap-2">
                         <RefreshCw className="size-4 animate-spin text-teal-600" />
@@ -1727,6 +1746,49 @@ export default function UploadTtbTab({
                         hour: '2-digit',
                         minute: '2-digit',
                       })}
+                    </td>
+                    <td className="py-2.5 px-3">
+                      <div className="flex items-center gap-2.5 max-w-[240px]">
+                        <div
+                          className={`size-7 rounded-full flex items-center justify-center font-bold text-[10px] text-white shrink-0 shadow-xs ${
+                            item.uploaderRole === 'admin'
+                              ? 'bg-linear-to-tr from-purple-600 to-indigo-600'
+                              : item.uploaderRole === 'staf_lapangan'
+                              ? 'bg-linear-to-tr from-amber-600 to-emerald-600'
+                              : 'bg-linear-to-tr from-blue-600 to-cyan-600'
+                          }`}
+                        >
+                          {(item.uploaderName || item.uploaderUsername || 'D')[0]?.toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 truncate">
+                            <span
+                              className="font-semibold text-foreground text-xs truncate"
+                              title={item.uploaderName || 'DAVILA ZALIANTI PUTRI'}
+                            >
+                              {item.uploaderName || 'DAVILA ZALIANTI PUTRI'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1 text-[10px] text-muted-foreground truncate">
+                            {item.uploaderNik ? (
+                              <span className="px-1 py-0.2 rounded font-mono font-medium bg-muted text-foreground/80 border border-border">
+                                {item.uploaderNik}
+                              </span>
+                            ) : (
+                              <span className="font-mono text-muted-foreground">
+                                @{item.uploaderUsername || 'davila.zalianti'}
+                              </span>
+                            )}
+                            <span className="text-muted-foreground/40">&bull;</span>
+                            <span
+                              className="truncate text-muted-foreground"
+                              title={item.uploaderJabatan || 'Admin Logistik'}
+                            >
+                              {item.uploaderJabatan || 'Admin Logistik'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
                     </td>
                     <td className="py-2.5 px-3 text-right">
                       <div className="inline-flex items-center gap-1.5">

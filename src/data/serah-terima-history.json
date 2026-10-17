@@ -1,5 +1,55 @@
 [
   {
+    "id": "str-1792254110475-j5t01",
+    "noTtb": "CPL-TTB-26-07357",
+    "cleanNoTtb": "CPL-TTB-26-07357",
+    "armada": "MT BLUE PETROL",
+    "noFpb": "CPL-FPB-26-0004811",
+    "noPo": "CPL-PO-26-05615",
+    "itemSummary": "- (1 )",
+    "petugas": "NOOR HASANAH (Tim Lapangan)",
+    "penerima": "Andri Ardian Akbar (Nakhoda)",
+    "kontakPenerima": "081225579179",
+    "tanggalSerahTerima": "2026-10-18 00:21",
+    "kondisi": "LENGKAP_BAIK",
+    "photos": [
+      {
+        "name": "MT BLUE PETROL CPL-TTB-26-07357 2026-10-18 at 00.21.50.jpg",
+        "originalName": "CPL-TTB-26-07033.jpg",
+        "url": "/api/r2-file?key=ttb-photos%2FMT%20BLUE%20PETROL%20CPL-TTB-26-07357%202026-10-18%20at%2000.21.50.jpg",
+        "r2Key": "ttb-photos/MT BLUE PETROL CPL-TTB-26-07357 2026-10-18 at 00.21.50.jpg",
+        "size": 570979
+      }
+    ],
+    "storageProvider": "CLOUDFLARE_R2",
+    "createdAt": "2026-10-17T16:21:50.475Z"
+  },
+  {
+    "id": "str-1792250472408-ig9fn",
+    "noTtb": "CPL-TTB-26-04633",
+    "cleanNoTtb": "CPL-TTB-26-04633",
+    "armada": "MT DOMINO",
+    "noFpb": "CPL-FPB-26-0002707",
+    "noPo": "CPL-PO-26-03635",
+    "itemSummary": "- (1 )",
+    "petugas": "AGUS",
+    "penerima": "Fajrin (Nakhoda)",
+    "kontakPenerima": "0811546809",
+    "tanggalSerahTerima": "2026-10-17 23:20",
+    "kondisi": "LENGKAP_BAIK",
+    "photos": [
+      {
+        "name": "MT DOMINO CPL-TTB-26-04633 2026-10-17 at 15.21.11.jpg",
+        "originalName": "8544bc3f-54c7-49d4-aee6-4f26c8534c1c.jpg",
+        "url": "/api/r2-file?key=ttb-photos%2FMT%20DOMINO%20CPL-TTB-26-04633%202026-10-17%20at%2015.21.11.jpg",
+        "r2Key": "ttb-photos/MT DOMINO CPL-TTB-26-04633 2026-10-17 at 15.21.11.jpg",
+        "size": 228353
+      }
+    ],
+    "storageProvider": "CLOUDFLARE_R2",
+    "createdAt": "2026-10-17T15:21:12.408Z"
+  },
+  {
     "id": "str-1792241414883-tkdny",
     "noTtb": "HL-TTB-26-02247",
     "cleanNoTtb": "HL-TTB-26-02247",
