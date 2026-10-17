@@ -176,6 +176,12 @@ export default function UploadFstbTab({
   );
   const [batchKeterangan, setBatchKeterangan] = useState<string>('');
 
+  // Hitung jumlah nomor FSTB unik di antrean
+  const distinctFstbCount = useMemo(() => {
+    const set = new Set(queue.map((q) => sanitizeFstbNumber(q.noFstb || batchNoFstb)).filter(Boolean));
+    return set.size;
+  }, [queue, batchNoFstb]);
+
   // Fitur Auto-Stamp Tanda Tangan Digital Uploader
   const [enableAutoStamp, setEnableAutoStamp] = useState<boolean>(true);
   const [uploaderName, setUploaderName] = useState<string>('');
@@ -653,15 +659,19 @@ export default function UploadFstbTab({
               <FolderUp className="size-7" />
             </div>
             <div>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold font-mono border border-emerald-500/30 mb-2">
+                <Sparkles className="size-3" />
+                <span>Mendukung Multi-FSTB &amp; Multi-Upload</span>
+              </div>
               <p className="text-sm font-bold text-foreground">
                 Tarik &amp; Letakkan berkas FSTB di sini, atau{' '}
-                <span className="text-primary underline underline-offset-2">Pilih Berkas</span>
+                <span className="text-primary underline underline-offset-2">Pilih Banyak Berkas Sekaligus</span>
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                Mendukung berkas <strong>PDF</strong> (Formulir FSTB Resmi) serta gambar <strong>JPG, PNG, WEBP</strong>.
+                Bisa mengunggah <strong>banyak nomor FSTB berbeda sekaligus</strong> (Batch Multi-FSTB) maupun berkas lampiran multi-halaman/foto.
               </p>
               <p className="text-[11px] text-muted-foreground/80 font-mono mt-0.5">
-                Format otomatis: <strong>CPL-FSTB-26-05241.pdf</strong> (terdeteksi otomatis dari nama berkas)
+                Format otomatis: <strong>CPL-FSTB-26-05241.pdf</strong> (nomor FSTB, armada, &amp; PO terdeteksi otomatis per berkas)
               </p>
             </div>
           </div>
@@ -888,7 +898,13 @@ export default function UploadFstbTab({
                 ) : (
                   <>
                     <UploadCloud className="size-4" />
-                    <span>Unggah {queue.length > 0 ? `${queue.length} Berkas FSTB` : 'ke Cloudflare R2'}</span>
+                    <span>
+                      {queue.length > 0
+                        ? distinctFstbCount > 1
+                          ? `Unggah ${queue.length} Berkas (${distinctFstbCount} No. FSTB)`
+                          : `Unggah ${queue.length} Berkas FSTB`
+                        : 'ke Cloudflare R2'}
+                    </span>
                   </>
                 )}
               </button>
