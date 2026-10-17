@@ -4,6 +4,7 @@ import path from 'path';
 import { sanitizeTtbNumber, formatTtbFilename } from '@/utils/ttbRename';
 import { getPhotosDir } from '@/utils/ttbPhotosDir';
 import { UploadedTtbItem, UploadTtbResponse } from '@/types/ttbUpload';
+import { stampTtbPdf, formatTtbStampDate } from '@/utils/ttbStamper';
 import {
   uploadToR2,
   isR2Configured,
@@ -259,6 +260,10 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
     const uploaderRole = ((formData.get('uploaderRole') as string) || '').trim();
     const uploaderNik = ((formData.get('uploaderNik') as string) || '').trim();
     const uploaderJabatan = ((formData.get('uploaderJabatan') as string) || '').trim();
+    const autoStampRaw = formData.get('autoStamp');
+    const autoStamp = autoStampRaw === null ? true : autoStampRaw === 'true' || autoStampRaw === '1';
+    const signatureDataUrl = ((formData.get('signatureDataUrl') as string) || '').trim();
+    const stampDate = ((formData.get('stampDate') as string) || '').trim() || formatTtbStampDate(receivedDate);
 
     if (!noTtbRaw) {
       return NextResponse.json(
@@ -344,9 +349,26 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
     for (let i = 0; i < files.length; i++) {
       const f = files[i];
       const renamedFileName = formatTtbFilename(cleanNoTtb, f.name, i, files.length);
-      const buffer = Buffer.from(await f.arrayBuffer());
+      let buffer: Buffer = Buffer.from(await f.arrayBuffer());
       const isPdf = renamedFileName.toLowerCase().endsWith('.pdf');
       const mimeType = getMimeType(renamedFileName, f.type);
+      let isFileStamped = false;
+
+      // Auto-Stamp tanda tangan digital & identitas pada berkas PDF
+      if (isPdf && autoStamp && (uploaderName || signatureDataUrl)) {
+        try {
+          const stampedBuffer = await stampTtbPdf({
+            pdfBuffer: buffer,
+            signatureDataUrl: signatureDataUrl || undefined,
+            uploaderName,
+            uploadDate: stampDate,
+          });
+          buffer = stampedBuffer;
+          isFileStamped = true;
+        } catch (stampErr) {
+          console.warn('Auto-stamp PDF gagal, menggunakan berkas asli:', stampErr);
+        }
+      }
 
       // Tentukan lokasi prefix folder di Cloudflare R2
       const r2Key = isPdf ? `ttb-documents/${renamedFileName}` : `ttb-photos/${renamedFileName}`;
@@ -369,6 +391,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
               uploaderName: uploaderName || '',
               uploaderNik: uploaderNik || '',
               uploaderJabatan: uploaderJabatan || '',
+              isAutoStamped: isFileStamped ? 'true' : 'false',
             },
           });
           publicUrl = r2Res.url;
@@ -400,7 +423,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
         keterangan: keterangan || '',
         originalFileName: f.name,
         renamedFileName,
-        fileSize: f.size,
+        fileSize: buffer.length,
         fileType: mimeType,
         fileUrl: publicUrl,
         r2Key: isR2Active ? r2Key : undefined,
@@ -413,6 +436,8 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
         uploaderRole: uploaderRole || undefined,
         uploaderNik: uploaderNik || undefined,
         uploaderJabatan: uploaderJabatan || undefined,
+        isAutoStamped: isFileStamped || undefined,
+        stampedAt: isFileStamped ? new Date().toISOString() : undefined,
       };
 
       newlyUploadedItems.push(record);

@@ -27,12 +27,19 @@ import {
   Sparkles,
   Trash2,
   User,
+  FileSignature,
+  PenTool,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
 import { SisaLayananItem } from '@/types/sisaLayanan';
 import { UploadedTtbItem, UploadTtbResponse } from '@/types/ttbUpload';
 import { sanitizeTtbNumber, formatTtbFilename, formatFileSize } from '@/utils/ttbRename';
+import {
+  convertSvgToPngDataUrl,
+  formatTtbStampDate,
+  stampTtbImageFile,
+} from '@/utils/ttbStamper';
 
 interface UploadTtbTabProps {
   procurementItems?: ProcurementItem[];
@@ -153,6 +160,18 @@ export default function UploadTtbTab({
   const [uploadSuccessResult, setUploadSuccessResult] = useState<UploadTtbResponse | null>(null);
   const [uploadErrorMessage, setUploadErrorMessage] = useState<string | null>(null);
   const [copiedFilename, setCopiedFilename] = useState<string | null>(null);
+
+  // Auto-Stamp State (Tanda Tangan Digital & Identitas Uploader Otomatis)
+  const [isAutoStampEnabled, setIsAutoStampEnabled] = useState<boolean>(true);
+  const [userSignaturePng, setUserSignaturePng] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user?.signature?.signatureDataUrl) {
+      convertSvgToPngDataUrl(user.signature.signatureDataUrl).then(setUserSignaturePng);
+    } else {
+      setUserSignaturePng(null);
+    }
+  }, [user?.signature?.signatureDataUrl]);
 
   // Cloudflare R2 Storage Connection Test State
   const [isTestingStorage, setIsTestingStorage] = useState<boolean>(false);
@@ -540,12 +559,33 @@ export default function UploadTtbTab({
           formData.append('armada', targetArmada);
           formData.append('receivedDate', receivedDate);
           formData.append('keterangan', keteranganInput.trim());
-          formData.append('files', qf.file);
+
+          let fileToUpload = qf.file;
+          if (isAutoStampEnabled && qf.isImage) {
+            try {
+              fileToUpload = await stampTtbImageFile({
+                imageFile: qf.file,
+                signaturePngDataUrl: userSignaturePng || undefined,
+                uploaderName: user?.name || 'DAVILA ZALIANTI PUTRI',
+                uploadDate: formatTtbStampDate(receivedDate),
+              });
+            } catch (err) {
+              console.warn('Gagal stempel gambar client, upload berkas asli:', err);
+            }
+          }
+          formData.append('files', fileToUpload);
+
           if (user?.name) formData.append('uploaderName', user.name);
           if (user?.username) formData.append('uploaderUsername', user.username);
           if (user?.role) formData.append('uploaderRole', user.role);
           if (user?.nik) formData.append('uploaderNik', user.nik);
           if (user?.jabatan) formData.append('uploaderJabatan', user.jabatan);
+
+          formData.append('autoStamp', isAutoStampEnabled ? 'true' : 'false');
+          if (isAutoStampEnabled) {
+            if (userSignaturePng) formData.append('signatureDataUrl', userSignaturePng);
+            formData.append('stampDate', formatTtbStampDate(receivedDate));
+          }
 
           const res = await fetch('/api/upload-ttb', {
             method: 'POST',
@@ -633,9 +673,28 @@ export default function UploadTtbTab({
       if (user?.nik) formData.append('uploaderNik', user.nik);
       if (user?.jabatan) formData.append('uploaderJabatan', user.jabatan);
 
-      queuedFiles.forEach((qf) => {
-        formData.append('files', qf.file);
-      });
+      formData.append('autoStamp', isAutoStampEnabled ? 'true' : 'false');
+      if (isAutoStampEnabled) {
+        if (userSignaturePng) formData.append('signatureDataUrl', userSignaturePng);
+        formData.append('stampDate', formatTtbStampDate(receivedDate));
+      }
+
+      for (const qf of queuedFiles) {
+        let fileToUpload = qf.file;
+        if (isAutoStampEnabled && qf.isImage) {
+          try {
+            fileToUpload = await stampTtbImageFile({
+              imageFile: qf.file,
+              signaturePngDataUrl: userSignaturePng || undefined,
+              uploaderName: user?.name || 'DAVILA ZALIANTI PUTRI',
+              uploadDate: formatTtbStampDate(receivedDate),
+            });
+          } catch (err) {
+            console.warn('Gagal stempel gambar single mode:', err);
+          }
+        }
+        formData.append('files', fileToUpload);
+      }
 
       const res = await fetch('/api/upload-ttb', {
         method: 'POST',
@@ -970,6 +1029,116 @@ export default function UploadTtbTab({
 
       {/* 4. Form Upload Berkas (Mendukung Multi-TTB Batch & Single TTB) */}
       <form onSubmit={handleSubmitUpload} className="space-y-6">
+        {/* Card Auto-Stamp Tanda Tangan & Identitas Uploader */}
+        <div className="bg-card border border-border rounded-2xl p-4 md:p-5 shadow-xs relative overflow-hidden transition-all">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start sm:items-center gap-3">
+              <div
+                className={`size-11 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                  isAutoStampEnabled
+                    ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20'
+                    : 'bg-muted text-muted-foreground border border-border'
+                }`}
+              >
+                <FileSignature className="size-5" />
+              </div>
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="text-sm font-bold text-foreground">
+                    Auto-Stamp Tanda Tangan Digital &amp; Tanggal Dokumen
+                  </h3>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                    <Check className="size-2.5" />
+                    <span>Format SOP CPL-PRC-SOP-004-F02</span>
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Otomatis mengisi tanda tangan Anda di kolom <em>&quot;Delivered By : Logistic Staff&quot;</em>, nama di <em>&quot;Name :&quot;</em>, dan tanggal di <em>&quot;Date :&quot;</em> saat berkas diunggah.
+                </p>
+              </div>
+            </div>
+
+            {/* Toggle Switch */}
+            <div className="flex items-center gap-3 self-end sm:self-center shrink-0">
+              <span className={`text-xs font-semibold ${isAutoStampEnabled ? 'text-teal-600 dark:text-teal-400' : 'text-muted-foreground'}`}>
+                {isAutoStampEnabled ? 'Auto-Stamp Aktif' : 'Nonaktif'}
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsAutoStampEnabled(!isAutoStampEnabled)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-500/20 ${
+                  isAutoStampEnabled ? 'bg-teal-600' : 'bg-muted border border-border'
+                }`}
+                title="Aktifkan / Nonaktifkan Auto-Stamp TTD & Tanggal pada Dokumen TTB"
+              >
+                <span
+                  className={`inline-block size-4 transform rounded-full bg-white shadow-md transition-transform ${
+                    isAutoStampEnabled ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+
+          {/* Detail Pratinjau Spesimen saat Auto-Stamp Aktif */}
+          {isAutoStampEnabled && (
+            <div className="mt-4 pt-3.5 border-t border-border/70 grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* 1. Tanda Tangan */}
+              <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-muted/40 border border-border/60">
+                <div className="size-10 rounded-lg border border-border bg-background p-1 flex items-center justify-center shrink-0 overflow-hidden">
+                  {userSignaturePng || user?.signature?.signatureDataUrl ? (
+                    <img
+                      src={userSignaturePng || user?.signature?.signatureDataUrl}
+                      alt="Spesimen TTD"
+                      className="max-h-full max-w-full object-contain"
+                    />
+                  ) : (
+                    <PenTool className="size-4 text-muted-foreground" />
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] text-muted-foreground font-mono font-semibold uppercase">
+                    Delivered By (TTD)
+                  </p>
+                  <p className="font-semibold text-foreground text-xs truncate">
+                    {user?.signature?.certificateId ? 'Spesimen Terverifikasi' : 'TTD Default Sistem'}
+                  </p>
+                </div>
+              </div>
+
+              {/* 2. Nama Uploader */}
+              <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-muted/40 border border-border/60">
+                <div className="size-10 rounded-lg border border-border bg-background flex items-center justify-center shrink-0 text-foreground font-mono font-bold text-xs">
+                  {(user?.name || 'DAVILA ZALIANTI PUTRI')[0]?.toUpperCase()}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] text-muted-foreground font-mono font-semibold uppercase">
+                    Name : (Logistic Staff)
+                  </p>
+                  <p className="font-bold text-foreground text-xs truncate" title={user?.name || 'DAVILA ZALIANTI PUTRI'}>
+                    {user?.name || 'DAVILA ZALIANTI PUTRI'}
+                  </p>
+                </div>
+              </div>
+
+              {/* 3. Tanggal Upload */}
+              <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-muted/40 border border-border/60">
+                <div className="size-10 rounded-lg border border-border bg-background flex items-center justify-center shrink-0 text-teal-600 dark:text-teal-400">
+                  <Calendar className="size-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] text-muted-foreground font-mono font-semibold uppercase">
+                    Date : (Tanggal Stempel)
+                  </p>
+                  <p className="font-mono font-bold text-foreground text-xs">
+                    {formatTtbStampDate(receivedDate)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
         {uploadMode === 'batch' ? (
           /* ========================================================================= */
           /* MODE 1: MULTI-TTB BATCH UPLOAD (Setiap Berkas Punya No. TTB Masing-Masing)  */
@@ -1768,6 +1937,15 @@ export default function UploadTtbTab({
                             >
                               {item.uploaderName || 'DAVILA ZALIANTI PUTRI'}
                             </span>
+                            {item.isAutoStamped && (
+                              <span
+                                className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[8px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 whitespace-nowrap shrink-0"
+                                title="Dokumen ini otomatis tertandatangani digital & tercetak nama/tanggal resmi"
+                              >
+                                <FileSignature className="size-2.5" />
+                                <span>Auto-Signed</span>
+                              </span>
+                            )}
                           </div>
                           <div className="flex items-center gap-1 text-[10px] text-muted-foreground truncate">
                             {item.uploaderNik ? (

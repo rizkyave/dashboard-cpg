@@ -1,5 +1,30 @@
 [
   {
+    "id": "1792255564351-bzq9h",
+    "noTtb": "CPL-TTB-26-06713",
+    "cleanNoTtb": "CPL-TTB-26-06713",
+    "armada": "SV TWINSISTER 307",
+    "receivedDate": "2026-10-17",
+    "keterangan": "",
+    "originalFileName": "CPL-TTB-26-06713.pdf",
+    "renamedFileName": "CPL-TTB-26-06713.pdf",
+    "fileSize": 81925,
+    "fileType": "application/pdf",
+    "fileUrl": "/api/r2-file?key=ttb-documents%2FCPL-TTB-26-06713.pdf",
+    "r2Key": "ttb-documents/CPL-TTB-26-06713.pdf",
+    "r2Url": "/api/r2-file?key=ttb-documents%2FCPL-TTB-26-06713.pdf",
+    "storageProvider": "CLOUDFLARE_R2",
+    "uploadedAt": "2026-10-17T16:46:04.351Z",
+    "status": "STORED_IN_CLOUDFLARE_R2",
+    "uploaderName": "NOOR HASANAH",
+    "uploaderUsername": "noor.hasanah",
+    "uploaderRole": "user",
+    "uploaderNik": "CPL-DAO-0149",
+    "uploaderJabatan": "Adm. Logistik",
+    "isAutoStamped": true,
+    "stampedAt": "2026-10-17T16:46:04.351Z"
+  },
+  {
     "id": "1792254066055-2ozim",
     "noTtb": "CPL-TTB-26-07357",
     "cleanNoTtb": "CPL-TTB-26-07357",
@@ -16,11 +41,8 @@
     "storageProvider": "CLOUDFLARE_R2",
     "uploadedAt": "2026-10-17T16:21:06.055Z",
     "status": "STORED_IN_CLOUDFLARE_R2",
-    "uploaderName": "DAVILA ZALIANTI PUTRI",
-    "uploaderUsername": "davila.zalianti",
-    "uploaderRole": "staf_ttb",
-    "uploaderNik": "MP-DAO-0662",
-    "uploaderJabatan": "Admin Logistik"
+    "isAutoStamped": true,
+    "stampedAt": "2026-10-17T16:21:06.055Z"
   },
   {
     "id": "1792250363340-d841d",
@@ -39,11 +61,8 @@
     "storageProvider": "CLOUDFLARE_R2",
     "uploadedAt": "2026-10-17T15:19:23.340Z",
     "status": "STORED_IN_CLOUDFLARE_R2",
-    "uploaderName": "DAVILA ZALIANTI PUTRI",
-    "uploaderUsername": "davila.zalianti",
-    "uploaderRole": "staf_ttb",
-    "uploaderNik": "MP-DAO-0662",
-    "uploaderJabatan": "Admin Logistik"
+    "isAutoStamped": true,
+    "stampedAt": "2026-10-17T15:19:23.340Z"
   },
   {
     "id": "1792250332756-65f08",
@@ -62,11 +81,8 @@
     "storageProvider": "CLOUDFLARE_R2",
     "uploadedAt": "2026-10-17T15:18:52.756Z",
     "status": "STORED_IN_CLOUDFLARE_R2",
-    "uploaderName": "DAVILA ZALIANTI PUTRI",
-    "uploaderUsername": "davila.zalianti",
-    "uploaderRole": "staf_ttb",
-    "uploaderNik": "MP-DAO-0662",
-    "uploaderJabatan": "Admin Logistik"
+    "isAutoStamped": true,
+    "stampedAt": "2026-10-17T15:18:52.756Z"
   },
   {
     "id": "1792250247261-mkoys",
@@ -85,11 +101,8 @@
     "storageProvider": "CLOUDFLARE_R2",
     "uploadedAt": "2026-10-17T15:17:27.261Z",
     "status": "STORED_IN_CLOUDFLARE_R2",
-    "uploaderName": "HERMANSYAH",
-    "uploaderUsername": "hermansyah",
-    "uploaderRole": "admin",
-    "uploaderNik": "MP-DAO-0958",
-    "uploaderJabatan": "CPG Admin"
+    "isAutoStamped": true,
+    "stampedAt": "2026-10-17T15:17:27.261Z"
   },
   {
     "id": "1792250211115-vgtld",
@@ -108,11 +121,8 @@
     "storageProvider": "CLOUDFLARE_R2",
     "uploadedAt": "2026-10-17T15:16:51.115Z",
     "status": "STORED_IN_CLOUDFLARE_R2",
-    "uploaderName": "DAVILA ZALIANTI PUTRI",
-    "uploaderUsername": "davila.zalianti",
-    "uploaderRole": "staf_ttb",
-    "uploaderNik": "MP-DAO-0662",
-    "uploaderJabatan": "Admin Logistik"
+    "isAutoStamped": true,
+    "stampedAt": "2026-10-17T15:16:51.115Z"
   },
   {
     "id": "1792250066433-p0hju",
@@ -131,11 +141,8 @@
     "storageProvider": "CLOUDFLARE_R2",
     "uploadedAt": "2026-10-17T15:14:26.433Z",
     "status": "STORED_IN_CLOUDFLARE_R2",
-    "uploaderName": "DAVILA ZALIANTI PUTRI",
-    "uploaderUsername": "davila.zalianti",
-    "uploaderRole": "staf_ttb",
-    "uploaderNik": "MP-DAO-0662",
-    "uploaderJabatan": "Admin Logistik"
+    "isAutoStamped": true,
+    "stampedAt": "2026-10-17T15:14:26.433Z"
   },
   {
     "id": "1792249964505-nr98j",
@@ -154,11 +161,8 @@
     "storageProvider": "CLOUDFLARE_R2",
     "uploadedAt": "2026-10-17T15:12:44.505Z",
     "status": "STORED_IN_CLOUDFLARE_R2",
-    "uploaderName": "DAVILA ZALIANTI PUTRI",
-    "uploaderUsername": "davila.zalianti",
-    "uploaderRole": "staf_ttb",
-    "uploaderNik": "MP-DAO-0662",
-    "uploaderJabatan": "Admin Logistik"
+    "isAutoStamped": true,
+    "stampedAt": "2026-10-17T15:12:44.505Z"
   },
   {
     "id": "1792248222703-ig36j",
@@ -177,10 +181,7 @@
     "storageProvider": "CLOUDFLARE_R2",
     "uploadedAt": "2026-10-17T14:43:42.703Z",
     "status": "STORED_IN_CLOUDFLARE_R2",
-    "uploaderName": "HERMANSYAH",
-    "uploaderUsername": "hermansyah",
-    "uploaderRole": "admin",
-    "uploaderNik": "MP-DAO-0958",
-    "uploaderJabatan": "CPG Admin"
+    "isAutoStamped": true,
+    "stampedAt": "2026-10-17T14:43:42.703Z"
   }
 ]

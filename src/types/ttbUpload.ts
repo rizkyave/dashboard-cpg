@@ -21,6 +21,8 @@ export interface UploadedTtbItem {
   uploaderRole?: string;
   uploaderNik?: string;
   uploaderJabatan?: string;
+  isAutoStamped?: boolean;
+  stampedAt?: string;
   // Legacy fields untuk kompatibilitas data riwayat lama
   driveFolderUrl?: string;
   driveFileId?: string;
