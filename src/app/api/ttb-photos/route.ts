@@ -3,7 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { extractTakenAt, filenameMatchesTtb, parseNoTtb, extractTtbFromFilename } from '@/utils/ttbPhotoMatch';
 import { getPhotosDir } from '@/utils/ttbPhotosDir';
-import { uploadToR2, isR2Configured, getR2FileUrl, listR2Objects } from '@/utils/r2Client';
+import { uploadToR2, isR2Configured, getR2FileUrl, listR2Objects, deleteFromR2 } from '@/utils/r2Client';
 import rawManifest from '@/data/ttb-photos-manifest.json';
 
 export const runtime = 'nodejs';
@@ -83,13 +83,30 @@ export async function GET(req: NextRequest) {
       } catch {
         // keep manifest
       }
+    } else {
+      // Selalu muat manifest terbaru jika belum ada di memori
+      try {
+        const raw = await fs.readFile(MANIFEST_PATH, 'utf8');
+        manifest = JSON.parse(raw);
+      } catch {
+        // keep manifest
+      }
     }
+
     // Kumpulkan daftar nama file: dari manifest, disk lokal, dan Cloudflare R2
     const [localFiles, r2Files] = await Promise.all([listLocalFiles(), listR2PhotoFiles(forceFresh)]);
     const r2FileSet = new Set<string>(r2Files);
+    const localFileSet = new Set<string>(localFiles);
+
+    // Filter file agar HANYA file yang benar-benar ada di R2, di disk lokal, atau URL valid yang ditampilkan
     const manifestKeys = Object.keys(manifest);
-    const fileSet = new Set<string>([...manifestKeys, ...localFiles, ...r2Files]);
-    const files = Array.from(fileSet);
+    const candidateSet = new Set<string>([...manifestKeys, ...localFiles, ...r2Files]);
+    const files = Array.from(candidateSet).filter((f) => {
+      if (r2FileSet.has(f)) return true;
+      if (localFileSet.has(f)) return true;
+      if (manifest[f] && manifest[f].startsWith('http')) return true;
+      return false;
+    });
 
     // Mode 1: Pencarian spesifik nomor TTB (untuk popup/modal)
     if (noTtb) {
@@ -265,3 +282,114 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+// DELETE /api/ttb-photos?action=clean ATAU /api/ttb-photos?name=...
+export async function DELETE(req: NextRequest) {
+  try {
+    const searchParams = req.nextUrl.searchParams;
+    const action = searchParams.get('action');
+    const name = searchParams.get('name');
+
+    // Refresh file dari R2 dan lokal
+    const [localFiles, r2Files] = await Promise.all([listLocalFiles(), listR2PhotoFiles(true)]);
+    const r2FileSet = new Set<string>(r2Files);
+    const localFileSet = new Set<string>(localFiles);
+
+    // Baca manifest terbaru
+    let currentManifest: Record<string, string> = {};
+    try {
+      const raw = await fs.readFile(MANIFEST_PATH, 'utf8');
+      currentManifest = JSON.parse(raw);
+    } catch {
+      currentManifest = { ...(rawManifest as Record<string, string>) };
+    }
+
+    if (action === 'clean') {
+      // Bersihkan semua index manifest yang berkas fisiknya tidak ada di R2 dan tidak ada di lokal
+      const keys = Object.keys(currentManifest);
+      let removedCount = 0;
+      const cleanManifest: Record<string, string> = {};
+
+      for (const key of keys) {
+        const existsInR2 = r2FileSet.has(key);
+        const existsInLocal = localFileSet.has(key);
+        const isHttp = currentManifest[key] && currentManifest[key].startsWith('http');
+
+        if (existsInR2 || existsInLocal || isHttp) {
+          cleanManifest[key] = currentManifest[key];
+        } else {
+          removedCount++;
+        }
+      }
+
+      // Masukkan juga semua file yang ada di R2 dan lokal ke manifest jika belum terdaftar
+      for (const r2File of r2Files) {
+        if (!cleanManifest[r2File]) {
+          cleanManifest[r2File] = getR2FileUrl(`ttb-photos/${r2File}`);
+        }
+      }
+      for (const locFile of localFiles) {
+        if (!cleanManifest[locFile]) {
+          cleanManifest[locFile] = `/api/ttb-photos/file?name=${encodeURIComponent(locFile)}`;
+        }
+      }
+
+      manifest = cleanManifest;
+      await fs.writeFile(MANIFEST_PATH, JSON.stringify(cleanManifest, null, 2), 'utf8');
+      cache = null;
+      r2Cache = null;
+
+      return NextResponse.json({
+        success: true,
+        message: `Berhasil membersihkan index! ${removedCount} index foto hilang telah dihapus.`,
+        removedCount,
+        remainingCount: Object.keys(cleanManifest).length,
+      });
+    }
+
+    if (name) {
+      // Hapus foto spesifik dari R2, lokal, dan manifest
+      let deletedFromR2 = false;
+      let deletedFromLocal = false;
+
+      if (isR2Configured()) {
+        try {
+          await deleteFromR2(`ttb-photos/${name}`);
+          deletedFromR2 = true;
+        } catch (e) {
+          console.warn('Gagal hapus dari R2:', e);
+        }
+      }
+
+      try {
+        const localDir = getPhotosDir();
+        const filePath = path.join(localDir, name);
+        await fs.unlink(filePath);
+        deletedFromLocal = true;
+      } catch {
+        // Berkas mungkin tidak ada di lokal
+      }
+
+      delete currentManifest[name];
+      delete manifest[name];
+      await fs.writeFile(MANIFEST_PATH, JSON.stringify(currentManifest, null, 2), 'utf8');
+      cache = null;
+      r2Cache = null;
+
+      return NextResponse.json({
+        success: true,
+        message: `Foto "${name}" berhasil dihapus.`,
+        deletedFromR2,
+        deletedFromLocal,
+      });
+    }
+
+    return NextResponse.json({ error: 'Parameter name atau action=clean diperlukan.' }, { status: 400 });
+  } catch (err) {
+    return NextResponse.json(
+      { error: `Gagal memproses penghapusan: ${(err as Error).message}` },
+      { status: 500 }
+    );
+  }
+}
+

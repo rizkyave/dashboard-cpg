@@ -22,6 +22,7 @@ import {
   Upload,
   X,
   FileImage,
+  Trash2,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
@@ -61,6 +62,9 @@ export default function TtbGalleryTab({ showToast }: TtbGalleryTabProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreviewUrl, setFilePreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [isCleaning, setIsCleaning] = useState<boolean>(false);
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
+  const [deletingPhotoName, setDeletingPhotoName] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchPhotos = async (targetPage = 1, query = '') => {
@@ -107,6 +111,50 @@ export default function TtbGalleryTab({ showToast }: TtbGalleryTabProps) {
     if (newPage < 1 || newPage > totalPages || newPage === page) return;
     fetchPhotos(newPage, searchTerm);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCleanMissingPhotos = async () => {
+    if (!window.confirm('Bersihkan index foto yang hilang atau tidak terdaftar di penyimpanan? Tindakan ini akan menghapus data index yang tidak memiliki berkas gambar fisik asli.')) {
+      return;
+    }
+    setIsCleaning(true);
+    try {
+      const res = await fetch('/api/ttb-photos?action=clean', { method: 'DELETE' });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast?.(data.message || `Index berhasil dibersihkan! ${data.removedCount || 0} foto hilang dibersihkan.`, 'success');
+        setFailedImages(new Set());
+        fetchPhotos(1, searchTerm);
+      } else {
+        throw new Error(data.error || 'Gagal membersihkan index foto.');
+      }
+    } catch (err) {
+      showToast?.((err as Error).message, 'error');
+    } finally {
+      setIsCleaning(false);
+    }
+  };
+
+  const handleDeletePhoto = async (photoName: string) => {
+    if (!window.confirm(`Hapus foto "${photoName}" secara permanen?`)) {
+      return;
+    }
+    setDeletingPhotoName(photoName);
+    try {
+      const res = await fetch(`/api/ttb-photos?name=${encodeURIComponent(photoName)}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast?.(`Foto "${photoName}" berhasil dihapus.`, 'success');
+        setPhotos((prev) => prev.filter((p) => p.name !== photoName));
+        setTotalPhotos((prev) => Math.max(0, prev - 1));
+      } else {
+        throw new Error(data.error || 'Gagal menghapus foto.');
+      }
+    } catch (err) {
+      showToast?.((err as Error).message, 'error');
+    } finally {
+      setDeletingPhotoName(null);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -211,7 +259,21 @@ export default function TtbGalleryTab({ showToast }: TtbGalleryTabProps) {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 flex-wrap">
+            {/* Tombol Bersihkan Foto Hilang (Admin & Staff) */}
+            {canEdit && (
+              <button
+                type="button"
+                onClick={handleCleanMissingPhotos}
+                disabled={isCleaning || isLoading}
+                className="h-8.5 px-3 rounded-lg border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-semibold inline-flex items-center gap-1.5 transition active:scale-95 cursor-pointer disabled:opacity-50"
+                title="Bersihkan data index foto yang hilang atau tidak memiliki berkas gambar asli di penyimpanan"
+              >
+                <Trash2 className={`size-3.5 ${isCleaning ? 'animate-spin' : ''}`} />
+                <span>{isCleaning ? 'Membersihkan...' : 'Bersihkan Foto Hilang'}</span>
+              </button>
+            )}
+
             {/* Tombol Tambah Foto (Admin & Staff) */}
             {canEdit && (
               <button
@@ -292,21 +354,69 @@ export default function TtbGalleryTab({ showToast }: TtbGalleryTabProps) {
               >
                 {/* Image Box */}
                 <div
-                  onClick={() => setPreviewPhoto(photo)}
-                  className="relative aspect-4/3 bg-black/90 overflow-hidden cursor-pointer"
+                  onClick={() => !failedImages.has(photo.name) && setPreviewPhoto(photo)}
+                  className="relative aspect-4/3 bg-muted/40 overflow-hidden cursor-pointer"
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={photo.url}
-                    alt={photo.name}
-                    loading="lazy"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                    <span className="p-1.5 rounded-lg bg-black/60 text-white">
-                      <Maximize2 className="size-4" />
-                    </span>
-                  </div>
+                  {failedImages.has(photo.name) ? (
+                    <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center bg-muted/70 text-muted-foreground select-none">
+                      <ImageOff className="size-6 mb-1 text-muted-foreground/60" />
+                      <span className="text-[10px] font-medium leading-tight">Gambar Tidak Ditemukan</span>
+                      {canEdit && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeletePhoto(photo.name);
+                          }}
+                          disabled={deletingPhotoName === photo.name}
+                          className="mt-2 px-2 py-0.5 rounded text-[9px] font-semibold bg-red-500/15 hover:bg-red-500/25 text-red-600 dark:text-red-400 border border-red-500/30 transition flex items-center gap-1 cursor-pointer"
+                        >
+                          {deletingPhotoName === photo.name ? (
+                            <Loader2 className="size-2.5 animate-spin" />
+                          ) : (
+                            <Trash2 className="size-2.5" />
+                          )}
+                          <span>Hapus Index</span>
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={photo.url}
+                        alt={photo.name}
+                        loading="lazy"
+                        onError={() => {
+                          setFailedImages((prev) => new Set(prev).add(photo.name));
+                        }}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                        <span className="p-1.5 rounded-lg bg-black/60 text-white" title="Lihat Foto Penuh">
+                          <Maximize2 className="size-4" />
+                        </span>
+                        {canEdit && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeletePhoto(photo.name);
+                            }}
+                            disabled={deletingPhotoName === photo.name}
+                            className="p-1.5 rounded-lg bg-red-600/80 hover:bg-red-600 text-white transition cursor-pointer"
+                            title="Hapus foto ini"
+                          >
+                            {deletingPhotoName === photo.name ? (
+                              <Loader2 className="size-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="size-4" />
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    </>
+                  )}
 
                   {/* Badge TTB di atas foto */}
                   {ttbNum && (
