@@ -26,6 +26,30 @@ export const DEFAULT_USERS: UserAccount[] = [
     createdAt: '2026-01-01T00:00:00.000Z',
   },
   {
+    id: 'usr-ttb-01',
+    username: 'staf_ttb',
+    name: 'Ahmad Dahlan (Staf Dokumen TTB)',
+    password: 'user123',
+    role: 'staf_ttb',
+    department: 'Dokumen & Arsip TTB Logistik',
+    email: 'ahmad.ttb@cindaragroup.com',
+    avatar: 'T',
+    status: 'active',
+    createdAt: '2026-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'usr-lap-01',
+    username: 'staf_lapangan',
+    name: 'Budi Santoso (Staf Serah Terima Lapangan)',
+    password: 'user123',
+    role: 'staf_lapangan',
+    department: 'Operasional Lapangan & Dermaga',
+    email: 'budi.lapangan@cindaragroup.com',
+    avatar: 'L',
+    status: 'active',
+    createdAt: '2026-01-01T00:00:00.000Z',
+  },
+  {
     id: 'usr-staff-01',
     username: 'staff',
     name: 'Staff Logistik & Pengadaan',
@@ -62,4 +86,3 @@ export const DEFAULT_USERS: UserAccount[] = [
     createdAt: '2026-01-01T00:00:00.000Z',
   },
 ];
-

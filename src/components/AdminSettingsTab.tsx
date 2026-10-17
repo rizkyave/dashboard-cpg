@@ -1,4 +1,3 @@
-'use client';
 
 import React, { useState, useMemo } from 'react';
 import {
@@ -26,9 +25,24 @@ import {
   X,
   HelpCircle,
   ExternalLink,
+  UploadCloud,
+  Truck,
+  Layers,
+  Boxes,
+  Camera,
+  Images,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { AuthUser, UserAccount, UserRole, ROLE_PERMISSIONS } from '@/types/auth';
+import {
+  AuthUser,
+  UserAccount,
+  UserRole,
+  ModuleCategory,
+  RolePermissionRule,
+  MODULE_PERMISSIONS_MATRIX,
+  getRoleDisplayName,
+} from '@/types/auth';
 
 interface AdminSettingsTabProps {
   showToast: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
@@ -85,15 +99,69 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
   // Metric counts
   const totalUsers = users.length;
   const adminCount = users.filter((u) => u.role === 'admin').length;
-  const userStaffCount = users.filter((u) => u.role === 'user').length;
+  const stafTtbCount = users.filter((u) => u.role === 'staf_ttb').length;
+  const stafLapanganCount = users.filter((u) => u.role === 'staf_lapangan').length;
   const visitorCount = users.filter((u) => u.role === 'visitor').length;
+
+  // Filter category for Matrix table
+  const [matrixCategoryFilter, setMatrixCategoryFilter] = useState<'ALL' | ModuleCategory>('ALL');
+
+  const visibleCategories = useMemo<ModuleCategory[]>(() => {
+    if (matrixCategoryFilter === 'ALL') {
+      return ['Dashboards', 'Modul Tambahan', 'Modul Khusus'];
+    }
+    return [matrixCategoryFilter];
+  }, [matrixCategoryFilter]);
+
+  const renderPermissionBadge = (rule: RolePermissionRule) => {
+    if (!rule.allowed) {
+      return (
+        <span
+          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-muted/60 text-muted-foreground/60 border border-border/50 whitespace-nowrap"
+          title={rule.notes || 'Tidak Ada Akses (Dibatasi)'}
+        >
+          <X className="size-3" />
+          <span>Dilarang</span>
+        </span>
+      );
+    }
+
+    const toneClasses = {
+      purple: 'bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/20',
+      emerald: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20',
+      blue: 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20',
+      sky: 'bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-500/20',
+      amber: 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20',
+      slate: 'bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-500/20',
+      rose: 'bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/20',
+    }[rule.badgeTone || 'emerald'];
+
+    return (
+      <span
+        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold border whitespace-nowrap ${toneClasses}`}
+        title={rule.notes}
+      >
+        <Check className="size-3 stroke-[2.5]" />
+        <span>{rule.level}</span>
+      </span>
+    );
+  };
 
   const handleOpenAddModal = (presetRole?: UserRole) => {
     setNewUsername('');
     setNewName('');
     setNewPassword('');
-    setNewRole(presetRole || 'user');
-    setNewDepartment(presetRole === 'visitor' ? 'Tamu / Observer Eksternal' : '');
+    const targetRole = presetRole || 'staf_ttb';
+    setNewRole(targetRole);
+    setNewDepartment(
+      targetRole === 'visitor'
+        ? 'Tamu / Observer Eksternal'
+        : targetRole === 'staf_ttb'
+        ? 'Dokumen & Arsip TTB Logistik'
+        : targetRole === 'staf_lapangan'
+        ? 'Operasional Lapangan & Dermaga'
+        : ''
+    );
     setNewEmail('');
     setIsAddModalOpen(true);
   };
@@ -237,29 +305,50 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 self-stretch md:self-auto">
+          {/* Quick Add Staf TTB */}
+          <button
+            onClick={() => handleOpenAddModal('staf_ttb')}
+            className="flex-1 md:flex-initial h-9 px-3 rounded-lg border border-blue-500/30 bg-blue-500/10 hover:bg-blue-500/20 text-blue-700 dark:text-blue-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-xs cursor-pointer active:scale-95"
+            title="Tambah Akun Staf Dokumen TTB (Upload & Pengarsipan)"
+          >
+            <UploadCloud className="size-3.5" />
+            <span>+ Staf TTB</span>
+          </button>
+
+          {/* Quick Add Staf Lapangan */}
+          <button
+            onClick={() => handleOpenAddModal('staf_lapangan')}
+            className="flex-1 md:flex-initial h-9 px-3 rounded-lg border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-xs cursor-pointer active:scale-95"
+            title="Tambah Akun Staf Serah Terima Lapangan & TimeMark"
+          >
+            <Truck className="size-3.5" />
+            <span>+ Staf Lapangan</span>
+          </button>
+
           {/* Quick Add Visitor */}
           <button
             onClick={() => handleOpenAddModal('visitor')}
-            className="flex-1 md:flex-initial h-9 px-3.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-semibold flex items-center justify-center gap-2 transition shadow-xs cursor-pointer active:scale-95"
+            className="flex-1 md:flex-initial h-9 px-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-xs cursor-pointer active:scale-95"
             title="Tambah Akun Visitor Khusus Tamu / Pemantau Read-Only"
           >
-            <Eye className="size-4" />
-            <span>+ Tambah Visitor</span>
+            <Eye className="size-3.5" />
+            <span>+ Visitor</span>
           </button>
 
           {/* Quick Add User */}
           <button
             onClick={() => handleOpenAddModal('user')}
-            className="flex-1 md:flex-initial h-9 px-4 rounded-lg bg-foreground text-background hover:opacity-90 text-xs font-semibold flex items-center justify-center gap-2 transition shadow-xs cursor-pointer active:scale-95"
+            className="flex-1 md:flex-initial h-9 px-3.5 rounded-lg bg-foreground text-background hover:opacity-90 text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-xs cursor-pointer active:scale-95"
           >
-            <UserPlus className="size-4" />
-            <span>+ Tambah Pengguna</span>
+            <UserPlus className="size-3.5" />
+            <span>+ Pengguna</span>
           </button>
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      {/* KPI Cards - 5 Kolom Sesuai RBAC Logistik Maritim */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+        {/* Total Akun */}
         <div className="bg-card border border-border rounded-xl p-4 shadow-xs">
           <div className="flex items-center justify-between text-muted-foreground mb-2">
             <span className="text-xs font-medium">Total Akun Terdaftar</span>
@@ -267,10 +356,11 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
           </div>
           <div className="text-2xl font-bold font-mono text-foreground">{totalUsers}</div>
           <span className="text-[11px] text-muted-foreground mt-1 block">
-            Semua entitas & tingkatan hak akses
+            Semua tingkatan hak akses
           </span>
         </div>
 
+        {/* Administrator */}
         <div className="bg-card border border-purple-500/20 bg-purple-500/5 rounded-xl p-4 shadow-xs">
           <div className="flex items-center justify-between text-purple-600 dark:text-purple-400 mb-2">
             <span className="text-xs font-medium">Administrator</span>
@@ -280,23 +370,39 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
             {adminCount}
           </div>
           <span className="text-[11px] text-muted-foreground mt-1 block">
-            Kontrol penuh & kelola user
+            Kontrol penuh &amp; kelola user
           </span>
         </div>
 
-        <div className="bg-card border border-sky-500/20 bg-sky-500/5 rounded-xl p-4 shadow-xs">
-          <div className="flex items-center justify-between text-sky-600 dark:text-sky-400 mb-2">
-            <span className="text-xs font-medium">Staf User (Operasional)</span>
-            <UserCheck className="size-4" />
+        {/* Staf Dokumen TTB */}
+        <div className="bg-card border border-blue-500/20 bg-blue-500/5 rounded-xl p-4 shadow-xs">
+          <div className="flex items-center justify-between text-blue-600 dark:text-blue-400 mb-2">
+            <span className="text-xs font-medium">Staf Dokumen TTB</span>
+            <UploadCloud className="size-4" />
           </div>
-          <div className="text-2xl font-bold font-mono text-sky-700 dark:text-sky-300">
-            {userStaffCount}
+          <div className="text-2xl font-bold font-mono text-blue-700 dark:text-blue-300">
+            {stafTtbCount}
           </div>
           <span className="text-[11px] text-muted-foreground mt-1 block">
-            Input FPB, upload, sync data
+            Upload &amp; verifikasi berkas
           </span>
         </div>
 
+        {/* Staf Serah Terima Lapangan */}
+        <div className="bg-card border border-amber-500/20 bg-amber-500/5 rounded-xl p-4 shadow-xs">
+          <div className="flex items-center justify-between text-amber-600 dark:text-amber-400 mb-2">
+            <span className="text-xs font-medium">Staf Serah Terima Lap.</span>
+            <Truck className="size-4" />
+          </div>
+          <div className="text-2xl font-bold font-mono text-amber-700 dark:text-amber-300">
+            {stafLapanganCount}
+          </div>
+          <span className="text-[11px] text-muted-foreground mt-1 block">
+            Fisik serah terima &amp; TimeMark
+          </span>
+        </div>
+
+        {/* Visitor */}
         <div className="bg-card border border-emerald-500/20 bg-emerald-500/5 rounded-xl p-4 shadow-xs">
           <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400 mb-2">
             <span className="text-xs font-medium">Visitor (Tamu Peninjau)</span>
@@ -337,16 +443,20 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
 
           {/* Role Filter Tabs */}
           <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
-            {(['ALL', 'admin', 'user', 'visitor'] as const).map((r) => {
+            {(['ALL', 'admin', 'staf_ttb', 'staf_lapangan', 'visitor', 'user'] as const).map((r) => {
               const isActive = roleFilter === r;
               const label =
                 r === 'ALL'
                   ? 'Semua Akun'
                   : r === 'admin'
                   ? 'Admin'
-                  : r === 'user'
-                  ? 'Staff User'
-                  : 'Visitor';
+                  : r === 'staf_ttb'
+                  ? 'Staf TTB'
+                  : r === 'staf_lapangan'
+                  ? 'Staf Lapangan'
+                  : r === 'visitor'
+                  ? 'Visitor'
+                  : 'User (Umum)';
 
               return (
                 <button
@@ -372,7 +482,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
               <tr>
                 <th className="py-3 px-4">Pengguna</th>
                 <th className="py-3 px-4">Role / Peran</th>
-                <th className="py-3 px-4">Departemen & Email</th>
+                <th className="py-3 px-4">Departemen &amp; Email</th>
                 <th className="py-3 px-4">Status</th>
                 <th className="py-3 px-4">Terdaftar</th>
                 <th className="py-3 px-4 text-right">Aksi</th>
@@ -406,6 +516,10 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                             className={`size-8 rounded-full flex items-center justify-center font-bold text-xs text-white shrink-0 ${
                               item.role === 'admin'
                                 ? 'bg-linear-to-tr from-purple-600 to-indigo-600'
+                                : item.role === 'staf_ttb'
+                                ? 'bg-linear-to-tr from-blue-600 to-cyan-600'
+                                : item.role === 'staf_lapangan'
+                                ? 'bg-linear-to-tr from-amber-600 to-emerald-600'
                                 : item.role === 'visitor'
                                 ? 'bg-linear-to-tr from-emerald-600 to-teal-600'
                                 : 'bg-linear-to-tr from-sky-600 to-blue-600'
@@ -436,6 +550,16 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                             <Shield className="size-3" />
                             <span>Administrator</span>
                           </span>
+                        ) : item.role === 'staf_ttb' ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20">
+                            <UploadCloud className="size-3" />
+                            <span>Staf Dokumen TTB</span>
+                          </span>
+                        ) : item.role === 'staf_lapangan' ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
+                            <Truck className="size-3" />
+                            <span>Staf Serah Terima Lap.</span>
+                          </span>
                         ) : item.role === 'visitor' ? (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
                             <Eye className="size-3" />
@@ -444,7 +568,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                         ) : (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/20">
                             <UserCheck className="size-3" />
-                            <span>Staff User</span>
+                            <span>Staff Operasional</span>
                           </span>
                         )}
                       </td>
@@ -520,75 +644,106 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
 
       {/* Role Permissions Matrix Section */}
       <div className="bg-card border border-border rounded-xl p-5 shadow-xs">
-        <div className="flex items-center justify-between mb-4 pb-3 border-b border-border">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4 pb-3 border-b border-border">
           <div className="flex items-center gap-2">
-            <Shield className="size-4 text-primary" />
+            <span className="p-1.5 rounded-lg bg-primary/10 text-primary border border-primary/20">
+              <Shield className="size-4" />
+            </span>
             <div>
               <h3 className="text-sm font-bold text-foreground">
-                Matriks Hak Akses & Perizinan (Role Permissions)
+                Matriks Hak Akses &amp; Perizinan (Role-Based Access Control)
               </h3>
               <p className="text-[11px] text-muted-foreground">
-                Tinjauan hak akses antara Administrator, User Staf, dan Visitor Tamu
+                Pemetaan hak akses operasional 15 modul dashboard antara Administrator, Staf Dokumen TTB, Staf Serah Terima Lapangan, dan Tamu Visitor
               </p>
             </div>
+          </div>
+
+          {/* Category Filter Pills */}
+          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
+            {(['ALL', 'Dashboards', 'Modul Tambahan', 'Modul Khusus'] as const).map((cat) => {
+              const isActive = matrixCategoryFilter === cat;
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setMatrixCategoryFilter(cat)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition cursor-pointer ${
+                    isActive
+                      ? 'bg-foreground text-background font-semibold shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                  }`}
+                >
+                  {cat === 'ALL' ? 'Semua Kategori' : cat}
+                </button>
+              );
+            })}
           </div>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-muted/30 border-b border-border text-muted-foreground text-[11px]">
+            <thead className="bg-muted/40 border-b border-border text-muted-foreground text-[11px]">
               <tr>
-                <th className="py-2.5 px-3">Modul / Tindakan</th>
-                <th className="py-2.5 px-3">Deskripsi Wewenang</th>
-                <th className="py-2.5 px-3 text-center w-28">👑 Admin</th>
-                <th className="py-2.5 px-3 text-center w-28">👤 User</th>
-                <th className="py-2.5 px-3 text-center w-28">👁️ Visitor</th>
+                <th className="py-2.5 px-3 min-w-[170px]">Modul / Fitur Sistem</th>
+                <th className="py-2.5 px-3 min-w-[240px]">Deskripsi Wewenang</th>
+                <th className="py-2.5 px-3 text-center w-36">👑 Admin</th>
+                <th className="py-2.5 px-3 text-center w-40">📄 Staf Dokumen TTB</th>
+                <th className="py-2.5 px-3 text-center w-44">🚚 Staf Serah Terima Lap.</th>
+                <th className="py-2.5 px-3 text-center w-36">👁️ Visitor</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {ROLE_PERMISSIONS.map((perm, idx) => (
-                <tr key={idx} className="hover:bg-muted/20 transition-colors">
-                  <td className="py-2.5 px-3 font-semibold text-foreground">
-                    {perm.action}
-                  </td>
-                  <td className="py-2.5 px-3 text-[11px] text-muted-foreground">
-                    {perm.description}
-                  </td>
-                  <td className="py-2.5 px-3 text-center">
-                    {perm.admin ? (
-                      <span className="inline-flex items-center justify-center size-5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                        <Check className="size-3.5 stroke-[3]" />
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center justify-center size-5 rounded-full bg-rose-500/10 text-rose-500">
-                        <X className="size-3.5 stroke-[3]" />
-                      </span>
-                    )}
-                  </td>
-                  <td className="py-2.5 px-3 text-center">
-                    {perm.user ? (
-                      <span className="inline-flex items-center justify-center size-5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                        <Check className="size-3.5 stroke-[3]" />
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center justify-center size-5 rounded-full bg-rose-500/10 text-rose-500">
-                        <X className="size-3.5 stroke-[3]" />
-                      </span>
-                    )}
-                  </td>
-                  <td className="py-2.5 px-3 text-center">
-                    {perm.visitor ? (
-                      <span className="inline-flex items-center justify-center size-5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                        <Check className="size-3.5 stroke-[3]" />
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center justify-center size-5 rounded-full bg-muted text-muted-foreground/60" title="Tidak diizinkan (Read-Only)">
-                        <X className="size-3.5 stroke-[3]" />
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              ))}
+              {visibleCategories.map((category) => {
+                const itemsInCategory = MODULE_PERMISSIONS_MATRIX.filter((m) => m.category === category);
+                if (itemsInCategory.length === 0) return null;
+
+                return (
+                  <React.Fragment key={category}>
+                    <tr className="bg-muted/60 border-y border-border">
+                      <td colSpan={6} className="py-2 px-3 font-bold text-xs uppercase tracking-wider text-foreground">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`size-2 rounded-full ${
+                              category === 'Dashboards'
+                                ? 'bg-blue-500'
+                                : category === 'Modul Tambahan'
+                                ? 'bg-emerald-500'
+                                : 'bg-purple-500'
+                            }`}
+                          />
+                          <span>{category}</span>
+                          <span className="text-[10px] font-normal text-muted-foreground font-mono">
+                            ({itemsInCategory.length} Modul)
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                    {itemsInCategory.map((perm) => (
+                      <tr key={perm.tabId} className="hover:bg-muted/20 transition-colors">
+                        <td className="py-2.5 px-3">
+                          <div className="font-semibold text-foreground text-xs">{perm.name}</div>
+                          <div className="text-[10px] text-muted-foreground font-mono">ID: {perm.tabId}</div>
+                        </td>
+                        <td className="py-2.5 px-3 text-[11px] text-muted-foreground">
+                          {perm.description}
+                        </td>
+                        <td className="py-2.5 px-3 text-center">
+                          {renderPermissionBadge(perm.permissions.admin)}
+                        </td>
+                        <td className="py-2.5 px-3 text-center">
+                          {renderPermissionBadge(perm.permissions.staf_ttb)}
+                        </td>
+                        <td className="py-2.5 px-3 text-center">
+                          {renderPermissionBadge(perm.permissions.staf_lapangan)}
+                        </td>
+                        <td className="py-2.5 px-3 text-center">
+                          {renderPermissionBadge(perm.permissions.visitor)}
+                        </td>
+                      </tr>
+                    ))}
+                  </React.Fragment>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -631,10 +786,13 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                 <label className="block text-xs font-semibold text-foreground mb-1.5">
                   Tipe Akun (Role)
                 </label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <button
                     type="button"
-                    onClick={() => setNewRole('admin')}
+                    onClick={() => {
+                      setNewRole('admin');
+                      if (!newDepartment) setNewDepartment('Management Information System');
+                    }}
                     className={`p-2.5 rounded-lg border text-left transition cursor-pointer flex flex-col justify-between ${
                       newRole === 'admin'
                         ? 'border-purple-500 bg-purple-500/10 text-purple-700 dark:text-purple-300 ring-1 ring-purple-500'
@@ -652,19 +810,43 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
 
                   <button
                     type="button"
-                    onClick={() => setNewRole('user')}
+                    onClick={() => {
+                      setNewRole('staf_ttb');
+                      if (!newDepartment) setNewDepartment('Dokumen & Arsip TTB Logistik');
+                    }}
                     className={`p-2.5 rounded-lg border text-left transition cursor-pointer flex flex-col justify-between ${
-                      newRole === 'user'
-                        ? 'border-sky-500 bg-sky-500/10 text-sky-700 dark:text-sky-300 ring-1 ring-sky-500'
+                      newRole === 'staf_ttb'
+                        ? 'border-blue-500 bg-blue-500/10 text-blue-700 dark:text-blue-300 ring-1 ring-blue-500'
                         : 'border-border bg-card text-muted-foreground hover:border-border/80'
                     }`}
                   >
                     <div className="flex items-center gap-1.5 font-bold text-xs">
-                      <UserCheck className="size-3.5" />
-                      <span>Staff User</span>
+                      <UploadCloud className="size-3.5" />
+                      <span>Staf TTB</span>
                     </div>
                     <span className="text-[9px] mt-1 text-muted-foreground leading-tight">
-                      Operasional
+                      Dokumen &amp; Upload
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewRole('staf_lapangan');
+                      if (!newDepartment) setNewDepartment('Operasional Lapangan & Dermaga');
+                    }}
+                    className={`p-2.5 rounded-lg border text-left transition cursor-pointer flex flex-col justify-between ${
+                      newRole === 'staf_lapangan'
+                        ? 'border-amber-500 bg-amber-500/10 text-amber-700 dark:text-amber-300 ring-1 ring-amber-500'
+                        : 'border-border bg-card text-muted-foreground hover:border-border/80'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 font-bold text-xs">
+                      <Truck className="size-3.5" />
+                      <span>Staf Lapangan</span>
+                    </div>
+                    <span className="text-[9px] mt-1 text-muted-foreground leading-tight">
+                      Serah Terima &amp; TM
                     </span>
                   </button>
 
@@ -691,20 +873,30 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                 </div>
 
                 {/* Role Description Helper */}
-                <div className="mt-2 p-2 rounded-lg bg-muted/40 border border-border text-[10px] text-muted-foreground">
-                  {newRole === 'visitor' && (
+                <div className="mt-2.5 p-2.5 rounded-lg bg-muted/40 border border-border text-[11px] text-muted-foreground leading-relaxed">
+                  {newRole === 'staf_ttb' && (
                     <p>
-                      <strong>Peran Visitor:</strong> Akun ini hanya dapat melihat dashboard, tabel pengadaan, posisi armada, dan inventaris. Tombol tambah data, upload excel, sync, dan reset dinonaktifkan.
+                      <strong className="text-blue-600 dark:text-blue-400">Peran Staf Dokumen TTB:</strong> Wewenang penuh mengunggah berkas TTB resmi, mengelola Galeri Foto TTB, verifikasi PO/FPB di Procurement, dan validasi fisik stok di Cek Persediaan. Menu operasional lapangan (Serah Terima Lapangan, TimeMark, Layanan Armada, Posisi Kapal) dan Admin Settings dinonaktifkan secara otomatis.
                     </p>
                   )}
-                  {newRole === 'user' && (
+                  {newRole === 'staf_lapangan' && (
                     <p>
-                      <strong>Peran Staff User:</strong> Dapat melakukan input data pengadaan FPB/PO, sinkronisasi Google Sheets, dan unggah foto lapangan.
+                      <strong className="text-amber-600 dark:text-amber-400">Peran Staf Serah Terima Lapangan:</strong> Wewenang penuh input bukti serah terima barang atau fisik pekerjaan dermaga, upload bukti foto TimeMark berstempel waktu, input update servis armada, serta update status Posisi Kapal &amp; List WO. Menu Upload TTB dan Admin Settings dinonaktifkan.
+                    </p>
+                  )}
+                  {newRole === 'visitor' && (
+                    <p>
+                      <strong className="text-emerald-600 dark:text-emerald-400">Peran Visitor (Tamu Peninjau):</strong> Mode monitor baca-saja (Read-Only) pada modul Overview, Galeri Foto TTB, dan Foto TimeMark. Semua modul teknis, input data, dan admin settings disembunyikan.
                     </p>
                   )}
                   {newRole === 'admin' && (
                     <p>
-                      <strong>Peran Administrator:</strong> Akses mutlak ke seluruh fitur sistem, termasuk menu <em>Admin Settings</em> untuk mengelola user & visitor.
+                      <strong className="text-purple-600 dark:text-purple-400">Peran Administrator:</strong> Akses mutlak ke seluruh 15 modul sistem, termasuk Admin Settings untuk manajemen kredensial pengguna, RBAC, dan audit.
+                    </p>
+                  )}
+                  {newRole === 'user' && (
+                    <p>
+                      <strong className="text-sky-600 dark:text-sky-400">Peran Staff Operasional:</strong> Akses umum operasional pengadaan dan modul pendukung selain Admin Settings.
                     </p>
                   )}
                 </div>
@@ -841,14 +1033,14 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                 <label className="block text-xs font-semibold text-foreground mb-1.5">
                   Tipe Akun (Role)
                 </label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <button
                     type="button"
                     onClick={() => setEditRole('admin')}
-                    className={`p-2 rounded-lg border text-left transition cursor-pointer ${
+                    className={`p-2.5 rounded-lg border text-left transition cursor-pointer flex flex-col justify-between ${
                       editRole === 'admin'
                         ? 'border-purple-500 bg-purple-500/10 text-purple-700 dark:text-purple-300 ring-1 ring-purple-500'
-                        : 'border-border bg-card text-muted-foreground'
+                        : 'border-border bg-card text-muted-foreground hover:border-border/80'
                     }`}
                   >
                     <div className="font-bold text-xs">👑 Admin</div>
@@ -857,29 +1049,71 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
 
                   <button
                     type="button"
-                    onClick={() => setEditRole('user')}
-                    className={`p-2 rounded-lg border text-left transition cursor-pointer ${
-                      editRole === 'user'
-                        ? 'border-sky-500 bg-sky-500/10 text-sky-700 dark:text-sky-300 ring-1 ring-sky-500'
-                        : 'border-border bg-card text-muted-foreground'
+                    onClick={() => setEditRole('staf_ttb')}
+                    className={`p-2.5 rounded-lg border text-left transition cursor-pointer flex flex-col justify-between ${
+                      editRole === 'staf_ttb'
+                        ? 'border-blue-500 bg-blue-500/10 text-blue-700 dark:text-blue-300 ring-1 ring-blue-500'
+                        : 'border-border bg-card text-muted-foreground hover:border-border/80'
                     }`}
                   >
-                    <div className="font-bold text-xs">👤 Staff User</div>
-                    <span className="text-[9px] text-muted-foreground">Operasional</span>
+                    <div className="font-bold text-xs">📄 Staf TTB</div>
+                    <span className="text-[9px] text-muted-foreground">Upload Berkas</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setEditRole('staf_lapangan')}
+                    className={`p-2.5 rounded-lg border text-left transition cursor-pointer flex flex-col justify-between ${
+                      editRole === 'staf_lapangan'
+                        ? 'border-amber-500 bg-amber-500/10 text-amber-700 dark:text-amber-300 ring-1 ring-amber-500'
+                        : 'border-border bg-card text-muted-foreground hover:border-border/80'
+                    }`}
+                  >
+                    <div className="font-bold text-xs">🚚 Staf Lapangan</div>
+                    <span className="text-[9px] text-muted-foreground">Serah Terima &amp; TM</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setEditRole('visitor')}
-                    className={`p-2 rounded-lg border text-left transition cursor-pointer ${
+                    className={`p-2.5 rounded-lg border text-left transition cursor-pointer flex flex-col justify-between ${
                       editRole === 'visitor'
                         ? 'border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 ring-1 ring-emerald-500'
-                        : 'border-border bg-card text-muted-foreground'
+                        : 'border-border bg-card text-muted-foreground hover:border-border/80'
                     }`}
                   >
                     <div className="font-bold text-xs">👁️ Visitor</div>
                     <span className="text-[9px] text-muted-foreground">Read-Only</span>
                   </button>
+                </div>
+
+                {/* Role Description Helper */}
+                <div className="mt-2.5 p-2.5 rounded-lg bg-muted/40 border border-border text-[11px] text-muted-foreground leading-relaxed">
+                  {editRole === 'staf_ttb' && (
+                    <p>
+                      <strong className="text-blue-600 dark:text-blue-400">Staf Dokumen TTB:</strong> Akses Upload TTB, Galeri Foto TTB, verifikasi PO/FPB Procurement, dan Cek Persediaan. Modul lapangan &amp; admin disembunyikan.
+                    </p>
+                  )}
+                  {editRole === 'staf_lapangan' && (
+                    <p>
+                      <strong className="text-amber-600 dark:text-amber-400">Staf Serah Terima Lapangan:</strong> Akses Serah Terima Lapangan, Foto TimeMark, Layanan Armada, Posisi Kapal, &amp; List WO. Upload TTB &amp; admin dinonaktifkan.
+                    </p>
+                  )}
+                  {editRole === 'visitor' && (
+                    <p>
+                      <strong className="text-emerald-600 dark:text-emerald-400">Visitor (Tamu):</strong> Mode monitor baca-saja pada Overview, Galeri TTB, dan Foto TimeMark.
+                    </p>
+                  )}
+                  {editRole === 'admin' && (
+                    <p>
+                      <strong className="text-purple-600 dark:text-purple-400">Administrator:</strong> Akses kontrol penuh seluruh modul dan Admin Settings.
+                    </p>
+                  )}
+                  {editRole === 'user' && (
+                    <p>
+                      <strong className="text-sky-600 dark:text-sky-400">Staff Operasional:</strong> Akses umum operasional pengadaan dan modul pendukung selain Admin Settings.
+                    </p>
+                  )}
                 </div>
               </div>
 

@@ -38,6 +38,7 @@ import { TabType, LapseFilterType, ProcurementItem, ArmadaItem } from '@/types/p
 import { parseAndMergeWorkbook } from '@/utils/excelParser';
 import ThemeToggle from './ThemeToggle';
 import { useAuth } from '@/context/AuthContext';
+import { canAccessTab, getRoleDisplayName } from '@/types/auth';
 
 interface SidebarProps {
   activeTab: TabType;
@@ -104,88 +105,61 @@ export default function Sidebar({
     title?: string;
   }
 
-  const dashboards: DashboardNavItem[] = isVisitor
-    ? [
-        {
-          id: 'overview' as TabType,
-          label: 'Overview',
-          icon: LayoutDashboard,
-          badge: 'Visitor',
-        },
-        {
-          id: 'upload-ttb' as TabType,
-          label: 'Upload TTB',
-          icon: UploadCloud,
-          badge: 'R2',
-        },
-        {
-          id: 'serah-terima-lapangan' as TabType,
-          label: 'Serah Terima Lap.',
-          icon: Truck,
-          badge: 'Tim Lap',
-        },
-        {
-          id: 'galeri-ttb' as TabType,
-          label: 'Galeri Foto TTB',
-          icon: Images,
-          badge: 'Blob',
-        },
-        {
-          id: 'timemark' as TabType,
-          label: 'Foto TimeMark',
-          icon: Camera,
-          badge: '5 Digit',
-        },
-      ]
-    : [
-        {
-          id: 'overview' as TabType,
-          label: 'Overview',
-          icon: LayoutDashboard,
-          badge: 'Main',
-          title: 'Ringkasan Monitoring Procurement (Terintegrasi Database Barang Sisa Layanan 2026)',
-        },
-        {
-          id: 'procurement' as TabType,
-          label: 'Procurement',
-          icon: ShoppingBag,
-          badge: totalCount > 0 ? (totalCount >= 1000 ? `${(totalCount / 1000).toFixed(0)}k` : `${totalCount}`) : undefined,
-          title: 'Monitoring Alur Procurement & Lead Time (Hover FPB / Item untuk Nama Barang Sisa Layanan)',
-        },
-        {
-          id: 'armada' as TabType,
-          label: 'Layanan Armada',
-          icon: Anchor,
-          badge: 'FSTB',
-          title: 'Monitoring Layanan Armada & FSTB (Hover FPB / Item untuk Nama Barang Sisa Layanan)',
-        },
-        {
-          id: 'upload-ttb' as TabType,
-          label: 'Upload TTB',
-          icon: UploadCloud,
-          badge: 'R2',
-          title: 'Upload Dokumen TTB ke Cloudflare R2 dengan Format Otomatis Sesuai No. TTB',
-        },
-        {
-          id: 'serah-terima-lapangan' as TabType,
-          label: 'Serah Terima Lap.',
-          icon: Truck,
-          badge: 'Tim Lap',
-          title: 'Portal Tim Lapangan: Upload Bukti Foto Penyerahan Barang Berdasarkan Referensi TTB Resmi',
-        },
-        {
-          id: 'galeri-ttb' as TabType,
-          label: 'Galeri Foto TTB',
-          icon: Images,
-          badge: 'Blob',
-        },
-        {
-          id: 'timemark' as TabType,
-          label: 'Foto TimeMark',
-          icon: Camera,
-          badge: '5 Digit',
-        },
-      ];
+  const allDashboards: DashboardNavItem[] = [
+    {
+      id: 'overview' as TabType,
+      label: 'Overview',
+      icon: LayoutDashboard,
+      badge: isVisitor ? 'Visitor' : 'Main',
+      title: 'Ringkasan Monitoring Procurement (Terintegrasi Database Barang Sisa Layanan 2026)',
+    },
+    {
+      id: 'procurement' as TabType,
+      label: 'Procurement',
+      icon: ShoppingBag,
+      badge: totalCount > 0 ? (totalCount >= 1000 ? `${(totalCount / 1000).toFixed(0)}k` : `${totalCount}`) : undefined,
+      title: 'Monitoring Alur Procurement & Lead Time (Hover FPB / Item untuk Nama Barang Sisa Layanan)',
+    },
+    {
+      id: 'armada' as TabType,
+      label: 'Layanan Armada',
+      icon: Anchor,
+      badge: 'FSTB',
+      title: 'Monitoring Layanan Armada & FSTB (Hover FPB / Item untuk Nama Barang Sisa Layanan)',
+    },
+    {
+      id: 'upload-ttb' as TabType,
+      label: 'Upload TTB',
+      icon: UploadCloud,
+      badge: 'R2',
+      title: 'Upload Dokumen TTB ke Cloudflare R2 dengan Format Otomatis Sesuai No. TTB',
+    },
+    {
+      id: 'serah-terima-lapangan' as TabType,
+      label: 'Serah Terima Lap.',
+      icon: Truck,
+      badge: 'Tim Lap',
+      title: 'Portal Tim Lapangan: Upload Bukti Foto Penyerahan Barang Berdasarkan Referensi TTB Resmi',
+    },
+    {
+      id: 'galeri-ttb' as TabType,
+      label: 'Galeri Foto TTB',
+      icon: Images,
+      badge: 'Blob',
+      title: 'Galeri Arsip Foto TTB dari Lapangan',
+    },
+    {
+      id: 'timemark' as TabType,
+      label: 'Foto TimeMark',
+      icon: Camera,
+      badge: '5 Digit',
+      title: 'Dokumentasi Foto TimeMark 5 Digit No. Lambung',
+    },
+  ];
+
+  const dashboards: DashboardNavItem[] = allDashboards.filter((item) =>
+    canAccessTab(user?.role, item.id)
+  );
 
   const slaFilters: { id: LapseFilterType; label: string; icon: any; count?: number }[] = [
     { id: 'ALL', label: 'Semua Berkas', icon: List },
@@ -281,11 +255,21 @@ export default function Sidebar({
             </button>
           </div>
 
-          {/* Quick Action Button or Visitor Badge */}
+          {/* Quick Action Button or Role Banner */}
           {isVisitor ? (
             <div className="flex items-center gap-2 p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[11px] font-medium">
               <span className="size-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
               <span className="truncate">Mode Visitor &bull; Read-Only</span>
+            </div>
+          ) : user?.role === 'staf_ttb' ? (
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-700 dark:text-blue-300 text-[11px] font-medium">
+              <span className="size-2 rounded-full bg-blue-500 animate-pulse shrink-0" />
+              <span className="truncate">Staf Dokumen TTB</span>
+            </div>
+          ) : user?.role === 'staf_lapangan' ? (
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-300 text-[11px] font-medium">
+              <span className="size-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
+              <span className="truncate">Staf Lapangan &amp; Serah Terima</span>
             </div>
           ) : (
             <div className="flex items-center gap-1.5">
@@ -435,8 +419,10 @@ export default function Sidebar({
           )}
         </div>
 
-        {/* Modul Tambahan (Cek Persediaan, Posisi Kapal, List WO) - Khusus Admin & User */}
-        {!isVisitor && (
+        {/* Modul Tambahan - Disaring Berdasarkan RBAC canAccessTab */}
+        {(['inventory', 'pos-kapal', 'crew-kapal', 'work-order', 'list-sm', 'sisa-layanan'] as TabType[]).some(
+          (t) => canAccessTab(user?.role, t)
+        ) && (
           <div className="space-y-1 pt-2 border-t border-border">
             <div className="px-2 py-1 text-[11px] font-medium text-muted-foreground flex items-center justify-between">
               <span>Modul Tambahan</span>
@@ -445,160 +431,172 @@ export default function Sidebar({
               </span>
             </div>
             <nav className="space-y-0.5">
-              <button
-                onClick={() => handleSelectTab('inventory')}
-                className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation ${
-                  activeTab === 'inventory'
-                    ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-border'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                }`}
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <Boxes
-                    className={`size-4 shrink-0 ${
-                      activeTab === 'inventory' ? 'text-emerald-500' : 'text-muted-foreground'
-                    }`}
-                  />
-                  <span className="truncate whitespace-nowrap">Cek Persediaan</span>
-                </div>
-                <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                  {inventoryCount !== undefined && inventoryCount > 0
-                    ? inventoryCount >= 1000
-                      ? `${(inventoryCount / 1000).toFixed(0)}k`
-                      : `${inventoryCount}`
-                    : '10k'}
-                </span>
-              </button>
+              {canAccessTab(user?.role, 'inventory') && (
+                <button
+                  onClick={() => handleSelectTab('inventory')}
+                  className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation ${
+                    activeTab === 'inventory'
+                      ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-border'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Boxes
+                      className={`size-4 shrink-0 ${
+                        activeTab === 'inventory' ? 'text-emerald-500' : 'text-muted-foreground'
+                      }`}
+                    />
+                    <span className="truncate whitespace-nowrap">Cek Persediaan</span>
+                  </div>
+                  <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                    {inventoryCount !== undefined && inventoryCount > 0
+                      ? inventoryCount >= 1000
+                        ? `${(inventoryCount / 1000).toFixed(0)}k`
+                        : `${inventoryCount}`
+                      : '10k'}
+                  </span>
+                </button>
+              )}
 
-              {/* Posisi Kapal FMS (Tepat di paling bawah Cek Persediaan) */}
-              <button
-                onClick={() => handleSelectTab('pos-kapal')}
-                className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation ${
-                  activeTab === 'pos-kapal'
-                    ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-border'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                }`}
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <Navigation
-                    className={`size-4 shrink-0 ${
-                      activeTab === 'pos-kapal' ? 'text-sky-500' : 'text-muted-foreground'
-                    }`}
-                  />
-                  <span className="truncate whitespace-nowrap">Posisi Kapal</span>
-                </div>
-                <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
-                  {kapalPosisiCount !== undefined && kapalPosisiCount > 0
-                    ? `${kapalPosisiCount}`
-                    : 'Live'}
-                </span>
-              </button>
+              {/* Posisi Kapal FMS */}
+              {canAccessTab(user?.role, 'pos-kapal') && (
+                <button
+                  onClick={() => handleSelectTab('pos-kapal')}
+                  className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation ${
+                    activeTab === 'pos-kapal'
+                      ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-border'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Navigation
+                      className={`size-4 shrink-0 ${
+                        activeTab === 'pos-kapal' ? 'text-sky-500' : 'text-muted-foreground'
+                      }`}
+                    />
+                    <span className="truncate whitespace-nowrap">Posisi Kapal</span>
+                  </div>
+                  <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
+                    {kapalPosisiCount !== undefined && kapalPosisiCount > 0
+                      ? `${kapalPosisiCount}`
+                      : 'Live'}
+                  </span>
+                </button>
+              )}
 
-              {/* Modul Baru: Data Crew & Monitoring Armada Kapal */}
-              <button
-                onClick={() => handleSelectTab('crew-kapal')}
-                className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation cursor-pointer ${
-                  activeTab === 'crew-kapal'
-                    ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-border'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                }`}
-                title="Buka Modul Data Crew & Monitoring Awak Armada Kapal (60 Kapal, 633 Kru)"
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <Users
-                    className={`size-4 shrink-0 ${
-                      activeTab === 'crew-kapal' ? 'text-blue-500' : 'text-muted-foreground'
-                    }`}
-                  />
-                  <span className="truncate whitespace-nowrap">Crew &amp; Armada</span>
-                </div>
-                <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                  60 Kpl
-                </span>
-              </button>
+              {/* Crew & Armada */}
+              {canAccessTab(user?.role, 'crew-kapal') && (
+                <button
+                  onClick={() => handleSelectTab('crew-kapal')}
+                  className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation cursor-pointer ${
+                    activeTab === 'crew-kapal'
+                      ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-border'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  }`}
+                  title="Buka Modul Data Crew & Monitoring Awak Armada Kapal (60 Kapal, 633 Kru)"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Users
+                      className={`size-4 shrink-0 ${
+                        activeTab === 'crew-kapal' ? 'text-blue-500' : 'text-muted-foreground'
+                      }`}
+                    />
+                    <span className="truncate whitespace-nowrap">Crew &amp; Armada</span>
+                  </div>
+                  <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                    60 Kpl
+                  </span>
+                </button>
+              )}
 
-              {/* Modul Baru: List WO (Work Order Dashboard Langsung di Web) */}
-              <button
-                onClick={() => handleSelectTab('work-order')}
-                className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation cursor-pointer ${
-                  activeTab === 'work-order'
-                    ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-border'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                }`}
-                title="Buka Modul Monitoring Work Order (WO)"
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <FileSpreadsheet
-                    className={`size-4 shrink-0 ${
-                      activeTab === 'work-order' ? 'text-blue-500' : 'text-muted-foreground'
-                    }`}
-                  />
-                  <span className="truncate whitespace-nowrap">List WO</span>
-                </div>
-                <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                  {workOrderCount !== undefined && workOrderCount > 0
-                    ? `${workOrderCount}`
-                    : 'Sync'}
-                </span>
-              </button>
+              {/* List WO */}
+              {canAccessTab(user?.role, 'work-order') && (
+                <button
+                  onClick={() => handleSelectTab('work-order')}
+                  className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation cursor-pointer ${
+                    activeTab === 'work-order'
+                      ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-border'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  }`}
+                  title="Buka Modul Monitoring Work Order (WO)"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <FileSpreadsheet
+                      className={`size-4 shrink-0 ${
+                        activeTab === 'work-order' ? 'text-blue-500' : 'text-muted-foreground'
+                      }`}
+                    />
+                    <span className="truncate whitespace-nowrap">List WO</span>
+                  </div>
+                  <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                    {workOrderCount !== undefined && workOrderCount > 0
+                      ? `${workOrderCount}`
+                      : 'Sync'}
+                  </span>
+                </button>
+              )}
 
-              {/* Modul Baru: List SM (Service & Maintenance Bengkel Rekanan) */}
-              <button
-                onClick={() => handleSelectTab('list-sm')}
-                className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation cursor-pointer ${
-                  activeTab === 'list-sm'
-                    ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-border'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                }`}
-                title="Buka Modul Monitoring Service & Maintenance (SM) Bengkel Vendor"
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <Wrench
-                    className={`size-4 shrink-0 ${
-                      activeTab === 'list-sm' ? 'text-amber-500' : 'text-muted-foreground'
-                    }`}
-                  />
-                  <span className="truncate whitespace-nowrap">List SM</span>
-                </div>
-                <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                  {serviceMaintenanceCount !== undefined && serviceMaintenanceCount > 0
-                    ? `${serviceMaintenanceCount}`
-                    : 'Vendor'}
-                </span>
-              </button>
+              {/* List SM */}
+              {canAccessTab(user?.role, 'list-sm') && (
+                <button
+                  onClick={() => handleSelectTab('list-sm')}
+                  className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation cursor-pointer ${
+                    activeTab === 'list-sm'
+                      ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-border'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  }`}
+                  title="Buka Modul Monitoring Service & Maintenance (SM) Bengkel Vendor"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Wrench
+                      className={`size-4 shrink-0 ${
+                        activeTab === 'list-sm' ? 'text-amber-500' : 'text-muted-foreground'
+                      }`}
+                    />
+                    <span className="truncate whitespace-nowrap">List SM</span>
+                  </div>
+                  <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                    {serviceMaintenanceCount !== undefined && serviceMaintenanceCount > 0
+                      ? `${serviceMaintenanceCount}`
+                      : 'Vendor'}
+                  </span>
+                </button>
+              )}
 
-              {/* Modul Baru: Sisa Layanan (Gabungan Seluruh Unit CPG) */}
-              <button
-                onClick={() => handleSelectTab('sisa-layanan')}
-                className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation cursor-pointer ${
-                  activeTab === 'sisa-layanan'
-                    ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-border'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                }`}
-                title="Buka Modul Laporan Sisa Layanan Gabungan Semua Unit (FPB-PO-FSTB-TTB)"
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <Layers
-                    className={`size-4 shrink-0 ${
-                      activeTab === 'sisa-layanan' ? 'text-indigo-500' : 'text-muted-foreground'
-                    }`}
-                  />
-                  <span className="truncate whitespace-nowrap">Sisa Layanan</span>
-                </div>
-                <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-                  {sisaLayananCount !== undefined && sisaLayananCount > 0
-                    ? sisaLayananCount >= 1000
-                      ? `${(sisaLayananCount / 1000).toFixed(0)}k`
-                      : `${sisaLayananCount}`
-                    : '28k'}
-                </span>
-              </button>
+              {/* Sisa Layanan */}
+              {canAccessTab(user?.role, 'sisa-layanan') && (
+                <button
+                  onClick={() => handleSelectTab('sisa-layanan')}
+                  className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation cursor-pointer ${
+                    activeTab === 'sisa-layanan'
+                      ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-border'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  }`}
+                  title="Buka Modul Laporan Sisa Layanan Gabungan Semua Unit (FPB-PO-FSTB-TTB)"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Layers
+                      className={`size-4 shrink-0 ${
+                        activeTab === 'sisa-layanan' ? 'text-indigo-500' : 'text-muted-foreground'
+                      }`}
+                    />
+                    <span className="truncate whitespace-nowrap">Sisa Layanan</span>
+                  </div>
+                  <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                    {sisaLayananCount !== undefined && sisaLayananCount > 0
+                      ? sisaLayananCount >= 1000
+                        ? `${(sisaLayananCount / 1000).toFixed(0)}k`
+                        : `${sisaLayananCount}`
+                      : '28k'}
+                  </span>
+                </button>
+              )}
             </nav>
           </div>
         )}
 
-        {/* Modul Khusus (Analytics & Admin Settings) */}
-        {!isVisitor && (
+        {/* Modul Khusus (Analytics & Admin Settings) - Disaring Berdasarkan RBAC */}
+        {(['analytics', 'admin-settings'] as TabType[]).some((t) => canAccessTab(user?.role, t)) && (
           <div className="space-y-1 pt-2 border-t border-border">
             <div className="px-2 py-1 text-[11px] font-medium text-muted-foreground flex items-center justify-between">
               <span>Modul Khusus</span>
@@ -608,36 +606,38 @@ export default function Sidebar({
             </div>
             <nav className="space-y-0.5">
               {/* Analytics */}
-              <button
-                onClick={() => handleSelectTab('analytics')}
-                className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation cursor-pointer ${
-                  activeTab === 'analytics'
-                    ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-border'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                }`}
-                title="Analisis Lead Time SLA, Bottleneck & Kinerja PIC Procurement"
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <BarChart3
-                    className={`size-4 shrink-0 ${
-                      activeTab === 'analytics' ? 'text-purple-500' : 'text-muted-foreground'
-                    }`}
-                  />
-                  <span className="truncate whitespace-nowrap">Analytics</span>
-                </div>
-                {criticalCount > 0 ? (
-                  <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
-                    {criticalCount >= 1000 ? `${(criticalCount / 1000).toFixed(0)}k` : `${criticalCount}`}
-                  </span>
-                ) : (
-                  <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-medium leading-none whitespace-nowrap bg-background text-muted-foreground border border-border">
-                    SLA
-                  </span>
-                )}
-              </button>
+              {canAccessTab(user?.role, 'analytics') && (
+                <button
+                  onClick={() => handleSelectTab('analytics')}
+                  className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation cursor-pointer ${
+                    activeTab === 'analytics'
+                      ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-border'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  }`}
+                  title="Analisis Lead Time SLA, Bottleneck & Kinerja PIC Procurement"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <BarChart3
+                      className={`size-4 shrink-0 ${
+                        activeTab === 'analytics' ? 'text-purple-500' : 'text-muted-foreground'
+                      }`}
+                    />
+                    <span className="truncate whitespace-nowrap">Analytics</span>
+                  </div>
+                  {criticalCount > 0 ? (
+                    <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                      {criticalCount >= 1000 ? `${(criticalCount / 1000).toFixed(0)}k` : `${criticalCount}`}
+                    </span>
+                  ) : (
+                    <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-medium leading-none whitespace-nowrap bg-background text-muted-foreground border border-border">
+                      SLA
+                    </span>
+                  )}
+                </button>
+              )}
 
               {/* Admin Settings (Khusus Admin) */}
-              {isAdmin && (
+              {canAccessTab(user?.role, 'admin-settings') && (
                 <button
                   onClick={() => handleSelectTab('admin-settings')}
                   className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation cursor-pointer ${
@@ -675,6 +675,10 @@ export default function Sidebar({
                 ? 'bg-linear-to-tr from-purple-600 to-indigo-600'
                 : isVisitor
                 ? 'bg-linear-to-tr from-emerald-600 to-teal-600'
+                : user?.role === 'staf_ttb'
+                ? 'bg-linear-to-tr from-blue-600 to-cyan-600'
+                : user?.role === 'staf_lapangan'
+                ? 'bg-linear-to-tr from-amber-600 to-emerald-600'
                 : 'bg-linear-to-tr from-sky-500 to-indigo-500'
             }`}
           >
@@ -685,7 +689,7 @@ export default function Sidebar({
               {user?.name || 'Pengguna'}
             </span>
             <span className="text-[10px] text-muted-foreground truncate">
-              {isAdmin ? 'CPG Admin' : isVisitor ? 'Visitor (Read-Only)' : 'Staff User'}
+              {getRoleDisplayName(user?.role)}
             </span>
           </div>
         </div>

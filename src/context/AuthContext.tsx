@@ -1,7 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { AuthUser, UserAccount, UserRole } from '@/types/auth';
+import { AuthUser, UserAccount, UserRole, canAccessTab } from '@/types/auth';
+import { TabType } from '@/types/procurement';
 import {
   getStoredUsers,
   getStoredSessionUser,
@@ -21,7 +22,10 @@ interface AuthContextType {
   isAdmin: boolean;
   isUser: boolean;
   isVisitor: boolean;
+  isStafTtb: boolean;
+  isStafLapangan: boolean;
   canEdit: boolean;
+  canAccess: (tab: TabType) => boolean;
   login: (username: string, password: string) => Promise<{ success: boolean; message?: string; user?: AuthUser }>;
   logout: () => void;
   refreshUsers: () => void;
@@ -129,9 +133,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const isAdmin = user?.role === 'admin';
+  const isStafTtb = user?.role === 'staf_ttb';
+  const isStafLapangan = user?.role === 'staf_lapangan';
   const isUser = user?.role === 'user';
   const isVisitor = user?.role === 'visitor';
-  const canEdit = isAdmin || isUser;
+  const canEdit = isAdmin || isStafTtb || isStafLapangan || isUser;
+  const canAccess = useCallback((tab: TabType) => canAccessTab(user?.role, tab), [user?.role]);
 
   return (
     <AuthContext.Provider
@@ -143,7 +150,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAdmin,
         isUser,
         isVisitor,
+        isStafTtb,
+        isStafLapangan,
         canEdit,
+        canAccess,
         login,
         logout,
         refreshUsers: loadUsersFromStorage,

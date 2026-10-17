@@ -74,6 +74,7 @@ import AuditModal from '@/components/AuditModal';
 import NewRecordModal from '@/components/NewRecordModal';
 import LoginPage from '@/components/LoginPage';
 import { useAuth } from '@/context/AuthContext';
+import { canAccessTab, getRoleDisplayName } from '@/types/auth';
 
 import ToastNotification from '@/components/ToastNotification';
 import { PanelLeftOpen, ChevronDown } from 'lucide-react';
@@ -631,6 +632,17 @@ export default function DashboardPage() {
       setToast((prev) => ({ ...prev, visible: false }));
     }, 3500);
   };
+
+  // RBAC Tab Route Guard: Reset to 'overview' if activeTab is not permitted for active role
+  useEffect(() => {
+    if (user && !canAccessTab(user.role, activeTab)) {
+      setActiveTab('overview');
+      showToast(
+        `Akses ke modul "${activeTab}" dibatasi untuk peran ${getRoleDisplayName(user.role)}. Dialihkan ke Overview.`,
+        'warning'
+      );
+    }
+  }, [user, activeTab]);
 
   // Filtered dataset
   const filteredProcurement = useMemo(() => {
