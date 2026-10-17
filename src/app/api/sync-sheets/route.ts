@@ -26,13 +26,13 @@ function extractExportUrl(rawUrl: string): string {
  * Cari file Excel Monitoring Berkas Internal Procurement terbaru dari folder Downloads / Project
  */
 function findLatestLocalProcurementFile(): { buffer: Buffer; fileName: string } | null {
-  const candidateDirs = [
-    process.cwd(),
-    'C:\\Users\\Hermansyah\\Downloads',
-    'C:\\Users\\Hermansyah\\Desktop',
-    path.join(process.env.USERPROFILE || 'C:\\Users\\Hermansyah', 'Downloads'),
-    path.join(process.env.USERPROFILE || 'C:\\Users\\Hermansyah', 'Desktop'),
-  ];
+  const candidateDirs: string[] = [process.cwd()];
+  if (process.env.USERPROFILE) {
+    candidateDirs.push(
+      path.join(process.env.USERPROFILE, 'Downloads'),
+      path.join(process.env.USERPROFILE, 'Desktop')
+    );
+  }
 
   let bestFile: { filePath: string; mtime: number; version: number } | null = null;
 

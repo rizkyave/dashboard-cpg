@@ -10,10 +10,12 @@ export const revalidate = 0;
 function findLatestLocalProcurementFile(): { buffer: Buffer; fileName: string } | null {
   const candidateDirs = [
     process.cwd(),
-    'C:\\Users\\Hermansyah\\Downloads',
-    'C:\\Users\\Hermansyah\\Desktop',
-    path.join(process.env.USERPROFILE || 'C:\\Users\\Hermansyah', 'Downloads'),
-    path.join(process.env.USERPROFILE || 'C:\\Users\\Hermansyah', 'Desktop'),
+    ...(process.env.USERPROFILE
+      ? [
+          path.join(process.env.USERPROFILE, 'Downloads'),
+          path.join(process.env.USERPROFILE, 'Desktop'),
+        ]
+      : []),
   ];
 
   let bestFile: { filePath: string; mtime: number; version: number } | null = null;

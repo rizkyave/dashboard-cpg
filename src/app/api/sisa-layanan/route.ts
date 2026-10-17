@@ -17,7 +17,6 @@ function loadInitialFromDisk(): { items: SisaLayananItem[]; summary: SisaLayanan
   const candidatePaths = [
     path.join(process.cwd(), 'Laporan_Sisa_Layanan_Gabungan.xlsx'),
     path.join(process.cwd(), '..', 'Laporan_Sisa_Layanan_Gabungan.xlsx'),
-    'C:\\Users\\Hermansyah\\.gemini\\antigravity\\brain\\0214c09c-673f-4c49-b443-003ef9b1775f\\.user_uploaded\\media_1791802932102_c7325e7e.xlsx',
   ];
 
   for (const filePath of candidatePaths) {
