@@ -42,6 +42,8 @@ import {
   Upload,
   ShieldAlert,
   RefreshCw,
+  Award,
+  ShoppingCart,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -134,6 +136,8 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
   const totalUsers = users.length;
   const adminCount = users.filter((u) => u.role === 'admin').length;
   const managerCount = users.filter((u) => u.role === 'manager').length;
+  const supervisorCount = users.filter((u) => u.role === 'supervisor').length;
+  const stafPurchasingCount = users.filter((u) => u.role === 'staf_purchasing').length;
   const stafTtbCount = users.filter((u) => u.role === 'staf_ttb').length;
   const stafLapanganCount = users.filter((u) => u.role === 'staf_lapangan').length;
   const visitorCount = users.filter((u) => u.role === 'visitor').length;
@@ -193,7 +197,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
     setNewDepartment(
       targetRole === 'admin'
         ? 'Management Information System'
-        : targetRole === 'manager'
+        : targetRole === 'manager' || targetRole === 'supervisor' || targetRole === 'staf_purchasing'
         ? 'Purchasing & Procurement'
         : targetRole === 'visitor'
         ? 'Purchasing & Procurement'
@@ -357,6 +361,10 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
         return 'Head of Management Information System';
       case 'manager':
         return 'Manager Procurement & Supply Chain';
+      case 'supervisor':
+        return 'Supervisor Procurement & Purchasing';
+      case 'staf_purchasing':
+        return 'Staf Purchasing & Pengadaan';
       case 'staf_ttb':
         return 'Staf Dokumen TTB Logistik';
       case 'staf_lapangan':
@@ -550,6 +558,10 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
           ? 'ADM'
           : signatureTargetUser.role === 'manager'
           ? 'MGR'
+          : signatureTargetUser.role === 'supervisor'
+          ? 'SPV'
+          : signatureTargetUser.role === 'staf_purchasing'
+          ? 'PCH'
           : signatureTargetUser.role === 'staf_ttb'
           ? 'TTB'
           : signatureTargetUser.role === 'staf_lapangan'
@@ -658,7 +670,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
             </h1>
           </div>
           <p className="text-xs text-muted-foreground max-w-2xl">
-            Kelola akses staf purchasing, tim operasional (User), dan akun tamu peninjau (Visitor). Atur wewenang input pengadaan, pengunggahan berkas, atau akses mode monitor baca-saja.
+            Kelola akses manajerial, supervisor, staf purchasing, staf logistik/TTB, tim operasional (User), dan akun tamu peninjau (Visitor). Atur wewenang otorisasi, validasi &amp; TTD digital, atau akses mode monitor baca-saja.
           </p>
         </div>
 
@@ -671,6 +683,26 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
           >
             <Briefcase className="size-3.5" />
             <span>+ Manager</span>
+          </button>
+
+          {/* Quick Add Supervisor */}
+          <button
+            onClick={() => handleOpenAddModal('supervisor')}
+            className="flex-1 md:flex-initial h-9 px-3 rounded-lg border border-violet-500/30 bg-violet-500/10 hover:bg-violet-500/20 text-violet-700 dark:text-violet-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-xs cursor-pointer active:scale-95"
+            title="Tambah Akun Supervisor Procurement (Approval FSTB & TTD Digital)"
+          >
+            <Award className="size-3.5" />
+            <span>+ Supervisor</span>
+          </button>
+
+          {/* Quick Add Staf Purchasing */}
+          <button
+            onClick={() => handleOpenAddModal('staf_purchasing')}
+            className="flex-1 md:flex-initial h-9 px-3 rounded-lg border border-teal-500/30 bg-teal-500/10 hover:bg-teal-500/20 text-teal-700 dark:text-teal-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-xs cursor-pointer active:scale-95"
+            title="Tambah Akun Staf Purchasing (Delivered By FSTB & Validasi TTB)"
+          >
+            <ShoppingCart className="size-3.5" />
+            <span>+ Staf Purchasing</span>
           </button>
 
           {/* Quick Add Staf TTB */}
@@ -738,87 +770,115 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
         </div>
       </div>
 
-      {/* KPI Cards - 6 Kolom Sesuai RBAC Logistik Maritim */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+      {/* KPI Cards - 8 Kolom Sesuai RBAC Logistik Maritim */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 sm:gap-4">
         {/* Total Akun */}
         <div className="bg-card border border-border rounded-xl p-4 shadow-xs">
           <div className="flex items-center justify-between text-muted-foreground mb-2">
-            <span className="text-xs font-medium">Total Akun Terdaftar</span>
+            <span className="text-xs font-medium">Total Akun</span>
             <Users className="size-4 text-foreground" />
           </div>
           <div className="text-2xl font-bold font-mono text-foreground">{totalUsers}</div>
           <span className="text-[11px] text-muted-foreground mt-1 block">
-            Semua tingkatan hak akses
+            Semua tingkatan
           </span>
         </div>
 
         {/* Administrator */}
         <div className="bg-card border border-purple-500/20 bg-purple-500/5 rounded-xl p-4 shadow-xs">
           <div className="flex items-center justify-between text-purple-600 dark:text-purple-400 mb-2">
-            <span className="text-xs font-medium">Administrator</span>
+            <span className="text-xs font-medium">Admin</span>
             <Shield className="size-4" />
           </div>
           <div className="text-2xl font-bold font-mono text-purple-700 dark:text-purple-300">
             {adminCount}
           </div>
           <span className="text-[11px] text-muted-foreground mt-1 block">
-            Kontrol penuh &amp; kelola user
+            Kontrol penuh
           </span>
         </div>
 
         {/* Manager Procurement */}
         <div className="bg-card border border-indigo-500/20 bg-indigo-500/5 rounded-xl p-4 shadow-xs">
           <div className="flex items-center justify-between text-indigo-600 dark:text-indigo-400 mb-2">
-            <span className="text-xs font-medium">Manager Procurement</span>
+            <span className="text-xs font-medium">Manager</span>
             <Briefcase className="size-4" />
           </div>
           <div className="text-2xl font-bold font-mono text-indigo-700 dark:text-indigo-300">
             {managerCount}
           </div>
           <span className="text-[11px] text-muted-foreground mt-1 block">
-            Otorisasi, TTD &amp; validasi
+            Otorisasi &amp; TTD
+          </span>
+        </div>
+
+        {/* Supervisor Procurement */}
+        <div className="bg-card border border-violet-500/20 bg-violet-500/5 rounded-xl p-4 shadow-xs">
+          <div className="flex items-center justify-between text-violet-600 dark:text-violet-400 mb-2">
+            <span className="text-xs font-medium">Supervisor</span>
+            <Award className="size-4" />
+          </div>
+          <div className="text-2xl font-bold font-mono text-violet-700 dark:text-violet-300">
+            {supervisorCount}
+          </div>
+          <span className="text-[11px] text-muted-foreground mt-1 block">
+            Approval FSTB &amp; TTB
+          </span>
+        </div>
+
+        {/* Staf Purchasing */}
+        <div className="bg-card border border-teal-500/20 bg-teal-500/5 rounded-xl p-4 shadow-xs">
+          <div className="flex items-center justify-between text-teal-600 dark:text-teal-400 mb-2">
+            <span className="text-xs font-medium">Staf Purchasing</span>
+            <ShoppingCart className="size-4" />
+          </div>
+          <div className="text-2xl font-bold font-mono text-teal-700 dark:text-teal-300">
+            {stafPurchasingCount}
+          </div>
+          <span className="text-[11px] text-muted-foreground mt-1 block">
+            Delivered &amp; Verifikasi
           </span>
         </div>
 
         {/* Staf Dokumen TTB */}
         <div className="bg-card border border-blue-500/20 bg-blue-500/5 rounded-xl p-4 shadow-xs">
           <div className="flex items-center justify-between text-blue-600 dark:text-blue-400 mb-2">
-            <span className="text-xs font-medium">Staf Dokumen TTB</span>
+            <span className="text-xs font-medium">Staf TTB</span>
             <UploadCloud className="size-4" />
           </div>
           <div className="text-2xl font-bold font-mono text-blue-700 dark:text-blue-300">
             {stafTtbCount}
           </div>
           <span className="text-[11px] text-muted-foreground mt-1 block">
-            Upload &amp; verifikasi berkas
+            Upload &amp; arsip TTB
           </span>
         </div>
 
         {/* Staf Serah Terima Lapangan */}
         <div className="bg-card border border-amber-500/20 bg-amber-500/5 rounded-xl p-4 shadow-xs">
           <div className="flex items-center justify-between text-amber-600 dark:text-amber-400 mb-2">
-            <span className="text-xs font-medium">Staf Serah Terima Lap.</span>
+            <span className="text-xs font-medium">Staf Lapangan</span>
             <Truck className="size-4" />
           </div>
           <div className="text-2xl font-bold font-mono text-amber-700 dark:text-amber-300">
             {stafLapanganCount}
           </div>
           <span className="text-[11px] text-muted-foreground mt-1 block">
-            Fisik serah terima &amp; TimeMark
+            Fisik serah &amp; TM
           </span>
         </div>
 
         {/* Visitor */}
         <div className="bg-card border border-emerald-500/20 bg-emerald-500/5 rounded-xl p-4 shadow-xs">
           <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400 mb-2">
-            <span className="text-xs font-medium">Visitor (Tamu Peninjau)</span>
+            <span className="text-xs font-medium">Visitor</span>
             <Eye className="size-4" />
           </div>
           <div className="text-2xl font-bold font-mono text-emerald-700 dark:text-emerald-300">
             {visitorCount}
           </div>
           <span className="text-[11px] text-muted-foreground mt-1 block">
-            Mode monitor (Akses baca saja)
+            Mode monitor (Read)
           </span>
         </div>
       </div>
@@ -849,7 +909,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
 
           {/* Role Filter Tabs */}
           <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
-            {(['ALL', 'admin', 'manager', 'staf_ttb', 'staf_lapangan', 'visitor', 'user'] as const).map((r) => {
+            {(['ALL', 'admin', 'manager', 'supervisor', 'staf_purchasing', 'staf_ttb', 'staf_lapangan', 'visitor', 'user'] as const).map((r) => {
               const isActive = roleFilter === r;
               const label =
                 r === 'ALL'
@@ -858,6 +918,10 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                   ? 'Admin'
                   : r === 'manager'
                   ? 'Manager'
+                  : r === 'supervisor'
+                  ? 'Supervisor'
+                  : r === 'staf_purchasing'
+                  ? 'Staf Purchasing'
                   : r === 'staf_ttb'
                   ? 'Staf TTB'
                   : r === 'staf_lapangan'
@@ -925,6 +989,12 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                             className={`size-8 rounded-full flex items-center justify-center font-bold text-xs text-white shrink-0 ${
                               item.role === 'admin'
                                 ? 'bg-linear-to-tr from-purple-600 to-indigo-600'
+                                : item.role === 'manager'
+                                ? 'bg-linear-to-tr from-indigo-600 to-blue-600'
+                                : item.role === 'supervisor'
+                                ? 'bg-linear-to-tr from-violet-600 to-purple-600'
+                                : item.role === 'staf_purchasing'
+                                ? 'bg-linear-to-tr from-teal-600 to-cyan-600'
                                 : item.role === 'staf_ttb'
                                 ? 'bg-linear-to-tr from-blue-600 to-cyan-600'
                                 : item.role === 'staf_lapangan'
@@ -976,6 +1046,16 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20">
                             <Briefcase className="size-3" />
                             <span>Manager Procurement</span>
+                          </span>
+                        ) : item.role === 'supervisor' ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-violet-500/10 text-violet-700 dark:text-violet-300 border border-violet-500/20">
+                            <Award className="size-3" />
+                            <span>Supervisor Procurement</span>
+                          </span>
+                        ) : item.role === 'staf_purchasing' ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-teal-500/10 text-teal-700 dark:text-teal-300 border border-teal-500/20">
+                            <ShoppingCart className="size-3" />
+                            <span>Staf Purchasing</span>
                           </span>
                         ) : item.role === 'staf_ttb' ? (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20">
@@ -1145,7 +1225,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                 Matriks Hak Akses &amp; Perizinan (Role-Based Access Control)
               </h3>
               <p className="text-[11px] text-muted-foreground">
-                Pemetaan hak akses operasional 15 modul dashboard antara Administrator, Manager Procurement, Staf Dokumen TTB, Staf Serah Terima Lapangan, dan Tamu Visitor
+                Pemetaan hak akses operasional 17 modul dashboard antara Administrator, Manager Procurement, Supervisor Procurement, Staf Purchasing, Staf Dokumen TTB, Staf Serah Terima Lapangan, dan Tamu Visitor
               </p>
             </div>
           </div>
@@ -1177,11 +1257,13 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
               <tr>
                 <th className="py-2.5 px-3 min-w-[170px]">Modul / Fitur Sistem</th>
                 <th className="py-2.5 px-3 min-w-[240px]">Deskripsi Wewenang</th>
-                <th className="py-2.5 px-3 text-center w-36">👑 Admin</th>
-                <th className="py-2.5 px-3 text-center w-40">👔 Manager</th>
-                <th className="py-2.5 px-3 text-center w-40">📄 Staf Dokumen TTB</th>
-                <th className="py-2.5 px-3 text-center w-44">🚚 Staf Serah Terima Lap.</th>
-                <th className="py-2.5 px-3 text-center w-36">👁️ Visitor</th>
+                <th className="py-2.5 px-3 text-center w-32">👑 Admin</th>
+                <th className="py-2.5 px-3 text-center w-36">👔 Manager</th>
+                <th className="py-2.5 px-3 text-center w-36">🎖️ Supervisor</th>
+                <th className="py-2.5 px-3 text-center w-36">🛒 Staf Purchasing</th>
+                <th className="py-2.5 px-3 text-center w-36">📄 Staf Dokumen TTB</th>
+                <th className="py-2.5 px-3 text-center w-40">🚚 Staf Serah Terima Lap.</th>
+                <th className="py-2.5 px-3 text-center w-32">👁️ Visitor</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -1192,7 +1274,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                 return (
                   <React.Fragment key={category}>
                     <tr className="bg-muted/60 border-y border-border">
-                      <td colSpan={7} className="py-2 px-3 font-bold text-xs uppercase tracking-wider text-foreground">
+                      <td colSpan={9} className="py-2 px-3 font-bold text-xs uppercase tracking-wider text-foreground">
                         <div className="flex items-center gap-2">
                           <span
                             className={`size-2 rounded-full ${
@@ -1224,6 +1306,12 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                         </td>
                         <td className="py-2.5 px-3 text-center">
                           {renderPermissionBadge(perm.permissions.manager)}
+                        </td>
+                        <td className="py-2.5 px-3 text-center">
+                          {renderPermissionBadge(perm.permissions.supervisor)}
+                        </td>
+                        <td className="py-2.5 px-3 text-center">
+                          {renderPermissionBadge(perm.permissions.staf_purchasing)}
                         </td>
                         <td className="py-2.5 px-3 text-center">
                           {renderPermissionBadge(perm.permissions.staf_ttb)}
@@ -1281,7 +1369,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                 <label className="block text-xs font-semibold text-foreground mb-1.5">
                   Tipe Akun (Role)
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <button
                     type="button"
                     onClick={() => {
@@ -1321,6 +1409,48 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                     </div>
                     <span className="text-[9px] mt-1 text-muted-foreground leading-tight">
                       Otorisasi &amp; TTD
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewRole('supervisor');
+                      if (!newDepartment) setNewDepartment('Purchasing & Procurement');
+                    }}
+                    className={`p-2.5 rounded-lg border text-left transition cursor-pointer flex flex-col justify-between ${
+                      newRole === 'supervisor'
+                        ? 'border-violet-500 bg-violet-500/10 text-violet-700 dark:text-violet-300 ring-1 ring-violet-500'
+                        : 'border-border bg-card text-muted-foreground hover:border-border/80'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 font-bold text-xs">
+                      <Award className="size-3.5" />
+                      <span>Supervisor</span>
+                    </div>
+                    <span className="text-[9px] mt-1 text-muted-foreground leading-tight">
+                      Approval &amp; TTD
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewRole('staf_purchasing');
+                      if (!newDepartment) setNewDepartment('Purchasing & Procurement');
+                    }}
+                    className={`p-2.5 rounded-lg border text-left transition cursor-pointer flex flex-col justify-between ${
+                      newRole === 'staf_purchasing'
+                        ? 'border-teal-500 bg-teal-500/10 text-teal-700 dark:text-teal-300 ring-1 ring-teal-500'
+                        : 'border-border bg-card text-muted-foreground hover:border-border/80'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 font-bold text-xs">
+                      <ShoppingCart className="size-3.5" />
+                      <span>Staf Purchasing</span>
+                    </div>
+                    <span className="text-[9px] mt-1 text-muted-foreground leading-tight">
+                      Delivered &amp; Verif
                     </span>
                   </button>
 
@@ -1393,6 +1523,16 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                   {newRole === 'manager' && (
                     <p>
                       <strong className="text-indigo-600 dark:text-indigo-400">Peran Manager Procurement:</strong> Wewenang otorisasi penuh pada modul Procurement &amp; Analytics, validasi dan tanda tangan digital resmi berkas FSTB (area Approved By / PCH Spv) dan berkas TTB (area Lini Purchasing), serta pemantauan menyeluruh seluruh modul logistik maritim.
+                    </p>
+                  )}
+                  {newRole === 'supervisor' && (
+                    <p>
+                      <strong className="text-violet-600 dark:text-violet-400">Peran Supervisor Procurement:</strong> Wewenang otorisasi persetujuan pengadaan (Approved By / Purchasing Spv) pada berkas FSTB dan TTB Lini Purchasing, verifikasi PO/FPB di Procurement, pemantauan Analisis Risiko &amp; SLA, monitoring sisa layanan armada, dan pelaporan operasional.
+                    </p>
+                  )}
+                  {newRole === 'staf_purchasing' && (
+                    <p>
+                      <strong className="text-teal-600 dark:text-teal-400">Peran Staf Purchasing:</strong> Wewenang validasi dan penyerahan barang (Delivered By / Purchasing Staff) pada berkas FSTB, validasi TTB Lini Purchasing, Upload FSTB, verifikasi kelengkapan PO &amp; e-FPB, serta pemeriksaan stok Accurate. Modul lapangan dan admin dinonaktifkan.
                     </p>
                   )}
                   {newRole === 'staf_ttb' && (
@@ -1583,7 +1723,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                 <label className="block text-xs font-semibold text-foreground mb-1.5">
                   Tipe Akun (Role)
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <button
                     type="button"
                     onClick={() => setEditRole('admin')}
@@ -1608,6 +1748,32 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                   >
                     <div className="font-bold text-xs">👔 Manager</div>
                     <span className="text-[9px] text-muted-foreground">Otorisasi &amp; TTD</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setEditRole('supervisor')}
+                    className={`p-2.5 rounded-lg border text-left transition cursor-pointer flex flex-col justify-between ${
+                      editRole === 'supervisor'
+                        ? 'border-violet-500 bg-violet-500/10 text-violet-700 dark:text-violet-300 ring-1 ring-violet-500'
+                        : 'border-border bg-card text-muted-foreground hover:border-border/80'
+                    }`}
+                  >
+                    <div className="font-bold text-xs">🎖️ Supervisor</div>
+                    <span className="text-[9px] text-muted-foreground">Approval &amp; TTD</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setEditRole('staf_purchasing')}
+                    className={`p-2.5 rounded-lg border text-left transition cursor-pointer flex flex-col justify-between ${
+                      editRole === 'staf_purchasing'
+                        ? 'border-teal-500 bg-teal-500/10 text-teal-700 dark:text-teal-300 ring-1 ring-teal-500'
+                        : 'border-border bg-card text-muted-foreground hover:border-border/80'
+                    }`}
+                  >
+                    <div className="font-bold text-xs">🛒 Staf Purchasing</div>
+                    <span className="text-[9px] text-muted-foreground">Delivered &amp; Verif</span>
                   </button>
 
                   <button
@@ -1655,6 +1821,16 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                   {editRole === 'manager' && (
                     <p>
                       <strong className="text-indigo-600 dark:text-indigo-400">Manager Procurement:</strong> Akses otorisasi penuh Procurement &amp; Analytics, validasi dan tanda tangan digital resmi berkas FSTB (Approved By) &amp; TTB (Purchasing), serta pemantauan modul logistik.
+                    </p>
+                  )}
+                  {editRole === 'supervisor' && (
+                    <p>
+                      <strong className="text-violet-600 dark:text-violet-400">Supervisor Procurement:</strong> Wewenang otorisasi persetujuan pengadaan (Approved By / Purchasing Spv) pada berkas FSTB dan TTB Lini Purchasing, verifikasi PO/FPB di Procurement, pemantauan Analisis Risiko &amp; SLA, monitoring sisa layanan armada, dan pelaporan operasional.
+                    </p>
+                  )}
+                  {editRole === 'staf_purchasing' && (
+                    <p>
+                      <strong className="text-teal-600 dark:text-teal-400">Staf Purchasing:</strong> Wewenang validasi dan penyerahan barang (Delivered By / Purchasing Staff) pada berkas FSTB, validasi TTB Lini Purchasing, Upload FSTB, verifikasi kelengkapan PO &amp; e-FPB, serta pemeriksaan stok Accurate. Modul lapangan dan admin dinonaktifkan.
                     </p>
                   )}
                   {editRole === 'staf_ttb' && (

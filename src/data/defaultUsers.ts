@@ -36,6 +36,30 @@ const SAMPLE_MANAGER_SIGNATURE: DigitalSignatureInfo = {
   status: 'verified',
 };
 
+const SAMPLE_SUPERVISOR_SIGNATURE: DigitalSignatureInfo = {
+  signatureDataUrl:
+    'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 100" width="300" height="100"><path d="M 35 70 C 55 20, 75 30, 95 65 Q 125 15, 160 55 T 230 40 Q 255 70, 275 35" fill="none" stroke="%237c3aed" stroke-width="3.8" stroke-linecap="round"/><path d="M 45 84 L 265 82" fill="none" stroke="%237c3aed" stroke-width="2.5" stroke-linecap="round"/></svg>',
+  uploadedAt: '2026-01-20T08:30:00.000Z',
+  verifiedBy: 'admin',
+  verifiedByName: 'Administrator CPG',
+  certificateId: 'CPG-AUTH-2026-SPV01',
+  signeeTitle: 'Supervisor Procurement & Purchasing',
+  notes: 'Spesimen tanda tangan digital sah otentifikasi supervisor pengadaan & approval berkas FSTB/TTB',
+  status: 'verified',
+};
+
+const SAMPLE_PURCHASING_SIGNATURE: DigitalSignatureInfo = {
+  signatureDataUrl:
+    'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 100" width="300" height="100"><path d="M 30 70 Q 55 15, 85 55 T 140 40 Q 170 75, 205 35 T 265 50" fill="none" stroke="%230284c7" stroke-width="3.6" stroke-linecap="round"/><path d="M 40 83 L 260 83" fill="none" stroke="%230284c7" stroke-width="2.5" stroke-linecap="round"/></svg>',
+  uploadedAt: '2026-01-20T09:00:00.000Z',
+  verifiedBy: 'admin',
+  verifiedByName: 'Administrator CPG',
+  certificateId: 'CPG-AUTH-2026-PCH01',
+  signeeTitle: 'Staf Purchasing & Pengadaan',
+  notes: 'Spesimen tanda tangan digital verifikasi pengadaan barang, delivered by FSTB, dan validasi TTB',
+  status: 'verified',
+};
+
 const SAMPLE_TTB_SIGNATURE: DigitalSignatureInfo = {
   signatureDataUrl:
     'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 100" width="300" height="100"><path d="M 30 65 Q 60 20, 90 60 T 150 45 Q 180 75, 220 35 T 270 60" fill="none" stroke="%230f172a" stroke-width="3.5" stroke-linecap="round"/><path d="M 50 82 L 250 82" fill="none" stroke="%230f172a" stroke-width="2" stroke-linecap="round"/></svg>',
@@ -115,7 +139,45 @@ export const DEFAULT_USERS: UserAccount[] = [
   },
 
   // =========================================================================
-  // 3. STAF DOKUMEN TTB (staf_ttb)
+  // 3. SUPERVISOR PROCUREMENT (supervisor)
+  // =========================================================================
+  {
+    id: 'usr-spv-0001',
+    username: 'supervisor.procurement',
+    name: 'SUPERVISOR PROCUREMENT',
+    nik: 'CPG-SPV-0001',
+    jabatan: 'Supervisor Procurement & Purchasing',
+    password: 'admin',
+    role: 'supervisor',
+    department: 'Purchasing & Procurement',
+    email: 'spv.procurement@cindaragroup.com',
+    avatar: 'S',
+    status: 'active',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    signature: SAMPLE_SUPERVISOR_SIGNATURE,
+  },
+
+  // =========================================================================
+  // 4. STAF PURCHASING (staf_purchasing)
+  // =========================================================================
+  {
+    id: 'usr-pch-0001',
+    username: 'staf.purchasing',
+    name: 'STAF PURCHASING',
+    nik: 'CPG-PCH-0001',
+    jabatan: 'Staf Purchasing & Pengadaan',
+    password: 'admin',
+    role: 'staf_purchasing',
+    department: 'Purchasing & Procurement',
+    email: 'purchasing.staff@cindaragroup.com',
+    avatar: 'P',
+    status: 'active',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    signature: SAMPLE_PURCHASING_SIGNATURE,
+  },
+
+  // =========================================================================
+  // 5. STAF DOKUMEN TTB (staf_ttb)
   // =========================================================================
   {
     id: 'usr-ttb-0662',

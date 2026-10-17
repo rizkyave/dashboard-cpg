@@ -87,7 +87,11 @@ export default function ValidationSignatureModal({
     }
 
     // Tentukan lini aktif otomatis berdasarkan role pengguna atau status lini yang masih kosong
-    if (user?.role === 'manager') {
+    if (
+      user?.role === 'manager' ||
+      user?.role === 'supervisor' ||
+      user?.role === 'staf_purchasing'
+    ) {
       setActiveSigningLine('purchasing');
     } else if (user?.role === 'staf_ttb') {
       setActiveSigningLine('logistik');
@@ -111,11 +115,18 @@ export default function ValidationSignatureModal({
   useEffect(() => {
     if (activeSigningLine === 'purchasing') {
       setValidatorJabatan(
-        user?.jabatan || (user?.role === 'manager' ? 'Manager Procurement' : 'Staf Purchasing / Pengadaan')
+        user?.jabatan ||
+          (user?.role === 'manager'
+            ? 'Manager Procurement'
+            : user?.role === 'supervisor'
+            ? 'Supervisor Procurement'
+            : 'Staf Purchasing / Pengadaan')
       );
       setValidationNotes(
         user?.role === 'manager'
           ? 'Kesesuaian PO, spesifikasi item, dan kelayakan pengadaan telah diverifikasi & disahkan resmi oleh Manager Procurement.'
+          : user?.role === 'supervisor'
+          ? 'Kesesuaian PO, kuantitas item, dan kelayakan pengadaan telah diverifikasi & disetujui resmi oleh Supervisor Procurement.'
           : 'Kesesuaian PO, spesifikasi item, dan harga telah diverifikasi.'
       );
     } else if (activeSigningLine === 'logistik') {

@@ -1,6 +1,14 @@
 import { TabType } from './procurement';
 
-export type UserRole = 'admin' | 'manager' | 'staf_ttb' | 'staf_lapangan' | 'visitor' | 'user';
+export type UserRole =
+  | 'admin'
+  | 'manager'
+  | 'supervisor'
+  | 'staf_purchasing'
+  | 'staf_ttb'
+  | 'staf_lapangan'
+  | 'visitor'
+  | 'user';
 
 export interface DigitalSignatureInfo {
   signatureDataUrl: string; // Base64 data URL (PNG/SVG)
@@ -61,6 +69,8 @@ export interface ModulePermissionItem {
   permissions: {
     admin: RolePermissionRule;
     manager: RolePermissionRule;
+    supervisor: RolePermissionRule;
+    staf_purchasing: RolePermissionRule;
     staf_ttb: RolePermissionRule;
     staf_lapangan: RolePermissionRule;
     visitor: RolePermissionRule;
@@ -79,6 +89,8 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
       manager: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Monitoring menyeluruh seluruh KPI procurement & logistik' },
+      supervisor: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Monitoring pipeline lead time, KPI & status pengadaan' },
+      staf_purchasing: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Melihat ringkasan pipeline pengadaan' },
       staf_ttb: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
       staf_lapangan: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
       visitor: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
@@ -92,6 +104,8 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
       manager: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Otorisasi FPB-PO, pemantauan SLA lead time & audit pengadaan' },
+      supervisor: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Verifikasi, approval dokumen PO/FPB, dan SLA lead time' },
+      staf_purchasing: { allowed: true, level: 'View & Verifikasi', badgeTone: 'blue', notes: 'Input & verifikasi dokumen PO/FPB' },
       staf_ttb: { allowed: true, level: 'View & Verifikasi', badgeTone: 'blue', notes: 'View & verifikasi kecocokan dokumen PO/FPB' },
       staf_lapangan: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
@@ -105,6 +119,8 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
       manager: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Monitoring status layanan armada & FSTB' },
+      supervisor: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Monitoring status layanan armada & FSTB' },
+      staf_purchasing: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_lapangan: { allowed: true, level: 'Input & Upload', badgeTone: 'emerald', notes: 'Input update operasional & servis armada' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
@@ -118,6 +134,8 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
       manager: { allowed: true, level: 'Upload & Kelola', badgeTone: 'emerald', notes: 'Upload & validasi berkas FSTB resmi' },
+      supervisor: { allowed: true, level: 'Upload & Kelola', badgeTone: 'emerald', notes: 'Review & kelola berkas FSTB resmi' },
+      staf_purchasing: { allowed: true, level: 'Upload & Kelola', badgeTone: 'emerald', notes: 'Upload & kelola berkas FSTB resmi' },
       staf_ttb: { allowed: true, level: 'Upload & Kelola', badgeTone: 'emerald', notes: 'Full access upload berkas FSTB ke cloud' },
       staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
@@ -131,6 +149,8 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
       manager: { allowed: true, level: 'Upload & Kelola', badgeTone: 'emerald', notes: 'Upload & review berkas TTB resmi' },
+      supervisor: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Review dokumen TTB resmi' },
+      staf_purchasing: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_ttb: { allowed: true, level: 'Upload & Kelola', badgeTone: 'emerald', notes: 'Full access upload berkas ke cloud' },
       staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
@@ -144,6 +164,8 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
       manager: { allowed: true, level: 'Validasi & TTD', badgeTone: 'emerald', notes: 'Otorisasi & TTD digital Manager (Approved By FSTB & Lini Purchasing TTB)' },
+      supervisor: { allowed: true, level: 'Validasi & TTD', badgeTone: 'emerald', notes: 'Validasi TTD Approved By FSTB & Lini Purchasing TTB' },
+      staf_purchasing: { allowed: true, level: 'Validasi & TTD', badgeTone: 'emerald', notes: 'Validasi TTD Delivered By FSTB & Lini Purchasing TTB' },
       staf_ttb: { allowed: true, level: 'Validasi & TTD', badgeTone: 'emerald', notes: 'Validasi lini Logistik/Gudang' },
       staf_lapangan: { allowed: true, level: 'Validasi & TTD', badgeTone: 'emerald', notes: 'Validasi lini Tim Lapangan/QC' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
@@ -157,6 +179,8 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
       manager: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Pemantauan bukti serah terima dermaga & armada' },
+      supervisor: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Monitoring penyerahan barang dermaga' },
+      staf_purchasing: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_lapangan: { allowed: true, level: 'Full Access', badgeTone: 'emerald', notes: 'Input data fisik & upload bukti serah terima' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
@@ -170,6 +194,8 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
       manager: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Akses peninjauan katalog arsip foto TTB lapangan' },
+      supervisor: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Katalog arsip foto serah terima' },
+      staf_purchasing: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Katalog arsip foto serah terima' },
       staf_ttb: { allowed: true, level: 'Upload & Kelola', badgeTone: 'emerald', notes: 'Upload, view, dan kelola arsip foto TTB' },
       staf_lapangan: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
       visitor: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
@@ -183,6 +209,8 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
       manager: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Review dokumentasi foto berstempel waktu 5 digit' },
+      supervisor: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Dokumentasi foto berstempel waktu' },
+      staf_purchasing: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_lapangan: { allowed: true, level: 'Input & Upload', badgeTone: 'emerald', notes: 'Upload bukti foto timestamp pangkalan' },
       visitor: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
@@ -200,6 +228,8 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
       manager: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Pengecekan fisik stok gudang & katalog Accurate' },
+      supervisor: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Pengecekan fisik stok gudang & katalog Accurate' },
+      staf_purchasing: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Pengecekan stok persediaan' },
       staf_ttb: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Read-only untuk validasi fisik stok' },
       staf_lapangan: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
@@ -213,6 +243,8 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
       manager: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Pemantauan posisi harian armada & status laut' },
+      supervisor: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Monitoring posisi kapal operasional' },
+      staf_purchasing: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_lapangan: { allowed: true, level: 'Update Status', badgeTone: 'sky', notes: 'Update status pekerjaan lapangan' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
@@ -226,6 +258,8 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
       manager: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Akses data armada kapal & kontak operasional kru' },
+      supervisor: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Database armada & kontak nahkoda' },
+      staf_purchasing: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_lapangan: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Akses kontak nahkoda / kru' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
@@ -239,6 +273,8 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
       manager: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Monitoring SPK & Work Order perawatan armada' },
+      supervisor: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Monitoring WO perbaikan armada' },
+      staf_purchasing: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_lapangan: { allowed: true, level: 'Update Status', badgeTone: 'sky', notes: 'Update status pekerjaan lapangan' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
@@ -252,6 +288,8 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
       manager: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Monitoring Service & Maintenance armada vendor' },
+      supervisor: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Monitoring Service & Maintenance armada' },
+      staf_purchasing: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_lapangan: { allowed: true, level: 'Update Status', badgeTone: 'sky', notes: 'Pantau & update servis kapal' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
@@ -265,6 +303,8 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
       manager: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Rekonsiliasi & evaluasi barang sisa layanan' },
+      supervisor: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Laporan rekonsiliasi sisa layanan' },
+      staf_purchasing: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Laporan sisa layanan pengadaan' },
       staf_ttb: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
       staf_lapangan: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
@@ -282,6 +322,8 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
       manager: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Analisis bottleneck SLA pengadaan & evaluasi vendor' },
+      supervisor: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Analisis bottleneck SLA & evaluasi vendor' },
+      staf_purchasing: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
@@ -295,6 +337,8 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     permissions: {
       admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
       manager: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu konfigurasi sistem khusus Administrator' },
+      supervisor: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu konfigurasi sistem khusus Administrator' },
+      staf_purchasing: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu konfigurasi sistem khusus Administrator' },
       staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
@@ -308,8 +352,23 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
 export function canAccessTab(role: UserRole | undefined, tab: TabType): boolean {
   if (!role || role === 'admin') return true;
 
-  if (role === 'manager') {
+  if (role === 'manager' || role === 'supervisor') {
     return tab !== 'admin-settings';
+  }
+
+  if (role === 'staf_purchasing') {
+    const forbidden: TabType[] = [
+      'armada',
+      'serah-terima-lapangan',
+      'timemark',
+      'pos-kapal',
+      'crew-kapal',
+      'work-order',
+      'list-sm',
+      'analytics',
+      'admin-settings',
+    ];
+    return !forbidden.includes(tab);
   }
 
   if (role === 'visitor') {
@@ -352,6 +411,10 @@ export function getRoleDisplayName(role: UserRole | undefined): string {
       return 'Administrator';
     case 'manager':
       return 'Manager Procurement';
+    case 'supervisor':
+      return 'Supervisor Procurement';
+    case 'staf_purchasing':
+      return 'Staf Purchasing';
     case 'staf_ttb':
       return 'Staf Dokumen TTB';
     case 'staf_lapangan':
