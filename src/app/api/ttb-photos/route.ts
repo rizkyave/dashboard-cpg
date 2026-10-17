@@ -44,15 +44,20 @@ const listR2PhotoFiles = async (): Promise<string[]> => {
 };
 
 /**
- * Menentukan URL foto terbaik (Cloudflare R2, Proxy Stream, atau Disk Lokal)
+ * Menentukan URL foto terbaik (Cloudflare R2 jika sudah ada, manifest URL jika ada, atau Proxy Stream)
  */
-function resolvePhotoUrl(filename: string): string {
-  if (isR2Configured()) {
+function resolvePhotoUrl(filename: string, r2FileSet?: Set<string>): string {
+  // 1. Jika berkas sudah terverifikasi ada di Cloudflare R2
+  if (r2FileSet && r2FileSet.has(filename)) {
     return getR2FileUrl(`ttb-photos/${filename}`);
   }
-  // Jika manifest sudah punya URL selain vercel-storage (cth: R2 direct URL)
-  if (manifest[filename] && !manifest[filename].includes('vercel-storage.com')) {
+  // 2. Jika di manifest sudah tersimpan URL langsung yang valid (R2 / CDN)
+  if (manifest[filename] && manifest[filename].startsWith('http')) {
     return manifest[filename];
+  }
+  // 3. Jika Cloudflare R2 aktif, gunakan URL R2
+  if (isR2Configured()) {
+    return getR2FileUrl(`ttb-photos/${filename}`);
   }
   return `/api/ttb-photos/file?name=${encodeURIComponent(filename)}`;
 }
@@ -70,6 +75,7 @@ export async function GET(req: NextRequest) {
   try {
     // Kumpulkan daftar nama file: dari manifest, disk lokal, dan Cloudflare R2
     const [localFiles, r2Files] = await Promise.all([listLocalFiles(), listR2PhotoFiles()]);
+    const r2FileSet = new Set<string>(r2Files);
     const manifestKeys = Object.keys(manifest);
     const fileSet = new Set<string>([...manifestKeys, ...localFiles, ...r2Files]);
     const files = Array.from(fileSet);
@@ -85,7 +91,7 @@ export async function GET(req: NextRequest) {
         .filter((f) => filenameMatchesTtb(f, target))
         .map((name) => ({
           name,
-          url: resolvePhotoUrl(name),
+          url: resolvePhotoUrl(name, r2FileSet),
           takenAt: extractTakenAt(name),
           ttbInfo: extractTtbFromFilename(name),
         }))
@@ -118,7 +124,7 @@ export async function GET(req: NextRequest) {
 
     const photos = pagedFiles.map((name) => ({
       name,
-      url: resolvePhotoUrl(name),
+      url: resolvePhotoUrl(name, r2FileSet),
       takenAt: extractTakenAt(name),
       ttbInfo: extractTtbFromFilename(name),
     }));

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import { promises as fs } from 'fs';
-import { getObjectFromR2, isR2Configured } from '@/utils/r2Client';
+import { getObjectFromR2, isR2Configured, uploadToR2 } from '@/utils/r2Client';
 import { getPhotosDir } from '@/utils/ttbPhotosDir';
+import rawManifest from '@/data/ttb-photos-manifest.json';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -84,6 +85,38 @@ export async function GET(req: NextRequest) {
 
     return new NextResponse(new Uint8Array(fileBytes), { headers });
   } catch {
+    // 3. Fallback: Ambil dari URL manifest jika sebelumnya ada di CDN (Vercel Blob / public link)
+    const manifestUrl = (rawManifest as Record<string, string>)[filename];
+    if (manifestUrl && manifestUrl.startsWith('http')) {
+      try {
+        const res = await fetch(manifestUrl);
+        if (res.ok) {
+          const arrayBuf = await res.arrayBuffer();
+          const buf = Buffer.from(arrayBuf);
+          const contentType = res.headers.get('content-type') || fallbackMime;
+
+          // Simpan ke Cloudflare R2 di background agar berikutnya langsung diambil dari R2
+          if (isR2Configured()) {
+            uploadToR2({
+              key: normalizedKey,
+              body: buf,
+              contentType,
+            }).catch((err) => console.warn('Gagal auto-sync ke R2:', err));
+          }
+
+          const headers: Record<string, string> = {
+            'Content-Type': contentType,
+            'Cache-Control': 'public, max-age=31536000, immutable',
+            'Content-Disposition': `${download ? 'attachment' : 'inline'}; filename="${encodeURIComponent(filename)}"`,
+          };
+
+          return new NextResponse(new Uint8Array(buf), { headers });
+        }
+      } catch (fetchErr) {
+        console.warn('Gagal fetch fallback dari manifest URL:', fetchErr);
+      }
+    }
+
     return new NextResponse('Berkas tidak ditemukan di Cloudflare R2 maupun penyimpanan lokal.', {
       status: 404,
     });
