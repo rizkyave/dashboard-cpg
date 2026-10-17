@@ -39,6 +39,9 @@ import {
   ArrowUpDown,
   PieChart,
   Package,
+  Eye,
+  EyeOff,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { ProcurementItem, ArmadaItem, KapalPosisiItem } from '@/types/procurement';
 import { SisaLayananItem, SisaGoodsSummary } from '@/types/sisaLayanan';
@@ -335,6 +338,68 @@ export default function AnalyticsTab({
   const [fleetTableView, setFleetTableView] = useState<'all' | 'backlog' | 'recurring'>('all');
   const [fleetTopItemCategory, setFleetTopItemCategory] = useState<'ALL' | 'SPARE_PART' | 'CONSUMABLE'>('ALL');
   const fleetTablePageSize = 12;
+
+  // Fleet visibility states (Sembunyikan / Tampilkan Data)
+  const [isFleetDataHidden, setIsFleetDataHidden] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('CPG_FLEET_DATA_HIDDEN') === 'true';
+    }
+    return false;
+  });
+  const [showFleetFilters, setShowFleetFilters] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('CPG_FLEET_FILTERS_VISIBLE') !== 'false';
+    }
+    return true;
+  });
+  const [showFleetKpi, setShowFleetKpi] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('CPG_FLEET_KPI_VISIBLE') !== 'false';
+    }
+    return true;
+  });
+  const [showFleetCharts, setShowFleetCharts] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('CPG_FLEET_CHARTS_VISIBLE') !== 'false';
+    }
+    return true;
+  });
+  const [showFleetInteractive, setShowFleetInteractive] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('CPG_FLEET_INTERACTIVE_VISIBLE') !== 'false';
+    }
+    return true;
+  });
+  const [showFleetViewMenu, setShowFleetViewMenu] = useState<boolean>(false);
+  const fleetMenuRef = React.useRef<HTMLDivElement>(null);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (fleetMenuRef.current && !fleetMenuRef.current.contains(event.target as Node)) {
+        setShowFleetViewMenu(false);
+      }
+    }
+    if (showFleetViewMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showFleetViewMenu]);
+
+  // Persist visibility states in localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('CPG_FLEET_DATA_HIDDEN', String(isFleetDataHidden));
+      localStorage.setItem('CPG_FLEET_FILTERS_VISIBLE', String(showFleetFilters));
+      localStorage.setItem('CPG_FLEET_KPI_VISIBLE', String(showFleetKpi));
+      localStorage.setItem('CPG_FLEET_CHARTS_VISIBLE', String(showFleetCharts));
+      localStorage.setItem('CPG_FLEET_INTERACTIVE_VISIBLE', String(showFleetInteractive));
+    }
+  }, [isFleetDataHidden, showFleetFilters, showFleetKpi, showFleetCharts, showFleetInteractive]);
+
+  const toggleAllFleetData = () => {
+    setIsFleetDataHidden((prev) => !prev);
+  };
 
   // Kapal Posisi Mapping Cache
   const kapalPosisiMap = useMemo(() => {
@@ -2549,6 +2614,12 @@ export default function AnalyticsTab({
                     <span className="text-[11px] font-normal px-2 py-0.5 rounded-full bg-muted border border-border text-muted-foreground font-mono">
                       {displayPeriodText}
                     </span>
+                    {isFleetDataHidden && (
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 font-mono inline-flex items-center gap-1">
+                        <EyeOff className="size-3" />
+                        <span>Data Disembunyikan</span>
+                      </span>
+                    )}
                   </h3>
                   <p className="text-xs text-muted-foreground">
                     Monitoring volume pengajuan FPB, realisasi suku cadang, rasio pemenuhan, dan tiket Work Order (WO) per kapal.
@@ -2589,11 +2660,167 @@ export default function AnalyticsTab({
                     <span>Reset Filter Armada</span>
                   </button>
                 )}
+
+                {/* Tombol Cepat: Sembunyikan / Tampilkan Seluruh Data */}
+                <button
+                  type="button"
+                  onClick={toggleAllFleetData}
+                  className={`h-8 px-2.5 rounded-lg border text-xs font-medium inline-flex items-center gap-1.5 transition cursor-pointer ${
+                    isFleetDataHidden
+                      ? 'bg-amber-500/15 border-amber-500/40 text-amber-600 dark:text-amber-400 font-semibold hover:bg-amber-500/25'
+                      : 'bg-muted/60 border-border text-muted-foreground hover:text-foreground hover:bg-muted'
+                  }`}
+                  title={isFleetDataHidden ? 'Tampilkan seluruh data metrik & grafik armada' : 'Sembunyikan seluruh data metrik & grafik armada'}
+                >
+                  {isFleetDataHidden ? (
+                    <>
+                      <Eye className="size-3.5 text-sky-500" />
+                      <span>Tampilkan Data</span>
+                    </>
+                  ) : (
+                    <>
+                      <EyeOff className="size-3.5 text-muted-foreground" />
+                      <span>Sembunyikan Data</span>
+                    </>
+                  )}
+                </button>
+
+                {/* Menu Kanan Atas: Dropdown Opsi Sembunyikan & Tampilkan Data */}
+                <div className="relative" ref={fleetMenuRef}>
+                  <button
+                    type="button"
+                    onClick={() => setShowFleetViewMenu((prev) => !prev)}
+                    className={`h-8 px-2.5 rounded-lg border text-xs font-medium inline-flex items-center gap-1.5 transition cursor-pointer ${
+                      showFleetViewMenu
+                        ? 'bg-sky-500/15 border-sky-500/40 text-sky-600 dark:text-sky-400 font-semibold'
+                        : 'bg-muted/60 border-border text-muted-foreground hover:text-foreground hover:bg-muted'
+                    }`}
+                    title="Menu opsi untuk menyembunyikan atau menampilkan bagian data"
+                  >
+                    <SlidersHorizontal className="size-3.5" />
+                    <span className="hidden sm:inline">Menu Data</span>
+                    <ChevronDown className={`size-3 transition-transform duration-200 ${showFleetViewMenu ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {/* Dropdown Menu Popup */}
+                  {showFleetViewMenu && (
+                    <div className="absolute right-0 mt-1.5 w-64 bg-card border border-border rounded-xl shadow-xl p-3 z-50 text-xs space-y-2.5 backdrop-blur-md animate-in fade-in-50 zoom-in-95 duration-150">
+                      <div className="flex items-center justify-between pb-1.5 border-b border-border text-[11px] font-semibold text-muted-foreground">
+                        <span className="uppercase tracking-wider">Tampilan Data Armada</span>
+                        <span className="font-mono text-[10px]">Opsi</span>
+                      </div>
+
+                      {/* Quick Global Actions */}
+                      <div className="grid grid-cols-2 gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsFleetDataHidden(false);
+                            setShowFleetFilters(true);
+                            setShowFleetKpi(true);
+                            setShowFleetCharts(true);
+                            setShowFleetInteractive(true);
+                          }}
+                          className="w-full py-1.5 px-2 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-600 dark:text-sky-400 border border-sky-500/20 text-[11px] font-semibold flex items-center justify-center gap-1 transition cursor-pointer"
+                        >
+                          <Eye className="size-3" />
+                          <span>Tampil Semua</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsFleetDataHidden(true);
+                          }}
+                          className="w-full py-1.5 px-2 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-[11px] font-semibold flex items-center justify-center gap-1 transition cursor-pointer"
+                        >
+                          <EyeOff className="size-3" />
+                          <span>Sembunyi Semua</span>
+                        </button>
+                      </div>
+
+                      {/* Section Checklist Controls */}
+                      <div className="pt-1.5 border-t border-border/60 space-y-1">
+                        <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block px-1">
+                          Pilih Bagian yang Tampil:
+                        </span>
+
+                        {/* 1. Filter Dropdown Controls */}
+                        <label className="flex items-center justify-between p-1.5 rounded-lg hover:bg-muted/60 cursor-pointer select-none transition">
+                          <span className="flex items-center gap-2 text-foreground">
+                            <Filter className="size-3.5 text-muted-foreground" />
+                            <span>Filter &amp; Pencarian</span>
+                          </span>
+                          <input
+                            type="checkbox"
+                            checked={showFleetFilters && !isFleetDataHidden}
+                            onChange={(e) => {
+                              if (isFleetDataHidden) setIsFleetDataHidden(false);
+                              setShowFleetFilters(e.target.checked);
+                            }}
+                            className="rounded border-border text-primary focus:ring-primary size-4 cursor-pointer"
+                          />
+                        </label>
+
+                        {/* 2. KPI Cards */}
+                        <label className="flex items-center justify-between p-1.5 rounded-lg hover:bg-muted/60 cursor-pointer select-none transition">
+                          <span className="flex items-center gap-2 text-foreground">
+                            <PackageCheck className="size-3.5 text-muted-foreground" />
+                            <span>Kartu Ringkasan KPI</span>
+                          </span>
+                          <input
+                            type="checkbox"
+                            checked={showFleetKpi && !isFleetDataHidden}
+                            onChange={(e) => {
+                              if (isFleetDataHidden) setIsFleetDataHidden(false);
+                              setShowFleetKpi(e.target.checked);
+                            }}
+                            className="rounded border-border text-primary focus:ring-primary size-4 cursor-pointer"
+                          />
+                        </label>
+
+                        {/* 3. Visual Charts */}
+                        <label className="flex items-center justify-between p-1.5 rounded-lg hover:bg-muted/60 cursor-pointer select-none transition">
+                          <span className="flex items-center gap-2 text-foreground">
+                            <BarChart3 className="size-3.5 text-muted-foreground" />
+                            <span>Grafik Visual &amp; Tren</span>
+                          </span>
+                          <input
+                            type="checkbox"
+                            checked={showFleetCharts && !isFleetDataHidden}
+                            onChange={(e) => {
+                              if (isFleetDataHidden) setIsFleetDataHidden(false);
+                              setShowFleetCharts(e.target.checked);
+                            }}
+                            className="rounded border-border text-primary focus:ring-primary size-4 cursor-pointer"
+                          />
+                        </label>
+
+                        {/* 4. Interactive Dashboard & Gantt */}
+                        <label className="flex items-center justify-between p-1.5 rounded-lg hover:bg-muted/60 cursor-pointer select-none transition">
+                          <span className="flex items-center gap-2 text-foreground">
+                            <Layers className="size-3.5 text-muted-foreground" />
+                            <span>Dashboard &amp; Gantt Chart</span>
+                          </span>
+                          <input
+                            type="checkbox"
+                            checked={showFleetInteractive && !isFleetDataHidden}
+                            onChange={(e) => {
+                              if (isFleetDataHidden) setIsFleetDataHidden(false);
+                              setShowFleetInteractive(e.target.checked);
+                            }}
+                            className="rounded border-border text-primary focus:ring-primary size-4 cursor-pointer"
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
             {/* Filter Dropdown Controls */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2 pt-2 border-t border-border/60 text-xs">
+            {showFleetFilters && !isFleetDataHidden && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2 pt-2 border-t border-border/60 text-xs animate-in fade-in-50 duration-200">
               {/* Dropdown 1: Pilih Armada */}
               <div className="space-y-1">
                 <label className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
@@ -2689,11 +2916,38 @@ export default function AnalyticsTab({
                   <Search className="size-3 text-muted-foreground absolute left-2.5 top-2.5 pointer-events-none" />
                 </div>
               </div>
-            </div>
+              </div>
+            )}
           </div>
 
+          {/* Banner jika Seluruh Data Disembunyikan */}
+          {isFleetDataHidden && (
+            <div className="bg-card border border-dashed border-border rounded-xl p-5 text-center flex flex-col sm:flex-row items-center justify-between gap-3 animate-in fade-in-50 duration-200">
+              <div className="flex items-center gap-3 text-left">
+                <div className="size-9 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center shrink-0">
+                  <EyeOff className="size-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-foreground">Data Analisis Armada Sedang Disembunyikan</h4>
+                  <p className="text-[11px] text-muted-foreground">
+                    Metrik KPI dan grafik visual disembunyikan. Gunakan tombol &quot;Tampilkan Data&quot; di samping atau menu kanan atas untuk menampilkannya kembali.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={toggleAllFleetData}
+                className="px-3 py-1.5 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-medium inline-flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs"
+              >
+                <Eye className="size-3.5" />
+                <span>Tampilkan Data</span>
+              </button>
+            </div>
+          )}
+
           {/* 2. Fleet KPI Executive Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+          {showFleetKpi && !isFleetDataHidden && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 animate-in fade-in-50 duration-200">
             {/* Card 1: Total Pengajuan Armada */}
             <div className="bg-white dark:bg-card border border-slate-200/90 dark:border-border rounded-2xl p-4 sm:p-4.5 shadow-xs flex items-center justify-between transition hover:shadow-sm">
               <div>
@@ -2791,76 +3045,81 @@ export default function AnalyticsTab({
               </div>
             </div>
           </div>
+          )}
 
           {/* 2.5 Visual Interactive Charts Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* Chart 1: Horizontal Bar Chart Top Armada Diminta vs Realisasi */}
-            <div className="bg-white dark:bg-card border border-slate-200/90 dark:border-border rounded-2xl p-4 sm:p-5 shadow-xs space-y-2 flex flex-col">
-              <div className="flex items-center justify-between pb-2 border-b border-border/60">
-                <div className="flex items-center gap-1.5">
-                  <BarChart3 className="size-4 text-sky-600 dark:text-sky-400" />
-                  <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-foreground uppercase tracking-wider">
-                    Top Armada: Diminta vs Realisasi
-                  </h4>
+          {showFleetCharts && !isFleetDataHidden && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-in fade-in-50 duration-200">
+              {/* Chart 1: Horizontal Bar Chart Top Armada Diminta vs Realisasi */}
+              <div className="bg-white dark:bg-card border border-slate-200/90 dark:border-border rounded-2xl p-4 sm:p-5 shadow-xs space-y-2 flex flex-col">
+                <div className="flex items-center justify-between pb-2 border-b border-border/60">
+                  <div className="flex items-center gap-1.5">
+                    <BarChart3 className="size-4 text-sky-600 dark:text-sky-400" />
+                    <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-foreground uppercase tracking-wider">
+                      Top Armada: Diminta vs Realisasi
+                    </h4>
+                  </div>
+                  <span className="text-[10px] font-mono text-muted-foreground">Unit Barang</span>
                 </div>
-                <span className="text-[10px] font-mono text-muted-foreground">Unit Barang</span>
+                <p className="text-xs text-slate-500 dark:text-muted-foreground">
+                  Perbandingan kuantitas FPB vs realisasi FSTB per kapal (Horizontal Bar).
+                </p>
+                <div className="h-64 mt-auto">
+                  <FleetDemandBarChart data={fleetSummary.vesselList} />
+                </div>
               </div>
-              <p className="text-xs text-slate-500 dark:text-muted-foreground">
-                Perbandingan kuantitas FPB vs realisasi FSTB per kapal (Horizontal Bar).
-              </p>
-              <div className="h-64 mt-auto">
-                <FleetDemandBarChart data={fleetSummary.vesselList} />
-              </div>
-            </div>
 
-            {/* Chart 2: Horizontal Bar Breakdown Komposisi Kategori Barang */}
-            <div className="bg-white dark:bg-card border border-slate-200/90 dark:border-border rounded-2xl p-4 sm:p-5 shadow-xs space-y-2 flex flex-col">
-              <div className="flex items-center justify-between pb-2 border-b border-border/60">
-                <div className="flex items-center gap-1.5">
-                  <PieChart className="size-4 text-purple-600 dark:text-purple-400" />
-                  <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-foreground uppercase tracking-wider">
-                    Komposisi Kategori Kebutuhan
-                  </h4>
+              {/* Chart 2: Horizontal Bar Breakdown Komposisi Kategori Barang */}
+              <div className="bg-white dark:bg-card border border-slate-200/90 dark:border-border rounded-2xl p-4 sm:p-5 shadow-xs space-y-2 flex flex-col">
+                <div className="flex items-center justify-between pb-2 border-b border-border/60">
+                  <div className="flex items-center gap-1.5">
+                    <PieChart className="size-4 text-purple-600 dark:text-purple-400" />
+                    <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-foreground uppercase tracking-wider">
+                      Komposisi Kategori Kebutuhan
+                    </h4>
+                  </div>
+                  <span className="text-[10px] font-mono text-muted-foreground">Proporsi</span>
                 </div>
-                <span className="text-[10px] font-mono text-muted-foreground">Proporsi</span>
+                <p className="text-xs text-slate-500 dark:text-muted-foreground">
+                  Distribusi kelompok suku cadang dan perlengkapan kapal.
+                </p>
+                <div className="h-64 mt-auto">
+                  <FleetCategoryDonutChart categories={fleetCategoryBreakdown} />
+                </div>
               </div>
-              <p className="text-xs text-slate-500 dark:text-muted-foreground">
-                Distribusi kelompok suku cadang dan perlengkapan kapal.
-              </p>
-              <div className="h-64 mt-auto">
-                <FleetCategoryDonutChart categories={fleetCategoryBreakdown} />
-              </div>
-            </div>
 
-            {/* Chart 3: Combo Chart Tren Permintaan Bulanan */}
-            <div className="bg-white dark:bg-card border border-slate-200/90 dark:border-border rounded-2xl p-4 sm:p-5 shadow-xs space-y-2 flex flex-col md:col-span-2 lg:col-span-1">
-              <div className="flex items-center justify-between pb-2 border-b border-border/60 gap-2">
-                <div className="flex items-center gap-1.5">
-                  <TrendingUp className="size-3.5 text-emerald-500 shrink-0" />
-                  <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-foreground uppercase tracking-wider">
-                    TREN PERMINTAAN BULANAN
-                  </h4>
+              {/* Chart 3: Combo Chart Tren Permintaan Bulanan */}
+              <div className="bg-white dark:bg-card border border-slate-200/90 dark:border-border rounded-2xl p-4 sm:p-5 shadow-xs space-y-2 flex flex-col md:col-span-2 lg:col-span-1">
+                <div className="flex items-center justify-between pb-2 border-b border-border/60 gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <TrendingUp className="size-3.5 text-emerald-500 shrink-0" />
+                    <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-foreground uppercase tracking-wider">
+                      TREN PERMINTAAN BULANAN
+                    </h4>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-md font-mono text-[10px] font-semibold bg-slate-100 text-slate-600 dark:bg-muted dark:text-muted-foreground border border-slate-200 dark:border-border shrink-0">
+                    Jun 2026 – Okt 2026
+                  </span>
                 </div>
-                <span className="px-2 py-0.5 rounded-md font-mono text-[10px] font-semibold bg-slate-100 text-slate-600 dark:bg-muted dark:text-muted-foreground border border-slate-200 dark:border-border shrink-0">
-                  Jun 2026 – Okt 2026
-                </span>
-              </div>
-              <p className="text-xs text-slate-500 dark:text-muted-foreground">
-                Fluktuasi pengajuan kebutuhan kapal sepanjang periode aktif (Combo Bar &amp; Line).
-              </p>
-              <div className="h-64 mt-auto">
-                <FleetMonthlyTrendChart monthlyData={fleetMonthlyTrend} defaultMode="combo" />
+                <p className="text-xs text-slate-500 dark:text-muted-foreground">
+                  Fluktuasi pengajuan kebutuhan kapal sepanjang periode aktif (Combo Bar &amp; Line).
+                </p>
+                <div className="h-64 mt-auto">
+                  <FleetMonthlyTrendChart monthlyData={fleetMonthlyTrend} defaultMode="combo" />
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* 2.5.1 Dashboard Visualisasi Interaktif & Terhubung: Donut Chart, Tren Bulanan & Gantt Schedule */}
-          <FleetInteractiveDashboard
-            items={armadaItems && armadaItems.length > 0 ? armadaItems : items}
-            onOpenAudit={onOpenAudit}
-            initialMonth={selectedMonth !== 'ALL' ? selectedMonth : '10'}
-            initialYear={selectedYear !== 'ALL' ? selectedYear : '2026'}
-          />
+          {showFleetInteractive && !isFleetDataHidden && (
+            <FleetInteractiveDashboard
+              items={armadaItems && armadaItems.length > 0 ? armadaItems : items}
+              onOpenAudit={onOpenAudit}
+              initialMonth={selectedMonth !== 'ALL' ? selectedMonth : '10'}
+              initialYear={selectedYear !== 'ALL' ? selectedYear : '2026'}
+            />
+          )}
 
           {/* 3. MODE TAMPILAN: JIKA MEMILIH 1 ARMADA SPESIFIK */}
           {selectedFleetArmada !== 'ALL' && (
