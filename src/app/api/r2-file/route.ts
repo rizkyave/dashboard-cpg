@@ -36,6 +36,11 @@ export async function GET(req: NextRequest) {
   const ext = path.extname(filename).toLowerCase();
   const fallbackMime = MIME_MAP[ext] || 'application/octet-stream';
 
+  const isDocument = normalizedKey.startsWith('ttb-documents/') || ext === '.pdf' || req.nextUrl.searchParams.has('v');
+  const cacheControl = isDocument
+    ? 'no-cache, no-store, must-revalidate, max-age=0'
+    : 'public, max-age=86400, stale-while-revalidate=604800';
+
   // 1. Coba ambil dari Cloudflare R2 jika telah dikonfigurasi
   if (isR2Configured()) {
     try {
@@ -43,7 +48,7 @@ export async function GET(req: NextRequest) {
       if (r2Object) {
         const headers: Record<string, string> = {
           'Content-Type': r2Object.contentType || fallbackMime,
-          'Cache-Control': 'public, max-age=31536000, immutable',
+          'Cache-Control': cacheControl,
         };
 
         if (r2Object.contentLength) {
@@ -74,7 +79,7 @@ export async function GET(req: NextRequest) {
 
     const headers: Record<string, string> = {
       'Content-Type': fallbackMime,
-      'Cache-Control': 'public, max-age=86400',
+      'Cache-Control': cacheControl,
     };
 
     if (download) {
@@ -106,7 +111,7 @@ export async function GET(req: NextRequest) {
 
           const headers: Record<string, string> = {
             'Content-Type': contentType,
-            'Cache-Control': 'public, max-age=31536000, immutable',
+            'Cache-Control': cacheControl,
             'Content-Disposition': `${download ? 'attachment' : 'inline'}; filename="${encodeURIComponent(filename)}"`,
           };
 

@@ -1880,22 +1880,30 @@ export default function UploadTtbTab({
                       {item.armada || '-'}
                     </td>
                     <td className="py-2.5 px-3">
-                      <div className="flex items-center gap-1.5 max-w-xs md:max-w-sm">
-                        <span className="font-mono text-teal-600 dark:text-teal-400 font-semibold truncate" title={item.renamedFileName}>
-                          {item.renamedFileName}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleCopyText(item.renamedFileName)}
-                          className="p-1 text-muted-foreground hover:text-foreground transition cursor-pointer shrink-0"
-                          title="Salin Nama File"
-                        >
-                          {copiedFilename === item.renamedFileName ? (
-                            <Check className="size-3 text-teal-600" />
-                          ) : (
-                            <Copy className="size-3" />
-                          )}
-                        </button>
+                      <div className="flex flex-col gap-0.5 max-w-xs md:max-w-sm">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono text-teal-600 dark:text-teal-400 font-semibold truncate" title={item.renamedFileName}>
+                            {item.renamedFileName}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleCopyText(item.renamedFileName)}
+                            className="p-1 text-muted-foreground hover:text-foreground transition cursor-pointer shrink-0"
+                            title="Salin Nama File"
+                          >
+                            {copiedFilename === item.renamedFileName ? (
+                              <Check className="size-3 text-teal-600" />
+                            ) : (
+                              <Copy className="size-3" />
+                            )}
+                          </button>
+                        </div>
+                        {item.isRecipientStamped && (
+                          <div className="flex items-center gap-1 text-[9px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                            <Sparkles className="size-2.5" />
+                            <span>Versi terbaru (Telah TTD Armada / End User)</span>
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td className="py-2.5 px-3 font-mono text-[11px] text-muted-foreground">
@@ -1917,56 +1925,79 @@ export default function UploadTtbTab({
                       })}
                     </td>
                     <td className="py-2.5 px-3">
-                      <div className="flex items-center gap-2.5 max-w-[240px]">
-                        <div
-                          className={`size-7 rounded-full flex items-center justify-center font-bold text-[10px] text-white shrink-0 shadow-xs ${
-                            item.uploaderRole === 'admin'
-                              ? 'bg-linear-to-tr from-purple-600 to-indigo-600'
-                              : item.uploaderRole === 'staf_lapangan'
-                              ? 'bg-linear-to-tr from-amber-600 to-emerald-600'
-                              : 'bg-linear-to-tr from-blue-600 to-cyan-600'
-                          }`}
-                        >
-                          {(item.uploaderName || item.uploaderUsername || 'D')[0]?.toUpperCase()}
-                        </div>
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-1.5 truncate">
-                            <span
-                              className="font-semibold text-foreground text-xs truncate"
-                              title={item.uploaderName || 'DAVILA ZALIANTI PUTRI'}
-                            >
-                              {item.uploaderName || 'DAVILA ZALIANTI PUTRI'}
+                      {item.isRecipientStamped ? (
+                        <div className="p-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/25 space-y-1 max-w-[240px]">
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-700 dark:text-emerald-300">
+                              <CheckCircle2 className="size-3 text-emerald-600" />
+                              <span>TTD Armada Terverifikasi</span>
                             </span>
-                            {item.isAutoStamped && (
+                            {item.recipientStampedAt && (
+                              <span className="text-[8px] font-mono text-muted-foreground">
+                                {new Date(item.recipientStampedAt).toLocaleDateString('id-ID')}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs font-bold text-foreground truncate" title={item.recipientName}>
+                            Penerima: {item.recipientName}
+                          </div>
+                          <div className="text-[10px] text-muted-foreground flex items-center gap-1 truncate">
+                            <span>Uploader:</span>
+                            <span className="truncate">{item.uploaderName || 'Staf Dokumen TTB'}</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2.5 max-w-[240px]">
+                          <div
+                            className={`size-7 rounded-full flex items-center justify-center font-bold text-[10px] text-white shrink-0 shadow-xs ${
+                              item.uploaderRole === 'admin'
+                                ? 'bg-linear-to-tr from-purple-600 to-indigo-600'
+                                : item.uploaderRole === 'staf_lapangan'
+                                ? 'bg-linear-to-tr from-amber-600 to-emerald-600'
+                                : 'bg-linear-to-tr from-blue-600 to-cyan-600'
+                            }`}
+                          >
+                            {(item.uploaderName || item.uploaderUsername || 'D')[0]?.toUpperCase()}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5 truncate">
                               <span
-                                className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[8px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 whitespace-nowrap shrink-0"
-                                title="Dokumen ini otomatis tertandatangani digital & tercetak nama/tanggal resmi"
+                                className="font-semibold text-foreground text-xs truncate"
+                                title={item.uploaderName || 'DAVILA ZALIANTI PUTRI'}
                               >
-                                <FileSignature className="size-2.5" />
-                                <span>Auto-Signed</span>
+                                {item.uploaderName || 'DAVILA ZALIANTI PUTRI'}
                               </span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-1 text-[10px] text-muted-foreground truncate">
-                            {item.uploaderNik ? (
-                              <span className="px-1 py-0.2 rounded font-mono font-medium bg-muted text-foreground/80 border border-border">
-                                {item.uploaderNik}
+                              {item.isAutoStamped && (
+                                <span
+                                  className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[8px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 whitespace-nowrap shrink-0"
+                                  title="Dokumen ini otomatis tertandatangani digital & tercetak nama/tanggal resmi"
+                                >
+                                  <FileSignature className="size-2.5" />
+                                  <span>Auto-Signed</span>
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground truncate">
+                              {item.uploaderNik ? (
+                                <span className="px-1 py-0.2 rounded font-mono font-medium bg-muted text-foreground/80 border border-border">
+                                  {item.uploaderNik}
+                                </span>
+                              ) : (
+                                <span className="font-mono text-muted-foreground">
+                                  @{item.uploaderUsername || 'davila.zalianti'}
+                                </span>
+                              )}
+                              <span className="text-muted-foreground/40">&bull;</span>
+                              <span
+                                className="truncate text-muted-foreground"
+                                title={item.uploaderJabatan || 'Admin Logistik'}
+                              >
+                                {item.uploaderJabatan || 'Admin Logistik'}
                               </span>
-                            ) : (
-                              <span className="font-mono text-muted-foreground">
-                                @{item.uploaderUsername || 'davila.zalianti'}
-                              </span>
-                            )}
-                            <span className="text-muted-foreground/40">&bull;</span>
-                            <span
-                              className="truncate text-muted-foreground"
-                              title={item.uploaderJabatan || 'Admin Logistik'}
-                            >
-                              {item.uploaderJabatan || 'Admin Logistik'}
-                            </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
                     </td>
                     <td className="py-2.5 px-3 text-right">
                       <div className="inline-flex items-center gap-1.5">
@@ -1974,15 +2005,19 @@ export default function UploadTtbTab({
                           href={item.fileUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="p-1.5 rounded-lg border border-border hover:bg-muted text-muted-foreground hover:text-teal-600 transition"
-                          title="Buka / Preview Berkas"
+                          className={`p-1.5 rounded-lg border transition ${
+                            item.isRecipientStamped
+                              ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20'
+                              : 'border-border hover:bg-muted text-muted-foreground hover:text-teal-600'
+                          }`}
+                          title={item.isRecipientStamped ? 'Buka Berkas TTB Terbaru (Sudah TTD Armada)' : 'Buka / Preview Berkas'}
                         >
                           <Eye className="size-3.5" />
                         </a>
                         <a
-                          href={`${item.fileUrl}&download=true`}
+                          href={item.fileUrl.includes('?') ? `${item.fileUrl}&download=true` : `${item.fileUrl}?download=true`}
                           className="p-1.5 rounded-lg border border-border hover:bg-muted text-muted-foreground hover:text-foreground transition"
-                          title="Unduh Berkas dari Cloudflare Storage"
+                          title="Unduh Berkas Terbaru dari Cloudflare Storage"
                         >
                           <Download className="size-3.5" />
                         </a>

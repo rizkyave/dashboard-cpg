@@ -1820,12 +1820,16 @@ export default function SerahTerimaLapanganTab({
                             </div>
                           </div>
                         </div>
-                        {rec.ttbDocumentUrl && (
+                        {(rec.ttbDocumentUrl || rec.isTtbDocumentStamped) && (
                           <a
-                            href={rec.ttbDocumentUrl}
+                            href={
+                              rec.ttbDocumentUrl ||
+                              `/api/r2-file?key=ttb-documents%2F${encodeURIComponent(rec.cleanNoTtb || rec.noTtb)}.pdf&v=${Date.now()}`
+                            }
                             target="_blank"
                             rel="noopener noreferrer"
                             className="px-2 py-1 text-[10px] font-medium rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 flex items-center gap-1 shrink-0 transition"
+                            title="Buka dokumen TTB resmi yang telah ditandatangani penerima"
                           >
                             <span>Lihat PDF</span>
                             <ExternalLink className="size-2.5" />

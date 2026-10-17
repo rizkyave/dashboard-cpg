@@ -158,7 +158,7 @@ export default function TtbMediaModal({
     setDocsError('');
     setSelectedDocIdx(0);
 
-    fetch(`/api/upload-ttb?ttb=${encodeURIComponent(activeTtb)}`)
+    fetch(`/api/upload-ttb?ttb=${encodeURIComponent(activeTtb)}&_t=${Date.now()}`)
       .then((r) => r.json())
       .then((data) => {
         if (cancelled) return;
@@ -501,10 +501,18 @@ export default function TtbMediaModal({
                     {/* Header info berkas yang dipilih */}
                     <div className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-background border border-border text-xs">
                       <div className="min-w-0">
-                        <p className="font-semibold text-foreground truncate" title={selectedDoc?.renamedFileName}>
-                          {selectedDoc?.renamedFileName}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground flex items-center gap-1.5 flex-wrap">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-semibold text-foreground truncate" title={selectedDoc?.renamedFileName}>
+                            {selectedDoc?.renamedFileName}
+                          </p>
+                          {selectedDoc?.isRecipientStamped && (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shrink-0">
+                              <Check className="size-2.5" />
+                              <span>TTD Armada: {selectedDoc.recipientName}</span>
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-muted-foreground flex items-center gap-1.5 flex-wrap mt-0.5">
                           <span>Ukuran: {formatFileSize(selectedDoc?.fileSize || 0)}</span>
                           <span>&bull;</span>
                           <span>Tgl: {selectedDoc?.receivedDate || '-'}</span>

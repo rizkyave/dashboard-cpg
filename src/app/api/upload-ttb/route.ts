@@ -187,15 +187,60 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Pastikan URL file selalu merujuk ke endpoint yang valid
-    const formattedHistory = history.map((item) => {
-      if (item.r2Key && isR2Active) {
-        return {
-          ...item,
-          fileUrl: getR2FileUrl(item.r2Key),
-        };
+    // Sinkronisasi status TTD penerima dengan riwayat serah terima lapangan
+    let serahTerimaRecords: any[] = [];
+    if (isR2Active) {
+      try {
+        const strObj = await getObjectFromR2('ttb-metadata/serah-terima-history.json');
+        if (strObj && strObj.body) {
+          const parsedStr = JSON.parse(Buffer.from(strObj.body).toString('utf8'));
+          if (Array.isArray(parsedStr)) serahTerimaRecords = parsedStr;
+        }
+      } catch {
+        // Fallback
       }
-      return item;
+    }
+    if (serahTerimaRecords.length === 0) {
+      try {
+        const rawStr = await fs.readFile(path.join(process.cwd(), 'src', 'data', 'serah-terima-history.json'), 'utf8');
+        serahTerimaRecords = JSON.parse(rawStr);
+      } catch {
+        // Ignore
+      }
+    }
+
+    // Pastikan URL file selalu merujuk ke endpoint yang valid dan memuat versi dokumen terbaru
+    const formattedHistory = history.map((item) => {
+      let updatedItem = { ...item };
+
+      // Cek apakah ada bukti serah terima untuk TTB ini
+      const cleanItemTtb = sanitizeTtbNumber(item.noTtb || item.cleanNoTtb || '');
+      const strMatch = serahTerimaRecords.find((s) => {
+        const sClean = sanitizeTtbNumber(s.noTtb || s.cleanNoTtb || '');
+        return sClean === cleanItemTtb || (cleanItemTtb.length >= 4 && sClean.includes(cleanItemTtb));
+      });
+
+      if (strMatch && strMatch.penerimaSignature && !updatedItem.isRecipientStamped) {
+        updatedItem.isRecipientStamped = true;
+        updatedItem.recipientName = strMatch.penerima;
+        updatedItem.recipientSignatureDataUrl = strMatch.penerimaSignature;
+        updatedItem.recipientStampedAt = strMatch.createdAt || strMatch.tanggalSerahTerima;
+      }
+
+      if (updatedItem.r2Key && isR2Active) {
+        let baseFileUrl = getR2FileUrl(updatedItem.r2Key);
+        const v = updatedItem.recipientStampedAt
+          ? new Date(updatedItem.recipientStampedAt).getTime()
+          : updatedItem.stampedAt
+          ? new Date(updatedItem.stampedAt).getTime()
+          : '';
+        if (v) {
+          baseFileUrl += (baseFileUrl.includes('?') ? '&' : '?') + `v=${v}`;
+        }
+        updatedItem.fileUrl = baseFileUrl;
+      }
+
+      return updatedItem;
     });
 
     formattedHistory.sort(
