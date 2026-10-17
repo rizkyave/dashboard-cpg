@@ -45,6 +45,8 @@ import {
   SerahTerimaPhoto,
   KondisiSerahTerima,
 } from '@/types/serahTerima';
+import { UploadedTtbItem } from '@/types/ttbUpload';
+import { formatDateDdMmYy, extractDateInfo } from '@/utils/formatDate';
 import { useAuth } from '@/context/AuthContext';
 import TtbMediaModal from './TtbMediaModal';
 import { loadCrewData, StoredCrewData } from '@/utils/crewKapalStorage';
@@ -174,6 +176,12 @@ interface TtbReferenceOption {
   vendor?: string;
   itemSummary: string;
   itemsCount: number;
+  tglTtb?: string;
+  tglTtbFormatted: string;
+  tglTtbTimestamp: number;
+  isRecipientSigned: boolean;
+  recipientName?: string;
+  signedAt?: string;
 }
 
 export default function SerahTerimaLapanganTab({
@@ -193,6 +201,8 @@ export default function SerahTerimaLapanganTab({
   const [ttbSearchTerm, setTtbSearchTerm] = useState<string>('');
   const [isSearchingTtb, setIsSearchingTtb] = useState<boolean>(false);
   const [selectedTtbRef, setSelectedTtbRef] = useState<TtbReferenceOption | null>(null);
+  const [ttbStatusFilter, setTtbStatusFilter] = useState<'ALL' | 'BELUM' | 'SUDAH'>('ALL');
+  const [uploadedTtbs, setUploadedTtbs] = useState<UploadedTtbItem[]>([]);
   const [isManualTtb, setIsManualTtb] = useState<boolean>(false);
   const [manualNoTtb, setManualNoTtb] = useState<string>('');
   const [manualArmada, setManualArmada] = useState<string>('');
@@ -378,84 +388,203 @@ export default function SerahTerimaLapanganTab({
   // Modal TTB Media Modal
   const [selectedTtbForModal, setSelectedTtbForModal] = useState<string | null>(null);
 
+  // Map status TTD digital penerima akhir / armada berdasarkan riwayat serah terima & upload TTB
+  const signedTtbMap = useMemo(() => {
+    const map = new Map<string, { recipientName?: string; signedAt?: string }>();
+    // 1. Dari Serah Terima Lapangan
+    historyRecords.forEach((h) => {
+      const cleanKey = (h.cleanNoTtb || h.noTtb || '').toUpperCase().trim();
+      const isSigned = Boolean(h.penerimaSignature || h.isTtbDocumentStamped);
+      if (cleanKey && isSigned) {
+        map.set(cleanKey, {
+          recipientName: h.penerima || 'Crew Kapal',
+          signedAt: h.tanggalSerahTerima,
+        });
+      }
+    });
+
+    // 2. Dari Upload TTB
+    uploadedTtbs.forEach((u) => {
+      const cleanKey = (u.cleanNoTtb || u.noTtb || '').toUpperCase().trim();
+      const isSigned = Boolean(u.isRecipientStamped || u.recipientSignatureDataUrl);
+      if (cleanKey && isSigned && !map.has(cleanKey)) {
+        map.set(cleanKey, {
+          recipientName: u.recipientName || 'Crew Kapal',
+          signedAt: u.recipientStampedAt || u.receivedDate,
+        });
+      }
+    });
+
+    return map;
+  }, [historyRecords, uploadedTtbs]);
+
   // 1. Build TTB Reference Catalog from Sisa Layanan, Procurement, and Armada Data
+  // Diurutkan berdasarkan tanggal terbaru TTB terbit (newest date first)
   const ttbReferenceCatalog = useMemo(() => {
     const map = new Map<string, TtbReferenceOption>();
 
-    // Dari Sisa Layanan
-    sisaLayananItems.forEach((item) => {
-      const rawTtb = (item.noTtb || '').trim();
-      if (!rawTtb || rawTtb === '-' || rawTtb.toLowerCase() === 'null') return;
-      const cleanKey = rawTtb.toUpperCase().replace(/\s+/g, ' ');
+    const addOrUpdate = (
+      rawTtb: string,
+      armada: string,
+      noFpb: string | undefined,
+      noPo: string | undefined,
+      namaBarang: string | undefined,
+      satuan: string | undefined,
+      qty: number | string | undefined,
+      rawDate: string | undefined
+    ) => {
+      const ttbClean = (rawTtb || '').trim();
+      if (!ttbClean || ttbClean === '-' || ttbClean.toLowerCase() === 'null') return;
+      const cleanKey = ttbClean.toUpperCase().replace(/\s+/g, ' ');
+
+      const signedInfo = signedTtbMap.get(cleanKey);
+      const isSigned = Boolean(signedInfo);
+
+      const dInfo = extractDateInfo(rawDate);
+      const dateFormatted = formatDateDdMmYy(rawDate);
+      const timestamp = dInfo.timestamp || 0;
 
       if (!map.has(cleanKey)) {
         map.set(cleanKey, {
           key: cleanKey,
-          noTtb: rawTtb,
+          noTtb: ttbClean,
           cleanNoTtb: cleanKey,
-          armada: (item.departement || '').trim() || '-',
-          noFpb: item.noFpb || undefined,
-          noPo: item.noPo || undefined,
+          armada: (armada || '').trim() || '-',
+          noFpb: noFpb || undefined,
+          noPo: noPo || undefined,
           vendor: undefined,
-          itemSummary: item.namaBarang ? `${item.namaBarang} (${item.jmlTtb || item.jmlPo || 1} ${item.satuan || ''})` : 'Barang Sisa Layanan',
+          itemSummary: namaBarang
+            ? `${namaBarang} (${qty || 1} ${satuan || ''})`.trim()
+            : 'Barang Pengadaan / Sisa Layanan',
           itemsCount: 1,
+          tglTtb: rawDate || undefined,
+          tglTtbFormatted: dateFormatted !== '-' ? dateFormatted : '',
+          tglTtbTimestamp: timestamp,
+          isRecipientSigned: isSigned,
+          recipientName: signedInfo?.recipientName,
+          signedAt: signedInfo?.signedAt,
         });
       } else {
         const existing = map.get(cleanKey)!;
-        if (item.namaBarang && !existing.itemSummary.includes(item.namaBarang)) {
-          existing.itemSummary += `, ${item.namaBarang}`;
+        if (namaBarang && !existing.itemSummary.includes(namaBarang)) {
+          existing.itemSummary += `, ${namaBarang}`;
           existing.itemsCount += 1;
         }
+        // Update tanggal jika record baru memiliki timestamp yang lebih baru / valid
+        if (timestamp > existing.tglTtbTimestamp) {
+          existing.tglTtb = rawDate;
+          existing.tglTtbFormatted = dateFormatted !== '-' ? dateFormatted : existing.tglTtbFormatted;
+          existing.tglTtbTimestamp = timestamp;
+        }
+        if (!existing.noFpb && noFpb) existing.noFpb = noFpb;
+        if (!existing.noPo && noPo) existing.noPo = noPo;
+        if (existing.armada === '-' && armada && armada !== '-') existing.armada = armada;
+        if (isSigned && !existing.isRecipientSigned) {
+          existing.isRecipientSigned = true;
+          existing.recipientName = signedInfo?.recipientName;
+          existing.signedAt = signedInfo?.signedAt;
+        }
       }
+    };
+
+    // Dari Sisa Layanan
+    sisaLayananItems.forEach((item) => {
+      addOrUpdate(
+        item.noTtb || '',
+        item.departement || '',
+        item.noFpb,
+        item.noPo,
+        item.namaBarang,
+        item.satuan,
+        item.jmlTtb || item.jmlPo,
+        item.tglTtb || item.tglPo || item.tglFpb
+      );
     });
 
     // Dari Procurement
     procurementItems.forEach((item) => {
-      const rawTtb = (item.noTtb || '').trim();
-      if (!rawTtb || rawTtb === '-' || rawTtb.toLowerCase() === 'null') return;
-      const cleanKey = rawTtb.toUpperCase().replace(/\s+/g, ' ');
-
-      if (!map.has(cleanKey)) {
-        map.set(cleanKey, {
-          key: cleanKey,
-          noTtb: rawTtb,
-          cleanNoTtb: cleanKey,
-          armada: (item.deptArmada || '').trim() || '-',
-          noFpb: item.fpb || undefined,
-          noPo: item.po || undefined,
-          vendor: undefined,
-          itemSummary: item.item ? `${item.item} (${item.qtyTTB || item.qtyPO || 1} ${item.satuan || ''})` : 'Barang Pengadaan',
-          itemsCount: 1,
-        });
-      } else {
-        const existing = map.get(cleanKey)!;
-        if (item.item && !existing.itemSummary.includes(item.item)) {
-          existing.itemSummary += `, ${item.item}`;
-          existing.itemsCount += 1;
-        }
-      }
+      addOrUpdate(
+        item.noTtb || '',
+        item.deptArmada || '',
+        item.fpb,
+        item.po,
+        item.item,
+        item.satuan,
+        item.qtyTTB || item.qtyPO,
+        item.tglTtb || item.tglInputTtb || item.tglPo || item.date
+      );
     });
 
-    return Array.from(map.values());
-  }, [sisaLayananItems, procurementItems]);
+    // Dari Uploaded TTB (Cloudflare R2)
+    uploadedTtbs.forEach((u) => {
+      addOrUpdate(
+        u.noTtb,
+        u.armada,
+        undefined,
+        undefined,
+        u.keterangan || u.renamedFileName,
+        undefined,
+        1,
+        u.receivedDate || u.uploadedAt
+      );
+    });
 
-  // Autocomplete matching results
+    const catalog = Array.from(map.values());
+
+    // URUTKAN BERDASARKAN TANGGAL TERBARU TTB TERBIT (Newest Date First)
+    catalog.sort((a, b) => {
+      if (b.tglTtbTimestamp !== a.tglTtbTimestamp) {
+        return b.tglTtbTimestamp - a.tglTtbTimestamp;
+      }
+      return b.noTtb.localeCompare(a.noTtb);
+    });
+
+    return catalog;
+  }, [sisaLayananItems, procurementItems, uploadedTtbs, signedTtbMap]);
+
+  // Statistik jumlah TTB belum vs sudah TTD digital
+  const ttbStats = useMemo(() => {
+    let belumCount = 0;
+    let sudahCount = 0;
+    ttbReferenceCatalog.forEach((opt) => {
+      if (opt.isRecipientSigned) sudahCount++;
+      else belumCount++;
+    });
+    return {
+      total: ttbReferenceCatalog.length,
+      belum: belumCount,
+      sudah: sudahCount,
+    };
+  }, [ttbReferenceCatalog]);
+
+  // Autocomplete matching & filter results
   const filteredTtbOptions = useMemo(() => {
-    if (!ttbSearchTerm.trim()) {
-      return ttbReferenceCatalog.slice(0, 8); // Top 8 suggestions default
+    let result = ttbReferenceCatalog;
+
+    // Filter status TTD digital penerima
+    if (ttbStatusFilter === 'BELUM') {
+      result = result.filter((opt) => !opt.isRecipientSigned);
+    } else if (ttbStatusFilter === 'SUDAH') {
+      result = result.filter((opt) => opt.isRecipientSigned);
     }
-    const q = ttbSearchTerm.toLowerCase();
-    return ttbReferenceCatalog
-      .filter(
+
+    // Filter pencarian
+    if (ttbSearchTerm.trim()) {
+      const q = ttbSearchTerm.toLowerCase();
+      result = result.filter(
         (opt) =>
           opt.noTtb.toLowerCase().includes(q) ||
           opt.armada.toLowerCase().includes(q) ||
           (opt.noFpb && opt.noFpb.toLowerCase().includes(q)) ||
           (opt.noPo && opt.noPo.toLowerCase().includes(q)) ||
-          opt.itemSummary.toLowerCase().includes(q)
-      )
-      .slice(0, 15);
-  }, [ttbReferenceCatalog, ttbSearchTerm]);
+          opt.itemSummary.toLowerCase().includes(q) ||
+          (opt.recipientName && opt.recipientName.toLowerCase().includes(q)) ||
+          (opt.tglTtbFormatted && opt.tglTtbFormatted.includes(q))
+      );
+    }
+
+    return result;
+  }, [ttbReferenceCatalog, ttbStatusFilter, ttbSearchTerm]);
 
   // Nama armada aktif saat ini (dari TTB referensi yang dipilih atau input manual)
   const currentArmada = isManualTtb ? manualArmada : (selectedTtbRef?.armada || '');
@@ -510,20 +639,33 @@ export default function SerahTerimaLapanganTab({
     }
   };
 
-  // Fetch riwayat serah terima dari API
+  // Fetch riwayat serah terima dari API & berkas Upload TTB
   const fetchHistory = async () => {
     setIsLoadingHistory(true);
     try {
-      const res = await fetch('/api/serah-terima');
-      const data: SerahTerimaResponse = await res.json();
-      if (data.records) {
-        setHistoryRecords(data.records);
+      const [resHistory, resUploadTtb] = await Promise.allSettled([
+        fetch('/api/serah-terima'),
+        fetch(`/api/upload-ttb?_t=${Date.now()}`),
+      ]);
+
+      if (resHistory.status === 'fulfilled' && resHistory.value.ok) {
+        const data: SerahTerimaResponse = await resHistory.value.json();
+        if (data.records) {
+          setHistoryRecords(data.records);
+        }
+        if (typeof data.isR2Active === 'boolean') {
+          setIsR2Active(data.isR2Active);
+        }
       }
-      if (typeof data.isR2Active === 'boolean') {
-        setIsR2Active(data.isR2Active);
+
+      if (resUploadTtb.status === 'fulfilled' && resUploadTtb.value.ok) {
+        const dataTtb = await resUploadTtb.value.json();
+        if (Array.isArray(dataTtb.items)) {
+          setUploadedTtbs(dataTtb.items);
+        }
       }
     } catch (err) {
-      console.warn('Gagal memuat riwayat serah terima:', err);
+      console.warn('Gagal memuat riwayat serah terima & upload TTB:', err);
     } finally {
       setIsLoadingHistory(false);
     }
@@ -902,51 +1044,212 @@ export default function SerahTerimaLapanganTab({
                       )}
                     </div>
 
-                    {/* Suggestions list */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 max-h-80 overflow-y-auto p-1 border border-border rounded-xl bg-muted/20">
-                      {filteredTtbOptions.length > 0 ? (
-                        filteredTtbOptions.map((opt) => (
-                          <div
-                            key={opt.key}
-                            onClick={() => {
-                              setSelectedTtbRef(opt);
-                              setIsSearchingTtb(false);
-                            }}
-                            className="p-3 rounded-xl border border-border hover:border-indigo-500/50 bg-card hover:bg-indigo-500/5 cursor-pointer transition flex flex-col justify-between gap-2 text-xs group"
-                          >
-                            <div className="flex items-start justify-between gap-1">
-                              <span className="font-mono font-bold text-foreground group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
-                                {opt.noTtb}
-                              </span>
-                              <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 shrink-0">
-                                {opt.armada}
-                              </span>
-                            </div>
+                    {/* Header Bar & Quick Filter Chips */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <button
+                          type="button"
+                          onClick={() => setTtbStatusFilter('ALL')}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer ${
+                            ttbStatusFilter === 'ALL'
+                              ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
+                              : 'bg-background hover:bg-muted text-muted-foreground border-border'
+                          }`}
+                        >
+                          Semua TTB ({ttbStats.total})
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setTtbStatusFilter('BELUM')}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer inline-flex items-center gap-1.5 ${
+                            ttbStatusFilter === 'BELUM'
+                              ? 'bg-amber-500 text-white border-amber-500 shadow-2xs'
+                              : 'bg-background hover:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30'
+                          }`}
+                        >
+                          <Clock className="size-3" />
+                          <span>Belum TTD Digital ({ttbStats.belum})</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setTtbStatusFilter('SUDAH')}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer inline-flex items-center gap-1.5 ${
+                            ttbStatusFilter === 'SUDAH'
+                              ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
+                              : 'bg-background hover:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30'
+                          }`}
+                        >
+                          <CheckCircle2 className="size-3" />
+                          <span>Sudah TTD Digital ({ttbStats.sudah})</span>
+                        </button>
+                      </div>
 
-                            <p className="text-[11px] text-muted-foreground line-clamp-2 leading-tight">
-                              {opt.itemSummary}
-                            </p>
+                      <div className="text-[11px] text-muted-foreground flex items-center gap-1 font-mono">
+                        <Calendar className="size-3 text-indigo-500" />
+                        <span>Urutan: Tanggal TTB Terbaru ↓</span>
+                      </div>
+                    </div>
 
-                            <div className="flex items-center justify-between text-[10px] text-muted-foreground font-mono pt-1 border-t border-border/50">
-                              <span>FPB: {opt.noFpb || '-'}</span>
-                              <span className="text-indigo-600 dark:text-indigo-400 font-semibold group-hover:translate-x-0.5 transition">
-                                Pilih →
-                              </span>
-                            </div>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="col-span-full py-8 text-center text-xs text-muted-foreground">
-                          Tidak ditemukan data TTB sesuai kata kunci. Anda dapat klik{' '}
-                          <button
-                            type="button"
-                            onClick={() => setIsManualTtb(true)}
-                            className="text-indigo-600 dark:text-indigo-400 font-bold underline"
-                          >
-                            Input Nomor TTB Manual
-                          </button>
-                        </div>
-                      )}
+                    {/* List Kolom (Tabel Daftar TTB Terbit) */}
+                    <div className="rounded-xl border border-border bg-card overflow-hidden shadow-xs">
+                      <div className="max-h-[420px] overflow-y-auto overflow-x-auto">
+                        <table className="w-full text-left text-xs border-collapse">
+                          <thead className="bg-muted/80 backdrop-blur sticky top-0 z-10 text-muted-foreground font-semibold border-b border-border uppercase text-[10px] tracking-wider">
+                            <tr>
+                              <th className="py-2.5 px-3 whitespace-nowrap">Tgl Terbit TTB</th>
+                              <th className="py-2.5 px-3 whitespace-nowrap">Nomor TTB Resmi</th>
+                              <th className="py-2.5 px-3 whitespace-nowrap">Armada / Unit</th>
+                              <th className="py-2.5 px-3 min-w-[220px]">Rincian Item Barang</th>
+                              <th className="py-2.5 px-3 whitespace-nowrap">No. FPB / PO</th>
+                              <th className="py-2.5 px-3 whitespace-nowrap">Status TTD Digital Armada</th>
+                              <th className="py-2.5 px-3 text-right whitespace-nowrap">Aksi</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-border/60">
+                            {filteredTtbOptions.length === 0 ? (
+                              <tr>
+                                <td colSpan={7} className="py-10 text-center text-xs text-muted-foreground">
+                                  {ttbSearchTerm ? (
+                                    <span>Tidak ditemukan data TTB sesuai kata kunci &quot;{ttbSearchTerm}&quot;.</span>
+                                  ) : (
+                                    <span>Tidak ada berkas TTB pada kategori ini.</span>
+                                  )}{' '}
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setTtbSearchTerm('');
+                                      setTtbStatusFilter('ALL');
+                                    }}
+                                    className="text-indigo-600 dark:text-indigo-400 font-bold underline ml-1 cursor-pointer"
+                                  >
+                                    Reset Filter
+                                  </button>
+                                </td>
+                              </tr>
+                            ) : (
+                              filteredTtbOptions.map((opt) => (
+                                <tr
+                                  key={opt.key}
+                                  onClick={() => {
+                                    setSelectedTtbRef(opt);
+                                    setIsSearchingTtb(false);
+                                  }}
+                                  className="hover:bg-indigo-500/5 transition cursor-pointer group"
+                                >
+                                  {/* Tgl Terbit TTB */}
+                                  <td className="py-2.5 px-3 whitespace-nowrap font-mono text-[11px]">
+                                    {opt.tglTtbFormatted ? (
+                                      <div className="flex items-center gap-1.5 text-foreground font-medium">
+                                        <Calendar className="size-3 text-indigo-500 shrink-0" />
+                                        <span>{opt.tglTtbFormatted}</span>
+                                      </div>
+                                    ) : (
+                                      <span className="text-muted-foreground/50 italic text-[10px]">
+                                        Belum Ada Tgl
+                                      </span>
+                                    )}
+                                  </td>
+
+                                  {/* Nomor TTB Resmi */}
+                                  <td className="py-2.5 px-3 whitespace-nowrap font-mono font-bold text-foreground group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+                                    <div className="flex items-center gap-1.5">
+                                      <span>{opt.noTtb}</span>
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          navigator.clipboard.writeText(opt.noTtb);
+                                          if (showToast) showToast('No. TTB disalin!', 'info');
+                                        }}
+                                        className="p-0.5 rounded text-muted-foreground/60 hover:text-foreground opacity-0 group-hover:opacity-100 transition"
+                                        title="Salin No TTB"
+                                      >
+                                        <Copy className="size-3" />
+                                      </button>
+                                    </div>
+                                  </td>
+
+                                  {/* Armada / Unit */}
+                                  <td className="py-2.5 px-3 whitespace-nowrap">
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20">
+                                      <Ship className="size-2.5 shrink-0" />
+                                      <span className="truncate max-w-[150px]">{opt.armada}</span>
+                                    </span>
+                                  </td>
+
+                                  {/* Rincian Item Barang */}
+                                  <td className="py-2.5 px-3">
+                                    <p className="text-[11px] text-muted-foreground line-clamp-2 leading-snug" title={opt.itemSummary}>
+                                      {opt.itemSummary}
+                                    </p>
+                                  </td>
+
+                                  {/* No. FPB / PO */}
+                                  <td className="py-2.5 px-3 whitespace-nowrap font-mono text-[10px] text-muted-foreground">
+                                    {opt.noFpb && <div>FPB: {opt.noFpb}</div>}
+                                    {opt.noPo && <div className="text-foreground/80">PO: {opt.noPo}</div>}
+                                    {!opt.noFpb && !opt.noPo && <span>-</span>}
+                                  </td>
+
+                                  {/* Status TTD Digital Armada / Penerima Akhir */}
+                                  <td className="py-2.5 px-3 whitespace-nowrap">
+                                    {opt.isRecipientSigned ? (
+                                      <div className="space-y-0.5">
+                                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                                          <CheckCircle2 className="size-3 shrink-0" />
+                                          <span>Sudah Ditandatangani</span>
+                                        </span>
+                                        {opt.recipientName && (
+                                          <span className="block text-[9.5px] text-muted-foreground font-mono truncate max-w-[160px]">
+                                            Oleh: {opt.recipientName}
+                                          </span>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <div className="space-y-0.5">
+                                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                                          <Clock className="size-3 shrink-0" />
+                                          <span>Belum Ditandatangani</span>
+                                        </span>
+                                        <span className="block text-[9.5px] text-amber-600/75 dark:text-amber-400/75 font-mono">
+                                          Menunggu TTD Crew
+                                        </span>
+                                      </div>
+                                    )}
+                                  </td>
+
+                                  {/* Aksi */}
+                                  <td className="py-2.5 px-3 text-right whitespace-nowrap">
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedTtbRef(opt);
+                                        setIsSearchingTtb(false);
+                                      }}
+                                      className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs inline-flex items-center gap-1 transition shadow-2xs active:scale-95 cursor-pointer"
+                                    >
+                                      <span>Pilih TTB</span>
+                                      <ChevronRight className="size-3" />
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* Footer Summary */}
+                      <div className="px-3.5 py-2 border-t border-border bg-muted/30 text-[11px] text-muted-foreground flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                        <span>
+                          Menampilkan <strong className="text-foreground font-mono">{filteredTtbOptions.length}</strong> dari{' '}
+                          <strong className="text-foreground font-mono">{ttbReferenceCatalog.length}</strong> data TTB
+                        </span>
+                        <span className="text-[10px] text-muted-foreground/80 font-mono">
+                          Klik baris atau tombol &quot;Pilih TTB&quot; untuk memilih referensi serah terima
+                        </span>
+                      </div>
                     </div>
                   </div>
                 ) : (
