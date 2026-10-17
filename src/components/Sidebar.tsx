@@ -113,16 +113,16 @@ export default function Sidebar({
           badge: 'Visitor',
         },
         {
-          id: 'serah-terima-lapangan' as TabType,
-          label: 'Serah Terima Lap.',
-          icon: Truck,
-          badge: 'Tim Lap',
-        },
-        {
           id: 'upload-ttb' as TabType,
           label: 'Upload TTB',
           icon: UploadCloud,
           badge: 'R2',
+        },
+        {
+          id: 'serah-terima-lapangan' as TabType,
+          label: 'Serah Terima Lap.',
+          icon: Truck,
+          badge: 'Tim Lap',
         },
         {
           id: 'galeri-ttb' as TabType,
@@ -160,18 +160,18 @@ export default function Sidebar({
           title: 'Monitoring Layanan Armada & FSTB (Hover FPB / Item untuk Nama Barang Sisa Layanan)',
         },
         {
-          id: 'serah-terima-lapangan' as TabType,
-          label: 'Serah Terima Lap.',
-          icon: Truck,
-          badge: 'Tim Lap',
-          title: 'Portal Tim Lapangan: Upload Bukti Foto Penyerahan Barang Berdasarkan Referensi TTB Resmi',
-        },
-        {
           id: 'upload-ttb' as TabType,
           label: 'Upload TTB',
           icon: UploadCloud,
           badge: 'R2',
           title: 'Upload Dokumen TTB ke Cloudflare R2 dengan Format Otomatis Sesuai No. TTB',
+        },
+        {
+          id: 'serah-terima-lapangan' as TabType,
+          label: 'Serah Terima Lap.',
+          icon: Truck,
+          badge: 'Tim Lap',
+          title: 'Portal Tim Lapangan: Upload Bukti Foto Penyerahan Barang Berdasarkan Referensi TTB Resmi',
         },
         {
           id: 'galeri-ttb' as TabType,
