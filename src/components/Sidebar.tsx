@@ -113,18 +113,6 @@ export default function Sidebar({
           badge: 'Visitor',
         },
         {
-          id: 'galeri-ttb' as TabType,
-          label: 'Galeri Foto TTB',
-          icon: Images,
-          badge: 'Blob',
-        },
-        {
-          id: 'timemark' as TabType,
-          label: 'Foto TimeMark',
-          icon: Camera,
-          badge: '5 Digit',
-        },
-        {
           id: 'serah-terima-lapangan' as TabType,
           label: 'Serah Terima Lap.',
           icon: Truck,
@@ -135,6 +123,18 @@ export default function Sidebar({
           label: 'Upload TTB',
           icon: UploadCloud,
           badge: 'R2',
+        },
+        {
+          id: 'galeri-ttb' as TabType,
+          label: 'Galeri Foto TTB',
+          icon: Images,
+          badge: 'Blob',
+        },
+        {
+          id: 'timemark' as TabType,
+          label: 'Foto TimeMark',
+          icon: Camera,
+          badge: '5 Digit',
         },
       ]
     : [
@@ -160,18 +160,6 @@ export default function Sidebar({
           title: 'Monitoring Layanan Armada & FSTB (Hover FPB / Item untuk Nama Barang Sisa Layanan)',
         },
         {
-          id: 'galeri-ttb' as TabType,
-          label: 'Galeri Foto TTB',
-          icon: Images,
-          badge: 'Blob',
-        },
-        {
-          id: 'timemark' as TabType,
-          label: 'Foto TimeMark',
-          icon: Camera,
-          badge: '5 Digit',
-        },
-        {
           id: 'serah-terima-lapangan' as TabType,
           label: 'Serah Terima Lap.',
           icon: Truck,
@@ -184,6 +172,18 @@ export default function Sidebar({
           icon: UploadCloud,
           badge: 'R2',
           title: 'Upload Dokumen TTB ke Cloudflare R2 dengan Format Otomatis Sesuai No. TTB',
+        },
+        {
+          id: 'galeri-ttb' as TabType,
+          label: 'Galeri Foto TTB',
+          icon: Images,
+          badge: 'Blob',
+        },
+        {
+          id: 'timemark' as TabType,
+          label: 'Foto TimeMark',
+          icon: Camera,
+          badge: '5 Digit',
         },
       ];
 
