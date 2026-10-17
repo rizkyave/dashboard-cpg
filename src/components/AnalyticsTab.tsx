@@ -54,6 +54,7 @@ import {
   FleetMonthlyTrendChart,
 } from './Charts';
 import FleetGanttSchedule from './FleetGanttSchedule';
+import TopFleetPieInfographic from './TopFleetPieInfographic';
 import WorkflowTrafficLight from './WorkflowTrafficLight';
 import DailyAnalyticsReport from './DailyAnalyticsReport';
 import { evaluateFiveDivisionWorkflow, evaluateArmadaFulfillment } from '@/utils/statusWorkflow';
@@ -2851,6 +2852,13 @@ export default function AnalyticsTab({
               </div>
             </div>
           </div>
+
+          {/* 2.5.1 Visualizer Infografis 3D Pie Chart 12 Armada Terbanyak */}
+          <TopFleetPieInfographic
+            onSelectFleet={(name) => {
+              setSelectedFleetArmada(name);
+            }}
+          />
 
           {/* 2.6 Gantt Schedule Timeline Permintaan & Realisasi Armada */}
           <FleetGanttSchedule
