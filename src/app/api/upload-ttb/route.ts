@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { sanitizeTtbNumber, formatTtbFilename } from '@/utils/ttbRename';
+import { sanitizeTtbNumber, formatTtbFilename, extractTtbComponents } from '@/utils/ttbRename';
 import { getPhotosDir } from '@/utils/ttbPhotosDir';
 import { UploadedTtbItem, UploadTtbResponse } from '@/types/ttbUpload';
 import { stampTtbPdf, formatTtbStampDate } from '@/utils/ttbStamper';
@@ -215,9 +215,15 @@ export async function GET(req: NextRequest) {
 
       // Cek apakah ada bukti serah terima untuk TTB ini
       const cleanItemTtb = sanitizeTtbNumber(item.noTtb || item.cleanNoTtb || '');
+      const itemComp = extractTtbComponents(cleanItemTtb);
       const strMatch = serahTerimaRecords.find((s) => {
         const sClean = sanitizeTtbNumber(s.noTtb || s.cleanNoTtb || '');
-        return sClean === cleanItemTtb || (cleanItemTtb.length >= 4 && sClean.includes(cleanItemTtb));
+        if (sClean === cleanItemTtb) return true;
+        const sComp = extractTtbComponents(sClean);
+        if (itemComp.prefix && sComp.prefix && itemComp.prefix !== sComp.prefix) {
+          return false;
+        }
+        return cleanItemTtb.length >= 4 && sClean.includes(cleanItemTtb);
       });
 
       if (strMatch) {

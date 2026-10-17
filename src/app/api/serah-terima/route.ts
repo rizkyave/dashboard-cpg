@@ -10,7 +10,7 @@ import {
 } from '@/utils/r2Client';
 import { getPhotosDir } from '@/utils/ttbPhotosDir';
 import { extractTakenAt, parseNoTtb, extractTtbFromFilename } from '@/utils/ttbPhotoMatch';
-import { sanitizeTtbNumber } from '@/utils/ttbRename';
+import { sanitizeTtbNumber, extractTtbComponents } from '@/utils/ttbRename';
 import { SerahTerimaItem, SerahTerimaResponse, SerahTerimaPhoto, KondisiSerahTerima } from '@/types/serahTerima';
 import { UploadedTtbItem } from '@/types/ttbUpload';
 import { stampTtbRecipientPdf, formatTtbStampDate } from '@/utils/ttbStamper';
@@ -314,12 +314,20 @@ export async function POST(req: NextRequest): Promise<NextResponse<SerahTerimaRe
         const cleanSearch = sanitizeTtbNumber(cleanTtb);
         const digitsOnly = cleanSearch.replace(/\D/g, '');
         const padded5 = digitsOnly && digitsOnly.length <= 5 ? digitsOnly.padStart(5, '0') : '';
+        const searchComp = extractTtbComponents(cleanSearch);
 
         // Cari item TTB yang sesuai di riwayat
         const matchedTtbIndex = ttbHistory.findIndex((t) => {
           const tClean = sanitizeTtbNumber(t.noTtb || '');
           if (tClean === cleanSearch) return true;
           if (cleanSearch.length >= 4 && tClean.includes(cleanSearch)) return true;
+
+          const tComp = extractTtbComponents(tClean);
+          // Jika kedua belah pihak memiliki prefix eksplisit namun berbeda perusahaan, jangan cocokkan
+          if (searchComp.prefix && tComp.prefix && searchComp.prefix !== tComp.prefix) {
+            return false;
+          }
+
           if (digitsOnly && digitsOnly.length >= 4) {
             const tDigits = tClean.replace(/\D/g, '');
             if (tDigits.includes(digitsOnly) || (padded5 && tDigits.includes(padded5))) return true;

@@ -34,7 +34,7 @@ import { useAuth } from '@/context/AuthContext';
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
 import { SisaLayananItem } from '@/types/sisaLayanan';
 import { UploadedTtbItem, UploadTtbResponse } from '@/types/ttbUpload';
-import { sanitizeTtbNumber, formatTtbFilename, formatFileSize } from '@/utils/ttbRename';
+import { sanitizeTtbNumber, formatTtbFilename, formatFileSize, extractTtbComponents } from '@/utils/ttbRename';
 import {
   convertSvgToPngDataUrl,
   formatTtbStampDate,
@@ -67,57 +67,79 @@ interface TtbSuggestion {
 }
 
 /**
- * Mendeteksi Nomor TTB dan Armada secara cerdas dari nama berkas (contoh: "CPL-TTB-26-00449.pdf", "04975.jpg")
+ * Mendeteksi Nomor TTB dan Armada secara cerdas dan presisi dari nama berkas.
+ * Menjamin:
+ * 1. Prefix perusahaan asli dari nama berkas (misal: "SP", "GAJ", "CPL") TIDAK AKAN PERNAH ditimpa oleh prefix lain.
+ * 2. Pencocokan ke data saran (sisa layanan & procurement) wajib memverifikasi kesamaan prefix.
+ * 3. Jika berkas mencantumkan nama armada, sistem memprioritaskan armada yang sesuai.
  */
 function detectTtbAndArmada(
   fileName: string,
   suggestions: TtbSuggestion[] = []
 ): { noTtb: string; armada: string; isAutoMatched: boolean } {
-  const baseName = fileName.replace(/\.[a-z0-9]+$/i, '').trim();
+  const components = extractTtbComponents(fileName);
 
-  // 1. Ekstrak pola TTB: (CPL|SP|MO|HL|GAJ|MIL|SSK)?[-_\s]*T?TB[-_\s]*(?:(\d{2})[-_\s]+)?(\d{3,6})
-  const ttbRegex = /(?:([A-Z]{2,4})[-_\s]*)?T?TB[-_\s]*(?:(\d{2})[-_\s]+)?(\d{3,6})/i;
-  const match = baseName.match(ttbRegex);
-
-  let rawDetectedTtb = '';
-  let targetNumber = '';
-
-  if (match) {
-    const prefix = match[1] ? match[1].toUpperCase() : '';
-    const yr = match[2] ? match[2].trim() : '';
-    const num = match[3] ? match[3].padStart(5, '0') : '';
-    targetNumber = match[3];
-
-    if (prefix && yr) {
-      rawDetectedTtb = `${prefix}-TTB-${yr}-${num}`;
-    } else if (prefix) {
-      rawDetectedTtb = `${prefix}-TTB ${num}`;
-    } else {
-      rawDetectedTtb = `TTB ${num}`;
-    }
-  } else {
-    // Coba deteksi angka 4-6 digit mandiri (misal "04975.pdf" atau "Scan_04975.jpg")
-    const numMatch = baseName.match(/\b\d{4,6}\b/);
-    if (numMatch) {
-      targetNumber = numMatch[0];
-      rawDetectedTtb = `TTB ${targetNumber.padStart(5, '0')}`;
-    }
-  }
-
-  // 2. Cocokkan targetNumber dengan ttbSuggestions (dari Sisa Layanan & Procurement)
+  let finalNoTtb = components.canonicalTtb || '';
   let matchedArmada = '';
-  let finalNoTtb = rawDetectedTtb;
+
+  const filePrefix = components.prefix;
+  const targetNumber = components.number || components.rawNumber;
 
   if (targetNumber && suggestions.length > 0) {
     const padded = targetNumber.padStart(5, '0');
-    const found = suggestions.find((s) => {
-      const cleanS = s.noTtb.replace(/\D/g, '');
-      return cleanS.endsWith(targetNumber) || cleanS.endsWith(padded);
-    });
 
-    if (found) {
-      finalNoTtb = found.noTtb;
-      matchedArmada = found.armada || '';
+    if (filePrefix) {
+      // 1. Berkas memiliki prefix eksplisit (misal "SP-TTB-26-00328", "GAJ-TTB-26-01140"):
+      // HANYA boleh dicocokkan dengan data yang ber-prefix SAMA!
+      const exactMatch = suggestions.find((s) => {
+        const sComp = extractTtbComponents(s.noTtb);
+        if (sComp.prefix !== filePrefix) return false;
+        const cleanS = s.noTtb.replace(/\D/g, '');
+        return cleanS.endsWith(targetNumber) || cleanS.endsWith(padded);
+      });
+
+      if (exactMatch) {
+        finalNoTtb = exactMatch.noTtb || finalNoTtb;
+        matchedArmada = exactMatch.armada || '';
+      }
+      // PENTING: Jika tidak ditemukan saran ber-prefix sama,
+      // finalNoTtb TETAP menggunakan canonicalTtb dari berkas asli (misal: "SP-TTB-26-00328"),
+      // TIDAK BOLEH ditimpa oleh data perusahaan lain (misal "CPL-TTB-26-00328")!
+    } else {
+      // 2. Berkas TIDAK memiliki prefix perusahaan (misal "TTB-26-04975.pdf" atau "04975.jpg"):
+      // Cari kandidat yang nomornya cocok
+      const lowerFileName = fileName.toLowerCase();
+      const candidates = suggestions.filter((s) => {
+        const cleanS = s.noTtb.replace(/\D/g, '');
+        return cleanS.endsWith(targetNumber) || cleanS.endsWith(padded);
+      });
+
+      if (candidates.length > 0) {
+        // Prioritaskan kandidat yang nama armadanya tertera pada nama file
+        const matchWithArmadaInFile = candidates.find(
+          (c) => c.armada && lowerFileName.includes(c.armada.toLowerCase())
+        );
+        const bestMatch = matchWithArmadaInFile || candidates[0];
+        finalNoTtb = bestMatch.noTtb;
+        matchedArmada = bestMatch.armada || '';
+      }
+    }
+  }
+
+  // 3. Fallback pencocokan Armada dari teks nama berkas jika armada masih kosong
+  if (!matchedArmada && suggestions.length > 0) {
+    const lowerFileName = fileName.toLowerCase();
+    const uniqueArmadas = Array.from(
+      new Set(suggestions.map((s) => (s.armada || '').trim()).filter(Boolean))
+    );
+    // Urutkan dari nama terpanjang agar nama spesifik seperti "TB GAJ 02" atau "SPOB SEA LION" didahulukan
+    uniqueArmadas.sort((a, b) => b.length - a.length);
+
+    for (const arm of uniqueArmadas) {
+      if (arm.length >= 3 && lowerFileName.includes(arm.toLowerCase())) {
+        matchedArmada = arm;
+        break;
+      }
     }
   }
 
@@ -455,8 +477,18 @@ export default function UploadTtbTab({
           const updated = { ...item, [field]: value };
           if (field === 'noTtb') {
             const cleanDigits = value.replace(/\D/g, '');
+            const inputComp = extractTtbComponents(value);
+            const inputPrefix = inputComp.prefix;
+
             if (cleanDigits.length >= 3 && !updated.armada) {
-              const found = ttbSuggestions.find((s) => s.noTtb.replace(/\D/g, '').endsWith(cleanDigits));
+              const found = ttbSuggestions.find((s) => {
+                if (inputPrefix) {
+                  const sComp = extractTtbComponents(s.noTtb);
+                  if (sComp.prefix !== inputPrefix) return false;
+                }
+                const sDigits = s.noTtb.replace(/\D/g, '');
+                return sDigits.endsWith(cleanDigits);
+              });
               if (found && found.armada) {
                 updated.armada = found.armada;
               }
