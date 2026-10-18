@@ -309,6 +309,8 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
     const formData = await req.formData();
     const noTtbRaw = ((formData.get('noTtb') as string) || '').trim();
     const armada = ((formData.get('armada') as string) || '').trim();
+    const noFpb = ((formData.get('noFpb') as string) || '').trim();
+    const noPo = ((formData.get('noPo') as string) || '').trim();
     const receivedDate = ((formData.get('receivedDate') as string) || '').trim();
     const keterangan = ((formData.get('keterangan') as string) || '').trim();
     const uploaderName = ((formData.get('uploaderName') as string) || '').trim();
@@ -475,6 +477,8 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
         noTtb: noTtbRaw,
         cleanNoTtb,
         armada: armada || '-',
+        noFpb: noFpb || undefined,
+        noPo: noPo || undefined,
         receivedDate: receivedDate || new Date().toISOString().slice(0, 10),
         keterangan: keterangan || '',
         originalFileName: f.name,

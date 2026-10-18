@@ -491,12 +491,31 @@ export default function FstbValidationModal({
                 <span>Unit: {record.armada}</span>
               </span>
 
+              {record.fpbNumber && (
+                <>
+                  <span className="text-muted-foreground/60">•</span>
+                  <span className="inline-flex items-center gap-1 font-mono font-bold text-teal-700 dark:text-teal-300 bg-teal-500/10 px-2 py-0.5 rounded border border-teal-500/20">
+                    <Boxes className="size-3 text-teal-600 dark:text-teal-400" />
+                    <span>FPB: {record.fpbNumber}</span>
+                  </span>
+                </>
+              )}
+
               {record.poNumber && (
                 <>
                   <span className="text-muted-foreground/60">•</span>
                   <span className="inline-flex items-center gap-1 font-mono text-muted-foreground bg-background px-2 py-0.5 rounded border border-border">
                     <FileText className="size-3" />
                     <span>PO/DO: {record.poNumber}</span>
+                  </span>
+                </>
+              )}
+
+              {record.relatedDocuments?.relatedTtbs && record.relatedDocuments.relatedTtbs.length > 0 && (
+                <>
+                  <span className="text-muted-foreground/60">•</span>
+                  <span className="inline-flex items-center gap-1 font-mono font-bold text-purple-700 dark:text-purple-300 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/25">
+                    <span>TTB Terkait: {record.relatedDocuments.relatedTtbs.join(', ')}</span>
                   </span>
                 </>
               )}

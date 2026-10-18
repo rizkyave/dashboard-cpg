@@ -58,6 +58,7 @@ interface QueuedFile {
   isPdf: boolean;
   noTtb: string;
   armada: string;
+  noFpb?: string;
   isAutoMatched: boolean;
 }
 
@@ -69,7 +70,7 @@ interface TtbSuggestion {
 }
 
 /**
- * Mendeteksi Nomor TTB dan Armada secara cerdas dan presisi dari nama berkas.
+ * Mendeteksi Nomor TTB, Armada, dan No. FPB secara cerdas dan presisi dari nama berkas.
  * Menjamin:
  * 1. Prefix perusahaan asli dari nama berkas (misal: "SP", "GAJ", "CPL") TIDAK AKAN PERNAH ditimpa oleh prefix lain.
  * 2. Pencocokan ke data saran (sisa layanan & procurement) wajib memverifikasi kesamaan prefix.
@@ -78,11 +79,12 @@ interface TtbSuggestion {
 function detectTtbAndArmada(
   fileName: string,
   suggestions: TtbSuggestion[] = []
-): { noTtb: string; armada: string; isAutoMatched: boolean } {
+): { noTtb: string; armada: string; noFpb?: string; isAutoMatched: boolean } {
   const components = extractTtbComponents(fileName);
 
   let finalNoTtb = components.canonicalTtb || '';
   let matchedArmada = '';
+  let matchedNoFpb = '';
 
   const filePrefix = components.prefix;
   const targetNumber = components.number || components.rawNumber;
@@ -103,6 +105,7 @@ function detectTtbAndArmada(
       if (exactMatch) {
         finalNoTtb = exactMatch.noTtb || finalNoTtb;
         matchedArmada = exactMatch.armada || '';
+        matchedNoFpb = exactMatch.noFpb || '';
       }
       // PENTING: Jika tidak ditemukan saran ber-prefix sama,
       // finalNoTtb TETAP menggunakan canonicalTtb dari berkas asli (misal: "SP-TTB-26-00328"),
@@ -124,6 +127,7 @@ function detectTtbAndArmada(
         const bestMatch = matchWithArmadaInFile || candidates[0];
         finalNoTtb = bestMatch.noTtb;
         matchedArmada = bestMatch.armada || '';
+        matchedNoFpb = bestMatch.noFpb || '';
       }
     }
   }
@@ -148,6 +152,7 @@ function detectTtbAndArmada(
   return {
     noTtb: finalNoTtb,
     armada: matchedArmada,
+    noFpb: matchedNoFpb || undefined,
     isAutoMatched: Boolean(finalNoTtb),
   };
 }
@@ -476,6 +481,7 @@ export default function UploadTtbTab({
         isPdf,
         noTtb: detected.noTtb || noTtbInput || '',
         armada: detected.armada || armadaInput || '',
+        noFpb: detected.noFpb || '',
         isAutoMatched: detected.isAutoMatched,
       });
     }
@@ -705,6 +711,7 @@ export default function UploadTtbTab({
         const formData = new FormData();
         formData.append('noTtb', targetNoTtb);
         formData.append('armada', targetArmada);
+        if (qf.noFpb) formData.append('noFpb', qf.noFpb);
         formData.append('receivedDate', receivedDate);
         formData.append('keterangan', keteranganInput.trim());
 
@@ -806,6 +813,11 @@ export default function UploadTtbTab({
       const formData = new FormData();
       formData.append('noTtb', noTtbInput.trim());
       formData.append('armada', armadaInput.trim());
+      const matchedSug = ttbSuggestions.find((s) => sanitizeTtbNumber(s.noTtb) === sanitizeTtbNumber(noTtbInput));
+      const targetNoFpb = matchedSug?.noFpb || queuedFiles[0]?.noFpb;
+      if (targetNoFpb) {
+        formData.append('noFpb', targetNoFpb);
+      }
       formData.append('receivedDate', receivedDate);
       formData.append('keterangan', keteranganInput.trim());
       if (user?.name) formData.append('uploaderName', user.name);

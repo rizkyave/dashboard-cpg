@@ -532,12 +532,31 @@ export default function TtbValidationModal({
                 <span>Unit: {record.armada}</span>
               </span>
 
+              {record.fpbNumber && (
+                <>
+                  <span className="text-muted-foreground/60">•</span>
+                  <span className="inline-flex items-center gap-1 font-mono font-bold text-amber-700 dark:text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                    <FileText className="size-3 text-amber-600 dark:text-amber-400" />
+                    <span>FPB: {record.fpbNumber}</span>
+                  </span>
+                </>
+              )}
+
               {record.poNumber && (
                 <>
                   <span className="text-muted-foreground/60">•</span>
                   <span className="inline-flex items-center gap-1 font-mono text-muted-foreground bg-background px-2 py-0.5 rounded border border-border">
                     <FileText className="size-3" />
                     <span>PO/DO: {record.poNumber}</span>
+                  </span>
+                </>
+              )}
+
+              {record.relatedDocuments?.relatedFstbs && record.relatedDocuments.relatedFstbs.length > 0 && (
+                <>
+                  <span className="text-muted-foreground/60">•</span>
+                  <span className="inline-flex items-center gap-1 font-mono font-bold text-teal-700 dark:text-teal-300 bg-teal-500/10 px-2 py-0.5 rounded border border-teal-500/25">
+                    <span>FSTB Asal: {record.relatedDocuments.relatedFstbs.join(', ')}</span>
                   </span>
                 </>
               )}

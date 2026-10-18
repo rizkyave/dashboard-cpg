@@ -35,6 +35,13 @@ export interface DocumentValidationRecord {
   r2Key?: string;
   storageProvider?: 'CLOUDFLARE_R2' | 'LOCAL';
 
+  // Rantai Relasi Dokumen Antara FPB, FSTB, dan TTB
+  relatedDocuments?: {
+    relatedFstbs?: string[];
+    relatedTtbs?: string[];
+    relatedPos?: string[];
+  };
+
   // Lini 1: Purchasing / Pengadaan (Kesesuaian PO, Spesifikasi, Vendor)
   purchasingValidation: ValidationSignatureRecord;
 

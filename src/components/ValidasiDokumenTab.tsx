@@ -29,6 +29,8 @@ import {
   Trash2,
   CloudDownload,
   UserCheck,
+  ArrowRight,
+  Link2,
 } from 'lucide-react';
 import {
   DocumentValidationRecord,
@@ -196,8 +198,11 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
 
     if (searchKeyword.trim()) {
       const q = searchKeyword.trim().toUpperCase();
-      result = result.filter(
-        (r) =>
+      const qDigits = q.replace(/\D/g, '');
+
+      result = result.filter((r) => {
+        // Direct field match
+        if (
           r.docNumber.toUpperCase().includes(q) ||
           r.cleanDocNumber.toUpperCase().includes(q) ||
           r.armada.toUpperCase().includes(q) ||
@@ -209,8 +214,33 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
           (r.logistikValidation.validatorName &&
             r.logistikValidation.validatorName.toUpperCase().includes(q)) ||
           (r.lapanganValidation.validatorName &&
-            r.lapanganValidation.validatorName.toUpperCase().includes(q))
-      );
+            r.lapanganValidation.validatorName.toUpperCase().includes(q)) ||
+          (r.recipientValidation?.recipientName &&
+            r.recipientValidation.recipientName.toUpperCase().includes(q))
+        ) {
+          return true;
+        }
+
+        // Numeric / digits match (misal mencari "000586" atau "586")
+        if (qDigits && qDigits.length >= 3) {
+          const fpbDigits = (r.fpbNumber || '').replace(/\D/g, '');
+          const poDigits = (r.poNumber || '').replace(/\D/g, '');
+          const docDigits = r.cleanDocNumber.replace(/\D/g, '');
+          if (fpbDigits.includes(qDigits) || poDigits.includes(qDigits) || docDigits.includes(qDigits)) {
+            return true;
+          }
+        }
+
+        // Rantai dokumen berelasi (No. FPB yang sama)
+        if (r.relatedDocuments) {
+          const inTtbs = r.relatedDocuments.relatedTtbs?.some((t) => t.toUpperCase().includes(q));
+          const inFstbs = r.relatedDocuments.relatedFstbs?.some((f) => f.toUpperCase().includes(q));
+          const inPos = r.relatedDocuments.relatedPos?.some((p) => p.toUpperCase().includes(q));
+          if (inTtbs || inFstbs || inPos) return true;
+        }
+
+        return false;
+      });
     }
 
     return result;
@@ -419,7 +449,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                 type="text"
                 value={searchKeyword}
                 onChange={(e) => setSearchKeyword(e.target.value)}
-                placeholder="Cari FSTB, TTB, PO, Armada..."
+                placeholder="Cari No. FPB, FSTB, TTB, PO, Armada..."
                 className="w-full h-8.5 pl-8 pr-3 text-xs rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:ring-1 focus:ring-primary focus:outline-none"
               />
             </div>
@@ -436,6 +466,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                 <th className="py-2.5 px-3">Tipe</th>
                 <th className="py-2.5 px-3">No. Berkas Resmi</th>
                 <th className="py-2.5 px-3">Armada / Unit</th>
+                <th className="py-2.5 px-3">No. FPB</th>
                 <th className="py-2.5 px-3">No. PO / DO</th>
                 <th className="py-2.5 px-3">Tahapan &amp; Persetujuan Lini</th>
                 <th className="py-2.5 px-3">Status Kelayakan</th>
@@ -446,7 +477,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
             <tbody className="divide-y divide-border/60">
               {isLoading ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-muted-foreground">
+                  <td colSpan={9} className="py-12 text-center text-muted-foreground">
                     <span className="inline-flex items-center gap-2">
                       <RefreshCw className="size-4 animate-spin text-primary" />
                       Memuat data berkas validasi dari Cloudflare R2...
@@ -455,7 +486,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                 </tr>
               ) : filteredRecords.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-muted-foreground">
+                  <td colSpan={9} className="py-12 text-center text-muted-foreground">
                     {searchKeyword
                       ? `Tidak ada berkas yang cocok dengan kata kunci "${searchKeyword}".`
                       : 'Belum ada berkas FSTB atau TTB yang terunggah untuk divalidasi.'}
@@ -502,6 +533,51 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                             )}
                           </button>
                         </div>
+
+                        {/* Indikator Relasi Rantai Dokumen (Document Tracking Link) */}
+                        {item.docType === 'FSTB' ? (
+                          item.relatedDocuments?.relatedTtbs && item.relatedDocuments.relatedTtbs.length > 0 ? (
+                            <div className="flex items-center gap-1 flex-wrap mt-0.5">
+                              <span className="text-[9.5px] font-sans font-medium text-muted-foreground">TTB Terkait:</span>
+                              {item.relatedDocuments.relatedTtbs.slice(0, 2).map((ttbNum) => (
+                                <button
+                                  key={ttbNum}
+                                  type="button"
+                                  onClick={() => setSearchKeyword(ttbNum)}
+                                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-500/25 transition cursor-pointer"
+                                  title={`Klik untuk filter TTB ${ttbNum} (No. FPB: ${item.fpbNumber || '-'})`}
+                                >
+                                  <ArrowRight className="size-2.5 text-purple-600 dark:text-purple-400" />
+                                  <span>{ttbNum}</span>
+                                </button>
+                              ))}
+                            </div>
+                          ) : item.overallStatus === 'SIAP_KIRIM_ARMADA' ? (
+                            <span className="inline-flex items-center gap-1 text-[9.5px] font-sans font-semibold text-teal-700 dark:text-teal-300 mt-0.5">
+                              <Clock className="size-2.5" />
+                              <span>Siap Terbit TTB</span>
+                            </span>
+                          ) : null
+                        ) : (
+                          item.relatedDocuments?.relatedFstbs && item.relatedDocuments.relatedFstbs.length > 0 ? (
+                            <div className="flex items-center gap-1 flex-wrap mt-0.5">
+                              <span className="text-[9.5px] font-sans font-medium text-muted-foreground">FSTB Asal:</span>
+                              {item.relatedDocuments.relatedFstbs.slice(0, 2).map((fstbNum) => (
+                                <button
+                                  key={fstbNum}
+                                  type="button"
+                                  onClick={() => setSearchKeyword(fstbNum)}
+                                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold bg-teal-500/10 hover:bg-teal-500/20 text-teal-700 dark:text-teal-300 border border-teal-500/25 transition cursor-pointer"
+                                  title={`Klik untuk filter FSTB ${fstbNum} (No. FPB: ${item.fpbNumber || '-'})`}
+                                >
+                                  <ArrowRight className="size-2.5 text-teal-600 dark:text-teal-400" />
+                                  <span>{fstbNum}</span>
+                                </button>
+                              ))}
+                            </div>
+                          ) : null
+                        )}
+
                         {item.fileExists === false && (
                           <div className="inline-flex items-center gap-1 text-[10px] text-amber-600 dark:text-amber-400 font-semibold px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 w-fit">
                             <AlertTriangle className="size-2.5 shrink-0" />
@@ -517,6 +593,36 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                         <Ship className="size-3 text-muted-foreground shrink-0" />
                         <span className="truncate">{item.armada || '-'}</span>
                       </div>
+                    </td>
+
+                    {/* No. FPB */}
+                    <td className="py-2.5 px-3 font-mono">
+                      {item.fpbNumber ? (
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => setSearchKeyword(item.fpbNumber!)}
+                            className="font-bold text-foreground hover:text-primary hover:underline text-[11px] truncate text-left cursor-pointer"
+                            title={`Klik untuk filter seluruh dokumen yang berelasi dengan No. FPB ${item.fpbNumber}`}
+                          >
+                            {item.fpbNumber}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleCopy(item.fpbNumber!, `${item.id}-fpb`)}
+                            className="p-1 rounded text-muted-foreground hover:text-foreground transition cursor-pointer shrink-0"
+                            title="Salin No. FPB"
+                          >
+                            {copiedId === `${item.id}-fpb` ? (
+                              <Check className="size-3 text-emerald-500" />
+                            ) : (
+                              <Copy className="size-3" />
+                            )}
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground/60 font-sans text-xs">-</span>
+                      )}
                     </td>
 
                     {/* No PO / DO */}

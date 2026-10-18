@@ -24,6 +24,7 @@ import { getFstbPhotosDir } from '@/utils/fstbPhotosDir';
 import { stampTtbPdf, formatTtbStampDate, TtbStampRoleType } from '@/utils/ttbStamper';
 import { getPhotosDir as getTtbPhotosDir } from '@/utils/ttbPhotosDir';
 import { computeValidationStatus } from '@/utils/validationHelper';
+import { resolveDocRelation } from '@/utils/docRelationResolver';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -259,6 +260,32 @@ export async function GET(req: NextRequest) {
         }
       }
 
+      // Sinkronisasi Kunci Relasi No. FPB, PO & Rantai Dokumen Terkait
+      const rel = resolveDocRelation(
+        rec.docType,
+        rec.cleanDocNumber || rec.docNumber,
+        rec.fpbNumber,
+        rec.poNumber
+      );
+
+      if (!rec.fpbNumber && rel.fpbNumber) {
+        rec.fpbNumber = rel.fpbNumber;
+        hasNewDrafts = true;
+      }
+      if (!rec.poNumber && rel.poNumber) {
+        rec.poNumber = rel.poNumber;
+        hasNewDrafts = true;
+      }
+      if ((!rec.armada || rec.armada === '-') && rel.armada) {
+        rec.armada = rel.armada;
+        hasNewDrafts = true;
+      }
+      rec.relatedDocuments = {
+        relatedFstbs: rel.relatedFstbs,
+        relatedTtbs: rel.relatedTtbs,
+        relatedPos: rel.relatedPos,
+      };
+
       existingMap.set(`${rec.docType}_${rec.docId}`, rec);
       existingMap.set(`${rec.docType}_${rec.cleanDocNumber}`, rec);
     }
@@ -284,15 +311,27 @@ export async function GET(req: NextRequest) {
             : undefined,
         };
 
+        const rel = resolveDocRelation(
+          'FSTB',
+          fstb.cleanNoFstb || fstb.noFstb,
+          fstb.noFpb,
+          fstb.doNo
+        );
+
         const draft: DocumentValidationRecord = {
           id: `val-fstb-${fstb.id}`,
           docType: 'FSTB',
           docId: fstb.id,
           docNumber: fstb.noFstb,
           cleanDocNumber: fstb.cleanNoFstb || fstb.noFstb,
-          armada: fstb.armada || '-',
-          poNumber: fstb.doNo || '',
-          fpbNumber: fstb.noFpb || '',
+          armada: fstb.armada && fstb.armada !== '-' ? fstb.armada : rel.armada || '-',
+          poNumber: fstb.doNo || rel.poNumber || '',
+          fpbNumber: fstb.noFpb || rel.fpbNumber || '',
+          relatedDocuments: {
+            relatedFstbs: rel.relatedFstbs,
+            relatedTtbs: rel.relatedTtbs,
+            relatedPos: rel.relatedPos,
+          },
           receivedDate: fstb.fstbDate || fstb.receivedDate || '',
           originalFileName: fstb.originalFileName,
           renamedFileName: fstb.renamedFileName,
@@ -305,6 +344,7 @@ export async function GET(req: NextRequest) {
           },
           lapanganValidation: {
             isValidated: false,
+            notes: 'N/A - FSTB hanya mencakup Purchasing & Logistik',
           },
           fstbSlots: {
             deliveredBy: { ...pchSig },
@@ -369,13 +409,27 @@ export async function GET(req: NextRequest) {
             }
           : { isValidated: false };
 
+        const rel = resolveDocRelation(
+          'TTB',
+          ttb.cleanNoTtb || ttb.noTtb,
+          ttb.noFpb,
+          undefined
+        );
+
         const draft: DocumentValidationRecord = {
           id: `val-ttb-${ttb.id}`,
           docType: 'TTB',
           docId: ttb.id,
           docNumber: ttb.noTtb,
           cleanDocNumber: ttb.cleanNoTtb || ttb.noTtb,
-          armada: ttb.armada || '-',
+          armada: ttb.armada && ttb.armada !== '-' ? ttb.armada : rel.armada || '-',
+          poNumber: rel.poNumber || '',
+          fpbNumber: ttb.noFpb || rel.fpbNumber || '',
+          relatedDocuments: {
+            relatedFstbs: rel.relatedFstbs,
+            relatedTtbs: rel.relatedTtbs,
+            relatedPos: rel.relatedPos,
+          },
           receivedDate: ttb.receivedDate || '',
           originalFileName: ttb.originalFileName,
           renamedFileName: ttb.renamedFileName,
@@ -441,6 +495,41 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    // Cross-link dokumen validasi aktif yang memiliki No. FPB yang sama
+    const fpbToFstbMap = new Map<string, string[]>();
+    const fpbToTtbMap = new Map<string, string[]>();
+
+    for (const rec of validationRecords) {
+      if (rec.fpbNumber) {
+        const fKey = rec.fpbNumber.toUpperCase().trim();
+        if (rec.docType === 'FSTB') {
+          const list = fpbToFstbMap.get(fKey) || [];
+          if (!list.includes(rec.docNumber)) list.push(rec.docNumber);
+          fpbToFstbMap.set(fKey, list);
+        } else {
+          const list = fpbToTtbMap.get(fKey) || [];
+          if (!list.includes(rec.docNumber)) list.push(rec.docNumber);
+          fpbToTtbMap.set(fKey, list);
+        }
+      }
+    }
+
+    for (const rec of validationRecords) {
+      if (rec.fpbNumber) {
+        const fKey = rec.fpbNumber.toUpperCase().trim();
+        const liveTtbs = fpbToTtbMap.get(fKey) || [];
+        const liveFstbs = fpbToFstbMap.get(fKey) || [];
+
+        rec.relatedDocuments = rec.relatedDocuments || {};
+        rec.relatedDocuments.relatedTtbs = Array.from(
+          new Set([...(rec.relatedDocuments.relatedTtbs || []), ...liveTtbs])
+        );
+        rec.relatedDocuments.relatedFstbs = Array.from(
+          new Set([...(rec.relatedDocuments.relatedFstbs || []), ...liveFstbs])
+        );
+      }
+    }
+
     if (hasNewDrafts) {
       await saveValidations(validationRecords);
     }
@@ -463,19 +552,48 @@ export async function GET(req: NextRequest) {
     }
 
     if (query) {
+      const qDigits = query.replace(/\D/g, '');
+
       filtered = filtered.filter((r) => {
-        return (
+        // 1. Direct match pada Nomor Dokumen, FPB, PO, Armada, File Name, Validator
+        if (
           r.docNumber.toUpperCase().includes(query) ||
           r.cleanDocNumber.toUpperCase().includes(query) ||
           r.armada.toUpperCase().includes(query) ||
           (r.poNumber && r.poNumber.toUpperCase().includes(query)) ||
           (r.fpbNumber && r.fpbNumber.toUpperCase().includes(query)) ||
           r.renamedFileName.toUpperCase().includes(query) ||
-          (r.purchasingValidation.validatorName && r.purchasingValidation.validatorName.toUpperCase().includes(query)) ||
-          (r.logistikValidation.validatorName && r.logistikValidation.validatorName.toUpperCase().includes(query)) ||
-          (r.lapanganValidation.validatorName && r.lapanganValidation.validatorName.toUpperCase().includes(query)) ||
-          (r.recipientValidation?.recipientName && r.recipientValidation.recipientName.toUpperCase().includes(query))
-        );
+          (r.purchasingValidation.validatorName &&
+            r.purchasingValidation.validatorName.toUpperCase().includes(query)) ||
+          (r.logistikValidation.validatorName &&
+            r.logistikValidation.validatorName.toUpperCase().includes(query)) ||
+          (r.lapanganValidation.validatorName &&
+            r.lapanganValidation.validatorName.toUpperCase().includes(query)) ||
+          (r.recipientValidation?.recipientName &&
+            r.recipientValidation.recipientName.toUpperCase().includes(query))
+        ) {
+          return true;
+        }
+
+        // 2. Numeric / digits match (misal mencari "000586" atau "586")
+        if (qDigits && qDigits.length >= 3) {
+          const fpbDigits = (r.fpbNumber || '').replace(/\D/g, '');
+          const poDigits = (r.poNumber || '').replace(/\D/g, '');
+          const docDigits = r.cleanDocNumber.replace(/\D/g, '');
+          if (fpbDigits.includes(qDigits) || poDigits.includes(qDigits) || docDigits.includes(qDigits)) {
+            return true;
+          }
+        }
+
+        // 3. Match melalui rantai dokumen berelasi (rantai No. FPB yang sama)
+        if (r.relatedDocuments) {
+          const inTtbs = r.relatedDocuments.relatedTtbs?.some((t) => t.toUpperCase().includes(query));
+          const inFstbs = r.relatedDocuments.relatedFstbs?.some((f) => f.toUpperCase().includes(query));
+          const inPos = r.relatedDocuments.relatedPos?.some((p) => p.toUpperCase().includes(query));
+          if (inTtbs || inFstbs || inPos) return true;
+        }
+
+        return false;
       });
     }
 

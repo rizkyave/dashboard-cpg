@@ -3,6 +3,8 @@ export interface UploadedTtbItem {
   noTtb: string;
   cleanNoTtb: string;
   armada: string;
+  noFpb?: string;
+  noPo?: string;
   receivedDate: string;
   keterangan?: string;
   originalFileName: string;
