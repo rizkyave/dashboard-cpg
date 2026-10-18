@@ -1203,11 +1203,28 @@ export default function SerahTerimaLapanganTab({
             {!isManualTtb ? (
               <div className="space-y-3">
                 {!selectedTtbRef ? (
-                  <div className="space-y-3">
-                    {/* Kotak Pencarian Sangat Besar & Jelas untuk Petugas Lapangan */}
+                  <div className="space-y-3.5">
+                    {/* Label Penuntun Sangat Jelas untuk Petugas Lapangan */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 px-1">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center justify-center size-6.5 rounded-lg bg-indigo-600 text-white font-black text-xs shadow-xs">
+                          TTB
+                        </span>
+                        <span className="text-sm sm:text-base font-black text-foreground tracking-wide uppercase">
+                          KOLOM PENCARIAN (KLIK &amp; KETIK DI KOTAK BESAR INI):
+                        </span>
+                      </div>
+                      {ttbSearchTerm && (
+                        <span className="text-xs sm:text-sm font-bold text-muted-foreground">
+                          Hasil: <strong className="text-indigo-600 dark:text-indigo-400 font-mono text-sm sm:text-base">{filteredTtbOptions.length}</strong> TTB Cocok
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Kotak Pencarian Raksasa (2X Lebih Besar) Ramah Lansia / Petugas Lapangan */}
                     <div className="relative group">
-                      <div className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
-                        <Search className="size-6 sm:size-7 text-indigo-600 dark:text-indigo-400 shrink-0 transition-transform group-focus-within:scale-110" />
+                      <div className="absolute left-4 sm:left-6 lg:left-7 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
+                        <Search className="size-8 sm:size-10 lg:size-12 text-indigo-600 dark:text-indigo-400 shrink-0 transition-transform group-focus-within:scale-110" />
                       </div>
                       <input
                         type="text"
@@ -1217,11 +1234,11 @@ export default function SerahTerimaLapanganTab({
                           setIsSearchingTtb(true);
                         }}
                         onFocus={() => setIsSearchingTtb(true)}
-                        placeholder="Ketik No. TTB (cth: 04975), nama armada (cth: SEA LION), atau No. FPB..."
-                        className="w-full pl-13 sm:pl-16 pr-24 sm:pr-28 py-4 sm:py-5 text-base sm:text-lg lg:text-xl font-bold rounded-2xl bg-background border-2 border-slate-300 dark:border-slate-700 text-foreground placeholder:text-muted-foreground/60 placeholder:text-sm sm:placeholder:text-base lg:placeholder:text-lg placeholder:font-normal shadow-sm hover:border-indigo-400 dark:hover:border-indigo-500 focus:outline-none focus:border-indigo-600 dark:focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/20 transition-all duration-150"
+                        placeholder="Ketik No. TTB, Nama Kapal / Armada..."
+                        className="w-full pl-16 sm:pl-22 lg:pl-24 pr-32 sm:pr-44 lg:pr-48 py-6 sm:py-7 lg:py-8 min-h-[88px] sm:min-h-[104px] text-xl sm:text-2xl lg:text-3xl font-black rounded-3xl bg-background border-4 border-indigo-500/80 dark:border-indigo-400 text-foreground placeholder:text-muted-foreground/50 placeholder:text-base sm:placeholder:text-xl lg:placeholder:text-2xl placeholder:font-semibold shadow-lg shadow-indigo-500/10 hover:border-indigo-600 dark:hover:border-indigo-300 focus:outline-none focus:border-indigo-600 dark:focus:border-indigo-300 focus:ring-8 focus:ring-indigo-500/20 transition-all duration-150"
                       />
-                      {/* Tombol Hapus / Status Pencarian yang Besar & Ramah Petugas */}
-                      <div className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                      {/* Tombol Hapus Ekstra Besar & Kontras Tinggi */}
+                      <div className="absolute right-3.5 sm:right-6 top-1/2 -translate-y-1/2 flex items-center gap-2">
                         {ttbSearchTerm ? (
                           <button
                             type="button"
@@ -1229,29 +1246,30 @@ export default function SerahTerimaLapanganTab({
                               setTtbSearchTerm('');
                               setIsSearchingTtb(false);
                             }}
-                            className="inline-flex items-center gap-1.5 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl bg-slate-200/90 hover:bg-rose-100 dark:bg-slate-800 dark:hover:bg-rose-950/40 text-slate-700 hover:text-rose-600 dark:text-slate-300 dark:hover:text-rose-400 border border-slate-300 dark:border-slate-700 transition cursor-pointer font-bold text-xs sm:text-sm shadow-xs"
+                            className="inline-flex items-center gap-2 px-4 py-3 sm:px-6 sm:py-3.5 rounded-2xl bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white font-black text-sm sm:text-base lg:text-lg shadow-md transition cursor-pointer"
                             title="Hapus pencarian dan tampilkan semua TTB"
                           >
-                            <X className="size-4 sm:size-5 shrink-0" />
-                            <span className="font-sans">Hapus</span>
+                            <X className="size-5 sm:size-6 lg:size-7 shrink-0" />
+                            <span className="font-sans">HAPUS</span>
                           </button>
                         ) : (
-                          <span className="hidden md:inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-muted text-[11px] font-mono text-muted-foreground border border-border">
-                            Cari Cepat
+                          <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-xs sm:text-sm font-bold text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                            <Search className="size-3.5 sm:size-4 text-indigo-500" />
+                            <span>Ketik di sini</span>
                           </span>
                         )}
                       </div>
                     </div>
 
                     {/* Header Bar & Quick Filter Chips */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-1">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <button
                           type="button"
                           onClick={() => setTtbStatusFilter('ALL')}
-                          className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold border transition cursor-pointer ${
+                          className={`px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl text-xs sm:text-sm lg:text-base font-black border-2 transition cursor-pointer ${
                             ttbStatusFilter === 'ALL'
-                              ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
+                              ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/20'
                               : 'bg-background hover:bg-muted text-muted-foreground border-border'
                           }`}
                         >
@@ -1260,31 +1278,31 @@ export default function SerahTerimaLapanganTab({
                         <button
                           type="button"
                           onClick={() => setTtbStatusFilter('BELUM')}
-                          className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold border transition cursor-pointer inline-flex items-center gap-1.5 ${
+                          className={`px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl text-xs sm:text-sm lg:text-base font-black border-2 transition cursor-pointer inline-flex items-center gap-2 ${
                             ttbStatusFilter === 'BELUM'
-                              ? 'bg-amber-500 text-white border-amber-500 shadow-2xs'
+                              ? 'bg-amber-500 text-white border-amber-500 shadow-md shadow-amber-500/20'
                               : 'bg-background hover:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30'
                           }`}
                         >
-                          <Clock className="size-3.5" />
+                          <Clock className="size-4" />
                           <span>Belum TTD Digital ({ttbStats.belum})</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => setTtbStatusFilter('SUDAH')}
-                          className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold border transition cursor-pointer inline-flex items-center gap-1.5 ${
+                          className={`px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl text-xs sm:text-sm lg:text-base font-black border-2 transition cursor-pointer inline-flex items-center gap-2 ${
                             ttbStatusFilter === 'SUDAH'
-                              ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
+                              ? 'bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-600/20'
                               : 'bg-background hover:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30'
                           }`}
                         >
-                          <CheckCircle2 className="size-3.5" />
+                          <CheckCircle2 className="size-4" />
                           <span>Sudah TTD Digital ({ttbStats.sudah})</span>
                         </button>
                       </div>
 
-                      <div className="text-[11px] sm:text-xs text-muted-foreground flex items-center gap-1.5 font-mono">
-                        <Calendar className="size-3.5 text-indigo-500" />
+                      <div className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1.5 font-mono">
+                        <Calendar className="size-4 text-indigo-500" />
                         <span>Urutan: Tanggal TTB Terbaru ↓ ({dateRangeBounds.label})</span>
                       </div>
                     </div>
@@ -2164,24 +2182,25 @@ export default function SerahTerimaLapanganTab({
       {activeView === 'history' && (
         <div className="space-y-4">
           {/* Filter & Search Bar */}
-          <div className="bg-card border border-border rounded-2xl p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="bg-card border-2 border-border rounded-3xl p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="relative flex-1 group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-5 sm:size-6 text-cyan-600 dark:text-cyan-400 shrink-0 transition-transform group-focus-within:scale-110" />
+              <Search className="absolute left-5 sm:left-6 top-1/2 -translate-y-1/2 size-7 sm:size-9 text-cyan-600 dark:text-cyan-400 shrink-0 transition-transform group-focus-within:scale-110" />
               <input
                 type="text"
                 value={historySearchTerm}
                 onChange={(e) => setHistorySearchTerm(e.target.value)}
-                placeholder="Cari riwayat serah terima (No. TTB, Armada, Penerima, Petugas)..."
-                className="w-full pl-12 pr-12 py-3.5 sm:py-4 text-sm sm:text-base font-bold rounded-xl bg-background border-2 border-slate-300 dark:border-slate-700 text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/20 transition"
+                placeholder="Cari riwayat serah terima (No. TTB, Armada, Penerima)..."
+                className="w-full pl-15 sm:pl-20 pr-28 sm:pr-36 py-5 sm:py-6 text-lg sm:text-2xl font-black rounded-2xl bg-background border-4 border-cyan-500/80 dark:border-cyan-400 text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-cyan-600 dark:focus:border-cyan-300 focus:ring-8 focus:ring-cyan-500/20 shadow-md transition"
               />
               {historySearchTerm && (
                 <button
                   type="button"
                   onClick={() => setHistorySearchTerm('')}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition"
+                  className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 inline-flex items-center gap-1.5 px-4 py-2.5 sm:px-5 sm:py-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs sm:text-base shadow-sm transition"
                   title="Hapus pencarian riwayat"
                 >
-                  <X className="size-4" />
+                  <X className="size-4 sm:size-5" />
+                  <span className="hidden sm:inline">HAPUS</span>
                 </button>
               )}
             </div>
