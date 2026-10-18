@@ -236,22 +236,61 @@ export default function TtbValidationModal({
 
   if (!isOpen || !record) return null;
 
+  // Cek apakah penerima / kru armada telah menandatangani melalui Serah Terima Lapangan atau Validasi Digital
+  const isRecipientSigned = Boolean(
+    record.recipientValidation?.isSigned ||
+    record.lapanganValidation?.isValidated ||
+    record.ttbSlots?.receivedBy?.isValidated
+  );
+
+  const effectiveReceivedBy = isRecipientSigned
+    ? {
+        isValidated: true,
+        validatorName:
+          record.ttbSlots?.receivedBy?.validatorName ||
+          record.recipientValidation?.recipientName ||
+          record.lapanganValidation?.validatorName ||
+          'Penerima / Kru Armada Lapangan',
+        validatorJabatan:
+          record.ttbSlots?.receivedBy?.validatorJabatan ||
+          record.lapanganValidation?.validatorJabatan ||
+          'Penerima / Crew Armada Kapal',
+        validatorRole: 'staf_lapangan',
+        validatedAt:
+          record.ttbSlots?.receivedBy?.validatedAt ||
+          record.recipientValidation?.signedAt ||
+          record.lapanganValidation?.validatedAt ||
+          record.updatedAt,
+        signatureDataUrl:
+          record.ttbSlots?.receivedBy?.signatureDataUrl ||
+          record.recipientValidation?.signatureDataUrl ||
+          record.lapanganValidation?.signatureDataUrl,
+        notes:
+          record.ttbSlots?.receivedBy?.notes ||
+          'Pekerjaan pengantaran telah selesai dilakukan oleh tim logistik lapangan & barang fisik telah diterima kru armada kapal.',
+        verificationToken:
+          record.ttbSlots?.receivedBy?.verificationToken ||
+          record.lapanganValidation?.verificationToken ||
+          'VAL-SERAH-TERIMA-LAPANGAN',
+      }
+    : { isValidated: false };
+
   // Hitung jumlah slot yang telah tervalidasi
-  const ttbSlots = record.ttbSlots || {
-    deliveredBy: record.logistikValidation?.isValidated ? record.logistikValidation : { isValidated: false },
-    receivedBy: record.lapanganValidation?.isValidated
-      ? record.lapanganValidation
-      : record.recipientValidation?.isSigned
-      ? {
-          isValidated: true,
-          validatorName: record.recipientValidation.recipientName,
-          validatedAt: record.recipientValidation.signedAt,
-          signatureDataUrl: record.recipientValidation.signatureDataUrl,
-          validatorJabatan: 'Penerima / Crew Kapal',
-        }
+  const ttbSlots = {
+    deliveredBy: record.ttbSlots?.deliveredBy?.isValidated
+      ? record.ttbSlots.deliveredBy
+      : record.logistikValidation?.isValidated
+      ? record.logistikValidation
       : { isValidated: false },
-    approvedBy: { isValidated: false },
-    acknowledgedBy: record.purchasingValidation?.isValidated ? record.purchasingValidation : { isValidated: false },
+    receivedBy: effectiveReceivedBy,
+    approvedBy: record.ttbSlots?.approvedBy?.isValidated
+      ? record.ttbSlots.approvedBy
+      : { isValidated: false },
+    acknowledgedBy: record.ttbSlots?.acknowledgedBy?.isValidated
+      ? record.ttbSlots.acknowledgedBy
+      : record.purchasingValidation?.isValidated
+      ? record.purchasingValidation
+      : { isValidated: false },
   };
 
   const validatedCount =
@@ -425,7 +464,7 @@ export default function TtbValidationModal({
               {validatedCount === 4 ? (
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
                   <CheckCircle2 className="size-3.5" />
-                  <span>Siap Kirim Armada (4/4 Kolom Sah)</span>
+                  <span>Pengantaran Selesai &amp; Sah Lengkap (4/4 Kolom)</span>
                 </span>
               ) : validatedCount >= 3 ? (
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
@@ -689,7 +728,7 @@ export default function TtbValidationModal({
                           {isAlreadyValidated ? (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
                               <CheckCircle2 className="size-3" />
-                              <span>Telah Disahkan</span>
+                              <span>{slot.key === 'receivedBy' ? 'Diterima Kru Lapangan' : 'Telah Disahkan'}</span>
                             </span>
                           ) : authCheck.allowed ? (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30">
@@ -712,13 +751,42 @@ export default function TtbValidationModal({
 
                       {/* State Details: Already Validated vs Pending Action */}
                       {isAlreadyValidated ? (
-                        <div className="mt-3 pt-2.5 border-t border-emerald-500/20 text-[11px] space-y-1">
+                        <div className="mt-3 pt-2.5 border-t border-emerald-500/20 text-[11px] space-y-2">
                           <div className="flex items-center justify-between text-emerald-800 dark:text-emerald-300 font-medium">
-                            <span>Disahkan oleh: <strong>{currentSlotState?.validatorName}</strong></span>
+                            <span>
+                              {slot.key === 'receivedBy' ? 'Diterima oleh:' : 'Disahkan oleh:'}{' '}
+                              <strong>{currentSlotState?.validatorName}</strong>
+                            </span>
                             <span className="font-mono text-[10px]">
                               {currentSlotState?.validatedAt ? currentSlotState.validatedAt.slice(0, 10) : ''}
                             </span>
                           </div>
+
+                          {slot.key === 'receivedBy' && (
+                            <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-emerald-800 dark:text-emerald-200 text-[11px] space-y-1.5">
+                              <div className="flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-300">
+                                <CheckCircle2 className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                                <span>Pekerjaan Pengantaran Telah Selesai &amp; Terkonfirmasi</span>
+                              </div>
+                              <p className="text-[10.5px] leading-relaxed text-muted-foreground">
+                                Barang fisik telah diterima langsung oleh kru armada kapal dan ditandatangani melalui bukti serah terima lapangan.
+                              </p>
+                              {currentSlotState?.signatureDataUrl && (
+                                <div className="pt-1 flex items-center gap-2">
+                                  <span className="text-[10px] text-muted-foreground font-medium">Tanda Tangan Kru:</span>
+                                  <div className="h-9 px-2 bg-white rounded border border-border flex items-center shadow-2xs">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                      src={currentSlotState.signatureDataUrl}
+                                      alt="Tanda Tangan Penerima Lapangan"
+                                      className="h-7 w-auto object-contain max-w-[140px]"
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
                           {currentSlotState?.verificationToken && (
                             <div className="font-mono text-[10px] text-muted-foreground truncate">
                               Token: {currentSlotState.verificationToken}

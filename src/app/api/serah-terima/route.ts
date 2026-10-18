@@ -13,6 +13,8 @@ import { extractTakenAt, parseNoTtb, extractTtbFromFilename } from '@/utils/ttbP
 import { sanitizeTtbNumber, extractTtbComponents } from '@/utils/ttbRename';
 import { SerahTerimaItem, SerahTerimaResponse, SerahTerimaPhoto, KondisiSerahTerima } from '@/types/serahTerima';
 import { UploadedTtbItem } from '@/types/ttbUpload';
+import { DocumentValidationRecord, ValidationSignatureRecord } from '@/types/documentValidation';
+import { computeValidationStatus } from '@/utils/validationHelper';
 import { stampTtbRecipientPdf, formatTtbStampDate } from '@/utils/ttbStamper';
 import rawManifest from '@/data/ttb-photos-manifest.json';
 
@@ -23,6 +25,8 @@ const IMAGE_EXT = /\.(jpe?g|png|webp|gif)$/i;
 const R2_METADATA_HISTORY_KEY = 'ttb-metadata/serah-terima-history.json';
 const LOCAL_HISTORY_PATH = path.join(process.cwd(), 'src', 'data', 'serah-terima-history.json');
 const TTB_HISTORY_FILE_PATH = path.join(process.cwd(), 'src', 'data', 'ttb-uploads-history.json');
+const VALIDATIONS_FILE_PATH = path.join(process.cwd(), 'src', 'data', 'document-validations.json');
+const R2_METADATA_VALIDATION_KEY = 'validation-metadata/records.json';
 const MANIFEST_PATH = path.join(process.cwd(), 'src', 'data', 'ttb-photos-manifest.json');
 
 let photoManifest: Record<string, string> = { ...(rawManifest as Record<string, string>) };
@@ -73,6 +77,55 @@ async function saveHistory(records: SerahTerimaItem[]) {
     await fs.writeFile(LOCAL_HISTORY_PATH, jsonStr, 'utf8');
   } catch {
     // Non-fatal di serverless
+  }
+}
+
+// Baca data validasi dari Cloudflare R2 (dengan fallback ke disk lokal)
+async function getStoredValidations(): Promise<DocumentValidationRecord[]> {
+  if (isR2Configured()) {
+    try {
+      const r2Obj = await getObjectFromR2(R2_METADATA_VALIDATION_KEY);
+      if (r2Obj && r2Obj.body) {
+        const text = Buffer.from(r2Obj.body).toString('utf8');
+        const parsed = JSON.parse(text);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (err) {
+      console.warn('Gagal membaca data validasi dari Cloudflare R2:', err);
+    }
+  }
+
+  try {
+    const raw = await fs.readFile(VALIDATIONS_FILE_PATH, 'utf8');
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+// Simpan data validasi ke Cloudflare R2 dan disk lokal
+async function saveValidations(records: DocumentValidationRecord[]) {
+  const jsonStr = JSON.stringify(records, null, 2);
+
+  if (isR2Configured()) {
+    try {
+      await uploadToR2({
+        key: R2_METADATA_VALIDATION_KEY,
+        body: Buffer.from(jsonStr, 'utf8'),
+        contentType: 'application/json',
+      });
+    } catch (err) {
+      console.warn('Gagal menyimpan validasi ke Cloudflare R2:', err);
+    }
+  }
+
+  try {
+    await fs.mkdir(path.dirname(VALIDATIONS_FILE_PATH), { recursive: true });
+    await fs.writeFile(VALIDATIONS_FILE_PATH, jsonStr, 'utf8');
+  } catch {
+    // Non-fatal
   }
 }
 
@@ -547,6 +600,137 @@ export async function POST(req: NextRequest): Promise<NextResponse<SerahTerimaRe
     const currentHistory = await getHistory();
     currentHistory.unshift(newRecord);
     await saveHistory(currentHistory);
+
+    // Sinkronkan secara otomatis ke sistem Validasi & TTD Terpadu (document-validations.json dan Cloudflare R2)
+    // Pada saat user sudah tanda tangan digital pada menu serah terima lapangan,
+    // maka secara otomatis checklist kru lapangan (Slot 2: Received By) akan tercentang
+    // dan terkonfirmasi bahwa pekerjaan pengantaran telah selesai dilakukan oleh tim logistik lapangan.
+    try {
+      const validationRecords = await getStoredValidations();
+      const cleanSearch = sanitizeTtbNumber(cleanTtb);
+      const digitsOnly = cleanSearch.replace(/\D/g, '');
+      const padded5 = digitsOnly && digitsOnly.length <= 5 ? digitsOnly.padStart(5, '0') : '';
+
+      const matchedIndex = validationRecords.findIndex((v) => {
+        if (v.docType !== 'TTB') return false;
+        const vClean = sanitizeTtbNumber(v.cleanDocNumber || v.docNumber || '');
+        if (vClean === cleanSearch) return true;
+        if (v.docNumber.toUpperCase().includes(cleanTtb.toUpperCase())) return true;
+        if (cleanSearch.length >= 4 && vClean.includes(cleanSearch)) return true;
+        if (digitsOnly && digitsOnly.length >= 4) {
+          const vDigits = vClean.replace(/\D/g, '');
+          if (vDigits.includes(digitsOnly) || (padded5 && vDigits.includes(padded5))) return true;
+        }
+        return false;
+      });
+
+      const nowIso = new Date().toISOString();
+      const recipientSigRecord: ValidationSignatureRecord = {
+        isValidated: true,
+        validatorName: penerima,
+        validatorRole: 'staf_lapangan',
+        validatorJabatan: 'Penerima / Crew Armada Kapal',
+        validatedAt: tanggalSerahTerima || nowIso,
+        signatureDataUrl: penerimaSignature || undefined,
+        notes: 'Pekerjaan pengantaran telah selesai dilakukan oleh tim logistik lapangan dan barang fisik telah diterima langsung oleh kru armada kapal.',
+        verificationToken: `VAL-STR-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
+      };
+
+      if (matchedIndex !== -1) {
+        const targetRec = validationRecords[matchedIndex];
+        targetRec.recipientValidation = {
+          isSigned: true,
+          recipientName: penerima,
+          recipientPhone: kontakPenerima || undefined,
+          signedAt: tanggalSerahTerima || nowIso,
+          signatureDataUrl: penerimaSignature || undefined,
+        };
+        targetRec.lapanganValidation = { ...recipientSigRecord };
+
+        if (!targetRec.ttbSlots) {
+          targetRec.ttbSlots = {
+            deliveredBy: targetRec.logistikValidation || { isValidated: false },
+            receivedBy: { ...recipientSigRecord },
+            approvedBy: { isValidated: false },
+            acknowledgedBy: targetRec.purchasingValidation || { isValidated: false },
+          };
+        } else {
+          targetRec.ttbSlots.receivedBy = { ...recipientSigRecord };
+        }
+
+        if (ttbDocUrl) {
+          targetRec.fileUrl = ttbDocUrl;
+        }
+
+        const comp = computeValidationStatus(targetRec);
+        targetRec.completedLinesCount = comp.completedCount;
+        targetRec.overallStatus = comp.status;
+        targetRec.isReadyForDispatch = comp.isReady;
+        targetRec.updatedAt = nowIso;
+      } else {
+        // Jika dokumen belum ada di daftar validasi, buatkan entri baru resmi
+        const newDocId = `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+        const freshTargetFile = `${cleanSearch}.pdf`;
+        const newRec: DocumentValidationRecord = {
+          id: `val-ttb-${newDocId}`,
+          docType: 'TTB',
+          docId: newDocId,
+          docNumber: cleanTtb,
+          cleanDocNumber: cleanSearch,
+          armada: armada || '-',
+          receivedDate: tanggalSerahTerima || nowIso.slice(0, 10),
+          originalFileName: freshTargetFile,
+          renamedFileName: freshTargetFile,
+          fileUrl: ttbDocUrl || `/api/r2-file?key=ttb-documents/${freshTargetFile}`,
+          r2Key: `ttb-documents/${freshTargetFile}`,
+          storageProvider: isR2Active ? 'CLOUDFLARE_R2' : 'LOCAL',
+          purchasingValidation: { isValidated: false },
+          logistikValidation: {
+            isValidated: true,
+            validatorName: petugas || 'Staf Logistik',
+            validatorRole: 'staf_ttb',
+            validatorJabatan: 'Staf Logistik & Pergudangan',
+            validatedAt: nowIso,
+            notes: 'Diserahkan oleh Staf Logistik',
+            verificationToken: `VAL-LOG-${Date.now().toString(36).toUpperCase()}`,
+          },
+          lapanganValidation: { ...recipientSigRecord },
+          recipientValidation: {
+            isSigned: true,
+            recipientName: penerima,
+            recipientPhone: kontakPenerima || undefined,
+            signedAt: tanggalSerahTerima || nowIso,
+            signatureDataUrl: penerimaSignature || undefined,
+          },
+          ttbSlots: {
+            deliveredBy: {
+              isValidated: true,
+              validatorName: petugas || 'Staf Logistik',
+              validatorRole: 'staf_ttb',
+              validatorJabatan: 'Staf Logistik & Pergudangan',
+              validatedAt: nowIso,
+            },
+            receivedBy: { ...recipientSigRecord },
+            approvedBy: { isValidated: false },
+            acknowledgedBy: { isValidated: false },
+          },
+          overallStatus: 'SUDAH_DITERIMA_ARMADA',
+          completedLinesCount: 2,
+          isReadyForDispatch: false,
+          createdAt: nowIso,
+          updatedAt: nowIso,
+        };
+        const comp = computeValidationStatus(newRec);
+        newRec.completedLinesCount = comp.completedCount;
+        newRec.overallStatus = comp.status;
+        newRec.isReadyForDispatch = comp.isReady;
+        validationRecords.unshift(newRec);
+      }
+
+      await saveValidations(validationRecords);
+    } catch (syncValErr) {
+      console.warn('Gagal menyinkronkan status serah terima ke sistem validasi dokumen:', syncValErr);
+    }
 
     return NextResponse.json({
       success: true,

@@ -23,6 +23,7 @@ import { stampFstbPdf, formatFstbStampDate, FstbStampRoleType } from '@/utils/fs
 import { getFstbPhotosDir } from '@/utils/fstbPhotosDir';
 import { stampTtbPdf, formatTtbStampDate, TtbStampRoleType } from '@/utils/ttbStamper';
 import { getPhotosDir as getTtbPhotosDir } from '@/utils/ttbPhotosDir';
+import { computeValidationStatus } from '@/utils/validationHelper';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -30,6 +31,7 @@ export const dynamic = 'force-dynamic';
 const VALIDATIONS_FILE_PATH = path.join(process.cwd(), 'src', 'data', 'document-validations.json');
 const FSTB_HISTORY_FILE_PATH = path.join(process.cwd(), 'src', 'data', 'fstb-uploads-history.json');
 const TTB_HISTORY_FILE_PATH = path.join(process.cwd(), 'src', 'data', 'ttb-uploads-history.json');
+const SERAH_TERIMA_HISTORY_PATH = path.join(process.cwd(), 'src', 'data', 'serah-terima-history.json');
 
 const R2_METADATA_VALIDATION_KEY = 'validation-metadata/records.json';
 
@@ -102,102 +104,26 @@ async function getTtbHistory(): Promise<UploadedTtbItem[]> {
   }
 }
 
-// Helper untuk menghitung status keseluruhan & jumlah lini yang telah sah
-function computeValidationStatus(
-  record: Pick<
-    DocumentValidationRecord,
-    | 'docType'
-    | 'purchasingValidation'
-    | 'logistikValidation'
-    | 'lapanganValidation'
-    | 'recipientValidation'
-    | 'fstbSlots'
-    | 'ttbSlots'
-  >
-): { completedCount: number; status: OverallValidationStatus; isReady: boolean } {
-  if (record.docType === 'FSTB' && record.fstbSlots) {
-    const s = record.fstbSlots;
-    let slotCount = 0;
-    if (s.deliveredBy?.isValidated) slotCount++;
-    if (s.receivedBy?.isValidated) slotCount++;
-    if (s.approvedBy?.isValidated) slotCount++;
-    if (s.acknowledgedBy?.isValidated) slotCount++;
-
-    const isReady = slotCount === 4;
-    let status: OverallValidationStatus = 'MENUNGGU_VALIDASI';
-    if (record.recipientValidation?.isSigned) {
-      status = 'SUDAH_DITERIMA_ARMADA';
-    } else if (isReady) {
-      status = 'SIAP_KIRIM_ARMADA';
-    } else if (slotCount > 0) {
-      status = 'PROSES_VALIDASI';
-    } else {
-      status = 'MENUNGGU_VALIDASI';
-    }
-
-    // Pemetaan ke 3 Lini indikator dashboard (PCH, LOG, LAP):
-    // PCH: deliveredBy (Purchasing Staff)
-    // LOG: receivedBy (Logistic Staff)
-    // LAP: approvedBy (Purchasing Spv) & acknowledgedBy (Logistic Spv)
-    let count = 0;
-    if (s.deliveredBy?.isValidated) count++;
-    if (s.receivedBy?.isValidated) count++;
-    if (s.approvedBy?.isValidated || s.acknowledgedBy?.isValidated) count++;
-
-    return { completedCount: count, status, isReady };
+// Baca data riwayat serah terima lapangan
+async function getSerahTerimaHistory(): Promise<any[]> {
+  try {
+    const raw = await fs.readFile(SERAH_TERIMA_HISTORY_PATH, 'utf8');
+    return JSON.parse(raw);
+  } catch {
+    return [];
   }
+}
 
-  if (record.docType === 'TTB' && record.ttbSlots) {
-    const s = record.ttbSlots;
-    let slotCount = 0;
-    if (s.deliveredBy?.isValidated) slotCount++;
-    if (s.receivedBy?.isValidated) slotCount++;
-    if (s.approvedBy?.isValidated) slotCount++;
-    if (s.acknowledgedBy?.isValidated) slotCount++;
-
-    const isReady = slotCount >= 3;
-    let status: OverallValidationStatus = 'MENUNGGU_VALIDASI';
-    if (record.recipientValidation?.isSigned || s.receivedBy?.isValidated) {
-      status = 'SUDAH_DITERIMA_ARMADA';
-    } else if (isReady) {
-      status = 'SIAP_KIRIM_ARMADA';
-    } else if (slotCount > 0) {
-      status = 'PROSES_VALIDASI';
-    } else {
-      status = 'MENUNGGU_VALIDASI';
-    }
-
-    // Pemetaan ke 3 Lini indikator dashboard (PCH, LOG, LAP):
-    // PCH: acknowledgedBy (Procurement Manager)
-    // LOG: deliveredBy (Logistic Staff) & approvedBy (Logistic Spv)
-    // LAP: receivedBy (User / Lapangan)
-    let count = 0;
-    if (s.acknowledgedBy?.isValidated || record.purchasingValidation?.isValidated) count++;
-    if (s.deliveredBy?.isValidated || s.approvedBy?.isValidated || record.logistikValidation?.isValidated) count++;
-    if (s.receivedBy?.isValidated || record.lapanganValidation?.isValidated) count++;
-
-    return { completedCount: count, status, isReady };
-  }
-
-  let count = 0;
-  if (record.purchasingValidation?.isValidated) count++;
-  if (record.logistikValidation?.isValidated) count++;
-  if (record.lapanganValidation?.isValidated) count++;
-
-  const isReady = count === 3;
-  let status: OverallValidationStatus = 'MENUNGGU_VALIDASI';
-
-  if (record.recipientValidation?.isSigned) {
-    status = 'SUDAH_DITERIMA_ARMADA';
-  } else if (isReady) {
-    status = 'SIAP_KIRIM_ARMADA';
-  } else if (count > 0) {
-    status = 'PROSES_VALIDASI';
-  } else {
-    status = 'MENUNGGU_VALIDASI';
-  }
-
-  return { completedCount: count, status, isReady };
+// Helper pencocokan nomor TTB fleksibel
+function matchTtbDoc(search: string, cand: string): boolean {
+  if (!search || !cand) return false;
+  const s1 = search.toUpperCase().replace(/\s+/g, '');
+  const s2 = cand.toUpperCase().replace(/\s+/g, '');
+  if (s1 === s2 || s1.includes(s2) || s2.includes(s1)) return true;
+  const d1 = s1.replace(/\D/g, '');
+  const d2 = s2.replace(/\D/g, '');
+  if (d1.length >= 4 && d2.length >= 4 && (d1 === d2 || d1.includes(d2) || d2.includes(d1))) return true;
+  return false;
 }
 
 function computeSummaryMetrics(records: DocumentValidationRecord[]): ValidationSummaryMetrics {
@@ -223,6 +149,7 @@ export async function GET(req: NextRequest) {
     let validationRecords = await getStoredValidations();
     const fstbItems = await getFstbHistory();
     const ttbItems = await getTtbHistory();
+    const serahTerimaItems = await getSerahTerimaHistory();
 
     let hasNewDrafts = false;
 
@@ -237,6 +164,90 @@ export async function GET(req: NextRequest) {
         };
         hasNewDrafts = true;
       }
+
+      if (rec.docType === 'TTB') {
+        if (!rec.ttbSlots) {
+          rec.ttbSlots = {
+            deliveredBy: rec.logistikValidation || { isValidated: false },
+            receivedBy: rec.lapanganValidation || { isValidated: false },
+            approvedBy: { isValidated: false },
+            acknowledgedBy: rec.purchasingValidation || { isValidated: false },
+          };
+          hasNewDrafts = true;
+        }
+
+        // Cek apakah ada riwayat serah terima lapangan atau data stamp TTB
+        const matchedSt = serahTerimaItems.find((s) =>
+          matchTtbDoc(s.noTtb, rec.cleanDocNumber || rec.docNumber)
+        );
+        const matchedTtb = ttbItems.find((t) =>
+          matchTtbDoc(t.noTtb || t.cleanNoTtb || '', rec.cleanDocNumber || rec.docNumber)
+        );
+
+        const hasRecipientStamp = Boolean(
+          matchedTtb?.isRecipientStamped ||
+          matchedSt?.penerimaSignature ||
+          rec.recipientValidation?.isSigned
+        );
+
+        if (hasRecipientStamp && (!rec.ttbSlots.receivedBy?.isValidated || !rec.recipientValidation?.isSigned)) {
+          const recName =
+            matchedTtb?.recipientName ||
+            matchedSt?.penerima ||
+            rec.recipientValidation?.recipientName ||
+            'Crew Armada Kapal';
+          const recPhone =
+            matchedTtb?.recipientPhone ||
+            matchedSt?.kontakPenerima ||
+            rec.recipientValidation?.recipientPhone;
+          const signedTime =
+            matchedTtb?.recipientStampedAt ||
+            matchedSt?.tanggalSerahTerima ||
+            rec.recipientValidation?.signedAt ||
+            rec.updatedAt ||
+            new Date().toISOString();
+          const sigUrl =
+            matchedTtb?.recipientSignatureDataUrl ||
+            matchedSt?.penerimaSignature ||
+            rec.recipientValidation?.signatureDataUrl;
+
+          rec.recipientValidation = {
+            isSigned: true,
+            recipientName: recName,
+            recipientPhone: recPhone,
+            signedAt: signedTime,
+            signatureDataUrl: sigUrl,
+          };
+
+          const sigRecord: ValidationSignatureRecord = {
+            isValidated: true,
+            validatorName: recName,
+            validatorRole: 'staf_lapangan',
+            validatorJabatan: 'Penerima / Crew Armada Kapal',
+            validatedAt: signedTime,
+            signatureDataUrl: sigUrl,
+            notes: 'Pekerjaan pengantaran telah selesai dilakukan oleh tim logistik lapangan dan barang fisik telah diterima langsung oleh kru armada.',
+            verificationToken:
+              rec.ttbSlots.receivedBy?.verificationToken ||
+              `VAL-STR-${Date.now().toString(36).toUpperCase()}`,
+          };
+
+          rec.lapanganValidation = { ...sigRecord };
+          rec.ttbSlots.receivedBy = { ...sigRecord };
+
+          if (matchedTtb?.fileUrl && matchedTtb.fileUrl !== rec.fileUrl) {
+            rec.fileUrl = matchedTtb.fileUrl;
+          }
+
+          const comp = computeValidationStatus(rec);
+          rec.completedLinesCount = comp.completedCount;
+          rec.overallStatus = comp.status;
+          rec.isReadyForDispatch = comp.isReady;
+          rec.updatedAt = new Date().toISOString();
+          hasNewDrafts = true;
+        }
+      }
+
       existingMap.set(`${rec.docType}_${rec.docId}`, rec);
       existingMap.set(`${rec.docType}_${rec.cleanDocNumber}`, rec);
     }
@@ -324,6 +335,29 @@ export async function GET(req: NextRequest) {
       const keyNum = `TTB_${ttb.cleanNoTtb || ttb.noTtb}`;
       if (!existingMap.has(keyId) && !existingMap.has(keyNum)) {
         const isLogistikUploader = Boolean(ttb.uploaderName);
+        const matchedSt = serahTerimaItems.find((s) =>
+          matchTtbDoc(s.noTtb, ttb.cleanNoTtb || ttb.noTtb)
+        );
+        const hasRecipientStamp = Boolean(ttb.isRecipientStamped || matchedSt?.penerimaSignature);
+        const recName = ttb.recipientName || matchedSt?.penerima || 'Crew Armada Kapal';
+        const recPhone = ttb.recipientPhone || matchedSt?.kontakPenerima;
+        const signedTime =
+          ttb.recipientStampedAt || matchedSt?.tanggalSerahTerima || ttb.uploadedAt || new Date().toISOString();
+        const sigUrl = ttb.recipientSignatureDataUrl || matchedSt?.penerimaSignature;
+
+        const recipientSig: ValidationSignatureRecord = hasRecipientStamp
+          ? {
+              isValidated: true,
+              validatorName: recName,
+              validatorRole: 'staf_lapangan',
+              validatorJabatan: 'Penerima / Crew Armada Kapal',
+              validatedAt: signedTime,
+              signatureDataUrl: sigUrl,
+              notes: 'Pekerjaan pengantaran telah selesai dilakukan oleh tim logistik lapangan dan barang fisik telah diterima langsung oleh kru armada.',
+              verificationToken: `VAL-STR-${Date.now().toString(36).toUpperCase()}`,
+            }
+          : { isValidated: false };
+
         const draft: DocumentValidationRecord = {
           id: `val-ttb-${ttb.id}`,
           docType: 'TTB',
@@ -353,19 +387,31 @@ export async function GET(req: NextRequest) {
               ? `VAL-LOG-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`
               : undefined,
           },
-          lapanganValidation: {
-            isValidated: false,
-          },
-          recipientValidation: ttb.isRecipientStamped
+          lapanganValidation: { ...recipientSig },
+          recipientValidation: hasRecipientStamp
             ? {
                 isSigned: true,
-                recipientName: ttb.recipientName,
-                recipientPhone: ttb.recipientPhone,
-                signedAt: ttb.recipientStampedAt,
-                signatureDataUrl: ttb.recipientSignatureDataUrl,
+                recipientName: recName,
+                recipientPhone: recPhone,
+                signedAt: signedTime,
+                signatureDataUrl: sigUrl,
               }
             : undefined,
-          overallStatus: 'MENUNGGU_VALIDASI',
+          ttbSlots: {
+            deliveredBy: {
+              isValidated: isLogistikUploader,
+              validatorName: ttb.uploaderName || undefined,
+              validatorUsername: ttb.uploaderUsername,
+              validatorRole: ttb.uploaderRole || 'staf_ttb',
+              validatorNik: ttb.uploaderNik,
+              validatorJabatan: ttb.uploaderJabatan || 'Staf Logistik & Pergudangan',
+              validatedAt: ttb.stampedAt || ttb.uploadedAt,
+            },
+            receivedBy: { ...recipientSig },
+            approvedBy: { isValidated: false },
+            acknowledgedBy: { isValidated: false },
+          },
+          overallStatus: hasRecipientStamp ? 'SUDAH_DITERIMA_ARMADA' : 'MENUNGGU_VALIDASI',
           completedLinesCount: 0,
           isReadyForDispatch: false,
           createdAt: ttb.uploadedAt || new Date().toISOString(),
