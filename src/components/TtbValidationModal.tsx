@@ -199,6 +199,34 @@ export default function TtbValidationModal({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [pdfRefreshKey, setPdfRefreshKey] = useState<number>(Date.now());
+  const [pdfPageCount, setPdfPageCount] = useState<number | null>(null);
+
+  // Deteksi jumlah halaman riil PDF secara dinamis menggunakan pdf-lib
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchPageCount() {
+      if (!record?.fileUrl) {
+        setPdfPageCount(null);
+        return;
+      }
+      try {
+        const response = await fetch(record.fileUrl);
+        if (!response.ok) return;
+        const arrayBuffer = await response.arrayBuffer();
+        const { PDFDocument } = await import('pdf-lib');
+        const pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
+        if (isMounted) {
+          setPdfPageCount(pdfDoc.getPageCount());
+        }
+      } catch (err) {
+        console.warn('Gagal membaca metadata jumlah halaman PDF TTB:', err);
+      }
+    }
+    fetchPageCount();
+    return () => {
+      isMounted = false;
+    };
+  }, [record?.fileUrl, pdfRefreshKey]);
 
   // Reset state saat modal dibuka
   useEffect(() => {
@@ -614,10 +642,14 @@ export default function TtbValidationModal({
             <div className="p-3 border-b border-border bg-muted/20 flex items-center justify-between text-xs text-muted-foreground">
               <div className="flex items-center gap-2">
                 <FileCheck2 className="size-4 text-amber-500" />
-                <span className="font-semibold text-foreground">Pratinjau Dokumen TTB Resmi</span>
+                <span className="font-semibold text-foreground">
+                  Pratinjau Dokumen TTB Resmi {pdfPageCount ? `(${pdfPageCount} Halaman • 1 of ${pdfPageCount})` : ''}
+                </span>
               </div>
               <span className="text-[11px] font-mono text-muted-foreground">
-                Memuat 4 Kolom Pengesahan Lini Terkait
+                {pdfPageCount
+                  ? `Halaman 1 of ${pdfPageCount} • Memuat Kolom Pengesahan`
+                  : 'Memuat 4 Kolom Pengesahan Lini Terkait'}
               </span>
             </div>
 

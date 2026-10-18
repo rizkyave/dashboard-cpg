@@ -21,7 +21,7 @@ export function computeValidationStatus(
   >
 ): { completedCount: number; status: OverallValidationStatus; isReady: boolean } {
   // =========================================================================
-  // 1. DOKUMEN FSTB (4 Slot: Delivered, Received, Approved, Acknowledged)
+  // 1. DOKUMEN FSTB (Hulu: Purchasing & Logistik/Gudang - 2 Lini Departemen)
   // =========================================================================
   if (record.docType === 'FSTB' && record.fstbSlots) {
     const s = record.fstbSlots;
@@ -31,32 +31,42 @@ export function computeValidationStatus(
     if (s.approvedBy?.isValidated) slotCount++;
     if (s.acknowledgedBy?.isValidated) slotCount++;
 
-    const isReady = slotCount === 4;
+    // Evaluasi 2 Lini Departemen:
+    // Lini 1: Purchasing (Staff: deliveredBy, SPV: approvedBy)
+    const isPchValid = Boolean(
+      s.deliveredBy?.isValidated ||
+      s.approvedBy?.isValidated ||
+      record.purchasingValidation?.isValidated
+    );
+
+    // Lini 2: Logistik/Gudang (Staff: receivedBy, SPV: acknowledgedBy)
+    const isLogValid = Boolean(
+      s.receivedBy?.isValidated ||
+      s.acknowledgedBy?.isValidated ||
+      record.logistikValidation?.isValidated
+    );
+
+    let count = 0;
+    if (isPchValid) count++;
+    if (isLogValid) count++;
+
+    // FSTB siap terbit TTB jika ke-4 PIC sah atau kedua departemen PCH & LOG telah menyetujui
+    const isReady = slotCount === 4 || (isPchValid && isLogValid);
     let status: OverallValidationStatus = 'MENUNGGU_VALIDASI';
-    if (record.recipientValidation?.isSigned) {
-      status = 'SUDAH_DITERIMA_ARMADA';
-    } else if (isReady) {
-      status = 'SIAP_KIRIM_ARMADA';
+
+    if (isReady) {
+      status = 'SIAP_KIRIM_ARMADA'; // Siap Terbit TTB (2/2 Selesai)
     } else if (slotCount > 0) {
       status = 'PROSES_VALIDASI';
     } else {
       status = 'MENUNGGU_VALIDASI';
     }
 
-    // Pemetaan ke 3 Lini indikator dashboard (PCH, LOG, LAP):
-    // PCH: deliveredBy (Purchasing Staff)
-    // LOG: receivedBy (Logistic Staff)
-    // LAP: approvedBy (Purchasing Spv) & acknowledgedBy (Logistic Spv)
-    let count = 0;
-    if (s.deliveredBy?.isValidated) count++;
-    if (s.receivedBy?.isValidated) count++;
-    if (s.approvedBy?.isValidated || s.acknowledgedBy?.isValidated) count++;
-
     return { completedCount: count, status, isReady };
   }
 
   // =========================================================================
-  // 2. DOKUMEN TTB (4 Slot: Delivered, Received, Approved, Acknowledged)
+  // 2. DOKUMEN TTB (Hilir: LOG Pengirim -> EXP/TRANS Pengiriman -> RCV Penerima)
   // =========================================================================
   if (record.docType === 'TTB' && record.ttbSlots) {
     const s = record.ttbSlots;
@@ -72,28 +82,31 @@ export function computeValidationStatus(
     if (s.approvedBy?.isValidated) slotCount++;
     if (s.acknowledgedBy?.isValidated) slotCount++;
 
-    const isReady = slotCount >= 3;
+    // 3 Tahapan Distribusi TTB:
+    // 1. LOG: Pengirim Gudang TTB (deliveredBy / logistikValidation)
+    const isLogValid = Boolean(s.deliveredBy?.isValidated || record.logistikValidation?.isValidated);
+    // 2. EXP/TRANS: Otorisasi & Pengiriman (approvedBy / acknowledgedBy / purchasingValidation)
+    const isTransValid = Boolean(s.approvedBy?.isValidated || s.acknowledgedBy?.isValidated || record.purchasingValidation?.isValidated);
+    // 3. RCV/PENERIMA: Penerima Akhir (Armada Kapal atau Unit Darat seperti Finance)
+    const isRcvValid = isReceivedByValid;
+
+    let count = 0;
+    if (isLogValid) count++;
+    if (isTransValid) count++;
+    if (isRcvValid) count++;
+
+    const isReady = (isLogValid && isTransValid) || slotCount >= 3;
     let status: OverallValidationStatus = 'MENUNGGU_VALIDASI';
 
-    // Jika penerima di armada/lapangan sudah tanda tangan, status otomatis menjadi SUDAH_DITERIMA_ARMADA
-    if (isReceivedByValid) {
-      status = 'SUDAH_DITERIMA_ARMADA';
+    if (isRcvValid) {
+      status = 'SUDAH_DITERIMA_ARMADA'; // Diterima Penerima (Armada / Unit Darat)
     } else if (isReady) {
-      status = 'SIAP_KIRIM_ARMADA';
+      status = 'SIAP_KIRIM_ARMADA'; // Siap Kirim / Diantar
     } else if (slotCount > 0) {
       status = 'PROSES_VALIDASI';
     } else {
       status = 'MENUNGGU_VALIDASI';
     }
-
-    // Pemetaan ke 3 Lini indikator dashboard (PCH, LOG, LAP):
-    // PCH: acknowledgedBy (Procurement Manager)
-    // LOG: deliveredBy (Logistic Staff) & approvedBy (Logistic Spv)
-    // LAP: receivedBy (User / Lapangan)
-    let count = 0;
-    if (s.acknowledgedBy?.isValidated || record.purchasingValidation?.isValidated) count++;
-    if (s.deliveredBy?.isValidated || s.approvedBy?.isValidated || record.logistikValidation?.isValidated) count++;
-    if (isReceivedByValid) count++;
 
     return { completedCount: count, status, isReady };
   }

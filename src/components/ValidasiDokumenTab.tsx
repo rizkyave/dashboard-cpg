@@ -28,6 +28,7 @@ import {
   Sparkles,
   Trash2,
   CloudDownload,
+  UserCheck,
 } from 'lucide-react';
 import {
   DocumentValidationRecord,
@@ -406,10 +407,10 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
               className="h-8.5 px-2.5 text-xs rounded-lg border border-border bg-background text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
             >
               <option value="ALL">Semua Status Validasi</option>
-              <option value="MENUNGGU_VALIDASI">Menunggu Validasi (0/3)</option>
-              <option value="PROSES_VALIDASI">Dalam Proses (1-2 Lini)</option>
-              <option value="SIAP_KIRIM_ARMADA">Siap Kirim Armada (3/3 Sah)</option>
-              <option value="SUDAH_DITERIMA_ARMADA">Sudah Diterima Armada</option>
+              <option value="MENUNGGU_VALIDASI">Menunggu Validasi</option>
+              <option value="PROSES_VALIDASI">Dalam Proses Validasi</option>
+              <option value="SIAP_KIRIM_ARMADA">Siap Kirim / Siap Terbit TTB</option>
+              <option value="SUDAH_DITERIMA_ARMADA">Sudah Diterima (Armada / Unit)</option>
             </select>
 
             <div className="relative w-full sm:w-64">
@@ -436,7 +437,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                 <th className="py-2.5 px-3">No. Berkas Resmi</th>
                 <th className="py-2.5 px-3">Armada / Unit</th>
                 <th className="py-2.5 px-3">No. PO / DO</th>
-                <th className="py-2.5 px-3">Persetujuan 3 Lini</th>
+                <th className="py-2.5 px-3">Tahapan &amp; Persetujuan Lini</th>
                 <th className="py-2.5 px-3">Status Kelayakan</th>
                 <th className="py-2.5 px-3">Tgl Update</th>
                 <th className="py-2.5 px-3 text-right">Aksi</th>
@@ -523,99 +524,193 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                       {item.poNumber || '-'}
                     </td>
 
-                    {/* Persetujuan 3 Lini Visual Bar */}
+                    {/* Persetujuan Lini Visual Bar */}
                     <td className="py-2.5 px-3">
                       <div className="flex items-center gap-1.5">
-                        {/* Lini 1: Purchasing */}
-                        <div
-                          className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border ${
-                            item.purchasingValidation.isValidated
-                              ? 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border-cyan-500/30'
-                              : 'bg-muted/60 text-muted-foreground/60 border-border/40'
-                          }`}
-                          title={`1. Purchasing: ${
-                            item.purchasingValidation.isValidated
-                              ? `Sah (${item.purchasingValidation.validatorName || 'Disetujui'})`
-                              : 'Menunggu'
-                          }`}
-                        >
-                          <ShoppingBag className="size-2.5" />
-                          <span>PCH</span>
-                          {item.purchasingValidation.isValidated ? (
-                            <Check className="size-2.5 text-cyan-600 dark:text-cyan-400" />
-                          ) : (
-                            <Clock className="size-2.5" />
-                          )}
-                        </div>
+                        {item.docType === 'FSTB' ? (
+                          <>
+                            {/* Lini 1: Purchasing (Staff & SPV) */}
+                            <div
+                              className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border ${
+                                item.purchasingValidation.isValidated
+                                  ? 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border-cyan-500/30'
+                                  : 'bg-muted/60 text-muted-foreground/60 border-border/40'
+                              }`}
+                              title={`1. Departemen Purchasing: ${
+                                item.purchasingValidation.isValidated
+                                  ? `Sah (${item.purchasingValidation.validatorName || 'Disetujui'})`
+                                  : 'Menunggu Pengesahan'
+                              }`}
+                            >
+                              <ShoppingBag className="size-2.5" />
+                              <span>PCH</span>
+                              {item.purchasingValidation.isValidated ? (
+                                <Check className="size-2.5 text-cyan-600 dark:text-cyan-400" />
+                              ) : (
+                                <Clock className="size-2.5" />
+                              )}
+                            </div>
 
-                        {/* Lini 2: Logistik */}
-                        <div
-                          className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border ${
-                            item.logistikValidation.isValidated
-                              ? 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30'
-                              : 'bg-muted/60 text-muted-foreground/60 border-border/40'
-                          }`}
-                          title={`2. Logistik: ${
-                            item.logistikValidation.isValidated
-                              ? `Sah (${item.logistikValidation.validatorName || 'Disetujui'})`
-                              : 'Menunggu'
-                          }`}
-                        >
-                          <PackageCheck className="size-2.5" />
-                          <span>LOG</span>
-                          {item.logistikValidation.isValidated ? (
-                            <Check className="size-2.5 text-purple-600 dark:text-purple-400" />
-                          ) : (
-                            <Clock className="size-2.5" />
-                          )}
-                        </div>
+                            {/* Lini 2: Logistik (Staff & SPV) */}
+                            <div
+                              className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border ${
+                                item.logistikValidation.isValidated
+                                  ? 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30'
+                                  : 'bg-muted/60 text-muted-foreground/60 border-border/40'
+                              }`}
+                              title={`2. Departemen Logistik: ${
+                                item.logistikValidation.isValidated
+                                  ? `Sah (${item.logistikValidation.validatorName || 'Disetujui'})`
+                                  : 'Menunggu Pengesahan'
+                              }`}
+                            >
+                              <PackageCheck className="size-2.5" />
+                              <span>LOG</span>
+                              {item.logistikValidation.isValidated ? (
+                                <Check className="size-2.5 text-purple-600 dark:text-purple-400" />
+                              ) : (
+                                <Clock className="size-2.5" />
+                              )}
+                            </div>
 
-                        {/* Lini 3: Tim Lapangan */}
-                        <div
-                          className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border ${
-                            item.lapanganValidation.isValidated
-                              ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30'
-                              : 'bg-muted/60 text-muted-foreground/60 border-border/40'
-                          }`}
-                          title={`3. Tim Lapangan: ${
-                            item.lapanganValidation.isValidated
-                              ? `Sah (${item.lapanganValidation.validatorName || 'Disetujui'})`
-                              : 'Menunggu'
-                          }`}
-                        >
-                          <Truck className="size-2.5" />
-                          <span>LAP</span>
-                          {item.lapanganValidation.isValidated ? (
-                            <Check className="size-2.5 text-amber-600 dark:text-amber-400" />
-                          ) : (
-                            <Clock className="size-2.5" />
-                          )}
-                        </div>
+                            {/* Lini 3: N/A untuk FSTB */}
+                            <div
+                              className="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border bg-muted/30 text-muted-foreground/40 border-dashed border-border/40 cursor-not-allowed select-none"
+                              title="Tahap Lapangan Tidak Berlaku (N/A) untuk FSTB. Hanya melibatkan Purchasing dan Logistik."
+                            >
+                              <span className="text-[9px]">LAP:</span>
+                              <span>N/A</span>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            {/* Lini 1: Logistik (Pengirim TTB) */}
+                            <div
+                              className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border ${
+                                item.logistikValidation.isValidated
+                                  ? 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30'
+                                  : 'bg-muted/60 text-muted-foreground/60 border-border/40'
+                              }`}
+                              title={`1. Pengirim / Logistik TTB: ${
+                                item.logistikValidation.isValidated
+                                  ? `Sah (${item.logistikValidation.validatorName || 'Disetujui'})`
+                                  : 'Menunggu'
+                              }`}
+                            >
+                              <PackageCheck className="size-2.5" />
+                              <span>LOG</span>
+                              {item.logistikValidation.isValidated ? (
+                                <Check className="size-2.5 text-purple-600 dark:text-purple-400" />
+                              ) : (
+                                <Clock className="size-2.5" />
+                              )}
+                            </div>
+
+                            {/* Lini 2: Ekspedisi / Otorisasi Transport */}
+                            <div
+                              className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border ${
+                                item.purchasingValidation.isValidated ||
+                                item.ttbSlots?.approvedBy?.isValidated ||
+                                item.ttbSlots?.acknowledgedBy?.isValidated
+                                  ? 'bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30'
+                                  : 'bg-muted/60 text-muted-foreground/60 border-border/40'
+                              }`}
+                              title={`2. Otorisasi / Ekspedisi Pengiriman: ${
+                                item.purchasingValidation.isValidated ||
+                                item.ttbSlots?.approvedBy?.isValidated ||
+                                item.ttbSlots?.acknowledgedBy?.isValidated
+                                  ? 'Sah'
+                                  : 'Menunggu'
+                              }`}
+                            >
+                              <Truck className="size-2.5" />
+                              <span>EXP</span>
+                              {item.purchasingValidation.isValidated ||
+                              item.ttbSlots?.approvedBy?.isValidated ||
+                              item.ttbSlots?.acknowledgedBy?.isValidated ? (
+                                <Check className="size-2.5 text-blue-600 dark:text-blue-400" />
+                              ) : (
+                                <Clock className="size-2.5" />
+                              )}
+                            </div>
+
+                            {/* Lini 3: RCV / PENERIMA */}
+                            <div
+                              className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border ${
+                                item.lapanganValidation.isValidated ||
+                                item.recipientValidation?.isSigned ||
+                                item.ttbSlots?.receivedBy?.isValidated
+                                  ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
+                                  : 'bg-muted/60 text-muted-foreground/60 border-border/40'
+                              }`}
+                              title={`3. Penerima Akhir (Armada / Unit Darat): ${
+                                item.lapanganValidation.isValidated ||
+                                item.recipientValidation?.isSigned ||
+                                item.ttbSlots?.receivedBy?.isValidated
+                                  ? `Sah (${
+                                      item.recipientValidation?.recipientName ||
+                                      item.lapanganValidation.validatorName ||
+                                      'Diterima'
+                                    })`
+                                  : 'Menunggu'
+                              }`}
+                            >
+                              <UserCheck className="size-2.5" />
+                              <span>RCV</span>
+                              {item.lapanganValidation.isValidated ||
+                              item.recipientValidation?.isSigned ||
+                              item.ttbSlots?.receivedBy?.isValidated ? (
+                                <Check className="size-2.5 text-emerald-600 dark:text-emerald-400" />
+                              ) : (
+                                <Clock className="size-2.5" />
+                              )}
+                            </div>
+                          </>
+                        )}
                       </div>
                     </td>
 
                     {/* Status Kelayakan Keseluruhan */}
                     <td className="py-2.5 px-3">
-                      {item.overallStatus === 'SUDAH_DITERIMA_ARMADA' ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-teal-500/15 text-teal-700 dark:text-teal-300 border border-teal-500/30">
-                          <CheckCircle2 className="size-3" />
-                          Diterima Armada
-                        </span>
-                      ) : item.overallStatus === 'SIAP_KIRIM_ARMADA' ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
-                          <ShieldCheck className="size-3" />
-                          Siap Kirim Armada
-                        </span>
-                      ) : item.overallStatus === 'PROSES_VALIDASI' ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30">
-                          <Clock className="size-3" />
-                          Proses ({item.completedLinesCount}/3)
-                        </span>
+                      {item.docType === 'FSTB' ? (
+                        item.overallStatus === 'SIAP_KIRIM_ARMADA' ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                            <CheckCircle2 className="size-3" />
+                            Siap Terbit TTB (2/2)
+                          </span>
+                        ) : item.completedLinesCount > 0 ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30">
+                            <Clock className="size-3" />
+                            Proses ({item.completedLinesCount}/2)
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                            <AlertCircle className="size-3" />
+                            Menunggu (0/2)
+                          </span>
+                        )
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
-                          <AlertCircle className="size-3" />
-                          Menunggu (0/3)
-                        </span>
+                        item.overallStatus === 'SUDAH_DITERIMA_ARMADA' ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-teal-500/15 text-teal-700 dark:text-teal-300 border border-teal-500/30">
+                            <CheckCircle2 className="size-3" />
+                            Diterima Penerima (3/3)
+                          </span>
+                        ) : item.overallStatus === 'SIAP_KIRIM_ARMADA' ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                            <ShieldCheck className="size-3" />
+                            Siap Kirim / Diantar (2/3)
+                          </span>
+                        ) : item.overallStatus === 'PROSES_VALIDASI' ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30">
+                            <Clock className="size-3" />
+                            Proses ({item.completedLinesCount}/3)
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                            <AlertCircle className="size-3" />
+                            Menunggu (0/3)
+                          </span>
+                        )
                       )}
                     </td>
 

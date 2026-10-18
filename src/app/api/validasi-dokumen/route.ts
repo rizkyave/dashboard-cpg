@@ -155,14 +155,25 @@ export async function GET(req: NextRequest) {
 
     const existingMap = new Map<string, DocumentValidationRecord>();
     for (const rec of validationRecords) {
-      if (rec.docType === 'FSTB' && !rec.fstbSlots) {
-        rec.fstbSlots = {
-          deliveredBy: rec.purchasingValidation || { isValidated: false },
-          receivedBy: rec.logistikValidation || { isValidated: false },
-          approvedBy: rec.lapanganValidation || { isValidated: false },
-          acknowledgedBy: { isValidated: false },
-        };
-        hasNewDrafts = true;
+      if (rec.docType === 'FSTB') {
+        if (!rec.fstbSlots) {
+          rec.fstbSlots = {
+            deliveredBy: rec.purchasingValidation || { isValidated: false },
+            receivedBy: rec.logistikValidation || { isValidated: false },
+            approvedBy: { isValidated: false },
+            acknowledgedBy: { isValidated: false },
+          };
+          hasNewDrafts = true;
+        }
+        // FSTB adalah serah terima hulu Purchasing -> Logistik/Gudang (tidak ada tahapan Lapangan)
+        rec.lapanganValidation = { isValidated: false, notes: 'N/A - FSTB hanya mencakup Purchasing & Logistik' };
+        const comp = computeValidationStatus(rec);
+        if (rec.completedLinesCount !== comp.completedCount || rec.overallStatus !== comp.status || rec.isReadyForDispatch !== comp.isReady) {
+          rec.completedLinesCount = comp.completedCount;
+          rec.overallStatus = comp.status;
+          rec.isReadyForDispatch = comp.isReady;
+          hasNewDrafts = true;
+        }
       }
 
       if (rec.docType === 'TTB') {
@@ -997,18 +1008,25 @@ export async function POST(req: NextRequest) {
           record.fileUrl = `/api/r2-file?key=${encodeURIComponent(r2Key)}&v=${Date.now()}`;
         }
 
-        // Sinkronkan ke 3 Lini agregat:
-        if (record.fstbSlots.deliveredBy?.isValidated) {
+        // Sinkronkan ke 2 Lini Departemen (Purchasing & Logistik):
+        const isPchStaff = Boolean(record.fstbSlots.deliveredBy?.isValidated);
+        const isPchSpv = Boolean(record.fstbSlots.approvedBy?.isValidated);
+        if (isPchSpv && record.fstbSlots.approvedBy) {
+          record.purchasingValidation = record.fstbSlots.approvedBy;
+        } else if (isPchStaff && record.fstbSlots.deliveredBy) {
           record.purchasingValidation = record.fstbSlots.deliveredBy;
         }
-        if (record.fstbSlots.receivedBy?.isValidated) {
+
+        const isLogStaff = Boolean(record.fstbSlots.receivedBy?.isValidated);
+        const isLogSpv = Boolean(record.fstbSlots.acknowledgedBy?.isValidated);
+        if (isLogSpv && record.fstbSlots.acknowledgedBy) {
+          record.logistikValidation = record.fstbSlots.acknowledgedBy;
+        } else if (isLogStaff && record.fstbSlots.receivedBy) {
           record.logistikValidation = record.fstbSlots.receivedBy;
         }
-        if (record.fstbSlots.approvedBy?.isValidated) {
-          record.lapanganValidation = record.fstbSlots.approvedBy;
-        } else if (record.fstbSlots.acknowledgedBy?.isValidated) {
-          record.lapanganValidation = record.fstbSlots.acknowledgedBy;
-        }
+
+        // FSTB murni serah terima hulu Purchasing ke Logistik/Gudang (tidak ada tahapan Lapangan)
+        record.lapanganValidation = { isValidated: false, notes: 'N/A - FSTB hanya mencakup serah terima Purchasing ke Logistik/Gudang.' };
       } else {
         // Alur validasi formulir TTB (4 Kolom Pengesahan: Delivered By, Received By, Approved By, Acknowledge By)
         let targetSlots: TtbSlotKey[] = [];

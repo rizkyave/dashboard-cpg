@@ -204,6 +204,34 @@ export default function FstbValidationModal({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [pdfRefreshKey, setPdfRefreshKey] = useState<number>(Date.now());
+  const [pdfPageCount, setPdfPageCount] = useState<number | null>(null);
+
+  // Deteksi jumlah halaman riil PDF secara dinamis menggunakan pdf-lib
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchPageCount() {
+      if (!record?.fileUrl) {
+        setPdfPageCount(null);
+        return;
+      }
+      try {
+        const response = await fetch(record.fileUrl);
+        if (!response.ok) return;
+        const arrayBuffer = await response.arrayBuffer();
+        const { PDFDocument } = await import('pdf-lib');
+        const pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
+        if (isMounted) {
+          setPdfPageCount(pdfDoc.getPageCount());
+        }
+      } catch (err) {
+        console.warn('Gagal membaca metadata jumlah halaman PDF FSTB:', err);
+      }
+    }
+    fetchPageCount();
+    return () => {
+      isMounted = false;
+    };
+  }, [record?.fileUrl, pdfRefreshKey]);
 
   // Reset state saat modal dibuka
   useEffect(() => {
@@ -254,6 +282,19 @@ export default function FstbValidationModal({
     (fstbSlots.receivedBy?.isValidated ? 1 : 0) +
     (fstbSlots.approvedBy?.isValidated ? 1 : 0) +
     (fstbSlots.acknowledgedBy?.isValidated ? 1 : 0);
+
+  // Evaluasi 2 Lini Departemen (Purchasing & Logistik)
+  const isPchDeptValid = Boolean(
+    fstbSlots.deliveredBy?.isValidated ||
+    fstbSlots.approvedBy?.isValidated ||
+    record.purchasingValidation?.isValidated
+  );
+  const isLogDeptValid = Boolean(
+    fstbSlots.receivedBy?.isValidated ||
+    fstbSlots.acknowledgedBy?.isValidated ||
+    record.logistikValidation?.isValidated
+  );
+  const deptValidCount = (isPchDeptValid ? 1 : 0) + (isLogDeptValid ? 1 : 0);
 
   // Cek apakah ada slot baru yang dicentang
   const hasNewSelectedSlot = Object.keys(selectedSlots).some(
@@ -415,17 +456,17 @@ export default function FstbValidationModal({
               {validatedCount === 4 ? (
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
                   <CheckCircle2 className="size-3.5" />
-                  <span>Siap Kirim Armada (4/4 Lini Sah)</span>
+                  <span>Selesai (2/2 Lini Departemen • Siap Terbit TTB)</span>
                 </span>
               ) : validatedCount > 0 ? (
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30">
                   <Clock className="size-3.5" />
-                  <span>Dalam Proses ({validatedCount}/4 Lini Sah)</span>
+                  <span>Dalam Proses ({validatedCount}/4 PIC Sah • {deptValidCount}/2 Departemen)</span>
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
                   <AlertCircle className="size-3.5" />
-                  <span>Menunggu Validasi (0/4)</span>
+                  <span>Menunggu Validasi (0/4 PIC • 0/2 Departemen)</span>
                 </span>
               )}
             </div>
@@ -550,10 +591,14 @@ export default function FstbValidationModal({
             <div className="p-3 border-b border-border bg-muted/20 flex items-center justify-between text-xs text-muted-foreground">
               <div className="flex items-center gap-2">
                 <FileCheck2 className="size-4 text-indigo-500" />
-                <span className="font-semibold text-foreground">Pratinjau Berkas PDF Asli (2 Halaman)</span>
+                <span className="font-semibold text-foreground">
+                  Pratinjau Berkas PDF Asli {pdfPageCount ? `(${pdfPageCount} Halaman • 1 of ${pdfPageCount})` : ''}
+                </span>
               </div>
               <span className="text-[11px] font-mono text-muted-foreground">
-                Halaman 2 memuat 4 Kolom Pengesahan PIC
+                {pdfPageCount
+                  ? `Halaman ${pdfPageCount} of ${pdfPageCount} memuat 4 Kolom Pengesahan PIC`
+                  : 'Halaman Pengesahan PIC'}
               </span>
             </div>
 
@@ -574,6 +619,21 @@ export default function FstbValidationModal({
             }`}
           >
             <div className="p-4 sm:p-5 space-y-4">
+              {/* Notification Banner when FSTB Completed / Closed */}
+              {validatedCount === 4 && (
+                <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-3.5 text-xs text-emerald-950 dark:text-emerald-200 flex items-start gap-2.5 animate-in fade-in">
+                  <CheckCircle2 className="size-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <div className="font-bold text-emerald-800 dark:text-emerald-300">
+                      Berkas FSTB Lengkap &amp; Sah (Closed)
+                    </div>
+                    <p className="text-[11px] text-emerald-700 dark:text-emerald-300/90 leading-relaxed">
+                      Ke-4 PIC sah dari Departemen Purchasing dan Logistik telah menandatangani dokumen ini. Berkas FSTB selesai dan siap diteruskan untuk pembuatan / penerbitan <strong>TTB (Tanda Terima Barang)</strong> ke unit penerima.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Session Identity Badge */}
               <div className="rounded-xl border border-border/80 bg-muted/40 p-3 text-xs space-y-2">
                 <div className="flex items-center justify-between">
