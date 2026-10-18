@@ -45,8 +45,13 @@ import {
   Award,
   ShoppingCart,
   ChevronDown,
+  SlidersHorizontal,
+  Zap,
+  RotateCcw,
+  ArrowRight,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { TabType } from '@/types/procurement';
 import {
   AuthUser,
   UserAccount,
@@ -56,6 +61,14 @@ import {
   MODULE_PERMISSIONS_MATRIX,
   getRoleDisplayName,
   DigitalSignatureInfo,
+  AccessLevel,
+  ALL_ACCESS_LEVELS,
+  getToneForAccessLevel,
+  isAccessLevelAllowed,
+  getStoredPermissionsMatrix,
+  saveStoredPermissionsMatrix,
+  resetStoredPermissionsMatrix,
+  ModulePermissionItem,
 } from '@/types/auth';
 
 interface AdminSettingsTabProps {
@@ -146,6 +159,203 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
   // Filter category for Matrix table
   const [matrixCategoryFilter, setMatrixCategoryFilter] = useState<'ALL' | ModuleCategory>('ALL');
 
+  // RBAC Permissions Matrix State (Dynamic Access Control)
+  const [matrixData, setMatrixData] = useState<ModulePermissionItem[]>(() => getStoredPermissionsMatrix());
+  const [savedMatrixData, setSavedMatrixData] = useState<ModulePermissionItem[]>(() => getStoredPermissionsMatrix());
+  const [isConfirmMatrixModalOpen, setIsConfirmMatrixModalOpen] = useState<boolean>(false);
+  const [isSavingMatrix, setIsSavingMatrix] = useState<boolean>(false);
+
+  // Quick switch dropdown state
+  const [quickRole, setQuickRole] = useState<'ALL' | 'manager' | 'supervisor' | 'staf_purchasing' | 'staf_ttb' | 'staf_lapangan' | 'visitor'>('manager');
+  const [quickModule, setQuickModule] = useState<'ALL' | TabType>('ALL');
+  const [quickLevel, setQuickLevel] = useState<AccessLevel>('Full Access');
+
+  // User role change confirmation modal state
+  const [pendingUserRoleChange, setPendingUserRoleChange] = useState<{ user: AuthUser; nextRole: UserRole } | null>(null);
+
+  // Perubahan wewenang matriks yang belum disimpan
+  const diffList = useMemo(() => {
+    const list: Array<{
+      tabId: TabType;
+      moduleName: string;
+      roleKey: string;
+      roleTitle: string;
+      oldLevel: AccessLevel;
+      newLevel: AccessLevel;
+    }> = [];
+
+    const roleNameMap: Record<string, string> = {
+      admin: '👑 Administrator',
+      manager: '👔 Manager Procurement',
+      supervisor: '🎖️ Supervisor Procurement',
+      staf_purchasing: '🛒 Staf Purchasing',
+      staf_ttb: '📄 Staf Dokumen TTB',
+      staf_lapangan: '🚚 Staf Serah Terima Lap.',
+      visitor: '👁️ Visitor',
+    };
+
+    for (const curMod of matrixData) {
+      const origMod = savedMatrixData.find((m) => m.tabId === curMod.tabId);
+      if (!origMod) continue;
+      const roles = ['manager', 'supervisor', 'staf_purchasing', 'staf_ttb', 'staf_lapangan', 'visitor'] as const;
+      for (const r of roles) {
+        const curRule = curMod.permissions[r];
+        const origRule = origMod.permissions[r];
+        if (curRule && origRule && curRule.level !== origRule.level) {
+          list.push({
+            tabId: curMod.tabId,
+            moduleName: curMod.name,
+            roleKey: r,
+            roleTitle: roleNameMap[r] || r,
+            oldLevel: origRule.level,
+            newLevel: curRule.level,
+          });
+        }
+      }
+    }
+    return list;
+  }, [matrixData, savedMatrixData]);
+
+  const hasUnsavedChanges = diffList.length > 0;
+
+  // Handler pengubahan hak akses langsung pada sel dropdown matriks
+  const handleCellLevelChange = (tabId: TabType, roleKey: string, newLevel: AccessLevel) => {
+    if (!isAdmin) {
+      showToast('Hanya Administrator yang berwenang mengubah matriks hak akses.', 'warning');
+      return;
+    }
+    setMatrixData((prev) => {
+      return prev.map((item) => {
+        if (item.tabId !== tabId) return item;
+        const currentRolePerm = item.permissions[roleKey as keyof typeof item.permissions];
+        if (!currentRolePerm || currentRolePerm.level === newLevel) return item;
+        return {
+          ...item,
+          permissions: {
+            ...item.permissions,
+            [roleKey]: {
+              ...currentRolePerm,
+              level: newLevel,
+              allowed: isAccessLevelAllowed(newLevel),
+              badgeTone: getToneForAccessLevel(newLevel),
+              notes: `Dikonfigurasi manual oleh Admin: ${newLevel}`,
+            },
+          },
+        };
+      });
+    });
+  };
+
+  // Handler menu dropdown pengalihan cepat fungsi data pemakai
+  const handleApplyQuickSwitch = () => {
+    if (!isAdmin) {
+      showToast('Hanya Administrator yang berwenang mengubah matriks hak akses.', 'warning');
+      return;
+    }
+
+    const targetRoles =
+      quickRole === 'ALL'
+        ? (['manager', 'supervisor', 'staf_purchasing', 'staf_ttb', 'staf_lapangan', 'visitor'] as const)
+        : [quickRole];
+
+    let count = 0;
+
+    setMatrixData((prev) => {
+      return prev.map((item) => {
+        if (quickModule !== 'ALL' && item.tabId !== quickModule) {
+          return item;
+        }
+
+        // Pertahankan proteksi menu admin-settings untuk non-admin
+        if (item.tabId === 'admin-settings' && quickLevel !== 'Dilarang') {
+          return item;
+        }
+
+        const newPerms = { ...item.permissions };
+        for (const r of targetRoles) {
+          const cur = newPerms[r];
+          if (cur && cur.level !== quickLevel) {
+            newPerms[r] = {
+              ...cur,
+              level: quickLevel,
+              allowed: isAccessLevelAllowed(quickLevel),
+              badgeTone: getToneForAccessLevel(quickLevel),
+              notes: `Dialihkan via toolbar pengalihan cepat ke ${quickLevel}`,
+            };
+            count++;
+          }
+        }
+
+        return {
+          ...item,
+          permissions: newPerms,
+        };
+      });
+    });
+
+    if (count > 0) {
+      showToast(
+        `Berhasil mengalihkan ${count} fungsi wewenang pada matriks. Tekan "Save and Confirm" untuk menetapkan perubahan.`,
+        'info'
+      );
+    } else {
+      showToast('Tidak ada fungsi wewenang yang berubah (sudah sama).', 'info');
+    }
+  };
+
+  // Handler Save and Confirm matriks
+  const handleConfirmSaveMatrix = () => {
+    setIsSavingMatrix(true);
+    try {
+      saveStoredPermissionsMatrix(matrixData);
+      setSavedMatrixData(matrixData);
+      setIsConfirmMatrixModalOpen(false);
+      showToast(
+        `✓ Sukses! ${diffList.length} pengalihan wewenang fungsi data berhasil disimpan & ditegaskan aktif di seluruh sistem.`,
+        'success'
+      );
+    } catch {
+      showToast('Gagal menyimpan matriks perizinan.', 'error');
+    } finally {
+      setIsSavingMatrix(false);
+    }
+  };
+
+  // Handler Reset Matriks ke Default Sistem
+  const handleResetMatrixDefaults = () => {
+    if (!isAdmin) return;
+    const confirmReset = window.confirm(
+      'Kembalikan seluruh matriks hak akses dan perizinan ke setelan default sistem CPG?'
+    );
+    if (!confirmReset) return;
+
+    resetStoredPermissionsMatrix();
+    setMatrixData(MODULE_PERMISSIONS_MATRIX);
+    setSavedMatrixData(MODULE_PERMISSIONS_MATRIX);
+    showToast('Matriks hak akses berhasil dikembalikan ke default sistem.', 'info');
+  };
+
+  // Handler konfirmasi pengalihan role akun pengguna
+  const handleConfirmUserRoleChange = async () => {
+    if (!pendingUserRoleChange) return;
+    const { user: targetUser, nextRole } = pendingUserRoleChange;
+    try {
+      const res = await updateUser(targetUser.id, { role: nextRole });
+      if (res.success) {
+        showToast(
+          `✓ Sukses! Role @${targetUser.username} berhasil dialihkan ke ${getRoleDisplayName(nextRole)} & dikonfirmasi!`,
+          'success'
+        );
+      } else {
+        showToast(res.message || 'Gagal mengubah role pengguna.', 'error');
+      }
+    } catch {
+      showToast('Gagal mengubah role pengguna.', 'error');
+    } finally {
+      setPendingUserRoleChange(null);
+    }
+  };
+
   const visibleCategories = useMemo<ModuleCategory[]>(() => {
     if (matrixCategoryFilter === 'ALL') {
       return ['Dashboards', 'Modul Tambahan', 'Modul Khusus'];
@@ -184,6 +394,71 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
         <Check className="size-3 stroke-[2.5]" />
         <span>{rule.level}</span>
       </span>
+    );
+  };
+
+  const renderPermissionCell = (perm: ModulePermissionItem, roleKey: string) => {
+    const rule = perm.permissions[roleKey as keyof typeof perm.permissions];
+    if (!rule) return null;
+
+    if (roleKey === 'admin') {
+      return (
+        <span
+          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-semibold border whitespace-nowrap bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/20"
+          title="Akses Penuh Administrator"
+        >
+          <Check className="size-3 stroke-[2.5]" />
+          <span>Full Access</span>
+        </span>
+      );
+    }
+
+    if (!isAdmin) {
+      return renderPermissionBadge(rule);
+    }
+
+    const isModified = diffList.some((d) => d.tabId === perm.tabId && d.roleKey === roleKey);
+    const origRule = savedMatrixData.find((m) => m.tabId === perm.tabId)?.permissions[roleKey as keyof typeof perm.permissions];
+
+    const toneClasses = {
+      purple: 'bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/30',
+      emerald: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30',
+      blue: 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/30',
+      sky: 'bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-500/30',
+      amber: 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30',
+      slate: 'bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-500/30',
+      rose: 'bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/30',
+    }[rule.badgeTone || 'slate'];
+
+    return (
+      <div className="relative inline-flex items-center justify-center">
+        <select
+          value={rule.level}
+          onChange={(e) => handleCellLevelChange(perm.tabId, roleKey, e.target.value as AccessLevel)}
+          disabled={perm.tabId === 'admin-settings'}
+          className={`inline-flex items-center gap-1 px-2 py-0.5 pr-5 rounded-md text-[10px] font-semibold border cursor-pointer appearance-none transition focus:outline-none focus:ring-2 focus:ring-primary/40 shadow-2xs ${
+            isModified ? 'ring-2 ring-amber-500/80 border-amber-500 font-bold bg-amber-500/15' : toneClasses
+          }`}
+          title={
+            isModified
+              ? `Diubah dari: ${origRule?.level} ➔ ${rule.level} (Klik Save and Confirm untuk menerapkan)`
+              : rule.notes || `Hak akses: ${rule.level}. Klik untuk mengubah.`
+          }
+        >
+          {ALL_ACCESS_LEVELS.map((lvl) => (
+            <option key={lvl} value={lvl} className="bg-card text-foreground text-xs py-1">
+              {lvl}
+            </option>
+          ))}
+        </select>
+        <ChevronDown className="size-2.5 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground" />
+        {isModified && (
+          <span
+            className="absolute -top-1 -right-1 size-2 rounded-full bg-amber-500 border border-card pointer-events-none animate-ping"
+            title="Perubahan wewenang belum disimpan"
+          />
+        )}
+      </div>
     );
   };
 
@@ -1078,7 +1353,12 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                           <div className="relative inline-block">
                             <select
                               value={item.role}
-                              onChange={(e) => handleQuickChangeRole(item, e.target.value as UserRole)}
+                              onChange={(e) => {
+                                const next = e.target.value as UserRole;
+                                if (next !== item.role) {
+                                  setPendingUserRoleChange({ user: item, nextRole: next });
+                                }
+                              }}
                               className={`text-[10px] font-semibold rounded-full px-2.5 py-1 border cursor-pointer appearance-none pr-6 focus:outline-none focus:ring-2 focus:ring-primary/40 transition shadow-2xs ${
                                 item.role === 'admin'
                                   ? 'bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/30'
@@ -1334,6 +1614,164 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
           </div>
         </div>
 
+        {/* Quick Switch Dropdown Toolbar for Role Data Functions */}
+        {isAdmin && (
+          <div className="mb-4 p-4 rounded-xl border border-primary/20 bg-linear-to-r from-primary/5 via-indigo-500/5 to-purple-500/5 backdrop-blur-xs">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <span className="p-2 rounded-lg bg-primary text-primary-foreground shadow-xs">
+                  <SlidersHorizontal className="size-4" />
+                </span>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-xs font-bold text-foreground uppercase tracking-wide">
+                      Menu Drop Down Pengalihan Cepat Fungsi Data Pemakai
+                    </h4>
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                      Multi-Module &amp; Role Quick-Switch
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    Pilih target Pemakai/Role, Modul Sistem, dan Tingkat Akses untuk mengalihkan wewenang fungsi data secara serentak.
+                  </p>
+                </div>
+              </div>
+
+              {/* Status and Top Save & Confirm Button */}
+              <div className="flex items-center gap-2">
+                {hasUnsavedChanges ? (
+                  <div className="flex items-center gap-2 bg-amber-500/15 border border-amber-500/40 px-3 py-1.5 rounded-lg text-amber-700 dark:text-amber-300">
+                    <span className="size-2 rounded-full bg-amber-500 animate-ping" />
+                    <span className="text-[11px] font-semibold">
+                      {diffList.length} perubahan wewenang belum disimpan
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setIsConfirmMatrixModalOpen(true)}
+                      className="ml-1 px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-md shadow-xs transition flex items-center gap-1.5 cursor-pointer animate-pulse hover:animate-none"
+                    >
+                      <CheckCircle2 className="size-3.5" />
+                      <span>Save and Confirm</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-[11px] font-medium">
+                    <CheckCircle2 className="size-3.5" />
+                    <span>Wewenang Matriks Aktif &amp; Tersinkronisasi</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Dropdown controls grid */}
+            <div className="mt-3.5 pt-3 border-t border-border/60 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+              {/* Dropdown 1: Target Role / Pemakai */}
+              <div>
+                <label className="block text-[11px] font-semibold text-foreground mb-1">
+                  1. Role Pemakai Target
+                </label>
+                <div className="relative">
+                  <select
+                    value={quickRole}
+                    onChange={(e) => setQuickRole(e.target.value as any)}
+                    className="w-full pl-3 pr-8 py-2 text-xs rounded-lg border border-border bg-background text-foreground font-medium focus:outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer"
+                  >
+                    <option value="ALL">🌐 Semua Pemakai (Semua Role)</option>
+                    <option value="manager">👔 Manager Procurement</option>
+                    <option value="supervisor">🎖️ Supervisor Procurement</option>
+                    <option value="staf_purchasing">🛒 Staf Purchasing</option>
+                    <option value="staf_ttb">📄 Staf Dokumen TTB</option>
+                    <option value="staf_lapangan">🚚 Staf Serah Terima Lap.</option>
+                    <option value="visitor">👁️ Visitor (Tamu)</option>
+                  </select>
+                  <ChevronDown className="size-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground" />
+                </div>
+              </div>
+
+              {/* Dropdown 2: Target Modul Data */}
+              <div>
+                <label className="block text-[11px] font-semibold text-foreground mb-1">
+                  2. Lingkup Modul Data
+                </label>
+                <div className="relative">
+                  <select
+                    value={quickModule}
+                    onChange={(e) => setQuickModule(e.target.value as any)}
+                    className="w-full pl-3 pr-8 py-2 text-xs rounded-lg border border-border bg-background text-foreground font-medium focus:outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer"
+                  >
+                    <option value="ALL">📦 Seluruh Modul (17 Fitur)</option>
+                    <optgroup label="Dashboards">
+                      <option value="overview">Executive Overview</option>
+                      <option value="lead-time">Analisis Lead Time</option>
+                      <option value="realisasi-fpb">Realisasi Permintaan (FPB)</option>
+                      <option value="sla-pengiriman">Kinerja SLA Pengiriman</option>
+                      <option value="status-item">Monitoring Status Item</option>
+                      <option value="evaluasi-po">Evaluasi PO vs Realisasi</option>
+                      <option value="evaluasi-vendor">Kinerja Vendor</option>
+                      <option value="rekomendasi-sourcing">Rekomendasi Sourcing</option>
+                    </optgroup>
+                    <optgroup label="Modul Tambahan">
+                      <option value="validasi-fstb">Validasi &amp; TTD Dokumen FSTB</option>
+                      <option value="validasi-ttb">Validasi &amp; TTD Dokumen TTB</option>
+                      <option value="r2-sync">Sinkronisasi Cloud R2 Storage</option>
+                      <option value="serah-terima-lapangan">Serah Terima Fisik Lapangan</option>
+                      <option value="dokumen-lapangan">Dokumen Fisik Lapangan</option>
+                    </optgroup>
+                    <optgroup label="Modul Khusus">
+                      <option value="live-tracking">Live Tracking Armada</option>
+                      <option value="audit-log">Audit Log &amp; Aktivitas</option>
+                      <option value="dokumen-fstb">Riwayat Dokumen FSTB</option>
+                      <option value="dokumen-ttb">Arsip Dokumen TTB</option>
+                    </optgroup>
+                  </select>
+                  <ChevronDown className="size-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground" />
+                </div>
+              </div>
+
+              {/* Dropdown 3: Tingkat Wewenang (Access Level) */}
+              <div>
+                <label className="block text-[11px] font-semibold text-foreground mb-1">
+                  3. Alihkan Fungsi Ke Wewenang
+                </label>
+                <div className="relative">
+                  <select
+                    value={quickLevel}
+                    onChange={(e) => setQuickLevel(e.target.value as AccessLevel)}
+                    className="w-full pl-3 pr-8 py-2 text-xs rounded-lg border border-border bg-background text-foreground font-semibold focus:outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer"
+                  >
+                    {ALL_ACCESS_LEVELS.map((lvl) => (
+                      <option key={lvl} value={lvl}>
+                        {lvl === 'Full Access' && '👑 '}
+                        {lvl === 'Validasi & TTD' && '✍️ '}
+                        {lvl === 'Upload & Kelola' && '☁️ '}
+                        {lvl === 'Input & Upload' && '📥 '}
+                        {lvl === 'View & Verifikasi' && '🔍 '}
+                        {lvl === 'Update Status' && '🚚 '}
+                        {lvl === 'Read-only' && '👁️ '}
+                        {lvl === 'Dilarang' && '🚫 '}
+                        {lvl}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="size-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground" />
+                </div>
+              </div>
+
+              {/* Action Button: Terapkan ke Matriks */}
+              <div>
+                <button
+                  type="button"
+                  onClick={handleApplyQuickSwitch}
+                  className="w-full py-2 px-4 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs flex items-center justify-center gap-2 shadow-xs transition cursor-pointer"
+                >
+                  <Zap className="size-3.5 text-amber-300" />
+                  <span>Terapkan ke Matriks</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-muted/40 border-b border-border text-muted-foreground text-[11px]">
@@ -1351,7 +1789,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
             </thead>
             <tbody className="divide-y divide-border">
               {visibleCategories.map((category) => {
-                const itemsInCategory = MODULE_PERMISSIONS_MATRIX.filter((m) => m.category === category);
+                const itemsInCategory = matrixData.filter((m) => m.category === category);
                 if (itemsInCategory.length === 0) return null;
 
                 return (
@@ -1385,25 +1823,25 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                           {perm.description}
                         </td>
                         <td className="py-2.5 px-3 text-center">
-                          {renderPermissionBadge(perm.permissions.admin)}
+                          {renderPermissionCell(perm, 'admin')}
                         </td>
                         <td className="py-2.5 px-3 text-center">
-                          {renderPermissionBadge(perm.permissions.manager)}
+                          {renderPermissionCell(perm, 'manager')}
                         </td>
                         <td className="py-2.5 px-3 text-center">
-                          {renderPermissionBadge(perm.permissions.supervisor)}
+                          {renderPermissionCell(perm, 'supervisor')}
                         </td>
                         <td className="py-2.5 px-3 text-center">
-                          {renderPermissionBadge(perm.permissions.staf_purchasing)}
+                          {renderPermissionCell(perm, 'staf_purchasing')}
                         </td>
                         <td className="py-2.5 px-3 text-center">
-                          {renderPermissionBadge(perm.permissions.staf_ttb)}
+                          {renderPermissionCell(perm, 'staf_ttb')}
                         </td>
                         <td className="py-2.5 px-3 text-center">
-                          {renderPermissionBadge(perm.permissions.staf_lapangan)}
+                          {renderPermissionCell(perm, 'staf_lapangan')}
                         </td>
                         <td className="py-2.5 px-3 text-center">
-                          {renderPermissionBadge(perm.permissions.visitor)}
+                          {renderPermissionCell(perm, 'visitor')}
                         </td>
                       </tr>
                     ))}
@@ -1412,6 +1850,52 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
               })}
             </tbody>
           </table>
+        </div>
+
+        {/* Table Bottom Action Bar */}
+        <div className="mt-4 pt-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span className="size-2 rounded-full bg-primary" />
+            <span>
+              Tiap sel wewenang dapat diklik dan dialihkan langsung melalui menu drop down masing-masing.
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={handleResetMatrixDefaults}
+                className="px-3 py-1.5 rounded-lg border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground text-xs font-medium transition cursor-pointer flex items-center gap-1.5"
+                title="Kembalikan semua perizinan ke setelan awal default sistem"
+              >
+                <RotateCcw className="size-3.5" />
+                <span>Reset ke Default Sistem</span>
+              </button>
+            )}
+
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={() => setIsConfirmMatrixModalOpen(true)}
+                disabled={!hasUnsavedChanges}
+                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-2 shadow-xs cursor-pointer ${
+                  hasUnsavedChanges
+                    ? 'bg-amber-600 hover:bg-amber-700 text-white ring-2 ring-amber-500/50'
+                    : 'bg-muted text-muted-foreground opacity-50 cursor-not-allowed'
+                }`}
+                title={hasUnsavedChanges ? 'Tegaskan dan simpan perubahan hak akses' : 'Tidak ada perubahan baru'}
+              >
+                <CheckCircle2 className="size-4" />
+                <span>Save and Confirm</span>
+                {hasUnsavedChanges && (
+                  <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-white/20 text-white font-mono">
+                    {diffList.length}
+                  </span>
+                )}
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -2650,6 +3134,186 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                   <span>{isSubmitting ? 'Menyimpan...' : 'Simpan & Otentifikasi TTD'}</span>
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* MODAL: SAVE AND CONFIRM MATRIKS HAK AKSES                      */}
+      {/* ============================================================== */}
+      {isConfirmMatrixModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in-50 duration-200">
+          <div className="bg-card border border-border rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+            {/* Header */}
+            <div className="p-5 border-b border-border bg-linear-to-r from-amber-500/10 via-primary/5 to-transparent flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="size-10 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center justify-center shrink-0">
+                  <ShieldAlert className="size-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+                    <span>Save &amp; Confirm Hak Akses Matriks</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white">
+                      {diffList.length} Perubahan
+                    </span>
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Penegasan eksekusi pengalihan fungsi data pemakai ke seluruh sistem CPG
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsConfirmMatrixModalOpen(false)}
+                className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted transition cursor-pointer"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-5 overflow-y-auto space-y-4">
+              <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-800 dark:text-amber-200 text-xs flex items-start gap-2.5">
+                <AlertTriangle className="size-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+                <div className="leading-relaxed">
+                  <strong className="font-semibold block mb-0.5">Penegasan Perubahan Hak Akses:</strong>
+                  Menekan tombol <strong>Save and Confirm</strong> di bawah akan secara resmi mengunci dan mengaktifkan wewenang baru ke dalam sistem. Seluruh pemakai dengan role terkait akan langsung terdampak pada menu navigasi sidebar dan aksi modul secara instan.
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-xs font-bold text-foreground uppercase tracking-wide mb-2 flex items-center justify-between">
+                  <span>Daftar Wewenang yang Dialihkan:</span>
+                  <span className="font-mono text-[11px] text-muted-foreground">Total: {diffList.length} Item</span>
+                </h4>
+                <div className="border border-border rounded-xl divide-y divide-border overflow-hidden max-h-64 overflow-y-auto">
+                  {diffList.map((item, idx) => (
+                    <div key={`${item.tabId}-${item.roleKey}-${idx}`} className="p-2.5 text-xs flex items-center justify-between gap-3 hover:bg-muted/30">
+                      <div className="min-w-0">
+                        <div className="font-semibold text-foreground truncate">{item.moduleName}</div>
+                        <div className="text-[10px] text-muted-foreground">{item.roleTitle}</div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-muted text-muted-foreground line-through">
+                          {item.oldLevel}
+                        </span>
+                        <ArrowRight className="size-3 text-muted-foreground" />
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">
+                          {item.newLevel}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-border bg-muted/20 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => setIsConfirmMatrixModalOpen(false)}
+                className="px-4 py-2 rounded-lg text-xs font-medium text-muted-foreground hover:bg-muted transition cursor-pointer"
+              >
+                Batal / Periksa Kembali
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmSaveMatrix}
+                disabled={isSavingMatrix || diffList.length === 0}
+                className="px-5 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition shadow-xs cursor-pointer flex items-center gap-2 disabled:opacity-50"
+              >
+                <CheckCircle2 className="size-4" />
+                <span>{isSavingMatrix ? 'Menyimpan...' : 'Save and Confirm (Laksanakan)'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* MODAL: SAVE AND CONFIRM PENGALIHAN ROLE PENGGUNA               */}
+      {/* ============================================================== */}
+      {pendingUserRoleChange && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in-50 duration-200">
+          <div className="bg-card border border-border rounded-2xl w-full max-w-md shadow-2xl p-6 relative">
+            <button
+              type="button"
+              onClick={() => setPendingUserRoleChange(null)}
+              className="absolute top-4 right-4 p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted transition cursor-pointer"
+            >
+              <X className="size-4" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-4">
+              <div className="size-11 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center">
+                <UserCheck className="size-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-foreground">
+                  Konfirmasi Pengalihan Role Pengguna
+                </h3>
+                <p className="text-[11px] text-muted-foreground">
+                  Penegasan wewenang baru untuk akun pengguna
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4 text-xs">
+              {/* User detail summary */}
+              <div className="p-3.5 rounded-xl bg-muted/40 border border-border">
+                <div className="flex items-center gap-3">
+                  <div className="size-9 rounded-full bg-primary/20 text-primary font-bold flex items-center justify-center text-xs">
+                    {pendingUserRoleChange.user.avatar || pendingUserRoleChange.user.name[0]?.toUpperCase()}
+                  </div>
+                  <div>
+                    <div className="font-bold text-foreground">{pendingUserRoleChange.user.name}</div>
+                    <div className="text-[11px] text-muted-foreground font-mono">
+                      @{pendingUserRoleChange.user.username} &bull; {pendingUserRoleChange.user.department || 'Operasional'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Role transition box */}
+              <div className="p-3.5 rounded-xl bg-primary/5 border border-primary/20 flex items-center justify-between gap-3">
+                <div className="text-center flex-1">
+                  <span className="block text-[10px] text-muted-foreground mb-1 uppercase font-semibold">Role Saat Ini</span>
+                  <span className="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-muted text-muted-foreground border border-border inline-block">
+                    {getRoleDisplayName(pendingUserRoleChange.user.role)}
+                  </span>
+                </div>
+                <ArrowRight className="size-4 text-primary shrink-0" />
+                <div className="text-center flex-1">
+                  <span className="block text-[10px] text-primary mb-1 uppercase font-semibold">Role Baru Ditegaskan</span>
+                  <span className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-primary text-primary-foreground border border-primary inline-block shadow-2xs">
+                    {getRoleDisplayName(pendingUserRoleChange.nextRole)}
+                  </span>
+                </div>
+              </div>
+
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Pengguna akan langsung memperoleh hak akses, modul dashboard, dan wewenang tanda tangan yang sesuai dengan role barunya begitu konfirmasi ditegaskan.
+              </p>
+            </div>
+
+            <div className="mt-5 pt-4 border-t border-border flex items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={() => setPendingUserRoleChange(null)}
+                className="px-4 py-2 rounded-lg text-xs font-medium text-muted-foreground hover:bg-muted transition cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmUserRoleChange}
+                className="px-5 py-2 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold transition shadow-xs cursor-pointer flex items-center gap-1.5"
+              >
+                <CheckCircle2 className="size-4" />
+                <span>Save and Confirm</span>
+              </button>
             </div>
           </div>
         </div>

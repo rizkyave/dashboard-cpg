@@ -54,6 +54,41 @@ export type AccessLevel =
   | 'Read-only'
   | 'Dilarang';
 
+export const ALL_ACCESS_LEVELS: AccessLevel[] = [
+  'Full Access',
+  'Validasi & TTD',
+  'Upload & Kelola',
+  'Input & Upload',
+  'View & Verifikasi',
+  'Update Status',
+  'Read-only',
+  'Dilarang',
+];
+
+export function getToneForAccessLevel(level: AccessLevel): RolePermissionRule['badgeTone'] {
+  switch (level) {
+    case 'Full Access':
+      return 'purple';
+    case 'Validasi & TTD':
+    case 'Upload & Kelola':
+    case 'Input & Upload':
+      return 'emerald';
+    case 'View & Verifikasi':
+      return 'blue';
+    case 'Update Status':
+      return 'sky';
+    case 'Read-only':
+      return 'slate';
+    case 'Dilarang':
+    default:
+      return 'rose';
+  }
+}
+
+export function isAccessLevelAllowed(level: AccessLevel): boolean {
+  return level !== 'Dilarang';
+}
+
 export interface RolePermissionRule {
   allowed: boolean;
   level: AccessLevel;
@@ -346,14 +381,81 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
   },
 ];
 
+export const RBAC_MATRIX_STORAGE_KEY = 'CPG_AUTH_RBAC_MATRIX';
+
+/**
+ * Membaca matriks perizinan dinamis dari localStorage (fallback ke default matrix)
+ */
+export function getStoredPermissionsMatrix(): ModulePermissionItem[] {
+  if (typeof window === 'undefined') {
+    return MODULE_PERMISSIONS_MATRIX;
+  }
+  try {
+    const raw = localStorage.getItem(RBAC_MATRIX_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+  } catch (err) {
+    console.warn('Gagal membaca RBAC Matrix dari localStorage:', err);
+  }
+  return MODULE_PERMISSIONS_MATRIX;
+}
+
+/**
+ * Menyimpan perubahan matriks perizinan ke localStorage dan mentrigger pembaruan real-time
+ */
+export function saveStoredPermissionsMatrix(matrix: ModulePermissionItem[]): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(RBAC_MATRIX_STORAGE_KEY, JSON.stringify(matrix));
+    window.dispatchEvent(new Event('cpg-rbac-updated'));
+  } catch (err) {
+    console.error('Gagal menyimpan RBAC Matrix ke localStorage:', err);
+  }
+}
+
+/**
+ * Mengembalikan matriks perizinan ke setelan default sistem
+ */
+export function resetStoredPermissionsMatrix(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.removeItem(RBAC_MATRIX_STORAGE_KEY);
+    window.dispatchEvent(new Event('cpg-rbac-updated'));
+  } catch (err) {
+    console.error('Gagal reset RBAC Matrix di localStorage:', err);
+  }
+}
+
 /**
  * Helper RBAC: Menentukan apakah sebuah role memiliki izin mengakses tab/modul tertentu.
  */
 export function canAccessTab(role: UserRole | undefined, tab: TabType): boolean {
   if (!role || role === 'admin') return true;
+  if (tab === 'admin-settings') return false;
 
+  // 1. Cek perizinan dinamis dari matriks yang dikonfigurasi & disimpan oleh Admin
+  if (typeof window !== 'undefined') {
+    try {
+      const matrix = getStoredPermissionsMatrix();
+      const moduleItem = matrix.find((m) => m.tabId === tab);
+      if (moduleItem && role in moduleItem.permissions) {
+        const rule = (moduleItem.permissions as any)[role] as RolePermissionRule | undefined;
+        if (rule) {
+          return rule.allowed;
+        }
+      }
+    } catch {
+      // Fallback ke logika statis bila terjadi kendala
+    }
+  }
+
+  // 2. Fallback perizinan statis default
   if (role === 'manager' || role === 'supervisor') {
-    return tab !== 'admin-settings';
+    return true;
   }
 
   if (role === 'staf_purchasing') {
@@ -366,7 +468,6 @@ export function canAccessTab(role: UserRole | undefined, tab: TabType): boolean 
       'work-order',
       'list-sm',
       'analytics',
-      'admin-settings',
     ];
     return !forbidden.includes(tab);
   }
@@ -385,18 +486,17 @@ export function canAccessTab(role: UserRole | undefined, tab: TabType): boolean 
       'work-order',
       'list-sm',
       'analytics',
-      'admin-settings',
     ];
     return !forbidden.includes(tab);
   }
 
   if (role === 'staf_lapangan') {
-    const forbidden: TabType[] = ['upload-fstb', 'upload-ttb', 'analytics', 'admin-settings'];
+    const forbidden: TabType[] = ['upload-fstb', 'upload-ttb', 'analytics'];
     return !forbidden.includes(tab);
   }
 
   if (role === 'user') {
-    return tab !== 'admin-settings';
+    return true;
   }
 
   return true;

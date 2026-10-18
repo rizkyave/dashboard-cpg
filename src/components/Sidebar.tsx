@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -79,6 +79,13 @@ export default function Sidebar({
   showToast,
 }: SidebarProps) {
   const { user, isAdmin, isVisitor, logout } = useAuth();
+
+  const [, setRbacRevision] = useState<number>(0);
+  useEffect(() => {
+    const handleRbacUpdate = () => setRbacRevision((prev) => prev + 1);
+    window.addEventListener('cpg-rbac-updated', handleRbacUpdate);
+    return () => window.removeEventListener('cpg-rbac-updated', handleRbacUpdate);
+  }, []);
 
   const [isLeadTimeHidden, setIsLeadTimeHidden] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {

@@ -122,3 +122,4 @@ export function computeValidationStatus(
 
   return { completedCount: count, status, isReady };
 }
+
