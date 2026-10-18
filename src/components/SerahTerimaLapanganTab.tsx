@@ -1204,8 +1204,11 @@ export default function SerahTerimaLapanganTab({
               <div className="space-y-3">
                 {!selectedTtbRef ? (
                   <div className="space-y-3">
-                    <div className="relative">
-                      <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                    {/* Kotak Pencarian Sangat Besar & Jelas untuk Petugas Lapangan */}
+                    <div className="relative group">
+                      <div className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
+                        <Search className="size-6 sm:size-7 text-indigo-600 dark:text-indigo-400 shrink-0 transition-transform group-focus-within:scale-110" />
+                      </div>
                       <input
                         type="text"
                         value={ttbSearchTerm}
@@ -1214,27 +1217,39 @@ export default function SerahTerimaLapanganTab({
                           setIsSearchingTtb(true);
                         }}
                         onFocus={() => setIsSearchingTtb(true)}
-                        placeholder="Ketik No. TTB (contoh: 04975), nama armada (contoh: SEA LION), atau No. FPB..."
-                        className="w-full pl-10 pr-10 py-2.5 text-xs rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="Ketik No. TTB (cth: 04975), nama armada (cth: SEA LION), atau No. FPB..."
+                        className="w-full pl-13 sm:pl-16 pr-24 sm:pr-28 py-4 sm:py-5 text-base sm:text-lg lg:text-xl font-bold rounded-2xl bg-background border-2 border-slate-300 dark:border-slate-700 text-foreground placeholder:text-muted-foreground/60 placeholder:text-sm sm:placeholder:text-base lg:placeholder:text-lg placeholder:font-normal shadow-sm hover:border-indigo-400 dark:hover:border-indigo-500 focus:outline-none focus:border-indigo-600 dark:focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/20 transition-all duration-150"
                       />
-                      {ttbSearchTerm && (
-                        <button
-                          type="button"
-                          onClick={() => setTtbSearchTerm('')}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
-                        >
-                          <X className="size-3.5" />
-                        </button>
-                      )}
+                      {/* Tombol Hapus / Status Pencarian yang Besar & Ramah Petugas */}
+                      <div className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                        {ttbSearchTerm ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setTtbSearchTerm('');
+                              setIsSearchingTtb(false);
+                            }}
+                            className="inline-flex items-center gap-1.5 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl bg-slate-200/90 hover:bg-rose-100 dark:bg-slate-800 dark:hover:bg-rose-950/40 text-slate-700 hover:text-rose-600 dark:text-slate-300 dark:hover:text-rose-400 border border-slate-300 dark:border-slate-700 transition cursor-pointer font-bold text-xs sm:text-sm shadow-xs"
+                            title="Hapus pencarian dan tampilkan semua TTB"
+                          >
+                            <X className="size-4 sm:size-5 shrink-0" />
+                            <span className="font-sans">Hapus</span>
+                          </button>
+                        ) : (
+                          <span className="hidden md:inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-muted text-[11px] font-mono text-muted-foreground border border-border">
+                            Cari Cepat
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     {/* Header Bar & Quick Filter Chips */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-1">
-                      <div className="flex items-center gap-1.5 flex-wrap">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <button
                           type="button"
                           onClick={() => setTtbStatusFilter('ALL')}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer ${
+                          className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold border transition cursor-pointer ${
                             ttbStatusFilter === 'ALL'
                               ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
                               : 'bg-background hover:bg-muted text-muted-foreground border-border'
@@ -1245,31 +1260,31 @@ export default function SerahTerimaLapanganTab({
                         <button
                           type="button"
                           onClick={() => setTtbStatusFilter('BELUM')}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer inline-flex items-center gap-1.5 ${
+                          className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold border transition cursor-pointer inline-flex items-center gap-1.5 ${
                             ttbStatusFilter === 'BELUM'
                               ? 'bg-amber-500 text-white border-amber-500 shadow-2xs'
                               : 'bg-background hover:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30'
                           }`}
                         >
-                          <Clock className="size-3" />
+                          <Clock className="size-3.5" />
                           <span>Belum TTD Digital ({ttbStats.belum})</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => setTtbStatusFilter('SUDAH')}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer inline-flex items-center gap-1.5 ${
+                          className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold border transition cursor-pointer inline-flex items-center gap-1.5 ${
                             ttbStatusFilter === 'SUDAH'
                               ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
                               : 'bg-background hover:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30'
                           }`}
                         >
-                          <CheckCircle2 className="size-3" />
+                          <CheckCircle2 className="size-3.5" />
                           <span>Sudah TTD Digital ({ttbStats.sudah})</span>
                         </button>
                       </div>
 
-                      <div className="text-[11px] text-muted-foreground flex items-center gap-1 font-mono">
-                        <Calendar className="size-3 text-indigo-500" />
+                      <div className="text-[11px] sm:text-xs text-muted-foreground flex items-center gap-1.5 font-mono">
+                        <Calendar className="size-3.5 text-indigo-500" />
                         <span>Urutan: Tanggal TTB Terbaru ↓ ({dateRangeBounds.label})</span>
                       </div>
                     </div>
@@ -2150,15 +2165,25 @@ export default function SerahTerimaLapanganTab({
         <div className="space-y-4">
           {/* Filter & Search Bar */}
           <div className="bg-card border border-border rounded-2xl p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <div className="relative flex-1 group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-5 sm:size-6 text-cyan-600 dark:text-cyan-400 shrink-0 transition-transform group-focus-within:scale-110" />
               <input
                 type="text"
                 value={historySearchTerm}
                 onChange={(e) => setHistorySearchTerm(e.target.value)}
                 placeholder="Cari riwayat serah terima (No. TTB, Armada, Penerima, Petugas)..."
-                className="w-full pl-10 pr-4 py-2 text-xs rounded-xl bg-background border border-border focus:ring-2 focus:ring-cyan-500"
+                className="w-full pl-12 pr-12 py-3.5 sm:py-4 text-sm sm:text-base font-bold rounded-xl bg-background border-2 border-slate-300 dark:border-slate-700 text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/20 transition"
               />
+              {historySearchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setHistorySearchTerm('')}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition"
+                  title="Hapus pencarian riwayat"
+                >
+                  <X className="size-4" />
+                </button>
+              )}
             </div>
 
             {/* Filter Kondisi Chips */}
