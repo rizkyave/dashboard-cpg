@@ -40,7 +40,8 @@ export function getStoredUsers(): UserAccount[] {
             needsSave = true;
             p = { ...p, password: defaultMatch.password };
           }
-          if (p.role !== defaultMatch.role && defaultMatch.role) {
+          // Pertahankan role yang telah diubah admin; hanya pasang default bila akun belum memiliki role
+          if (!p.role && defaultMatch.role) {
             needsSave = true;
             p = { ...p, role: defaultMatch.role };
           }

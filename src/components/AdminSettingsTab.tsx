@@ -44,6 +44,7 @@ import {
   RefreshCw,
   Award,
   ShoppingCart,
+  ChevronDown,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -340,6 +341,23 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
       }
     } catch {
       showToast('Gagal mereset kata sandi.', 'error');
+    }
+  };
+
+  const handleQuickChangeRole = async (userItem: AuthUser, nextRole: UserRole) => {
+    if (userItem.role === nextRole) return;
+    try {
+      const res = await updateUser(userItem.id, { role: nextRole });
+      if (res.success) {
+        showToast(
+          `Role untuk @${userItem.username} berhasil diubah menjadi ${getRoleDisplayName(nextRole)}.`,
+          'success'
+        );
+      } else {
+        showToast(res.message || 'Gagal mengubah role pengguna.', 'error');
+      }
+    } catch {
+      showToast('Gagal mengubah role pengguna.', 'error');
     }
   };
 
@@ -1054,8 +1072,44 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                       </td>
 
                       {/* Role Badge */}
+                      {/* Role Badge / Interactive Dropdown for Admin */}
                       <td className="py-3 px-4">
-                        {item.role === 'admin' ? (
+                        {isAdmin && !isCurrent ? (
+                          <div className="relative inline-block">
+                            <select
+                              value={item.role}
+                              onChange={(e) => handleQuickChangeRole(item, e.target.value as UserRole)}
+                              className={`text-[10px] font-semibold rounded-full px-2.5 py-1 border cursor-pointer appearance-none pr-6 focus:outline-none focus:ring-2 focus:ring-primary/40 transition shadow-2xs ${
+                                item.role === 'admin'
+                                  ? 'bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/30'
+                                  : item.role === 'manager'
+                                  ? 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-500/30'
+                                  : item.role === 'supervisor'
+                                  ? 'bg-violet-500/10 text-violet-700 dark:text-violet-300 border-violet-500/30'
+                                  : item.role === 'staf_purchasing'
+                                  ? 'bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-500/30'
+                                  : item.role === 'staf_ttb'
+                                  ? 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/30'
+                                  : item.role === 'staf_lapangan'
+                                  ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30'
+                                  : item.role === 'visitor'
+                                  ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
+                                  : 'bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-500/30'
+                              }`}
+                              title="Klik untuk langsung mengubah role pengguna"
+                            >
+                              <option value="admin">👑 Administrator</option>
+                              <option value="manager">👔 Manager Procurement</option>
+                              <option value="supervisor">🎖️ Supervisor Procurement</option>
+                              <option value="staf_purchasing">🛒 Staf Purchasing</option>
+                              <option value="staf_ttb">📄 Staf Dokumen TTB</option>
+                              <option value="staf_lapangan">🚚 Staf Serah Terima Lap.</option>
+                              <option value="user">📦 Staff Operasional</option>
+                              <option value="visitor">👁️ Visitor (Read-Only)</option>
+                            </select>
+                            <ChevronDown className="size-2.5 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground" />
+                          </div>
+                        ) : item.role === 'admin' ? (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20">
                             <Shield className="size-3" />
                             <span>Administrator</span>
@@ -1545,6 +1599,27 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                       Read-Only
                     </span>
                   </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewRole('user');
+                      if (!newDepartment) setNewDepartment('Gudang & Operasional Darat');
+                    }}
+                    className={`p-2.5 rounded-lg border text-left transition cursor-pointer flex flex-col justify-between ${
+                      newRole === 'user'
+                        ? 'border-sky-500 bg-sky-500/10 text-sky-700 dark:text-sky-300 ring-1 ring-sky-500'
+                        : 'border-border bg-card text-muted-foreground hover:border-border/80'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 font-bold text-xs">
+                      <UserCheck className="size-3.5" />
+                      <span>Staff Operasional</span>
+                    </div>
+                    <span className="text-[9px] mt-1 text-muted-foreground leading-tight">
+                      Umum / Logistik
+                    </span>
+                  </button>
                 </div>
 
                 {/* Role Description Helper */}
@@ -1749,9 +1824,14 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
 
             <form onSubmit={handleEditSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-1.5">
-                  Tipe Akun (Role)
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-semibold text-foreground">
+                    Tipe Akun (Role)
+                  </label>
+                  <span className="text-[11px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">
+                    Terpilih: {getRoleDisplayName(editRole)}
+                  </span>
+                </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <button
                     type="button"
@@ -1842,6 +1922,19 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                   >
                     <div className="font-bold text-xs">👁️ Visitor</div>
                     <span className="text-[9px] text-muted-foreground">Read-Only</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setEditRole('user')}
+                    className={`p-2.5 rounded-lg border text-left transition cursor-pointer flex flex-col justify-between ${
+                      editRole === 'user'
+                        ? 'border-sky-500 bg-sky-500/10 text-sky-700 dark:text-sky-300 ring-1 ring-sky-500'
+                        : 'border-border bg-card text-muted-foreground hover:border-border/80'
+                    }`}
+                  >
+                    <div className="font-bold text-xs">📦 Staff Operasional</div>
+                    <span className="text-[9px] text-muted-foreground">Umum / Logistik</span>
                   </button>
                 </div>
 
