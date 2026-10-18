@@ -605,9 +605,9 @@ export default function TtbValidationModal({
         {/* MODAL BODY (SPLIT VIEW)                                   */}
         {/* ========================================================= */}
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden min-h-0">
-          {/* SISI KIRI: PRATINJAU DOKUMEN PDF (7/12) */}
+          {/* SISI KIRI: PRATINJAU DOKUMEN PDF (5/12) */}
           <div
-            className={`lg:col-span-7 border-r border-border flex flex-col bg-slate-950/5 dark:bg-slate-950/40 overflow-hidden ${
+            className={`lg:col-span-5 border-r border-border flex flex-col bg-slate-950/5 dark:bg-slate-950/40 overflow-hidden ${
               activeTabMobile === 'document' ? 'flex' : 'hidden lg:flex'
             }`}
           >
@@ -631,9 +631,9 @@ export default function TtbValidationModal({
             </div>
           </div>
 
-          {/* SISI KANAN: PANEL AKSI CHECKLIST 4 PIC (5/12) */}
+          {/* SISI KANAN: PANEL AKSI CHECKLIST 4 PIC (7/12) */}
           <div
-            className={`lg:col-span-5 flex flex-col overflow-y-auto bg-card ${
+            className={`lg:col-span-7 flex flex-col overflow-y-auto bg-card ${
               activeTabMobile === 'checklist' ? 'flex' : 'hidden lg:flex'
             }`}
           >
@@ -681,8 +681,8 @@ export default function TtbValidationModal({
                 </p>
               </div>
 
-              {/* 4 CHECKLIST CARDS */}
-              <div className="space-y-3">
+              {/* 4 CHECKLIST CARDS - SUSUNAN 2 KOTAK MENDATAR (2x2 GRID) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {TTB_SLOTS.map((slot) => {
                   const currentSlotState = ttbSlots[slot.key];
                   const isAlreadyValidated = Boolean(currentSlotState?.isValidated);
@@ -692,7 +692,7 @@ export default function TtbValidationModal({
                   return (
                     <div
                       key={slot.key}
-                      className={`relative rounded-xl border p-3.5 transition ${
+                      className={`relative rounded-xl border p-3.5 transition flex flex-col justify-between ${
                         isAlreadyValidated
                           ? 'border-emerald-500/40 bg-emerald-500/5'
                           : authCheck.allowed
@@ -707,79 +707,81 @@ export default function TtbValidationModal({
                         }
                       }}
                     >
-                      {/* Top Header of Card */}
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          <span className="size-5 rounded-md bg-muted border border-border flex items-center justify-center font-mono font-bold text-[10px] text-muted-foreground">
-                            {slot.columnNumber}
-                          </span>
-                          <div>
-                            <span className="text-[10px] text-muted-foreground font-mono block">
-                              {slot.headerTitle}
+                      <div>
+                        {/* Top Header of Card */}
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="size-5 rounded-md bg-muted border border-border flex items-center justify-center font-mono font-bold text-[10px] text-muted-foreground shrink-0">
+                              {slot.columnNumber}
                             </span>
-                            <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                              <span>{slot.roleTitle}</span>
-                            </h4>
+                            <div className="min-w-0">
+                              <span className="text-[10px] text-muted-foreground font-mono block truncate">
+                                {slot.headerTitle}
+                              </span>
+                              <h4 className="text-xs font-bold text-foreground truncate">
+                                <span>{slot.roleTitle}</span>
+                              </h4>
+                            </div>
+                          </div>
+
+                          {/* Status Badge */}
+                          <div className="shrink-0">
+                            {isAlreadyValidated ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 whitespace-nowrap">
+                                <CheckCircle2 className="size-3 shrink-0" />
+                                <span>{slot.key === 'receivedBy' ? 'Diterima Kru' : 'Telah Disahkan'}</span>
+                              </span>
+                            ) : authCheck.allowed ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 whitespace-nowrap">
+                                <Unlock className="size-3 shrink-0" />
+                                <span>Wewenang Anda</span>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-500/15 text-slate-600 dark:text-slate-400 border border-slate-500/30 whitespace-nowrap">
+                                <Lock className="size-3 shrink-0" />
+                                <span>Terkunci</span>
+                              </span>
+                            )}
                           </div>
                         </div>
 
-                        {/* Status Badge */}
-                        <div>
-                          {isAlreadyValidated ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
-                              <CheckCircle2 className="size-3" />
-                              <span>{slot.key === 'receivedBy' ? 'Diterima Kru Lapangan' : 'Telah Disahkan'}</span>
-                            </span>
-                          ) : authCheck.allowed ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30">
-                              <Unlock className="size-3" />
-                              <span>Wewenang Anda</span>
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-500/15 text-slate-600 dark:text-slate-400 border border-slate-500/30">
-                              <Lock className="size-3" />
-                              <span>Terkunci</span>
-                            </span>
-                          )}
-                        </div>
+                        {/* Description */}
+                        <p className="text-[10.5px] text-muted-foreground mt-2 leading-relaxed">
+                          {slot.description}
+                        </p>
                       </div>
-
-                      {/* Description */}
-                      <p className="text-[11px] text-muted-foreground mt-2 leading-relaxed">
-                        {slot.description}
-                      </p>
 
                       {/* State Details: Already Validated vs Pending Action */}
                       {isAlreadyValidated ? (
                         <div className="mt-3 pt-2.5 border-t border-emerald-500/20 text-[11px] space-y-2">
                           <div className="flex items-center justify-between text-emerald-800 dark:text-emerald-300 font-medium">
-                            <span>
-                              {slot.key === 'receivedBy' ? 'Diterima oleh:' : 'Disahkan oleh:'}{' '}
+                            <span className="truncate pr-1 text-[10.5px]">
+                              {slot.key === 'receivedBy' ? 'Diterima:' : 'Disahkan:'}{' '}
                               <strong>{currentSlotState?.validatorName}</strong>
                             </span>
-                            <span className="font-mono text-[10px]">
+                            <span className="font-mono text-[10px] shrink-0">
                               {currentSlotState?.validatedAt ? currentSlotState.validatedAt.slice(0, 10) : ''}
                             </span>
                           </div>
 
                           {slot.key === 'receivedBy' && (
-                            <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-emerald-800 dark:text-emerald-200 text-[11px] space-y-1.5">
-                              <div className="flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-300">
-                                <CheckCircle2 className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
-                                <span>Pekerjaan Pengantaran Telah Selesai &amp; Terkonfirmasi</span>
+                            <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-emerald-800 dark:text-emerald-200 text-[10.5px] space-y-1">
+                              <div className="flex items-center gap-1 font-bold text-emerald-700 dark:text-emerald-300">
+                                <CheckCircle2 className="size-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                                <span className="truncate">Pengantaran Selesai &amp; Sah</span>
                               </div>
-                              <p className="text-[10.5px] leading-relaxed text-muted-foreground">
-                                Barang fisik telah diterima langsung oleh kru armada kapal dan ditandatangani melalui bukti serah terima lapangan.
+                              <p className="text-[10px] leading-tight text-muted-foreground line-clamp-2">
+                                Diterima langsung oleh kru armada &amp; bertanda tangan digital lapangan.
                               </p>
                               {currentSlotState?.signatureDataUrl && (
-                                <div className="pt-1 flex items-center gap-2">
-                                  <span className="text-[10px] text-muted-foreground font-medium">Tanda Tangan Kru:</span>
-                                  <div className="h-9 px-2 bg-white rounded border border-border flex items-center shadow-2xs">
+                                <div className="pt-0.5 flex items-center gap-2">
+                                  <span className="text-[9.5px] text-muted-foreground font-medium shrink-0">TTD Kru:</span>
+                                  <div className="h-7 px-1.5 bg-white rounded border border-border flex items-center shadow-2xs">
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
                                     <img
                                       src={currentSlotState.signatureDataUrl}
                                       alt="Tanda Tangan Penerima Lapangan"
-                                      className="h-7 w-auto object-contain max-w-[140px]"
+                                      className="h-5 w-auto object-contain max-w-[120px]"
                                     />
                                   </div>
                                 </div>
@@ -788,13 +790,13 @@ export default function TtbValidationModal({
                           )}
 
                           {currentSlotState?.verificationToken && (
-                            <div className="font-mono text-[10px] text-muted-foreground truncate">
+                            <div className="font-mono text-[9.5px] text-muted-foreground truncate">
                               Token: {currentSlotState.verificationToken}
                             </div>
                           )}
 
                           {isAdmin && (
-                            <div className="pt-1 flex justify-end">
+                            <div className="pt-0.5 flex justify-end">
                               <button
                                 type="button"
                                 onClick={(e) => {
@@ -813,23 +815,23 @@ export default function TtbValidationModal({
                         <div className="mt-3 pt-2.5 border-t border-border/60">
                           {authCheck.allowed ? (
                             <label
-                              className="flex items-start gap-2.5 cursor-pointer select-none"
+                              className="flex items-start gap-2 cursor-pointer select-none"
                               onClick={(e) => e.stopPropagation()}
                             >
                               <input
                                 type="checkbox"
                                 checked={isChecked}
                                 onChange={() => handleToggleSlot(slot.key)}
-                                className="mt-0.5 size-4 rounded text-indigo-600 focus:ring-indigo-500 border-border cursor-pointer"
+                                className="mt-0.5 size-4 rounded text-indigo-600 focus:ring-indigo-500 border-border cursor-pointer shrink-0"
                               />
-                              <span className="text-[11px] font-medium text-foreground leading-snug">
+                              <span className="text-[10.5px] font-medium text-foreground leading-snug">
                                 {slot.declarationText}
                               </span>
                             </label>
                           ) : (
-                            <div className="flex items-center gap-1.5 text-[10.5px] text-muted-foreground/80 italic">
+                            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground/80 italic">
                               <Lock className="size-3 shrink-0" />
-                              <span>{authCheck.reason}</span>
+                              <span className="truncate">{authCheck.reason}</span>
                             </div>
                           )}
                         </div>
