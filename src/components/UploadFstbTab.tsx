@@ -31,6 +31,8 @@ import {
   PenTool,
   PackageCheck,
   FileSpreadsheet,
+  AlertTriangle,
+  ShieldAlert,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
@@ -201,6 +203,9 @@ export default function UploadFstbTab({
   const [activePreview, setActivePreview] = useState<UploadedFstbItem | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  // Modal Peringatan Duplikat FSTB
+  const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState<boolean>(false);
+
   // File input ref
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -321,7 +326,15 @@ export default function UploadFstbTab({
       if (!batchDoNo && newQueued[0].doNo) setBatchDoNo(newQueued[0].doNo);
     }
 
-    showToast?.(`${newQueued.length} berkas berhasil ditambahkan ke antrean.`, 'info');
+    const detectedDuplicates = newQueued.filter((q) => Boolean(checkFstbDuplicate(q.noFstb, q.file.name)));
+    if (detectedDuplicates.length > 0) {
+      showToast?.(
+        `⚠️ Peringatan: ${detectedDuplicates.length} berkas terindikasi SUDAH PERNAH DIUPLOAD sebelumnya!`,
+        'warning'
+      );
+    } else {
+      showToast?.(`${newQueued.length} berkas berhasil ditambahkan ke antrean.`, 'info');
+    }
   };
 
   // Drag & Drop Handlers
@@ -379,16 +392,107 @@ export default function UploadFstbTab({
     );
   };
 
-  // Proses Upload ke Cloudflare R2
-  const handleExecuteUpload = async () => {
-    if (queue.length === 0) {
-      showToast?.('Pilih setidaknya 1 berkas FSTB untuk diunggah.', 'warning');
+  // Helper cek duplikat FSTB terhadap riwayat
+  const checkFstbDuplicate = (noFstb: string, fileName: string) => {
+    const targetNo = sanitizeFstbNumber(noFstb.trim() || batchNoFstb.trim());
+    if (!targetNo) return null;
+    return (
+      history.find((h) => {
+        const cleanH = sanitizeFstbNumber(h.noFstb || h.cleanNoFstb || '');
+        if (cleanH && cleanH === targetNo) return true;
+        if (
+          h.renamedFileName &&
+          (h.renamedFileName.toLowerCase() === fileName.toLowerCase() ||
+            h.renamedFileName.toLowerCase() === `${targetNo}.pdf`.toLowerCase())
+        ) {
+          return true;
+        }
+        return false;
+      }) || null
+    );
+  };
+
+  // Kumpulan berkas di antrean yang terindikasi ganda / sudah pernah diupload
+  const duplicateQueueItems = useMemo(() => {
+    return queue
+      .map((item) => {
+        const existing = checkFstbDuplicate(item.noFstb, item.file.name);
+        return { item, existing };
+      })
+      .filter((x): x is { item: QueuedFile; existing: UploadedFstbItem } => Boolean(x.existing));
+  }, [queue, history, batchNoFstb]);
+
+  const hasDuplicateInQueue = duplicateQueueItems.length > 0;
+
+  // 1. Lewati (Skip) Semua Duplikat & Hapus dari Antrean
+  const handleSkipAllDuplicates = () => {
+    if (duplicateQueueItems.length === 0) return;
+    const dupIds = new Set(duplicateQueueItems.map((d) => d.item.id));
+    setQueue((prev) => {
+      prev.forEach((item) => {
+        if (dupIds.has(item.id) && item.previewUrl) {
+          URL.revokeObjectURL(item.previewUrl);
+        }
+      });
+      return prev.filter((item) => !dupIds.has(item.id));
+    });
+    setIsDuplicateModalOpen(false);
+    showToast?.(
+      `✓ Berhasil melewati (skip) ${dupIds.size} berkas duplikat dan menghapusnya dari antrean baru.`,
+      'info'
+    );
+  };
+
+  // 2. Hapus satu berkas baru yang duplikat
+  const handleRemoveDuplicateFile = (id: string) => {
+    handleRemoveFromQueue(id);
+    showToast?.('Berkas baru yang terindikasi duplikat berhasil dihapus dari antrean.', 'info');
+  };
+
+  // 3. Skip duplikat dan lanjutkan upload berkas baru yang belum pernah diupload
+  const handleSkipDuplicatesAndUploadRest = async () => {
+    const dupIds = new Set(duplicateQueueItems.map((d) => d.item.id));
+    const nonDuplicates = queue.filter((item) => !dupIds.has(item.id));
+
+    // Bersihkan preview URL dari berkas yang di-skip
+    queue.forEach((item) => {
+      if (dupIds.has(item.id) && item.previewUrl) {
+        URL.revokeObjectURL(item.previewUrl);
+      }
+    });
+
+    setQueue(nonDuplicates);
+    setIsDuplicateModalOpen(false);
+
+    if (nonDuplicates.length === 0) {
+      showToast?.(
+        'Semua berkas terindikasi duplikat dan telah dihapus. Tidak ada berkas baru yang diunggah.',
+        'info'
+      );
       return;
     }
 
+    showToast?.(
+      `Melewati ${dupIds.size} berkas duplikat. Mengunggah ${nonDuplicates.length} berkas baru...`,
+      'info'
+    );
+    await processUploadForQueue(nonDuplicates);
+  };
+
+  // 4. Tetap unggah & timpa berkas lama (Overwrite)
+  const handleProceedOverwrite = async () => {
+    setIsDuplicateModalOpen(false);
+    showToast?.('Melanjutkan pengunggahan & memperbarui berkas yang sudah ada...', 'info');
+    await processUploadForQueue(queue);
+  };
+
+  // Fungsi Inti Eksekusi Upload
+  const processUploadForQueue = async (targetQueue: QueuedFile[]) => {
+    if (targetQueue.length === 0) return;
+
     // Validasi nomor FSTB
-    for (let i = 0; i < queue.length; i++) {
-      const q = queue[i];
+    for (let i = 0; i < targetQueue.length; i++) {
+      const q = targetQueue[i];
       const targetNo = q.noFstb.trim() || batchNoFstb.trim();
       if (!targetNo) {
         showToast?.(`Berkas "${q.file.name}" belum memiliki Nomor FSTB. Harap lengkapi.`, 'error');
@@ -402,7 +506,7 @@ export default function UploadFstbTab({
     try {
       // Kelompokkan per nomor FSTB
       const groups = new Map<string, QueuedFile[]>();
-      for (const q of queue) {
+      for (const q of targetQueue) {
         const no = sanitizeFstbNumber(q.noFstb.trim() || batchNoFstb.trim());
         if (!groups.has(no)) {
           groups.set(no, []);
@@ -478,7 +582,24 @@ export default function UploadFstbTab({
         'success'
       );
 
-      handleClearQueue();
+      // Bersihkan antrean yang baru diunggah
+      const uploadedIds = new Set(targetQueue.map((t) => t.id));
+      setQueue((prev) => {
+        prev.forEach((item) => {
+          if (uploadedIds.has(item.id) && item.previewUrl) {
+            URL.revokeObjectURL(item.previewUrl);
+          }
+        });
+        return prev.filter((item) => !uploadedIds.has(item.id));
+      });
+
+      if (targetQueue.length === queue.length) {
+        setBatchNoFstb('');
+        setBatchArmada('');
+        setBatchDoNo('');
+        setBatchNoFpb('');
+      }
+
       await fetchHistory();
     } catch (err) {
       showToast?.((err as Error).message || 'Terjadi kesalahan saat mengunggah.', 'error');
@@ -486,6 +607,22 @@ export default function UploadFstbTab({
       setIsUploading(false);
       setUploadProgress(0);
     }
+  };
+
+  // Proses Upload ke Cloudflare R2 dengan proteksi duplikat
+  const handleExecuteUpload = async () => {
+    if (queue.length === 0) {
+      showToast?.('Pilih setidaknya 1 berkas FSTB untuk diunggah.', 'warning');
+      return;
+    }
+
+    // Jika ada berkas terindikasi duplikat, buka dialog peringatan
+    if (hasDuplicateInQueue) {
+      setIsDuplicateModalOpen(true);
+      return;
+    }
+
+    await processUploadForQueue(queue);
   };
 
   // Salin Nomor FSTB
@@ -696,74 +833,151 @@ export default function UploadFstbTab({
                 </button>
               </div>
 
-              <div className="space-y-2.5 max-h-96 overflow-y-auto pr-1">
-                {queue.map((item, idx) => (
-                  <div
-                    key={item.id}
-                    className="p-3 rounded-xl border border-border bg-background/70 hover:bg-background transition space-y-2"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <span className="size-5 rounded-full bg-primary/15 text-primary text-[10px] font-bold font-mono flex items-center justify-center shrink-0">
-                          {idx + 1}
-                        </span>
-                        {item.isPdf ? (
-                          <FileText className="size-4 text-blue-500 shrink-0" />
-                        ) : (
-                          <ImageIcon className="size-4 text-amber-500 shrink-0" />
-                        )}
-                        <span
-                          className="font-mono text-xs font-semibold text-foreground truncate"
-                          title={item.file.name}
-                        >
-                          {item.file.name}
-                        </span>
-                        <span className="text-[10px] text-muted-foreground shrink-0 font-mono">
-                          ({formatFileSize(item.file.size)})
+              {/* Alert Banner: Terindikasi Duplikat / Pernah Diupload */}
+              {hasDuplicateInQueue && (
+                <div className="p-3.5 rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-900 dark:text-amber-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs animate-in fade-in">
+                  <div className="flex items-start gap-2.5 min-w-0">
+                    <AlertTriangle className="size-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                    <div>
+                      <div className="font-bold flex items-center gap-1.5 flex-wrap text-foreground">
+                        <span>⚠️ Terdeteksi {duplicateQueueItems.length} Berkas Terindikasi Sudah Diupload!</span>
+                        <span className="px-2 py-0.5 rounded-full text-[9px] bg-amber-500 text-white font-bold font-mono">
+                          Pencegahan Double Posting
                         </span>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveFromQueue(item.id)}
-                        className="text-muted-foreground hover:text-red-500 p-1 rounded-md transition"
-                        title="Hapus dari antrean"
-                      >
-                        <X className="size-3.5" />
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-border/50 text-xs">
-                      <div>
-                        <label className="text-[10px] text-muted-foreground font-semibold block mb-0.5">
-                          Nomor FSTB:
-                        </label>
-                        <input
-                          type="text"
-                          value={item.noFstb}
-                          onChange={(e) =>
-                            handleUpdateQueueItem(item.id, 'noFstb', e.target.value)
-                          }
-                          placeholder="CPL-FSTB-26-05241"
-                          className="w-full h-7 px-2 text-xs font-mono rounded-lg border border-border bg-card text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-muted-foreground font-semibold block mb-0.5">
-                          Armada / Unit Kapal:
-                        </label>
-                        <input
-                          type="text"
-                          value={item.armada}
-                          onChange={(e) =>
-                            handleUpdateQueueItem(item.id, 'armada', e.target.value)
-                          }
-                          placeholder="UB CMPL 01"
-                          className="w-full h-7 px-2 text-xs rounded-lg border border-border bg-card text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
-                        />
-                      </div>
+                      <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+                        Nomor berkas FSTB ini telah terdaftar di riwayat Cloudflare R2 sebelumnya. Untuk menghindari data ganda, disarankan melewati (skip) atau menghapus berkas baru ini.
+                      </p>
                     </div>
                   </div>
-                ))}
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={handleSkipAllDuplicates}
+                      className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                      title="Lewati semua berkas yang terindikasi ganda dan hapus dari antrean baru"
+                    >
+                      <Trash2 className="size-3.5" />
+                      <span>Skip Semua Duplikat</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2.5 max-h-96 overflow-y-auto pr-1">
+                {queue.map((item, idx) => {
+                  const dupInfo = checkFstbDuplicate(item.noFstb, item.file.name);
+                  const isDup = Boolean(dupInfo);
+
+                  return (
+                    <div
+                      key={item.id}
+                      className={`p-3 rounded-xl border transition space-y-2 ${
+                        isDup
+                          ? 'border-amber-500/60 bg-amber-500/5 ring-1 ring-amber-500/20'
+                          : 'border-border bg-background/70 hover:bg-background'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span
+                            className={`size-5 rounded-full text-[10px] font-bold font-mono flex items-center justify-center shrink-0 ${
+                              isDup ? 'bg-amber-500 text-white' : 'bg-primary/15 text-primary'
+                            }`}
+                          >
+                            {idx + 1}
+                          </span>
+                          {item.isPdf ? (
+                            <FileText className="size-4 text-blue-500 shrink-0" />
+                          ) : (
+                            <ImageIcon className="size-4 text-amber-500 shrink-0" />
+                          )}
+                          <span
+                            className="font-mono text-xs font-semibold text-foreground truncate"
+                            title={item.file.name}
+                          >
+                            {item.file.name}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground shrink-0 font-mono">
+                            ({formatFileSize(item.file.size)})
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          {isDup && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                              <AlertCircle className="size-3 text-amber-600 dark:text-amber-400" />
+                              <span>Sudah Diupload</span>
+                            </span>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveFromQueue(item.id)}
+                            className="text-muted-foreground hover:text-red-500 p-1 rounded-md transition"
+                            title={isDup ? 'Hapus berkas duplikat ini dari antrean' : 'Hapus dari antrean'}
+                          >
+                            <X className="size-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Notifikasi jika berkas ini terindikasi duplikat */}
+                      {isDup && dupInfo && (
+                        <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-800 dark:text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div className="space-y-0.5 min-w-0">
+                            <p className="font-semibold text-foreground">
+                              Tercatat di Riwayat: <span className="font-mono text-primary">{dupInfo.renamedFileName}</span>
+                            </p>
+                            <p className="text-[10px] text-muted-foreground">
+                              Diunggah: {dupInfo.receivedDate || (dupInfo.uploadedAt ? new Date(dupInfo.uploadedAt).toLocaleDateString('id-ID') : '-')} &bull; Oleh: {dupInfo.uploaderName || 'Sistem'}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveDuplicateFile(item.id)}
+                            className="px-2.5 py-1 rounded-md bg-rose-600 hover:bg-rose-700 text-white font-bold text-[10px] shadow-xs transition flex items-center gap-1 cursor-pointer shrink-0"
+                            title="Hapus data baru ini untuk mencegah double posting"
+                          >
+                            <Trash2 className="size-3" />
+                            <span>Hapus Data Baru</span>
+                          </button>
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-border/50 text-xs">
+                        <div>
+                          <label className="text-[10px] text-muted-foreground font-semibold block mb-0.5">
+                            Nomor FSTB:
+                          </label>
+                          <input
+                            type="text"
+                            value={item.noFstb}
+                            onChange={(e) =>
+                              handleUpdateQueueItem(item.id, 'noFstb', e.target.value)
+                            }
+                            placeholder="CPL-FSTB-26-05241"
+                            className="w-full h-7 px-2 text-xs font-mono rounded-lg border border-border bg-card text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-muted-foreground font-semibold block mb-0.5">
+                            Armada / Unit Kapal:
+                          </label>
+                          <input
+                            type="text"
+                            value={item.armada}
+                            onChange={(e) =>
+                              handleUpdateQueueItem(item.id, 'armada', e.target.value)
+                            }
+                            placeholder="UB CMPL 01"
+                            className="w-full h-7 px-2 text-xs rounded-lg border border-border bg-card text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -1130,6 +1344,111 @@ export default function UploadFstbTab({
                   className="max-w-full max-h-[650px] object-contain rounded-lg shadow-lg"
                 />
               )}
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ============================================================== */}
+      {/* MODAL: PERINGATAN TERINDIKASI DOUBLE UPLOAD / POSTING FSTB     */}
+      {/* ============================================================== */}
+      {isDuplicateModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in-50 duration-200">
+          <div className="bg-card border border-border rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+            {/* Header */}
+            <div className="p-5 border-b border-border bg-linear-to-r from-amber-500/15 via-rose-500/10 to-transparent flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="size-10 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center justify-center shrink-0">
+                  <ShieldAlert className="size-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+                    <span>Peringatan Double Upload FSTB</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white font-mono">
+                      {duplicateQueueItems.length} Duplikat
+                    </span>
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Data terindikasi telah diupload atau diposting sebelumnya di sistem
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsDuplicateModalOpen(false)}
+                className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted transition cursor-pointer"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-5 overflow-y-auto space-y-4 text-xs">
+              <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-800 dark:text-amber-200 leading-relaxed">
+                <strong className="font-semibold block mb-1">Rekomendasi Pencegahan Double Posting:</strong>
+                Sistem mendeteksi <strong>{duplicateQueueItems.length} berkas</strong> dalam antrean sudah pernah diarsipkan di Cloudflare R2.
+                Untuk menjaga integritas data riwayat, Anda disarankan untuk <strong>Melewati (Skip)</strong> data duplikat atau <strong>Hapus Berkas Baru</strong>.
+              </div>
+
+              <div>
+                <h4 className="font-bold text-foreground uppercase tracking-wide text-[11px] mb-2">
+                  Daftar Berkas yang Terindikasi Duplikat:
+                </h4>
+                <div className="border border-border rounded-xl divide-y divide-border overflow-hidden max-h-52 overflow-y-auto">
+                  {duplicateQueueItems.map(({ item, existing }, idx) => (
+                    <div key={item.id} className="p-2.5 bg-muted/20 flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="font-semibold text-foreground truncate">
+                          {idx + 1}. {item.file.name}
+                        </div>
+                        <div className="text-[10px] text-muted-foreground font-mono">
+                          Nomor FSTB: <span className="text-primary font-bold">{item.noFstb || batchNoFstb}</span>
+                        </div>
+                        <div className="text-[10px] text-amber-700 dark:text-amber-400">
+                          Sudah diupload: {existing.receivedDate || existing.uploadedAt?.slice(0, 10)} oleh {existing.uploaderName || 'Sistem'}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveDuplicateFile(item.id)}
+                        className="px-2 py-1 rounded-md border border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 text-[10px] font-bold transition cursor-pointer shrink-0"
+                        title="Hapus data baru ini dari antrean"
+                      >
+                        Hapus
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-border bg-muted/20 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={handleSkipAllDuplicates}
+                className="px-4 py-2 rounded-lg border border-border text-xs font-semibold text-muted-foreground hover:bg-muted transition cursor-pointer text-center"
+              >
+                Hapus Semua Data Baru Ini
+              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleProceedOverwrite}
+                  className="px-3 py-2 rounded-lg border border-amber-500/40 text-amber-700 dark:text-amber-300 hover:bg-amber-500/10 text-xs font-semibold transition cursor-pointer"
+                  title="Tetap unggah dan perbarui dokumen yang sudah ada"
+                >
+                  Timpa Dokumen Lama
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSkipDuplicatesAndUploadRest}
+                  className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <CheckCircle2 className="size-3.5" />
+                  <span>Skip Duplikat &amp; Upload Sisanya</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

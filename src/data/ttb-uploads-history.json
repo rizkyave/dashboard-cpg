@@ -2096,22 +2096,5 @@
     "storageProvider": "CLOUDFLARE_R2",
     "uploadedAt": "2026-10-18T00:24:05.501Z",
     "status": "STORED_IN_CLOUDFLARE_R2"
-  },
-  {
-    "id": "r2-GAJ-TTB-26-01124-318197",
-    "noTtb": "GAJ-TTB-26-01124",
-    "cleanNoTtb": "GAJ-TTB-26-01124",
-    "armada": "-",
-    "receivedDate": "2026-10-18",
-    "keterangan": "",
-    "originalFileName": "GAJ-TTB-26-01124.pdf",
-    "renamedFileName": "GAJ-TTB-26-01124.pdf",
-    "fileSize": 318197,
-    "fileType": "application/pdf",
-    "fileUrl": "/api/r2-file?key=ttb-documents%2FGAJ-TTB-26-01124.pdf",
-    "r2Key": "ttb-documents/GAJ-TTB-26-01124.pdf",
-    "storageProvider": "CLOUDFLARE_R2",
-    "uploadedAt": "2026-10-18T00:16:52.577Z",
-    "status": "STORED_IN_CLOUDFLARE_R2"
   }
 ]

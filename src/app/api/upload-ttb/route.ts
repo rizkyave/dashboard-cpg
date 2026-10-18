@@ -499,9 +499,22 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
       newlyUploadedItems.push(record);
     }
 
-    // Masukkan ke riwayat paling atas
+    // Masukkan ke riwayat paling atas atau update jika sudah pernah terdaftar (mencegah double posting)
     for (const item of newlyUploadedItems) {
-      currentHistory.unshift(item);
+      const existingIdx = currentHistory.findIndex(
+        (h) =>
+          (h.cleanNoTtb && h.cleanNoTtb === item.cleanNoTtb) ||
+          (h.renamedFileName && h.renamedFileName.toLowerCase() === item.renamedFileName.toLowerCase())
+      );
+      if (existingIdx !== -1) {
+        currentHistory[existingIdx] = {
+          ...currentHistory[existingIdx],
+          ...item,
+          id: currentHistory[existingIdx].id,
+        };
+      } else {
+        currentHistory.unshift(item);
+      }
     }
 
     await saveHistory(currentHistory);

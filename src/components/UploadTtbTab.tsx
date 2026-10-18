@@ -29,6 +29,8 @@ import {
   User,
   FileSignature,
   PenTool,
+  AlertTriangle,
+  ShieldAlert,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
@@ -212,6 +214,9 @@ export default function UploadTtbTab({
   const [historyItems, setHistoryItems] = useState<UploadedTtbItem[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState<boolean>(true);
   const [historySearch, setHistorySearch] = useState<string>('');
+
+  // Modal Peringatan Duplikat TTB
+  const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState<boolean>(false);
 
   // Uji koneksi ke Cloudflare R2 Storage
   const handleTestStorageConnection = async () => {
@@ -422,6 +427,26 @@ export default function UploadTtbTab({
     setIsAutocompleteOpen(false);
   };
 
+  // Helper cek duplikat TTB terhadap riwayat
+  const checkTtbDuplicate = (noTtb: string, fileName: string) => {
+    const targetNo = sanitizeTtbNumber(noTtb.trim() || noTtbInput.trim());
+    if (!targetNo) return null;
+    return (
+      historyItems.find((h) => {
+        const cleanH = sanitizeTtbNumber(h.noTtb || h.cleanNoTtb || '');
+        if (cleanH && cleanH === targetNo) return true;
+        if (
+          h.renamedFileName &&
+          (h.renamedFileName.toLowerCase() === fileName.toLowerCase() ||
+            h.renamedFileName.toLowerCase() === `${targetNo}.pdf`.toLowerCase())
+        ) {
+          return true;
+        }
+        return false;
+      }) || null
+    );
+  };
+
   // Tambahkan file ke antrean (dengan deteksi otomatis Nomor TTB & Armada per berkas)
   const addFilesToQueue = (files: FileList | File[]) => {
     const validFiles: QueuedFile[] = [];
@@ -458,7 +483,14 @@ export default function UploadTtbTab({
     if (validFiles.length > 0) {
       setQueuedFiles((prev) => [...prev, ...validFiles]);
       const autoCount = validFiles.filter((f) => f.isAutoMatched).length;
-      if (autoCount > 0) {
+      const detectedDuplicates = validFiles.filter((q) => Boolean(checkTtbDuplicate(q.noTtb, q.file.name)));
+
+      if (detectedDuplicates.length > 0) {
+        showToast?.(
+          `⚠️ Peringatan: ${detectedDuplicates.length} berkas terindikasi SUDAH PERNAH DIUPLOAD sebelumnya!`,
+          'warning'
+        );
+      } else if (autoCount > 0) {
         showToast?.(
           `Menambahkan ${validFiles.length} berkas (${autoCount} No. TTB otomatis terdeteksi).`,
           'success'
@@ -547,148 +579,225 @@ export default function UploadTtbTab({
     setTimeout(() => setCopiedFilename(null), 2500);
   };
 
-  // Submit Upload ke Cloudflare R2 (Mendukung Multi-TTB Batch & Single TTB)
-  const handleSubmitUpload = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Kumpulan berkas di antrean yang terindikasi ganda / sudah pernah diupload
+  const duplicateTtbItems = useMemo(() => {
+    return queuedFiles
+      .map((qf) => {
+        const existing = checkTtbDuplicate(qf.noTtb, qf.file.name);
+        return { qf, existing };
+      })
+      .filter((x): x is { qf: QueuedFile; existing: UploadedTtbItem } => Boolean(x.existing));
+  }, [queuedFiles, historyItems, noTtbInput]);
 
-    if (queuedFiles.length === 0) {
-      showToast?.('Silakan pilih minimal 1 berkas foto atau dokumen PDF.', 'warning');
+  const hasDuplicateTtb = duplicateTtbItems.length > 0;
+
+  // Cek duplikat untuk single mode
+  const singleModeDuplicate = useMemo(() => {
+    if (uploadMode !== 'single' || !noTtbInput.trim()) return null;
+    return checkTtbDuplicate(noTtbInput, '');
+  }, [uploadMode, noTtbInput, historyItems]);
+
+  // 1. Lewati (Skip) Semua Duplikat & Hapus dari Antrean
+  const handleSkipAllDuplicates = () => {
+    if (uploadMode === 'single') {
+      setQueuedFiles([]);
+      setNoTtbInput('');
+      setIsDuplicateModalOpen(false);
+      showToast?.('Data duplikat dibatalkan dan dihapus dari antrean.', 'info');
       return;
     }
 
-    // MODE 1: MULTI-TTB BATCH UPLOAD (Setiap berkas menggunakan No. TTB masing-masing)
+    if (duplicateTtbItems.length === 0) return;
+    const dupIds = new Set(duplicateTtbItems.map((d) => d.qf.id));
+    setQueuedFiles((prev) => {
+      prev.forEach((item) => {
+        if (dupIds.has(item.id) && item.previewUrl) {
+          URL.revokeObjectURL(item.previewUrl);
+        }
+      });
+      return prev.filter((item) => !dupIds.has(item.id));
+    });
+    setIsDuplicateModalOpen(false);
+    showToast?.(
+      `✓ Berhasil melewati (skip) ${dupIds.size} berkas TTB duplikat dan menghapusnya dari antrean baru.`,
+      'info'
+    );
+  };
+
+  // 2. Hapus satu berkas baru yang duplikat
+  const handleRemoveDuplicateFile = (id: string) => {
+    handleRemoveFile(id);
+    showToast?.('Berkas baru yang terindikasi duplikat berhasil dihapus dari antrean.', 'info');
+  };
+
+  // 3. Skip duplikat dan lanjutkan upload berkas baru yang belum pernah diupload
+  const handleSkipDuplicatesAndUploadRest = async () => {
+    if (uploadMode === 'single') {
+      setQueuedFiles([]);
+      setNoTtbInput('');
+      setIsDuplicateModalOpen(false);
+      showToast?.('Data duplikat dibatalkan dan dihapus dari antrean.', 'info');
+      return;
+    }
+
+    const dupIds = new Set(duplicateTtbItems.map((d) => d.qf.id));
+    const nonDuplicates = queuedFiles.filter((item) => !dupIds.has(item.id));
+
+    // Bersihkan preview URL dari berkas yang di-skip
+    queuedFiles.forEach((item) => {
+      if (dupIds.has(item.id) && item.previewUrl) {
+        URL.revokeObjectURL(item.previewUrl);
+      }
+    });
+
+    setQueuedFiles(nonDuplicates);
+    setIsDuplicateModalOpen(false);
+
+    if (nonDuplicates.length === 0) {
+      showToast?.(
+        'Semua berkas terindikasi duplikat dan telah dihapus. Tidak ada berkas baru yang diunggah.',
+        'info'
+      );
+      return;
+    }
+
+    showToast?.(
+      `Melewati ${dupIds.size} berkas duplikat. Mengunggah ${nonDuplicates.length} berkas baru...`,
+      'info'
+    );
+    await executeBatchUpload(nonDuplicates);
+  };
+
+  // 4. Tetap unggah & timpa berkas lama (Overwrite)
+  const handleProceedOverwrite = async () => {
+    setIsDuplicateModalOpen(false);
+    showToast?.('Melanjutkan pengunggahan & memperbarui berkas yang sudah ada...', 'info');
     if (uploadMode === 'batch') {
-      const missingTtbFiles = queuedFiles.filter((f) => !f.noTtb.trim());
-      if (missingTtbFiles.length > 0) {
-        showToast?.(
-          `Ada ${missingTtbFiles.length} berkas yang belum memiliki Nomor TTB. Harap lengkapi nomor TTB pada berkas yang bersangkutan.`,
-          'warning'
-        );
-        return;
-      }
+      await executeBatchUpload(queuedFiles);
+    } else {
+      await executeSingleUpload();
+    }
+  };
 
-      setIsUploading(true);
-      setUploadSuccessResult(null);
-      setUploadErrorMessage(null);
+  // Eksekusi Batch Upload
+  const executeBatchUpload = async (targetFiles: QueuedFile[]) => {
+    if (targetFiles.length === 0) return;
 
-      const newlyUploaded: UploadedTtbItem[] = [];
-      const failedFiles: string[] = [];
+    setIsUploading(true);
+    setUploadSuccessResult(null);
+    setUploadErrorMessage(null);
 
-      for (let i = 0; i < queuedFiles.length; i++) {
-        const qf = queuedFiles[i];
-        const targetNoTtb = qf.noTtb.trim();
-        const targetArmada = qf.armada.trim();
+    const newlyUploaded: UploadedTtbItem[] = [];
+    const failedFiles: string[] = [];
 
-        setBatchProgress({
-          current: i + 1,
-          total: queuedFiles.length,
-          currentFileName: `${qf.file.name} → ${targetNoTtb}`,
-        });
+    for (let i = 0; i < targetFiles.length; i++) {
+      const qf = targetFiles[i];
+      const targetNoTtb = qf.noTtb.trim();
+      const targetArmada = qf.armada.trim();
 
-        try {
-          const formData = new FormData();
-          formData.append('noTtb', targetNoTtb);
-          formData.append('armada', targetArmada);
-          formData.append('receivedDate', receivedDate);
-          formData.append('keterangan', keteranganInput.trim());
+      setBatchProgress({
+        current: i + 1,
+        total: targetFiles.length,
+        currentFileName: `${qf.file.name} → ${targetNoTtb}`,
+      });
 
-          let fileToUpload = qf.file;
-          if (isAutoStampEnabled && qf.isImage) {
-            try {
-              fileToUpload = await stampTtbImageFile({
-                imageFile: qf.file,
-                signaturePngDataUrl: userSignaturePng || undefined,
-                uploaderName: user?.name || 'DAVILA ZALIANTI PUTRI',
-                uploadDate: formatTtbStampDate(receivedDate),
-              });
-            } catch (err) {
-              console.warn('Gagal stempel gambar client, upload berkas asli:', err);
-            }
+      try {
+        const formData = new FormData();
+        formData.append('noTtb', targetNoTtb);
+        formData.append('armada', targetArmada);
+        formData.append('receivedDate', receivedDate);
+        formData.append('keterangan', keteranganInput.trim());
+
+        let fileToUpload = qf.file;
+        if (isAutoStampEnabled && qf.isImage) {
+          try {
+            fileToUpload = await stampTtbImageFile({
+              imageFile: qf.file,
+              signaturePngDataUrl: userSignaturePng || undefined,
+              uploaderName: user?.name || 'DAVILA ZALIANTI PUTRI',
+              uploadDate: formatTtbStampDate(receivedDate),
+            });
+          } catch (err) {
+            console.warn('Gagal stempel gambar client, upload berkas asli:', err);
           }
-          formData.append('files', fileToUpload);
-
-          if (user?.name) formData.append('uploaderName', user.name);
-          if (user?.username) formData.append('uploaderUsername', user.username);
-          if (user?.role) formData.append('uploaderRole', user.role);
-          if (user?.nik) formData.append('uploaderNik', user.nik);
-          if (user?.jabatan) formData.append('uploaderJabatan', user.jabatan);
-
-          formData.append('autoStamp', isAutoStampEnabled ? 'true' : 'false');
-          if (isAutoStampEnabled) {
-            if (userSignaturePng) formData.append('signatureDataUrl', userSignaturePng);
-            formData.append('stampDate', formatTtbStampDate(receivedDate));
-          }
-
-          const res = await fetch('/api/upload-ttb', {
-            method: 'POST',
-            body: formData,
-          });
-
-          const data: UploadTtbResponse = await res.json();
-          if (res.ok && data.success && data.uploadedFiles && data.uploadedFiles.length > 0) {
-            newlyUploaded.push(...data.uploadedFiles);
-          } else {
-            failedFiles.push(`"${qf.file.name}" (${targetNoTtb}): ${data.message || data.error || 'Gagal'}`);
-          }
-        } catch (err) {
-          failedFiles.push(`"${qf.file.name}": ${(err as Error).message}`);
         }
-      }
+        formData.append('files', fileToUpload);
 
-      setIsUploading(false);
-      setBatchProgress(null);
+        if (user?.name) formData.append('uploaderName', user.name);
+        if (user?.username) formData.append('uploaderUsername', user.username);
+        if (user?.role) formData.append('uploaderRole', user.role);
+        if (user?.nik) formData.append('uploaderNik', user.nik);
+        if (user?.jabatan) formData.append('uploaderJabatan', user.jabatan);
 
-      if (newlyUploaded.length > 0) {
-        setHistoryItems((prev) => [...newlyUploaded, ...prev]);
-
-        // Simpan status TTB di localStorage
-        try {
-          const uploadedList = JSON.parse(localStorage.getItem('cpg_uploaded_ttb_list') || '[]');
-          newlyUploaded.forEach((u) => uploadedList.push(sanitizeTtbNumber(u.noTtb)));
-          localStorage.setItem('cpg_uploaded_ttb_list', JSON.stringify(Array.from(new Set(uploadedList))));
-        } catch {
-          // Non-fatal
+        formData.append('autoStamp', isAutoStampEnabled ? 'true' : 'false');
+        if (isAutoStampEnabled) {
+          if (userSignaturePng) formData.append('signatureDataUrl', userSignaturePng);
+          formData.append('stampDate', formatTtbStampDate(receivedDate));
         }
 
-        setUploadSuccessResult({
-          success: true,
-          message: `Sukses! Berhasil mengunggah ${newlyUploaded.length} dari ${queuedFiles.length} berkas ke Cloudflare R2 sesuai Nomor TTB masing-masing.`,
-          storageProvider: 'CLOUDFLARE_R2',
-          uploadedFiles: newlyUploaded,
+        const res = await fetch('/api/upload-ttb', {
+          method: 'POST',
+          body: formData,
         });
 
-        showToast?.(
-          `Berhasil mengunggah ${newlyUploaded.length} berkas TTB ke Cloudflare R2!`,
-          'success'
-        );
+        const data: UploadTtbResponse = await res.json();
+        if (res.ok && data.success && data.uploadedFiles && data.uploadedFiles.length > 0) {
+          newlyUploaded.push(...data.uploadedFiles);
+        } else {
+          failedFiles.push(`"${qf.file.name}" (${targetNoTtb}): ${data.message || data.error || 'Gagal'}`);
+        }
+      } catch (err) {
+        failedFiles.push(`"${qf.file.name}": ${(err as Error).message}`);
+      }
+    }
 
-        // Bersihkan berkas yang sukses dari antrean
-        const successOriginalNames = new Set(newlyUploaded.map((u) => u.originalFileName));
-        setQueuedFiles((prev) => {
-          prev.forEach((f) => {
-            if (successOriginalNames.has(f.file.name) && f.previewUrl) {
-              URL.revokeObjectURL(f.previewUrl);
-            }
-          });
-          return prev.filter((f) => !successOriginalNames.has(f.file.name));
+    setIsUploading(false);
+    setBatchProgress(null);
+
+    if (newlyUploaded.length > 0) {
+      setHistoryItems((prev) => [...newlyUploaded, ...prev]);
+
+      try {
+        const uploadedList = JSON.parse(localStorage.getItem('cpg_uploaded_ttb_list') || '[]');
+        newlyUploaded.forEach((u) => uploadedList.push(sanitizeTtbNumber(u.noTtb)));
+        localStorage.setItem('cpg_uploaded_ttb_list', JSON.stringify(Array.from(new Set(uploadedList))));
+      } catch {
+        // Non-fatal
+      }
+
+      setUploadSuccessResult({
+        success: true,
+        message: `Sukses! Berhasil mengunggah ${newlyUploaded.length} dari ${targetFiles.length} berkas ke Cloudflare R2 sesuai Nomor TTB masing-masing.`,
+        storageProvider: 'CLOUDFLARE_R2',
+        uploadedFiles: newlyUploaded,
+      });
+
+      showToast?.(
+        `Berhasil mengunggah ${newlyUploaded.length} berkas TTB ke Cloudflare R2!`,
+        'success'
+      );
+
+      // Bersihkan berkas yang sukses dari antrean
+      const successOriginalNames = new Set(newlyUploaded.map((u) => u.originalFileName));
+      setQueuedFiles((prev) => {
+        prev.forEach((f) => {
+          if (successOriginalNames.has(f.file.name) && f.previewUrl) {
+            URL.revokeObjectURL(f.previewUrl);
+          }
         });
-      }
-
-      if (failedFiles.length > 0) {
-        const errorMsg = `Sebagian berkas mengalami kendala upload (${failedFiles.length} gagal):\n${failedFiles.join('\n')}`;
-        setUploadErrorMessage(errorMsg);
-        showToast?.(errorMsg, 'error');
-      }
-
-      return;
+        return prev.filter((f) => !successOriginalNames.has(f.file.name));
+      });
     }
 
-    // MODE 2: SATU TTB UNTUK SEMUA BERKAS (Single TTB Mode)
-    if (!noTtbInput.trim()) {
-      showToast?.('Nomor TTB wajib diisi.', 'warning');
-      return;
+    if (failedFiles.length > 0) {
+      const errorMsg = `Sebagian berkas mengalami kendala upload (${failedFiles.length} gagal):\n${failedFiles.join('\n')}`;
+      setUploadErrorMessage(errorMsg);
+      showToast?.(errorMsg, 'error');
     }
+  };
 
+  // Eksekusi Single Upload
+  const executeSingleUpload = async () => {
     setIsUploading(true);
     setUploadSuccessResult(null);
     setUploadErrorMessage(null);
@@ -774,6 +883,51 @@ export default function UploadTtbTab({
     } finally {
       setIsUploading(false);
     }
+  };
+
+  // Submit Upload ke Cloudflare R2 (Mendukung Multi-TTB Batch & Single TTB)
+  const handleSubmitUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (queuedFiles.length === 0) {
+      showToast?.('Silakan pilih minimal 1 berkas foto atau dokumen PDF.', 'warning');
+      return;
+    }
+
+    // MODE 1: MULTI-TTB BATCH UPLOAD (Setiap berkas menggunakan No. TTB masing-masing)
+    if (uploadMode === 'batch') {
+      const missingTtbFiles = queuedFiles.filter((f) => !f.noTtb.trim());
+      if (missingTtbFiles.length > 0) {
+        showToast?.(
+          `Ada ${missingTtbFiles.length} berkas yang belum memiliki Nomor TTB. Harap lengkapi nomor TTB pada berkas yang bersangkutan.`,
+          'warning'
+        );
+        return;
+      }
+
+      // Cek apakah ada berkas terindikasi duplikat
+      if (hasDuplicateTtb) {
+        setIsDuplicateModalOpen(true);
+        return;
+      }
+
+      await executeBatchUpload(queuedFiles);
+      return;
+    }
+
+    // MODE 2: SATU TTB UNTUK SEMUA BERKAS (Single TTB Mode)
+    if (!noTtbInput.trim()) {
+      showToast?.('Nomor TTB wajib diisi.', 'warning');
+      return;
+    }
+
+    // Cek apakah nomor TTB ini sudah terdaftar
+    if (singleModeDuplicate) {
+      setIsDuplicateModalOpen(true);
+      return;
+    }
+
+    await executeSingleUpload();
   };
 
   // Filter history search
@@ -1247,9 +1401,42 @@ export default function UploadTtbTab({
                   </button>
                 </div>
 
+                {/* Alert Banner: Terindikasi Duplikat / Pernah Diupload */}
+                {hasDuplicateTtb && (
+                  <div className="p-3.5 rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-900 dark:text-amber-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs animate-in fade-in">
+                    <div className="flex items-start gap-2.5 min-w-0">
+                      <AlertTriangle className="size-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                      <div>
+                        <div className="font-bold flex items-center gap-1.5 flex-wrap text-foreground">
+                          <span>⚠️ Terdeteksi {duplicateTtbItems.length} Berkas Terindikasi Sudah Diupload!</span>
+                          <span className="px-2 py-0.5 rounded-full text-[9px] bg-amber-500 text-white font-bold font-mono">
+                            Pencegahan Double Posting
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+                          Nomor dokumen TTB ini telah terdaftar di riwayat Cloudflare R2 sebelumnya. Untuk menghindari data ganda, disarankan melewati (skip) atau menghapus berkas baru ini.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={handleSkipAllDuplicates}
+                        className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                        title="Lewati semua berkas yang terindikasi ganda dan hapus dari antrean baru"
+                      >
+                        <Trash2 className="size-3.5" />
+                        <span>Skip Semua Duplikat</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {/* List Berkas Batch */}
                 <div className="space-y-3">
                   {queuedFiles.map((qf, index) => {
+                    const dupInfo = checkTtbDuplicate(qf.noTtb, qf.file.name);
+                    const isDup = Boolean(dupInfo);
                     const cleanTtb = sanitizeTtbNumber(qf.noTtb);
                     const targetPreviewName = qf.isPdf
                       ? (cleanTtb ? `${cleanTtb}.pdf` : `[NO_TTB].pdf`)
@@ -1258,11 +1445,19 @@ export default function UploadTtbTab({
                     return (
                       <div
                         key={qf.id}
-                        className="bg-muted/20 hover:bg-muted/40 border border-border rounded-xl p-3.5 md:p-4 transition space-y-3"
+                        className={`border rounded-xl p-3.5 md:p-4 transition space-y-3 ${
+                          isDup
+                            ? 'border-amber-500/60 bg-amber-500/5 ring-1 ring-amber-500/20'
+                            : 'bg-muted/20 hover:bg-muted/40 border-border'
+                        }`}
                       >
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-border/60">
                           <div className="flex items-center gap-3 min-w-0">
-                            <span className="font-mono text-xs font-bold text-muted-foreground size-6 rounded-md bg-muted flex items-center justify-center shrink-0">
+                            <span
+                              className={`font-mono text-xs font-bold size-6 rounded-md flex items-center justify-center shrink-0 ${
+                                isDup ? 'bg-amber-500 text-white' : 'bg-muted text-muted-foreground'
+                              }`}
+                            >
                               #{index + 1}
                             </span>
 
@@ -1292,6 +1487,12 @@ export default function UploadTtbTab({
 
                           {/* Status Badges & Delete */}
                           <div className="flex items-center gap-2 shrink-0">
+                            {isDup && (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                                <AlertTriangle className="size-3 text-amber-600 dark:text-amber-400" />
+                                <span>Sudah Diupload</span>
+                              </span>
+                            )}
                             {qf.isAutoMatched && qf.noTtb ? (
                               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
                                 <Sparkles className="size-3 text-emerald-500" />
@@ -1312,12 +1513,36 @@ export default function UploadTtbTab({
                               type="button"
                               onClick={() => handleRemoveFile(qf.id)}
                               className="p-1.5 rounded-lg text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition cursor-pointer"
-                              title="Hapus berkas ini dari antrean"
+                              title={isDup ? 'Hapus berkas duplikat ini dari antrean' : 'Hapus berkas ini dari antrean'}
                             >
                               <X className="size-4" />
                             </button>
                           </div>
                         </div>
+
+                        {/* Detail Peringatan Duplikat pada Kartu Berkas */}
+                        {isDup && dupInfo && (
+                          <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-800 dark:text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div className="space-y-0.5 min-w-0">
+                              <p className="font-semibold text-foreground flex items-center gap-1.5">
+                                <ShieldAlert className="size-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                                <span>Tercatat di Riwayat: <span className="font-mono text-teal-600 dark:text-teal-400 font-bold">{dupInfo.renamedFileName}</span></span>
+                              </p>
+                              <p className="text-[10px] text-muted-foreground">
+                                Diunggah: {dupInfo.receivedDate || (dupInfo.uploadedAt ? new Date(dupInfo.uploadedAt).toLocaleDateString('id-ID') : '-')} &bull; Oleh: {dupInfo.uploaderName || 'Sistem'}
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveDuplicateFile(qf.id)}
+                              className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-[10px] shadow-xs transition flex items-center gap-1 cursor-pointer shrink-0"
+                              title="Hapus data baru ini untuk mencegah double posting"
+                            >
+                              <Trash2 className="size-3" />
+                              <span>Hapus Data Baru</span>
+                            </button>
+                          </div>
+                        )}
 
                         {/* Editable Fields Grid */}
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
@@ -1549,6 +1774,36 @@ export default function UploadTtbTab({
                       ))}
                     </div>
                   )}
+
+                  {/* Warning Callout jika Single Mode TTB sudah pernah diupload */}
+                  {singleModeDuplicate && (
+                    <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs space-y-2 mt-2 animate-in fade-in">
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle className="size-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-bold text-foreground">
+                            ⚠️ Nomor TTB Ini Sudah Pernah Diupload!
+                          </p>
+                          <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+                            Berkas <span className="font-mono font-semibold text-teal-600 dark:text-teal-400">{singleModeDuplicate.renamedFileName}</span> telah ada di Cloudflare R2 ({singleModeDuplicate.receivedDate || (singleModeDuplicate.uploadedAt ? new Date(singleModeDuplicate.uploadedAt).toLocaleDateString('id-ID') : 'Sebelumnya')}) oleh {singleModeDuplicate.uploaderName || 'Sistem'}.
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-amber-500/20">
+                        <span className="text-[10px] text-amber-800 dark:text-amber-300 font-medium">
+                          Pencegahan Double Posting
+                        </span>
+                        <button
+                          type="button"
+                          onClick={handleSkipAllDuplicates}
+                          className="px-2.5 py-1 rounded-md bg-rose-600 hover:bg-rose-700 text-white font-semibold text-[10px] transition cursor-pointer flex items-center gap-1 shrink-0"
+                        >
+                          <Trash2 className="size-3" />
+                          <span>Hapus / Batalkan Data Baru</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Field Armada / Peruntukan */}
@@ -1693,7 +1948,11 @@ export default function UploadTtbTab({
                         return (
                           <div
                             key={qf.id}
-                            className="bg-muted/30 border border-border rounded-xl p-3 flex items-center gap-3 transition hover:border-border"
+                            className={`border rounded-xl p-3 flex items-center gap-3 transition ${
+                              singleModeDuplicate
+                                ? 'border-amber-500/60 bg-amber-500/5 ring-1 ring-amber-500/20'
+                                : 'bg-muted/30 border-border hover:border-border'
+                            }`}
                           >
                             {/* Thumbnail or Document Icon */}
                             <div className="size-12 rounded-lg overflow-hidden bg-background border border-border flex items-center justify-center shrink-0">
@@ -1749,12 +2008,20 @@ export default function UploadTtbTab({
                               </div>
                             </div>
 
+                            {/* Duplicate Badge in Single Mode */}
+                            {singleModeDuplicate && (
+                              <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 shrink-0">
+                                <AlertTriangle className="size-2.5 text-amber-600 dark:text-amber-400" />
+                                <span>Sudah Diupload</span>
+                              </span>
+                            )}
+
                             {/* Remove button */}
                             <button
                               type="button"
                               onClick={() => handleRemoveFile(qf.id)}
                               className="p-1.5 rounded-lg text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition cursor-pointer shrink-0"
-                              title="Hapus berkas ini"
+                              title={singleModeDuplicate ? 'Hapus berkas duplikat ini' : 'Hapus berkas ini'}
                             >
                               <X className="size-4" />
                             </button>
@@ -2081,6 +2348,130 @@ export default function UploadTtbTab({
           </table>
         </div>
       </div>
+
+      {/* Modal Dialog Peringatan Duplikat TTB */}
+      {isDuplicateModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-card border border-border rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150">
+            {/* Header */}
+            <div className="p-4 border-b border-border bg-amber-500/10 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="size-9 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                  <ShieldAlert className="size-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-foreground text-sm flex items-center gap-2">
+                    Peringatan Dokumen TTB Terindikasi Duplikat
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground">
+                    Cegah double posting / upload ganda dokumen TTB
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsDuplicateModalOpen(false)}
+                className="text-muted-foreground hover:text-foreground p-1 rounded-lg cursor-pointer"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-5 overflow-y-auto space-y-4 text-xs">
+              <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-800 dark:text-amber-200 leading-relaxed">
+                <strong className="font-semibold block mb-1">Rekomendasi Pencegahan Double Posting:</strong>
+                Sistem mendeteksi {uploadMode === 'single' ? 'nomor TTB ini' : <strong>{duplicateTtbItems.length} berkas</strong>} sudah pernah diarsipkan di Cloudflare R2.
+                Untuk menjaga integritas data riwayat, Anda disarankan untuk <strong>Melewati (Skip)</strong> data duplikat atau <strong>Hapus Berkas Baru</strong>.
+              </div>
+
+              <div>
+                <h4 className="font-bold text-foreground uppercase tracking-wide text-[11px] mb-2">
+                  Daftar Berkas yang Terindikasi Duplikat:
+                </h4>
+                <div className="border border-border rounded-xl divide-y divide-border overflow-hidden max-h-52 overflow-y-auto">
+                  {uploadMode === 'single' && singleModeDuplicate ? (
+                    <div className="p-2.5 bg-muted/20 flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="font-semibold text-foreground truncate">
+                          Nomor TTB: <span className="text-teal-600 font-bold">{noTtbInput}</span>
+                        </div>
+                        <div className="text-[10px] text-muted-foreground font-mono">
+                          Tercatat di riwayat: <span className="font-bold">{singleModeDuplicate.renamedFileName}</span>
+                        </div>
+                        <div className="text-[10px] text-amber-700 dark:text-amber-400">
+                          Sudah diupload: {singleModeDuplicate.receivedDate || singleModeDuplicate.uploadedAt?.slice(0, 10)} oleh {singleModeDuplicate.uploaderName || 'Sistem'}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleSkipAllDuplicates}
+                        className="px-2 py-1 rounded-md border border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 text-[10px] font-bold transition cursor-pointer shrink-0"
+                      >
+                        Hapus
+                      </button>
+                    </div>
+                  ) : (
+                    duplicateTtbItems.map(({ qf, existing }, idx) => (
+                      <div key={qf.id} className="p-2.5 bg-muted/20 flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="font-semibold text-foreground truncate">
+                            {idx + 1}. {qf.file.name}
+                          </div>
+                          <div className="text-[10px] text-muted-foreground font-mono">
+                            Nomor TTB: <span className="text-teal-600 font-bold">{qf.noTtb}</span>
+                          </div>
+                          <div className="text-[10px] text-amber-700 dark:text-amber-400">
+                            Sudah diupload: {existing.receivedDate || existing.uploadedAt?.slice(0, 10)} oleh {existing.uploaderName || 'Sistem'}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveDuplicateFile(qf.id)}
+                          className="px-2 py-1 rounded-md border border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 text-[10px] font-bold transition cursor-pointer shrink-0"
+                          title="Hapus data baru ini dari antrean"
+                        >
+                          Hapus
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-border bg-muted/20 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={handleSkipAllDuplicates}
+                className="px-4 py-2 rounded-lg border border-border text-xs font-semibold text-muted-foreground hover:bg-muted transition cursor-pointer text-center"
+              >
+                Hapus Semua Data Baru Ini
+              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleProceedOverwrite}
+                  className="px-3 py-2 rounded-lg border border-amber-500/40 text-amber-700 dark:text-amber-300 hover:bg-amber-500/10 text-xs font-semibold transition cursor-pointer"
+                  title="Tetap unggah dan perbarui dokumen yang sudah ada"
+                >
+                  Timpa Dokumen Lama
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSkipDuplicatesAndUploadRest}
+                  className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <CheckCircle2 className="size-3.5" />
+                  <span>Skip Duplikat &amp; Upload Sisanya</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

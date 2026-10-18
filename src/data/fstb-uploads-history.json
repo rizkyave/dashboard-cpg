@@ -79,23 +79,5 @@
     "uploaderJabatan": "Staff Purchasing",
     "isAutoStamped": true,
     "stampedAt": "2026-10-18T05:26:30.798Z"
-  },
-  {
-    "id": "r2-sync-fstb-documents-CPL-FSTB-26-05241-pdf",
-    "noFstb": "CPL-FSTB-26-05241",
-    "cleanNoFstb": "CPL-FSTB-26-05241",
-    "armada": "-",
-    "receivedDate": "2026-10-18",
-    "keterangan": "Auto-synced from Cloudflare R2 bucket",
-    "originalFileName": "CPL-FSTB-26-05241.pdf",
-    "renamedFileName": "CPL-FSTB-26-05241.pdf",
-    "fileSize": 146124,
-    "fileType": "application/pdf",
-    "fileUrl": "/api/r2-file?key=fstb-documents%2FCPL-FSTB-26-05241.pdf",
-    "r2Key": "fstb-documents/CPL-FSTB-26-05241.pdf",
-    "r2Url": "/api/r2-file?key=fstb-documents%2FCPL-FSTB-26-05241.pdf",
-    "storageProvider": "CLOUDFLARE_R2",
-    "uploadedAt": "2026-10-18T00:16:52.180Z",
-    "status": "STORED_IN_CLOUDFLARE_R2"
   }
 ]

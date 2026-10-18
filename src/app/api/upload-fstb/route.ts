@@ -369,7 +369,23 @@ export async function POST(req: NextRequest) {
       };
 
       newlyUploadedItems.push(record);
-      currentHistory.unshift(record);
+
+      // Cek apakah data FSTB sudah terdaftar sebelumnya untuk mencegah double posting
+      const existingIdx = currentHistory.findIndex(
+        (h) =>
+          (h.cleanNoFstb && h.cleanNoFstb === cleanNoFstb) ||
+          (h.renamedFileName && h.renamedFileName.toLowerCase() === renamedFileName.toLowerCase())
+      );
+      if (existingIdx !== -1) {
+        // Gantikan data lama dengan data baru yang terverifikasi (Overwrite update)
+        currentHistory[existingIdx] = {
+          ...currentHistory[existingIdx],
+          ...record,
+          id: currentHistory[existingIdx].id,
+        };
+      } else {
+        currentHistory.unshift(record);
+      }
     }
 
     await saveHistory(currentHistory);
