@@ -325,6 +325,24 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
     }
   };
 
+  const handleQuickResetPassword = async (userItem: AuthUser) => {
+    const confirm = window.confirm(
+      `Reset kata sandi untuk akun ${userItem.name} (@${userItem.username}) ke default "cpg123"?`
+    );
+    if (!confirm) return;
+
+    try {
+      const res = await updateUser(userItem.id, { password: 'cpg123' });
+      if (res.success) {
+        showToast(`Password untuk @${userItem.username} berhasil direset ke "cpg123"`, 'success');
+      } else {
+        showToast(res.message || 'Gagal mereset kata sandi.', 'error');
+      }
+    } catch {
+      showToast('Gagal mereset kata sandi.', 'error');
+    }
+  };
+
   const handleOpenDelete = (userItem: AuthUser) => {
     if (userItem.id === currentUser?.id) {
       showToast('Tidak dapat menghapus akun Anda sendiri.', 'warning');
@@ -1192,6 +1210,17 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                           >
                             <Edit2 className="size-3.5" />
                           </button>
+
+                          {isAdmin && (
+                            <button
+                              type="button"
+                              onClick={() => handleQuickResetPassword(item)}
+                              className="p-1.5 rounded-lg text-amber-600 dark:text-amber-400 hover:text-amber-700 hover:bg-amber-500/10 transition cursor-pointer"
+                              title={`Reset password @${item.username} ke default "cpg123"`}
+                            >
+                              <KeyRound className="size-3.5" />
+                            </button>
+                          )}
 
                           {!isCurrent && !isMasterAdmin && (
                             <button

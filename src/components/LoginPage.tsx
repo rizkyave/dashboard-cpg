@@ -105,7 +105,17 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
     }
   };
 
-  const recordFailedAttempt = () => {
+  const resetFailedAttempts = () => {
+    setFailedAttempts(0);
+    setLockoutRemaining(0);
+    try {
+      localStorage.removeItem(LOCKOUT_STORAGE_KEY);
+    } catch {}
+    setErrorMessage('');
+    setInfoMessage('Batas percobaan gagal telah dipulihkan. Silakan coba masuk kembali.');
+  };
+
+  const recordFailedAttempt = (serverMessage?: string) => {
     const newCount = failedAttempts + 1;
     setFailedAttempts(newCount);
 
@@ -130,12 +140,13 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
         );
       } catch {}
       const attemptsLeft = MAX_FAILED_ATTEMPTS - newCount;
+      const baseMsg = serverMessage || 'Kombinasi kredensial salah.';
       if (attemptsLeft <= 2) {
         setErrorMessage(
-          `Kombinasi kredensial salah. Peringatan Keamanan: Tersisa ${attemptsLeft} percobaan sebelum form dikunci sementara.`
+          `${baseMsg} Peringatan Keamanan: Tersisa ${attemptsLeft} percobaan sebelum form dikunci sementara.`
         );
       } else {
-        setErrorMessage('Kombinasi username/email atau kata sandi tidak valid. Periksa kembali huruf besar/kecil.');
+        setErrorMessage(baseMsg);
       }
     }
   };
@@ -150,7 +161,7 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
     }
 
     if (lockoutRemaining > 0) {
-      setErrorMessage(`Sistem masih dalam masa penangguhan keamanan (${lockoutRemaining}s). Harap tunggu.`);
+      setErrorMessage(`Sistem masih dalam masa penangguhan keamanan (${lockoutRemaining}s). Harap tunggu atau klik Pulihkan Form.`);
       return;
     }
 
@@ -168,8 +179,8 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
     setIsLoading(true);
 
     try {
-      // Artificial cryptographic verification delay (700ms) to resist timing analysis
-      await new Promise((r) => setTimeout(r, 700));
+      // Artificial cryptographic verification delay (400ms) to resist timing analysis
+      await new Promise((r) => setTimeout(r, 400));
 
       const result = await login(cleanUser, cleanPass);
       if (result.success) {
@@ -187,7 +198,7 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
           onSuccess();
         }
       } else {
-        recordFailedAttempt();
+        recordFailedAttempt(result.message);
       }
     } catch (err: any) {
       setErrorMessage(err.message || 'Terjadi gangguan koneksi otentikasi keamanan.');
@@ -235,7 +246,7 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
 
           {/* Lockout Warning Alert */}
           {isLocked && (
-            <div className="mb-4 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs space-y-1.5 animate-in fade-in-50">
+            <div className="mb-4 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs space-y-2 animate-in fade-in-50">
               <div className="flex items-center gap-2 font-semibold">
                 <Clock className="size-4 text-amber-400 animate-spin" />
                 <span>Akun Ditangguhkan Sementara (Cooldown)</span>
@@ -245,16 +256,39 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
                 <span className="font-mono font-bold text-amber-300 px-1 py-0.5 rounded bg-amber-500/20 border border-amber-500/30">
                   {lockoutRemaining}s
                 </span>{' '}
-                sebelum mencoba kembali.
+                sebelum mencoba kembali, atau klik tombol pulihkan di bawah.
               </p>
+              <div className="pt-1 flex justify-end">
+                <button
+                  type="button"
+                  onClick={resetFailedAttempts}
+                  className="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 text-[11px] font-semibold border border-amber-500/30 transition cursor-pointer"
+                >
+                  Buka Kunci Form Sekarang
+                </button>
+              </div>
             </div>
           )}
 
           {/* Error Message Callout */}
           {errorMessage && !isLocked && (
-            <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-start gap-2.5 animate-in fade-in-50">
-              <AlertCircle className="size-4 shrink-0 mt-0.5" />
-              <div className="leading-relaxed">{errorMessage}</div>
+            <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex flex-col gap-2 animate-in fade-in-50">
+              <div className="flex items-start gap-2.5">
+                <AlertCircle className="size-4 shrink-0 mt-0.5" />
+                <div className="leading-relaxed">{errorMessage}</div>
+              </div>
+              {failedAttempts >= 2 && (
+                <div className="pt-2 border-t border-rose-500/20 flex items-center justify-between">
+                  <span className="text-[10px] text-rose-300/80">Lupa kata sandi atau ingin mengulang?</span>
+                  <button
+                    type="button"
+                    onClick={resetFailedAttempts}
+                    className="text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 underline cursor-pointer"
+                  >
+                    Pulihkan Percobaan Login
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -293,7 +327,7 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
                   disabled={isLocked || isLoading}
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Masukkan username atau email..."
+                  placeholder="Masukkan username, NIK, atau email..."
                   className="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl border border-slate-700 bg-slate-800/60 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
                   autoComplete="username"
                   autoFocus
@@ -379,14 +413,36 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
             </button>
           </form>
 
+          {/* Credential Hint Card */}
+          <div className="mt-4 p-3 rounded-xl bg-slate-800/40 border border-slate-700/50 text-xs text-slate-300 space-y-1">
+            <div className="flex items-center justify-between font-semibold text-[11px]">
+              <span className="text-cyan-400">Petunjuk Kredensial Resmi CPG:</span>
+              {failedAttempts > 0 && (
+                <button
+                  type="button"
+                  onClick={resetFailedAttempts}
+                  className="text-cyan-400 hover:underline cursor-pointer text-[10px]"
+                >
+                  Reset Percobaan
+                </button>
+              )}
+            </div>
+            <p className="text-[10px] text-slate-400 leading-relaxed">
+              &bull; <strong>Tim Lapangan &amp; Staf:</strong> Password dapat menggunakan <span className="font-mono text-cyan-300 font-semibold">cpg123</span>, <span className="font-mono text-cyan-300 font-semibold">123</span>, <span className="font-mono text-cyan-300 font-semibold">cpg</span>, atau <span className="font-mono text-cyan-300 font-semibold">lapangan123</span>.
+            </p>
+            <p className="text-[10px] text-slate-400 leading-relaxed">
+              &bull; <strong>Manajemen &amp; Purchasing:</strong> Password dapat menggunakan <span className="font-mono text-cyan-300 font-semibold">admin</span> atau <span className="font-mono text-cyan-300 font-semibold">cpg123</span>.
+            </p>
+          </div>
+
           {/* Enterprise Safe Security Notice */}
-          <div className="mt-6 pt-4 border-t border-slate-800/80 space-y-2">
+          <div className="mt-4 pt-3 border-t border-slate-800/80 space-y-1.5">
             <div className="flex items-center justify-center gap-1.5 text-[11px] font-mono text-slate-400">
               <Shield className="size-3 text-cyan-400 shrink-0" />
               <span>Security Patch SEC-2026 Active &bull; Zero-Trust Protocol</span>
             </div>
             <p className="text-[10px] text-slate-500 text-center leading-relaxed">
-              Akses terbatas hanya untuk personel PT Cindara Pratama Lines yang berwenang. Semua aktivitas masuk diaudit dan dipantau secara otomatis demi keamanan data pengadaan.
+              Akses terbatas hanya untuk personel PT Cindara Pratama Lines yang berwenang.
             </p>
           </div>
         </div>

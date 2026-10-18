@@ -16,6 +16,8 @@ import {
   isR2Configured,
   uploadToR2,
   getObjectFromR2,
+  listR2Objects,
+  deleteFromR2,
 } from '@/utils/r2Client';
 import { stampFstbPdf, formatFstbStampDate, FstbStampRoleType } from '@/utils/fstbStamper';
 import { getFstbPhotosDir } from '@/utils/fstbPhotosDir';
@@ -198,6 +200,18 @@ function computeValidationStatus(
   return { completedCount: count, status, isReady };
 }
 
+function computeSummaryMetrics(records: DocumentValidationRecord[]): ValidationSummaryMetrics {
+  return {
+    totalDocuments: records.length,
+    totalFstb: records.filter((r) => r.docType === 'FSTB').length,
+    totalTtb: records.filter((r) => r.docType === 'TTB').length,
+    menungguValidasi: records.filter((r) => r.overallStatus === 'MENUNGGU_VALIDASI').length,
+    prosesValidasi: records.filter((r) => r.overallStatus === 'PROSES_VALIDASI').length,
+    siapKirimArmada: records.filter((r) => r.overallStatus === 'SIAP_KIRIM_ARMADA').length,
+    sudahDiterimaArmada: records.filter((r) => r.overallStatus === 'SUDAH_DITERIMA_ARMADA').length,
+  };
+}
+
 // GET: Ambil daftar seluruh dokumen dan status validasi multi-lini
 export async function GET(req: NextRequest) {
   try {
@@ -378,15 +392,7 @@ export async function GET(req: NextRequest) {
     validationRecords.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
 
     // Hitung ringkasan metrik sebelum filter query
-    const metrics: ValidationSummaryMetrics = {
-      totalDocuments: validationRecords.length,
-      totalFstb: validationRecords.filter((r) => r.docType === 'FSTB').length,
-      totalTtb: validationRecords.filter((r) => r.docType === 'TTB').length,
-      menungguValidasi: validationRecords.filter((r) => r.overallStatus === 'MENUNGGU_VALIDASI').length,
-      prosesValidasi: validationRecords.filter((r) => r.overallStatus === 'PROSES_VALIDASI').length,
-      siapKirimArmada: validationRecords.filter((r) => r.overallStatus === 'SIAP_KIRIM_ARMADA').length,
-      sudahDiterimaArmada: validationRecords.filter((r) => r.overallStatus === 'SUDAH_DITERIMA_ARMADA').length,
-    };
+    const metrics = computeSummaryMetrics(validationRecords);
 
     // Terapkan filter jika ada parameter
     let filtered = [...validationRecords];
@@ -429,7 +435,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST: Rekam pembubuhan tanda tangan / validasi lini
+// POST: Rekam pembubuhan tanda tangan / validasi lini / sinkronisasi R2 / hapus dokumen
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -448,8 +454,261 @@ export async function POST(req: NextRequest) {
       validatorJabatan,
       signatureDataUrl,
       notes,
-      action = 'sign', // 'sign' | 'revoke'
+      action = 'sign', // 'sign' | 'revoke' | 'sync_r2' | 'delete'
     } = body;
+
+    let validationRecords = await getStoredValidations();
+
+    // =========================================================================
+    // AKSI 1: SINKRONISASI LENGKAP DENGAN CLOUDFLARE R2 & PENYIMPANAN LOKAL
+    // =========================================================================
+    if (action === 'sync_r2') {
+      const ttbDir = getTtbPhotosDir();
+      const fstbDir = getFstbPhotosDir();
+      const altFstbDir = path.join(process.cwd(), 'src', 'app', 'public', 'photos_FSTB');
+      const altTtbDir = path.join(process.cwd(), 'src', 'app', 'public', 'photos_TTB');
+
+      let localTtbFiles: string[] = [];
+      try {
+        localTtbFiles = await fs.readdir(ttbDir);
+      } catch {
+        try {
+          localTtbFiles = await fs.readdir(altTtbDir);
+        } catch {}
+      }
+
+      let localFstbFiles: string[] = [];
+      try {
+        localFstbFiles = await fs.readdir(fstbDir);
+      } catch {
+        try {
+          localFstbFiles = await fs.readdir(altFstbDir);
+        } catch {}
+      }
+
+      // Ambil daftar file dari Cloudflare R2 jika aktif
+      let r2Files: Array<{ key: string; name: string; size: number }> = [];
+      if (isR2Configured()) {
+        try {
+          const ttbDocs = await listR2Objects('ttb-documents/');
+          const fstbDocs = await listR2Objects('fstb-documents/');
+          const ttbPhotos = await listR2Objects('ttb-photos/');
+          r2Files = [...ttbDocs, ...fstbDocs, ...ttbPhotos];
+        } catch (r2ListErr) {
+          console.warn('Gagal list objek dari R2:', r2ListErr);
+        }
+      }
+
+      let reLinkedCount = 0;
+      let uploadedToR2Count = 0;
+      let newlyRegisteredCount = 0;
+
+      // 1. Periksa dan hubungkan ulang rekaman validasi yang sudah ada
+      for (const rec of validationRecords) {
+        const docCode = (rec.cleanDocNumber || rec.docNumber).toUpperCase();
+        let foundBuffer: Buffer | null = null;
+        let matchedFileName = rec.renamedFileName || `${rec.cleanDocNumber}.pdf`;
+        let targetR2Key =
+          rec.r2Key || (rec.docType === 'FSTB' ? `fstb-documents/${matchedFileName}` : `ttb-documents/${matchedFileName}`);
+
+        // A. Cek di daftar R2
+        const r2Match = r2Files.find(
+          (f) => f.key === rec.r2Key || f.key.toUpperCase().includes(docCode)
+        );
+
+        if (r2Match) {
+          rec.r2Key = r2Match.key;
+          rec.fileUrl = `/api/r2-file?key=${encodeURIComponent(r2Match.key)}`;
+          rec.fileExists = true;
+          reLinkedCount++;
+          continue;
+        }
+
+        // B. Cek di file lokal (exact match & fuzzy match)
+        const isFstb = rec.docType === 'FSTB';
+        const searchList = isFstb ? localFstbFiles : localTtbFiles;
+        const searchDir = isFstb ? fstbDir : ttbDir;
+        const altDir = isFstb ? altFstbDir : altTtbDir;
+
+        const matchedLocal = searchList.find(
+          (f) => f.toUpperCase().includes(docCode) || f.toLowerCase() === matchedFileName.toLowerCase()
+        );
+
+        if (matchedLocal) {
+          matchedFileName = matchedLocal;
+          rec.renamedFileName = matchedLocal;
+          targetR2Key = isFstb ? `fstb-documents/${matchedLocal}` : `ttb-documents/${matchedLocal}`;
+
+          try {
+            foundBuffer = await fs.readFile(path.join(searchDir, matchedLocal));
+          } catch {
+            try {
+              foundBuffer = await fs.readFile(path.join(altDir, matchedLocal));
+            } catch {}
+          }
+        }
+
+        if (foundBuffer) {
+          rec.r2Key = targetR2Key;
+          rec.fileUrl = `/api/r2-file?key=${encodeURIComponent(targetR2Key)}`;
+          rec.fileExists = true;
+          reLinkedCount++;
+
+          // Upload ke R2 jika belum ada
+          if (isR2Configured()) {
+            try {
+              const ext = path.extname(matchedFileName).toLowerCase();
+              const cType = ext === '.pdf' ? 'application/pdf' : ext === '.png' ? 'image/png' : 'image/jpeg';
+              await uploadToR2({
+                key: targetR2Key,
+                body: foundBuffer,
+                contentType: cType,
+              });
+              uploadedToR2Count++;
+            } catch (uErr) {
+              console.warn('Gagal upload file saat sync R2:', uErr);
+            }
+          }
+        } else {
+          rec.fileExists = false;
+        }
+      }
+
+      // 2. Daftarkan berkas lokal yang belum teregistrasi ("tidak teregistrasi")
+      for (const f of localTtbFiles) {
+        const m = f.match(/[A-Z0-9]+-TTB-\d{2}-\d{4,6}/i);
+        if (!m) continue;
+        const docNum = m[0].toUpperCase();
+        const exists = validationRecords.some(
+          (r) =>
+            r.docType === 'TTB' &&
+            (r.docNumber.toUpperCase() === docNum || r.cleanDocNumber?.toUpperCase() === docNum)
+        );
+
+        if (!exists) {
+          let armadaName = 'Armada CPG';
+          const parts = f.split(docNum);
+          if (parts[0] && parts[0].trim().length > 2) {
+            armadaName = parts[0].replace(/_/g, ' ').trim();
+          }
+
+          const r2Key = `ttb-documents/${f}`;
+          let fBuf: Buffer | null = null;
+          try {
+            fBuf = await fs.readFile(path.join(ttbDir, f));
+          } catch {
+            try {
+              fBuf = await fs.readFile(path.join(altTtbDir, f));
+            } catch {}
+          }
+
+          if (fBuf && isR2Configured()) {
+            try {
+              const ext = path.extname(f).toLowerCase();
+              const cType = ext === '.pdf' ? 'application/pdf' : 'image/jpeg';
+              await uploadToR2({ key: r2Key, body: fBuf, contentType: cType });
+              uploadedToR2Count++;
+            } catch {}
+          }
+
+          const newRec: DocumentValidationRecord = {
+            id: `val-ttb-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+            docType: 'TTB',
+            docId: `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+            docNumber: docNum,
+            cleanDocNumber: docNum,
+            armada: armadaName,
+            originalFileName: f,
+            renamedFileName: f,
+            fileUrl: `/api/r2-file?key=${encodeURIComponent(r2Key)}`,
+            r2Key,
+            storageProvider: 'CLOUDFLARE_R2',
+            purchasingValidation: { isValidated: false },
+            logistikValidation: {
+              isValidated: true,
+              validatorName: 'Admin Logistik',
+              validatorRole: 'staf_ttb',
+              validatorJabatan: 'Staf Logistik & Pergudangan',
+              validatedAt: new Date().toISOString(),
+              notes: 'Tervalidasi otomatis saat sinkronisasi berkas logistik',
+              verificationToken: `VAL-LOG-SYNC-${Date.now().toString(36).toUpperCase()}`,
+            },
+            lapanganValidation: { isValidated: false },
+            overallStatus: 'PROSES_VALIDASI',
+            completedLinesCount: 1,
+            isReadyForDispatch: false,
+            fileExists: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+
+          validationRecords.push(newRec);
+          newlyRegisteredCount++;
+        }
+      }
+
+      await saveValidations(validationRecords);
+      const metrics = computeSummaryMetrics(validationRecords);
+
+      return NextResponse.json({
+        success: true,
+        message: `Sinkronisasi R2 berhasil! ${reLinkedCount} berkas disinkronkan, ${uploadedToR2Count} berkas diunggah ke R2, dan ${newlyRegisteredCount} berkas baru berhasil didaftarkan.`,
+        reLinkedCount,
+        uploadedToR2Count,
+        newlyRegisteredCount,
+        totalRecords: validationRecords.length,
+        metrics,
+        records: validationRecords,
+      });
+    }
+
+    // =========================================================================
+    // AKSI 2: PENGHAPUSAN BERKAS VALIDASI OLEH ADMINISTRATOR
+    // =========================================================================
+    if (action === 'delete') {
+      const targetId = validationId || docId;
+      if (!targetId && !docNumber) {
+        return NextResponse.json(
+          { success: false, error: 'ID atau nomor berkas wajib disertakan untuk penghapusan.' },
+          { status: 400 }
+        );
+      }
+
+      const targetIndex = validationRecords.findIndex(
+        (r) =>
+          (targetId && (r.id === targetId || r.docId === targetId)) ||
+          (docNumber && (r.docNumber === docNumber || r.cleanDocNumber === docNumber))
+      );
+
+      if (targetIndex === -1) {
+        return NextResponse.json(
+          { success: false, error: 'Dokumen tidak ditemukan dalam sistem validasi.' },
+          { status: 404 }
+        );
+      }
+
+      const deleted = validationRecords[targetIndex];
+      validationRecords.splice(targetIndex, 1);
+
+      if (deleted.r2Key && isR2Configured()) {
+        try {
+          await deleteFromR2(deleted.r2Key);
+        } catch (delErr) {
+          console.warn('Gagal menghapus berkas dari Cloudflare R2:', delErr);
+        }
+      }
+
+      await saveValidations(validationRecords);
+      const metrics = computeSummaryMetrics(validationRecords);
+
+      return NextResponse.json({
+        success: true,
+        message: `Dokumen ${deleted.docNumber} (${deleted.docType}) berhasil dihapus.`,
+        deletedRecord: deleted,
+        metrics,
+        records: validationRecords,
+      });
+    }
 
     const hasSlot = Boolean(slotKey) || Boolean(slotKeys && slotKeys.length > 0);
     if (!hasSlot && (!line || !['purchasing', 'logistik', 'lapangan'].includes(line))) {
@@ -458,8 +717,6 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-
-    let validationRecords = await getStoredValidations();
 
     // Cari dokumen target
     let record = validationRecords.find(
@@ -886,6 +1143,61 @@ export async function POST(req: NextRequest) {
   } catch (err: unknown) {
     console.error('Error in POST /api/validasi-dokumen:', err);
     const msg = err instanceof Error ? err.message : 'Terjadi kesalahan sistem saat menyimpan validasi.';
+    return NextResponse.json({ success: false, error: msg }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const targetId = searchParams.get('id') || searchParams.get('validationId') || searchParams.get('docId');
+    const docNumber = searchParams.get('docNumber');
+
+    if (!targetId && !docNumber) {
+      return NextResponse.json(
+        { success: false, error: 'ID atau nomor berkas wajib disertakan untuk penghapusan.' },
+        { status: 400 }
+      );
+    }
+
+    const validationRecords: DocumentValidationRecord[] = await getStoredValidations();
+    const targetIndex = validationRecords.findIndex(
+      (r: DocumentValidationRecord) =>
+        (targetId && (r.id === targetId || r.docId === targetId)) ||
+        (docNumber && (r.docNumber === docNumber || r.cleanDocNumber === docNumber))
+    );
+
+    if (targetIndex === -1) {
+      return NextResponse.json(
+        { success: false, error: 'Dokumen tidak ditemukan dalam sistem validasi.' },
+        { status: 404 }
+      );
+    }
+
+    const deleted = validationRecords[targetIndex];
+    validationRecords.splice(targetIndex, 1);
+
+    if (deleted.r2Key && isR2Configured()) {
+      try {
+        await deleteFromR2(deleted.r2Key);
+      } catch (delErr) {
+        console.warn('Gagal menghapus berkas dari Cloudflare R2:', delErr);
+      }
+    }
+
+    await saveValidations(validationRecords);
+    const metrics = computeSummaryMetrics(validationRecords);
+
+    return NextResponse.json({
+      success: true,
+      message: `Dokumen ${deleted.docNumber} (${deleted.docType}) berhasil dihapus.`,
+      deletedRecord: deleted,
+      metrics,
+      records: validationRecords,
+    });
+  } catch (err: unknown) {
+    console.error('Error in DELETE /api/validasi-dokumen:', err);
+    const msg = err instanceof Error ? err.message : 'Terjadi kesalahan sistem saat menghapus data.';
     return NextResponse.json({ success: false, error: msg }, { status: 500 });
   }
 }

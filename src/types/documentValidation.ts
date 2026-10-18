@@ -73,6 +73,7 @@ export interface DocumentValidationRecord {
   overallStatus: OverallValidationStatus;
   completedLinesCount: number; // 0, 1, 2, atau 3
   isReadyForDispatch: boolean; // True jika seluruh 3 lini internal sudah sah
+  fileExists?: boolean; // True jika berkas fisik terverifikasi ada di R2 atau disk
   createdAt: string;
   updatedAt: string;
 }

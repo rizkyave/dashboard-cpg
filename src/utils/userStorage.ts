@@ -36,6 +36,14 @@ export function getStoredUsers(): UserAccount[] {
             needsSave = true;
             p = { ...p, jabatan: defaultMatch.jabatan };
           }
+          if (!p.password && defaultMatch.password) {
+            needsSave = true;
+            p = { ...p, password: defaultMatch.password };
+          }
+          if (p.role !== defaultMatch.role && defaultMatch.role) {
+            needsSave = true;
+            p = { ...p, role: defaultMatch.role };
+          }
         }
         return p;
       });
@@ -102,15 +110,24 @@ export function authenticate(usernameInput: string, passwordInput: string): { su
   const cleanPassword = passwordInput.trim();
 
   const users = getStoredUsers();
-  const found = users.find(
-    (u) =>
-      u.username.toLowerCase() === cleanUsername ||
-      (u.email && u.email.toLowerCase() === cleanUsername) ||
-      (u.nik && u.nik.toLowerCase() === cleanUsername)
-  );
+  const found = users.find((u) => {
+    const un = u.username.toLowerCase();
+    const em = u.email ? u.email.toLowerCase() : '';
+    const nk = u.nik ? u.nik.toLowerCase() : '';
+    const nkDigits = u.nik ? u.nik.replace(/\D/g, '') : '';
+    const nkTrimmed = nkDigits.replace(/^0+/, '');
+
+    return (
+      un === cleanUsername ||
+      em === cleanUsername ||
+      nk === cleanUsername ||
+      (nkDigits && nkDigits === cleanUsername) ||
+      (nkTrimmed && nkTrimmed === cleanUsername)
+    );
+  });
 
   if (!found) {
-    return { success: false, message: 'Username, NIK, atau email tidak terdaftar.' };
+    return { success: false, message: 'Username, NIK, atau email tidak terdaftar dalam sistem.' };
   }
 
   if (found.status === 'inactive') {
@@ -118,36 +135,121 @@ export function authenticate(usernameInput: string, passwordInput: string): { su
   }
 
   const uName = found.username.toLowerCase();
+  const role = found.role;
+  const nikDigits = found.nik ? found.nik.replace(/\D/g, '') : '';
+  const nikTrimmed = nikDigits.replace(/^0+/, '');
+
   const isMatch = (() => {
-    if (found.password === cleanPassword) return true;
-    if (cleanPassword === 'cpg123') return true;
-    if ((uName === 'admin' || uName === 'hermansyah') && (cleanPassword === 'admin' || cleanPassword === 'admin123')) {
+    // 1. Password exact match dari database / localStorage
+    if (found.password && found.password === cleanPassword) return true;
+
+    // 2. Master company password yang berlaku untuk SEMUA akun di sistem CPG
+    if (
+      cleanPassword === 'cpg123' ||
+      cleanPassword === 'cpg' ||
+      cleanPassword === '123' ||
+      cleanPassword === 'admin' ||
+      cleanPassword === 'admin123'
+    ) {
       return true;
     }
-    if (uName === 'staff' && (cleanPassword === 'staff' || cleanPassword === 'staff123' || cleanPassword === 'user123')) {
+
+    // 3. Password berbasis Username (misal: "zulfiansyah" atau "zulfiansyah123")
+    if (cleanPassword === uName || cleanPassword === `${uName}123`) {
       return true;
     }
-    if (uName === 'staf_ttb' && (cleanPassword === 'ttb' || cleanPassword === 'ttb123' || cleanPassword === 'staff123')) {
+
+    // 4. Password berbasis NIK (misal: "0367", "367", atau NIK lengkap "MP-DAO-0367")
+    if (
+      (found.nik && cleanPassword.toLowerCase() === found.nik.toLowerCase()) ||
+      (nikDigits && cleanPassword === nikDigits) ||
+      (nikTrimmed && cleanPassword === nikTrimmed)
+    ) {
       return true;
     }
-    if (uName === 'staf_lapangan' && (cleanPassword === 'lapangan' || cleanPassword === 'lapangan123' || cleanPassword === 'staff123')) {
-      return true;
+
+    // 5. Password alias khusus Tim Serah Terima Lapangan
+    if (role === 'staf_lapangan') {
+      if (
+        cleanPassword === 'lapangan' ||
+        cleanPassword === 'lapangan123' ||
+        cleanPassword === 'staff123' ||
+        cleanPassword === 'user123' ||
+        cleanPassword === 'lap'
+      ) {
+        return true;
+      }
     }
-    if (uName === 'visitor' && (cleanPassword === 'visitor' || cleanPassword === 'visitor123')) {
-      return true;
+
+    // 6. Password alias khusus Tim TTB Logistik
+    if (role === 'staf_ttb') {
+      if (
+        cleanPassword === 'ttb' ||
+        cleanPassword === 'ttb123' ||
+        cleanPassword === 'staff123' ||
+        cleanPassword === 'user123' ||
+        cleanPassword === 'logistik' ||
+        cleanPassword === 'logistik123'
+      ) {
+        return true;
+      }
     }
-    if (uName === 'guest' && (cleanPassword === '0123' || cleanPassword === 'guest' || cleanPassword === 'guest123')) {
-      return true;
+
+    // 7. Password alias Manajemen & Pengadaan
+    if (role === 'staf_purchasing' || role === 'supervisor' || role === 'manager' || role === 'admin') {
+      if (
+        cleanPassword === 'purchasing' ||
+        cleanPassword === 'purchasing123' ||
+        cleanPassword === 'manager' ||
+        cleanPassword === 'manager123' ||
+        cleanPassword === 'supervisor' ||
+        cleanPassword === 'spv123'
+      ) {
+        return true;
+      }
     }
+
+    // 8. Password alias Staff Operasional
+    if (role === 'user') {
+      if (
+        cleanPassword === 'staff' ||
+        cleanPassword === 'staff123' ||
+        cleanPassword === 'user123' ||
+        cleanPassword === 'gudang123'
+      ) {
+        return true;
+      }
+    }
+
+    // 9. Password alias Tamu / Auditor
+    if (role === 'visitor') {
+      if (
+        cleanPassword === 'visitor' ||
+        cleanPassword === 'visitor123' ||
+        cleanPassword === 'guest' ||
+        cleanPassword === 'guest123' ||
+        cleanPassword === '0123'
+      ) {
+        return true;
+      }
+    }
+
     return false;
   })();
 
   if (!isMatch) {
+    const hint =
+      role === 'staf_lapangan'
+        ? 'Petunjuk: Password default Staf Lapangan adalah "cpg123", "123", "cpg", atau "lapangan123".'
+        : role === 'staf_ttb'
+        ? 'Petunjuk: Password default Staf TTB adalah "cpg123", "123", atau "ttb123".'
+        : role === 'admin' || role === 'manager' || role === 'supervisor' || role === 'staf_purchasing'
+        ? 'Petunjuk: Password default adalah "admin" atau "cpg123".'
+        : 'Petunjuk: Password default adalah "cpg123" atau "123".';
+
     return {
       success: false,
-      message: (uName === 'admin' || uName === 'hermansyah')
-        ? 'Password admin salah. Silakan coba: "admin" atau "admin123".'
-        : 'Password salah. Periksa kembali huruf besar/kecil.',
+      message: `Password salah. ${hint}`,
     };
   }
 

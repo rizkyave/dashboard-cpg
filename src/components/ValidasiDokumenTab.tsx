@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Clock,
   AlertCircle,
+  AlertTriangle,
   RefreshCw,
   Search,
   Filter,
@@ -25,6 +26,8 @@ import {
   SlidersHorizontal,
   ChevronRight,
   Sparkles,
+  Trash2,
+  CloudDownload,
 } from 'lucide-react';
 import {
   DocumentValidationRecord,
@@ -56,6 +59,8 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [isSyncingR2, setIsSyncingR2] = useState<boolean>(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>('');
 
   // Filter & Search State
@@ -94,6 +99,81 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
+    }
+  };
+
+  // Sinkronisasi cerdas dengan Cloudflare R2 dan direktori lokal
+  const handleSyncR2 = async () => {
+    try {
+      setIsSyncingR2(true);
+      const res = await fetch('/api/validasi-dokumen', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'sync_r2' }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Gagal melakukan sinkronisasi dengan Cloudflare R2.');
+      }
+
+      setRecords(data.records || []);
+      if (data.metrics) setMetrics(data.metrics);
+      if (showToast) {
+        showToast(
+          data.message || 'Sinkronisasi R2 berhasil! Berkas dan metadata telah diperbarui.',
+          'success'
+        );
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Terjadi kegagalan saat sinkronisasi R2.';
+      if (showToast) showToast(msg, 'error');
+    } finally {
+      setIsSyncingR2(false);
+    }
+  };
+
+  // Hapus berkas validasi oleh Administrator
+  const handleDeleteRecord = async (item: DocumentValidationRecord) => {
+    if (!isAdmin) {
+      if (showToast) showToast('Hanya administrator yang berwenang menghapus dokumen validasi.', 'warning');
+      return;
+    }
+
+    const confirmDelete = window.confirm(
+      `Hapus dokumen ${item.docNumber} (${item.docType}) dari sistem validasi? Tindakan ini akan menghapus entri riwayat pengesahan.`
+    );
+    if (!confirmDelete) return;
+
+    try {
+      setDeletingId(item.id);
+      const res = await fetch(`/api/validasi-dokumen?id=${encodeURIComponent(item.id)}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Gagal menghapus dokumen validasi.');
+      }
+
+      setRecords((prev) => prev.filter((r) => r.id !== item.id));
+      if (data.metrics) {
+        setMetrics(data.metrics);
+      } else {
+        setMetrics((prev) => ({
+          ...prev,
+          totalDocuments: Math.max(0, prev.totalDocuments - 1),
+          totalFstb: item.docType === 'FSTB' ? Math.max(0, prev.totalFstb - 1) : prev.totalFstb,
+          totalTtb: item.docType === 'TTB' ? Math.max(0, prev.totalTtb - 1) : prev.totalTtb,
+        }));
+      }
+
+      if (showToast) {
+        showToast(data.message || `Dokumen ${item.docNumber} berhasil dihapus.`, 'success');
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Terjadi kegagalan saat menghapus dokumen.';
+      if (showToast) showToast(msg, 'error');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -184,13 +264,24 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
           <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
+              onClick={handleSyncR2}
+              disabled={isSyncingR2 || isRefreshing}
+              className="h-9 px-3.5 rounded-xl border border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/20 text-xs font-semibold text-sky-700 dark:text-sky-300 inline-flex items-center gap-2 shadow-xs transition active:scale-95 disabled:opacity-50 cursor-pointer"
+              title="Sinkronkan database dengan Cloudflare R2 dan direktori lokal"
+            >
+              <CloudDownload className={`size-3.5 ${isSyncingR2 ? 'animate-bounce text-sky-500' : ''}`} />
+              <span>{isSyncingR2 ? 'Menyinkronkan R2...' : 'Sinkronkan R2'}</span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => fetchValidations(true)}
-              disabled={isRefreshing}
+              disabled={isRefreshing || isSyncingR2}
               className="h-9 px-3.5 rounded-xl border border-border bg-card hover:bg-muted text-xs font-medium text-foreground inline-flex items-center gap-2 shadow-xs transition active:scale-95 disabled:opacity-50 cursor-pointer"
-              title="Sinkronisasi dengan Cloudflare R2"
+              title="Segarkan data dari server"
             >
               <RefreshCw className={`size-3.5 ${isRefreshing ? 'animate-spin text-primary' : ''}`} />
-              <span>{isRefreshing ? 'Sinkronisasi...' : 'Segarkan Data'}</span>
+              <span>{isRefreshing ? 'Memuat...' : 'Segarkan Data'}</span>
             </button>
           </div>
         </div>
@@ -387,27 +478,35 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
 
                     {/* No Berkas Resmi */}
                     <td className="py-2.5 px-3 font-mono font-bold text-foreground">
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => handleOpenValidation(item)}
-                          className="hover:underline hover:text-primary transition truncate text-left"
-                          title="Klik untuk buka matriks validasi & TTD"
-                        >
-                          {item.docNumber}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleCopy(item.docNumber, item.id)}
-                          className="p-1 rounded text-muted-foreground hover:text-foreground transition cursor-pointer"
-                          title="Salin No Dokumen"
-                        >
-                          {copiedId === item.id ? (
-                            <Check className="size-3 text-emerald-500" />
-                          ) : (
-                            <Copy className="size-3" />
-                          )}
-                        </button>
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenValidation(item)}
+                            className="hover:underline hover:text-primary transition truncate text-left"
+                            title="Klik untuk buka matriks validasi & TTD"
+                          >
+                            {item.docNumber}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleCopy(item.docNumber, item.id)}
+                            className="p-1 rounded text-muted-foreground hover:text-foreground transition cursor-pointer"
+                            title="Salin No Dokumen"
+                          >
+                            {copiedId === item.id ? (
+                              <Check className="size-3 text-emerald-500" />
+                            ) : (
+                              <Copy className="size-3" />
+                            )}
+                          </button>
+                        </div>
+                        {item.fileExists === false && (
+                          <div className="inline-flex items-center gap-1 text-[10px] text-amber-600 dark:text-amber-400 font-semibold px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 w-fit">
+                            <AlertTriangle className="size-2.5 shrink-0" />
+                            <span>Berkas belum terhubung</span>
+                          </div>
+                        )}
                       </div>
                     </td>
 
@@ -547,6 +646,22 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                         >
                           <ExternalLink className="size-3.5" />
                         </a>
+
+                        {isAdmin && (
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteRecord(item)}
+                            disabled={deletingId === item.id}
+                            className="p-1.5 rounded-lg border border-rose-200 dark:border-rose-900/50 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 transition shadow-2xs cursor-pointer disabled:opacity-50"
+                            title={`Hapus Dokumen ${item.docNumber} (Admin)`}
+                          >
+                            {deletingId === item.id ? (
+                              <RefreshCw className="size-3.5 animate-spin" />
+                            ) : (
+                              <Trash2 className="size-3.5" />
+                            )}
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
