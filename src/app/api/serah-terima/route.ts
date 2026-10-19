@@ -27,9 +27,115 @@ const LOCAL_HISTORY_PATH = path.join(process.cwd(), 'src', 'data', 'serah-terima
 const TTB_HISTORY_FILE_PATH = path.join(process.cwd(), 'src', 'data', 'ttb-uploads-history.json');
 const VALIDATIONS_FILE_PATH = path.join(process.cwd(), 'src', 'data', 'document-validations.json');
 const R2_METADATA_VALIDATION_KEY = 'validation-metadata/records.json';
+const R2_TTB_HISTORY_KEY = 'ttb-metadata/history.json';
+const R2_PHOTO_MANIFEST_KEY = 'ttb-metadata/photos-manifest.json';
 const MANIFEST_PATH = path.join(process.cwd(), 'src', 'data', 'ttb-photos-manifest.json');
 
 let photoManifest: Record<string, string> = { ...(rawManifest as Record<string, string>) };
+
+// Baca manifest foto dari Cloudflare R2 atau lokal
+async function getPhotoManifest(): Promise<Record<string, string>> {
+  if (isR2Configured()) {
+    try {
+      const r2Obj = await getObjectFromR2(R2_PHOTO_MANIFEST_KEY);
+      if (r2Obj && r2Obj.body) {
+        const text = Buffer.from(r2Obj.body).toString('utf8');
+        const parsed = JSON.parse(text);
+        if (parsed && typeof parsed === 'object') {
+          photoManifest = parsed;
+          return parsed;
+        }
+      }
+    } catch {
+      // Non-fatal
+    }
+  }
+
+  try {
+    const raw = await fs.readFile(MANIFEST_PATH, 'utf8');
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object') {
+      photoManifest = parsed;
+      return parsed;
+    }
+  } catch {
+    // Non-fatal
+  }
+
+  return { ...(rawManifest as Record<string, string>) };
+}
+
+// Simpan manifest foto ke Cloudflare R2 dan lokal
+async function savePhotoManifest(updatedManifest: Record<string, string>): Promise<void> {
+  photoManifest = updatedManifest;
+  const jsonStr = JSON.stringify(updatedManifest, null, 2);
+
+  if (isR2Configured()) {
+    try {
+      await uploadToR2({
+        key: R2_PHOTO_MANIFEST_KEY,
+        body: Buffer.from(jsonStr, 'utf8'),
+        contentType: 'application/json',
+        cacheControl: 'no-cache, no-store, must-revalidate',
+      });
+    } catch (err) {
+      console.warn('Gagal upload photo manifest ke R2:', err);
+    }
+  }
+
+  try {
+    await fs.mkdir(path.dirname(MANIFEST_PATH), { recursive: true });
+    await fs.writeFile(MANIFEST_PATH, jsonStr, 'utf8');
+  } catch {
+    // Non-fatal on serverless
+  }
+}
+
+// Baca riwayat upload TTB dari Cloudflare R2 atau lokal
+async function getTtbUploadHistory(): Promise<UploadedTtbItem[]> {
+  if (isR2Configured()) {
+    try {
+      const r2HistObj = await getObjectFromR2(R2_TTB_HISTORY_KEY);
+      if (r2HistObj && r2HistObj.body) {
+        const parsed = JSON.parse(Buffer.from(r2HistObj.body).toString('utf8'));
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {
+      // Fallback
+    }
+  }
+
+  try {
+    const raw = await fs.readFile(TTB_HISTORY_FILE_PATH, 'utf8');
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+// Simpan riwayat upload TTB ke Cloudflare R2 dan lokal
+async function saveTtbUploadHistory(items: UploadedTtbItem[]): Promise<void> {
+  const jsonStr = JSON.stringify(items, null, 2);
+
+  if (isR2Configured()) {
+    try {
+      await uploadToR2({
+        key: R2_TTB_HISTORY_KEY,
+        body: Buffer.from(jsonStr, 'utf8'),
+        contentType: 'application/json',
+      });
+    } catch (err) {
+      console.warn('Gagal menyimpan ttb upload history ke R2:', err);
+    }
+  }
+
+  try {
+    await fs.mkdir(path.dirname(TTB_HISTORY_FILE_PATH), { recursive: true });
+    await fs.writeFile(TTB_HISTORY_FILE_PATH, jsonStr, 'utf8');
+  } catch {
+    // Non-fatal
+  }
+}
 
 // Baca riwayat serah terima lapangan dari Cloudflare R2 (dengan fallback lokal)
 async function getHistory(): Promise<SerahTerimaItem[]> {
@@ -323,9 +429,9 @@ export async function POST(req: NextRequest): Promise<NextResponse<SerahTerimaRe
       });
     }
 
-    // Perbarui manifest foto TTB agar langsung muncul di Galeri Foto TTB
+    // Perbarui manifest foto TTB agar langsung muncul di Galeri Foto TTB dan tersimpan ke Cloudflare R2
     try {
-      await fs.writeFile(MANIFEST_PATH, JSON.stringify(photoManifest, null, 1), 'utf8');
+      await savePhotoManifest(photoManifest);
     } catch {
       // Non-fatal
     }
@@ -759,7 +865,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<SerahTerimaRe
   }
 }
 
-// DELETE: Hapus data bukti serah terima lapangan
+// DELETE: Hapus data bukti serah terima lapangan beserta seluruh foto di Cloudflare R2 & sinkronkan ulang status validasi dokumen
 export async function DELETE(req: NextRequest): Promise<NextResponse<SerahTerimaResponse>> {
   try {
     const searchParams = req.nextUrl.searchParams;
@@ -772,8 +878,15 @@ export async function DELETE(req: NextRequest): Promise<NextResponse<SerahTerima
       );
     }
 
+    const isR2Active = isR2Configured();
     const currentHistory = await getHistory();
-    const target = currentHistory.find((r) => r.id === id);
+    const target = currentHistory.find(
+      (r) =>
+        r.id === id ||
+        r.noTtb === id ||
+        r.cleanNoTtb === id ||
+        sanitizeTtbNumber(r.noTtb) === sanitizeTtbNumber(id)
+    );
 
     if (!target) {
       return NextResponse.json(
@@ -782,26 +895,138 @@ export async function DELETE(req: NextRequest): Promise<NextResponse<SerahTerima
       );
     }
 
-    // Hapus foto terkait dari Cloudflare R2 jika ada r2Key
-    if (isR2Configured() && target.photos) {
+    const cleanTargetTtb = sanitizeTtbNumber(target.cleanNoTtb || target.noTtb);
+    const targetComp = extractTtbComponents(cleanTargetTtb);
+    const photosDir = getPhotosDir();
+
+    // 1. Hapus foto bukti terkait dari Cloudflare R2 dan disk lokal
+    if (target.photos && Array.isArray(target.photos)) {
       for (const p of target.photos) {
-        if (p.r2Key) {
+        if (p.r2Key && isR2Active) {
           try {
             await deleteFromR2(p.r2Key);
           } catch (r2DelErr) {
             console.warn(`Gagal hapus ${p.r2Key} dari R2:`, r2DelErr);
           }
         }
+        if (p.name) {
+          try {
+            const localFile = path.join(photosDir, p.name);
+            await fs.unlink(localFile);
+          } catch {
+            // Non-fatal
+          }
+        }
       }
     }
 
-    const updated = currentHistory.filter((r) => r.id !== id);
+    // 2. Bersihkan foto dari Photo Manifest di Cloudflare R2 dan lokal
+    try {
+      const manifest = await getPhotoManifest();
+      let manifestChanged = false;
+      if (target.photos && Array.isArray(target.photos)) {
+        for (const p of target.photos) {
+          if (manifest[p.name]) {
+            delete manifest[p.name];
+            manifestChanged = true;
+          }
+          for (const [k, v] of Object.entries(manifest)) {
+            if (
+              k === p.name ||
+              k.includes(p.name) ||
+              v.includes(encodeURIComponent(p.name)) ||
+              (p.r2Key && v.includes(p.r2Key))
+            ) {
+              delete manifest[k];
+              manifestChanged = true;
+            }
+          }
+        }
+      }
+      if (manifestChanged) {
+        await savePhotoManifest(manifest);
+      }
+    } catch (manifestErr) {
+      console.warn('Gagal membersihkan foto dari manifest:', manifestErr);
+    }
+
+    // 3. Kembalikan status tanda tangan & serah terima pada Dokumen Validasi (document-validations.json & R2)
+    try {
+      const validationRecords = await getStoredValidations();
+      const matchedIndex = validationRecords.findIndex((v) => {
+        if (v.docType !== 'TTB') return false;
+        const vClean = sanitizeTtbNumber(v.cleanDocNumber || v.docNumber || '');
+        if (vClean === cleanTargetTtb) return true;
+
+        const vComp = extractTtbComponents(vClean);
+        if (targetComp.prefix && vComp.prefix && targetComp.prefix !== vComp.prefix) {
+          return false;
+        }
+        return cleanTargetTtb.length >= 4 && vClean.includes(cleanTargetTtb);
+      });
+
+      if (matchedIndex !== -1) {
+        const targetRec = validationRecords[matchedIndex];
+        targetRec.recipientValidation = {
+          isSigned: false,
+        };
+        targetRec.lapanganValidation = {
+          isValidated: false,
+        };
+        if (targetRec.ttbSlots?.receivedBy) {
+          targetRec.ttbSlots.receivedBy = {
+            isValidated: false,
+          };
+        }
+
+        const comp = computeValidationStatus(targetRec);
+        targetRec.completedLinesCount = comp.completedCount;
+        targetRec.overallStatus = comp.status;
+        targetRec.isReadyForDispatch = comp.isReady;
+        targetRec.updatedAt = new Date().toISOString();
+
+        await saveValidations(validationRecords);
+      }
+    } catch (valErr) {
+      console.warn('Gagal mereset status validasi TTB:', valErr);
+    }
+
+    // 4. Kembalikan status TTB Uploads History di Cloudflare R2 & lokal
+    try {
+      const ttbHistory = await getTtbUploadHistory();
+      const ttbIdx = ttbHistory.findIndex((t) => {
+        const tClean = sanitizeTtbNumber(t.cleanNoTtb || t.noTtb || '');
+        if (tClean === cleanTargetTtb) return true;
+        const tComp = extractTtbComponents(tClean);
+        if (targetComp.prefix && tComp.prefix && targetComp.prefix !== tComp.prefix) {
+          return false;
+        }
+        return cleanTargetTtb.length >= 4 && tClean.includes(cleanTargetTtb);
+      });
+
+      if (ttbIdx !== -1) {
+        const ttbItem = ttbHistory[ttbIdx];
+        ttbItem.isRecipientStamped = false;
+        delete ttbItem.recipientName;
+        delete ttbItem.recipientPhone;
+        delete ttbItem.recipientSignatureDataUrl;
+        delete ttbItem.recipientStampedAt;
+
+        await saveTtbUploadHistory(ttbHistory);
+      }
+    } catch (histErr) {
+      console.warn('Gagal mereset status ttb uploads history:', histErr);
+    }
+
+    // 5. Hapus rekaman dari serah-terima-history di Cloudflare R2 & lokal
+    const updated = currentHistory.filter((r) => r.id !== target.id);
     await saveHistory(updated);
 
     return NextResponse.json({
       success: true,
-      message: `Data serah terima ${target.noTtb} berhasil dihapus.`,
+      message: `Data serah terima ${target.noTtb} berhasil dihapus & tersinkronisasi ke Cloudflare R2.`,
       records: updated,
+      isR2Active,
     });
   } catch (err) {
     return NextResponse.json(

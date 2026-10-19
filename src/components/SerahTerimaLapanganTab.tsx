@@ -159,6 +159,7 @@ interface SerahTerimaLapanganTabProps {
   sisaLayananItems?: SisaLayananItem[];
   onOpenAudit?: (ttbNumber: string, item?: any) => void;
   showToast?: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
+  onDataMutated?: () => void;
 }
 
 interface QueuedPhoto {
@@ -198,6 +199,7 @@ export default function SerahTerimaLapanganTab({
   sisaLayananItems = [],
   onOpenAudit,
   showToast,
+  onDataMutated,
 }: SerahTerimaLapanganTabProps) {
   const { user, canEdit, isAdmin } = useAuth();
 
@@ -393,6 +395,7 @@ export default function SerahTerimaLapanganTab({
   const [historyKondisiFilter, setHistoryKondisiFilter] = useState<'ALL' | KondisiSerahTerima>('ALL');
   const [isR2Active, setIsR2Active] = useState<boolean>(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteRecord, setConfirmDeleteRecord] = useState<SerahTerimaItem | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   // Modal Lightbox Preview Foto
@@ -915,10 +918,11 @@ export default function SerahTerimaLapanganTab({
   const fetchHistory = async () => {
     setIsLoadingHistory(true);
     try {
+      const cacheBust = `_t=${Date.now()}`;
       const [resHistory, resUploadTtb, resValidations] = await Promise.allSettled([
-        fetch('/api/serah-terima'),
-        fetch(`/api/upload-ttb?_t=${Date.now()}`),
-        fetch(`/api/validasi-dokumen?type=TTB&_t=${Date.now()}`),
+        fetch(`/api/serah-terima?${cacheBust}`, { cache: 'no-store' }),
+        fetch(`/api/upload-ttb?${cacheBust}`, { cache: 'no-store' }),
+        fetch(`/api/validasi-dokumen?type=TTB&${cacheBust}`, { cache: 'no-store' }),
       ]);
 
       if (resHistory.status === 'fulfilled' && resHistory.value.ok) {
@@ -1141,26 +1145,36 @@ export default function SerahTerimaLapanganTab({
     }
   };
 
-  // Hapus riwayat
-  const handleDeleteRecord = async (record: SerahTerimaItem) => {
-    if (!window.confirm(`Hapus rekaman serah terima TTB "${record.noTtb}" beserta foto buktinya?`)) {
-      return;
-    }
+  // Hapus riwayat serah terima
+  const handleDeleteRecord = (record: SerahTerimaItem) => {
+    setConfirmDeleteRecord(record);
+  };
 
+  const executeDeleteRecord = async (record: SerahTerimaItem) => {
     setDeletingId(record.id);
     try {
-      const res = await fetch(`/api/serah-terima?id=${encodeURIComponent(record.id)}`, {
+      const res = await fetch(`/api/serah-terima?id=${encodeURIComponent(record.id)}&_t=${Date.now()}`, {
         method: 'DELETE',
       });
       const data: SerahTerimaResponse = await res.json();
       if (res.ok && data.success) {
-        setHistoryRecords((prev) => prev.filter((r) => r.id !== record.id));
-        showToast?.(`Rekaman serah terima ${record.noTtb} berhasil dihapus.`, 'success');
+        if (data.records) {
+          setHistoryRecords(data.records);
+        } else {
+          setHistoryRecords((prev) => prev.filter((r) => r.id !== record.id));
+        }
+        setConfirmDeleteRecord(null);
+        showToast?.(
+          `Rekaman serah terima ${record.noTtb} berhasil dihapus & tersinkronisasi ke Cloudflare R2.`,
+          'success'
+        );
+        await fetchHistory();
+        onDataMutated?.();
       } else {
-        showToast?.(data.error || 'Gagal menghapus rekaman.', 'error');
+        showToast?.(data.error || data.message || 'Gagal menghapus rekaman.', 'error');
       }
     } catch {
-      showToast?.('Terjadi kesalahan saat menghapus data.', 'error');
+      showToast?.('Terjadi kesalahan saat menghapus data serah terima.', 'error');
     } finally {
       setDeletingId(null);
     }
@@ -2752,11 +2766,18 @@ export default function SerahTerimaLapanganTab({
                           <button
                             type="button"
                             disabled={isDeleting}
-                            onClick={() => handleDeleteRecord(rec)}
-                            className="p-1 rounded-lg text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition cursor-pointer"
-                            title="Hapus rekaman serah terima ini"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteRecord(rec);
+                            }}
+                            className="p-1.5 rounded-lg text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition cursor-pointer"
+                            title="Hapus rekaman serah terima ini & sinkronkan ke Cloudflare R2"
                           >
-                            <Trash2 className="size-3.5" />
+                            {isDeleting ? (
+                              <RefreshCw className="size-3.5 animate-spin text-rose-500" />
+                            ) : (
+                              <Trash2 className="size-3.5" />
+                            )}
                           </button>
                         )}
                       </div>
@@ -2839,6 +2860,79 @@ export default function SerahTerimaLapanganTab({
           noTtb={selectedTtbForModal}
           showToast={showToast}
         />
+      )}
+
+      {/* Modal Konfirmasi Hapus Rekaman & Sinkronisasi Cloudflare R2 */}
+      {confirmDeleteRecord && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-card border border-border rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4 animate-in zoom-in-95 duration-150">
+            <div className="flex items-center gap-3">
+              <div className="size-11 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-500 flex items-center justify-center shrink-0">
+                <Trash2 className="size-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-foreground">Hapus Bukti Serah Terima Lapangan</h3>
+                <p className="text-xs text-muted-foreground">Sinkronisasi Cloudflare R2 &amp; Sistem Validasi</p>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-muted/60 border border-border/80 space-y-2 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">No. TTB:</span>
+                <span className="font-mono font-bold text-foreground">{confirmDeleteRecord.noTtb}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Armada / Unit:</span>
+                <span className="font-semibold text-foreground">{confirmDeleteRecord.armada || '-'}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Penerima:</span>
+                <span className="text-foreground">{confirmDeleteRecord.penerima}</span>
+              </div>
+              {confirmDeleteRecord.photos && confirmDeleteRecord.photos.length > 0 && (
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Bukti Foto:</span>
+                  <span className="text-rose-500 font-medium">{confirmDeleteRecord.photos.length} berkas di Cloudflare R2</span>
+                </div>
+              )}
+            </div>
+
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Apakah Anda yakin ingin menghapus bukti serah terima ini? Tindakan ini akan:
+              <br />• Menghapus seluruh foto bukti pengiriman dari <strong>Cloudflare R2</strong>.
+              <br />• Mereset status tanda tangan penerima pada sistem validasi digital agar dapat diinput ulang.
+            </p>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                disabled={Boolean(deletingId)}
+                onClick={() => setConfirmDeleteRecord(null)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold bg-muted hover:bg-muted/80 text-foreground transition cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                disabled={Boolean(deletingId)}
+                onClick={() => executeDeleteRecord(confirmDeleteRecord)}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-500 transition cursor-pointer flex items-center gap-1.5 shadow-md shadow-rose-600/20"
+              >
+                {deletingId ? (
+                  <>
+                    <RefreshCw className="size-3.5 animate-spin" />
+                    <span>Menghapus &amp; Syncing R2...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="size-3.5" />
+                    <span>Ya, Hapus Permanen &amp; Sync R2</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
