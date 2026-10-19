@@ -154,8 +154,32 @@ export async function GET(req: NextRequest) {
 
     let hasNewDrafts = false;
 
+    // Pastikan tabel validasi HANYA memuat berkas yang riil telah di-upload di sistem
+    const validFstbKeys = new Set(fstbItems.map((f) => (f.cleanNoFstb || f.noFstb).toUpperCase().trim()));
+    const validFstbIds = new Set(fstbItems.map((f) => f.id));
+    const validTtbKeys = new Set(ttbItems.map((t) => (t.cleanNoTtb || t.noTtb).toUpperCase().trim()));
+    const validTtbIds = new Set(ttbItems.map((t) => t.id));
+
+    const initialLen = validationRecords.length;
+    validationRecords = validationRecords.filter((rec) => {
+      const docCode = (rec.cleanDocNumber || rec.docNumber || '').toUpperCase().trim();
+      if (rec.docType === 'FSTB') {
+        return validFstbIds.has(rec.docId) || validFstbKeys.has(docCode);
+      } else {
+        return validTtbIds.has(rec.docId) || validTtbKeys.has(docCode);
+      }
+    });
+
+    if (validationRecords.length !== initialLen) {
+      hasNewDrafts = true;
+    }
+
     const existingMap = new Map<string, DocumentValidationRecord>();
     for (const rec of validationRecords) {
+      if ((rec.fileUrl || rec.r2Key) && rec.fileExists !== true) {
+        rec.fileExists = true;
+        hasNewDrafts = true;
+      }
       if (rec.docType === 'FSTB') {
         if (!rec.fstbSlots) {
           rec.fstbSlots = {
@@ -745,80 +769,12 @@ export async function POST(req: NextRequest) {
             }
           }
         } else {
-          rec.fileExists = false;
-        }
-      }
-
-      // 2. Daftarkan berkas lokal yang belum teregistrasi ("tidak teregistrasi")
-      for (const f of localTtbFiles) {
-        const m = f.match(/[A-Z0-9]+-TTB-\d{2}-\d{4,6}/i);
-        if (!m) continue;
-        const docNum = m[0].toUpperCase();
-        const exists = validationRecords.some(
-          (r) =>
-            r.docType === 'TTB' &&
-            (r.docNumber.toUpperCase() === docNum || r.cleanDocNumber?.toUpperCase() === docNum)
-        );
-
-        if (!exists) {
-          let armadaName = 'Armada CPG';
-          const parts = f.split(docNum);
-          if (parts[0] && parts[0].trim().length > 2) {
-            armadaName = parts[0].replace(/_/g, ' ').trim();
+          // Hanya jika r2Key dan fileUrl tidak ada
+          if (!rec.r2Key && !rec.fileUrl) {
+            rec.fileExists = false;
+          } else {
+            rec.fileExists = true;
           }
-
-          const r2Key = `ttb-documents/${f}`;
-          let fBuf: Buffer | null = null;
-          try {
-            fBuf = await fs.readFile(path.join(ttbDir, f));
-          } catch {
-            try {
-              fBuf = await fs.readFile(path.join(altTtbDir, f));
-            } catch {}
-          }
-
-          if (fBuf && isR2Configured()) {
-            try {
-              const ext = path.extname(f).toLowerCase();
-              const cType = ext === '.pdf' ? 'application/pdf' : 'image/jpeg';
-              await uploadToR2({ key: r2Key, body: fBuf, contentType: cType });
-              uploadedToR2Count++;
-            } catch {}
-          }
-
-          const newRec: DocumentValidationRecord = {
-            id: `val-ttb-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-            docType: 'TTB',
-            docId: `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-            docNumber: docNum,
-            cleanDocNumber: docNum,
-            armada: armadaName,
-            originalFileName: f,
-            renamedFileName: f,
-            fileUrl: `/api/r2-file?key=${encodeURIComponent(r2Key)}`,
-            r2Key,
-            storageProvider: 'CLOUDFLARE_R2',
-            purchasingValidation: { isValidated: false },
-            logistikValidation: {
-              isValidated: true,
-              validatorName: 'Admin Logistik',
-              validatorRole: 'staf_ttb',
-              validatorJabatan: 'Staf Logistik & Pergudangan',
-              validatedAt: new Date().toISOString(),
-              notes: 'Tervalidasi otomatis saat sinkronisasi berkas logistik',
-              verificationToken: `VAL-LOG-SYNC-${Date.now().toString(36).toUpperCase()}`,
-            },
-            lapanganValidation: { isValidated: false },
-            overallStatus: 'PROSES_VALIDASI',
-            completedLinesCount: 1,
-            isReadyForDispatch: false,
-            fileExists: true,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          };
-
-          validationRecords.push(newRec);
-          newlyRegisteredCount++;
         }
       }
 
