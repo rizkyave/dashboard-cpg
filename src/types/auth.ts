@@ -236,21 +236,6 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
       visitor: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
     },
   },
-  {
-    tabId: 'timemark',
-    category: 'Dashboards',
-    name: 'Foto TimeMark',
-    description: 'Dokumentasi foto berstempel waktu (5 Digit No. Lambung) pembongkaran muatan',
-    permissions: {
-      admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
-      manager: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Review dokumentasi foto berstempel waktu 5 digit' },
-      supervisor: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Dokumentasi foto berstempel waktu' },
-      staf_purchasing: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
-      staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
-      staf_lapangan: { allowed: true, level: 'Input & Upload', badgeTone: 'emerald', notes: 'Upload bukti foto timestamp pangkalan' },
-      visitor: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
-    },
-  },
 
   // ==========================================
   // KATEGORI 2: MODUL TAMBAHAN
@@ -462,7 +447,6 @@ export function canAccessTab(role: UserRole | undefined, tab: TabType): boolean 
     const forbidden: TabType[] = [
       'armada',
       'serah-terima-lapangan',
-      'timemark',
       'pos-kapal',
       'crew-kapal',
       'work-order',
@@ -473,13 +457,12 @@ export function canAccessTab(role: UserRole | undefined, tab: TabType): boolean 
   }
 
   if (role === 'visitor') {
-    return tab === 'overview' || tab === 'galeri-ttb' || tab === 'timemark';
+    return tab === 'overview' || tab === 'galeri-ttb';
   }
 
   if (role === 'staf_ttb') {
     const forbidden: TabType[] = [
       'serah-terima-lapangan',
-      'timemark',
       'armada',
       'pos-kapal',
       'crew-kapal',

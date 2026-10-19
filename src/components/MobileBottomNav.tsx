@@ -10,7 +10,6 @@ import {
   Boxes,
   Menu,
   Images,
-  Camera,
 } from 'lucide-react';
 
 import { TabType } from '@/types/procurement';
@@ -50,11 +49,6 @@ export default function MobileBottomNav({
           id: 'galeri-ttb',
           label: 'Galeri TTB',
           icon: Images,
-        },
-        {
-          id: 'timemark',
-          label: 'TimeMark',
-          icon: Camera,
         },
       ]
     : [

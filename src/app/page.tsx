@@ -57,7 +57,6 @@ import {
 } from '@/utils/smStorage';
 import AnalyticsTab from '@/components/AnalyticsTab';
 import InventoryTab from '@/components/InventoryTab';
-import TimemarkTab from '@/components/TimemarkTab';
 import TtbGalleryTab from '@/components/TtbGalleryTab';
 import AdminSettingsTab from '@/components/AdminSettingsTab';
 import SisaLayananTab from '@/components/SisaLayananTab';
@@ -1031,7 +1030,7 @@ export default function DashboardPage() {
 
   // Efek guard hak akses Admin Settings & Batasan Visitor (Overview & Foto Dokumen)
   useEffect(() => {
-    if (isVisitor && activeTab !== 'overview' && activeTab !== 'galeri-ttb' && activeTab !== 'timemark') {
+    if (isVisitor && activeTab !== 'overview' && activeTab !== 'galeri-ttb') {
       setActiveTab('overview');
     } else if (!isAdmin && activeTab === 'admin-settings') {
       setActiveTab('overview');
@@ -1123,8 +1122,6 @@ export default function DashboardPage() {
                   ? 'Monitoring Layanan Armada'
                   : activeTab === 'galeri-ttb'
                   ? 'Galeri Foto TTB'
-                  : activeTab === 'timemark'
-                  ? 'Dokumentasi Foto TimeMark'
                   : activeTab === 'pos-kapal'
                   ? 'Posisi Kapal'
                   : activeTab === 'crew-kapal'
@@ -1160,8 +1157,6 @@ export default function DashboardPage() {
                   ? 'Rekonsiliasi FPB–FSTB & Distribusi Logistik'
                   : activeTab === 'galeri-ttb'
                   ? 'Galeri foto penerimaan dan serah terima dokumen fisik TTB terintegrasi Cloudflare R2 Storage.'
-                  : activeTab === 'timemark'
-                  ? 'Verifikasi dokumentasi bukti foto fisik lapangan TimeMark dengan pencarian 5 digit nomor FSTB.'
                   : activeTab === 'pos-kapal'
                   ? 'Laporan posisi, rute, aktivitas, status armada dan pekerjaan pemeliharaan kapal.'
                   : activeTab === 'crew-kapal'
@@ -1303,17 +1298,6 @@ export default function DashboardPage() {
           {/* Tab Galeri Seluruh Foto TTB (Cloudflare R2 / Server) */}
           {activeTab === 'galeri-ttb' && (
             <TtbGalleryTab showToast={showToast} />
-          )}
-
-
-          {/* Tab TimeMark: Dokumentasi & Bukti Foto */}
-          {activeTab === 'timemark' && (
-            <TimemarkTab
-              armadaItems={armadaData}
-              procurementItems={procurementData}
-              onOpenAudit={handleOpenAudit}
-              showToast={showToast}
-            />
           )}
 
           {/* Tab 4: Analytics */}

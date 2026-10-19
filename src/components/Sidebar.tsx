@@ -16,7 +16,6 @@ import {
   Mail,
   Upload,
   Boxes,
-  Camera,
   Images,
   Navigation,
   ChevronDown,
@@ -169,13 +168,6 @@ export default function Sidebar({
       icon: Images,
       badge: 'Blob',
       title: 'Galeri Arsip Foto TTB dari Lapangan',
-    },
-    {
-      id: 'timemark' as TabType,
-      label: 'Foto TimeMark',
-      icon: Camera,
-      badge: '5 Digit',
-      title: 'Dokumentasi Foto TimeMark 5 Digit No. Lambung',
     },
   ];
 
