@@ -91,7 +91,7 @@
       }
     },
     "overallStatus": "SIAP_KIRIM_ARMADA",
-    "completedLinesCount": 2,
+    "completedLinesCount": 4,
     "isReadyForDispatch": true,
     "createdAt": "2026-10-18T05:26:32.530Z",
     "updatedAt": "2026-10-18T05:31:44.360Z",
@@ -200,7 +200,7 @@
       }
     },
     "overallStatus": "SIAP_KIRIM_ARMADA",
-    "completedLinesCount": 2,
+    "completedLinesCount": 4,
     "isReadyForDispatch": true,
     "createdAt": "2026-10-18T05:26:31.786Z",
     "updatedAt": "2026-10-18T05:32:06.896Z",
@@ -307,7 +307,7 @@
       }
     },
     "overallStatus": "SIAP_KIRIM_ARMADA",
-    "completedLinesCount": 2,
+    "completedLinesCount": 4,
     "isReadyForDispatch": true,
     "createdAt": "2026-10-18T05:26:30.798Z",
     "updatedAt": "2026-10-18T05:32:22.074Z",
@@ -941,9 +941,9 @@
         "isValidated": false
       }
     },
-    "overallStatus": "SIAP_KIRIM_ARMADA",
+    "overallStatus": "PROSES_VALIDASI",
     "completedLinesCount": 2,
-    "isReadyForDispatch": true,
+    "isReadyForDispatch": false,
     "createdAt": "2026-10-18T07:08:20.102Z",
     "updatedAt": "2026-10-18T07:12:08.474Z",
     "relatedDocuments": {
@@ -1034,9 +1034,9 @@
         "isValidated": false
       }
     },
-    "overallStatus": "SIAP_KIRIM_ARMADA",
+    "overallStatus": "PROSES_VALIDASI",
     "completedLinesCount": 2,
-    "isReadyForDispatch": true,
+    "isReadyForDispatch": false,
     "createdAt": "2026-10-18T07:08:19.346Z",
     "updatedAt": "2026-10-18T07:12:18.161Z",
     "relatedDocuments": {
@@ -1127,9 +1127,9 @@
         "isValidated": false
       }
     },
-    "overallStatus": "SIAP_KIRIM_ARMADA",
+    "overallStatus": "PROSES_VALIDASI",
     "completedLinesCount": 2,
-    "isReadyForDispatch": true,
+    "isReadyForDispatch": false,
     "createdAt": "2026-10-18T07:08:18.580Z",
     "updatedAt": "2026-10-18T07:11:49.200Z",
     "relatedDocuments": {

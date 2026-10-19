@@ -456,7 +456,7 @@ export default function FstbValidationModal({
               {validatedCount === 4 ? (
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
                   <CheckCircle2 className="size-3.5" />
-                  <span>Selesai (2/2 Lini Departemen • Siap Terbit TTB)</span>
+                  <span>Selesai (4/4 PIC Sah • Siap Terbit TTB)</span>
                 </span>
               ) : validatedCount > 0 ? (
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30">

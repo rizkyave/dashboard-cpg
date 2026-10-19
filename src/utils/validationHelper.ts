@@ -5,8 +5,8 @@ import {
 } from '@/types/documentValidation';
 
 /**
- * Helper untuk menghitung status keseluruhan & jumlah lini yang telah sah
- * pada dokumen FSTB dan TTB
+ * Helper untuk menghitung status keseluruhan & jumlah PIC yang telah sah
+ * pada dokumen FSTB dan TTB sesuai dengan 4 Kolom Pengesahan PIC
  */
 export function computeValidationStatus(
   record: Pick<
@@ -21,94 +21,73 @@ export function computeValidationStatus(
   >
 ): { completedCount: number; status: OverallValidationStatus; isReady: boolean } {
   // =========================================================================
-  // 1. DOKUMEN FSTB (Hulu: Purchasing & Logistik/Gudang - 2 Lini Departemen)
+  // 1. DOKUMEN FSTB (4 Kolom Pengesahan PIC: PCH-STF, LOG-STF, PCH-SPV, LOG-SPV)
   // =========================================================================
-  if (record.docType === 'FSTB' && record.fstbSlots) {
+  if (record.docType === 'FSTB') {
     const s = record.fstbSlots;
+    const isPchStaff = Boolean(s?.deliveredBy?.isValidated || record.purchasingValidation?.isValidated);
+    const isLogStaff = Boolean(s?.receivedBy?.isValidated || record.logistikValidation?.isValidated);
+    const isPchSpv = Boolean(s?.approvedBy?.isValidated);
+    const isLogSpv = Boolean(s?.acknowledgedBy?.isValidated);
+
     let slotCount = 0;
-    if (s.deliveredBy?.isValidated) slotCount++;
-    if (s.receivedBy?.isValidated) slotCount++;
-    if (s.approvedBy?.isValidated) slotCount++;
-    if (s.acknowledgedBy?.isValidated) slotCount++;
+    if (isPchStaff) slotCount++;
+    if (isLogStaff) slotCount++;
+    if (isPchSpv) slotCount++;
+    if (isLogSpv) slotCount++;
 
-    // Evaluasi 2 Lini Departemen:
-    // Lini 1: Purchasing (Staff: deliveredBy, SPV: approvedBy)
-    const isPchValid = Boolean(
-      s.deliveredBy?.isValidated ||
-      s.approvedBy?.isValidated ||
-      record.purchasingValidation?.isValidated
-    );
-
-    // Lini 2: Logistik/Gudang (Staff: receivedBy, SPV: acknowledgedBy)
-    const isLogValid = Boolean(
-      s.receivedBy?.isValidated ||
-      s.acknowledgedBy?.isValidated ||
-      record.logistikValidation?.isValidated
-    );
-
-    let count = 0;
-    if (isPchValid) count++;
-    if (isLogValid) count++;
-
-    // FSTB siap terbit TTB jika ke-4 PIC sah atau kedua departemen PCH & LOG telah menyetujui
-    const isReady = slotCount === 4 || (isPchValid && isLogValid);
+    // FSTB siap terbit TTB jika ke-4 PIC sah
+    const isReady = slotCount === 4;
     let status: OverallValidationStatus = 'MENUNGGU_VALIDASI';
 
     if (isReady) {
-      status = 'SIAP_KIRIM_ARMADA'; // Siap Terbit TTB (2/2 Selesai)
+      status = 'SIAP_KIRIM_ARMADA'; // Siap Terbit TTB (4/4 Lengkap)
     } else if (slotCount > 0) {
       status = 'PROSES_VALIDASI';
     } else {
       status = 'MENUNGGU_VALIDASI';
     }
 
-    return { completedCount: count, status, isReady };
+    return { completedCount: slotCount, status, isReady };
   }
 
   // =========================================================================
-  // 2. DOKUMEN TTB (Hilir: LOG Pengirim -> EXP/TRANS Pengiriman -> RCV Penerima)
+  // 2. DOKUMEN TTB (4 Kolom Pengesahan PIC: LOG-STF, RCV-LAP, LOG-SPV, PCH-MGR)
   // =========================================================================
-  if (record.docType === 'TTB' && record.ttbSlots) {
+  if (record.docType === 'TTB') {
     const s = record.ttbSlots;
-    const isReceivedByValid = Boolean(
-      s.receivedBy?.isValidated ||
+    const isLogStaff = Boolean(s?.deliveredBy?.isValidated || record.logistikValidation?.isValidated);
+    const isRcvLap = Boolean(
+      s?.receivedBy?.isValidated ||
       record.recipientValidation?.isSigned ||
       record.lapanganValidation?.isValidated
     );
+    const isLogSpv = Boolean(s?.approvedBy?.isValidated);
+    const isPchMgr = Boolean(s?.acknowledgedBy?.isValidated || record.purchasingValidation?.isValidated);
 
     let slotCount = 0;
-    if (s.deliveredBy?.isValidated) slotCount++;
-    if (isReceivedByValid) slotCount++;
-    if (s.approvedBy?.isValidated) slotCount++;
-    if (s.acknowledgedBy?.isValidated) slotCount++;
+    if (isLogStaff) slotCount++;
+    if (isRcvLap) slotCount++;
+    if (isLogSpv) slotCount++;
+    if (isPchMgr) slotCount++;
 
-    // 3 Tahapan Distribusi TTB:
-    // 1. LOG: Pengirim Gudang TTB (deliveredBy / logistikValidation)
-    const isLogValid = Boolean(s.deliveredBy?.isValidated || record.logistikValidation?.isValidated);
-    // 2. EXP/TRANS: Otorisasi & Pengiriman (approvedBy / acknowledgedBy / purchasingValidation)
-    const isTransValid = Boolean(s.approvedBy?.isValidated || s.acknowledgedBy?.isValidated || record.purchasingValidation?.isValidated);
-    // 3. RCV/PENERIMA: Penerima Akhir (Armada Kapal atau Unit Darat seperti Finance)
-    const isRcvValid = isReceivedByValid;
-
-    let count = 0;
-    if (isLogValid) count++;
-    if (isTransValid) count++;
-    if (isRcvValid) count++;
-
-    const isReady = (isLogValid && isTransValid) || slotCount >= 3;
+    // Ready for dispatch jika pengirim gudang, SPV, dan Mgr sudah acc (3 PIC internal)
+    const isReady = (isLogStaff && isLogSpv && isPchMgr) || slotCount >= 3;
     let status: OverallValidationStatus = 'MENUNGGU_VALIDASI';
 
-    if (isRcvValid) {
-      status = 'SUDAH_DITERIMA_ARMADA'; // Diterima Penerima (Armada / Unit Darat)
+    if (slotCount === 4 || (isRcvLap && isReady)) {
+      status = 'SUDAH_DITERIMA_ARMADA'; // Diterima Penerima (4/4 Selesai)
+    } else if (isRcvLap) {
+      status = 'SUDAH_DITERIMA_ARMADA';
     } else if (isReady) {
-      status = 'SIAP_KIRIM_ARMADA'; // Siap Kirim / Diantar
+      status = 'SIAP_KIRIM_ARMADA'; // Siap Kirim / Diantar (3/4)
     } else if (slotCount > 0) {
       status = 'PROSES_VALIDASI';
     } else {
       status = 'MENUNGGU_VALIDASI';
     }
 
-    return { completedCount: count, status, isReady };
+    return { completedCount: slotCount, status, isReady };
   }
 
   // =========================================================================

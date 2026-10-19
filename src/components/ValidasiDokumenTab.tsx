@@ -350,7 +350,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
             <div className="text-lg sm:text-xl font-bold font-mono text-amber-600 dark:text-amber-400">
               {metrics.menungguValidasi}
             </div>
-            <span className="text-[10px] text-muted-foreground">0/3 Lini tervalidasi</span>
+            <span className="text-[10px] text-muted-foreground">0/4 PIC tervalidasi</span>
           </div>
         </div>
 
@@ -366,7 +366,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
             <div className="text-lg sm:text-xl font-bold font-mono text-blue-600 dark:text-blue-400">
               {metrics.prosesValidasi}
             </div>
-            <span className="text-[10px] text-muted-foreground">1-2 Lini telah sah</span>
+            <span className="text-[10px] text-muted-foreground">1-3 PIC telah sah</span>
           </div>
         </div>
 
@@ -382,7 +382,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
             <div className="text-lg sm:text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400">
               {metrics.siapKirimArmada}
             </div>
-            <span className="text-[10px] text-muted-foreground">3/3 Lini sah &amp; lengkap</span>
+            <span className="text-[10px] text-muted-foreground">Pengesahan 4 PIC lengkap</span>
           </div>
         </div>
       </div>
@@ -468,8 +468,8 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                 <th className="py-2.5 px-3">Armada / Unit</th>
                 <th className="py-2.5 px-3">No. FPB</th>
                 <th className="py-2.5 px-3">No. PO / DO</th>
-                <th className="py-2.5 px-3">Tahapan &amp; Persetujuan Lini</th>
-                <th className="py-2.5 px-3">Status Kelayakan</th>
+                <th className="py-2.5 px-3 whitespace-nowrap">Tahapan Pengesahan (4 PIC)</th>
+                <th className="py-2.5 px-3 whitespace-nowrap">Status Kelayakan</th>
                 <th className="py-2.5 px-3">Tgl Update</th>
                 <th className="py-2.5 px-3 text-right">Aksi</th>
               </tr>
@@ -630,191 +630,296 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                       {item.poNumber || '-'}
                     </td>
 
-                    {/* Persetujuan Lini Visual Bar */}
+                    {/* Persetujuan Lini Visual Bar (4 Kolom Pengesahan PIC) */}
                     <td className="py-2.5 px-3">
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5 flex-nowrap whitespace-nowrap">
                         {item.docType === 'FSTB' ? (
                           <>
-                            {/* Lini 1: Purchasing (Staff & SPV) */}
-                            <div
-                              className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border ${
-                                item.purchasingValidation.isValidated
-                                  ? 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border-cyan-500/30'
-                                  : 'bg-muted/60 text-muted-foreground/60 border-border/40'
-                              }`}
-                              title={`1. Departemen Purchasing: ${
-                                item.purchasingValidation.isValidated
-                                  ? `Sah (${item.purchasingValidation.validatorName || 'Disetujui'})`
-                                  : 'Menunggu Pengesahan'
-                              }`}
-                            >
-                              <ShoppingBag className="size-2.5" />
-                              <span>PCH</span>
-                              {item.purchasingValidation.isValidated ? (
-                                <Check className="size-2.5 text-cyan-600 dark:text-cyan-400" />
-                              ) : (
-                                <Clock className="size-2.5" />
-                              )}
-                            </div>
+                            {/* Slot 1: Delivered By : Purchasing Staff (PCH-STF) */}
+                            {(() => {
+                              const isValid = Boolean(
+                                item.fstbSlots?.deliveredBy?.isValidated ||
+                                item.purchasingValidation?.isValidated
+                              );
+                              const name =
+                                item.fstbSlots?.deliveredBy?.validatorName ||
+                                item.purchasingValidation?.validatorName ||
+                                'Staf Purchasing';
+                              return (
+                                <div
+                                  className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border shrink-0 ${
+                                    isValid
+                                      ? 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border-cyan-500/30'
+                                      : 'bg-muted/60 text-muted-foreground/60 border-border/40'
+                                  }`}
+                                  title={`1. Delivered By (Purchasing Staff): ${
+                                    isValid ? `Sah (${name})` : 'Menunggu Pengesahan'
+                                  }`}
+                                >
+                                  <ShoppingBag className="size-2.5 shrink-0" />
+                                  <span>PCH STF</span>
+                                  {isValid ? (
+                                    <Check className="size-2.5 text-cyan-600 dark:text-cyan-400 shrink-0" />
+                                  ) : (
+                                    <Clock className="size-2.5 shrink-0" />
+                                  )}
+                                </div>
+                              );
+                            })()}
 
-                            {/* Lini 2: Logistik (Staff & SPV) */}
-                            <div
-                              className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border ${
-                                item.logistikValidation.isValidated
-                                  ? 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30'
-                                  : 'bg-muted/60 text-muted-foreground/60 border-border/40'
-                              }`}
-                              title={`2. Departemen Logistik: ${
-                                item.logistikValidation.isValidated
-                                  ? `Sah (${item.logistikValidation.validatorName || 'Disetujui'})`
-                                  : 'Menunggu Pengesahan'
-                              }`}
-                            >
-                              <PackageCheck className="size-2.5" />
-                              <span>LOG</span>
-                              {item.logistikValidation.isValidated ? (
-                                <Check className="size-2.5 text-purple-600 dark:text-purple-400" />
-                              ) : (
-                                <Clock className="size-2.5" />
-                              )}
-                            </div>
+                            {/* Slot 2: Received By : Logistic Staff (LOG-STF) */}
+                            {(() => {
+                              const isValid = Boolean(
+                                item.fstbSlots?.receivedBy?.isValidated ||
+                                item.logistikValidation?.isValidated
+                              );
+                              const name =
+                                item.fstbSlots?.receivedBy?.validatorName ||
+                                item.logistikValidation?.validatorName ||
+                                'Staf Logistik';
+                              return (
+                                <div
+                                  className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border shrink-0 ${
+                                    isValid
+                                      ? 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30'
+                                      : 'bg-muted/60 text-muted-foreground/60 border-border/40'
+                                  }`}
+                                  title={`2. Received By (Logistic Staff): ${
+                                    isValid ? `Sah (${name})` : 'Menunggu Pengesahan'
+                                  }`}
+                                >
+                                  <PackageCheck className="size-2.5 shrink-0" />
+                                  <span>LOG STF</span>
+                                  {isValid ? (
+                                    <Check className="size-2.5 text-purple-600 dark:text-purple-400 shrink-0" />
+                                  ) : (
+                                    <Clock className="size-2.5 shrink-0" />
+                                  )}
+                                </div>
+                              );
+                            })()}
 
-                            {/* Lini 3: N/A untuk FSTB */}
-                            <div
-                              className="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border bg-muted/30 text-muted-foreground/40 border-dashed border-border/40 cursor-not-allowed select-none"
-                              title="Tahap Lapangan Tidak Berlaku (N/A) untuk FSTB. Hanya melibatkan Purchasing dan Logistik."
-                            >
-                              <span className="text-[9px]">LAP:</span>
-                              <span>N/A</span>
-                            </div>
+                            {/* Slot 3: Approved By : Purchasing Supervisor (PCH-SPV) */}
+                            {(() => {
+                              const isValid = Boolean(item.fstbSlots?.approvedBy?.isValidated);
+                              const name = item.fstbSlots?.approvedBy?.validatorName || 'SPV Purchasing';
+                              return (
+                                <div
+                                  className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border shrink-0 ${
+                                    isValid
+                                      ? 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/30'
+                                      : 'bg-muted/60 text-muted-foreground/60 border-border/40'
+                                  }`}
+                                  title={`3. Approved By (Purchasing Supervisor): ${
+                                    isValid ? `Sah (${name})` : 'Menunggu Pengesahan'
+                                  }`}
+                                >
+                                  <ShieldCheck className="size-2.5 shrink-0" />
+                                  <span>PCH SPV</span>
+                                  {isValid ? (
+                                    <Check className="size-2.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                                  ) : (
+                                    <Clock className="size-2.5 shrink-0" />
+                                  )}
+                                </div>
+                              );
+                            })()}
+
+                            {/* Slot 4: Acknowledged By : Logistic Supervisor (LOG-SPV) */}
+                            {(() => {
+                              const isValid = Boolean(item.fstbSlots?.acknowledgedBy?.isValidated);
+                              const name = item.fstbSlots?.acknowledgedBy?.validatorName || 'SPV Logistik';
+                              return (
+                                <div
+                                  className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border shrink-0 ${
+                                    isValid
+                                      ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30'
+                                      : 'bg-muted/60 text-muted-foreground/60 border-border/40'
+                                  }`}
+                                  title={`4. Acknowledged By (Logistic Supervisor): ${
+                                    isValid ? `Sah (${name})` : 'Menunggu Pengesahan'
+                                  }`}
+                                >
+                                  <UserCheck className="size-2.5 shrink-0" />
+                                  <span>LOG SPV</span>
+                                  {isValid ? (
+                                    <Check className="size-2.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                                  ) : (
+                                    <Clock className="size-2.5 shrink-0" />
+                                  )}
+                                </div>
+                              );
+                            })()}
                           </>
                         ) : (
                           <>
-                            {/* Lini 1: Logistik (Pengirim TTB) */}
-                            <div
-                              className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border ${
-                                item.logistikValidation.isValidated
-                                  ? 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30'
-                                  : 'bg-muted/60 text-muted-foreground/60 border-border/40'
-                              }`}
-                              title={`1. Pengirim / Logistik TTB: ${
-                                item.logistikValidation.isValidated
-                                  ? `Sah (${item.logistikValidation.validatorName || 'Disetujui'})`
-                                  : 'Menunggu'
-                              }`}
-                            >
-                              <PackageCheck className="size-2.5" />
-                              <span>LOG</span>
-                              {item.logistikValidation.isValidated ? (
-                                <Check className="size-2.5 text-purple-600 dark:text-purple-400" />
-                              ) : (
-                                <Clock className="size-2.5" />
-                              )}
-                            </div>
+                            {/* Slot 1: Delivered By : Logistic Staff (LOG-STF) */}
+                            {(() => {
+                              const isValid = Boolean(
+                                item.ttbSlots?.deliveredBy?.isValidated ||
+                                item.logistikValidation?.isValidated
+                              );
+                              const name =
+                                item.ttbSlots?.deliveredBy?.validatorName ||
+                                item.logistikValidation?.validatorName ||
+                                'Staf Logistik';
+                              return (
+                                <div
+                                  className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border shrink-0 ${
+                                    isValid
+                                      ? 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30'
+                                      : 'bg-muted/60 text-muted-foreground/60 border-border/40'
+                                  }`}
+                                  title={`1. Delivered By (Logistic Staff): ${
+                                    isValid ? `Sah (${name})` : 'Menunggu Pengesahan'
+                                  }`}
+                                >
+                                  <PackageCheck className="size-2.5 shrink-0" />
+                                  <span>LOG STF</span>
+                                  {isValid ? (
+                                    <Check className="size-2.5 text-purple-600 dark:text-purple-400 shrink-0" />
+                                  ) : (
+                                    <Clock className="size-2.5 shrink-0" />
+                                  )}
+                                </div>
+                              );
+                            })()}
 
-                            {/* Lini 2: Ekspedisi / Otorisasi Transport */}
-                            <div
-                              className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border ${
-                                item.purchasingValidation.isValidated ||
-                                item.ttbSlots?.approvedBy?.isValidated ||
-                                item.ttbSlots?.acknowledgedBy?.isValidated
-                                  ? 'bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30'
-                                  : 'bg-muted/60 text-muted-foreground/60 border-border/40'
-                              }`}
-                              title={`2. Otorisasi / Ekspedisi Pengiriman: ${
-                                item.purchasingValidation.isValidated ||
-                                item.ttbSlots?.approvedBy?.isValidated ||
-                                item.ttbSlots?.acknowledgedBy?.isValidated
-                                  ? 'Sah'
-                                  : 'Menunggu'
-                              }`}
-                            >
-                              <Truck className="size-2.5" />
-                              <span>EXP</span>
-                              {item.purchasingValidation.isValidated ||
-                              item.ttbSlots?.approvedBy?.isValidated ||
-                              item.ttbSlots?.acknowledgedBy?.isValidated ? (
-                                <Check className="size-2.5 text-blue-600 dark:text-blue-400" />
-                              ) : (
-                                <Clock className="size-2.5" />
-                              )}
-                            </div>
+                            {/* Slot 2: Received By : User / Tim Lapangan / Penerima (RCV / LAP) */}
+                            {(() => {
+                              const isValid = Boolean(
+                                item.ttbSlots?.receivedBy?.isValidated ||
+                                item.recipientValidation?.isSigned ||
+                                item.lapanganValidation?.isValidated
+                              );
+                              const name =
+                                item.ttbSlots?.receivedBy?.validatorName ||
+                                item.recipientValidation?.recipientName ||
+                                item.lapanganValidation?.validatorName ||
+                                'User / Lapangan';
+                              return (
+                                <div
+                                  className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border shrink-0 ${
+                                    isValid
+                                      ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
+                                      : 'bg-muted/60 text-muted-foreground/60 border-border/40'
+                                  }`}
+                                  title={`2. Received By (User / Lapangan / Penerima): ${
+                                    isValid ? `Sah (${name})` : 'Menunggu Penerima'
+                                  }`}
+                                >
+                                  <UserCheck className="size-2.5 shrink-0" />
+                                  <span>RCV / LAP</span>
+                                  {isValid ? (
+                                    <Check className="size-2.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                  ) : (
+                                    <Clock className="size-2.5 shrink-0" />
+                                  )}
+                                </div>
+                              );
+                            })()}
 
-                            {/* Lini 3: RCV / PENERIMA */}
-                            <div
-                              className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border ${
-                                item.lapanganValidation.isValidated ||
-                                item.recipientValidation?.isSigned ||
-                                item.ttbSlots?.receivedBy?.isValidated
-                                  ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
-                                  : 'bg-muted/60 text-muted-foreground/60 border-border/40'
-                              }`}
-                              title={`3. Penerima Akhir (Armada / Unit Darat): ${
-                                item.lapanganValidation.isValidated ||
-                                item.recipientValidation?.isSigned ||
-                                item.ttbSlots?.receivedBy?.isValidated
-                                  ? `Sah (${
-                                      item.recipientValidation?.recipientName ||
-                                      item.lapanganValidation.validatorName ||
-                                      'Diterima'
-                                    })`
-                                  : 'Menunggu'
-                              }`}
-                            >
-                              <UserCheck className="size-2.5" />
-                              <span>RCV</span>
-                              {item.lapanganValidation.isValidated ||
-                              item.recipientValidation?.isSigned ||
-                              item.ttbSlots?.receivedBy?.isValidated ? (
-                                <Check className="size-2.5 text-emerald-600 dark:text-emerald-400" />
-                              ) : (
-                                <Clock className="size-2.5" />
-                              )}
-                            </div>
+                            {/* Slot 3: Approved By : Logistic Supervisor (LOG-SPV) */}
+                            {(() => {
+                              const isValid = Boolean(item.ttbSlots?.approvedBy?.isValidated);
+                              const name = item.ttbSlots?.approvedBy?.validatorName || 'SPV Logistik';
+                              return (
+                                <div
+                                  className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border shrink-0 ${
+                                    isValid
+                                      ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30'
+                                      : 'bg-muted/60 text-muted-foreground/60 border-border/40'
+                                  }`}
+                                  title={`3. Approved By (Logistic Supervisor): ${
+                                    isValid ? `Sah (${name})` : 'Menunggu Pengesahan'
+                                  }`}
+                                >
+                                  <ShieldCheck className="size-2.5 shrink-0" />
+                                  <span>LOG SPV</span>
+                                  {isValid ? (
+                                    <Check className="size-2.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                                  ) : (
+                                    <Clock className="size-2.5 shrink-0" />
+                                  )}
+                                </div>
+                              );
+                            })()}
+
+                            {/* Slot 4: Acknowledge By : Procurement Manager (PCH-MGR) */}
+                            {(() => {
+                              const isValid = Boolean(
+                                item.ttbSlots?.acknowledgedBy?.isValidated ||
+                                item.purchasingValidation?.isValidated
+                              );
+                              const name =
+                                item.ttbSlots?.acknowledgedBy?.validatorName ||
+                                item.purchasingValidation?.validatorName ||
+                                'Manager Procurement';
+                              return (
+                                <div
+                                  className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border shrink-0 ${
+                                    isValid
+                                      ? 'bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30'
+                                      : 'bg-muted/60 text-muted-foreground/60 border-border/40'
+                                  }`}
+                                  title={`4. Acknowledge By (Procurement Manager): ${
+                                    isValid ? `Sah (${name})` : 'Menunggu Pengesahan'
+                                  }`}
+                                >
+                                  <ShoppingBag className="size-2.5 shrink-0" />
+                                  <span>PCH MGR</span>
+                                  {isValid ? (
+                                    <Check className="size-2.5 text-blue-600 dark:text-blue-400 shrink-0" />
+                                  ) : (
+                                    <Clock className="size-2.5 shrink-0" />
+                                  )}
+                                </div>
+                              );
+                            })()}
                           </>
                         )}
                       </div>
                     </td>
 
                     {/* Status Kelayakan Keseluruhan */}
-                    <td className="py-2.5 px-3">
+                    <td className="py-2.5 px-3 whitespace-nowrap">
                       {item.docType === 'FSTB' ? (
-                        item.overallStatus === 'SIAP_KIRIM_ARMADA' ? (
+                        item.overallStatus === 'SIAP_KIRIM_ARMADA' || item.completedLinesCount === 4 ? (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
                             <CheckCircle2 className="size-3" />
-                            Siap Terbit TTB (2/2)
+                            Siap Terbit TTB (4/4)
                           </span>
                         ) : item.completedLinesCount > 0 ? (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30">
                             <Clock className="size-3" />
-                            Proses ({item.completedLinesCount}/2)
+                            Proses ({item.completedLinesCount}/4)
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
                             <AlertCircle className="size-3" />
-                            Menunggu (0/2)
+                            Menunggu (0/4)
                           </span>
                         )
                       ) : (
-                        item.overallStatus === 'SUDAH_DITERIMA_ARMADA' ? (
+                        item.overallStatus === 'SUDAH_DITERIMA_ARMADA' || item.completedLinesCount === 4 ? (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-teal-500/15 text-teal-700 dark:text-teal-300 border border-teal-500/30">
                             <CheckCircle2 className="size-3" />
-                            Diterima Penerima (3/3)
+                            Diterima Penerima (4/4)
                           </span>
                         ) : item.overallStatus === 'SIAP_KIRIM_ARMADA' ? (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
                             <ShieldCheck className="size-3" />
-                            Siap Kirim / Diantar (2/3)
+                            Siap Kirim / Diantar ({item.completedLinesCount}/4)
                           </span>
-                        ) : item.overallStatus === 'PROSES_VALIDASI' ? (
+                        ) : item.completedLinesCount > 0 ? (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30">
                             <Clock className="size-3" />
-                            Proses ({item.completedLinesCount}/3)
+                            Proses ({item.completedLinesCount}/4)
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
                             <AlertCircle className="size-3" />
-                            Menunggu (0/3)
+                            Menunggu (0/4)
                           </span>
                         )
                       )}
