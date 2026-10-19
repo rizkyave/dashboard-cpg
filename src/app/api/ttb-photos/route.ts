@@ -3,7 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { extractTakenAt, filenameMatchesTtb, parseNoTtb, extractTtbFromFilename } from '@/utils/ttbPhotoMatch';
 import { getPhotosDir } from '@/utils/ttbPhotosDir';
-import { uploadToR2, isR2Configured, getR2FileUrl, listR2Objects, deleteFromR2 } from '@/utils/r2Client';
+import { uploadToR2, isR2Configured, getR2FileUrl, listR2Objects, deleteFromR2, getObjectFromR2 } from '@/utils/r2Client';
 import rawManifest from '@/data/ttb-photos-manifest.json';
 
 export const runtime = 'nodejs';
@@ -11,9 +11,66 @@ export const dynamic = 'force-dynamic';
 
 const IMAGE_EXT = /\.(jpe?g|png|webp|gif)$/i;
 
-// Manifest file path untuk update lokal
+// Manifest file path untuk update lokal & Cloudflare R2 key
 const MANIFEST_PATH = path.join(process.cwd(), 'src', 'data', 'ttb-photos-manifest.json');
+const R2_PHOTO_MANIFEST_KEY = 'ttb-metadata/photos-manifest.json';
 let manifest: Record<string, string> = { ...(rawManifest as Record<string, string>) };
+
+async function getManifest(): Promise<Record<string, string>> {
+  if (isR2Configured()) {
+    try {
+      const r2Obj = await getObjectFromR2(R2_PHOTO_MANIFEST_KEY);
+      if (r2Obj && r2Obj.body) {
+        const text = Buffer.from(r2Obj.body).toString('utf8');
+        const parsed = JSON.parse(text);
+        if (parsed && typeof parsed === 'object') {
+          manifest = parsed;
+          return parsed;
+        }
+      }
+    } catch {
+      // Non-fatal
+    }
+  }
+
+  try {
+    const raw = await fs.readFile(MANIFEST_PATH, 'utf8');
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object') {
+      manifest = parsed;
+      return parsed;
+    }
+  } catch {
+    // Non-fatal
+  }
+
+  return { ...(rawManifest as Record<string, string>) };
+}
+
+async function saveManifest(updatedManifest: Record<string, string>): Promise<void> {
+  manifest = updatedManifest;
+  const jsonStr = JSON.stringify(updatedManifest, null, 2);
+
+  if (isR2Configured()) {
+    try {
+      await uploadToR2({
+        key: R2_PHOTO_MANIFEST_KEY,
+        body: Buffer.from(jsonStr, 'utf8'),
+        contentType: 'application/json',
+        cacheControl: 'no-cache, no-store, must-revalidate',
+      });
+    } catch (r2Err) {
+      console.warn('Gagal menyimpan manifest foto ke R2:', r2Err);
+    }
+  }
+
+  try {
+    await fs.mkdir(path.dirname(MANIFEST_PATH), { recursive: true });
+    await fs.writeFile(MANIFEST_PATH, jsonStr, 'utf8');
+  } catch {
+    // Non-fatal di serverless / read-only filesystem Vercel
+  }
+}
 
 let cache: { at: number; files: string[] } | null = null;
 const listLocalFiles = async (): Promise<string[]> => {
@@ -77,21 +134,8 @@ export async function GET(req: NextRequest) {
     if (forceFresh) {
       r2Cache = null;
       cache = null;
-      try {
-        const raw = await fs.readFile(MANIFEST_PATH, 'utf8');
-        manifest = JSON.parse(raw);
-      } catch {
-        // keep manifest
-      }
-    } else {
-      // Selalu muat manifest terbaru jika belum ada di memori
-      try {
-        const raw = await fs.readFile(MANIFEST_PATH, 'utf8');
-        manifest = JSON.parse(raw);
-      } catch {
-        // keep manifest
-      }
     }
+    manifest = await getManifest();
 
     // Kumpulkan daftar nama file: dari manifest, disk lokal, dan Cloudflare R2
     const [localFiles, r2Files] = await Promise.all([listLocalFiles(), listR2PhotoFiles(forceFresh)]);
@@ -236,13 +280,7 @@ export async function POST(req: NextRequest) {
         publicUrl = r2Result.url;
         storageProvider = 'CLOUDFLARE_R2';
         manifest[generatedFilename] = publicUrl;
-
-        // Simpan ke manifest file agar terindeks cepat
-        try {
-          await fs.writeFile(MANIFEST_PATH, JSON.stringify(manifest, null, 1), 'utf8');
-        } catch {
-          // Non-fatal di serverless
-        }
+        await saveManifest(manifest);
       } catch (r2Err) {
         console.warn('Cloudflare R2 upload error, fallback ke local storage:', r2Err);
       }
@@ -296,13 +334,7 @@ export async function DELETE(req: NextRequest) {
     const localFileSet = new Set<string>(localFiles);
 
     // Baca manifest terbaru
-    let currentManifest: Record<string, string> = {};
-    try {
-      const raw = await fs.readFile(MANIFEST_PATH, 'utf8');
-      currentManifest = JSON.parse(raw);
-    } catch {
-      currentManifest = { ...(rawManifest as Record<string, string>) };
-    }
+    let currentManifest = await getManifest();
 
     if (action === 'clean') {
       // Bersihkan semua index manifest yang berkas fisiknya tidak ada di R2 dan tidak ada di lokal
@@ -334,8 +366,7 @@ export async function DELETE(req: NextRequest) {
         }
       }
 
-      manifest = cleanManifest;
-      await fs.writeFile(MANIFEST_PATH, JSON.stringify(cleanManifest, null, 2), 'utf8');
+      await saveManifest(cleanManifest);
       cache = null;
       r2Cache = null;
 
@@ -367,12 +398,11 @@ export async function DELETE(req: NextRequest) {
         await fs.unlink(filePath);
         deletedFromLocal = true;
       } catch {
-        // Berkas mungkin tidak ada di lokal
+        // Berkas mungkin tidak ada di lokal / read-only filesystem di serverless Vercel
       }
 
       delete currentManifest[name];
-      delete manifest[name];
-      await fs.writeFile(MANIFEST_PATH, JSON.stringify(currentManifest, null, 2), 'utf8');
+      await saveManifest(currentManifest);
       cache = null;
       r2Cache = null;
 
