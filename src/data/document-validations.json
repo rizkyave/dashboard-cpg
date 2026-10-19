@@ -734,5 +734,101 @@
     "createdAt": "2026-10-19T08:08:18.899Z",
     "updatedAt": "2026-10-19T08:08:18.899Z",
     "fileExists": true
+  },
+  {
+    "id": "val-ttb-1792417038897-6l577",
+    "docType": "TTB",
+    "docId": "1792417038897-6l577",
+    "docNumber": "GAJ-TTB-26-01245",
+    "cleanDocNumber": "GAJ-TTB-26-01245",
+    "armada": "AIR COMPRESSOR AIRMAN",
+    "poNumber": "GAJ-PO-26-00751",
+    "fpbNumber": "GAJ-FPB-26-0000642",
+    "relatedDocuments": {
+      "relatedFstbs": [
+        "GAJ-FSTB-26-00783"
+      ],
+      "relatedTtbs": [
+        "GAJ-TTB-26-00817",
+        "GAJ-TTB-26-01245"
+      ],
+      "relatedPos": [
+        "GAJ-PO-26-00751"
+      ]
+    },
+    "receivedDate": "2026-10-19",
+    "originalFileName": "GAJ-TTB-26-01245.pdf",
+    "renamedFileName": "GAJ-TTB-26-01245.pdf",
+    "fileUrl": "/api/r2-file?key=ttb-documents%2FGAJ-TTB-26-01245.pdf&v=1792417082040",
+    "r2Key": "ttb-documents/GAJ-TTB-26-01245.pdf",
+    "storageProvider": "CLOUDFLARE_R2",
+    "purchasingValidation": {
+      "isValidated": true,
+      "validatorName": "Administrator CPG",
+      "validatorUsername": "admin",
+      "validatorRole": "admin",
+      "validatorNik": "CPG-MIS-0001",
+      "validatorJabatan": "Head of MIS & IT Systems",
+      "signatureDataUrl": "data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 300 100\" width=\"300\" height=\"100\"><path d=\"M 20 70 Q 50 10, 80 50 T 130 40 Q 160 80, 190 30 T 250 50 Q 270 20, 280 60\" fill=\"none\" stroke=\"%231e3a8a\" stroke-width=\"4\" stroke-linecap=\"round\"/><path d=\"M 40 85 L 260 80\" fill=\"none\" stroke=\"%231e3a8a\" stroke-width=\"2.5\" stroke-linecap=\"round\"/></svg>",
+      "validatedAt": "2026-10-19T13:38:01.565Z",
+      "notes": "Diverifikasi dan disahkan melalui sistem validasi digital terpadu CPG",
+      "verificationToken": "VAL-TTB-PCH-MGR-MVFAUNPS-F56I"
+    },
+    "logistikValidation": {
+      "isValidated": true,
+      "validatorName": "Administrator CPG",
+      "validatorUsername": "admin",
+      "validatorRole": "admin",
+      "validatorNik": "CPG-MIS-0001",
+      "validatorJabatan": "Head of MIS & IT Systems",
+      "validatedAt": "2026-10-19T13:37:18.897Z"
+    },
+    "lapanganValidation": {
+      "isValidated": false
+    },
+    "ttbSlots": {
+      "deliveredBy": {
+        "isValidated": true,
+        "validatorName": "Administrator CPG",
+        "validatorUsername": "admin",
+        "validatorRole": "admin",
+        "validatorNik": "CPG-MIS-0001",
+        "validatorJabatan": "Head of MIS & IT Systems",
+        "validatedAt": "2026-10-19T13:37:18.897Z"
+      },
+      "receivedBy": {
+        "isValidated": false
+      },
+      "approvedBy": {
+        "isValidated": true,
+        "validatorName": "Administrator CPG",
+        "validatorUsername": "admin",
+        "validatorRole": "admin",
+        "validatorNik": "CPG-MIS-0001",
+        "validatorJabatan": "Head of MIS & IT Systems",
+        "signatureDataUrl": "data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 300 100\" width=\"300\" height=\"100\"><path d=\"M 20 70 Q 50 10, 80 50 T 130 40 Q 160 80, 190 30 T 250 50 Q 270 20, 280 60\" fill=\"none\" stroke=\"%231e3a8a\" stroke-width=\"4\" stroke-linecap=\"round\"/><path d=\"M 40 85 L 260 80\" fill=\"none\" stroke=\"%231e3a8a\" stroke-width=\"2.5\" stroke-linecap=\"round\"/></svg>",
+        "validatedAt": "2026-10-19T13:38:01.565Z",
+        "notes": "Diverifikasi dan disahkan melalui sistem validasi digital terpadu CPG",
+        "verificationToken": "VAL-TTB-LOG-SPV-MVFAUNOT-DHRH"
+      },
+      "acknowledgedBy": {
+        "isValidated": true,
+        "validatorName": "Administrator CPG",
+        "validatorUsername": "admin",
+        "validatorRole": "admin",
+        "validatorNik": "CPG-MIS-0001",
+        "validatorJabatan": "Head of MIS & IT Systems",
+        "signatureDataUrl": "data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 300 100\" width=\"300\" height=\"100\"><path d=\"M 20 70 Q 50 10, 80 50 T 130 40 Q 160 80, 190 30 T 250 50 Q 270 20, 280 60\" fill=\"none\" stroke=\"%231e3a8a\" stroke-width=\"4\" stroke-linecap=\"round\"/><path d=\"M 40 85 L 260 80\" fill=\"none\" stroke=\"%231e3a8a\" stroke-width=\"2.5\" stroke-linecap=\"round\"/></svg>",
+        "validatedAt": "2026-10-19T13:38:01.565Z",
+        "notes": "Diverifikasi dan disahkan melalui sistem validasi digital terpadu CPG",
+        "verificationToken": "VAL-TTB-PCH-MGR-MVFAUNPS-F56I"
+      }
+    },
+    "overallStatus": "SIAP_KIRIM_ARMADA",
+    "completedLinesCount": 3,
+    "isReadyForDispatch": true,
+    "createdAt": "2026-10-19T13:37:18.897Z",
+    "updatedAt": "2026-10-19T13:38:01.565Z",
+    "fileExists": true
   }
 ]

@@ -523,13 +523,16 @@ export default function SerahTerimaLapanganTab({
         fileUrl: rec.fileUrl,
       };
 
+      const comp = extractTtbComponents(cleanKey);
+      const prefix = comp.prefix || null;
+
       seedMap.set(cleanKey, opt);
       exactMap.set(cleanKey, opt);
 
       const norm = cleanKey.replace(/[^A-Z0-9]/g, '');
       if (norm) normMap.set(norm, cleanKey);
 
-      const canon = extractTtbComponents(cleanKey).canonicalTtb;
+      const canon = comp.canonicalTtb;
       if (canon) {
         const normCanon = canon.toUpperCase().replace(/[^A-Z0-9]/g, '');
         normMap.set(normCanon, cleanKey);
@@ -538,8 +541,12 @@ export default function SerahTerimaLapanganTab({
       const digits = cleanKey.replace(/\D/g, '');
       if (digits.length >= 4) {
         const pad5 = digits.length <= 5 ? digits.padStart(5, '0') : digits;
-        digitsMap.set(pad5, cleanKey);
-        digitsMap.set(digits, cleanKey);
+        if (prefix) {
+          digitsMap.set(`${prefix}_${pad5}`, cleanKey);
+          digitsMap.set(`${prefix}_${digits}`, cleanKey);
+        }
+        if (!digitsMap.has(pad5)) digitsMap.set(pad5, cleanKey);
+        if (!digitsMap.has(digits)) digitsMap.set(digits, cleanKey);
       }
     });
 
@@ -549,39 +556,71 @@ export default function SerahTerimaLapanganTab({
     };
   }, [validatedLogistikTtbs, signedTtbMap]);
 
-  // Helper pencocokan TTB ke TTB tervalidasi Staf Logistik
+  // Helper pencocokan TTB ke TTB tervalidasi Staf Logistik dengan validasi ketat prefix entitas perusahaan
   const findMatchingValidatedTtb = (rawTtb: string): TtbReferenceOption | null => {
     if (!rawTtb) return null;
     const trimmed = rawTtb.trim().toUpperCase().replace(/\s+/g, ' ');
+    const rawComp = extractTtbComponents(trimmed);
+    const rawPrefix = rawComp.prefix || null;
     const { exactMap, normMap, digitsMap } = validatedLookupIndex;
 
-    if (exactMap.has(trimmed)) return exactMap.get(trimmed)!;
+    const verifyPrefixMatch = (candidateKey: string): TtbReferenceOption | null => {
+      const opt = exactMap.get(candidateKey);
+      if (!opt) return null;
+      const targetComp = extractTtbComponents(opt.cleanNoTtb || opt.noTtb);
+      const targetPrefix = targetComp.prefix || null;
+      // KETENTUAN MUTLAK: Jika kedua pihak memiliki prefix perusahaan dan berbeda (misal GAJ vs HL), DILARANG MENCOCOKKAN!
+      if (rawPrefix && targetPrefix && rawPrefix !== targetPrefix) {
+        return null;
+      }
+      return opt;
+    };
+
+    if (exactMap.has(trimmed)) {
+      const match = verifyPrefixMatch(trimmed);
+      if (match) return match;
+    }
 
     const norm = trimmed.replace(/[^A-Z0-9]/g, '');
     if (norm && normMap.has(norm)) {
       const key = normMap.get(norm)!;
-      return exactMap.get(key) || null;
+      const match = verifyPrefixMatch(key);
+      if (match) return match;
     }
 
-    const canon = extractTtbComponents(trimmed).canonicalTtb;
+    const canon = rawComp.canonicalTtb;
     if (canon) {
       const normCanon = canon.toUpperCase().replace(/[^A-Z0-9]/g, '');
       if (normMap.has(normCanon)) {
         const key = normMap.get(normCanon)!;
-        return exactMap.get(key) || null;
+        const match = verifyPrefixMatch(key);
+        if (match) return match;
       }
     }
 
     const digits = trimmed.replace(/\D/g, '');
     if (digits.length >= 4) {
       const pad5 = digits.length <= 5 ? digits.padStart(5, '0') : digits;
-      if (digitsMap.has(pad5)) {
-        const key = digitsMap.get(pad5)!;
-        return exactMap.get(key) || null;
-      }
-      if (digitsMap.has(digits)) {
-        const key = digitsMap.get(digits)!;
-        return exactMap.get(key) || null;
+      if (rawPrefix) {
+        const prefKeyPad5 = `${rawPrefix}_${pad5}`;
+        const prefKeyDigits = `${rawPrefix}_${digits}`;
+        if (digitsMap.has(prefKeyPad5)) {
+          const match = verifyPrefixMatch(digitsMap.get(prefKeyPad5)!);
+          if (match) return match;
+        }
+        if (digitsMap.has(prefKeyDigits)) {
+          const match = verifyPrefixMatch(digitsMap.get(prefKeyDigits)!);
+          if (match) return match;
+        }
+      } else {
+        if (digitsMap.has(pad5)) {
+          const match = verifyPrefixMatch(digitsMap.get(pad5)!);
+          if (match) return match;
+        }
+        if (digitsMap.has(digits)) {
+          const match = verifyPrefixMatch(digitsMap.get(digits)!);
+          if (match) return match;
+        }
       }
     }
 

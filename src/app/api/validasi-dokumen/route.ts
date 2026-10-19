@@ -24,7 +24,11 @@ import { getFstbPhotosDir } from '@/utils/fstbPhotosDir';
 import { stampTtbPdf, formatTtbStampDate, TtbStampRoleType } from '@/utils/ttbStamper';
 import { getPhotosDir as getTtbPhotosDir } from '@/utils/ttbPhotosDir';
 import { computeValidationStatus } from '@/utils/validationHelper';
-import { resolveDocRelation } from '@/utils/docRelationResolver';
+import {
+  resolveDocRelation,
+  extractDocPrefix,
+  arePrefixesCompatible,
+} from '@/utils/docRelationResolver';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -147,12 +151,19 @@ async function getSerahTerimaHistory(): Promise<any[]> {
   }
 }
 
-// Helper pencocokan nomor TTB fleksibel
+// Helper pencocokan nomor TTB fleksibel dengan perlindungan isolasi antar entitas perusahaan
 function matchTtbDoc(search: string, cand: string): boolean {
   if (!search || !cand) return false;
   const s1 = search.toUpperCase().replace(/\s+/g, '');
   const s2 = cand.toUpperCase().replace(/\s+/g, '');
-  if (s1 === s2 || s1.includes(s2) || s2.includes(s1)) return true;
+  if (s1 === s2) return true;
+
+  // Cek prefix perusahaan: jika keduanya memiliki prefix eksplisit namun berbeda (misal GAJ vs HL), dilarang cocok
+  const p1 = extractDocPrefix(s1);
+  const p2 = extractDocPrefix(s2);
+  if (p1 && p2 && p1 !== p2) return false;
+
+  if (s1.includes(s2) || s2.includes(s1)) return true;
   const d1 = s1.replace(/\D/g, '');
   const d2 = s2.replace(/\D/g, '');
   if (d1.length >= 4 && d2.length >= 4 && (d1 === d2 || d1.includes(d2) || d2.includes(d1))) return true;
@@ -314,6 +325,17 @@ export async function GET(req: NextRequest) {
           rec.updatedAt = new Date().toISOString();
           hasNewDrafts = true;
         }
+      }
+
+      const docPrefix = extractDocPrefix(rec.cleanDocNumber || rec.docNumber);
+      // Bersihkan PO atau FPB yang sebelumnya tercemar dari perusahaan lain
+      if (docPrefix && rec.poNumber && !arePrefixesCompatible(docPrefix, extractDocPrefix(rec.poNumber))) {
+        rec.poNumber = '';
+        hasNewDrafts = true;
+      }
+      if (docPrefix && rec.fpbNumber && !arePrefixesCompatible(docPrefix, extractDocPrefix(rec.fpbNumber))) {
+        rec.fpbNumber = '';
+        hasNewDrafts = true;
       }
 
       // Sinkronisasi Kunci Relasi No. FPB, PO & Rantai Dokumen Terkait

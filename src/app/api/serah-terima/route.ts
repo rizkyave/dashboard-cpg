@@ -610,11 +610,18 @@ export async function POST(req: NextRequest): Promise<NextResponse<SerahTerimaRe
       const cleanSearch = sanitizeTtbNumber(cleanTtb);
       const digitsOnly = cleanSearch.replace(/\D/g, '');
       const padded5 = digitsOnly && digitsOnly.length <= 5 ? digitsOnly.padStart(5, '0') : '';
+      const searchComp = extractTtbComponents(cleanSearch);
 
       const matchedIndex = validationRecords.findIndex((v) => {
         if (v.docType !== 'TTB') return false;
         const vClean = sanitizeTtbNumber(v.cleanDocNumber || v.docNumber || '');
         if (vClean === cleanSearch) return true;
+
+        const vComp = extractTtbComponents(vClean);
+        if (searchComp.prefix && vComp.prefix && searchComp.prefix !== vComp.prefix) {
+          return false;
+        }
+
         if (v.docNumber.toUpperCase().includes(cleanTtb.toUpperCase())) return true;
         if (cleanSearch.length >= 4 && vClean.includes(cleanSearch)) return true;
         if (digitsOnly && digitsOnly.length >= 4) {
