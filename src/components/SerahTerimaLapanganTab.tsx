@@ -46,6 +46,8 @@ import {
   KondisiSerahTerima,
 } from '@/types/serahTerima';
 import { UploadedTtbItem } from '@/types/ttbUpload';
+import { DocumentValidationRecord } from '@/types/documentValidation';
+import { extractTtbComponents } from '@/utils/ttbRename';
 import { formatDateDdMmYy, extractDateInfo } from '@/utils/formatDate';
 import { useAuth } from '@/context/AuthContext';
 import TtbMediaModal from './TtbMediaModal';
@@ -182,6 +184,10 @@ interface TtbReferenceOption {
   isRecipientSigned: boolean;
   recipientName?: string;
   signedAt?: string;
+  logistikValidatorName?: string;
+  logistikValidatedAt?: string;
+  logistikVerificationToken?: string;
+  fileUrl?: string;
 }
 
 export type TtbDateRangeType = 'H-4' | 'H-7' | 'H-14' | 'H-30' | 'ALL' | 'CUSTOM';
@@ -209,6 +215,7 @@ export default function SerahTerimaLapanganTab({
   const [customStartDate, setCustomStartDate] = useState<string>('');
   const [customEndDate, setCustomEndDate] = useState<string>('');
   const [uploadedTtbs, setUploadedTtbs] = useState<UploadedTtbItem[]>([]);
+  const [documentValidations, setDocumentValidations] = useState<DocumentValidationRecord[]>([]);
   const [isManualTtb, setIsManualTtb] = useState<boolean>(false);
   const [manualNoTtb, setManualNoTtb] = useState<string>('');
   const [manualArmada, setManualArmada] = useState<string>('');
@@ -421,118 +428,250 @@ export default function SerahTerimaLapanganTab({
       }
     });
 
+    // 3. Dari Dokumen Validasi (Slot Received By atau Recipient Validation)
+    documentValidations.forEach((v) => {
+      if (v.docType !== 'TTB') return;
+      const cleanKey = (v.cleanDocNumber || v.docNumber || '').toUpperCase().trim();
+      const isSigned = Boolean(
+        v.recipientValidation?.isSigned ||
+        v.ttbSlots?.receivedBy?.isValidated ||
+        v.overallStatus === 'SUDAH_DITERIMA_ARMADA'
+      );
+      if (cleanKey && isSigned && !map.has(cleanKey)) {
+        map.set(cleanKey, {
+          recipientName:
+            v.recipientValidation?.recipientName ||
+            v.ttbSlots?.receivedBy?.validatorName ||
+            'Crew Armada Kapal',
+          signedAt:
+            v.recipientValidation?.signedAt ||
+            v.ttbSlots?.receivedBy?.validatedAt ||
+            v.updatedAt,
+        });
+      }
+    });
+
     return map;
-  }, [historyRecords, uploadedTtbs]);
+  }, [historyRecords, uploadedTtbs, documentValidations]);
 
-  // 1. Build TTB Reference Catalog from Sisa Layanan, Procurement, and Armada Data
-  // Diurutkan berdasarkan tanggal terbaru TTB terbit (newest date first)
-  const ttbReferenceCatalog = useMemo(() => {
-    const map = new Map<string, TtbReferenceOption>();
+  // 1. Filter Dokumen TTB yang HANYA telah tervalidasi sah oleh Staf Logistik (deliveredBy atau logistikValidation)
+  const validatedLogistikTtbs = useMemo(() => {
+    return documentValidations.filter((rec) => {
+      if (rec.docType !== 'TTB') return false;
+      const isLogStaff = Boolean(rec.ttbSlots?.deliveredBy?.isValidated || rec.logistikValidation?.isValidated);
+      return isLogStaff;
+    });
+  }, [documentValidations]);
 
-    const addOrUpdate = (
-      rawTtb: string,
-      armada: string,
-      noFpb: string | undefined,
-      noPo: string | undefined,
-      namaBarang: string | undefined,
-      satuan: string | undefined,
-      qty: number | string | undefined,
-      rawDate: string | undefined
-    ) => {
-      const ttbClean = (rawTtb || '').trim();
-      if (!ttbClean || ttbClean === '-' || ttbClean.toLowerCase() === 'null') return;
-      const cleanKey = ttbClean.toUpperCase().replace(/\s+/g, ' ');
+  // Map pencocokan toleran untuk nomor TTB tervalidasi Staf Logistik
+  const { validatedLookupIndex, validatedCatalogSeed } = useMemo(() => {
+    const exactMap = new Map<string, TtbReferenceOption>();
+    const normMap = new Map<string, string>(); // alphanumeric -> cleanKey
+    const digitsMap = new Map<string, string>(); // digits -> cleanKey
+    const seedMap = new Map<string, TtbReferenceOption>();
+
+    validatedLogistikTtbs.forEach((rec) => {
+      const cleanDoc = (rec.cleanDocNumber || rec.docNumber || '').trim();
+      if (!cleanDoc || cleanDoc === '-' || cleanDoc.toLowerCase() === 'null') return;
+      const cleanKey = cleanDoc.toUpperCase().replace(/\s+/g, ' ');
 
       const signedInfo = signedTtbMap.get(cleanKey);
-      const isSigned = Boolean(signedInfo);
+      const isSigned = Boolean(
+        signedInfo ||
+        rec.recipientValidation?.isSigned ||
+        rec.ttbSlots?.receivedBy?.isValidated ||
+        rec.overallStatus === 'SUDAH_DITERIMA_ARMADA'
+      );
 
+      const rawDate = rec.receivedDate || rec.ttbSlots?.deliveredBy?.validatedAt || rec.createdAt;
       const dInfo = extractDateInfo(rawDate);
       const dateFormatted = formatDateDdMmYy(rawDate);
-      const timestamp = dInfo.timestamp || 0;
+      const timestamp = dInfo.timestamp || (rawDate ? new Date(rawDate).getTime() : 0);
 
-      if (!map.has(cleanKey)) {
-        map.set(cleanKey, {
-          key: cleanKey,
-          noTtb: ttbClean,
-          cleanNoTtb: cleanKey,
-          armada: (armada || '').trim() || '-',
-          noFpb: noFpb || undefined,
-          noPo: noPo || undefined,
-          vendor: undefined,
-          itemSummary: namaBarang
-            ? `${namaBarang} (${qty || 1} ${satuan || ''})`.trim()
-            : 'Barang Pengadaan / Sisa Layanan',
-          itemsCount: 1,
-          tglTtb: rawDate || undefined,
-          tglTtbFormatted: dateFormatted !== '-' ? dateFormatted : '',
-          tglTtbTimestamp: timestamp,
-          isRecipientSigned: isSigned,
-          recipientName: signedInfo?.recipientName,
-          signedAt: signedInfo?.signedAt,
-        });
-      } else {
-        const existing = map.get(cleanKey)!;
-        if (namaBarang && !existing.itemSummary.includes(namaBarang)) {
-          existing.itemSummary += `, ${namaBarang}`;
-          existing.itemsCount += 1;
-        }
-        // Update tanggal jika record baru memiliki timestamp yang lebih baru / valid
-        if (timestamp > existing.tglTtbTimestamp) {
-          existing.tglTtb = rawDate;
-          existing.tglTtbFormatted = dateFormatted !== '-' ? dateFormatted : existing.tglTtbFormatted;
-          existing.tglTtbTimestamp = timestamp;
-        }
-        if (!existing.noFpb && noFpb) existing.noFpb = noFpb;
-        if (!existing.noPo && noPo) existing.noPo = noPo;
-        if (existing.armada === '-' && armada && armada !== '-') existing.armada = armada;
-        if (isSigned && !existing.isRecipientSigned) {
-          existing.isRecipientSigned = true;
-          existing.recipientName = signedInfo?.recipientName;
-          existing.signedAt = signedInfo?.signedAt;
+      const opt: TtbReferenceOption = {
+        key: cleanKey,
+        noTtb: cleanDoc,
+        cleanNoTtb: cleanKey,
+        armada: (rec.armada || '').trim() || '-',
+        noFpb: rec.fpbNumber || undefined,
+        noPo: rec.poNumber || undefined,
+        vendor: undefined,
+        itemSummary: rec.renamedFileName || 'Dokumen TTB Terverifikasi Staf Logistik',
+        itemsCount: 1,
+        tglTtb: rawDate,
+        tglTtbFormatted: dateFormatted !== '-' ? dateFormatted : '',
+        tglTtbTimestamp: timestamp,
+        isRecipientSigned: isSigned,
+        recipientName:
+          signedInfo?.recipientName ||
+          rec.recipientValidation?.recipientName ||
+          rec.ttbSlots?.receivedBy?.validatorName,
+        signedAt:
+          signedInfo?.signedAt ||
+          rec.recipientValidation?.signedAt ||
+          rec.ttbSlots?.receivedBy?.validatedAt,
+        logistikValidatorName:
+          rec.ttbSlots?.deliveredBy?.validatorName ||
+          rec.logistikValidation?.validatorName ||
+          'Staf Logistik',
+        logistikValidatedAt:
+          rec.ttbSlots?.deliveredBy?.validatedAt ||
+          rec.logistikValidation?.validatedAt,
+        logistikVerificationToken:
+          rec.ttbSlots?.deliveredBy?.verificationToken ||
+          rec.logistikValidation?.verificationToken,
+        fileUrl: rec.fileUrl,
+      };
+
+      seedMap.set(cleanKey, opt);
+      exactMap.set(cleanKey, opt);
+
+      const norm = cleanKey.replace(/[^A-Z0-9]/g, '');
+      if (norm) normMap.set(norm, cleanKey);
+
+      const canon = extractTtbComponents(cleanKey).canonicalTtb;
+      if (canon) {
+        const normCanon = canon.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        normMap.set(normCanon, cleanKey);
+      }
+
+      const digits = cleanKey.replace(/\D/g, '');
+      if (digits.length >= 4) {
+        const pad5 = digits.length <= 5 ? digits.padStart(5, '0') : digits;
+        digitsMap.set(pad5, cleanKey);
+        digitsMap.set(digits, cleanKey);
+      }
+    });
+
+    return {
+      validatedLookupIndex: { exactMap, normMap, digitsMap },
+      validatedCatalogSeed: seedMap,
+    };
+  }, [validatedLogistikTtbs, signedTtbMap]);
+
+  // Helper pencocokan TTB ke TTB tervalidasi Staf Logistik
+  const findMatchingValidatedTtb = (rawTtb: string): TtbReferenceOption | null => {
+    if (!rawTtb) return null;
+    const trimmed = rawTtb.trim().toUpperCase().replace(/\s+/g, ' ');
+    const { exactMap, normMap, digitsMap } = validatedLookupIndex;
+
+    if (exactMap.has(trimmed)) return exactMap.get(trimmed)!;
+
+    const norm = trimmed.replace(/[^A-Z0-9]/g, '');
+    if (norm && normMap.has(norm)) {
+      const key = normMap.get(norm)!;
+      return exactMap.get(key) || null;
+    }
+
+    const canon = extractTtbComponents(trimmed).canonicalTtb;
+    if (canon) {
+      const normCanon = canon.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (normMap.has(normCanon)) {
+        const key = normMap.get(normCanon)!;
+        return exactMap.get(key) || null;
+      }
+    }
+
+    const digits = trimmed.replace(/\D/g, '');
+    if (digits.length >= 4) {
+      const pad5 = digits.length <= 5 ? digits.padStart(5, '0') : digits;
+      if (digitsMap.has(pad5)) {
+        const key = digitsMap.get(pad5)!;
+        return exactMap.get(key) || null;
+      }
+      if (digitsMap.has(digits)) {
+        const key = digitsMap.get(digits)!;
+        return exactMap.get(key) || null;
+      }
+    }
+
+    return null;
+  };
+
+  // 1. Build TTB Reference Catalog - HANYA DATA TTB TERVALIDASI STAF LOGISTIK
+  // Data dari Procurement & Sisa Layanan hanya memperkaya metadata item, tidak dapat masuk tanpa validasi Staf Logistik
+  const ttbReferenceCatalog = useMemo(() => {
+    // Clone seed map dari TTB yang sah tervalidasi Staf Logistik
+    const map = new Map<string, TtbReferenceOption>();
+    validatedCatalogSeed.forEach((val, key) => {
+      map.set(key, { ...val });
+    });
+
+    // Perkaya metadata dari berkas Uploaded TTB (Cloudflare R2)
+    uploadedTtbs.forEach((u) => {
+      const matched = findMatchingValidatedTtb(u.cleanNoTtb || u.noTtb);
+      if (!matched) return; // DILARANG: Belum tervalidasi oleh Staf Logistik!
+
+      const target = map.get(matched.cleanNoTtb);
+      if (!target) return;
+
+      if (u.armada && (target.armada === '-' || !target.armada)) target.armada = u.armada;
+      if (u.noFpb && !target.noFpb) target.noFpb = u.noFpb;
+      if (u.noPo && !target.noPo) target.noPo = u.noPo;
+      if (u.keterangan && (target.itemSummary.endsWith('.pdf') || target.itemSummary.includes('Terverifikasi'))) {
+        target.itemSummary = u.keterangan;
+      }
+      if (u.fileUrl && !target.fileUrl) target.fileUrl = u.fileUrl;
+    });
+
+    // Perkaya rincian item barang dari Procurement
+    procurementItems.forEach((item) => {
+      const matched = findMatchingValidatedTtb(item.noTtb || '');
+      if (!matched) return; // DILARANG: Belum tervalidasi oleh Staf Logistik!
+
+      const target = map.get(matched.cleanNoTtb);
+      if (!target) return;
+
+      if (item.deptArmada && (target.armada === '-' || !target.armada)) target.armada = item.deptArmada;
+      if (item.fpb && !target.noFpb) target.noFpb = item.fpb;
+      if (item.po && !target.noPo) target.noPo = item.po;
+      if (item.item) {
+        const qtyStr = item.qtyTTB || item.qtyPO ? `(${item.qtyTTB || item.qtyPO} ${item.satuan || ''})`.trim() : '';
+        const itemLabel = `${item.item} ${qtyStr}`.trim();
+        if (target.itemSummary.endsWith('.pdf') || target.itemSummary.includes('Terverifikasi')) {
+          target.itemSummary = itemLabel;
+        } else if (!target.itemSummary.includes(item.item)) {
+          target.itemSummary += `, ${itemLabel}`;
+          target.itemsCount += 1;
         }
       }
-    };
+      if (item.tglTtb || item.date) {
+        const dInfo = extractDateInfo(item.tglTtb || item.date);
+        if (dInfo.timestamp && dInfo.timestamp > target.tglTtbTimestamp) {
+          target.tglTtbTimestamp = dInfo.timestamp;
+          target.tglTtbFormatted = formatDateDdMmYy(item.tglTtb || item.date);
+        }
+      }
+    });
 
-    // Dari Sisa Layanan
+    // Perkaya rincian item barang dari Sisa Layanan
     sisaLayananItems.forEach((item) => {
-      addOrUpdate(
-        item.noTtb || '',
-        item.departement || '',
-        item.noFpb,
-        item.noPo,
-        item.namaBarang,
-        item.satuan,
-        item.jmlTtb || item.jmlPo,
-        item.tglTtb || item.tglPo || item.tglFpb
-      );
-    });
+      const matched = findMatchingValidatedTtb(item.noTtb || '');
+      if (!matched) return; // DILARANG: Belum tervalidasi oleh Staf Logistik!
 
-    // Dari Procurement
-    procurementItems.forEach((item) => {
-      addOrUpdate(
-        item.noTtb || '',
-        item.deptArmada || '',
-        item.fpb,
-        item.po,
-        item.item,
-        item.satuan,
-        item.qtyTTB || item.qtyPO,
-        item.tglTtb || item.tglInputTtb || item.tglPo || item.date
-      );
-    });
+      const target = map.get(matched.cleanNoTtb);
+      if (!target) return;
 
-    // Dari Uploaded TTB (Cloudflare R2)
-    uploadedTtbs.forEach((u) => {
-      addOrUpdate(
-        u.noTtb,
-        u.armada,
-        undefined,
-        undefined,
-        u.keterangan || u.renamedFileName,
-        undefined,
-        1,
-        u.receivedDate || u.uploadedAt
-      );
+      if (item.departement && (target.armada === '-' || !target.armada)) target.armada = item.departement;
+      if (item.noFpb && !target.noFpb) target.noFpb = item.noFpb;
+      if (item.noPo && !target.noPo) target.noPo = item.noPo;
+      if (item.namaBarang) {
+        const qtyStr = item.jmlTtb || item.jmlPo ? `(${item.jmlTtb || item.jmlPo} ${item.satuan || ''})`.trim() : '';
+        const itemLabel = `${item.namaBarang} ${qtyStr}`.trim();
+        if (target.itemSummary.endsWith('.pdf') || target.itemSummary.includes('Terverifikasi')) {
+          target.itemSummary = itemLabel;
+        } else if (!target.itemSummary.includes(item.namaBarang)) {
+          target.itemSummary += `, ${itemLabel}`;
+          target.itemsCount += 1;
+        }
+      }
+      if (item.tglTtb || item.tglPo) {
+        const dInfo = extractDateInfo(item.tglTtb || item.tglPo);
+        if (dInfo.timestamp && dInfo.timestamp > target.tglTtbTimestamp) {
+          target.tglTtbTimestamp = dInfo.timestamp;
+          target.tglTtbFormatted = formatDateDdMmYy(item.tglTtb || item.tglPo);
+        }
+      }
     });
 
     const catalog = Array.from(map.values());
@@ -546,7 +685,7 @@ export default function SerahTerimaLapanganTab({
     });
 
     return catalog;
-  }, [sisaLayananItems, procurementItems, uploadedTtbs, signedTtbMap]);
+  }, [validatedCatalogSeed, validatedLookupIndex, uploadedTtbs, procurementItems, sisaLayananItems]);
 
   // Perhitungan batas waktu rentang terbit TTB (Default: H-4)
   const dateRangeBounds = useMemo(() => {
@@ -733,13 +872,14 @@ export default function SerahTerimaLapanganTab({
     }
   };
 
-  // Fetch riwayat serah terima dari API & berkas Upload TTB
+  // Fetch riwayat serah terima, berkas Upload TTB, dan Dokumen Validasi TTB dari API
   const fetchHistory = async () => {
     setIsLoadingHistory(true);
     try {
-      const [resHistory, resUploadTtb] = await Promise.allSettled([
+      const [resHistory, resUploadTtb, resValidations] = await Promise.allSettled([
         fetch('/api/serah-terima'),
         fetch(`/api/upload-ttb?_t=${Date.now()}`),
+        fetch(`/api/validasi-dokumen?type=TTB&_t=${Date.now()}`),
       ]);
 
       if (resHistory.status === 'fulfilled' && resHistory.value.ok) {
@@ -758,8 +898,15 @@ export default function SerahTerimaLapanganTab({
           setUploadedTtbs(dataTtb.items);
         }
       }
+
+      if (resValidations.status === 'fulfilled' && resValidations.value.ok) {
+        const dataVal = await resValidations.value.json();
+        if (Array.isArray(dataVal.records)) {
+          setDocumentValidations(dataVal.records);
+        }
+      }
     } catch (err) {
-      console.warn('Gagal memuat riwayat serah terima & upload TTB:', err);
+      console.warn('Gagal memuat riwayat serah terima, upload TTB & validasi dokumen:', err);
     } finally {
       setIsLoadingHistory(false);
     }
@@ -767,6 +914,15 @@ export default function SerahTerimaLapanganTab({
 
   useEffect(() => {
     fetchHistory();
+  }, []);
+
+  // Sinkronisasi otomatis jika ada verifikasi atau perubahan dokumen di tab Validasi Dokumen
+  useEffect(() => {
+    const handleValChange = () => {
+      fetchHistory();
+    };
+    window.addEventListener('cpg_validation_data_changed', handleValChange);
+    return () => window.removeEventListener('cpg_validation_data_changed', handleValChange);
   }, []);
 
   // Filtered History list
@@ -863,6 +1019,16 @@ export default function SerahTerimaLapanganTab({
 
     if (!targetNoTtb) {
       showToast?.('Nomor TTB referensi wajib dipilih atau diisi.', 'warning');
+      return;
+    }
+
+    // Validasi ketat: Hanya TTB yang telah tervalidasi oleh Staf Logistik yang sah diproses serah terima lapangan
+    const matchedValid = findMatchingValidatedTtb(targetNoTtb);
+    if (!matchedValid) {
+      showToast?.(
+        `Gagal: Nomor TTB "${targetNoTtb}" belum divalidasi oleh Staf Logistik. Sesuai SOP, hanya dokumen TTB yang telah disahkan Staf Logistik yang sah untuk serah terima lapangan.`,
+        'error'
+      );
       return;
     }
 
@@ -1086,13 +1252,14 @@ export default function SerahTerimaLapanganTab({
                 </div>
                 <div>
                   <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-                    <span>Pilih Referensi Data TTB</span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 font-semibold">
-                      Wajib
+                    <span>Pilih Referensi Data TTB (Tervalidasi Staf Logistik)</span>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-semibold flex items-center gap-1">
+                      <ShieldCheck className="size-3" />
+                      <span>Validasi Logistik Wajib</span>
                     </span>
                   </h2>
                   <p className="text-[11px] text-muted-foreground">
-                    Semua pengantaran wajib mengacu pada nomor TTB pengadaan atau barang sisa layanan
+                    Hanya data TTB yang telah tervalidasi oleh Staf Logistik yang ditampilkan dan sah untuk proses serah terima lapangan
                   </p>
                 </div>
               </div>
@@ -1316,8 +1483,9 @@ export default function SerahTerimaLapanganTab({
                               <th className="py-2.5 px-3 whitespace-nowrap">Tgl Terbit TTB</th>
                               <th className="py-2.5 px-3 whitespace-nowrap">Nomor TTB Resmi</th>
                               <th className="py-2.5 px-3 whitespace-nowrap">Armada / Unit</th>
-                              <th className="py-2.5 px-3 min-w-[220px]">Rincian Item Barang</th>
+                              <th className="py-2.5 px-3 min-w-[200px]">Rincian Item Barang</th>
                               <th className="py-2.5 px-3 whitespace-nowrap">No. FPB / PO</th>
+                              <th className="py-2.5 px-3 whitespace-nowrap">Validasi Staf Logistik</th>
                               <th className="py-2.5 px-3 whitespace-nowrap">Status TTD Digital Armada</th>
                               <th className="py-2.5 px-3 text-right whitespace-nowrap">Aksi</th>
                             </tr>
@@ -1325,15 +1493,20 @@ export default function SerahTerimaLapanganTab({
                           <tbody className="divide-y divide-border/60">
                             {filteredTtbOptions.length === 0 ? (
                               <tr>
-                                <td colSpan={7} className="py-10 text-center text-xs text-muted-foreground">
-                                  {ttbSearchTerm ? (
+                                <td colSpan={8} className="py-10 text-center text-xs text-muted-foreground">
+                                  {isLoadingHistory ? (
+                                    <div className="flex flex-col items-center justify-center gap-2">
+                                      <RefreshCw className="size-5 text-indigo-500 animate-spin" />
+                                      <span>Memuat data TTB tervalidasi Staf Logistik...</span>
+                                    </div>
+                                  ) : ttbSearchTerm ? (
                                     <div className="space-y-1.5">
                                       <p>
-                                        Tidak ditemukan data TTB sesuai kata kunci &quot;<strong className="text-foreground">{ttbSearchTerm}</strong>&quot; di rentang {ttbDateRange} ({dateRangeBounds.label}).
+                                        Tidak ditemukan data TTB tervalidasi Staf Logistik sesuai kata kunci &quot;<strong className="text-foreground">{ttbSearchTerm}</strong>&quot; di rentang {ttbDateRange} ({dateRangeBounds.label}).
                                       </p>
                                       {searchMatchesInGrandCatalog > 0 ? (
                                         <p className="text-amber-600 dark:text-amber-400 font-medium">
-                                          💡 Ditemukan <strong>{searchMatchesInGrandCatalog}</strong> data TTB yang cocok di arsip tanggal lainnya.{' '}
+                                          💡 Ditemukan <strong>{searchMatchesInGrandCatalog}</strong> data TTB tervalidasi yang cocok di arsip tanggal lainnya.{' '}
                                           <button
                                             type="button"
                                             onClick={() => setTtbDateRange('ALL')}
@@ -1359,7 +1532,7 @@ export default function SerahTerimaLapanganTab({
                                   ) : (
                                     <div className="space-y-1.5">
                                       <p>
-                                        Tidak ada berkas TTB pada rentang <strong>{ttbDateRange}</strong> ({dateRangeBounds.label}).
+                                        Tidak ada berkas TTB tervalidasi Staf Logistik pada rentang <strong>{ttbDateRange}</strong> ({dateRangeBounds.label}).
                                       </p>
                                       <button
                                         type="button"
@@ -1369,7 +1542,7 @@ export default function SerahTerimaLapanganTab({
                                         }}
                                         className="text-indigo-600 dark:text-indigo-400 font-bold underline cursor-pointer"
                                       >
-                                        Tampilkan Semua Arsip ({ttbStats.grandTotal} TTB)
+                                        Tampilkan Semua Arsip ({ttbStats.grandTotal} TTB Tervalidasi)
                                       </button>
                                     </div>
                                   )}
@@ -1440,6 +1613,21 @@ export default function SerahTerimaLapanganTab({
                                     {!opt.noFpb && !opt.noPo && <span>-</span>}
                                   </td>
 
+                                  {/* Validasi Staf Logistik */}
+                                  <td className="py-2.5 px-3 whitespace-nowrap">
+                                    <div className="space-y-0.5">
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                                        <ShieldCheck className="size-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                        <span>Sah Staf Logistik</span>
+                                      </span>
+                                      {opt.logistikValidatorName && (
+                                        <span className="block text-[9.5px] text-muted-foreground font-mono truncate max-w-[150px]" title={opt.logistikValidatorName}>
+                                          PIC: {opt.logistikValidatorName}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </td>
+
                                   {/* Status TTD Digital Armada / Penerima Akhir */}
                                   <td className="py-2.5 px-3 whitespace-nowrap">
                                     {opt.isRecipientSigned ? (
@@ -1491,14 +1679,19 @@ export default function SerahTerimaLapanganTab({
 
                       {/* Footer Summary */}
                       <div className="px-3.5 py-2 border-t border-border bg-muted/30 text-[11px] text-muted-foreground flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                        <span>
-                          Menampilkan <strong className="text-foreground font-mono">{filteredTtbOptions.length}</strong> dari{' '}
-                          <strong className="text-foreground font-mono">{dateFilteredCatalog.length}</strong> data TTB
-                          {ttbDateRange !== 'ALL' && (
-                            <span className="text-muted-foreground/80 font-mono">
-                              {' '}(Rentang {ttbDateRange}: {dateRangeBounds.label} • dari total {ttbStats.grandTotal} TTB di arsip)
+                        <span className="flex items-center gap-1.5 flex-wrap">
+                          <ShieldCheck className="size-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                          <span>
+                            Menampilkan <strong className="text-foreground font-mono">{filteredTtbOptions.length}</strong> data TTB tervalidasi Staf Logistik
+                            {filteredTtbOptions.length > 0 && (
+                              <span className="text-muted-foreground/80 font-mono">
+                                {' '}({ttbStats.sudah} sudah TTD digital penerima, {ttbStats.belum} menunggu)
+                              </span>
+                            )}
+                            <span className="text-emerald-600 dark:text-emerald-400 font-semibold ml-1">
+                              • Hanya data tervalidasi Staf Logistik yang sah diproses serah terima lapangan
                             </span>
-                          )}
+                          </span>
                         </span>
                         <span className="text-[10px] text-muted-foreground/80 font-mono">
                           Klik baris atau tombol &quot;Pilih TTB&quot; untuk memilih referensi serah terima
@@ -1513,6 +1706,10 @@ export default function SerahTerimaLapanganTab({
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-xs font-mono font-black px-2.5 py-1 rounded-lg bg-emerald-500 text-white shadow-xs">
                           {selectedTtbRef.noTtb}
+                        </span>
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white shadow-xs">
+                          <ShieldCheck className="size-3.5" />
+                          <span>Tervalidasi Staf Logistik: {selectedTtbRef.logistikValidatorName || 'Staf Logistik'}</span>
                         </span>
                         <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-card border border-border text-foreground flex items-center gap-1.5">
                           <Ship className="size-3 text-cyan-500" />
@@ -1558,56 +1755,97 @@ export default function SerahTerimaLapanganTab({
               </div>
             ) : (
               /* Mode 2: Manual TTB Entry */
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-muted/20 p-4 rounded-xl border border-border animate-in fade-in">
-                <div>
-                  <label className="text-[11px] font-semibold text-muted-foreground block mb-1">
-                    Nomor TTB Manual *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={manualNoTtb}
-                    onChange={(e) => setManualNoTtb(e.target.value)}
-                    placeholder="Contoh: CPL-TTB 04975"
-                    className="w-full px-3 py-2 text-xs rounded-lg bg-background border border-border focus:ring-2 focus:ring-indigo-500"
-                  />
+              <div className="space-y-3 bg-muted/20 p-4 rounded-xl border border-border animate-in fade-in">
+                <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2">
+                  <AlertTriangle className="size-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+                  <span>
+                    <strong>Peringatan Verifikasi:</strong> Sesuai SOP CPG, hanya nomor TTB yang telah tervalidasi oleh Staf Logistik yang sah diproses serah terima lapangan. Nomor TTB yang belum berstatus valid di sistem dilarang untuk diproses.
+                  </span>
                 </div>
-                <div>
-                  <label className="text-[11px] font-semibold text-muted-foreground block mb-1">
-                    Armada / Unit Tujuan *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={manualArmada}
-                    onChange={(e) => setManualArmada(e.target.value)}
-                    placeholder="Contoh: SPOB SEA LION"
-                    className="w-full px-3 py-2 text-xs rounded-lg bg-background border border-border focus:ring-2 focus:ring-indigo-500"
-                  />
-                </div>
-                <div>
-                  <label className="text-[11px] font-semibold text-muted-foreground block mb-1">
-                    No. FPB (Opsional)
-                  </label>
-                  <input
-                    type="text"
-                    value={manualFpb}
-                    onChange={(e) => setManualFpb(e.target.value)}
-                    placeholder="Contoh: FPB-2026-0812"
-                    className="w-full px-3 py-2 text-xs rounded-lg bg-background border border-border focus:ring-2 focus:ring-indigo-500"
-                  />
-                </div>
-                <div>
-                  <label className="text-[11px] font-semibold text-muted-foreground block mb-1">
-                    Ringkasan Barang
-                  </label>
-                  <input
-                    type="text"
-                    value={manualItemSummary}
-                    onChange={(e) => setManualItemSummary(e.target.value)}
-                    placeholder="Contoh: Filter Oli 4 Pcs"
-                    className="w-full px-3 py-2 text-xs rounded-lg bg-background border border-border focus:ring-2 focus:ring-indigo-500"
-                  />
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div>
+                    <label className="text-[11px] font-semibold text-muted-foreground block mb-1">
+                      Nomor TTB Manual *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={manualNoTtb}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setManualNoTtb(val);
+                        const matched = findMatchingValidatedTtb(val);
+                        if (matched) {
+                          if (matched.armada && matched.armada !== '-') setManualArmada(matched.armada);
+                          if (matched.noFpb) setManualFpb(matched.noFpb);
+                          if (matched.noPo) setManualPo(matched.noPo);
+                          if (matched.itemSummary) setManualItemSummary(matched.itemSummary);
+                        }
+                      }}
+                      placeholder="Contoh: CPL-TTB-26-06669"
+                      className="w-full px-3 py-2 text-xs rounded-lg bg-background border border-border focus:ring-2 focus:ring-indigo-500 font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold text-muted-foreground block mb-1">
+                      Armada / Unit Tujuan *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={manualArmada}
+                      onChange={(e) => setManualArmada(e.target.value)}
+                      placeholder="Contoh: MT KING OCEAN"
+                      className="w-full px-3 py-2 text-xs rounded-lg bg-background border border-border focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold text-muted-foreground block mb-1">
+                      No. FPB (Opsional)
+                    </label>
+                    <input
+                      type="text"
+                      value={manualFpb}
+                      onChange={(e) => setManualFpb(e.target.value)}
+                      placeholder="Contoh: FPB-2026-0812"
+                      className="w-full px-3 py-2 text-xs rounded-lg bg-background border border-border focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold text-muted-foreground block mb-1">
+                      Ringkasan Barang
+                    </label>
+                    <input
+                      type="text"
+                      value={manualItemSummary}
+                      onChange={(e) => setManualItemSummary(e.target.value)}
+                      placeholder="Contoh: Filter Oli 4 Pcs"
+                      className="w-full px-3 py-2 text-xs rounded-lg bg-background border border-border focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  {/* Live Validation Indicator untuk Input Manual */}
+                  {manualNoTtb.trim() && (
+                    (() => {
+                      const matched = findMatchingValidatedTtb(manualNoTtb);
+                      return matched ? (
+                        <div className="sm:col-span-2 lg:col-span-4 p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-700 dark:text-emerald-300 flex items-center gap-2">
+                          <ShieldCheck className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                          <span>
+                            <strong>Tervalidasi Staf Logistik:</strong> {matched.noTtb} ({matched.armada}) telah diverifikasi sah oleh {matched.logistikValidatorName || 'Staf Logistik'}. Sah untuk serah terima lapangan.
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="sm:col-span-2 lg:col-span-4 p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-700 dark:text-rose-300 flex items-center gap-2">
+                          <AlertOctagon className="size-4 shrink-0 text-rose-600 dark:text-rose-400" />
+                          <span>
+                            <strong>Dilarang:</strong> Nomor TTB ini belum tervalidasi oleh Staf Logistik. Sesuai aturan, hanya data TTB tervalidasi Staf Logistik yang dapat diproses menjadi serah terima lapangan.
+                          </span>
+                        </div>
+                      );
+                    })()
+                  )}
                 </div>
               </div>
             )}

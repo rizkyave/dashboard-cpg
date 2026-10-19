@@ -121,6 +121,9 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
 
       setRecords(data.records || []);
       if (data.metrics) setMetrics(data.metrics);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('cpg_validation_data_changed'));
+      }
       if (showToast) {
         showToast(
           data.message || 'Sinkronisasi R2 berhasil! Berkas dan metadata telah diperbarui.',
@@ -167,6 +170,10 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
           totalFstb: item.docType === 'FSTB' ? Math.max(0, prev.totalFstb - 1) : prev.totalFstb,
           totalTtb: item.docType === 'TTB' ? Math.max(0, prev.totalTtb - 1) : prev.totalTtb,
         }));
+      }
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('cpg_validation_data_changed'));
       }
 
       if (showToast) {
@@ -256,6 +263,9 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
       prev.map((r) => (r.id === updated.id ? updated : r))
     );
     setSelectedRecord(updated);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('cpg_validation_data_changed'));
+    }
     // Refresh re-metrics
     fetchValidations(false);
   };
