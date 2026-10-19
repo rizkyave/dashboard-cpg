@@ -35,6 +35,8 @@ const TTB_HISTORY_FILE_PATH = path.join(process.cwd(), 'src', 'data', 'ttb-uploa
 const SERAH_TERIMA_HISTORY_PATH = path.join(process.cwd(), 'src', 'data', 'serah-terima-history.json');
 
 const R2_METADATA_VALIDATION_KEY = 'validation-metadata/records.json';
+const R2_METADATA_FSTB_KEY = 'fstb-metadata/history.json';
+const R2_METADATA_TTB_KEY = 'ttb-metadata/history.json';
 
 // Baca data validasi dari Cloudflare R2 (dengan fallback ke disk lokal)
 async function getStoredValidations(): Promise<DocumentValidationRecord[]> {
@@ -85,8 +87,23 @@ async function saveValidations(records: DocumentValidationRecord[]) {
   }
 }
 
-// Baca data berkas FSTB yang terunggah
+// Baca data berkas FSTB yang terunggah (Cloudflare R2 dengan fallback disk lokal)
 async function getFstbHistory(): Promise<UploadedFstbItem[]> {
+  if (isR2Configured()) {
+    try {
+      const r2Obj = await getObjectFromR2(R2_METADATA_FSTB_KEY);
+      if (r2Obj && r2Obj.body) {
+        const text = Buffer.from(r2Obj.body).toString('utf8');
+        const parsed = JSON.parse(text);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (err) {
+      console.warn('Gagal membaca history FSTB dari Cloudflare R2:', err);
+    }
+  }
+
   try {
     const raw = await fs.readFile(FSTB_HISTORY_FILE_PATH, 'utf8');
     return JSON.parse(raw);
@@ -95,8 +112,23 @@ async function getFstbHistory(): Promise<UploadedFstbItem[]> {
   }
 }
 
-// Baca data berkas TTB yang terunggah
+// Baca data berkas TTB yang terunggah (Cloudflare R2 dengan fallback disk lokal)
 async function getTtbHistory(): Promise<UploadedTtbItem[]> {
+  if (isR2Configured()) {
+    try {
+      const r2Obj = await getObjectFromR2(R2_METADATA_TTB_KEY);
+      if (r2Obj && r2Obj.body) {
+        const text = Buffer.from(r2Obj.body).toString('utf8');
+        const parsed = JSON.parse(text);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (err) {
+      console.warn('Gagal membaca history TTB dari Cloudflare R2:', err);
+    }
+  }
+
   try {
     const raw = await fs.readFile(TTB_HISTORY_FILE_PATH, 'utf8');
     return JSON.parse(raw);

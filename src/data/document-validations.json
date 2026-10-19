@@ -1145,5 +1145,160 @@
       ]
     },
     "fileExists": true
+  },
+  {
+    "id": "val-fstb-1792398336315-kexsx",
+    "docType": "FSTB",
+    "docId": "1792398336315-kexsx",
+    "docNumber": "CPL-FSTB-26-06288",
+    "cleanDocNumber": "CPL-FSTB-26-06288",
+    "armada": "UB CMPL 01",
+    "poNumber": "CPL-PO-26-04895",
+    "fpbNumber": "CPL-FPB-26-0004019",
+    "relatedDocuments": {
+      "relatedFstbs": [
+        "CPL-FSTB-26-05277",
+        "CPL-FSTB-26-05292",
+        "CPL-FSTB-26-06288"
+      ],
+      "relatedTtbs": [
+        "CPL-TTB-26-06102",
+        "CPL-TTB-26-06111"
+      ],
+      "relatedPos": [
+        "CPL-PO-26-04758",
+        "CPL-PO-26-04759",
+        "CPL-PO-26-04822",
+        "CPL-PO-26-04895"
+      ]
+    },
+    "receivedDate": "2026-10-19",
+    "originalFileName": "CPL-FSTB-26-06288 tr.pdf",
+    "renamedFileName": "CPL-FSTB-26-06288.pdf",
+    "fileUrl": "/api/r2-file?key=fstb-documents%2FCPL-FSTB-26-06288.pdf",
+    "r2Key": "fstb-documents/CPL-FSTB-26-06288.pdf",
+    "storageProvider": "CLOUDFLARE_R2",
+    "purchasingValidation": {
+      "isValidated": true,
+      "validatorName": "TRI WIDIYANTO",
+      "validatorUsername": "tri.widiyanto",
+      "validatorRole": "staf_purchasing",
+      "validatorNik": "CPL-DAO-0148",
+      "validatorJabatan": "Staff Purchasing",
+      "validatedAt": "2026-10-19T08:25:36.315Z",
+      "notes": "Tervalidasi otomatis saat pengunggahan berkas oleh Staf Purchasing",
+      "verificationToken": "VAL-PCH-MVF6FOHY-7M1A"
+    },
+    "logistikValidation": {
+      "isValidated": false
+    },
+    "lapanganValidation": {
+      "isValidated": false,
+      "notes": "N/A - FSTB hanya mencakup Purchasing & Logistik"
+    },
+    "fstbSlots": {
+      "deliveredBy": {
+        "isValidated": true,
+        "validatorName": "TRI WIDIYANTO",
+        "validatorUsername": "tri.widiyanto",
+        "validatorRole": "staf_purchasing",
+        "validatorNik": "CPL-DAO-0148",
+        "validatorJabatan": "Staff Purchasing",
+        "validatedAt": "2026-10-19T08:25:36.315Z",
+        "notes": "Tervalidasi otomatis saat pengunggahan berkas oleh Staf Purchasing",
+        "verificationToken": "VAL-PCH-MVF6FOHY-7M1A"
+      },
+      "receivedBy": {
+        "isValidated": false
+      },
+      "approvedBy": {
+        "isValidated": false
+      },
+      "acknowledgedBy": {
+        "isValidated": false
+      }
+    },
+    "overallStatus": "PROSES_VALIDASI",
+    "completedLinesCount": 1,
+    "isReadyForDispatch": false,
+    "createdAt": "2026-10-19T08:25:36.315Z",
+    "updatedAt": "2026-10-19T08:25:36.315Z",
+    "fileExists": true
+  },
+  {
+    "id": "val-fstb-1792397298899-761w4",
+    "docType": "FSTB",
+    "docId": "1792397298899-761w4",
+    "docNumber": "CPL-FSTB-26-05978",
+    "cleanDocNumber": "CPL-FSTB-26-05978",
+    "armada": "TB CINDARA 2107",
+    "poNumber": "CPL-PO-26-05373",
+    "fpbNumber": "CPL-FPB-26-0004573",
+    "relatedDocuments": {
+      "relatedFstbs": [
+        "CPL-FSTB-26-05978",
+        "CPL-FSTB-26-05979"
+      ],
+      "relatedTtbs": [
+        "CPL-TTB-26-06889",
+        "CPL-TTB-26-06897"
+      ],
+      "relatedPos": [
+        "CPL-PO-26-05373",
+        "CPL-PO-26-05379"
+      ]
+    },
+    "receivedDate": "2026-10-13",
+    "originalFileName": "CPL-FSTB-26-05978 pt.pdf",
+    "renamedFileName": "CPL-FSTB-26-05978.pdf",
+    "fileUrl": "/api/r2-file?key=fstb-documents%2FCPL-FSTB-26-05978.pdf",
+    "r2Key": "fstb-documents/CPL-FSTB-26-05978.pdf",
+    "storageProvider": "CLOUDFLARE_R2",
+    "purchasingValidation": {
+      "isValidated": true,
+      "validatorName": "PUTRI RIYANI",
+      "validatorUsername": "putri.riyani",
+      "validatorRole": "staf_purchasing",
+      "validatorNik": "CPL-DAO-0150",
+      "validatorJabatan": "Staff Purchasing",
+      "validatedAt": "2026-10-19T08:08:18.899Z",
+      "notes": "Tervalidasi otomatis saat pengunggahan berkas oleh Staf Purchasing",
+      "verificationToken": "VAL-PCH-MVF6FOHY-NKFM"
+    },
+    "logistikValidation": {
+      "isValidated": false
+    },
+    "lapanganValidation": {
+      "isValidated": false,
+      "notes": "N/A - FSTB hanya mencakup Purchasing & Logistik"
+    },
+    "fstbSlots": {
+      "deliveredBy": {
+        "isValidated": true,
+        "validatorName": "PUTRI RIYANI",
+        "validatorUsername": "putri.riyani",
+        "validatorRole": "staf_purchasing",
+        "validatorNik": "CPL-DAO-0150",
+        "validatorJabatan": "Staff Purchasing",
+        "validatedAt": "2026-10-19T08:08:18.899Z",
+        "notes": "Tervalidasi otomatis saat pengunggahan berkas oleh Staf Purchasing",
+        "verificationToken": "VAL-PCH-MVF6FOHY-NKFM"
+      },
+      "receivedBy": {
+        "isValidated": false
+      },
+      "approvedBy": {
+        "isValidated": false
+      },
+      "acknowledgedBy": {
+        "isValidated": false
+      }
+    },
+    "overallStatus": "PROSES_VALIDASI",
+    "completedLinesCount": 1,
+    "isReadyForDispatch": false,
+    "createdAt": "2026-10-19T08:08:18.899Z",
+    "updatedAt": "2026-10-19T08:08:18.899Z",
+    "fileExists": true
   }
 ]
