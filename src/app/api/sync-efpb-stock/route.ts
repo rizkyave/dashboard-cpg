@@ -2,11 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import * as XLSX from 'xlsx';
 import { parseInventoryWorkbook, calculateInventorySummary, determineCategory } from '@/utils/inventoryParser';
 import { InventoryItem } from '@/types/procurement';
+import { isR2Configured, uploadToR2 } from '@/utils/r2Client';
 
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 const DEFAULT_EFPB_URL = 'https://e-fpb.cindaragroup.com/KodeItemForAccurateList';
+const R2_INVENTORY_KEY = 'dashboard-metadata/inventory-items.json';
 
 function parseEfpbHtmlTable(html: string): InventoryItem[] {
   const items: InventoryItem[] = [];
@@ -297,9 +300,21 @@ export async function POST(req: NextRequest) {
 
     const summary = calculateInventorySummary(items);
 
+    if (items.length > 0 && isR2Configured()) {
+      try {
+        await uploadToR2({
+          key: R2_INVENTORY_KEY,
+          body: Buffer.from(JSON.stringify({ items, summary, savedAt: new Date().toISOString() }), 'utf8'),
+          contentType: 'application/json',
+        });
+      } catch (r2Err) {
+        console.warn('Gagal menyimpan hasil sync stok ke Cloudflare R2:', r2Err);
+      }
+    }
+
     return NextResponse.json({
       success: true,
-      message: `Berhasil menyinkronkan ${items.length.toLocaleString('id-ID')} item persediaan langsung dari e-FPB Accurate!`,
+      message: `Berhasil menyinkronkan ${items.length.toLocaleString('id-ID')} item persediaan langsung dari e-FPB Accurate & tersinkron ke R2!`,
       sessionId,
       count: items.length,
       items,

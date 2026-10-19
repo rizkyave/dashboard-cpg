@@ -1,16 +1,59 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { KapalPosisiItem, KapalPosisiSummary } from '@/types/procurement';
+import {
+  isR2Configured,
+  getObjectFromR2,
+  uploadToR2,
+} from '@/utils/r2Client';
 
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 const DEFAULT_BASE_URL = 'https://cindara.beruangmadutech.web.id';
 const DEFAULT_USERNAME = 'logistik';
 const DEFAULT_PASSWORD = '12345';
+const R2_POSISI_KAPAL_KEY = 'dashboard-metadata/posisi-kapal.json';
 
 interface ParsedDailyResult {
   items: KapalPosisiItem[];
   summary: KapalPosisiSummary;
+}
+
+async function loadFromR2(): Promise<ParsedDailyResult | null> {
+  if (!isR2Configured()) return null;
+  try {
+    const obj = await getObjectFromR2(R2_POSISI_KAPAL_KEY);
+    if (obj && obj.body) {
+      const text = Buffer.from(obj.body).toString('utf8');
+      const parsed = JSON.parse(text);
+      if (parsed && Array.isArray(parsed.items) && parsed.items.length > 0) {
+        return {
+          items: parsed.items,
+          summary: parsed.summary,
+        };
+      }
+    }
+  } catch (err) {
+    console.warn('Gagal membaca posisi-kapal dari Cloudflare R2:', err);
+  }
+  return null;
+}
+
+async function saveToR2(items: KapalPosisiItem[], summary: KapalPosisiSummary): Promise<boolean> {
+  if (!isR2Configured()) return false;
+  try {
+    const payload = JSON.stringify({ items, summary, savedAt: new Date().toISOString() });
+    await uploadToR2({
+      key: R2_POSISI_KAPAL_KEY,
+      body: Buffer.from(payload, 'utf8'),
+      contentType: 'application/json',
+    });
+    return true;
+  } catch (err) {
+    console.warn('Gagal menyimpan posisi-kapal ke Cloudflare R2:', err);
+    return false;
+  }
 }
 
 function parseDailyReportHtml(html: string): ParsedDailyResult {
@@ -41,7 +84,6 @@ function parseDailyReportHtml(html: string): ParsedDailyResult {
     while ((tdMatch = tdRegex.exec(content)) !== null) {
       tds.push(tdMatch[1]);
     }
-
 
     // TD 0: Nama Kapal & Call Sign
     const tdNama = tds[0] || '';
@@ -203,12 +245,32 @@ async function scrapeDailyReport(username = DEFAULT_USERNAME, password = DEFAULT
     throw new Error('Akses ditolak (403) ke modul voyage_daily. Periksa perizinan user.');
   }
 
-  return parseDailyReportHtml(dailyHtml);
+  const result = parseDailyReportHtml(dailyHtml);
+  // Auto-save to R2
+  if (result.items.length > 0) {
+    await saveToR2(result.items, result.summary);
+  }
+  return result;
 }
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
+    const force = searchParams.get('force') === 'true' || searchParams.get('sync') === 'true';
+
+    // Jika tidak dipaksa re-scrape, coba ambil cache cloud dari R2 terlebih dahulu
+    if (!force) {
+      const cached = await loadFromR2();
+      if (cached && cached.items.length > 0) {
+        return NextResponse.json({
+          success: true,
+          fromCloud: true,
+          message: `Berhasil mengambil data Posisi Kapal (${cached.items.length} kapal) dari Cloudflare R2.`,
+          ...cached,
+        });
+      }
+    }
+
     const username = searchParams.get('username') || DEFAULT_USERNAME;
     const password = searchParams.get('password') || DEFAULT_PASSWORD;
 
@@ -216,11 +278,22 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: `Berhasil mengambil data Daily Report Posisi Kapal (${data.items.length} kapal).`,
+      message: `Berhasil mengambil data Daily Report Posisi Kapal (${data.items.length} kapal) & tersinkron ke R2.`,
       ...data,
     });
   } catch (error: any) {
     console.error('Error fetching Daily Report Posisi Kapal:', error);
+    // Jika scraping gagal, coba fallback ke R2
+    const fallback = await loadFromR2();
+    if (fallback && fallback.items.length > 0) {
+      return NextResponse.json({
+        success: true,
+        fromCloudFallback: true,
+        message: 'Menggunakan data posisi kapal terakhir dari Cloudflare R2.',
+        ...fallback,
+      });
+    }
+
     return NextResponse.json(
       {
         success: false,
@@ -234,6 +307,27 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
+
+    // Jika client mengirim data langsung untuk disimpan
+    if (Array.isArray(body?.items) && body.items.length > 0) {
+      const summary = body.summary || {
+        totalKapal: body.items.length,
+        totalON: 0,
+        totalSB: 0,
+        totalMT: 0,
+        totalBD: 0,
+        totalDK: 0,
+        lastUpdated: new Date().toLocaleTimeString('id-ID'),
+      };
+      await saveToR2(body.items, summary);
+      return NextResponse.json({
+        success: true,
+        message: 'Data Posisi Kapal berhasil disimpan ke Cloudflare R2.',
+        items: body.items,
+        summary,
+      });
+    }
+
     const username = (body?.username || DEFAULT_USERNAME).trim();
     const password = (body?.password || DEFAULT_PASSWORD).trim();
 
@@ -241,7 +335,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: `Berhasil mengambil data Daily Report Posisi Kapal (${data.items.length} kapal).`,
+      message: `Berhasil mengambil data Daily Report Posisi Kapal (${data.items.length} kapal) & tersinkron ke R2.`,
       ...data,
     });
   } catch (error: any) {
@@ -255,3 +349,4 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+

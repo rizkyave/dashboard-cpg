@@ -3,12 +3,16 @@ import * as XLSX from 'xlsx';
 import fs from 'fs';
 import path from 'path';
 import { parseAndMergeWorkbook } from '@/utils/excelParser';
+import { isR2Configured, uploadToR2 } from '@/utils/r2Client';
 
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 const DEFAULT_SHEET_URL =
   'https://docs.google.com/spreadsheets/d/16Ae8gGsGYx_xCNaqZvME-uZvaAeECsE69PBYlY32fZk/edit?pli=1&gid=0#gid=0';
+const R2_PROCUREMENT_KEY = 'dashboard-metadata/procurement-data.json';
+const R2_ARMADA_KEY = 'dashboard-metadata/armada-data.json';
 
 function extractExportUrl(rawUrl: string): string {
   const trimmed = rawUrl.trim();
@@ -183,11 +187,33 @@ async function processSheet(targetUrl: string) {
     );
   }
 
+  // Simpan data tersinkron ke Cloudflare R2 agar semua device langsung terupdate
+  if (isR2Configured()) {
+    try {
+      await Promise.all([
+        uploadToR2({
+          key: R2_PROCUREMENT_KEY,
+          body: Buffer.from(JSON.stringify(result.procurement), 'utf8'),
+          contentType: 'application/json',
+        }),
+        result.armada.length > 0
+          ? uploadToR2({
+              key: R2_ARMADA_KEY,
+              body: Buffer.from(JSON.stringify(result.armada), 'utf8'),
+              contentType: 'application/json',
+            })
+          : Promise.resolve(),
+      ]);
+    } catch (r2Err) {
+      console.warn('Gagal menyimpan hasil sync sheets ke Cloudflare R2:', r2Err);
+    }
+  }
+
   return NextResponse.json({
     success: true,
     message: isLocalFallback
-      ? `Berhasil menyinkronkan ${result.procurement.length.toLocaleString('id-ID')} data procurement langsung dari file ${sourceLabel}!`
-      : `Berhasil menyinkronkan ${result.procurement.length.toLocaleString('id-ID')} data procurement langsung dari Google Sheets!`,
+      ? `Berhasil menyinkronkan ${result.procurement.length.toLocaleString('id-ID')} data procurement langsung dari file ${sourceLabel} & tersinkron ke R2!`
+      : `Berhasil menyinkronkan ${result.procurement.length.toLocaleString('id-ID')} data procurement langsung dari Google Sheets & tersinkron ke R2!`,
     stats: result.stats,
     sheetNames: workbook.SheetNames,
     procurement: result.procurement,

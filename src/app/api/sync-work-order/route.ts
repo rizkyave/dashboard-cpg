@@ -1,12 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as XLSX from 'xlsx';
 import { WorkOrderItem, WorkOrderSummary } from '@/types/workOrder';
+import {
+  isR2Configured,
+  getObjectFromR2,
+  uploadToR2,
+} from '@/utils/r2Client';
 
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 const DEFAULT_WO_SHEET_URL =
   'https://docs.google.com/spreadsheets/d/1PCko1zSn1PNpK9kfnUp3CoMGeeKsxhycwBiUH78b9B4/edit?gid=687878754#gid=687878754';
+const R2_WO_KEY = 'dashboard-metadata/work-orders.json';
 
 function extractExportUrl(rawUrl: string): string {
   const trimmed = rawUrl.trim();
@@ -297,6 +304,19 @@ async function processWorkOrderSheet(targetUrl: string) {
     lastSynced: new Date().toISOString(),
   };
 
+  // Simpan data Work Order ke Cloudflare R2
+  if (items.length > 0 && isR2Configured()) {
+    try {
+      await uploadToR2({
+        key: R2_WO_KEY,
+        body: Buffer.from(JSON.stringify({ items, summary, sheetName: targetSheetName }), 'utf8'),
+        contentType: 'application/json',
+      });
+    } catch (r2Err) {
+      console.warn('Gagal menyimpan work-orders ke R2:', r2Err);
+    }
+  }
+
   return NextResponse.json({
     success: true,
     sheetName: targetSheetName,
@@ -310,6 +330,31 @@ async function processWorkOrderSheet(targetUrl: string) {
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
+    const forceRefresh = searchParams.get('refresh') === 'true' || searchParams.get('sync') === 'true';
+
+    // Jika tidak force refresh, coba muat dari Cloudflare R2 terlebih dahulu untuk kecepatan maksimal
+    if (!forceRefresh && isR2Configured()) {
+      try {
+        const obj = await getObjectFromR2(R2_WO_KEY);
+        if (obj && obj.body) {
+          const parsed = JSON.parse(Buffer.from(obj.body).toString('utf8'));
+          if (parsed && Array.isArray(parsed.items) && parsed.items.length > 0) {
+            return NextResponse.json({
+              success: true,
+              fromCloud: true,
+              sheetName: parsed.sheetName || 'Form Responses 1',
+              items: parsed.items,
+              summary: parsed.summary,
+              totalCount: parsed.items.length,
+              lastSynced: parsed.summary?.lastSynced || new Date().toISOString(),
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Gagal membaca work-orders dari R2:', err);
+      }
+    }
+
     const targetUrl = searchParams.get('url') || DEFAULT_WO_SHEET_URL;
     return await processWorkOrderSheet(targetUrl);
   } catch (err: any) {
@@ -323,15 +368,39 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    let targetUrl = DEFAULT_WO_SHEET_URL;
+    let body: any = {};
     try {
-      const body = await req.json();
-      if (body?.url) {
-        targetUrl = body.url;
-      }
+      body = await req.json();
     } catch {
-      // Default url
+      // Empty or non-JSON
     }
+
+    // Jika client mengirim data items langsung untuk disimpan ke R2
+    if (Array.isArray(body?.items) && body.items.length > 0) {
+      const summary = body.summary || {
+        total: body.items.length,
+        open: 0,
+        onProgress: 0,
+        close: 0,
+        withFpb: 0,
+        lastSynced: new Date().toISOString(),
+      };
+      if (isR2Configured()) {
+        await uploadToR2({
+          key: R2_WO_KEY,
+          body: Buffer.from(JSON.stringify({ items: body.items, summary }), 'utf8'),
+          contentType: 'application/json',
+        });
+      }
+      return NextResponse.json({
+        success: true,
+        message: 'Data Work Order berhasil disimpan ke Cloudflare R2.',
+        items: body.items,
+        summary,
+      });
+    }
+
+    const targetUrl = body?.url || DEFAULT_WO_SHEET_URL;
     return await processWorkOrderSheet(targetUrl);
   } catch (err: any) {
     console.error('Error in POST /api/sync-work-order:', err);

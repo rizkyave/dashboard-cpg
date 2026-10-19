@@ -260,11 +260,25 @@ export default function DashboardPage() {
     setSmItems(merged);
     setSmSummary(summary);
     saveStoredServiceMaintenance(merged, summary);
+
+    // Sync ke Cloudflare R2
+    fetch('/api/sync-sm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: merged, summary }),
+    }).catch((e) => console.warn('Sync SM to R2 error:', e));
   };
 
   const handleSaveSmVendors = (configs: VendorSheetConfig[]) => {
     setSmVendors(configs);
     saveStoredSmVendors(configs);
+
+    // Sync ke Cloudflare R2
+    fetch('/api/sync-sm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ saveVendors: configs }),
+    }).catch((e) => console.warn('Sync SM vendors to R2 error:', e));
   };
 
   // State untuk modul Laporan Sisa Layanan Gabungan Semua Unit (PT Cindara Pratama Group)
@@ -302,6 +316,13 @@ export default function DashboardPage() {
     setSisaLayananItems(newItems);
     setSisaLayananSummary(summary);
     saveStoredSisaLayanan(newItems, summary);
+
+    // Sync ke Cloudflare R2
+    fetch('/api/sisa-layanan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: newItems, summary }),
+    }).catch((e) => console.warn('Sync Sisa Layanan to R2 error:', e));
   };
 
   // State untuk sinkronisasi live Google Sheets
@@ -549,7 +570,55 @@ export default function DashboardPage() {
         if (savedKapal && savedKapal.items && savedKapal.items.length > 0) {
           setKapalPosisiItems(savedKapal.items);
           if (savedKapal.summary) setKapalPosisiSummary(savedKapal.summary);
+        } else {
+          // Auto-fetch Posisi Kapal dari server/R2 saat pertama kali buka
+          fetch('/api/posisi-kapal')
+            .then((r) => r.json())
+            .then((res) => {
+              if (res.success && Array.isArray(res.items) && res.items.length > 0) {
+                setKapalPosisiItems(res.items);
+                if (res.summary) setKapalPosisiSummary(res.summary);
+                saveStoredKapalPosisi(res.items, res.summary || null);
+              }
+            })
+            .catch((e) => console.warn('Auto-fetch posisi kapal background:', e));
         }
+
+        // Sinkronisasi data Procurement & Armada terbaru dari Cloudflare R2 secara background
+        fetch('/api/dashboard-sync')
+          .then((r) => r.json())
+          .then((res) => {
+            if (res.success && Array.isArray(res.procurement) && res.procurement.length > 0) {
+              const cloudProc = res.procurement.map(sanitizeProcItem);
+              const cloudArm = (res.armada || []).map(sanitizeArmItem);
+              const enriched = enrichProcurementAndArmada(cloudProc, cloudArm, activeWoItems);
+
+              enriched.procurement.sort((a, b) => {
+                const timeA = extractDateInfo(a.date).timestamp || 0;
+                const timeB = extractDateInfo(b.date).timestamp || 0;
+                if (timeA !== timeB) return timeB - timeA;
+                const numA = (a.fpb || a.po || '').trim();
+                const numB = (b.fpb || b.po || '').trim();
+                return numB.localeCompare(numA, undefined, { numeric: true, sensitivity: 'base' });
+              });
+
+              enriched.armada.sort((a, b) => {
+                const timeA = extractDateInfo(a.tglPo || a.tglFpb).timestamp || 0;
+                const timeB = extractDateInfo(b.tglPo || b.tglFpb).timestamp || 0;
+                if (timeA !== timeB) return timeB - timeA;
+                const numA = (a.fpb || a.noPo || a.noFstb || '').trim();
+                const numB = (b.fpb || b.noPo || b.noFstb || '').trim();
+                return numB.localeCompare(numA, undefined, { numeric: true, sensitivity: 'base' });
+              });
+
+              setProcurementData(enriched.procurement);
+              setArmadaData(enriched.armada);
+              saveStoredProcurement(enriched.procurement);
+              saveStoredArmada(enriched.armada);
+            }
+          })
+          .catch((e) => console.warn('Auto-fetch dashboard-sync cloud background:', e));
+
         if (activeWoItems.length === 0) {
           // Sync Work Order on initial load in background if not yet cached
           fetch('/api/sync-work-order')
@@ -579,6 +648,22 @@ export default function DashboardPage() {
         if (savedSm && savedSm.items && savedSm.items.length > 0) {
           setSmItems(savedSm.items);
           if (savedSm.summary) setSmSummary(savedSm.summary);
+        } else {
+          // Auto-fetch SM dari Cloudflare R2
+          fetch('/api/sync-sm')
+            .then((r) => r.json())
+            .then((res) => {
+              if (res.success && Array.isArray(res.items) && res.items.length > 0) {
+                setSmItems(res.items);
+                if (res.summary) setSmSummary(res.summary);
+                saveStoredServiceMaintenance(res.items, res.summary || null);
+              }
+              if (res.vendors && Array.isArray(res.vendors) && res.vendors.length > 0) {
+                setSmVendors(res.vendors);
+                saveStoredSmVendors(res.vendors);
+              }
+            })
+            .catch((e) => console.warn('Auto-fetch SM background:', e));
         }
         setSmVendors(loadStoredSmVendors());
 
@@ -775,13 +860,39 @@ export default function DashboardPage() {
     showToast('File CSV persediaan stok berhasil diunduh.', 'success');
   };
 
+  const syncDashboardDataToCloud = (proc: ProcurementItem[], arm: ArmadaItem[]) => {
+    fetch('/api/dashboard-sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        procurement: proc,
+        armada: arm,
+        updatedBy: user?.name || user?.username || 'user',
+      }),
+    }).catch((e) => console.warn('Sync dashboard data to R2 error:', e));
+  };
+
   const handleInventoryUpload = (items: InventoryItem[], summary?: InventorySummary) => {
     setInventoryItems(items);
     if (summary) setInventorySummary(summary);
     saveStoredInventory(items, summary || null);
+
+    // Sync ke Cloudflare R2
+    fetch('/api/inventory', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items, summary }),
+    }).catch((e) => console.warn('Sync Inventory to R2 error:', e));
   };
 
   const handleScopedReset = async (scope: ResetScope) => {
+    // Reset di Cloudflare R2
+    fetch('/api/dashboard-sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'reset', scope }),
+    }).catch(() => {});
+
     if (scope === 'all') {
       setSelectedEntity('ALL');
       setSelectedLapse('ALL');
@@ -845,12 +956,16 @@ export default function DashboardPage() {
     if (enriched.armada.length > 0) {
       saveStoredArmada(enriched.armada);
     }
+
+    // Simpan ke Cloudflare R2 untuk sinkronisasi antar-perangkat secara instan
+    syncDashboardDataToCloud(enriched.procurement, enriched.armada);
   };
 
   const handleNewRecordSubmit = (item: ProcurementItem) => {
     setProcurementData((prev) => {
       const updated = [item, ...prev];
       saveStoredProcurement(updated);
+      syncDashboardDataToCloud(updated, armadaData);
       return updated;
     });
     showToast(`Berkas ${item.fpb} berhasil ditambahkan ke antrian monitoring.`, 'success');
@@ -863,6 +978,9 @@ export default function DashboardPage() {
     let procChanged = false;
     let armChanged = false;
 
+    let updatedProc = procurementData;
+    let updatedArm = armadaData;
+
     setProcurementData((prevProc) => {
       const nextProc = prevProc.map((p) => {
         if (normalizeFpbKey(p.fpb) === fpbKey && p.workOrderNo !== woNo) {
@@ -873,6 +991,7 @@ export default function DashboardPage() {
       });
       if (procChanged) {
         saveStoredProcurement(nextProc);
+        updatedProc = nextProc;
       }
       return nextProc;
     });
@@ -887,9 +1006,14 @@ export default function DashboardPage() {
       });
       if (armChanged) {
         saveStoredArmada(nextArm);
+        updatedArm = nextArm;
       }
       return nextArm;
     });
+
+    if (procChanged || armChanged) {
+      syncDashboardDataToCloud(updatedProc, updatedArm);
+    }
   };
 
   const triggerAiBottleneckAudit = () => {

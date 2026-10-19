@@ -3,9 +3,14 @@ import * as XLSX from 'xlsx';
 import fs from 'fs';
 import path from 'path';
 import { parseAndMergeWorkbook } from '@/utils/excelParser';
+import { isR2Configured, uploadToR2 } from '@/utils/r2Client';
 
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+
+const R2_PROCUREMENT_KEY = 'dashboard-metadata/procurement-data.json';
+const R2_ARMADA_KEY = 'dashboard-metadata/armada-data.json';
 
 function findLatestLocalProcurementFile(): { buffer: Buffer; fileName: string } | null {
   const candidateDirs = [
@@ -76,9 +81,30 @@ export async function GET() {
     const workbook = XLSX.read(local.buffer, { type: 'buffer' });
     const result = parseAndMergeWorkbook(workbook);
 
+    if (isR2Configured() && (result.procurement.length > 0 || result.armada.length > 0)) {
+      try {
+        await Promise.all([
+          uploadToR2({
+            key: R2_PROCUREMENT_KEY,
+            body: Buffer.from(JSON.stringify(result.procurement), 'utf8'),
+            contentType: 'application/json',
+          }),
+          result.armada.length > 0
+            ? uploadToR2({
+                key: R2_ARMADA_KEY,
+                body: Buffer.from(JSON.stringify(result.armada), 'utf8'),
+                contentType: 'application/json',
+              })
+            : Promise.resolve(),
+        ]);
+      } catch (r2Err) {
+        console.warn('Gagal menyimpan hasil desktop excel ke Cloudflare R2:', r2Err);
+      }
+    }
+
     return NextResponse.json({
       success: true,
-      message: `Berhasil memuat ${result.procurement.length.toLocaleString('id-ID')} data dari ${local.fileName}!`,
+      message: `Berhasil memuat ${result.procurement.length.toLocaleString('id-ID')} data dari ${local.fileName} & tersinkron ke R2!`,
       fileName: local.fileName,
       stats: result.stats,
       sheetNames: workbook.SheetNames,
