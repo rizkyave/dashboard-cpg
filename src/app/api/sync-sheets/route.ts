@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 const DEFAULT_SHEET_URL =
-  'https://docs.google.com/spreadsheets/d/16Ae8gGsGYx_xCNaqZvME-uZvaAeECsE69PBYlY32fZk/edit?pli=1&gid=0#gid=0';
+  'https://docs.google.com/spreadsheets/d/16Ae8qGsGYX_xCNsqZvME-uZvaAeECsE69PBYlY32fZk/edit?pli=1&gid=0#gid=0';
 const R2_PROCUREMENT_KEY = 'dashboard-metadata/procurement-data.json';
 const R2_ARMADA_KEY = 'dashboard-metadata/armada-data.json';
 
@@ -27,7 +27,8 @@ function extractExportUrl(rawUrl: string): string {
 }
 
 /**
- * Cari file Excel Monitoring Berkas Internal Procurement terbaru dari folder Downloads / Project
+ * Cari file Excel Monitoring Berkas Internal Procurement terbaru dari folder Downloads / Project / Desktop.
+ * Mengabaikan file lock sementara Excel (~$*) dan memilih file valid terbaru berdasarkan waktu modifikasi (mtime).
  */
 function findLatestLocalProcurementFile(): { buffer: Buffer; fileName: string } | null {
   const candidateDirs: string[] = [process.cwd()];
@@ -38,7 +39,7 @@ function findLatestLocalProcurementFile(): { buffer: Buffer; fileName: string } 
     );
   }
 
-  let bestFile: { filePath: string; mtime: number; version: number } | null = null;
+  const validCandidates: { filePath: string; mtime: number; size: number }[] = [];
 
   for (const dir of Array.from(new Set(candidateDirs))) {
     if (!fs.existsSync(dir)) continue;
@@ -46,6 +47,7 @@ function findLatestLocalProcurementFile(): { buffer: Buffer; fileName: string } 
       const files = fs.readdirSync(dir);
       for (const file of files) {
         if (!file.endsWith('.xlsx')) continue;
+        if (file.startsWith('~$')) continue; // Abaikan file lock sementara Excel
         const lower = file.toLowerCase();
         if (
           lower.includes('monitoring berkas internal procurement') ||
@@ -53,13 +55,13 @@ function findLatestLocalProcurementFile(): { buffer: Buffer; fileName: string } 
           lower.includes('monitoring berkas procurement')
         ) {
           const fullPath = path.join(dir, file);
-          const stat = fs.statSync(fullPath);
-          const vMatch = file.match(/\((\d+)\)/);
-          const version = vMatch ? parseInt(vMatch[1], 10) : (lower.includes('latest') ? 999 : 0);
-          const score = version * 10000000000000 + stat.mtimeMs;
-
-          if (!bestFile || score > (bestFile.version * 10000000000000 + bestFile.mtime)) {
-            bestFile = { filePath: fullPath, mtime: stat.mtimeMs, version };
+          try {
+            const stat = fs.statSync(fullPath);
+            if (stat.size > 50000) { // Minimal 50KB untuk file valid
+              validCandidates.push({ filePath: fullPath, mtime: stat.mtimeMs, size: stat.size });
+            }
+          } catch {
+            // Abaikan file yang tidak dapat dibaca
           }
         }
       }
@@ -68,14 +70,18 @@ function findLatestLocalProcurementFile(): { buffer: Buffer; fileName: string } 
     }
   }
 
-  if (bestFile) {
+  // Urutkan dari yang paling baru diubah / diunduh (mtime terbesar)
+  validCandidates.sort((a, b) => b.mtime - a.mtime);
+
+  for (const candidate of validCandidates) {
     try {
-      const buffer = fs.readFileSync(bestFile.filePath);
-      return { buffer, fileName: path.basename(bestFile.filePath) };
+      const buffer = fs.readFileSync(candidate.filePath);
+      return { buffer, fileName: path.basename(candidate.filePath) };
     } catch {
-      return null;
+      // Lanjut ke kandidat berikutnya jika file sedang terkunci eksklusif
     }
   }
+
   return null;
 }
 
@@ -168,7 +174,7 @@ async function processSheet(targetUrl: string) {
       {
         success: false,
         message:
-          'Akses Google Sheets masih dibatasi (HTTP 401/403) dan belum ditemukan file Excel Monitoring Berkas Internal Procurement di folder Downloads/komputer.',
+          'Akses Google Sheets masih dibatasi (HTTP 401/403). Untuk membukanya, ubah izin berbagi Google Sheets menjadi "Siapa saja yang memiliki link" atau pasang Webhook Apps Script di menu Auto-Save.',
       },
       { status: 403 }
     );
@@ -205,15 +211,17 @@ async function processSheet(targetUrl: string) {
           : Promise.resolve(),
       ]);
     } catch (r2Err) {
-      console.warn('Gagal menyimpan hasil sync sheets ke Cloudflare R2:', r2Err);
+      console.warn('Gagal upload hasil sinkronisasi ke R2:', r2Err);
     }
   }
 
+  const msg = isLocalFallback
+    ? `Akses link Google Sheets masih dibatasi (privat). Berhasil menyinkronkan ${result.procurement.length.toLocaleString('id-ID')} data dari file terbaru "${sourceLabel}" & tersimpan ke Cloudflare R2!`
+    : `Berhasil menyinkronkan ${result.procurement.length.toLocaleString('id-ID')} berkas internal langsung dari Google Sheets & tersimpan ke Cloudflare R2!`;
+
   return NextResponse.json({
     success: true,
-    message: isLocalFallback
-      ? `Berhasil menyinkronkan ${result.procurement.length.toLocaleString('id-ID')} data procurement langsung dari file ${sourceLabel} & tersinkron ke R2!`
-      : `Berhasil menyinkronkan ${result.procurement.length.toLocaleString('id-ID')} data procurement langsung dari Google Sheets & tersinkron ke R2!`,
+    message: msg,
     stats: result.stats,
     sheetNames: workbook.SheetNames,
     procurement: result.procurement,

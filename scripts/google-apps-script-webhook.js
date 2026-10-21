@@ -34,7 +34,12 @@ function doPost(e) {
 
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheet = ss.getSheetByName('PROCUREMENT') || ss.getSheets()[0];
-    
+
+    // Action: get_data (Ambil seluruh baris sheet via Webhook tanpa batasan 401/403)
+    if (action === 'get_data' || action === 'sync') {
+      return handleGetData(sheet);
+    }
+
     var headerRow = 2;
     var lastRow = sheet.getLastRow();
 
@@ -117,6 +122,16 @@ function doPost(e) {
   } finally {
     lock.releaseLock();
   }
+}
+
+function handleGetData(sheet) {
+  var dataRange = sheet.getDataRange();
+  var values = dataRange.getValues();
+  return ContentService.createTextOutput(JSON.stringify({
+    success: true,
+    totalRows: values.length,
+    rows: values
+  })).setMimeType(ContentService.MimeType.JSON);
 }
 
 function updateRowCells(sheet, rowIdx, data) {
@@ -208,9 +223,15 @@ function formatDateForSheet(str) {
 }
 
 function doGet(e) {
+  var action = (e && e.parameter && e.parameter.action) || 'ping';
+  if (action === 'get_data' || action === 'sync') {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName('PROCUREMENT') || ss.getSheets()[0];
+    return handleGetData(sheet);
+  }
+
   return ContentService.createTextOutput(JSON.stringify({
     status: "active",
     message: "CPG Procurement Webhook is running and ready to receive POST requests!"
   })).setMimeType(ContentService.MimeType.JSON);
 }
-
