@@ -1428,13 +1428,18 @@ export default function MonitoringInternalTab({
                   </th>
                 )}
 
-                {/* Zona 3: Done by Logistik & Lapangan (Hijau) */}
+                {/* Zona 3: Done by Logistik & Lapangan (Hijau) - INTERAKTIF */}
                 {showLogistikCols && (
                   <th
                     colSpan={9}
                     className="py-2 px-3 border-r-2 border-border/80 bg-emerald-500/15 text-emerald-900 dark:text-emerald-200"
                   >
-                    Done by Logistik &amp; Tim Lapangan
+                    <div className="flex items-center justify-center gap-1.5">
+                      <span>Done by Logistik &amp; Tim Lapangan</span>
+                      <span className="px-1.5 py-0.2 rounded text-[9px] bg-emerald-500/30 font-mono">
+                        (Interaktif ⚡)
+                      </span>
+                    </div>
                   </th>
                 )}
 
@@ -1915,10 +1920,10 @@ export default function MonitoringInternalTab({
                         </>
                       )}
 
-                      {/* Seksi 2: Logistik & Tim Lapangan */}
+                      {/* Seksi 2: Logistik & Tim Lapangan (INTERAKTIF) */}
                       {showLogistikCols && (
                         <>
-                          {/* PIC TTB */}
+                          {/* 1. PIC TTB (Badge) */}
                           <td className="py-2.5 px-3 whitespace-nowrap bg-emerald-500/[0.01]">
                             {row.picTtb && row.picTtb !== '-' ? (
                               <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25">
@@ -1929,11 +1934,17 @@ export default function MonitoringInternalTab({
                             )}
                           </td>
 
-                          {/* NO. TTB */}
+                          {/* 2. NO. TTB (Inline Quick Input & Copy) */}
                           <td className="py-2.5 px-3 whitespace-nowrap font-mono font-semibold text-foreground bg-emerald-500/[0.01]">
                             {row.noTtb && row.noTtb !== '-' ? (
                               <div className="flex items-center gap-1.5 group/ttb">
-                                <span>{row.noTtb}</span>
+                                <span
+                                  className="hover:underline cursor-pointer"
+                                  onClick={() => setSearchQuery(row.noTtb || '')}
+                                  title="Klik untuk memfilter No. TTB ini"
+                                >
+                                  {row.noTtb}
+                                </span>
                                 <button
                                   type="button"
                                   onClick={() => handleCopy(row.noTtb || '', 'No. TTB')}
@@ -1942,60 +1953,354 @@ export default function MonitoringInternalTab({
                                 >
                                   <Copy className="size-3" />
                                 </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const newVal = window.prompt(
+                                      `Edit No. TTB (${row.fpb || row.po}):`,
+                                      row.noTtb || ''
+                                    );
+                                    if (newVal !== null && newVal.trim()) {
+                                      handleQuickUpdate(row, { noTtb: newVal.trim().toUpperCase() });
+                                    }
+                                  }}
+                                  className="opacity-0 group-hover/ttb:opacity-100 text-muted-foreground hover:text-foreground transition cursor-pointer"
+                                  title="Edit No. TTB"
+                                >
+                                  <Pencil className="size-2.5" />
+                                </button>
                               </div>
                             ) : (
-                              <span className="text-muted-foreground italic text-xs">-</span>
-                            )}
-                          </td>
-
-                          {/* TGL INPUT TTB */}
-                          <td className="py-2.5 px-3 whitespace-nowrap text-muted-foreground font-mono bg-emerald-500/[0.01]">
-                            {formatTgl(row.tglInputTtb)}
-                          </td>
-
-                          {/* TGL KE TIM LAPANGAN */}
-                          <td className="py-2.5 px-3 whitespace-nowrap font-mono text-muted-foreground bg-emerald-500/[0.01]">
-                            {formatTgl(row.tglKeTimLapangan)}
-                          </td>
-
-                          {/* PIC LAPANGAN */}
-                          <td className="py-2.5 px-3 whitespace-nowrap bg-emerald-500/[0.01]">
-                            {row.picLap && row.picLap !== '-' ? (
-                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-500/25">
-                                {row.picLap}
-                              </span>
-                            ) : (
-                              <span className="text-muted-foreground italic text-xs">-</span>
-                            )}
-                          </td>
-
-                          {/* TGL BARANG DIANTAR */}
-                          <td className="py-2.5 px-3 whitespace-nowrap font-mono text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-500/[0.01]">
-                            {formatTgl(row.tglBarangDiantar)}
-                          </td>
-
-                          {/* KETERANGAN LOGISTIK / LAPANGAN */}
-                          <td className="py-2.5 px-3 max-w-[200px] bg-emerald-500/[0.01]">
-                            {ketLapText && ketLapText !== '-' ? (
-                              <span
-                                className="line-clamp-2 text-foreground font-medium"
-                                title={ketLapText}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const input = window.prompt(`Masukkan No. TTB untuk berkas ${row.fpb || row.po}:`);
+                                  if (input && input.trim()) {
+                                    const today = new Date().toISOString().slice(0, 10);
+                                    handleQuickUpdate(row, {
+                                      noTtb: input.trim().toUpperCase(),
+                                      tglInputTtb: row.tglInputTtb || today,
+                                    });
+                                  }
+                                }}
+                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-muted-foreground/70 hover:text-emerald-600 hover:bg-emerald-500/10 border border-dashed border-border hover:border-emerald-500/30 transition cursor-pointer"
+                                title="Klik untuk menginput No. TTB"
                               >
-                                {ketLapText}
-                              </span>
-                            ) : (
-                              <span className="text-muted-foreground italic text-xs">-</span>
+                                <Plus className="size-2.5" />
+                                <span>+ TTB</span>
+                              </button>
                             )}
                           </td>
 
-                          {/* TGL TIM LAPANGAN KE PIC TTB */}
-                          <td className="py-2.5 px-3 whitespace-nowrap font-mono text-muted-foreground bg-emerald-500/[0.01]">
-                            {formatTgl(row.tglTimLapKePicTtb)}
+                          {/* 3. TGL INPUT TTB */}
+                          <td className="py-2.5 px-3 whitespace-nowrap text-muted-foreground font-mono bg-emerald-500/[0.01]">
+                            {row.tglInputTtb && row.tglInputTtb !== '-' ? (
+                              <span>{formatTgl(row.tglInputTtb)}</span>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const today = new Date().toISOString().slice(0, 10);
+                                  handleQuickUpdate(row, { tglInputTtb: today });
+                                }}
+                                className="text-[10px] text-muted-foreground/50 hover:text-foreground italic cursor-pointer"
+                                title="Set tanggal input TTB hari ini"
+                              >
+                                + Set Hari Ini
+                              </button>
+                            )}
                           </td>
 
-                          {/* TGL TTB KE PIC PURCHASING */}
-                          <td className="py-2.5 px-3 whitespace-nowrap font-mono text-muted-foreground border-r-2 border-border/80 bg-emerald-500/[0.01]">
-                            {formatTgl(row.tglTtbKePicPch)}
+                          {/* 4. TGL KE TIM LAPANGAN (1-KLIK KIRIM KE LAPANGAN) */}
+                          <td className="py-2.5 px-3 whitespace-nowrap font-mono bg-emerald-500/[0.01]">
+                            {row.tglKeTimLapangan && row.tglKeTimLapangan !== '-' ? (
+                              <div className="flex items-center gap-1.5 group/sendlap">
+                                <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                                  {formatTgl(row.tglKeTimLapangan)}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (window.confirm(`Batalkan pengiriman ke tim lapangan untuk berkas ${row.fpb || row.po}?`)) {
+                                      handleQuickUpdate(row, {
+                                        tglKeTimLapangan: '',
+                                        statusBadge: 'PROSES TTB',
+                                        statusTone: 'cyan',
+                                      });
+                                    }
+                                  }}
+                                  className="opacity-0 group-hover/sendlap:opacity-100 p-0.5 text-muted-foreground hover:text-rose-500 transition cursor-pointer"
+                                  title="Batalkan kirim ke lapangan"
+                                >
+                                  <X className="size-3" />
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const today = new Date().toISOString().slice(0, 10);
+                                  handleQuickUpdate(row, {
+                                    tglKeTimLapangan: today,
+                                    statusBadge: 'MENUJU ARMADA',
+                                    statusTone: 'cyan',
+                                  });
+                                  showToast?.(`🚀 Berkas ${row.fpb || row.po} dikirim ke Tim Lapangan!`, 'success');
+                                }}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 transition cursor-pointer shadow-2xs group/btn"
+                                title="Klik untuk kirim ke Tim Lapangan hari ini (Auto-Save ke Google Sheet)"
+                              >
+                                <Truck className="size-3 text-emerald-600 dark:text-emerald-400 group-hover/btn:scale-110 transition" />
+                                <span>🚀 Kirim ke Lapangan</span>
+                              </button>
+                            )}
+                          </td>
+
+                          {/* 5. PIC LAPANGAN (INLINE DROPDOWN SELECTOR) */}
+                          <td className="py-2 px-2 whitespace-nowrap bg-emerald-500/[0.01]">
+                            <select
+                              value={row.picLap || ''}
+                              onChange={(e) => handleQuickUpdate(row, { picLap: e.target.value || '' })}
+                              className={`text-[11px] font-bold py-1 px-2 rounded-md border cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 transition ${
+                                row.picLap && row.picLap !== '-'
+                                  ? 'bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border-cyan-500/30'
+                                  : 'bg-muted/40 text-muted-foreground border-border'
+                              }`}
+                              title="Pilih PIC Lapangan (Otomatis Tersimpan ke Google Sheet)"
+                            >
+                              <option value="">— Pilih PIC —</option>
+                              {uniquePicsLap.length > 0 ? (
+                                uniquePicsLap.map((pic) => (
+                                  <option key={pic} value={pic}>{pic}</option>
+                                ))
+                              ) : (
+                                <>
+                                  <option value="HAMKA">HAMKA</option>
+                                  <option value="AGUS">AGUS</option>
+                                  <option value="SAMSUL">SAMSUL</option>
+                                  <option value="ZUL">ZUL</option>
+                                </>
+                              )}
+                            </select>
+                          </td>
+
+                          {/* 6. TGL BARANG DIANTAR (1-KLIK DITERIMA ARMADA) */}
+                          <td className="py-2.5 px-3 whitespace-nowrap font-mono bg-emerald-500/[0.01]">
+                            {row.tglBarangDiantar && row.tglBarangDiantar !== '-' ? (
+                              <div className="flex items-center gap-1.5 group/diantar">
+                                <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                                  {formatTgl(row.tglBarangDiantar)}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (window.confirm(`Batalkan tanggal diantar untuk berkas ${row.fpb || row.po}?`)) {
+                                      handleQuickUpdate(row, {
+                                        tglBarangDiantar: '',
+                                        statusBadge: 'MENUJU ARMADA',
+                                        statusTone: 'cyan',
+                                      });
+                                    }
+                                  }}
+                                  className="opacity-0 group-hover/diantar:opacity-100 p-0.5 text-muted-foreground hover:text-rose-500 transition cursor-pointer"
+                                  title="Batalkan tanggal diantar"
+                                >
+                                  <X className="size-3" />
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const today = new Date().toISOString().slice(0, 10);
+                                  handleQuickUpdate(row, {
+                                    tglBarangDiantar: today,
+                                    statusBadge: 'SELESAI DIANTAR',
+                                    statusTone: 'emerald',
+                                  });
+                                  showToast?.(`⚓ Barang ${row.fpb || row.po} diterima oleh armada / kru kapal!`, 'success');
+                                }}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-800 dark:text-cyan-300 border border-cyan-500/25 transition cursor-pointer shadow-2xs group/btn"
+                                title="Klik untuk tandai barang sudah diterima armada hari ini (Auto-Save ke Google Sheet)"
+                              >
+                                <Ship className="size-3 text-cyan-600 dark:text-cyan-400 group-hover/btn:scale-110 transition" />
+                                <span>⚓ Diterima Armada</span>
+                              </button>
+                            )}
+                          </td>
+
+                          {/* 7. KETERANGAN LAPANGAN (CLICK-TO-EDIT & QUICK TAGS) */}
+                          <td className="py-2.5 px-3 max-w-[200px] bg-emerald-500/[0.01]">
+                            <div className="relative group/ketlap">
+                              {ketLapText && ketLapText !== '-' ? (
+                                <div className="flex items-center gap-1.5">
+                                  <span
+                                    className="line-clamp-2 text-foreground font-medium hover:text-emerald-600 cursor-pointer transition"
+                                    title={`${ketLapText} (Klik untuk edit catatan lapangan)`}
+                                    onClick={() => {
+                                      const newKet = window.prompt(
+                                        `Edit Catatan Lapangan (${row.fpb || row.po}):`,
+                                        ketLapText
+                                      );
+                                      if (newKet !== null) {
+                                        handleQuickUpdate(row, { ketLap: newKet });
+                                      }
+                                    }}
+                                  >
+                                    {ketLapText}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const newKet = window.prompt(
+                                        `Edit Catatan Lapangan (${row.fpb || row.po}):`,
+                                        ketLapText
+                                      );
+                                      if (newKet !== null) {
+                                        handleQuickUpdate(row, { ketLap: newKet });
+                                      }
+                                    }}
+                                    className="opacity-0 group-hover/ketlap:opacity-100 text-muted-foreground hover:text-foreground transition cursor-pointer shrink-0"
+                                    title="Edit Catatan Lapangan"
+                                  >
+                                    <Pencil className="size-2.5" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const newKet = window.prompt(
+                                        `Tambah Catatan Lapangan (${row.fpb || row.po}):`
+                                      );
+                                      if (newKet) {
+                                        handleQuickUpdate(row, { ketLap: newKet });
+                                      }
+                                    }}
+                                    className="inline-flex items-center gap-1 text-[10px] text-muted-foreground/60 hover:text-foreground italic cursor-pointer"
+                                    title="Tambah Catatan"
+                                  >
+                                    <Plus className="size-2.5" />
+                                    <span>+ Catatan</span>
+                                  </button>
+                                </div>
+                              )}
+
+                              {/* Quick Tags Popover on Hover */}
+                              <div className="absolute top-full left-0 mt-1 hidden group-hover/ketlap:block z-30 w-52 p-2 rounded-xl bg-card border border-border shadow-xl text-xs pointer-events-auto animate-in fade-in-50 zoom-in-95 duration-150">
+                                <div className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-1.5 px-1">
+                                  Tag Cepat Lapangan
+                                </div>
+                                <div className="flex flex-wrap gap-1">
+                                  {[
+                                    'Diterima KKM',
+                                    'Diterima Mualim',
+                                    'Diterima Driver',
+                                    'Titip Posko Dermaga',
+                                    'Barang Parsial',
+                                    'Bypass - Urgent',
+                                  ].map((tag) => (
+                                    <button
+                                      key={tag}
+                                      type="button"
+                                      onClick={() => {
+                                        const existing = (ketLapText && ketLapText !== '-') ? ketLapText : '';
+                                        const newKet = existing ? `${existing}; [${tag}]` : `[${tag}]`;
+                                        handleQuickUpdate(row, { ketLap: newKet });
+                                        showToast?.(`Tag [${tag}] ditambahkan ke catatan lapangan ${row.fpb || row.po}`, 'info');
+                                      }}
+                                      className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 hover:bg-emerald-500/20 transition cursor-pointer"
+                                    >
+                                      {tag}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* 8. TGL TIM LAPANGAN KE PIC TTB (1-KLIK BERKAS KEMBALI) */}
+                          <td className="py-2.5 px-3 whitespace-nowrap font-mono bg-emerald-500/[0.01]">
+                            {row.tglTimLapKePicTtb && row.tglTimLapKePicTtb !== '-' ? (
+                              <div className="flex items-center gap-1.5 group/kembali">
+                                <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                                  {formatTgl(row.tglTimLapKePicTtb)}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (window.confirm(`Batalkan tanggal berkas kembali untuk ${row.fpb || row.po}?`)) {
+                                      handleQuickUpdate(row, { tglTimLapKePicTtb: '' });
+                                    }
+                                  }}
+                                  className="opacity-0 group-hover/kembali:opacity-100 p-0.5 text-muted-foreground hover:text-rose-500 transition cursor-pointer"
+                                  title="Batalkan tanggal kembali"
+                                >
+                                  <X className="size-3" />
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const today = new Date().toISOString().slice(0, 10);
+                                  handleQuickUpdate(row, { tglTimLapKePicTtb: today });
+                                  showToast?.(`📋 Berkas ${row.fpb || row.po} kembali dari Tim Lapangan ke TTB!`, 'success');
+                                }}
+                                className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25 transition cursor-pointer shadow-2xs"
+                                title="Klik untuk tandai berkas TTB kembali dari Tim Lapangan hari ini"
+                              >
+                                <FileCheck className="size-3" />
+                                <span>📋 Berkas Kembali</span>
+                              </button>
+                            )}
+                          </td>
+
+                          {/* 9. TGL TTB KE PIC PURCHASING (1-KLIK SERAH KE ADM PCH) */}
+                          <td className="py-2.5 px-3 whitespace-nowrap font-mono border-r-2 border-border/80 bg-emerald-500/[0.01]">
+                            {row.tglTtbKePicPch && row.tglTtbKePicPch !== '-' ? (
+                              <div className="flex items-center gap-1.5 group/serahpch">
+                                <span className="font-semibold text-purple-600 dark:text-purple-400">
+                                  {formatTgl(row.tglTtbKePicPch)}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (window.confirm(`Batalkan serah terima berkas ke ADM Purchasing untuk ${row.fpb || row.po}?`)) {
+                                      handleQuickUpdate(row, {
+                                        tglTtbKePicPch: '',
+                                        statusBadge: 'SELESAI DIANTAR',
+                                        statusTone: 'emerald',
+                                      });
+                                    }
+                                  }}
+                                  className="opacity-0 group-hover/serahpch:opacity-100 p-0.5 text-muted-foreground hover:text-rose-500 transition cursor-pointer"
+                                  title="Batalkan serah terima ke ADM PCH"
+                                >
+                                  <X className="size-3" />
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const today = new Date().toISOString().slice(0, 10);
+                                  handleQuickUpdate(row, {
+                                    tglTtbKePicPch: today,
+                                    tglKeAdmPch: row.tglKeAdmPch || today,
+                                    statusBadge: 'SIAP SPP',
+                                    statusTone: 'purple',
+                                  });
+                                  showToast?.(`➡️ Berkas ${row.fpb || row.po} diserahkan ke ADM Purchasing untuk pembuatan SPP!`, 'success');
+                                }}
+                                className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-500/25 transition cursor-pointer shadow-2xs"
+                                title="Klik untuk serahkan berkas ke ADM PCH untuk pembuatan SPP (Auto-Save ke Google Sheet)"
+                              >
+                                <Receipt className="size-3" />
+                                <span>➡️ Serah ke ADM PCH</span>
+                              </button>
+                            )}
                           </td>
                         </>
                       )}
