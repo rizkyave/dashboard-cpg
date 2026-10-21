@@ -35,6 +35,9 @@ import {
   Save,
   Link2,
   Code2,
+  ArrowUpDown,
+  Calendar,
+  Sparkles,
 } from 'lucide-react';
 import { ProcurementItem } from '@/types/procurement';
 
@@ -45,14 +48,13 @@ interface MonitoringInternalTabProps {
 }
 
 const GOOGLE_SHEET_URL =
-  'https://docs.google.com/spreadsheets/d/16Ae8qGsGYx_xCNaqZvME-uZvaAeECsE69PBYlY32fZk/edit?pli=1&gid=0#gid=0';
+  'https://docs.google.com/spreadsheets/d/16Ae8qGsGYX_xCNsqZvME-uZvaAeECsE69PBYlY32fZk/edit?pli=1&gid=0#gid=0';
 
 // Daftar staf PIC Purchasing CPG
 const PIC_OPTIONS = ['ALL', 'NOVI', 'TRI', 'ELSA', 'YATI', 'PUTRI', 'LUTFI'];
 
 // Opsi Delivery Time standar
 const DELIVERY_TIME_OPTIONS = [
-  'ALL',
   '1 HARI',
   '1-2 HARI',
   '1-3 HARI',
@@ -119,6 +121,10 @@ export default function MonitoringInternalTab({
   const [selectedTtbStatus, setSelectedTtbStatus] = useState<'ALL' | 'DONE' | 'PENDING'>('ALL');
   const [onlySpecialNotes, setOnlySpecialNotes] = useState<boolean>(false);
 
+  // Sorting state untuk kolom interaktif
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(25);
@@ -157,6 +163,95 @@ export default function MonitoringInternalTab({
     };
     fetchWebhookConfig();
   }, []);
+
+  // Helper format tanggal DD-MM-YYYY
+  const formatTgl = (tgl?: string) => {
+    if (!tgl || tgl === '-') return '-';
+    if (/^\d{4}-\d{2}-\d{2}/.test(tgl)) {
+      const parts = tgl.slice(0, 10).split('-');
+      return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+    return tgl;
+  };
+
+  // Helper format waktu
+  const formatWaktu = (waktu?: string) => {
+    if (!waktu || waktu === '-') return '-';
+    const num = parseFloat(waktu);
+    if (!isNaN(num) && num >= 0 && num < 1 && waktu.includes('.')) {
+      const totalSeconds = Math.round(num * 86400);
+      const hours24 = Math.floor(totalSeconds / 3600) % 24;
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      const ampm = hours24 >= 12 ? 'PM' : 'AM';
+      const hours12 = hours24 % 12 || 12;
+      return `${hours12}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')} ${ampm}`;
+    }
+    return waktu;
+  };
+
+  // Helper hitung selisih hari antar 2 tanggal
+  const calculateLapseDays = (tglStart?: string, tglEnd?: string): string => {
+    if (!tglStart || !tglEnd || tglStart === '-' || tglEnd === '-') return '-';
+    try {
+      const d1 = new Date(tglStart.slice(0, 10));
+      const d2 = new Date(tglEnd.slice(0, 10));
+      const diffTime = d2.getTime() - d1.getTime();
+      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+      return `${diffDays} HARI`;
+    } catch {
+      return '-';
+    }
+  };
+
+  // Helper styling & tooltip Lapse Day SLA
+  const getLapseBadge = (lapseStr?: string, tglStart?: string, tglEnd?: string) => {
+    if (!lapseStr || lapseStr === '-' || lapseStr.includes('-46209')) {
+      return <span className="text-muted-foreground/60 italic text-xs">-</span>;
+    }
+    const match = lapseStr.match(/(-?\d+)/);
+    const days = match ? parseInt(match[1], 10) : 0;
+
+    let colorClass = 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/25';
+    let label = 'Tepat Waktu';
+
+    if (days < 0) {
+      colorClass = 'bg-muted text-muted-foreground border-border';
+      label = 'Sebelum Jadwal';
+    } else if (days === 0 || days === 1) {
+      colorClass = 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/25';
+      label = 'Sangat Cepat';
+    } else if (days <= 3) {
+      colorClass = 'bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-500/25';
+      label = 'Normal';
+    } else {
+      colorClass = 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30 font-bold';
+      label = 'Terlambat SLA';
+    }
+
+    const tooltipText =
+      tglStart && tglEnd && tglStart !== '-' && tglEnd !== '-'
+        ? `Input: ${formatTgl(tglStart)} ➔ Selesai: ${formatTgl(tglEnd)} (${days} hari)`
+        : `${days} hari selisih alur`;
+
+    return (
+      <div className="relative group/lapse inline-block" title={tooltipText}>
+        <span
+          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold border ${colorClass} cursor-help transition hover:scale-105`}
+        >
+          {days > 3 && <AlertCircle className="size-2.5 text-rose-600 dark:text-rose-400 shrink-0" />}
+          {lapseStr}
+        </span>
+      </div>
+    );
+  };
+
+  // Helper Copy to Clipboard
+  const handleCopy = (text: string, label: string) => {
+    if (!text || text === '-') return;
+    navigator.clipboard.writeText(text);
+    showToast?.(`${label} ${text} disalin ke clipboard!`, 'info');
+  };
 
   // 1. Sinkronisasi Live dengan Google Sheets
   const handleSyncGoogleSheet = async () => {
@@ -223,87 +318,24 @@ export default function MonitoringInternalTab({
     );
   };
 
-  // Helper styling badge Delivery Time (SLA) persis seperti di Google Sheet
-  const getDeliveryTimeBadge = (delivery?: string) => {
-    if (!delivery || delivery === '-') {
-      return <span className="text-muted-foreground text-xs italic">-</span>;
+  // Toggle sorting helper
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else {
+        setSortField(null);
+        setSortDirection('asc');
+      }
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
     }
-    const d = delivery.toUpperCase().trim();
-
-    if (d === '1 HARI' || (d.includes('1 HARI') && !d.includes('1-2') && !d.includes('1-3'))) {
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30">
-          <ArrowUp className="size-3 text-rose-600 dark:text-rose-400 shrink-0" />
-          {delivery}
-        </span>
-      );
-    }
-    if (d.includes('1-2 HARI') || d.includes('1-3 HARI')) {
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30">
-          <ArrowUp className="size-3 text-amber-600 dark:text-amber-400 shrink-0" />
-          {delivery}
-        </span>
-      );
-    }
-    if (d.includes('1 MINGGU')) {
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25">
-          {delivery}
-        </span>
-      );
-    }
-    if (d.includes('2 MINGGU') || d.includes('2-3 MINGGU') || d.includes('3 MINGGU')) {
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/25">
-          {delivery}
-        </span>
-      );
-    }
-
-    return (
-      <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-muted text-muted-foreground border border-border">
-        {delivery}
-      </span>
-    );
   };
 
-  // Helper format tanggal DD-MM-YYYY
-  const formatTgl = (tgl?: string) => {
-    if (!tgl || tgl === '-') return '-';
-    if (/^\d{4}-\d{2}-\d{2}/.test(tgl)) {
-      const parts = tgl.slice(0, 10).split('-');
-      return `${parts[2]}-${parts[1]}-${parts[0]}`;
-    }
-    return tgl;
-  };
-
-  // Helper format waktu (menangani nilai serial desimal Excel)
-  const formatWaktu = (waktu?: string) => {
-    if (!waktu || waktu === '-') return '-';
-    const num = parseFloat(waktu);
-    if (!isNaN(num) && num >= 0 && num < 1 && waktu.includes('.')) {
-      const totalSeconds = Math.round(num * 86400);
-      const hours24 = Math.floor(totalSeconds / 3600) % 24;
-      const minutes = Math.floor((totalSeconds % 3600) / 60);
-      const seconds = totalSeconds % 60;
-      const ampm = hours24 >= 12 ? 'PM' : 'AM';
-      const hours12 = hours24 % 12 || 12;
-      return `${hours12}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')} ${ampm}`;
-    }
-    return waktu;
-  };
-
-  // Helper Copy to Clipboard
-  const handleCopy = (text: string, label: string) => {
-    if (!text || text === '-') return;
-    navigator.clipboard.writeText(text);
-    showToast?.(`${label} ${text} disalin ke clipboard!`, 'info');
-  };
-
-  // 2. Filter data
+  // 2. Filter & Sort data
   const filteredData = useMemo(() => {
-    return localItems.filter((item) => {
+    let result = localItems.filter((item) => {
       // 1. Search Query (seluruh kolom)
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
@@ -368,6 +400,48 @@ export default function MonitoringInternalTab({
 
       return true;
     });
+
+    // Sorting Logic
+    if (sortField) {
+      result = [...result].sort((a: any, b: any) => {
+        const valA = a[sortField] || '';
+        const valB = b[sortField] || '';
+
+        // Priority ranking for delivery time
+        if (sortField === 'deliveryTime') {
+          const getDeliveryRank = (val: string) => {
+            const v = (val || '').toUpperCase();
+            if (v.includes('1 HARI') && !v.includes('1-2') && !v.includes('1-3')) return 1;
+            if (v.includes('1-2 HARI')) return 2;
+            if (v.includes('1-3 HARI')) return 3;
+            if (v.includes('1 MINGGU')) return 4;
+            if (v.includes('2 MINGGU')) return 5;
+            if (v.includes('2-3 MINGGU') || v.includes('3 MINGGU')) return 6;
+            return 99;
+          };
+          const rankA = getDeliveryRank(valA);
+          const rankB = getDeliveryRank(valB);
+          return sortDirection === 'asc' ? rankA - rankB : rankB - rankA;
+        }
+
+        // Numeric sort for lapse days
+        if (sortField === 'lapsePchToTtb') {
+          const getDays = (str: string) => {
+            const m = String(str || '').match(/(-?\d+)/);
+            return m ? parseInt(m[1], 10) : -999;
+          };
+          const daysA = getDays(valA);
+          const daysB = getDays(valB);
+          return sortDirection === 'asc' ? daysA - daysB : daysB - daysA;
+        }
+
+        if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
+        if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return result;
   }, [
     localItems,
     searchQuery,
@@ -378,6 +452,8 @@ export default function MonitoringInternalTab({
     selectedDelivery,
     selectedTtbStatus,
     onlySpecialNotes,
+    sortField,
+    sortDirection,
   ]);
 
   // 3. Ringkasan Metrik KPI
@@ -474,6 +550,82 @@ export default function MonitoringInternalTab({
   // 6. Action Handlers: Tambah Berkas, Edit, Auto-Save
   // ========================================================
 
+  // Handler update cepat langsung dari cell (Inline Auto-Save)
+  const handleQuickUpdate = async (item: ProcurementItem, updates: Partial<ProcurementItem>) => {
+    const updatedItem: ProcurementItem = {
+      ...item,
+      ...updates,
+    };
+
+    // 1. Optimistic Update Local State
+    setLocalItems((prev) => {
+      const next = prev.map((it) => {
+        const itFpb = String(it.fpb || '').trim().toUpperCase();
+        const curFpb = String(item.fpb || '').trim().toUpperCase();
+        const itPo = String(it.po || it.noPo || '').trim().toUpperCase();
+        const curPo = String(item.po || item.noPo || '').trim().toUpperCase();
+
+        if ((curFpb && itFpb === curFpb) || (curPo && curPo !== '-' && itPo === curPo)) {
+          return { ...it, ...updates };
+        }
+        return it;
+      });
+      onSyncSuccess?.(next);
+      return next;
+    });
+
+    // 2. Kirim update ke Server & Auto-Save Google Sheets
+    try {
+      const res = await fetch('/api/monitoring-internal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'update_row',
+          data: updatedItem,
+        }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        showToast?.(
+          json.googleSync
+            ? `✓ Data ${item.fpb || item.po} diperbarui & AUTO-SAVE ke Google Sheet!`
+            : `✓ Data ${item.fpb || item.po} diperbarui di database.`,
+          json.googleSync ? 'success' : 'info'
+        );
+      } else {
+        showToast?.(json.message || 'Gagal menyimpan perubahan.', 'warning');
+      }
+    } catch (err: any) {
+      showToast?.(`Gagal auto-save: ${err.message}`, 'error');
+    }
+  };
+
+  // 1-Klik Serah Terima ke PIC TTB (Staf Purchasing)
+  const handleMarkDoneTtb = async (item: ProcurementItem) => {
+    const today = new Date().toISOString().slice(0, 10);
+    const now = new Date();
+    const hours = now.getHours();
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const hours12 = hours % 12 || 12;
+    const timeStr = `${hours12}:${minutes}:${seconds} ${ampm}`;
+
+    // Hitung lapse jika ada tglInputFstb
+    const calculatedLapse = item.tglInputFstb ? calculateLapseDays(item.tglInputFstb, today) : '0 HARI';
+
+    const updates: Partial<ProcurementItem> = {
+      tglKePicTtb: today,
+      waktuKePicTtb: timeStr,
+      lapsePchToTtb: calculatedLapse,
+      statusBadge: 'PROSES TTB',
+      statusTone: 'cyan',
+      picAktif: item.picTtb && item.picTtb !== '-' ? item.picTtb : 'Logistik (TTB)',
+    };
+
+    await handleQuickUpdate(item, updates);
+  };
+
   const handleOpenAddModal = () => {
     setFormData({
       ...INITIAL_FORM_DATA,
@@ -545,7 +697,6 @@ export default function MonitoringInternalTab({
       const json = await res.json();
 
       if (json.success) {
-        // Optimistic local state update
         setLocalItems((prev) => {
           let updated: ProcurementItem[];
           if (isNew) {
@@ -578,10 +729,7 @@ export default function MonitoringInternalTab({
               const curPo = String(formData.po || formData.noPo || '').trim().toUpperCase();
 
               if ((curFpb && itFpb === curFpb) || (curPo && curPo !== '-' && itPo === curPo)) {
-                return {
-                  ...it,
-                  ...formData,
-                };
+                return { ...it, ...formData };
               }
               return it;
             });
@@ -810,9 +958,13 @@ export default function MonitoringInternalTab({
                   <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   Live 2-Way Sync (Input &amp; Auto-Save)
                 </span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30">
+                  <Sparkles className="size-3 text-amber-600 dark:text-amber-400" />
+                  Kolom Purchasing Interaktif
+                </span>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Input langsung, edit data, dan simpan otomatis (Auto-Save) ke Google Spreadsheet secara real-time.
+                Input langsung, edit data, ubah SLA di tempat, dan 1-klik serah terima ke TTB dengan auto-save real-time.
               </p>
             </div>
           </div>
@@ -1176,6 +1328,21 @@ export default function MonitoringInternalTab({
             </select>
           </div>
 
+          {/* Filter Khusus: Belum TTB */}
+          <button
+            type="button"
+            onClick={() => setSelectedTtbStatus(selectedTtbStatus === 'PENDING' ? 'ALL' : 'PENDING')}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-lg border transition cursor-pointer ${
+              selectedTtbStatus === 'PENDING'
+                ? 'bg-amber-500/20 border-amber-500 text-amber-900 dark:text-amber-300 font-bold'
+                : 'bg-background border-border text-muted-foreground hover:text-foreground'
+            }`}
+            title="Tampilkan hanya berkas yang belum diserahkan ke TTB"
+          >
+            <Clock className="size-3.5 text-amber-600" />
+            <span>Hanya Belum TTB</span>
+          </button>
+
           {/* Toggle Keterangan Khusus */}
           <button
             type="button"
@@ -1191,11 +1358,16 @@ export default function MonitoringInternalTab({
           </button>
         </div>
 
-        {/* Counter Info */}
+        {/* Counter Info & Reset Filter */}
         <div className="flex items-center justify-between text-xs text-muted-foreground pt-1 border-t border-border/50">
           <div>
             Menampilkan <span className="font-semibold text-foreground">{filteredData.length.toLocaleString('id-ID')}</span> dari{' '}
             <span className="font-semibold text-foreground">{localItems.length.toLocaleString('id-ID')}</span> baris berkas internal
+            {sortField && (
+              <span className="ml-2 px-2 py-0.5 rounded bg-muted text-[11px] font-mono">
+                Sorted: {sortField} ({sortDirection})
+              </span>
+            )}
           </div>
           {(selectedEntity !== 'ALL' ||
             selectedPicPch !== 'ALL' ||
@@ -1203,7 +1375,8 @@ export default function MonitoringInternalTab({
             selectedPicLap !== 'ALL' ||
             selectedDelivery !== 'ALL' ||
             selectedTtbStatus !== 'ALL' ||
-            onlySpecialNotes) && (
+            onlySpecialNotes ||
+            sortField) && (
             <button
               type="button"
               onClick={() => {
@@ -1215,10 +1388,12 @@ export default function MonitoringInternalTab({
                 setSelectedDelivery('ALL');
                 setSelectedTtbStatus('ALL');
                 setOnlySpecialNotes(false);
+                setSortField(null);
+                setSortDirection('asc');
               }}
               className="text-primary hover:underline font-medium cursor-pointer"
             >
-              Reset Semua Filter
+              Reset Semua Filter &amp; Urutan
             </button>
           )}
         </div>
@@ -1238,13 +1413,18 @@ export default function MonitoringInternalTab({
                   Identitas Pengadaan &amp; Armada
                 </th>
 
-                {/* Zona 2: Done by Purchasing (Kuning) */}
+                {/* Zona 2: Done by Purchasing (Kuning) - INTERAKTIF */}
                 {showPurchasingCols && (
                   <th
                     colSpan={9}
                     className="py-2 px-3 border-r-2 border-border/80 bg-amber-500/15 text-amber-900 dark:text-amber-200"
                   >
-                    Done by Purchasing
+                    <div className="flex items-center justify-center gap-1.5">
+                      <span>Done by Purchasing</span>
+                      <span className="px-1.5 py-0.2 rounded text-[9px] bg-amber-500/30 font-mono">
+                        (Interaktif ⚡)
+                      </span>
+                    </div>
                   </th>
                 )}
 
@@ -1281,18 +1461,83 @@ export default function MonitoringInternalTab({
                   NO. FPB
                 </th>
 
-                {/* Seksi 1: Purchasing */}
+                {/* Seksi 1: Purchasing (INTERAKTIF HEADERS) */}
                 {showPurchasingCols && (
                   <>
-                    <th className="py-2.5 px-3 min-w-[140px] bg-amber-500/[0.04]">NO. PO</th>
-                    <th className="py-2.5 px-3 whitespace-nowrap bg-amber-500/[0.04]">TGL INPUT PO</th>
-                    <th className="py-2.5 px-3 whitespace-nowrap bg-amber-500/[0.04]">DELIVERY TIME</th>
+                    <th className="py-2.5 px-3 min-w-[140px] bg-amber-500/[0.04]">
+                      <div className="flex items-center gap-1.5">
+                        <span>NO. PO</span>
+                      </div>
+                    </th>
+                    <th className="py-2.5 px-3 whitespace-nowrap bg-amber-500/[0.04]">
+                      <button
+                        type="button"
+                        onClick={() => handleSort('tglPo')}
+                        className="flex items-center gap-1 hover:text-foreground cursor-pointer font-semibold"
+                        title="Klik untuk mengurutkan tanggal PO"
+                      >
+                        <span>TGL INPUT PO</span>
+                        {sortField === 'tglPo' ? (
+                          <span className="text-primary font-mono text-[10px]">{sortDirection === 'asc' ? '▲' : '▼'}</span>
+                        ) : (
+                          <ArrowUpDown className="size-2.5 opacity-50" />
+                        )}
+                      </button>
+                    </th>
+                    <th className="py-2.5 px-3 whitespace-nowrap bg-amber-500/[0.04]">
+                      <button
+                        type="button"
+                        onClick={() => handleSort('deliveryTime')}
+                        className="flex items-center gap-1 text-amber-900 dark:text-amber-200 hover:text-amber-700 cursor-pointer font-bold"
+                        title="Klik untuk mengurutkan berdasarkan urgensi SLA (Mendesak ke Santai)"
+                      >
+                        <Clock className="size-3 text-amber-600" />
+                        <span>DELIVERY TIME</span>
+                        {sortField === 'deliveryTime' ? (
+                          <span className="font-mono text-[10px]">{sortDirection === 'asc' ? '⚡ (Mendesak)' : '⏳ (Santai)'}</span>
+                        ) : (
+                          <ArrowUpDown className="size-2.5 opacity-60" />
+                        )}
+                      </button>
+                    </th>
                     <th className="py-2.5 px-3 min-w-[140px] bg-amber-500/[0.04]">NO. FSTB</th>
                     <th className="py-2.5 px-3 whitespace-nowrap bg-amber-500/[0.04]">TGL INPUT FSTB</th>
-                    <th className="py-2.5 px-3 whitespace-nowrap bg-amber-500/[0.04]">TGL KE PIC TTB</th>
+                    <th className="py-2.5 px-3 whitespace-nowrap bg-amber-500/[0.04]">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedTtbStatus(selectedTtbStatus === 'PENDING' ? 'ALL' : 'PENDING')}
+                        className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded cursor-pointer transition font-semibold ${
+                          selectedTtbStatus === 'PENDING'
+                            ? 'bg-amber-500/20 text-amber-900 dark:text-amber-200 border border-amber-500/40'
+                            : 'hover:text-foreground'
+                        }`}
+                        title="Klik untuk memfilter: Tampilkan hanya berkas yang BELUM TTB"
+                      >
+                        <span>TGL KE PIC TTB</span>
+                        {selectedTtbStatus === 'PENDING' ? (
+                          <span className="px-1 py-0.2 rounded bg-amber-500 text-white text-[9px]">Belum TTB</span>
+                        ) : (
+                          <span className="text-[10px] opacity-60">🔍</span>
+                        )}
+                      </button>
+                    </th>
                     <th className="py-2.5 px-3 whitespace-nowrap bg-amber-500/[0.04]">WAKTU KE PIC TTB</th>
                     <th className="py-2.5 px-3 min-w-[160px] bg-amber-500/[0.04]">KETERANGAN (PCH)</th>
-                    <th className="py-2.5 px-3 whitespace-nowrap border-r-2 border-border/80 bg-amber-500/[0.04]">LAPSE PCH-TTB</th>
+                    <th className="py-2.5 px-3 whitespace-nowrap border-r-2 border-border/80 bg-amber-500/[0.04]">
+                      <button
+                        type="button"
+                        onClick={() => handleSort('lapsePchToTtb')}
+                        className="flex items-center gap-1 hover:text-foreground cursor-pointer font-semibold"
+                        title="Klik untuk mengurutkan berdasarkan lapse day (Terlama ke Tercepat)"
+                      >
+                        <span>LAPSE PCH-TTB</span>
+                        {sortField === 'lapsePchToTtb' ? (
+                          <span className="text-primary font-mono text-[10px]">{sortDirection === 'asc' ? '▲' : '▼'}</span>
+                        ) : (
+                          <ArrowUpDown className="size-2.5 opacity-50" />
+                        )}
+                      </button>
+                    </th>
                   </>
                 )}
 
@@ -1411,41 +1656,97 @@ export default function MonitoringInternalTab({
                         </div>
                       </td>
 
-                      {/* Seksi 1: Purchasing */}
+                      {/* Seksi 1: Purchasing (INTERAKTIF CELLS) */}
                       {showPurchasingCols && (
                         <>
-                          {/* NO. PO */}
+                          {/* 1. NO. PO (Hover Card & Filter Shortcut) */}
                           <td className="py-2.5 px-3 whitespace-nowrap font-mono text-primary font-semibold bg-amber-500/[0.01]">
-                            <div className="flex items-center gap-1.5 group/po">
-                              <span>{row.po || row.noPo || '-'}</span>
+                            <div className="relative group/po flex items-center gap-1.5">
+                              <span
+                                className="hover:underline cursor-pointer"
+                                onClick={() => setSearchQuery(row.po || row.noPo || '')}
+                                title="Klik untuk memfilter No. PO ini"
+                              >
+                                {row.po || row.noPo || '-'}
+                              </span>
                               {(row.po || row.noPo) && (row.po || row.noPo) !== '-' && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleCopy(row.po || row.noPo || '', 'No. PO')}
-                                  className="opacity-0 group-hover/po:opacity-100 text-muted-foreground hover:text-foreground transition cursor-pointer"
-                                  title="Salin No. PO"
-                                >
-                                  <Copy className="size-3" />
-                                </button>
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleCopy(row.po || row.noPo || '', 'No. PO')}
+                                    className="opacity-0 group-hover/po:opacity-100 text-muted-foreground hover:text-foreground transition cursor-pointer"
+                                    title="Salin No. PO"
+                                  >
+                                    <Copy className="size-3" />
+                                  </button>
+
+                                  {/* Floating Preview Card on Hover */}
+                                  <div className="absolute top-full left-0 mt-1 hidden group-hover/po:block z-30 w-64 p-3 rounded-xl bg-card border border-border shadow-xl text-xs font-sans text-foreground pointer-events-auto animate-in fade-in-50 zoom-in-95 duration-150">
+                                    <div className="flex items-center justify-between border-b border-border/60 pb-1.5 mb-2">
+                                      <span className="font-mono font-bold text-primary">{row.po || row.noPo}</span>
+                                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">Detail PO</span>
+                                    </div>
+                                    <div className="space-y-1 text-[11px]">
+                                      <div><span className="text-muted-foreground">FPB:</span> <strong className="font-mono">{row.fpb || '-'}</strong></div>
+                                      <div><span className="text-muted-foreground">Armada:</span> <strong>{row.deptArmada || '-'}</strong></div>
+                                      <div><span className="text-muted-foreground">Item:</span> <span className="line-clamp-2 text-muted-foreground">{row.keterangan || row.item || '-'}</span></div>
+                                      <div><span className="text-muted-foreground">Tgl PO:</span> {formatTgl(row.tglPo)}</div>
+                                      <div><span className="text-muted-foreground">SLA:</span> {row.deliveryTime || '-'}</div>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => setSearchQuery(row.po || row.noPo || '')}
+                                      className="w-full mt-2.5 py-1 px-2 rounded-md bg-primary/10 hover:bg-primary/20 text-primary font-semibold text-[10px] text-center transition cursor-pointer"
+                                    >
+                                      🔍 Filter Berkas dengan PO ini
+                                    </button>
+                                  </div>
+                                </>
                               )}
                             </div>
                           </td>
 
-                          {/* TANGGAL INPUT PO */}
+                          {/* 2. TANGGAL INPUT PO */}
                           <td className="py-2.5 px-3 whitespace-nowrap text-muted-foreground font-mono bg-amber-500/[0.01]">
                             {formatTgl(row.tglPo)}
                           </td>
 
-                          {/* DELIVERY TIME */}
-                          <td className="py-2.5 px-3 whitespace-nowrap bg-amber-500/[0.01]">
-                            {getDeliveryTimeBadge(row.deliveryTime)}
+                          {/* 3. DELIVERY TIME (INLINE SLA SELECTOR DROPDOWN) */}
+                          <td className="py-2 px-2 whitespace-nowrap bg-amber-500/[0.01]">
+                            <select
+                              value={row.deliveryTime || '1 MINGGU'}
+                              onChange={(e) => handleQuickUpdate(row, { deliveryTime: e.target.value })}
+                              className={`text-[11px] font-bold py-1 px-2 rounded-md border cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-primary/20 transition ${
+                                (row.deliveryTime || '').includes('1 HARI') && !(row.deliveryTime || '').includes('1-2') && !(row.deliveryTime || '').includes('1-3')
+                                  ? 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30'
+                                  : (row.deliveryTime || '').includes('1-2 HARI') || (row.deliveryTime || '').includes('1-3 HARI')
+                                  ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border-amber-500/30'
+                                  : (row.deliveryTime || '').includes('1 MINGGU')
+                                  ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/25'
+                                  : 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/25'
+                              }`}
+                              title="Klik untuk mengubah SLA Delivery Time (Otomatis Tersimpan ke Google Sheet)"
+                            >
+                              <option value="1 HARI">⚡ 1 HARI (Mendesak)</option>
+                              <option value="1-2 HARI">⚡ 1-2 HARI</option>
+                              <option value="1-3 HARI">⚡ 1-3 HARI</option>
+                              <option value="1 MINGGU">📦 1 MINGGU</option>
+                              <option value="2 MINGGU">📅 2 MINGGU</option>
+                              <option value="2-3 MINGGU">📅 2-3 MINGGU</option>
+                            </select>
                           </td>
 
-                          {/* NO. FSTB */}
+                          {/* 4. NO. FSTB (Interactive Link & Quick Input) */}
                           <td className="py-2.5 px-3 whitespace-nowrap font-mono text-emerald-600 dark:text-emerald-400 font-semibold bg-amber-500/[0.01]">
                             {row.noFstb && row.noFstb !== '-' ? (
                               <div className="flex items-center gap-1.5 group/fstb">
-                                <span>{row.noFstb}</span>
+                                <span
+                                  onClick={() => setSearchQuery(row.noFstb || '')}
+                                  className="hover:underline cursor-pointer"
+                                  title="Klik untuk memfilter No. FSTB ini"
+                                >
+                                  {row.noFstb}
+                                </span>
                                 <button
                                   type="button"
                                   onClick={() => handleCopy(row.noFstb || '', 'No. FSTB')}
@@ -1456,51 +1757,162 @@ export default function MonitoringInternalTab({
                                 </button>
                               </div>
                             ) : (
-                              <span className="text-muted-foreground italic text-xs">-</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const input = window.prompt(`Masukkan No. FSTB untuk berkas ${row.fpb || row.po}:`);
+                                  if (input && input.trim()) {
+                                    const today = new Date().toISOString().slice(0, 10);
+                                    handleQuickUpdate(row, {
+                                      noFstb: input.trim().toUpperCase(),
+                                      tglInputFstb: row.tglInputFstb || today,
+                                    });
+                                  }
+                                }}
+                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-muted-foreground/70 hover:text-emerald-600 hover:bg-emerald-500/10 border border-dashed border-border hover:border-emerald-500/30 transition cursor-pointer"
+                                title="Klik untuk menginput No. FSTB"
+                              >
+                                <Plus className="size-2.5" />
+                                <span>+ FSTB</span>
+                              </button>
                             )}
                           </td>
 
-                          {/* TGL INPUT FSTB */}
+                          {/* 5. TGL INPUT FSTB */}
                           <td className="py-2.5 px-3 whitespace-nowrap text-muted-foreground font-mono bg-amber-500/[0.01]">
-                            {formatTgl(row.tglInputFstb)}
+                            {row.tglInputFstb && row.tglInputFstb !== '-' ? (
+                              <span>{formatTgl(row.tglInputFstb)}</span>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const today = new Date().toISOString().slice(0, 10);
+                                  handleQuickUpdate(row, { tglInputFstb: today });
+                                }}
+                                className="text-[10px] text-muted-foreground/50 hover:text-foreground italic cursor-pointer"
+                                title="Set tanggal input FSTB hari ini"
+                              >
+                                + Set Hari Ini
+                              </button>
+                            )}
                           </td>
 
-                          {/* TGL KE PIC TTB */}
+                          {/* 6. TGL KE PIC TTB (1-KLIK SERAH TERIMA KE LOGISTIK) */}
                           <td className="py-2.5 px-3 whitespace-nowrap font-mono bg-amber-500/[0.01]">
                             {isDoneTtb ? (
-                              <span className="font-semibold text-cyan-600 dark:text-cyan-400">
-                                {formatTgl(row.tglKePicTtb)}
-                              </span>
+                              <div className="flex items-center gap-1.5 group/ttbdate">
+                                <span className="font-semibold text-cyan-600 dark:text-cyan-400">
+                                  {formatTgl(row.tglKePicTtb)}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (window.confirm(`Batalkan serah terima TTB untuk berkas ${row.fpb || row.po}?`)) {
+                                      handleQuickUpdate(row, {
+                                        tglKePicTtb: '',
+                                        waktuKePicTtb: '',
+                                        statusBadge: 'DALAM PROSES',
+                                        statusTone: 'amber',
+                                      });
+                                    }
+                                  }}
+                                  className="opacity-0 group-hover/ttbdate:opacity-100 p-0.5 text-muted-foreground hover:text-rose-500 transition cursor-pointer"
+                                  title="Batalkan serah terima TTB"
+                                >
+                                  <X className="size-3" />
+                                </button>
+                              </div>
                             ) : (
-                              <span className="text-muted-foreground/60 italic">Belum TTB</span>
-                            )}
-                          </td>
-
-                          {/* WAKTU KE PIC TTB */}
-                          <td className="py-2.5 px-3 whitespace-nowrap font-mono text-muted-foreground text-xs bg-amber-500/[0.01]">
-                            {formatWaktu(row.waktuKePicTtb)}
-                          </td>
-
-                          {/* KETERANGAN PURCHASING */}
-                          <td className="py-2.5 px-3 max-w-[200px] bg-amber-500/[0.01]">
-                            {ketPchText && ketPchText !== '-' ? (
-                              <span
-                                className="line-clamp-2 text-foreground font-medium"
-                                title={ketPchText}
+                              <button
+                                type="button"
+                                onClick={() => handleMarkDoneTtb(row)}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 dark:text-amber-300 border border-amber-500/30 transition cursor-pointer shadow-2xs group/btn"
+                                title="Klik untuk tandai telah diserahkan ke PIC TTB hari ini (Auto-Save ke Google Sheet)"
                               >
-                                {ketPchText}
-                              </span>
-                            ) : (
-                              <span className="text-muted-foreground italic text-xs">-</span>
+                                <CheckCircle2 className="size-3 text-amber-600 dark:text-amber-400 group-hover/btn:scale-110 transition" />
+                                <span>+ Serahkan ke TTB</span>
+                              </button>
                             )}
                           </td>
 
-                          {/* LAPSE PCH KE TTB */}
-                          <td className="py-2.5 px-3 whitespace-nowrap font-mono text-xs border-r-2 border-border/80 bg-amber-500/[0.01]">
-                            {row.lapsePchToTtb ? (
-                              <span className="text-muted-foreground">{row.lapsePchToTtb}</span>
+                          {/* 7. WAKTU KE PIC TTB */}
+                          <td className="py-2.5 px-3 whitespace-nowrap font-mono text-muted-foreground text-xs bg-amber-500/[0.01]">
+                            {row.waktuKePicTtb && row.waktuKePicTtb !== '-' ? (
+                              <span className="px-1.5 py-0.5 rounded bg-muted/60 text-[11px]">
+                                {formatWaktu(row.waktuKePicTtb)}
+                              </span>
                             ) : (
-                              '-'
+                              <span className="text-muted-foreground/40 text-xs italic">-</span>
+                            )}
+                          </td>
+
+                          {/* 8. KETERANGAN PURCHASING (CLICK-TO-EDIT & TAGS) */}
+                          <td className="py-2.5 px-3 max-w-[200px] bg-amber-500/[0.01]">
+                            <div className="relative group/ket">
+                              {ketPchText && ketPchText !== '-' ? (
+                                <div className="flex items-center gap-1.5">
+                                  <span
+                                    className="line-clamp-2 text-foreground font-medium hover:text-primary cursor-pointer transition"
+                                    title={`${ketPchText} (Klik untuk edit catatan)`}
+                                    onClick={() => {
+                                      const newKet = window.prompt(
+                                        `Edit Catatan Purchasing (${row.fpb || row.po}):`,
+                                        ketPchText
+                                      );
+                                      if (newKet !== null) {
+                                        handleQuickUpdate(row, { ketPch: newKet, keterangan: newKet });
+                                      }
+                                    }}
+                                  >
+                                    {ketPchText}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const newKet = window.prompt(
+                                        `Edit Catatan Purchasing (${row.fpb || row.po}):`,
+                                        ketPchText
+                                      );
+                                      if (newKet !== null) {
+                                        handleQuickUpdate(row, { ketPch: newKet, keterangan: newKet });
+                                      }
+                                    }}
+                                    className="opacity-0 group-hover/ket:opacity-100 text-muted-foreground hover:text-foreground transition cursor-pointer"
+                                    title="Edit Catatan"
+                                  >
+                                    <Pencil className="size-2.5" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const newKet = window.prompt(
+                                      `Tambah Catatan Purchasing (${row.fpb || row.po}):`
+                                    );
+                                    if (newKet) {
+                                      handleQuickUpdate(row, { ketPch: newKet, keterangan: newKet });
+                                    }
+                                  }}
+                                  className="inline-flex items-center gap-1 text-[10px] text-muted-foreground/60 hover:text-foreground italic cursor-pointer"
+                                  title="Tambah Catatan"
+                                >
+                                  <Plus className="size-2.5" />
+                                  <span>+ Catatan</span>
+                                </button>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* 9. LAPSE PCH KE TTB (SMART SLA BADGE WITH TOOLTIP) */}
+                          <td className="py-2.5 px-3 whitespace-nowrap font-mono text-xs border-r-2 border-border/80 bg-amber-500/[0.01]">
+                            {getLapseBadge(
+                              row.lapsePchToTtb ||
+                                (row.tglInputFstb && row.tglKePicTtb
+                                  ? calculateLapseDays(row.tglInputFstb, row.tglKePicTtb)
+                                  : '-'),
+                              row.tglInputFstb || row.tglPo,
+                              row.tglKePicTtb
                             )}
                           </td>
                         </>
@@ -2381,7 +2793,7 @@ export default function MonitoringInternalTab({
                   </div>
                   <div className="opacity-90 leading-relaxed">
                     {isWebhookConfigured
-                      ? 'Setiap penambahan baris baru atau update berkas yang dilakukan dari dashboard akan otomatis dikirim dan diperbarui di Google Sheets secara real-time.'
+                      ? 'Setiap penambahan baris baru, perubahan status SLA, atau serah terima berkas yang dilakukan dari dashboard akan otomatis dikirim dan diperbarui di Google Sheets secara real-time.'
                       : 'Masukkan URL Webhook Google Apps Script di bawah untuk mengaktifkan fitur auto-save langsung ke Google Spreadsheet.'}
                   </div>
                 </div>
