@@ -234,7 +234,7 @@
     "reviewStatus": "FULFILL_STOCK",
     "urgency": "NORMAL",
     "picPurchasing": "Rina Sugiarto",
-    "reviewNotes": "Seluruh material disuplai langsung dari stok persediaan CPL Samarinda.",
+    "reviewNotes": "Test. Ok",
     "items": [
       {
         "no": 1,
@@ -258,9 +258,9 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "reviewedBy": "Wahyu Hidayat",
-    "reviewedAt": "2026-10-21T11:44:46.272Z",
-    "updatedAt": "2026-10-21T11:44:46.272Z",
+    "reviewedBy": "Administrator CPG",
+    "reviewedAt": "2026-10-21T12:14:26.848Z",
+    "updatedAt": "2026-10-21T12:14:26.848Z",
     "createdAt": "2026-10-21T11:44:46.272Z"
   }
 ]

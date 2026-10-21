@@ -193,6 +193,15 @@ async function authenticateEfpb(username: string, password: string): Promise<str
 
   const authCookie = authRes.headers.get('set-cookie') || '';
   const newSessMatch = authCookie.match(/PHPSESSID=([^;]+)/);
+
+  const authHtml = await authRes.text();
+  if (authHtml.includes('Account is locked') || authHtml.includes('retry count')) {
+    throw new Error('Akun e-FPB terkunci sementara oleh sistem (kelebihan batas login). Silakan tunggu 20 menit atau masukkan Cookie PHPSESSID dari browser.');
+  }
+  if (authHtml.includes('Incorrect') || authHtml.includes('alert-danger')) {
+    throw new Error('Username atau password e-FPB salah. Silakan periksa kembali kredensial Anda.');
+  }
+
   return newSessMatch ? newSessMatch[1] : tempSess;
 }
 
@@ -277,16 +286,25 @@ async function processEfpbFiles(
   targetUrl: string,
   username: string,
   password: string,
-  mode: 'quick' | 'full' = 'quick'
+  mode: 'quick' | 'full' = 'quick',
+  explicitSessionId?: string
 ) {
-  let sessionCookie = '';
+  let sessionCookie = explicitSessionId?.trim() || '';
 
-  // 1. Authenticate to e-FPB
-  if (username && password) {
+  // 1. Authenticate to e-FPB if explicit session cookie not provided
+  if (!sessionCookie && username && password) {
     try {
       sessionCookie = await authenticateEfpb(username, password);
-    } catch (authErr) {
-      console.warn('Autentikasi login e-FPB gagal atau dilewati:', authErr);
+    } catch (authErr: any) {
+      console.warn('Autentikasi login e-FPB gagal:', authErr?.message);
+      return NextResponse.json(
+        {
+          success: false,
+          requiresAuth: true,
+          message: authErr?.message || 'Gagal login ke server e-FPB.',
+        },
+        { status: 401 }
+      );
     }
   }
 
@@ -452,8 +470,9 @@ export async function GET(req: NextRequest) {
     const targetUrl = searchParams.get('url') || DEFAULT_FILESLIST_URL;
     const username = searchParams.get('username') || 'Hermansyah';
     const password = searchParams.get('password') || 'Biocpl24!@#';
+    const sessionId = searchParams.get('sessionId') || searchParams.get('cookie') || '';
     const mode = (searchParams.get('mode') as 'quick' | 'full') || 'quick';
-    return await processEfpbFiles(targetUrl, username, password, mode);
+    return await processEfpbFiles(targetUrl, username, password, mode, sessionId);
   } catch (error: any) {
     console.error('Error in GET /api/sync-efpb-files:', error);
     return NextResponse.json(
@@ -472,9 +491,10 @@ export async function POST(req: NextRequest) {
     const targetUrl = (body?.url || DEFAULT_FILESLIST_URL).trim();
     const username = (body?.username || 'Hermansyah').trim();
     const password = (body?.password || 'Biocpl24!@#').trim();
+    const sessionId = (body?.sessionId || body?.cookie || '').trim();
     const mode = (body?.mode as 'quick' | 'full') || 'quick';
 
-    return await processEfpbFiles(targetUrl, username, password, mode);
+    return await processEfpbFiles(targetUrl, username, password, mode, sessionId);
   } catch (error: any) {
     console.error('Error in POST /api/sync-efpb-files:', error);
     return NextResponse.json(

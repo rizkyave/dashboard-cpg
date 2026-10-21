@@ -30,6 +30,11 @@ import {
   ArrowRight,
   X,
   FileSearch,
+  KeyRound,
+  Lock,
+  Cookie,
+  Settings,
+  ShieldAlert,
 } from 'lucide-react';
 import {
   FpbReviewRecord,
@@ -127,17 +132,42 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
     fetchReviews();
   }, []);
 
+  // E-FPB Credentials & Sync Modal State
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState<boolean>(false);
+  const [efpbUsername, setEfpbUsername] = useState<string>('Hermansyah');
+  const [efpbPassword, setEfpbPassword] = useState<string>('Biocpl24!@#');
+  const [efpbSessionId, setEfpbSessionId] = useState<string>('');
+  const [efpbAuthMethod, setEfpbAuthMethod] = useState<'cookie' | 'account'>('cookie');
+  const [authErrorMsg, setAuthErrorMsg] = useState<string | null>(null);
+
+  // Load saved credentials from localStorage on client
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const u = localStorage.getItem('EFPB_USERNAME');
+      const p = localStorage.getItem('EFPB_PASSWORD');
+      const s = localStorage.getItem('EFPB_SESSION_ID');
+      if (u) setEfpbUsername(u);
+      if (p) setEfpbPassword(p);
+      if (s) setEfpbSessionId(s);
+    }
+  }, []);
+
   // Handle Sync with E-FPB
-  const handleSyncEfpb = async (mode: 'quick' | 'full') => {
+  const handleSyncEfpb = async (mode: 'quick' | 'full', customSessionId?: string) => {
     setIsSyncing(true);
     setSyncMode(mode);
+    setAuthErrorMsg(null);
     try {
+      const sess = customSessionId !== undefined ? customSessionId : efpbSessionId;
       const res = await fetch('/api/review-fpb', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'sync_efpb',
           mode,
+          username: efpbUsername,
+          password: efpbPassword,
+          sessionId: sess,
         }),
       });
       const json = await res.json();
@@ -149,8 +179,14 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
         } else {
           fetchReviews();
         }
+        setIsSyncModalOpen(false);
       } else {
-        showToast?.(json.message || 'Gagal sinkronisasi dengan server e-FPB', 'error');
+        const msg = json.message || 'Gagal sinkronisasi dengan server e-FPB';
+        setAuthErrorMsg(msg);
+        showToast?.(msg, 'warning');
+        if (json.requiresAuth || msg.includes('terkunci') || msg.includes('login') || msg.includes('401')) {
+          setIsSyncModalOpen(true);
+        }
       }
     } catch (err: any) {
       console.error('Error syncing e-FPB:', err);
@@ -542,6 +578,17 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
           >
             <Layers className="size-3.5" />
             Full Sync All
+          </button>
+
+          {/* Settings & Credentials Modal Button */}
+          <button
+            type="button"
+            onClick={() => setIsSyncModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border border-border bg-background hover:bg-muted text-foreground transition shadow-xs cursor-pointer"
+            title="Konfigurasi Login & Session Cookie (PHPSESSID) e-FPB"
+          >
+            <KeyRound className="size-3.5 text-muted-foreground" />
+            <span>Kredensial</span>
           </button>
         </div>
       </div>
@@ -1382,6 +1429,213 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                   <span>{isSavingDecision ? 'Menyimpan & Menyinkronkan...' : 'Simpan & Sinkronkan Keputusan ke Cloud'}</span>
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* 6. Modal Konfigurasi / Login Server E-FPB               */}
+      {/* ======================================================== */}
+      {isSyncModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in-50">
+          <div className="relative w-full max-w-lg rounded-2xl bg-card border border-border shadow-2xl overflow-hidden animate-in zoom-in-95">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-border bg-muted/40">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                  <KeyRound className="size-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-foreground">
+                    Sinkronisasi & Kredensial e-FPB
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground">
+                    e-fpb.cindaragroup.com/FilesList
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsSyncModalOpen(false)}
+                className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition cursor-pointer"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            {/* Error / Locked Warning Banner */}
+            {authErrorMsg && (
+              <div className="p-3 mx-4 mt-4 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-start gap-2.5">
+                <ShieldAlert className="size-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                <div className="text-xs text-rose-900 dark:text-rose-200">
+                  <div className="font-semibold">Pesan dari Server e-FPB:</div>
+                  <div className="mt-0.5">{authErrorMsg}</div>
+                </div>
+              </div>
+            )}
+
+            {/* Modal Body */}
+            <div className="p-4 space-y-4">
+              {/* Tab Selector: Cookie vs Account */}
+              <div className="flex items-center p-1 rounded-lg bg-muted border border-border">
+                <button
+                  type="button"
+                  onClick={() => setEfpbAuthMethod('cookie')}
+                  className={`flex-1 py-1.5 px-3 text-xs font-semibold rounded-md transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                    efpbAuthMethod === 'cookie'
+                      ? 'bg-card text-foreground shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <Cookie className="size-3.5 text-amber-500" />
+                  <span>Session Cookie (PHPSESSID)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEfpbAuthMethod('account')}
+                  className={`flex-1 py-1.5 px-3 text-xs font-semibold rounded-md transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                    efpbAuthMethod === 'account'
+                      ? 'bg-card text-foreground shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <Lock className="size-3.5" />
+                  <span>Username & Password</span>
+                </button>
+              </div>
+
+              {/* METHOD 1: Cookie (Recommended during lockout) */}
+              {efpbAuthMethod === 'cookie' ? (
+                <div className="space-y-3">
+                  <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs text-amber-900 dark:text-amber-200 space-y-1">
+                    <p className="font-semibold flex items-center gap-1">
+                      💡 Solusi Cepat / Bypass Limit Akun 20 Menit:
+                    </p>
+                    <p className="text-[11px] text-amber-800 dark:text-amber-300">
+                      Jika Anda sedang membuka website e-FPB di browser Anda:
+                    </p>
+                    <ol className="text-[11px] list-decimal list-inside space-y-0.5 text-amber-800 dark:text-amber-300">
+                      <li>Buka tab browser yang membuka <strong>e-fpb.cindaragroup.com</strong></li>
+                      <li>Tekan <strong>F12</strong> &rarr; tab <strong>Application</strong> &rarr; <strong>Cookies</strong></li>
+                      <li>Copy nilai cookie <strong>PHPSESSID</strong> dan tempel di bawah:</li>
+                    </ol>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-foreground mb-1">
+                      Nilai Cookie PHPSESSID:
+                    </label>
+                    <input
+                      type="text"
+                      value={efpbSessionId}
+                      onChange={(e) => {
+                        const val = e.target.value.trim();
+                        setEfpbSessionId(val);
+                        if (typeof window !== 'undefined') {
+                          localStorage.setItem('EFPB_SESSION_ID', val);
+                        }
+                      }}
+                      placeholder="Contoh: ogbrngqaj76poogae69oju40db"
+                      className="w-full py-2 px-3 text-xs font-mono rounded-lg border border-border bg-background text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20"
+                    />
+                  </div>
+                </div>
+              ) : (
+                /* METHOD 2: Username & Password */
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-foreground mb-1">
+                      Username e-FPB:
+                    </label>
+                    <input
+                      type="text"
+                      value={efpbUsername}
+                      onChange={(e) => {
+                        setEfpbUsername(e.target.value);
+                        if (typeof window !== 'undefined') {
+                          localStorage.setItem('EFPB_USERNAME', e.target.value);
+                        }
+                      }}
+                      placeholder="Username..."
+                      className="w-full py-2 px-3 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-foreground mb-1">
+                      Password e-FPB:
+                    </label>
+                    <input
+                      type="password"
+                      value={efpbPassword}
+                      onChange={(e) => {
+                        setEfpbPassword(e.target.value);
+                        if (typeof window !== 'undefined') {
+                          localStorage.setItem('EFPB_PASSWORD', e.target.value);
+                        }
+                      }}
+                      placeholder="Password..."
+                      className="w-full py-2 px-3 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Mode Selection */}
+              <div>
+                <label className="block text-xs font-semibold text-foreground mb-1.5">
+                  Mode Pengambilan Data:
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSyncMode('quick')}
+                    className={`p-2.5 rounded-lg border text-left transition cursor-pointer ${
+                      syncMode === 'quick'
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border bg-background text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    <div className="text-xs font-bold">Quick Sync (20 FPB)</div>
+                    <div className="text-[10px] mt-0.5 opacity-80">Hanya berkas terbaru</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setSyncMode('full')}
+                    className={`p-2.5 rounded-lg border text-left transition cursor-pointer ${
+                      syncMode === 'full'
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border bg-background text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    <div className="text-xs font-bold">Full Sync (Semua)</div>
+                    <div className="text-[10px] mt-0.5 opacity-80">Menyeluruh seluruh arsip</div>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-end gap-2.5 p-4 border-t border-border bg-muted/40">
+              <button
+                type="button"
+                onClick={() => setIsSyncModalOpen(false)}
+                className="px-3.5 py-1.5 text-xs font-medium rounded-lg border border-border bg-background hover:bg-muted transition text-foreground cursor-pointer"
+              >
+                Tutup
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleSyncEfpb(syncMode)}
+                disabled={isSyncing}
+                className="inline-flex items-center gap-2 px-4 py-1.5 text-xs font-bold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition shadow-xs cursor-pointer disabled:opacity-50"
+              >
+                <CloudDownload className={`size-3.5 ${isSyncing ? 'animate-bounce' : ''}`} />
+                <span>{isSyncing ? 'Menghubungkan...' : 'Mulai Sinkronisasi'}</span>
+              </button>
             </div>
           </div>
         </div>

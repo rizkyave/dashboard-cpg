@@ -787,23 +787,29 @@ export async function POST(req: NextRequest) {
       const mode = body.mode || 'quick'; // 'quick' (20) or 'full' (all pages)
       const username = body.username || 'Hermansyah';
       const password = body.password || 'Biocpl24!@#';
+      const sessionId = body.sessionId || '';
 
       // Call internal sync-efpb-files API
       const syncUrl = new URL(
-        `/api/sync-efpb-files?mode=${encodeURIComponent(mode)}&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`,
+        `/api/sync-efpb-files?mode=${encodeURIComponent(mode)}&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&sessionId=${encodeURIComponent(sessionId)}`,
         req.url
       );
 
       const syncRes = await fetch(syncUrl.toString(), { cache: 'no-store' });
-      if (!syncRes.ok) {
+      const syncData = await syncRes.json().catch(() => ({}));
+
+      if (!syncRes.ok || !syncData.success) {
         return NextResponse.json(
-          { success: false, message: 'Gagal menghubungi server e-FPB FilesList.' },
-          { status: 502 }
+          {
+            success: false,
+            requiresAuth: syncRes.status === 401 || syncData.requiresAuth,
+            message: syncData.message || `Gagal mengambil berkas e-FPB (HTTP ${syncRes.status}).`,
+          },
+          { status: syncRes.status || 502 }
         );
       }
 
-      const syncData = await syncRes.json();
-      if (!syncData.success || !Array.isArray(syncData.procurement)) {
+      if (!Array.isArray(syncData.procurement)) {
         return NextResponse.json(
           { success: false, message: syncData.message || 'Data e-FPB tidak valid.' },
           { status: 400 }
