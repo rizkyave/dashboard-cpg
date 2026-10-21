@@ -129,6 +129,13 @@ export default function Sidebar({
       title: 'Sinkronisasi e-FPB, Review Ketersediaan Stok Gudang & Analisa Duplikasi Permintaan Armada',
     },
     {
+      id: 'monitoring-internal' as TabType,
+      label: 'Monitoring Internal',
+      icon: FileSpreadsheet,
+      badge: 'Sheet',
+      title: 'Monitoring Berkas Internal Procurement (Done by Purchasing, Delivery Time & Serah Terima PIC TTB)',
+    },
+    {
       id: 'procurement' as TabType,
       label: 'Procurement',
       icon: ShoppingBag,

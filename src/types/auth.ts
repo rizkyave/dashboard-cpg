@@ -147,6 +147,21 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     },
   },
   {
+    tabId: 'monitoring-internal',
+    category: 'Dashboards',
+    name: 'Monitoring Berkas Internal',
+    description: 'Monitoring berkas internal procurement, PIC purchasing, lead time delivery, dan serah terima dokumen fisik ke PIC TTB',
+    permissions: {
+      admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
+      manager: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Monitoring berkas internal procurement, alur PO & delivery time' },
+      supervisor: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Monitoring berkas internal, lead time delivery & penyerahan TTB' },
+      staf_purchasing: { allowed: true, level: 'Upload & Kelola', badgeTone: 'emerald', notes: 'Monitoring & tracking berkas internal pengadaan yang ditangani' },
+      staf_ttb: { allowed: true, level: 'View & Verifikasi', badgeTone: 'blue', notes: 'Verifikasi tanda terima berkas dari purchasing ke logistik TTB' },
+      staf_lapangan: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Melihat status berkas pengadaan' },
+      visitor: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Peninjauan alur berkas internal' },
+    },
+  },
+  {
     tabId: 'procurement',
     category: 'Dashboards',
     name: 'Procurement',

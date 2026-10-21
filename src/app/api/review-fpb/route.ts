@@ -5,6 +5,7 @@ import {
   FpbReviewRecord,
   FpbReviewStatus,
   FpbUrgency,
+  FpbPriorityLevel,
   FpbItemReview,
   FpbDuplicateAlert,
   FpbReviewSummaryMetrics,
@@ -566,6 +567,71 @@ function seedInitialReviews(): FpbReviewRecord[] {
 }
 
 /**
+ * Helper: Menghitung target SLA dan status prioritas (P1: 1-2 hari, P2: 3-14 hari, P3: 14-30 hari)
+ */
+function enrichSlaAndPriority(rec: FpbReviewRecord): FpbReviewRecord {
+  // 1. Tentukan level prioritas dari item barang jika ada
+  let level: FpbPriorityLevel = rec.priorityLevel || 'P3';
+
+  if (rec.items && rec.items.length > 0) {
+    let hasP1 = false;
+    let hasP2 = false;
+    for (const it of rec.items) {
+      const p = (it.priority || '').toUpperCase().trim();
+      if (p === 'P1' || p.includes('P1') || p.includes('EMERGENCY') || p.includes('DARURAT')) {
+        hasP1 = true;
+        break;
+      } else if (p === 'P2' || p.includes('P2') || p.includes('URGENT') || p.includes('MENENGAH')) {
+        hasP2 = true;
+      }
+    }
+    if (hasP1) level = 'P1';
+    else if (hasP2) level = 'P2';
+    else level = 'P3';
+  } else if (!rec.priorityLevel) {
+    if (rec.urgency === 'EMERGENCY') level = 'P1';
+    else if (rec.urgency === 'URGENT') level = 'P2';
+    else level = 'P3';
+  }
+
+  // 2. SLA target pengadaan: P1 (2 hari), P2 (14 hari), P3 (30 hari)
+  const slaMaxDays = level === 'P1' ? 2 : level === 'P2' ? 14 : 30;
+  const createdTs = parseDateToTs(rec.date);
+
+  let slaTargetDate = '';
+  let slaDaysRemaining = 0;
+  let slaStatus: 'ON_TRACK' | 'DUE_SOON' | 'OVERDUE' = 'ON_TRACK';
+
+  if (createdTs > 0) {
+    const targetTs = createdTs + slaMaxDays * 24 * 60 * 60 * 1000;
+    const targetObj = new Date(targetTs);
+    const day = String(targetObj.getDate()).padStart(2, '0');
+    const month = String(targetObj.getMonth() + 1).padStart(2, '0');
+    const year = String(targetObj.getFullYear()).slice(-2);
+    slaTargetDate = `${day}/${month}/${year}`;
+
+    const nowTs = Date.now();
+    slaDaysRemaining = Math.ceil((targetTs - nowTs) / (24 * 60 * 60 * 1000));
+
+    if (slaDaysRemaining < 0) {
+      slaStatus = 'OVERDUE';
+    } else if (slaDaysRemaining <= (level === 'P1' ? 1 : 3)) {
+      slaStatus = 'DUE_SOON';
+    } else {
+      slaStatus = 'ON_TRACK';
+    }
+  }
+
+  return {
+    ...rec,
+    priorityLevel: level,
+    slaTargetDate,
+    slaDaysRemaining,
+    slaStatus,
+  };
+}
+
+/**
  * Calculate Summary Metrics
  */
 function calculateMetrics(records: FpbReviewRecord[]): FpbReviewSummaryMetrics {
@@ -576,6 +642,10 @@ function calculateMetrics(records: FpbReviewRecord[]): FpbReviewSummaryMetrics {
   let rejected = 0;
   let urgent = 0;
   let emergency = 0;
+  let p1Count = 0;
+  let p2Count = 0;
+  let p3Count = 0;
+  let overdueCount = 0;
 
   for (const r of records) {
     switch (r.reviewStatus) {
@@ -601,6 +671,12 @@ function calculateMetrics(records: FpbReviewRecord[]): FpbReviewSummaryMetrics {
 
     if (r.urgency === 'URGENT') urgent++;
     else if (r.urgency === 'EMERGENCY') emergency++;
+
+    if (r.priorityLevel === 'P1') p1Count++;
+    else if (r.priorityLevel === 'P2') p2Count++;
+    else p3Count++;
+
+    if (r.slaStatus === 'OVERDUE') overdueCount++;
   }
 
   return {
@@ -612,6 +688,10 @@ function calculateMetrics(records: FpbReviewRecord[]): FpbReviewSummaryMetrics {
     rejected,
     urgent,
     emergency,
+    p1Count,
+    p2Count,
+    p3Count,
+    overdueCount,
   };
 }
 
@@ -644,6 +724,9 @@ export async function GET(req: NextRequest) {
     // Detect duplicate requests
     records = enrichDuplicateAlerts(records);
 
+    // Enrich SLA & Priority scale (P1: 1-2 days, P2: 3-14 days, P3: 14-30 days)
+    records = records.map(enrichSlaAndPriority);
+
     // Apply query filters if provided
     let filtered = records;
     if (fpbQuery) {
@@ -660,6 +743,10 @@ export async function GET(req: NextRequest) {
     }
     if (status && status !== 'ALL') {
       filtered = filtered.filter((r) => r.reviewStatus === status);
+    }
+    const priority = searchParams.get('priority');
+    if (priority && priority !== 'ALL') {
+      filtered = filtered.filter((r) => r.priorityLevel === priority);
     }
 
     // Sort: newest date first
@@ -704,6 +791,7 @@ export async function POST(req: NextRequest) {
         fpbNo,
         reviewStatus,
         urgency,
+        priorityLevel,
         picPurchasing,
         reviewNotes,
         items,
@@ -730,6 +818,7 @@ export async function POST(req: NextRequest) {
           ...current,
           reviewStatus: reviewStatus || current.reviewStatus,
           urgency: urgency || current.urgency,
+          priorityLevel: priorityLevel || current.priorityLevel,
           picPurchasing: picPurchasing !== undefined ? picPurchasing : current.picPurchasing,
           reviewNotes: reviewNotes !== undefined ? reviewNotes : current.reviewNotes,
           items: Array.isArray(items) ? items : current.items,
@@ -771,6 +860,7 @@ export async function POST(req: NextRequest) {
       }
 
       records = enrichDuplicateAlerts(records);
+      records = records.map(enrichSlaAndPriority);
       await saveReviews(records);
 
       return NextResponse.json({
@@ -873,6 +963,7 @@ export async function POST(req: NextRequest) {
       }
 
       records = enrichDuplicateAlerts(records);
+      records = records.map(enrichSlaAndPriority);
       await saveReviews(records);
 
       return NextResponse.json({
@@ -962,7 +1053,25 @@ export async function POST(req: NextRequest) {
           if (parseData.data.tujuanPeruntukan && !records[targetIdx].purpose) {
             records[targetIdx].purpose = parseData.data.tujuanPeruntukan;
           }
+
+          // Otomatis deteksi prioritas tertinggi dari item (P1: Utama, P2: Menengah, P3: Rutin)
+          let autoPriority: FpbPriorityLevel = 'P3';
+          for (const it of extractedItems) {
+            const p = (it.priority || '').toUpperCase().trim();
+            if (p === 'P1' || p.includes('P1') || p.includes('EMERGENCY') || p.includes('DARURAT')) {
+              autoPriority = 'P1';
+              break;
+            } else if (p === 'P2' || p.includes('P2') || p.includes('URGENT') || p.includes('MENENGAH')) {
+              autoPriority = 'P2';
+            }
+          }
+          records[targetIdx].priorityLevel = autoPriority;
+          if (autoPriority === 'P1') records[targetIdx].urgency = 'EMERGENCY';
+          else if (autoPriority === 'P2') records[targetIdx].urgency = 'URGENT';
+          else records[targetIdx].urgency = 'NORMAL';
+
           records[targetIdx].updatedAt = new Date().toISOString();
+          records = records.map(enrichSlaAndPriority);
           await saveReviews(records);
         }
       }

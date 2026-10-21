@@ -35,11 +35,15 @@ import {
   Cookie,
   Settings,
   ShieldAlert,
+  Zap,
+  Timer,
 } from 'lucide-react';
 import {
   FpbReviewRecord,
   FpbReviewStatus,
   FpbUrgency,
+  FpbPriorityLevel,
+  FPB_PRIORITIES,
   FpbItemReview,
   FpbReviewSummaryMetrics,
   ItemDecision,
@@ -83,6 +87,10 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
     rejected: 0,
     urgent: 0,
     emergency: 0,
+    p1Count: 0,
+    p2Count: 0,
+    p3Count: 0,
+    overdueCount: 0,
   });
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
@@ -93,6 +101,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
   const [selectedEntity, setSelectedEntity] = useState<string>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
   const [selectedUrgency, setSelectedUrgency] = useState<string>('ALL');
+  const [selectedPriority, setSelectedPriority] = useState<string>('ALL');
   const [onlyDuplicates, setOnlyDuplicates] = useState<boolean>(false);
 
   // Modal / Drawer state
@@ -104,6 +113,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
   // Form states inside modal
   const [formStatus, setFormStatus] = useState<FpbReviewStatus>('PENDING_REVIEW');
   const [formUrgency, setFormUrgency] = useState<FpbUrgency>('NORMAL');
+  const [formPriority, setFormPriority] = useState<FpbPriorityLevel>('P3');
   const [formPic, setFormPic] = useState<string>('');
   const [formNotes, setFormNotes] = useState<string>('');
   const [formItems, setFormItems] = useState<FpbItemReview[]>([]);
@@ -201,6 +211,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
     setSelectedRecord(rec);
     setFormStatus(rec.reviewStatus || 'PENDING_REVIEW');
     setFormUrgency(rec.urgency || 'NORMAL');
+    setFormPriority(rec.priorityLevel || 'P3');
     setFormPic(rec.picPurchasing || '');
     setFormNotes(rec.reviewNotes || '');
     setFormItems(rec.items ? JSON.parse(JSON.stringify(rec.items)) : []);
@@ -229,6 +240,22 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
       if (json.success && Array.isArray(json.items)) {
         setFormItems(json.items);
         showToast?.(json.message || 'Item barang berhasil diekstrak dan dicocokkan dengan stok!', 'success');
+
+        // Auto-detect skala prioritas dari item barang (P1: Utama 1-2 hari, P2: Menengah 3-14 hari, P3: Rutin 14-30 hari)
+        let autoP: FpbPriorityLevel = 'P3';
+        for (const it of json.items) {
+          const p = (it.priority || '').toUpperCase().trim();
+          if (p === 'P1' || p.includes('P1') || p.includes('EMERGENCY') || p.includes('DARURAT')) {
+            autoP = 'P1';
+            break;
+          } else if (p === 'P2' || p.includes('P2') || p.includes('URGENT') || p.includes('MENENGAH')) {
+            autoP = 'P2';
+          }
+        }
+        setFormPriority(autoP);
+        if (autoP === 'P1') setFormUrgency('EMERGENCY');
+        else if (autoP === 'P2') setFormUrgency('URGENT');
+
         // Automatically suggest status if all items are in stock
         const allInStock = json.items.every((it: FpbItemReview) => it.stockStatus === 'IN_STOCK');
         if (allInStock && formStatus === 'PENDING_REVIEW') {
@@ -273,6 +300,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
         fpbNo: selectedRecord.fpbNo,
         reviewStatus: formStatus,
         urgency: formUrgency,
+        priorityLevel: formPriority,
         picPurchasing: formPic,
         reviewNotes: formNotes,
         items: formItems,
@@ -296,6 +324,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                   ...r,
                   reviewStatus: formStatus,
                   urgency: formUrgency,
+                  priorityLevel: formPriority,
                   picPurchasing: formPic,
                   reviewNotes: formNotes,
                   items: formItems,
@@ -329,6 +358,10 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
     const headers = [
       'No. FPB',
       'Entitas',
+      'Skala Prioritas',
+      'Target SLA',
+      'Sisa Hari SLA',
+      'Status SLA',
       'Armada / Dept',
       'Tanggal',
       'Peruntukan',
@@ -353,6 +386,10 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
       return [
         `"${r.fpbNo}"`,
         `"${r.entity}"`,
+        `"${r.priorityLevel || 'P3'}"`,
+        `"${r.slaTargetDate || '-'}"`,
+        `"${r.slaDaysRemaining !== undefined ? r.slaDaysRemaining : '-'}"`,
+        `"${r.slaStatus || '-'}"`,
         `"${r.armada}"`,
         `"${r.date}"`,
         `"${(r.purpose || '').replace(/"/g, '""')}"`,
@@ -414,14 +451,73 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
         return false;
       }
 
-      // 5. Only Duplicates
+      // 5. Priority Level Filter (P1, P2, P3, or OVERDUE)
+      if (selectedPriority !== 'ALL') {
+        if (selectedPriority === 'OVERDUE') {
+          if (r.slaStatus !== 'OVERDUE') return false;
+        } else if ((r.priorityLevel || 'P3') !== selectedPriority) {
+          return false;
+        }
+      }
+
+      // 6. Only Duplicates
       if (onlyDuplicates && (!r.duplicateAlerts || r.duplicateAlerts.length === 0)) {
         return false;
       }
 
       return true;
     });
-  }, [reviews, searchQuery, selectedEntity, selectedStatus, selectedUrgency, onlyDuplicates]);
+  }, [reviews, searchQuery, selectedEntity, selectedStatus, selectedUrgency, selectedPriority, onlyDuplicates]);
+
+  // Helper Priority Badge
+  const getPriorityBadge = (priority?: FpbPriorityLevel) => {
+    switch (priority) {
+      case 'P1':
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-rose-600 text-white shadow-xs">
+            <AlertOctagon className="size-3" />
+            P1 (Utama: 1-2 Hari)
+          </span>
+        );
+      case 'P2':
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+            <AlertTriangle className="size-3" />
+            P2 (Menengah: 3-14 Hari)
+          </span>
+        );
+      case 'P3':
+      default:
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20">
+            <Clock className="size-3" />
+            P3 (Rutin: 14-30 Hari)
+          </span>
+        );
+    }
+  };
+
+  // Helper SLA Badge
+  const getSlaBadge = (rec: FpbReviewRecord) => {
+    if (!rec.slaTargetDate) return null;
+    const isOverdue = rec.slaStatus === 'OVERDUE';
+    const isDueSoon = rec.slaStatus === 'DUE_SOON';
+
+    return (
+      <div className="flex flex-col text-[10px] leading-tight mt-0.5">
+        <span className={isOverdue ? 'font-bold text-rose-600 dark:text-rose-400' : isDueSoon ? 'font-semibold text-amber-600 dark:text-amber-400' : 'text-muted-foreground'}>
+          {isOverdue
+            ? `⚠️ Lewat SLA (${Math.abs(rec.slaDaysRemaining || 0)} hr)`
+            : isDueSoon
+            ? `⏳ Sisa ${rec.slaDaysRemaining} hari`
+            : `Sisa ${rec.slaDaysRemaining} hari`}
+        </span>
+        <span className="text-[9px] text-muted-foreground opacity-80">
+          Target: {rec.slaTargetDate}
+        </span>
+      </div>
+    );
+  };
 
   // Helper badge styles
   const getReviewStatusBadge = (status: FpbReviewStatus) => {
@@ -594,70 +690,207 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
       </div>
 
       {/* ======================================================== */}
-      {/* 2. Top Summary KPI Cards                                  */}
+      {/* 2. Top Summary KPI Cards: Prioritas & Disposisi FPB      */}
       {/* ======================================================== */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        {/* Total FPB */}
-        <div className="p-4 rounded-xl bg-card border border-border shadow-xs hover:border-primary/40 transition">
-          <div className="flex items-center justify-between text-muted-foreground mb-1.5">
-            <span className="text-xs font-medium">Total FPB</span>
-            <Layers className="size-4 text-blue-500" />
+      <div className="space-y-3">
+        {/* Row 1: Skala Prioritas & SLA Lead Time Pengadaan */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {/* P1: Utama (1-2 Hari) */}
+          <div
+            onClick={() => setSelectedPriority(selectedPriority === 'P1' ? 'ALL' : 'P1')}
+            className={`p-4 rounded-xl border transition cursor-pointer ${
+              selectedPriority === 'P1'
+                ? 'bg-rose-500/15 border-rose-500 shadow-sm ring-2 ring-rose-500/20'
+                : 'bg-card border-border hover:border-rose-500/40 shadow-xs'
+            }`}
+          >
+            <div className="flex items-center justify-between text-rose-600 dark:text-rose-400 mb-1.5">
+              <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                <AlertOctagon className="size-4 text-rose-500" />
+                P1 - Utama
+              </span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded font-bold bg-rose-500/10 border border-rose-500/30">
+                1 - 2 Hari
+              </span>
+            </div>
+            <div className="text-2xl font-bold text-rose-600 dark:text-rose-400">{metrics.p1Count}</div>
+            <div className="text-[11px] text-muted-foreground mt-0.5">Darurat / Kritis breakdown armada</div>
           </div>
-          <div className="text-2xl font-bold text-foreground">{metrics.total}</div>
-          <div className="text-[11px] text-muted-foreground mt-0.5">Berkas terdata</div>
+
+          {/* P2: Menengah (3-14 Hari) */}
+          <div
+            onClick={() => setSelectedPriority(selectedPriority === 'P2' ? 'ALL' : 'P2')}
+            className={`p-4 rounded-xl border transition cursor-pointer ${
+              selectedPriority === 'P2'
+                ? 'bg-amber-500/15 border-amber-500 shadow-sm ring-2 ring-amber-500/20'
+                : 'bg-card border-border hover:border-amber-500/40 shadow-xs'
+            }`}
+          >
+            <div className="flex items-center justify-between text-amber-600 dark:text-amber-400 mb-1.5">
+              <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                <AlertTriangle className="size-4 text-amber-500" />
+                P2 - Menengah
+              </span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded font-semibold bg-amber-500/10 border border-amber-500/30">
+                3 - 14 Hari
+              </span>
+            </div>
+            <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">{metrics.p2Count}</div>
+            <div className="text-[11px] text-muted-foreground mt-0.5">Pemeliharaan & operasional terjadwal</div>
+          </div>
+
+          {/* P3: Rutin (14-30 Hari) */}
+          <div
+            onClick={() => setSelectedPriority(selectedPriority === 'P3' ? 'ALL' : 'P3')}
+            className={`p-4 rounded-xl border transition cursor-pointer ${
+              selectedPriority === 'P3'
+                ? 'bg-blue-500/15 border-blue-500 shadow-sm ring-2 ring-blue-500/20'
+                : 'bg-card border-border hover:border-blue-500/40 shadow-xs'
+            }`}
+          >
+            <div className="flex items-center justify-between text-blue-600 dark:text-blue-400 mb-1.5">
+              <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                <Clock className="size-4 text-blue-500" />
+                P3 - Rutin
+              </span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-blue-500/10 border border-blue-500/30">
+                14 - 30 Hari
+              </span>
+            </div>
+            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{metrics.p3Count}</div>
+            <div className="text-[11px] text-muted-foreground mt-0.5">Buffer stok cadangan gudang</div>
+          </div>
+
+          {/* Lewat Batas SLA */}
+          <div
+            onClick={() => setSelectedPriority(selectedPriority === 'OVERDUE' ? 'ALL' : 'OVERDUE')}
+            className={`p-4 rounded-xl border transition cursor-pointer ${
+              selectedPriority === 'OVERDUE'
+                ? 'bg-rose-500/15 border-rose-500 shadow-sm ring-2 ring-rose-500/20'
+                : metrics.overdueCount > 0
+                ? 'bg-card border-rose-500/30 hover:border-rose-500 shadow-xs'
+                : 'bg-card border-border hover:border-border/80 shadow-xs'
+            }`}
+          >
+            <div className="flex items-center justify-between text-rose-600 dark:text-rose-400 mb-1.5">
+              <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                <Timer className="size-4 text-rose-500" />
+                Lewat Batas SLA
+              </span>
+              {metrics.overdueCount > 0 && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded font-bold bg-rose-600 text-white animate-pulse">
+                  Perlu Tindakan
+                </span>
+              )}
+            </div>
+            <div className="text-2xl font-bold text-rose-600 dark:text-rose-400">{metrics.overdueCount}</div>
+            <div className="text-[11px] text-muted-foreground mt-0.5">Melebihi target lead time pengadaan</div>
+          </div>
         </div>
 
-        {/* Menunggu Analisa */}
-        <div className="p-4 rounded-xl bg-card border border-amber-500/20 bg-amber-500/[0.02] shadow-xs hover:border-amber-500/40 transition">
-          <div className="flex items-center justify-between text-amber-600 dark:text-amber-400 mb-1.5">
-            <span className="text-xs font-medium">Menunggu Analisa</span>
-            <Clock className="size-4 text-amber-500" />
+        {/* Row 2: Status Disposisi Analisa Tim FPB */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          {/* Total FPB */}
+          <div
+            onClick={() => {
+              setSelectedStatus('ALL');
+              setSelectedPriority('ALL');
+              setSelectedEntity('ALL');
+            }}
+            className="p-3.5 rounded-xl bg-card border border-border shadow-xs hover:border-primary/40 transition cursor-pointer"
+            title="Klik untuk reset semua filter"
+          >
+            <div className="flex items-center justify-between text-muted-foreground mb-1">
+              <span className="text-xs font-medium">Total FPB</span>
+              <Layers className="size-4 text-blue-500" />
+            </div>
+            <div className="text-xl font-bold text-foreground">{metrics.total}</div>
+            <div className="text-[10px] text-muted-foreground">Berkas terdata</div>
           </div>
-          <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">{metrics.pending}</div>
-          <div className="text-[11px] text-muted-foreground mt-0.5">Perlu review tim</div>
-        </div>
 
-        {/* Disetujui Terbit PO */}
-        <div className="p-4 rounded-xl bg-card border border-emerald-500/20 bg-emerald-500/[0.02] shadow-xs hover:border-emerald-500/40 transition">
-          <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400 mb-1.5">
-            <span className="text-xs font-medium">Disetujui PO</span>
-            <FileCheck className="size-4 text-emerald-500" />
+          {/* Menunggu Analisa */}
+          <div
+            onClick={() => setSelectedStatus(selectedStatus === 'PENDING_REVIEW' ? 'ALL' : 'PENDING_REVIEW')}
+            className={`p-3.5 rounded-xl border transition cursor-pointer ${
+              selectedStatus === 'PENDING_REVIEW'
+                ? 'bg-amber-500/15 border-amber-500 shadow-xs'
+                : 'bg-card border-amber-500/20 hover:border-amber-500/40 shadow-xs'
+            }`}
+          >
+            <div className="flex items-center justify-between text-amber-600 dark:text-amber-400 mb-1">
+              <span className="text-xs font-medium">Menunggu Analisa</span>
+              <Clock className="size-4 text-amber-500" />
+            </div>
+            <div className="text-xl font-bold text-amber-600 dark:text-amber-400">{metrics.pending}</div>
+            <div className="text-[10px] text-muted-foreground">Perlu review tim</div>
           </div>
-          <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{metrics.approvedPo}</div>
-          <div className="text-[11px] text-muted-foreground mt-0.5">Diproses purchasing</div>
-        </div>
 
-        {/* Penuhi dari Stok */}
-        <div className="p-4 rounded-xl bg-card border border-cyan-500/20 bg-cyan-500/[0.02] shadow-xs hover:border-cyan-500/40 transition">
-          <div className="flex items-center justify-between text-cyan-600 dark:text-cyan-400 mb-1.5">
-            <span className="text-xs font-medium">Stok Gudang</span>
-            <PackageCheck className="size-4 text-cyan-500" />
+          {/* Disetujui Terbit PO */}
+          <div
+            onClick={() => setSelectedStatus(selectedStatus === 'APPROVED_PO' ? 'ALL' : 'APPROVED_PO')}
+            className={`p-3.5 rounded-xl border transition cursor-pointer ${
+              selectedStatus === 'APPROVED_PO'
+                ? 'bg-emerald-500/15 border-emerald-500 shadow-xs'
+                : 'bg-card border-emerald-500/20 hover:border-emerald-500/40 shadow-xs'
+            }`}
+          >
+            <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400 mb-1">
+              <span className="text-xs font-medium">Disetujui PO</span>
+              <FileCheck className="size-4 text-emerald-500" />
+            </div>
+            <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400">{metrics.approvedPo}</div>
+            <div className="text-[10px] text-muted-foreground">Diproses purchasing</div>
           </div>
-          <div className="text-2xl font-bold text-cyan-600 dark:text-cyan-400">{metrics.fulfillStock}</div>
-          <div className="text-[11px] text-muted-foreground mt-0.5">Cukup dari persediaan</div>
-        </div>
 
-        {/* Perlu Klarifikasi */}
-        <div className="p-4 rounded-xl bg-card border border-border shadow-xs hover:border-primary/40 transition">
-          <div className="flex items-center justify-between text-amber-600 dark:text-amber-400 mb-1.5">
-            <span className="text-xs font-medium">Klarifikasi</span>
-            <HelpCircle className="size-4 text-amber-500" />
+          {/* Penuhi dari Stok */}
+          <div
+            onClick={() => setSelectedStatus(selectedStatus === 'FULFILL_STOCK' ? 'ALL' : 'FULFILL_STOCK')}
+            className={`p-3.5 rounded-xl border transition cursor-pointer ${
+              selectedStatus === 'FULFILL_STOCK'
+                ? 'bg-cyan-500/15 border-cyan-500 shadow-xs'
+                : 'bg-card border-cyan-500/20 hover:border-cyan-500/40 shadow-xs'
+            }`}
+          >
+            <div className="flex items-center justify-between text-cyan-600 dark:text-cyan-400 mb-1">
+              <span className="text-xs font-medium">Stok Gudang</span>
+              <PackageCheck className="size-4 text-cyan-500" />
+            </div>
+            <div className="text-xl font-bold text-cyan-600 dark:text-cyan-400">{metrics.fulfillStock}</div>
+            <div className="text-[10px] text-muted-foreground">Cukup persediaan</div>
           </div>
-          <div className="text-2xl font-bold text-foreground">{metrics.needClarification}</div>
-          <div className="text-[11px] text-muted-foreground mt-0.5">Tanya ke armada</div>
-        </div>
 
-        {/* Urgensi Tinggi */}
-        <div className="p-4 rounded-xl bg-card border border-rose-500/20 bg-rose-500/[0.02] shadow-xs hover:border-rose-500/40 transition">
-          <div className="flex items-center justify-between text-rose-600 dark:text-rose-400 mb-1.5">
-            <span className="text-xs font-medium">Urgensi Tinggi</span>
-            <AlertOctagon className="size-4 text-rose-500 animate-pulse" />
+          {/* Perlu Klarifikasi */}
+          <div
+            onClick={() => setSelectedStatus(selectedStatus === 'NEED_CLARIFICATION' ? 'ALL' : 'NEED_CLARIFICATION')}
+            className={`p-3.5 rounded-xl border transition cursor-pointer ${
+              selectedStatus === 'NEED_CLARIFICATION'
+                ? 'bg-amber-500/15 border-amber-500 shadow-xs'
+                : 'bg-card border-border hover:border-amber-500/40 shadow-xs'
+            }`}
+          >
+            <div className="flex items-center justify-between text-amber-600 dark:text-amber-400 mb-1">
+              <span className="text-xs font-medium">Klarifikasi</span>
+              <HelpCircle className="size-4 text-amber-500" />
+            </div>
+            <div className="text-xl font-bold text-foreground">{metrics.needClarification}</div>
+            <div className="text-[10px] text-muted-foreground">Tanya ke armada</div>
           </div>
-          <div className="text-2xl font-bold text-rose-600 dark:text-rose-400">
-            {metrics.urgent + metrics.emergency}
-          </div>
-          <div className="text-[11px] text-muted-foreground mt-0.5">
-            {metrics.emergency} Darurat, {metrics.urgent} Urgent
+
+          {/* Ditolak */}
+          <div
+            onClick={() => setSelectedStatus(selectedStatus === 'REJECTED' ? 'ALL' : 'REJECTED')}
+            className={`p-3.5 rounded-xl border transition cursor-pointer ${
+              selectedStatus === 'REJECTED'
+                ? 'bg-rose-500/15 border-rose-500 shadow-xs'
+                : 'bg-card border-border hover:border-rose-500/40 shadow-xs'
+            }`}
+          >
+            <div className="flex items-center justify-between text-rose-600 dark:text-rose-400 mb-1">
+              <span className="text-xs font-medium">Ditolak</span>
+              <XCircle className="size-4 text-rose-500" />
+            </div>
+            <div className="text-xl font-bold text-foreground">{metrics.rejected}</div>
+            <div className="text-[10px] text-muted-foreground">Pengajuan batal</div>
           </div>
         </div>
       </div>
@@ -729,6 +962,25 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
               </select>
             </div>
 
+            {/* Priority & SLA Filter */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-muted-foreground shrink-0 flex items-center gap-1">
+                <Zap className="size-3.5 text-amber-500" />
+                Prioritas:
+              </span>
+              <select
+                value={selectedPriority}
+                onChange={(e) => setSelectedPriority(e.target.value)}
+                className="py-1.5 px-2.5 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20"
+              >
+                <option value="ALL">Semua Prioritas</option>
+                <option value="P1">🚨 P1 - Utama (1-2 Hari)</option>
+                <option value="P2">⚠️ P2 - Menengah (3-14 Hari)</option>
+                <option value="P3">📦 P3 - Rutin (14-30 Hari)</option>
+                <option value="OVERDUE">⚠️ Lewat Batas SLA</option>
+              </select>
+            </div>
+
             {/* Urgency Filter */}
             <div className="flex items-center gap-1.5">
               <span className="text-xs text-muted-foreground shrink-0">Urgensi:</span>
@@ -797,6 +1049,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                 setSearchQuery('');
                 setSelectedEntity('ALL');
                 setSelectedStatus('ALL');
+                setSelectedPriority('ALL');
                 setSelectedUrgency('ALL');
                 setOnlyDuplicates(false);
               }}
@@ -811,6 +1064,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
               <thead className="bg-muted/50 text-muted-foreground border-b border-border font-medium">
                 <tr>
                   <th className="py-3 px-4">No. FPB & Entitas</th>
+                  <th className="py-3 px-3">Prioritas & SLA</th>
                   <th className="py-3 px-4">Armada Kapal / Dept</th>
                   <th className="py-3 px-3">Tanggal</th>
                   <th className="py-3 px-4">Peruntukan / Keperluan</th>
@@ -849,6 +1103,14 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                             <span>{rec.duplicateAlerts.length} Riwayat Serupa</span>
                           </div>
                         )}
+                      </td>
+
+                      {/* Prioritas & Target SLA */}
+                      <td className="py-3 px-3 whitespace-nowrap">
+                        <div className="flex flex-col gap-1 items-start">
+                          {getPriorityBadge(rec.priorityLevel)}
+                          {getSlaBadge(rec)}
+                        </div>
                       </td>
 
                       {/* Armada */}
@@ -976,10 +1238,11 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                     <h3 className="text-lg font-bold text-foreground">
                       Analisa & Review: {selectedRecord.fpbNo}
                     </h3>
+                    {getPriorityBadge(formPriority)}
                     {getReviewStatusBadge(formStatus)}
                     {getUrgencyBadge(formUrgency)}
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mt-0.5">
                     <span className="flex items-center gap-1 font-medium text-foreground">
                       <Ship className="size-3.5 text-muted-foreground" />
                       {selectedRecord.armada}
@@ -991,6 +1254,14 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                     </span>
                     <span>•</span>
                     <span>Status Server: {selectedRecord.isReceivedLogistik ? 'Diterima Logistik' : 'Terdaftar'}</span>
+                    {selectedRecord.slaTargetDate && (
+                      <>
+                        <span>•</span>
+                        <span className={selectedRecord.slaStatus === 'OVERDUE' ? 'font-bold text-rose-600 dark:text-rose-400' : 'text-primary font-medium'}>
+                          Target SLA: {selectedRecord.slaTargetDate} ({selectedRecord.slaDaysRemaining !== undefined ? (selectedRecord.slaDaysRemaining < 0 ? `Lewat ${Math.abs(selectedRecord.slaDaysRemaining)} hr` : `Sisa ${selectedRecord.slaDaysRemaining} hr`) : ''})
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1154,11 +1425,19 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                                 <td className="py-2.5 px-3 font-medium text-muted-foreground">{item.no || idx + 1}</td>
                                 <td className="py-2.5 px-3">
                                   <div className="font-bold text-foreground">{item.itemName}</div>
-                                  <div className="text-[11px] text-muted-foreground flex items-center gap-2 mt-0.5">
+                                  <div className="text-[11px] text-muted-foreground flex flex-wrap items-center gap-2 mt-0.5">
                                     <span>Kode: {item.itemCode || '-'}</span>
                                     {item.priority && (
-                                      <span className="text-amber-600 dark:text-amber-400 font-medium">
-                                        • Prioritas: {item.priority}
+                                      <span
+                                        className={`inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold ${
+                                          item.priority.toUpperCase().includes('P1')
+                                            ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30'
+                                            : item.priority.toUpperCase().includes('P2')
+                                            ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30'
+                                            : 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30'
+                                        }`}
+                                      >
+                                        SLA: {item.priority}
                                       </span>
                                     )}
                                   </div>
@@ -1339,8 +1618,35 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
 
             {/* Modal Footer: Keputusan Review Tim FPB */}
             <div className="p-5 border-t border-border bg-muted/30 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* 1. Status Keputusan */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* 1. Skala Prioritas Dokumen (SLA Lead Time) */}
+                <div>
+                  <label className="block text-xs font-bold text-foreground mb-1.5 flex items-center gap-1.5">
+                    <Zap className="size-3.5 text-amber-500" />
+                    Prioritas FPB (SLA)
+                  </label>
+                  <select
+                    value={formPriority}
+                    onChange={(e) => {
+                      const p = e.target.value as FpbPriorityLevel;
+                      setFormPriority(p);
+                      if (p === 'P1') setFormUrgency('EMERGENCY');
+                      else if (p === 'P2') setFormUrgency('URGENT');
+                    }}
+                    className="w-full py-2 px-3 text-xs font-semibold rounded-lg border border-border bg-background text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20"
+                  >
+                    <option value="P1">🚨 P1 - Utama (1-2 Hari)</option>
+                    <option value="P2">⚠️ P2 - Menengah (3-14 Hari)</option>
+                    <option value="P3">📦 P3 - Rutin (14-30 Hari)</option>
+                  </select>
+                  <div className="text-[10px] text-muted-foreground mt-1">
+                    {formPriority === 'P1' && '⚡ Darurat / Breakdown (1-2 hr)'}
+                    {formPriority === 'P2' && '⏱️ Pemeliharaan rutin (3-14 hr)'}
+                    {formPriority === 'P3' && '📅 Buffer stok gudang (14-30 hr)'}
+                  </div>
+                </div>
+
+                {/* 2. Status Keputusan */}
                 <div>
                   <label className="block text-xs font-bold text-foreground mb-1.5">
                     Keputusan Tindak Lanjut Tim FPB
@@ -1358,7 +1664,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                   </select>
                 </div>
 
-                {/* 2. Tingkat Urgensi */}
+                {/* 3. Tingkat Urgensi */}
                 <div>
                   <label className="block text-xs font-bold text-foreground mb-1.5">
                     Tingkat Urgensi Pengadaan
@@ -1374,7 +1680,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                   </select>
                 </div>
 
-                {/* 3. PIC Purchasing */}
+                {/* 4. PIC Purchasing */}
                 <div>
                   <label className="block text-xs font-bold text-foreground mb-1.5">
                     Penugasan PIC Purchasing

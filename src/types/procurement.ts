@@ -4,7 +4,7 @@ export type EntityCode = 'ALL' | 'CPL' | 'PPI' | 'HL' | 'GAJ' | 'MIL' | 'SP' | '
 
 export type LapseFilterType = 'ALL' | 'NORMAL' | 'WARNING' | 'CRITICAL';
 
-export type TabType = 'overview' | 'review-fpb' | 'procurement' | 'armada' | 'pos-kapal' | 'crew-kapal' | 'work-order' | 'list-sm' | 'analytics' | 'inventory' | 'galeri-ttb' | 'admin-settings' | 'sisa-layanan' | 'upload-fstb' | 'upload-ttb' | 'validasi-dokumen' | 'serah-terima-lapangan';
+export type TabType = 'overview' | 'review-fpb' | 'monitoring-internal' | 'procurement' | 'armada' | 'pos-kapal' | 'crew-kapal' | 'work-order' | 'list-sm' | 'analytics' | 'inventory' | 'galeri-ttb' | 'admin-settings' | 'sisa-layanan' | 'upload-fstb' | 'upload-ttb' | 'validasi-dokumen' | 'serah-terima-lapangan';
 
 export type StatusTone = 'emerald' | 'cyan' | 'purple' | 'amber' | 'rose';
 
@@ -125,6 +125,8 @@ export interface ProcurementItem {
   picFstb?: string;
   tglInputFstb?: string;
   tglKePicTtb?: string;
+  waktuKePicTtb?: string;
+  keterangan?: string;
   noTtb?: string;
   tglInputTtb?: string;
   tglKeTimLapangan?: string;
@@ -200,6 +202,7 @@ export interface ArmadaItem {
   picAdm?: string;
   deliveryTime?: string;
   tglKePicTtb?: string;
+  waktuKePicTtb?: string;
   tglTimLapKePicTtb?: string;
   tglKeTimLapangan?: string;
   tglBarangDiantar?: string;
