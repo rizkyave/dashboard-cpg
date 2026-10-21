@@ -132,6 +132,21 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     },
   },
   {
+    tabId: 'review-fpb',
+    category: 'Dashboards',
+    name: 'Review & Analisa FPB',
+    description: 'Sinkronisasi e-FPB, review dan analisa item barang, cek ketersediaan stok gudang, dan deteksi duplikasi FPB armada',
+    permissions: {
+      admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
+      manager: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Otorisasi & persetujuan tindak lanjut FPB ke PO atau stok' },
+      supervisor: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Review teknis, cek urgensi & disposisi ke staf purchasing' },
+      staf_purchasing: { allowed: true, level: 'Upload & Kelola', badgeTone: 'emerald', notes: 'Analisa item FPB, cek stok gudang & penugasan PIC PO' },
+      staf_ttb: { allowed: true, level: 'View & Verifikasi', badgeTone: 'blue', notes: 'Verifikasi stok gudang logistik terhadap item FPB' },
+      staf_lapangan: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Melihat status perkembangan review FPB armada' },
+      visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
+    },
+  },
+  {
     tabId: 'procurement',
     category: 'Dashboards',
     name: 'Procurement',

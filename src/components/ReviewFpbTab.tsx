@@ -1,0 +1,1391 @@
+'use client';
+
+import React, { useState, useEffect, useMemo } from 'react';
+import {
+  FileCheck,
+  ClipboardCheck,
+  Search,
+  Filter,
+  RefreshCw,
+  CloudDownload,
+  Download,
+  AlertTriangle,
+  AlertOctagon,
+  Clock,
+  PackageCheck,
+  CheckCircle2,
+  XCircle,
+  HelpCircle,
+  Eye,
+  ExternalLink,
+  ChevronRight,
+  Layers,
+  Building2,
+  Ship,
+  Calendar,
+  UserCheck,
+  FileText,
+  Boxes,
+  Sparkles,
+  ArrowRight,
+  X,
+  FileSearch,
+} from 'lucide-react';
+import {
+  FpbReviewRecord,
+  FpbReviewStatus,
+  FpbUrgency,
+  FpbItemReview,
+  FpbReviewSummaryMetrics,
+  ItemDecision,
+} from '@/types/fpbReview';
+import { useAuth } from '@/context/AuthContext';
+
+interface ReviewFpbTabProps {
+  showToast?: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
+}
+
+const ENTITY_OPTIONS = [
+  { code: 'ALL', label: 'Semua Entitas' },
+  { code: 'CPL', label: 'CPL (Cindara Pratama Lines)' },
+  { code: 'MO', label: 'MO (Mandar Ocean)' },
+  { code: 'GAJ', label: 'GAJ (Galangan Aliran Jaya)' },
+  { code: 'HL', label: 'HL (Hana Lines)' },
+  { code: 'SP', label: 'SP (Sinar Pasifik)' },
+];
+
+const PURCHASING_PICS = [
+  'Wahyu Hidayat',
+  'Rina Sugiarto',
+  'Budi Santoso',
+  'Achmad Fauzi',
+  'Dewi Lestari',
+  'Tim Purchasing Samarinda',
+  'Tim Purchasing Balikpapan',
+];
+
+export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
+  const { user } = useAuth();
+
+  // Data states
+  const [reviews, setReviews] = useState<FpbReviewRecord[]>([]);
+  const [metrics, setMetrics] = useState<FpbReviewSummaryMetrics>({
+    total: 0,
+    pending: 0,
+    approvedPo: 0,
+    fulfillStock: 0,
+    needClarification: 0,
+    rejected: 0,
+    urgent: 0,
+    emergency: 0,
+  });
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [syncMode, setSyncMode] = useState<'quick' | 'full'>('quick');
+
+  // Filter states
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedEntity, setSelectedEntity] = useState<string>('ALL');
+  const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
+  const [selectedUrgency, setSelectedUrgency] = useState<string>('ALL');
+  const [onlyDuplicates, setOnlyDuplicates] = useState<boolean>(false);
+
+  // Modal / Drawer state
+  const [selectedRecord, setSelectedRecord] = useState<FpbReviewRecord | null>(null);
+  const [activeModalTab, setActiveModalTab] = useState<'items' | 'pdf' | 'relations'>('items');
+  const [isParsingItems, setIsParsingItems] = useState<boolean>(false);
+  const [isSavingDecision, setIsSavingDecision] = useState<boolean>(false);
+
+  // Form states inside modal
+  const [formStatus, setFormStatus] = useState<FpbReviewStatus>('PENDING_REVIEW');
+  const [formUrgency, setFormUrgency] = useState<FpbUrgency>('NORMAL');
+  const [formPic, setFormPic] = useState<string>('');
+  const [formNotes, setFormNotes] = useState<string>('');
+  const [formItems, setFormItems] = useState<FpbItemReview[]>([]);
+
+  // Fetch reviews from API
+  const fetchReviews = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/review-fpb', { cache: 'no-store' });
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        setReviews(json.data);
+        if (json.metrics) setMetrics(json.metrics);
+      } else {
+        showToast?.(json.message || 'Gagal memuat data review FPB', 'error');
+      }
+    } catch (err: any) {
+      console.error('Error fetching FPB reviews:', err);
+      showToast?.('Gagal menghubungi server untuk memuat review FPB', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReviews();
+  }, []);
+
+  // Handle Sync with E-FPB
+  const handleSyncEfpb = async (mode: 'quick' | 'full') => {
+    setIsSyncing(true);
+    setSyncMode(mode);
+    try {
+      const res = await fetch('/api/review-fpb', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'sync_efpb',
+          mode,
+        }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        showToast?.(json.message, 'success');
+        if (Array.isArray(json.data)) {
+          setReviews(json.data);
+          if (json.metrics) setMetrics(json.metrics);
+        } else {
+          fetchReviews();
+        }
+      } else {
+        showToast?.(json.message || 'Gagal sinkronisasi dengan server e-FPB', 'error');
+      }
+    } catch (err: any) {
+      console.error('Error syncing e-FPB:', err);
+      showToast?.('Gagal melakukan sinkronisasi dengan server e-FPB', 'error');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  // Open Review Detail Modal
+  const handleOpenReview = (rec: FpbReviewRecord) => {
+    setSelectedRecord(rec);
+    setFormStatus(rec.reviewStatus || 'PENDING_REVIEW');
+    setFormUrgency(rec.urgency || 'NORMAL');
+    setFormPic(rec.picPurchasing || '');
+    setFormNotes(rec.reviewNotes || '');
+    setFormItems(rec.items ? JSON.parse(JSON.stringify(rec.items)) : []);
+    setActiveModalTab('items');
+  };
+
+  // Close Modal
+  const handleCloseModal = () => {
+    setSelectedRecord(null);
+  };
+
+  // Trigger Parse PDF & Check Warehouse Stock
+  const handleParsePdfItems = async () => {
+    if (!selectedRecord) return;
+    setIsParsingItems(true);
+    try {
+      const res = await fetch('/api/review-fpb', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'parse_items',
+          fpbNo: selectedRecord.fpbNo,
+        }),
+      });
+      const json = await res.json();
+      if (json.success && Array.isArray(json.items)) {
+        setFormItems(json.items);
+        showToast?.(json.message || 'Item barang berhasil diekstrak dan dicocokkan dengan stok!', 'success');
+        // Automatically suggest status if all items are in stock
+        const allInStock = json.items.every((it: FpbItemReview) => it.stockStatus === 'IN_STOCK');
+        if (allInStock && formStatus === 'PENDING_REVIEW') {
+          setFormStatus('FULFILL_STOCK');
+        }
+      } else {
+        showToast?.(json.message || 'Gagal membaca isi PDF e-FPB.', 'warning');
+      }
+    } catch (err: any) {
+      console.error('Error parsing PDF:', err);
+      showToast?.('Gagal mengekstrak item PDF dari server.', 'error');
+    } finally {
+      setIsParsingItems(false);
+    }
+  };
+
+  // Update a single item decision in form
+  const handleUpdateItemDecision = (idx: number, decision: ItemDecision) => {
+    setFormItems((prev) => {
+      const updated = [...prev];
+      updated[idx] = { ...updated[idx], decision };
+      return updated;
+    });
+  };
+
+  // Update a single item note in form
+  const handleUpdateItemNote = (idx: number, notes: string) => {
+    setFormItems((prev) => {
+      const updated = [...prev];
+      updated[idx] = { ...updated[idx], notes };
+      return updated;
+    });
+  };
+
+  // Save Review Decision to Cloudflare R2
+  const handleSaveDecision = async () => {
+    if (!selectedRecord) return;
+    setIsSavingDecision(true);
+    try {
+      const payload = {
+        action: 'save_review',
+        fpbNo: selectedRecord.fpbNo,
+        reviewStatus: formStatus,
+        urgency: formUrgency,
+        picPurchasing: formPic,
+        reviewNotes: formNotes,
+        items: formItems,
+        reviewedBy: user?.name || user?.username || 'Tim FPB',
+      };
+
+      const res = await fetch('/api/review-fpb', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const json = await res.json();
+      if (json.success) {
+        showToast?.(json.message || 'Keputusan review berhasil disimpan ke Cloudflare R2!', 'success');
+        // Update local state
+        setReviews((prev) =>
+          prev.map((r) =>
+            r.fpbNo.toLowerCase() === selectedRecord.fpbNo.toLowerCase()
+              ? {
+                  ...r,
+                  reviewStatus: formStatus,
+                  urgency: formUrgency,
+                  picPurchasing: formPic,
+                  reviewNotes: formNotes,
+                  items: formItems,
+                  reviewedBy: user?.name || user?.username || 'Tim FPB',
+                  reviewedAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                }
+              : r
+          )
+        );
+        if (json.metrics) setMetrics(json.metrics);
+        handleCloseModal();
+      } else {
+        showToast?.(json.message || 'Gagal menyimpan keputusan review', 'error');
+      }
+    } catch (err: any) {
+      console.error('Error saving decision:', err);
+      showToast?.('Gagal menyimpan keputusan ke server', 'error');
+    } finally {
+      setIsSavingDecision(false);
+    }
+  };
+
+  // Export filtered data to CSV
+  const handleExportCsv = () => {
+    if (filteredReviews.length === 0) {
+      showToast?.('Tidak ada data untuk diekspor', 'warning');
+      return;
+    }
+
+    const headers = [
+      'No. FPB',
+      'Entitas',
+      'Armada / Dept',
+      'Tanggal',
+      'Peruntukan',
+      'Status e-FPB',
+      'Status Review Tim FPB',
+      'Urgensi',
+      'PIC Purchasing',
+      'Catatan Review',
+      'Jumlah Item',
+      'Item Tersedia di Stok',
+      'Item PO Beli Baru',
+      'No. PO Terkait',
+      'No. FSTB Terkait',
+      'No. TTB Terkait',
+    ];
+
+    const rows = filteredReviews.map((r) => {
+      const itemsCount = r.items ? r.items.length : 0;
+      const inStockCount = r.items ? r.items.filter((i) => i.decision === 'STOCK').length : 0;
+      const poCount = r.items ? r.items.filter((i) => i.decision === 'PO').length : 0;
+
+      return [
+        `"${r.fpbNo}"`,
+        `"${r.entity}"`,
+        `"${r.armada}"`,
+        `"${r.date}"`,
+        `"${(r.purpose || '').replace(/"/g, '""')}"`,
+        `"${r.efpbStatus}"`,
+        `"${r.reviewStatus}"`,
+        `"${r.urgency}"`,
+        `"${r.picPurchasing || '-'}"`,
+        `"${(r.reviewNotes || '').replace(/"/g, '""')}"`,
+        itemsCount,
+        inStockCount,
+        poCount,
+        `"${r.relatedDocs?.poNos?.join(', ') || '-'}"`,
+        `"${r.relatedDocs?.fstbNos?.join(', ') || '-'}"`,
+        `"${r.relatedDocs?.ttbNos?.join(', ') || '-'}"`,
+      ].join(',');
+    });
+
+    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `Review_FPB_CPG_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    showToast?.('Data review FPB berhasil diekspor ke CSV!', 'success');
+  };
+
+  // Filtered Reviews Memo
+  const filteredReviews = useMemo(() => {
+    return reviews.filter((r) => {
+      // 1. Search Query
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const fpbMatch = r.fpbNo.toLowerCase().includes(q);
+        const armadaMatch = r.armada.toLowerCase().includes(q);
+        const purposeMatch = (r.purpose || '').toLowerCase().includes(q);
+        const picMatch = (r.picPurchasing || '').toLowerCase().includes(q);
+        const notesMatch = (r.reviewNotes || '').toLowerCase().includes(q);
+        const poMatch = r.relatedDocs?.poNos?.some((p) => p.toLowerCase().includes(q));
+        if (!fpbMatch && !armadaMatch && !purposeMatch && !picMatch && !notesMatch && !poMatch) {
+          return false;
+        }
+      }
+
+      // 2. Entity Filter
+      if (selectedEntity !== 'ALL' && r.entity.toUpperCase() !== selectedEntity) {
+        return false;
+      }
+
+      // 3. Status Review Filter
+      if (selectedStatus !== 'ALL' && r.reviewStatus !== selectedStatus) {
+        return false;
+      }
+
+      // 4. Urgency Filter
+      if (selectedUrgency !== 'ALL' && r.urgency !== selectedUrgency) {
+        return false;
+      }
+
+      // 5. Only Duplicates
+      if (onlyDuplicates && (!r.duplicateAlerts || r.duplicateAlerts.length === 0)) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [reviews, searchQuery, selectedEntity, selectedStatus, selectedUrgency, onlyDuplicates]);
+
+  // Helper badge styles
+  const getReviewStatusBadge = (status: FpbReviewStatus) => {
+    switch (status) {
+      case 'APPROVED_PO':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+            <CheckCircle2 className="size-3.5" />
+            Disetujui Terbit PO
+          </span>
+        );
+      case 'FULFILL_STOCK':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20">
+            <PackageCheck className="size-3.5" />
+            Penuhi dari Stok
+          </span>
+        );
+      case 'NEED_CLARIFICATION':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+            <HelpCircle className="size-3.5" />
+            Perlu Klarifikasi
+          </span>
+        );
+      case 'REJECTED':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+            <XCircle className="size-3.5" />
+            Ditolak
+          </span>
+        );
+      case 'PENDING_REVIEW':
+      default:
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+            <Clock className="size-3.5" />
+            Menunggu Analisa
+          </span>
+        );
+    }
+  };
+
+  const getUrgencyBadge = (urgency: FpbUrgency) => {
+    switch (urgency) {
+      case 'EMERGENCY':
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-rose-500 text-white animate-pulse shadow-xs">
+            <AlertOctagon className="size-3" />
+            EMERGENCY
+          </span>
+        );
+      case 'URGENT':
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30">
+            <AlertTriangle className="size-3" />
+            URGENT
+          </span>
+        );
+      case 'NORMAL':
+      default:
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-muted text-muted-foreground border border-border">
+            Normal
+          </span>
+        );
+    }
+  };
+
+  const getEntityBadge = (entity: string) => {
+    const ent = (entity || 'CPL').toUpperCase();
+    let bg = 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20';
+    if (ent === 'MO') bg = 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20';
+    if (ent === 'GAJ') bg = 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20';
+    if (ent === 'HL') bg = 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20';
+    if (ent === 'SP') bg = 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20';
+
+    return (
+      <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold border ${bg}`}>
+        {ent}
+      </span>
+    );
+  };
+
+  return (
+    <div className="space-y-6 animate-in fade-in-50 duration-200">
+      {/* ======================================================== */}
+      {/* 1. Header & Actions Hub                                   */}
+      {/* ======================================================== */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-2xl bg-card border border-border shadow-xs">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-primary/10 text-primary">
+              <ClipboardCheck className="size-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl font-bold tracking-tight text-foreground">
+                  Review & Analisa FPB
+                </h2>
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  e-FPB Server Connected
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Sinkronisasi berkas e-FPB, analisa ketersediaan stok gudang master persediaan, deteksi duplikasi permintaan armada, dan disposisi tindak lanjut PO / Logistik.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            type="button"
+            onClick={fetchReviews}
+            disabled={isLoading || isSyncing}
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border border-border bg-background hover:bg-muted text-foreground transition shadow-xs cursor-pointer disabled:opacity-50"
+            title="Refresh data dari database Cloudflare R2"
+          >
+            <RefreshCw className={`size-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+            Refresh
+          </button>
+
+          <button
+            type="button"
+            onClick={handleExportCsv}
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border border-border bg-background hover:bg-muted text-foreground transition shadow-xs cursor-pointer"
+            title="Ekspor daftar review ke CSV"
+          >
+            <Download className="size-3.5 text-muted-foreground" />
+            Export CSV
+          </button>
+
+          {/* Sync e-FPB Quick Button */}
+          <button
+            type="button"
+            onClick={() => handleSyncEfpb('quick')}
+            disabled={isSyncing}
+            className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition shadow-xs cursor-pointer disabled:opacity-50"
+            title="Tarik 20 berkas FPB terbaru dari server e-FPB FilesList"
+          >
+            <CloudDownload className={`size-4 ${isSyncing && syncMode === 'quick' ? 'animate-bounce' : ''}`} />
+            <span>{isSyncing && syncMode === 'quick' ? 'Menyinkronkan...' : 'Sync E-FPB (20 Terbaru)'}</span>
+          </button>
+
+          {/* Sync e-FPB Full Button */}
+          <button
+            type="button"
+            onClick={() => handleSyncEfpb('full')}
+            disabled={isSyncing}
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border border-primary/30 text-primary hover:bg-primary/10 transition shadow-xs cursor-pointer disabled:opacity-50"
+            title="Tarik seluruh riwayat FPB dari semua halaman e-FPB FilesList"
+          >
+            <Layers className="size-3.5" />
+            Full Sync All
+          </button>
+        </div>
+      </div>
+
+      {/* ======================================================== */}
+      {/* 2. Top Summary KPI Cards                                  */}
+      {/* ======================================================== */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        {/* Total FPB */}
+        <div className="p-4 rounded-xl bg-card border border-border shadow-xs hover:border-primary/40 transition">
+          <div className="flex items-center justify-between text-muted-foreground mb-1.5">
+            <span className="text-xs font-medium">Total FPB</span>
+            <Layers className="size-4 text-blue-500" />
+          </div>
+          <div className="text-2xl font-bold text-foreground">{metrics.total}</div>
+          <div className="text-[11px] text-muted-foreground mt-0.5">Berkas terdata</div>
+        </div>
+
+        {/* Menunggu Analisa */}
+        <div className="p-4 rounded-xl bg-card border border-amber-500/20 bg-amber-500/[0.02] shadow-xs hover:border-amber-500/40 transition">
+          <div className="flex items-center justify-between text-amber-600 dark:text-amber-400 mb-1.5">
+            <span className="text-xs font-medium">Menunggu Analisa</span>
+            <Clock className="size-4 text-amber-500" />
+          </div>
+          <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">{metrics.pending}</div>
+          <div className="text-[11px] text-muted-foreground mt-0.5">Perlu review tim</div>
+        </div>
+
+        {/* Disetujui Terbit PO */}
+        <div className="p-4 rounded-xl bg-card border border-emerald-500/20 bg-emerald-500/[0.02] shadow-xs hover:border-emerald-500/40 transition">
+          <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400 mb-1.5">
+            <span className="text-xs font-medium">Disetujui PO</span>
+            <FileCheck className="size-4 text-emerald-500" />
+          </div>
+          <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{metrics.approvedPo}</div>
+          <div className="text-[11px] text-muted-foreground mt-0.5">Diproses purchasing</div>
+        </div>
+
+        {/* Penuhi dari Stok */}
+        <div className="p-4 rounded-xl bg-card border border-cyan-500/20 bg-cyan-500/[0.02] shadow-xs hover:border-cyan-500/40 transition">
+          <div className="flex items-center justify-between text-cyan-600 dark:text-cyan-400 mb-1.5">
+            <span className="text-xs font-medium">Stok Gudang</span>
+            <PackageCheck className="size-4 text-cyan-500" />
+          </div>
+          <div className="text-2xl font-bold text-cyan-600 dark:text-cyan-400">{metrics.fulfillStock}</div>
+          <div className="text-[11px] text-muted-foreground mt-0.5">Cukup dari persediaan</div>
+        </div>
+
+        {/* Perlu Klarifikasi */}
+        <div className="p-4 rounded-xl bg-card border border-border shadow-xs hover:border-primary/40 transition">
+          <div className="flex items-center justify-between text-amber-600 dark:text-amber-400 mb-1.5">
+            <span className="text-xs font-medium">Klarifikasi</span>
+            <HelpCircle className="size-4 text-amber-500" />
+          </div>
+          <div className="text-2xl font-bold text-foreground">{metrics.needClarification}</div>
+          <div className="text-[11px] text-muted-foreground mt-0.5">Tanya ke armada</div>
+        </div>
+
+        {/* Urgensi Tinggi */}
+        <div className="p-4 rounded-xl bg-card border border-rose-500/20 bg-rose-500/[0.02] shadow-xs hover:border-rose-500/40 transition">
+          <div className="flex items-center justify-between text-rose-600 dark:text-rose-400 mb-1.5">
+            <span className="text-xs font-medium">Urgensi Tinggi</span>
+            <AlertOctagon className="size-4 text-rose-500 animate-pulse" />
+          </div>
+          <div className="text-2xl font-bold text-rose-600 dark:text-rose-400">
+            {metrics.urgent + metrics.emergency}
+          </div>
+          <div className="text-[11px] text-muted-foreground mt-0.5">
+            {metrics.emergency} Darurat, {metrics.urgent} Urgent
+          </div>
+        </div>
+      </div>
+
+      {/* ======================================================== */}
+      {/* 3. Filter & Search Toolbar                                */}
+      {/* ======================================================== */}
+      <div className="p-4 rounded-xl bg-card border border-border shadow-xs space-y-3">
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+          {/* Search Bar */}
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Cari No. FPB, Armada Kapal, Keperluan, PIC, atau No. PO..."
+              className="w-full pl-9 pr-4 py-2 text-xs rounded-lg border border-border bg-background focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary text-foreground placeholder:text-muted-foreground transition"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          {/* Quick Filters */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Entity Filter */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-muted-foreground shrink-0 flex items-center gap-1">
+                <Building2 className="size-3.5" />
+                Entitas:
+              </span>
+              <select
+                value={selectedEntity}
+                onChange={(e) => setSelectedEntity(e.target.value)}
+                className="py-1.5 px-2.5 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20"
+              >
+                {ENTITY_OPTIONS.map((ent) => (
+                  <option key={ent.code} value={ent.code}>
+                    {ent.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Status Review Filter */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-muted-foreground shrink-0 flex items-center gap-1">
+                <Filter className="size-3.5" />
+                Status:
+              </span>
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="py-1.5 px-2.5 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20"
+              >
+                <option value="ALL">Semua Status Review</option>
+                <option value="PENDING_REVIEW">Menunggu Analisa</option>
+                <option value="APPROVED_PO">Disetujui Terbit PO</option>
+                <option value="FULFILL_STOCK">Dipenuhi dari Stok</option>
+                <option value="NEED_CLARIFICATION">Perlu Klarifikasi</option>
+                <option value="REJECTED">Ditolak</option>
+              </select>
+            </div>
+
+            {/* Urgency Filter */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-muted-foreground shrink-0">Urgensi:</span>
+              <select
+                value={selectedUrgency}
+                onChange={(e) => setSelectedUrgency(e.target.value)}
+                className="py-1.5 px-2.5 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20"
+              >
+                <option value="ALL">Semua Tingkat</option>
+                <option value="NORMAL">Normal</option>
+                <option value="URGENT">Urgent</option>
+                <option value="EMERGENCY">Emergency</option>
+              </select>
+            </div>
+
+            {/* Only Duplicates Toggle */}
+            <button
+              type="button"
+              onClick={() => setOnlyDuplicates(!onlyDuplicates)}
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-lg border transition cursor-pointer ${
+                onlyDuplicates
+                  ? 'bg-amber-500/15 border-amber-500 text-amber-700 dark:text-amber-400 font-semibold'
+                  : 'bg-background border-border text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <AlertTriangle className="size-3.5" />
+              <span>Ada Alert Duplikasi</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Counter Info */}
+        <div className="flex items-center justify-between text-xs text-muted-foreground pt-1 border-t border-border/50">
+          <div>
+            Menampilkan <span className="font-semibold text-foreground">{filteredReviews.length}</span> dari{' '}
+            <span className="font-semibold text-foreground">{reviews.length}</span> pengajuan FPB
+          </div>
+          {onlyDuplicates && (
+            <div className="text-amber-600 dark:text-amber-400 font-medium">
+              * Filter aktif: Menampilkan FPB dengan riwayat pengajuan armada serupa dalam 60 hari terakhir
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ======================================================== */}
+      {/* 4. FPB Review Interactive Table                          */}
+      {/* ======================================================== */}
+      <div className="rounded-xl border border-border bg-card overflow-hidden shadow-xs">
+        {isLoading ? (
+          <div className="p-12 text-center">
+            <RefreshCw className="size-8 animate-spin mx-auto text-primary mb-3" />
+            <p className="text-sm font-medium text-foreground">Memuat antrean analisa & review FPB...</p>
+            <p className="text-xs text-muted-foreground mt-1">Mengambil data dari Cloudflare R2 dan sinkronisasi status</p>
+          </div>
+        ) : filteredReviews.length === 0 ? (
+          <div className="p-12 text-center space-y-3">
+            <FileSearch className="size-10 mx-auto text-muted-foreground/60" />
+            <p className="text-sm font-semibold text-foreground">Tidak ada FPB yang cocok dengan kriteria filter</p>
+            <p className="text-xs text-muted-foreground max-w-md mx-auto">
+              Coba atur ulang kata kunci pencarian atau klik tombol "Sync E-FPB" untuk menarik berkas terbaru dari server e-FPB.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery('');
+                setSelectedEntity('ALL');
+                setSelectedStatus('ALL');
+                setSelectedUrgency('ALL');
+                setOnlyDuplicates(false);
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border border-border bg-background text-foreground hover:bg-muted transition"
+            >
+              Reset Semua Filter
+            </button>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs text-left">
+              <thead className="bg-muted/50 text-muted-foreground border-b border-border font-medium">
+                <tr>
+                  <th className="py-3 px-4">No. FPB & Entitas</th>
+                  <th className="py-3 px-4">Armada Kapal / Dept</th>
+                  <th className="py-3 px-3">Tanggal</th>
+                  <th className="py-3 px-4">Peruntukan / Keperluan</th>
+                  <th className="py-3 px-3">Status e-FPB</th>
+                  <th className="py-3 px-3">Status Review Tim FPB</th>
+                  <th className="py-3 px-3">Urgensi</th>
+                  <th className="py-3 px-3">PIC Purchasing</th>
+                  <th className="py-3 px-3">Item & Stok</th>
+                  <th className="py-3 px-3">Dokumen Terkait</th>
+                  <th className="py-3 px-4 text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {filteredReviews.map((rec) => {
+                  const hasDuplicates = rec.duplicateAlerts && rec.duplicateAlerts.length > 0;
+                  const itemsCount = rec.items ? rec.items.length : 0;
+                  const inStockCount = rec.items ? rec.items.filter((i) => i.decision === 'STOCK').length : 0;
+
+                  return (
+                    <tr
+                      key={rec.id}
+                      className="hover:bg-muted/40 transition group cursor-pointer"
+                      onClick={() => handleOpenReview(rec)}
+                    >
+                      {/* No. FPB & Entitas */}
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          {getEntityBadge(rec.entity)}
+                          <span className="font-semibold text-foreground group-hover:text-primary transition">
+                            {rec.fpbNo}
+                          </span>
+                        </div>
+                        {hasDuplicates && (
+                          <div className="flex items-center gap-1 mt-1 text-[11px] text-amber-600 dark:text-amber-400 font-medium">
+                            <AlertTriangle className="size-3 shrink-0" />
+                            <span>{rec.duplicateAlerts.length} Riwayat Serupa</span>
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Armada */}
+                      <td className="py-3 px-4 font-medium text-foreground">
+                        <div className="flex items-center gap-1.5">
+                          <Ship className="size-3.5 text-muted-foreground shrink-0" />
+                          <span>{rec.armada}</span>
+                        </div>
+                      </td>
+
+                      {/* Tanggal */}
+                      <td className="py-3 px-3 text-muted-foreground whitespace-nowrap">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="size-3 text-muted-foreground" />
+                          <span>{rec.date}</span>
+                        </div>
+                      </td>
+
+                      {/* Peruntukan */}
+                      <td className="py-3 px-4 max-w-xs truncate text-foreground" title={rec.purpose}>
+                        {rec.purpose || '-'}
+                      </td>
+
+                      {/* Status e-FPB */}
+                      <td className="py-3 px-3 whitespace-nowrap">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                          {rec.isReceivedLogistik ? 'Diterima Logistik' : 'e-FPB Terdaftar'}
+                        </span>
+                      </td>
+
+                      {/* Status Review Tim FPB */}
+                      <td className="py-3 px-3 whitespace-nowrap">
+                        {getReviewStatusBadge(rec.reviewStatus)}
+                      </td>
+
+                      {/* Urgensi */}
+                      <td className="py-3 px-3 whitespace-nowrap">
+                        {getUrgencyBadge(rec.urgency)}
+                      </td>
+
+                      {/* PIC Purchasing */}
+                      <td className="py-3 px-3 whitespace-nowrap text-foreground font-medium">
+                        {rec.picPurchasing && rec.picPurchasing !== '-' ? (
+                          <div className="flex items-center gap-1 text-primary">
+                            <UserCheck className="size-3" />
+                            <span>{rec.picPurchasing}</span>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </td>
+
+                      {/* Item & Stok Gudang */}
+                      <td className="py-3 px-3 whitespace-nowrap">
+                        {itemsCount > 0 ? (
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-foreground">
+                              {itemsCount} item
+                            </span>
+                            <span className="text-[11px] text-muted-foreground">
+                              {inStockCount > 0 ? `${inStockCount} dari stok gudang` : 'Perlu PO'}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-[11px] text-muted-foreground italic">
+                            Belum diekstrak
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Dokumen Terkait */}
+                      <td className="py-3 px-3 whitespace-nowrap">
+                        <div className="flex flex-col gap-0.5">
+                          {rec.relatedDocs?.poNos && rec.relatedDocs.poNos.length > 0 ? (
+                            <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                              PO: {rec.relatedDocs.poNos.join(', ')}
+                            </span>
+                          ) : (
+                            <span className="text-[11px] text-muted-foreground">PO: Belum ada</span>
+                          )}
+                          {rec.relatedDocs?.ttbNos && rec.relatedDocs.ttbNos.length > 0 && (
+                            <span className="text-[10px] text-muted-foreground">
+                              TTB: {rec.relatedDocs.ttbNos[0]}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Aksi */}
+                      <td className="py-3 px-4 text-center whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          type="button"
+                          onClick={() => handleOpenReview(rec)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition shadow-2xs cursor-pointer"
+                        >
+                          <FileSearch className="size-3.5" />
+                          <span>Review</span>
+                          <ChevronRight className="size-3" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* ======================================================== */}
+      {/* 5. Detail & Review Decision Modal (Split-View Drawer)    */}
+      {/* ======================================================== */}
+      {selectedRecord && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-background/80 backdrop-blur-sm animate-in fade-in-50">
+          <div className="relative w-full max-w-6xl max-h-[92vh] flex flex-col rounded-2xl bg-card border border-border shadow-2xl overflow-hidden animate-in zoom-in-95">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-5 border-b border-border bg-muted/30">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
+                  <ClipboardCheck className="size-6" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    {getEntityBadge(selectedRecord.entity)}
+                    <h3 className="text-lg font-bold text-foreground">
+                      Analisa & Review: {selectedRecord.fpbNo}
+                    </h3>
+                    {getReviewStatusBadge(formStatus)}
+                    {getUrgencyBadge(formUrgency)}
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
+                    <span className="flex items-center gap-1 font-medium text-foreground">
+                      <Ship className="size-3.5 text-muted-foreground" />
+                      {selectedRecord.armada}
+                    </span>
+                    <span>•</span>
+                    <span className="flex items-center gap-1">
+                      <Calendar className="size-3.5 text-muted-foreground" />
+                      {selectedRecord.date}
+                    </span>
+                    <span>•</span>
+                    <span>Status Server: {selectedRecord.isReceivedLogistik ? 'Diterima Logistik' : 'Terdaftar'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Close & External Links */}
+              <div className="flex items-center gap-2">
+                <a
+                  href={selectedRecord.pdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg border border-border bg-background hover:bg-muted text-foreground transition"
+                  title="Buka dokumen PDF resmi e-FPB di tab baru"
+                >
+                  <ExternalLink className="size-3.5" />
+                  PDF Asli
+                </a>
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition cursor-pointer"
+                  title="Tutup"
+                >
+                  <X className="size-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Duplicate Detection Alert Banner */}
+            {selectedRecord.duplicateAlerts && selectedRecord.duplicateAlerts.length > 0 && (
+              <div className="p-3.5 mx-5 mt-4 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3">
+                <AlertTriangle className="size-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <div className="text-xs text-amber-900 dark:text-amber-200">
+                  <div className="font-bold flex items-center gap-1.5">
+                    Peringatan Deteksi Permintaan Serupa / Berulang:
+                  </div>
+                  <ul className="mt-1 space-y-1 list-disc list-inside">
+                    {selectedRecord.duplicateAlerts.map((dup, i) => (
+                      <li key={i}>
+                        <span className="font-semibold">{dup.fpbNo}</span> ({dup.date}) dari {dup.armada}:{' '}
+                        <span className="italic">{dup.matchedItem}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-1 text-[11px] text-amber-700 dark:text-amber-300">
+                    Mohon cek apakah barang dari pengajuan sebelumnya sudah pernah diserahkan ke armada untuk menghindari duplikasi pembelian ganda.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Modal Tab Navigation */}
+            <div className="flex items-center gap-1 px-5 pt-3 border-b border-border bg-background">
+              <button
+                type="button"
+                onClick={() => setActiveModalTab('items')}
+                className={`flex items-center gap-2 py-2 px-3 text-xs font-semibold border-b-2 transition cursor-pointer ${
+                  activeModalTab === 'items'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Boxes className="size-4" />
+                <span>Item Barang & Cek Stok Gudang</span>
+                {formItems.length > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-primary/10 text-primary">
+                    {formItems.length}
+                  </span>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveModalTab('pdf')}
+                className={`flex items-center gap-2 py-2 px-3 text-xs font-semibold border-b-2 transition cursor-pointer ${
+                  activeModalTab === 'pdf'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <FileText className="size-4" />
+                <span>Pratinjau Dokumen PDF Resmi</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveModalTab('relations')}
+                className={`flex items-center gap-2 py-2 px-3 text-xs font-semibold border-b-2 transition cursor-pointer ${
+                  activeModalTab === 'relations'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Layers className="size-4" />
+                <span>Alur Dokumen & PO</span>
+              </button>
+            </div>
+
+            {/* Modal Body Area */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-5">
+              {/* TAB 1: Item Barang & Cek Stok Gudang */}
+              {activeModalTab === 'items' && (
+                <div className="space-y-4">
+                  {/* Top action inside item tab */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-muted/40 border border-border">
+                    <div>
+                      <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                        <Sparkles className="size-4 text-primary" />
+                        Analisa Ketersediaan Stok Gudang (Master Persediaan CPG)
+                      </h4>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        Sistem secara otomatis mencocokkan item pengajuan e-FPB dengan stok persediaan fisik gudang perusahaan.
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleParsePdfItems}
+                      disabled={isParsingItems}
+                      className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition shadow-xs cursor-pointer disabled:opacity-50 shrink-0"
+                    >
+                      <RefreshCw className={`size-3.5 ${isParsingItems ? 'animate-spin' : ''}`} />
+                      <span>{isParsingItems ? 'Mengekstrak PDF & Cek Stok...' : 'Ekstraksi Item dari PDF'}</span>
+                    </button>
+                  </div>
+
+                  {/* Purpose Box */}
+                  <div className="p-3 rounded-lg border border-border bg-card text-xs">
+                    <span className="font-semibold text-foreground">Tujuan / Keperluan FPB: </span>
+                    <span className="text-muted-foreground">{selectedRecord.purpose || 'Pengadaan Kebutuhan Operasional Kapal'}</span>
+                  </div>
+
+                  {/* Items Table */}
+                  {formItems.length === 0 ? (
+                    <div className="p-8 text-center border border-dashed border-border rounded-xl space-y-2">
+                      <Boxes className="size-8 mx-auto text-muted-foreground/60" />
+                      <p className="text-xs font-semibold text-foreground">Item barang belum diekstrak dari PDF e-FPB</p>
+                      <p className="text-[11px] text-muted-foreground max-w-sm mx-auto">
+                        Klik tombol "Ekstraksi Item dari PDF" di atas untuk mengambil daftar item barang secara otomatis dan mengecek ketersediaan stok di gudang.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border border-border overflow-hidden">
+                      <table className="w-full text-xs text-left">
+                        <thead className="bg-muted/60 text-muted-foreground font-semibold border-b border-border">
+                          <tr>
+                            <th className="py-2.5 px-3 w-8">No</th>
+                            <th className="py-2.5 px-3">Kode & Nama Item Barang</th>
+                            <th className="py-2.5 px-3 w-24">Permintaan</th>
+                            <th className="py-2.5 px-3">Ketersediaan Stok Gudang</th>
+                            <th className="py-2.5 px-3 w-36">Tindakan Keputusan</th>
+                            <th className="py-2.5 px-3">Catatan / Instruksi Purchasing</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border">
+                          {formItems.map((item, idx) => {
+                            const isStockOk = item.stockStatus === 'IN_STOCK';
+                            const isStockPartial = item.stockStatus === 'PARTIAL';
+
+                            return (
+                              <tr key={idx} className="hover:bg-muted/30 transition">
+                                <td className="py-2.5 px-3 font-medium text-muted-foreground">{item.no || idx + 1}</td>
+                                <td className="py-2.5 px-3">
+                                  <div className="font-bold text-foreground">{item.itemName}</div>
+                                  <div className="text-[11px] text-muted-foreground flex items-center gap-2 mt-0.5">
+                                    <span>Kode: {item.itemCode || '-'}</span>
+                                    {item.priority && (
+                                      <span className="text-amber-600 dark:text-amber-400 font-medium">
+                                        • Prioritas: {item.priority}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {item.description && (
+                                    <div className="text-[11px] text-muted-foreground italic mt-0.5">
+                                      "{item.description}"
+                                    </div>
+                                  )}
+                                </td>
+
+                                {/* Qty Permintaan */}
+                                <td className="py-2.5 px-3 font-semibold text-foreground whitespace-nowrap">
+                                  {item.qty} {item.unit}
+                                </td>
+
+                                {/* Ketersediaan Stok Gudang */}
+                                <td className="py-2.5 px-3">
+                                  {isStockOk ? (
+                                    <div className="space-y-0.5">
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                        <CheckCircle2 className="size-3" />
+                                        Tersedia ({item.stockAvailable} {item.unit})
+                                      </span>
+                                      {item.matchedInventoryItem && (
+                                        <div className="text-[10px] text-muted-foreground truncate max-w-xs" title={item.matchedInventoryItem}>
+                                          {item.matchedInventoryItem}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ) : isStockPartial ? (
+                                    <div className="space-y-0.5">
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                                        <AlertTriangle className="size-3" />
+                                        Stok Parsial ({item.stockAvailable} {item.unit})
+                                      </span>
+                                      <div className="text-[10px] text-muted-foreground">
+                                        Kurang {item.qty - (item.stockAvailable || 0)} {item.unit}
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                                      <XCircle className="size-3" />
+                                      Stok Kosong / Beli Baru
+                                    </span>
+                                  )}
+                                </td>
+
+                                {/* Decision Dropdown */}
+                                <td className="py-2.5 px-3">
+                                  <select
+                                    value={item.decision || 'PO'}
+                                    onChange={(e) => handleUpdateItemDecision(idx, e.target.value as ItemDecision)}
+                                    className={`w-full py-1.5 px-2 text-xs font-semibold rounded-lg border transition ${
+                                      item.decision === 'STOCK'
+                                        ? 'bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border-cyan-500/30'
+                                        : item.decision === 'PO'
+                                        ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
+                                        : item.decision === 'HOLD'
+                                        ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30'
+                                        : 'bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/30'
+                                    }`}
+                                  >
+                                    <option value="STOCK">Penuhi Stok</option>
+                                    <option value="PO">Beli Baru (PO)</option>
+                                    <option value="HOLD">Tahan (Hold)</option>
+                                    <option value="REJECT">Tolak Item</option>
+                                  </select>
+                                </td>
+
+                                {/* Notes Input */}
+                                <td className="py-2.5 px-3">
+                                  <input
+                                    type="text"
+                                    value={item.notes || ''}
+                                    onChange={(e) => handleUpdateItemNote(idx, e.target.value)}
+                                    placeholder="Catatan alokasi stok / instruksi PO..."
+                                    className="w-full py-1 px-2 text-xs rounded border border-border bg-background text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary"
+                                  />
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* TAB 2: Pratinjau Dokumen PDF Resmi */}
+              {activeModalTab === 'pdf' && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border border-border text-xs">
+                    <div>
+                      <span className="font-semibold text-foreground">Berkas PDF e-FPB: </span>
+                      <span className="text-muted-foreground">{selectedRecord.pdfUrl}</span>
+                    </div>
+                    <a
+                      href={selectedRecord.pdfUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition shadow-xs"
+                    >
+                      <ExternalLink className="size-3.5" />
+                      Buka di Tab Baru
+                    </a>
+                  </div>
+
+                  <div className="w-full h-[520px] rounded-xl border border-border overflow-hidden bg-muted/20">
+                    <iframe
+                      src={selectedRecord.pdfUrl}
+                      title={`PDF ${selectedRecord.fpbNo}`}
+                      className="w-full h-full border-none"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 3: Relasi Dokumen */}
+              {activeModalTab === 'relations' && (
+                <div className="space-y-4">
+                  <div className="p-4 rounded-xl border border-border bg-card space-y-3">
+                    <h4 className="text-xs font-bold text-foreground flex items-center gap-2">
+                      <Layers className="size-4 text-primary" />
+                      Rantai Dokumen Terkait FPB {selectedRecord.fpbNo}
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      Relasi otomatis yang dihubungkan melalui modul sinkronisasi database pengadaan CPG (FPB ↔ PO ↔ FSTB ↔ TTB).
+                    </p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                      {/* PO */}
+                      <div className="p-3 rounded-lg border border-border bg-muted/30">
+                        <div className="text-[11px] font-semibold text-muted-foreground uppercase">Nomor PO (Purchasing)</div>
+                        <div className="text-sm font-bold text-foreground mt-1">
+                          {selectedRecord.relatedDocs?.poNos && selectedRecord.relatedDocs.poNos.length > 0 ? (
+                            selectedRecord.relatedDocs.poNos.map((po, i) => (
+                              <div key={i} className="text-primary font-mono">{po}</div>
+                            ))
+                          ) : (
+                            <span className="text-muted-foreground italic text-xs">Belum ada PO terbit</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* FSTB */}
+                      <div className="p-3 rounded-lg border border-border bg-muted/30">
+                        <div className="text-[11px] font-semibold text-muted-foreground uppercase">Nomor FSTB (Serah Terima Barang)</div>
+                        <div className="text-sm font-bold text-foreground mt-1">
+                          {selectedRecord.relatedDocs?.fstbNos && selectedRecord.relatedDocs.fstbNos.length > 0 ? (
+                            selectedRecord.relatedDocs.fstbNos.map((fstb, i) => (
+                              <div key={i} className="text-emerald-600 dark:text-emerald-400 font-mono">{fstb}</div>
+                            ))
+                          ) : (
+                            <span className="text-muted-foreground italic text-xs">Belum ada FSTB</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* TTB */}
+                      <div className="p-3 rounded-lg border border-border bg-muted/30">
+                        <div className="text-[11px] font-semibold text-muted-foreground uppercase">Nomor TTB (Tanda Terima Barang)</div>
+                        <div className="text-sm font-bold text-foreground mt-1">
+                          {selectedRecord.relatedDocs?.ttbNos && selectedRecord.relatedDocs.ttbNos.length > 0 ? (
+                            selectedRecord.relatedDocs.ttbNos.map((ttb, i) => (
+                              <div key={i} className="text-blue-600 dark:text-blue-400 font-mono">{ttb}</div>
+                            ))
+                          ) : (
+                            <span className="text-muted-foreground italic text-xs">Belum ada TTB</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer: Keputusan Review Tim FPB */}
+            <div className="p-5 border-t border-border bg-muted/30 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* 1. Status Keputusan */}
+                <div>
+                  <label className="block text-xs font-bold text-foreground mb-1.5">
+                    Keputusan Tindak Lanjut Tim FPB
+                  </label>
+                  <select
+                    value={formStatus}
+                    onChange={(e) => setFormStatus(e.target.value as FpbReviewStatus)}
+                    className="w-full py-2 px-3 text-xs font-semibold rounded-lg border border-border bg-background text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20"
+                  >
+                    <option value="PENDING_REVIEW">⏳ Menunggu Analisa / Belum Selesai</option>
+                    <option value="APPROVED_PO">✅ Disetujui untuk Terbit PO (Purchasing)</option>
+                    <option value="FULFILL_STOCK">📦 Dipenuhi dari Stok Gudang (Logistik)</option>
+                    <option value="NEED_CLARIFICATION">❓ Perlu Klarifikasi ke Armada</option>
+                    <option value="REJECTED">❌ Ditolak / Dibatalkan</option>
+                  </select>
+                </div>
+
+                {/* 2. Tingkat Urgensi */}
+                <div>
+                  <label className="block text-xs font-bold text-foreground mb-1.5">
+                    Tingkat Urgensi Pengadaan
+                  </label>
+                  <select
+                    value={formUrgency}
+                    onChange={(e) => setFormUrgency(e.target.value as FpbUrgency)}
+                    className="w-full py-2 px-3 text-xs font-semibold rounded-lg border border-border bg-background text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20"
+                  >
+                    <option value="NORMAL">Normal (Rutin)</option>
+                    <option value="URGENT">⚠️ Urgent (Mendesak)</option>
+                    <option value="EMERGENCY">🚨 EMERGENCY (Darurat Kapal / Breakdown)</option>
+                  </select>
+                </div>
+
+                {/* 3. PIC Purchasing */}
+                <div>
+                  <label className="block text-xs font-bold text-foreground mb-1.5">
+                    Penugasan PIC Purchasing
+                  </label>
+                  <input
+                    type="text"
+                    list="pic-purchasing-list"
+                    value={formPic}
+                    onChange={(e) => setFormPic(e.target.value)}
+                    placeholder="Pilih atau ketik nama PIC..."
+                    className="w-full py-2 px-3 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20"
+                  />
+                  <datalist id="pic-purchasing-list">
+                    {PURCHASING_PICS.map((p) => (
+                      <option key={p} value={p} />
+                    ))}
+                  </datalist>
+                </div>
+              </div>
+
+              {/* Catatan Review */}
+              <div>
+                <label className="block text-xs font-bold text-foreground mb-1">
+                  Catatan Analisa Tim FPB (untuk Purchasing & Logistik)
+                </label>
+                <textarea
+                  value={formNotes}
+                  onChange={(e) => setFormNotes(e.target.value)}
+                  rows={2}
+                  placeholder="Contoh: Stok tersedia di gudang CPL Samarinda 2 pcs, sisa 2 pcs dibuatkan PO kilat ke vendor..."
+                  className="w-full p-2.5 text-xs rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+
+              {/* Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  className="px-4 py-2 text-xs font-medium rounded-lg border border-border bg-background text-foreground hover:bg-muted transition cursor-pointer"
+                >
+                  Batal
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleSaveDecision}
+                  disabled={isSavingDecision}
+                  className="inline-flex items-center gap-2 px-5 py-2 text-xs font-bold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition shadow-md cursor-pointer disabled:opacity-50"
+                >
+                  <FileCheck className={`size-4 ${isSavingDecision ? 'animate-spin' : ''}`} />
+                  <span>{isSavingDecision ? 'Menyimpan & Menyinkronkan...' : 'Simpan & Sinkronkan Keputusan ke Cloud'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

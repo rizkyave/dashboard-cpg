@@ -1,0 +1,281 @@
+[
+  {
+    "id": "fpb-rev-CPL-FPB-26-0004498",
+    "fpbNo": "CPL-FPB-26-0004498",
+    "originalFpb": "CPL/LOG/FPB/26-0004498",
+    "entity": "CPL",
+    "armada": "TB. CINDARA PRATAMA 01",
+    "date": "18/10/26",
+    "purpose": "Pengadaan Spare Part Main Engine & Filter Oli Genset No. 1",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0004498.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "URGENT",
+    "picPurchasing": "Wahyu Hidayat",
+    "reviewNotes": "Prioritas tinggi: Armada beroperasi di Selat Makassar, butuh pasokan filter segera.",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "FLT-OIL-001",
+        "itemName": "OIL FILTER CARTRIDGE CATERPILLAR 3406",
+        "qty": 4,
+        "unit": "Pcs",
+        "description": "Ganti filter berkala 500 jam genset",
+        "priority": "Urgent",
+        "stockAvailable": 2,
+        "stockStatus": "PARTIAL",
+        "matchedInventoryItem": "[FLT-OIL-001] FILTER OLI MESIN CPL",
+        "inventoryEntity": "CPL",
+        "decision": "STOCK",
+        "notes": "Ambil 2 pcs dari gudang Samarinda, 2 pcs sisa dibuatkan PO"
+      },
+      {
+        "no": 2,
+        "itemCode": "OIL-MED-040",
+        "itemName": "MEDITRAN S SAE 40 (DRUM 209L)",
+        "qty": 2,
+        "unit": "Drum",
+        "description": "Oli pelumas mesin genset",
+        "priority": "Urgent",
+        "stockAvailable": 5,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[OIL-MED-040] OLI PERTAMINA MEDITRAN S 40",
+        "inventoryEntity": "CPL",
+        "decision": "STOCK",
+        "notes": "Stok mencukupi di gudang CPL Samarinda"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [
+        "CPL-PO-26-05341"
+      ],
+      "fstbNos": [
+        "CPL-FSTB-26-05945"
+      ],
+      "ttbNos": [
+        "CPL-TTB-26-06865"
+      ]
+    },
+    "reviewedBy": "Wahyu Hidayat",
+    "reviewedAt": "2026-10-21T11:44:46.272Z",
+    "updatedAt": "2026-10-21T11:44:46.272Z",
+    "createdAt": "2026-10-21T11:44:46.272Z"
+  },
+  {
+    "id": "fpb-rev-MO-FPB-26-0001751",
+    "fpbNo": "MO-FPB-26-0001751",
+    "originalFpb": "MO/LOG/FPB/26-0001751",
+    "entity": "MO",
+    "armada": "TB. MANDAR 08",
+    "date": "15/10/26",
+    "purpose": "Pengadaan Kebutuhan Deck & Safety Tools Operasional Kapal",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0001751.pdf",
+    "reviewStatus": "APPROVED_PO",
+    "urgency": "NORMAL",
+    "picPurchasing": "Rina Sugiarto",
+    "reviewNotes": "Disetujui untuk penerbitan PO ke vendor PT Surya Perdana.",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "KAI01301001-UGO",
+        "itemName": "KAIN ABSORBENT OIL PAD (UGO)",
+        "qty": 20,
+        "unit": "Pcs",
+        "description": "Penanganan ceceran minyak di kamar mesin",
+        "priority": "Normal",
+        "stockAvailable": 350,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[KAI01301001-UGO] KAIN ABSORBENT OIL PAD (UGO) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "STOCK",
+        "notes": "Disediakan langsung dari gudang MO"
+      },
+      {
+        "no": 2,
+        "itemCode": "GUR00602001-ZZZ",
+        "itemName": "MATA GURINDA POTONG 4\" (PCS)",
+        "qty": 50,
+        "unit": "Pcs",
+        "description": "Perbaikan konstruksi railing deck",
+        "priority": "Normal",
+        "stockAvailable": 230,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[GUR00602001-ZZZ] MATA GURINDA POTONG 4\" (PCS) (00) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "STOCK",
+        "notes": "Ambil dari inventori workshop Mandar Ocean"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [
+        "MO-PO-26-01896"
+      ],
+      "fstbNos": [
+        "MO-FSTB-26-01958"
+      ],
+      "ttbNos": [
+        "MO-TTB-26-03408"
+      ]
+    },
+    "reviewedBy": "Wahyu Hidayat",
+    "reviewedAt": "2026-10-21T11:44:46.272Z",
+    "updatedAt": "2026-10-21T11:44:46.272Z",
+    "createdAt": "2026-10-21T11:44:46.272Z"
+  },
+  {
+    "id": "fpb-rev-GAJ-FPB-26-0000976",
+    "fpbNo": "GAJ-FPB-26-0000976",
+    "originalFpb": "GAJ/LOG/FPB/26-0000976",
+    "entity": "GAJ",
+    "armada": "DOCKING GAJ BALIKPAPAN",
+    "date": "12/10/26",
+    "purpose": "Material Pelat Baja & Kawat Las Repair Lambung Kapal Tongkang",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0000976.pdf",
+    "reviewStatus": "APPROVED_PO",
+    "urgency": "EMERGENCY",
+    "picPurchasing": "Budi Santoso",
+    "reviewNotes": "Docking darurat: Tongkang mengalami kebocoran di kompartemen depan.",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "PLT-BJ-012",
+        "itemName": "PELAT BAJA BKI GRADE A 12MM X 5FT X 20FT",
+        "qty": 6,
+        "unit": "Lembar",
+        "description": "Replating plat lambung bottom",
+        "priority": "Emergency",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "Belum ada stok di gudang galangan",
+        "inventoryEntity": "GAJ",
+        "decision": "PO",
+        "notes": "PO kilat ke PT Krakatau Steel / Distributor Balikpapan"
+      },
+      {
+        "no": 2,
+        "itemCode": "KWT-LAS-LB52",
+        "itemName": "KAWAT LAS KOBELCO LB-52 DIA 3.2MM (DOS 20KG)",
+        "qty": 15,
+        "unit": "Dos",
+        "description": "Pengelasan struktural BKI",
+        "priority": "Emergency",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "Stok kosong di workshop",
+        "inventoryEntity": "GAJ",
+        "decision": "PO",
+        "notes": "PO darurat"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [
+        "GAJ-PO-26-01075"
+      ],
+      "fstbNos": [
+        "GAJ-FSTB-26-01121"
+      ],
+      "ttbNos": [
+        "GAJ-TTB-26-01168",
+        "GAJ-TTB-26-01167"
+      ]
+    },
+    "reviewedBy": "Wahyu Hidayat",
+    "reviewedAt": "2026-10-21T11:44:46.272Z",
+    "updatedAt": "2026-10-21T11:44:46.272Z",
+    "createdAt": "2026-10-21T11:44:46.272Z"
+  },
+  {
+    "id": "fpb-rev-HL-FPB-26-0000412",
+    "fpbNo": "HL-FPB-26-0000412",
+    "originalFpb": "HL/LOG/FPB/26-0000412",
+    "entity": "HL",
+    "armada": "TB. HANA 02",
+    "date": "08/10/26",
+    "purpose": "Peralatan Navigasi GPS & Marine Radio VHF",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": false,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_HL-FPB-26-0000412.pdf",
+    "reviewStatus": "NEED_CLARIFICATION",
+    "urgency": "NORMAL",
+    "picPurchasing": "Wahyu Hidayat",
+    "reviewNotes": "Perlu klarifikasi spesifikasi antena radio VHF yang sesuai dengan bracket yang ada di kapal.",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "RAD-VHF-ICOM",
+        "itemName": "RADIO MARINE VHF ICOM IC-M330",
+        "qty": 1,
+        "unit": "Unit",
+        "description": "Ganti radio VHF kamar kemudi yang rusak",
+        "priority": "Normal",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "Non-stock item",
+        "inventoryEntity": "HL",
+        "decision": "HOLD",
+        "notes": "Menunggu konfirmasi panjang kabel & tipe antena dari nahkoda"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "reviewedBy": "Wahyu Hidayat",
+    "reviewedAt": "2026-10-21T11:44:46.272Z",
+    "updatedAt": "2026-10-21T11:44:46.272Z",
+    "createdAt": "2026-10-21T11:44:46.272Z"
+  },
+  {
+    "id": "fpb-rev-CPL-FPB-26-0004497",
+    "fpbNo": "CPL-FPB-26-0004497",
+    "originalFpb": "CPL/LOG/FPB/26-0004497",
+    "entity": "CPL",
+    "armada": "TB. CINDARA PRATAMA 01",
+    "date": "28/09/26",
+    "purpose": "Perlengkapan Cat & Thinner Maintenance Lambung Kapal",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0004497.pdf",
+    "reviewStatus": "FULFILL_STOCK",
+    "urgency": "NORMAL",
+    "picPurchasing": "Rina Sugiarto",
+    "reviewNotes": "Seluruh material disuplai langsung dari stok persediaan CPL Samarinda.",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "CAT-EPX-001",
+        "itemName": "CAT PRIMER EPOXY JOTUN BARRIER 80 (PAIL)",
+        "qty": 4,
+        "unit": "Pail",
+        "description": "Pengecatan deck & lambung",
+        "priority": "Normal",
+        "stockAvailable": 12,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[CAT-EPX-001] CAT JOTUN BARRIER 80 (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "STOCK",
+        "notes": "Tersedia di gudang cat CPL"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "reviewedBy": "Wahyu Hidayat",
+    "reviewedAt": "2026-10-21T11:44:46.272Z",
+    "updatedAt": "2026-10-21T11:44:46.272Z",
+    "createdAt": "2026-10-21T11:44:46.272Z"
+  }
+]

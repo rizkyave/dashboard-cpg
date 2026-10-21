@@ -56,6 +56,7 @@ import {
   INITIAL_SM_SUMMARY,
 } from '@/utils/smStorage';
 import AnalyticsTab from '@/components/AnalyticsTab';
+import ReviewFpbTab from '@/components/ReviewFpbTab';
 import InventoryTab from '@/components/InventoryTab';
 import TtbGalleryTab from '@/components/TtbGalleryTab';
 import AdminSettingsTab from '@/components/AdminSettingsTab';
@@ -1116,6 +1117,8 @@ export default function DashboardPage() {
               <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-foreground">
                 {activeTab === 'overview'
                   ? 'Monitoring Logistik'
+                  : activeTab === 'review-fpb'
+                  ? 'Review & Analisa FPB'
                   : activeTab === 'procurement'
                   ? 'Monitoring Berkas Pengadaan'
                   : activeTab === 'armada'
@@ -1151,6 +1154,8 @@ export default function DashboardPage() {
                   ? 'Mode Peninjauan Tamu: Silakan masukkan No. FPB, Nama Kapal, atau No. PO pada kolom pencarian di bawah untuk menampilkan data.'
                   : activeTab === 'overview'
                   ? 'Pemantauan terpadu alur pengadaan barang, perputaran berkas fisik divisi, distribusi logistik armada kapal, dan status stok persediaan.'
+                  : activeTab === 'review-fpb'
+                  ? 'Sinkronisasi berkas pengajuan e-FPB, analisa ketersediaan stok gudang konsolidasi, deteksi pengajuan berulang armada kapal, dan otorisasi tindak lanjut PO / Logistik.'
                   : activeTab === 'procurement'
                   ? 'Daftar transaksi pengadaan PO, verifikasi berkas fisik antar divisi, dan status penyelesaian berkas.'
                   : activeTab === 'armada'
@@ -1184,7 +1189,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Tombol Sembunyikan Ringkasan Metrik KPI */}
-            {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && activeTab !== 'crew-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'serah-terima-lapangan' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'validasi-dokumen' && activeTab !== 'admin-settings' && (!isVisitor || searchKeyword.trim() !== '') && (
+            {activeTab !== 'inventory' && activeTab !== 'review-fpb' && activeTab !== 'pos-kapal' && activeTab !== 'crew-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'serah-terima-lapangan' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'validasi-dokumen' && activeTab !== 'admin-settings' && (!isVisitor || searchKeyword.trim() !== '') && (
               <button
                 type="button"
                 onClick={toggleKpiHidden}
@@ -1202,7 +1207,7 @@ export default function DashboardPage() {
           </div>
 
           {/* 4 Pillar Executive Metric Cards (procurement tabs only) */}
-          {activeTab !== 'inventory' && activeTab !== 'pos-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'validasi-dokumen' && activeTab !== 'admin-settings' && !isKpiHidden && (!isVisitor || searchKeyword.trim() !== '') && (
+          {activeTab !== 'inventory' && activeTab !== 'review-fpb' && activeTab !== 'pos-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'validasi-dokumen' && activeTab !== 'admin-settings' && !isKpiHidden && (!isVisitor || searchKeyword.trim() !== '') && (
             <div className="animate-in fade-in-50 duration-200">
               <KpiCards
                 procurementList={filteredProcurement}
@@ -1223,6 +1228,11 @@ export default function DashboardPage() {
               sisaLayananItems={sisaLayananItems}
               showToast={showToast}
             />
+          )}
+
+          {/* Tab Review & Analisa FPB (e-FPB Server Sync & Review Tool) */}
+          {activeTab === 'review-fpb' && (
+            <ReviewFpbTab showToast={showToast} />
           )}
 
           {/* Tab 2: Procurement (Sheet 1) */}

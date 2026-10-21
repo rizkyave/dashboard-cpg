@@ -31,6 +31,7 @@ import {
   Truck,
   PackageCheck,
   FileSignature,
+  ClipboardCheck,
 } from 'lucide-react';
 
 import * as XLSX from 'xlsx';
@@ -119,6 +120,13 @@ export default function Sidebar({
       icon: LayoutDashboard,
       badge: isVisitor ? 'Visitor' : 'Main',
       title: 'Ringkasan Monitoring Procurement (Terintegrasi Database Barang Sisa Layanan 2026)',
+    },
+    {
+      id: 'review-fpb' as TabType,
+      label: 'Review & Analisa FPB',
+      icon: ClipboardCheck,
+      badge: 'E-FPB',
+      title: 'Sinkronisasi e-FPB, Review Ketersediaan Stok Gudang & Analisa Duplikasi Permintaan Armada',
     },
     {
       id: 'procurement' as TabType,
