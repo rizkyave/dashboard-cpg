@@ -17,33 +17,18 @@
     "items": [
       {
         "no": 1,
-        "itemCode": "FLT-OIL-001",
-        "itemName": "OIL FILTER CARTRIDGE CATERPILLAR 3406",
-        "qty": 4,
-        "unit": "Pcs",
-        "description": "Ganti filter berkala 500 jam genset",
-        "priority": "Urgent",
-        "stockAvailable": 2,
-        "stockStatus": "PARTIAL",
-        "matchedInventoryItem": "[FLT-OIL-001] FILTER OLI MESIN CPL",
-        "inventoryEntity": "CPL",
-        "decision": "STOCK",
-        "notes": "Ambil 2 pcs dari gudang Samarinda, 2 pcs sisa dibuatkan PO"
-      },
-      {
-        "no": 2,
-        "itemCode": "OIL-MED-040",
-        "itemName": "MEDITRAN S SAE 40 (DRUM 209L)",
-        "qty": 2,
-        "unit": "Drum",
-        "description": "Oli pelumas mesin genset",
-        "priority": "Urgent",
-        "stockAvailable": 5,
-        "stockStatus": "IN_STOCK",
-        "matchedInventoryItem": "[OIL-MED-040] OLI PERTAMINA MEDITRAN S 40",
-        "inventoryEntity": "CPL",
-        "decision": "STOCK",
-        "notes": "Stok mencukupi di gudang CPL Samarinda"
+        "itemCode": "CIR00105001-ZZZ",
+        "itemName": "CIRCLIP (SS) S-26 (00)",
+        "qty": 10,
+        "unit": "PCS",
+        "description": "U/ PERBAIKAN SNAP RING SEA WATERPUMP ME KANAN",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[CIRC-CIR001] CIRCLIP - CIRCLIP (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
       }
     ],
     "duplicateAlerts": [],
@@ -60,7 +45,7 @@
     },
     "reviewedBy": "Wahyu Hidayat",
     "reviewedAt": "2026-10-21T11:44:46.272Z",
-    "updatedAt": "2026-10-21T11:44:46.272Z",
+    "updatedAt": "2026-10-21T12:07:06.398Z",
     "createdAt": "2026-10-21T11:44:46.272Z"
   },
   {
