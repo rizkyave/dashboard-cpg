@@ -3,7 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   experimental: {
     webpackBuildWorker: false,
-    serverComponentsExternalPackages: ['xlsx'],
+    serverComponentsExternalPackages: ['xlsx', 'sharp'],
   },
 };
 

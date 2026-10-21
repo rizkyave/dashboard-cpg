@@ -44,7 +44,7 @@ import {
   formatFileSize,
   extractFstbComponents,
 } from '@/utils/fstbRename';
-import { formatFstbStampDate } from '@/utils/fstbStamper';
+import { formatFstbStampDate } from '@/utils/stampDateFormatter';
 
 interface UploadFstbTabProps {
   procurementItems?: ProcurementItem[];

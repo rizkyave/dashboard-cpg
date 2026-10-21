@@ -32,15 +32,88 @@ import {
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 const VALIDATIONS_FILE_PATH = path.join(process.cwd(), 'src', 'data', 'document-validations.json');
 const FSTB_HISTORY_FILE_PATH = path.join(process.cwd(), 'src', 'data', 'fstb-uploads-history.json');
 const TTB_HISTORY_FILE_PATH = path.join(process.cwd(), 'src', 'data', 'ttb-uploads-history.json');
 const SERAH_TERIMA_HISTORY_PATH = path.join(process.cwd(), 'src', 'data', 'serah-terima-history.json');
+const LOCAL_USERS_FILE_PATH = path.join(process.cwd(), 'src', 'data', 'users-data.json');
 
 const R2_METADATA_VALIDATION_KEY = 'validation-metadata/records.json';
 const R2_METADATA_FSTB_KEY = 'fstb-metadata/history.json';
 const R2_METADATA_TTB_KEY = 'ttb-metadata/history.json';
+const R2_USERS_METADATA_KEY = 'users-metadata/users.json';
+
+interface UserSigLookup {
+  signatureDataUrl: string;
+  nik?: string;
+  jabatan?: string;
+  name?: string;
+}
+
+// Ambil kamus spesimen tanda tangan pengguna langsung dari Cloudflare R2 / lokal
+async function getUserSignatureMap(): Promise<Map<string, UserSigLookup>> {
+  const map = new Map<string, UserSigLookup>();
+  let users: any[] = [];
+  if (isR2Configured()) {
+    try {
+      const r2Obj = await getObjectFromR2(R2_USERS_METADATA_KEY);
+      if (r2Obj && r2Obj.body) {
+        const text = Buffer.from(r2Obj.body).toString('utf8');
+        const parsed = JSON.parse(text);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          users = parsed;
+        }
+      }
+    } catch (err) {
+      console.warn('Gagal membaca users dari Cloudflare R2 untuk sinkronisasi tanda tangan:', err);
+    }
+  }
+
+  if (!users || users.length === 0) {
+    try {
+      const raw = await fs.readFile(LOCAL_USERS_FILE_PATH, 'utf8');
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        users = parsed;
+      }
+    } catch {}
+  }
+
+  for (const u of users) {
+    if (u?.signature?.signatureDataUrl) {
+      const info: UserSigLookup = {
+        signatureDataUrl: u.signature.signatureDataUrl,
+        nik: u.nik,
+        jabatan: u.jabatan,
+        name: u.name,
+      };
+      if (u.username) map.set(u.username.toLowerCase().trim(), info);
+      if (u.name) map.set(u.name.toLowerCase().trim(), info);
+      if (u.nik) map.set(u.nik.toLowerCase().trim(), info);
+    }
+  }
+  return map;
+}
+
+function findUserSig(
+  userSigMap: Map<string, UserSigLookup>,
+  username?: string,
+  name?: string,
+  nik?: string
+): UserSigLookup | undefined {
+  if (username && userSigMap.has(username.toLowerCase().trim())) {
+    return userSigMap.get(username.toLowerCase().trim());
+  }
+  if (name && userSigMap.has(name.toLowerCase().trim())) {
+    return userSigMap.get(name.toLowerCase().trim());
+  }
+  if (nik && userSigMap.has(nik.toLowerCase().trim())) {
+    return userSigMap.get(nik.toLowerCase().trim());
+  }
+  return undefined;
+}
 
 // Baca data validasi dari Cloudflare R2 (dengan fallback ke disk lokal)
 async function getStoredValidations(): Promise<DocumentValidationRecord[]> {
@@ -194,6 +267,7 @@ export async function GET(req: NextRequest) {
     const fstbItems = await getFstbHistory();
     const ttbItems = await getTtbHistory();
     const serahTerimaItems = await getSerahTerimaHistory();
+    const userSigMap = await getUserSignatureMap();
 
     let hasNewDrafts = false;
 
@@ -222,6 +296,37 @@ export async function GET(req: NextRequest) {
       if ((rec.fileUrl || rec.r2Key) && rec.fileExists !== true) {
         rec.fileExists = true;
         hasNewDrafts = true;
+      }
+
+      // Auto-enrich tanda tangan digital dari database pengguna jika slot sudah sah namun belum memiliki signatureDataUrl
+      const enrichSlot = (slot?: ValidationSignatureRecord) => {
+        if (slot && slot.isValidated && !slot.signatureDataUrl) {
+          const lookup = findUserSig(
+            userSigMap,
+            slot.validatorUsername,
+            slot.validatorName,
+            slot.validatorNik
+          );
+          if (lookup?.signatureDataUrl) {
+            slot.signatureDataUrl = lookup.signatureDataUrl;
+            if (!slot.validatorNik && lookup.nik) slot.validatorNik = lookup.nik;
+            if (!slot.validatorJabatan && lookup.jabatan) slot.validatorJabatan = lookup.jabatan;
+            hasNewDrafts = true;
+          }
+        }
+      };
+
+      if (rec.ttbSlots) {
+        enrichSlot(rec.ttbSlots.deliveredBy);
+        enrichSlot(rec.ttbSlots.receivedBy);
+        enrichSlot(rec.ttbSlots.approvedBy);
+        enrichSlot(rec.ttbSlots.acknowledgedBy);
+      }
+      if (rec.fstbSlots) {
+        enrichSlot(rec.fstbSlots.deliveredBy);
+        enrichSlot(rec.fstbSlots.receivedBy);
+        enrichSlot(rec.fstbSlots.approvedBy);
+        enrichSlot(rec.fstbSlots.acknowledgedBy);
       }
       if (rec.docType === 'FSTB') {
         if (!rec.fstbSlots) {
@@ -375,13 +480,22 @@ export async function GET(req: NextRequest) {
       if (!existingMap.has(keyId) && !existingMap.has(keyNum)) {
         // Cek apakah uploader adalah staf purchasing
         const isPurchasingUploader = Boolean(fstb.uploaderName);
+        const uploaderLookup = findUserSig(
+          userSigMap,
+          fstb.uploaderUsername,
+          fstb.uploaderName,
+          fstb.uploaderNik
+        );
+        const uploaderSigUrl = uploaderLookup?.signatureDataUrl;
+
         const pchSig: ValidationSignatureRecord = {
           isValidated: isPurchasingUploader,
           validatorName: fstb.uploaderName || undefined,
           validatorUsername: fstb.uploaderUsername,
           validatorRole: fstb.uploaderRole || 'purchasing',
-          validatorNik: fstb.uploaderNik,
-          validatorJabatan: fstb.uploaderJabatan || 'Purchasing Staff',
+          validatorNik: fstb.uploaderNik || uploaderLookup?.nik,
+          validatorJabatan: fstb.uploaderJabatan || uploaderLookup?.jabatan || 'Purchasing Staff',
+          signatureDataUrl: uploaderSigUrl,
           validatedAt: fstb.stampedAt || fstb.uploadedAt,
           notes: isPurchasingUploader ? 'Tervalidasi otomatis saat pengunggahan berkas oleh Staf Purchasing' : undefined,
           verificationToken: isPurchasingUploader
@@ -464,6 +578,14 @@ export async function GET(req: NextRequest) {
       const keyNum = `TTB_${ttb.cleanNoTtb || ttb.noTtb}`;
       if (!existingMap.has(keyId) && !existingMap.has(keyNum)) {
         const isLogistikUploader = Boolean(ttb.uploaderName);
+        const ttbUploaderLookup = findUserSig(
+          userSigMap,
+          ttb.uploaderUsername,
+          ttb.uploaderName,
+          ttb.uploaderNik
+        );
+        const ttbUploaderSigUrl = ttbUploaderLookup?.signatureDataUrl;
+
         const matchedSt = serahTerimaItems.find((s) =>
           matchTtbDoc(s.noTtb, ttb.cleanNoTtb || ttb.noTtb)
         );
@@ -522,8 +644,9 @@ export async function GET(req: NextRequest) {
             validatorName: ttb.uploaderName || undefined,
             validatorUsername: ttb.uploaderUsername,
             validatorRole: ttb.uploaderRole || 'staf_ttb',
-            validatorNik: ttb.uploaderNik,
-            validatorJabatan: ttb.uploaderJabatan || 'Staf Logistik & Pergudangan',
+            validatorNik: ttb.uploaderNik || ttbUploaderLookup?.nik,
+            validatorJabatan: ttb.uploaderJabatan || ttbUploaderLookup?.jabatan || 'Staf Logistik & Pergudangan',
+            signatureDataUrl: ttbUploaderSigUrl,
             validatedAt: ttb.stampedAt || ttb.uploadedAt,
             notes: isLogistikUploader ? 'Tervalidasi otomatis saat pengunggahan berkas oleh Staf Logistik' : undefined,
             verificationToken: isLogistikUploader
@@ -546,8 +669,9 @@ export async function GET(req: NextRequest) {
               validatorName: ttb.uploaderName || undefined,
               validatorUsername: ttb.uploaderUsername,
               validatorRole: ttb.uploaderRole || 'staf_ttb',
-              validatorNik: ttb.uploaderNik,
-              validatorJabatan: ttb.uploaderJabatan || 'Staf Logistik & Pergudangan',
+              validatorNik: ttb.uploaderNik || ttbUploaderLookup?.nik,
+              validatorJabatan: ttb.uploaderJabatan || ttbUploaderLookup?.jabatan || 'Staf Logistik & Pergudangan',
+              signatureDataUrl: ttbUploaderSigUrl,
               validatedAt: ttb.stampedAt || ttb.uploadedAt,
             },
             receivedBy: { ...recipientSig },
@@ -675,12 +799,19 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    return NextResponse.json({
-      success: true,
-      metrics,
-      total: filtered.length,
-      records: filtered,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        metrics,
+        total: filtered.length,
+        records: filtered,
+      },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        },
+      }
+    );
   } catch (err: unknown) {
     console.error('Error in GET /api/validasi-dokumen:', err);
     const msg = err instanceof Error ? err.message : 'Terjadi kesalahan sistem saat memuat data validasi.';
@@ -998,6 +1129,26 @@ export async function POST(req: NextRequest) {
         );
       }
 
+      // Ambil spesimen tanda tangan dari database users di Cloudflare R2 jika tidak disertakan langsung oleh klien
+      const userSigMap = await getUserSignatureMap();
+      let resolvedSignatureDataUrl = signatureDataUrl;
+      let effectiveNik = validatorNik;
+      let effectiveJabatan = validatorJabatan;
+
+      if (!resolvedSignatureDataUrl || resolvedSignatureDataUrl.trim() === '') {
+        const lookup = findUserSig(
+          userSigMap,
+          validatorUsername,
+          validatorName,
+          validatorNik
+        );
+        if (lookup?.signatureDataUrl) {
+          resolvedSignatureDataUrl = lookup.signatureDataUrl;
+          if (!effectiveNik && lookup.nik) effectiveNik = lookup.nik;
+          if (!effectiveJabatan && lookup.jabatan) effectiveJabatan = lookup.jabatan;
+        }
+      }
+
       if (record.docType === 'FSTB') {
         // Tentukan slot yang hendak divalidasi
         let targetSlots: FstbSlotKey[] = [];
@@ -1083,7 +1234,7 @@ export async function POST(req: NextRequest) {
             try {
               pdfBuffer = await stampFstbPdf({
                 pdfBuffer,
-                signatureDataUrl: signatureDataUrl || undefined,
+                signatureDataUrl: resolvedSignatureDataUrl || undefined,
                 uploaderName: validatorName,
                 uploadDate: stampDate,
                 roleType,
@@ -1099,9 +1250,9 @@ export async function POST(req: NextRequest) {
             validatorName,
             validatorUsername,
             validatorRole,
-            validatorNik,
-            validatorJabatan: validatorJabatan || defaultJabatan,
-            signatureDataUrl,
+            validatorNik: effectiveNik,
+            validatorJabatan: effectiveJabatan || defaultJabatan,
+            signatureDataUrl: resolvedSignatureDataUrl,
             validatedAt: nowIso,
             notes: notes || `Disetujui dan disahkan sesuai wewenang ${defaultJabatan}.`,
             verificationToken: token,
@@ -1240,7 +1391,7 @@ export async function POST(req: NextRequest) {
             try {
               pdfBuffer = await stampTtbPdf({
                 pdfBuffer,
-                signatureDataUrl: signatureDataUrl || undefined,
+                signatureDataUrl: resolvedSignatureDataUrl || undefined,
                 uploaderName: validatorName,
                 uploadDate: stampDate,
                 roleType,
@@ -1256,9 +1407,9 @@ export async function POST(req: NextRequest) {
             validatorName,
             validatorUsername,
             validatorRole,
-            validatorNik,
-            validatorJabatan: validatorJabatan || defaultJabatan,
-            signatureDataUrl,
+            validatorNik: effectiveNik,
+            validatorJabatan: effectiveJabatan || defaultJabatan,
+            signatureDataUrl: resolvedSignatureDataUrl,
             validatedAt: nowIso,
             notes: notes || `Disetujui dan disahkan sesuai wewenang ${defaultJabatan}.`,
             verificationToken: token,
@@ -1308,7 +1459,7 @@ export async function POST(req: NextRequest) {
             isSigned: true,
             recipientName: validatorName,
             signedAt: nowIso,
-            signatureDataUrl,
+            signatureDataUrl: resolvedSignatureDataUrl,
           };
         }
       }
@@ -1324,14 +1475,21 @@ export async function POST(req: NextRequest) {
     // Simpan ke storage
     await saveValidations(validationRecords);
 
-    return NextResponse.json({
-      success: true,
-      message:
-        action === 'revoke'
-          ? `Validasi berkas berhasil dibatalkan.`
-          : `Validasi dan pembubuhan cap digital resmi berhasil disahkan.`,
-      record,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        message:
+          action === 'revoke'
+            ? `Validasi berkas berhasil dibatalkan.`
+            : `Validasi dan pembubuhan cap digital resmi berhasil disahkan.`,
+        record,
+      },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        },
+      }
+    );
   } catch (err: unknown) {
     console.error('Error in POST /api/validasi-dokumen:', err);
     const msg = err instanceof Error ? err.message : 'Terjadi kesalahan sistem saat menyimpan validasi.';

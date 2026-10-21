@@ -88,37 +88,7 @@ export const FSTB_ACKNOWLEDGED_BY_COORDINATES = {
 export const FSTB_PURCHASING_COORDINATES = FSTB_DELIVERED_BY_COORDINATES;
 export const FSTB_LOGISTIC_COORDINATES = FSTB_RECEIVED_BY_COORDINATES;
 
-export function formatFstbStampDate(dateInput?: string | Date): string {
-  if (!dateInput) {
-    const now = new Date();
-    const d = String(now.getDate()).padStart(2, '0');
-    const m = String(now.getMonth() + 1).padStart(2, '0');
-    const y = now.getFullYear();
-    return `${d}/${m}/${y}`;
-  }
-
-  if (dateInput instanceof Date) {
-    const d = String(dateInput.getDate()).padStart(2, '0');
-    const m = String(dateInput.getMonth() + 1).padStart(2, '0');
-    const y = dateInput.getFullYear();
-    return `${d}/${m}/${y}`;
-  }
-
-  const s = String(dateInput).trim();
-  const mIso = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
-  if (mIso) {
-    const [, yyyy, mm, dd] = mIso;
-    return `${dd.padStart(2, '0')}/${mm.padStart(2, '0')}/${yyyy}`;
-  }
-
-  const mSlash = s.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})/);
-  if (mSlash) {
-    const [, dd, mm, yyyy] = mSlash;
-    return `${dd.padStart(2, '0')}/${mm.padStart(2, '0')}/${yyyy}`;
-  }
-
-  return s;
-}
+export { formatFstbStampDate } from './stampDateFormatter';
 
 /**
  * Stempel Tanda Tangan Digital & Identitas pada Dokumen PDF FSTB Resmi CPG
@@ -169,21 +139,62 @@ export async function stampFstbPdf(options: StampFstbOptions): Promise<Buffer> {
 
   // 1. Sematkan Gambar Tanda Tangan Digital atau Cap Verifikasi Hash
   let hasEmbeddedImage = false;
-  if (signatureDataUrl && (signatureDataUrl.startsWith('data:image/png') || signatureDataUrl.startsWith('data:image/jpeg') || signatureDataUrl.startsWith('data:image/jpg'))) {
+  if (signatureDataUrl && typeof signatureDataUrl === 'string') {
     try {
-      const isPng = signatureDataUrl.startsWith('data:image/png');
-      const base64Data = signatureDataUrl.replace(/^data:image\/[a-zA-Z]+;base64,/, '');
-      const imgBytes = Buffer.from(base64Data, 'base64');
+      let imgBytes: Buffer | null = null;
+      let isPng = true;
 
-      const embeddedImage = isPng ? await pdfDoc.embedPng(imgBytes) : await pdfDoc.embedJpg(imgBytes);
+      if (signatureDataUrl.startsWith('data:image/png;base64,')) {
+        imgBytes = Buffer.from(signatureDataUrl.replace(/^data:image\/png;base64,/, ''), 'base64');
+        isPng = true;
+      } else if (signatureDataUrl.startsWith('data:image/jpeg;base64,') || signatureDataUrl.startsWith('data:image/jpg;base64,')) {
+        imgBytes = Buffer.from(signatureDataUrl.replace(/^data:image\/jpe?g;base64,/, ''), 'base64');
+        isPng = false;
+      } else {
+        // Konversi SVG/WebP atau format lain via sharp secara dinamis (server-side safe)
+        try {
+          const sharpModule = await import('sharp');
+          const sharp = sharpModule.default || sharpModule;
+          if (signatureDataUrl.startsWith('data:image/svg+xml')) {
+            let svgStr = '';
+            if (signatureDataUrl.includes(';base64,')) {
+              svgStr = Buffer.from(signatureDataUrl.split(';base64,')[1], 'base64').toString('utf8');
+            } else {
+              svgStr = decodeURIComponent(signatureDataUrl.replace(/^data:image\/svg\+xml;?(utf8)?,?/, ''));
+            }
+            imgBytes = await sharp(Buffer.from(svgStr)).png().toBuffer();
+            isPng = true;
+          } else if (signatureDataUrl.startsWith('data:image/')) {
+            const raw = Buffer.from(signatureDataUrl.replace(/^data:image\/[a-zA-Z+]+;base64,/, ''), 'base64');
+            imgBytes = await sharp(raw).png().toBuffer();
+            isPng = true;
+          }
+        } catch (sharpErr) {
+          console.warn('Konversi format tanda tangan ke PNG gagal:', sharpErr);
+        }
+      }
 
-      targetPage.drawImage(embeddedImage, {
-        x: sigX,
-        y: sigY,
-        width: sigW,
-        height: sigH,
-      });
-      hasEmbeddedImage = true;
+      if (imgBytes && imgBytes.length > 0) {
+        const embeddedImage = isPng ? await pdfDoc.embedPng(imgBytes) : await pdfDoc.embedJpg(imgBytes);
+
+        // Bersihkan area kotak tanda tangan terlebih dahulu dengan latar putih bersih agar menimpa cap lama/kotak hijau jika ada
+        targetPage.drawRectangle({
+          x: sigX,
+          y: sigY,
+          width: sigW,
+          height: sigH,
+          color: rgb(1, 1, 1),
+          borderWidth: 0,
+        });
+
+        targetPage.drawImage(embeddedImage, {
+          x: sigX,
+          y: sigY,
+          width: sigW,
+          height: sigH,
+        });
+        hasEmbeddedImage = true;
+      }
     } catch (sigErr) {
       console.warn('Gagal menyematkan tanda tangan ke PDF FSTB, beralih ke cap digital:', sigErr);
     }

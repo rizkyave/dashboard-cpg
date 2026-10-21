@@ -840,6 +840,20 @@ export default function TtbValidationModal({
                             </div>
                           )}
 
+                          {slot.key !== 'receivedBy' && currentSlotState?.signatureDataUrl && (
+                            <div className="pt-0.5 flex items-center gap-2">
+                              <span className="text-[9.5px] text-muted-foreground font-medium shrink-0">TTD Sah:</span>
+                              <div className="h-7 px-1.5 bg-white rounded border border-emerald-500/30 flex items-center shadow-2xs">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={currentSlotState.signatureDataUrl}
+                                  alt={`TTD ${currentSlotState.validatorName || 'Validator'}`}
+                                  className="h-5 w-auto object-contain max-w-[120px]"
+                                />
+                              </div>
+                            </div>
+                          )}
+
                           {currentSlotState?.verificationToken && (
                             <div className="font-mono text-[9.5px] text-muted-foreground truncate">
                               Token: {currentSlotState.verificationToken}

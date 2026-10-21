@@ -83,7 +83,10 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
       else setIsLoading(true);
       setErrorMsg('');
 
-      const res = await fetch(`/api/validasi-dokumen?_t=${Date.now()}`);
+      const res = await fetch(`/api/validasi-dokumen?_t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache' },
+      });
       if (!res.ok) throw new Error('Gagal menghubungi server validasi dokumen.');
 
       const data = await res.json();

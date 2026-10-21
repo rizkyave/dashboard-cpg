@@ -97,24 +97,7 @@ export const TTB_RECIPIENT_COORDINATES = TTB_RECEIVED_BY_COORDINATES;
 /**
  * Format tanggal Indonesia ringkas (DD/MM/YYYY)
  */
-export function formatTtbStampDate(dateInput?: string | Date): string {
-  if (!dateInput) {
-    const now = new Date();
-    const d = String(now.getDate()).padStart(2, '0');
-    const m = String(now.getMonth() + 1).padStart(2, '0');
-    const y = now.getFullYear();
-    return `${d}/${m}/${y}`;
-  }
-
-  const dObj = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
-  if (isNaN(dObj.getTime())) {
-    return String(dateInput);
-  }
-  const d = String(dObj.getDate()).padStart(2, '0');
-  const m = String(dObj.getMonth() + 1).padStart(2, '0');
-  const y = dObj.getFullYear();
-  return `${d}/${m}/${y}`;
-}
+export { formatTtbStampDate } from './stampDateFormatter';
 
 /**
  * Stempel Tanda Tangan Digital, Nama Validator, dan Tanggal pada Dokumen PDF TTB
@@ -166,28 +149,64 @@ export async function stampTtbPdf(options: StampTtbOptions): Promise<Buffer> {
 
   // 1. Sematkan Gambar Tanda Tangan Digital (jika ada) atau Cap Verifikasi Digital
   let hasEmbeddedImage = false;
-  if (
-    signatureDataUrl &&
-    (signatureDataUrl.startsWith('data:image/png') ||
-      signatureDataUrl.startsWith('data:image/jpeg') ||
-      signatureDataUrl.startsWith('data:image/jpg'))
-  ) {
+  if (signatureDataUrl && typeof signatureDataUrl === 'string') {
     try {
-      const isPng = signatureDataUrl.startsWith('data:image/png');
-      const base64Data = signatureDataUrl.replace(/^data:image\/[a-zA-Z]+;base64,/, '');
-      const imageBytes = Buffer.from(base64Data, 'base64');
+      let imgBytes: Buffer | null = null;
+      let isPng = true;
 
-      const embeddedImage = isPng
-        ? await pdfDoc.embedPng(imageBytes)
-        : await pdfDoc.embedJpg(imageBytes);
+      if (signatureDataUrl.startsWith('data:image/png;base64,')) {
+        imgBytes = Buffer.from(signatureDataUrl.replace(/^data:image\/png;base64,/, ''), 'base64');
+        isPng = true;
+      } else if (signatureDataUrl.startsWith('data:image/jpeg;base64,') || signatureDataUrl.startsWith('data:image/jpg;base64,')) {
+        imgBytes = Buffer.from(signatureDataUrl.replace(/^data:image\/jpe?g;base64,/, ''), 'base64');
+        isPng = false;
+      } else {
+        // Konversi SVG/WebP atau format lain via sharp secara dinamis (server-side safe)
+        try {
+          const sharpModule = await import('sharp');
+          const sharp = sharpModule.default || sharpModule;
+          if (signatureDataUrl.startsWith('data:image/svg+xml')) {
+            let svgStr = '';
+            if (signatureDataUrl.includes(';base64,')) {
+              svgStr = Buffer.from(signatureDataUrl.split(';base64,')[1], 'base64').toString('utf8');
+            } else {
+              svgStr = decodeURIComponent(signatureDataUrl.replace(/^data:image\/svg\+xml;?(utf8)?,?/, ''));
+            }
+            imgBytes = await sharp(Buffer.from(svgStr)).png().toBuffer();
+            isPng = true;
+          } else if (signatureDataUrl.startsWith('data:image/')) {
+            const raw = Buffer.from(signatureDataUrl.replace(/^data:image\/[a-zA-Z+]+;base64,/, ''), 'base64');
+            imgBytes = await sharp(raw).png().toBuffer();
+            isPng = true;
+          }
+        } catch (sharpErr) {
+          console.warn('Konversi format tanda tangan ke PNG gagal:', sharpErr);
+        }
+      }
 
-      targetPage.drawImage(embeddedImage, {
-        x: sigX,
-        y: sigY,
-        width: sigW,
-        height: sigH,
-      });
-      hasEmbeddedImage = true;
+      if (imgBytes && imgBytes.length > 0) {
+        const embeddedImage = isPng
+          ? await pdfDoc.embedPng(imgBytes)
+          : await pdfDoc.embedJpg(imgBytes);
+
+        // Bersihkan area tanda tangan terlebih dahulu dengan latar putih bersih agar menimpa cap lama/kotak hijau jika ada
+        targetPage.drawRectangle({
+          x: sigX,
+          y: sigY,
+          width: sigW,
+          height: sigH,
+          color: rgb(1, 1, 1),
+          borderWidth: 0,
+        });
+
+        targetPage.drawImage(embeddedImage, {
+          x: sigX,
+          y: sigY,
+          width: sigW,
+          height: sigH,
+        });
+        hasEmbeddedImage = true;
+      }
     } catch (sigErr) {
       console.warn('Gagal menyematkan spesimen tanda tangan ke PDF TTB:', sigErr);
     }
@@ -349,18 +368,41 @@ export async function stampTtbRecipientPdf(options: StampTtbRecipientOptions): P
   };
 
   // 1. Sematkan Gambar Tanda Tangan Digital Penerima Akhir
-  if (recipientSignatureDataUrl && recipientSignatureDataUrl.startsWith('data:image/')) {
+  if (recipientSignatureDataUrl && typeof recipientSignatureDataUrl === 'string') {
     try {
-      const isPng = recipientSignatureDataUrl.startsWith('data:image/png');
-      const isJpg =
-        recipientSignatureDataUrl.startsWith('data:image/jpeg') ||
-        recipientSignatureDataUrl.startsWith('data:image/jpg');
+      let imageBytes: Buffer | null = null;
+      let isPng = true;
 
-      const base64Index = recipientSignatureDataUrl.indexOf('base64,');
-      if (base64Index !== -1 && (isPng || isJpg)) {
-        const base64Data = recipientSignatureDataUrl.substring(base64Index + 7);
-        const imageBytes = Buffer.from(base64Data, 'base64');
+      if (recipientSignatureDataUrl.startsWith('data:image/png;base64,')) {
+        imageBytes = Buffer.from(recipientSignatureDataUrl.replace(/^data:image\/png;base64,/, ''), 'base64');
+        isPng = true;
+      } else if (recipientSignatureDataUrl.startsWith('data:image/jpeg;base64,') || recipientSignatureDataUrl.startsWith('data:image/jpg;base64,')) {
+        imageBytes = Buffer.from(recipientSignatureDataUrl.replace(/^data:image\/jpe?g;base64,/, ''), 'base64');
+        isPng = false;
+      } else {
+        try {
+          const sharpModule = await import('sharp');
+          const sharp = sharpModule.default || sharpModule;
+          if (recipientSignatureDataUrl.startsWith('data:image/svg+xml')) {
+            let svgStr = '';
+            if (recipientSignatureDataUrl.includes(';base64,')) {
+              svgStr = Buffer.from(recipientSignatureDataUrl.split(';base64,')[1], 'base64').toString('utf8');
+            } else {
+              svgStr = decodeURIComponent(recipientSignatureDataUrl.replace(/^data:image\/svg\+xml;?(utf8)?,?/, ''));
+            }
+            imageBytes = await sharp(Buffer.from(svgStr)).png().toBuffer();
+            isPng = true;
+          } else if (recipientSignatureDataUrl.startsWith('data:image/')) {
+            const raw = Buffer.from(recipientSignatureDataUrl.replace(/^data:image\/[a-zA-Z+]+;base64,/, ''), 'base64');
+            imageBytes = await sharp(raw).png().toBuffer();
+            isPng = true;
+          }
+        } catch (sharpErr) {
+          console.warn('Konversi sharp tanda tangan penerima gagal:', sharpErr);
+        }
+      }
 
+      if (imageBytes && imageBytes.length > 0) {
         const embeddedImage = isPng
           ? await pdfDoc.embedPng(imageBytes)
           : await pdfDoc.embedJpg(imageBytes);
@@ -369,6 +411,16 @@ export async function stampTtbRecipientPdf(options: StampTtbRecipientOptions): P
         const sigY = coords.sigYRatio * pageHeight;
         const sigW = coords.sigWidthRatio * pageWidth;
         const sigH = coords.sigHeightRatio * pageHeight;
+
+        // Bersihkan area kotak tanda tangan terlebih dahulu dengan latar putih bersih
+        firstPage.drawRectangle({
+          x: sigX,
+          y: sigY,
+          width: sigW,
+          height: sigH,
+          color: rgb(1, 1, 1),
+          borderWidth: 0,
+        });
 
         firstPage.drawImage(embeddedImage, {
           x: sigX,

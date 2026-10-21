@@ -41,7 +41,7 @@ import {
   convertSvgToPngDataUrl,
   formatTtbStampDate,
   stampTtbImageFile,
-} from '@/utils/ttbStamper';
+} from '@/utils/stampDateFormatter';
 
 interface UploadTtbTabProps {
   procurementItems?: ProcurementItem[];

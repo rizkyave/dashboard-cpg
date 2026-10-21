@@ -93,7 +93,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 freshAuth.status !== currentSession.status ||
                 freshAuth.name !== currentSession.name ||
                 freshAuth.jabatan !== currentSession.jabatan ||
-                freshAuth.department !== currentSession.department
+                freshAuth.department !== currentSession.department ||
+                freshAuth.signature?.signatureDataUrl !== currentSession.signature?.signatureDataUrl ||
+                freshAuth.signature?.certificateId !== currentSession.signature?.certificateId
               ) {
                 setStoredSessionUser(freshAuth);
                 setUser(freshAuth);
