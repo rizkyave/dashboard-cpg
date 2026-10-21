@@ -1431,7 +1431,7 @@ export default function MonitoringInternalTab({
                 {/* Zona 3: Done by Logistik & Lapangan (Hijau) */}
                 {showLogistikCols && (
                   <th
-                    colSpan={12}
+                    colSpan={9}
                     className="py-2 px-3 border-r-2 border-border/80 bg-emerald-500/15 text-emerald-900 dark:text-emerald-200"
                   >
                     Done by Logistik &amp; Tim Lapangan
@@ -1548,14 +1548,11 @@ export default function MonitoringInternalTab({
                     <th className="py-2.5 px-3 min-w-[140px] bg-emerald-500/[0.04]">NO. TTB</th>
                     <th className="py-2.5 px-3 whitespace-nowrap bg-emerald-500/[0.04]">TGL INPUT TTB</th>
                     <th className="py-2.5 px-3 whitespace-nowrap bg-emerald-500/[0.04]">TGL KE TIM LAP</th>
-                    <th className="py-2.5 px-3 whitespace-nowrap bg-emerald-500/[0.04]">LAPSE TTB-LAP</th>
                     <th className="py-2.5 px-3 whitespace-nowrap bg-emerald-500/[0.04]">PIC LAPANGAN</th>
                     <th className="py-2.5 px-3 whitespace-nowrap bg-emerald-500/[0.04]">TGL DIANTAR</th>
                     <th className="py-2.5 px-3 min-w-[160px] bg-emerald-500/[0.04]">KETERANGAN (LAP)</th>
                     <th className="py-2.5 px-3 whitespace-nowrap bg-emerald-500/[0.04]">TGL TL KE TTB</th>
-                    <th className="py-2.5 px-3 whitespace-nowrap bg-emerald-500/[0.04]">LAPSE LAP-TTB</th>
-                    <th className="py-2.5 px-3 whitespace-nowrap bg-emerald-500/[0.04]">TGL TTB KE PCH</th>
-                    <th className="py-2.5 px-3 whitespace-nowrap border-r-2 border-border/80 bg-emerald-500/[0.04]">LAPSE TTB-PCH</th>
+                    <th className="py-2.5 px-3 whitespace-nowrap border-r-2 border-border/80 bg-emerald-500/[0.04]">TGL TTB KE PCH</th>
                   </>
                 )}
 
@@ -1579,7 +1576,7 @@ export default function MonitoringInternalTab({
             <tbody className="divide-y divide-border">
               {paginatedData.length === 0 ? (
                 <tr>
-                  <td colSpan={34} className="py-12 text-center text-muted-foreground">
+                  <td colSpan={32} className="py-12 text-center text-muted-foreground">
                     Tidak ada berkas yang cocok dengan filter yang dipilih.
                   </td>
                 </tr>
@@ -1961,15 +1958,6 @@ export default function MonitoringInternalTab({
                             {formatTgl(row.tglKeTimLapangan)}
                           </td>
 
-                          {/* LAPSE TTB KE LAPANGAN */}
-                          <td className="py-2.5 px-3 whitespace-nowrap font-mono text-xs bg-emerald-500/[0.01]">
-                            {row.lapseTtbToLap ? (
-                              <span className="text-muted-foreground">{row.lapseTtbToLap}</span>
-                            ) : (
-                              '-'
-                            )}
-                          </td>
-
                           {/* PIC LAPANGAN */}
                           <td className="py-2.5 px-3 whitespace-nowrap bg-emerald-500/[0.01]">
                             {row.picLap && row.picLap !== '-' ? (
@@ -2005,27 +1993,9 @@ export default function MonitoringInternalTab({
                             {formatTgl(row.tglTimLapKePicTtb)}
                           </td>
 
-                          {/* LAPSE LAPANGAN KE TTB */}
-                          <td className="py-2.5 px-3 whitespace-nowrap font-mono text-xs bg-emerald-500/[0.01]">
-                            {row.lapseLapToTtb ? (
-                              <span className="text-muted-foreground">{row.lapseLapToTtb}</span>
-                            ) : (
-                              '-'
-                            )}
-                          </td>
-
                           {/* TGL TTB KE PIC PURCHASING */}
-                          <td className="py-2.5 px-3 whitespace-nowrap font-mono text-muted-foreground bg-emerald-500/[0.01]">
+                          <td className="py-2.5 px-3 whitespace-nowrap font-mono text-muted-foreground border-r-2 border-border/80 bg-emerald-500/[0.01]">
                             {formatTgl(row.tglTtbKePicPch)}
-                          </td>
-
-                          {/* LAPSE TTB KE PCH */}
-                          <td className="py-2.5 px-3 whitespace-nowrap font-mono text-xs border-r-2 border-border/80 bg-emerald-500/[0.01]">
-                            {row.lapseTtbToPch ? (
-                              <span className="text-muted-foreground">{row.lapseTtbToPch}</span>
-                            ) : (
-                              '-'
-                            )}
                           </td>
                         </>
                       )}
