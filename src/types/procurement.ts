@@ -127,6 +127,14 @@ export interface ProcurementItem {
   tglKePicTtb?: string;
   waktuKePicTtb?: string;
   keterangan?: string;
+  ketPch?: string;
+  ketLap?: string;
+  lapsePchToTtb?: string;
+  lapseTtbToLap?: string;
+  lapseLapToTtb?: string;
+  lapseTtbToPch?: string;
+  lapseAdmPch?: string;
+  lapseKeu?: string;
   noTtb?: string;
   tglInputTtb?: string;
   tglKeTimLapangan?: string;

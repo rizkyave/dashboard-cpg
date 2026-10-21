@@ -50,6 +50,28 @@ export const excelDateToString = (val: any): string => {
   return String(val);
 };
 
+// Helper: Convert Excel time fraction (0 <= val < 1) or time string to hh:mm:ss AM/PM
+export const excelTimeToString = (val: any): string => {
+  if (!val && val !== 0) return '';
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    if (!trimmed || trimmed === '-') return '';
+    return trimmed;
+  }
+  if (typeof val === 'number') {
+    if (val >= 0 && val < 1) {
+      const totalSeconds = Math.round(val * 86400);
+      const hours24 = Math.floor(totalSeconds / 3600) % 24;
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      const ampm = hours24 >= 12 ? 'PM' : 'AM';
+      const hours12 = hours24 % 12 || 12;
+      return `${hours12}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')} ${ampm}`;
+    }
+  }
+  return String(val);
+};
+
 // Helper: Build column index map from header row
 export const buildColumnMap = (headerRow: any[]): Record<string, number> => {
   const map: Record<string, number> = {};
@@ -171,6 +193,13 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
     spp: string;
     tglSpp: string;
     tglKeu: string;
+    ketLap?: string;
+    lapsePchToTtb?: string;
+    lapseTtbToLap?: string;
+    lapseLapToTtb?: string;
+    lapseTtbToPch?: string;
+    lapseAdmPch?: string;
+    lapseKeu?: string;
     rawRow: any[];
   }
 
@@ -205,7 +234,6 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
     const cPicFstb   = findCol(colMap, 'PIC FSTB', 'PIC PENERIMA', 'PENERIMA FSTB', 'PENERIMA BARANG', 'PIC SERAH TERIMA');
     const cTglPicTtb = findCol(colMap, 'TANGGAL KE PIC TTB', 'TGL KE PIC TTB', 'KE PIC TTB');
     const cWaktuPicTtb = findCol(colMap, 'WAKTU KE PIC TTB', 'JAM KE PIC TTB', 'WAKTU PIC TTB');
-    const cKet1      = findCol(colMap, 'KETERANGAN');
     const cPicTtb    = findCol(colMap, 'PIC TTB', 'LOGISTIK TTB', 'PIC_TTB');
     const cTTB       = findCol(colMap, 'NO. TTB', 'NO TTB', 'NOMOR TTB', 'TTB');
     const cTglTTB    = findCol(colMap, 'TANGGAL  INPUT TTB', 'TANGGAL INPUT TTB', 'TGL INPUT TTB', 'TANGGAL TTB', 'TGL TTB');
@@ -220,8 +248,21 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
     const cTglSPP    = findCol(colMap, 'TANGGAL INPUT SPP', 'TGL INPUT SPP', 'TANGGAL SPP', 'TGL SPP');
     const cTglKeu    = findCol(colMap, 'TANGGAL KE KEUANGAN', 'TGL KE KEUANGAN', 'KE KEUANGAN', 'TGL KEU');
 
+    const headers = json[headerRowIdx] || [];
+    let cKetPch = -1;
+    let cKetLap = -1;
+    headers.forEach((h: any, idx: number) => {
+      const up = String(h || '').trim().toUpperCase();
+      if (up.includes('KETERANGAN')) {
+        if (cKetPch < 0 && idx <= 15) cKetPch = idx;
+        else if (cKetLap < 0 && idx >= 18 && idx <= 23) cKetLap = idx;
+      }
+    });
+    if (cKetPch < 0) cKetPch = 12;
+    if (cKetLap < 0) cKetLap = 21;
+
     const lapseCols: number[] = [];
-    (json[headerRowIdx] || []).forEach((cell: any, idx: number) => {
+    headers.forEach((cell: any, idx: number) => {
       const headerStr = String(cell || '').trim().toUpperCase();
       if (
         headerStr === 'LAPSE DAY' ||
@@ -232,10 +273,17 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
       }
     });
 
+    const cLapsePchToTtb = lapseCols[0] !== undefined ? lapseCols[0] : 13;
+    const cLapseTtbToLap = lapseCols[1] !== undefined ? lapseCols[1] : 18;
+    const cLapseLapToTtb = lapseCols[2] !== undefined ? lapseCols[2] : 23;
+    const cLapseTtbToPch = lapseCols[3] !== undefined ? lapseCols[3] : 26;
+    const cLapseAdmPch   = lapseCols[4] !== undefined ? lapseCols[4] : 29;
+    const cLapseKeu      = lapseCols[5] !== undefined ? lapseCols[5] : 39;
+
     // Cari kolom LAPSE DAY di Kolom AA (Column AA = index 26, atau LAPSE DAY tepat sebelum TANGGAL KE ADM PCH)
     let cLapse = -1;
     for (const colIdx of lapseCols) {
-      const nextHeader = String(json[headerRowIdx][colIdx + 1] || '').trim().toUpperCase();
+      const nextHeader = String(headers[colIdx + 1] || '').trim().toUpperCase();
       if (colIdx === 26 || nextHeader.includes('ADM PCH')) {
         cLapse = colIdx;
         break;
@@ -305,8 +353,15 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
         tglFstb: excelDateToString(cTglFSTB >= 0 ? r[cTglFSTB] : ''),
         picFstb: String(cPicFstb >= 0 ? r[cPicFstb] : '').trim(),
         tglKePicTtb: excelDateToString(cTglPicTtb >= 0 ? r[cTglPicTtb] : ''),
-        waktuKePicTtb: String(cWaktuPicTtb >= 0 ? r[cWaktuPicTtb] : '').trim(),
-        ket1: String(cKet1 >= 0 ? r[cKet1] : '').trim(),
+        waktuKePicTtb: excelTimeToString(cWaktuPicTtb >= 0 ? r[cWaktuPicTtb] : ''),
+        ket1: String(cKetPch >= 0 ? r[cKetPch] : '').trim(),
+        ketLap: String(cKetLap >= 0 ? r[cKetLap] : '').trim(),
+        lapsePchToTtb: String(cLapsePchToTtb >= 0 ? r[cLapsePchToTtb] : '').trim(),
+        lapseTtbToLap: String(cLapseTtbToLap >= 0 ? r[cLapseTtbToLap] : '').trim(),
+        lapseLapToTtb: String(cLapseLapToTtb >= 0 ? r[cLapseLapToTtb] : '').trim(),
+        lapseTtbToPch: String(cLapseTtbToPch >= 0 ? r[cLapseTtbToPch] : '').trim(),
+        lapseAdmPch: String(cLapseAdmPch >= 0 ? r[cLapseAdmPch] : '').trim(),
+        lapseKeu: String(cLapseKeu >= 0 ? r[cLapseKeu] : '').trim(),
         lapseProc,
         lapseText,
         picTtb: String(cPicTtb >= 0 ? r[cPicTtb] : '').trim().toLowerCase() === 'logistik' ? '' : String(cPicTtb >= 0 ? r[cPicTtb] : '').trim(),
@@ -754,6 +809,16 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
         picFstb: pMatch?.picFstb || '',
         tglInputFstb,
         tglKePicTtb,
+        waktuKePicTtb: pMatch?.waktuKePicTtb || '',
+        keterangan: pMatch?.ket1 || keterangan || '',
+        ketPch: pMatch?.ket1 || '',
+        ketLap: pMatch?.ketLap || '',
+        lapsePchToTtb: pMatch?.lapsePchToTtb || '',
+        lapseTtbToLap: pMatch?.lapseTtbToLap || '',
+        lapseLapToTtb: pMatch?.lapseLapToTtb || '',
+        lapseTtbToPch: pMatch?.lapseTtbToPch || '',
+        lapseAdmPch: pMatch?.lapseAdmPch || '',
+        lapseKeu: pMatch?.lapseKeu || '',
         noTtb,
         tglInputTtb,
         tglKeTimLapangan,
@@ -978,6 +1043,14 @@ export function parseAndMergeWorkbook(workbook: XLSX.WorkBook): MergedExcelResul
         tglKePicTtb: proc.tglKePicTtb,
         waktuKePicTtb: proc.waktuKePicTtb || '',
         keterangan: proc.ket1 || '',
+        ketPch: proc.ket1 || '',
+        ketLap: proc.ketLap || '',
+        lapsePchToTtb: proc.lapsePchToTtb || '',
+        lapseTtbToLap: proc.lapseTtbToLap || '',
+        lapseLapToTtb: proc.lapseLapToTtb || '',
+        lapseTtbToPch: proc.lapseTtbToPch || '',
+        lapseAdmPch: proc.lapseAdmPch || '',
+        lapseKeu: proc.lapseKeu || '',
         noTtb: proc.ttb,
         tglInputTtb: proc.tglTtb,
         tglKeTimLapangan: proc.tglKeTimLap,
