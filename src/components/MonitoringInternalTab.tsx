@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import {
   FileSpreadsheet,
   Search,
@@ -40,6 +40,213 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { ProcurementItem } from '@/types/procurement';
+
+// ============================================================
+// InlineDatePicker: Mini Calendar Popover (Bulan Berjalan)
+// ============================================================
+interface InlineDatePickerProps {
+  value?: string;                      // ISO date string "YYYY-MM-DD" or empty
+  onSelect: (isoDate: string) => void; // Called when user picks a date
+  onClear?: () => void;                // Called when user clicks X on filled date
+  label?: string;                      // Button label when empty, e.g. "Kirim ke Lapangan"
+  labelIcon?: React.ReactNode;         // Icon to show on empty-state button
+  filledColor?: string;                // Tailwind text-color class for filled date display
+  buttonClass?: string;                // Extra classes for the empty-state button
+  align?: 'left' | 'right';           // Popover alignment
+}
+
+function InlineDatePicker({
+  value,
+  onSelect,
+  onClear,
+  label,
+  labelIcon,
+  filledColor = 'text-emerald-600 dark:text-emerald-400',
+  buttonClass = '',
+  align = 'left',
+}: InlineDatePickerProps) {
+  const [open, setOpen] = useState(false);
+  const [viewYear, setViewYear] = useState(() => new Date().getFullYear());
+  const [viewMonth, setViewMonth] = useState(() => new Date().getMonth());
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Close when clicking outside
+  useEffect(() => {
+    if (!open) return;
+    const handleClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [open]);
+
+  // When opening, sync view to current value or today
+  const handleOpen = () => {
+    const base = value && value !== '-' ? new Date(value) : new Date();
+    setViewYear(base.getFullYear());
+    setViewMonth(base.getMonth());
+    setOpen(true);
+  };
+
+  const DAYS = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+  const MONTHS = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+  ];
+
+  const firstDayOfMonth = new Date(viewYear, viewMonth, 1).getDay();
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+  const todayISO = new Date().toISOString().slice(0, 10);
+
+  const selectedISO = value && value !== '-' ? value.slice(0, 10) : '';
+
+  const formatDisplay = (iso: string) => {
+    if (!iso || iso === '-') return '';
+    const parts = iso.slice(0, 10).split('-');
+    return `${parts[2]}-${parts[1]}-${parts[0]}`;
+  };
+
+  const handlePrevMonth = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); }
+    else setViewMonth(m => m - 1);
+  };
+
+  const handleNextMonth = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1); }
+    else setViewMonth(m => m + 1);
+  };
+
+  const handleSelectDay = (day: number) => {
+    const iso = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    onSelect(iso);
+    setOpen(false);
+  };
+
+  const isFilled = Boolean(value && value !== '-');
+
+  return (
+    <div ref={ref} className="relative inline-block">
+      {isFilled ? (
+        /* Filled state: show date + X cancel button */
+        <div className={`flex items-center gap-1.5 group/dp font-mono font-semibold ${filledColor}`}>
+          <button
+            type="button"
+            onClick={handleOpen}
+            className="hover:underline cursor-pointer"
+            title="Klik untuk ubah tanggal"
+          >
+            {formatDisplay(selectedISO)}
+          </button>
+          {onClear && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onClear(); }}
+              className="opacity-0 group-hover/dp:opacity-100 p-0.5 text-muted-foreground hover:text-rose-500 transition cursor-pointer"
+              title="Batalkan tanggal"
+            >
+              <X className="size-3" />
+            </button>
+          )}
+        </div>
+      ) : (
+        /* Empty state: show action button */
+        <button
+          type="button"
+          onClick={handleOpen}
+          className={buttonClass}
+          title="Klik untuk pilih tanggal"
+        >
+          {labelIcon}
+          {label && <span>{label}</span>}
+        </button>
+      )}
+
+      {/* Calendar Popover */}
+      {open && (
+        <div
+          className={`absolute top-full mt-1 z-50 w-64 p-3 rounded-xl bg-card border border-border shadow-2xl text-xs animate-in fade-in-50 zoom-in-95 duration-150 ${
+            align === 'right' ? 'right-0' : 'left-0'
+          }`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header: Nav bulan */}
+          <div className="flex items-center justify-between mb-2">
+            <button
+              type="button"
+              onClick={handlePrevMonth}
+              className="p-1 rounded hover:bg-muted transition cursor-pointer text-muted-foreground hover:text-foreground"
+            >
+              <ChevronLeft className="size-3.5" />
+            </button>
+            <span className="font-semibold text-foreground text-[11px]">
+              {MONTHS[viewMonth]} {viewYear}
+            </span>
+            <button
+              type="button"
+              onClick={handleNextMonth}
+              className="p-1 rounded hover:bg-muted transition cursor-pointer text-muted-foreground hover:text-foreground"
+            >
+              <ChevronRight className="size-3.5" />
+            </button>
+          </div>
+
+          {/* Day labels */}
+          <div className="grid grid-cols-7 mb-1">
+            {DAYS.map(d => (
+              <div key={d} className="text-center text-[10px] font-semibold text-muted-foreground py-0.5">
+                {d}
+              </div>
+            ))}
+          </div>
+
+          {/* Date grid */}
+          <div className="grid grid-cols-7 gap-0.5">
+            {/* Empty cells for offset */}
+            {Array.from({ length: firstDayOfMonth }).map((_, i) => (
+              <div key={`e-${i}`} />
+            ))}
+            {/* Day cells */}
+            {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(day => {
+              const iso = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+              const isSelected = iso === selectedISO;
+              const isToday = iso === todayISO;
+              return (
+                <button
+                  key={day}
+                  type="button"
+                  onClick={() => handleSelectDay(day)}
+                  className={`w-full aspect-square flex items-center justify-center rounded-md text-[11px] font-medium transition cursor-pointer ${
+                    isSelected
+                      ? 'bg-emerald-500 text-white font-bold shadow-sm'
+                      : isToday
+                      ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-500/40'
+                      : 'hover:bg-muted text-foreground'
+                  }`}
+                  title={iso}
+                >
+                  {day}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Quick: Hari Ini */}
+          <button
+            type="button"
+            onClick={() => handleSelectDay(new Date().getDate())}
+            className="w-full mt-2 py-1 px-2 rounded-md text-[10px] font-semibold text-center bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25 transition cursor-pointer"
+          >
+            📅 Gunakan Hari Ini
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface MonitoringInternalTabProps {
   items: ProcurementItem[];
@@ -1994,66 +2201,42 @@ export default function MonitoringInternalTab({
 
                           {/* 3. TGL INPUT TTB */}
                           <td className="py-2.5 px-3 whitespace-nowrap text-muted-foreground font-mono bg-emerald-500/[0.01]">
-                            {row.tglInputTtb && row.tglInputTtb !== '-' ? (
-                              <span>{formatTgl(row.tglInputTtb)}</span>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const today = new Date().toISOString().slice(0, 10);
-                                  handleQuickUpdate(row, { tglInputTtb: today });
-                                }}
-                                className="text-[10px] text-muted-foreground/50 hover:text-foreground italic cursor-pointer"
-                                title="Set tanggal input TTB hari ini"
-                              >
-                                + Set Hari Ini
-                              </button>
-                            )}
+                            <InlineDatePicker
+                              value={row.tglInputTtb}
+                              onSelect={(iso) => handleQuickUpdate(row, { tglInputTtb: iso })}
+                              onClear={() => handleQuickUpdate(row, { tglInputTtb: '' })}
+                              label="+ Set Tgl TTB"
+                              filledColor="text-muted-foreground"
+                              buttonClass="text-[10px] text-muted-foreground/50 hover:text-foreground italic cursor-pointer"
+                            />
                           </td>
 
-                          {/* 4. TGL KE TIM LAPANGAN (1-KLIK KIRIM KE LAPANGAN) */}
-                          <td className="py-2.5 px-3 whitespace-nowrap font-mono bg-emerald-500/[0.01]">
-                            {row.tglKeTimLapangan && row.tglKeTimLapangan !== '-' ? (
-                              <div className="flex items-center gap-1.5 group/sendlap">
-                                <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                                  {formatTgl(row.tglKeTimLapangan)}
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    if (window.confirm(`Batalkan pengiriman ke tim lapangan untuk berkas ${row.fpb || row.po}?`)) {
-                                      handleQuickUpdate(row, {
-                                        tglKeTimLapangan: '',
-                                        statusBadge: 'PROSES TTB',
-                                        statusTone: 'cyan',
-                                      });
-                                    }
-                                  }}
-                                  className="opacity-0 group-hover/sendlap:opacity-100 p-0.5 text-muted-foreground hover:text-rose-500 transition cursor-pointer"
-                                  title="Batalkan kirim ke lapangan"
-                                >
-                                  <X className="size-3" />
-                                </button>
-                              </div>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const today = new Date().toISOString().slice(0, 10);
+                          {/* 4. TGL KE TIM LAPANGAN (CALENDAR PICKER) */}
+                          <td className="py-2 px-2 whitespace-nowrap font-mono bg-emerald-500/[0.01]">
+                            <InlineDatePicker
+                              value={row.tglKeTimLapangan}
+                              onSelect={(iso) => {
+                                handleQuickUpdate(row, {
+                                  tglKeTimLapangan: iso,
+                                  statusBadge: 'MENUJU ARMADA',
+                                  statusTone: 'cyan',
+                                });
+                                showToast?.(`🚀 Berkas ${row.fpb || row.po} dikirim ke Tim Lapangan!`, 'success');
+                              }}
+                              onClear={() => {
+                                if (window.confirm(`Batalkan pengiriman ke tim lapangan untuk berkas ${row.fpb || row.po}?`)) {
                                   handleQuickUpdate(row, {
-                                    tglKeTimLapangan: today,
-                                    statusBadge: 'MENUJU ARMADA',
+                                    tglKeTimLapangan: '',
+                                    statusBadge: 'PROSES TTB',
                                     statusTone: 'cyan',
                                   });
-                                  showToast?.(`🚀 Berkas ${row.fpb || row.po} dikirim ke Tim Lapangan!`, 'success');
-                                }}
-                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 transition cursor-pointer shadow-2xs group/btn"
-                                title="Klik untuk kirim ke Tim Lapangan hari ini (Auto-Save ke Google Sheet)"
-                              >
-                                <Truck className="size-3 text-emerald-600 dark:text-emerald-400 group-hover/btn:scale-110 transition" />
-                                <span>🚀 Kirim ke Lapangan</span>
-                              </button>
-                            )}
+                                }
+                              }}
+                              label="🚀 Kirim ke Lapangan"
+                              labelIcon={<Truck className="size-3 text-emerald-600 dark:text-emerald-400 group-hover/btn:scale-110 transition" />}
+                              filledColor="text-emerald-600 dark:text-emerald-400"
+                              buttonClass="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 transition cursor-pointer shadow-2xs group/btn"
+                            />
                           </td>
 
                           {/* 5. PIC LAPANGAN (INLINE DROPDOWN SELECTOR) */}
@@ -2084,49 +2267,32 @@ export default function MonitoringInternalTab({
                             </select>
                           </td>
 
-                          {/* 6. TGL BARANG DIANTAR (1-KLIK DITERIMA ARMADA) */}
-                          <td className="py-2.5 px-3 whitespace-nowrap font-mono bg-emerald-500/[0.01]">
-                            {row.tglBarangDiantar && row.tglBarangDiantar !== '-' ? (
-                              <div className="flex items-center gap-1.5 group/diantar">
-                                <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                                  {formatTgl(row.tglBarangDiantar)}
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    if (window.confirm(`Batalkan tanggal diantar untuk berkas ${row.fpb || row.po}?`)) {
-                                      handleQuickUpdate(row, {
-                                        tglBarangDiantar: '',
-                                        statusBadge: 'MENUJU ARMADA',
-                                        statusTone: 'cyan',
-                                      });
-                                    }
-                                  }}
-                                  className="opacity-0 group-hover/diantar:opacity-100 p-0.5 text-muted-foreground hover:text-rose-500 transition cursor-pointer"
-                                  title="Batalkan tanggal diantar"
-                                >
-                                  <X className="size-3" />
-                                </button>
-                              </div>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const today = new Date().toISOString().slice(0, 10);
+                          {/* 6. TGL BARANG DIANTAR (CALENDAR PICKER) */}
+                          <td className="py-2 px-2 whitespace-nowrap font-mono bg-emerald-500/[0.01]">
+                            <InlineDatePicker
+                              value={row.tglBarangDiantar}
+                              onSelect={(iso) => {
+                                handleQuickUpdate(row, {
+                                  tglBarangDiantar: iso,
+                                  statusBadge: 'SELESAI DIANTAR',
+                                  statusTone: 'emerald',
+                                });
+                                showToast?.(`⚓ Barang ${row.fpb || row.po} diterima oleh armada / kru kapal!`, 'success');
+                              }}
+                              onClear={() => {
+                                if (window.confirm(`Batalkan tanggal diantar untuk berkas ${row.fpb || row.po}?`)) {
                                   handleQuickUpdate(row, {
-                                    tglBarangDiantar: today,
-                                    statusBadge: 'SELESAI DIANTAR',
-                                    statusTone: 'emerald',
+                                    tglBarangDiantar: '',
+                                    statusBadge: 'MENUJU ARMADA',
+                                    statusTone: 'cyan',
                                   });
-                                  showToast?.(`⚓ Barang ${row.fpb || row.po} diterima oleh armada / kru kapal!`, 'success');
-                                }}
-                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-800 dark:text-cyan-300 border border-cyan-500/25 transition cursor-pointer shadow-2xs group/btn"
-                                title="Klik untuk tandai barang sudah diterima armada hari ini (Auto-Save ke Google Sheet)"
-                              >
-                                <Ship className="size-3 text-cyan-600 dark:text-cyan-400 group-hover/btn:scale-110 transition" />
-                                <span>⚓ Diterima Armada</span>
-                              </button>
-                            )}
+                                }
+                              }}
+                              label="⚓ Diterima Armada"
+                              labelIcon={<Ship className="size-3 text-cyan-600 dark:text-cyan-400" />}
+                              filledColor="text-emerald-600 dark:text-emerald-400"
+                              buttonClass="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-800 dark:text-cyan-300 border border-cyan-500/25 transition cursor-pointer shadow-2xs"
+                            />
                           </td>
 
                           {/* 7. KETERANGAN LAPANGAN (CLICK-TO-EDIT & QUICK TAGS) */}
@@ -2220,87 +2386,54 @@ export default function MonitoringInternalTab({
                             </div>
                           </td>
 
-                          {/* 8. TGL TIM LAPANGAN KE PIC TTB (1-KLIK BERKAS KEMBALI) */}
-                          <td className="py-2.5 px-3 whitespace-nowrap font-mono bg-emerald-500/[0.01]">
-                            {row.tglTimLapKePicTtb && row.tglTimLapKePicTtb !== '-' ? (
-                              <div className="flex items-center gap-1.5 group/kembali">
-                                <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                                  {formatTgl(row.tglTimLapKePicTtb)}
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    if (window.confirm(`Batalkan tanggal berkas kembali untuk ${row.fpb || row.po}?`)) {
-                                      handleQuickUpdate(row, { tglTimLapKePicTtb: '' });
-                                    }
-                                  }}
-                                  className="opacity-0 group-hover/kembali:opacity-100 p-0.5 text-muted-foreground hover:text-rose-500 transition cursor-pointer"
-                                  title="Batalkan tanggal kembali"
-                                >
-                                  <X className="size-3" />
-                                </button>
-                              </div>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const today = new Date().toISOString().slice(0, 10);
-                                  handleQuickUpdate(row, { tglTimLapKePicTtb: today });
-                                  showToast?.(`📋 Berkas ${row.fpb || row.po} kembali dari Tim Lapangan ke TTB!`, 'success');
-                                }}
-                                className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25 transition cursor-pointer shadow-2xs"
-                                title="Klik untuk tandai berkas TTB kembali dari Tim Lapangan hari ini"
-                              >
-                                <FileCheck className="size-3" />
-                                <span>📋 Berkas Kembali</span>
-                              </button>
-                            )}
+                          {/* 8. TGL TIM LAPANGAN KE PIC TTB (CALENDAR PICKER) */}
+                          <td className="py-2 px-2 whitespace-nowrap font-mono bg-emerald-500/[0.01]">
+                            <InlineDatePicker
+                              value={row.tglTimLapKePicTtb}
+                              onSelect={(iso) => {
+                                handleQuickUpdate(row, { tglTimLapKePicTtb: iso });
+                                showToast?.(`📋 Berkas ${row.fpb || row.po} kembali dari Tim Lapangan ke TTB!`, 'success');
+                              }}
+                              onClear={() => {
+                                if (window.confirm(`Batalkan tanggal berkas kembali untuk ${row.fpb || row.po}?`)) {
+                                  handleQuickUpdate(row, { tglTimLapKePicTtb: '' });
+                                }
+                              }}
+                              label="📋 Berkas Kembali"
+                              labelIcon={<FileCheck className="size-3" />}
+                              filledColor="text-emerald-600 dark:text-emerald-400"
+                              buttonClass="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25 transition cursor-pointer shadow-2xs"
+                            />
                           </td>
 
-                          {/* 9. TGL TTB KE PIC PURCHASING (1-KLIK SERAH KE ADM PCH) */}
-                          <td className="py-2.5 px-3 whitespace-nowrap font-mono border-r-2 border-border/80 bg-emerald-500/[0.01]">
-                            {row.tglTtbKePicPch && row.tglTtbKePicPch !== '-' ? (
-                              <div className="flex items-center gap-1.5 group/serahpch">
-                                <span className="font-semibold text-purple-600 dark:text-purple-400">
-                                  {formatTgl(row.tglTtbKePicPch)}
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    if (window.confirm(`Batalkan serah terima berkas ke ADM Purchasing untuk ${row.fpb || row.po}?`)) {
-                                      handleQuickUpdate(row, {
-                                        tglTtbKePicPch: '',
-                                        statusBadge: 'SELESAI DIANTAR',
-                                        statusTone: 'emerald',
-                                      });
-                                    }
-                                  }}
-                                  className="opacity-0 group-hover/serahpch:opacity-100 p-0.5 text-muted-foreground hover:text-rose-500 transition cursor-pointer"
-                                  title="Batalkan serah terima ke ADM PCH"
-                                >
-                                  <X className="size-3" />
-                                </button>
-                              </div>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const today = new Date().toISOString().slice(0, 10);
+                          {/* 9. TGL TTB KE PIC PURCHASING (CALENDAR PICKER) */}
+                          <td className="py-2 px-2 whitespace-nowrap font-mono border-r-2 border-border/80 bg-emerald-500/[0.01]">
+                            <InlineDatePicker
+                              value={row.tglTtbKePicPch}
+                              onSelect={(iso) => {
+                                handleQuickUpdate(row, {
+                                  tglTtbKePicPch: iso,
+                                  tglKeAdmPch: row.tglKeAdmPch || iso,
+                                  statusBadge: 'SIAP SPP',
+                                  statusTone: 'purple',
+                                });
+                                showToast?.(`➡️ Berkas ${row.fpb || row.po} diserahkan ke ADM Purchasing untuk pembuatan SPP!`, 'success');
+                              }}
+                              onClear={() => {
+                                if (window.confirm(`Batalkan serah terima berkas ke ADM Purchasing untuk ${row.fpb || row.po}?`)) {
                                   handleQuickUpdate(row, {
-                                    tglTtbKePicPch: today,
-                                    tglKeAdmPch: row.tglKeAdmPch || today,
-                                    statusBadge: 'SIAP SPP',
-                                    statusTone: 'purple',
+                                    tglTtbKePicPch: '',
+                                    statusBadge: 'SELESAI DIANTAR',
+                                    statusTone: 'emerald',
                                   });
-                                  showToast?.(`➡️ Berkas ${row.fpb || row.po} diserahkan ke ADM Purchasing untuk pembuatan SPP!`, 'success');
-                                }}
-                                className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-500/25 transition cursor-pointer shadow-2xs"
-                                title="Klik untuk serahkan berkas ke ADM PCH untuk pembuatan SPP (Auto-Save ke Google Sheet)"
-                              >
-                                <Receipt className="size-3" />
-                                <span>➡️ Serah ke ADM PCH</span>
-                              </button>
-                            )}
+                                }
+                              }}
+                              label="➡️ Serah ke ADM PCH"
+                              labelIcon={<Receipt className="size-3" />}
+                              filledColor="text-purple-600 dark:text-purple-400"
+                              buttonClass="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-500/25 transition cursor-pointer shadow-2xs"
+                              align="right"
+                            />
                           </td>
                         </>
                       )}
