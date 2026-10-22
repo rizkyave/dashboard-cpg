@@ -218,27 +218,63 @@ export function parseSisaLayananWorkbook(workbook: XLSX.WorkBook): {
 }
 
 /**
- * Ekstraksi variasi kunci nomor FPB guna pencocokan data yang presisi
+ * Ekstraksi prefix entitas perusahaan dari nomor dokumen (misal: "GAJ", "HL", "CPL", "MO", "SP", "MIL", "SSK", "PPI")
  */
-export function extractFpbKeys(raw?: string | null): string[] {
+export function extractDocPrefix(docNum?: string | null): string | null {
+  if (!docNum) return null;
+  const match = docNum.trim().toUpperCase().match(/^([A-Z]{2,6})[-_/\s]/);
+  return match ? match[1] : null;
+}
+
+/**
+ * Ekstraksi variasi kunci nomor FPB guna pencocokan data yang presisi
+ * DILENGKAPI ISOLASI ENTITAS PERUSAHAAN agar nomor urut yang sama antar PT (misal: HL vs MO vs CPL)
+ * TIDAK PERNAH saling menimpa atau tertukar nama barangnya.
+ */
+export function extractFpbKeys(raw?: string | null, entity?: string | null): string[] {
   if (!raw) return [];
   const s = raw.trim();
   if (!s) return [];
 
   const keys = new Set<string>();
-  keys.add(s.toLowerCase());
+  const lower = s.toLowerCase();
+  keys.add(lower);
 
   const norm = normalizeFpbKey(s);
   if (norm) keys.add(norm);
 
-  const matchCore = s.match(/\d{2}-\d{4,8}/);
-  if (matchCore) keys.add(matchCore[0]);
+  // Cari prefix entitas perusahaan dari string dokumen atau dari parameter entity
+  const docPrefix = extractDocPrefix(s);
+  const effectiveEntity = (docPrefix || entity || '').trim().toLowerCase();
 
-  const matchNum = s.match(/\d{5,8}/);
-  if (matchNum) keys.add(matchNum[0]);
-
-  const alnum = s.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const alnum = lower.replace(/[^a-z0-9]/g, '');
   if (alnum) keys.add(alnum);
+
+  const matchCore = s.match(/\d{2}-\d{4,8}/);
+  const matchNum = s.match(/\d{5,8}/);
+
+  if (effectiveEntity) {
+    // Isolasi Entitas KETAT:
+    // Selalu kaitkan variasi nomor dengan prefix entitas perusahaan!
+    // Contoh: "hl-fpb-26-0001504", "hl-26-0001504", "hl/log/fpb/26-0001504", "hl260001504"
+    if (matchCore) {
+      keys.add(`${effectiveEntity}-fpb-${matchCore[0]}`);
+      keys.add(`${effectiveEntity}-${matchCore[0]}`);
+      keys.add(`${effectiveEntity}/log/fpb/${matchCore[0]}`);
+      keys.add(`${effectiveEntity}fpb${matchCore[0].replace(/-/g, '')}`);
+      keys.add(`${effectiveEntity}${matchCore[0].replace(/-/g, '')}`);
+    }
+    if (matchNum) {
+      keys.add(`${effectiveEntity}-${matchNum[0]}`);
+      keys.add(`${effectiveEntity}${matchNum[0]}`);
+    }
+    // PERHATIAN: Jangan pernah memasukkan matchCore polos (tanpa prefix) jika entitas diketahui!
+    // Memasukkan nomor polos tanpa PT adalah penyebab utama nama barang antar PT tertukar.
+  } else {
+    // Hanya jika entitas benar-benar tidak diketahui dari sumber manapun:
+    if (matchCore) keys.add(matchCore[0]);
+    if (matchNum) keys.add(matchNum[0]);
+  }
 
   return Array.from(keys);
 }
@@ -254,10 +290,21 @@ export function buildSisaLayananFpbMap(items: SisaLayananItem[]): Map<string, Si
 
   for (const it of items) {
     if (!it.noFpb && !it.fpbNoBarang) continue;
-    const fpbIdentifier = (it.noFpb || '').trim();
+    let fpbIdentifier = (it.noFpb || '').trim();
+    if (!fpbIdentifier && it.fpbNoBarang) {
+      fpbIdentifier = it.fpbNoBarang.replace(/-\d+$/, '').trim();
+    }
     if (!fpbIdentifier) continue;
 
-    const normPrimary = normalizeFpbKey(fpbIdentifier);
+    const docPrefix = extractDocPrefix(fpbIdentifier);
+    const pt = (docPrefix || it.pt || '').trim().toUpperCase();
+    
+    let qualifiedFpb = fpbIdentifier;
+    if (!docPrefix && pt) {
+      qualifiedFpb = `${pt}-FPB-${fpbIdentifier.replace(/^[^\d]*/, '')}`;
+    }
+
+    const normPrimary = normalizeFpbKey(qualifiedFpb);
     if (!fpbGroups.has(normPrimary)) {
       fpbGroups.set(normPrimary, []);
     }
@@ -334,8 +381,9 @@ export function buildSisaLayananFpbMap(items: SisaLayananItem[]): Map<string, Si
       allFstbs: fstbList,
     };
 
+    const samplePt = itemsInFpb[0].pt || extractDocPrefix(itemsInFpb[0].noFpb) || extractDocPrefix(normPrimary);
     const rawSample = itemsInFpb[0].noFpb || normPrimary;
-    const keys = extractFpbKeys(rawSample);
+    const keys = extractFpbKeys(rawSample, samplePt);
     for (const k of keys) {
       if (!map.has(k)) {
         map.set(k, summary);
@@ -349,13 +397,15 @@ export function buildSisaLayananFpbMap(items: SisaLayananItem[]): Map<string, Si
 
 /**
  * Helper mencari kecocokan data barang Sisa Layanan berbasis nomor FPB
+ * Mendukung isolasi entitas (entity) agar pencocokan 100% presisi sesuai PT terkait.
  */
 export function findSisaMatch(
   fpb: string | undefined | null,
-  map: Map<string, SisaGoodsSummary>
+  map: Map<string, SisaGoodsSummary>,
+  entity?: string | null
 ): SisaGoodsSummary | undefined {
   if (!fpb || !map || map.size === 0) return undefined;
-  const keys = extractFpbKeys(fpb);
+  const keys = extractFpbKeys(fpb, entity);
   for (const k of keys) {
     if (map.has(k)) {
       return map.get(k);

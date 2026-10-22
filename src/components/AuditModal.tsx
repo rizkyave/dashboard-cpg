@@ -331,22 +331,22 @@ export default function AuditModal({
       };
     }
 
-    const candidatesFpb = new Set<string>();
-    if (fpbNumber) {
-      extractFpbKeys(fpbNumber).forEach((k) => candidatesFpb.add(k));
-    }
-    if (itemS1?.fpb) {
-      extractFpbKeys(itemS1.fpb).forEach((k) => candidatesFpb.add(k));
-    }
-    const candidatesList = Array.from(candidatesFpb);
-
-    // Ekstraksi kode entitas PT dari nomor FPB / dokumen aktif (misal 'MO', 'CPL', 'HL', 'GAJ')
+    // Ekstraksi kode entitas PT dari nomor FPB / dokumen aktif (misal 'MO', 'CPL', 'HL', 'GAJ', 'SP', 'MIL', 'SSK', 'PPI')
     const primaryPt = (
-      fpbNumber?.match(/^(MO|CPL|HL|GAJ)/i)?.[1] ||
+      fpbNumber?.match(/^([A-Z]{2,6})[-_/\\s]/i)?.[1] ||
       itemS1?.entity ||
-      itemS1?.deptArmada?.match(/^(MO|CPL|HL|GAJ)/i)?.[1] ||
+      itemS1?.deptArmada?.match(/^([A-Z]{2,6})[-_/\\s]/i)?.[1] ||
       ''
     ).toUpperCase();
+
+    const candidatesFpb = new Set<string>();
+    if (fpbNumber) {
+      extractFpbKeys(fpbNumber, primaryPt).forEach((k) => candidatesFpb.add(k));
+    }
+    if (itemS1?.fpb) {
+      extractFpbKeys(itemS1.fpb, primaryPt || itemS1?.entity).forEach((k) => candidatesFpb.add(k));
+    }
+    const candidatesList = Array.from(candidatesFpb);
 
     // 1. FPB matching (Dokumen resmi e-FPB sebagai acuan utama dengan isolasi entitas PT)
     const fpbMatches = activeSisaLayanan.filter((it) => {
@@ -354,13 +354,13 @@ export default function AuditModal({
 
       // Isolasi Entitas: Cegah tabrakan nomor urut antar PT yang kebetulan sama (misal MO-FPB-26-0001797 vs CPL-FPB-26-0001797)
       if (primaryPt) {
-        const itemPt = (it.pt || it.noFpb?.match(/^(MO|CPL|HL|GAJ)/i)?.[1] || '').toUpperCase();
+        const itemPt = (it.pt || it.noFpb?.match(/^([A-Z]{2,6})[-_/\\s]/i)?.[1] || '').toUpperCase();
         if (itemPt && itemPt !== primaryPt) {
           return false;
         }
       }
 
-      const itemKeys = extractFpbKeys(it.noFpb);
+      const itemKeys = extractFpbKeys(it.noFpb, it.pt);
       if (itemKeys.some((k) => candidatesFpb.has(k))) return true;
       if (it.fpbNoBarang) {
         const lowerNoBarang = it.fpbNoBarang.toLowerCase();

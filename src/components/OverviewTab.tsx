@@ -321,7 +321,7 @@ export default function OverviewTab({
 
       if (searchTerm.trim() !== '') {
         const q = searchTerm.toLowerCase().trim();
-        const sisaMatch = findSisaMatch(row.fpb, sisaMap);
+        const sisaMatch = findSisaMatch(row.fpb, sisaMap, row.entity);
         const fpbMatch = row.fpb?.toLowerCase().includes(q);
         const woMatch = row.workOrderNo?.toLowerCase().includes(q);
         const poMatch = row.po?.toLowerCase().includes(q);
@@ -887,7 +887,7 @@ export default function OverviewTab({
                     ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
                     : 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20';
 
-                  const sisaMatch = findSisaMatch(row.fpb, sisaMap);
+                  const sisaMatch = findSisaMatch(row.fpb, sisaMap, row.entity);
                   const sisaItems = sisaMatch?.allItems?.map((i) => i.nama) || [];
 
                   return (
@@ -1318,7 +1318,7 @@ export default function OverviewTab({
                     ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
                     : 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20';
 
-                  const sisaMatch = findSisaMatch(row.fpb, sisaMap);
+                  const sisaMatch = findSisaMatch(row.fpb, sisaMap, row.entity);
                   const sisaItems = sisaMatch?.allItems?.map((i) => i.nama) || [];
 
                   return (

@@ -419,7 +419,7 @@ export default function ProcurementTab({
       // Search Keyword
       if (searchTerm.trim() !== '') {
         const q = searchTerm.toLowerCase().trim();
-        const sisaMatch = findSisaMatch(row.fpb, sisaMap);
+        const sisaMatch = findSisaMatch(row.fpb, sisaMap, row.entity);
         const matchFpb = row.fpb?.toLowerCase().includes(q);
         const matchWo = row.workOrderNo?.toLowerCase().includes(q);
         const matchPo = row.po?.toLowerCase().includes(q);
@@ -468,7 +468,7 @@ export default function ProcurementTab({
       // Advanced Search: Spesifik Nama Barang / Item & Peruntukan (termasuk hasil Sisa Layanan & scan PDF e-FPB)
       if (searchBarang.trim() !== '') {
         const qb = searchBarang.toLowerCase().trim();
-        const sisaMatch = findSisaMatch(row.fpb, sisaMap);
+        const sisaMatch = findSisaMatch(row.fpb, sisaMap, row.entity);
         const matchItem = row.item?.toLowerCase().includes(qb);
         const matchSisa = sisaMatch?.allItemNames?.toLowerCase().includes(qb);
         const matchPeruntukan = row.peruntukan?.toLowerCase().includes(qb);
@@ -1423,7 +1423,7 @@ export default function ProcurementTab({
                     ? `https://e-fpb.cindaragroup.com/files/logistik_Approved_rev_sign_${encodeURIComponent(cleanRowFpb || fpbDocNum)}.pdf`
                     : null;
 
-                  const sisaMatch = findSisaMatch(row.fpb, sisaMap);
+                  const sisaMatch = findSisaMatch(row.fpb, sisaMap, row.entity);
                   const sisaItems = sisaMatch?.allItems?.map((i) => i.nama) || [];
 
                   return (
@@ -1762,7 +1762,7 @@ export default function ProcurementTab({
                     ? `https://e-fpb.cindaragroup.com/files/logistik_Approved_rev_sign_${encodeURIComponent(cleanRowFpb || fpbDocNum)}.pdf`
                     : null;
 
-                  const sisaMatch = findSisaMatch(row.fpb, sisaMap);
+                  const sisaMatch = findSisaMatch(row.fpb, sisaMap, row.entity);
                   const sisaItems = sisaMatch?.allItems?.map((i) => i.nama) || [];
 
                   return (

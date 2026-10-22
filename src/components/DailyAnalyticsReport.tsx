@@ -33,9 +33,10 @@ import {
   MessageCircle,
 } from 'lucide-react';
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
-import { SisaLayananItem } from '@/types/sisaLayanan';
+import { SisaLayananItem, SisaGoodsSummary } from '@/types/sisaLayanan';
 import { loadStoredSisaLayanan } from '@/utils/sisaLayananStorage';
 import { normalizeFpbKey } from '@/utils/dataMerger';
+import { buildSisaLayananFpbMap, findSisaMatch } from '@/utils/sisaLayananParser';
 import { extractDateInfo, formatDateDdMmYy } from '@/utils/formatDate';
 import {
   evaluateFiveDivisionWorkflow,
@@ -72,21 +73,6 @@ interface PrimaryBottleneck {
   reason: string;
   responsiblePic: string;
   isStuck: boolean;
-}
-
-interface SisaGoodsSummary {
-  primaryName: string;
-  totalItemsCount: number;
-  qtyText: string;
-  allItems: Array<{
-    nama: string;
-    qty: number;
-    satuan: string;
-    kodeBarang: string;
-    status: string;
-  }>;
-  tooltipText: string;
-  allItemNames: string;
 }
 
 export interface OperationalDeliveryInfo {
@@ -257,32 +243,6 @@ function classifyUnitType(rawUnit?: string, peruntukan?: string): UnitClassifica
   };
 }
 
-/**
- * Ekstraksi variasi kunci nomor FPB guna pencocokan data yang akurat
- */
-function extractFpbKeys(raw?: string | null): string[] {
-  if (!raw) return [];
-  const s = raw.trim();
-  if (!s) return [];
-
-  const keys = new Set<string>();
-  keys.add(s.toLowerCase());
-
-  const norm = normalizeFpbKey(s);
-  if (norm) keys.add(norm);
-
-  const matchCore = s.match(/\d{2}-\d{4,8}/);
-  if (matchCore) keys.add(matchCore[0]);
-
-  const matchNum = s.match(/\d{5,8}/);
-  if (matchNum) keys.add(matchNum[0]);
-
-  const alnum = s.toLowerCase().replace(/[^a-z0-9]/g, '');
-  if (alnum) keys.add(alnum);
-
-  return Array.from(keys);
-}
-
 export default function DailyAnalyticsReport({
   items,
   armadaItems = [],
@@ -319,72 +279,9 @@ export default function DailyAnalyticsReport({
       : internalSisaItems;
   }, [sisaLayananItems, internalSisaItems]);
 
-  // Index pencocokan cepat: FPB -> Data Barang Sisa Layanan
+  // Index pencocokan cepat: FPB -> Data Barang Sisa Layanan (dengan isolasi entitas)
   const sisaLayananFpbMap = useMemo(() => {
-    const map = new Map<string, SisaGoodsSummary>();
-    if (!effectiveSisaItems || effectiveSisaItems.length === 0) return map;
-
-    const fpbGroups = new Map<string, SisaLayananItem[]>();
-
-    for (const it of effectiveSisaItems) {
-      if (!it.noFpb && !it.fpbNoBarang) continue;
-      const fpbIdentifier = (it.noFpb || '').trim();
-      if (!fpbIdentifier) continue;
-
-      const normPrimary = normalizeFpbKey(fpbIdentifier);
-      if (!fpbGroups.has(normPrimary)) {
-        fpbGroups.set(normPrimary, []);
-      }
-      fpbGroups.get(normPrimary)!.push(it);
-    }
-
-    fpbGroups.forEach((itemsInFpb, normPrimary) => {
-      const allItems = itemsInFpb.map((r) => ({
-        nama: (r.namaBarang || '').trim() || 'Item Tanpa Nama',
-        qty: r.jmlFpb || r.jmlPo || 0,
-        satuan: (r.satuan || '').trim(),
-        kodeBarang: (r.kodeBarang || '').trim(),
-        status: (r.status || '').trim(),
-      }));
-
-      const primaryName = allItems[0]?.nama || '-';
-      const totalItemsCount = allItems.length;
-      const firstQty = allItems[0]?.qty || 0;
-      const firstSatuan = allItems[0]?.satuan || '';
-      const qtyText = firstQty > 0 ? `${firstQty} ${firstSatuan}`.trim() : '';
-
-      const tooltipLines = [
-        `Data Barang Sisa Layanan (${totalItemsCount} Item):`,
-        ...allItems.map(
-          (it, idx) =>
-            `${idx + 1}. ${it.nama}${it.qty > 0 ? ` (${it.qty} ${it.satuan})` : ''}${
-              it.kodeBarang ? ` [${it.kodeBarang}]` : ''
-            }${it.status ? ` - Status: ${it.status}` : ''}`
-        ),
-      ];
-      const tooltipText = tooltipLines.join('\n');
-      const allItemNames = allItems.map((i) => i.nama).join(' ');
-
-      const summary: SisaGoodsSummary = {
-        primaryName,
-        totalItemsCount,
-        qtyText,
-        allItems,
-        tooltipText,
-        allItemNames,
-      };
-
-      const rawSample = itemsInFpb[0].noFpb || normPrimary;
-      const keys = extractFpbKeys(rawSample);
-      for (const k of keys) {
-        if (!map.has(k)) {
-          map.set(k, summary);
-        }
-      }
-      map.set(normPrimary, summary);
-    });
-
-    return map;
+    return buildSisaLayananFpbMap(effectiveSisaItems);
   }, [effectiveSisaItems]);
 
   // 1. Gabungkan seluruh data transaksi unik tanpa duplikasi
@@ -498,15 +395,8 @@ export default function DailyAnalyticsReport({
       const wf = evaluateFiveDivisionWorkflow(item);
       const deliveryInfo = getOperationalDeliveryInfo(item);
 
-      // 1. Cocokkan FPB dengan data Sisa Layanan
-      let sisaMatch: SisaGoodsSummary | undefined;
-      const candidateKeys = extractFpbKeys(item.fpb);
-      for (const k of candidateKeys) {
-        if (sisaLayananFpbMap.has(k)) {
-          sisaMatch = sisaLayananFpbMap.get(k);
-          break;
-        }
-      }
+      // 1. Cocokkan FPB dengan data Sisa Layanan (dengan isolasi entitas)
+      const sisaMatch = findSisaMatch(item.fpb, sisaLayananFpbMap, item.entity);
 
       const displayItemName = sisaMatch?.primaryName || item.item || '-';
       const displayQty = sisaMatch?.qtyText || (item.qtyPO || item.qtyFPB ? `Qty: ${item.qtyPO || item.qtyFPB}` : '');

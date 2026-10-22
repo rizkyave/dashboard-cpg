@@ -361,7 +361,7 @@ export default function ArmadaTab({
       // 5. Keyword Search (Search Utama Atas)
       if (searchTerm.trim() !== '') {
         const q = searchTerm.toLowerCase().trim();
-        const sisaMatch = findSisaMatch(item.fpb, sisaMap);
+        const sisaMatch = findSisaMatch(item.fpb, sisaMap, item.entity);
         const matchFpb = item.fpb?.toLowerCase().includes(q);
         const matchWo = item.workOrderNo?.toLowerCase().includes(q);
         const matchArmada = item.armada?.toLowerCase().includes(q);
@@ -404,7 +404,7 @@ export default function ArmadaTab({
       // 6. Advanced Search: Spesifik Nama Barang / Deskripsi Item (termasuk hasil Sisa Layanan & scan PDF e-FPB)
       if (searchBarang.trim() !== '') {
         const qb = searchBarang.toLowerCase().trim();
-        const sisaMatch = findSisaMatch(item.fpb, sisaMap);
+        const sisaMatch = findSisaMatch(item.fpb, sisaMap, item.entity);
         const matchItem = item.item?.toLowerCase().includes(qb);
         const matchSisa = sisaMatch?.allItemNames?.toLowerCase().includes(qb);
         const matchKet = item.keterangan?.toLowerCase().includes(qb);
@@ -1400,7 +1400,7 @@ export default function ArmadaTab({
                     ? `https://e-fpb.cindaragroup.com/files/logistik_Approved_rev_sign_${encodeURIComponent(cleanRowFpb || fpbDocNum)}.pdf`
                     : null;
 
-                  const sisaMatch = findSisaMatch(row.fpb, sisaMap);
+                  const sisaMatch = findSisaMatch(row.fpb, sisaMap, row.entity);
                   const sisaItems = sisaMatch?.allItems?.map((i) => i.nama) || [];
                   const fulfillment = evaluateArmadaFulfillment(row);
                   const isBacklog = !fulfillment.isComplete;
@@ -1730,7 +1730,7 @@ export default function ArmadaTab({
                     ? `https://e-fpb.cindaragroup.com/files/logistik_Approved_rev_sign_${encodeURIComponent(cleanRowFpb || fpbDocNum)}.pdf`
                     : null;
 
-                  const sisaMatch = findSisaMatch(row.fpb, sisaMap);
+                  const sisaMatch = findSisaMatch(row.fpb, sisaMap, row.entity);
                   const sisaItems = sisaMatch?.allItems?.map((i) => i.nama) || [];
 
                   return (
