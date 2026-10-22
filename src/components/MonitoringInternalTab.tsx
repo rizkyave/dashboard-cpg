@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import {
   FileSpreadsheet,
   Search,
@@ -68,27 +69,87 @@ function InlineDatePicker({
   const [open, setOpen] = useState(false);
   const [viewYear, setViewYear] = useState(() => new Date().getFullYear());
   const [viewMonth, setViewMonth] = useState(() => new Date().getMonth());
-  const ref = useRef<HTMLDivElement>(null);
+  const [popoverStyle, setPopoverStyle] = useState<React.CSSProperties>({});
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
 
-  // Close when clicking outside
+  // Reposition popover dynamically relative to viewport
+  const updatePosition = useCallback(() => {
+    if (!triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    const popoverWidth = 270;
+    const popoverHeight = 350;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+
+    let top = rect.bottom + 4;
+    // If not enough space below (< 350px) and there's more space above, open upwards
+    if (spaceBelow < 350 && spaceAbove > 300) {
+      top = Math.max(8, rect.top - popoverHeight - 4);
+    } else if (spaceBelow < 350) {
+      // If neither has full 350px, keep inside viewport
+      top = Math.max(8, window.innerHeight - popoverHeight - 8);
+    }
+
+    let left = align === 'right' ? (rect.right - popoverWidth) : rect.left;
+    if (left < 8) left = 8;
+    if (left + popoverWidth > window.innerWidth - 8) {
+      left = Math.max(8, window.innerWidth - popoverWidth - 8);
+    }
+
+    setPopoverStyle({
+      position: 'fixed',
+      top: `${top}px`,
+      left: `${left}px`,
+      zIndex: 9999,
+    });
+  }, [align]);
+
+  // When opening, sync view to current value or today and calculate position
+  const handleOpen = () => {
+    const base = value && value !== '-' ? new Date(value) : new Date();
+    const valid = !isNaN(base.getTime());
+    setViewYear(valid ? base.getFullYear() : new Date().getFullYear());
+    setViewMonth(valid ? base.getMonth() : new Date().getMonth());
+    updatePosition();
+    setOpen(true);
+  };
+
+  // Close when clicking outside, pressing Escape, and track scrolling/resizing
   useEffect(() => {
     if (!open) return;
-    const handleClick = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
+    updatePosition();
+
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (
+        triggerRef.current && !triggerRef.current.contains(target) &&
+        popoverRef.current && !popoverRef.current.contains(target)
+      ) {
         setOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [open]);
 
-  // When opening, sync view to current value or today
-  const handleOpen = () => {
-    const base = value && value !== '-' ? new Date(value) : new Date();
-    setViewYear(base.getFullYear());
-    setViewMonth(base.getMonth());
-    setOpen(true);
-  };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+
+    const handleScrollOrResize = () => {
+      updatePosition();
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('scroll', handleScrollOrResize, true);
+    window.addEventListener('resize', handleScrollOrResize);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('scroll', handleScrollOrResize, true);
+      window.removeEventListener('resize', handleScrollOrResize);
+    };
+  }, [open, updatePosition]);
 
   const DAYS = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
   const MONTHS = [
@@ -126,10 +187,15 @@ function InlineDatePicker({
     setOpen(false);
   };
 
+  const handleSelectToday = () => {
+    onSelect(todayISO);
+    setOpen(false);
+  };
+
   const isFilled = Boolean(value && value !== '-');
 
   return (
-    <div ref={ref} className="relative inline-block">
+    <div ref={triggerRef} className="relative inline-block">
       {isFilled ? (
         /* Filled state: show date + X cancel button */
         <div className={`flex items-center gap-1.5 group/dp font-mono font-semibold ${filledColor}`}>
@@ -165,37 +231,39 @@ function InlineDatePicker({
         </button>
       )}
 
-      {/* Calendar Popover */}
-      {open && (
+      {/* Calendar Popover portaled to document.body to prevent clipping by overflow-x-auto */}
+      {open && typeof document !== 'undefined' && createPortal(
         <div
-          className={`absolute top-full mt-1 z-50 w-64 p-3 rounded-xl bg-card border border-border shadow-2xl text-xs animate-in fade-in-50 zoom-in-95 duration-150 ${
-            align === 'right' ? 'right-0' : 'left-0'
-          }`}
+          ref={popoverRef}
+          style={popoverStyle}
+          className="w-[270px] p-3 rounded-xl bg-card border border-border shadow-2xl text-xs animate-in fade-in-50 zoom-in-95 duration-150 backdrop-blur-md"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header: Nav bulan */}
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-2 pb-2 border-b border-border/60">
             <button
               type="button"
               onClick={handlePrevMonth}
-              className="p-1 rounded hover:bg-muted transition cursor-pointer text-muted-foreground hover:text-foreground"
+              className="p-1 rounded-md hover:bg-muted transition cursor-pointer text-muted-foreground hover:text-foreground"
+              title="Bulan sebelumnya"
             >
-              <ChevronLeft className="size-3.5" />
+              <ChevronLeft className="size-4" />
             </button>
-            <span className="font-semibold text-foreground text-[11px]">
+            <span className="font-semibold text-foreground text-xs">
               {MONTHS[viewMonth]} {viewYear}
             </span>
             <button
               type="button"
               onClick={handleNextMonth}
-              className="p-1 rounded hover:bg-muted transition cursor-pointer text-muted-foreground hover:text-foreground"
+              className="p-1 rounded-md hover:bg-muted transition cursor-pointer text-muted-foreground hover:text-foreground"
+              title="Bulan berikutnya"
             >
-              <ChevronRight className="size-3.5" />
+              <ChevronRight className="size-4" />
             </button>
           </div>
 
           {/* Day labels */}
-          <div className="grid grid-cols-7 mb-1">
+          <div className="grid grid-cols-7 mb-1.5">
             {DAYS.map(d => (
               <div key={d} className="text-center text-[10px] font-semibold text-muted-foreground py-0.5">
                 {d}
@@ -204,7 +272,7 @@ function InlineDatePicker({
           </div>
 
           {/* Date grid */}
-          <div className="grid grid-cols-7 gap-0.5">
+          <div className="grid grid-cols-7 gap-1">
             {/* Empty cells for offset */}
             {Array.from({ length: firstDayOfMonth }).map((_, i) => (
               <div key={`e-${i}`} />
@@ -219,9 +287,9 @@ function InlineDatePicker({
                   key={day}
                   type="button"
                   onClick={() => handleSelectDay(day)}
-                  className={`w-full aspect-square flex items-center justify-center rounded-md text-[11px] font-medium transition cursor-pointer ${
+                  className={`w-full aspect-square flex items-center justify-center rounded-lg text-xs font-medium transition cursor-pointer ${
                     isSelected
-                      ? 'bg-emerald-500 text-white font-bold shadow-sm'
+                      ? 'bg-emerald-600 text-white font-bold shadow-sm'
                       : isToday
                       ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-500/40'
                       : 'hover:bg-muted text-foreground'
@@ -234,15 +302,43 @@ function InlineDatePicker({
             })}
           </div>
 
-          {/* Quick: Hari Ini */}
-          <button
-            type="button"
-            onClick={() => handleSelectDay(new Date().getDate())}
-            className="w-full mt-2 py-1 px-2 rounded-md text-[10px] font-semibold text-center bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25 transition cursor-pointer"
-          >
-            📅 Gunakan Hari Ini
-          </button>
-        </div>
+          {/* Quick Actions Footer */}
+          <div className="mt-3 pt-2 border-t border-border/60 flex flex-col gap-1.5">
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={handleSelectToday}
+                className="flex-1 py-1 px-2 rounded-lg text-[11px] font-semibold text-center bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 transition cursor-pointer"
+              >
+                📅 Gunakan Hari Ini
+              </button>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="py-1 px-2.5 rounded-lg text-[11px] font-medium text-center bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground transition cursor-pointer"
+              >
+                Tutup
+              </button>
+            </div>
+
+            {/* Alternatif native date picker */}
+            <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-1">
+              <span>Atau pilih manual:</span>
+              <input
+                type="date"
+                defaultValue={selectedISO}
+                onChange={(e) => {
+                  if (e.target.value) {
+                    onSelect(e.target.value);
+                    setOpen(false);
+                  }
+                }}
+                className="px-1.5 py-0.5 rounded border border-border bg-background text-[10px] text-foreground cursor-pointer focus:outline-hidden"
+              />
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );
@@ -1677,8 +1773,8 @@ export default function MonitoringInternalTab({
       {/* ======================================================== */}
       {/* 4. Complete Main Table (Seluruh 40 Kolom Spreadsheet)     */}
       {/* ======================================================== */}
-      <div className="rounded-xl border border-border bg-card overflow-hidden shadow-xs">
-        <div className="overflow-x-auto">
+      <div className={`rounded-xl border border-border bg-card overflow-hidden shadow-xs transition-all ${paginatedData.length <= 4 ? 'min-h-[380px]' : ''}`}>
+        <div className={`overflow-x-auto ${paginatedData.length <= 4 ? 'min-h-[380px]' : ''}`}>
           <table className="w-full text-xs text-left border-collapse">
             {/* Super Header: Zona Berkas Sesuai Spreadsheet */}
             <thead>
