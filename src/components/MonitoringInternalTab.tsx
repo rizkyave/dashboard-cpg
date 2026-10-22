@@ -776,11 +776,12 @@ export default function MonitoringInternalTab({
 
   // 4. Unique Lists untuk dropdown filter
   const uniquePicsTtb = useMemo(() => {
-    const EXCLUDED_PICS = new Set(['ALDI', 'EKO', 'LOGISTIK', 'SINDI']);
+    const EXCLUDED_PICS = new Set(['ALDI', 'EKO', 'LOGISTIK', 'SINDI', 'VILA']);
     const set = new Set<string>();
-    ['FIFI', 'IDHAM', 'VILA'].forEach((n) => set.add(n));
+    ['DAVILA', 'FIFI', 'IDHAM'].forEach((n) => set.add(n));
     localItems.forEach((it) => {
-      const p = (it.picTtb || '').trim().toUpperCase();
+      let p = (it.picTtb || '').trim().toUpperCase();
+      if (p === 'VILA') p = 'DAVILA';
       if (p && p !== '-' && !EXCLUDED_PICS.has(p)) set.add(p);
     });
     return Array.from(set).sort();
@@ -2209,7 +2210,13 @@ export default function MonitoringInternalTab({
                           {/* 1. PIC TTB (INLINE DROPDOWN SELECTOR) */}
                           <td className="py-2 px-2 whitespace-nowrap bg-emerald-500/[0.01]">
                             <select
-                              value={row.picTtb && row.picTtb !== '-' ? row.picTtb.toUpperCase() : ''}
+                              value={
+                                (row.picTtb || '').trim().toUpperCase() === 'VILA'
+                                  ? 'DAVILA'
+                                  : row.picTtb && row.picTtb !== '-'
+                                  ? row.picTtb.toUpperCase()
+                                  : ''
+                              }
                               onChange={(e) => {
                                 const val = e.target.value;
                                 if (val === '__custom__') {
