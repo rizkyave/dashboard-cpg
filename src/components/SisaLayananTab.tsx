@@ -88,13 +88,16 @@ export default function SisaLayananTab({
     entity?: string;
   } | null>(null);
 
+  const DEFAULT_GDRIVE_FILE_URL =
+    'https://docs.google.com/spreadsheets/d/1ti5yLvutF5oJ2KJsI3yujAz9c0SFg6hn/edit?usp=sharing';
+
   // Google Drive Sync Modal State
   const [isGdriveModalOpen, setIsGdriveModalOpen] = useState<boolean>(false);
   const [gdriveUrl, setGdriveUrl] = useState<string>(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('GDRIVE_SISA_LAYANAN_URL') || '';
+      return localStorage.getItem('GDRIVE_SISA_LAYANAN_URL') || DEFAULT_GDRIVE_FILE_URL;
     }
-    return '';
+    return DEFAULT_GDRIVE_FILE_URL;
   });
   const [isSyncingGdrive, setIsSyncingGdrive] = useState<boolean>(false);
 

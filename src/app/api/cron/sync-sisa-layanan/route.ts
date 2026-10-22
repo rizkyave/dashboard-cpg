@@ -16,11 +16,13 @@ export const maxDuration = 60;
 
 const R2_SISA_LAYANAN_KEY = 'dashboard-metadata/sisa-layanan.json';
 const R2_CONFIG_KEY = 'dashboard-metadata/sisa-layanan-config.json';
+const DEFAULT_GDRIVE_URL =
+  'https://docs.google.com/spreadsheets/d/1ti5yLvutF5oJ2KJsI3yujAz9c0SFg6hn/edit?usp=sharing';
 
 /**
  * Extracts a direct download URL from various Google Drive and Google Sheets URL formats.
  */
-export function extractGoogleDriveDownloadUrl(rawUrl: string): { downloadUrl: string; fileId: string } | null {
+function extractGoogleDriveDownloadUrl(rawUrl: string): { downloadUrl: string; fileId: string } | null {
   if (!rawUrl) return null;
   const trimmed = rawUrl.trim();
 
@@ -132,13 +134,13 @@ async function getConfiguredUrl(): Promise<string> {
     }
   }
 
-  return '';
+  return DEFAULT_GDRIVE_URL;
 }
 
 /**
  * Save configured Google Drive file URL to R2
  */
-export async function saveConfiguredUrl(url: string): Promise<void> {
+async function saveConfiguredUrl(url: string): Promise<void> {
   if (!isR2Configured()) return;
   try {
     const payload = JSON.stringify({
@@ -291,3 +293,4 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
