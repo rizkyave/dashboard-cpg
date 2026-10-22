@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/sync-sisa-layanan",
+      "schedule": "50 15 * * *"
+    }
+  ]
+}

@@ -30,6 +30,8 @@ import {
   Info,
   Camera,
   FileText,
+  CloudDownload,
+  CalendarClock,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { SisaLayananItem, SisaLayananSummary } from '@/types/sisaLayanan';
@@ -86,7 +88,56 @@ export default function SisaLayananTab({
     entity?: string;
   } | null>(null);
 
+  // Google Drive Sync Modal State
+  const [isGdriveModalOpen, setIsGdriveModalOpen] = useState<boolean>(false);
+  const [gdriveUrl, setGdriveUrl] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('GDRIVE_SISA_LAYANAN_URL') || '';
+    }
+    return '';
+  });
+  const [isSyncingGdrive, setIsSyncingGdrive] = useState<boolean>(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleSyncGdrive = async () => {
+    if (!gdriveUrl || !gdriveUrl.trim()) {
+      showToast?.('Silakan masukkan tautan file Google Drive Sisa Layanan.', 'warning');
+      return;
+    }
+
+    setIsSyncingGdrive(true);
+    showToast?.('Menghubungkan ke Google Drive & memproses file...', 'info');
+
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('GDRIVE_SISA_LAYANAN_URL', gdriveUrl.trim());
+      }
+
+      const res = await fetch('/api/cron/sync-sisa-layanan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: gdriveUrl.trim(), saveUrl: true }),
+      });
+
+      const json = await res.json();
+      if (json.success) {
+        showToast?.(
+          json.message || `Berhasil menyinkronkan ${json.totalItems || 0} baris dari Google Drive!`,
+          'success'
+        );
+        setIsGdriveModalOpen(false);
+        await onRefresh();
+      } else {
+        showToast?.(json.message || 'Gagal menyinkronkan data dari Google Drive.', 'error');
+      }
+    } catch (err: any) {
+      console.error('Error sync Google Drive:', err);
+      showToast?.(`Terjadi kesalahan: ${err?.message || 'Gagal terhubung'}`, 'error');
+    } finally {
+      setIsSyncingGdrive(false);
+    }
+  };
 
   // Dynamic filter lists
   const { ptList, deptList, categoryList, priorityList } = useMemo(() => {
@@ -523,6 +574,17 @@ export default function SisaLayananTab({
               >
                 <AlertTriangle className="size-3.5" />
                 <span>Hanya Berselisih</span>
+              </button>
+
+              {/* Google Drive Auto Sync Button */}
+              <button
+                type="button"
+                onClick={() => setIsGdriveModalOpen(true)}
+                className="h-9 px-3 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/30 text-xs font-medium flex items-center gap-1.5 transition shadow-xs cursor-pointer"
+                title="Kelola & Jalankan Sinkronisasi Otomatis Google Drive (23:50 WITA)"
+              >
+                <CloudDownload className="size-3.5" />
+                <span className="hidden sm:inline">Sync Google Drive</span>
               </button>
 
               {/* Upload Excel */}
@@ -1390,6 +1452,111 @@ export default function SisaLayananTab({
           entity={mediaModalData.entity}
           showToast={showToast}
         />
+      )}
+
+      {/* Modal Konfigurasi & Eksekusi Sinkronisasi Otomatis Google Drive */}
+      {isGdriveModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="relative w-full max-w-lg rounded-2xl border border-border bg-card shadow-2xl overflow-hidden flex flex-col">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-5 border-b border-border bg-muted/40">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                  <CloudDownload className="size-6" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-foreground">
+                    Sinkronisasi Otomatis Google Drive
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Penarikan berkas Excel Sisa Layanan terjadwal & terpusat
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsGdriveModalOpen(false)}
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition cursor-pointer"
+                title="Tutup"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-5 space-y-4 text-xs">
+              {/* Jadwal Info Banner */}
+              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-start gap-2.5">
+                <CalendarClock className="size-4.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                <div className="text-emerald-950 dark:text-emerald-200">
+                  <span className="font-semibold block">Jadwal Vercel Cron Otomatis:</span>
+                  <span>
+                    Dijalankan otomatis setiap hari pada pukul <strong className="font-bold underline">23:50 WITA</strong> (15:50 UTC). Data yang diunduh langsung tersimpan permanen di Cloudflare R2 untuk seluruh tim.
+                  </span>
+                </div>
+              </div>
+
+              {/* Form Input URL */}
+              <div className="space-y-1.5">
+                <label className="font-semibold text-foreground flex items-center justify-between">
+                  <span>Tautan File Excel di Google Drive:</span>
+                  <span className="text-[10px] text-muted-foreground font-normal">
+                    Format: /file/d/FILE_ID/view
+                  </span>
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://drive.google.com/file/d/13IOkmNxcaZRFHV8UC4WAlroWJtUyrpxJ/view?usp=sharing"
+                  value={gdriveUrl}
+                  onChange={(e) => setGdriveUrl(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-xs font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition"
+                />
+              </div>
+
+              {/* Petunjuk Penggunaan */}
+              <div className="p-3 rounded-xl bg-muted/60 border border-border text-muted-foreground space-y-1.5 leading-relaxed text-[11px]">
+                <div className="font-semibold text-foreground flex items-center gap-1">
+                  <Info className="size-3.5 text-primary" />
+                  <span>Cara mendapatkan tautan file dari Google Drive:</span>
+                </div>
+                <ol className="list-decimal list-inside space-y-1 pl-1">
+                  <li>Buka folder Google Drive Anda.</li>
+                  <li>
+                    Klik kanan langsung pada <strong>file Excel Sisa Layanan Gabungan</strong>.
+                  </li>
+                  <li>
+                    Pilih <strong>Bagikan (Share)</strong> &rarr; Ubah akses menjadi{' '}
+                    <strong>&quot;Siapa saja yang memiliki link dapat melihat&quot;</strong>.
+                  </li>
+                  <li>
+                    Klik <strong>Salin Tautan (Copy link)</strong> lalu tempel di kotak di atas.
+                  </li>
+                </ol>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-border bg-muted/30 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setIsGdriveModalOpen(false)}
+                disabled={isSyncingGdrive}
+                className="px-4 py-2 rounded-xl text-xs font-medium border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition cursor-pointer disabled:opacity-50"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleSyncGdrive}
+                disabled={isSyncingGdrive || !gdriveUrl.trim()}
+                className="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 transition shadow-sm cursor-pointer disabled:opacity-50"
+              >
+                <RefreshCw className={`size-3.5 ${isSyncingGdrive ? 'animate-spin' : ''}`} />
+                <span>{isSyncingGdrive ? 'Sedang Menyinkronkan...' : 'Simpan & Tarik Sekarang'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
