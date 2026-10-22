@@ -348,6 +348,68 @@ export default function MonitoringInternalTab({
   const [modalActiveTab, setModalActiveTab] = useState<'PCH' | 'LOG' | 'ADM'>('PCH');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
+  // Quick Inline Input Modal (Pengganti window.prompt)
+  const [quickInputModal, setQuickInputModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    subtitle?: string;
+    field: string;
+    value: string;
+    item: ProcurementItem | null;
+    placeholder?: string;
+    extraUpdates?: Partial<ProcurementItem>;
+  }>({
+    isOpen: false,
+    title: '',
+    field: '',
+    value: '',
+    item: null,
+  });
+
+  const openQuickInputModal = (config: {
+    title: string;
+    subtitle?: string;
+    field: string;
+    value: string;
+    item: ProcurementItem;
+    placeholder?: string;
+    extraUpdates?: Partial<ProcurementItem>;
+  }) => {
+    setQuickInputModal({
+      isOpen: true,
+      title: config.title,
+      subtitle: config.subtitle,
+      field: config.field,
+      value: config.value || '',
+      item: config.item,
+      placeholder: config.placeholder,
+      extraUpdates: config.extraUpdates,
+    });
+  };
+
+  const handleQuickInputSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!quickInputModal.item) return;
+
+    const trimmed = quickInputModal.value.trim();
+    const finalVal =
+      quickInputModal.field === 'ketPch' || quickInputModal.field === 'ketLap'
+        ? trimmed
+        : trimmed.toUpperCase();
+
+    const updates: Partial<ProcurementItem> = {
+      [quickInputModal.field]: finalVal,
+      ...(quickInputModal.extraUpdates || {}),
+    };
+
+    if (quickInputModal.field === 'ketPch') {
+      updates.keterangan = finalVal;
+    }
+
+    handleQuickUpdate(quickInputModal.item, updates);
+    setQuickInputModal({ isOpen: false, title: '', field: '', value: '', item: null });
+  };
+
   // Webhook settings state
   const [webhookUrl, setWebhookUrl] = useState<string>('');
   const [isWebhookConfigured, setIsWebhookConfigured] = useState<boolean>(false);
@@ -715,9 +777,10 @@ export default function MonitoringInternalTab({
   // 4. Unique Lists untuk dropdown filter
   const uniquePicsTtb = useMemo(() => {
     const set = new Set<string>();
+    ['FIFI', 'IDHAM', 'VILA', 'ALDI', 'EKO', 'LOGISTIK'].forEach((n) => set.add(n));
     localItems.forEach((it) => {
       const p = (it.picTtb || '').trim().toUpperCase();
-      if (p && p !== '-' && p !== 'LOGISTIK') set.add(p);
+      if (p && p !== '-') set.add(p);
     });
     return Array.from(set).sort();
   }, [localItems]);
@@ -767,12 +830,15 @@ export default function MonitoringInternalTab({
     // 1. Optimistic Update Local State
     setLocalItems((prev) => {
       const next = prev.map((it) => {
+        if (it.id && item.id && it.id === item.id) {
+          return { ...it, ...updates };
+        }
         const itFpb = String(it.fpb || '').trim().toUpperCase();
         const curFpb = String(item.fpb || '').trim().toUpperCase();
         const itPo = String(it.po || it.noPo || '').trim().toUpperCase();
         const curPo = String(item.po || item.noPo || '').trim().toUpperCase();
 
-        if ((curFpb && itFpb === curFpb) || (curPo && curPo !== '-' && itPo === curPo)) {
+        if ((curFpb && itFpb === curFpb && curPo && itPo === curPo) || (!item.id && curFpb && itFpb === curFpb)) {
           return { ...it, ...updates };
         }
         return it;
@@ -1971,20 +2037,23 @@ export default function MonitoringInternalTab({
                               <button
                                 type="button"
                                 onClick={() => {
-                                  const input = window.prompt(`Masukkan No. FSTB untuk berkas ${row.fpb || row.po}:`);
-                                  if (input && input.trim()) {
-                                    const today = new Date().toISOString().slice(0, 10);
-                                    handleQuickUpdate(row, {
-                                      noFstb: input.trim().toUpperCase(),
-                                      tglInputFstb: row.tglInputFstb || today,
-                                    });
-                                  }
+                                  openQuickInputModal({
+                                    title: 'Input Nomor FSTB',
+                                    subtitle: `Berkas: ${row.fpb || row.po}`,
+                                    field: 'noFstb',
+                                    value: '',
+                                    item: row,
+                                    placeholder: 'Contoh: MO-FSTB-26-02120',
+                                    extraUpdates: {
+                                      tglInputFstb: row.tglInputFstb || new Date().toISOString().slice(0, 10),
+                                    },
+                                  });
                                 }}
                                 className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-muted-foreground/70 hover:text-emerald-600 hover:bg-emerald-500/10 border border-dashed border-border hover:border-emerald-500/30 transition cursor-pointer"
                                 title="Klik untuk menginput No. FSTB"
                               >
                                 <Plus className="size-2.5" />
-                                <span>+ FSTB</span>
+                                <span>FSTB</span>
                               </button>
                             )}
                           </td>
@@ -2066,13 +2135,14 @@ export default function MonitoringInternalTab({
                                     className="line-clamp-2 text-foreground font-medium hover:text-primary cursor-pointer transition"
                                     title={`${ketPchText} (Klik untuk edit catatan)`}
                                     onClick={() => {
-                                      const newKet = window.prompt(
-                                        `Edit Catatan Purchasing (${row.fpb || row.po}):`,
-                                        ketPchText
-                                      );
-                                      if (newKet !== null) {
-                                        handleQuickUpdate(row, { ketPch: newKet, keterangan: newKet });
-                                      }
+                                      openQuickInputModal({
+                                        title: 'Edit Catatan Purchasing',
+                                        subtitle: `Berkas: ${row.fpb || row.po}`,
+                                        field: 'ketPch',
+                                        value: ketPchText,
+                                        item: row,
+                                        placeholder: 'Tulis catatan purchasing...',
+                                      });
                                     }}
                                   >
                                     {ketPchText}
@@ -2080,13 +2150,14 @@ export default function MonitoringInternalTab({
                                   <button
                                     type="button"
                                     onClick={() => {
-                                      const newKet = window.prompt(
-                                        `Edit Catatan Purchasing (${row.fpb || row.po}):`,
-                                        ketPchText
-                                      );
-                                      if (newKet !== null) {
-                                        handleQuickUpdate(row, { ketPch: newKet, keterangan: newKet });
-                                      }
+                                      openQuickInputModal({
+                                        title: 'Edit Catatan Purchasing',
+                                        subtitle: `Berkas: ${row.fpb || row.po}`,
+                                        field: 'ketPch',
+                                        value: ketPchText,
+                                        item: row,
+                                        placeholder: 'Tulis catatan purchasing...',
+                                      });
                                     }}
                                     className="opacity-0 group-hover/ket:opacity-100 text-muted-foreground hover:text-foreground transition cursor-pointer"
                                     title="Edit Catatan"
@@ -2098,12 +2169,14 @@ export default function MonitoringInternalTab({
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    const newKet = window.prompt(
-                                      `Tambah Catatan Purchasing (${row.fpb || row.po}):`
-                                    );
-                                    if (newKet) {
-                                      handleQuickUpdate(row, { ketPch: newKet, keterangan: newKet });
-                                    }
+                                    openQuickInputModal({
+                                      title: 'Tambah Catatan Purchasing',
+                                      subtitle: `Berkas: ${row.fpb || row.po}`,
+                                      field: 'ketPch',
+                                      value: '',
+                                      item: row,
+                                      placeholder: 'Tulis catatan purchasing...',
+                                    });
                                   }}
                                   className="inline-flex items-center gap-1 text-[10px] text-muted-foreground/60 hover:text-foreground italic cursor-pointer"
                                   title="Tambah Catatan"
@@ -2132,15 +2205,40 @@ export default function MonitoringInternalTab({
                       {/* Seksi 2: Logistik & Tim Lapangan (INTERAKTIF) */}
                       {showLogistikCols && (
                         <>
-                          {/* 1. PIC TTB (Badge) */}
-                          <td className="py-2.5 px-3 whitespace-nowrap bg-emerald-500/[0.01]">
-                            {row.picTtb && row.picTtb !== '-' ? (
-                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25">
-                                {row.picTtb}
-                              </span>
-                            ) : (
-                              <span className="text-muted-foreground italic text-xs">-</span>
-                            )}
+                          {/* 1. PIC TTB (INLINE DROPDOWN SELECTOR) */}
+                          <td className="py-2 px-2 whitespace-nowrap bg-emerald-500/[0.01]">
+                            <select
+                              value={row.picTtb && row.picTtb !== '-' ? row.picTtb.toUpperCase() : ''}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                if (val === '__custom__') {
+                                  openQuickInputModal({
+                                    title: 'Input PIC TTB',
+                                    subtitle: `Berkas: ${row.fpb || row.po}`,
+                                    field: 'picTtb',
+                                    value: row.picTtb && row.picTtb !== '-' ? row.picTtb : '',
+                                    item: row,
+                                    placeholder: 'Ketik nama PIC TTB...',
+                                  });
+                                } else {
+                                  handleQuickUpdate(row, { picTtb: val || '-' });
+                                }
+                              }}
+                              className={`text-[11px] font-bold py-1 px-2 rounded-md border cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 transition ${
+                                row.picTtb && row.picTtb !== '-'
+                                  ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
+                                  : 'bg-muted/40 text-muted-foreground border-border'
+                              }`}
+                              title="Pilih PIC TTB (Otomatis Tersimpan ke Google Sheet)"
+                            >
+                              <option value="">— Pilih PIC TTB —</option>
+                              {uniquePicsTtb.map((pic) => (
+                                <option key={pic} value={pic}>
+                                  {pic}
+                                </option>
+                              ))}
+                              <option value="__custom__">✏️ Ketik Nama Lain...</option>
+                            </select>
                           </td>
 
                           {/* 2. NO. TTB (Inline Quick Input & Copy) with FSTB Reference */}
@@ -2166,13 +2264,14 @@ export default function MonitoringInternalTab({
                                   <button
                                     type="button"
                                     onClick={() => {
-                                      const newVal = window.prompt(
-                                        `Edit No. TTB (${row.fpb || row.po}) (Rujukan FSTB: ${row.noFstb || '-'}):`,
-                                        row.noTtb || ''
-                                      );
-                                      if (newVal !== null && newVal.trim()) {
-                                        handleQuickUpdate(row, { noTtb: newVal.trim().toUpperCase() });
-                                      }
+                                      openQuickInputModal({
+                                        title: 'Edit Nomor TTB',
+                                        subtitle: `Berkas: ${row.fpb || row.po} • Dasar FSTB: ${row.noFstb || '-'}`,
+                                        field: 'noTtb',
+                                        value: row.noTtb || '',
+                                        item: row,
+                                        placeholder: 'Contoh: HL-TTB-26-02276',
+                                      });
                                     }}
                                     className="opacity-0 group-hover/ttb:opacity-100 text-muted-foreground hover:text-foreground transition cursor-pointer"
                                     title="Edit No. TTB"
@@ -2196,22 +2295,23 @@ export default function MonitoringInternalTab({
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    const input = window.prompt(
-                                      `Masukkan No. TTB untuk berkas ${row.fpb || row.po} (Rujukan FSTB: ${row.noFstb || '-'}):`
-                                    );
-                                    if (input && input.trim()) {
-                                      const today = new Date().toISOString().slice(0, 10);
-                                      handleQuickUpdate(row, {
-                                        noTtb: input.trim().toUpperCase(),
-                                        tglInputTtb: row.tglInputTtb || today,
-                                      });
-                                    }
+                                    openQuickInputModal({
+                                      title: 'Input Nomor TTB',
+                                      subtitle: `Berkas: ${row.fpb || row.po} • Dasar FSTB: ${row.noFstb || '-'}`,
+                                      field: 'noTtb',
+                                      value: '',
+                                      item: row,
+                                      placeholder: 'Contoh: HL-TTB-26-02276',
+                                      extraUpdates: {
+                                        tglInputTtb: row.tglInputTtb || new Date().toISOString().slice(0, 10),
+                                      },
+                                    });
                                   }}
                                   className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-muted-foreground/70 hover:text-emerald-600 hover:bg-emerald-500/10 border border-dashed border-border hover:border-emerald-500/30 transition cursor-pointer"
                                   title={`Klik untuk menginput No. TTB (Rujukan FSTB: ${row.noFstb || '-'})`}
                                 >
                                   <Plus className="size-2.5" />
-                                  <span>+ TTB</span>
+                                  <span>TTB</span>
                                 </button>
                                 {row.noFstb && row.noFstb !== '-' && (
                                   <span
@@ -2332,13 +2432,14 @@ export default function MonitoringInternalTab({
                                     className="line-clamp-2 text-foreground font-medium hover:text-emerald-600 cursor-pointer transition"
                                     title={`${ketLapText} (Klik untuk edit catatan lapangan)`}
                                     onClick={() => {
-                                      const newKet = window.prompt(
-                                        `Edit Catatan Lapangan (${row.fpb || row.po}):`,
-                                        ketLapText
-                                      );
-                                      if (newKet !== null) {
-                                        handleQuickUpdate(row, { ketLap: newKet });
-                                      }
+                                      openQuickInputModal({
+                                        title: 'Edit Catatan Tim Lapangan',
+                                        subtitle: `Berkas: ${row.fpb || row.po}`,
+                                        field: 'ketLap',
+                                        value: ketLapText,
+                                        item: row,
+                                        placeholder: 'Tulis catatan tim lapangan...',
+                                      });
                                     }}
                                   >
                                     {ketLapText}
@@ -2346,13 +2447,14 @@ export default function MonitoringInternalTab({
                                   <button
                                     type="button"
                                     onClick={() => {
-                                      const newKet = window.prompt(
-                                        `Edit Catatan Lapangan (${row.fpb || row.po}):`,
-                                        ketLapText
-                                      );
-                                      if (newKet !== null) {
-                                        handleQuickUpdate(row, { ketLap: newKet });
-                                      }
+                                      openQuickInputModal({
+                                        title: 'Edit Catatan Tim Lapangan',
+                                        subtitle: `Berkas: ${row.fpb || row.po}`,
+                                        field: 'ketLap',
+                                        value: ketLapText,
+                                        item: row,
+                                        placeholder: 'Tulis catatan tim lapangan...',
+                                      });
                                     }}
                                     className="opacity-0 group-hover/ketlap:opacity-100 text-muted-foreground hover:text-foreground transition cursor-pointer shrink-0"
                                     title="Edit Catatan Lapangan"
@@ -2365,12 +2467,14 @@ export default function MonitoringInternalTab({
                                   <button
                                     type="button"
                                     onClick={() => {
-                                      const newKet = window.prompt(
-                                        `Tambah Catatan Lapangan (${row.fpb || row.po}):`
-                                      );
-                                      if (newKet) {
-                                        handleQuickUpdate(row, { ketLap: newKet });
-                                      }
+                                      openQuickInputModal({
+                                        title: 'Tambah Catatan Tim Lapangan',
+                                        subtitle: `Berkas: ${row.fpb || row.po}`,
+                                        field: 'ketLap',
+                                        value: '',
+                                        item: row,
+                                        placeholder: 'Tulis catatan tim lapangan...',
+                                      });
                                     }}
                                     className="inline-flex items-center gap-1 text-[10px] text-muted-foreground/60 hover:text-foreground italic cursor-pointer"
                                     title="Tambah Catatan"
@@ -3410,6 +3514,63 @@ export default function MonitoringInternalTab({
                 Tutup
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Input Modal (Pengganti window.prompt yang tidak disupport di browser/webview) */}
+      {quickInputModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="relative w-full max-w-md rounded-2xl border border-border bg-card shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-150">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-border bg-muted/40">
+              <div>
+                <h4 className="text-sm font-bold text-foreground">{quickInputModal.title}</h4>
+                {quickInputModal.subtitle && (
+                  <p className="text-xs text-muted-foreground mt-0.5">{quickInputModal.subtitle}</p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setQuickInputModal({ isOpen: false, title: '', field: '', value: '', item: null })}
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition cursor-pointer"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <form onSubmit={handleQuickInputSubmit} className="p-4 space-y-4">
+              <div className="space-y-1.5">
+                <input
+                  type="text"
+                  autoFocus
+                  placeholder={quickInputModal.placeholder || 'Ketik nilai di sini...'}
+                  value={quickInputModal.value}
+                  onChange={(e) => setQuickInputModal({ ...quickInputModal, value: e.target.value })}
+                  className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-sm font-mono text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
+                />
+              </div>
+
+              {/* Footer */}
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
+                <button
+                  type="button"
+                  onClick={() => setQuickInputModal({ isOpen: false, title: '', field: '', value: '', item: null })}
+                  className="px-3.5 py-1.5 rounded-xl text-xs font-medium border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={!quickInputModal.value.trim()}
+                  className="px-4 py-1.5 rounded-xl text-xs font-semibold bg-primary hover:bg-primary/90 text-primary-foreground flex items-center gap-1.5 transition shadow-xs cursor-pointer disabled:opacity-50"
+                >
+                  <Check className="size-3.5" />
+                  <span>Simpan &amp; Auto-Save</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
