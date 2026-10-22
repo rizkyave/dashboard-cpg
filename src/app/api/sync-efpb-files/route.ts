@@ -9,6 +9,38 @@ export const maxDuration = 300;
 
 const DEFAULT_FILESLIST_URL = 'https://e-fpb.cindaragroup.com/FilesList';
 
+// ============================================================
+// Session Cache: reuse PHPSESSID agar tidak login berulang
+// Session e-FPB biasanya valid 4 jam — kita simpan 3.5 jam
+// ============================================================
+interface SessionCache {
+  sessionId: string;
+  username: string;
+  cachedAt: number; // Date.now()
+}
+
+const SESSION_TTL_MS = 3.5 * 60 * 60 * 1000; // 3.5 jam dalam ms
+let _sessionCache: SessionCache | null = null;
+
+function getCachedSession(username: string): string | null {
+  if (!_sessionCache) return null;
+  if (_sessionCache.username !== username) return null;
+  const age = Date.now() - _sessionCache.cachedAt;
+  if (age > SESSION_TTL_MS) {
+    _sessionCache = null;
+    return null;
+  }
+  return _sessionCache.sessionId;
+}
+
+function setCachedSession(username: string, sessionId: string) {
+  _sessionCache = { sessionId, username, cachedAt: Date.now() };
+}
+
+function clearSessionCache() {
+  _sessionCache = null;
+}
+
 interface ParsedEfpbFileRow {
   fpb: string;
   originalFpb: string;
@@ -153,6 +185,7 @@ function parseFilesListHtml(html: string): ParsedEfpbFileRow[] {
 
 /**
  * Authenticate to e-FPB and return session cookie.
+ * Uses in-memory session cache to avoid repeated logins (prevents account lock).
  */
 async function authenticateEfpb(username: string, password: string): Promise<string> {
   const loginPageRes = await fetch('https://e-fpb.cindaragroup.com/login', {
@@ -202,7 +235,38 @@ async function authenticateEfpb(username: string, password: string): Promise<str
     throw new Error('Username atau password e-FPB salah. Silakan periksa kembali kredensial Anda.');
   }
 
-  return newSessMatch ? newSessMatch[1] : tempSess;
+  const finalSession = newSessMatch ? newSessMatch[1] : tempSess;
+
+  // Cache successful session
+  if (finalSession) {
+    setCachedSession(username, finalSession);
+    console.log(`[e-FPB] Login berhasil. Session di-cache selama 3.5 jam.`);
+  }
+
+  return finalSession;
+}
+
+/**
+ * Check if a session cookie is still valid by testing access to FilesList.
+ * Returns true if valid, false if redirected to login page.
+ */
+async function isSessionValid(sessionId: string): Promise<boolean> {
+  try {
+    const res = await fetch('https://e-fpb.cindaragroup.com/FilesList?page=1&recperpage=1', {
+      headers: {
+        Cookie: `PHPSESSID=${sessionId}`,
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      },
+      cache: 'no-store',
+    });
+    if (!res.ok) return false;
+    const html = await res.text();
+    const isLoginPage = html.includes('class="login-box"') || html.includes('ew-login-form') || html.includes('name="username"');
+    return !isLoginPage;
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -281,6 +345,7 @@ function buildItems(efpb: ParsedEfpbFileRow): { proc: ProcurementItem; arm: Arma
 
 /**
  * Process e-FPB files - supports both quick (1 page) and full (all pages) modes.
+ * Uses session cache to avoid repeated logins.
  */
 async function processEfpbFiles(
   targetUrl: string,
@@ -291,7 +356,26 @@ async function processEfpbFiles(
 ) {
   let sessionCookie = explicitSessionId?.trim() || '';
 
-  // 1. Authenticate to e-FPB if explicit session cookie not provided
+  // 1. Resolve session: explicit > cache > fresh login
+  if (!sessionCookie) {
+    // Try cached session first
+    const cached = getCachedSession(username);
+    if (cached) {
+      const stillValid = await isSessionValid(cached);
+      if (stillValid) {
+        sessionCookie = cached;
+        console.log('[e-FPB] Menggunakan session cache (tidak perlu login ulang).');
+      } else {
+        console.log('[e-FPB] Session cache kedaluwarsa. Login ulang...');
+        clearSessionCache();
+      }
+    }
+  } else {
+    // Explicit session provided — update cache for future reuse
+    setCachedSession(username, sessionCookie);
+  }
+
+  // 2. If still no session, authenticate fresh
   if (!sessionCookie && username && password) {
     try {
       sessionCookie = await authenticateEfpb(username, password);
@@ -308,7 +392,25 @@ async function processEfpbFiles(
     }
   }
 
-  // 2. Fetch FilesList from e-FPB
+  // 3. Fetch FilesList from e-FPB
+  // Helper: detect login page redirect (session expired mid-request)
+  const isLoginRedirect = (html: string) =>
+    html.includes('class="login-box"') || html.includes('ew-login-form') || html.includes('name="username"');
+
+  // Helper: re-authenticate and retry once if session expired during fetch
+  const fetchWithSessionRetry = async (
+    fetchFn: (session: string) => Promise<string>
+  ): Promise<{ html: string; newSession: string }> => {
+    let html = await fetchFn(sessionCookie);
+    if (isLoginRedirect(html) && username && password) {
+      console.log('[e-FPB] Session kedaluwarsa saat fetch. Re-login...');
+      clearSessionCache();
+      sessionCookie = await authenticateEfpb(username, password);
+      html = await fetchFn(sessionCookie);
+    }
+    return { html, newSession: sessionCookie };
+  };
+
   let allRows: ParsedEfpbFileRow[] = [];
 
   if (mode === 'full') {
@@ -316,9 +418,11 @@ async function processEfpbFiles(
     const recPerPage = 1000;
     const batchSize = 5;
 
-    // First, fetch page 1 to determine total pages
-    const page1Html = await fetchFilesListPage(sessionCookie, 1, recPerPage);
-    if (!page1Html || page1Html.includes('class="login-box"') || page1Html.includes('ew-login-form')) {
+    // First, fetch page 1 to determine total pages (with session retry)
+    const { html: page1Html } = await fetchWithSessionRetry((sess) =>
+      fetchFilesListPage(sess, 1, recPerPage)
+    );
+    if (!page1Html || isLoginRedirect(page1Html)) {
       return NextResponse.json(
         {
           success: false,
@@ -385,31 +489,40 @@ async function processEfpbFiles(
     }
     allRows = deduped;
   } else {
-    // Quick mode: fetch only the default page (20 most recent)
-    const filesRes = await fetch(targetUrl, {
-      headers: {
-        ...(sessionCookie ? { Cookie: `PHPSESSID=${sessionCookie}` } : {}),
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      },
-      cache: 'no-store',
-    });
+    // Quick mode: fetch only the default page (20 most recent) with session retry
+    const quickFetch = async (sess: string) => {
+      const res = await fetch(targetUrl, {
+        headers: {
+          ...(sess ? { Cookie: `PHPSESSID=${sess}` } : {}),
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        },
+        cache: 'no-store',
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      return res.text();
+    };
 
-    if (!filesRes.ok) {
+    let html: string;
+    try {
+      const result = await fetchWithSessionRetry(quickFetch);
+      html = result.html;
+    } catch (err: any) {
       return NextResponse.json(
         {
           success: false,
-          message: `Gagal mengakses e-FPB FilesList (HTTP ${filesRes.status}: ${filesRes.statusText}).`,
+          message: `Gagal mengakses e-FPB FilesList: ${err.message}`,
         },
-        { status: filesRes.status }
+        { status: 502 }
       );
     }
 
-    const html = await filesRes.text();
-    if (html.includes('class="login-box"') || html.includes('ew-login-form')) {
+    if (isLoginRedirect(html)) {
+      clearSessionCache();
       return NextResponse.json(
         {
           success: false,
+          requiresAuth: true,
           message: 'Akses e-FPB FilesList memerlukan login. Pastikan kredensial (username/password) benar.',
         },
         { status: 401 }
@@ -447,6 +560,7 @@ async function processEfpbFiles(
 
   const receivedCount = allRows.filter((r) => r.isReceivedLogistik).length;
   const modeLabel = mode === 'full' ? 'FULL SYNC' : 'Quick Sync';
+  const sessionAge = _sessionCache ? Math.round((Date.now() - _sessionCache.cachedAt) / 60000) : 0;
 
   return NextResponse.json({
     success: true,
@@ -461,6 +575,9 @@ async function processEfpbFiles(
     // For backward compat (quick mode used these)
     procurement: newProcurementItems,
     armada: newArmadaItems,
+    // Session info
+    sessionCached: Boolean(_sessionCache),
+    sessionAgeMinutes: sessionAge,
   });
 }
 
