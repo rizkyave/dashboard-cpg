@@ -1615,15 +1615,15 @@ export default function MonitoringInternalTab({
             {/* Super Header: Zona Berkas Sesuai Spreadsheet */}
             <thead>
               <tr className="bg-muted/80 text-muted-foreground border-b border-border text-[11px] font-bold uppercase tracking-wider text-center">
-                {/* Zona 1: Identitas & PIC PCH */}
-                <th colSpan={6} className="py-2 px-3 border-r-2 border-border/80 text-left bg-muted/60">
+                {/* Zona 1: Identitas & Armada */}
+                <th colSpan={5} className="py-2 px-3 border-r-2 border-border/80 text-left bg-muted/60">
                   Identitas Pengadaan &amp; Armada
                 </th>
 
                 {/* Zona 2: Done by Purchasing (Kuning) - INTERAKTIF */}
                 {showPurchasingCols && (
                   <th
-                    colSpan={9}
+                    colSpan={10}
                     className="py-2 px-3 border-r-2 border-border/80 bg-amber-500/15 text-amber-900 dark:text-amber-200"
                   >
                     <div className="flex items-center justify-center gap-1.5">
@@ -1663,19 +1663,21 @@ export default function MonitoringInternalTab({
 
               {/* Header Kolom Rinci */}
               <tr className="bg-muted/40 text-muted-foreground border-b border-border font-semibold">
-                {/* Sticky Left: Aksi, No, PIC, PT, Dept/Armada, No FPB */}
+                {/* Sticky Left: Aksi, No, PT, Dept/Armada, No FPB */}
                 <th className="py-2.5 px-2 w-10 text-center sticky left-0 z-20 bg-muted/90 backdrop-blur-xs">AKSI</th>
                 <th className="py-2.5 px-3 w-10 text-center sticky left-10 z-20 bg-muted/90 backdrop-blur-xs">NO</th>
-                <th className="py-2.5 px-3 sticky left-20 z-20 bg-muted/90 backdrop-blur-xs">PIC PCH</th>
-                <th className="py-2.5 px-2 text-center sticky left-38 z-20 bg-muted/90 backdrop-blur-xs">PT</th>
-                <th className="py-2.5 px-3 min-w-[180px] sticky left-48 z-20 bg-muted/90 backdrop-blur-xs">DEPT/ ARMADA</th>
-                <th className="py-2.5 px-3 min-w-[140px] border-r-2 border-border/80 sticky left-[372px] z-20 bg-muted/90 backdrop-blur-xs">
+                <th className="py-2.5 px-2 text-center sticky left-20 z-20 bg-muted/90 backdrop-blur-xs">PT</th>
+                <th className="py-2.5 px-3 min-w-[180px] sticky left-[136px] z-20 bg-muted/90 backdrop-blur-xs">DEPT/ ARMADA</th>
+                <th className="py-2.5 px-3 min-w-[140px] border-r-2 border-border/80 sticky left-[316px] z-20 bg-muted/90 backdrop-blur-xs">
                   NO. FPB
                 </th>
 
                 {/* Seksi 1: Purchasing (INTERAKTIF HEADERS) */}
                 {showPurchasingCols && (
                   <>
+                    <th className="py-2.5 px-3 whitespace-nowrap bg-amber-500/[0.04]">
+                      <span>PIC PCH</span>
+                    </th>
                     <th className="py-2.5 px-3 min-w-[140px] bg-amber-500/[0.04]">
                       <div className="flex items-center gap-1.5">
                         <span>NO. PO</span>
@@ -1824,18 +1826,13 @@ export default function MonitoringInternalTab({
                         {globalIdx}
                       </td>
 
-                      {/* Sticky 2: PIC PCH */}
-                      <td className="py-2.5 px-3 whitespace-nowrap sticky left-20 z-10 bg-card group-hover:bg-muted/80">
-                        {getPicPchBadge(row.picPch)}
-                      </td>
-
-                      {/* Sticky 3: PT */}
-                      <td className="py-2.5 px-2 text-center whitespace-nowrap sticky left-38 z-10 bg-card group-hover:bg-muted/80">
+                      {/* Sticky 2: PT */}
+                      <td className="py-2.5 px-2 text-center whitespace-nowrap sticky left-20 z-10 bg-card group-hover:bg-muted/80">
                         {getEntityBadge(row.entity)}
                       </td>
 
-                      {/* Sticky 4: DEPT / ARMADA */}
-                      <td className="py-2.5 px-3 font-medium text-foreground sticky left-48 z-10 bg-card group-hover:bg-muted/80">
+                      {/* Sticky 3: DEPT / ARMADA */}
+                      <td className="py-2.5 px-3 font-medium text-foreground sticky left-[136px] z-10 bg-card group-hover:bg-muted/80">
                         <div className="flex items-center gap-1.5">
                           {isArmadaTruck ? (
                             <Truck className="size-3.5 text-muted-foreground shrink-0" />
@@ -1848,8 +1845,8 @@ export default function MonitoringInternalTab({
                         </div>
                       </td>
 
-                      {/* Sticky 5: NO. FPB */}
-                      <td className="py-2.5 px-3 whitespace-nowrap font-mono font-semibold text-foreground border-r-2 border-border/80 sticky left-[372px] z-10 bg-card group-hover:bg-muted/80">
+                      {/* Sticky 4: NO. FPB */}
+                      <td className="py-2.5 px-3 whitespace-nowrap font-mono font-semibold text-foreground border-r-2 border-border/80 sticky left-[316px] z-10 bg-card group-hover:bg-muted/80">
                         <div className="flex items-center gap-1.5 group/fpb">
                           <span>{row.fpb || '-'}</span>
                           {row.fpb && row.fpb !== '-' && (
@@ -1868,6 +1865,11 @@ export default function MonitoringInternalTab({
                       {/* Seksi 1: Purchasing (INTERAKTIF CELLS) */}
                       {showPurchasingCols && (
                         <>
+                          {/* 0. PIC PCH */}
+                          <td className="py-2.5 px-3 whitespace-nowrap bg-amber-500/[0.01]">
+                            {getPicPchBadge(row.picPch)}
+                          </td>
+
                           {/* 1. NO. PO (Hover Card & Filter Shortcut) */}
                           <td className="py-2.5 px-3 whitespace-nowrap font-mono text-primary font-semibold bg-amber-500/[0.01]">
                             <div className="relative group/po flex items-center gap-1.5">
@@ -2141,61 +2143,87 @@ export default function MonitoringInternalTab({
                             )}
                           </td>
 
-                          {/* 2. NO. TTB (Inline Quick Input & Copy) */}
+                          {/* 2. NO. TTB (Inline Quick Input & Copy) with FSTB Reference */}
                           <td className="py-2.5 px-3 whitespace-nowrap font-mono font-semibold text-foreground bg-emerald-500/[0.01]">
                             {row.noTtb && row.noTtb !== '-' ? (
-                              <div className="flex items-center gap-1.5 group/ttb">
-                                <span
-                                  className="hover:underline cursor-pointer"
-                                  onClick={() => setSearchQuery(row.noTtb || '')}
-                                  title="Klik untuk memfilter No. TTB ini"
-                                >
-                                  {row.noTtb}
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() => handleCopy(row.noTtb || '', 'No. TTB')}
-                                  className="opacity-0 group-hover/ttb:opacity-100 text-muted-foreground hover:text-foreground transition cursor-pointer"
-                                  title="Salin No. TTB"
-                                >
-                                  <Copy className="size-3" />
-                                </button>
+                              <div>
+                                <div className="flex items-center gap-1.5 group/ttb">
+                                  <span
+                                    className="hover:underline cursor-pointer"
+                                    onClick={() => setSearchQuery(row.noTtb || '')}
+                                    title="Klik untuk memfilter No. TTB ini"
+                                  >
+                                    {row.noTtb}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleCopy(row.noTtb || '', 'No. TTB')}
+                                    className="opacity-0 group-hover/ttb:opacity-100 text-muted-foreground hover:text-foreground transition cursor-pointer"
+                                    title="Salin No. TTB"
+                                  >
+                                    <Copy className="size-3" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const newVal = window.prompt(
+                                        `Edit No. TTB (${row.fpb || row.po}) (Rujukan FSTB: ${row.noFstb || '-'}):`,
+                                        row.noTtb || ''
+                                      );
+                                      if (newVal !== null && newVal.trim()) {
+                                        handleQuickUpdate(row, { noTtb: newVal.trim().toUpperCase() });
+                                      }
+                                    }}
+                                    className="opacity-0 group-hover/ttb:opacity-100 text-muted-foreground hover:text-foreground transition cursor-pointer"
+                                    title="Edit No. TTB"
+                                  >
+                                    <Pencil className="size-2.5" />
+                                  </button>
+                                </div>
+                                {row.noFstb && row.noFstb !== '-' && (
+                                  <div
+                                    className="text-[10px] text-muted-foreground font-mono flex items-center gap-1 mt-0.5 cursor-pointer hover:underline"
+                                    onClick={() => setSearchQuery(row.noFstb || '')}
+                                    title={`Dasar FSTB dari Purchasing: ${row.noFstb} (Klik untuk filter)`}
+                                  >
+                                    <span className="text-muted-foreground/60 text-[9px]">FSTB:</span>
+                                    <span className="text-emerald-700 dark:text-emerald-300 font-semibold">{row.noFstb}</span>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="flex flex-col items-start gap-1">
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    const newVal = window.prompt(
-                                      `Edit No. TTB (${row.fpb || row.po}):`,
-                                      row.noTtb || ''
+                                    const input = window.prompt(
+                                      `Masukkan No. TTB untuk berkas ${row.fpb || row.po} (Rujukan FSTB: ${row.noFstb || '-'}):`
                                     );
-                                    if (newVal !== null && newVal.trim()) {
-                                      handleQuickUpdate(row, { noTtb: newVal.trim().toUpperCase() });
+                                    if (input && input.trim()) {
+                                      const today = new Date().toISOString().slice(0, 10);
+                                      handleQuickUpdate(row, {
+                                        noTtb: input.trim().toUpperCase(),
+                                        tglInputTtb: row.tglInputTtb || today,
+                                      });
                                     }
                                   }}
-                                  className="opacity-0 group-hover/ttb:opacity-100 text-muted-foreground hover:text-foreground transition cursor-pointer"
-                                  title="Edit No. TTB"
+                                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-muted-foreground/70 hover:text-emerald-600 hover:bg-emerald-500/10 border border-dashed border-border hover:border-emerald-500/30 transition cursor-pointer"
+                                  title={`Klik untuk menginput No. TTB (Rujukan FSTB: ${row.noFstb || '-'})`}
                                 >
-                                  <Pencil className="size-2.5" />
+                                  <Plus className="size-2.5" />
+                                  <span>+ TTB</span>
                                 </button>
+                                {row.noFstb && row.noFstb !== '-' && (
+                                  <span
+                                    className="text-[10px] text-muted-foreground font-mono cursor-pointer hover:underline"
+                                    onClick={() => setSearchQuery(row.noFstb || '')}
+                                    title={`Dasar FSTB: ${row.noFstb} (Klik untuk filter)`}
+                                  >
+                                    <span className="text-muted-foreground/60 text-[9px]">FSTB:</span>{' '}
+                                    <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{row.noFstb}</span>
+                                  </span>
+                                )}
                               </div>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const input = window.prompt(`Masukkan No. TTB untuk berkas ${row.fpb || row.po}:`);
-                                  if (input && input.trim()) {
-                                    const today = new Date().toISOString().slice(0, 10);
-                                    handleQuickUpdate(row, {
-                                      noTtb: input.trim().toUpperCase(),
-                                      tglInputTtb: row.tglInputTtb || today,
-                                    });
-                                  }
-                                }}
-                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-muted-foreground/70 hover:text-emerald-600 hover:bg-emerald-500/10 border border-dashed border-border hover:border-emerald-500/30 transition cursor-pointer"
-                                title="Klik untuk menginput No. TTB"
-                              >
-                                <Plus className="size-2.5" />
-                                <span>+ TTB</span>
-                              </button>
                             )}
                           </td>
 
@@ -2880,6 +2908,52 @@ export default function MonitoringInternalTab({
               {/* TAB 2: LOGISTIK & LAPANGAN */}
               {modalActiveTab === 'LOG' && (
                 <div className="space-y-4 animate-in fade-in-50 duration-150">
+                  {/* Banner Referensi Dokumen FSTB & Purchasing */}
+                  <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3">
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wider block">
+                        Rujukan Dokumen Purchasing (Done by Purchasing):
+                      </span>
+                      <div className="flex items-center gap-3 flex-wrap text-xs">
+                        <div className="flex items-center gap-1">
+                          <span className="text-muted-foreground">No. FSTB:</span>
+                          <strong className="font-mono text-emerald-600 dark:text-emerald-400 font-bold text-sm">
+                            {formData.noFstb && formData.noFstb !== '-' ? formData.noFstb : '(Belum ada FSTB)'}
+                          </strong>
+                        </div>
+                        {formData.tglInputFstb && (
+                          <div>
+                            <span className="text-muted-foreground">Tgl FSTB:</span>{' '}
+                            <span className="font-mono">{formatTgl(formData.tglInputFstb)}</span>
+                          </div>
+                        )}
+                        <div>
+                          <span className="text-muted-foreground">No. PO:</span>{' '}
+                          <strong className="font-mono text-primary">{formData.po || formData.noPo || '-'}</strong>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">FPB:</span>{' '}
+                          <span className="font-mono font-semibold">{formData.fpb || '-'}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Armada:</span>{' '}
+                          <span className="font-semibold">{formData.deptArmada || '-'}</span>
+                        </div>
+                      </div>
+                    </div>
+                    {formData.noFstb && formData.noFstb !== '-' && (
+                      <button
+                        type="button"
+                        onClick={() => handleCopy(formData.noFstb || '', 'No. FSTB')}
+                        className="px-2.5 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-900 dark:text-amber-200 text-xs font-semibold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-2xs"
+                        title="Salin No. FSTB"
+                      >
+                        <Copy className="size-3.5" />
+                        <span>Salin FSTB</span>
+                      </button>
+                    )}
+                  </div>
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {/* PIC TTB */}
                     <div>
