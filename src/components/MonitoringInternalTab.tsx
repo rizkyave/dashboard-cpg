@@ -776,11 +776,12 @@ export default function MonitoringInternalTab({
 
   // 4. Unique Lists untuk dropdown filter
   const uniquePicsTtb = useMemo(() => {
+    const EXCLUDED_PICS = new Set(['ALDI', 'EKO', 'LOGISTIK', 'SINDI']);
     const set = new Set<string>();
-    ['FIFI', 'IDHAM', 'VILA', 'ALDI', 'EKO', 'LOGISTIK'].forEach((n) => set.add(n));
+    ['FIFI', 'IDHAM', 'VILA'].forEach((n) => set.add(n));
     localItems.forEach((it) => {
       const p = (it.picTtb || '').trim().toUpperCase();
-      if (p && p !== '-') set.add(p);
+      if (p && p !== '-' && !EXCLUDED_PICS.has(p)) set.add(p);
     });
     return Array.from(set).sort();
   }, [localItems]);
