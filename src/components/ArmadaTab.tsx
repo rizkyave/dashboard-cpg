@@ -1439,6 +1439,14 @@ export default function ArmadaTab({
                               <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-muted border border-border text-muted-foreground">
                                 {row.entity || 'CPL'}
                               </span>
+                              {row.isRevised && (
+                                <span
+                                  className="text-[9px] font-semibold px-1 py-0.2 rounded bg-blue-500/10 border border-blue-500/30 text-blue-600 dark:text-blue-400 inline-flex items-center gap-0.5"
+                                  title={row.revisionNote || 'FPB ini telah direvisi. Menampilkan file e-FPB tanggal terkini.'}
+                                >
+                                  Revisi{row.revisionCount && row.revisionCount > 1 ? ` (${row.revisionCount}x)` : ''}
+                                </span>
+                              )}
                               {row.workOrderNo && (
                                 <span
                                   className="text-[10px] font-mono font-semibold px-1.5 py-0.2 rounded bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 inline-flex items-center gap-0.5"
@@ -1763,6 +1771,14 @@ export default function ArmadaTab({
                           {row.entity && (
                             <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-mono bg-muted text-muted-foreground border border-border">
                               {row.entity}
+                            </span>
+                          )}
+                          {row.isRevised && (
+                            <span
+                              className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-500/10 border border-blue-500/30 text-blue-600 dark:text-blue-400"
+                              title={row.revisionNote || 'FPB ini telah direvisi. Menampilkan file e-FPB tanggal terkini.'}
+                            >
+                              Revisi{row.revisionCount && row.revisionCount > 1 ? ` (${row.revisionCount}x)` : ''}
                             </span>
                           )}
                           {row.workOrderNo && (

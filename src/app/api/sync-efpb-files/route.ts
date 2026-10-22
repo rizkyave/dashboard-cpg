@@ -45,6 +45,8 @@ interface ParsedEfpbFileRow {
   fpb: string;
   originalFpb: string;
   tgl: string;
+  rawDate: string;
+  timestamp: number;
   pchLogistik: string;
   armada: string;
   company: string;
@@ -52,6 +54,50 @@ interface ParsedEfpbFileRow {
   keterangan: string;
   isReceivedLogistik: boolean;
   pdfUrl: string;
+  isRevised?: boolean;
+  revisionCount?: number;
+  revisionNote?: string;
+}
+
+/**
+ * Robustly parses various date formats from e-FPB:
+ * e.g., "26/09/26 13:48", "26/10/2026 14:15", "2026-09-26 13:48:00"
+ */
+function parseEfpbTimestamp(rawDate: string): number {
+  if (!rawDate) return 0;
+  const clean = rawDate.trim();
+
+  // Format 1: DD/MM/YY or DD/MM/YYYY with optional HH:mm or HH:mm:ss
+  const dmyMatch = clean.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})(?:\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/);
+  if (dmyMatch) {
+    const day = parseInt(dmyMatch[1], 10);
+    const month = parseInt(dmyMatch[2], 10) - 1;
+    let year = parseInt(dmyMatch[3], 10);
+    if (year < 100) {
+      year += 2000;
+    }
+    const hours = dmyMatch[4] ? parseInt(dmyMatch[4], 10) : 0;
+    const minutes = dmyMatch[5] ? parseInt(dmyMatch[5], 10) : 0;
+    const seconds = dmyMatch[6] ? parseInt(dmyMatch[6], 10) : 0;
+    const d = new Date(year, month, day, hours, minutes, seconds);
+    return isNaN(d.getTime()) ? 0 : d.getTime();
+  }
+
+  // Format 2: YYYY-MM-DD or YYYY/MM/DD
+  const ymdMatch = clean.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})(?:\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/);
+  if (ymdMatch) {
+    const year = parseInt(ymdMatch[1], 10);
+    const month = parseInt(ymdMatch[2], 10) - 1;
+    const day = parseInt(ymdMatch[3], 10);
+    const hours = ymdMatch[4] ? parseInt(ymdMatch[4], 10) : 0;
+    const minutes = ymdMatch[5] ? parseInt(ymdMatch[5], 10) : 0;
+    const seconds = ymdMatch[6] ? parseInt(ymdMatch[6], 10) : 0;
+    const d = new Date(year, month, day, hours, minutes, seconds);
+    return isNaN(d.getTime()) ? 0 : d.getTime();
+  }
+
+  const parsed = Date.parse(clean);
+  return isNaN(parsed) ? 0 : parsed;
 }
 
 /**
@@ -139,26 +185,10 @@ function parseFilesListHtml(html: string): ParsedEfpbFileRow[] {
       continue;
     }
 
-    // Deduplicate: keep the first occurrence (most recent for received status)
+    // Deduplicate: prioritaskan file dengan tanggal & waktu terkini
     const fpbKey = cleanFpb.toLowerCase();
-    if (seenFpbs.has(fpbKey)) {
-      // If this duplicate is received but the existing one wasn't, update
-      const isReceived = pchLogistik.toLowerCase().includes('received');
-      if (isReceived) {
-        const existingIdx = rows.findIndex(r => r.fpb.toLowerCase() === fpbKey);
-        if (existingIdx >= 0 && !rows[existingIdx].isReceivedLogistik) {
-          rows[existingIdx].isReceivedLogistik = true;
-          rows[existingIdx].pchLogistik = pchLogistik;
-        }
-      }
-      continue;
-    }
-    seenFpbs.add(fpbKey);
-
-    // Check if received by logistic
+    const timestamp = parseEfpbTimestamp(rawTgl);
     const isReceivedLogistik = pchLogistik.toLowerCase().includes('received');
-
-    // Format date to dd/mm/yy
     const formattedDate = formatDateDdMmYy(rawTgl.slice(0, 10)) || formatDateDdMmYy(rawTgl);
 
     const pdfMatch = rowContent.match(/files\/[^\s"'\\]+\.pdf/i);
@@ -166,10 +196,52 @@ function parseFilesListHtml(html: string): ParsedEfpbFileRow[] {
       ? `https://e-fpb.cindaragroup.com/${pdfMatch[0].replace(/^\/+/, '')}`
       : `https://e-fpb.cindaragroup.com/files/Approved_rev_sign_${encodeURIComponent(cleanFpb)}.pdf`;
 
+    if (seenFpbs.has(fpbKey)) {
+      const existingIdx = rows.findIndex((r) => r.fpb.toLowerCase() === fpbKey);
+      if (existingIdx >= 0) {
+        const existing = rows[existingIdx];
+        const revCount = (existing.revisionCount || 1) + 1;
+        const combinedReceived = existing.isReceivedLogistik || isReceivedLogistik;
+        const combinedPch = pchLogistik || existing.pchLogistik;
+
+        if (timestamp > existing.timestamp) {
+          // New row has a later timestamp: replace existing row with the newer version
+          rows[existingIdx] = {
+            fpb: cleanFpb,
+            originalFpb: rawFpb,
+            tgl: formattedDate,
+            rawDate: rawTgl,
+            timestamp,
+            pchLogistik: combinedPch,
+            armada: armada || existing.armada,
+            company: company || existing.company,
+            status,
+            keterangan: keterangan || existing.keterangan,
+            isReceivedLogistik: combinedReceived,
+            pdfUrl,
+            isRevised: true,
+            revisionCount: revCount,
+            revisionNote: `Revisi e-FPB (${revCount}x): Menggunakan berkas terbaru tgl ${formattedDate || rawTgl} (menggantikan berkas lama tgl ${existing.tgl || existing.rawDate}).`,
+          };
+        } else {
+          // Existing row has an equal or later timestamp: keep existing but flag as revised
+          existing.isRevised = true;
+          existing.revisionCount = revCount;
+          existing.isReceivedLogistik = combinedReceived;
+          if (!existing.pchLogistik && pchLogistik) existing.pchLogistik = pchLogistik;
+          existing.revisionNote = `Revisi e-FPB (${revCount}x): Menggunakan berkas terbaru tgl ${existing.tgl || existing.rawDate} (berkas lain tgl ${formattedDate || rawTgl}).`;
+        }
+      }
+      continue;
+    }
+    seenFpbs.add(fpbKey);
+
     rows.push({
       fpb: cleanFpb,
       originalFpb: rawFpb,
       tgl: formattedDate,
+      rawDate: rawTgl,
+      timestamp,
       pchLogistik,
       armada,
       company,
@@ -318,6 +390,9 @@ function buildItems(efpb: ParsedEfpbFileRow): { proc: ProcurementItem; arm: Arma
     picCheckFpb: 'e-FPB Server',
     tglCheckFpb: efpb.tgl,
     statusCheckFpb: efpb.isReceivedLogistik ? 'DONE' : 'WAITING',
+    isRevised: efpb.isRevised,
+    revisionCount: efpb.revisionCount,
+    revisionNote: efpb.revisionNote,
   };
 
   const arm: ArmadaItem = {
@@ -338,6 +413,9 @@ function buildItems(efpb: ParsedEfpbFileRow): { proc: ProcurementItem; arm: Arma
     picCheckFpb: 'e-FPB Server',
     tglCheckFpb: efpb.tgl,
     statusCheckFpb: proc.statusCheckFpb,
+    isRevised: efpb.isRevised,
+    revisionCount: efpb.revisionCount,
+    revisionNote: efpb.revisionNote,
   };
 
   return { proc, arm };
@@ -469,25 +547,38 @@ async function processEfpbFiles(
     }
 
     // Deduplicate across all pages (some FPBs may appear on multiple pages)
-    const seenFinal = new Set<string>();
-    const deduped: ParsedEfpbFileRow[] = [];
+    const dedupedMap = new Map<string, ParsedEfpbFileRow>();
     for (const row of allRows) {
       const key = row.fpb.toLowerCase();
-      if (!seenFinal.has(key)) {
-        seenFinal.add(key);
-        deduped.push(row);
+      if (!dedupedMap.has(key)) {
+        dedupedMap.set(key, { ...row });
       } else {
-        // If the new row is received but existing isn't, update
-        if (row.isReceivedLogistik) {
-          const existingIdx = deduped.findIndex((r) => r.fpb.toLowerCase() === key);
-          if (existingIdx >= 0 && !deduped[existingIdx].isReceivedLogistik) {
-            deduped[existingIdx].isReceivedLogistik = true;
-            deduped[existingIdx].pchLogistik = row.pchLogistik;
-          }
+        const existing = dedupedMap.get(key)!;
+        const revCount = (existing.revisionCount || 1) + (row.revisionCount ? (row.revisionCount - 1) : 1);
+        const combinedReceived = existing.isReceivedLogistik || row.isReceivedLogistik;
+        const combinedPch = row.pchLogistik || existing.pchLogistik;
+
+        if (row.timestamp > existing.timestamp) {
+          // Newer row replaces older row
+          dedupedMap.set(key, {
+            ...row,
+            pchLogistik: combinedPch,
+            isReceivedLogistik: combinedReceived,
+            isRevised: true,
+            revisionCount: revCount,
+            revisionNote: `Revisi e-FPB (${revCount}x): Menggunakan berkas terbaru tgl ${row.tgl || row.rawDate} (menggantikan berkas lama tgl ${existing.tgl || existing.rawDate}).`,
+          });
+        } else {
+          // Retain existing, flag as revised
+          existing.isRevised = true;
+          existing.revisionCount = revCount;
+          existing.isReceivedLogistik = combinedReceived;
+          if (!existing.pchLogistik && row.pchLogistik) existing.pchLogistik = row.pchLogistik;
+          existing.revisionNote = `Revisi e-FPB (${revCount}x): Menggunakan berkas terbaru tgl ${existing.tgl || existing.rawDate} (berkas lain tgl ${row.tgl || row.rawDate}).`;
         }
       }
     }
-    allRows = deduped;
+    allRows = Array.from(dedupedMap.values());
   } else {
     // Quick mode: fetch only the default page (20 most recent) with session retry
     const quickFetch = async (sess: string) => {

@@ -104,6 +104,9 @@ export interface FpbReviewRecord {
   relatedDocs: FpbRelatedDocs;
   reviewedBy?: string;
   reviewedAt?: string;
+  isRevised?: boolean;
+  revisionCount?: number;
+  revisionNote?: string;
   updatedAt: string;
   createdAt: string;
 }

@@ -173,6 +173,9 @@ export interface ProcurementItem {
   verifiedByFpb?: string;
   workOrderNo?: string;
   sisaMatch?: SisaGoodsSummary;
+  isRevised?: boolean;
+  revisionCount?: number;
+  revisionNote?: string;
 }
 
 export interface ArmadaItem {
@@ -186,6 +189,9 @@ export interface ArmadaItem {
   selisih: number;
   status: string;
   sisaMatch?: SisaGoodsSummary;
+  isRevised?: boolean;
+  revisionCount?: number;
+  revisionNote?: string;
   // Extended fields from "Monitoring Layanan Armada" sheet & Merge
   tglFpb?: string;
   noPo?: string;

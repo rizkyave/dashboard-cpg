@@ -37,6 +37,7 @@ import {
   ShieldAlert,
   Zap,
   Timer,
+  History,
 } from 'lucide-react';
 import {
   FpbReviewRecord,
@@ -1091,11 +1092,20 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                     >
                       {/* No. FPB & Entitas */}
                       <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           {getEntityBadge(rec.entity)}
                           <span className="font-semibold text-foreground group-hover:text-primary transition">
                             {rec.fpbNo}
                           </span>
+                          {rec.isRevised && (
+                            <span
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/30"
+                              title={rec.revisionNote || 'FPB ini telah direvisi. Menampilkan berkas e-FPB tanggal terkini.'}
+                            >
+                              <History className="size-3" />
+                              Revisi{rec.revisionCount && rec.revisionCount > 1 ? ` (${rec.revisionCount}x)` : ''}
+                            </span>
+                          )}
                         </div>
                         {hasDuplicates && (
                           <div className="flex items-center gap-1 mt-1 text-[11px] text-amber-600 dark:text-amber-400 font-medium">
@@ -1233,11 +1243,20 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                   <ClipboardCheck className="size-6" />
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     {getEntityBadge(selectedRecord.entity)}
                     <h3 className="text-lg font-bold text-foreground">
                       Analisa & Review: {selectedRecord.fpbNo}
                     </h3>
+                    {selectedRecord.isRevised && (
+                      <span
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30"
+                        title={selectedRecord.revisionNote || 'FPB ini telah direvisi. Menampilkan berkas e-FPB tanggal terkini.'}
+                      >
+                        <History className="size-3.5" />
+                        Revisi{selectedRecord.revisionCount && selectedRecord.revisionCount > 1 ? ` (${selectedRecord.revisionCount}x)` : ''}
+                      </span>
+                    )}
                     {getPriorityBadge(formPriority)}
                     {getReviewStatusBadge(formStatus)}
                     {getUrgencyBadge(formUrgency)}
@@ -1307,6 +1326,24 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                   </ul>
                   <p className="mt-1 text-[11px] text-amber-700 dark:text-amber-300">
                     Mohon cek apakah barang dari pengajuan sebelumnya sudah pernah diserahkan ke armada untuk menghindari duplikasi pembelian ganda.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Revision Notification Alert Banner */}
+            {selectedRecord.isRevised && (
+              <div className="p-3.5 mx-5 mt-3 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-start gap-3">
+                <History className="size-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+                <div className="text-xs text-blue-900 dark:text-blue-200">
+                  <div className="font-bold flex items-center gap-1.5">
+                    Notifikasi Revisi Berkas e-FPB{selectedRecord.revisionCount && selectedRecord.revisionCount > 1 ? ` (${selectedRecord.revisionCount}x Revisi)` : ''}:
+                  </div>
+                  <p className="mt-1">
+                    {selectedRecord.revisionNote || 'Ditemukan berkas ganda dengan nomor FPB yang sama di server e-FPB. Sistem otomatis memilih dan menggunakan berkas dengan tanggal dan waktu terkini.'}
+                  </p>
+                  <p className="mt-1 text-[11px] text-blue-700 dark:text-blue-300">
+                    Semua rincian barang dan tautan dokumen PDF resmi yang ditampilkan mengacu pada revisi tanggal terkini.
                   </p>
                 </div>
               </div>
