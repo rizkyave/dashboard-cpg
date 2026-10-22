@@ -351,7 +351,7 @@ interface MonitoringInternalTabProps {
 }
 
 const GOOGLE_SHEET_URL =
-  'https://docs.google.com/spreadsheets/d/16Ae8qGsGYX_xCNsqZvME-uZvaAeECsE69PBYlY32fZk/edit?pli=1&gid=0#gid=0';
+  'https://docs.google.com/spreadsheets/d/16Ae8gGsGYx_xCNaqZvME-uZvaAeECsE69PBYlY32fZk/edit?pli=1&gid=0#gid=0';
 
 // Daftar staf PIC Purchasing CPG
 const PIC_OPTIONS = ['ALL', 'NOVI', 'TRI', 'ELSA', 'YATI', 'PUTRI', 'LUTFI'];

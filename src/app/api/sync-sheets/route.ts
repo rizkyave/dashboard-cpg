@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 const DEFAULT_SHEET_URL =
-  'https://docs.google.com/spreadsheets/d/16Ae8qGsGYX_xCNsqZvME-uZvaAeECsE69PBYlY32fZk/edit?pli=1&gid=0#gid=0';
+  'https://docs.google.com/spreadsheets/d/16Ae8gGsGYx_xCNaqZvME-uZvaAeECsE69PBYlY32fZk/edit?pli=1&gid=0#gid=0';
 const R2_PROCUREMENT_KEY = 'dashboard-metadata/procurement-data.json';
 const R2_ARMADA_KEY = 'dashboard-metadata/armada-data.json';
 
@@ -120,10 +120,17 @@ export async function POST(req: NextRequest) {
   }
 }
 
-async function processSheet(targetUrl: string) {
+async function processSheet(rawTargetUrl: string) {
+  let targetUrl = rawTargetUrl || DEFAULT_SHEET_URL;
+  // Perbaiki otomatis jika klien masih menyimpan URL lama yang salah ketik
+  if (targetUrl.includes('16Ae8qGsGYX_xCNsqZvME-uZvaAeECsE69PBYlY32fZk')) {
+    targetUrl = DEFAULT_SHEET_URL;
+  }
+
   let buffer: Buffer | null = null;
   let sourceLabel = targetUrl;
   let isLocalFallback = false;
+  let fetchStatusCode = 0;
 
   // 1. Coba download dari Google Sheets jika URL disediakan
   try {
@@ -138,6 +145,8 @@ async function processSheet(targetUrl: string) {
       cache: 'no-store',
       redirect: 'follow',
     });
+
+    fetchStatusCode = response.status;
 
     if (response.ok) {
       const contentType = response.headers.get('content-type') || '';
@@ -170,13 +179,16 @@ async function processSheet(targetUrl: string) {
   }
 
   if (!buffer) {
+    const errorDetail = fetchStatusCode === 404
+      ? 'Link Google Sheets tidak ditemukan (HTTP 404). Pastikan URL spreadsheet valid.'
+      : 'Akses Google Sheets masih dibatasi (HTTP 401/403). Untuk membukanya, ubah izin berbagi Google Sheets menjadi "Siapa saja yang memiliki link" (Lihat saja) atau gunakan menu Upload Excel.';
+
     return NextResponse.json(
       {
         success: false,
-        message:
-          'Akses Google Sheets masih dibatasi (HTTP 401/403). Untuk membukanya, ubah izin berbagi Google Sheets menjadi "Siapa saja yang memiliki link" atau pasang Webhook Apps Script di menu Auto-Save.',
+        message: errorDetail,
       },
-      { status: 403 }
+      { status: fetchStatusCode || 403 }
     );
   }
 
