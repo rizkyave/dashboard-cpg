@@ -15,6 +15,9 @@ import {
   getHeadObjectFromR2,
   deleteFromR2,
 } from '@/utils/r2Client';
+import { AppNotification } from '@/types/notification';
+import { getWaConfig } from '@/utils/waConfigStorage';
+import { sendViaWaGateway } from '@/utils/whatsappNotifier';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -389,6 +392,92 @@ export async function POST(req: NextRequest) {
     }
 
     await saveHistory(currentHistory);
+
+    // =========================================================================
+    // Otomatis Buat Notifikasi In-App & Trigger WhatsApp Gateway untuk Seluruh Tim TTB
+    // =========================================================================
+    try {
+      const NOTIFICATIONS_KEY = 'notifications-metadata/notifications.json';
+      const NOTIFICATIONS_LOCAL = path.join(process.cwd(), 'src', 'data', 'notifications-data.json');
+
+      let existingNotifs: AppNotification[] = [];
+      if (isR2Active) {
+        try {
+          const r2Obj = await getObjectFromR2(NOTIFICATIONS_KEY);
+          if (r2Obj?.body) {
+            existingNotifs = JSON.parse(Buffer.from(r2Obj.body).toString('utf8'));
+          }
+        } catch {}
+      }
+      if (!existingNotifs || existingNotifs.length === 0) {
+        try {
+          const raw = await fs.readFile(NOTIFICATIONS_LOCAL, 'utf8');
+          existingNotifs = JSON.parse(raw);
+        } catch {}
+      }
+      if (!Array.isArray(existingNotifs)) existingNotifs = [];
+
+      const newNotif: AppNotification = {
+        id: `notif-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        type: 'FSTB_UPLOADED',
+        title: '📦 Dokumen FSTB Baru Siap Diproses TTB',
+        message: `User ${uploaderName || 'Purchasing'} telah mengunggah ${newlyUploadedItems.length} berkas FSTB ${cleanNoFstb} (${armada || 'Kapal/Unit'}). Mohon diproses untuk persiapan penerimaan & TTB.`,
+        senderName: uploaderName || 'User Purchasing',
+        senderUsername: uploaderUsername || 'purchasing',
+        senderRole: uploaderRole || 'Purchasing',
+        targetRole: 'staf_ttb',
+        linkTab: 'monitoring-internal',
+        metadata: {
+          noFstb: cleanNoFstb,
+          armada: armada || '-',
+          noPo: doNo || undefined,
+          noFpb: noFpb || undefined,
+          fileCount: newlyUploadedItems.length,
+          renamedFileName: newlyUploadedItems[0]?.renamedFileName,
+          fileUrl: newlyUploadedItems[0]?.fileUrl,
+        },
+        createdAt: new Date().toISOString(),
+        readBy: [],
+      };
+
+      existingNotifs.unshift(newNotif);
+      const trimmed = existingNotifs.slice(0, 150);
+      const jsonStr = JSON.stringify(trimmed, null, 2);
+
+      if (isR2Active) {
+        try {
+          await uploadToR2({
+            key: NOTIFICATIONS_KEY,
+            body: Buffer.from(jsonStr, 'utf8'),
+            contentType: 'application/json',
+          });
+        } catch {}
+      }
+      try {
+        await fs.mkdir(path.dirname(NOTIFICATIONS_LOCAL), { recursive: true });
+        await fs.writeFile(NOTIFICATIONS_LOCAL, jsonStr, 'utf8');
+      } catch {}
+
+      // Coba kirim via WA Gateway jika dikonfigurasi aktif
+      try {
+        const waConfig = await getWaConfig();
+        if (waConfig && waConfig.enabled && waConfig.apiKey && waConfig.provider !== 'none') {
+          await sendViaWaGateway(waConfig, {
+            noFstb: cleanNoFstb,
+            armada: armada || '-',
+            noPo: doNo,
+            noFpb: noFpb,
+            uploaderName: uploaderName || 'User Purchasing',
+            uploaderRole: uploaderRole || 'Purchasing',
+            fileCount: newlyUploadedItems.length,
+          });
+        }
+      } catch (waErr) {
+        console.warn('Gagal broadcast otomatis WA Gateway:', waErr);
+      }
+    } catch (notifErr) {
+      console.warn('Gagal menyimpan notifikasi FSTB otomatis:', notifErr);
+    }
 
     const response: UploadFstbResponse = {
       success: true,

@@ -29,6 +29,7 @@ import { parseAndMergeWorkbook } from '@/utils/excelParser';
 import { parseInventoryWorkbook } from '@/utils/inventoryParser';
 import { determineCategory } from '@/utils/categoryClassifier';
 import ThemeToggle from './ThemeToggle';
+import NotificationBell from './NotificationBell';
 import SyncEfpbModal from './SyncEfpbModal';
 import ResetConfirmModal, { ResetScope } from './ResetConfirmModal';
 import { mergeProcurementDatasets, mergeArmadaDatasets } from '@/utils/dataMerger';
@@ -1236,6 +1237,7 @@ export default function Header({
         )}
 
         {/* Theme Toggle Button (Light / Dark) */}
+        <NotificationBell onNavigateTab={onNavigateTab} showToast={showToast} />
         <ThemeToggle />
 
         {/* User Profile Avatar (Clickable to open menu as well) */}

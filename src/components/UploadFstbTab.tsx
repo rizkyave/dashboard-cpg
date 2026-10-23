@@ -45,6 +45,7 @@ import {
   extractFstbComponents,
 } from '@/utils/fstbRename';
 import { formatFstbStampDate } from '@/utils/stampDateFormatter';
+import FstbSuccessWaModal from './FstbSuccessWaModal';
 
 interface UploadFstbTabProps {
   procurementItems?: ProcurementItem[];
@@ -205,6 +206,21 @@ export default function UploadFstbTab({
 
   // Modal Peringatan Duplikat FSTB
   const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState<boolean>(false);
+
+  // Modal WhatsApp Notifikasi Sukses FSTB
+  const [isWaModalOpen, setIsWaModalOpen] = useState<boolean>(false);
+  const [waModalData, setWaModalData] = useState<{
+    noFstb: string;
+    noPo?: string;
+    noFpb?: string;
+    armada?: string;
+    uploaderName: string;
+    uploaderRole?: string;
+    fileCount?: number;
+  }>({
+    noFstb: '',
+    uploaderName: '',
+  });
 
   // File input ref
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -581,6 +597,26 @@ export default function UploadFstbTab({
         `Sukses! ${totalSuccess} berkas FSTB berhasil diarsipkan ke Cloudflare R2.`,
         'success'
       );
+
+      // Buka Modal Notifikasi WhatsApp otomatis untuk memberi tahu Tim PIC TTB
+      const primaryGroup = targetQueue[0];
+      const primaryCleanNoFstb =
+        primaryGroup?.noFstb && primaryGroup.noFstb.trim()
+          ? sanitizeFstbNumber(primaryGroup.noFstb)
+          : batchNoFstb
+          ? sanitizeFstbNumber(batchNoFstb)
+          : 'FSTB BARU';
+
+      setWaModalData({
+        noFstb: primaryCleanNoFstb,
+        noPo: primaryGroup?.doNo || batchDoNo || undefined,
+        noFpb: primaryGroup?.noFpb || batchNoFpb || undefined,
+        armada: primaryGroup?.armada || batchArmada || undefined,
+        uploaderName: uploaderName.trim() || user?.name || 'Purchasing',
+        uploaderRole: user?.role || 'Purchasing',
+        fileCount: totalSuccess,
+      });
+      setIsWaModalOpen(true);
 
       // Bersihkan antrean yang baru diunggah
       const uploadedIds = new Set(targetQueue.map((t) => t.id));
@@ -1453,6 +1489,19 @@ export default function UploadFstbTab({
           </div>
         </div>
       )}
+      {/* Modal WhatsApp Notifikasi Pekerjaan ke Tim TTB */}
+      <FstbSuccessWaModal
+        isOpen={isWaModalOpen}
+        onClose={() => setIsWaModalOpen(false)}
+        noFstb={waModalData.noFstb}
+        noPo={waModalData.noPo}
+        noFpb={waModalData.noFpb}
+        armada={waModalData.armada}
+        uploaderName={waModalData.uploaderName}
+        uploaderRole={waModalData.uploaderRole}
+        fileCount={waModalData.fileCount}
+        showToast={showToast}
+      />
     </div>
   );
 }

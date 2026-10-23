@@ -48,6 +48,8 @@ import {
   SlidersHorizontal,
   Zap,
   RotateCcw,
+  MessageCircle,
+  Save,
   ArrowRight,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -127,6 +129,65 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
 
   // Delete Target
   const [targetDeleteUser, setTargetDeleteUser] = useState<AuthUser | null>(null);
+
+  // WhatsApp Gateway Configuration State
+  const [waProvider, setWaProvider] = useState<'fonnte' | 'wablas' | 'none'>('none');
+  const [waApiKey, setWaApiKey] = useState('');
+  const [waTargets, setWaTargets] = useState('');
+  const [waEnabled, setWaEnabled] = useState(false);
+  const [isLoadingWaConfig, setIsLoadingWaConfig] = useState(false);
+  const [isSavingWaConfig, setIsSavingWaConfig] = useState(false);
+
+  // Load WA Gateway config on mount
+  React.useEffect(() => {
+    const fetchWaConfig = async () => {
+      setIsLoadingWaConfig(true);
+      try {
+        const res = await fetch('/api/notifications?config=true');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.config) {
+            setWaProvider(data.config.provider || 'none');
+            setWaApiKey(data.config.apiKey || '');
+            setWaTargets(data.config.targetPhoneNumbers || '');
+            setWaEnabled(Boolean(data.config.enabled));
+          }
+        }
+      } catch {} finally {
+        setIsLoadingWaConfig(false);
+      }
+    };
+    fetchWaConfig();
+  }, []);
+
+  const handleSaveWaConfig = async () => {
+    setIsSavingWaConfig(true);
+    try {
+      const res = await fetch('/api/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'SAVE_WA_CONFIG',
+          config: {
+            provider: waProvider,
+            apiKey: waApiKey,
+            targetPhoneNumbers: waTargets,
+            enabled: waEnabled,
+          },
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast?.('Konfigurasi WhatsApp Gateway berhasil disimpan ke Cloudflare R2!', 'success');
+      } else {
+        throw new Error(data.message || 'Gagal menyimpan konfigurasi WA.');
+      }
+    } catch (err: any) {
+      showToast?.(err?.message || 'Gagal menyimpan konfigurasi WhatsApp.', 'error');
+    } finally {
+      setIsSavingWaConfig(false);
+    }
+  };
 
   // Filtered Users List
   const filteredUsers = useMemo(() => {
@@ -1898,6 +1959,127 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
           </div>
         </div>
       </div>
+
+      {/* ============================================================== */}
+      {/* KARTU PENGATURAN NOTIFIKASI WHATSAPP GATEWAY (ADMIN ONLY)      */}
+      {/* ============================================================== */}
+      {isAdmin && (
+        <div className="bg-card border border-border rounded-xl p-5 shadow-xs">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4 pb-3 border-b border-border">
+            <div className="flex items-center gap-2.5">
+              <span className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                <MessageCircle className="size-5" />
+              </span>
+              <div>
+                <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                  <span>Pengaturan Notifikasi Otomatis WhatsApp Gateway</span>
+                  <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                    Auto-Broadcast PIC TTB
+                  </span>
+                </h3>
+                <p className="text-[11px] text-muted-foreground">
+                  Konfigurasikan gateway WhatsApp (Fonnte / Wablas) agar sistem dapat mengirim pesan WhatsApp otomatis ke tim PIC TTB begitu berkas FSTB baru diunggah oleh Purchasing.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={waEnabled}
+                  onChange={(e) => setWaEnabled(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-9 h-5 bg-muted peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                <span className="ml-2 text-xs font-semibold text-foreground">
+                  {waEnabled ? 'Aktif' : 'Nonaktif'}
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-foreground mb-1">
+                Penyedia WA Gateway (Provider)
+              </label>
+              <select
+                value={waProvider}
+                onChange={(e) => setWaProvider(e.target.value as any)}
+                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
+              >
+                <option value="none">Tanpa Gateway (Hanya 1-Klik Web WA)</option>
+                <option value="fonnte">Fonnte (Rekomendasi - api.fonnte.com)</option>
+                <option value="wablas">Wablas (kudus.wablas.com)</option>
+              </select>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Pilih layanan WhatsApp gateway pihak ketiga yang digunakan perusahaan.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-foreground mb-1">
+                API Key / Token Gateway
+              </label>
+              <input
+                type="password"
+                value={waApiKey}
+                onChange={(e) => setWaApiKey(e.target.value)}
+                placeholder="Masukkan API Token / Key..."
+                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-xs font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
+              />
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Token otorisasi rahasia dari dashboard Fonnte / Wablas Anda.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-foreground mb-1">
+                Nomor Tujuan WhatsApp (Penerima)
+              </label>
+              <input
+                type="text"
+                value={waTargets}
+                onChange={(e) => setWaTargets(e.target.value)}
+                placeholder="Contoh: 081234567890, 08987654321..."
+                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
+              />
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Pisahkan nomor dengan koma untuk kirim ke banyak PIC TTB sekaligus atau gunakan ID Grup.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 pt-3 border-t border-border flex items-center justify-between">
+            <div className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+              <Info className="size-3.5 text-emerald-600" />
+              <span>
+                Catatan: Jika gateway dinonaktifkan, User A tetap dapat mengirim pesan WhatsApp secara manual dengan 1-klik tombol kirim yang muncul otomatis setelah upload FSTB.
+              </span>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleSaveWaConfig}
+              disabled={isSavingWaConfig}
+              className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50"
+            >
+              {isSavingWaConfig ? (
+                <>
+                  <RefreshCw className="size-3.5 animate-spin" />
+                  <span>Menyimpan...</span>
+                </>
+              ) : (
+                <>
+                  <Save className="size-3.5" />
+                  <span>Simpan Pengaturan WA</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ============================================================== */}
       {/* MODAL: TAMBAH PENGGUNA / VISITOR                               */}

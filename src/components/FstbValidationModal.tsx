@@ -372,6 +372,30 @@ export default function FstbValidationModal({
         );
       }
 
+      // Kirim Notifikasi In-App & WA Gateway ke Tim TTB bahwa FSTB telah divalidasi
+      try {
+        fetch('/api/notifications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'FSTB_VALIDATED',
+            title: '✍️ FSTB Divalidasi & Ditandatangani',
+            message: `User ${user?.name || 'Purchasing'} telah mengesahkan FSTB ${record.docNumber} (${record.armada || 'Kapal/Unit'}). Berkas siap dilanjutkan ke proses TTB.`,
+            senderName: user?.name || 'User Pengesah',
+            senderUsername: user?.username || 'user',
+            senderRole: user?.role || 'Purchasing',
+            targetRole: 'staf_ttb',
+            linkTab: 'validasi-dokumen',
+            metadata: {
+              noFstb: record.docNumber,
+              armada: record.armada,
+              noPo: record.poNumber,
+              noFpb: record.fpbNumber,
+            },
+          }),
+        }).catch(() => {});
+      } catch {}
+
       // Reset pilihan checklist
       setSelectedSlots({
         deliveredBy: false,
