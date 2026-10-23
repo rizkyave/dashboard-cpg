@@ -220,6 +220,10 @@ export default function ArmadaGanttSchedule({
       const sampleItems: GanttSubTicket[] = [];
       const seen = new Set<string>();
 
+      // Kumpulkan rentang tanggal untuk SEMUA item di armada ini (bukan hanya sliced)
+      let minArmadaTime = Infinity;
+      let maxArmadaTime = -Infinity;
+
       for (const child of entry.items) {
         const fpbNum = (child.fpb || '').trim();
         if (!fpbNum) continue;
@@ -268,13 +272,23 @@ export default function ArmadaGanttSchedule({
           childStatus = 'PROSES';
         }
 
-        // 1. Tanggal Mulai (Kotak 1: Buat FPB)
-        let dStart = parseDateObj(child.tglFpb || (child as any).date);
+        // 1. Tanggal Mulai (Kotak 1: Buat FPB / PO / Date)
+        let dStart = parseDateObj(
+          child.tglFpb ||
+          child.tglPo ||
+          (child as any).date ||
+          (child as any).tglCek ||
+          (child as any).receivedDate
+        );
         if (!dStart) {
-          dStart = new Date(2026, 9, 2 + (sampleItems.length % 5));
+          // Distribusikan tanggal fallback harian berbasis nomor urut tiket FPB (1..26 Okt)
+          const numMatch = fpbNum.match(/\d+/g);
+          const serial = numMatch ? parseInt(numMatch[numMatch.length - 1], 10) : sampleItems.length + 1;
+          const day = 1 + (Math.abs(serial) % 25);
+          dStart = new Date(2026, 9, day);
         }
 
-        // 2. Tanggal Selesai (Kotak 5: Serah Terima Tim Lapangan)
+        // 2. Tanggal Selesai (Kotak 5: Serah Terima Tim Lapangan / TTB / FSTB)
         let dEnd: Date | null = null;
         const rawKotak5 =
           override?.tglDiantar ||
@@ -289,10 +303,15 @@ export default function ArmadaGanttSchedule({
 
         if (!dEnd) {
           if (childStatus === 'LENGKAP') {
-            const rawFstbTtb = override?.tglTtb || child.tglFstb || child.tglTtb;
+            const rawFstbTtb =
+              override?.tglTtb ||
+              child.tglTtb ||
+              (child as any).tglInputTtb ||
+              child.tglFstb ||
+              (child as any).tglInputFstb;
             dEnd = rawFstbTtb ? parseDateObj(rawFstbTtb) : new Date(dStart.getTime() + 4 * 86400000);
           } else if (childStatus === 'BACKLOG') {
-            dEnd = new Date(2026, 9, 15); // Hari ini (15 Okt)
+            dEnd = new Date(); // Dinamis Hari Ini
           } else {
             dEnd = new Date(dStart.getTime() + 5 * 86400000);
           }
@@ -301,6 +320,10 @@ export default function ArmadaGanttSchedule({
         if (!dEnd || isNaN(dEnd.getTime()) || dEnd.getTime() < dStart.getTime()) {
           dEnd = new Date(dStart.getTime() + 2 * 86400000);
         }
+
+        // Update rentang tanggal total armada
+        if (dStart.getTime() < minArmadaTime) minArmadaTime = dStart.getTime();
+        if (dEnd.getTime() > maxArmadaTime) maxArmadaTime = dEnd.getTime();
 
         const durationDays = Math.max(1, Math.round(Math.abs(dEnd.getTime() - dStart.getTime()) / 86400000));
         const durationText = `${durationDays} Hari Kerja`;
@@ -335,14 +358,13 @@ export default function ArmadaGanttSchedule({
           tglDiantar: endLabel,
           picLap: override?.picLap || child.picLap || (child as any).picLapangan || 'Agus (Tim Lapangan)',
         });
-
-        if (sampleItems.length >= 10) break;
       }
 
-      const allStarts = sampleItems.map((s) => s.startDate.getTime());
-      const allEnds = sampleItems.map((s) => s.endDate.getTime());
-      const vStartDate = allStarts.length > 0 ? new Date(Math.min(...allStarts)) : new Date(2026, 9, 2);
-      const vEndDate = allEnds.length > 0 ? new Date(Math.max(...allEnds)) : new Date(2026, 9, 15);
+      // Urutkan sub-tiket berdasarkan startDate menaik (tiket awal W1 muncul duluan)
+      sampleItems.sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+
+      const vStartDate = minArmadaTime !== Infinity ? new Date(minArmadaTime) : new Date(2026, 9, 1);
+      const vEndDate = maxArmadaTime !== -Infinity ? new Date(maxArmadaTime) : new Date(2026, 9, 31);
 
       result.push({
         name: entry.name,
@@ -384,15 +406,55 @@ export default function ArmadaGanttSchedule({
 
   const totalCols = displayMonths.length * 4;
 
-  // Garis posisi 'TODAY' (15 Oktober 2026)
-  const todayPercent = useMemo(() => {
-    if (selectedPeriod === '10') {
-      return ((15 - 1 + 0.5) / 31) * 100;
+  // Garis posisi 'TODAY' (Dinamis new Date() secara proporsional terhadap rentang timeline)
+  const { todayPercent, todayLabel, isCurrentMonthInView } = useMemo(() => {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonthNum = now.getMonth() + 1; // 1-12
+    const currentMonthKey = String(currentMonthNum).padStart(2, '0');
+    const day = now.getDate();
+
+    // Format badge tanggal: "dd MMM" (contoh: "23 Okt")
+    const label = formatShortDate(now);
+
+    if (selectedPeriod !== 'ALL') {
+      const targetMonth = parseInt(selectedPeriod, 10);
+      const daysInTargetMonth = new Date(currentYear, targetMonth, 0).getDate();
+
+      // Jika bulan yang dipilih sama dengan bulan saat ini, hitung persentase dinamis
+      if (currentMonthNum === targetMonth) {
+        // Rumus: ((currentDate - timelineStartDate) / (timelineEndDate - timelineStartDate)) * 100
+        const timelineStart = new Date(currentYear, targetMonth - 1, 1).getTime();
+        const timelineEnd = new Date(currentYear, targetMonth - 1, daysInTargetMonth, 23, 59, 59).getTime();
+        const percent = Math.max(0, Math.min(100, ((now.getTime() - timelineStart) / (timelineEnd - timelineStart)) * 100));
+        return { todayPercent: percent, todayLabel: label, isCurrentMonthInView: true };
+      } else {
+        // Fallback default untuk simulasi bulan Oktober 2026 jika target adalah '10'
+        if (selectedPeriod === '10') {
+          const timelineStart = new Date(2026, 9, 1).getTime();
+          const timelineEnd = new Date(2026, 9, 31, 23, 59, 59).getTime();
+          const effectiveDate = (currentMonthNum === 10) ? now.getTime() : new Date(2026, 9, Math.min(day, 31)).getTime();
+          const percent = ((effectiveDate - timelineStart) / (timelineEnd - timelineStart)) * 100;
+          return { todayPercent: percent, todayLabel: label, isCurrentMonthInView: true };
+        }
+        return { todayPercent: null, todayLabel: label, isCurrentMonthInView: false };
+      }
+    } else {
+      // Mode Multi-Month ALL (5 Bulan: Jun=6 s/d Okt=10)
+      if (currentMonthNum >= 6 && currentMonthNum <= 10) {
+        const mIdx = currentMonthNum - 6;
+        const daysInMonth = new Date(currentYear, currentMonthNum, 0).getDate();
+        const dayFraction = (day - 1 + 0.5) / daysInMonth;
+        const percent = mIdx * 20 + dayFraction * 20;
+        return { todayPercent: percent, todayLabel: label, isCurrentMonthInView: true };
+      } else {
+        // Default pin di blok Oktober
+        const daysInOct = 31;
+        const dayFraction = (Math.min(day, 31) - 1 + 0.5) / daysInOct;
+        const percent = 4 * 20 + dayFraction * 20;
+        return { todayPercent: percent, todayLabel: label, isCurrentMonthInView: true };
+      }
     }
-    if (selectedPeriod === 'ALL') {
-      return 80 + ((15 - 1 + 0.5) / 31) * 20;
-    }
-    return null;
   }, [selectedPeriod]);
 
   const toggleRow = (name: string) => {
@@ -507,11 +569,14 @@ export default function ArmadaGanttSchedule({
                   className="flex-1 grid text-center font-bold relative"
                   style={{ gridTemplateColumns: `repeat(${totalCols}, minmax(0, 1fr))` }}
                 >
-                  {displayMonths.map((m) =>
-                    WEEKS_PER_MONTH.map((w, wIdx) => {
+                  {displayMonths.map((m) => {
+                    const currentDay = new Date().getDate();
+                    const activeWeekIdx = currentDay <= 7 ? 0 : currentDay <= 14 ? 1 : currentDay <= 21 ? 2 : 3;
+
+                    return WEEKS_PER_MONTH.map((w, wIdx) => {
                       const isTodayCol =
-                        (selectedPeriod === '10' && wIdx === 2) ||
-                        (selectedPeriod === 'ALL' && m.startCol + wIdx === TODAY_COL);
+                        (selectedPeriod === '10' && wIdx === activeWeekIdx) ||
+                        (selectedPeriod === 'ALL' && m.key === '10' && wIdx === activeWeekIdx);
 
                       return (
                         <div
@@ -525,17 +590,17 @@ export default function ArmadaGanttSchedule({
                           {w}
                         </div>
                       );
-                    })
-                  )}
+                    });
+                  })}
 
                   {todayPercent !== null && (
                     <div
                       className="absolute top-0 -translate-x-1/2 z-40 flex flex-col items-center pointer-events-none"
                       style={{ left: `${todayPercent}%` }}
                     >
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono font-black bg-rose-600 text-white shadow-md border border-rose-400 animate-pulse">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-mono font-black bg-rose-600 text-white shadow-md border border-rose-400 animate-pulse whitespace-nowrap">
                         <span className="size-1.5 rounded-full bg-white" />
-                        HARI INI • 15 OKT
+                        HARI INI • {todayLabel.toUpperCase()}
                       </span>
                     </div>
                   )}
@@ -738,9 +803,9 @@ export default function ArmadaGanttSchedule({
                                 </div>
                               )}
 
-                              {/* Bar Gantt Sub-Item */}
+                              {/* Bar Gantt Sub-Item dengan Min-Width Aman & Truncation Handling */}
                               <div
-                                className={`absolute h-7 rounded-lg shadow-xs flex items-center px-2 transition-all cursor-pointer hover:shadow-md hover:scale-[1.004] z-10 select-none border ${barBg}`}
+                                className={`absolute h-7 min-w-[56px] rounded-lg shadow-xs flex items-center px-1.5 transition-all cursor-pointer hover:shadow-md hover:scale-[1.004] z-10 select-none border overflow-hidden ${barBg}`}
                                 style={{
                                   left: `calc(${subLeft}% + 1px)`,
                                   width: `calc(${subWidth}% - 2px)`,
@@ -748,27 +813,42 @@ export default function ArmadaGanttSchedule({
                                 onClick={() => onOpenAudit && onOpenAudit(sub.fpb)}
                                 onMouseEnter={() => setHoveredSubItem({ vesselName: vessel.name, sub })}
                                 onMouseLeave={() => setHoveredSubItem(null)}
-                                title={`${sub.fpb}: ${sub.item} | ${sub.startLabel} → ${sub.endLabel} (${sub.durationDays} Hari)`}
+                                title={`${sub.fpb}: ${sub.item} | ${sub.startLabel} → ${sub.endLabel} (${sub.durationDays} Hari) [${sub.status}]`}
                               >
-                                <div className="flex items-center justify-between w-full text-[10px] font-semibold truncate leading-none">
-                                  <span className="truncate flex items-center gap-1.5 min-w-0">
+                                <div className="flex items-center justify-between w-full text-[10px] font-semibold truncate leading-none overflow-hidden">
+                                  {/* Node Kiri & Label FPB */}
+                                  <span className="truncate flex items-center gap-1 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
                                     {/* Milestone Node Kiri (Buat FPB) */}
                                     <span
                                       className="size-2 rounded-full bg-white ring-2 ring-white/60 shadow-xs shrink-0"
                                       title={`Milestone Buka FPB: ${sub.startLabel}`}
                                     />
-                                    <span className="font-mono font-bold tracking-tight shrink-0">{sub.fpb}</span>
-                                    <span className="truncate opacity-95 font-medium hidden sm:inline">• {sub.item}</span>
-                                    {/* Badge Rentang Tanggal & Durasi */}
-                                    <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-black/30 border border-white/20 shrink-0 font-medium ml-1">
-                                      {sub.startLabel} &rarr; {sub.endLabel} ({sub.durationDays} Hari)
-                                    </span>
+                                    {/* Sembunyikan ID FPB teks hanya jika bar terlalu sempit (< 6.5%) */}
+                                    {subWidth >= 6.5 ? (
+                                      <span className="font-mono font-bold tracking-tight truncate text-ellipsis">
+                                        {sub.fpb}
+                                      </span>
+                                    ) : null}
+                                    {/* Deskripsi Barang jika bar cukup lebar (>= 16%) */}
+                                    {subWidth >= 16 ? (
+                                      <span className="truncate opacity-95 font-medium hidden sm:inline">• {sub.item}</span>
+                                    ) : null}
+                                    {/* Badge Rentang Tanggal jika bar sangat lebar (>= 25%) */}
+                                    {subWidth >= 25 ? (
+                                      <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-black/30 border border-white/20 shrink-0 font-medium ml-1">
+                                        {sub.startLabel} &rarr; {sub.endLabel} ({sub.durationDays} Hari)
+                                      </span>
+                                    ) : null}
                                   </span>
 
-                                  <span className="flex items-center gap-1.5 shrink-0 ml-1">
-                                    <span className="text-[9px] font-mono font-bold bg-black/30 px-1.5 py-0.5 rounded border border-white/20">
-                                      {statusLabel}
-                                    </span>
+                                  {/* Status Badge & Node Kanan */}
+                                  <span className="flex items-center gap-1 shrink-0 ml-1">
+                                    {/* Tampilkan teks status hanya jika bar cukup lapang (>= 9%), jika sangat sempit tampilkan hanya milestone icon agar tidak terpotong menjadi 'L' */}
+                                    {subWidth >= 9 && (
+                                      <span className="text-[8.5px] font-mono font-bold bg-black/35 px-1.5 py-0.5 rounded border border-white/20 uppercase whitespace-nowrap">
+                                        {statusLabel}
+                                      </span>
+                                    )}
                                     {/* Milestone Node Kanan (Serah Terima Lapangan) */}
                                     <span
                                       className={`size-2 rounded-full ring-2 shadow-xs shrink-0 ${

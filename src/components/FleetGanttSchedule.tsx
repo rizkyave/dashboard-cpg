@@ -906,17 +906,47 @@ export default function FleetGanttSchedule({
   const totalCols = displayMonths.length * 4; // 20 jika ALL, 4 jika 1 bulan
   const colOffset = selectedPeriod === 'ALL' ? 0 : TIMELINE_MONTHS.find((m) => m.key === selectedPeriod)?.startCol || 0;
 
-  // Indikator Posisi Garis 'Today' (15 Oktober 2026)
-  const todayPercent = useMemo(() => {
-    if (selectedPeriod === '10') {
-      // Dalam bulan Oktober (31 hari), hari ke-15 berada di ~46.77%
-      return ((15 - 1 + 0.5) / 31) * 100;
+  // Indikator Posisi Garis 'Today' (Dinamis new Date() secara proporsional terhadap rentang timeline)
+  const { todayPercent, todayLabel, isCurrentMonthInView } = useMemo(() => {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonthNum = now.getMonth() + 1; // 1-12
+    const day = now.getDate();
+    const label = formatShortDate(now);
+
+    if (selectedPeriod !== 'ALL') {
+      const targetMonth = parseInt(selectedPeriod, 10);
+      const daysInTargetMonth = new Date(currentYear, targetMonth, 0).getDate();
+
+      if (currentMonthNum === targetMonth) {
+        const timelineStart = new Date(currentYear, targetMonth - 1, 1).getTime();
+        const timelineEnd = new Date(currentYear, targetMonth - 1, daysInTargetMonth, 23, 59, 59).getTime();
+        const percent = Math.max(0, Math.min(100, ((now.getTime() - timelineStart) / (timelineEnd - timelineStart)) * 100));
+        return { todayPercent: percent, todayLabel: label, isCurrentMonthInView: true };
+      } else {
+        if (selectedPeriod === '10') {
+          const timelineStart = new Date(2026, 9, 1).getTime();
+          const timelineEnd = new Date(2026, 9, 31, 23, 59, 59).getTime();
+          const effectiveDate = (currentMonthNum === 10) ? now.getTime() : new Date(2026, 9, Math.min(day, 31)).getTime();
+          const percent = ((effectiveDate - timelineStart) / (timelineEnd - timelineStart)) * 100;
+          return { todayPercent: percent, todayLabel: label, isCurrentMonthInView: true };
+        }
+        return { todayPercent: null, todayLabel: label, isCurrentMonthInView: false };
+      }
+    } else {
+      if (currentMonthNum >= 6 && currentMonthNum <= 10) {
+        const mIdx = currentMonthNum - 6;
+        const daysInMonth = new Date(currentYear, currentMonthNum, 0).getDate();
+        const dayFraction = (day - 1 + 0.5) / daysInMonth;
+        const percent = mIdx * 20 + dayFraction * 20;
+        return { todayPercent: percent, todayLabel: label, isCurrentMonthInView: true };
+      } else {
+        const daysInOct = 31;
+        const dayFraction = (Math.min(day, 31) - 1 + 0.5) / daysInOct;
+        const percent = 4 * 20 + dayFraction * 20;
+        return { todayPercent: percent, todayLabel: label, isCurrentMonthInView: true };
+      }
     }
-    if (selectedPeriod === 'ALL') {
-      // 5 Bulan (Jun..Okt). Okt adalah blok bulan ke-5 (offset 80%)
-      return 80 + ((15 - 1 + 0.5) / 31) * 20;
-    }
-    return null;
   }, [selectedPeriod]);
 
   return (
@@ -1085,13 +1115,15 @@ export default function FleetGanttSchedule({
                   className="flex-1 grid text-center font-bold relative"
                   style={{ gridTemplateColumns: `repeat(${totalCols}, minmax(0, 1fr))` }}
                 >
-                  {displayMonths.map((m) =>
-                    WEEKS_PER_MONTH.map((w, wIdx) => {
+                  {displayMonths.map((m) => {
+                    const currentDay = new Date().getDate();
+                    const activeWeekIdx = currentDay <= 7 ? 0 : currentDay <= 14 ? 1 : currentDay <= 21 ? 2 : 3;
+
+                    return WEEKS_PER_MONTH.map((w, wIdx) => {
                       const absoluteCol = m.startCol + wIdx;
-                      const inViewCol = absoluteCol - colOffset;
                       const isTodayCol =
-                        (selectedPeriod === '10' && wIdx === 2) ||
-                        (selectedPeriod === 'ALL' && absoluteCol === TODAY_COL);
+                        (selectedPeriod === '10' && wIdx === activeWeekIdx) ||
+                        (selectedPeriod === 'ALL' && m.key === '10' && wIdx === activeWeekIdx);
 
                       return (
                         <div
@@ -1107,8 +1139,8 @@ export default function FleetGanttSchedule({
                           {w}
                         </div>
                       );
-                    })
-                  )}
+                    });
+                  })}
 
                   {/* Marker Pin Badge 'TODAY' di Header */}
                   {todayPercent !== null && (
@@ -1116,9 +1148,9 @@ export default function FleetGanttSchedule({
                       className="absolute top-0 -translate-x-1/2 z-40 flex flex-col items-center pointer-events-none"
                       style={{ left: `${todayPercent}%` }}
                     >
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono font-black bg-rose-600 text-white shadow-md border border-rose-400 animate-pulse">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-mono font-black bg-rose-600 text-white shadow-md border border-rose-400 animate-pulse whitespace-nowrap">
                         <span className="size-1.5 rounded-full bg-white" />
-                        HARI INI • 15 OKT
+                        HARI INI • {todayLabel.toUpperCase()}
                       </span>
                       <div className="w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-rose-600 -mt-0.5" />
                     </div>
@@ -1337,9 +1369,9 @@ export default function FleetGanttSchedule({
                                 </div>
                               )}
 
-                              {/* Sub-Bar Gantt Progress Bar (Tinggi h-7.5, bebas clipping, milestone nodes di kedua ujung) */}
+                              {/* Sub-Bar Gantt Progress Bar (Tinggi h-7.5, bebas clipping, min-w aman) */}
                               <div
-                                className={`absolute h-7.5 rounded-lg shadow-xs flex items-center px-2 transition-all cursor-pointer hover:shadow-md hover:scale-[1.004] z-10 select-none border ${barBg}`}
+                                className={`absolute h-7.5 min-w-[56px] rounded-lg shadow-xs flex items-center px-1.5 transition-all cursor-pointer hover:shadow-md hover:scale-[1.004] z-10 select-none border overflow-hidden ${barBg}`}
                                 style={{
                                   left: `calc(${subLeftPct}% + 1px)`,
                                   width: `calc(${subWidthPct}% - 2px)`,
@@ -1347,27 +1379,36 @@ export default function FleetGanttSchedule({
                                 onClick={() => onOpenAudit && onOpenAudit(sub.fpb)}
                                 onMouseEnter={() => setHoveredSubItem({ vesselName: vessel.name, sub })}
                                 onMouseLeave={() => setHoveredSubItem(null)}
-                                title={`${sub.fpb}: ${sub.item} | ${sub.startLabel} → ${sub.endLabel} (${sub.durationDays} Hari)`}
+                                title={`${sub.fpb}: ${sub.item} | ${sub.startLabel} → ${sub.endLabel} (${sub.durationDays} Hari) [${sub.status}]`}
                               >
-                                <div className="flex items-center justify-between w-full text-[10px] font-semibold truncate leading-none">
-                                  <span className="truncate flex items-center gap-1.5 min-w-0">
+                                <div className="flex items-center justify-between w-full text-[10px] font-semibold truncate leading-none overflow-hidden">
+                                  <span className="truncate flex items-center gap-1 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
                                     {/* Milestone Node Kiri: Pembuatan FPB */}
                                     <span
                                       className="size-2 rounded-full bg-white ring-2 ring-white/60 shadow-xs shrink-0"
                                       title={`Milestone Buka FPB: ${sub.startLabel}`}
                                     />
-                                    <span className="font-mono font-bold tracking-tight shrink-0">{sub.fpb}</span>
-                                    <span className="truncate opacity-95 font-medium hidden sm:inline">• {sub.item}</span>
-                                    {/* Badge Rentang Waktu & Durasi Hari Kerja */}
-                                    <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-black/25 border border-white/20 shrink-0 font-medium ml-1">
-                                      {sub.startLabel} &rarr; {sub.endLabel} ({sub.durationDays} Hari)
-                                    </span>
+                                    {subWidthPct >= 6.5 ? (
+                                      <span className="font-mono font-bold tracking-tight truncate text-ellipsis">
+                                        {sub.fpb}
+                                      </span>
+                                    ) : null}
+                                    {subWidthPct >= 16 ? (
+                                      <span className="truncate opacity-95 font-medium hidden sm:inline">• {sub.item}</span>
+                                    ) : null}
+                                    {subWidthPct >= 25 ? (
+                                      <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-black/25 border border-white/20 shrink-0 font-medium ml-1">
+                                        {sub.startLabel} &rarr; {sub.endLabel} ({sub.durationDays} Hari)
+                                      </span>
+                                    ) : null}
                                   </span>
 
-                                  <span className="flex items-center gap-1.5 shrink-0 ml-1">
-                                    <span className="text-[9px] font-mono font-bold bg-black/25 px-1.5 py-0.5 rounded border border-white/20">
-                                      {statusLabel}
-                                    </span>
+                                  <span className="flex items-center gap-1 shrink-0 ml-1">
+                                    {subWidthPct >= 9 && (
+                                      <span className="text-[8.5px] font-mono font-bold bg-black/25 px-1.5 py-0.5 rounded border border-white/20 uppercase whitespace-nowrap">
+                                        {statusLabel}
+                                      </span>
+                                    )}
                                     {/* Milestone Node Kanan: Serah Terima Tim Lapangan */}
                                     <span
                                       className={`size-2 rounded-full ring-2 shadow-xs shrink-0 ${
