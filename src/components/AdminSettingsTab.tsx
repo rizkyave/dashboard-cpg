@@ -53,6 +53,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import ImageOptimizationCard from './ImageOptimizationCard';
 import { TabType } from '@/types/procurement';
 import {
   AuthUser,
@@ -2080,6 +2081,9 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
           </div>
         </div>
       )}
+
+      {/* Kartu Pengaturan Optimasi & Auto-Scaling Penyimpanan Foto */}
+      <ImageOptimizationCard isAdmin={isAdmin} showToast={showToast} />
 
       {/* ============================================================== */}
       {/* MODAL: TAMBAH PENGGUNA / VISITOR                               */}

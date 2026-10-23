@@ -142,3 +142,4 @@ export async function sendViaWaGateway(
     return { success: false, message: err?.message || 'Gagal menghubungi server WA Gateway.' };
   }
 }
+

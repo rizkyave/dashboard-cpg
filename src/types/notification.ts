@@ -36,3 +36,4 @@ export interface WaGatewayConfig {
   groupTarget?: string;
   enabled: boolean;
 }
+

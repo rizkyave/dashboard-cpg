@@ -51,3 +51,4 @@ export async function saveWaConfig(cfg: WaGatewayConfig) {
     await fs.writeFile(WA_CONFIG_FILE_PATH, jsonStr, 'utf8');
   } catch {}
 }
+

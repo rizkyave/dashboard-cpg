@@ -42,6 +42,7 @@ import {
   formatTtbStampDate,
   stampTtbImageFile,
 } from '@/utils/stampDateFormatter';
+import { optimizeAndScaleImage, formatByteSize } from '@/utils/imageCompressor';
 
 interface UploadTtbTabProps {
   procurementItems?: ProcurementItem[];
@@ -60,6 +61,10 @@ interface QueuedFile {
   armada: string;
   noFpb?: string;
   isAutoMatched: boolean;
+  originalSize?: number;
+  compressedSize?: number;
+  savingsPercent?: number;
+  isOptimized?: boolean;
 }
 
 interface TtbSuggestion {
@@ -452,30 +457,56 @@ export default function UploadTtbTab({
     );
   };
 
-  // Tambahkan file ke antrean (dengan deteksi otomatis Nomor TTB & Armada per berkas)
-  const addFilesToQueue = (files: FileList | File[]) => {
+  // Tambahkan file ke antrean (dengan deteksi otomatis Nomor TTB, Armada, serta Auto-Scaling & Kompresi)
+  const addFilesToQueue = async (files: FileList | File[]) => {
     const validFiles: QueuedFile[] = [];
     const arrayFiles = Array.from(files);
 
-    for (const file of arrayFiles) {
-      const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
+    let totalSavedBytes = 0;
+    let compressedCount = 0;
+
+    for (const rawFile of arrayFiles) {
+      const ext = rawFile.name.slice(rawFile.name.lastIndexOf('.')).toLowerCase();
       const isImage = /\.(jpe?g|png|webp|gif)$/i.test(ext);
       const isPdf = /\.pdf$/i.test(ext);
 
       if (!isImage && !isPdf) {
         showToast?.(
-          `Format file "${file.name}" tidak didukung. Harap unggah foto JPG/PNG atau scan PDF.`,
+          `Format file "${rawFile.name}" tidak didukung. Harap unggah foto JPG/PNG atau scan PDF.`,
           'warning'
         );
         continue;
       }
 
-      const previewUrl = isImage ? URL.createObjectURL(file) : '';
-      const detected = detectTtbAndArmada(file.name, ttbSuggestions);
+      let finalFile = rawFile;
+      let originalSize = rawFile.size;
+      let compressedSize = rawFile.size;
+      let savingsPercent = 0;
+      let isOptimized = false;
+
+      // Jalankan optimasi & scaling otomatis untuk foto TTB
+      if (isImage) {
+        try {
+          const compResult = await optimizeAndScaleImage(rawFile);
+          finalFile = compResult.file;
+          compressedSize = compResult.compressedSize;
+          savingsPercent = compResult.savingsPercent;
+          isOptimized = compResult.isCompressed;
+          if (compResult.isCompressed && compResult.savingsPercent > 5) {
+            totalSavedBytes += (originalSize - compressedSize);
+            compressedCount++;
+          }
+        } catch (compErr) {
+          console.warn('Gagal optimasi foto TTB:', compErr);
+        }
+      }
+
+      const previewUrl = isImage ? URL.createObjectURL(finalFile) : '';
+      const detected = detectTtbAndArmada(finalFile.name, ttbSuggestions);
 
       validFiles.push({
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        file,
+        file: finalFile,
         previewUrl,
         isImage,
         isPdf,
@@ -483,6 +514,10 @@ export default function UploadTtbTab({
         armada: detected.armada || armadaInput || '',
         noFpb: detected.noFpb || '',
         isAutoMatched: detected.isAutoMatched,
+        originalSize,
+        compressedSize,
+        savingsPercent,
+        isOptimized,
       });
     }
 
@@ -495,6 +530,11 @@ export default function UploadTtbTab({
         showToast?.(
           `⚠️ Peringatan: ${detectedDuplicates.length} berkas terindikasi SUDAH PERNAH DIUPLOAD sebelumnya!`,
           'warning'
+        );
+      } else if (compressedCount > 0 && totalSavedBytes > 0) {
+        showToast?.(
+          `⚡ Menambahkan ${validFiles.length} berkas. Foto berhasil dioptimasi & diskalakan (hemat ${formatByteSize(totalSavedBytes)})!`,
+          'success'
         );
       } else if (autoCount > 0) {
         showToast?.(
@@ -1489,6 +1529,14 @@ export default function UploadTtbTab({
                               </div>
                               <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-mono">
                                 <span>{formatFileSize(qf.file.size)}</span>
+                                {qf.isOptimized && qf.savingsPercent && qf.savingsPercent > 5 ? (
+                                  <span
+                                    className="px-1.5 py-0.2 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold text-[9px] border border-emerald-500/30"
+                                    title={`Foto diskalakan & dikompres otomatis dari ${formatByteSize(qf.originalSize || 0)} ke ${formatByteSize(qf.compressedSize || 0)}`}
+                                  >
+                                    ⚡ -{qf.savingsPercent}%
+                                  </span>
+                                ) : null}
                                 <span>&bull;</span>
                                 <span className={qf.isPdf ? 'text-rose-600 dark:text-rose-400 font-semibold' : 'text-blue-600 dark:text-blue-400 font-semibold'}>
                                   {qf.isPdf ? 'Dokumen Scan PDF' : 'Foto Serah Terima'}
@@ -1986,8 +2034,16 @@ export default function UploadTtbTab({
                                 <span className="truncate max-w-[160px] md:max-w-[200px]" title={qf.file.name}>
                                   {qf.file.name}
                                 </span>
-                                <span className="shrink-0 font-mono text-[10px]">
-                                  ({formatFileSize(qf.file.size)})
+                                <span className="shrink-0 font-mono text-[10px] flex items-center gap-1">
+                                  <span>({formatFileSize(qf.file.size)})</span>
+                                  {qf.isOptimized && qf.savingsPercent && qf.savingsPercent > 5 ? (
+                                    <span
+                                      className="px-1 py-0.2 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold text-[9px] border border-emerald-500/30"
+                                      title={`Foto diskalakan & dikompres otomatis dari ${formatByteSize(qf.originalSize || 0)} ke ${formatByteSize(qf.compressedSize || 0)}`}
+                                    >
+                                      ⚡ -{qf.savingsPercent}%
+                                    </span>
+                                  ) : null}
                                 </span>
                               </div>
 

@@ -46,6 +46,7 @@ import {
 } from '@/utils/fstbRename';
 import { formatFstbStampDate } from '@/utils/stampDateFormatter';
 import FstbSuccessWaModal from './FstbSuccessWaModal';
+import { optimizeAndScaleImage, formatByteSize } from '@/utils/imageCompressor';
 
 interface UploadFstbTabProps {
   procurementItems?: ProcurementItem[];
@@ -65,6 +66,10 @@ interface QueuedFile {
   doNo: string;
   noFpb: string;
   isAutoMatched: boolean;
+  originalSize?: number;
+  compressedSize?: number;
+  savingsPercent?: number;
+  isOptimized?: boolean;
 }
 
 interface FstbSuggestion {
@@ -307,21 +312,49 @@ export default function UploadFstbTab({
     fetchHistory();
   }, []);
 
-  // Handle Penambahan Berkas ke Antrean
-  const handleFilesAdded = (files: FileList | File[]) => {
+  // Handle Penambahan Berkas ke Antrean dengan Auto-Compress & Scaling
+  const handleFilesAdded = async (files: FileList | File[]) => {
     const fileArray = Array.from(files);
     if (fileArray.length === 0) return;
 
-    const newQueued: QueuedFile[] = fileArray.map((file) => {
-      const isPdf = file.name.toLowerCase().endsWith('.pdf');
-      const isImage = /\.(jpe?g|png|webp|gif)$/i.test(file.name);
-      const previewUrl = URL.createObjectURL(file);
+    let totalSavedBytes = 0;
+    let compressedCount = 0;
 
-      const detection = detectFstbAndArmada(file.name, fstbSuggestions);
+    const newQueued: QueuedFile[] = [];
 
-      return {
+    for (const rawFile of fileArray) {
+      const isPdf = rawFile.name.toLowerCase().endsWith('.pdf');
+      const isImage = /\.(jpe?g|png|webp|gif)$/i.test(rawFile.name);
+
+      let finalFile = rawFile;
+      let originalSize = rawFile.size;
+      let compressedSize = rawFile.size;
+      let savingsPercent = 0;
+      let isOptimized = false;
+
+      // Jalankan auto-scaling dan kompresi untuk foto/gambar
+      if (isImage) {
+        try {
+          const compResult = await optimizeAndScaleImage(rawFile);
+          finalFile = compResult.file;
+          compressedSize = compResult.compressedSize;
+          savingsPercent = compResult.savingsPercent;
+          isOptimized = compResult.isCompressed;
+          if (compResult.isCompressed && compResult.savingsPercent > 5) {
+            totalSavedBytes += (originalSize - compressedSize);
+            compressedCount++;
+          }
+        } catch (compErr) {
+          console.warn('Gagal kompresi foto:', compErr);
+        }
+      }
+
+      const previewUrl = URL.createObjectURL(finalFile);
+      const detection = detectFstbAndArmada(finalFile.name, fstbSuggestions);
+
+      newQueued.push({
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        file,
+        file: finalFile,
         previewUrl,
         isPdf,
         isImage,
@@ -330,8 +363,12 @@ export default function UploadFstbTab({
         doNo: detection.doNo || batchDoNo,
         noFpb: detection.noFpb || batchNoFpb,
         isAutoMatched: detection.isAutoMatched,
-      };
-    });
+        originalSize,
+        compressedSize,
+        savingsPercent,
+        isOptimized,
+      });
+    }
 
     setQueue((prev) => [...prev, ...newQueued]);
 
@@ -349,7 +386,14 @@ export default function UploadFstbTab({
         'warning'
       );
     } else {
-      showToast?.(`${newQueued.length} berkas berhasil ditambahkan ke antrean.`, 'info');
+      if (compressedCount > 0 && totalSavedBytes > 0) {
+        showToast?.(
+          `⚡ ${newQueued.length} berkas ditambahkan. Foto dioptimasi & diskalakan (hemat ${formatByteSize(totalSavedBytes)})!`,
+          'success'
+        );
+      } else {
+        showToast?.(`${newQueued.length} berkas berhasil ditambahkan ke antrean.`, 'info');
+      }
     }
   };
 
@@ -934,8 +978,16 @@ export default function UploadFstbTab({
                           >
                             {item.file.name}
                           </span>
-                          <span className="text-[10px] text-muted-foreground shrink-0 font-mono">
-                            ({formatFileSize(item.file.size)})
+                          <span className="text-[10px] text-muted-foreground shrink-0 font-mono flex items-center gap-1">
+                            <span>({formatFileSize(item.file.size)})</span>
+                            {item.isOptimized && item.savingsPercent && item.savingsPercent > 5 ? (
+                              <span
+                                className="px-1.5 py-0.2 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold text-[9px] border border-emerald-500/30"
+                                title={`Foto diskalakan & dikompres otomatis dari ${formatByteSize(item.originalSize || 0)} ke ${formatByteSize(item.compressedSize || 0)}`}
+                              >
+                                ⚡ -{item.savingsPercent}%
+                              </span>
+                            ) : null}
                           </span>
                         </div>
 
