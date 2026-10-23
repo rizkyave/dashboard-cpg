@@ -146,3 +146,4 @@ export default function ImageOptimizationCard({ isAdmin, showToast }: ImageOptim
     </div>
   );
 }
+
