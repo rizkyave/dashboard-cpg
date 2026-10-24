@@ -590,7 +590,7 @@ export default function Header({
                 <div className="leading-tight min-w-0 flex-1">
                   <p className="font-semibold text-foreground truncate">{user?.name || 'Pengguna'}</p>
                   <p className="text-[10px] text-muted-foreground truncate">
-                    {user?.department || (isAdmin ? 'CPG Administrator • Somber HQ' : isVisitor ? 'Visitor (Akses Read-Only)' : 'Staff Operasional')}
+                    {user?.department || (isAdmin ? 'CPG Administrator • Somber HQ' : isVisitor ? 'Tamu (Akses Hanya Baca)' : 'Staff Operasional')}
                   </p>
                 </div>
               </div>
@@ -608,7 +608,7 @@ export default function Header({
                   >
                     <div className="flex items-center gap-2">
                       <ShieldCheck className="size-4" />
-                      <span>Admin Settings &bull; Kelola Pengguna</span>
+                      <span>Pengaturan Admin &bull; Kelola Pengguna</span>
                     </div>
                     <span className="text-[9px] font-mono font-bold bg-purple-500/20 px-1 rounded">
                       Admin
@@ -623,7 +623,7 @@ export default function Header({
                 <div className="px-2.5 pt-1.5 pb-1 text-[10px] font-mono font-semibold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
                   <span>Layanan &amp; Pengadaan</span>
                   <span className="text-[9px] text-sky-600 dark:text-sky-400 font-bold bg-sky-500/10 px-1 py-0.2 rounded border border-sky-500/20">
-                    Live Sync
+                    Sinkron Langsung
                   </span>
                 </div>
 
@@ -648,14 +648,14 @@ export default function Header({
                         </span>
                       </div>
                       <span className="text-[10px] text-muted-foreground block truncate">
-                        Google Sheets Utama (Procurement &amp; Armada)
+                        Google Sheets Utama (Pengadaan &amp; Armada)
                       </span>
                     </div>
                   </div>
                   <ExternalLink className="size-3.5 text-muted-foreground group-hover:text-emerald-600 dark:group-hover:text-emerald-400 shrink-0 transition-colors" />
                 </a>
 
-                {/* 0b. Shortcut Baru: (WO) Work Order */}
+                {/* 0b. Shortcut Baru: (WO) Surat Perintah Kerja */}
                 <div
                   onClick={() => {
                     if (onNavigateTab) {
@@ -713,7 +713,7 @@ export default function Header({
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
                         <span className="font-semibold block leading-tight text-xs text-foreground group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
-                          (SM) Service &amp; Maintenance
+                          (SM) Layanan &amp; Pemeliharaan
                         </span>
                         <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300 shrink-0">
                           Vendor
@@ -741,7 +741,7 @@ export default function Header({
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
                           <span className="font-semibold block leading-tight text-xs text-foreground">
-                            {isSyncing ? 'Menyinkronkan...' : 'Refresh Layanan'}
+                            {isSyncing ? 'Menyinkronkan...' : 'Segarkan Layanan'}
                           </span>
                           <span className="text-[9px] font-bold px-1 py-0.2 rounded bg-sky-500/15 text-sky-600 dark:text-sky-400">
                             Google Sheets
@@ -843,10 +843,10 @@ export default function Header({
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
                           <span className="font-semibold block leading-tight text-xs text-foreground">
-                            {isSyncingEfpbFiles ? 'Menyinkronkan...' : 'Refresh FPB Terbaru'}
+                            {isSyncingEfpbFiles ? 'Menyinkronkan...' : 'Segarkan FPB Terbaru'}
                           </span>
                           <span className="text-[9px] font-bold px-1 py-0.2 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
-                            e-FPB Live
+                            e-FPB Terkini
                           </span>
                         </div>
                         <span className="text-[10px] text-muted-foreground block truncate">
@@ -1159,7 +1159,7 @@ export default function Header({
               >
                 <LogOut className="size-4 text-muted-foreground shrink-0" />
                 <div className="min-w-0">
-                  <span className="font-medium block leading-tight text-xs">Keluar / Logout</span>
+                  <span className="font-medium block leading-tight text-xs">Keluar</span>
                   <span className="text-[10px] text-muted-foreground block">
                     Akhiri sesi masuk saat ini
                   </span>
@@ -1232,7 +1232,7 @@ export default function Header({
         {isVisitor && (
           <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[11px] font-semibold">
             <Eye className="size-3" />
-            <span>Mode Visitor (Read-Only)</span>
+            <span>Mode Tamu (Hanya Baca)</span>
           </div>
         )}
 

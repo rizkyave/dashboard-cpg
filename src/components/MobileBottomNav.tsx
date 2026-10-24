@@ -42,7 +42,7 @@ export default function MobileBottomNav({
     ? [
         {
           id: 'overview',
-          label: 'Overview',
+          label: 'Ringkasan',
           icon: LayoutDashboard,
         },
         {
@@ -54,7 +54,7 @@ export default function MobileBottomNav({
     : [
         {
           id: 'overview',
-          label: 'Overview',
+          label: 'Ringkasan',
           icon: LayoutDashboard,
         },
     {

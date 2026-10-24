@@ -745,7 +745,7 @@ export default function UploadTtbTab({
             <div>
               <div className="flex items-center gap-2.5 flex-wrap">
                 <h2 className="text-lg font-bold text-foreground tracking-tight">
-                  Upload Dokumen TTB
+                  Unggah Dokumen TTB
                 </h2>
                 <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/30">
                   Cloudflare R2
@@ -769,7 +769,7 @@ export default function UploadTtbTab({
               title="Uji koneksi langsung ke bucket Cloudflare R2 Storage"
             >
               <Database className={`size-3.5 text-orange-500 ${isTestingStorage ? 'animate-pulse' : ''}`} />
-              <span>{isTestingStorage ? 'Menguji...' : 'Uji Koneksi Storage'}</span>
+              <span>{isTestingStorage ? 'Menguji...' : 'Uji Koneksi Penyimpanan'}</span>
             </button>
 
             <button
@@ -876,7 +876,7 @@ export default function UploadTtbTab({
             <div>
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold font-mono border border-emerald-500/30 mb-2">
                 <Sparkles className="size-3" />
-                <span>Mendukung Multi-TTB &amp; Multi-Upload</span>
+                <span>Mendukung Banyak TTB &amp; Unggah Sekaligus</span>
               </div>
 
               <p className="text-sm font-bold text-foreground">
@@ -885,7 +885,7 @@ export default function UploadTtbTab({
               </p>
 
               <p className="text-xs text-muted-foreground mt-2">
-                Bisa mengunggah <strong>banyak nomor TTB berbeda sekaligus</strong> (Batch Multi-TTB) maupun berkas lampiran multi-halaman/foto.
+                Bisa mengunggah <strong>banyak nomor TTB berbeda sekaligus</strong> maupun berkas lampiran multi-halaman/foto.
               </p>
               <p className="text-[11px] text-muted-foreground/80 font-mono mt-0.5">
                 Format otomatis: <strong>CPL-TTB-26-00449.pdf</strong> (nomor TTB, armada, &amp; PO terdeteksi otomatis per berkas)
@@ -1066,7 +1066,7 @@ export default function UploadTtbTab({
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
                   <label className="text-[11px] font-semibold text-foreground block mb-1">
-                    Armada / User:
+                    Armada / Unit:
                   </label>
                   <input
                     type="text"
@@ -1116,13 +1116,13 @@ export default function UploadTtbTab({
                 />
               </div>
 
-              {/* Card Sub-Pengaturan: Identitas Uploader & Auto-Stamp */}
+              {/* Card Sub-Pengaturan: Identitas Pengunggah & Stempel Otomatis */}
               <div className="p-3.5 rounded-xl border border-primary/25 bg-primary/5 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5 text-primary font-semibold text-xs">
                     <PenTool className="size-3.5" />
                     <div>
-                      <span className="font-bold">Identitas Uploader &amp; Stempel</span>
+                      <span className="font-bold">Identitas Pengunggah &amp; Stempel</span>
                     </div>
                   </div>
                   <label className="inline-flex items-center gap-1.5 cursor-pointer text-[11px] text-foreground font-medium">
@@ -1132,26 +1132,26 @@ export default function UploadTtbTab({
                       onChange={(e) => setEnableAutoStamp(e.target.checked)}
                       className="rounded text-primary focus:ring-primary"
                     />
-                    <span>Auto-Stamp PDF</span>
+                    <span>Stempel Otomatis PDF</span>
                   </label>
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-[10px] text-muted-foreground font-medium block">
-                    Nama Uploader (Purchasing / Logistic Staff):
+                    Nama Pengunggah (Staf Logistik / Pengadaan):
                   </label>
                   <input
                     type="text"
                     value={uploaderName}
                     onChange={(e) => setUploaderName(e.target.value)}
-                    placeholder="Nama lengkap uploader"
+                    placeholder="Nama lengkap pengunggah"
                     className="w-full h-7 px-2.5 text-xs rounded-lg border border-border bg-background text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
                   />
                 </div>
 
                 {enableAutoStamp && (
                   <p className="text-[10px] text-muted-foreground leading-relaxed">
-                    Sistem akan secara otomatis menyematkan nama uploader, tanda tangan digital akun (jika tersimpan di Admin Settings), dan tanggal pada kolom formulir TTB resmi.
+                    Sistem akan secara otomatis menyematkan nama pengunggah, tanda tangan digital akun (jika tersimpan di Pengaturan Admin), dan tanggal pada kolom formulir TTB resmi.
                   </p>
                 )}
               </div>
@@ -1223,10 +1223,10 @@ export default function UploadTtbTab({
             <thead className="bg-muted/50 text-muted-foreground font-semibold border-b border-border uppercase text-[10px] tracking-wider">
               <tr>
                 <th className="py-2.5 px-3">NO. TTB RESMI</th>
-                <th className="py-2.5 px-3">ARMADA / USER</th>
+                <th className="py-2.5 px-3">ARMADA / UNIT</th>
                 <th className="py-2.5 px-3">NO. DO / PO</th>
-                <th className="py-2.5 px-3">UPLOADER</th>
-                <th className="py-2.5 px-3">TGL &amp; WAKTU UPLOAD</th>
+                <th className="py-2.5 px-3">PENGUNGGAH</th>
+                <th className="py-2.5 px-3">TANGGAL &amp; WAKTU UNGGAH</th>
                 <th className="py-2.5 px-3">STATUS</th>
                 <th className="py-2.5 px-3 text-right">AKSI</th>
               </tr>

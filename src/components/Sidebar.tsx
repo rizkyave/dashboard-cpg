@@ -116,10 +116,10 @@ export default function Sidebar({
   const allDashboards: DashboardNavItem[] = [
     {
       id: 'overview' as TabType,
-      label: 'Overview',
+      label: 'Ringkasan',
       icon: LayoutDashboard,
-      badge: isVisitor ? 'Visitor' : 'Main',
-      title: 'Ringkasan Monitoring Procurement (Terintegrasi Database Barang Sisa Layanan 2026)',
+      badge: isVisitor ? 'Tamu' : 'Utama',
+      title: 'Ringkasan Monitoring Pengadaan (Terintegrasi Database Barang Sisa Layanan 2026)',
     },
     {
       id: 'review-fpb' as TabType,
@@ -133,14 +133,14 @@ export default function Sidebar({
       label: 'Monitoring Internal',
       icon: FileSpreadsheet,
       badge: 'Sheet',
-      title: 'Monitoring Berkas Internal Procurement (Done by Purchasing, Delivery Time & Serah Terima PIC TTB)',
+      title: 'Monitoring Berkas Internal Pengadaan (Selesai Purchasing, Waktu Kirim & Serah Terima PIC TTB)',
     },
     {
       id: 'procurement' as TabType,
-      label: 'Procurement',
+      label: 'Pengadaan',
       icon: ShoppingBag,
       badge: totalCount > 0 ? (totalCount >= 1000 ? `${(totalCount / 1000).toFixed(0)}k` : `${totalCount}`) : undefined,
-      title: 'Monitoring Alur Procurement & Lead Time (Hover FPB / Item untuk Nama Barang Sisa Layanan)',
+      title: 'Monitoring Alur Pengadaan & Waktu Tunggu (Hover FPB / Item untuk Nama Barang Sisa Layanan)',
     },
     {
       id: 'armada' as TabType,
@@ -151,17 +151,17 @@ export default function Sidebar({
     },
     {
       id: 'upload-fstb' as TabType,
-      label: 'Upload FSTB',
+      label: 'Unggah FSTB',
       icon: PackageCheck,
       badge: 'R2',
-      title: 'Upload Dokumen FSTB ke Cloudflare R2 dengan Format Otomatis Sesuai No. FSTB',
+      title: 'Unggah Dokumen FSTB ke Cloudflare R2 dengan Format Otomatis Sesuai No. FSTB',
     },
     {
       id: 'upload-ttb' as TabType,
-      label: 'Upload TTB',
+      label: 'Unggah TTB',
       icon: UploadCloud,
       badge: 'R2',
-      title: 'Upload Dokumen TTB ke Cloudflare R2 dengan Format Otomatis Sesuai No. TTB',
+      title: 'Unggah Dokumen TTB ke Cloudflare R2 dengan Format Otomatis Sesuai No. TTB',
     },
     {
       id: 'validasi-dokumen' as TabType,
@@ -272,7 +272,7 @@ export default function Sidebar({
             <div className="flex items-center gap-2 min-w-0 flex-1">
               <Command className="size-4.5 text-foreground shrink-0" />
               <span className="font-bold text-xs tracking-tight text-foreground leading-tight">
-                CPG Procurement Monitoring System
+                Sistem Monitoring Pengadaan CPG
               </span>
             </div>
             <button
@@ -288,7 +288,7 @@ export default function Sidebar({
           {isVisitor ? (
             <div className="flex items-center gap-2 p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[11px] font-medium">
               <span className="size-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-              <span className="truncate">Mode Visitor &bull; Read-Only</span>
+              <span className="truncate">Mode Tamu &bull; Hanya Baca</span>
             </div>
           ) : user?.role === 'staf_ttb' ? (
             <div className="flex items-center gap-2 p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-700 dark:text-blue-300 text-[11px] font-medium">
@@ -308,7 +308,7 @@ export default function Sidebar({
                   className="flex-1 h-9 rounded-lg bg-foreground text-background hover:opacity-90 text-xs font-semibold flex items-center justify-center gap-2 transition shadow-xs active:scale-95 touch-manipulation cursor-pointer"
                 >
                   <CirclePlus className="size-4" />
-                  <span>Quick Create</span>
+                  <span>Catat Baru</span>
                 </button>
               )}
 
@@ -339,7 +339,7 @@ export default function Sidebar({
         {/* Dashboards Section */}
         <div className="space-y-1 mt-1">
           <div className="px-2 py-1 text-[11px] font-medium text-muted-foreground">
-            Dashboards
+            Menu Utama
           </div>
           <nav className="space-y-0.5">
             {dashboards.map((item) => {
@@ -530,7 +530,7 @@ export default function Sidebar({
                         activeTab === 'crew-kapal' ? 'text-blue-500' : 'text-muted-foreground'
                       }`}
                     />
-                    <span className="truncate whitespace-nowrap">Crew &amp; Armada</span>
+                    <span className="truncate whitespace-nowrap">Awak &amp; Armada</span>
                   </div>
                   <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
                     60 Kpl
@@ -555,7 +555,7 @@ export default function Sidebar({
                         activeTab === 'work-order' ? 'text-blue-500' : 'text-muted-foreground'
                       }`}
                     />
-                    <span className="truncate whitespace-nowrap">List WO</span>
+                    <span className="truncate whitespace-nowrap">Daftar WO</span>
                   </div>
                   <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
                     {workOrderCount !== undefined && workOrderCount > 0
@@ -582,7 +582,7 @@ export default function Sidebar({
                         activeTab === 'list-sm' ? 'text-amber-500' : 'text-muted-foreground'
                       }`}
                     />
-                    <span className="truncate whitespace-nowrap">List SM</span>
+                    <span className="truncate whitespace-nowrap">Daftar SM</span>
                   </div>
                   <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
                     {serviceMaintenanceCount !== undefined && serviceMaintenanceCount > 0
@@ -651,7 +651,7 @@ export default function Sidebar({
                         activeTab === 'analytics' ? 'text-purple-500' : 'text-muted-foreground'
                       }`}
                     />
-                    <span className="truncate whitespace-nowrap">Analytics</span>
+                    <span className="truncate whitespace-nowrap">Analisis SLA</span>
                   </div>
                   {criticalCount > 0 ? (
                     <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
@@ -682,10 +682,10 @@ export default function Sidebar({
                         activeTab === 'admin-settings' ? 'text-indigo-500' : 'text-muted-foreground'
                       }`}
                     />
-                    <span className="truncate whitespace-nowrap">Admin Settings</span>
+                    <span className="truncate whitespace-nowrap">Pengaturan Admin</span>
                   </div>
                   <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-background text-muted-foreground border border-border">
-                    Users
+                    Pengguna
                   </span>
                 </button>
               )}
@@ -726,11 +726,11 @@ export default function Sidebar({
         <div className="flex items-center gap-1 shrink-0">
           <button
             onClick={() => {
-              if (window.confirm('Apakah Anda yakin ingin keluar (logout)?')) {
+              if (window.confirm('Apakah Anda yakin ingin keluar?')) {
                 logout();
               }
             }}
-            title="Keluar / Logout"
+            title="Keluar"
             className="p-1.5 rounded-lg text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition cursor-pointer"
           >
             <LogOut className="size-3.5" />
