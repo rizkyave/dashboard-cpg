@@ -44,6 +44,7 @@ import {
   getUserActionForRecord,
   getStatusKelayakanConfig,
 } from '@/utils/validationHelper';
+import WorkflowTabs, { WorkflowTabType } from './WorkflowTabs';
 import ValidationSignatureModal from './ValidationSignatureModal';
 import FstbValidationModal from './FstbValidationModal';
 import TtbValidationModal from './TtbValidationModal';
@@ -73,6 +74,9 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
   const [isSyncingR2, setIsSyncingR2] = useState<boolean>(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>('');
+
+  // Top-Level Workflow Tab State (Perlu Tindakan vs Selesai Lengkap)
+  const [workflowTab, setWorkflowTab] = useState<WorkflowTabType>('ACTIVE');
 
   // Filter & Search State
   const [filterType, setFilterType] = useState<'ALL' | 'FSTB' | 'TTB'>('ALL');
@@ -245,7 +249,6 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
       } else if (comp.completedCount >= 1 && comp.completedCount < (r.docType === 'TTB' ? 3 : 4)) {
         inProgress++; // 1-2 PIC dalam proses
       } else if (comp.completedCount === 4) {
-        readyDispatch++;
         completed++;
       }
     }
@@ -261,20 +264,64 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
     };
   }, [records]);
 
+  // Hitung jumlah berkas aktif vs selesai lengkap administrasi
+  const activeCount = useMemo(() => {
+    return records.filter((r) => computeValidationStatus(r).completedCount < 4).length;
+  }, [records]);
+
+  const completedCount = useMemo(() => {
+    return records.filter((r) => computeValidationStatus(r).completedCount === 4).length;
+  }, [records]);
+
+  // Dokumen pada workflow tab saat ini (untuk badge counter FSTB / TTB dinamis)
+  const currentTabRecords = useMemo(() => {
+    return records.filter((r) => {
+      const comp = computeValidationStatus(r);
+      const isCompleted = comp.completedCount === 4;
+      return workflowTab === 'ACTIVE' ? !isCompleted : isCompleted;
+    });
+  }, [records, workflowTab]);
+
+  const typeCounts = useMemo(() => {
+    let fstb = 0;
+    let ttb = 0;
+    for (const r of currentTabRecords) {
+      if (r.docType === 'FSTB') fstb++;
+      if (r.docType === 'TTB') ttb++;
+    }
+    return {
+      all: currentTabRecords.length,
+      fstb,
+      ttb,
+    };
+  }, [currentTabRecords]);
+
   // Filter data di client-side
   const filteredRecords = useMemo(() => {
     let result = [...records];
 
+    // 1. Workflow Tab Filter
+    result = result.filter((r) => {
+      const comp = computeValidationStatus(r);
+      const isCompleted = comp.completedCount === 4;
+      return workflowTab === 'ACTIVE' ? !isCompleted : isCompleted;
+    });
+
+    // 2. Filter Tipe Dokumen (FSTB / TTB)
     if (filterType !== 'ALL') {
       result = result.filter((r) => r.docType === filterType);
     }
 
+    // 3. Filter Status Validasi
     if (filterStatus !== 'ALL') {
       result = result.filter((r) => {
         const comp = computeValidationStatus(r);
         if (filterStatus === 'MENUNGGU_VALIDASI') return comp.completedCount === 0;
-        if (filterStatus === 'PROSES_VALIDASI') return comp.completedCount >= 1 && comp.completedCount < 4;
-        if (filterStatus === 'SIAP_KIRIM_ARMADA' || filterStatus === 'SUDAH_DITERIMA_ARMADA' || filterStatus === 'SELESAI') {
+        if (filterStatus === 'PROSES_VALIDASI') return comp.completedCount >= 1 && comp.completedCount < (r.docType === 'TTB' ? 3 : 4);
+        if (filterStatus === 'SIAP_KIRIM_ARMADA') {
+          return r.docType === 'TTB' ? comp.completedCount === 3 : comp.completedCount === 4;
+        }
+        if (filterStatus === 'SUDAH_DITERIMA_ARMADA' || filterStatus === 'SELESAI') {
           return comp.completedCount === 4;
         }
         return r.overallStatus === filterStatus;
@@ -329,15 +376,16 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
     }
 
     return result;
-  }, [records, filterType, filterStatus, searchKeyword]);
+  }, [records, workflowTab, filterType, filterStatus, searchKeyword]);
 
   // Berkas yang memenuhi syarat wewenang pengguna (RBAC) untuk ditandatangani
   const selectableRecords = useMemo(() => {
+    if (workflowTab === 'COMPLETED') return [];
     return filteredRecords.filter((rec) => {
       const action = getUserActionForRecord(rec, user, Boolean(isAdmin));
       return action.canValidate;
     });
-  }, [filteredRecords, user, isAdmin]);
+  }, [filteredRecords, user, isAdmin, workflowTab]);
 
   // Objek record berkas terpilih untuk dialog batch
   const selectedRecords = useMemo(() => {
@@ -524,6 +572,18 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
 
       {/* Filter & Search Bar */}
       <div className="bg-card border border-border rounded-2xl p-4 shadow-xs space-y-3">
+        {/* Top-Level Workflow Tabs: Perlu Tindakan vs Selesai / Lengkap Administrasi */}
+        <WorkflowTabs
+          currentTab={workflowTab}
+          onChange={(tab) => {
+            setWorkflowTab(tab);
+            setSelectedIds([]);
+            setFilterStatus('ALL');
+          }}
+          activeCount={activeCount}
+          completedCount={completedCount}
+        />
+
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           {/* Filter Tipe Dokumen */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
@@ -536,7 +596,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                   : 'bg-background hover:bg-muted text-muted-foreground border-border'
               }`}
             >
-              Semua ({displayMetrics.totalDocuments})
+              Semua ({typeCounts.all})
             </button>
             <button
               type="button"
@@ -548,7 +608,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
               }`}
             >
               <Boxes className="size-3" />
-              <span>FSTB ({displayMetrics.totalFstb})</span>
+              <span>FSTB ({typeCounts.fstb})</span>
             </button>
             <button
               type="button"
@@ -560,23 +620,29 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
               }`}
             >
               <PackageCheck className="size-3" />
-              <span>TTB ({displayMetrics.totalTtb})</span>
+              <span>TTB ({typeCounts.ttb})</span>
             </button>
           </div>
 
           {/* Filter Status & Search Input */}
           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="h-8.5 px-2.5 text-xs rounded-lg border border-border bg-background text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
-            >
-              <option value="ALL">Semua Status Validasi</option>
-              <option value="MENUNGGU_VALIDASI">Menunggu Validasi (0/4)</option>
-              <option value="PROSES_VALIDASI">Dalam Proses (1-2/4)</option>
-              <option value="SIAP_KIRIM_ARMADA">Disetujui / Siap Kirim (3/4)</option>
-              <option value="SUDAH_DITERIMA_ARMADA">Diterima Penerima (4/4)</option>
-            </select>
+            {workflowTab === 'ACTIVE' ? (
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="h-8.5 px-2.5 text-xs rounded-lg border border-border bg-background text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
+              >
+                <option value="ALL">Semua Status Validasi</option>
+                <option value="MENUNGGU_VALIDASI">Menunggu Validasi (0/4)</option>
+                <option value="PROSES_VALIDASI">Dalam Proses (1-2/4)</option>
+                <option value="SIAP_KIRIM_ARMADA">Disetujui / Siap Kirim (3/4)</option>
+              </select>
+            ) : (
+              <div className="h-8.5 px-3 flex items-center text-xs font-semibold rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 whitespace-nowrap">
+                <CheckCircle2 className="size-3.5 mr-1.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span>Status: Lengkap 4/4 Selesai</span>
+              </div>
+            )}
 
             <div className="relative w-full sm:w-64">
               <Search className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -677,22 +743,28 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
             <thead className="sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md text-muted-foreground font-semibold border-b border-border uppercase text-[10px] tracking-wider shadow-xs">
               <tr>
                 <th className="py-2.5 px-3 w-10 text-center sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md">
-                  <input
-                    ref={headerCheckboxRef}
-                    type="checkbox"
-                    checked={
-                      selectableRecords.length > 0 &&
-                      selectedIds.length === selectableRecords.length
-                    }
-                    onChange={handleToggleSelectAll}
-                    disabled={selectableRecords.length === 0}
-                    className="size-4 rounded border-border accent-primary cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed transition"
-                    title={
-                      selectableRecords.length > 0
-                        ? `Pilih semua ${selectableRecords.length} berkas yang siap Anda tandatangani`
-                        : 'Tidak ada berkas yang memerlukan otorisasi Anda'
-                    }
-                  />
+                  {workflowTab === 'ACTIVE' ? (
+                    <input
+                      ref={headerCheckboxRef}
+                      type="checkbox"
+                      checked={
+                        selectableRecords.length > 0 &&
+                        selectedIds.length === selectableRecords.length
+                      }
+                      onChange={handleToggleSelectAll}
+                      disabled={selectableRecords.length === 0}
+                      className="size-4 rounded border-border accent-primary cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed transition"
+                      title={
+                        selectableRecords.length > 0
+                          ? `Pilih semua ${selectableRecords.length} berkas yang siap Anda tandatangani`
+                          : 'Tidak ada berkas yang memerlukan otorisasi Anda'
+                      }
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center" title="Seluruh berkas arsip lengkap 4/4">
+                      <CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                  )}
                 </th>
                 <th className="py-2.5 px-3 sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md">Tipe</th>
                 <th className="py-2.5 px-3 sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md">No. Berkas Resmi</th>
@@ -718,9 +790,21 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
               ) : filteredRecords.length === 0 ? (
                 <tr>
                   <td colSpan={10} className="py-12 text-center text-muted-foreground">
-                    {searchKeyword
-                      ? `Tidak ada berkas yang cocok dengan kata kunci "${searchKeyword}".`
-                      : 'Belum ada berkas FSTB atau TTB yang terunggah untuk divalidasi.'}
+                    {searchKeyword ? (
+                      `Tidak ada berkas yang cocok dengan kata kunci "${searchKeyword}".`
+                    ) : workflowTab === 'ACTIVE' ? (
+                      <div className="flex flex-col items-center justify-center gap-2 py-4">
+                        <CheckCircle2 className="size-8 text-emerald-500" />
+                        <span className="font-semibold text-foreground">Semua Dokumen Telah Selesai Diproses!</span>
+                        <span className="text-xs text-muted-foreground">Tidak ada berkas yang memerlukan tindakan saat ini. Anda dapat melihat arsip di tab &quot;Selesai / Lengkap Administrasi&quot;.</span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center gap-2 py-4">
+                        <Clock className="size-8 text-amber-500" />
+                        <span className="font-semibold text-foreground">Belum Ada Dokumen Selesai Lengkap (4/4)</span>
+                        <span className="text-xs text-muted-foreground">Dokumen yang telah ditandatangani lengkap oleh 4 PIC akan otomatis muncul di sini sebagai arsip resmi.</span>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ) : (
@@ -738,20 +822,26 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                   >
                     {/* Checkbox Batch RBAC */}
                     <td className="py-2.5 px-3 text-center">
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => handleToggleSelectRow(item.id, userAction.canValidate)}
-                        disabled={!userAction.canValidate}
-                        className="size-4 rounded border-border accent-primary cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed transition"
-                        title={
-                          userAction.canValidate
-                            ? `Pilih ${item.docNumber} untuk tanda tangan massal`
-                            : userAction.isCompleted
-                            ? 'Pengesahan 4 PIC sudah lengkap'
-                            : userAction.tooltip
-                        }
-                      />
+                      {workflowTab === 'ACTIVE' ? (
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => handleToggleSelectRow(item.id, userAction.canValidate)}
+                          disabled={!userAction.canValidate}
+                          className="size-4 rounded border-border accent-primary cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed transition"
+                          title={
+                            userAction.canValidate
+                              ? `Pilih ${item.docNumber} untuk tanda tangan massal`
+                              : userAction.isCompleted
+                              ? 'Pengesahan 4 PIC sudah lengkap'
+                              : userAction.tooltip
+                          }
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center" title="Pengesahan 4 PIC Lengkap (Selesai)">
+                          <Check className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                        </div>
+                      )}
                     </td>
 
                     {/* Tipe Dokumen */}
@@ -1164,26 +1254,54 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                     {/* Aksi */}
                     <td className="py-2.5 px-3 text-right">
                       <div className="inline-flex items-center gap-1">
-                        {userAction.canValidate ? (
-                          <button
-                            type="button"
-                            onClick={() => handleOpenValidation(item)}
-                            className="px-2.5 py-1 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs inline-flex items-center gap-1 transition shadow-2xs active:scale-95 cursor-pointer"
-                            title={userAction.tooltip}
-                          >
-                            <FileSignature className="size-3" />
-                            <span>Validasi &amp; TTD</span>
-                          </button>
+                        {workflowTab === 'ACTIVE' ? (
+                          userAction.canValidate ? (
+                            <button
+                              type="button"
+                              onClick={() => handleOpenValidation(item)}
+                              className="px-2.5 py-1 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs inline-flex items-center gap-1 transition shadow-2xs active:scale-95 cursor-pointer"
+                              title={userAction.tooltip}
+                            >
+                              <FileSignature className="size-3" />
+                              <span>Validasi &amp; TTD</span>
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleOpenValidation(item)}
+                              className="px-2.5 py-1 rounded-lg border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground font-medium text-xs inline-flex items-center gap-1 transition shadow-2xs active:scale-95 cursor-pointer"
+                              title={userAction.tooltip}
+                            >
+                              <Eye className="size-3" />
+                              <span>Lihat Berkas</span>
+                            </button>
+                          )
                         ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleOpenValidation(item)}
-                            className="px-2.5 py-1 rounded-lg border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground font-medium text-xs inline-flex items-center gap-1 transition shadow-2xs active:scale-95 cursor-pointer"
-                            title={userAction.tooltip}
-                          >
-                            <Eye className="size-3" />
-                            <span>Lihat Berkas</span>
-                          </button>
+                          // Tab Selesai / Lengkap Administrasi (Read-only Actions)
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenValidation(item)}
+                              className="px-2.5 py-1 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-semibold text-xs inline-flex items-center gap-1 transition shadow-2xs active:scale-95 cursor-pointer"
+                              title="Lihat Berkas Lengkap & Riwayat 4 PIC"
+                            >
+                              <Eye className="size-3" />
+                              <span>Lihat Berkas</span>
+                            </button>
+
+                            {item.fileUrl && (
+                              <a
+                                href={item.fileUrl}
+                                download
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 transition shadow-2xs"
+                                title="Unduh / Cetak Dokumen Lengkap (PDF)"
+                              >
+                                <Download className="size-3.5" />
+                              </a>
+                            )}
+                          </>
                         )}
 
                         <a
@@ -1223,7 +1341,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
       </div>
 
       {/* Floating Dynamic Batch Action Bar */}
-      {selectedIds.length > 0 && (
+      {selectedIds.length > 0 && workflowTab === 'ACTIVE' && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-full max-w-xl px-4 animate-in fade-in slide-in-from-bottom-5 duration-300 pointer-events-auto">
           <div className="bg-card/95 backdrop-blur-md border border-primary/30 shadow-2xl rounded-2xl p-3 sm:p-4 flex items-center justify-between gap-3 text-foreground">
             <div className="flex items-center gap-3 min-w-0">
