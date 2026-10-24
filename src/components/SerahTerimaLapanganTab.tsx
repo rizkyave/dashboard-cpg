@@ -1271,46 +1271,46 @@ export default function SerahTerimaLapanganTab({
   return (
     <div className="space-y-5 animate-in fade-in duration-200">
       {/* Top Banner - Tim Lapangan Delivery Portal */}
-      <div className="relative overflow-hidden rounded-2xl bg-linear-to-r from-slate-900 via-indigo-950 to-slate-900 border border-indigo-500/30 p-5 sm:p-6 shadow-xl text-white">
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 size-64 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/3 -mb-16 size-64 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border-2 border-indigo-500/40 p-6 sm:p-7 shadow-2xl text-white">
+        <div className="absolute top-0 right-0 -mr-16 -mt-16 size-72 rounded-full bg-cyan-500/15 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-1/3 -mb-16 size-72 rounded-full bg-indigo-500/15 blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/15 border border-cyan-400/30 text-cyan-300 text-xs font-semibold tracking-wide">
-              <Truck className="size-3.5" />
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+          <div className="space-y-2.5">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 text-xs sm:text-sm font-black tracking-wide">
+              <Truck className="size-4" />
               <span>Portal Operasional &amp; Tim Lapangan CPG</span>
-              <span className="size-1.5 rounded-full bg-cyan-400 animate-pulse" />
+              <span className="size-2 rounded-full bg-cyan-400 animate-pulse" />
             </div>
-            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-2.5">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white flex items-center gap-3 flex-wrap">
               <span>Serah Terima Lapangan &amp; Bukti Kirim TTB</span>
-              <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-lg text-xs font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              <span className="px-3 py-1 rounded-xl text-xs sm:text-sm font-mono font-black bg-emerald-500/25 text-emerald-300 border border-emerald-500/40">
                 End-User Proof
               </span>
             </h1>
-            <p className="text-xs sm:text-sm text-slate-300 max-w-3xl leading-relaxed">
-              Semua pengiriman barang wajib menggunakan data <strong>TTB resmi</strong> sebagai referensi. Unggah bukti foto serah terima fisik barang atau lembar TTB bertanda tangan agar pengiriman terverifikasi selesai dan otomatis tampil di <strong>Galeri Foto TTB</strong> serta <strong>Overview</strong>.
+            <p className="text-sm sm:text-base text-slate-200 max-w-4xl leading-relaxed">
+              Semua pengiriman barang wajib menggunakan data <strong className="text-white font-bold">TTB resmi</strong> sebagai referensi. Unggah bukti foto serah terima fisik barang atau lembar TTB bertanda tangan agar pengiriman terverifikasi selesai dan otomatis tampil di <strong className="text-cyan-300">Galeri Foto TTB</strong> serta <strong className="text-cyan-300">Overview</strong>.
             </p>
           </div>
 
           {/* Quick Metrics & Storage Status */}
-          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-            <div className="bg-slate-800/80 backdrop-blur-xs border border-slate-700/80 rounded-xl px-3.5 py-2 text-center min-w-[110px]">
-              <div className="text-[11px] text-slate-400 flex items-center justify-center gap-1">
-                <CheckCircle2 className="size-3 text-emerald-400" />
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <div className="bg-slate-800/90 backdrop-blur-md border border-slate-700 rounded-2xl px-4 py-2.5 text-center min-w-[120px] shadow-sm">
+              <div className="text-xs text-slate-300 font-bold flex items-center justify-center gap-1.5">
+                <CheckCircle2 className="size-3.5 text-emerald-400" />
                 <span>Terverifikasi</span>
               </div>
-              <div className="text-lg font-mono font-black text-white">
+              <div className="text-xl sm:text-2xl font-mono font-black text-white mt-0.5">
                 {historyRecords.length}
               </div>
             </div>
 
-            <div className="bg-slate-800/80 backdrop-blur-xs border border-slate-700/80 rounded-xl px-3.5 py-2 text-center min-w-[130px]">
-              <div className="text-[11px] text-slate-400 flex items-center justify-center gap-1">
-                <CloudFlareIcon className="size-3 text-amber-400" />
+            <div className="bg-slate-800/90 backdrop-blur-md border border-slate-700 rounded-2xl px-4 py-2.5 text-center min-w-[140px] shadow-sm">
+              <div className="text-xs text-slate-300 font-bold flex items-center justify-center gap-1.5">
+                <CloudFlareIcon className="size-3.5 text-amber-400" />
                 <span>Cloudflare R2</span>
               </div>
-              <div className="text-xs font-semibold text-emerald-400 flex items-center justify-center gap-1 mt-0.5">
+              <div className="text-xs sm:text-sm font-bold text-emerald-400 flex items-center justify-center gap-1.5 mt-1">
                 <span className="size-2 rounded-full bg-emerald-400 animate-pulse" />
                 <span>Aktif &amp; Sinkron</span>
               </div>
@@ -1320,38 +1320,38 @@ export default function SerahTerimaLapanganTab({
               onClick={fetchHistory}
               disabled={isLoadingHistory}
               title="Perbarui data serah terima"
-              className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
+              className="p-3 rounded-2xl bg-slate-800 hover:bg-slate-700 active:scale-95 border border-slate-700 text-slate-200 hover:text-white transition cursor-pointer shadow-sm"
             >
-              <RefreshCw className={`size-4 ${isLoadingHistory ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`size-5 ${isLoadingHistory ? 'animate-spin' : ''}`} />
             </button>
           </div>
         </div>
 
-        {/* View Switcher Tabs */}
-        <div className="relative z-10 flex items-center gap-2 mt-5 pt-4 border-t border-slate-800/80">
+        {/* View Switcher Tabs (Ekstra Besar & Kontras Ramah Petugas Lapangan) */}
+        <div className="relative z-10 flex flex-wrap items-center gap-3 mt-6 pt-5 border-t border-slate-800/80">
           <button
             onClick={() => setActiveView('form')}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition cursor-pointer ${
+            className={`px-5 sm:px-6 py-3 rounded-2xl text-sm sm:text-base font-black flex items-center gap-2.5 transition-all shadow-md cursor-pointer ${
               activeView === 'form'
-                ? 'bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/25 font-bold'
-                : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 hover:text-white'
+                ? 'bg-cyan-400 hover:bg-cyan-300 text-slate-950 shadow-cyan-500/30 ring-2 ring-cyan-300'
+                : 'bg-slate-800/80 text-slate-200 hover:bg-slate-800 hover:text-white border border-slate-700'
             }`}
           >
-            <Plus className="size-4" />
+            <Plus className="size-5 stroke-[2.5]" />
             <span>Form Input Serah Terima Baru</span>
           </button>
 
           <button
             onClick={() => setActiveView('history')}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition cursor-pointer ${
+            className={`px-5 sm:px-6 py-3 rounded-2xl text-sm sm:text-base font-black flex items-center gap-2.5 transition-all shadow-md cursor-pointer ${
               activeView === 'history'
-                ? 'bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/25 font-bold'
-                : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 hover:text-white'
+                ? 'bg-cyan-400 hover:bg-cyan-300 text-slate-950 shadow-cyan-500/30 ring-2 ring-cyan-300'
+                : 'bg-slate-800/80 text-slate-200 hover:bg-slate-800 hover:text-white border border-slate-700'
             }`}
           >
-            <Clock className="size-4" />
+            <Clock className="size-5 stroke-[2.5]" />
             <span>Riwayat Pengantaran Lapangan</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-slate-900/60 text-cyan-300 border border-cyan-500/30">
+            <span className="px-2 py-0.5 rounded-full text-xs font-mono font-black bg-slate-900/80 text-cyan-300 border border-cyan-500/40">
               {historyRecords.length}
             </span>
           </button>
@@ -1364,35 +1364,35 @@ export default function SerahTerimaLapanganTab({
       {activeView === 'form' && (
         <form onSubmit={handleSubmitDelivery} className="space-y-6">
           {/* STEP 1: PILIH DATA TTB REFERENSI */}
-          <div className="bg-card border border-border rounded-2xl p-5 shadow-xs space-y-4">
-            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 border-b border-border pb-3">
-              <div className="flex items-center gap-2.5 shrink-0">
-                <div className="size-7 rounded-lg bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-xs">
+          <div className="bg-card border-2 border-border rounded-3xl p-6 sm:p-7 shadow-xs space-y-5">
+            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 border-b border-border pb-4">
+              <div className="flex items-center gap-3 shrink-0">
+                <div className="size-9 sm:size-10 rounded-2xl bg-indigo-500/20 border-2 border-indigo-500/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-black text-sm sm:text-base shadow-xs">
                   1
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
+                  <h2 className="text-base sm:text-lg lg:text-xl font-black text-foreground flex items-center gap-2.5 flex-wrap">
                     <span>Pilih Referensi Data TTB (Telah Disahkan Manager • Siap Kirim)</span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30 font-semibold flex items-center gap-1">
-                      <Truck className="size-3" />
+                    <span className="text-xs font-mono px-3 py-1 rounded-xl bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30 font-bold flex items-center gap-1.5 shadow-2xs">
+                      <Truck className="size-3.5" />
                       <span>Otorisasi Manager Wajib</span>
                     </span>
                   </h2>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
                     Hanya data TTB yang telah tervalidasi lengkap hingga Manager (Siap Kirim) yang dapat dipilih dan sah untuk proses serah terima lapangan
                   </p>
                 </div>
               </div>
 
-              {/* KOTAK HITAM: Kontrol Pilihan Rentang Waktu (Default: H-4) */}
+              {/* Kontrol Pilihan Rentang Waktu (Default: H-4) */}
               {!isManualTtb && (
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1.5 bg-muted/70 dark:bg-muted/40 border border-border/80 rounded-xl px-2.5 py-1.5 shadow-2xs">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground whitespace-nowrap">
-                    <Calendar className="size-3.5 text-indigo-500 shrink-0" />
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 bg-muted/80 dark:bg-muted/50 border border-border rounded-2xl px-3.5 py-2 shadow-2xs">
+                  <div className="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-muted-foreground whitespace-nowrap">
+                    <Calendar className="size-4 text-indigo-500 shrink-0" />
                     <span>Rentang Terbit:</span>
                   </div>
 
-                  <div className="flex items-center gap-1 flex-wrap">
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     {(['H-4', 'H-7', 'H-14', 'H-30', 'ALL', 'CUSTOM'] as const).map((rng) => {
                       const isActive = ttbDateRange === rng;
                       const labelMap: Record<typeof rng, string> = {
@@ -1408,9 +1408,9 @@ export default function SerahTerimaLapanganTab({
                           key={rng}
                           type="button"
                           onClick={() => setTtbDateRange(rng)}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                          className={`px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer ${
                             isActive
-                              ? 'bg-indigo-600 text-white shadow-2xs ring-1 ring-indigo-500/40'
+                              ? 'bg-indigo-600 text-white shadow-xs ring-2 ring-indigo-500/40'
                               : 'text-muted-foreground hover:text-foreground hover:bg-background/80'
                           }`}
                           title={
@@ -1428,7 +1428,7 @@ export default function SerahTerimaLapanganTab({
                   </div>
 
                   {/* Badge rentang tanggal aktif */}
-                  <div className="hidden lg:flex items-center gap-1 pl-1.5 border-l border-border/60 text-[10.5px] font-mono text-indigo-600 dark:text-indigo-400 font-medium whitespace-nowrap">
+                  <div className="hidden lg:flex items-center gap-1 pl-2 border-l border-border/60 text-xs font-mono text-indigo-600 dark:text-indigo-400 font-bold whitespace-nowrap">
                     <span>{dateRangeBounds.label}</span>
                   </div>
                 </div>
@@ -1440,7 +1440,7 @@ export default function SerahTerimaLapanganTab({
                   setIsManualTtb(!isManualTtb);
                   setSelectedTtbRef(null);
                 }}
-                className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 font-medium cursor-pointer self-start xl:self-auto shrink-0"
+                className="text-xs sm:text-sm text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1.5 font-bold cursor-pointer self-start xl:self-auto shrink-0"
               >
                 {isManualTtb ? '← Pilih dari Database TTB' : '+ Input Nomor TTB Manual'}
               </button>
@@ -1607,43 +1607,43 @@ export default function SerahTerimaLapanganTab({
                       </div>
                     </div>
 
-                    {/* List Kolom (Tabel Daftar TTB Terbit) */}
-                    <div className="rounded-xl border border-border bg-card overflow-hidden shadow-xs">
-                      <div className="max-h-[420px] overflow-y-auto overflow-x-auto">
-                        <table className="w-full text-left text-xs border-collapse">
-                          <thead className="bg-muted/80 backdrop-blur sticky top-0 z-10 text-muted-foreground font-semibold border-b border-border uppercase text-[10px] tracking-wider">
+                    {/* List Kolom (Tabel Daftar TTB Terbit - Ramah Penglihatan / Font Besar) */}
+                    <div className="rounded-2xl border-2 border-border bg-card overflow-hidden shadow-sm">
+                      <div className="max-h-[460px] overflow-y-auto overflow-x-auto">
+                        <table className="w-full text-left text-sm border-collapse">
+                          <thead className="bg-muted/90 backdrop-blur sticky top-0 z-10 text-foreground font-black border-b-2 border-border uppercase text-xs tracking-wider">
                             <tr>
-                              <th className="py-2.5 px-3 whitespace-nowrap">Tgl Terbit TTB</th>
-                              <th className="py-2.5 px-3 whitespace-nowrap">Nomor TTB Resmi</th>
-                              <th className="py-2.5 px-3 whitespace-nowrap">Armada / Unit</th>
-                              <th className="py-2.5 px-3 min-w-[200px]">Rincian Item Barang</th>
-                              <th className="py-2.5 px-3 whitespace-nowrap">No. FPB / PO</th>
-                              <th className="py-2.5 px-3 whitespace-nowrap">Otorisasi Manager &amp; Logistik</th>
-                              <th className="py-2.5 px-3 whitespace-nowrap">Status TTD Digital Armada</th>
-                              <th className="py-2.5 px-3 text-right whitespace-nowrap">Aksi</th>
+                              <th className="py-3.5 px-4 whitespace-nowrap">Tgl Terbit TTB</th>
+                              <th className="py-3.5 px-4 whitespace-nowrap">Nomor TTB Resmi</th>
+                              <th className="py-3.5 px-4 whitespace-nowrap">Armada / Unit</th>
+                              <th className="py-3.5 px-4 min-w-[220px]">Rincian Item Barang</th>
+                              <th className="py-3.5 px-4 whitespace-nowrap">No. FPB / PO</th>
+                              <th className="py-3.5 px-4 whitespace-nowrap">Otorisasi Manager &amp; Logistik</th>
+                              <th className="py-3.5 px-4 whitespace-nowrap">Status TTD Digital Armada</th>
+                              <th className="py-3.5 px-4 text-right whitespace-nowrap">Aksi</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-border/60">
+                          <tbody className="divide-y divide-border/80">
                             {filteredTtbOptions.length === 0 ? (
                               <tr>
-                                <td colSpan={8} className="py-10 text-center text-xs text-muted-foreground">
+                                <td colSpan={8} className="py-12 text-center text-sm text-muted-foreground">
                                   {isLoadingHistory ? (
-                                    <div className="flex flex-col items-center justify-center gap-2">
-                                      <RefreshCw className="size-5 text-indigo-500 animate-spin" />
-                                      <span>Memuat data TTB...</span>
+                                    <div className="flex flex-col items-center justify-center gap-2.5">
+                                      <RefreshCw className="size-6 text-indigo-500 animate-spin" />
+                                      <span className="font-bold text-base">Memuat data TTB...</span>
                                     </div>
                                   ) : ttbSearchTerm ? (
-                                    <div className="space-y-1.5">
-                                      <p>
+                                    <div className="space-y-2">
+                                      <p className="text-base">
                                         Tidak ditemukan data TTB sesuai kata kunci &quot;<strong className="text-foreground">{ttbSearchTerm}</strong>&quot; di rentang {ttbDateRange} ({dateRangeBounds.label}).
                                       </p>
                                       {searchMatchesInGrandCatalog > 0 ? (
-                                        <p className="text-amber-600 dark:text-amber-400 font-medium">
+                                        <p className="text-amber-600 dark:text-amber-400 font-bold text-sm sm:text-base">
                                           💡 Ditemukan <strong>{searchMatchesInGrandCatalog}</strong> data TTB tervalidasi yang cocok di arsip tanggal lainnya.{' '}
                                           <button
                                             type="button"
                                             onClick={() => setTtbDateRange('ALL')}
-                                            className="text-indigo-600 dark:text-indigo-400 font-bold underline ml-1 cursor-pointer"
+                                            className="text-indigo-600 dark:text-indigo-400 font-black underline ml-1 cursor-pointer"
                                           >
                                             Buka Rentang ke Semua Data
                                           </button>
@@ -1656,15 +1656,15 @@ export default function SerahTerimaLapanganTab({
                                             setTtbSearchTerm('');
                                             setTtbStatusFilter('ALL');
                                           }}
-                                          className="text-indigo-600 dark:text-indigo-400 font-bold underline cursor-pointer"
+                                          className="text-indigo-600 dark:text-indigo-400 font-black underline text-sm sm:text-base cursor-pointer"
                                         >
                                           Reset Pencarian
                                         </button>
                                       </div>
                                     </div>
                                   ) : (
-                                    <div className="space-y-1.5">
-                                      <p>
+                                    <div className="space-y-2">
+                                      <p className="text-base">
                                         Tidak ada berkas TTB pada rentang <strong>{ttbDateRange}</strong> ({dateRangeBounds.label}).
                                       </p>
                                       <button
@@ -1673,7 +1673,7 @@ export default function SerahTerimaLapanganTab({
                                           setTtbDateRange('ALL');
                                           setTtbStatusFilter('ALL');
                                         }}
-                                        className="text-indigo-600 dark:text-indigo-400 font-bold underline cursor-pointer"
+                                        className="text-indigo-600 dark:text-indigo-400 font-black underline text-sm sm:text-base cursor-pointer"
                                       >
                                         Tampilkan Semua Arsip ({ttbStats.grandTotal} TTB)
                                       </button>
@@ -1693,29 +1693,29 @@ export default function SerahTerimaLapanganTab({
                                     setSelectedTtbRef(opt);
                                     setIsSearchingTtb(false);
                                   }}
-                                  className={`border-b border-border/60 transition ${
+                                  className={`border-b border-border/80 transition ${
                                     opt.isManagerApproved
-                                      ? 'hover:bg-indigo-500/5 cursor-pointer group'
+                                      ? 'hover:bg-indigo-500/10 cursor-pointer group'
                                       : 'bg-muted/20 hover:bg-muted/30 cursor-not-allowed opacity-80'
                                   }`}
                                 >
                                   {/* Tgl Terbit TTB */}
-                                  <td className="py-2.5 px-3 whitespace-nowrap font-mono text-[11px]">
+                                  <td className="py-3.5 px-4 whitespace-nowrap font-mono text-xs sm:text-sm">
                                     {opt.tglTtbFormatted ? (
-                                      <div className="flex items-center gap-1.5 text-foreground font-medium">
-                                        <Calendar className="size-3 text-indigo-500 shrink-0" />
+                                      <div className="flex items-center gap-2 text-foreground font-bold">
+                                        <Calendar className="size-4 text-indigo-500 shrink-0" />
                                         <span>{opt.tglTtbFormatted}</span>
                                       </div>
                                     ) : (
-                                      <span className="text-muted-foreground/50 italic text-[10px]">
+                                      <span className="text-muted-foreground/60 italic text-xs">
                                         Belum Ada Tgl
                                       </span>
                                     )}
                                   </td>
 
                                   {/* Nomor TTB Resmi */}
-                                  <td className="py-2.5 px-3 whitespace-nowrap font-mono font-bold text-foreground group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
-                                    <div className="flex items-center gap-1.5">
+                                  <td className="py-3.5 px-4 whitespace-nowrap font-mono font-black text-sm sm:text-base text-foreground group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+                                    <div className="flex items-center gap-2">
                                       <span>{opt.noTtb}</span>
                                       <button
                                         type="button"
@@ -1724,57 +1724,57 @@ export default function SerahTerimaLapanganTab({
                                           navigator.clipboard.writeText(opt.noTtb);
                                           if (showToast) showToast('No. TTB disalin!', 'info');
                                         }}
-                                        className="p-0.5 rounded text-muted-foreground/60 hover:text-foreground opacity-0 group-hover:opacity-100 transition"
+                                        className="p-1 rounded text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition"
                                         title="Salin No TTB"
                                       >
-                                        <Copy className="size-3" />
+                                        <Copy className="size-3.5" />
                                       </button>
                                     </div>
                                   </td>
 
                                   {/* Armada / Unit */}
-                                  <td className="py-2.5 px-3 whitespace-nowrap">
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20">
-                                      <Ship className="size-2.5 shrink-0" />
-                                      <span className="truncate max-w-[150px]">{opt.armada}</span>
+                                  <td className="py-3.5 px-4 whitespace-nowrap">
+                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs sm:text-sm font-black bg-indigo-500/15 text-indigo-800 dark:text-indigo-200 border border-indigo-500/30 shadow-2xs">
+                                      <Ship className="size-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                                      <span className="truncate max-w-[180px]">{opt.armada}</span>
                                     </span>
                                   </td>
 
                                   {/* Rincian Item Barang */}
-                                  <td className="py-2.5 px-3">
-                                    <p className="text-[11px] text-muted-foreground line-clamp-2 leading-snug" title={opt.itemSummary}>
+                                  <td className="py-3.5 px-4">
+                                    <p className="text-xs sm:text-sm text-foreground/90 font-medium line-clamp-2 leading-relaxed" title={opt.itemSummary}>
                                       {opt.itemSummary}
                                     </p>
                                   </td>
 
                                   {/* No. FPB / PO */}
-                                  <td className="py-2.5 px-3 whitespace-nowrap font-mono text-[10px] text-muted-foreground">
-                                    {opt.noFpb && <div>FPB: {opt.noFpb}</div>}
-                                    {opt.noPo && <div className="text-foreground/80">PO: {opt.noPo}</div>}
+                                  <td className="py-3.5 px-4 whitespace-nowrap font-mono text-xs sm:text-sm text-muted-foreground">
+                                    {opt.noFpb && <div className="font-semibold text-foreground/80">FPB: {opt.noFpb}</div>}
+                                    {opt.noPo && <div className="text-foreground font-bold">PO: {opt.noPo}</div>}
                                     {!opt.noFpb && !opt.noPo && <span>-</span>}
                                   </td>
 
                                   {/* Otorisasi Manager & Logistik */}
-                                  <td className="py-2.5 px-3 whitespace-nowrap">
+                                  <td className="py-3.5 px-4 whitespace-nowrap">
                                     {opt.isManagerApproved ? (
-                                      <div className="space-y-0.5">
-                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30">
-                                          <Truck className="size-3 text-blue-600 dark:text-blue-400 shrink-0" />
+                                      <div className="space-y-1">
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-black bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30 shadow-2xs">
+                                          <Truck className="size-4 text-blue-600 dark:text-blue-400 shrink-0" />
                                           <span>Disetujui Manager (Siap Kirim)</span>
                                         </span>
                                         {opt.managerValidatorName && (
-                                          <span className="block text-[9.5px] text-muted-foreground font-mono truncate max-w-[170px]" title={opt.managerValidatorName}>
+                                          <span className="block text-xs text-muted-foreground font-semibold font-mono truncate max-w-[190px]" title={opt.managerValidatorName}>
                                             Manager: {opt.managerValidatorName}
                                           </span>
                                         )}
                                       </div>
                                     ) : (
-                                      <div className="space-y-0.5">
-                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
-                                          <Clock className="size-3 text-amber-600 dark:text-amber-400 shrink-0" />
+                                      <div className="space-y-1">
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-black bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 shadow-2xs">
+                                          <Clock className="size-4 text-amber-600 dark:text-amber-400 shrink-0" />
                                           <span>Menunggu TTD Manager</span>
                                         </span>
-                                        <span className="block text-[9.5px] text-amber-600/80 dark:text-amber-400/80 font-mono">
+                                        <span className="block text-xs text-amber-700 dark:text-amber-400 font-bold font-mono">
                                           Belum Siap Serah Terima
                                         </span>
                                       </div>
@@ -1782,44 +1782,44 @@ export default function SerahTerimaLapanganTab({
                                   </td>
 
                                   {/* Status TTD Digital Armada / Penerima Akhir */}
-                                  <td className="py-2.5 px-3 whitespace-nowrap">
+                                  <td className="py-3.5 px-4 whitespace-nowrap">
                                     {opt.isRecipientSigned ? (
-                                      <div className="space-y-0.5">
-                                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
-                                          <CheckCircle2 className="size-3 shrink-0" />
+                                      <div className="space-y-1">
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-sm font-black bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 shadow-2xs">
+                                          <CheckCircle2 className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
                                           <span>Sudah Ditandatangani</span>
                                         </span>
                                         {opt.recipientName && (
-                                          <span className="block text-[9.5px] text-muted-foreground font-mono truncate max-w-[160px]">
+                                          <span className="block text-xs text-muted-foreground font-bold font-mono truncate max-w-[180px]">
                                             Oleh: {opt.recipientName}
                                           </span>
                                         )}
                                       </div>
                                     ) : opt.isManagerApproved ? (
-                                      <div className="space-y-0.5">
-                                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30">
-                                          <Clock className="size-3 shrink-0" />
+                                      <div className="space-y-1">
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-sm font-black bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30 shadow-2xs">
+                                          <Clock className="size-4 shrink-0 text-blue-600 dark:text-blue-400" />
                                           <span>Siap Serah Terima</span>
                                         </span>
-                                        <span className="block text-[9.5px] text-blue-600/75 dark:text-blue-400/75 font-mono">
+                                        <span className="block text-xs text-blue-700 dark:text-blue-300 font-bold font-mono">
                                           Menunggu TTD Crew
                                         </span>
                                       </div>
                                     ) : (
-                                      <div className="space-y-0.5">
-                                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-muted text-muted-foreground border border-border">
-                                          <Lock className="size-3 shrink-0" />
+                                      <div className="space-y-1">
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-sm font-bold bg-muted text-muted-foreground border border-border">
+                                          <Lock className="size-4 shrink-0" />
                                           <span>Terkunci</span>
                                         </span>
-                                        <span className="block text-[9.5px] text-muted-foreground/75 font-mono">
+                                        <span className="block text-xs text-muted-foreground/80 font-medium font-mono">
                                           Menunggu Manager
                                         </span>
                                       </div>
                                     )}
                                   </td>
 
-                                  {/* Aksi */}
-                                  <td className="py-2.5 px-3 text-right whitespace-nowrap">
+                                  {/* Aksi (Tombol Ekstra Besar Ramah Sentuhan) */}
+                                  <td className="py-3.5 px-4 text-right whitespace-nowrap">
                                     <button
                                       type="button"
                                       disabled={!opt.isManagerApproved}
@@ -1832,10 +1832,10 @@ export default function SerahTerimaLapanganTab({
                                         setSelectedTtbRef(opt);
                                         setIsSearchingTtb(false);
                                       }}
-                                      className={`px-2.5 py-1 rounded-lg font-semibold text-xs inline-flex items-center gap-1 transition shadow-2xs ${
+                                      className={`h-11 px-5 rounded-2xl font-black text-xs sm:text-sm inline-flex items-center gap-2 transition shadow-md ${
                                         opt.isManagerApproved
-                                          ? 'bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer active:scale-95'
-                                          : 'bg-muted text-muted-foreground/60 border border-border/80 cursor-not-allowed opacity-60'
+                                          ? 'bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white cursor-pointer'
+                                          : 'bg-muted text-muted-foreground/60 border border-border cursor-not-allowed opacity-60'
                                       }`}
                                       title={
                                         opt.isManagerApproved
@@ -1845,13 +1845,13 @@ export default function SerahTerimaLapanganTab({
                                     >
                                       {opt.isManagerApproved ? (
                                         <>
-                                          <span>Pilih TTB</span>
-                                          <ChevronRight className="size-3" />
+                                          <span>PILIH TTB</span>
+                                          <ChevronRight className="size-4 stroke-[3]" />
                                         </>
                                       ) : (
                                         <>
-                                          <Lock className="size-3 shrink-0" />
-                                          <span>Terkunci</span>
+                                          <Lock className="size-4 shrink-0" />
+                                          <span>TERKUNCI</span>
                                         </>
                                       )}
                                     </button>
@@ -1864,18 +1864,18 @@ export default function SerahTerimaLapanganTab({
                       </div>
 
                       {/* Footer Summary */}
-                      <div className="px-3.5 py-2 border-t border-border bg-muted/30 text-[11px] text-muted-foreground flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                        <span className="flex items-center gap-1.5 flex-wrap">
-                          <ShieldCheck className="size-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+                      <div className="px-5 py-3 border-t-2 border-border bg-muted/40 text-xs sm:text-sm text-muted-foreground flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <span className="flex items-center gap-2 flex-wrap">
+                          <ShieldCheck className="size-4 text-blue-600 dark:text-blue-400 shrink-0" />
                           <span>
-                            Menampilkan <strong className="text-foreground font-mono">{filteredTtbOptions.length}</strong> data TTB
+                            Menampilkan <strong className="text-foreground font-mono text-sm sm:text-base">{filteredTtbOptions.length}</strong> data TTB
                             {filteredTtbOptions.length > 0 && (
                               <span className="text-muted-foreground/80 font-mono">
                                 {' '}({ttbStats.siapKirim} disetujui Manager, {ttbStats.belumManager} belum Manager, {ttbStats.sudah} sudah TTD penerima)
                               </span>
                             )}
-                            <span className="text-blue-600 dark:text-blue-400 font-semibold ml-1">
-                              • Dokumen wajib ditandatangani Manager sebelum serah terima ke end user
+                            <span className="text-blue-600 dark:text-blue-400 font-bold ml-1">
+                              • Dokumen wajib disahkan Manager sebelum serah terima
                             </span>
                           </span>
                         </span>
@@ -2053,25 +2053,25 @@ export default function SerahTerimaLapanganTab({
           </div>
 
           {/* STEP 2: DATA SERAH TERIMA & END USER */}
-          <div className="bg-card border border-border rounded-2xl p-5 shadow-xs space-y-4">
-            <div className="flex items-center gap-2.5 border-b border-border pb-3">
-              <div className="size-7 rounded-lg bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-600 dark:text-cyan-400 font-bold text-xs">
+          <div className="bg-card border-2 border-border rounded-3xl p-6 sm:p-7 shadow-xs space-y-5">
+            <div className="flex items-center gap-3 border-b border-border pb-4">
+              <div className="size-9 sm:size-10 rounded-2xl bg-cyan-500/20 border-2 border-cyan-500/40 flex items-center justify-center text-cyan-600 dark:text-cyan-400 font-black text-sm sm:text-base shadow-xs">
                 2
               </div>
               <div>
-                <h2 className="text-sm font-bold text-foreground">
+                <h2 className="text-base sm:text-lg lg:text-xl font-black text-foreground">
                   Informasi Petugas Pengantar &amp; Penerima End User
                 </h2>
-                <p className="text-[11px] text-muted-foreground">
-                  Identitas petugas lapangan yang mengantar dan personel end-user penerima barang
+                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                  Identitas petugas lapangan yang mengantar dan personel end-user penerima barang di armada kapal
                 </p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
-                <label className="text-xs font-semibold text-foreground flex items-center gap-1.5 mb-1.5">
-                  <Truck className="size-3.5 text-cyan-500" />
+                <label className="text-xs sm:text-sm font-black text-foreground flex items-center gap-2 mb-2">
+                  <Truck className="size-4 text-cyan-500" />
                   <span>Petugas Pengantar (Tim Lapangan) *</span>
                 </label>
                 <input
@@ -2080,15 +2080,15 @@ export default function SerahTerimaLapanganTab({
                   value={petugasNama}
                   onChange={(e) => setPetugasNama(e.target.value)}
                   placeholder="Nama petugas logistik lapangan"
-                  className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-background border border-border focus:ring-2 focus:ring-cyan-500"
+                  className="w-full px-4 py-3 min-h-[48px] text-sm sm:text-base rounded-2xl bg-background border-2 border-border focus:ring-4 focus:ring-cyan-500/20 focus:border-cyan-500 font-medium"
                 />
               </div>
 
               {/* Kolom Penerima Barang (End User) - Otomatis Dropdown Kru & Manual */}
               <div>
-                <label className="text-xs font-semibold text-foreground flex items-center justify-between mb-1.5">
-                  <span className="flex items-center gap-1.5">
-                    <User className="size-3.5 text-emerald-500" />
+                <label className="text-xs sm:text-sm font-black text-foreground flex items-center justify-between mb-2">
+                  <span className="flex items-center gap-2">
+                    <User className="size-4 text-emerald-500" />
                     <span>Penerima Barang (End User) *</span>
                   </span>
                   {matchedCrewList.length > 0 && (
@@ -2103,19 +2103,19 @@ export default function SerahTerimaLapanganTab({
                           setSelectedCrewId('MANUAL');
                         }
                       }}
-                      className="text-[10px] font-semibold text-cyan-600 dark:text-cyan-400 hover:underline cursor-pointer"
+                      className="text-xs font-bold text-cyan-600 dark:text-cyan-400 hover:underline cursor-pointer"
                     >
-                      {isManualPenerima ? `← Pilih dari Kru (${matchedCrewList.length})` : 'Ketik Manual'}
+                      {isManualPenerima ? `← Pilih Kru (${matchedCrewList.length})` : 'Ketik Manual'}
                     </button>
                   )}
                 </label>
 
                 {matchedCrewList.length > 0 && !isManualPenerima ? (
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     <select
                       value={selectedCrewId}
                       onChange={(e) => handleSelectCrew(e.target.value)}
-                      className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-background border border-border focus:ring-2 focus:ring-emerald-500 font-medium text-foreground cursor-pointer"
+                      className="w-full px-4 py-3 min-h-[48px] text-sm sm:text-base rounded-2xl bg-background border-2 border-border focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 font-bold text-foreground cursor-pointer"
                     >
                       <option value="" disabled>-- Pilih Kru Penerima ({matchedCrewList.length} Personel) --</option>
                       {matchedCrewList.map((crew) => (
@@ -2126,28 +2126,28 @@ export default function SerahTerimaLapanganTab({
                       <option value="MANUAL">✏️ Input Manual (Nama di Luar Daftar Kru)</option>
                     </select>
 
-                    <div className="flex items-center justify-between text-[10px] text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20 font-medium">
-                      <span className="flex items-center gap-1 truncate">
-                        <CheckCircle2 className="size-3 text-emerald-500 shrink-0" />
+                    <div className="flex items-center justify-between text-xs text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 px-3 py-1.5 rounded-xl border border-emerald-500/30 font-bold">
+                      <span className="flex items-center gap-1.5 truncate">
+                        <CheckCircle2 className="size-3.5 text-emerald-500 shrink-0" />
                         <span>Kru Terverifikasi: <strong>{matchedShipName || currentArmada}</strong></span>
                       </span>
-                      <span className="text-muted-foreground font-mono text-[9px] shrink-0">
+                      <span className="text-muted-foreground font-mono text-[11px] shrink-0">
                         {matchedCrewList.find((c) => c.id === selectedCrewId)?.departemen || 'Deck/Engine'}
                       </span>
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     <input
                       type="text"
                       required
                       value={penerimaNama}
                       onChange={(e) => setPenerimaNama(e.target.value)}
                       placeholder={matchedCrewList.length > 0 ? "Ketik nama penerima..." : "Contoh: Mualim 1 Budi / Chief Eng. Anton"}
-                      className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-background border border-border focus:ring-2 focus:ring-emerald-500"
+                      className="w-full px-4 py-3 min-h-[48px] text-sm sm:text-base rounded-2xl bg-background border-2 border-border focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium"
                     />
                     {matchedCrewList.length === 0 && currentArmada && currentArmada !== '-' && (
-                      <p className="text-[10px] text-muted-foreground italic">
+                      <p className="text-xs text-muted-foreground italic">
                         Tidak ada kru di modul Crew &amp; Armada untuk {currentArmada} (ketik manual).
                       </p>
                     )}
@@ -2157,14 +2157,14 @@ export default function SerahTerimaLapanganTab({
 
               {/* Kolom No. Telp / WA Penerima - Otomatis terisi & dapat diedit */}
               <div>
-                <label className="text-xs font-semibold text-foreground flex items-center justify-between mb-1.5">
-                  <span className="flex items-center gap-1.5">
-                    <Phone className="size-3.5 text-indigo-500" />
+                <label className="text-xs sm:text-sm font-black text-foreground flex items-center justify-between mb-2">
+                  <span className="flex items-center gap-2">
+                    <Phone className="size-4 text-indigo-500" />
                     <span>No. Telp / WA Penerima</span>
                   </span>
                   {kontakPenerima && (
-                    <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-0.5">
-                      <Sparkles className="size-2.5" />
+                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                      <Sparkles className="size-3" />
                       <span>Otomatis</span>
                     </span>
                   )}
@@ -2175,26 +2175,26 @@ export default function SerahTerimaLapanganTab({
                     value={kontakPenerima}
                     onChange={(e) => setKontakPenerima(e.target.value)}
                     placeholder="Contoh: 0812-3456-7890"
-                    className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-background border border-border focus:ring-2 focus:ring-indigo-500 font-mono"
+                    className="w-full px-4 py-3 min-h-[48px] text-sm sm:text-base rounded-2xl bg-background border-2 border-border focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono font-bold"
                   />
                   {kontakPenerima && (
                     <button
                       type="button"
                       onClick={() => setKontakPenerima('')}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
                       title="Hapus no telp"
                     >
-                      <X className="size-3" />
+                      <X className="size-4" />
                     </button>
                   )}
                 </div>
                 {matchedShipPhone && kontakPenerima !== matchedShipPhone && (
-                  <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1">
+                  <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1.5">
                     <span>No. Telp Kapal:</span>
                     <button
                       type="button"
                       onClick={() => setKontakPenerima(matchedShipPhone)}
-                      className="text-indigo-600 dark:text-indigo-400 font-mono underline cursor-pointer"
+                      className="text-indigo-600 dark:text-indigo-400 font-mono font-bold underline cursor-pointer"
                       title="Gunakan no telp kapal ini"
                     >
                       {matchedShipPhone}
@@ -2204,8 +2204,8 @@ export default function SerahTerimaLapanganTab({
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-foreground flex items-center gap-1.5 mb-1.5">
-                  <Clock className="size-3.5 text-amber-500" />
+                <label className="text-xs sm:text-sm font-black text-foreground flex items-center gap-2 mb-2">
+                  <Clock className="size-4 text-amber-500" />
                   <span>Waktu Serah Terima Barang *</span>
                 </label>
                 <input
@@ -2213,33 +2213,33 @@ export default function SerahTerimaLapanganTab({
                   required
                   value={waktuSerahTerima}
                   onChange={(e) => setWaktuSerahTerima(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-background border border-border focus:ring-2 focus:ring-amber-500 font-mono"
+                  className="w-full px-4 py-3 min-h-[48px] text-sm sm:text-base rounded-2xl bg-background border-2 border-border focus:ring-4 focus:ring-amber-500/20 focus:border-amber-500 font-mono font-bold"
                 />
               </div>
             </div>
 
             {/* EVIDENCE DIGITAL SIGNATURE PENERIMA AKHIR (Received By : User) */}
             <div className="pt-2">
-              <div className="p-4 rounded-xl border border-indigo-500/30 bg-gradient-to-br from-indigo-50/50 via-background to-blue-50/30 dark:from-indigo-950/20 dark:via-background dark:to-blue-950/10 space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
-                      <FileSignature className="size-4" />
+              <div className="p-5 sm:p-6 rounded-2xl border-2 border-indigo-500/30 bg-gradient-to-br from-indigo-50/50 via-background to-blue-50/30 dark:from-indigo-950/20 dark:via-background dark:to-blue-950/10 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-xl bg-indigo-500/15 text-indigo-600 dark:text-indigo-400">
+                      <FileSignature className="size-5" />
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                      <div className="text-sm sm:text-base font-black text-foreground flex items-center gap-2 flex-wrap">
                         <span>Bukti Tanda Terima (Digital Signature Penerima Akhir)</span>
-                        <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                        <span className="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30">
                           Auto-Stamp TTB
                         </span>
                       </div>
-                      <p className="text-[11px] text-muted-foreground">
+                      <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
                         Tanda tangan digital penerima barang akan otomatis dibubuhkan ke dokumen PDF TTB resmi pada kolom <strong className="text-foreground">"Received By : User"</strong>.
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5 self-end sm:self-auto">
+                  <div className="flex items-center gap-2 self-end sm:self-auto">
                     <input
                       ref={sigFileInputRef}
                       type="file"
@@ -2250,20 +2250,20 @@ export default function SerahTerimaLapanganTab({
                     <button
                       type="button"
                       onClick={() => sigFileInputRef.current?.click()}
-                      className="px-2.5 py-1 text-[11px] font-medium rounded-lg border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground flex items-center gap-1 transition cursor-pointer"
+                      className="px-3.5 py-2 text-xs sm:text-sm font-bold rounded-xl border border-border bg-background hover:bg-muted text-foreground flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
                       title="Upload file gambar tanda tangan (PNG/JPG)"
                     >
-                      <Upload className="size-3" />
+                      <Upload className="size-3.5" />
                       <span>Upload TTD</span>
                     </button>
                     {(hasDrawnSig || sigDataUrl) && (
                       <button
                         type="button"
                         onClick={clearSig}
-                        className="px-2.5 py-1 text-[11px] font-medium rounded-lg border border-rose-200 dark:border-rose-900/40 bg-rose-50/60 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/50 flex items-center gap-1 transition cursor-pointer"
+                        className="px-3.5 py-2 text-xs sm:text-sm font-bold rounded-xl border border-rose-200 dark:border-rose-900/40 bg-rose-50/60 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/50 flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
                         title="Hapus tanda tangan"
                       >
-                        <RotateCcw className="size-3" />
+                        <RotateCcw className="size-3.5" />
                         <span>Hapus</span>
                       </button>
                     )}
@@ -2271,11 +2271,11 @@ export default function SerahTerimaLapanganTab({
                 </div>
 
                 {/* Canvas Signature Pad */}
-                <div className="relative border-2 border-dashed border-indigo-200 dark:border-indigo-900/60 rounded-xl bg-white dark:bg-slate-950 overflow-hidden shadow-inner">
+                <div className="relative border-2 border-dashed border-indigo-300 dark:border-indigo-800 rounded-2xl bg-white dark:bg-slate-950 overflow-hidden shadow-inner">
                   <canvas
                     ref={sigCanvasRef}
-                    width={500}
-                    height={150}
+                    width={600}
+                    height={180}
                     onMouseDown={startDrawingSig}
                     onMouseMove={drawSig}
                     onMouseUp={stopDrawingSig}
@@ -2283,31 +2283,31 @@ export default function SerahTerimaLapanganTab({
                     onTouchStart={startDrawingSig}
                     onTouchMove={drawSig}
                     onTouchEnd={stopDrawingSig}
-                    className="w-full h-32 sm:h-36 block touch-none cursor-crosshair bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] dark:bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:12px_12px]"
+                    className="w-full h-36 sm:h-44 block touch-none cursor-crosshair bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] dark:bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:12px_12px]"
                   />
                   {!hasDrawnSig && !sigDataUrl && (
-                    <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center text-muted-foreground/60 gap-1.5 p-4 select-none">
-                      <PenTool className="size-5 stroke-[1.5]" />
-                      <p className="text-xs font-medium text-center">
+                    <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center text-muted-foreground/70 gap-2 p-4 select-none">
+                      <PenTool className="size-6 stroke-[2]" />
+                      <p className="text-sm font-bold text-center">
                         Tanda tangani di sini menggunakan mouse, stylus, atau sentuhan layar ponsel/tablet
                       </p>
-                      <p className="text-[10px] text-muted-foreground/50">
-                        Penerima: {penerimaNama ? <strong>{penerimaNama}</strong> : 'Nama penerima di atas'}
+                      <p className="text-xs text-muted-foreground/60">
+                        Penerima: {penerimaNama ? <strong className="text-foreground">{penerimaNama}</strong> : 'Nama penerima di atas'}
                       </p>
                     </div>
                   )}
 
                   {/* Garis tanda tangan bawah */}
-                  <div className="absolute bottom-5 left-8 right-8 border-b border-indigo-200 dark:border-indigo-900/50 pointer-events-none flex justify-between text-[9px] text-muted-foreground/50 pt-0.5 select-none">
+                  <div className="absolute bottom-6 left-8 right-8 border-b-2 border-indigo-200 dark:border-indigo-900/60 pointer-events-none flex justify-between text-xs font-bold text-muted-foreground/60 pt-1 select-none">
                     <span>X</span>
                     <span>Tanda Tangan Penerima Barang</span>
                   </div>
                 </div>
 
                 {/* Footer preview info */}
-                <div className="flex flex-wrap items-center justify-between text-[11px] text-muted-foreground px-1 gap-2">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="size-1.5 rounded-full bg-indigo-500" />
+                <div className="flex flex-wrap items-center justify-between text-xs sm:text-sm text-muted-foreground px-1 gap-2 font-medium">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="size-2 rounded-full bg-indigo-500" />
                     <span>
                       Penerima: <strong className="text-foreground">{penerimaNama || '(Belum diisi)'}</strong>
                     </span>
@@ -2317,8 +2317,8 @@ export default function SerahTerimaLapanganTab({
                     </span>
                   </div>
                   {(hasDrawnSig || sigDataUrl) && (
-                    <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
-                      <Check className="size-3" />
+                    <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1.5">
+                      <Check className="size-4" />
                       Tanda tangan siap distempel ke TTB
                     </span>
                   )}
@@ -2327,24 +2327,24 @@ export default function SerahTerimaLapanganTab({
             </div>
 
             {/* Kondisi Serah Terima */}
-            <div className="space-y-2 pt-2">
-              <label className="text-xs font-semibold text-foreground block">
+            <div className="space-y-3 pt-2">
+              <label className="text-xs sm:text-sm font-black text-foreground block">
                 Kondisi &amp; Status Penyerahan Barang *
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                 <button
                   type="button"
                   onClick={() => setKondisi('LENGKAP_BAIK')}
-                  className={`p-3 rounded-xl border text-left transition cursor-pointer flex items-start gap-2.5 ${
+                  className={`p-4 sm:p-5 rounded-2xl border-2 text-left transition-all cursor-pointer flex items-start gap-3 shadow-xs ${
                     kondisi === 'LENGKAP_BAIK'
-                      ? 'border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 ring-2 ring-emerald-500/20'
+                      ? 'border-emerald-500 bg-emerald-500/15 text-emerald-800 dark:text-emerald-200 ring-4 ring-emerald-500/20'
                       : 'border-border bg-card text-muted-foreground hover:bg-muted/50'
                   }`}
                 >
-                  <CheckCircle2 className="size-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <CheckCircle2 className="size-5 text-emerald-500 shrink-0 mt-0.5" />
                   <div>
-                    <div className="text-xs font-bold text-foreground">Diterima Lengkap &amp; Baik</div>
-                    <div className="text-[10px] text-muted-foreground leading-tight mt-0.5">
+                    <div className="text-sm sm:text-base font-black text-foreground">Diterima Lengkap &amp; Baik</div>
+                    <div className="text-xs text-muted-foreground leading-relaxed mt-1">
                       Jumlah dan spesifikasi barang sesuai TTB tanpa kekurangan.
                     </div>
                   </div>
@@ -2353,16 +2353,16 @@ export default function SerahTerimaLapanganTab({
                 <button
                   type="button"
                   onClick={() => setKondisi('PARSIAL')}
-                  className={`p-3 rounded-xl border text-left transition cursor-pointer flex items-start gap-2.5 ${
+                  className={`p-4 sm:p-5 rounded-2xl border-2 text-left transition-all cursor-pointer flex items-start gap-3 shadow-xs ${
                     kondisi === 'PARSIAL'
-                      ? 'border-amber-500 bg-amber-500/10 text-amber-700 dark:text-amber-300 ring-2 ring-amber-500/20'
+                      ? 'border-amber-500 bg-amber-500/15 text-amber-800 dark:text-amber-200 ring-4 ring-amber-500/20'
                       : 'border-border bg-card text-muted-foreground hover:bg-muted/50'
                   }`}
                 >
-                  <AlertTriangle className="size-4 text-amber-500 shrink-0 mt-0.5" />
+                  <AlertTriangle className="size-5 text-amber-500 shrink-0 mt-0.5" />
                   <div>
-                    <div className="text-xs font-bold text-foreground">Diterima Sebagian (Parsial)</div>
-                    <div className="text-[10px] text-muted-foreground leading-tight mt-0.5">
+                    <div className="text-sm sm:text-base font-black text-foreground">Diterima Sebagian (Parsial)</div>
+                    <div className="text-xs text-muted-foreground leading-relaxed mt-1">
                       Sebagian barang diserahkan, sisanya menyusul.
                     </div>
                   </div>
@@ -2371,16 +2371,16 @@ export default function SerahTerimaLapanganTab({
                 <button
                   type="button"
                   onClick={() => setKondisi('CATATAN_KONDISI')}
-                  className={`p-3 rounded-xl border text-left transition cursor-pointer flex items-start gap-2.5 ${
+                  className={`p-4 sm:p-5 rounded-2xl border-2 text-left transition-all cursor-pointer flex items-start gap-3 shadow-xs ${
                     kondisi === 'CATATAN_KONDISI'
-                      ? 'border-rose-500 bg-rose-500/10 text-rose-700 dark:text-rose-300 ring-2 ring-rose-500/20'
+                      ? 'border-rose-500 bg-rose-500/15 text-rose-800 dark:text-rose-200 ring-4 ring-rose-500/20'
                       : 'border-border bg-card text-muted-foreground hover:bg-muted/50'
                   }`}
                 >
-                  <AlertOctagon className="size-4 text-rose-500 shrink-0 mt-0.5" />
+                  <AlertOctagon className="size-5 text-rose-500 shrink-0 mt-0.5" />
                   <div>
-                    <div className="text-xs font-bold text-foreground">Catatan / Kerusakan Fisik</div>
-                    <div className="text-[10px] text-muted-foreground leading-tight mt-0.5">
+                    <div className="text-sm sm:text-base font-black text-foreground">Catatan / Kerusakan Fisik</div>
+                    <div className="text-xs text-muted-foreground leading-relaxed mt-1">
                       Ada catatan kondisi kemasan, segel, atau perbedaan fisik.
                     </div>
                   </div>
@@ -2390,41 +2390,41 @@ export default function SerahTerimaLapanganTab({
 
             {/* Catatan Lapangan */}
             <div>
-              <label className="text-xs font-semibold text-foreground block mb-1.5">
+              <label className="text-xs sm:text-sm font-black text-foreground block mb-2">
                 Catatan Pengantaran &amp; Lokasi Serah Terima (Opsional)
               </label>
               <textarea
-                rows={2}
+                rows={3}
                 value={catatan}
                 onChange={(e) => setCatatan(e.target.value)}
                 placeholder="Contoh: Barang diserahkan langsung di Dermaga Somber, disaksikan oleh perwira jaga. Kondisi palka bersih dan aman."
-                className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-background border border-border focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-4 py-3 text-sm sm:text-base rounded-2xl bg-background border-2 border-border focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500"
               />
             </div>
           </div>
 
           {/* STEP 3: UNGGAH BUKTI FOTO PENYERAHAN BARANG */}
-          <div className="bg-card border border-border rounded-2xl p-5 shadow-xs space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border pb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="size-7 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold text-xs">
+          <div className="bg-card border-2 border-border rounded-3xl p-6 sm:p-7 shadow-xs space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-4">
+              <div className="flex items-center gap-3">
+                <div className="size-9 sm:size-10 rounded-2xl bg-emerald-500/20 border-2 border-emerald-500/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-black text-sm sm:text-base shadow-xs">
                   3
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
+                  <h2 className="text-base sm:text-lg lg:text-xl font-black text-foreground flex items-center gap-2.5 flex-wrap">
                     <span>Unggah Bukti Foto Penyerahan Barang</span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-semibold">
+                    <span className="text-xs font-mono px-3 py-0.5 rounded-xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-bold">
                       Cloudflare R2
                     </span>
                   </h2>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
                     Foto fisik barang di kapal/lokasi, TTB bertanda tangan basah, atau foto penyerahan bersama penerima
                   </p>
                 </div>
               </div>
 
               {queuedPhotos.length > 0 && (
-                <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
+                <span className="text-xs sm:text-sm font-mono font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/15 px-3 py-1.5 rounded-xl border border-emerald-500/30 shadow-2xs">
                   {queuedPhotos.length} Foto Siap Diupload
                 </span>
               )}
@@ -2449,21 +2449,21 @@ export default function SerahTerimaLapanganTab({
             />
 
             {/* Action Buttons for Mobile/Field Worker & Desktop */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <button
                 type="button"
                 onClick={() => cameraInputRef.current?.click()}
-                className="p-4 rounded-xl border-2 border-dashed border-cyan-500/40 hover:border-cyan-500 bg-cyan-500/5 hover:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 flex items-center justify-center gap-3 transition cursor-pointer group"
+                className="p-5 sm:p-6 rounded-2xl border-2 border-dashed border-cyan-500/50 hover:border-cyan-500 bg-cyan-500/5 hover:bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 flex items-center justify-center gap-4 transition cursor-pointer group shadow-xs active:scale-95"
               >
-                <div className="size-10 rounded-full bg-cyan-500/20 flex items-center justify-center group-hover:scale-110 transition">
-                  <Camera className="size-5 text-cyan-600 dark:text-cyan-400" />
+                <div className="size-12 rounded-2xl bg-cyan-500/20 flex items-center justify-center group-hover:scale-110 transition shadow-xs">
+                  <Camera className="size-6 text-cyan-600 dark:text-cyan-400 stroke-[2.2]" />
                 </div>
                 <div className="text-left">
-                  <div className="text-xs font-bold text-foreground group-hover:text-cyan-600 dark:group-hover:text-cyan-400">
+                  <div className="text-sm sm:text-base font-black text-foreground group-hover:text-cyan-600 dark:group-hover:text-cyan-400">
                     Buka Kamera Langsung (HP/Tablet)
                   </div>
-                  <div className="text-[10px] text-muted-foreground">
-                    Ambil foto langsung di lokasi dermaga / kapal
+                  <div className="text-xs text-muted-foreground mt-0.5 font-medium">
+                    Ambil foto langsung di lokasi dermaga / armada kapal
                   </div>
                 </div>
               </button>
@@ -2471,16 +2471,16 @@ export default function SerahTerimaLapanganTab({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="p-4 rounded-xl border-2 border-dashed border-indigo-500/40 hover:border-indigo-500 bg-indigo-500/5 hover:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center gap-3 transition cursor-pointer group"
+                className="p-5 sm:p-6 rounded-2xl border-2 border-dashed border-indigo-500/50 hover:border-indigo-500 bg-indigo-500/5 hover:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 flex items-center justify-center gap-4 transition cursor-pointer group shadow-xs active:scale-95"
               >
-                <div className="size-10 rounded-full bg-indigo-500/20 flex items-center justify-center group-hover:scale-110 transition">
-                  <Images className="size-5 text-indigo-600 dark:text-indigo-400" />
+                <div className="size-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center group-hover:scale-110 transition shadow-xs">
+                  <Images className="size-6 text-indigo-600 dark:text-indigo-400 stroke-[2.2]" />
                 </div>
                 <div className="text-left">
-                  <div className="text-xs font-bold text-foreground group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+                  <div className="text-sm sm:text-base font-black text-foreground group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
                     Pilih Foto dari Galeri / Berkas
                   </div>
-                  <div className="text-[10px] text-muted-foreground">
+                  <div className="text-xs text-muted-foreground mt-0.5 font-medium">
                     Unggah beberapa foto sekaligus dari galeri perangkat
                   </div>
                 </div>
@@ -2490,38 +2490,38 @@ export default function SerahTerimaLapanganTab({
             {/* Photo Queue Preview Grid */}
             {queuedPhotos.length > 0 ? (
               <div className="space-y-3 pt-2">
-                <div className="text-xs font-semibold text-muted-foreground flex items-center justify-between">
+                <div className="text-xs sm:text-sm font-black text-foreground flex items-center justify-between">
                   <span>Pratinjau Foto Bukti Serah Terima ({queuedPhotos.length}):</span>
                   <button
                     type="button"
                     onClick={() => setQueuedPhotos([])}
-                    className="text-[11px] text-rose-500 hover:underline cursor-pointer"
+                    className="text-xs font-bold text-rose-500 hover:underline cursor-pointer"
                   >
                     Hapus Semua
                   </button>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5">
                   {queuedPhotos.map((photo, idx) => (
                     <div
                       key={photo.id}
-                      className="group relative rounded-xl overflow-hidden border border-border bg-muted/40 aspect-square flex flex-col justify-end"
+                      className="group relative rounded-2xl overflow-hidden border-2 border-border bg-muted/40 aspect-square flex flex-col justify-end shadow-xs"
                     >
                       <img
                         src={photo.previewUrl}
                         alt={`Bukti ${idx + 1}`}
                         className="absolute inset-0 size-full object-cover group-hover:scale-105 transition duration-200"
                       />
-                      <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent opacity-90" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent opacity-90" />
 
                       {/* Remove Button */}
                       <button
                         type="button"
                         onClick={() => handleRemovePhoto(photo.id)}
-                        className="absolute top-1.5 right-1.5 p-1 rounded-full bg-rose-600 text-white hover:bg-rose-700 shadow-md cursor-pointer"
+                        className="absolute top-2 right-2 p-1.5 rounded-full bg-rose-600 text-white hover:bg-rose-700 shadow-md cursor-pointer"
                         title="Hapus foto ini"
                       >
-                        <X className="size-3" />
+                        <X className="size-3.5" />
                       </button>
 
                       {/* Zoom Lightbox */}
@@ -2533,16 +2533,16 @@ export default function SerahTerimaLapanganTab({
                             title: `Bukti Foto ${idx + 1} (${photo.sizeFormatted})`,
                           })
                         }
-                        className="absolute top-1.5 left-1.5 p-1 rounded-full bg-black/60 text-white hover:bg-black/80 shadow-md cursor-pointer"
+                        className="absolute top-2 left-2 p-1.5 rounded-full bg-black/60 text-white hover:bg-black/80 shadow-md cursor-pointer"
                         title="Perbesar"
                       >
-                        <Maximize2 className="size-3" />
+                        <Maximize2 className="size-3.5" />
                       </button>
 
                       {/* Info Label */}
-                      <div className="relative z-10 p-2 text-white">
-                        <div className="text-[11px] font-bold">Foto #{idx + 1}</div>
-                        <div className="text-[9px] text-slate-300 font-mono">
+                      <div className="relative z-10 p-2.5 text-white">
+                        <div className="text-xs font-black">Foto #{idx + 1}</div>
+                        <div className="text-[10px] text-slate-300 font-mono">
                           {photo.sizeFormatted}
                         </div>
                       </div>
@@ -2551,44 +2551,44 @@ export default function SerahTerimaLapanganTab({
                 </div>
 
                 {/* Nomenclature preview */}
-                <div className="p-3 rounded-xl bg-muted/40 border border-border text-[11px] text-muted-foreground flex items-center gap-2">
+                <div className="p-3.5 rounded-2xl bg-muted/50 border border-border text-xs text-muted-foreground flex items-center gap-2.5">
                   <ShieldCheck className="size-4 text-emerald-500 shrink-0" />
                   <div className="truncate">
                     <span>Format nama file otomatis Cloudflare R2: </span>
-                    <strong className="font-mono text-foreground font-semibold">
+                    <strong className="font-mono text-foreground font-black">
                       {previewSampleFilename}
                     </strong>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="p-6 text-center border border-dashed border-border rounded-xl text-xs text-muted-foreground">
-                Belum ada foto yang dipilih. Silakan ambil foto kamera langsung atau pilih dari galeri.
+              <div className="p-8 text-center border-2 border-dashed border-border rounded-2xl text-sm font-medium text-muted-foreground">
+                Belum ada foto yang dipilih. Silakan klik tombol kamera langsung atau pilih dari galeri perangkat.
               </div>
             )}
           </div>
 
-          {/* SUBMIT BUTTON BAR */}
-          <div className="sticky bottom-4 z-20 bg-background/95 backdrop-blur-md border border-border p-4 rounded-2xl shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div className="text-xs text-muted-foreground">
+          {/* SUBMIT BUTTON BAR (Ramah Petugas Lapangan, Jelas, & Kontras) */}
+          <div className="sticky bottom-4 z-20 bg-background/95 backdrop-blur-md border-2 border-border p-4 sm:p-5 rounded-3xl shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="text-xs sm:text-sm text-muted-foreground font-medium">
               {uploadProgressMsg ? (
-                <span className="text-cyan-600 dark:text-cyan-400 font-semibold flex items-center gap-2">
-                  <RefreshCw className="size-3.5 animate-spin" />
+                <span className="text-cyan-600 dark:text-cyan-400 font-bold flex items-center gap-2">
+                  <RefreshCw className="size-4 animate-spin" />
                   <span>{uploadProgressMsg}</span>
                 </span>
               ) : (
                 <span>
-                  Pastikan data TTB referensi dan nama penerima telah terisi dengan benar.
+                  Pastikan data TTB referensi, nama penerima di kapal, dan minimal 1 foto telah terisi dengan benar.
                 </span>
               )}
             </div>
 
-            <div className="flex items-center gap-2.5 w-full sm:w-auto">
+            <div className="flex items-center gap-3 w-full sm:w-auto">
               <button
                 type="button"
                 onClick={handleClearForm}
                 disabled={isSubmitting}
-                className="px-4 py-2.5 rounded-xl text-xs font-semibold bg-muted hover:bg-muted/80 text-foreground transition cursor-pointer flex-1 sm:flex-initial"
+                className="h-12 sm:h-13 px-6 rounded-2xl text-xs sm:text-sm font-bold bg-muted hover:bg-muted/80 text-foreground transition cursor-pointer flex-1 sm:flex-initial"
               >
                 Reset
               </button>
@@ -2596,16 +2596,16 @@ export default function SerahTerimaLapanganTab({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-6 py-2.5 rounded-xl text-xs font-bold text-slate-950 bg-linear-to-r from-emerald-400 via-teal-400 to-cyan-400 hover:from-emerald-300 hover:to-cyan-300 shadow-lg shadow-teal-500/25 transition flex items-center justify-center gap-2 cursor-pointer flex-1 sm:flex-initial disabled:opacity-50"
+                className="h-12 sm:h-13 px-7 sm:px-9 rounded-2xl text-sm sm:text-base font-black text-slate-950 bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 hover:from-emerald-300 hover:to-cyan-300 shadow-xl shadow-teal-500/25 transition-all flex items-center justify-center gap-2.5 cursor-pointer flex-1 sm:flex-initial disabled:opacity-50 active:scale-95"
               >
                 {isSubmitting ? (
                   <>
-                    <RefreshCw className="size-4 animate-spin" />
+                    <RefreshCw className="size-5 animate-spin" />
                     <span>Menyimpan ke R2...</span>
                   </>
                 ) : (
                   <>
-                    <PackageCheck className="size-4" />
+                    <PackageCheck className="size-5 stroke-[2.5]" />
                     <span>Kirim Bukti Serah Terima Lapangan</span>
                   </>
                 )}

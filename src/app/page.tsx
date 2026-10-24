@@ -1212,7 +1212,7 @@ export default function DashboardPage() {
           </div>
 
           {/* 4 Pillar Executive Metric Cards (procurement tabs only) */}
-          {activeTab !== 'inventory' && activeTab !== 'review-fpb' && activeTab !== 'monitoring-internal' && activeTab !== 'pos-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'validasi-dokumen' && activeTab !== 'admin-settings' && !isKpiHidden && (!isVisitor || searchKeyword.trim() !== '') && (
+          {activeTab !== 'inventory' && activeTab !== 'review-fpb' && activeTab !== 'monitoring-internal' && activeTab !== 'pos-kapal' && activeTab !== 'crew-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'serah-terima-lapangan' && activeTab !== 'galeri-ttb' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'validasi-dokumen' && activeTab !== 'admin-settings' && !isKpiHidden && (!isVisitor || searchKeyword.trim() !== '') && (
             <div className="animate-in fade-in-50 duration-200">
               <KpiCards
                 procurementList={filteredProcurement}
