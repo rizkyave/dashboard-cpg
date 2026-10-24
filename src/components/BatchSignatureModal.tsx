@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { DocumentValidationRecord } from '@/types/documentValidation';
 import { useAuth } from '@/context/AuthContext';
-import { getUserActionForRecord } from '@/utils/validationHelper';
+import { getUserActionForRecord, getStatusKelayakanConfig } from '@/utils/validationHelper';
 
 export interface BatchSignatureModalProps {
   isOpen: boolean;
@@ -304,9 +304,18 @@ export default function BatchSignatureModal({
                           )}
                         </td>
                         <td className="py-2 px-3 whitespace-nowrap text-[10px]">
-                          <span className="px-2 py-0.5 rounded-full font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
-                            Dalam Proses ({action.completedCount}/4)
-                          </span>
+                          {(() => {
+                            const cfg = getStatusKelayakanConfig(item.docType, action.completedCount);
+                            const StatusIcon = cfg.icon;
+                            return (
+                              <span
+                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-semibold ${cfg.badgeClass}`}
+                              >
+                                <StatusIcon className="size-2.5 shrink-0" />
+                                <span>{cfg.label}</span>
+                              </span>
+                            );
+                          })()}
                         </td>
                       </tr>
                     ))}

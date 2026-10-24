@@ -249,8 +249,14 @@ function computeSummaryMetrics(records: DocumentValidationRecord[]): ValidationS
     totalFstb: records.filter((r) => r.docType === 'FSTB').length,
     totalTtb: records.filter((r) => r.docType === 'TTB').length,
     menungguValidasi: records.filter((r) => r.completedLinesCount === 0).length,
-    prosesValidasi: records.filter((r) => r.completedLinesCount >= 1 && r.completedLinesCount < 4).length,
-    siapKirimArmada: records.filter((r) => r.completedLinesCount === 4).length,
+    prosesValidasi: records.filter((r) =>
+      r.docType === 'TTB'
+        ? r.completedLinesCount === 1 || r.completedLinesCount === 2
+        : r.completedLinesCount >= 1 && r.completedLinesCount < 4
+    ).length,
+    siapKirimArmada: records.filter((r) =>
+      r.docType === 'TTB' ? r.completedLinesCount >= 3 : r.completedLinesCount === 4
+    ).length,
     sudahDiterimaArmada: records.filter((r) => r.docType === 'TTB' && r.completedLinesCount === 4).length,
   };
 }

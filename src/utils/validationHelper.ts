@@ -1,3 +1,10 @@
+import React from 'react';
+import {
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+  Truck,
+} from 'lucide-react';
 import {
   DocumentValidationRecord,
   OverallValidationStatus,
@@ -17,6 +24,90 @@ export interface UserActionInfo {
   isCompleted: boolean;
   completedCount: number;
   nextPending: PendingSlotInfo | null;
+}
+
+export interface StatusConfig {
+  label: string;
+  badgeClass: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+/**
+ * Mapping konfigurasi visual & teks Status Kelayakan dokumen:
+ * - 4/4: "Diterima Penerima (4/4)" (Hijau)
+ * - 3/4: "Disetujui / Siap Kirim (3/4)" (Biru/Cyan, Icon: Truck)
+ * - 1/4 & 2/4: "Dalam Proses (X/4)" (Amber/Orange, Icon: Clock)
+ * - 0/4: "Menunggu Validasi (0/4)" (Slate/Muted, Icon: AlertCircle)
+ */
+export function getStatusKelayakanConfig(
+  docType: 'FSTB' | 'TTB',
+  progressCount: number
+): StatusConfig {
+  if (docType === 'FSTB') {
+    if (progressCount === 4) {
+      return {
+        label: 'Siap Terbit TTB (4/4)',
+        badgeClass:
+          'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800',
+        icon: CheckCircle2,
+      };
+    }
+    if (progressCount > 0) {
+      return {
+        label: `Dalam Proses (${progressCount}/4)`,
+        badgeClass:
+          'bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800',
+        icon: Clock,
+      };
+    }
+    return {
+      label: 'Menunggu Validasi (0/4)',
+      badgeClass:
+        'bg-slate-50 text-slate-700 border border-slate-200 dark:bg-slate-900/40 dark:text-slate-300 dark:border-slate-800',
+      icon: AlertCircle,
+    };
+  }
+
+  // =========================================================================
+  // DOKUMEN TTB LOGIC
+  // =========================================================================
+  // Stage 4/4 (Completed / Received)
+  if (progressCount === 4) {
+    return {
+      label: 'Diterima Penerima (4/4)',
+      badgeClass:
+        'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800',
+      icon: CheckCircle2,
+    };
+  }
+
+  // Stage 3/4: Purchasing Manager already signed -> Legally approved & Ready for Field Delivery
+  if (progressCount === 3) {
+    return {
+      label: 'Disetujui / Siap Kirim (3/4)',
+      badgeClass:
+        'bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800',
+      icon: Truck,
+    };
+  }
+
+  // Stages 1/4 and 2/4 (In Progress / Pending Internal Approvals)
+  if (progressCount > 0) {
+    return {
+      label: `Dalam Proses (${progressCount}/4)`,
+      badgeClass:
+        'bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800',
+      icon: Clock,
+    };
+  }
+
+  // Stage 0/4 (Pending)
+  return {
+    label: 'Menunggu Validasi (0/4)',
+    badgeClass:
+      'bg-slate-50 text-slate-700 border border-slate-200 dark:bg-slate-900/40 dark:text-slate-300 dark:border-slate-800',
+    icon: AlertCircle,
+  };
 }
 
 /**
@@ -88,17 +179,24 @@ export function computeValidationStatus(
     if (isLogSpv) slotCount++;
     if (isPchMgr) slotCount++;
 
-    // STRICT LOGIC: HANYA jika ke-4 PIC seluruhnya sudah sah baru berstatus SUDAH_DITERIMA_ARMADA
-    const isReady = slotCount === 4;
+    // STRICT LOGIC:
+    // - 4/4 PIC: SUDAH_DITERIMA_ARMADA (Diterima Penerima)
+    // - 3/4 PIC (PCH MGR approved): SIAP_KIRIM_ARMADA (Disetujui / Siap Kirim)
+    // - 1-2/4 PIC: PROSES_VALIDASI (Dalam Proses)
+    // - 0/4 PIC: MENUNGGU_VALIDASI
     let status: OverallValidationStatus = 'MENUNGGU_VALIDASI';
 
     if (slotCount === 4) {
       status = 'SUDAH_DITERIMA_ARMADA'; // 4/4 Selesai Lengkap (Diterima Penerima)
+    } else if (slotCount === 3 && isLogStaff && isLogSpv && isPchMgr && !isRcvLap) {
+      status = 'SIAP_KIRIM_ARMADA'; // 3/4 Disetujui / Siap Kirim ke armada
     } else if (slotCount > 0) {
-      status = 'PROSES_VALIDASI'; // 1-3 PIC telah sah (Dalam Proses)
+      status = 'PROSES_VALIDASI'; // 1-2 PIC telah sah (Dalam Proses)
     } else {
       status = 'MENUNGGU_VALIDASI'; // 0/4 PIC sah
     }
+
+    const isReady = slotCount === 4 || status === 'SIAP_KIRIM_ARMADA';
 
     return { completedCount: slotCount, status, isReady };
   }

@@ -42,6 +42,7 @@ import {
 import {
   computeValidationStatus,
   getUserActionForRecord,
+  getStatusKelayakanConfig,
 } from '@/utils/validationHelper';
 import ValidationSignatureModal from './ValidationSignatureModal';
 import FstbValidationModal from './FstbValidationModal';
@@ -227,6 +228,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
   const displayMetrics = useMemo<ValidationSummaryMetrics>(() => {
     let waiting = 0;
     let inProgress = 0;
+    let readyDispatch = 0;
     let completed = 0;
     let fstbCount = 0;
     let ttbCount = 0;
@@ -238,9 +240,12 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
       const comp = computeValidationStatus(r);
       if (comp.completedCount === 0) {
         waiting++;
-      } else if (comp.completedCount >= 1 && comp.completedCount < 4) {
-        inProgress++;
+      } else if (r.docType === 'TTB' && comp.completedCount === 3) {
+        readyDispatch++; // 3/4 Disetujui / Siap Kirim
+      } else if (comp.completedCount >= 1 && comp.completedCount < (r.docType === 'TTB' ? 3 : 4)) {
+        inProgress++; // 1-2 PIC dalam proses
       } else if (comp.completedCount === 4) {
+        readyDispatch++;
         completed++;
       }
     }
@@ -251,7 +256,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
       totalTtb: ttbCount,
       menungguValidasi: waiting,
       prosesValidasi: inProgress,
-      siapKirimArmada: completed,
+      siapKirimArmada: readyDispatch,
       sudahDiterimaArmada: completed,
     };
   }, [records]);
@@ -496,14 +501,14 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
             <div className="text-lg sm:text-xl font-bold font-mono text-blue-600 dark:text-blue-400">
               {displayMetrics.prosesValidasi}
             </div>
-            <span className="text-[10px] text-muted-foreground">1-3 PIC telah sah</span>
+            <span className="text-[10px] text-muted-foreground">1-2 PIC telah sah</span>
           </div>
         </div>
 
         {/* Card 4: Siap Kirim Armada */}
         <div className="bg-card border border-border rounded-xl p-3.5 sm:p-4 shadow-xs flex items-center gap-3">
           <div className="size-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
-            <CheckCircle2 className="size-5" />
+            <Truck className="size-5" />
           </div>
           <div className="min-w-0">
             <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block">
@@ -512,7 +517,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
             <div className="text-lg sm:text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400">
               {displayMetrics.siapKirimArmada}
             </div>
-            <span className="text-[10px] text-muted-foreground">Pengesahan 4 PIC lengkap</span>
+            <span className="text-[10px] text-muted-foreground">Disetujui &amp; siap kirim</span>
           </div>
         </div>
       </div>
@@ -568,8 +573,9 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
             >
               <option value="ALL">Semua Status Validasi</option>
               <option value="MENUNGGU_VALIDASI">Menunggu Validasi (0/4)</option>
-              <option value="PROSES_VALIDASI">Dalam Proses (1-3/4)</option>
-              <option value="SIAP_KIRIM_ARMADA">Siap Kirim / Sah Lengkap (4/4)</option>
+              <option value="PROSES_VALIDASI">Dalam Proses (1-2/4)</option>
+              <option value="SIAP_KIRIM_ARMADA">Disetujui / Siap Kirim (3/4)</option>
+              <option value="SUDAH_DITERIMA_ARMADA">Diterima Penerima (4/4)</option>
             </select>
 
             <div className="relative w-full sm:w-64">
@@ -1136,41 +1142,18 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
 
                     {/* Status Kelayakan Keseluruhan (Strict Dynamic Logic) */}
                     <td className="py-2.5 px-3 whitespace-nowrap">
-                      {item.docType === 'FSTB' ? (
-                        comp.completedCount === 4 ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
-                            <CheckCircle2 className="size-3" />
-                            Siap Terbit TTB (4/4)
+                      {(() => {
+                        const statusConfig = getStatusKelayakanConfig(item.docType, comp.completedCount);
+                        const StatusIcon = statusConfig.icon;
+                        return (
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${statusConfig.badgeClass}`}
+                          >
+                            <StatusIcon className="size-3 shrink-0" />
+                            <span>{statusConfig.label}</span>
                           </span>
-                        ) : comp.completedCount > 0 ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
-                            <Clock className="size-3" />
-                            Dalam Proses ({comp.completedCount}/4)
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-500/15 text-slate-700 dark:text-slate-300 border border-slate-500/30">
-                            <AlertCircle className="size-3" />
-                            Menunggu Validasi (0/4)
-                          </span>
-                        )
-                      ) : (
-                        comp.completedCount === 4 ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
-                            <CheckCircle2 className="size-3" />
-                            Diterima Penerima (4/4)
-                          </span>
-                        ) : comp.completedCount > 0 ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
-                            <Clock className="size-3" />
-                            Dalam Proses ({comp.completedCount}/4)
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-500/15 text-slate-700 dark:text-slate-300 border border-slate-500/30">
-                            <AlertCircle className="size-3" />
-                            Menunggu Validasi (0/4)
-                          </span>
-                        )
-                      )}
+                        );
+                      })()}
                     </td>
 
                     {/* Tanggal */}
