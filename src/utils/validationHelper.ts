@@ -175,6 +175,19 @@ export function getUserActionForRecord(
 
     const slotStates: Array<PendingSlotInfo & { isValid: boolean; hasAuthority: boolean }> = [
       {
+        key: 'deliveredBy',
+        code: 'LOG STF',
+        label: 'LOG STF',
+        roleName: 'Staf Logistik',
+        isValid: isLogStaff,
+        hasAuthority:
+          isAdmin ||
+          role === 'staf_ttb' ||
+          jabatan.includes('logistik') ||
+          jabatan.includes('pergudangan') ||
+          dept.includes('logistik'),
+      },
+      {
         key: 'receivedBy',
         code: 'RCV / LAP',
         label: 'RCV / LAP',
@@ -188,19 +201,6 @@ export function getUserActionForRecord(
           dept.includes('lapangan') ||
           jabatan.includes('armada') ||
           jabatan.includes('kapal'),
-      },
-      {
-        key: 'deliveredBy',
-        code: 'LOG STF',
-        label: 'LOG STF',
-        roleName: 'Staf Logistik',
-        isValid: isLogStaff,
-        hasAuthority:
-          isAdmin ||
-          role === 'staf_ttb' ||
-          jabatan.includes('logistik') ||
-          jabatan.includes('pergudangan') ||
-          dept.includes('logistik'),
       },
       {
         key: 'approvedBy',

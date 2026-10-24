@@ -814,7 +814,39 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                           </>
                         ) : (
                           <>
-                            {/* Slot 1: Received By : Penerimaan di Lapangan / Unit Armada (RCV / LAP) */}
+                            {/* Slot 1: Delivered By : Administrasi Logistik (LOG STF) */}
+                            {(() => {
+                              const isValid = Boolean(
+                                item.ttbSlots?.deliveredBy?.isValidated ||
+                                item.logistikValidation?.isValidated
+                              );
+                              const name =
+                                item.ttbSlots?.deliveredBy?.validatorName ||
+                                item.logistikValidation?.validatorName ||
+                                'Staf Logistik';
+                              return (
+                                <div
+                                  className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border shrink-0 ${
+                                    isValid
+                                      ? 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30'
+                                      : 'bg-muted/60 text-muted-foreground/60 border-border/40'
+                                  }`}
+                                  title={`1. Administrasi Logistik (LOG STF): ${
+                                    isValid ? `Sah (${name})` : 'Menunggu Pengesahan'
+                                  }`}
+                                >
+                                  <PackageCheck className="size-2.5 shrink-0" />
+                                  <span>LOG STF</span>
+                                  {isValid ? (
+                                    <Check className="size-2.5 text-purple-600 dark:text-purple-400 shrink-0" />
+                                  ) : (
+                                    <Clock className="size-2.5 shrink-0" />
+                                  )}
+                                </div>
+                              );
+                            })()}
+
+                            {/* Slot 2: Received By : Penerimaan di Lapangan / Unit Armada (RCV / LAP) */}
                             {(() => {
                               const isValid = Boolean(
                                 item.ttbSlots?.receivedBy?.isValidated ||
@@ -833,7 +865,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                                       ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
                                       : 'bg-muted/60 text-muted-foreground/60 border-border/40'
                                   }`}
-                                  title={`1. Penerimaan di Lapangan / Unit Armada (RCV / LAP): ${
+                                  title={`2. Penerimaan di Lapangan / Unit Armada (RCV / LAP): ${
                                     isValid ? `Sah (${name})` : 'Menunggu Penerima'
                                   }`}
                                 >
@@ -841,38 +873,6 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                                   <span>RCV / LAP</span>
                                   {isValid ? (
                                     <Check className="size-2.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                                  ) : (
-                                    <Clock className="size-2.5 shrink-0" />
-                                  )}
-                                </div>
-                              );
-                            })()}
-
-                            {/* Slot 2: Delivered By : Administrasi Logistik (LOG STF) */}
-                            {(() => {
-                              const isValid = Boolean(
-                                item.ttbSlots?.deliveredBy?.isValidated ||
-                                item.logistikValidation?.isValidated
-                              );
-                              const name =
-                                item.ttbSlots?.deliveredBy?.validatorName ||
-                                item.logistikValidation?.validatorName ||
-                                'Staf Logistik';
-                              return (
-                                <div
-                                  className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border shrink-0 ${
-                                    isValid
-                                      ? 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30'
-                                      : 'bg-muted/60 text-muted-foreground/60 border-border/40'
-                                  }`}
-                                  title={`2. Administrasi Logistik (LOG STF): ${
-                                    isValid ? `Sah (${name})` : 'Menunggu Pengesahan'
-                                  }`}
-                                >
-                                  <PackageCheck className="size-2.5 shrink-0" />
-                                  <span>LOG STF</span>
-                                  {isValid ? (
-                                    <Check className="size-2.5 text-purple-600 dark:text-purple-400 shrink-0" />
                                   ) : (
                                     <Clock className="size-2.5 shrink-0" />
                                   )}
