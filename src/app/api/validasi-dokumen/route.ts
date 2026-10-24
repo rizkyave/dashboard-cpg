@@ -264,6 +264,7 @@ export async function GET(req: NextRequest) {
     const query = (searchParams.get('q') || '').trim().toUpperCase();
 
     let validationRecords = await getStoredValidations();
+
     const fstbItems = await getFstbHistory();
     const ttbItems = await getTtbHistory();
     const serahTerimaItems = await getSerahTerimaHistory();
@@ -850,6 +851,211 @@ export async function POST(req: NextRequest) {
     } = body;
 
     let validationRecords = await getStoredValidations();
+
+    // =========================================================================
+    // AKSI BATCH: PENGESAHAN TANDA TANGAN DIGITAL MASSAL (BATCH / BULK SIGN)
+    // =========================================================================
+    if (action === 'batch_sign') {
+      const docIds: string[] = body.documentIds || (body.validationIds ? body.validationIds : []);
+      if (!Array.isArray(docIds) || docIds.length === 0) {
+        return NextResponse.json(
+          { success: false, error: 'Daftar dokumen target tanda tangan massal kosong.' },
+          { status: 400 }
+        );
+      }
+
+      if (!validatorName) {
+        return NextResponse.json(
+          { success: false, error: 'Nama penanda tangan / validator wajib disertakan.' },
+          { status: 400 }
+        );
+      }
+
+      const userSigMap = await getUserSignatureMap();
+      let resolvedSignatureDataUrl = signatureDataUrl;
+      let effectiveNik = validatorNik;
+      let effectiveJabatan = validatorJabatan;
+
+      if (!resolvedSignatureDataUrl || resolvedSignatureDataUrl.trim() === '') {
+        const lookup = findUserSig(
+          userSigMap,
+          validatorUsername,
+          validatorName,
+          validatorNik
+        );
+        if (lookup?.signatureDataUrl) {
+          resolvedSignatureDataUrl = lookup.signatureDataUrl;
+          if (!effectiveNik && lookup.nik) effectiveNik = lookup.nik;
+          if (!effectiveJabatan && lookup.jabatan) effectiveJabatan = lookup.jabatan;
+        }
+      }
+
+      const nowIso = new Date().toISOString();
+      let processedCount = 0;
+      const updatedList: DocumentValidationRecord[] = [];
+
+      for (const recId of docIds) {
+        const record = validationRecords.find(
+          (r) => r.id === recId || r.docId === recId || r.docNumber === recId || r.cleanDocNumber === recId
+        );
+        if (!record) continue;
+
+        // Tentukan slot yang pending sesuai urutan kronologis TTB atau FSTB
+        if (record.docType === 'TTB') {
+          record.ttbSlots = record.ttbSlots || {
+            deliveredBy: { isValidated: false },
+            approvedBy: { isValidated: false },
+            acknowledgedBy: { isValidated: false },
+            receivedBy: { isValidated: false },
+          };
+
+          // Tentukan target slot: cari slot pertama yang belum valid sesuai urutan TTB:
+          // 1. deliveredBy (LOG STF) -> 2. approvedBy (LOG SPV) -> 3. acknowledgedBy (PCH MGR) -> 4. receivedBy (RCV/LAP)
+          let targetSlot: TtbSlotKey = 'deliveredBy';
+          if (!record.ttbSlots.deliveredBy?.isValidated) {
+            targetSlot = 'deliveredBy';
+          } else if (!record.ttbSlots.approvedBy?.isValidated) {
+            targetSlot = 'approvedBy';
+          } else if (!record.ttbSlots.acknowledgedBy?.isValidated) {
+            targetSlot = 'acknowledgedBy';
+          } else if (!record.ttbSlots.receivedBy?.isValidated) {
+            targetSlot = 'receivedBy';
+          }
+
+          let roleType: TtbStampRoleType = 'delivered_by';
+          let defaultJabatan = 'Logistic Staff';
+          let prefix = 'LOG';
+
+          if (targetSlot === 'approvedBy') {
+            roleType = 'approved_by';
+            defaultJabatan = 'Logistic Supervisor';
+            prefix = 'LOG-SPV';
+          } else if (targetSlot === 'acknowledgedBy') {
+            roleType = 'acknowledged_by';
+            defaultJabatan = 'Procurement Manager';
+            prefix = 'PCH-MGR';
+          } else if (targetSlot === 'receivedBy') {
+            roleType = 'received_by';
+            defaultJabatan = 'User / Tim Lapangan';
+            prefix = 'LAP';
+          }
+
+          const token = `VAL-TTB-${prefix}-BATCH-${Date.now().toString(36).toUpperCase()}-${Math.random()
+            .toString(36)
+            .substring(2, 6)
+            .toUpperCase()}`;
+
+          // Stamp PDF jika berkas PDF tersedia
+          let pdfBuffer: Buffer | null = null;
+          const filename = record.renamedFileName || `${record.cleanDocNumber}.pdf`;
+          const r2Key = record.r2Key || `ttb-documents/${filename}`;
+
+          if (isR2Configured()) {
+            try {
+              const r2Obj = await getObjectFromR2(r2Key);
+              if (r2Obj && r2Obj.body) {
+                pdfBuffer = Buffer.from(r2Obj.body);
+              }
+            } catch {}
+          }
+
+          if (!pdfBuffer) {
+            try {
+              const localDir = getTtbPhotosDir();
+              pdfBuffer = await fs.readFile(path.join(localDir, filename));
+            } catch {
+              try {
+                const altPath = path.join(process.cwd(), 'src', 'app', 'public', 'photos_TTB', filename);
+                pdfBuffer = await fs.readFile(altPath);
+              } catch {}
+            }
+          }
+
+          if (pdfBuffer) {
+            try {
+              pdfBuffer = await stampTtbPdf({
+                pdfBuffer,
+                signatureDataUrl: resolvedSignatureDataUrl || undefined,
+                uploaderName: validatorName,
+                uploadDate: formatTtbStampDate(new Date()),
+                roleType,
+                verificationToken: token,
+              });
+
+              if (isR2Configured()) {
+                await uploadToR2({
+                  key: r2Key,
+                  body: pdfBuffer,
+                  contentType: 'application/pdf',
+                });
+              }
+
+              try {
+                const localDir = getTtbPhotosDir();
+                await fs.mkdir(localDir, { recursive: true });
+                await fs.writeFile(path.join(localDir, filename), pdfBuffer);
+              } catch {}
+
+              record.fileUrl = `/api/r2-file?key=${encodeURIComponent(r2Key)}&v=${Date.now()}`;
+            } catch (err) {
+              console.warn('Gagal stamp PDF pada batch sign:', err);
+            }
+          }
+
+          record.ttbSlots[targetSlot] = {
+            isValidated: true,
+            validatorName,
+            validatorUsername,
+            validatorRole,
+            validatorNik: effectiveNik,
+            validatorJabatan: effectiveJabatan || defaultJabatan,
+            signatureDataUrl: resolvedSignatureDataUrl,
+            validatedAt: nowIso,
+            notes: notes || `Disahkan massal oleh ${effectiveJabatan || defaultJabatan}.`,
+            verificationToken: token,
+          };
+
+          // Sinkronisasi agregat
+          if (record.ttbSlots.acknowledgedBy?.isValidated) {
+            record.purchasingValidation = record.ttbSlots.acknowledgedBy;
+          }
+          if (record.ttbSlots.deliveredBy?.isValidated) {
+            record.logistikValidation = record.ttbSlots.deliveredBy;
+          } else if (record.ttbSlots.approvedBy?.isValidated) {
+            record.logistikValidation = record.ttbSlots.approvedBy;
+          }
+          if (record.ttbSlots.receivedBy?.isValidated) {
+            record.lapanganValidation = record.ttbSlots.receivedBy;
+            record.recipientValidation = {
+              isSigned: true,
+              recipientName: validatorName,
+              signedAt: nowIso,
+              signatureDataUrl: resolvedSignatureDataUrl,
+            };
+          }
+        }
+
+        const comp = computeValidationStatus(record);
+        record.completedLinesCount = comp.completedCount;
+        record.overallStatus = comp.status;
+        record.isReadyForDispatch = comp.isReady;
+        record.updatedAt = nowIso;
+
+        processedCount++;
+        updatedList.push(record);
+      }
+
+      await saveValidations(validationRecords);
+      const metrics = computeSummaryMetrics(validationRecords);
+
+      return NextResponse.json({
+        success: true,
+        message: `Berhasil mengesahkan ${processedCount} berkas secara massal!`,
+        processedCount,
+        records: validationRecords,
+        metrics,
+      });
+    }
 
     // =========================================================================
     // AKSI 1: SINKRONISASI LENGKAP DENGAN CLOUDFLARE R2 & PENYIMPANAN LOKAL

@@ -31,6 +31,7 @@ import {
   UserCheck,
   ArrowRight,
   Link2,
+  CheckSquare,
 } from 'lucide-react';
 import {
   DocumentValidationRecord,
@@ -44,6 +45,7 @@ import {
 import ValidationSignatureModal from './ValidationSignatureModal';
 import FstbValidationModal from './FstbValidationModal';
 import TtbValidationModal from './TtbValidationModal';
+import BatchSignatureModal from './BatchSignatureModal';
 import { useAuth } from '@/context/AuthContext';
 
 export interface ValidasiDokumenTabProps {
@@ -79,6 +81,11 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
   // Modal State
   const [selectedRecord, setSelectedRecord] = useState<DocumentValidationRecord | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
+  // Batch / Bulk Selection State
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isBatchModalOpen, setIsBatchModalOpen] = useState<boolean>(false);
+  const headerCheckboxRef = React.useRef<HTMLInputElement | null>(null);
 
   // Fetch data dari /api/validasi-dokumen
   const fetchValidations = async (isManualRefresh = false) => {
@@ -301,6 +308,53 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
     return result;
   }, [records, filterType, filterStatus, searchKeyword]);
 
+  // Berkas yang memenuhi syarat wewenang pengguna (RBAC) untuk ditandatangani
+  const selectableRecords = useMemo(() => {
+    return filteredRecords.filter((rec) => {
+      const action = getUserActionForRecord(rec, user, Boolean(isAdmin));
+      return action.canValidate;
+    });
+  }, [filteredRecords, user, isAdmin]);
+
+  // Objek record berkas terpilih untuk dialog batch
+  const selectedRecords = useMemo(() => {
+    return records.filter((r) => selectedIds.includes(r.id));
+  }, [records, selectedIds]);
+
+  // Efek indeterminate untuk header checkbox
+  useEffect(() => {
+    if (!headerCheckboxRef.current) return;
+    const selectableCount = selectableRecords.length;
+    const selectedCount = selectedIds.length;
+    if (selectableCount > 0 && selectedCount > 0 && selectedCount < selectableCount) {
+      headerCheckboxRef.current.indeterminate = true;
+    } else {
+      headerCheckboxRef.current.indeterminate = false;
+    }
+  }, [selectedIds, selectableRecords]);
+
+  // Reset pilihan saat filter tipe berubah jika diinginkan
+  useEffect(() => {
+    setSelectedIds((prev) => prev.filter((id) => selectableRecords.some((r) => r.id === id)));
+  }, [filterType, filterStatus]);
+
+  // Handler toggle pilih semua baris yang memenuhi syarat wewenang RBAC
+  const handleToggleSelectAll = () => {
+    if (selectedIds.length === selectableRecords.length && selectableRecords.length > 0) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(selectableRecords.map((r) => r.id));
+    }
+  };
+
+  // Handler toggle pilih per baris
+  const handleToggleSelectRow = (id: string, canValidate: boolean) => {
+    if (!canValidate) return;
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((itemId) => itemId !== id) : [...prev, id]
+    );
+  };
+
   const handleOpenValidation = (rec: DocumentValidationRecord) => {
     setSelectedRecord(rec);
     setIsModalOpen(true);
@@ -520,6 +574,24 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
           <table className="w-full text-left text-xs">
             <thead className="bg-muted/50 text-muted-foreground font-semibold border-b border-border uppercase text-[10px] tracking-wider">
               <tr>
+                <th className="py-2.5 px-3 w-10 text-center">
+                  <input
+                    ref={headerCheckboxRef}
+                    type="checkbox"
+                    checked={
+                      selectableRecords.length > 0 &&
+                      selectedIds.length === selectableRecords.length
+                    }
+                    onChange={handleToggleSelectAll}
+                    disabled={selectableRecords.length === 0}
+                    className="size-4 rounded border-border accent-primary cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed transition"
+                    title={
+                      selectableRecords.length > 0
+                        ? `Pilih semua ${selectableRecords.length} berkas yang siap Anda tandatangani`
+                        : 'Tidak ada berkas yang memerlukan otorisasi Anda'
+                    }
+                  />
+                </th>
                 <th className="py-2.5 px-3">Tipe</th>
                 <th className="py-2.5 px-3">No. Berkas Resmi</th>
                 <th className="py-2.5 px-3">Armada / Unit</th>
@@ -534,7 +606,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
             <tbody className="divide-y divide-border/60">
               {isLoading ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-muted-foreground">
+                  <td colSpan={10} className="py-12 text-center text-muted-foreground">
                     <span className="inline-flex items-center gap-2">
                       <RefreshCw className="size-4 animate-spin text-primary" />
                       Memuat data berkas validasi dari Cloudflare R2...
@@ -543,7 +615,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                 </tr>
               ) : filteredRecords.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-muted-foreground">
+                  <td colSpan={10} className="py-12 text-center text-muted-foreground">
                     {searchKeyword
                       ? `Tidak ada berkas yang cocok dengan kata kunci "${searchKeyword}".`
                       : 'Belum ada berkas FSTB atau TTB yang terunggah untuk divalidasi.'}
@@ -553,9 +625,33 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                 filteredRecords.map((item) => {
                   const comp = computeValidationStatus(item);
                   const userAction = getUserActionForRecord(item, user, Boolean(isAdmin));
+                  const isSelected = selectedIds.includes(item.id);
 
                   return (
-                  <tr key={item.id} className="hover:bg-muted/30 transition">
+                  <tr
+                    key={item.id}
+                    className={`hover:bg-muted/30 transition ${
+                      isSelected ? 'bg-primary/5 dark:bg-primary/10' : ''
+                    }`}
+                  >
+                    {/* Checkbox Batch RBAC */}
+                    <td className="py-2.5 px-3 text-center">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => handleToggleSelectRow(item.id, userAction.canValidate)}
+                        disabled={!userAction.canValidate}
+                        className="size-4 rounded border-border accent-primary cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed transition"
+                        title={
+                          userAction.canValidate
+                            ? `Pilih ${item.docNumber} untuk tanda tangan massal`
+                            : userAction.isCompleted
+                            ? 'Pengesahan 4 PIC sudah lengkap'
+                            : userAction.tooltip
+                        }
+                      />
+                    </td>
+
                     {/* Tipe Dokumen */}
                     <td className="py-2.5 px-3">
                       <span
@@ -1047,6 +1143,51 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
         </div>
       </div>
 
+      {/* Floating Dynamic Batch Action Bar */}
+      {selectedIds.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-full max-w-xl px-4 animate-in fade-in slide-in-from-bottom-5 duration-300 pointer-events-auto">
+          <div className="bg-card/95 backdrop-blur-md border border-primary/30 shadow-2xl rounded-2xl p-3 sm:p-4 flex items-center justify-between gap-3 text-foreground">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="size-9 rounded-xl bg-primary/15 text-primary border border-primary/25 flex items-center justify-center shrink-0 shadow-xs">
+                <CheckSquare className="size-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-foreground truncate">
+                    {selectedIds.length} Berkas Dipilih
+                  </span>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-primary/15 text-primary border border-primary/25">
+                    {user?.role?.toUpperCase() || (isAdmin ? 'ADMIN' : 'VALIDATOR')}
+                  </span>
+                </div>
+                <p className="text-[11px] text-muted-foreground truncate">
+                  Siap untuk validasi &amp; stempel digital massal
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setSelectedIds([])}
+                className="h-8.5 px-3 rounded-xl border border-border bg-background hover:bg-muted text-xs font-medium text-muted-foreground hover:text-foreground transition cursor-pointer"
+              >
+                Batalkan
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsBatchModalOpen(true)}
+                className="h-8.5 px-4 rounded-xl bg-gradient-to-r from-primary to-teal-600 hover:from-primary/90 hover:to-teal-600/90 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-md transition active:scale-95 cursor-pointer"
+              >
+                <FileSignature className="size-3.5" />
+                <span>Tanda Tangani Massal ({selectedIds.length})</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal Interaktif Validasi & Tanda Tangan Digital */}
       {isModalOpen && selectedRecord && (
         selectedRecord.docType === 'FSTB' ? (
@@ -1072,6 +1213,24 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
             showToast={showToast}
           />
         )
+      )}
+
+      {/* Modal Pengesahan Tanda Tangan Digital Massal (Batch Sign) */}
+      {isBatchModalOpen && (
+        <BatchSignatureModal
+          isOpen={isBatchModalOpen}
+          onClose={() => setIsBatchModalOpen(false)}
+          selectedRecords={selectedRecords}
+          onBatchSuccess={(updatedRecords) => {
+            setRecords(updatedRecords);
+            setSelectedIds([]);
+            fetchValidations(false);
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('cpg_validation_data_changed'));
+            }
+          }}
+          showToast={showToast}
+        />
       )}
     </div>
   );
