@@ -30,9 +30,10 @@ import {
   Copy,
   Printer,
   ShoppingBag,
+  Building2,
 } from 'lucide-react';
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
-import { SisaLayananItem } from '@/types/sisaLayanan';
+import { SisaLayananItem, SisaLayananStatus } from '@/types/sisaLayanan';
 import {
   PratenderOpenItem,
   PratenderPackage,
@@ -46,14 +47,15 @@ interface PratenderTabProps {
   procurementItems?: ProcurementItem[];
   armadaItems?: ArmadaItem[];
   sisaLayananItems?: SisaLayananItem[];
-  onOpenAudit?: (fpbOrPo: string) => void;
+  onOpenAudit?: (fpbOrPo: string, po?: string) => void;
   showToast?: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
 }
 
-// Helper klasifikasi maritim cerdas
+// Helper cerdas klasifikasi kategori suku cadang & kebutuhan kapal maritim
 function classifyMaritimeItem(itemName: string, categoryName: string = ''): string {
   const text = `${itemName || ''} ${categoryName || ''}`.toLowerCase();
 
+  // 1. Suku Cadang Mesin Utama & Propulsi
   if (
     text.includes('filter') || text.includes('engine') || text.includes('piston') ||
     text.includes('injector') || text.includes('gasket') || text.includes('liner') ||
@@ -62,123 +64,152 @@ function classifyMaritimeItem(itemName: string, categoryName: string = ''): stri
     text.includes('fan belt') || text.includes('timing belt') || text.includes('cylinder') ||
     text.includes('crankshaft') || text.includes('camshaft') || text.includes('rocker arm') ||
     text.includes('oil seal') || text.includes('packing') || text.includes('radiator') ||
-    text.includes('mesin') || text.includes('fip') || text.includes('exhaust valve')
+    text.includes('mesin') || text.includes('fip') || text.includes('propeller') ||
+    text.includes('exhaust valve') || text.includes('inlet valve') || text.includes('ring set')
   ) {
     return 'Suku Cadang Mesin';
   }
 
+  // 2. Sistem Pipa, Hose & Saluran Tekanan
   if (
     text.includes('hose') || text.includes('selang') || text.includes('hydraulic') ||
     text.includes('hidrolik') || text.includes('pipa') || text.includes('pipe') ||
     text.includes('fitting') || text.includes('flange') || text.includes('niple') ||
-    text.includes('elbow') || text.includes('tee') || text.includes('clamp') ||
-    text.includes('klem') || text.includes('coupling') || text.includes('banjo')
+    text.includes('nipple') || text.includes('elbow') || text.includes('reducer') ||
+    text.includes('tee') || text.includes('clamp') || text.includes('klem') ||
+    text.includes('coupling') || text.includes('tubing') || text.includes('banjo')
   ) {
     return 'Pipa & Hose Hidrolik';
   }
 
+  // 3. Pompa & Valve
   if (
     text.includes('pompa') || text.includes('pump') || text.includes('valve') ||
-    text.includes('kran') || text.includes('impeller') || text.includes('mechanical seal') ||
-    text.includes('strainer') || text.includes('solenoid')
+    text.includes('kran') || text.includes('stop kran') || text.includes('cock') ||
+    text.includes('impeller') || text.includes('mechanical seal') || text.includes('strainer') ||
+    text.includes('solenoid')
   ) {
     return 'Pompa & Valve';
   }
 
+  // 4. Peralatan Listrik & Otomasi
   if (
-    text.includes('kabel') || text.includes('lampu') || text.includes('accu') ||
-    text.includes('aki') || text.includes('battery') || text.includes('mcb') ||
-    text.includes('kontaktor') || text.includes('relay') || text.includes('trafo') ||
-    text.includes('inverter') || text.includes('genset') || text.includes('dynamo') ||
-    text.includes('dinamo') || text.includes('saklar') || text.includes('listrik')
+    text.includes('kabel') || text.includes('cable') || text.includes('lampu') ||
+    text.includes('lamp') || text.includes('bulb') || text.includes('accu') ||
+    text.includes('aki') || text.includes('battery') || text.includes('baterai') ||
+    text.includes('mcb') || text.includes('mccb') || text.includes('kontaktor') ||
+    text.includes('relay') || text.includes('trafo') || text.includes('inverter') ||
+    text.includes('genset') || text.includes('dynamo') || text.includes('dinamo') ||
+    text.includes('saklar') || text.includes('switch') || text.includes('terminal') ||
+    text.includes('skun') || text.includes('listrik') || text.includes('electric')
   ) {
     return 'Peralatan Listrik';
   }
 
+  // 5. Material Logam, Fabrikasi & Pengelasan
   if (
-    text.includes('plat') || text.includes('besi') || text.includes('baja') ||
-    text.includes('siku') || text.includes('hollow') || text.includes('unp') ||
-    text.includes('kawat las') || text.includes('welding') || text.includes('elektroda') ||
-    text.includes('gerinda') || text.includes('gurinda') || text.includes('amplas') ||
-    text.includes('las')
+    text.includes('plat') || text.includes('plate') || text.includes('besi') ||
+    text.includes('baja') || text.includes('siku') || text.includes('hollow') ||
+    text.includes('unp') || text.includes('wf') || text.includes('h-beam') ||
+    text.includes('as bulat') || text.includes('round bar') || text.includes('kawat las') ||
+    text.includes('welding') || text.includes('elektroda') || text.includes('gerinda') ||
+    text.includes('gurinda') || text.includes('cutting disc') || text.includes('amplas') ||
+    text.includes('pasir blasting') || text.includes('blasting') || text.includes('las')
   ) {
     return 'Material Logam & Las';
   }
 
+  // 6. Cat, Coating & Anti-Karat (Zinc Anode)
   if (
     text.includes('cat') || text.includes('paint') || text.includes('primer') ||
     text.includes('thinner') || text.includes('tiner') || text.includes('epoxy') ||
-    text.includes('antifouling') || text.includes('zinc anode') || text.includes('anode') ||
-    text.includes('kuas') || text.includes('roller cat') || text.includes('dempul') ||
-    text.includes('sika')
+    text.includes('antifouling') || text.includes('anti-fouling') || text.includes('zinc anode') ||
+    text.includes('anode') || text.includes('kuas') || text.includes('roller cat') ||
+    text.includes('dempul') || text.includes('sika') || text.includes('coating') ||
+    text.includes('hempel') || text.includes('jotun') || text.includes('international cat') ||
+    text.includes('interlac')
   ) {
     return 'Cat & Zinc Anode';
   }
 
+  // 7. Perlengkapan Deck, Mooring & Rigging
   if (
     text.includes('tali') || text.includes('rope') || text.includes('tros') ||
     text.includes('sling') || text.includes('webbing') || text.includes('wire') ||
     text.includes('seling') || text.includes('jangkar') || text.includes('anchor') ||
-    text.includes('rantai') || text.includes('shackle') || text.includes('segel') ||
-    text.includes('turnbuckle') || text.includes('winch') || text.includes('fender') ||
-    text.includes('terpal')
+    text.includes('rantai') || text.includes('chain') || text.includes('shackle') ||
+    text.includes('segel') || text.includes('turnbuckle') || text.includes('jarum keras') ||
+    text.includes('kenter') || text.includes('kili-kili') || text.includes('winch') ||
+    text.includes('fender') || text.includes('terpal')
   ) {
     return 'Perlengkapan Deck & Tali';
   }
 
+  // 8. Keselamatan Maritim & APD (Safety & PPE)
   if (
     text.includes('safety') || text.includes('pemadam') || text.includes('apar') ||
-    text.includes('lifebuoy') || text.includes('lifejacket') || text.includes('pelampung') ||
-    text.includes('helm') || text.includes('sepatu safety') || text.includes('sarung tangan') ||
-    text.includes('glove') || text.includes('kacamata') || text.includes('ear plug') ||
-    text.includes('scba') || text.includes('flare') || text.includes('smoke signal') ||
-    text.includes('p3k') || text.includes('coverall') || text.includes('wearpack')
+    text.includes('fire') || text.includes('lifebuoy') || text.includes('lifejacket') ||
+    text.includes('pelampung') || text.includes('helm') || text.includes('sepatu safety') ||
+    text.includes('sarung tangan') || text.includes('glove') || text.includes('kacamata') ||
+    text.includes('ear plug') || text.includes('scba') || text.includes('flare') ||
+    text.includes('smoke signal') || text.includes('p3k') || text.includes('coverall') ||
+    text.includes('wearpack')
   ) {
     return 'Safety & K3 Maritim';
   }
 
+  // 9. Navigasi, Komunikasi & IT
   if (
     text.includes('navigasi') || text.includes('radio') || text.includes('radar') ||
     text.includes('gps') || text.includes('antena') || text.includes('kompas') ||
     text.includes('ais') || text.includes('sounder') || text.includes('ht') ||
-    text.includes('vhf') || text.includes('cctv') || text.includes('printer') ||
-    text.includes('tinta') || text.includes('hardisk')
+    text.includes('vhf') || text.includes('ssb') || text.includes('cctv') ||
+    text.includes('printer') || text.includes('tinta') || text.includes('hardisk')
   ) {
     return 'Navigasi & Komunikasi';
   }
 
+  // 10. Alat Kerja Bengkel & Perkakas (Tools)
   if (
-    text.includes('kunci') || text.includes('obeng') || text.includes('tang') ||
-    text.includes('palu') || text.includes('dongkrak') || text.includes('chain block') ||
-    text.includes('bor') || text.includes('mata bor') || text.includes('gergaji') ||
-    text.includes('tracker') || text.includes('manometer') || text.includes('kompresor')
+    text.includes('kunci') || text.includes('wrench') || text.includes('spanner') ||
+    text.includes('obeng') || text.includes('tang') || text.includes('palu') ||
+    text.includes('dongkrak') || text.includes('chain block') || text.includes('bor') ||
+    text.includes('drill') || text.includes('mata bor') || text.includes('gergaji') ||
+    text.includes('tracker') || text.includes('manometer') || text.includes('kompresor') ||
+    text.includes('sounding')
   ) {
     return 'Alat Kerja Bengkel (Tools)';
   }
 
+  // 11. Pelumas, Oli & Chemical
   if (
-    text.includes('oli') || text.includes('pelumas') || text.includes('grease') ||
-    text.includes('gemuk') || text.includes('degreaser') || text.includes('coolant') ||
-    text.includes('rust remover') || text.includes('wd-40') || text.includes('meditran') ||
-    text.includes('salyx') || text.includes('turalik')
+    text.includes('oli') || text.includes('oil') || text.includes('pelumas') ||
+    text.includes('lubricant') || text.includes('grease') || text.includes('gemuk') ||
+    text.includes('chemical') || text.includes('kimia') || text.includes('degreaser') ||
+    text.includes('coolant') || text.includes('rust remover') || text.includes('wd-40') ||
+    text.includes('meditran') || text.includes('salyx') || text.includes('turalik') ||
+    text.includes('rored')
   ) {
     return 'Pelumas & Oli';
   }
 
+  // 12. Perlengkapan Akomodasi & Galley
   if (
-    text.includes('ac') || text.includes('kipas') || text.includes('kulkas') ||
-    text.includes('kasur') || text.includes('bantal') || text.includes('kompor') ||
-    text.includes('gas lpg') || text.includes('lpg') || text.includes('water heater') ||
-    text.includes('akomodasi')
+    text.includes('ac') || text.includes('kipas') || text.includes('fan') ||
+    text.includes('kulkas') || text.includes('kasur') || text.includes('bantal') ||
+    text.includes('kompor') || text.includes('gas lpg') || text.includes('lpg') ||
+    text.includes('water heater') || text.includes('akomodasi') || text.includes('dapur')
   ) {
     return 'Perlengkapan Akomodasi';
   }
 
+  // 13. Consumables & ATK Kantor/Kapal
   if (
-    text.includes('baut') || text.includes('mur') || text.includes('washer') ||
-    text.includes('majun') || text.includes('sabun') || text.includes('lem') ||
-    text.includes('lakban') || text.includes('gembok') || text.includes('kertas') ||
-    text.includes('atk') || text.includes('spidol') || text.includes('stempel') ||
+    text.includes('baut') || text.includes('bolt') || text.includes('mur') ||
+    text.includes('nut') || text.includes('washer') || text.includes('ring plat') ||
+    text.includes('majun') || text.includes('sabun') || text.includes('deterjen') ||
+    text.includes('lem') || text.includes('lakban') || text.includes('gembok') ||
+    text.includes('kertas') || text.includes('atk') || text.includes('stempel') ||
     text.includes('bendera')
   ) {
     return 'Consumables & ATK';
@@ -196,9 +227,32 @@ export default function PratenderTab({
 }: PratenderTabProps) {
   const { user, isAdmin } = useAuth();
 
+  // State data sisa layanan (auto-fetch dari API jika prop dari parent masih kosong)
+  const [sisaItems, setSisaItems] = useState<SisaLayananItem[]>(sisaLayananItems || []);
+  const [isLoadingSisa, setIsLoadingSisa] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (sisaLayananItems && sisaLayananItems.length > 0) {
+      setSisaItems(sisaLayananItems);
+    } else {
+      setIsLoadingSisa(true);
+      fetch('/api/sisa-layanan')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.items && Array.isArray(data.items)) {
+            setSisaItems(data.items);
+          }
+        })
+        .catch((err) => console.warn('Gagal memuat sisa-layanan untuk pratender:', err))
+        .finally(() => setIsLoadingSisa(false));
+    }
+  }, [sisaLayananItems]);
+
   const [activeSubTab, setActiveSubTab] = useState<'pool' | 'packages'>('pool');
+  const [statusFilter, setStatusFilter] = useState<'ALL_UNSUPPLIED' | 'OPEN_ONLY' | 'KURANG_ONLY'>('ALL_UNSUPPLIED');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [selectedVessel, setSelectedVessel] = useState<string>('ALL');
+  const [selectedPt, setSelectedPt] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [filterMultiVesselOnly, setFilterMultiVesselOnly] = useState<boolean>(false);
 
@@ -251,47 +305,60 @@ export default function PratenderTab({
     fetchPackages();
   }, []);
 
-  // 1. Agregasi Item Kebutuhan Terbuka (Unsupplied / Open Items Pool)
+  // 1. AGREGASI DATA DARI SISA LAYANAN (SUMBER DATA UTAMA MATERIAL BELUM TERSUPLAI)
   const openItemsPool = useMemo(() => {
     const map = new Map<string, PratenderOpenItem>();
 
-    // 1a. Proses dari Armada Items
-    armadaItems.forEach((it) => {
-      const qFpb = Number(it.qtyFPB) || 0;
-      const qFstb = Number(it.qtyFSTB) || 0;
-      const qRemaining = it.selisih !== undefined ? Number(it.selisih) : Math.max(0, qFpb - qFstb);
+    // Mapping paket yang sudah dibuat agar item ditandai jika sudah pernah masuk paket
+    const packagedItemIds = new Map<string, { pkgId: string; pkgNumber: string }>();
+    packages.forEach((pkg) => {
+      if (pkg.status !== 'CANCELLED') {
+        pkg.items.forEach((pItem) => {
+          packagedItemIds.set(pItem.itemId, { pkgId: pkg.id, pkgNumber: pkg.packageNumber });
+        });
+      }
+    });
 
-      const isStatusClose =
-        it.status?.toUpperCase() === 'CLOSE' ||
-        it.status?.toUpperCase().includes('LENGKAP') ||
-        it.status?.toUpperCase().includes('SELESAI') ||
-        it.status?.toUpperCase().includes('TUNTAS');
+    sisaItems.forEach((it) => {
+      const rawStatus = (it.status || '').trim().toUpperCase();
 
-      // Filter: Hanya yang masih ada sisa kebutuhan atau belum closed
-      const isUnsupplied = (qRemaining > 0 || !isStatusClose) && qFpb > 0;
-      if (!isUnsupplied) return;
+      // Filter: Hanya ambil status OPEN (belum PO sama sekali) atau KURANG (ada selisih fisik)
+      const isOpen = rawStatus === 'OPEN';
+      const isKurang = rawStatus === 'KURANG' || it.selisih > 0;
+      if (!isOpen && !isKurang) return;
 
-      const rawName = (it.item || '').trim();
-      if (!rawName || rawName === '-' || rawName.length < 3) return;
+      const rawNama = (it.namaBarang || '').trim();
+      if (!rawNama || rawNama === '-' || rawNama.length < 2) return;
 
-      // Normalisasi nama barang
-      const cleanName = rawName.toUpperCase().replace(/\s+/g, ' ');
+      // Bersihkan nama material: hilangkan suffix '(00)' dsb.
+      const cleanName = rawNama.replace(/\s*\(\s*00\s*\)$/i, '').trim().toUpperCase();
       const normKey = cleanName.replace(/[^A-Z0-9]/g, '_');
+
+      // Hitung kuantitas belum tersuplai secara presisi
+      const jmlFpb = Number(it.jmlFpb) || 0;
+      const jmlPo = Number(it.jmlPo) || 0;
+      const jmlFstb = Number(it.jmlFstb) || 0;
+      const selisih = it.selisih !== undefined && it.selisih !== null ? Number(it.selisih) : Math.max(0, jmlFpb - jmlPo);
+
+      // Kuantitas yang belum terpenuhi:
+      // Jika OPEN: jmlFpb (belum ada PO)
+      // Jika KURANG: selisih sisa yang belum dikirim
+      const unsuppliedQty = isOpen ? (jmlFpb || 1) : (selisih > 0 ? selisih : Math.max(1, jmlFpb - jmlFstb));
+
       const category = classifyMaritimeItem(cleanName, it.kategori || '');
-      const satuan = it.satuan || 'UNIT';
-      const vessel = (it.armada || 'Armada CPG').trim();
+      const satuan = (it.satuan || 'UNIT').trim().toUpperCase();
+      const vessel = (it.departement || it.pt || 'Armada CPG').trim();
 
       const reqRef: PratenderRequestRef = {
-        fpb: it.fpb,
+        fpb: it.noFpb,
         armada: vessel,
-        qtyRequested: qFpb,
-        qtyFulfilled: qFstb,
-        qtyRemaining: qRemaining > 0 ? qRemaining : qFpb,
-        tglFpb: it.tglFpb || it.tglPo || (it as any).date,
-        noPo: it.noPo || (it as any).po,
-        status: it.status || 'PROSES',
-        entity: it.entity,
-        workOrderNo: it.workOrderNo,
+        qtyRequested: jmlFpb,
+        qtyFulfilled: jmlFstb,
+        qtyRemaining: unsuppliedQty,
+        tglFpb: it.tglFpb,
+        noPo: it.noPo,
+        status: rawStatus,
+        entity: it.pt,
       };
 
       if (!map.has(normKey)) {
@@ -300,31 +367,21 @@ export default function PratenderTab({
           cleanName,
           category,
           satuan,
-          totalQtyRemaining: reqRef.qtyRemaining,
-          totalQtyRequested: qFpb,
+          totalQtyRemaining: unsuppliedQty,
+          totalQtyRequested: jmlFpb,
           vesselCount: 1,
           vessels: [vessel],
           requests: [reqRef],
         });
       } else {
         const existing = map.get(normKey)!;
-        existing.totalQtyRemaining += reqRef.qtyRemaining;
-        existing.totalQtyRequested += qFpb;
+        existing.totalQtyRemaining += unsuppliedQty;
+        existing.totalQtyRequested += jmlFpb;
         if (!existing.vessels.includes(vessel)) {
           existing.vessels.push(vessel);
           existing.vesselCount = existing.vessels.length;
         }
         existing.requests.push(reqRef);
-      }
-    });
-
-    // Periksa status apakah item ini sudah masuk ke salah satu paket pratender yang ada
-    const packagedItemIds = new Map<string, { pkgId: string; pkgNumber: string }>();
-    packages.forEach((pkg) => {
-      if (pkg.status !== 'CANCELLED') {
-        pkg.items.forEach((pItem) => {
-          packagedItemIds.set(pItem.itemId, { pkgId: pkg.id, pkgNumber: pkg.packageNumber });
-        });
       }
     });
 
@@ -338,11 +395,11 @@ export default function PratenderTab({
       };
     });
 
-    // Urutkan: item yang diminta banyak kapal terlebih dahulu, lalu kuantitas terbanyak
+    // Urutkan: item yang diminta oleh banyak kapal terlebih dahulu, lalu kuantitas terbesar
     return result.sort((a, b) => b.vesselCount - a.vesselCount || b.totalQtyRemaining - a.totalQtyRemaining);
-  }, [armadaItems, packages]);
+  }, [sisaItems, packages]);
 
-  // Kategori Maritim Unik dari Item Terbuka
+  // Daftar Kategori Maritim Unik
   const availableCategories = useMemo(() => {
     const set = new Set<string>();
     openItemsPool.forEach((it) => set.add(it.category));
@@ -356,12 +413,32 @@ export default function PratenderTab({
     return Array.from(set).sort();
   }, [openItemsPool]);
 
-  // Filter Pool Item Terbuka
+  // Daftar Entitas PT Unik
+  const availablePts = useMemo(() => {
+    const set = new Set<string>();
+    sisaItems.forEach((it) => {
+      if (it.pt) set.add(it.pt.trim());
+    });
+    return Array.from(set).sort();
+  }, [sisaItems]);
+
+  // Filter Pool Item Terbuka Sesuai Kontrol Pengguna
   const filteredOpenItems = useMemo(() => {
     return openItemsPool.filter((it) => {
+      // Filter Status Sisa Layanan
+      if (statusFilter === 'OPEN_ONLY') {
+        const hasOpen = it.requests.some((r) => r.status === 'OPEN');
+        if (!hasOpen) return false;
+      } else if (statusFilter === 'KURANG_ONLY') {
+        const hasKurang = it.requests.some((r) => r.status === 'KURANG');
+        if (!hasKurang) return false;
+      }
+
       if (selectedCategory !== 'ALL' && it.category !== selectedCategory) return false;
       if (selectedVessel !== 'ALL' && !it.vessels.includes(selectedVessel)) return false;
+      if (selectedPt !== 'ALL' && !it.requests.some((r) => r.entity === selectedPt)) return false;
       if (filterMultiVesselOnly && it.vesselCount < 2) return false;
+
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
         const matchName = it.cleanName.toLowerCase().includes(q);
@@ -372,7 +449,7 @@ export default function PratenderTab({
       }
       return true;
     });
-  }, [openItemsPool, selectedCategory, selectedVessel, filterMultiVesselOnly, searchQuery]);
+  }, [openItemsPool, statusFilter, selectedCategory, selectedVessel, selectedPt, filterMultiVesselOnly, searchQuery]);
 
   // KPI Metrics Summary
   const kpiMetrics = useMemo(() => {
@@ -409,7 +486,6 @@ export default function PratenderTab({
     }
 
     const selectedItems = openItemsPool.filter((i) => selectedItemIds.has(i.id));
-    // Tentukan kategori dominan
     const catFreq: Record<string, number> = {};
     selectedItems.forEach((i) => {
       catFreq[i.category] = (catFreq[i.category] || 0) + 1;
@@ -417,11 +493,10 @@ export default function PratenderTab({
     const domCat = Object.entries(catFreq).sort((a, b) => b[1] - a[1])[0]?.[0] || 'Suku Cadang Mesin';
 
     setPkgCategory(domCat);
-    const dateStr = new Date().toISOString().slice(2, 4); // "26"
-    const nextSeq = String(packages.length + 1).padStart(4, '0');
+    const dateStr = new Date().toISOString().slice(2, 4);
     setPkgTitle(`Paket Pengadaan ${domCat} Armada Q4 20${dateStr}`);
     setPkgNotes('Spesifikasi asli (OEM) bergaransi resmi, sertifikat asal barang (COO) terlampir.');
-    setPkgClosingDate(new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10)); // Default 7 hari ke depan
+    setPkgClosingDate(new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10));
     setPkgEstimatedBudget('');
 
     setIsCreateModalOpen(true);
@@ -594,11 +669,16 @@ export default function PratenderTab({
               <Layers className="size-5" />
             </div>
             <div>
-              <h2 className="text-lg sm:text-xl font-extrabold text-foreground tracking-tight">
-                Pratender Material &amp; Konsolidasi Pengadaan
-              </h2>
-              <p className="text-xs text-muted-foreground">
-                Agregasi kebutuhan material terbuka (open &amp; unsupplied) lintas armada kapal untuk pembentukan paket tender bersama (bulk purchasing).
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-lg sm:text-xl font-extrabold text-foreground tracking-tight">
+                  Pratender Material &amp; Konsolidasi Pengadaan
+                </h2>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                  Data Sisa Layanan Aktif
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Mengambil data material bersumber langsung dari database <strong>Sisa Layanan (Status OPEN &amp; KURANG)</strong> lintas seluruh armada kapal untuk pembentukan paket tender massal (bulk purchasing).
               </p>
             </div>
           </div>
@@ -648,20 +728,24 @@ export default function PratenderTab({
             <Package className="size-4 text-amber-500" />
           </div>
           <div className="text-2xl font-black text-foreground font-mono">
-            {kpiMetrics.totalItems.toLocaleString('id-ID')}
+            {isLoadingSisa ? (
+              <span className="text-sm font-normal text-muted-foreground">Memuat...</span>
+            ) : (
+              kpiMetrics.totalItems.toLocaleString('id-ID')
+            )}
           </div>
-          <p className="text-[11px] text-muted-foreground">Item unik membutuhkan pemenuhan</p>
+          <p className="text-[11px] text-muted-foreground">Item unik dari Sisa Layanan (OPEN/KURANG)</p>
         </div>
 
         <div className="bg-card border border-border rounded-2xl p-4 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-muted-foreground text-xs">
-            <span>Akumulasi Kuantitas</span>
+            <span>Akumulasi Kuantitas Sisa</span>
             <TrendingUp className="size-4 text-emerald-500" />
           </div>
           <div className="text-2xl font-black text-foreground font-mono">
             {kpiMetrics.totalQty.toLocaleString('id-ID')}
           </div>
-          <p className="text-[11px] text-muted-foreground">Total unit/meter/drum gabungan</p>
+          <p className="text-[11px] text-muted-foreground">Total unit/meter/drum gabungan belum PO</p>
         </div>
 
         <div className="bg-card border border-border rounded-2xl p-4 shadow-2xs space-y-1">
@@ -672,7 +756,7 @@ export default function PratenderTab({
           <div className="text-2xl font-black text-foreground font-mono text-sky-600 dark:text-sky-400">
             {kpiMetrics.multiVesselItems.toLocaleString('id-ID')}
           </div>
-          <p className="text-[11px] text-muted-foreground">Diminta oleh &ge; 2 kapal berbeda (Potensi Grosir)</p>
+          <p className="text-[11px] text-muted-foreground">Diminta oleh &ge; 2 kapal (Target Tender Utama)</p>
         </div>
 
         <div className="bg-card border border-border rounded-2xl p-4 shadow-2xs space-y-1">
@@ -687,7 +771,7 @@ export default function PratenderTab({
         </div>
       </div>
 
-      {/* VIEW 1: POOL MATERIAL TERBUKA (KONSOLIDASI ITEM UNTUK TENDER) */}
+      {/* VIEW 1: POOL MATERIAL TERBUKA (KONSOLIDASI ITEM SISA LAYANAN) */}
       {activeSubTab === 'pool' && (
         <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden space-y-4">
           {/* Filter Bar */}
@@ -699,19 +783,30 @@ export default function PratenderTab({
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Cari nama material, part number, FPB..."
+                  placeholder="Cari material (cat, filter, pipa, tali, dll)..."
                   className="w-full h-9 pl-9 pr-3 rounded-xl border border-border bg-background text-xs focus:ring-1 focus:ring-primary focus:outline-none"
                 />
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
+                {/* Filter Status Sisa Layanan */}
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value as any)}
+                  className="h-9 px-3 rounded-xl border border-border bg-background text-xs font-bold text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
+                >
+                  <option value="ALL_UNSUPPLIED">Semua Belum Tersuplai (OPEN + KURANG)</option>
+                  <option value="OPEN_ONLY">Hanya Status OPEN (Belum Pernah PO)</option>
+                  <option value="KURANG_ONLY">Hanya Status KURANG (Selisih Parsial)</option>
+                </select>
+
                 {/* Filter Kategori */}
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                   className="h-9 px-3 rounded-xl border border-border bg-background text-xs font-medium focus:ring-1 focus:ring-primary focus:outline-none"
                 >
-                  <option value="ALL">Semua Kategori Maritim</option>
+                  <option value="ALL">Semua Kategori Maritim ({availableCategories.length})</option>
                   {availableCategories.map((c) => (
                     <option key={c} value={c}>
                       {c}
@@ -741,7 +836,7 @@ export default function PratenderTab({
                     onChange={(e) => setFilterMultiVesselOnly(e.target.checked)}
                     className="rounded text-primary focus:ring-primary"
                   />
-                  <span>Kebutuhan Multi-Kapal Saja</span>
+                  <span>Hanya Multi-Kapal (&ge; 2 Kapal)</span>
                 </label>
               </div>
             </div>
@@ -795,16 +890,23 @@ export default function PratenderTab({
                       )}
                     </button>
                   </th>
-                  <th className="py-2.5 px-3">Rincian Material / Spesifikasi Suku Cadang</th>
+                  <th className="py-2.5 px-3">Nama Material &amp; Spesifikasi Suku Cadang</th>
                   <th className="py-2.5 px-3">Kategori Maritim</th>
-                  <th className="py-2.5 px-3 text-right">Kuantitas Terbuka</th>
+                  <th className="py-2.5 px-3 text-right">Kuantitas Belum Terpenuhi</th>
                   <th className="py-2.5 px-3">Kapal Peminta (Armada)</th>
-                  <th className="py-2.5 px-3">Status Paket</th>
-                  <th className="py-2.5 px-3 text-center">Aksi</th>
+                  <th className="py-2.5 px-3">Status Sisa Layanan</th>
+                  <th className="py-2.5 px-3 text-center">Audit FPB</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/60">
-                {filteredOpenItems.length === 0 ? (
+                {isLoadingSisa ? (
+                  <tr>
+                    <td colSpan={7} className="py-12 text-center text-muted-foreground">
+                      <RefreshCw className="size-6 animate-spin mx-auto mb-2 text-primary" />
+                      <p className="text-xs font-semibold">Memuat database Sisa Layanan gabungan...</p>
+                    </td>
+                  </tr>
+                ) : filteredOpenItems.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="py-12 text-center text-muted-foreground">
                       <Sparkles className="size-8 mx-auto mb-2 opacity-30 text-emerald-500" />
@@ -815,8 +917,11 @@ export default function PratenderTab({
                     </td>
                   </tr>
                 ) : (
-                  filteredOpenItems.map((item) => {
+                  filteredOpenItems.slice(0, 100).map((item) => {
                     const isSelected = selectedItemIds.has(item.id);
+                    const hasOpen = item.requests.some((r) => r.status === 'OPEN');
+                    const hasKurang = item.requests.some((r) => r.status === 'KURANG');
+
                     return (
                       <tr
                         key={item.id}
@@ -839,12 +944,18 @@ export default function PratenderTab({
                           </button>
                         </td>
 
-                        {/* Nama & Spesifikasi Barang */}
+                        {/* Nama Barang Asli */}
                         <td className="py-3 px-3 max-w-xs sm:max-w-md">
                           <div className="font-semibold text-foreground">{item.cleanName}</div>
-                          <div className="text-[10px] text-muted-foreground mt-0.5">
-                            Dari {item.requests.length} pengajuan FPB: {item.requests.slice(0, 3).map((r) => r.fpb).join(', ')}
-                            {item.requests.length > 3 ? ` (+${item.requests.length - 3})` : ''}
+                          <div className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-1.5 flex-wrap">
+                            <span className="font-mono text-slate-500">
+                              {item.requests.length} pengajuan FPB
+                            </span>
+                            <span>&bull;</span>
+                            <span className="truncate max-w-[260px]">
+                              {item.requests.slice(0, 2).map((r) => r.fpb).join(', ')}
+                              {item.requests.length > 2 ? ` (+${item.requests.length - 2})` : ''}
+                            </span>
                           </div>
                         </td>
 
@@ -855,7 +966,7 @@ export default function PratenderTab({
                           </span>
                         </td>
 
-                        {/* Kuantitas Akumulasi */}
+                        {/* Kuantitas Belum Terpenuhi */}
                         <td className="py-3 px-3 text-right whitespace-nowrap">
                           <div className="font-black text-foreground font-mono text-xs sm:text-sm">
                             {item.totalQtyRemaining.toLocaleString('id-ID')}
@@ -866,38 +977,53 @@ export default function PratenderTab({
                         {/* Kapal Peminta */}
                         <td className="py-3 px-3">
                           <div className="flex flex-wrap gap-1 max-w-xs">
-                            {item.vessels.map((v) => (
+                            {item.vessels.slice(0, 3).map((v) => (
                               <span
                                 key={v}
-                                className="px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
+                                className="px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 truncate max-w-[120px]"
                               >
                                 {v}
                               </span>
                             ))}
+                            {item.vessels.length > 3 && (
+                              <span className="px-1 py-0.5 rounded text-[9px] font-bold bg-sky-500/10 text-sky-600 border border-sky-500/20">
+                                +{item.vessels.length - 3} kapal
+                              </span>
+                            )}
                           </div>
                         </td>
 
-                        {/* Status Paket */}
+                        {/* Status Sisa Layanan */}
                         <td className="py-3 px-3 whitespace-nowrap">
-                          {item.isPackaged ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
-                              <CheckCircle2 className="size-3" />
-                              <span>{item.packageNumber}</span>
-                            </span>
-                          ) : (
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-600 border border-amber-500/20">
-                              Belum Masuk Paket
-                            </span>
-                          )}
+                          <div className="flex items-center gap-1 flex-wrap">
+                            {hasOpen && (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/20">
+                                OPEN
+                              </span>
+                            )}
+                            {hasKurang && (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
+                                KURANG
+                              </span>
+                            )}
+                            {item.isPackaged && (
+                              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                                <CheckCircle2 className="size-2.5" />
+                                <span>{item.packageNumber}</span>
+                              </span>
+                            )}
+                          </div>
                         </td>
 
-                        {/* Aksi */}
+                        {/* Aksi Audit FPB */}
                         <td className="py-3 px-3 text-center whitespace-nowrap">
                           <button
                             type="button"
                             onClick={() => {
-                              if (item.requests[0]?.fpb && onOpenAudit) {
-                                onOpenAudit(item.requests[0].fpb);
+                              const targetFpb = item.requests[0]?.fpb;
+                              const targetPo = item.requests[0]?.noPo;
+                              if (targetFpb && onOpenAudit) {
+                                onOpenAudit(targetFpb, targetPo);
                               }
                             }}
                             className="p-1 rounded-md text-muted-foreground hover:text-primary hover:bg-muted transition cursor-pointer"
@@ -913,6 +1039,12 @@ export default function PratenderTab({
               </tbody>
             </table>
           </div>
+
+          {filteredOpenItems.length > 100 && (
+            <div className="p-3 bg-muted/30 border-t border-border text-center text-xs text-muted-foreground">
+              Menampilkan 100 item teratas dari total <strong>{filteredOpenItems.length.toLocaleString('id-ID')} material terbuka</strong>. Gunakan filter pencarian atau kategori untuk mempersempit.
+            </div>
+          )}
         </div>
       )}
 
