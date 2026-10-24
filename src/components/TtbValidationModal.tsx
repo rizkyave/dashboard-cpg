@@ -53,9 +53,19 @@ interface TtbSlotConfig {
 
 const TTB_SLOTS: TtbSlotConfig[] = [
   {
-    key: 'deliveredBy',
-    code: 'LOG',
+    key: 'receivedBy',
+    code: 'RCV / LAP',
     columnNumber: 1,
+    headerTitle: 'Received By :',
+    roleTitle: 'User / Tim Lapangan / Armada',
+    description: 'Menyatakan bahwa barang fisik telah diterima langsung oleh pemohon / crew armada kapal dalam kondisi baik dan lengkap.',
+    authorityLabel: 'Tim Lapangan / Penerima Akhir / Crew Armada',
+    declarationText: 'Saya menyatakan barang telah diterima dengan baik dan lengkap di lapangan / armada kapal.',
+  },
+  {
+    key: 'deliveredBy',
+    code: 'LOG STF',
+    columnNumber: 2,
     headerTitle: 'Delivered By :',
     roleTitle: 'Logistic Staff',
     description: 'Menyatakan bahwa fisik barang telah disiapkan dan diperiksa dari gudang logistik, jumlah fisik akurat, dan kondisi kemasan baik.',
@@ -63,18 +73,8 @@ const TTB_SLOTS: TtbSlotConfig[] = [
     declarationText: 'Saya menyatakan barang telah diperiksa fisiknya dan diserahkan sesuai wewenang saya sebagai Logistic Staff.',
   },
   {
-    key: 'receivedBy',
-    code: 'LAP',
-    columnNumber: 2,
-    headerTitle: 'Received By :',
-    roleTitle: 'User / Tim Lapangan',
-    description: 'Menyatakan bahwa barang fisik telah diterima langsung oleh pemohon / crew armada kapal dalam kondisi baik dan lengkap.',
-    authorityLabel: 'Tim Lapangan / Penerima Akhir / Crew Armada',
-    declarationText: 'Saya menyatakan barang telah diterima dengan baik dan lengkap di lapangan / armada kapal.',
-  },
-  {
     key: 'approvedBy',
-    code: 'LOG-SPV',
+    code: 'LOG SPV',
     columnNumber: 3,
     headerTitle: 'Approved By :',
     roleTitle: 'Logistic Supervisor',
@@ -84,7 +84,7 @@ const TTB_SLOTS: TtbSlotConfig[] = [
   },
   {
     key: 'acknowledgedBy',
-    code: 'PCH-MGR',
+    code: 'PCH MGR',
     columnNumber: 4,
     headerTitle: 'Acknowledge By :',
     roleTitle: 'Procurement Manager',

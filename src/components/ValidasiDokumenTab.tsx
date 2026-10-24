@@ -37,6 +37,10 @@ import {
   ValidationSummaryMetrics,
   OverallValidationStatus,
 } from '@/types/documentValidation';
+import {
+  computeValidationStatus,
+  getUserActionForRecord,
+} from '@/utils/validationHelper';
 import ValidationSignatureModal from './ValidationSignatureModal';
 import FstbValidationModal from './FstbValidationModal';
 import TtbValidationModal from './TtbValidationModal';
@@ -194,6 +198,39 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
     fetchValidations();
   }, []);
 
+  // Hitung metrics ringkasan secara dinamis & konsisten dengan Strict Logic
+  const displayMetrics = useMemo<ValidationSummaryMetrics>(() => {
+    let waiting = 0;
+    let inProgress = 0;
+    let completed = 0;
+    let fstbCount = 0;
+    let ttbCount = 0;
+
+    for (const r of records) {
+      if (r.docType === 'FSTB') fstbCount++;
+      if (r.docType === 'TTB') ttbCount++;
+
+      const comp = computeValidationStatus(r);
+      if (comp.completedCount === 0) {
+        waiting++;
+      } else if (comp.completedCount >= 1 && comp.completedCount < 4) {
+        inProgress++;
+      } else if (comp.completedCount === 4) {
+        completed++;
+      }
+    }
+
+    return {
+      totalDocuments: records.length,
+      totalFstb: fstbCount,
+      totalTtb: ttbCount,
+      menungguValidasi: waiting,
+      prosesValidasi: inProgress,
+      siapKirimArmada: completed,
+      sudahDiterimaArmada: completed,
+    };
+  }, [records]);
+
   // Filter data di client-side
   const filteredRecords = useMemo(() => {
     let result = [...records];
@@ -203,7 +240,15 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
     }
 
     if (filterStatus !== 'ALL') {
-      result = result.filter((r) => r.overallStatus === filterStatus);
+      result = result.filter((r) => {
+        const comp = computeValidationStatus(r);
+        if (filterStatus === 'MENUNGGU_VALIDASI') return comp.completedCount === 0;
+        if (filterStatus === 'PROSES_VALIDASI') return comp.completedCount >= 1 && comp.completedCount < 4;
+        if (filterStatus === 'SIAP_KIRIM_ARMADA' || filterStatus === 'SUDAH_DITERIMA_ARMADA' || filterStatus === 'SELESAI') {
+          return comp.completedCount === 4;
+        }
+        return r.overallStatus === filterStatus;
+      });
     }
 
     if (searchKeyword.trim()) {
@@ -343,10 +388,10 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
               Total Berkas
             </span>
             <div className="text-lg sm:text-xl font-bold font-mono text-foreground">
-              {metrics.totalDocuments}
+              {displayMetrics.totalDocuments}
             </div>
             <span className="text-[10px] text-muted-foreground">
-              {metrics.totalFstb} FSTB • {metrics.totalTtb} TTB
+              {displayMetrics.totalFstb} FSTB • {displayMetrics.totalTtb} TTB
             </span>
           </div>
         </div>
@@ -361,7 +406,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
               Menunggu Validasi
             </span>
             <div className="text-lg sm:text-xl font-bold font-mono text-amber-600 dark:text-amber-400">
-              {metrics.menungguValidasi}
+              {displayMetrics.menungguValidasi}
             </div>
             <span className="text-[10px] text-muted-foreground">0/4 PIC tervalidasi</span>
           </div>
@@ -377,7 +422,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
               Dalam Proses
             </span>
             <div className="text-lg sm:text-xl font-bold font-mono text-blue-600 dark:text-blue-400">
-              {metrics.prosesValidasi}
+              {displayMetrics.prosesValidasi}
             </div>
             <span className="text-[10px] text-muted-foreground">1-3 PIC telah sah</span>
           </div>
@@ -393,7 +438,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
               Siap Kirim Armada
             </span>
             <div className="text-lg sm:text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400">
-              {metrics.siapKirimArmada}
+              {displayMetrics.siapKirimArmada}
             </div>
             <span className="text-[10px] text-muted-foreground">Pengesahan 4 PIC lengkap</span>
           </div>
@@ -414,7 +459,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                   : 'bg-background hover:bg-muted text-muted-foreground border-border'
               }`}
             >
-              Semua ({records.length})
+              Semua ({displayMetrics.totalDocuments})
             </button>
             <button
               type="button"
@@ -426,7 +471,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
               }`}
             >
               <Boxes className="size-3" />
-              <span>FSTB ({metrics.totalFstb})</span>
+              <span>FSTB ({displayMetrics.totalFstb})</span>
             </button>
             <button
               type="button"
@@ -438,7 +483,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
               }`}
             >
               <PackageCheck className="size-3" />
-              <span>TTB ({metrics.totalTtb})</span>
+              <span>TTB ({displayMetrics.totalTtb})</span>
             </button>
           </div>
 
@@ -450,10 +495,9 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
               className="h-8.5 px-2.5 text-xs rounded-lg border border-border bg-background text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
             >
               <option value="ALL">Semua Status Validasi</option>
-              <option value="MENUNGGU_VALIDASI">Menunggu Validasi</option>
-              <option value="PROSES_VALIDASI">Dalam Proses Validasi</option>
-              <option value="SIAP_KIRIM_ARMADA">Siap Kirim / Siap Terbit TTB</option>
-              <option value="SUDAH_DITERIMA_ARMADA">Sudah Diterima (Armada / Unit)</option>
+              <option value="MENUNGGU_VALIDASI">Menunggu Validasi (0/4)</option>
+              <option value="PROSES_VALIDASI">Dalam Proses (1-3/4)</option>
+              <option value="SIAP_KIRIM_ARMADA">Siap Kirim / Sah Lengkap (4/4)</option>
             </select>
 
             <div className="relative w-full sm:w-64">
@@ -506,7 +550,11 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                   </td>
                 </tr>
               ) : (
-                filteredRecords.map((item) => (
+                filteredRecords.map((item) => {
+                  const comp = computeValidationStatus(item);
+                  const userAction = getUserActionForRecord(item, user, Boolean(isAdmin));
+
+                  return (
                   <tr key={item.id} className="hover:bg-muted/30 transition">
                     {/* Tipe Dokumen */}
                     <td className="py-2.5 px-3">
@@ -766,39 +814,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                           </>
                         ) : (
                           <>
-                            {/* Slot 1: Delivered By : Logistic Staff (LOG-STF) */}
-                            {(() => {
-                              const isValid = Boolean(
-                                item.ttbSlots?.deliveredBy?.isValidated ||
-                                item.logistikValidation?.isValidated
-                              );
-                              const name =
-                                item.ttbSlots?.deliveredBy?.validatorName ||
-                                item.logistikValidation?.validatorName ||
-                                'Staf Logistik';
-                              return (
-                                <div
-                                  className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border shrink-0 ${
-                                    isValid
-                                      ? 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30'
-                                      : 'bg-muted/60 text-muted-foreground/60 border-border/40'
-                                  }`}
-                                  title={`1. Delivered By (Logistic Staff): ${
-                                    isValid ? `Sah (${name})` : 'Menunggu Pengesahan'
-                                  }`}
-                                >
-                                  <PackageCheck className="size-2.5 shrink-0" />
-                                  <span>LOG STF</span>
-                                  {isValid ? (
-                                    <Check className="size-2.5 text-purple-600 dark:text-purple-400 shrink-0" />
-                                  ) : (
-                                    <Clock className="size-2.5 shrink-0" />
-                                  )}
-                                </div>
-                              );
-                            })()}
-
-                            {/* Slot 2: Received By : User / Tim Lapangan / Penerima (RCV / LAP) */}
+                            {/* Slot 1: Received By : Penerimaan di Lapangan / Unit Armada (RCV / LAP) */}
                             {(() => {
                               const isValid = Boolean(
                                 item.ttbSlots?.receivedBy?.isValidated ||
@@ -817,7 +833,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                                       ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
                                       : 'bg-muted/60 text-muted-foreground/60 border-border/40'
                                   }`}
-                                  title={`2. Received By (User / Lapangan / Penerima): ${
+                                  title={`1. Penerimaan di Lapangan / Unit Armada (RCV / LAP): ${
                                     isValid ? `Sah (${name})` : 'Menunggu Penerima'
                                   }`}
                                 >
@@ -832,7 +848,39 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                               );
                             })()}
 
-                            {/* Slot 3: Approved By : Logistic Supervisor (LOG-SPV) */}
+                            {/* Slot 2: Delivered By : Administrasi Logistik (LOG STF) */}
+                            {(() => {
+                              const isValid = Boolean(
+                                item.ttbSlots?.deliveredBy?.isValidated ||
+                                item.logistikValidation?.isValidated
+                              );
+                              const name =
+                                item.ttbSlots?.deliveredBy?.validatorName ||
+                                item.logistikValidation?.validatorName ||
+                                'Staf Logistik';
+                              return (
+                                <div
+                                  className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border shrink-0 ${
+                                    isValid
+                                      ? 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30'
+                                      : 'bg-muted/60 text-muted-foreground/60 border-border/40'
+                                  }`}
+                                  title={`2. Administrasi Logistik (LOG STF): ${
+                                    isValid ? `Sah (${name})` : 'Menunggu Pengesahan'
+                                  }`}
+                                >
+                                  <PackageCheck className="size-2.5 shrink-0" />
+                                  <span>LOG STF</span>
+                                  {isValid ? (
+                                    <Check className="size-2.5 text-purple-600 dark:text-purple-400 shrink-0" />
+                                  ) : (
+                                    <Clock className="size-2.5 shrink-0" />
+                                  )}
+                                </div>
+                              );
+                            })()}
+
+                            {/* Slot 3: Approved By : Supervisi Logistik (LOG SPV) */}
                             {(() => {
                               const isValid = Boolean(item.ttbSlots?.approvedBy?.isValidated);
                               const name = item.ttbSlots?.approvedBy?.validatorName || 'SPV Logistik';
@@ -843,7 +891,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                                       ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30'
                                       : 'bg-muted/60 text-muted-foreground/60 border-border/40'
                                   }`}
-                                  title={`3. Approved By (Logistic Supervisor): ${
+                                  title={`3. Supervisi Logistik (LOG SPV): ${
                                     isValid ? `Sah (${name})` : 'Menunggu Pengesahan'
                                   }`}
                                 >
@@ -858,7 +906,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                               );
                             })()}
 
-                            {/* Slot 4: Acknowledge By : Procurement Manager (PCH-MGR) */}
+                            {/* Slot 4: Acknowledged By : Otorisasi Purchasing Manager (PCH MGR) */}
                             {(() => {
                               const isValid = Boolean(
                                 item.ttbSlots?.acknowledgedBy?.isValidated ||
@@ -875,7 +923,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                                       ? 'bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30'
                                       : 'bg-muted/60 text-muted-foreground/60 border-border/40'
                                   }`}
-                                  title={`4. Acknowledge By (Procurement Manager): ${
+                                  title={`4. Otorisasi Purchasing Manager (PCH MGR): ${
                                     isValid ? `Sah (${name})` : 'Menunggu Pengesahan'
                                   }`}
                                 >
@@ -894,45 +942,40 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                       </div>
                     </td>
 
-                    {/* Status Kelayakan Keseluruhan */}
+                    {/* Status Kelayakan Keseluruhan (Strict Dynamic Logic) */}
                     <td className="py-2.5 px-3 whitespace-nowrap">
                       {item.docType === 'FSTB' ? (
-                        item.overallStatus === 'SIAP_KIRIM_ARMADA' || item.completedLinesCount === 4 ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                        comp.completedCount === 4 ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
                             <CheckCircle2 className="size-3" />
                             Siap Terbit TTB (4/4)
                           </span>
-                        ) : item.completedLinesCount > 0 ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30">
+                        ) : comp.completedCount > 0 ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
                             <Clock className="size-3" />
-                            Proses ({item.completedLinesCount}/4)
+                            Dalam Proses ({comp.completedCount}/4)
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-500/15 text-slate-700 dark:text-slate-300 border border-slate-500/30">
                             <AlertCircle className="size-3" />
-                            Menunggu (0/4)
+                            Menunggu Validasi (0/4)
                           </span>
                         )
                       ) : (
-                        item.overallStatus === 'SUDAH_DITERIMA_ARMADA' || item.completedLinesCount === 4 ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-teal-500/15 text-teal-700 dark:text-teal-300 border border-teal-500/30">
+                        comp.completedCount === 4 ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
                             <CheckCircle2 className="size-3" />
                             Diterima Penerima (4/4)
                           </span>
-                        ) : item.overallStatus === 'SIAP_KIRIM_ARMADA' ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
-                            <ShieldCheck className="size-3" />
-                            Siap Kirim / Diantar ({item.completedLinesCount}/4)
-                          </span>
-                        ) : item.completedLinesCount > 0 ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30">
+                        ) : comp.completedCount > 0 ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
                             <Clock className="size-3" />
-                            Proses ({item.completedLinesCount}/4)
+                            Dalam Proses ({comp.completedCount}/4)
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-500/15 text-slate-700 dark:text-slate-300 border border-slate-500/30">
                             <AlertCircle className="size-3" />
-                            Menunggu (0/4)
+                            Menunggu Validasi (0/4)
                           </span>
                         )
                       )}
@@ -946,15 +989,27 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                     {/* Aksi */}
                     <td className="py-2.5 px-3 text-right">
                       <div className="inline-flex items-center gap-1">
-                        <button
-                          type="button"
-                          onClick={() => handleOpenValidation(item)}
-                          className="px-2.5 py-1 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs inline-flex items-center gap-1 transition shadow-2xs active:scale-95 cursor-pointer"
-                          title="Buka Form Validasi & Tanda Tangan"
-                        >
-                          <FileSignature className="size-3" />
-                          <span>Validasi &amp; TTD</span>
-                        </button>
+                        {userAction.canValidate ? (
+                          <button
+                            type="button"
+                            onClick={() => handleOpenValidation(item)}
+                            className="px-2.5 py-1 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs inline-flex items-center gap-1 transition shadow-2xs active:scale-95 cursor-pointer"
+                            title={userAction.tooltip}
+                          >
+                            <FileSignature className="size-3" />
+                            <span>Validasi &amp; TTD</span>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleOpenValidation(item)}
+                            className="px-2.5 py-1 rounded-lg border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground font-medium text-xs inline-flex items-center gap-1 transition shadow-2xs active:scale-95 cursor-pointer"
+                            title={userAction.tooltip}
+                          >
+                            <Eye className="size-3" />
+                            <span>Lihat Berkas</span>
+                          </button>
+                        )}
 
                         <a
                           href={item.fileUrl}
@@ -984,7 +1039,8 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                       </div>
                     </td>
                   </tr>
-                ))
+                );
+              })
               )}
             </tbody>
           </table>

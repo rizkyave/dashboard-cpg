@@ -248,10 +248,10 @@ function computeSummaryMetrics(records: DocumentValidationRecord[]): ValidationS
     totalDocuments: records.length,
     totalFstb: records.filter((r) => r.docType === 'FSTB').length,
     totalTtb: records.filter((r) => r.docType === 'TTB').length,
-    menungguValidasi: records.filter((r) => r.overallStatus === 'MENUNGGU_VALIDASI').length,
-    prosesValidasi: records.filter((r) => r.overallStatus === 'PROSES_VALIDASI').length,
-    siapKirimArmada: records.filter((r) => r.overallStatus === 'SIAP_KIRIM_ARMADA').length,
-    sudahDiterimaArmada: records.filter((r) => r.overallStatus === 'SUDAH_DITERIMA_ARMADA').length,
+    menungguValidasi: records.filter((r) => r.completedLinesCount === 0).length,
+    prosesValidasi: records.filter((r) => r.completedLinesCount >= 1 && r.completedLinesCount < 4).length,
+    siapKirimArmada: records.filter((r) => r.completedLinesCount === 4).length,
+    sudahDiterimaArmada: records.filter((r) => r.docType === 'TTB' && r.completedLinesCount === 4).length,
   };
 }
 
@@ -730,6 +730,14 @@ export async function GET(req: NextRequest) {
           new Set([...(rec.relatedDocuments.relatedFstbs || []), ...liveFstbs])
         );
       }
+    }
+
+    // Pastikan setiap berkas dihitung secara dinamis & ketat (strict logic sync)
+    for (const rec of validationRecords) {
+      const comp = computeValidationStatus(rec);
+      rec.completedLinesCount = comp.completedCount;
+      rec.overallStatus = comp.status;
+      rec.isReadyForDispatch = comp.isReady;
     }
 
     if (hasNewDrafts) {
