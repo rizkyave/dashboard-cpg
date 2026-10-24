@@ -2063,260 +2063,267 @@ export default function SerahTerimaLapanganTab({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div>
-                <label className="text-xs sm:text-sm font-black text-foreground flex items-center gap-2 mb-2">
-                  <Truck className="size-4 text-cyan-500" />
-                  <span>Petugas Pengantar (Tim Lapangan) *</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={petugasNama}
-                  onChange={(e) => setPetugasNama(e.target.value)}
-                  placeholder="Nama petugas logistik lapangan"
-                  className="w-full px-4 py-3 min-h-[48px] text-sm sm:text-base rounded-2xl bg-background border-2 border-border focus:ring-4 focus:ring-cyan-500/20 focus:border-cyan-500 font-medium"
-                />
-              </div>
-
-              {/* Kolom Penerima Barang (End User) - Otomatis Dropdown Kru & Manual */}
-              <div>
-                <label className="text-xs sm:text-sm font-black text-foreground flex items-center justify-between mb-2">
-                  <span className="flex items-center gap-2">
-                    <User className="size-4 text-emerald-500" />
-                    <span>Penerima Barang (End User) *</span>
-                  </span>
-                  {matchedCrewList.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (isManualPenerima) {
-                          setIsManualPenerima(false);
-                          if (matchedCrewList[0]) handleSelectCrew(String(matchedCrewList[0].id));
-                        } else {
-                          setIsManualPenerima(true);
-                          setSelectedCrewId('MANUAL');
-                        }
-                      }}
-                      className="text-xs font-bold text-cyan-600 dark:text-cyan-400 hover:underline cursor-pointer"
-                    >
-                      {isManualPenerima ? `← Pilih Kru (${matchedCrewList.length})` : 'Ketik Manual'}
-                    </button>
-                  )}
-                </label>
-
-                {matchedCrewList.length > 0 && !isManualPenerima ? (
-                  <div className="space-y-2">
-                    <select
-                      value={selectedCrewId}
-                      onChange={(e) => handleSelectCrew(e.target.value)}
-                      className="w-full px-4 py-3 min-h-[48px] text-sm sm:text-base rounded-2xl bg-background border-2 border-border focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 font-bold text-foreground cursor-pointer"
-                    >
-                      <option value="" disabled>-- Pilih Kru Penerima ({matchedCrewList.length} Personel) --</option>
-                      {matchedCrewList.map((crew) => (
-                        <option key={crew.id} value={crew.id}>
-                          {crew.jabatan} - {crew.namaPersonel} {crew.noHp && crew.noHp !== '-' ? `(WA: ${crew.noHp})` : ''}
-                        </option>
-                      ))}
-                      <option value="MANUAL">✏️ Input Manual (Nama di Luar Daftar Kru)</option>
-                    </select>
-
-                    <div className="flex items-center justify-between text-xs text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 px-3 py-1.5 rounded-xl border border-emerald-500/30 font-bold">
-                      <span className="flex items-center gap-1.5 truncate">
-                        <CheckCircle2 className="size-3.5 text-emerald-500 shrink-0" />
-                        <span>Kru Terverifikasi: <strong>{matchedShipName || currentArmada}</strong></span>
-                      </span>
-                      <span className="text-muted-foreground font-mono text-[11px] shrink-0">
-                        {matchedCrewList.find((c) => c.id === selectedCrewId)?.departemen || 'Deck/Engine'}
-                      </span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <input
-                      type="text"
-                      required
-                      value={penerimaNama}
-                      onChange={(e) => setPenerimaNama(e.target.value)}
-                      placeholder={matchedCrewList.length > 0 ? "Ketik nama penerima..." : "Contoh: Mualim 1 Budi / Chief Eng. Anton"}
-                      className="w-full px-4 py-3 min-h-[48px] text-sm sm:text-base rounded-2xl bg-background border-2 border-border focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium"
-                    />
-                    {matchedCrewList.length === 0 && currentArmada && currentArmada !== '-' && (
-                      <p className="text-xs text-muted-foreground italic">
-                        Tidak ada kru di modul Crew &amp; Armada untuk {currentArmada} (ketik manual).
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Kolom No. Telp / WA Penerima - Otomatis terisi & dapat diedit */}
-              <div>
-                <label className="text-xs sm:text-sm font-black text-foreground flex items-center justify-between mb-2">
-                  <span className="flex items-center gap-2">
-                    <Phone className="size-4 text-indigo-500" />
-                    <span>No. Telp / WA Penerima</span>
-                  </span>
-                  {kontakPenerima && (
-                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                      <Sparkles className="size-3" />
-                      <span>Otomatis</span>
-                    </span>
-                  )}
-                </label>
-                <div className="relative">
+            {/* 2-Column Responsive Layout: Kolom Isian di Kiri (Menurun) & Tanda Tangan Lebih Besar di Kanan */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+              {/* Kolom Kiri: Isian Form Menurun (lg:col-span-5) */}
+              <div className="lg:col-span-5 flex flex-col justify-between space-y-4.5">
+                {/* 1. Petugas Pengantar */}
+                <div>
+                  <label className="text-xs sm:text-sm font-black text-foreground flex items-center gap-2 mb-2">
+                    <Truck className="size-4 text-cyan-500" />
+                    <span>Petugas Pengantar (Tim Lapangan) *</span>
+                  </label>
                   <input
-                    type="tel"
-                    value={kontakPenerima}
-                    onChange={(e) => setKontakPenerima(e.target.value)}
-                    placeholder="Contoh: 0812-3456-7890"
-                    className="w-full px-4 py-3 min-h-[48px] text-sm sm:text-base rounded-2xl bg-background border-2 border-border focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono font-bold"
+                    type="text"
+                    required
+                    value={petugasNama}
+                    onChange={(e) => setPetugasNama(e.target.value)}
+                    placeholder="Nama petugas logistik lapangan"
+                    className="w-full px-4 py-3 min-h-[48px] text-sm sm:text-base rounded-2xl bg-background border-2 border-border focus:ring-4 focus:ring-cyan-500/20 focus:border-cyan-500 font-medium"
                   />
-                  {kontakPenerima && (
-                    <button
-                      type="button"
-                      onClick={() => setKontakPenerima('')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
-                      title="Hapus no telp"
-                    >
-                      <X className="size-4" />
-                    </button>
-                  )}
                 </div>
-                {matchedShipPhone && kontakPenerima !== matchedShipPhone && (
-                  <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1.5">
-                    <span>No. Telp Kapal:</span>
-                    <button
-                      type="button"
-                      onClick={() => setKontakPenerima(matchedShipPhone)}
-                      className="text-indigo-600 dark:text-indigo-400 font-mono font-bold underline cursor-pointer"
-                      title="Gunakan no telp kapal ini"
-                    >
-                      {matchedShipPhone}
-                    </button>
-                  </p>
-                )}
-              </div>
 
-              <div>
-                <label className="text-xs sm:text-sm font-black text-foreground flex items-center gap-2 mb-2">
-                  <Clock className="size-4 text-amber-500" />
-                  <span>Waktu Serah Terima Barang *</span>
-                </label>
-                <input
-                  type="datetime-local"
-                  required
-                  value={waktuSerahTerima}
-                  onChange={(e) => setWaktuSerahTerima(e.target.value)}
-                  className="w-full px-4 py-3 min-h-[48px] text-sm sm:text-base rounded-2xl bg-background border-2 border-border focus:ring-4 focus:ring-amber-500/20 focus:border-amber-500 font-mono font-bold"
-                />
-              </div>
-            </div>
-
-            {/* EVIDENCE DIGITAL SIGNATURE PENERIMA AKHIR (Received By : User) */}
-            <div className="pt-2">
-              <div className="p-5 sm:p-6 rounded-2xl border-2 border-indigo-500/30 bg-gradient-to-br from-indigo-50/50 via-background to-blue-50/30 dark:from-indigo-950/20 dark:via-background dark:to-blue-950/10 space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-indigo-500/15 text-indigo-600 dark:text-indigo-400">
-                      <FileSignature className="size-5" />
-                    </div>
-                    <div>
-                      <div className="text-sm sm:text-base font-black text-foreground flex items-center gap-2 flex-wrap">
-                        <span>Bukti Tanda Terima (Digital Signature Penerima Akhir)</span>
-                        <span className="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30">
-                          Auto-Stamp TTB
-                        </span>
-                      </div>
-                      <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                        Tanda tangan digital penerima barang akan otomatis dibubuhkan ke dokumen PDF TTB resmi pada kolom <strong className="text-foreground">"Received By : User"</strong>.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 self-end sm:self-auto">
-                    <input
-                      ref={sigFileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleSigFileUpload}
-                      className="hidden"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => sigFileInputRef.current?.click()}
-                      className="px-3.5 py-2 text-xs sm:text-sm font-bold rounded-xl border border-border bg-background hover:bg-muted text-foreground flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
-                      title="Upload file gambar tanda tangan (PNG/JPG)"
-                    >
-                      <Upload className="size-3.5" />
-                      <span>Upload TTD</span>
-                    </button>
-                    {(hasDrawnSig || sigDataUrl) && (
+                {/* 2. Penerima Barang (End User) */}
+                <div>
+                  <label className="text-xs sm:text-sm font-black text-foreground flex items-center justify-between mb-2">
+                    <span className="flex items-center gap-2">
+                      <User className="size-4 text-emerald-500" />
+                      <span>Penerima Barang (End User) *</span>
+                    </span>
+                    {matchedCrewList.length > 0 && (
                       <button
                         type="button"
-                        onClick={clearSig}
-                        className="px-3.5 py-2 text-xs sm:text-sm font-bold rounded-xl border border-rose-200 dark:border-rose-900/40 bg-rose-50/60 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/50 flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
-                        title="Hapus tanda tangan"
+                        onClick={() => {
+                          if (isManualPenerima) {
+                            setIsManualPenerima(false);
+                            if (matchedCrewList[0]) handleSelectCrew(String(matchedCrewList[0].id));
+                          } else {
+                            setIsManualPenerima(true);
+                            setSelectedCrewId('MANUAL');
+                          }
+                        }}
+                        className="text-xs font-bold text-cyan-600 dark:text-cyan-400 hover:underline cursor-pointer"
                       >
-                        <RotateCcw className="size-3.5" />
-                        <span>Hapus</span>
+                        {isManualPenerima ? `← Pilih Kru (${matchedCrewList.length})` : 'Ketik Manual'}
+                      </button>
+                    )}
+                  </label>
+
+                  {matchedCrewList.length > 0 && !isManualPenerima ? (
+                    <div className="space-y-2">
+                      <select
+                        value={selectedCrewId}
+                        onChange={(e) => handleSelectCrew(e.target.value)}
+                        className="w-full px-4 py-3 min-h-[48px] text-sm sm:text-base rounded-2xl bg-background border-2 border-border focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 font-bold text-foreground cursor-pointer"
+                      >
+                        <option value="" disabled>-- Pilih Kru Penerima ({matchedCrewList.length} Personel) --</option>
+                        {matchedCrewList.map((crew) => (
+                          <option key={crew.id} value={crew.id}>
+                            {crew.jabatan} - {crew.namaPersonel} {crew.noHp && crew.noHp !== '-' ? `(WA: ${crew.noHp})` : ''}
+                          </option>
+                        ))}
+                        <option value="MANUAL">✏️ Input Manual (Nama di Luar Daftar Kru)</option>
+                      </select>
+
+                      <div className="flex items-center justify-between text-xs text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 px-3 py-1.5 rounded-xl border border-emerald-500/30 font-bold">
+                        <span className="flex items-center gap-1.5 truncate">
+                          <CheckCircle2 className="size-3.5 text-emerald-500 shrink-0" />
+                          <span>Kru Terverifikasi: <strong>{matchedShipName || currentArmada}</strong></span>
+                        </span>
+                        <span className="text-muted-foreground font-mono text-[11px] shrink-0">
+                          {matchedCrewList.find((c) => c.id === selectedCrewId)?.departemen || 'Deck/Engine'}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <input
+                        type="text"
+                        required
+                        value={penerimaNama}
+                        onChange={(e) => setPenerimaNama(e.target.value)}
+                        placeholder={matchedCrewList.length > 0 ? "Ketik nama penerima..." : "Contoh: Mualim 1 Budi / Chief Eng. Anton"}
+                        className="w-full px-4 py-3 min-h-[48px] text-sm sm:text-base rounded-2xl bg-background border-2 border-border focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium"
+                      />
+                      {matchedCrewList.length === 0 && currentArmada && currentArmada !== '-' && (
+                        <p className="text-xs text-muted-foreground italic">
+                          Tidak ada kru di modul Crew &amp; Armada untuk {currentArmada} (ketik manual).
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* 3. No. Telp / WA Penerima */}
+                <div>
+                  <label className="text-xs sm:text-sm font-black text-foreground flex items-center justify-between mb-2">
+                    <span className="flex items-center gap-2">
+                      <Phone className="size-4 text-indigo-500" />
+                      <span>No. Telp / WA Penerima</span>
+                    </span>
+                    {kontakPenerima && (
+                      <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                        <Sparkles className="size-3" />
+                        <span>Otomatis</span>
+                      </span>
+                    )}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="tel"
+                      value={kontakPenerima}
+                      onChange={(e) => setKontakPenerima(e.target.value)}
+                      placeholder="Contoh: 0812-3456-7890"
+                      className="w-full px-4 py-3 min-h-[48px] text-sm sm:text-base rounded-2xl bg-background border-2 border-border focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono font-bold"
+                    />
+                    {kontakPenerima && (
+                      <button
+                        type="button"
+                        onClick={() => setKontakPenerima('')}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
+                        title="Hapus no telp"
+                      >
+                        <X className="size-4" />
                       </button>
                     )}
                   </div>
+                  {matchedShipPhone && kontakPenerima !== matchedShipPhone && (
+                    <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1.5">
+                      <span>No. Telp Kapal:</span>
+                      <button
+                        type="button"
+                        onClick={() => setKontakPenerima(matchedShipPhone)}
+                        className="text-indigo-600 dark:text-indigo-400 font-mono font-bold underline cursor-pointer"
+                        title="Gunakan no telp kapal ini"
+                      >
+                        {matchedShipPhone}
+                      </button>
+                    </p>
+                  )}
                 </div>
 
-                {/* Canvas Signature Pad */}
-                <div className="relative border-2 border-dashed border-indigo-300 dark:border-indigo-800 rounded-2xl bg-white dark:bg-slate-950 overflow-hidden shadow-inner">
-                  <canvas
-                    ref={sigCanvasRef}
-                    width={600}
-                    height={180}
-                    onMouseDown={startDrawingSig}
-                    onMouseMove={drawSig}
-                    onMouseUp={stopDrawingSig}
-                    onMouseLeave={stopDrawingSig}
-                    onTouchStart={startDrawingSig}
-                    onTouchMove={drawSig}
-                    onTouchEnd={stopDrawingSig}
-                    className="w-full h-36 sm:h-44 block touch-none cursor-crosshair bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] dark:bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:12px_12px]"
+                {/* 4. Waktu Serah Terima Barang */}
+                <div>
+                  <label className="text-xs sm:text-sm font-black text-foreground flex items-center gap-2 mb-2">
+                    <Clock className="size-4 text-amber-500" />
+                    <span>Waktu Serah Terima Barang *</span>
+                  </label>
+                  <input
+                    type="datetime-local"
+                    required
+                    value={waktuSerahTerima}
+                    onChange={(e) => setWaktuSerahTerima(e.target.value)}
+                    className="w-full px-4 py-3 min-h-[48px] text-sm sm:text-base rounded-2xl bg-background border-2 border-border focus:ring-4 focus:ring-amber-500/20 focus:border-amber-500 font-mono font-bold"
                   />
-                  {!hasDrawnSig && !sigDataUrl && (
-                    <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center text-muted-foreground/70 gap-2 p-4 select-none">
-                      <PenTool className="size-6 stroke-[2]" />
-                      <p className="text-sm font-bold text-center">
-                        Tanda tangani di sini menggunakan mouse, stylus, atau sentuhan layar ponsel/tablet
-                      </p>
-                      <p className="text-xs text-muted-foreground/60">
-                        Penerima: {penerimaNama ? <strong className="text-foreground">{penerimaNama}</strong> : 'Nama penerima di atas'}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Garis tanda tangan bawah */}
-                  <div className="absolute bottom-6 left-8 right-8 border-b-2 border-indigo-200 dark:border-indigo-900/60 pointer-events-none flex justify-between text-xs font-bold text-muted-foreground/60 pt-1 select-none">
-                    <span>X</span>
-                    <span>Tanda Tangan Penerima Barang</span>
-                  </div>
                 </div>
+              </div>
 
-                {/* Footer preview info */}
-                <div className="flex flex-wrap items-center justify-between text-xs sm:text-sm text-muted-foreground px-1 gap-2 font-medium">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="size-2 rounded-full bg-indigo-500" />
-                    <span>
-                      Penerima: <strong className="text-foreground">{penerimaNama || '(Belum diisi)'}</strong>
-                    </span>
-                    <span className="text-muted-foreground/40">•</span>
-                    <span>
-                      Tanggal: <strong className="text-foreground">{waktuSerahTerima ? waktuSerahTerima.split('T')[0] : 'Hari ini'}</strong>
-                    </span>
+              {/* Kolom Kanan: Tanda Tangan Lebih Besar & Luas (lg:col-span-7) */}
+              <div className="lg:col-span-7 flex flex-col">
+                <div className="h-full p-5 sm:p-6 rounded-3xl border-2 border-indigo-500/30 bg-gradient-to-br from-indigo-50/50 via-background to-blue-50/30 dark:from-indigo-950/20 dark:via-background dark:to-blue-950/10 flex flex-col justify-between space-y-4 shadow-sm">
+                  {/* Header Tanda Tangan */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 rounded-2xl bg-indigo-500/15 text-indigo-600 dark:text-indigo-400">
+                        <FileSignature className="size-5 sm:size-6" />
+                      </div>
+                      <div>
+                        <div className="text-sm sm:text-base font-black text-foreground flex items-center gap-2 flex-wrap">
+                          <span>Bukti Tanda Terima (Digital Signature Penerima Akhir)</span>
+                          <span className="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30">
+                            Auto-Stamp TTB
+                          </span>
+                        </div>
+                        <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                          Tanda tangan digital penerima barang otomatis dibubuhkan ke dokumen PDF TTB resmi pada kolom <strong className="text-foreground">&quot;Received By : User&quot;</strong>.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                      <input
+                        ref={sigFileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleSigFileUpload}
+                        className="hidden"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => sigFileInputRef.current?.click()}
+                        className="px-3.5 py-2 text-xs sm:text-sm font-bold rounded-xl border border-border bg-background hover:bg-muted text-foreground flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
+                        title="Upload file gambar tanda tangan (PNG/JPG)"
+                      >
+                        <Upload className="size-3.5" />
+                        <span>Upload TTD</span>
+                      </button>
+                      {(hasDrawnSig || sigDataUrl) && (
+                        <button
+                          type="button"
+                          onClick={clearSig}
+                          className="px-3.5 py-2 text-xs sm:text-sm font-bold rounded-xl border border-rose-200 dark:border-rose-900/40 bg-rose-50/60 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/50 flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
+                          title="Hapus tanda tangan"
+                        >
+                          <RotateCcw className="size-3.5" />
+                          <span>Hapus</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  {(hasDrawnSig || sigDataUrl) && (
-                    <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1.5">
-                      <Check className="size-4" />
-                      Tanda tangan siap distempel ke TTB
-                    </span>
-                  )}
+
+                  {/* Canvas Signature Pad - Lebih Besar & Nyaman Digores */}
+                  <div className="relative flex-1 min-h-[220px] sm:min-h-[260px] lg:min-h-[280px] border-2 border-dashed border-indigo-300 dark:border-indigo-800 rounded-2xl bg-white dark:bg-slate-950 overflow-hidden shadow-inner flex flex-col">
+                    <canvas
+                      ref={sigCanvasRef}
+                      width={800}
+                      height={340}
+                      onMouseDown={startDrawingSig}
+                      onMouseMove={drawSig}
+                      onMouseUp={stopDrawingSig}
+                      onMouseLeave={stopDrawingSig}
+                      onTouchStart={startDrawingSig}
+                      onTouchMove={drawSig}
+                      onTouchEnd={stopDrawingSig}
+                      className="w-full h-full min-h-[220px] sm:min-h-[260px] lg:min-h-[280px] block touch-none cursor-crosshair bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] dark:bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:14px_14px]"
+                    />
+                    {!hasDrawnSig && !sigDataUrl && (
+                      <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center text-muted-foreground/70 gap-2.5 p-4 select-none">
+                        <PenTool className="size-8 stroke-[2] text-indigo-400/80 animate-bounce" />
+                        <p className="text-sm sm:text-base font-bold text-center text-foreground/85">
+                          Tanda tangani di sini menggunakan mouse, stylus, atau sentuhan layar ponsel/tablet
+                        </p>
+                        <p className="text-xs sm:text-sm text-muted-foreground/70">
+                          Penerima: {penerimaNama ? <strong className="text-foreground">{penerimaNama}</strong> : '(Isi nama penerima di sebelah kiri)'}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Garis tanda tangan bawah */}
+                    <div className="absolute bottom-6 left-8 right-8 border-b-2 border-indigo-200 dark:border-indigo-900/60 pointer-events-none flex justify-between text-xs sm:text-sm font-bold text-muted-foreground/60 pt-1 select-none">
+                      <span>X</span>
+                      <span>Tanda Tangan Penerima Barang</span>
+                    </div>
+                  </div>
+
+                  {/* Footer preview info */}
+                  <div className="flex flex-wrap items-center justify-between text-xs sm:text-sm text-muted-foreground px-1 gap-2 font-medium">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="size-2 rounded-full bg-indigo-500" />
+                      <span>
+                        Penerima: <strong className="text-foreground">{penerimaNama || '(Belum diisi)'}</strong>
+                      </span>
+                      <span className="text-muted-foreground/40">•</span>
+                      <span>
+                        Tanggal: <strong className="text-foreground">{waktuSerahTerima ? waktuSerahTerima.split('T')[0] : 'Hari ini'}</strong>
+                      </span>
+                    </div>
+                    {(hasDrawnSig || sigDataUrl) && (
+                      <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1.5">
+                        <Check className="size-4" />
+                        Tanda tangan siap distempel ke TTB
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
