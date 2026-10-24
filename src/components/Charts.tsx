@@ -462,22 +462,27 @@ export function FleetCategoryDonutChart({
   entries.sort((a, b) => b[1] - a[1]);
   const totalItems = entries.reduce((acc, curr) => acc + (curr[1] || 0), 0);
 
-  // Palet Korporat Harmonis: Biru, Teal, Ungu, Cyan, Indigo, Violet, Amber
+  // Palet Korporat Harmonis untuk Visualisasi Kategori Maritim Terpadu
   const palette = [
-    '#0284c7', // Biru Sky
-    '#0d9488', // Teal
-    '#7c3aed', // Ungu
-    '#06b6d4', // Cyan
-    '#6366f1', // Indigo
-    '#14b8a6', // Teal Terang
-    '#8b5cf6', // Ungu Violet
-    '#38bdf8', // Biru Muda
-    '#f59e0b', // Amber
+    '#0284c7', // Biru Sky (Suku Cadang Mesin)
+    '#0d9488', // Teal (Pipa & Hose Hidrolik)
+    '#7c3aed', // Ungu (Peralatan Listrik)
+    '#06b6d4', // Cyan (Pompa & Valve)
+    '#f59e0b', // Amber (Consumables & ATK)
+    '#10b981', // Emerald (Safety & K3)
+    '#ec4899', // Pink / Rose (Cat & Zinc Anode)
+    '#6366f1', // Indigo (Deck & Mooring)
+    '#f97316', // Orange (Material Logam & Las)
+    '#8b5cf6', // Violet (Alat Kerja Bengkel)
+    '#14b8a6', // Teal Terang (Akomodasi & Galley)
+    '#3b82f6', // Biru Royal (Navigasi & IT)
+    '#e11d48', // Rose / Merah (Kendaraan & Roda)
+    '#64748b', // Slate (Jasa / Umum / Lainnya)
   ];
 
   // View Mode: Horizontal Bar Chart Breakdown (Default)
-  // Menampilkan kategori teratas dengan nama jelas agar kategori kecil (Deck, Listrik) terlihat proporsinya
-  const displayCategories = entries.slice(0, 7);
+  // Menampilkan hingga 10 kategori teratas agar rincian belanja operasional kapal terpampang lengkap
+  const displayCategories = entries.slice(0, 10);
   const labels = displayCategories.map(([cat]) => cat);
   const counts = displayCategories.map(([_, count]) => count);
 
@@ -524,8 +529,8 @@ export function FleetCategoryDonutChart({
   );
 
   if (viewMode === 'donut') {
-    const topCategories = entries.slice(0, 6);
-    const otherCount = entries.slice(6).reduce((acc, curr) => acc + curr[1], 0);
+    const topCategories = entries.slice(0, 8);
+    const otherCount = entries.slice(8).reduce((acc, curr) => acc + curr[1], 0);
     if (otherCount > 0) {
       topCategories.push(['Lainnya', otherCount]);
     }
