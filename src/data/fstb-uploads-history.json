@@ -1,1 +1,29 @@
-[]
+[
+  {
+    "id": "1792859020244-2tq6o",
+    "noFstb": "MIL-FSTB-26-00064",
+    "cleanNoFstb": "MIL-FSTB-26-00064",
+    "armada": "MT DOMINO",
+    "doNo": "MIL-PO-26-00063",
+    "noFpb": "MIL-FPB-26-00000060",
+    "receivedDate": "2026-10-24",
+    "keterangan": "",
+    "originalFileName": "MIL-FSTB-26-00064.pdf",
+    "renamedFileName": "MIL-FSTB-26-00064.pdf",
+    "fileSize": 11054560,
+    "fileType": "application/pdf",
+    "fileUrl": "/api/r2-file?key=fstb-documents%2FMIL-FSTB-26-00064.pdf",
+    "r2Key": "fstb-documents/MIL-FSTB-26-00064.pdf",
+    "r2Url": "/api/r2-file?key=fstb-documents%2FMIL-FSTB-26-00064.pdf",
+    "storageProvider": "CLOUDFLARE_R2",
+    "uploadedAt": "2026-10-24T16:23:40.244Z",
+    "status": "STORED_IN_CLOUDFLARE_R2",
+    "uploaderName": "NURHAYATI",
+    "uploaderUsername": "nurhayati",
+    "uploaderRole": "staf_purchasing",
+    "uploaderNik": "CPL-DAO-0132",
+    "uploaderJabatan": "Staff Purchasing",
+    "isAutoStamped": true,
+    "stampedAt": "2026-10-24T16:23:40.244Z"
+  }
+]

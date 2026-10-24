@@ -40,26 +40,28 @@ export interface StampTtbOptions {
  */
 export const TTB_DELIVERED_BY_COORDINATES = {
   // Delivered By : Logistic Staff (Kolom 1)
-  sigXRatio: 0.0651,
-  sigYRatio: 0.2394,
-  sigWidthRatio: 0.1469,
-  sigHeightRatio: 0.0708,
-  nameXRatio: 0.1336,
-  nameYRatio: 0.1757,
-  dateXRatio: 0.1336,
-  dateYRatio: 0.1450,
+  // Form Geometry: Label y=126.5, Line y=91.5, Role y=79.5, Name y=62.5, Date y=50.5
+  sigXRatio: 0.0718,      // x = 43 pt (centered above line x=48..118)
+  sigYRatio: 0.2392,      // y = 94.0 pt (sits exactly 2.5 pt cleanly above line y=91.5)
+  sigWidthRatio: 0.1336,  // width = 80 pt
+  sigHeightRatio: 0.0763, // height = 30 pt (top at y=124.0, safely below header y=126.5)
+  nameXRatio: 0.1419,     // x = 85 pt (right after 'Name :' label at x=47)
+  nameYRatio: 0.1590,     // y = 62.5 pt (aligns precisely with 'Name :' baseline)
+  dateXRatio: 0.1419,     // x = 85 pt (right after 'Date :' label at x=47)
+  dateYRatio: 0.1285,     // y = 50.5 pt (aligns precisely with 'Date :' baseline)
 };
 
 export const TTB_RECEIVED_BY_COORDINATES = {
   // Received By : User (Kolom 2)
-  sigXRatio: 0.3005,
-  sigYRatio: 0.2394,
-  sigWidthRatio: 0.1469,
-  sigHeightRatio: 0.0708,
-  nameXRatio: 0.3673,
-  nameYRatio: 0.1757,
-  dateXRatio: 0.3673,
-  dateYRatio: 0.1450,
+  // Form Geometry: Label y=127.5, Line y=92.5, Role y=80.5, Name y=62.5, Date y=50.5
+  sigXRatio: 0.3072,      // x = 184 pt (centered above line x=189..259)
+  sigYRatio: 0.2392,      // y = 94.0 pt (sits 1.5 pt cleanly above line y=92.5)
+  sigWidthRatio: 0.1336,  // width = 80 pt
+  sigHeightRatio: 0.0763, // height = 30 pt (top at y=124.0, below header y=127.5)
+  nameXRatio: 0.3790,     // x = 227 pt (right after 'Name :' label at x=189)
+  nameYRatio: 0.1590,     // y = 62.5 pt (aligns with 'Name :' baseline)
+  dateXRatio: 0.3790,     // x = 227 pt (right after 'Date :' label at x=189)
+  dateYRatio: 0.1285,     // y = 50.5 pt (aligns with 'Date :' baseline)
   phoneBoxXRatio: 0.257,
   phoneBoxYRatio: 0.010,
   phoneBoxWidthRatio: 0.243,
@@ -68,26 +70,28 @@ export const TTB_RECEIVED_BY_COORDINATES = {
 
 export const TTB_APPROVED_BY_COORDINATES = {
   // Approved By : Logistic Supervisor (Kolom 3)
-  sigXRatio: 0.5326,
-  sigYRatio: 0.2394,
-  sigWidthRatio: 0.1469,
-  sigHeightRatio: 0.0708,
-  nameXRatio: 0.6010,
-  nameYRatio: 0.1757,
-  dateXRatio: 0.6010,
-  dateYRatio: 0.1450,
+  // Form Geometry: Label y=128.5, Line y=92.5, Role y=81.5, Name y=62.5, Date y=50.5
+  sigXRatio: 0.5142,      // x = 308 pt (centered above line x=313..383)
+  sigYRatio: 0.2392,      // y = 94.0 pt (sits 1.5 pt cleanly above line y=92.5)
+  sigWidthRatio: 0.1336,  // width = 80 pt
+  sigHeightRatio: 0.0763, // height = 30 pt
+  nameXRatio: 0.5860,     // x = 351 pt (right after 'Name :' label at x=313)
+  nameYRatio: 0.1590,     // y = 62.5 pt
+  dateXRatio: 0.5860,     // x = 351 pt
+  dateYRatio: 0.1285,     // y = 50.5 pt
 };
 
 export const TTB_ACKNOWLEDGED_BY_COORDINATES = {
   // Acknowledge By : Procurement Manager (Kolom 4)
-  sigXRatio: 0.7596,
-  sigYRatio: 0.2394,
-  sigWidthRatio: 0.1469,
-  sigHeightRatio: 0.0708,
-  nameXRatio: 0.8264,
-  nameYRatio: 0.1757,
-  dateXRatio: 0.8264,
-  dateYRatio: 0.1450,
+  // Form Geometry: Label y=128.5, Line y=92.5, Role y=81.5, Name y=62.5, Date y=50.5
+  sigXRatio: 0.7312,      // x = 438 pt (centered above line x=443..513)
+  sigYRatio: 0.2392,      // y = 94.0 pt (sits 1.5 pt cleanly above line y=92.5)
+  sigWidthRatio: 0.1336,  // width = 80 pt
+  sigHeightRatio: 0.0763, // height = 30 pt
+  nameXRatio: 0.8030,     // x = 481 pt (right after 'Name :' label at x=443)
+  nameYRatio: 0.1590,     // y = 62.5 pt
+  dateXRatio: 0.8030,     // x = 481 pt
+  dateYRatio: 0.1285,     // y = 50.5 pt
 };
 
 // Default alias untuk backwards compatibility
@@ -119,8 +123,9 @@ export async function stampTtbPdf(options: StampTtbOptions): Promise<Buffer> {
     throw new Error('Dokumen PDF tidak memiliki halaman.');
   }
 
-  // Gunakan halaman pertama untuk stempel TTB
-  const targetPage = pages[0];
+  // Selalu gunakan halaman terakhir untuk stempel tanda tangan digital TTB
+  // (Jika dokumen memiliki > 1 halaman, kolom otorisasi tanda tangan terletak di halaman terakhir)
+  const targetPage = pages[pages.length - 1];
   const { width: pageWidth, height: pageHeight } = targetPage.getSize();
 
   // Tentukan koordinat dasar berdasarkan kolom pengesahan (roleType)
@@ -359,8 +364,10 @@ export async function stampTtbRecipientPdf(options: StampTtbRecipientOptions): P
     throw new Error('Dokumen PDF tidak memiliki halaman.');
   }
 
-  const firstPage = pages[0];
-  const { width: pageWidth, height: pageHeight } = firstPage.getSize();
+  // Selalu gunakan halaman terakhir untuk stempel penerima lapangan TTB
+  // (Jika berkas memiliki multi-halaman, tanda tangan selalu ditempatkan pada halaman paling akhir)
+  const targetPage = pages[pages.length - 1];
+  const { width: pageWidth, height: pageHeight } = targetPage.getSize();
 
   const coords = {
     ...TTB_RECIPIENT_COORDINATES,
@@ -413,7 +420,7 @@ export async function stampTtbRecipientPdf(options: StampTtbRecipientOptions): P
         const sigH = coords.sigHeightRatio * pageHeight;
 
         // Bersihkan area kotak tanda tangan terlebih dahulu dengan latar putih bersih
-        firstPage.drawRectangle({
+        targetPage.drawRectangle({
           x: sigX,
           y: sigY,
           width: sigW,
@@ -422,7 +429,7 @@ export async function stampTtbRecipientPdf(options: StampTtbRecipientOptions): P
           borderWidth: 0,
         });
 
-        firstPage.drawImage(embeddedImage, {
+        targetPage.drawImage(embeddedImage, {
           x: sigX,
           y: sigY,
           width: sigW,
@@ -447,7 +454,7 @@ export async function stampTtbRecipientPdf(options: StampTtbRecipientOptions): P
       const nameX = coords.nameXRatio * pageWidth;
       const nameY = coords.nameYRatio * pageHeight;
 
-      firstPage.drawText(cleanName, {
+      targetPage.drawText(cleanName, {
         x: nameX,
         y: nameY,
         size: fontSize,
@@ -462,7 +469,7 @@ export async function stampTtbRecipientPdf(options: StampTtbRecipientOptions): P
       const dateX = coords.dateXRatio * pageWidth;
       const dateY = coords.dateYRatio * pageHeight;
 
-      firstPage.drawText(cleanDate, {
+      targetPage.drawText(cleanDate, {
         x: dateX,
         y: dateY,
         size: fontSize,
@@ -482,7 +489,7 @@ export async function stampTtbRecipientPdf(options: StampTtbRecipientOptions): P
       const boxH = (coords.phoneBoxHeightRatio ?? 0.075) * pageHeight;
 
       // Gambar bingkai kotak hitam rapi (border hitam tebal 1.5 pt, latar belakang putih)
-      firstPage.drawRectangle({
+      targetPage.drawRectangle({
         x: boxX,
         y: boxY,
         width: boxW,
@@ -501,7 +508,7 @@ export async function stampTtbRecipientPdf(options: StampTtbRecipientOptions): P
         const textX = boxX + (boxW - textWidth) / 2;
         const textY = boxY + (boxH - phoneFontSize) / 2 + 1;
 
-        firstPage.drawText(phoneText, {
+        targetPage.drawText(phoneText, {
           x: textX,
           y: textY,
           size: phoneFontSize,
@@ -518,7 +525,7 @@ export async function stampTtbRecipientPdf(options: StampTtbRecipientOptions): P
         const totalTextH = phoneFontSize * 2 + lineGap;
         const startY = boxY + (boxH - totalTextH) / 2 + phoneFontSize + lineGap;
 
-        firstPage.drawText(labelText, {
+        targetPage.drawText(labelText, {
           x: boxX + (boxW - labelW) / 2,
           y: startY,
           size: phoneFontSize,
@@ -526,7 +533,7 @@ export async function stampTtbRecipientPdf(options: StampTtbRecipientOptions): P
           color: rgb(0, 0, 0),
         });
 
-        firstPage.drawText(cleanPhone, {
+        targetPage.drawText(cleanPhone, {
           x: boxX + (boxW - phoneW) / 2,
           y: startY - phoneFontSize - lineGap,
           size: phoneFontSize,
