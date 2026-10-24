@@ -191,6 +191,9 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
       setDeletingId(item.id);
       const res = await fetch(`/api/validasi-dokumen?id=${encodeURIComponent(item.id)}`, {
         method: 'DELETE',
+        headers: {
+          'x-user-role': user?.role || '',
+        },
       });
       const data = await res.json();
       if (!res.ok || !data.success) {

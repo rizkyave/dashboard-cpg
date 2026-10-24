@@ -324,6 +324,14 @@ export async function POST(req: NextRequest) {
 // DELETE /api/ttb-photos?action=clean ATAU /api/ttb-photos?name=...
 export async function DELETE(req: NextRequest) {
   try {
+    const userRole = req.headers.get('x-user-role');
+    if (userRole !== 'admin') {
+      return NextResponse.json(
+        { success: false, error: 'Akses ditolak: Hanya Administrator yang berwenang menghapus foto TTB.' },
+        { status: 403 }
+      );
+    }
+
     const searchParams = req.nextUrl.searchParams;
     const action = searchParams.get('action');
     const name = searchParams.get('name');

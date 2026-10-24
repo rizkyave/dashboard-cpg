@@ -503,6 +503,14 @@ export async function POST(req: NextRequest) {
 // DELETE: Hapus berkas FSTB dari Cloudflare R2 dan riwayat
 export async function DELETE(req: NextRequest) {
   try {
+    const userRole = req.headers.get('x-user-role');
+    if (userRole !== 'admin') {
+      return NextResponse.json(
+        { success: false, error: 'Akses ditolak: Hanya Administrator yang memiliki izin menghapus berkas FSTB.' },
+        { status: 403 }
+      );
+    }
+
     const id = req.nextUrl.searchParams.get('id');
     const r2KeyParam = req.nextUrl.searchParams.get('r2Key');
     const fileNameParam = req.nextUrl.searchParams.get('name');

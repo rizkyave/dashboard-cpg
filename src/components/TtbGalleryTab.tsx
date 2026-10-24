@@ -41,7 +41,7 @@ interface TtbGalleryTabProps {
 }
 
 export default function TtbGalleryTab({ showToast }: TtbGalleryTabProps) {
-  const { canEdit, user } = useAuth();
+  const { canEdit, user, isAdmin } = useAuth();
 
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -114,12 +114,21 @@ export default function TtbGalleryTab({ showToast }: TtbGalleryTabProps) {
   };
 
   const handleCleanMissingPhotos = async () => {
+    if (!isAdmin) {
+      showToast?.('Akses ditolak: Hanya Administrator yang berwenang membersihkan index foto.', 'error');
+      return;
+    }
     if (!window.confirm('Bersihkan index foto yang hilang atau tidak terdaftar di penyimpanan? Tindakan ini akan menghapus data index yang tidak memiliki berkas gambar fisik asli.')) {
       return;
     }
     setIsCleaning(true);
     try {
-      const res = await fetch('/api/ttb-photos?action=clean', { method: 'DELETE' });
+      const res = await fetch('/api/ttb-photos?action=clean', {
+        method: 'DELETE',
+        headers: {
+          'x-user-role': user?.role || '',
+        },
+      });
       const data = await res.json();
       if (res.ok && data.success) {
         showToast?.(data.message || `Index berhasil dibersihkan! ${data.removedCount || 0} foto hilang dibersihkan.`, 'success');
@@ -136,12 +145,21 @@ export default function TtbGalleryTab({ showToast }: TtbGalleryTabProps) {
   };
 
   const handleDeletePhoto = async (photoName: string) => {
+    if (!isAdmin) {
+      showToast?.('Akses ditolak: Hanya Administrator yang berwenang menghapus foto TTB.', 'error');
+      return;
+    }
     if (!window.confirm(`Hapus foto "${photoName}" secara permanen?`)) {
       return;
     }
     setDeletingPhotoName(photoName);
     try {
-      const res = await fetch(`/api/ttb-photos?name=${encodeURIComponent(photoName)}`, { method: 'DELETE' });
+      const res = await fetch(`/api/ttb-photos?name=${encodeURIComponent(photoName)}`, {
+        method: 'DELETE',
+        headers: {
+          'x-user-role': user?.role || '',
+        },
+      });
       const data = await res.json();
       if (res.ok && data.success) {
         showToast?.(`Foto "${photoName}" berhasil dihapus.`, 'success');
@@ -260,14 +278,14 @@ export default function TtbGalleryTab({ showToast }: TtbGalleryTabProps) {
           </div>
 
           <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 flex-wrap">
-            {/* Tombol Bersihkan Foto Hilang (Admin & Staff) */}
-            {canEdit && (
+            {/* Tombol Bersihkan Foto Hilang (Khusus Admin) */}
+            {isAdmin && (
               <button
                 type="button"
                 onClick={handleCleanMissingPhotos}
                 disabled={isCleaning || isLoading}
                 className="h-8.5 px-3 rounded-lg border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-semibold inline-flex items-center gap-1.5 transition active:scale-95 cursor-pointer disabled:opacity-50"
-                title="Bersihkan data index foto yang hilang atau tidak memiliki berkas gambar asli di penyimpanan"
+                title="Bersihkan data index foto yang hilang atau tidak memiliki berkas gambar asli di penyimpanan (Khusus Admin)"
               >
                 <Trash2 className={`size-3.5 ${isCleaning ? 'animate-spin' : ''}`} />
                 <span>{isCleaning ? 'Membersihkan...' : 'Bersihkan Foto Hilang'}</span>
@@ -361,7 +379,7 @@ export default function TtbGalleryTab({ showToast }: TtbGalleryTabProps) {
                     <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center bg-muted/70 text-muted-foreground select-none">
                       <ImageOff className="size-6 mb-1 text-muted-foreground/60" />
                       <span className="text-[10px] font-medium leading-tight">Gambar Tidak Ditemukan</span>
-                      {canEdit && (
+                      {isAdmin && (
                         <button
                           type="button"
                           onClick={(e) => {
@@ -396,7 +414,7 @@ export default function TtbGalleryTab({ showToast }: TtbGalleryTabProps) {
                         <span className="p-1.5 rounded-lg bg-black/60 text-white" title="Lihat Foto Penuh">
                           <Maximize2 className="size-4" />
                         </span>
-                        {canEdit && (
+                        {isAdmin && (
                           <button
                             type="button"
                             onClick={(e) => {
@@ -405,7 +423,7 @@ export default function TtbGalleryTab({ showToast }: TtbGalleryTabProps) {
                             }}
                             disabled={deletingPhotoName === photo.name}
                             className="p-1.5 rounded-lg bg-red-600/80 hover:bg-red-600 text-white transition cursor-pointer"
-                            title="Hapus foto ini"
+                            title="Hapus foto ini (Khusus Admin)"
                           >
                             {deletingPhotoName === photo.name ? (
                               <Loader2 className="size-4 animate-spin" />

@@ -910,6 +910,14 @@ export async function POST(req: NextRequest): Promise<NextResponse<SerahTerimaRe
 // DELETE: Hapus data bukti serah terima lapangan beserta seluruh foto di Cloudflare R2 & sinkronkan ulang status validasi dokumen
 export async function DELETE(req: NextRequest): Promise<NextResponse<SerahTerimaResponse>> {
   try {
+    const userRole = req.headers.get('x-user-role');
+    if (userRole !== 'admin') {
+      return NextResponse.json(
+        { success: false, message: 'Akses ditolak: Hanya Administrator yang berwenang menghapus rekaman serah terima.', error: 'Forbidden' },
+        { status: 403 }
+      );
+    }
+
     const searchParams = req.nextUrl.searchParams;
     const id = searchParams.get('id');
 

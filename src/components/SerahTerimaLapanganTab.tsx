@@ -1265,14 +1265,25 @@ export default function SerahTerimaLapanganTab({
 
   // Hapus riwayat serah terima
   const handleDeleteRecord = (record: SerahTerimaItem) => {
+    if (!isAdmin) {
+      showToast?.('Akses ditolak: Hanya Administrator yang berwenang menghapus rekaman serah terima.', 'error');
+      return;
+    }
     setConfirmDeleteRecord(record);
   };
 
   const executeDeleteRecord = async (record: SerahTerimaItem) => {
+    if (!isAdmin) {
+      showToast?.('Akses ditolak: Hanya Administrator yang berwenang menghapus rekaman serah terima.', 'error');
+      return;
+    }
     setDeletingId(record.id);
     try {
       const res = await fetch(`/api/serah-terima?id=${encodeURIComponent(record.id)}&_t=${Date.now()}`, {
         method: 'DELETE',
+        headers: {
+          'x-user-role': user?.role || '',
+        },
       });
       const data: SerahTerimaResponse = await res.json();
       if (res.ok && data.success) {
@@ -3072,7 +3083,7 @@ export default function SerahTerimaLapanganTab({
                           <span>Detail TTB</span>
                         </button>
 
-                        {(isAdmin || canEdit) && (
+                        {isAdmin && (
                           <button
                             type="button"
                             disabled={isDeleting}
@@ -3081,7 +3092,7 @@ export default function SerahTerimaLapanganTab({
                               handleDeleteRecord(rec);
                             }}
                             className="p-1.5 rounded-lg text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition cursor-pointer"
-                            title="Hapus rekaman serah terima ini & sinkronkan ke Cloudflare R2"
+                            title="Hapus rekaman serah terima ini & sinkronkan ke Cloudflare R2 (Khusus Admin)"
                           >
                             {isDeleting ? (
                               <RefreshCw className="size-3.5 animate-spin text-rose-500" />

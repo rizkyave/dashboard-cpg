@@ -1215,6 +1215,14 @@ export async function POST(req: NextRequest) {
     // AKSI 2: PENGHAPUSAN BERKAS VALIDASI OLEH ADMINISTRATOR
     // =========================================================================
     if (action === 'delete') {
+      const userRole = req.headers.get('x-user-role');
+      if (userRole !== 'admin') {
+        return NextResponse.json(
+          { success: false, error: 'Akses ditolak: Hanya Administrator yang berwenang menghapus dokumen validasi.' },
+          { status: 403 }
+        );
+      }
+
       const targetId = validationId || docId;
       if (!targetId && !docNumber) {
         return NextResponse.json(
@@ -1745,6 +1753,14 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
+    const userRole = req.headers.get('x-user-role');
+    if (userRole !== 'admin') {
+      return NextResponse.json(
+        { success: false, error: 'Akses ditolak: Hanya Administrator yang berwenang menghapus dokumen validasi.' },
+        { status: 403 }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const targetId = searchParams.get('id') || searchParams.get('validationId') || searchParams.get('docId');
     const docNumber = searchParams.get('docNumber');

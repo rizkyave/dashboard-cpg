@@ -721,6 +721,10 @@ export default function UploadFstbTab({
 
   // Hapus Berkas dari Riwayat
   const handleDeleteHistoryItem = async (item: UploadedFstbItem) => {
+    if (!isAdmin) {
+      showToast?.('Akses ditolak: Hanya Administrator yang berwenang menghapus berkas FSTB.', 'error');
+      return;
+    }
     if (!window.confirm(`Hapus berkas FSTB "${item.renamedFileName}" dari penyimpanan Cloudflare R2?`)) {
       return;
     }
@@ -728,7 +732,12 @@ export default function UploadFstbTab({
     try {
       const res = await fetch(
         `/api/upload-fstb?id=${encodeURIComponent(item.id)}&name=${encodeURIComponent(item.renamedFileName)}`,
-        { method: 'DELETE' }
+        {
+          method: 'DELETE',
+          headers: {
+            'x-user-role': user?.role || '',
+          },
+        }
       );
       const data = await res.json();
       if (res.ok && data.success) {
@@ -1395,13 +1404,13 @@ export default function UploadFstbTab({
                         >
                           <Download className="size-3.5" />
                         </a>
-                        {canEdit && (
+                        {isAdmin && (
                           <button
                             type="button"
                             onClick={() => handleDeleteHistoryItem(item)}
                             disabled={deletingId === item.id}
                             className="p-1.5 rounded-lg border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 transition cursor-pointer"
-                            title="Hapus Berkas dari Cloudflare R2"
+                            title="Hapus Berkas dari Cloudflare R2 (Khusus Admin)"
                           >
                             <Trash2 className="size-3.5" />
                           </button>

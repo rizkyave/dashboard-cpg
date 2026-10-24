@@ -561,6 +561,14 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
 // DELETE: Hapus berkas TTB dari Cloudflare R2 dan sinkronkan riwayat
 export async function DELETE(req: NextRequest) {
   try {
+    const userRole = req.headers.get('x-user-role');
+    if (userRole !== 'admin') {
+      return NextResponse.json(
+        { success: false, error: 'Akses ditolak: Hanya Administrator yang memiliki izin menghapus berkas TTB.' },
+        { status: 403 }
+      );
+    }
+
     const searchParams = req.nextUrl.searchParams;
     const id = searchParams.get('id') || '';
     const r2KeyParam = searchParams.get('key') || '';

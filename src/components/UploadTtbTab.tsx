@@ -171,7 +171,7 @@ export default function UploadTtbTab({
   sisaLayananItems = [],
   showToast,
 }: UploadTtbTabProps) {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const canEdit = user?.role !== 'visitor';
 
   // State Form Konfigurasi Metadata (Batch Default)
@@ -677,6 +677,10 @@ export default function UploadTtbTab({
 
   // Hapus Berkas dari Riwayat
   const handleDeleteHistoryItem = async (item: UploadedTtbItem) => {
+    if (!isAdmin) {
+      showToast?.('Akses ditolak: Hanya Administrator yang berwenang menghapus berkas TTB.', 'error');
+      return;
+    }
     if (!window.confirm(`Hapus berkas TTB "${item.renamedFileName}" dari penyimpanan Cloudflare R2?`)) {
       return;
     }
@@ -684,7 +688,12 @@ export default function UploadTtbTab({
     try {
       const res = await fetch(
         `/api/upload-ttb?id=${encodeURIComponent(item.id)}&key=${encodeURIComponent(item.r2Key || '')}&fileName=${encodeURIComponent(item.renamedFileName)}`,
-        { method: 'DELETE' }
+        {
+          method: 'DELETE',
+          headers: {
+            'x-user-role': user?.role || '',
+          },
+        }
       );
       const data = await res.json();
       if (res.ok && data.success) {
@@ -1376,13 +1385,13 @@ export default function UploadTtbTab({
                           <Download className="size-3.5" />
                         </a>
 
-                        {canEdit && (
+                        {isAdmin && (
                           <button
                             type="button"
                             onClick={() => handleDeleteHistoryItem(item)}
                             disabled={deletingId === item.id}
                             className="p-1.5 rounded-lg border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 transition cursor-pointer"
-                            title="Hapus Berkas dari Cloudflare R2"
+                            title="Hapus Berkas dari Cloudflare R2 (Khusus Admin)"
                           >
                             {deletingId === item.id ? (
                               <RefreshCw className="size-3.5 animate-spin text-red-600" />
