@@ -124,7 +124,7 @@ async function forwardToGoogleAppsScript(webhookUrl: string, payload: any) {
       method: 'POST',
       redirect: 'follow',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'text/plain;charset=utf-8',
       },
       body: JSON.stringify(payload),
       signal: controller.signal,
@@ -133,15 +133,27 @@ async function forwardToGoogleAppsScript(webhookUrl: string, payload: any) {
     clearTimeout(timeout);
     const text = await res.text();
     try {
-      return JSON.parse(text);
+      const parsed = JSON.parse(text);
+      return parsed;
     } catch {
-      return { success: res.ok, raw: text };
+      // Jika Google mengembalikan HTML (halaman login atau "Halaman Tidak Ditemukan")
+      let errorMsg = 'Google Apps Script tidak mengembalikan format JSON yang valid.';
+      if (text.includes('Halaman Tidak Ditemukan') || text.includes('tidak dapat membuka file')) {
+        errorMsg = 'URL Webhook tidak ditemukan di Google (Halaman Tidak Ditemukan). Pastikan skrip sudah dideploy sebagai Aplikasi Web dan URL berakhiran /exec.';
+      } else if (text.includes('accounts.google.com') || text.includes('signin') || text.includes('IdentifierInput')) {
+        errorMsg = 'Akses ditolak oleh Google: Memerlukan login. Pastikan setelan "Siapa yang memiliki akses" (Who has access) pada Web App disetel ke "Siapa saja" (Anyone), bukan "Hanya saya".';
+      }
+      return {
+        success: false,
+        message: errorMsg,
+        rawSnippet: text.slice(0, 250),
+      };
     }
   } catch (err: any) {
     clearTimeout(timeout);
     return {
       success: false,
-      message: err.name === 'AbortError' ? 'Koneksi ke Google Sheets timeout (20s).' : err.message,
+      message: err.name === 'AbortError' ? 'Koneksi ke Google Sheets timeout (20 detik).' : err.message,
     };
   }
 }
@@ -199,17 +211,38 @@ export async function POST(req: NextRequest) {
           method: 'GET',
           redirect: 'follow',
         });
-        const json = await testRes.json().catch(() => null);
-        if (json && (json.status === 'active' || json.success !== undefined)) {
+        const text = await testRes.text();
+        let json: any = null;
+        try {
+          json = JSON.parse(text);
+        } catch {
+          let errorMsg = 'Webhook merespons HTML, bukan format JSON.';
+          if (text.includes('Halaman Tidak Ditemukan') || text.includes('tidak dapat membuka file')) {
+            errorMsg = 'URL Webhook tidak ditemukan di server Google (Halaman Tidak Ditemukan). Pastikan Anda telah membuat "Penerapan Baru (New Deployment)" jenis "Aplikasi Web" dan menyalin URL berakhiran /exec.';
+          } else if (text.includes('accounts.google.com') || text.includes('signin') || text.includes('IdentifierInput')) {
+            errorMsg = 'Akses Ditolak: Google mengalihkan ke halaman login akun. Pada setelan Deploy Apps Script, Anda WAJIB memilih "Siapa yang memiliki akses" (Who has access): "Siapa saja" (Anyone).';
+          }
+          return NextResponse.json({
+            success: false,
+            message: errorMsg,
+          });
+        }
+
+        if (json && (json.status === 'active' || json.success === true)) {
+          const detailSpreadsheet = json.spreadsheetName
+            ? `ke "${json.spreadsheetName}" (${json.sheetName || 'PROCUREMENT'}, ${json.totalRows || 0} baris)`
+            : '';
           return NextResponse.json({
             success: true,
-            message: 'Koneksi ke Google Sheets Webhook AKTIF dan SIAP!',
+            message: `✓ Webhook Google Sheets AKTIF dan TERHUBUNG ${detailSpreadsheet}!`,
             details: json,
           });
         }
+
         return NextResponse.json({
-          success: true,
-          message: `Webhook merespons status HTTP ${testRes.status}.`,
+          success: false,
+          message: json?.message || 'Webhook Google Sheets mengembalikan status tidak aktif.',
+          details: json,
         });
       } catch (err: any) {
         return NextResponse.json({
@@ -300,9 +333,18 @@ export async function POST(req: NextRequest) {
       let googleSyncResult: any = null;
 
       if (webhookUrl) {
+        // Jika ada updates spesifik, prioritaskan data perubahan kolom
+        const payloadData = body.updates
+          ? {
+              fpb: itemData.fpb,
+              po: itemData.po || itemData.noPo,
+              ...body.updates,
+            }
+          : itemData;
+
         googleSyncResult = await forwardToGoogleAppsScript(webhookUrl, {
           action,
-          data: itemData,
+          data: payloadData,
         });
       }
 
@@ -311,7 +353,7 @@ export async function POST(req: NextRequest) {
         message: googleSyncResult?.success
           ? `Data ${targetFpb || targetPo} berhasil disimpan & disinkronkan otomatis ke Google Sheets!`
           : webhookUrl
-          ? `Data disimpan di database lokal. Webhook Google Sheets mengembalikan pesan: ${googleSyncResult?.message || 'Menunggu pemrosesan'}`
+          ? `Data tersimpan di database lokal, namun GAGAL auto-save ke Google Sheets: ${googleSyncResult?.message || 'Error tidak diketahui'}`
           : `Data ${targetFpb || targetPo} berhasil disimpan ke database lokal. (Belum terhubung ke Webhook Google Sheets)`,
         googleSync: googleSyncResult?.success || false,
         googleSyncResult,

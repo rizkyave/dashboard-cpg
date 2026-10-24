@@ -514,15 +514,39 @@ export default function MonitoringInternalTab({
   const [webhookStatus, setWebhookStatus] = useState<{ checked: boolean; active: boolean; message: string } | null>(null);
   const [copiedScript, setCopiedScript] = useState<boolean>(false);
 
-  // Load konfigurasi Webhook saat komponen dibuka
+  // Load konfigurasi Webhook saat komponen dibuka & tes status live
   useEffect(() => {
     const fetchWebhookConfig = async () => {
       try {
         const res = await fetch('/api/monitoring-internal');
         const json = await res.json();
-        if (json.success) {
-          setWebhookUrl(json.webhookUrl || '');
-          setIsWebhookConfigured(json.isConfigured || false);
+        if (json.success && json.webhookUrl) {
+          setWebhookUrl(json.webhookUrl);
+          setIsWebhookConfigured(true);
+
+          // Tes status live webhook di latar belakang
+          fetch('/api/monitoring-internal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'test_webhook', webhookUrl: json.webhookUrl }),
+          })
+            .then((r) => r.json())
+            .then((testRes) => {
+              setWebhookStatus({
+                checked: true,
+                active: testRes.success,
+                message: testRes.message,
+              });
+            })
+            .catch(() => {
+              setWebhookStatus({
+                checked: true,
+                active: false,
+                message: 'Tidak dapat menjangkau server Google Apps Script.',
+              });
+            });
+        } else {
+          setIsWebhookConfigured(false);
         }
       } catch {}
     };
@@ -953,16 +977,27 @@ export default function MonitoringInternalTab({
         body: JSON.stringify({
           action: 'update_row',
           data: updatedItem,
+          updates: updates,
         }),
       });
       const json = await res.json();
       if (json.success) {
-        showToast?.(
-          json.googleSync
-            ? `✓ Data ${item.fpb || item.po} diperbarui & AUTO-SAVE ke Google Sheet!`
-            : `✓ Data ${item.fpb || item.po} diperbarui di database.`,
-          json.googleSync ? 'success' : 'info'
-        );
+        if (json.googleSync) {
+          showToast?.(
+            `✓ Data ${item.fpb || item.po} diperbarui & AUTO-SAVE ke Google Sheet!`,
+            'success'
+          );
+        } else if (isWebhookConfigured) {
+          showToast?.(
+            `⚠️ Data ${item.fpb || item.po} tersimpan di lokal, namun GAGAL kirim ke Google Sheet: ${json.googleSyncResult?.message || json.message}`,
+            'warning'
+          );
+        } else {
+          showToast?.(
+            `✓ Data ${item.fpb || item.po} diperbarui di database lokal. (Hubungkan Webhook untuk auto-save ke Google Sheets)`,
+            'info'
+          );
+        }
       } else {
         showToast?.(json.message || 'Gagal menyimpan perubahan.', 'warning');
       }
@@ -1113,6 +1148,11 @@ export default function MonitoringInternalTab({
           showToast?.(
             `✓ ${isNew ? 'Berkas baru berhasil ditambah' : 'Perubahan tersimpan'} & AUTO-SAVE ke Google Sheet berhasil!`,
             'success'
+          );
+        } else if (isWebhookConfigured) {
+          showToast?.(
+            `⚠️ Data tersimpan di sistem lokal, namun GAGAL auto-save ke Google Sheets: ${json.googleSyncResult?.message || json.message}`,
+            'warning'
           );
         } else {
           showToast?.(
@@ -1363,10 +1403,16 @@ export default function MonitoringInternalTab({
           >
             <Settings2 className="size-3.5 text-muted-foreground" />
             <span>Auto-Save Sheet</span>
-            {isWebhookConfigured ? (
-              <span className="size-2 rounded-full bg-emerald-500 animate-pulse" title="Webhook Aktif" />
+            {webhookStatus?.checked ? (
+              webhookStatus.active ? (
+                <span className="size-2 rounded-full bg-emerald-500 animate-pulse" title="Webhook Terhubung & Aktif" />
+              ) : (
+                <span className="size-2 rounded-full bg-rose-500" title={`Webhook Bermasalah: ${webhookStatus.message}`} />
+              )
+            ) : isWebhookConfigured ? (
+              <span className="size-2 rounded-full bg-amber-500 animate-pulse" title="Mengecek status Webhook..." />
             ) : (
-              <span className="size-2 rounded-full bg-amber-500" title="Webhook Belum Dikonfigurasi" />
+              <span className="size-2 rounded-full bg-slate-400" title="Webhook Belum Dikonfigurasi" />
             )}
           </button>
 
@@ -3475,23 +3521,43 @@ export default function MonitoringInternalTab({
               {/* Status Banner */}
               <div
                 className={`p-4 rounded-xl border flex items-start gap-3 ${
-                  isWebhookConfigured
-                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-900 dark:text-emerald-200'
-                    : 'bg-amber-500/10 border-amber-500/30 text-amber-900 dark:text-amber-200'
+                  webhookStatus?.checked
+                    ? webhookStatus.active
+                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-900 dark:text-emerald-200'
+                      : 'bg-rose-500/10 border-rose-500/30 text-rose-900 dark:text-rose-200'
+                    : isWebhookConfigured
+                    ? 'bg-amber-500/10 border-amber-500/30 text-amber-900 dark:text-amber-200'
+                    : 'bg-muted/50 border-border text-muted-foreground'
                 }`}
               >
-                {isWebhookConfigured ? (
-                  <CheckCircle2 className="size-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                {webhookStatus?.checked ? (
+                  webhookStatus.active ? (
+                    <CheckCircle2 className="size-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                  ) : (
+                    <AlertCircle className="size-5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                  )
+                ) : isWebhookConfigured ? (
+                  <RefreshCw className="size-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5 animate-spin" />
                 ) : (
-                  <AlertCircle className="size-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                  <AlertCircle className="size-5 text-muted-foreground shrink-0 mt-0.5" />
                 )}
                 <div className="text-xs space-y-1">
                   <div className="font-bold">
-                    {isWebhookConfigured ? 'Webhook Google Sheets Aktif' : 'Webhook Belum Terhubung'}
+                    {webhookStatus?.checked
+                      ? webhookStatus.active
+                        ? 'Webhook Google Sheets Aktif & Tersinkron'
+                        : 'Koneksi Webhook Bermasalah'
+                      : isWebhookConfigured
+                      ? 'Sedang Memeriksa Koneksi Webhook...'
+                      : 'Webhook Belum Dikonfigurasi'}
                   </div>
                   <div className="opacity-90 leading-relaxed">
-                    {isWebhookConfigured
-                      ? 'Setiap penambahan baris baru, perubahan status SLA, atau serah terima berkas yang dilakukan dari dashboard akan otomatis dikirim dan diperbarui di Google Sheets secara real-time.'
+                    {webhookStatus?.checked
+                      ? webhookStatus.active
+                        ? 'Setiap penambahan baris baru, perubahan PIC, status SLA, atau serah terima berkas di dashboard akan otomatis disinkronkan langsung ke Google Sheets secara real-time.'
+                        : webhookStatus.message
+                      : isWebhookConfigured
+                      ? 'Menghubungkan ke endpoint Google Apps Script untuk memeriksa izin dan status spreadsheet...'
                       : 'Masukkan URL Webhook Google Apps Script di bawah untuk mengaktifkan fitur auto-save langsung ke Google Spreadsheet.'}
                   </div>
                 </div>
@@ -3592,25 +3658,36 @@ export default function MonitoringInternalTab({
                     <strong className="text-foreground">Apps Script</strong>.
                   </li>
                   <li>
-                    Hapus kode bawaan (myFunction), lalu klik tombol hijau{' '}
-                    <strong className="text-emerald-600">"Salin Skrip Apps Script"</strong> di atas, lalu tempel (Paste) seluruh kodenya.
+                    Hapus seluruh isi file <code className="font-mono text-[11px] bg-muted px-1 rounded">Code.gs</code> (atau myFunction), lalu klik tombol hijau{' '}
+                    <strong className="text-emerald-600">"Salin Skrip Apps Script"</strong> di atas, dan tempelkan (Paste) seluruh kodenya.
+                  </li>
+                  <li>
+                    Klik ikon disket <strong>Simpan proyek (Ctrl + S)</strong>.
                   </li>
                   <li>
                     Klik tombol biru <strong className="text-foreground">Terapkan (Deploy)</strong> di pojok kanan atas →{' '}
                     <strong className="text-foreground">Penerapan baru (New deployment)</strong>.
+                    <p className="mt-1 text-[11px] text-muted-foreground pl-4">
+                      <em>Catatan: Jika sudah pernah deploy sebelumnya, pilih <strong>Kelola penerapan (Manage deployments)</strong> → klik ikon pensil Edit → Versi: <strong>Versi baru (New version)</strong> → Terapkan.</em>
+                    </p>
                   </li>
                   <li>
                     Pilih jenis <strong className="text-foreground">Aplikasi web (Web app)</strong>:
-                    <ul className="list-disc list-inside pl-4 mt-1 space-y-0.5">
+                    <ul className="list-disc list-inside pl-4 mt-1 space-y-1">
                       <li>Jalankan sebagai: <em>Saya (email Anda)</em></li>
-                      <li>Siapa yang memiliki akses: <strong className="text-foreground">Siapa saja (Anyone)</strong></li>
+                      <li className="font-semibold text-rose-600 dark:text-rose-400">
+                        Siapa yang memiliki akses: <u>Siapa saja (Anyone)</u>
+                        <span className="block font-normal text-[10px] text-muted-foreground ml-4">
+                          * Wajib "Siapa saja (Anyone)" agar server web dapat mengirim auto-save tanpa terblokir login Google.
+                        </span>
+                      </li>
                     </ul>
                   </li>
                   <li>
-                    Klik <strong className="text-foreground">Terapkan (Deploy)</strong> dan izinkan akses Google.
+                    Klik <strong className="text-foreground">Terapkan (Deploy)</strong> → Berikan izin akun (Tinjau Izin / Advanced → Buka CPG Webhook Sync → Izinkan).
                   </li>
                   <li>
-                    Salin <strong>URL Aplikasi Web</strong> yang berakhiran <code className="bg-muted px-1 py-0.5 rounded font-mono text-[11px]">/exec</code>, lalu tempel pada kolom input di atas dan klik <strong>Simpan</strong>.
+                    Salin <strong>URL Aplikasi Web</strong> yang berakhiran <code className="bg-muted px-1.5 py-0.5 rounded font-mono text-[11px] text-primary">/exec</code>, tempel pada input di atas, lalu klik <strong>Tes Koneksi</strong> &amp; <strong>Simpan</strong>.
                   </li>
                 </ol>
               </div>
