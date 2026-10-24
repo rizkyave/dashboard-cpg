@@ -846,7 +846,65 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                               );
                             })()}
 
-                            {/* Slot 2: Received By : Penerimaan di Lapangan / Unit Armada (RCV / LAP) */}
+                            {/* Slot 2: Approved By : Supervisi Logistik (LOG SPV) */}
+                            {(() => {
+                              const isValid = Boolean(item.ttbSlots?.approvedBy?.isValidated);
+                              const name = item.ttbSlots?.approvedBy?.validatorName || 'SPV Logistik';
+                              return (
+                                <div
+                                  className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border shrink-0 ${
+                                    isValid
+                                      ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30'
+                                      : 'bg-muted/60 text-muted-foreground/60 border-border/40'
+                                  }`}
+                                  title={`2. Supervisi Logistik (LOG SPV): ${
+                                    isValid ? `Sah (${name})` : 'Menunggu Pengesahan'
+                                  }`}
+                                >
+                                  <ShieldCheck className="size-2.5 shrink-0" />
+                                  <span>LOG SPV</span>
+                                  {isValid ? (
+                                    <Check className="size-2.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                                  ) : (
+                                    <Clock className="size-2.5 shrink-0" />
+                                  )}
+                                </div>
+                              );
+                            })()}
+
+                            {/* Slot 3: Acknowledged By : Otorisasi Purchasing Manager (PCH MGR) */}
+                            {(() => {
+                              const isValid = Boolean(
+                                item.ttbSlots?.acknowledgedBy?.isValidated ||
+                                item.purchasingValidation?.isValidated
+                              );
+                              const name =
+                                item.ttbSlots?.acknowledgedBy?.validatorName ||
+                                item.purchasingValidation?.validatorName ||
+                                'Manager Procurement';
+                              return (
+                                <div
+                                  className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border shrink-0 ${
+                                    isValid
+                                      ? 'bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30'
+                                      : 'bg-muted/60 text-muted-foreground/60 border-border/40'
+                                  }`}
+                                  title={`3. Otorisasi Purchasing Manager (PCH MGR): ${
+                                    isValid ? `Sah (${name})` : 'Menunggu Pengesahan'
+                                  }`}
+                                >
+                                  <ShoppingBag className="size-2.5 shrink-0" />
+                                  <span>PCH MGR</span>
+                                  {isValid ? (
+                                    <Check className="size-2.5 text-blue-600 dark:text-blue-400 shrink-0" />
+                                  ) : (
+                                    <Clock className="size-2.5 shrink-0" />
+                                  )}
+                                </div>
+                              );
+                            })()}
+
+                            {/* Slot 4: Received By : Penerimaan di Lapangan / Unit Armada (RCV / LAP) */}
                             {(() => {
                               const isValid = Boolean(
                                 item.ttbSlots?.receivedBy?.isValidated ||
@@ -865,7 +923,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                                       ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
                                       : 'bg-muted/60 text-muted-foreground/60 border-border/40'
                                   }`}
-                                  title={`2. Penerimaan di Lapangan / Unit Armada (RCV / LAP): ${
+                                  title={`4. Penerimaan di Lapangan / Unit Armada (RCV / LAP): ${
                                     isValid ? `Sah (${name})` : 'Menunggu Penerima'
                                   }`}
                                 >
@@ -873,64 +931,6 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                                   <span>RCV / LAP</span>
                                   {isValid ? (
                                     <Check className="size-2.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                                  ) : (
-                                    <Clock className="size-2.5 shrink-0" />
-                                  )}
-                                </div>
-                              );
-                            })()}
-
-                            {/* Slot 3: Approved By : Supervisi Logistik (LOG SPV) */}
-                            {(() => {
-                              const isValid = Boolean(item.ttbSlots?.approvedBy?.isValidated);
-                              const name = item.ttbSlots?.approvedBy?.validatorName || 'SPV Logistik';
-                              return (
-                                <div
-                                  className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border shrink-0 ${
-                                    isValid
-                                      ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30'
-                                      : 'bg-muted/60 text-muted-foreground/60 border-border/40'
-                                  }`}
-                                  title={`3. Supervisi Logistik (LOG SPV): ${
-                                    isValid ? `Sah (${name})` : 'Menunggu Pengesahan'
-                                  }`}
-                                >
-                                  <ShieldCheck className="size-2.5 shrink-0" />
-                                  <span>LOG SPV</span>
-                                  {isValid ? (
-                                    <Check className="size-2.5 text-amber-600 dark:text-amber-400 shrink-0" />
-                                  ) : (
-                                    <Clock className="size-2.5 shrink-0" />
-                                  )}
-                                </div>
-                              );
-                            })()}
-
-                            {/* Slot 4: Acknowledged By : Otorisasi Purchasing Manager (PCH MGR) */}
-                            {(() => {
-                              const isValid = Boolean(
-                                item.ttbSlots?.acknowledgedBy?.isValidated ||
-                                item.purchasingValidation?.isValidated
-                              );
-                              const name =
-                                item.ttbSlots?.acknowledgedBy?.validatorName ||
-                                item.purchasingValidation?.validatorName ||
-                                'Manager Procurement';
-                              return (
-                                <div
-                                  className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border shrink-0 ${
-                                    isValid
-                                      ? 'bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30'
-                                      : 'bg-muted/60 text-muted-foreground/60 border-border/40'
-                                  }`}
-                                  title={`4. Otorisasi Purchasing Manager (PCH MGR): ${
-                                    isValid ? `Sah (${name})` : 'Menunggu Pengesahan'
-                                  }`}
-                                >
-                                  <ShoppingBag className="size-2.5 shrink-0" />
-                                  <span>PCH MGR</span>
-                                  {isValid ? (
-                                    <Check className="size-2.5 text-blue-600 dark:text-blue-400 shrink-0" />
                                   ) : (
                                     <Clock className="size-2.5 shrink-0" />
                                   )}

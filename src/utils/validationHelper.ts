@@ -188,21 +188,6 @@ export function getUserActionForRecord(
           dept.includes('logistik'),
       },
       {
-        key: 'receivedBy',
-        code: 'RCV / LAP',
-        label: 'RCV / LAP',
-        roleName: 'Penerima / Tim Lapangan',
-        isValid: isRcvLap,
-        hasAuthority:
-          isAdmin ||
-          role === 'staf_lapangan' ||
-          role === 'user' ||
-          jabatan.includes('lapangan') ||
-          dept.includes('lapangan') ||
-          jabatan.includes('armada') ||
-          jabatan.includes('kapal'),
-      },
-      {
         key: 'approvedBy',
         code: 'LOG SPV',
         label: 'LOG SPV',
@@ -233,6 +218,21 @@ export function getUserActionForRecord(
               jabatan.includes('procurement') ||
               dept.includes('procurement') ||
               dept.includes('purchasing'))),
+      },
+      {
+        key: 'receivedBy',
+        code: 'RCV / LAP',
+        label: 'RCV / LAP',
+        roleName: 'Penerima / Tim Lapangan',
+        isValid: isRcvLap,
+        hasAuthority:
+          isAdmin ||
+          role === 'staf_lapangan' ||
+          role === 'user' ||
+          jabatan.includes('lapangan') ||
+          dept.includes('lapangan') ||
+          jabatan.includes('armada') ||
+          jabatan.includes('kapal'),
       },
     ];
 
