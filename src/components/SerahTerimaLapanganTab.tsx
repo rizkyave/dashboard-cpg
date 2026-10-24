@@ -3184,6 +3184,7 @@ export default function SerahTerimaLapanganTab({
             noFpb: pendingPreDispatchTtb.noFpb,
             noPo: pendingPreDispatchTtb.noPo,
             itemSummary: pendingPreDispatchTtb.itemSummary,
+            fileUrl: pendingPreDispatchTtb.fileUrl,
           }}
           courierName={petugasNama}
           showToast={showToast}
