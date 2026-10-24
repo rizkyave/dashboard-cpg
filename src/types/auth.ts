@@ -147,6 +147,21 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     },
   },
   {
+    tabId: 'pratender',
+    category: 'Dashboards',
+    name: 'Pratender Material',
+    description: 'Konsolidasi & agregasi kebutuhan material terbuka (open/unsupplied) lintas armada untuk paket tender pengadaan bersama',
+    permissions: {
+      admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
+      manager: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Otorisasi & pembentukan paket tender material terbuka' },
+      supervisor: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Konsolidasi & evaluasi tender material terbuka' },
+      staf_purchasing: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Kelola paket tender & dokumen RFQ vendor' },
+      staf_ttb: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Pantau paket pengadaan terbuka logistik' },
+      staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
+      visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
+    },
+  },
+  {
     tabId: 'monitoring-internal',
     category: 'Dashboards',
     name: 'Monitoring Berkas Internal',
@@ -483,6 +498,7 @@ export function canAccessTab(role: UserRole | undefined, tab: TabType): boolean 
     const allowed: TabType[] = [
       'overview',
       'review-fpb',
+      'pratender',
       'monitoring-internal',
       'procurement',
       'upload-fstb',
@@ -498,6 +514,7 @@ export function canAccessTab(role: UserRole | undefined, tab: TabType): boolean 
     const allowed: TabType[] = [
       'overview',
       'review-fpb',
+      'pratender',
       'monitoring-internal',
       'procurement',
       'upload-fstb',

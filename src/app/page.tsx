@@ -57,6 +57,7 @@ import {
 } from '@/utils/smStorage';
 import AnalyticsTab from '@/components/AnalyticsTab';
 import ReviewFpbTab from '@/components/ReviewFpbTab';
+import PratenderTab from '@/components/PratenderTab';
 import MonitoringInternalTab from '@/components/MonitoringInternalTab';
 import InventoryTab from '@/components/InventoryTab';
 import TtbGalleryTab from '@/components/TtbGalleryTab';
@@ -1129,6 +1130,8 @@ export default function DashboardPage() {
                     ? 'Monitoring Logistik'
                     : activeTab === 'review-fpb'
                     ? 'Review & Analisa FPB'
+                    : activeTab === 'pratender'
+                    ? 'Pratender Material & Konsolidasi Pengadaan'
                     : activeTab === 'monitoring-internal'
                     ? 'Monitoring Berkas Internal Pengadaan'
                     : activeTab === 'procurement'
@@ -1164,6 +1167,8 @@ export default function DashboardPage() {
                     ? 'Pemantauan terpadu alur pengadaan barang, perputaran berkas fisik divisi, distribusi logistik armada kapal, dan status stok persediaan.'
                     : activeTab === 'review-fpb'
                     ? 'Sinkronisasi berkas pengajuan e-FPB, analisa ketersediaan stok gudang konsolidasi, deteksi pengajuan berulang armada kapal, dan otorisasi tindak lanjut PO / Logistik.'
+                    : activeTab === 'pratender'
+                    ? 'Agregasi kebutuhan material terbuka (open & unsupplied) lintas armada kapal untuk pembentukan paket tender bersama (bulk purchasing).'
                     : activeTab === 'monitoring-internal'
                     ? 'Monitoring berkas fisik Done by Purchasing (PO, Delivery Time SLA), serah terima dokumen FSTB ke PIC TTB, dan catatan operasional armada CPG.'
                     : activeTab === 'procurement'
@@ -1240,6 +1245,17 @@ export default function DashboardPage() {
           {/* Tab Review & Analisa FPB (e-FPB Server Sync & Review Tool) */}
           {activeTab === 'review-fpb' && (
             <ReviewFpbTab showToast={showToast} />
+          )}
+
+          {/* Tab Pratender Material (Konsolidasi Kebutuhan Terbuka & RFQ Vendor) */}
+          {activeTab === 'pratender' && (
+            <PratenderTab
+              procurementItems={procurementData}
+              armadaItems={armadaData}
+              sisaLayananItems={sisaLayananItems}
+              onOpenAudit={handleOpenAudit}
+              showToast={showToast}
+            />
           )}
 
           {/* Tab Monitoring Berkas Internal (Google Sheets 1:1 Live Sync) */}

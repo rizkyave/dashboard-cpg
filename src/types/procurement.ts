@@ -4,7 +4,26 @@ export type EntityCode = 'ALL' | 'CPL' | 'PPI' | 'HL' | 'GAJ' | 'MIL' | 'SP' | '
 
 export type LapseFilterType = 'ALL' | 'NORMAL' | 'WARNING' | 'CRITICAL';
 
-export type TabType = 'overview' | 'review-fpb' | 'monitoring-internal' | 'procurement' | 'armada' | 'pos-kapal' | 'crew-kapal' | 'work-order' | 'list-sm' | 'analytics' | 'inventory' | 'galeri-ttb' | 'admin-settings' | 'sisa-layanan' | 'upload-fstb' | 'upload-ttb' | 'validasi-dokumen' | 'serah-terima-lapangan';
+export type TabType =
+  | 'overview'
+  | 'review-fpb'
+  | 'pratender'
+  | 'monitoring-internal'
+  | 'procurement'
+  | 'armada'
+  | 'pos-kapal'
+  | 'crew-kapal'
+  | 'work-order'
+  | 'list-sm'
+  | 'analytics'
+  | 'inventory'
+  | 'galeri-ttb'
+  | 'admin-settings'
+  | 'sisa-layanan'
+  | 'upload-fstb'
+  | 'upload-ttb'
+  | 'validasi-dokumen'
+  | 'serah-terima-lapangan';
 
 export type StatusTone = 'emerald' | 'cyan' | 'purple' | 'amber' | 'rose';
 

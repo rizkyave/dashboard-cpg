@@ -105,6 +105,13 @@ export default function Sidebar({
       title: 'Sinkronisasi e-FPB, Review Ketersediaan Stok Gudang & Analisa Duplikasi Permintaan Armada',
     },
     {
+      id: 'pratender' as TabType,
+      label: 'Pratender Material',
+      icon: Layers,
+      badge: 'Sourcing',
+      title: 'Konsolidasi & Agregasi Kebutuhan Material Terbuka (Open/Unsupplied) Lintas Armada untuk Paket Tender Bersama',
+    },
+    {
       id: 'monitoring-internal' as TabType,
       label: 'Monitoring Internal',
       icon: FileSpreadsheet,
