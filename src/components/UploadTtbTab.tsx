@@ -1414,7 +1414,7 @@ export default function UploadTtbTab({
                     <td className="py-2.5 px-3">
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
                         <CheckCircle2 className="size-3" />
-                        Cloudflare R2
+                        UPLOADED
                       </span>
                     </td>
 
