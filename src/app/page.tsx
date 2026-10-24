@@ -1113,7 +1113,7 @@ export default function DashboardPage() {
 
         <main className="flex-1 min-w-0 p-3.5 sm:p-5 lg:p-8 space-y-4 sm:space-y-6 max-w-[1800px] w-full mx-auto pb-24 lg:pb-8">
           {/* Page Header in clean Studio Admin typography */}
-          {activeTab !== 'serah-terima-lapangan' && (
+          {activeTab !== 'serah-terima-lapangan' && activeTab !== 'validasi-dokumen' && (
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="space-y-1">
                 <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-foreground">
@@ -1145,8 +1145,6 @@ export default function DashboardPage() {
                     ? 'Unggah Dokumen FSTB ke Penyimpanan Cloudflare'
                     : activeTab === 'upload-ttb'
                     ? 'Unggah Dokumen TTB ke Penyimpanan Cloudflare'
-                    : activeTab === 'validasi-dokumen'
-                    ? 'Validasi & Tanda Tangan Digital Multi-Lini FSTB & TTB'
                     : activeTab === 'admin-settings'
                     ? 'Pengaturan Administrator & Pengguna'
                     : 'Analisis SLA & Waktu Tunggu'}
@@ -1182,8 +1180,6 @@ export default function DashboardPage() {
                     ? 'Unggah berkas Form Serah Terima Barang (FSTB) resmi ke Cloudflare R2 dengan sistem penamaan otomatis sesuai Nomor FSTB.'
                     : activeTab === 'upload-ttb'
                     ? 'Unggah foto fisik & dokumen scan tanda terima barang (TTB) ke Cloudflare R2 dengan sistem penamaan otomatis sesuai Nomor TTB resmi.'
-                    : activeTab === 'validasi-dokumen'
-                    ? 'Sistem verifikasi dan pembubuhan tanda tangan digital dari 3 lini (Purchasing, Logistik, Tim Lapangan) untuk berkas FSTB dan TTB sebelum diserahkan ke armada.'
                     : activeTab === 'admin-settings'
                     ? 'Kelola akun operasional staf purchasing (User) dan akun tamu/peninjau (Visitor). Tambahkan pengguna baru dan konfigurasi wewenang hak akses.'
                     : 'Distribusi waktu perputaran berkas fisik (lead time) dan beban kerja produktivitas staf PIC operasional.'}
@@ -1191,7 +1187,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Tombol Sembunyikan Ringkasan Metrik KPI */}
-              {activeTab !== 'inventory' && activeTab !== 'review-fpb' && activeTab !== 'monitoring-internal' && activeTab !== 'pos-kapal' && activeTab !== 'crew-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'validasi-dokumen' && activeTab !== 'admin-settings' && (!isVisitor || searchKeyword.trim() !== '') && (
+              {activeTab !== 'inventory' && activeTab !== 'review-fpb' && activeTab !== 'monitoring-internal' && activeTab !== 'pos-kapal' && activeTab !== 'crew-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'admin-settings' && (!isVisitor || searchKeyword.trim() !== '') && (
                 <button
                   type="button"
                   onClick={toggleKpiHidden}
