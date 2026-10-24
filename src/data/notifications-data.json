@@ -1,5 +1,43 @@
 [
   {
+    "id": "notif-1792855659914-lh6nh",
+    "type": "FSTB_VALIDATED",
+    "title": "✍️ FSTB Divalidasi & Ditandatangani",
+    "message": "User IDHAM KHALID telah mengesahkan FSTB HL-FSTB-26-01833 (MT HL 5001). Berkas siap dilanjutkan ke proses TTB.",
+    "senderName": "IDHAM KHALID",
+    "senderUsername": "idham.khalid",
+    "senderRole": "staf_ttb",
+    "targetRole": "staf_ttb",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noFstb": "HL-FSTB-26-01833",
+      "armada": "MT HL 5001",
+      "noPo": "HL-PO-26-01672",
+      "noFpb": "HL-FPB-26-0001417"
+    },
+    "createdAt": "2026-10-24T15:27:39.914Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1792855609122-qxf24",
+    "type": "FSTB_VALIDATED",
+    "title": "✍️ FSTB Divalidasi & Ditandatangani",
+    "message": "User IDHAM KHALID telah mengesahkan FSTB GAJ-FSTB-26-01223 (WORKSHOP 01 GAJ). Berkas siap dilanjutkan ke proses TTB.",
+    "senderName": "IDHAM KHALID",
+    "senderUsername": "idham.khalid",
+    "senderRole": "staf_ttb",
+    "targetRole": "staf_ttb",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noFstb": "GAJ-FSTB-26-01223",
+      "armada": "WORKSHOP 01 GAJ",
+      "noPo": "GAJ-PO-26-01167",
+      "noFpb": "GAJ-FPB-26-0001060"
+    },
+    "createdAt": "2026-10-24T15:26:49.122Z",
+    "readBy": []
+  },
+  {
     "id": "notif-1792759845182-61oej",
     "type": "FSTB_UPLOADED",
     "title": "📦 Dokumen FSTB Baru Siap Diproses TTB",

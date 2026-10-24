@@ -42,3 +42,6 @@ next-env.d.ts
 # cloudflare / opennext
 .open-next/
 .wrangler/
+
+# backups
+src/data/backups/
