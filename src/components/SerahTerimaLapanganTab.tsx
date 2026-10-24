@@ -221,8 +221,8 @@ export default function SerahTerimaLapanganTab({
   const [isSearchingTtb, setIsSearchingTtb] = useState<boolean>(false);
   const [selectedTtbRef, setSelectedTtbRef] = useState<TtbReferenceOption | null>(null);
   const [ttbStatusFilter, setTtbStatusFilter] = useState<TtbStatusFilterType>('ALL');
-  // Pilihan rentang waktu terbit TTB: default H-4 (4 hari terakhir) agar data tidak berat
-  const [ttbDateRange, setTtbDateRange] = useState<TtbDateRangeType>('H-4');
+  // Pilihan rentang waktu terbit TTB: default ALL agar seluruh data TTB siap kirim tampil
+  const [ttbDateRange, setTtbDateRange] = useState<TtbDateRangeType>('ALL');
   const [customStartDate, setCustomStartDate] = useState<string>('');
   const [customEndDate, setCustomEndDate] = useState<string>('');
   const [uploadedTtbs, setUploadedTtbs] = useState<UploadedTtbItem[]>([]);
@@ -1483,56 +1483,6 @@ export default function SerahTerimaLapanganTab({
                 </div>
               </div>
 
-              {/* Kontrol Pilihan Rentang Waktu (Default: H-4) */}
-              {!isManualTtb && (
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 bg-muted/80 dark:bg-muted/50 border border-border rounded-2xl px-3.5 py-2 shadow-2xs">
-                  <div className="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-muted-foreground whitespace-nowrap">
-                    <Calendar className="size-4 text-indigo-500 shrink-0" />
-                    <span>Rentang Terbit:</span>
-                  </div>
-
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    {(['H-4', 'H-7', 'H-14', 'H-30', 'ALL', 'CUSTOM'] as const).map((rng) => {
-                      const isActive = ttbDateRange === rng;
-                      const labelMap: Record<typeof rng, string> = {
-                        'H-4': 'H-4 (Default)',
-                        'H-7': 'H-7',
-                        'H-14': 'H-14',
-                        'H-30': 'H-30',
-                        'ALL': 'Semua',
-                        'CUSTOM': 'Kustom',
-                      };
-                      return (
-                        <button
-                          key={rng}
-                          type="button"
-                          onClick={() => setTtbDateRange(rng)}
-                          className={`px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer ${
-                            isActive
-                              ? 'bg-indigo-600 text-white shadow-xs ring-2 ring-indigo-500/40'
-                              : 'text-muted-foreground hover:text-foreground hover:bg-background/80'
-                          }`}
-                          title={
-                            rng === 'H-4'
-                              ? 'Default: 4 Hari Terakhir (H-4 s/d Hari ini)'
-                              : rng === 'ALL'
-                              ? 'Tampilkan semua arsip berkas TTB'
-                              : `Rentang ${rng}`
-                          }
-                        >
-                          {labelMap[rng]}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Badge rentang tanggal aktif */}
-                  <div className="hidden lg:flex items-center gap-1 pl-2 border-l border-border/60 text-xs font-mono text-indigo-600 dark:text-indigo-400 font-bold whitespace-nowrap">
-                    <span>{dateRangeBounds.label}</span>
-                  </div>
-                </div>
-              )}
-
               <button
                 type="button"
                 onClick={() => {
@@ -1544,46 +1494,6 @@ export default function SerahTerimaLapanganTab({
                 {isManualTtb ? '← Pilih dari Database TTB' : '+ Input Nomor TTB Manual'}
               </button>
             </div>
-
-            {/* Input Rentang Tanggal Kustom (jika Kustom dipilih) */}
-            {!isManualTtb && ttbDateRange === 'CUSTOM' && (
-              <div className="flex flex-wrap items-center gap-3 p-3 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800/40 text-xs animate-in fade-in duration-150">
-                <div className="flex items-center gap-1.5 font-bold text-indigo-900 dark:text-indigo-300">
-                  <Calendar className="size-3.5 text-indigo-500" />
-                  <span>Tentukan Rentang Tanggal Terbit TTB:</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-muted-foreground">Dari:</span>
-                  <input
-                    type="date"
-                    value={customStartDate}
-                    onChange={(e) => setCustomStartDate(e.target.value)}
-                    className="px-2.5 py-1 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-muted-foreground">Sampai:</span>
-                  <input
-                    type="date"
-                    value={customEndDate}
-                    onChange={(e) => setCustomEndDate(e.target.value)}
-                    className="px-2.5 py-1 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  />
-                </div>
-                {(customStartDate || customEndDate) && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCustomStartDate('');
-                      setCustomEndDate('');
-                    }}
-                    className="text-[11px] text-rose-600 dark:text-rose-400 font-semibold underline cursor-pointer ml-auto"
-                  >
-                    Reset Tanggal
-                  </button>
-                )}
-              </div>
-            )}
 
             {/* Mode 1: Search & Autocomplete from Preloaded TTB database */}
             {!isManualTtb ? (
@@ -1702,7 +1612,7 @@ export default function SerahTerimaLapanganTab({
 
                       <div className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1.5 font-mono">
                         <Calendar className="size-4 text-indigo-500" />
-                        <span>Urutan: Tanggal TTB Terbaru ↓ ({dateRangeBounds.label})</span>
+                        <span>Urutan: Tanggal TTB Terbaru ↓</span>
                       </div>
                     </div>
 
@@ -1734,20 +1644,8 @@ export default function SerahTerimaLapanganTab({
                                   ) : ttbSearchTerm ? (
                                     <div className="space-y-2">
                                       <p className="text-base">
-                                        Tidak ditemukan data TTB sesuai kata kunci &quot;<strong className="text-foreground">{ttbSearchTerm}</strong>&quot; di rentang {ttbDateRange} ({dateRangeBounds.label}).
+                                        Tidak ditemukan data TTB sesuai kata kunci &quot;<strong className="text-foreground">{ttbSearchTerm}</strong>&quot;.
                                       </p>
-                                      {searchMatchesInGrandCatalog > 0 ? (
-                                        <p className="text-amber-600 dark:text-amber-400 font-bold text-sm sm:text-base">
-                                          💡 Ditemukan <strong>{searchMatchesInGrandCatalog}</strong> data TTB tervalidasi yang cocok di arsip tanggal lainnya.{' '}
-                                          <button
-                                            type="button"
-                                            onClick={() => setTtbDateRange('ALL')}
-                                            className="text-indigo-600 dark:text-indigo-400 font-black underline ml-1 cursor-pointer"
-                                          >
-                                            Buka Rentang ke Semua Data
-                                          </button>
-                                        </p>
-                                      ) : null}
                                       <div>
                                         <button
                                           type="button"
@@ -1763,19 +1661,9 @@ export default function SerahTerimaLapanganTab({
                                     </div>
                                   ) : (
                                     <div className="space-y-2">
-                                      <p className="text-base">
-                                        Tidak ada berkas TTB pada rentang <strong>{ttbDateRange}</strong> ({dateRangeBounds.label}).
+                                      <p className="text-base text-muted-foreground">
+                                        Belum ada data TTB siap kirim yang tersedia.
                                       </p>
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          setTtbDateRange('ALL');
-                                          setTtbStatusFilter('ALL');
-                                        }}
-                                        className="text-indigo-600 dark:text-indigo-400 font-black underline text-sm sm:text-base cursor-pointer"
-                                      >
-                                        Tampilkan Semua Arsip ({ttbStats.grandTotal} TTB)
-                                      </button>
                                     </div>
                                   )}
                                 </td>
