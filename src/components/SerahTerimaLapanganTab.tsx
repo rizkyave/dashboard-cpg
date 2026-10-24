@@ -220,7 +220,7 @@ export default function SerahTerimaLapanganTab({
   const [ttbSearchTerm, setTtbSearchTerm] = useState<string>('');
   const [isSearchingTtb, setIsSearchingTtb] = useState<boolean>(false);
   const [selectedTtbRef, setSelectedTtbRef] = useState<TtbReferenceOption | null>(null);
-  const [ttbStatusFilter, setTtbStatusFilter] = useState<TtbStatusFilterType>('ALL');
+  const [ttbStatusFilter, setTtbStatusFilter] = useState<TtbStatusFilterType>('SIAP_KIRIM');
   // Pilihan rentang waktu terbit TTB: default ALL agar seluruh data TTB siap kirim tampil
   const [ttbDateRange, setTtbDateRange] = useState<TtbDateRangeType>('ALL');
   const [customStartDate, setCustomStartDate] = useState<string>('');
@@ -875,11 +875,16 @@ export default function SerahTerimaLapanganTab({
     let belumManagerCount = 0;
 
     dateFilteredCatalog.forEach((opt) => {
-      if (opt.isRecipientSigned) sudahCount++;
-      else belumCount++;
-
-      if (opt.isManagerApproved) siapKirimCount++;
-      else belumManagerCount++;
+      if (opt.isRecipientSigned) {
+        sudahCount++;
+      } else {
+        belumCount++;
+        if (opt.isManagerApproved) {
+          siapKirimCount++;
+        } else {
+          belumManagerCount++;
+        }
+      }
     });
 
     return {
@@ -1659,10 +1664,28 @@ export default function SerahTerimaLapanganTab({
                                         </button>
                                       </div>
                                     </div>
+                                  ) : ttbStatusFilter === 'SIAP_KIRIM' ? (
+                                    <div className="space-y-2 py-4">
+                                      <p className="text-base text-foreground font-bold">
+                                        Tidak ada berkas TTB yang menunggu serah terima saat ini.
+                                      </p>
+                                      <p className="text-xs text-muted-foreground">
+                                        Semua berkas TTB sudah diserahterimakan atau masih menunggu pengesahan Manager.
+                                      </p>
+                                      {ttbStats.total > 0 && (
+                                        <button
+                                          type="button"
+                                          onClick={() => setTtbStatusFilter('ALL')}
+                                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-bold text-xs hover:bg-indigo-100 transition cursor-pointer"
+                                        >
+                                          Lihat Semua Berkas ({ttbStats.total} TTB)
+                                        </button>
+                                      )}
+                                    </div>
                                   ) : (
                                     <div className="space-y-2">
                                       <p className="text-base text-muted-foreground">
-                                        Belum ada data TTB siap kirim yang tersedia.
+                                        Belum ada data TTB yang tersedia.
                                       </p>
                                     </div>
                                   )}
@@ -1673,6 +1696,10 @@ export default function SerahTerimaLapanganTab({
                                 <tr
                                   key={opt.key}
                                   onClick={() => {
+                                    if (opt.isRecipientSigned) {
+                                      setSelectedTtbForModal(opt.noTtb);
+                                      return;
+                                    }
                                     if (!opt.isManagerApproved) {
                                       handleBlockedTtbClick(opt);
                                       return;
@@ -1681,7 +1708,9 @@ export default function SerahTerimaLapanganTab({
                                     setIsSearchingTtb(false);
                                   }}
                                   className={`border-b border-border/80 transition ${
-                                    opt.isManagerApproved
+                                    opt.isRecipientSigned
+                                      ? 'hover:bg-slate-500/10 cursor-pointer group'
+                                      : opt.isManagerApproved
                                       ? 'hover:bg-indigo-500/10 cursor-pointer group'
                                       : 'bg-muted/20 hover:bg-muted/30 cursor-not-allowed opacity-80'
                                   }`}
@@ -1805,43 +1834,50 @@ export default function SerahTerimaLapanganTab({
                                     )}
                                   </td>
 
-                                  {/* Aksi (Tombol Ekstra Besar Ramah Sentuhan) */}
+                                  {/* Aksi: Dinamis (Lihat Berkas jika sudah TTD, PILIH TTB jika Siap Kirim, Terkunci jika belum Manager) */}
                                   <td className="py-3.5 px-4 text-right whitespace-nowrap">
-                                    <button
-                                      type="button"
-                                      disabled={!opt.isManagerApproved}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (!opt.isManagerApproved) {
+                                    {opt.isRecipientSigned ? (
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setSelectedTtbForModal(opt.noTtb);
+                                        }}
+                                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 shadow-sm transition-colors dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800 cursor-pointer"
+                                        title={`Lihat berkas & detail bukti TTB ${opt.noTtb}`}
+                                      >
+                                        <Eye className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
+                                        <span>Lihat Berkas</span>
+                                      </button>
+                                    ) : opt.isManagerApproved ? (
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setSelectedTtbRef(opt);
+                                          setIsSearchingTtb(false);
+                                        }}
+                                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm transition-colors cursor-pointer"
+                                        title="Pilih TTB ini untuk serah terima ke armada"
+                                      >
+                                        <span>PILIH TTB</span>
+                                        <ChevronRight className="w-3.5 h-3.5" />
+                                      </button>
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        disabled
+                                        onClick={(e) => {
+                                          e.stopPropagation();
                                           handleBlockedTtbClick(opt);
-                                          return;
-                                        }
-                                        setSelectedTtbRef(opt);
-                                        setIsSearchingTtb(false);
-                                      }}
-                                      className={`h-11 px-5 rounded-2xl font-black text-xs sm:text-sm inline-flex items-center gap-2 transition shadow-md ${
-                                        opt.isManagerApproved
-                                          ? 'bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white cursor-pointer'
-                                          : 'bg-muted text-muted-foreground/60 border border-border cursor-not-allowed opacity-60'
-                                      }`}
-                                      title={
-                                        opt.isManagerApproved
-                                          ? 'Pilih TTB ini untuk serah terima ke armada'
-                                          : `Belum bisa serah terima: TTB ${opt.noTtb} belum ditandatangani oleh Manager.`
-                                      }
-                                    >
-                                      {opt.isManagerApproved ? (
-                                        <>
-                                          <span>PILIH TTB</span>
-                                          <ChevronRight className="size-4 stroke-[3]" />
-                                        </>
-                                      ) : (
-                                        <>
-                                          <Lock className="size-4 shrink-0" />
-                                          <span>TERKUNCI</span>
-                                        </>
-                                      )}
-                                    </button>
+                                        }}
+                                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-muted text-muted-foreground/60 border border-border cursor-not-allowed opacity-60"
+                                        title={`Belum bisa serah terima: TTB ${opt.noTtb} belum ditandatangani oleh Manager.`}
+                                      >
+                                        <Lock className="w-3.5 h-3.5 shrink-0" />
+                                        <span>TERKUNCI</span>
+                                      </button>
+                                    )}
                                   </td>
                                 </tr>
                               ))
@@ -1858,7 +1894,7 @@ export default function SerahTerimaLapanganTab({
                             Menampilkan <strong className="text-foreground font-mono text-sm sm:text-base">{filteredTtbOptions.length}</strong> data TTB
                             {filteredTtbOptions.length > 0 && (
                               <span className="text-muted-foreground/80 font-mono">
-                                {' '}({ttbStats.siapKirim} disetujui Manager, {ttbStats.belumManager} belum Manager, {ttbStats.sudah} sudah TTD penerima)
+                                {' '}({ttbStats.siapKirim} siap serah terima, {ttbStats.belumManager} belum Manager, {ttbStats.sudah} sudah TTD penerima)
                               </span>
                             )}
                             <span className="text-blue-600 dark:text-blue-400 font-bold ml-1">
@@ -1867,7 +1903,7 @@ export default function SerahTerimaLapanganTab({
                           </span>
                         </span>
                         <span className="text-[10px] text-muted-foreground/80 font-mono">
-                          Hanya TTB berstatus disetujui Manager yang tombol &quot;Pilih TTB&quot;-nya aktif
+                          Hanya TTB berstatus disetujui Manager dan belum diserahterimakan yang menampilkan tombol &quot;PILIH TTB&quot;
                         </span>
                       </div>
                     </div>
