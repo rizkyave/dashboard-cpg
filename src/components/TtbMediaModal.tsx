@@ -216,6 +216,50 @@ export default function TtbMediaModal({
   const selectedDoc = documents[selectedDocIdx] || documents[0];
   const selectedPhoto = photos[selectedPhotoIdx] || photos[0];
 
+  // Helper formatting metadata foto fisik serah terima
+  const photoMeta = useMemo(() => {
+    if (!selectedPhoto) return { dateStr: '-', timeStr: '', ext: 'JPG' };
+    const ext = (selectedPhoto.name.split('.').pop() || 'JPG').toUpperCase();
+    if (selectedPhoto.takenAt) {
+      return { dateStr: selectedPhoto.takenAt, timeStr: '', ext };
+    }
+    // Ekstraksi tanggal & jam dari format filename TimeMark jika tersedia
+    const match = selectedPhoto.name.match(/(\d{4}-\d{2}-\d{2})(?:\s+at\s+(\d{2})[.\:](\d{2})(?:[.\:](\d{2}))?)?/i);
+    if (match) {
+      const d = match[1];
+      const time = match[2] && match[3] ? `${match[2]}:${match[3]} WITA` : '';
+      return { dateStr: d, timeStr: time, ext };
+    }
+    return { dateStr: 'Dokumentasi Lapangan', timeStr: '', ext };
+  }, [selectedPhoto]);
+
+  // Helper formatting metadata dokumen PDF resmi
+  const docMeta = useMemo(() => {
+    if (!selectedDoc) return { dateStr: '-', timeStr: '', sizeStr: '-', ext: 'PDF' };
+    const ext = (selectedDoc.renamedFileName.split('.').pop() || 'PDF').toUpperCase();
+    const sizeStr = formatFileSize(selectedDoc.fileSize || 0);
+    let dateStr = selectedDoc.receivedDate || '-';
+    let timeStr = '';
+
+    if (selectedDoc.uploadedAt) {
+      try {
+        const d = new Date(selectedDoc.uploadedAt);
+        if (!isNaN(d.getTime())) {
+          dateStr = d.toLocaleDateString('id-ID', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+          });
+          timeStr = `${d.toLocaleTimeString('id-ID', {
+            hour: '2-digit',
+            minute: '2-digit',
+          })} WIB`;
+        }
+      } catch {}
+    }
+    return { dateStr, timeStr, sizeStr, ext };
+  }, [selectedDoc]);
+
   const handleCopyCode = async () => {
     if (!shortCode) return;
     try {
@@ -441,23 +485,24 @@ export default function TtbMediaModal({
         <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
           {/* TAB 1: SPLIT VIEW (DOKUMEN SCAN KIRI + FOTO FISIK KANAN) */}
           {activeTab === 'split' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-stretch">
               {/* Kolom Kiri: Dokumen Scan TTB Resmi */}
-              <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/5 p-4 flex flex-col gap-3 min-h-[460px]">
-                <div className="flex items-center justify-between gap-2 border-b border-cyan-500/20 pb-2.5">
-                  <div className="flex items-center gap-2">
-                    <div className="size-7 rounded-lg bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-600 dark:text-cyan-400 shrink-0">
+              <div className="rounded-2xl border border-cyan-500/25 bg-gradient-to-b from-cyan-500/5 to-transparent p-4 sm:p-5 flex flex-col gap-3 min-h-[520px] shadow-xs">
+                {/* Header Kolom Dokumen */}
+                <div className="flex items-center justify-between gap-2 border-b border-cyan-500/20 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="size-8 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-600 dark:text-cyan-400 shrink-0 shadow-xs">
                       <FileText className="size-4" />
                     </div>
                     <div>
                       <h4 className="text-xs font-bold text-foreground">Dokumen Scan Resmi TTB</h4>
                       <p className="text-[10px] text-muted-foreground">
-                        Berkas bertandatangan & cap (Cloudflare R2)
+                        Berkas bertandatangan &amp; cap (Cloudflare R2)
                       </p>
                     </div>
                   </div>
                   {documents.length > 0 && (
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30 font-semibold">
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30 font-bold">
                       {documents.length} berkas
                     </span>
                   )}
@@ -465,12 +510,12 @@ export default function TtbMediaModal({
 
                 {/* State Loading / Empty / Content Dokumen */}
                 {docsLoading ? (
-                  <div className="flex-1 flex flex-col items-center justify-center gap-2 text-muted-foreground text-xs min-h-[300px]">
+                  <div className="flex-1 flex flex-col items-center justify-center gap-2 text-muted-foreground text-xs min-h-[360px]">
                     <Loader2 className="size-7 animate-spin text-cyan-500" />
                     <span>Mencari dokumen TTB di Cloudflare R2...</span>
                   </div>
                 ) : documents.length === 0 ? (
-                  <div className="flex-1 flex flex-col items-center justify-center gap-2.5 text-muted-foreground text-xs text-center px-4 py-8 min-h-[300px]">
+                  <div className="flex-1 flex flex-col items-center justify-center gap-2.5 text-muted-foreground text-xs text-center px-4 py-8 min-h-[360px]">
                     <div className="size-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-500/60">
                       <FileText className="size-6" />
                     </div>
@@ -489,7 +534,7 @@ export default function TtbMediaModal({
                           onClose();
                           onNavigateToUpload(activeTtb);
                         }}
-                        className="mt-2 h-7 px-3 rounded-lg bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-semibold text-[11px] inline-flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
+                        className="mt-2 h-7 px-3 rounded-lg bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-semibold text-[11px] inline-flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-xs"
                       >
                         <FileCheck className="size-3.5" />
                         <span>Unggah Dokumen TTB</span>
@@ -498,40 +543,55 @@ export default function TtbMediaModal({
                   </div>
                 ) : (
                   <div className="flex-1 flex flex-col gap-3">
-                    {/* Header info berkas yang dipilih */}
-                    <div className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-background border border-border text-xs">
-                      <div className="min-w-0">
+                    {/* 1. Metadata Info Card Dokumen (Posisinya Seragam di Bagian Atas) */}
+                    <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-card border border-border text-xs shadow-xs">
+                      <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-semibold text-foreground truncate" title={selectedDoc?.renamedFileName}>
-                            {selectedDoc?.renamedFileName}
-                          </p>
-                          {selectedDoc?.isRecipientStamped && (
-                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shrink-0">
+                          <span
+                            className="font-mono font-bold text-foreground truncate max-w-[220px] sm:max-w-[280px]"
+                            title={selectedDoc?.renamedFileName}
+                          >
+                            {selectedDoc?.renamedFileName || 'Dokumen-TTB.pdf'}
+                          </span>
+                          <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30">
+                            PDF RESMI
+                          </span>
+                          {selectedDoc?.isAutoStamped && (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
                               <Check className="size-2.5" />
-                              <span>TTD Armada: {selectedDoc.recipientName}</span>
+                              <span>Auto-Signed</span>
+                            </span>
+                          )}
+                          {selectedDoc?.isRecipientStamped && (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                              <Check className="size-2.5" />
+                              <span>TTD: {selectedDoc.recipientName || 'Armada'}</span>
                             </span>
                           )}
                         </div>
-                        <p className="text-[10px] text-muted-foreground flex items-center gap-1.5 flex-wrap mt-0.5">
-                          <span>Ukuran: {formatFileSize(selectedDoc?.fileSize || 0)}</span>
+                        <div className="text-[11px] text-muted-foreground flex items-center gap-2 flex-wrap mt-1">
+                          <span className="font-medium text-foreground">Ukuran: {docMeta.sizeStr}</span>
                           <span>&bull;</span>
-                          <span>Tgl: {selectedDoc?.receivedDate || '-'}</span>
+                          <span>Tgl: {docMeta.dateStr} {docMeta.timeStr ? `(${docMeta.timeStr})` : ''}</span>
                           {selectedDoc?.uploaderName && (
                             <>
                               <span>&bull;</span>
-                              <span className="text-foreground/80 font-medium">
-                                Uploader: {selectedDoc.uploaderName} {selectedDoc.uploaderNik ? `(${selectedDoc.uploaderNik})` : ''}
+                              <span className="truncate">
+                                Uploader: <strong className="text-foreground font-semibold">{selectedDoc.uploaderName}</strong>
+                                {selectedDoc.uploaderNik ? ` (${selectedDoc.uploaderNik})` : ''}
                               </span>
                             </>
                           )}
-                        </p>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1 shrink-0">
+
+                      {/* Tombol Aksi Dokumen */}
+                      <div className="flex items-center gap-1.5 shrink-0">
                         <a
                           href={selectedDoc?.fileUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="size-7 rounded-md border border-border bg-muted hover:bg-muted/80 text-foreground flex items-center justify-center transition"
+                          className="size-8 rounded-lg border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition cursor-pointer"
                           title="Buka dokumen di tab baru"
                         >
                           <ExternalLink className="size-3.5" />
@@ -539,21 +599,21 @@ export default function TtbMediaModal({
                         <a
                           href={selectedDoc?.fileUrl}
                           download={selectedDoc?.renamedFileName}
-                          className="h-7 px-2.5 rounded-md bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-semibold text-[11px] flex items-center gap-1 transition"
-                          title="Unduh berkas PDF asli"
+                          className="h-8 px-3 rounded-lg bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-bold text-xs inline-flex items-center gap-1.5 transition active:scale-95 shadow-xs cursor-pointer"
+                          title="Unduh berkas PDF resmi"
                         >
-                          <Download className="size-3" />
+                          <Download className="size-3.5" />
                           <span>Unduh</span>
                         </a>
                       </div>
                     </div>
 
-                    {/* Preview Iframe PDF / Gambar */}
-                    <div className="flex-1 min-h-[340px] rounded-lg border border-border overflow-hidden bg-black/5 dark:bg-black/40 flex flex-col items-center justify-center relative">
+                    {/* 2. Area Pratinjau Dokumen (Sejajar Tinggi Penuh dengan Foto Kanan) */}
+                    <div className="flex-1 h-[400px] min-h-[400px] rounded-xl border border-border overflow-hidden bg-muted/40 dark:bg-black/40 flex flex-col items-center justify-center relative group">
                       {selectedDoc?.fileType === 'application/pdf' || selectedDoc?.renamedFileName?.toLowerCase().endsWith('.pdf') ? (
                         <iframe
                           src={`${selectedDoc.fileUrl}#toolbar=0&navpanes=0`}
-                          className="w-full h-full min-h-[340px] border-none"
+                          className="w-full h-full border-none"
                           title={selectedDoc.renamedFileName}
                         />
                       ) : (
@@ -561,12 +621,21 @@ export default function TtbMediaModal({
                         <img
                           src={selectedDoc?.fileUrl}
                           alt={selectedDoc?.renamedFileName}
-                          className="w-full h-[340px] object-contain"
+                          className="w-full h-full object-contain"
                         />
                       )}
+                      <a
+                        href={selectedDoc?.fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="absolute top-2.5 right-2.5 size-8 rounded-lg bg-black/60 hover:bg-black/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                        title="Buka Dokumen Penuh di Tab Baru"
+                      >
+                        <Maximize2 className="size-4" />
+                      </a>
                     </div>
 
-                    {/* Thumbnail Selector Dokumen jika lebih dari 1 */}
+                    {/* 3. Thumbnail Selector Dokumen jika lebih dari 1 */}
                     {documents.length > 1 && (
                       <div className="flex gap-2 overflow-x-auto pb-1 pt-0.5">
                         {documents.map((doc, idx) => (
@@ -574,7 +643,7 @@ export default function TtbMediaModal({
                             key={doc.id || doc.renamedFileName}
                             type="button"
                             onClick={() => setSelectedDocIdx(idx)}
-                            className={`shrink-0 px-2.5 py-1.5 rounded-lg border text-left transition text-xs font-mono max-w-[180px] truncate ${
+                            className={`shrink-0 px-2.5 py-1.5 rounded-lg border text-left transition text-xs font-mono max-w-[180px] truncate cursor-pointer ${
                               idx === selectedDocIdx
                                 ? 'bg-cyan-500/15 border-cyan-500 text-cyan-700 dark:text-cyan-300 font-bold'
                                 : 'bg-background hover:bg-muted border-border text-muted-foreground'
@@ -589,11 +658,12 @@ export default function TtbMediaModal({
                 )}
               </div>
 
-              {/* Kolom Kanan: Galeri Foto Fisik Lapangan */}
-              <div className="rounded-xl border border-purple-500/30 bg-purple-500/5 p-4 flex flex-col gap-3 min-h-[460px]">
-                <div className="flex items-center justify-between gap-2 border-b border-purple-500/20 pb-2.5">
-                  <div className="flex items-center gap-2">
-                    <div className="size-7 rounded-lg bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-600 dark:text-purple-400 shrink-0">
+              {/* Kolom Kanan: Galeri Foto Fisik Serah Terima */}
+              <div className="rounded-2xl border border-purple-500/25 bg-gradient-to-b from-purple-500/5 to-transparent p-4 sm:p-5 flex flex-col gap-3 min-h-[520px] shadow-xs">
+                {/* Header Kolom Foto */}
+                <div className="flex items-center justify-between gap-2 border-b border-purple-500/20 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="size-8 rounded-xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-600 dark:text-purple-400 shrink-0 shadow-xs">
                       <Camera className="size-4" />
                     </div>
                     <div>
@@ -604,7 +674,7 @@ export default function TtbMediaModal({
                     </div>
                   </div>
                   {photos.length > 0 && (
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30 font-semibold">
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30 font-bold">
                       {photos.length} foto
                     </span>
                   )}
@@ -612,12 +682,12 @@ export default function TtbMediaModal({
 
                 {/* State Loading / Empty / Content Foto */}
                 {photosLoading ? (
-                  <div className="flex-1 flex flex-col items-center justify-center gap-2 text-muted-foreground text-xs min-h-[300px]">
+                  <div className="flex-1 flex flex-col items-center justify-center gap-2 text-muted-foreground text-xs min-h-[360px]">
                     <Loader2 className="size-7 animate-spin text-purple-500" />
                     <span>Mencari foto serah terima di Cloudflare R2...</span>
                   </div>
                 ) : photos.length === 0 ? (
-                  <div className="flex-1 flex flex-col items-center justify-center gap-2.5 text-muted-foreground text-xs text-center px-4 py-8 min-h-[300px]">
+                  <div className="flex-1 flex flex-col items-center justify-center gap-2.5 text-muted-foreground text-xs text-center px-4 py-8 min-h-[360px]">
                     <div className="size-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-500/60">
                       <ImageOff className="size-6" />
                     </div>
@@ -629,7 +699,6 @@ export default function TtbMediaModal({
                         Foto barang belum terindeks di Cloudflare R2 atau nomor TTB belum diinput oleh staf logistik.
                       </p>
                     </div>
-                    {/* TimeMark Shortcut jika foto ada di portal TimeMark */}
                     {shortCode && (
                       <button
                         type="button"
@@ -643,8 +712,68 @@ export default function TtbMediaModal({
                   </div>
                 ) : (
                   <div className="flex-1 flex flex-col gap-3">
-                    {/* Foto Utama */}
-                    <div className="relative rounded-lg overflow-hidden border border-border bg-black/90 group flex items-center justify-center h-[340px]">
+                    {/* 1. Metadata Info Card Foto (Posisinya Seragam di Bagian Atas, Sejajar dengan Dokumen Kiri) */}
+                    <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-card border border-border text-xs shadow-xs">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span
+                            className="font-mono font-bold text-foreground truncate max-w-[220px] sm:max-w-[280px]"
+                            title={selectedPhoto?.name}
+                          >
+                            {selectedPhoto?.name || 'Foto-Fisik.jpeg'}
+                          </span>
+                          <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/30">
+                            FOTO FISIK ({photoMeta.ext})
+                          </span>
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                            <Sparkles className="size-2.5" />
+                            <span>TimeMark GPS Verified</span>
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-muted-foreground flex items-center gap-2 flex-wrap mt-1">
+                          <span className="font-medium text-foreground">
+                            Waktu: {photoMeta.dateStr} {photoMeta.timeStr ? `(${photoMeta.timeStr})` : ''}
+                          </span>
+                          <span>&bull;</span>
+                          <span>
+                            Penyimpanan: <strong className="text-foreground font-semibold">Cloudflare R2</strong>
+                          </span>
+                          {selectedPhoto?.ttbInfo?.numbers?.length ? (
+                            <>
+                              <span>&bull;</span>
+                              <span className="font-mono text-purple-600 dark:text-purple-400 font-semibold">
+                                TTB: {selectedPhoto.ttbInfo.numbers.join(', ')}
+                              </span>
+                            </>
+                          ) : null}
+                        </div>
+                      </div>
+
+                      {/* Tombol Aksi Foto */}
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <a
+                          href={selectedPhoto?.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="size-8 rounded-lg border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition cursor-pointer"
+                          title="Buka foto di tab baru"
+                        >
+                          <ExternalLink className="size-3.5" />
+                        </a>
+                        <a
+                          href={selectedPhoto?.url}
+                          download={selectedPhoto?.name}
+                          className="h-8 px-3 rounded-lg bg-purple-500 hover:bg-purple-600 text-white font-bold text-xs inline-flex items-center gap-1.5 transition active:scale-95 shadow-xs cursor-pointer"
+                          title="Unduh foto fisik asli"
+                        >
+                          <Download className="size-3.5" />
+                          <span>Unduh</span>
+                        </a>
+                      </div>
+                    </div>
+
+                    {/* 2. Area Pratinjau Foto (Sejajar Tinggi Penuh dengan Dokumen Kiri) */}
+                    <div className="flex-1 h-[400px] min-h-[400px] rounded-xl border border-border overflow-hidden bg-slate-950 flex flex-col items-center justify-center relative group">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={selectedPhoto?.url}
@@ -655,44 +784,14 @@ export default function TtbMediaModal({
                       <button
                         type="button"
                         onClick={() => setIsFullscreenPhoto(true)}
-                        className="absolute top-2.5 right-2.5 size-8 rounded-lg bg-black/70 hover:bg-black/90 text-white flex items-center justify-center opacity-80 group-hover:opacity-100 transition cursor-pointer"
-                        title="Perbesar Ukuran Penuh"
+                        className="absolute top-2.5 right-2.5 size-8 rounded-lg bg-black/70 hover:bg-black/90 text-white flex items-center justify-center opacity-80 group-hover:opacity-100 transition cursor-pointer shadow-xs"
+                        title="Perbesar Layar Penuh"
                       >
                         <Maximize2 className="size-4" />
                       </button>
                     </div>
 
-                    {/* Metadata Foto & Aksi */}
-                    <div className="flex items-center justify-between gap-2 text-xs">
-                      <div className="min-w-0 text-[11px] text-muted-foreground">
-                        <p className="font-mono text-foreground truncate" title={selectedPhoto?.name}>
-                          {selectedPhoto?.name}
-                        </p>
-                        {selectedPhoto?.takenAt && <p>Waktu Pemotretan: {selectedPhoto.takenAt}</p>}
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <a
-                          href={selectedPhoto?.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="size-7 rounded-md border border-border bg-background hover:bg-muted text-foreground flex items-center justify-center transition"
-                          title="Buka di tab baru"
-                        >
-                          <ExternalLink className="size-3.5" />
-                        </a>
-                        <a
-                          href={selectedPhoto?.url}
-                          download={selectedPhoto?.name}
-                          className="h-7 px-2.5 rounded-md bg-purple-500 hover:bg-purple-600 text-white font-semibold text-[11px] flex items-center gap-1 transition shadow-xs"
-                          title="Unduh foto"
-                        >
-                          <Download className="size-3" />
-                          <span>Unduh</span>
-                        </a>
-                      </div>
-                    </div>
-
-                    {/* Thumbnail Foto jika lebih dari 1 */}
+                    {/* 3. Thumbnail Selector Foto jika lebih dari 1 */}
                     {photos.length > 1 && (
                       <div className="flex gap-2 overflow-x-auto pb-1 pt-0.5">
                         {photos.map((p, idx) => (
@@ -700,7 +799,7 @@ export default function TtbMediaModal({
                             key={p.name}
                             type="button"
                             onClick={() => setSelectedPhotoIdx(idx)}
-                            className={`shrink-0 size-16 rounded-md overflow-hidden border-2 transition cursor-pointer ${
+                            className={`shrink-0 size-14 rounded-lg overflow-hidden border-2 transition cursor-pointer ${
                               idx === selectedPhotoIdx
                                 ? 'border-purple-500 ring-2 ring-purple-500/20'
                                 : 'border-transparent opacity-70 hover:opacity-100'
