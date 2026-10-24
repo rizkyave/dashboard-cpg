@@ -1293,14 +1293,6 @@ export default function UploadTtbTab({
                   <div className="text-[9px] text-muted-foreground/70 font-normal">NO. DO/PO</div>
                 </th>
                 <th className="py-2.5 px-3">
-                  <div>NAMA BERKAS</div>
-                  <div className="text-[9px] text-muted-foreground/70 font-normal">FILE NAME</div>
-                </th>
-                <th className="py-2.5 px-3">
-                  <div>UKURAN</div>
-                  <div className="text-[9px] text-muted-foreground/70 font-normal">SIZE</div>
-                </th>
-                <th className="py-2.5 px-3">
                   <div>UPLOADER</div>
                   <div className="text-[9px] text-muted-foreground/70 font-normal">UPLOADER</div>
                 </th>
@@ -1321,7 +1313,7 @@ export default function UploadTtbTab({
             <tbody className="divide-y divide-border/60">
               {filteredHistory.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-8 text-center text-muted-foreground">
+                  <td colSpan={7} className="py-8 text-center text-muted-foreground">
                     {isLoadingHistory ? (
                       <span className="inline-flex items-center gap-2">
                         <RefreshCw className="size-4 animate-spin text-primary" />
@@ -1359,24 +1351,6 @@ export default function UploadTtbTab({
 
                     <td className="py-2.5 px-3 font-mono text-muted-foreground">
                       {item.noPo || item.noFpb || '-'}
-                    </td>
-
-                    <td
-                      className="py-2.5 px-3 font-mono text-[11px] text-foreground max-w-xs truncate"
-                      title={item.renamedFileName}
-                    >
-                      <div className="flex items-center gap-1.5">
-                        {item.fileType === 'application/pdf' || item.renamedFileName.toLowerCase().endsWith('.pdf') ? (
-                          <FileText className="size-3.5 text-blue-500 shrink-0" />
-                        ) : (
-                          <ImageIcon className="size-3.5 text-amber-500 shrink-0" />
-                        )}
-                        <span className="truncate">{item.renamedFileName}</span>
-                      </div>
-                    </td>
-
-                    <td className="py-2.5 px-3 font-mono text-[11px] text-muted-foreground">
-                      {formatFileSize(item.fileSize)}
                     </td>
 
                     <td className="py-2.5 px-3">
