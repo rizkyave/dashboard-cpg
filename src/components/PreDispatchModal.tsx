@@ -19,6 +19,7 @@ import {
   Maximize2,
   Columns,
   Camera,
+  Share2,
 } from 'lucide-react';
 import { PreDispatchChecklistData } from '@/types/preDispatch';
 
@@ -43,6 +44,7 @@ export interface PreDispatchModalProps {
   };
   courierName: string;
   onSuccess: (data: PreDispatchChecklistData) => void;
+  onSwitchToRemoteDispatch?: () => void;
   showToast?: (message: string, type?: 'success' | 'error' | 'info' | 'warning') => void;
 }
 
@@ -52,6 +54,7 @@ export default function PreDispatchModal({
   targetTtb,
   courierName,
   onSuccess,
+  onSwitchToRemoteDispatch,
   showToast,
 }: PreDispatchModalProps) {
   const [itemsVerified, setItemsVerified] = useState(false);
@@ -447,20 +450,37 @@ export default function PreDispatchModal({
           </div>
 
           {/* Footer Actions */}
-          <div className="p-4 sm:p-5 border-t border-border bg-muted/30 flex items-center justify-end gap-3 shrink-0">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isSubmitting}
-              className="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border border-border bg-background hover:bg-muted text-foreground transition cursor-pointer disabled:opacity-50"
-            >
-              Batal
-            </button>
+          <div className="p-4 sm:p-5 border-t border-border bg-muted/30 flex flex-wrap items-center justify-between gap-3 shrink-0">
+            {onSwitchToRemoteDispatch ? (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onSwitchToRemoteDispatch();
+                }}
+                disabled={isSubmitting}
+                className="px-3.5 py-2 rounded-xl text-xs font-semibold border border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 transition cursor-pointer flex items-center gap-1.5"
+                title="Kirim menggunakan pihak ketiga / kapal perintis / travel & kirim link WA"
+              >
+                <Share2 className="size-3.5" />
+                <span>Titip Pihak Ketiga (Link WA)</span>
+              </button>
+            ) : <div />}
 
-            <button
-              type="button"
-              onClick={handleConfirmDispatch}
-              disabled={!isAllChecked || isSubmitting}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={isSubmitting}
+                className="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border border-border bg-background hover:bg-muted text-foreground transition cursor-pointer disabled:opacity-50"
+              >
+                Batal
+              </button>
+
+              <button
+                type="button"
+                onClick={handleConfirmDispatch}
+                disabled={!isAllChecked || isSubmitting}
               className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold inline-flex items-center gap-2 shadow-md transition-all cursor-pointer ${
                 isAllChecked && !isSubmitting
                   ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-600/30 active:scale-95'
@@ -479,6 +499,7 @@ export default function PreDispatchModal({
                 </>
               )}
             </button>
+            </div>
           </div>
         </div>
       </div>

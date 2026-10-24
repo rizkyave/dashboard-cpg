@@ -38,6 +38,7 @@ import {
   Upload,
   Lock,
   Tablet,
+  Share2,
 } from 'lucide-react';
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
 import { SisaLayananItem } from '@/types/sisaLayanan';
@@ -54,7 +55,9 @@ import { formatDateDdMmYy, extractDateInfo } from '@/utils/formatDate';
 import { useAuth } from '@/context/AuthContext';
 import TtbMediaModal from './TtbMediaModal';
 import PreDispatchModal from './PreDispatchModal';
+import RemoteDispatchModal from './RemoteDispatchModal';
 import { PreDispatchChecklistData } from '@/types/preDispatch';
+import { RemoteHandoverTokenData } from '@/types/remoteHandover';
 import { loadCrewData, StoredCrewData } from '@/utils/crewKapalStorage';
 import { CrewMasterItem, KapalRekapItem } from '@/types/crewKapal';
 
@@ -231,6 +234,8 @@ export default function SerahTerimaLapanganTab({
   const [documentValidations, setDocumentValidations] = useState<DocumentValidationRecord[]>([]);
   const [preDispatchRecords, setPreDispatchRecords] = useState<Record<string, PreDispatchChecklistData>>({});
   const [pendingPreDispatchTtb, setPendingPreDispatchTtb] = useState<TtbReferenceOption | null>(null);
+  const [remoteTokens, setRemoteTokens] = useState<Record<string, RemoteHandoverTokenData>>({});
+  const [pendingRemoteDispatchTtb, setPendingRemoteDispatchTtb] = useState<TtbReferenceOption | null>(null);
   const [isManualTtb, setIsManualTtb] = useState<boolean>(false);
   const [manualNoTtb, setManualNoTtb] = useState<string>('');
   const [manualArmada, setManualArmada] = useState<string>('');
@@ -1004,11 +1009,12 @@ export default function SerahTerimaLapanganTab({
     setIsLoadingHistory(true);
     try {
       const cacheBust = `_t=${Date.now()}`;
-      const [resHistory, resUploadTtb, resValidations, resPreDispatch] = await Promise.allSettled([
+      const [resHistory, resUploadTtb, resValidations, resPreDispatch, resRemoteTokens] = await Promise.allSettled([
         fetch(`/api/serah-terima?${cacheBust}`, { cache: 'no-store' }),
         fetch(`/api/upload-ttb?${cacheBust}`, { cache: 'no-store' }),
         fetch(`/api/validasi-dokumen?type=TTB&${cacheBust}`, { cache: 'no-store' }),
         fetch(`/api/pre-dispatch?${cacheBust}`, { cache: 'no-store' }),
+        fetch(`/api/remote-handover?${cacheBust}`, { cache: 'no-store' }),
       ]);
 
       if (resHistory.status === 'fulfilled' && resHistory.value.ok) {
@@ -1045,6 +1051,19 @@ export default function SerahTerimaLapanganTab({
             if (r.noTtb) map[r.noTtb] = r;
           });
           setPreDispatchRecords(map);
+        }
+      }
+
+      if (resRemoteTokens.status === 'fulfilled' && resRemoteTokens.value.ok) {
+        const dataRemote = await resRemoteTokens.value.json();
+        if (Array.isArray(dataRemote.tokens)) {
+          const rMap: Record<string, RemoteHandoverTokenData> = {};
+          dataRemote.tokens.forEach((t: RemoteHandoverTokenData) => {
+            if (t.cleanNoTtb) rMap[t.cleanNoTtb] = t;
+            if (t.noTtb) rMap[t.noTtb] = t;
+            if (t.ttbId) rMap[t.ttbId] = t;
+          });
+          setRemoteTokens(rMap);
         }
       }
     } catch (err) {
@@ -1724,6 +1743,8 @@ export default function SerahTerimaLapanganTab({
                               filteredTtbOptions.map((opt) => {
                                 const dispatchData = preDispatchRecords[opt.cleanNoTtb] || preDispatchRecords[opt.noTtb];
                                 const isDispatched = Boolean(dispatchData);
+                                const remoteTokenData = remoteTokens[opt.cleanNoTtb] || remoteTokens[opt.noTtb];
+                                const isRemoteDispatched = Boolean(remoteTokenData && !remoteTokenData.isUsed);
 
                                 return (
                                 <tr
@@ -1936,19 +1957,60 @@ export default function SerahTerimaLapanganTab({
                                         <span>LANJUT TTD</span>
                                         <ChevronRight className="w-3.5 h-3.5" />
                                       </button>
+                                    ) : isRemoteDispatched ? (
+                                      <div className="inline-flex items-center gap-1.5 justify-end">
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setPendingRemoteDispatchTtb(opt);
+                                          }}
+                                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-colors cursor-pointer"
+                                          title="Buka detail titipan & bagikan ulang link WhatsApp"
+                                        >
+                                          <Share2 className="w-3.5 h-3.5" />
+                                          <span>Link WA</span>
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedTtbRef(opt);
+                                            setIsSearchingTtb(false);
+                                          }}
+                                          className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-border bg-background hover:bg-muted text-foreground transition cursor-pointer"
+                                          title="Lanjut input langsung jika barang sudah sampai di kapal"
+                                        >
+                                          <span>Input TTD</span>
+                                        </button>
+                                      </div>
                                     ) : opt.isManagerApproved ? (
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setPendingPreDispatchTtb(opt);
-                                        }}
-                                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm transition-colors cursor-pointer"
-                                        title="Pemeriksaan fisik barang sebelum keberangkatan (Pre-Check)"
-                                      >
-                                        <span>PILIH TTB</span>
-                                        <ChevronRight className="w-3.5 h-3.5" />
-                                      </button>
+                                      <div className="inline-flex items-center gap-1.5 justify-end">
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setPendingPreDispatchTtb(opt);
+                                          }}
+                                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm transition-colors cursor-pointer"
+                                          title="Pemeriksaan fisik barang sebelum keberangkatan kurir internal (Pre-Check)"
+                                        >
+                                          <span>PILIH TTB</span>
+                                          <ChevronRight className="w-3.5 h-3.5" />
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setPendingRemoteDispatchTtb(opt);
+                                          }}
+                                          className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg border border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 shadow-sm transition-colors cursor-pointer"
+                                          title="Disposisi titipan pihak ketiga (travel/kapal perintis) & buat tautan WhatsApp"
+                                        >
+                                          <Share2 className="w-3.5 h-3.5" />
+                                          <span className="hidden xl:inline">Titip Remote</span>
+                                        </button>
+                                      </div>
                                     ) : (
                                       <button
                                         type="button"
