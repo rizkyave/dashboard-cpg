@@ -36,6 +36,7 @@ import {
   PenTool,
   RotateCcw,
   Upload,
+  Lock,
 } from 'lucide-react';
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
 import { SisaLayananItem } from '@/types/sisaLayanan';
@@ -188,10 +189,17 @@ interface TtbReferenceOption {
   logistikValidatorName?: string;
   logistikValidatedAt?: string;
   logistikVerificationToken?: string;
+  isManagerApproved: boolean; // Otorisasi sah oleh Procurement / Purchasing Manager
+  managerValidatorName?: string;
+  managerValidatedAt?: string;
+  isLogSpvApproved: boolean;
+  logSpvValidatorName?: string;
+  approvalProgressCount: number;
   fileUrl?: string;
 }
 
 export type TtbDateRangeType = 'H-4' | 'H-7' | 'H-14' | 'H-30' | 'ALL' | 'CUSTOM';
+export type TtbStatusFilterType = 'ALL' | 'SIAP_KIRIM' | 'BELUM' | 'SUDAH';
 
 export default function SerahTerimaLapanganTab({
   procurementItems = [],
@@ -211,7 +219,7 @@ export default function SerahTerimaLapanganTab({
   const [ttbSearchTerm, setTtbSearchTerm] = useState<string>('');
   const [isSearchingTtb, setIsSearchingTtb] = useState<boolean>(false);
   const [selectedTtbRef, setSelectedTtbRef] = useState<TtbReferenceOption | null>(null);
-  const [ttbStatusFilter, setTtbStatusFilter] = useState<'ALL' | 'BELUM' | 'SUDAH'>('ALL');
+  const [ttbStatusFilter, setTtbStatusFilter] = useState<TtbStatusFilterType>('ALL');
   // Pilihan rentang waktu terbit TTB: default H-4 (4 hari terakhir) agar data tidak berat
   const [ttbDateRange, setTtbDateRange] = useState<TtbDateRangeType>('H-4');
   const [customStartDate, setCustomStartDate] = useState<string>('');
@@ -491,6 +499,29 @@ export default function SerahTerimaLapanganTab({
       const dateFormatted = formatDateDdMmYy(rawDate);
       const timestamp = dInfo.timestamp || (rawDate ? new Date(rawDate).getTime() : 0);
 
+      // Cek apakah Manager (Procurement / Purchasing Manager) telah menandatangani TTB
+      const isManagerApproved = Boolean(
+        rec.ttbSlots?.acknowledgedBy?.isValidated ||
+        rec.purchasingValidation?.isValidated
+      );
+      const managerValidatorName =
+        rec.ttbSlots?.acknowledgedBy?.validatorName ||
+        rec.purchasingValidation?.validatorName ||
+        (isManagerApproved ? 'Manager Procurement' : undefined);
+      const managerValidatedAt =
+        rec.ttbSlots?.acknowledgedBy?.validatedAt ||
+        rec.purchasingValidation?.validatedAt;
+
+      const isLogSpvApproved = Boolean(rec.ttbSlots?.approvedBy?.isValidated);
+      const logSpvValidatorName =
+        rec.ttbSlots?.approvedBy?.validatorName || (isLogSpvApproved ? 'SPV Logistik' : undefined);
+
+      let progCount = 0;
+      if (rec.ttbSlots?.deliveredBy?.isValidated || rec.logistikValidation?.isValidated) progCount++;
+      if (isLogSpvApproved) progCount++;
+      if (isManagerApproved) progCount++;
+      if (isSigned) progCount++;
+
       const opt: TtbReferenceOption = {
         key: cleanKey,
         noTtb: cleanDoc,
@@ -523,6 +554,12 @@ export default function SerahTerimaLapanganTab({
         logistikVerificationToken:
           rec.ttbSlots?.deliveredBy?.verificationToken ||
           rec.logistikValidation?.verificationToken,
+        isManagerApproved,
+        managerValidatorName,
+        managerValidatedAt,
+        isLogSpvApproved,
+        logSpvValidatorName,
+        approvalProgressCount: progCount,
         fileUrl: rec.fileUrl,
       };
 
@@ -806,24 +843,35 @@ export default function SerahTerimaLapanganTab({
   const ttbStats = useMemo(() => {
     let belumCount = 0;
     let sudahCount = 0;
+    let siapKirimCount = 0;
+    let belumManagerCount = 0;
+
     dateFilteredCatalog.forEach((opt) => {
       if (opt.isRecipientSigned) sudahCount++;
       else belumCount++;
+
+      if (opt.isManagerApproved) siapKirimCount++;
+      else belumManagerCount++;
     });
+
     return {
       total: dateFilteredCatalog.length,
       belum: belumCount,
       sudah: sudahCount,
+      siapKirim: siapKirimCount,
+      belumManager: belumManagerCount,
       grandTotal: ttbReferenceCatalog.length,
     };
   }, [dateFilteredCatalog, ttbReferenceCatalog]);
 
-  // Autocomplete matching & filter results (Status TTD & Pencarian)
+  // Autocomplete matching & filter results (Status TTD, Otorisasi Manager & Pencarian)
   const filteredTtbOptions = useMemo(() => {
     let result = dateFilteredCatalog;
 
-    // Filter status TTD digital penerima
-    if (ttbStatusFilter === 'BELUM') {
+    // Filter status
+    if (ttbStatusFilter === 'SIAP_KIRIM') {
+      result = result.filter((opt) => opt.isManagerApproved && !opt.isRecipientSigned);
+    } else if (ttbStatusFilter === 'BELUM') {
       result = result.filter((opt) => !opt.isRecipientSigned);
     } else if (ttbStatusFilter === 'SUDAH') {
       result = result.filter((opt) => opt.isRecipientSigned);
@@ -1050,6 +1098,16 @@ export default function SerahTerimaLapanganTab({
     clearSig();
   };
 
+  // Notifikasi jika pengguna memilih TTB yang belum disahkan oleh Manager
+  const handleBlockedTtbClick = (opt: TtbReferenceOption) => {
+    if (showToast) {
+      showToast(
+        `Belum bisa dilakukan serah terima barang! Dokumen ${opt.noTtb} belum ditandatangani oleh Manager. Sesuai SOP, serah terima kepada end user hanya sah setelah dokumen TTB disahkan oleh Procurement Manager.`,
+        'warning'
+      );
+    }
+  };
+
   // Submit Penyerahan Lapangan
   const handleSubmitDelivery = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1070,6 +1128,15 @@ export default function SerahTerimaLapanganTab({
     if (!matchedValid) {
       showToast?.(
         `Gagal: Nomor TTB "${targetNoTtb}" belum divalidasi oleh Staf Logistik. Sesuai SOP, hanya dokumen TTB yang telah disahkan Staf Logistik yang sah untuk serah terima lapangan.`,
+        'error'
+      );
+      return;
+    }
+
+    // Validasi ketat: Dokumen TTB wajib telah disahkan oleh Manager
+    if (!matchedValid.isManagerApproved) {
+      showToast?.(
+        `Belum bisa dilakukan serah terima barang! Dokumen TTB "${targetNoTtb}" belum ditandatangani oleh Manager. Sesuai SOP, barang baru sah diserahkan ke armada setelah otorisasi Manager selesai.`,
         'error'
       );
       return;
@@ -1305,14 +1372,14 @@ export default function SerahTerimaLapanganTab({
                 </div>
                 <div>
                   <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-                    <span>Pilih Referensi Data TTB (Tervalidasi Staf Logistik)</span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-semibold flex items-center gap-1">
-                      <ShieldCheck className="size-3" />
-                      <span>Validasi Logistik Wajib</span>
+                    <span>Pilih Referensi Data TTB (Telah Disahkan Manager • Siap Kirim)</span>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30 font-semibold flex items-center gap-1">
+                      <Truck className="size-3" />
+                      <span>Otorisasi Manager Wajib</span>
                     </span>
                   </h2>
                   <p className="text-[11px] text-muted-foreground">
-                    Hanya data TTB yang telah tervalidasi oleh Staf Logistik yang ditampilkan dan sah untuk proses serah terima lapangan
+                    Hanya data TTB yang telah tervalidasi lengkap hingga Manager (Siap Kirim) yang dapat dipilih dan sah untuk proses serah terima lapangan
                   </p>
                 </div>
               </div>
@@ -1497,6 +1564,19 @@ export default function SerahTerimaLapanganTab({
                         </button>
                         <button
                           type="button"
+                          onClick={() => setTtbStatusFilter('SIAP_KIRIM')}
+                          className={`px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl text-xs sm:text-sm lg:text-base font-black border-2 transition cursor-pointer inline-flex items-center gap-2 ${
+                            ttbStatusFilter === 'SIAP_KIRIM'
+                              ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-600/20'
+                              : 'bg-background hover:bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30'
+                          }`}
+                          title="Hanya TTB yang telah disahkan Manager (Siap diserahterimakan ke armada)"
+                        >
+                          <Truck className="size-4 shrink-0" />
+                          <span>Siap Serah Terima ({ttbStats.siapKirim})</span>
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => setTtbStatusFilter('BELUM')}
                           className={`px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl text-xs sm:text-sm lg:text-base font-black border-2 transition cursor-pointer inline-flex items-center gap-2 ${
                             ttbStatusFilter === 'BELUM'
@@ -1538,7 +1618,7 @@ export default function SerahTerimaLapanganTab({
                               <th className="py-2.5 px-3 whitespace-nowrap">Armada / Unit</th>
                               <th className="py-2.5 px-3 min-w-[200px]">Rincian Item Barang</th>
                               <th className="py-2.5 px-3 whitespace-nowrap">No. FPB / PO</th>
-                              <th className="py-2.5 px-3 whitespace-nowrap">Validasi Staf Logistik</th>
+                              <th className="py-2.5 px-3 whitespace-nowrap">Otorisasi Manager &amp; Logistik</th>
                               <th className="py-2.5 px-3 whitespace-nowrap">Status TTD Digital Armada</th>
                               <th className="py-2.5 px-3 text-right whitespace-nowrap">Aksi</th>
                             </tr>
@@ -1550,12 +1630,12 @@ export default function SerahTerimaLapanganTab({
                                   {isLoadingHistory ? (
                                     <div className="flex flex-col items-center justify-center gap-2">
                                       <RefreshCw className="size-5 text-indigo-500 animate-spin" />
-                                      <span>Memuat data TTB tervalidasi Staf Logistik...</span>
+                                      <span>Memuat data TTB...</span>
                                     </div>
                                   ) : ttbSearchTerm ? (
                                     <div className="space-y-1.5">
                                       <p>
-                                        Tidak ditemukan data TTB tervalidasi Staf Logistik sesuai kata kunci &quot;<strong className="text-foreground">{ttbSearchTerm}</strong>&quot; di rentang {ttbDateRange} ({dateRangeBounds.label}).
+                                        Tidak ditemukan data TTB sesuai kata kunci &quot;<strong className="text-foreground">{ttbSearchTerm}</strong>&quot; di rentang {ttbDateRange} ({dateRangeBounds.label}).
                                       </p>
                                       {searchMatchesInGrandCatalog > 0 ? (
                                         <p className="text-amber-600 dark:text-amber-400 font-medium">
@@ -1585,7 +1665,7 @@ export default function SerahTerimaLapanganTab({
                                   ) : (
                                     <div className="space-y-1.5">
                                       <p>
-                                        Tidak ada berkas TTB tervalidasi Staf Logistik pada rentang <strong>{ttbDateRange}</strong> ({dateRangeBounds.label}).
+                                        Tidak ada berkas TTB pada rentang <strong>{ttbDateRange}</strong> ({dateRangeBounds.label}).
                                       </p>
                                       <button
                                         type="button"
@@ -1595,7 +1675,7 @@ export default function SerahTerimaLapanganTab({
                                         }}
                                         className="text-indigo-600 dark:text-indigo-400 font-bold underline cursor-pointer"
                                       >
-                                        Tampilkan Semua Arsip ({ttbStats.grandTotal} TTB Tervalidasi)
+                                        Tampilkan Semua Arsip ({ttbStats.grandTotal} TTB)
                                       </button>
                                     </div>
                                   )}
@@ -1606,10 +1686,18 @@ export default function SerahTerimaLapanganTab({
                                 <tr
                                   key={opt.key}
                                   onClick={() => {
+                                    if (!opt.isManagerApproved) {
+                                      handleBlockedTtbClick(opt);
+                                      return;
+                                    }
                                     setSelectedTtbRef(opt);
                                     setIsSearchingTtb(false);
                                   }}
-                                  className="hover:bg-indigo-500/5 transition cursor-pointer group"
+                                  className={`border-b border-border/60 transition ${
+                                    opt.isManagerApproved
+                                      ? 'hover:bg-indigo-500/5 cursor-pointer group'
+                                      : 'bg-muted/20 hover:bg-muted/30 cursor-not-allowed opacity-80'
+                                  }`}
                                 >
                                   {/* Tgl Terbit TTB */}
                                   <td className="py-2.5 px-3 whitespace-nowrap font-mono text-[11px]">
@@ -1666,19 +1754,31 @@ export default function SerahTerimaLapanganTab({
                                     {!opt.noFpb && !opt.noPo && <span>-</span>}
                                   </td>
 
-                                  {/* Validasi Staf Logistik */}
+                                  {/* Otorisasi Manager & Logistik */}
                                   <td className="py-2.5 px-3 whitespace-nowrap">
-                                    <div className="space-y-0.5">
-                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
-                                        <ShieldCheck className="size-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                                        <span>Sah Staf Logistik</span>
-                                      </span>
-                                      {opt.logistikValidatorName && (
-                                        <span className="block text-[9.5px] text-muted-foreground font-mono truncate max-w-[150px]" title={opt.logistikValidatorName}>
-                                          PIC: {opt.logistikValidatorName}
+                                    {opt.isManagerApproved ? (
+                                      <div className="space-y-0.5">
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30">
+                                          <Truck className="size-3 text-blue-600 dark:text-blue-400 shrink-0" />
+                                          <span>Disetujui Manager (Siap Kirim)</span>
                                         </span>
-                                      )}
-                                    </div>
+                                        {opt.managerValidatorName && (
+                                          <span className="block text-[9.5px] text-muted-foreground font-mono truncate max-w-[170px]" title={opt.managerValidatorName}>
+                                            Manager: {opt.managerValidatorName}
+                                          </span>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <div className="space-y-0.5">
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                                          <Clock className="size-3 text-amber-600 dark:text-amber-400 shrink-0" />
+                                          <span>Menunggu TTD Manager</span>
+                                        </span>
+                                        <span className="block text-[9.5px] text-amber-600/80 dark:text-amber-400/80 font-mono">
+                                          Belum Siap Serah Terima
+                                        </span>
+                                      </div>
+                                    )}
                                   </td>
 
                                   {/* Status TTD Digital Armada / Penerima Akhir */}
@@ -1695,14 +1795,24 @@ export default function SerahTerimaLapanganTab({
                                           </span>
                                         )}
                                       </div>
+                                    ) : opt.isManagerApproved ? (
+                                      <div className="space-y-0.5">
+                                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30">
+                                          <Clock className="size-3 shrink-0" />
+                                          <span>Siap Serah Terima</span>
+                                        </span>
+                                        <span className="block text-[9.5px] text-blue-600/75 dark:text-blue-400/75 font-mono">
+                                          Menunggu TTD Crew
+                                        </span>
+                                      </div>
                                     ) : (
                                       <div className="space-y-0.5">
-                                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
-                                          <Clock className="size-3 shrink-0" />
-                                          <span>Belum Ditandatangani</span>
+                                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-muted text-muted-foreground border border-border">
+                                          <Lock className="size-3 shrink-0" />
+                                          <span>Terkunci</span>
                                         </span>
-                                        <span className="block text-[9.5px] text-amber-600/75 dark:text-amber-400/75 font-mono">
-                                          Menunggu TTD Crew
+                                        <span className="block text-[9.5px] text-muted-foreground/75 font-mono">
+                                          Menunggu Manager
                                         </span>
                                       </div>
                                     )}
@@ -1712,15 +1822,38 @@ export default function SerahTerimaLapanganTab({
                                   <td className="py-2.5 px-3 text-right whitespace-nowrap">
                                     <button
                                       type="button"
+                                      disabled={!opt.isManagerApproved}
                                       onClick={(e) => {
                                         e.stopPropagation();
+                                        if (!opt.isManagerApproved) {
+                                          handleBlockedTtbClick(opt);
+                                          return;
+                                        }
                                         setSelectedTtbRef(opt);
                                         setIsSearchingTtb(false);
                                       }}
-                                      className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs inline-flex items-center gap-1 transition shadow-2xs active:scale-95 cursor-pointer"
+                                      className={`px-2.5 py-1 rounded-lg font-semibold text-xs inline-flex items-center gap-1 transition shadow-2xs ${
+                                        opt.isManagerApproved
+                                          ? 'bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer active:scale-95'
+                                          : 'bg-muted text-muted-foreground/60 border border-border/80 cursor-not-allowed opacity-60'
+                                      }`}
+                                      title={
+                                        opt.isManagerApproved
+                                          ? 'Pilih TTB ini untuk serah terima ke armada'
+                                          : `Belum bisa serah terima: TTB ${opt.noTtb} belum ditandatangani oleh Manager.`
+                                      }
                                     >
-                                      <span>Pilih TTB</span>
-                                      <ChevronRight className="size-3" />
+                                      {opt.isManagerApproved ? (
+                                        <>
+                                          <span>Pilih TTB</span>
+                                          <ChevronRight className="size-3" />
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Lock className="size-3 shrink-0" />
+                                          <span>Terkunci</span>
+                                        </>
+                                      )}
                                     </button>
                                   </td>
                                 </tr>
@@ -1733,21 +1866,21 @@ export default function SerahTerimaLapanganTab({
                       {/* Footer Summary */}
                       <div className="px-3.5 py-2 border-t border-border bg-muted/30 text-[11px] text-muted-foreground flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                         <span className="flex items-center gap-1.5 flex-wrap">
-                          <ShieldCheck className="size-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                          <ShieldCheck className="size-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
                           <span>
-                            Menampilkan <strong className="text-foreground font-mono">{filteredTtbOptions.length}</strong> data TTB tervalidasi Staf Logistik
+                            Menampilkan <strong className="text-foreground font-mono">{filteredTtbOptions.length}</strong> data TTB
                             {filteredTtbOptions.length > 0 && (
                               <span className="text-muted-foreground/80 font-mono">
-                                {' '}({ttbStats.sudah} sudah TTD digital penerima, {ttbStats.belum} menunggu)
+                                {' '}({ttbStats.siapKirim} disetujui Manager, {ttbStats.belumManager} belum Manager, {ttbStats.sudah} sudah TTD penerima)
                               </span>
                             )}
-                            <span className="text-emerald-600 dark:text-emerald-400 font-semibold ml-1">
-                              • Hanya data tervalidasi Staf Logistik yang sah diproses serah terima lapangan
+                            <span className="text-blue-600 dark:text-blue-400 font-semibold ml-1">
+                              • Dokumen wajib ditandatangani Manager sebelum serah terima ke end user
                             </span>
                           </span>
                         </span>
                         <span className="text-[10px] text-muted-foreground/80 font-mono">
-                          Klik baris atau tombol &quot;Pilih TTB&quot; untuk memilih referensi serah terima
+                          Hanya TTB berstatus disetujui Manager yang tombol &quot;Pilih TTB&quot;-nya aktif
                         </span>
                       </div>
                     </div>
@@ -1812,7 +1945,7 @@ export default function SerahTerimaLapanganTab({
                 <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2">
                   <AlertTriangle className="size-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
                   <span>
-                    <strong>Peringatan Verifikasi:</strong> Sesuai SOP CPG, hanya nomor TTB yang telah tervalidasi oleh Staf Logistik yang sah diproses serah terima lapangan. Nomor TTB yang belum berstatus valid di sistem dilarang untuk diproses.
+                    <strong>Peringatan Verifikasi &amp; Otorisasi SOP:</strong> Sesuai SOP CPG, hanya dokumen TTB yang telah tuntas ditandatangani dan <strong>disahkan oleh Procurement Manager (Status Siap Kirim)</strong> yang sah diserahterimakan kepada kru armada / end user. TTB yang belum berstatus sah sampai Manager dilarang diproses serah terima.
                   </span>
                 </div>
 
@@ -1882,18 +2015,33 @@ export default function SerahTerimaLapanganTab({
                   {manualNoTtb.trim() && (
                     (() => {
                       const matched = findMatchingValidatedTtb(manualNoTtb);
-                      return matched ? (
+                      if (!matched) {
+                        return (
+                          <div className="sm:col-span-2 lg:col-span-4 p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-700 dark:text-rose-300 flex items-center gap-2">
+                            <AlertOctagon className="size-4 shrink-0 text-rose-600 dark:text-rose-400" />
+                            <span>
+                              <strong>Tidak Ditemukan:</strong> Nomor TTB ini tidak ditemukan atau belum tervalidasi di sistem. Harap gunakan nomor TTB resmi yang valid.
+                            </span>
+                          </div>
+                        );
+                      }
+
+                      if (!matched.isManagerApproved) {
+                        return (
+                          <div className="sm:col-span-2 lg:col-span-4 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2">
+                            <AlertTriangle className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                            <span>
+                              <strong>Otorisasi Manager Belum Lengkap ({matched.approvalProgressCount}/4):</strong> Dokumen {matched.noTtb} ({matched.armada}) baru ditandatangani Staf/Supervisor Logistik dan <strong>belum disahkan oleh Procurement Manager</strong>. Sesuai SOP, serah terima kepada end user belum diizinkan.
+                            </span>
+                          </div>
+                        );
+                      }
+
+                      return (
                         <div className="sm:col-span-2 lg:col-span-4 p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-700 dark:text-emerald-300 flex items-center gap-2">
                           <ShieldCheck className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
                           <span>
-                            <strong>Tervalidasi Staf Logistik:</strong> {matched.noTtb} ({matched.armada}) telah diverifikasi sah oleh {matched.logistikValidatorName || 'Staf Logistik'}. Sah untuk serah terima lapangan.
-                          </span>
-                        </div>
-                      ) : (
-                        <div className="sm:col-span-2 lg:col-span-4 p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-700 dark:text-rose-300 flex items-center gap-2">
-                          <AlertOctagon className="size-4 shrink-0 text-rose-600 dark:text-rose-400" />
-                          <span>
-                            <strong>Dilarang:</strong> Nomor TTB ini belum tervalidasi oleh Staf Logistik. Sesuai aturan, hanya data TTB tervalidasi Staf Logistik yang dapat diproses menjadi serah terima lapangan.
+                            <strong>Disahkan Manager &amp; Siap Kirim (3/4):</strong> {matched.noTtb} ({matched.armada}) telah diverifikasi lengkap hingga Procurement Manager ({matched.managerValidatorName || 'Manager'}). Sah untuk serah terima lapangan kepada end user.
                           </span>
                         </div>
                       );

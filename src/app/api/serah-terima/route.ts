@@ -359,6 +359,48 @@ export async function POST(req: NextRequest): Promise<NextResponse<SerahTerimaRe
       cleanTtb = `TTB ${cleanTtb}`;
     }
 
+    // VERIFIKASI SOP KETAT: Dokumen TTB WAJIB sudah ditandatangani oleh Procurement Manager (PCH MGR)
+    // sebelum sah diserahterimakan kepada kru kapal / end user.
+    const preValidationRecords = await getStoredValidations();
+    const preCleanSearch = sanitizeTtbNumber(cleanTtb);
+    const preDigitsOnly = preCleanSearch.replace(/\D/g, '');
+    const prePadded5 = preDigitsOnly && preDigitsOnly.length <= 5 ? preDigitsOnly.padStart(5, '0') : '';
+    const preSearchComp = extractTtbComponents(preCleanSearch);
+
+    const matchedPreValidation = preValidationRecords.find((v) => {
+      if (v.docType !== 'TTB') return false;
+      const vClean = sanitizeTtbNumber(v.cleanDocNumber || v.docNumber || '');
+      if (vClean === preCleanSearch) return true;
+      const vComp = extractTtbComponents(vClean);
+      if (preSearchComp.prefix && vComp.prefix && preSearchComp.prefix !== vComp.prefix) {
+        return false;
+      }
+      if (v.docNumber.toUpperCase().includes(cleanTtb.toUpperCase())) return true;
+      if (preCleanSearch.length >= 4 && vClean.includes(preCleanSearch)) return true;
+      if (preDigitsOnly && preDigitsOnly.length >= 4) {
+        const vDigits = vClean.replace(/\D/g, '');
+        if (vDigits.includes(preDigitsOnly) || (prePadded5 && vDigits.includes(prePadded5))) return true;
+      }
+      return false;
+    });
+
+    if (matchedPreValidation) {
+      const isManagerApproved = Boolean(
+        matchedPreValidation.ttbSlots?.acknowledgedBy?.isValidated ||
+        matchedPreValidation.purchasingValidation?.isValidated
+      );
+      if (!isManagerApproved) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: `Dokumen ${matchedPreValidation.docNumber} belum disahkan oleh Procurement Manager. Sesuai SOP, serah terima kepada end user hanya sah setelah dokumen disahkan oleh Manager (Tahap Siap Kirim).`,
+            error: 'Otorisasi Manager belum lengkap.',
+          },
+          { status: 403 }
+        );
+      }
+    }
+
     const now = new Date();
     const yyyy = now.getFullYear();
     const mm = String(now.getMonth() + 1).padStart(2, '0');
@@ -741,7 +783,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<SerahTerimaRe
       const recipientSigRecord: ValidationSignatureRecord = {
         isValidated: true,
         validatorName: penerima,
-        validatorRole: 'staf_lapangan',
+        validatorRole: 'user',
         validatorJabatan: 'Penerima / Crew Armada Kapal',
         validatedAt: tanggalSerahTerima || nowIso,
         signatureDataUrl: penerimaSignature || undefined,
