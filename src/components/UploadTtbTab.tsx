@@ -754,14 +754,8 @@ export default function UploadTtbTab({
                   CPL-PRC-SOP-004-F02
                 </span>
               </div>
-              <p className="text-xs font-semibold text-foreground/80 mt-0.5">
-                Upload TTB Documents
-              </p>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="text-xs text-muted-foreground mt-1">
                 Pengarsipan berkas Tanda Terima Barang (TTB) resmi ke Cloudflare R2 dengan sistem penamaan otomatis sesuai Nomor TTB.
-              </p>
-              <p className="text-[11px] text-muted-foreground/75">
-                Archiving official Goods Receipt (TTB) files to Cloudflare R2 with an automatic naming system according to the TTB Number.
               </p>
             </div>
           </div>
@@ -775,7 +769,7 @@ export default function UploadTtbTab({
               title="Uji koneksi langsung ke bucket Cloudflare R2 Storage"
             >
               <Database className={`size-3.5 text-orange-500 ${isTestingStorage ? 'animate-pulse' : ''}`} />
-              <span>{isTestingStorage ? 'Menguji...' : 'Test Storage Connection'}</span>
+              <span>{isTestingStorage ? 'Menguji...' : 'Uji Koneksi Storage'}</span>
             </button>
 
             <button
@@ -785,7 +779,7 @@ export default function UploadTtbTab({
               className="h-9 px-3.5 rounded-xl border border-border bg-background hover:bg-muted text-xs font-semibold text-foreground inline-flex items-center gap-2 transition active:scale-95 cursor-pointer"
             >
               <RefreshCw className={`size-3.5 ${isLoadingHistory ? 'animate-spin' : ''}`} />
-              <span>Segarkan Refresh</span>
+              <span>Segarkan</span>
             </button>
           </div>
         </div>
@@ -796,7 +790,6 @@ export default function UploadTtbTab({
             <span className="text-[11px] text-muted-foreground font-medium flex items-center gap-1.5 flex-wrap">
               <FileCheck className="size-3.5 text-primary" />
               <span>Total Berkas TTB</span>
-              <span className="text-[9px] text-muted-foreground/70">Total TTB Files</span>
             </span>
             <p className="text-xl font-bold font-mono text-foreground mt-1">
               {stats.total.toLocaleString('id-ID')}
@@ -807,7 +800,6 @@ export default function UploadTtbTab({
             <span className="text-[11px] text-muted-foreground font-medium flex items-center gap-1.5 flex-wrap">
               <FileText className="size-3.5 text-blue-500" />
               <span>Berkas PDF Resmi</span>
-              <span className="text-[9px] text-muted-foreground/70">Official PDF File</span>
             </span>
             <p className="text-xl font-bold font-mono text-blue-600 dark:text-blue-400 mt-1">
               {stats.pdfCount.toLocaleString('id-ID')}
@@ -818,7 +810,6 @@ export default function UploadTtbTab({
             <span className="text-[11px] text-muted-foreground font-medium flex items-center gap-1.5 flex-wrap">
               <ImageIcon className="size-3.5 text-amber-500" />
               <span>Bukti Foto Fisik</span>
-              <span className="text-[9px] text-muted-foreground/70">Physical Photo Evidence</span>
             </span>
             <p className="text-xl font-bold font-mono text-amber-600 dark:text-amber-400 mt-1">
               {stats.imgCount.toLocaleString('id-ID')}
@@ -887,17 +878,10 @@ export default function UploadTtbTab({
                 <Sparkles className="size-3" />
                 <span>Mendukung Multi-TTB &amp; Multi-Upload</span>
               </div>
-              <div className="text-[10px] text-emerald-600/80 dark:text-emerald-400/80 font-mono mb-2">
-                Supports Multi-TTB &amp; Multi-Upload
-              </div>
 
               <p className="text-sm font-bold text-foreground">
                 Tarik &amp; Letakkan berkas TTB di sini, atau{' '}
                 <span className="text-primary underline underline-offset-2">Pilih Banyak Berkas Sekaligus</span>
-              </p>
-              <p className="text-xs font-semibold text-foreground/80 mt-0.5">
-                Drag &amp; Drop TTB files here, or{' '}
-                <span className="text-primary underline underline-offset-2">Select Multiple Files at Once</span>
               </p>
 
               <p className="text-xs text-muted-foreground mt-2">
@@ -905,9 +889,6 @@ export default function UploadTtbTab({
               </p>
               <p className="text-[11px] text-muted-foreground/80 font-mono mt-0.5">
                 Format otomatis: <strong>CPL-TTB-26-00449.pdf</strong> (nomor TTB, armada, &amp; PO terdeteksi otomatis per berkas)
-              </p>
-              <p className="text-[10px] text-muted-foreground/70 font-mono">
-                Auto format: CPL-TTB-26-00449.pdf (TTB number, fleet &amp; PO detected automatically per file)
               </p>
             </div>
           </div>
@@ -922,9 +903,6 @@ export default function UploadTtbTab({
                     <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
                       Antrean Berkas ({queue.length})
                     </h3>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                      File Queue ({queue.length})
-                    </p>
                   </div>
                 </div>
                 <button
@@ -1067,20 +1045,14 @@ export default function UploadTtbTab({
                 <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
                   KONFIGURASI METADATA TTB
                 </h3>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                  TTB METADATA CONFIGURATION
-                </p>
               </div>
             </div>
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="text-[11px] font-semibold text-foreground block mb-0.5">
+                <label className="text-[11px] font-semibold text-foreground block mb-1">
                   Nomor TTB Default (Batch):
                 </label>
-                <span className="text-[10px] text-muted-foreground block mb-1">
-                  Default TTB Number (Batch):
-                </span>
                 <input
                   type="text"
                   list="ttb-batch-datalist"
@@ -1093,12 +1065,9 @@ export default function UploadTtbTab({
 
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="text-[11px] font-semibold text-foreground block mb-0.5">
+                  <label className="text-[11px] font-semibold text-foreground block mb-1">
                     Armada / User:
                   </label>
-                  <span className="text-[10px] text-muted-foreground block mb-1">
-                    Fleet / User:
-                  </span>
                   <input
                     type="text"
                     list="armada-batch-datalist"
@@ -1109,12 +1078,9 @@ export default function UploadTtbTab({
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold text-foreground block mb-0.5">
-                    DO No. / PO No.:
+                  <label className="text-[11px] font-semibold text-foreground block mb-1">
+                    No. DO / No. PO:
                   </label>
-                  <span className="text-[10px] text-muted-foreground block mb-1">
-                    DO No. / PO No.:
-                  </span>
                   <input
                     type="text"
                     value={batchDoNo}
@@ -1126,12 +1092,9 @@ export default function UploadTtbTab({
               </div>
 
               <div>
-                <label className="text-[11px] font-semibold text-foreground block mb-0.5">
+                <label className="text-[11px] font-semibold text-foreground block mb-1">
                   Tanggal Serah Terima:
                 </label>
-                <span className="text-[10px] text-muted-foreground block mb-1">
-                  Handover Date:
-                </span>
                 <input
                   type="date"
                   value={batchReceivedDate}
@@ -1141,12 +1104,9 @@ export default function UploadTtbTab({
               </div>
 
               <div>
-                <label className="text-[11px] font-semibold text-foreground block mb-0.5">
+                <label className="text-[11px] font-semibold text-foreground block mb-1">
                   Catatan / Keterangan:
                 </label>
-                <span className="text-[10px] text-muted-foreground block mb-1">
-                  Notes/Remarks:
-                </span>
                 <textarea
                   value={batchKeterangan}
                   onChange={(e) => setBatchKeterangan(e.target.value)}
@@ -1163,7 +1123,6 @@ export default function UploadTtbTab({
                     <PenTool className="size-3.5" />
                     <div>
                       <span className="font-bold">Identitas Uploader &amp; Stempel</span>
-                      <span className="text-[10px] text-primary/75 block">Uploader Identity &amp; Stamp</span>
                     </div>
                   </div>
                   <label className="inline-flex items-center gap-1.5 cursor-pointer text-[11px] text-foreground font-medium">
@@ -1181,9 +1140,6 @@ export default function UploadTtbTab({
                   <label className="text-[10px] text-muted-foreground font-medium block">
                     Nama Uploader (Purchasing / Logistic Staff):
                   </label>
-                  <span className="text-[9px] text-muted-foreground/75 block">
-                    Uploader Name (Purchasing / Logistics Staff):
-                  </span>
                   <input
                     type="text"
                     value={uploaderName}
@@ -1196,9 +1152,6 @@ export default function UploadTtbTab({
                 {enableAutoStamp && (
                   <p className="text-[10px] text-muted-foreground leading-relaxed">
                     Sistem akan secara otomatis menyematkan nama uploader, tanda tangan digital akun (jika tersimpan di Admin Settings), dan tanggal pada kolom formulir TTB resmi.
-                    <span className="block text-[9px] text-muted-foreground/75 mt-0.5">
-                      The system will automatically embed the uploader&apos;s name, account digital signature (if saved in Admin Settings), and date in the official TTB form column.
-                    </span>
                   </p>
                 )}
               </div>
@@ -1211,7 +1164,7 @@ export default function UploadTtbTab({
               type="button"
               onClick={handleExecuteUpload}
               disabled={isUploading || queue.length === 0}
-              className="w-full h-11 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white font-bold text-xs inline-flex flex-col items-center justify-center shadow-md transition active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="w-full h-11 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white font-bold text-xs inline-flex items-center justify-center gap-2 shadow-md transition active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {isUploading ? (
                 <div className="flex items-center gap-2">
@@ -1219,21 +1172,16 @@ export default function UploadTtbTab({
                   <span>Mengunggah ke Cloudflare R2 ({uploadProgress}%)...</span>
                 </div>
               ) : (
-                <>
-                  <div className="flex items-center gap-2">
-                    <UploadCloud className="size-4 text-white" />
-                    <span>
-                      {queue.length > 0
-                        ? distinctTtbCount > 1
-                          ? `Unggah ${queue.length} Berkas (${distinctTtbCount} No. TTB)`
-                          : `Unggah ${queue.length} Berkas TTB`
-                        : 'ke Cloudflare R2'}
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-slate-300 dark:text-zinc-400 font-normal">
-                    {queue.length > 0 ? `Upload ${queue.length} Files to Cloudflare R2` : 'to Cloudflare R2'}
+                <div className="flex items-center gap-2">
+                  <UploadCloud className="size-4 text-white" />
+                  <span>
+                    {queue.length > 0
+                      ? distinctTtbCount > 1
+                        ? `Unggah ${queue.length} Berkas (${distinctTtbCount} No. TTB)`
+                        : `Unggah ${queue.length} Berkas TTB`
+                      : 'ke Cloudflare R2'}
                   </span>
-                </>
+                </div>
               )}
             </button>
           </div>
@@ -1251,14 +1199,8 @@ export default function UploadTtbTab({
               <h3 className="text-sm font-bold text-foreground">
                 Riwayat Pengarsipan Berkas TTB
               </h3>
-              <p className="text-xs font-semibold text-foreground/80">
-                TTB File Archiving History
-              </p>
               <p className="text-xs text-muted-foreground mt-0.5">
                 Daftar berkas yang tersimpan aman di Cloudflare R2 Storage
-              </p>
-              <p className="text-[11px] text-muted-foreground/75">
-                List of files stored safely in Cloudflare R2 Storage
               </p>
             </div>
           </div>
@@ -1280,34 +1222,13 @@ export default function UploadTtbTab({
           <table className="w-full text-left text-xs">
             <thead className="bg-muted/50 text-muted-foreground font-semibold border-b border-border uppercase text-[10px] tracking-wider">
               <tr>
-                <th className="py-2.5 px-3">
-                  <div>NO. TTB RESMI</div>
-                  <div className="text-[9px] text-muted-foreground/70 font-normal">NO. OFFICIAL TTB</div>
-                </th>
-                <th className="py-2.5 px-3">
-                  <div>ARMADA / USER</div>
-                  <div className="text-[9px] text-muted-foreground/70 font-normal">FLEET / USER</div>
-                </th>
-                <th className="py-2.5 px-3">
-                  <div>NO. DO / PO</div>
-                  <div className="text-[9px] text-muted-foreground/70 font-normal">NO. DO/PO</div>
-                </th>
-                <th className="py-2.5 px-3">
-                  <div>UPLOADER</div>
-                  <div className="text-[9px] text-muted-foreground/70 font-normal">UPLOADER</div>
-                </th>
-                <th className="py-2.5 px-3">
-                  <div>TGL &amp; WAKTU UPLOAD</div>
-                  <div className="text-[9px] text-muted-foreground/70 font-normal">UPLOAD DATE &amp; TIME</div>
-                </th>
-                <th className="py-2.5 px-3">
-                  <div>STATUS</div>
-                  <div className="text-[9px] text-muted-foreground/70 font-normal">STATUS</div>
-                </th>
-                <th className="py-2.5 px-3 text-right">
-                  <div>AKSI</div>
-                  <div className="text-[9px] text-muted-foreground/70 font-normal">ACTION</div>
-                </th>
+                <th className="py-2.5 px-3">NO. TTB RESMI</th>
+                <th className="py-2.5 px-3">ARMADA / USER</th>
+                <th className="py-2.5 px-3">NO. DO / PO</th>
+                <th className="py-2.5 px-3">UPLOADER</th>
+                <th className="py-2.5 px-3">TGL &amp; WAKTU UPLOAD</th>
+                <th className="py-2.5 px-3">STATUS</th>
+                <th className="py-2.5 px-3 text-right">AKSI</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">

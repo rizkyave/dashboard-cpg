@@ -1082,20 +1082,14 @@ export default function UploadFstbTab({
                 <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
                   KONFIGURASI METADATA FSTB
                 </h3>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                  FSTB METADATA CONFIGURATION
-                </p>
               </div>
             </div>
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="text-[11px] font-semibold text-foreground block mb-0.5">
+                <label className="text-[11px] font-semibold text-foreground block mb-1">
                   Nomor FSTB Default (Batch):
                 </label>
-                <span className="text-[10px] text-muted-foreground block mb-1">
-                  Default FSTB Number (Batch):
-                </span>
                 <input
                   type="text"
                   value={batchNoFstb}
@@ -1107,12 +1101,9 @@ export default function UploadFstbTab({
 
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="text-[11px] font-semibold text-foreground block mb-0.5">
+                  <label className="text-[11px] font-semibold text-foreground block mb-1">
                     Armada / User:
                   </label>
-                  <span className="text-[10px] text-muted-foreground block mb-1">
-                    Fleet / User:
-                  </span>
                   <input
                     type="text"
                     value={batchArmada}
@@ -1122,12 +1113,9 @@ export default function UploadFstbTab({
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold text-foreground block mb-0.5">
-                    DO No. / PO No.:
+                  <label className="text-[11px] font-semibold text-foreground block mb-1">
+                    No. DO / No. PO:
                   </label>
-                  <span className="text-[10px] text-muted-foreground block mb-1">
-                    DO No. / PO No.:
-                  </span>
                   <input
                     type="text"
                     value={batchDoNo}
@@ -1139,12 +1127,9 @@ export default function UploadFstbTab({
               </div>
 
               <div>
-                <label className="text-[11px] font-semibold text-foreground block mb-0.5">
+                <label className="text-[11px] font-semibold text-foreground block mb-1">
                   Tanggal Serah Terima:
                 </label>
-                <span className="text-[10px] text-muted-foreground block mb-1">
-                  Handover Date:
-                </span>
                 <input
                   type="date"
                   value={batchReceivedDate}
@@ -1154,12 +1139,9 @@ export default function UploadFstbTab({
               </div>
 
               <div>
-                <label className="text-[11px] font-semibold text-foreground block mb-0.5">
+                <label className="text-[11px] font-semibold text-foreground block mb-1">
                   Catatan / Keterangan:
                 </label>
-                <span className="text-[10px] text-muted-foreground block mb-1">
-                  Notes/Remarks:
-                </span>
                 <textarea
                   value={batchKeterangan}
                   onChange={(e) => setBatchKeterangan(e.target.value)}
@@ -1176,7 +1158,6 @@ export default function UploadFstbTab({
                     <PenTool className="size-3.5" />
                     <div>
                       <span className="font-bold">Identitas Uploader &amp; Stempel</span>
-                      <span className="text-[10px] text-primary/75 block">Uploader Identity &amp; Stamp</span>
                     </div>
                   </div>
                   <label className="inline-flex items-center gap-1.5 cursor-pointer text-[11px] text-foreground font-medium">
@@ -1194,9 +1175,6 @@ export default function UploadFstbTab({
                   <label className="text-[10px] text-muted-foreground font-medium block">
                     Nama Uploader (Purchasing / Logistic Staff):
                   </label>
-                  <span className="text-[9px] text-muted-foreground/75 block">
-                    Uploader Name (Purchasing / Logistics Staff):
-                  </span>
                   <input
                     type="text"
                     value={uploaderName}
@@ -1209,9 +1187,6 @@ export default function UploadFstbTab({
                 {enableAutoStamp && (
                   <p className="text-[10px] text-muted-foreground leading-relaxed">
                     Sistem akan secara otomatis menyematkan nama uploader, tanda tangan digital akun (jika tersimpan di Admin Settings), dan tanggal pada kolom formulir FSTB resmi.
-                    <span className="block text-[9px] text-muted-foreground/75 mt-0.5">
-                      The system will automatically embed the uploader&apos;s name, account digital signature (if saved in Admin Settings), and date in the official FSTB form column.
-                    </span>
                   </p>
                 )}
               </div>
@@ -1224,7 +1199,7 @@ export default function UploadFstbTab({
               type="button"
               onClick={handleExecuteUpload}
               disabled={isUploading || queue.length === 0}
-              className="w-full h-11 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white font-bold text-xs inline-flex flex-col items-center justify-center shadow-md transition active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="w-full h-11 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white font-bold text-xs inline-flex items-center justify-center gap-2 shadow-md transition active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {isUploading ? (
                 <div className="flex items-center gap-2">
@@ -1232,21 +1207,16 @@ export default function UploadFstbTab({
                   <span>Mengunggah ke Cloudflare R2 ({uploadProgress}%)...</span>
                 </div>
               ) : (
-                <>
-                  <div className="flex items-center gap-2">
-                    <UploadCloud className="size-4 text-white" />
-                    <span>
-                      {queue.length > 0
-                        ? distinctFstbCount > 1
-                          ? `Unggah ${queue.length} Berkas (${distinctFstbCount} No. FSTB)`
-                          : `Unggah ${queue.length} Berkas FSTB`
-                        : 'ke Cloudflare R2'}
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-slate-300 dark:text-zinc-400 font-normal">
-                    {queue.length > 0 ? `Upload ${queue.length} Files to Cloudflare R2` : 'to Cloudflare R2'}
+                <div className="flex items-center gap-2">
+                  <UploadCloud className="size-4 text-white" />
+                  <span>
+                    {queue.length > 0
+                      ? distinctFstbCount > 1
+                        ? `Unggah ${queue.length} Berkas (${distinctFstbCount} No. FSTB)`
+                        : `Unggah ${queue.length} Berkas FSTB`
+                      : 'ke Cloudflare R2'}
                   </span>
-                </>
+                </div>
               )}
             </button>
           </div>
@@ -1264,7 +1234,7 @@ export default function UploadFstbTab({
               <h3 className="text-sm font-bold text-foreground">
                 Riwayat Pengarsipan Berkas FSTB
               </h3>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 Daftar berkas yang tersimpan aman di Cloudflare R2 Storage
               </p>
             </div>
@@ -1287,34 +1257,13 @@ export default function UploadFstbTab({
           <table className="w-full text-left text-xs">
             <thead className="bg-muted/50 text-muted-foreground font-semibold border-b border-border uppercase text-[10px] tracking-wider">
               <tr>
-                <th className="py-2.5 px-3">
-                  <div>NO. FSTB RESMI</div>
-                  <div className="text-[9px] text-muted-foreground/70 font-normal">NO. OFFICIAL FSTB</div>
-                </th>
-                <th className="py-2.5 px-3">
-                  <div>ARMADA / USER</div>
-                  <div className="text-[9px] text-muted-foreground/70 font-normal">FLEET / USER</div>
-                </th>
-                <th className="py-2.5 px-3">
-                  <div>NO. DO / PO</div>
-                  <div className="text-[9px] text-muted-foreground/70 font-normal">NO. DO/PO</div>
-                </th>
-                <th className="py-2.5 px-3">
-                  <div>UPLOADER</div>
-                  <div className="text-[9px] text-muted-foreground/70 font-normal">UPLOADER</div>
-                </th>
-                <th className="py-2.5 px-3">
-                  <div>TGL &amp; WAKTU UPLOAD</div>
-                  <div className="text-[9px] text-muted-foreground/70 font-normal">UPLOAD DATE &amp; TIME</div>
-                </th>
-                <th className="py-2.5 px-3">
-                  <div>STATUS</div>
-                  <div className="text-[9px] text-muted-foreground/70 font-normal">STATUS</div>
-                </th>
-                <th className="py-2.5 px-3 text-right">
-                  <div>AKSI</div>
-                  <div className="text-[9px] text-muted-foreground/70 font-normal">ACTION</div>
-                </th>
+                <th className="py-2.5 px-3">NO. FSTB RESMI</th>
+                <th className="py-2.5 px-3">ARMADA / USER</th>
+                <th className="py-2.5 px-3">NO. DO / PO</th>
+                <th className="py-2.5 px-3">UPLOADER</th>
+                <th className="py-2.5 px-3">TGL &amp; WAKTU UPLOAD</th>
+                <th className="py-2.5 px-3">STATUS</th>
+                <th className="py-2.5 px-3 text-right">AKSI</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
