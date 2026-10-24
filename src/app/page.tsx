@@ -1065,7 +1065,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground antialiased">
+    <div className="h-screen flex overflow-hidden bg-background text-foreground antialiased">
       {/* Left Navigation Sidebar running from top to bottom (Studio Admin Style) */}
       <Sidebar
         activeTab={activeTab}
@@ -1088,7 +1088,7 @@ export default function DashboardPage() {
       />
 
       {/* Right Column: Header Bar + Main Content Area + Footer */}
-      <div className="flex-1 flex flex-col min-w-0 transition-all duration-300">
+      <div className="h-screen overflow-y-auto flex-1 flex flex-col min-w-0 transition-all duration-300">
         <Header
           searchKeyword={searchKeyword}
           onSearch={setSearchKeyword}

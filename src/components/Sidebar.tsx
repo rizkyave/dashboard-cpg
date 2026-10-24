@@ -260,13 +260,13 @@ export default function Sidebar({
       )}
 
       <aside
-        className={`shrink-0 bg-background border-r border-border flex flex-col justify-between transition-all duration-300 select-none z-50 lg:z-30 min-h-screen fixed inset-y-0 left-0 lg:relative ${
+        className={`h-screen overflow-y-auto shrink-0 bg-background border-r border-border flex flex-col justify-between transition-all duration-300 select-none z-50 lg:z-30 fixed inset-y-0 left-0 lg:relative ${
           isCollapsed
             ? '-translate-x-full lg:w-0 lg:p-0 lg:border-r-0 lg:opacity-0 lg:pointer-events-none'
             : 'w-72 max-w-[85vw] lg:w-64 p-3.5 md:p-4 opacity-100 translate-x-0 shadow-2xl lg:shadow-none'
         }`}
       >
-        <div className="flex flex-col gap-4 overflow-y-auto no-scrollbar">
+        <div className="flex flex-col gap-4">
           {/* Brand Header with CPG Procurement Monitoring System */}
           <div className="flex items-center justify-between px-1.5 pt-0.5 gap-1.5">
             <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -696,7 +696,7 @@ export default function Sidebar({
 
 
       {/* Footer User Info, Logout & Theme Toggle */}
-      <div className="pt-3 border-t border-border flex items-center justify-between text-xs pb-safe gap-1.5">
+      <div className="pt-3 border-t border-border flex items-center justify-between text-xs pb-safe gap-1.5 shrink-0 mt-4">
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <div
             className={`size-7 rounded-full flex items-center justify-center font-bold text-white text-[11px] shrink-0 ${
