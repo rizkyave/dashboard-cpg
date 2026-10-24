@@ -413,11 +413,11 @@ export async function GET(req: NextRequest) {
           const sigRecord: ValidationSignatureRecord = {
             isValidated: true,
             validatorName: recName,
-            validatorRole: 'staf_lapangan',
+            validatorRole: 'user', // Kru kapal / end-user penerima barang
             validatorJabatan: 'Penerima / Crew Armada Kapal',
             validatedAt: signedTime,
             signatureDataUrl: sigUrl,
-            notes: 'Pekerjaan pengantaran telah selesai dilakukan oleh tim logistik lapangan dan barang fisik telah diterima langsung oleh kru armada.',
+            notes: `Diterima langsung oleh kru kapal (${recName}). Dokumentasi pengantaran fisik TimeMark dicatat oleh petugas kurir lapangan (${matchedSt?.petugas || 'Agus'}).`,
             verificationToken:
               rec.ttbSlots.receivedBy?.verificationToken ||
               `VAL-STR-${Date.now().toString(36).toUpperCase()}`,
@@ -607,11 +607,11 @@ export async function GET(req: NextRequest) {
           ? {
               isValidated: true,
               validatorName: recName,
-              validatorRole: 'staf_lapangan',
+              validatorRole: 'user', // Kru kapal / end-user penerima barang
               validatorJabatan: 'Penerima / Crew Armada Kapal',
               validatedAt: signedTime,
               signatureDataUrl: sigUrl,
-              notes: 'Pekerjaan pengantaran telah selesai dilakukan oleh tim logistik lapangan dan barang fisik telah diterima langsung oleh kru armada.',
+              notes: `Diterima langsung oleh kru kapal (${recName}). Dokumentasi pengantaran fisik TimeMark dicatat oleh petugas kurir lapangan (${matchedSt?.petugas || 'Agus'}).`,
               verificationToken: `VAL-STR-${Date.now().toString(36).toUpperCase()}`,
             }
           : { isValidated: false };
@@ -941,9 +941,22 @@ export async function POST(req: NextRequest) {
             defaultJabatan = 'Procurement Manager';
             prefix = 'PCH-MGR';
           } else if (targetSlot === 'receivedBy') {
+            const isCourier =
+              validatorRole === 'staf_lapangan' ||
+              (effectiveJabatan && effectiveJabatan.toLowerCase().includes('lapangan'));
+            if (isCourier && validatorRole !== 'admin') {
+              return NextResponse.json(
+                {
+                  success: false,
+                  error:
+                    'Petugas kurir lapangan (Agus) bertugas mengantar barang & dokumentasi foto serah terima. Wewenang tanda tangan penerimaan mutlak milik Kru Kapal / End User.',
+                },
+                { status: 403 }
+              );
+            }
             roleType = 'received_by';
-            defaultJabatan = 'User / Tim Lapangan';
-            prefix = 'LAP';
+            defaultJabatan = 'Penerima / Crew Armada Kapal';
+            prefix = 'RCV-LAP';
           }
 
           const token = `VAL-TTB-${prefix}-BATCH-${Date.now().toString(36).toUpperCase()}-${Math.random()
@@ -1589,9 +1602,22 @@ export async function POST(req: NextRequest) {
           let prefix = 'LOG';
 
           if (slot === 'receivedBy') {
+            const isCourier =
+              validatorRole === 'staf_lapangan' ||
+              (effectiveJabatan && effectiveJabatan.toLowerCase().includes('lapangan'));
+            if (isCourier && validatorRole !== 'admin') {
+              return NextResponse.json(
+                {
+                  success: false,
+                  error:
+                    'Petugas kurir lapangan (Agus) bertugas mengantar barang & dokumentasi foto serah terima. Wewenang tanda tangan penerimaan mutlak milik Kru Kapal / End User.',
+                },
+                { status: 403 }
+              );
+            }
             roleType = 'received_by';
-            defaultJabatan = 'User / Tim Lapangan';
-            prefix = 'LAP';
+            defaultJabatan = 'Penerima / Crew Armada Kapal';
+            prefix = 'RCV-LAP';
           } else if (slot === 'approvedBy') {
             roleType = 'approved_by';
             defaultJabatan = 'Logistic Supervisor';

@@ -86,6 +86,14 @@ export default function BatchSignatureModal({
       return;
     }
 
+    const unauthorizedPlans = recordPlans.filter((p) => !p.action.canValidate);
+    if (unauthorizedPlans.length > 0) {
+      setErrorMsg(
+        'Terdapat berkas yang berada di luar wewenang Anda untuk disahkan (Petugas kurir lapangan tidak memiliki hak menandatangani pengesahan penerimaan kru kapal).'
+      );
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       setErrorMsg('');

@@ -160,14 +160,14 @@ export function computeValidationStatus(
   }
 
   // =========================================================================
-  // 2. DOKUMEN TTB (4 Kolom Pengesahan Kronologis: RCV/LAP, LOG-STF, LOG-SPV, PCH-MGR)
+  // 2. DOKUMEN TTB (4 Kolom Pengesahan Kronologis: LOG-STF, LOG-SPV, PCH-MGR, RCV/LAP)
   // =========================================================================
   if (record.docType === 'TTB') {
     const s = record.ttbSlots;
+    // RCV / LAP hanya sah jika ditandatangani oleh penerima di kapal (crew armada)
     const isRcvLap = Boolean(
       s?.receivedBy?.isValidated ||
-      record.recipientValidation?.isSigned ||
-      record.lapanganValidation?.isValidated
+      record.recipientValidation?.isSigned
     );
     const isLogStaff = Boolean(s?.deliveredBy?.isValidated || record.logistikValidation?.isValidated);
     const isLogSpv = Boolean(s?.approvedBy?.isValidated);
@@ -180,7 +180,7 @@ export function computeValidationStatus(
     if (isPchMgr) slotCount++;
 
     // STRICT LOGIC:
-    // - 4/4 PIC: SUDAH_DITERIMA_ARMADA (Diterima Penerima)
+    // - 4/4 PIC: SUDAH_DITERIMA_ARMADA (Diterima Penerima di Kapal)
     // - 3/4 PIC (PCH MGR approved): SIAP_KIRIM_ARMADA (Disetujui / Siap Kirim)
     // - 1-2/4 PIC: PROSES_VALIDASI (Dalam Proses)
     // - 0/4 PIC: MENUNGGU_VALIDASI
@@ -258,18 +258,24 @@ export function getUserActionForRecord(
   const dept = (user?.department || '').toLowerCase();
 
   // =========================================================================
-  // DOKUMEN TTB: Urutan Kronologis (1. RCV/LAP -> 2. LOG STF -> 3. LOG SPV -> 4. PCH MGR)
+  // DOKUMEN TTB: Urutan Kronologis (1. LOG STF -> 2. LOG SPV -> 3. PCH MGR -> 4. RCV/LAP)
   // =========================================================================
   if (record.docType === 'TTB') {
     const s = record.ttbSlots;
+    // Penerimaan di lapangan hanya sah jika ditandatangani oleh penerima di kapal (crew armada)
     const isRcvLap = Boolean(
       s?.receivedBy?.isValidated ||
-      record.recipientValidation?.isSigned ||
-      record.lapanganValidation?.isValidated
+      record.recipientValidation?.isSigned
     );
     const isLogStaff = Boolean(s?.deliveredBy?.isValidated || record.logistikValidation?.isValidated);
     const isLogSpv = Boolean(s?.approvedBy?.isValidated);
     const isPchMgr = Boolean(s?.acknowledgedBy?.isValidated || record.purchasingValidation?.isValidated);
+
+    // Deteksi apakah pengguna saat ini adalah staf kurir pengantaran lapangan
+    const isCourierUser =
+      role === 'staf_lapangan' ||
+      jabatan.includes('lapangan') ||
+      dept.includes('lapangan');
 
     const slotStates: Array<PendingSlotInfo & { isValid: boolean; hasAuthority: boolean }> = [
       {
@@ -321,16 +327,22 @@ export function getUserActionForRecord(
         key: 'receivedBy',
         code: 'RCV / LAP',
         label: 'RCV / LAP',
-        roleName: 'Penerima / Tim Lapangan',
+        roleName: 'Penerima Barang di Kapal (Crew Armada / End User)',
         isValid: isRcvLap,
+        // Petugas kurir lapangan (Agus) TIDAK memiliki hak tanda tangan sebagai penerima barang.
+        // TTB hanya sah ditandatangani oleh penerima barang di kapal (Crew Armada/End User) atau Admin.
         hasAuthority:
           isAdmin ||
-          role === 'staf_lapangan' ||
-          role === 'user' ||
-          jabatan.includes('lapangan') ||
-          dept.includes('lapangan') ||
-          jabatan.includes('armada') ||
-          jabatan.includes('kapal'),
+          (!isCourierUser &&
+            (role === 'user' ||
+              jabatan.includes('armada') ||
+              jabatan.includes('kapal') ||
+              jabatan.includes('crew') ||
+              jabatan.includes('kapten') ||
+              jabatan.includes('nakhoda') ||
+              jabatan.includes('masinis') ||
+              jabatan.includes('chief') ||
+              dept.includes('armada'))),
       },
     ];
 
@@ -341,7 +353,7 @@ export function getUserActionForRecord(
       return {
         canValidate: false,
         actionLabel: 'Lihat Berkas',
-        tooltip: 'Pengesahan 4 PIC Lengkap',
+        tooltip: 'Pengesahan 4 PIC Lengkap (Diterima Penerima)',
         isCompleted: true,
         completedCount: 4,
         nextPending: null,
@@ -360,10 +372,22 @@ export function getUserActionForRecord(
       };
     }
 
+    // Tooltip status menunggu wewenang
+    let pendingTooltip = `Menunggu validasi ${firstPending.code} (${firstPending.roleName})`;
+    if (firstPending.key === 'receivedBy') {
+      if (isCourierUser) {
+        pendingTooltip =
+          'Petugas kurir lapangan bertugas mendokumentasikan pengantaran. TTB hanya sah ditandatangani oleh Kru Penerima di Kapal.';
+      } else {
+        pendingTooltip =
+          'Menunggu tanda tangan penerima di kapal (Crew Armada / End User)';
+      }
+    }
+
     return {
       canValidate: false,
       actionLabel: 'Lihat Berkas',
-      tooltip: `Menunggu validasi ${firstPending.code} (${firstPending.roleName})`,
+      tooltip: pendingTooltip,
       isCompleted: false,
       completedCount: comp.completedCount,
       nextPending: firstPending,

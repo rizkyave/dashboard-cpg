@@ -24,6 +24,7 @@ import {
   Sparkles,
   Layers,
   Phone,
+  Truck,
 } from 'lucide-react';
 import {
   DocumentValidationRecord,
@@ -87,10 +88,10 @@ const TTB_SLOTS: TtbSlotConfig[] = [
     code: 'RCV / LAP',
     columnNumber: 4,
     headerTitle: 'Received By :',
-    roleTitle: 'User / Tim Lapangan / Armada',
-    description: 'Menyatakan bahwa barang fisik telah diterima langsung oleh pemohon / crew armada kapal dalam kondisi baik dan lengkap.',
-    authorityLabel: 'Tim Lapangan / Penerima Akhir / Crew Armada',
-    declarationText: 'Saya menyatakan barang telah diterima dengan baik dan lengkap di lapangan / armada kapal.',
+    roleTitle: 'Penerima Barang di Kapal (Crew Armada / End User)',
+    description: 'Menyatakan bahwa barang fisik telah diterima langsung oleh kru kapal / penerima di titik tujuan. Petugas kurir lapangan (Agus) bertugas mengantar barang & mendokumentasikan foto serah terima TimeMark.',
+    authorityLabel: 'Penerima di Kapal / Crew Armada',
+    declarationText: 'Saya menyatakan dengan sadar bahwa saya adalah penerima barang di kapal / armada dan barang telah diterima langsung dalam kondisi baik dan lengkap.',
   },
 ];
 
@@ -129,17 +130,32 @@ function checkUserTtbSlotAuthority(
       return { allowed: false, reason: 'Hanya dapat disahkan oleh Staf Logistik' };
 
     case 'receivedBy':
+      // Petugas kurir lapangan (Agus) TIDAK berhak menandatangani TTB sebagai penerima barang.
       if (
         role === 'staf_lapangan' ||
-        role === 'user' ||
         jabatan.includes('lapangan') ||
-        dept.includes('lapangan') ||
-        jabatan.includes('armada') ||
-        jabatan.includes('kapal')
+        dept.includes('lapangan')
       ) {
-        return { allowed: true, reason: 'Wewenang Sah: Tim Lapangan / Penerima' };
+        return {
+          allowed: false,
+          reason: 'Petugas kurir lapangan (Agus) bertugas mengirim barang & dokumentasi foto. TTB hanya sah ditandatangani oleh Kru Penerima di Kapal.',
+        };
       }
-      return { allowed: false, reason: 'Hanya dapat divalidasi oleh Tim Lapangan / Penerima Akhir' };
+      // Hanya sah jika ditandatangani oleh penerima barang di kapal (crew armada kapal, user pemohon)
+      if (
+        role === 'user' ||
+        jabatan.includes('armada') ||
+        jabatan.includes('kapal') ||
+        jabatan.includes('crew') ||
+        jabatan.includes('kapten') ||
+        jabatan.includes('nakhoda') ||
+        jabatan.includes('masinis') ||
+        jabatan.includes('chief') ||
+        dept.includes('armada')
+      ) {
+        return { allowed: true, reason: 'Wewenang Sah: Penerima / Kru Armada Kapal' };
+      }
+      return { allowed: false, reason: 'Hanya dapat divalidasi oleh Kru Penerima di Kapal / Armada' };
 
     case 'approvedBy':
       if (
@@ -267,7 +283,6 @@ export default function TtbValidationModal({
   // Cek apakah penerima / kru armada telah menandatangani melalui Serah Terima Lapangan atau Validasi Digital
   const isRecipientSigned = Boolean(
     record.recipientValidation?.isSigned ||
-    record.lapanganValidation?.isValidated ||
     record.ttbSlots?.receivedBy?.isValidated
   );
 
@@ -277,29 +292,24 @@ export default function TtbValidationModal({
         validatorName:
           record.ttbSlots?.receivedBy?.validatorName ||
           record.recipientValidation?.recipientName ||
-          record.lapanganValidation?.validatorName ||
-          'Penerima / Kru Armada Lapangan',
+          'Kru Penerima di Kapal',
         validatorJabatan:
           record.ttbSlots?.receivedBy?.validatorJabatan ||
-          record.lapanganValidation?.validatorJabatan ||
           'Penerima / Crew Armada Kapal',
-        validatorRole: 'staf_lapangan',
+        validatorRole: 'user',
         validatedAt:
           record.ttbSlots?.receivedBy?.validatedAt ||
           record.recipientValidation?.signedAt ||
-          record.lapanganValidation?.validatedAt ||
           record.updatedAt,
         signatureDataUrl:
           record.ttbSlots?.receivedBy?.signatureDataUrl ||
-          record.recipientValidation?.signatureDataUrl ||
-          record.lapanganValidation?.signatureDataUrl,
+          record.recipientValidation?.signatureDataUrl,
         notes:
           record.ttbSlots?.receivedBy?.notes ||
-          'Pekerjaan pengantaran telah selesai dilakukan oleh tim logistik lapangan & barang fisik telah diterima kru armada kapal.',
+          'Barang fisik telah diterima langsung oleh kru kapal / armada di titik tujuan.',
         verificationToken:
           record.ttbSlots?.receivedBy?.verificationToken ||
-          record.lapanganValidation?.verificationToken ||
-          'VAL-SERAH-TERIMA-LAPANGAN',
+          'VAL-SERAH-TERIMA-KAPAL',
       }
     : { isValidated: false };
 
@@ -816,22 +826,44 @@ export default function TtbValidationModal({
                           </div>
 
                           {slot.key === 'receivedBy' && (
-                            <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-emerald-800 dark:text-emerald-200 text-[10.5px] space-y-1">
-                              <div className="flex items-center gap-1 font-bold text-emerald-700 dark:text-emerald-300">
-                                <CheckCircle2 className="size-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
-                                <span className="truncate">Pengantaran Selesai &amp; Sah</span>
+                            <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-emerald-800 dark:text-emerald-200 text-[10.5px] space-y-2">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-1 font-bold text-emerald-700 dark:text-emerald-300">
+                                  <CheckCircle2 className="size-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                                  <span className="truncate">Sah Diterima Kru di Kapal</span>
+                                </div>
+                                <span className="text-[9.5px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-800 dark:text-emerald-200">
+                                  Kru Armada Kapal
+                                </span>
                               </div>
-                              <p className="text-[10px] leading-tight text-muted-foreground line-clamp-2">
-                                Diterima langsung oleh kru armada &amp; bertanda tangan digital lapangan.
-                              </p>
+
+                              <div className="text-[10px] text-muted-foreground leading-relaxed space-y-0.5">
+                                <div><strong className="text-foreground">Penerima Sah:</strong> {currentSlotState?.validatorName || 'Crew Armada'}</div>
+                                {record.recipientValidation?.recipientPhone && (
+                                  <div><strong className="text-foreground">Kontak:</strong> {record.recipientValidation.recipientPhone}</div>
+                                )}
+                              </div>
+
+                              {/* Indikator Dokumentasi Kurir Lapangan (Agus) */}
+                              <div className="p-1.5 rounded bg-background/80 border border-border/80 text-[10px] space-y-0.5">
+                                <div className="flex items-center gap-1 font-semibold text-blue-700 dark:text-blue-300">
+                                  <Truck className="size-3 text-blue-600 shrink-0" />
+                                  <span>Petugas Kurir Pengantaran:</span>
+                                  <span className="font-bold">Agus (Tim Lapangan)</span>
+                                </div>
+                                <p className="text-[9.5px] text-muted-foreground leading-tight">
+                                  Barang telah diantar fisik &amp; bukti serah terima TimeMark terverifikasi.
+                                </p>
+                              </div>
+
                               {currentSlotState?.signatureDataUrl && (
                                 <div className="pt-0.5 flex items-center gap-2">
-                                  <span className="text-[9.5px] text-muted-foreground font-medium shrink-0">TTD Kru:</span>
+                                  <span className="text-[9.5px] text-muted-foreground font-medium shrink-0">TTD Kru Kapal:</span>
                                   <div className="h-7 px-1.5 bg-white rounded border border-border flex items-center shadow-2xs">
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
                                     <img
                                       src={currentSlotState.signatureDataUrl}
-                                      alt="Tanda Tangan Penerima Lapangan"
+                                      alt="Tanda Tangan Penerima Kapal"
                                       className="h-5 w-auto object-contain max-w-[120px]"
                                     />
                                   </div>
@@ -878,6 +910,17 @@ export default function TtbValidationModal({
                         </div>
                       ) : (
                         <div className="mt-3 pt-2.5 border-t border-border/60">
+                          {slot.key === 'receivedBy' && (
+                            <div className="mb-2 p-2 rounded-lg bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/60 dark:border-blue-800/40 text-[10px] space-y-1">
+                              <div className="flex items-center gap-1.5 font-bold text-blue-700 dark:text-blue-300">
+                                <Truck className="size-3 shrink-0" />
+                                <span>Peran Kurir Lapangan (Agus):</span>
+                              </div>
+                              <p className="text-[9.5px] text-muted-foreground leading-tight">
+                                Mengantar fisik barang &amp; mengunggah bukti dokumentasi foto serah terima TimeMark. Penandatanganan kolom ini merupakan wewenang sah Kru Penerima di Kapal.
+                              </p>
+                            </div>
+                          )}
                           {authCheck.allowed ? (
                             <label
                               className="flex items-start gap-2 cursor-pointer select-none"

@@ -1102,18 +1102,16 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                               );
                             })()}
 
-                            {/* Slot 4: Received By : Penerimaan di Lapangan / Unit Armada (RCV / LAP) */}
+                            {/* Slot 4: Received By : Penerimaan di Kapal (RCV / LAP) */}
                             {(() => {
                               const isValid = Boolean(
                                 item.ttbSlots?.receivedBy?.isValidated ||
-                                item.recipientValidation?.isSigned ||
-                                item.lapanganValidation?.isValidated
+                                item.recipientValidation?.isSigned
                               );
                               const name =
                                 item.ttbSlots?.receivedBy?.validatorName ||
                                 item.recipientValidation?.recipientName ||
-                                item.lapanganValidation?.validatorName ||
-                                'User / Lapangan';
+                                'Kru Penerima di Kapal';
                               return (
                                 <div
                                   className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border shrink-0 ${
@@ -1121,8 +1119,10 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                                       ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
                                       : 'bg-muted/60 text-muted-foreground/60 border-border/40'
                                   }`}
-                                  title={`4. Penerimaan di Lapangan / Unit Armada (RCV / LAP): ${
-                                    isValid ? `Sah (${name})` : 'Menunggu Penerima'
+                                  title={`4. Penerimaan di Kapal (RCV / LAP): ${
+                                    isValid
+                                      ? `Sah diterima Kru (${name})`
+                                      : 'Menunggu Pengesahan Kru Kapal / Armada (Petugas Kurir Lapangan bertugas mengantar & dokumentasi foto)'
                                   }`}
                                 >
                                   <UserCheck className="size-2.5 shrink-0" />

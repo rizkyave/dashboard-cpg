@@ -1,0 +1,76 @@
+[
+  {
+    "id": "notif-1792759845182-61oej",
+    "type": "FSTB_UPLOADED",
+    "title": "📦 Dokumen FSTB Baru Siap Diproses TTB",
+    "message": "User ELSA MARDHIYAH DEKA PUTRI telah mengunggah 1 berkas FSTB CPL-FSTB-26-06316 (KT 8398 ZU). Mohon diproses untuk persiapan penerimaan & TTB.",
+    "senderName": "ELSA MARDHIYAH DEKA PUTRI",
+    "senderUsername": "elsa.mardhiyah",
+    "senderRole": "staf_purchasing",
+    "targetRole": "staf_ttb",
+    "linkTab": "monitoring-internal",
+    "metadata": {
+      "noFstb": "CPL-FSTB-26-06316",
+      "armada": "KT 8398 ZU",
+      "noPo": "CPL-PO-26-05642",
+      "noFpb": "CPL-FPB-26-0004721",
+      "fileCount": 1,
+      "renamedFileName": "CPL-FSTB-26-06316.pdf",
+      "fileUrl": "/api/r2-file?key=fstb-documents%2FCPL-FSTB-26-06316.pdf"
+    },
+    "createdAt": "2026-10-23T12:50:45.182Z",
+    "readBy": [
+      "admin",
+      "hadi.sunaryo"
+    ]
+  },
+  {
+    "id": "notif-1792759840509-mye9i",
+    "type": "FSTB_UPLOADED",
+    "title": "📦 Dokumen FSTB Baru Siap Diproses TTB",
+    "message": "User ELSA MARDHIYAH DEKA PUTRI telah mengunggah 1 berkas FSTB CPL-FSTB-26-06315 (KT 8398 ZU). Mohon diproses untuk persiapan penerimaan & TTB.",
+    "senderName": "ELSA MARDHIYAH DEKA PUTRI",
+    "senderUsername": "elsa.mardhiyah",
+    "senderRole": "staf_purchasing",
+    "targetRole": "staf_ttb",
+    "linkTab": "monitoring-internal",
+    "metadata": {
+      "noFstb": "CPL-FSTB-26-06315",
+      "armada": "KT 8398 ZU",
+      "noPo": "CPL-PO-26-05640",
+      "noFpb": "CPL-FPB-26-0004801",
+      "fileCount": 1,
+      "renamedFileName": "CPL-FSTB-26-06315.pdf",
+      "fileUrl": "/api/r2-file?key=fstb-documents%2FCPL-FSTB-26-06315.pdf"
+    },
+    "createdAt": "2026-10-23T12:50:40.509Z",
+    "readBy": [
+      "admin",
+      "hadi.sunaryo"
+    ]
+  },
+  {
+    "id": "notif-1792759835423-0gkl9",
+    "type": "FSTB_UPLOADED",
+    "title": "📦 Dokumen FSTB Baru Siap Diproses TTB",
+    "message": "User ELSA MARDHIYAH DEKA PUTRI telah mengunggah 1 berkas FSTB CPL-FSTB-26-06296 (KT 8398 ZU). Mohon diproses untuk persiapan penerimaan & TTB.",
+    "senderName": "ELSA MARDHIYAH DEKA PUTRI",
+    "senderUsername": "elsa.mardhiyah",
+    "senderRole": "staf_purchasing",
+    "targetRole": "staf_ttb",
+    "linkTab": "monitoring-internal",
+    "metadata": {
+      "noFstb": "CPL-FSTB-26-06296",
+      "armada": "KT 8398 ZU",
+      "noPo": "CPL-PO-26-05640",
+      "fileCount": 1,
+      "renamedFileName": "CPL-FSTB-26-06296.pdf",
+      "fileUrl": "/api/r2-file?key=fstb-documents%2FCPL-FSTB-26-06296.pdf"
+    },
+    "createdAt": "2026-10-23T12:50:35.423Z",
+    "readBy": [
+      "admin",
+      "hadi.sunaryo"
+    ]
+  }
+]
