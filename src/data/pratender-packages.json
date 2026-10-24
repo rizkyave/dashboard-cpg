@@ -1,1 +1,37 @@
-[]
+[
+  {
+    "id": "pkg-1792877047595",
+    "packageNumber": "CPG-TDR-26-2384",
+    "title": "Paket Pengadaan Pompa & Valve Armada Q4 2026",
+    "category": "Pompa & Valve",
+    "status": "DRAFT",
+    "createdAt": "2026-10-24T21:24:07.595Z",
+    "createdBy": "Administrator CPG",
+    "targetClosingDate": "2026-10-31",
+    "description": "Spesifikasi asli (OEM) bergaransi resmi, sertifikat asal barang (COO) terlampir.",
+    "items": [
+      {
+        "itemId": "VALVE_HYDRANT_2_",
+        "itemName": "VALVE HYDRANT 2\"",
+        "category": "Pompa & Valve",
+        "satuan": "PCS",
+        "totalQty": 6,
+        "vessels": [
+          "TK CPL 235",
+          "SPOB OCEAN POLMAN",
+          "MT BARONGKO",
+          "SPOB ROYAL REY 300",
+          "SPOB SEA LION"
+        ],
+        "requestFpbs": [
+          "CPL-FPB-26-0000206",
+          "CPL-FPB-26-0002362",
+          "CPL-FPB-26-0002600",
+          "HL-FPB-26-0000797",
+          "HL-FPB-26-0001268"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T21:24:07.862Z"
+  }
+]

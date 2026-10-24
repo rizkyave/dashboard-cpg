@@ -31,7 +31,9 @@ import {
   Printer,
   ShoppingBag,
   Building2,
+  Scale,
 } from 'lucide-react';
+import CommercialBidTabulationModal from './CommercialBidTabulationModal';
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
 import { SisaLayananItem, SisaLayananStatus } from '@/types/sisaLayanan';
 import {
@@ -282,6 +284,46 @@ export default function PratenderTab({
   // Packages list state
   const [packages, setPackages] = useState<PratenderPackage[]>([]);
   const [isLoadingPackages, setIsLoadingPackages] = useState<boolean>(false);
+
+  // CBT (Commercial Bid Tabulation - SAP ME49) Modal State
+  const [isCbtModalOpen, setIsCbtModalOpen] = useState<boolean>(false);
+  const [cbtPackage, setCbtPackage] = useState<PratenderPackage | null>(null);
+
+  const handleSaveCbtPackage = async (updatedPkg: PratenderPackage) => {
+    try {
+      const res = await fetch('/api/pratender', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'SAVE_PACKAGE',
+          package: updatedPkg,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Gagal menyimpan evaluasi tender CBT.');
+      }
+
+      setPackages((prev) =>
+        prev.map((p) => (p.id === updatedPkg.id ? updatedPkg : p))
+      );
+      if (selectedPackage?.id === updatedPkg.id) {
+        setSelectedPackage(updatedPkg);
+      }
+      setCbtPackage(updatedPkg);
+
+      if (showToast) {
+        showToast('Evaluasi penawaran CBT (SAP) berhasil disimpan & disahkan!', 'success');
+      }
+    } catch (err: any) {
+      if (showToast) {
+        showToast(err.message, 'error');
+      } else {
+        alert(err.message);
+      }
+      throw err;
+    }
+  };
 
   // Fetch created packages from API
   const fetchPackages = async () => {
@@ -1152,6 +1194,19 @@ export default function PratenderTab({
                         <button
                           type="button"
                           onClick={() => {
+                            setCbtPackage(pkg);
+                            setIsCbtModalOpen(true);
+                          }}
+                          className="px-2.5 py-1.5 rounded-lg border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 text-xs font-bold transition inline-flex items-center gap-1 cursor-pointer"
+                          title="Buka Evaluasi Komparasi Penawaran Vendor (CBT / SAP ME49)"
+                        >
+                          <Scale className="size-3" />
+                          <span>CBT SAP</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
                             setSelectedPackage(pkg);
                             setIsDetailModalOpen(true);
                           }}
@@ -1420,6 +1475,18 @@ export default function PratenderTab({
                 <button
                   type="button"
                   onClick={() => {
+                    setCbtPackage(selectedPackage);
+                    setIsCbtModalOpen(true);
+                  }}
+                  className="px-3.5 py-2 rounded-xl border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 font-bold text-xs inline-flex items-center gap-1.5 transition cursor-pointer"
+                >
+                  <Scale className="size-3.5" />
+                  <span>Komparasi Penawaran (CBT SAP)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
                     setStatusToUpdate(selectedPackage.status);
                     setAwardedVendorName(selectedPackage.awardedVendor || '');
                     setAwardedValueNum(selectedPackage.awardedValue ? String(selectedPackage.awardedValue) : '');
@@ -1518,6 +1585,21 @@ export default function PratenderTab({
             </div>
           </div>
         </div>
+      )}
+
+      {/* MODAL: COMMERCIAL BID TABULATION (CBT - STANDAR SAP ME49 / PTK PENGADAAN) */}
+      {isCbtModalOpen && cbtPackage && (
+        <CommercialBidTabulationModal
+          isOpen={isCbtModalOpen}
+          onClose={() => {
+            setIsCbtModalOpen(false);
+            setCbtPackage(null);
+          }}
+          packageData={cbtPackage}
+          onSavePackage={handleSaveCbtPackage}
+          userRole={user?.role}
+          userName={user?.name || user?.username}
+        />
       )}
     </div>
   );
