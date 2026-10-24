@@ -53,6 +53,8 @@ import { extractTtbComponents } from '@/utils/ttbRename';
 import { formatDateDdMmYy, extractDateInfo } from '@/utils/formatDate';
 import { useAuth } from '@/context/AuthContext';
 import TtbMediaModal from './TtbMediaModal';
+import PreDispatchModal from './PreDispatchModal';
+import { PreDispatchChecklistData } from '@/types/preDispatch';
 import { loadCrewData, StoredCrewData } from '@/utils/crewKapalStorage';
 import { CrewMasterItem, KapalRekapItem } from '@/types/crewKapal';
 
@@ -227,6 +229,8 @@ export default function SerahTerimaLapanganTab({
   const [customEndDate, setCustomEndDate] = useState<string>('');
   const [uploadedTtbs, setUploadedTtbs] = useState<UploadedTtbItem[]>([]);
   const [documentValidations, setDocumentValidations] = useState<DocumentValidationRecord[]>([]);
+  const [preDispatchRecords, setPreDispatchRecords] = useState<Record<string, PreDispatchChecklistData>>({});
+  const [pendingPreDispatchTtb, setPendingPreDispatchTtb] = useState<TtbReferenceOption | null>(null);
   const [isManualTtb, setIsManualTtb] = useState<boolean>(false);
   const [manualNoTtb, setManualNoTtb] = useState<string>('');
   const [manualArmada, setManualArmada] = useState<string>('');
@@ -1000,10 +1004,11 @@ export default function SerahTerimaLapanganTab({
     setIsLoadingHistory(true);
     try {
       const cacheBust = `_t=${Date.now()}`;
-      const [resHistory, resUploadTtb, resValidations] = await Promise.allSettled([
+      const [resHistory, resUploadTtb, resValidations, resPreDispatch] = await Promise.allSettled([
         fetch(`/api/serah-terima?${cacheBust}`, { cache: 'no-store' }),
         fetch(`/api/upload-ttb?${cacheBust}`, { cache: 'no-store' }),
         fetch(`/api/validasi-dokumen?type=TTB&${cacheBust}`, { cache: 'no-store' }),
+        fetch(`/api/pre-dispatch?${cacheBust}`, { cache: 'no-store' }),
       ]);
 
       if (resHistory.status === 'fulfilled' && resHistory.value.ok) {
@@ -1027,6 +1032,19 @@ export default function SerahTerimaLapanganTab({
         const dataVal = await resValidations.value.json();
         if (Array.isArray(dataVal.records)) {
           setDocumentValidations(dataVal.records);
+        }
+      }
+
+      if (resPreDispatch.status === 'fulfilled' && resPreDispatch.value.ok) {
+        const dataPre = await resPreDispatch.value.json();
+        if (Array.isArray(dataPre.records)) {
+          const map: Record<string, PreDispatchChecklistData> = {};
+          dataPre.records.forEach((r: PreDispatchChecklistData) => {
+            if (r.cleanNoTtb) map[r.cleanNoTtb] = r;
+            if (r.ttbId) map[r.ttbId] = r;
+            if (r.noTtb) map[r.noTtb] = r;
+          });
+          setPreDispatchRecords(map);
         }
       }
     } catch (err) {
@@ -1692,7 +1710,11 @@ export default function SerahTerimaLapanganTab({
                                 </td>
                               </tr>
                             ) : (
-                              filteredTtbOptions.map((opt) => (
+                              filteredTtbOptions.map((opt) => {
+                                const dispatchData = preDispatchRecords[opt.cleanNoTtb] || preDispatchRecords[opt.noTtb];
+                                const isDispatched = Boolean(dispatchData);
+
+                                return (
                                 <tr
                                   key={opt.key}
                                   onClick={() => {
@@ -1704,12 +1726,18 @@ export default function SerahTerimaLapanganTab({
                                       handleBlockedTtbClick(opt);
                                       return;
                                     }
+                                    if (!isDispatched) {
+                                      setPendingPreDispatchTtb(opt);
+                                      return;
+                                    }
                                     setSelectedTtbRef(opt);
                                     setIsSearchingTtb(false);
                                   }}
                                   className={`border-b border-border/80 transition ${
                                     opt.isRecipientSigned
                                       ? 'hover:bg-slate-500/10 cursor-pointer group'
+                                      : isDispatched
+                                      ? 'bg-amber-500/5 hover:bg-amber-500/10 cursor-pointer group'
                                       : opt.isManagerApproved
                                       ? 'hover:bg-indigo-500/10 cursor-pointer group'
                                       : 'bg-muted/20 hover:bg-muted/30 cursor-not-allowed opacity-80'
@@ -1772,7 +1800,31 @@ export default function SerahTerimaLapanganTab({
 
                                   {/* Otorisasi Manager & Logistik */}
                                   <td className="py-3.5 px-4 whitespace-nowrap">
-                                    {opt.isManagerApproved ? (
+                                    {opt.isRecipientSigned ? (
+                                      <div className="space-y-1">
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-black bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30 shadow-2xs">
+                                          <Truck className="size-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                                          <span>Disetujui Manager (Siap Kirim)</span>
+                                        </span>
+                                        {opt.managerValidatorName && (
+                                          <span className="block text-xs text-muted-foreground font-semibold font-mono truncate max-w-[190px]" title={opt.managerValidatorName}>
+                                            Manager: {opt.managerValidatorName}
+                                          </span>
+                                        )}
+                                      </div>
+                                    ) : isDispatched ? (
+                                      <div className="space-y-1">
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-black bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 shadow-2xs">
+                                          <Truck className="size-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                                          <span>Dalam Pengantaran</span>
+                                        </span>
+                                        {dispatchData?.courierName && (
+                                          <span className="block text-xs text-muted-foreground font-semibold font-mono truncate max-w-[190px]" title={dispatchData.courierName}>
+                                            Kurir: {dispatchData.courierName}
+                                          </span>
+                                        )}
+                                      </div>
+                                    ) : opt.isManagerApproved ? (
                                       <div className="space-y-1">
                                         <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-black bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30 shadow-2xs">
                                           <Truck className="size-4 text-blue-600 dark:text-blue-400 shrink-0" />
@@ -1811,6 +1863,16 @@ export default function SerahTerimaLapanganTab({
                                           </span>
                                         )}
                                       </div>
+                                    ) : isDispatched ? (
+                                      <div className="space-y-1">
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-sm font-black bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 shadow-2xs">
+                                          <Clock className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                                          <span>Menuju Lokasi Armada</span>
+                                        </span>
+                                        <span className="block text-xs text-amber-700 dark:text-amber-400 font-bold font-mono">
+                                          Menunggu TTD Crew di Kapal
+                                        </span>
+                                      </div>
                                     ) : opt.isManagerApproved ? (
                                       <div className="space-y-1">
                                         <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-sm font-black bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30 shadow-2xs">
@@ -1834,7 +1896,7 @@ export default function SerahTerimaLapanganTab({
                                     )}
                                   </td>
 
-                                  {/* Aksi: Dinamis (Lihat Berkas jika sudah TTD, PILIH TTB jika Siap Kirim, Terkunci jika belum Manager) */}
+                                  {/* Aksi: Dinamis (Lihat Berkas jika sudah TTD, PILIH TTB / Pre-Check jika Siap Kirim, Terkunci jika belum Manager) */}
                                   <td className="py-3.5 px-4 text-right whitespace-nowrap">
                                     {opt.isRecipientSigned ? (
                                       <button
@@ -1849,7 +1911,7 @@ export default function SerahTerimaLapanganTab({
                                         <Eye className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                                         <span>Lihat Berkas</span>
                                       </button>
-                                    ) : opt.isManagerApproved ? (
+                                    ) : isDispatched ? (
                                       <button
                                         type="button"
                                         onClick={(e) => {
@@ -1857,8 +1919,21 @@ export default function SerahTerimaLapanganTab({
                                           setSelectedTtbRef(opt);
                                           setIsSearchingTtb(false);
                                         }}
+                                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-amber-600 hover:bg-amber-700 active:scale-95 text-white shadow-sm transition-colors cursor-pointer"
+                                        title="Lanjutkan pengisian form serah terima & tanda tangan crew"
+                                      >
+                                        <span>LANJUT TTD</span>
+                                        <ChevronRight className="w-3.5 h-3.5" />
+                                      </button>
+                                    ) : opt.isManagerApproved ? (
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setPendingPreDispatchTtb(opt);
+                                        }}
                                         className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm transition-colors cursor-pointer"
-                                        title="Pilih TTB ini untuk serah terima ke armada"
+                                        title="Pemeriksaan fisik barang sebelum keberangkatan (Pre-Check)"
                                       >
                                         <span>PILIH TTB</span>
                                         <ChevronRight className="w-3.5 h-3.5" />
@@ -1880,7 +1955,8 @@ export default function SerahTerimaLapanganTab({
                                     )}
                                   </td>
                                 </tr>
-                              ))
+                              );
+                            })
                             )}
                           </tbody>
                         </table>
@@ -1932,6 +2008,12 @@ export default function SerahTerimaLapanganTab({
                         {selectedTtbRef.noPo && (
                           <span className="text-[11px] font-mono text-muted-foreground">
                             PO: {selectedTtbRef.noPo}
+                          </span>
+                        )}
+                        {(preDispatchRecords[selectedTtbRef.cleanNoTtb] || preDispatchRecords[selectedTtbRef.noTtb]) && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-amber-500/20 text-amber-800 dark:text-amber-200 border border-amber-500/30">
+                            <Truck className="size-3 text-amber-600 dark:text-amber-400" />
+                            <span>Dalam Pengantaran (Pre-Check Selesai)</span>
                           </span>
                         )}
                       </div>
@@ -3087,6 +3169,36 @@ export default function SerahTerimaLapanganTab({
           onClose={() => setSelectedTtbForModal(null)}
           noTtb={selectedTtbForModal}
           showToast={showToast}
+        />
+      )}
+
+      {/* Modal Pemeriksaan Barang Sebelum Berangkat (Pre-Dispatch Checklist) */}
+      {pendingPreDispatchTtb && (
+        <PreDispatchModal
+          isOpen={!!pendingPreDispatchTtb}
+          onClose={() => setPendingPreDispatchTtb(null)}
+          targetTtb={{
+            noTtb: pendingPreDispatchTtb.noTtb,
+            cleanNoTtb: pendingPreDispatchTtb.cleanNoTtb,
+            armada: pendingPreDispatchTtb.armada,
+            noFpb: pendingPreDispatchTtb.noFpb,
+            noPo: pendingPreDispatchTtb.noPo,
+            itemSummary: pendingPreDispatchTtb.itemSummary,
+          }}
+          courierName={petugasNama}
+          showToast={showToast}
+          onSuccess={(record) => {
+            const mapKey = record.cleanNoTtb || record.ttbId;
+            setPreDispatchRecords((prev) => ({
+              ...prev,
+              [mapKey]: record,
+              [record.ttbId]: record,
+              [record.noTtb || '']: record,
+            }));
+            setSelectedTtbRef(pendingPreDispatchTtb);
+            setIsSearchingTtb(false);
+            setPendingPreDispatchTtb(null);
+          }}
         />
       )}
 
