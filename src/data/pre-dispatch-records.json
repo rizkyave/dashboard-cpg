@@ -1,2 +1,32 @@
-[]
-
+[
+  {
+    "ttbId": "HL-TTB-26-02256",
+    "cleanNoTtb": "HL-TTB-26-02256",
+    "noTtb": "HL-TTB-26-02256",
+    "armada": "TK CPL 250",
+    "noFpb": "HL-FPB-26-0001434",
+    "noPo": "HL-PO-26-01693",
+    "itemSummary": "-, PLAT ALUMINIUM 0,6 MM X 1 MTR X 2 MTR (00) (1 LBR)",
+    "itemsVerified": true,
+    "packagingGood": true,
+    "documentsReady": true,
+    "dispatchNotes": "",
+    "dispatchedAt": "2026-10-24T20:17:16.127Z",
+    "courierName": "AGUSSALIM (Tim Lapangan)"
+  },
+  {
+    "ttbId": "CPL-TTB-26-07465",
+    "cleanNoTtb": "CPL-TTB-26-07465",
+    "noTtb": "CPL-TTB-26-07465",
+    "armada": "TB KING STAR",
+    "noFpb": "CPL-FPB-26-0004837",
+    "noPo": "CPL-PO-26-05649",
+    "itemSummary": "-, GPS GP-39 (FURUNO) (1 UNT)",
+    "itemsVerified": true,
+    "packagingGood": true,
+    "documentsReady": true,
+    "dispatchNotes": "",
+    "dispatchedAt": "2026-10-24T19:05:42.867Z",
+    "courierName": "AGUSSALIM (Tim Lapangan)"
+  }
+]

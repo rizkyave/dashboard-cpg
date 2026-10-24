@@ -189,6 +189,35 @@ Terima kasih.`;
       setShareUrl(generatedUrl);
 
       showToast?.('Tautan serah terima mandiri berhasil diterbitkan!', 'success');
+
+      // Kirim Notifikasi In-App & WA Gateway: Pengiriman Pihak Ketiga / Remote
+      try {
+        fetch('/api/notifications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'TTB_DISPATCHED',
+            title: '📦 TTB Dikirim via Pihak Ketiga / Remote',
+            message: `Pengiriman TTB ${targetTtb.noTtb} ke ${targetTtb.armada || 'armada'} dititipkan via ${shippingMethod} (${carrierContact.trim() || 'Pembawa'}). Tautan serah terima mandiri telah diterbitkan.`,
+            senderName: dispatchedBy || 'Petugas Disposisi',
+            senderUsername: 'logistik',
+            senderRole: 'Staf Logistik',
+            targetRole: 'manager',
+            linkTab: 'serah-terima',
+            metadata: {
+              noTtb: targetTtb.noTtb,
+              armada: targetTtb.armada,
+              noPo: targetTtb.noPo,
+              noFpb: targetTtb.noFpb,
+              shippingMethod,
+              carrierContact: carrierContact.trim(),
+              recipientName: recipientNameTarget.trim(),
+              itemSummary: targetTtb.itemSummary,
+            },
+          }),
+        }).catch(() => {});
+      } catch {}
+
       onSuccess?.(result.data);
     } catch (err) {
       showToast?.((err as Error).message, 'error');

@@ -210,12 +210,22 @@ export async function POST(req: NextRequest) {
         const waConfig = await getWaConfig();
         if (waConfig.enabled && waConfig.apiKey && waConfig.provider !== 'none') {
           waResult = await sendViaWaGateway(waConfig, {
-            noFstb: metadata.noFstb || '-',
+            type: newNotification.type,
+            noFstb: metadata.noFstb,
+            noTtb: metadata.noTtb,
             noPo: metadata.noPo,
             noFpb: metadata.noFpb,
             armada: metadata.armada,
-            uploaderName: senderName || 'User Purchasing',
-            uploaderRole: senderRole || 'Purchasing',
+            itemSummary: metadata.itemSummary,
+            uploaderName: senderName || 'User',
+            uploaderRole: senderRole || 'Staf',
+            validatorName: metadata.validatorName || senderName,
+            validatorRole: metadata.validatorRole || senderRole,
+            recipientName: metadata.recipientName,
+            recipientRole: metadata.recipientRole,
+            courierName: metadata.courierName,
+            carrierContact: metadata.carrierContact,
+            shippingMethod: metadata.shippingMethod,
           });
         }
       } catch (waErr) {

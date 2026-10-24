@@ -136,6 +136,35 @@ export default function BatchSignatureModal({
         );
       }
 
+      // Kirim Notifikasi Massal In-App & WA Gateway
+      try {
+        const isTtb = selectedRecords[0]?.docType === 'TTB';
+        const activeDocType = isTtb ? 'TTB' : 'FSTB';
+        const docCount = selectedRecords.length;
+        const sampleDocs = selectedRecords.map((r) => r.docNumber).slice(0, 3).join(', ') + (docCount > 3 ? ` (+${docCount - 3} lainnya)` : '');
+        const sampleArmada = Array.from(new Set(selectedRecords.map((r) => r.armada).filter(Boolean))).slice(0, 2).join(', ');
+
+        fetch('/api/notifications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: isTtb ? 'TTB_VALIDATED' : 'FSTB_VALIDATED',
+            title: isTtb ? '🛡️ Batch TTB Divalidasi & Disahkan' : '✍️ Batch FSTB Divalidasi & Ditandatangani',
+            message: `User ${user?.name || 'Pejabat Berwenang'} telah mengesahkan ${docCount} berkas ${activeDocType} (${sampleDocs}) secara massal. Berkas siap diproses ke tahap berikutnya.`,
+            senderName: user?.name || 'User Pengesah',
+            senderUsername: user?.username || 'user',
+            senderRole: user?.jabatan || user?.role || 'Pejabat Berwenang',
+            targetRole: isTtb ? 'staf_lapangan' : 'staf_ttb',
+            linkTab: isTtb ? 'serah-terima' : 'validasi-dokumen',
+            metadata: {
+              noTtb: isTtb ? sampleDocs : undefined,
+              noFstb: !isTtb ? sampleDocs : undefined,
+              armada: sampleArmada || undefined,
+            },
+          }),
+        }).catch(() => {});
+      } catch {}
+
       onClose();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Gagal memproses tanda tangan digital massal.';

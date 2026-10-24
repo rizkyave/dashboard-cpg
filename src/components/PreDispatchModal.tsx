@@ -228,6 +228,34 @@ export default function PreDispatchModal({
         );
       }
 
+      // Kirim Notifikasi In-App & WA Gateway: Barang Dalam Pengantaran
+      try {
+        fetch('/api/notifications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'TTB_DISPATCHED',
+            title: '🚚 Barang Berangkat / Dalam Pengantaran',
+            message: `Petugas ${courierName || 'Kurir Lapangan'} telah memverifikasi fisik barang dan memulai pengantaran TTB ${targetTtb.noTtb} ke ${targetTtb.armada || 'titik tujuan'}.`,
+            senderName: courierName || 'Petugas Lapangan',
+            senderUsername: courierName ? courierName.toLowerCase().replace(/\s+/g, '_') : 'kurir',
+            senderRole: 'Staf Lapangan',
+            targetRole: 'manager',
+            linkTab: 'serah-terima',
+            metadata: {
+              noTtb: targetTtb.noTtb,
+              armada: targetTtb.armada,
+              noPo: targetTtb.noPo,
+              noFpb: targetTtb.noFpb,
+              courierName: courierName || 'Petugas Lapangan',
+              itemSummary: targetTtb.itemSummary,
+              shippingMethod: 'Kurir Lapangan Internal',
+              notes: dispatchNotes.trim() || undefined,
+            },
+          }),
+        }).catch(() => {});
+      } catch {}
+
       onSuccess(data.record || payload);
       onClose();
     } catch (err) {

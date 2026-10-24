@@ -17,6 +17,7 @@ import { SerahTerimaItem } from '@/types/serahTerima';
 import { UploadedTtbItem } from '@/types/ttbUpload';
 import { RemoteHandoverTokenData, RemoteHandoverResponse } from '@/types/remoteHandover';
 import { PreDispatchChecklistData } from '@/types/preDispatch';
+import { AppNotification } from '@/types/notification';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -38,6 +39,43 @@ const LOCAL_VALIDATION_PATH = path.join(process.cwd(), 'src', 'data', 'document-
 
 const R2_PHOTO_MANIFEST_KEY = 'ttb-metadata/photos-manifest.json';
 const LOCAL_PHOTO_MANIFEST_PATH = path.join(process.cwd(), 'src', 'data', 'ttb-photos-manifest.json');
+
+const R2_NOTIFICATIONS_KEY = 'notifications-metadata/notifications.json';
+const LOCAL_NOTIFICATIONS_PATH = path.join(process.cwd(), 'src', 'data', 'notifications-data.json');
+
+async function appendRemoteHandoverNotification(notification: AppNotification) {
+  let list: AppNotification[] = [];
+  if (isR2Configured()) {
+    try {
+      const r2Obj = await getObjectFromR2(R2_NOTIFICATIONS_KEY);
+      if (r2Obj && r2Obj.body) {
+        list = JSON.parse(Buffer.from(r2Obj.body).toString('utf8'));
+      }
+    } catch {}
+  }
+  if (!list.length) {
+    try {
+      const raw = await fs.readFile(LOCAL_NOTIFICATIONS_PATH, 'utf8');
+      list = JSON.parse(raw);
+    } catch {}
+  }
+  list.unshift(notification);
+  const trimmed = list.slice(0, 150);
+  const jsonStr = JSON.stringify(trimmed, null, 2);
+  if (isR2Configured()) {
+    try {
+      await uploadToR2({
+        key: R2_NOTIFICATIONS_KEY,
+        body: Buffer.from(jsonStr, 'utf8'),
+        contentType: 'application/json',
+      });
+    } catch {}
+  }
+  try {
+    await fs.mkdir(path.dirname(LOCAL_NOTIFICATIONS_PATH), { recursive: true });
+    await fs.writeFile(LOCAL_NOTIFICATIONS_PATH, jsonStr, 'utf8');
+  } catch {}
+}
 
 // --- Helper Storage: Remote Handover Tokens ---
 
@@ -817,6 +855,38 @@ export async function PUT(req: NextRequest): Promise<NextResponse<RemoteHandover
 
     tokens[tokenIndex] = tokenRecord;
     await saveRemoteTokens(tokens);
+
+    // 8. Catat Notifikasi Serah Terima Selesai (Remote Area)
+    try {
+      const notifItem: AppNotification = {
+        id: `notif-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        type: 'SERAH_TERIMA_COMPLETED',
+        title: '✅ Serah Terima TTB Selesai (Remote / Pihak Ketiga)',
+        message: `Penerima ${receiverName || 'Kru Kapal'} (${receiverRole || 'Penerima'}) telah menandatangani & mengonfirmasi penerimaan TTB ${tokenRecord.noTtb} di ${tokenRecord.armada || 'armada/kapal'}.`,
+        senderName: receiverName || 'Penerima Kapal',
+        senderUsername: 'remote_receiver',
+        senderRole: receiverRole || 'Penerima Kapal',
+        targetRole: 'all',
+        linkTab: 'serah-terima',
+        createdAt: nowIso,
+        readBy: [],
+        metadata: {
+          noTtb: tokenRecord.noTtb,
+          armada: tokenRecord.armada,
+          noPo: tokenRecord.noPo,
+          noFpb: tokenRecord.noFpb,
+          recipientName: receiverName,
+          recipientRole: receiverRole,
+          shippingMethod: tokenRecord.shippingMethod,
+          carrierContact: tokenRecord.carrierContact,
+          itemSummary: tokenRecord.itemSummary,
+          notes: completionNotes || undefined,
+        },
+      };
+      await appendRemoteHandoverNotification(notifItem);
+    } catch (notifErr) {
+      console.warn('Gagal mencatat notifikasi serah terima remote:', notifErr);
+    }
 
     return NextResponse.json({
       success: true,

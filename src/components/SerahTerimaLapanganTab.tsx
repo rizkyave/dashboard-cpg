@@ -1271,6 +1271,34 @@ export default function SerahTerimaLapanganTab({
         setHistoryRecords((prev) => [data.record!, ...prev]);
       }
 
+      // Kirim Notifikasi In-App & WA Gateway: Serah Terima Selesai (4/4)
+      try {
+        fetch('/api/notifications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'SERAH_TERIMA_COMPLETED',
+            title: '✅ Serah Terima TTB Selesai (4/4)',
+            message: `Barang TTB ${targetNoTtb} telah diterima oleh ${penerimaNama.trim() || 'Penerima Kapal'} di ${targetArmada || 'titik serah terima'}. Dokumentasi dan tanda tangan penerima berhasil terekam.`,
+            senderName: petugasNama.trim() || 'Tim Lapangan CPG',
+            senderUsername: user?.username || 'lapangan',
+            senderRole: 'Staf Lapangan',
+            targetRole: 'manager',
+            linkTab: 'serah-terima',
+            metadata: {
+              noTtb: targetNoTtb,
+              armada: targetArmada,
+              noPo: targetPo,
+              noFpb: targetFpb,
+              recipientName: penerimaNama.trim(),
+              courierName: petugasNama.trim() || 'Tim Lapangan CPG',
+              itemSummary: targetItemSummary,
+              notes: catatan.trim() || undefined,
+            },
+          }),
+        }).catch(() => {});
+      } catch {}
+
       handleClearForm();
       // Beralih ke view riwayat agar pengguna melihat hasil upload
       setActiveView('history');

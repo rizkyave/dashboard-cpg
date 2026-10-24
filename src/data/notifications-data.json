@@ -1,5 +1,378 @@
 [
   {
+    "id": "notif-1792872527820-gh2y4",
+    "type": "FSTB_VALIDATED",
+    "title": "✍️ FSTB Divalidasi & Ditandatangani",
+    "message": "User RAHMAHWATI telah mengesahkan FSTB HL-FSTB-26-01913 (TK CPL 250). Berkas siap dilanjutkan ke proses TTB.",
+    "senderName": "RAHMAHWATI",
+    "senderUsername": "rahmahwati",
+    "senderRole": "supervisor",
+    "targetRole": "staf_ttb",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noFstb": "HL-FSTB-26-01913",
+      "armada": "TK CPL 250",
+      "noPo": "HL-PO-26-01693",
+      "noFpb": "HL-FPB-26-0001434"
+    },
+    "createdAt": "2026-10-24T20:08:47.820Z",
+    "readBy": [
+      "agussalim",
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1792872507016-drapu",
+    "type": "FSTB_VALIDATED",
+    "title": "✍️ FSTB Divalidasi & Ditandatangani",
+    "message": "User Hermansyah telah mengesahkan FSTB HL-FSTB-26-01913 (TK CPL 250). Berkas siap dilanjutkan ke proses TTB.",
+    "senderName": "Hermansyah",
+    "senderUsername": "hermansyahz",
+    "senderRole": "supervisor",
+    "targetRole": "staf_ttb",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noFstb": "HL-FSTB-26-01913",
+      "armada": "TK CPL 250",
+      "noPo": "HL-PO-26-01693",
+      "noFpb": "HL-FPB-26-0001434"
+    },
+    "createdAt": "2026-10-24T20:08:27.016Z",
+    "readBy": [
+      "agussalim",
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1792872461587-tklrz",
+    "type": "FSTB_VALIDATED",
+    "title": "✍️ FSTB Divalidasi & Ditandatangani",
+    "message": "User DAVILA ZALIANTI PUTRI telah mengesahkan FSTB HL-FSTB-26-01913 (TK CPL 250). Berkas siap dilanjutkan ke proses TTB.",
+    "senderName": "DAVILA ZALIANTI PUTRI",
+    "senderUsername": "davila.zalianti",
+    "senderRole": "staf_ttb",
+    "targetRole": "staf_ttb",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noFstb": "HL-FSTB-26-01913",
+      "armada": "TK CPL 250",
+      "noPo": "HL-PO-26-01693",
+      "noFpb": "HL-FPB-26-0001434"
+    },
+    "createdAt": "2026-10-24T20:07:41.587Z",
+    "readBy": [
+      "agussalim",
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1792872423929-adbi1",
+    "type": "FSTB_UPLOADED",
+    "title": "📦 Dokumen FSTB Baru Siap Diproses TTB",
+    "message": "User PUTRI RIYANI telah mengunggah 1 berkas FSTB HL-FSTB-26-01913 (TK CPL 250). Mohon diproses untuk persiapan penerimaan & TTB.",
+    "senderName": "PUTRI RIYANI",
+    "senderUsername": "putri.riyani",
+    "senderRole": "staf_purchasing",
+    "targetRole": "staf_ttb",
+    "linkTab": "monitoring-internal",
+    "metadata": {
+      "noFstb": "HL-FSTB-26-01913",
+      "armada": "TK CPL 250",
+      "noPo": "HL-PO-26-01693",
+      "noFpb": "HL-FPB-26-0001434",
+      "fileCount": 1,
+      "renamedFileName": "HL-FSTB-26-01913.pdf",
+      "fileUrl": "/api/r2-file?key=fstb-documents%2FHL-FSTB-26-01913.pdf"
+    },
+    "createdAt": "2026-10-24T20:07:03.929Z",
+    "readBy": [
+      "agussalim",
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1792867627861-gpz5u",
+    "type": "FSTB_VALIDATED",
+    "title": "✍️ FSTB Divalidasi & Ditandatangani",
+    "message": "User Hermansyah telah mengesahkan FSTB CPL-FSTB-26-06345 (TB KING STAR). Berkas siap dilanjutkan ke proses TTB.",
+    "senderName": "Hermansyah",
+    "senderUsername": "hermansyahz",
+    "senderRole": "supervisor",
+    "targetRole": "staf_ttb",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noFstb": "CPL-FSTB-26-06345",
+      "armada": "TB KING STAR",
+      "noPo": "CPL-PO-26-05649",
+      "noFpb": "CPL-FPB-26-0004837"
+    },
+    "createdAt": "2026-10-24T18:47:07.861Z",
+    "readBy": [
+      "agussalim",
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1792867610517-zi9iv",
+    "type": "FSTB_VALIDATED",
+    "title": "✍️ FSTB Divalidasi & Ditandatangani",
+    "message": "User RAHMAHWATI telah mengesahkan FSTB CPL-FSTB-26-06345 (TB KING STAR). Berkas siap dilanjutkan ke proses TTB.",
+    "senderName": "RAHMAHWATI",
+    "senderUsername": "rahmahwati",
+    "senderRole": "supervisor",
+    "targetRole": "staf_ttb",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noFstb": "CPL-FSTB-26-06345",
+      "armada": "TB KING STAR",
+      "noPo": "CPL-PO-26-05649",
+      "noFpb": "CPL-FPB-26-0004837"
+    },
+    "createdAt": "2026-10-24T18:46:50.517Z",
+    "readBy": [
+      "agussalim",
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1792867596209-qv8g1",
+    "type": "FSTB_VALIDATED",
+    "title": "✍️ FSTB Divalidasi & Ditandatangani",
+    "message": "User DAVILA ZALIANTI PUTRI telah mengesahkan FSTB CPL-FSTB-26-06345 (TB KING STAR). Berkas siap dilanjutkan ke proses TTB.",
+    "senderName": "DAVILA ZALIANTI PUTRI",
+    "senderUsername": "davila.zalianti",
+    "senderRole": "staf_ttb",
+    "targetRole": "staf_ttb",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noFstb": "CPL-FSTB-26-06345",
+      "armada": "TB KING STAR",
+      "noPo": "CPL-PO-26-05649",
+      "noFpb": "CPL-FPB-26-0004837"
+    },
+    "createdAt": "2026-10-24T18:46:36.209Z",
+    "readBy": [
+      "agussalim",
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1792867554480-p77b0",
+    "type": "FSTB_UPLOADED",
+    "title": "📦 Dokumen FSTB Baru Siap Diproses TTB",
+    "message": "User TRI WIDIYANTO telah mengunggah 1 berkas FSTB CPL-FSTB-26-06345 (TB KING STAR). Mohon diproses untuk persiapan penerimaan & TTB.",
+    "senderName": "TRI WIDIYANTO",
+    "senderUsername": "tri.widiyanto",
+    "senderRole": "staf_purchasing",
+    "targetRole": "staf_ttb",
+    "linkTab": "monitoring-internal",
+    "metadata": {
+      "noFstb": "CPL-FSTB-26-06345",
+      "armada": "TB KING STAR",
+      "noPo": "CPL-PO-26-05649",
+      "noFpb": "CPL-FPB-26-0004837",
+      "fileCount": 1,
+      "renamedFileName": "CPL-FSTB-26-06345.pdf",
+      "fileUrl": "/api/r2-file?key=fstb-documents%2FCPL-FSTB-26-06345.pdf"
+    },
+    "createdAt": "2026-10-24T18:45:54.480Z",
+    "readBy": [
+      "agussalim",
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1792863496105-dkvig",
+    "type": "FSTB_VALIDATED",
+    "title": "✍️ FSTB Divalidasi & Ditandatangani",
+    "message": "User Hermansyah telah mengesahkan FSTB GAJ-FSTB-26-01224 (OFFICE GAJ). Berkas siap dilanjutkan ke proses TTB.",
+    "senderName": "Hermansyah",
+    "senderUsername": "hermansyahz",
+    "senderRole": "supervisor",
+    "targetRole": "staf_ttb",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noFstb": "GAJ-FSTB-26-01224",
+      "armada": "OFFICE GAJ",
+      "noPo": "GAJ-PO-26-01165",
+      "noFpb": "GAJ-FPB-26-0001020"
+    },
+    "createdAt": "2026-10-24T17:38:16.105Z",
+    "readBy": [
+      "davila.zalianti",
+      "agussalim",
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1792863452489-cgdpb",
+    "type": "FSTB_VALIDATED",
+    "title": "✍️ FSTB Divalidasi & Ditandatangani",
+    "message": "User RAHMAHWATI telah mengesahkan FSTB GAJ-FSTB-26-01224 (OFFICE GAJ). Berkas siap dilanjutkan ke proses TTB.",
+    "senderName": "RAHMAHWATI",
+    "senderUsername": "rahmahwati",
+    "senderRole": "supervisor",
+    "targetRole": "staf_ttb",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noFstb": "GAJ-FSTB-26-01224",
+      "armada": "OFFICE GAJ",
+      "noPo": "GAJ-PO-26-01165",
+      "noFpb": "GAJ-FPB-26-0001020"
+    },
+    "createdAt": "2026-10-24T17:37:32.489Z",
+    "readBy": [
+      "davila.zalianti",
+      "agussalim",
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1792863381597-budvs",
+    "type": "FSTB_VALIDATED",
+    "title": "✍️ FSTB Divalidasi & Ditandatangani",
+    "message": "User DAVILA ZALIANTI PUTRI telah mengesahkan FSTB GAJ-FSTB-26-01224 (OFFICE GAJ). Berkas siap dilanjutkan ke proses TTB.",
+    "senderName": "DAVILA ZALIANTI PUTRI",
+    "senderUsername": "davila.zalianti",
+    "senderRole": "staf_ttb",
+    "targetRole": "staf_ttb",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noFstb": "GAJ-FSTB-26-01224",
+      "armada": "OFFICE GAJ",
+      "noPo": "GAJ-PO-26-01165",
+      "noFpb": "GAJ-FPB-26-0001020"
+    },
+    "createdAt": "2026-10-24T17:36:21.597Z",
+    "readBy": [
+      "davila.zalianti",
+      "agussalim",
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1792863264449-5ta9u",
+    "type": "FSTB_UPLOADED",
+    "title": "📦 Dokumen FSTB Baru Siap Diproses TTB",
+    "message": "User ELSA MARDHIYAH DEKA PUTRI telah mengunggah 1 berkas FSTB GAJ-FSTB-26-01224 (OFFICE GAJ). Mohon diproses untuk persiapan penerimaan & TTB.",
+    "senderName": "ELSA MARDHIYAH DEKA PUTRI",
+    "senderUsername": "elsa.mardhiyah",
+    "senderRole": "staf_purchasing",
+    "targetRole": "staf_ttb",
+    "linkTab": "monitoring-internal",
+    "metadata": {
+      "noFstb": "GAJ-FSTB-26-01224",
+      "armada": "OFFICE GAJ",
+      "noPo": "GAJ-PO-26-01165",
+      "noFpb": "GAJ-FPB-26-0001020",
+      "fileCount": 1,
+      "renamedFileName": "GAJ-FSTB-26-01224.pdf",
+      "fileUrl": "/api/r2-file?key=fstb-documents%2FGAJ-FSTB-26-01224.pdf"
+    },
+    "createdAt": "2026-10-24T17:34:24.449Z",
+    "readBy": [
+      "davila.zalianti",
+      "agussalim",
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1792859223261-l6eyy",
+    "type": "FSTB_VALIDATED",
+    "title": "✍️ FSTB Divalidasi & Ditandatangani",
+    "message": "User Hermansyah telah mengesahkan FSTB MIL-FSTB-26-00064 (MT DOMINO). Berkas siap dilanjutkan ke proses TTB.",
+    "senderName": "Hermansyah",
+    "senderUsername": "hermansyahz",
+    "senderRole": "supervisor",
+    "targetRole": "staf_ttb",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noFstb": "MIL-FSTB-26-00064",
+      "armada": "MT DOMINO",
+      "noPo": "MIL-PO-26-00063",
+      "noFpb": "MIL-FPB-26-00000060"
+    },
+    "createdAt": "2026-10-24T16:27:03.261Z",
+    "readBy": [
+      "davila.zalianti",
+      "agussalim",
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1792859172040-jx5ob",
+    "type": "FSTB_VALIDATED",
+    "title": "✍️ FSTB Divalidasi & Ditandatangani",
+    "message": "User RAHMAHWATI telah mengesahkan FSTB MIL-FSTB-26-00064 (MT DOMINO). Berkas siap dilanjutkan ke proses TTB.",
+    "senderName": "RAHMAHWATI",
+    "senderUsername": "rahmahwati",
+    "senderRole": "supervisor",
+    "targetRole": "staf_ttb",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noFstb": "MIL-FSTB-26-00064",
+      "armada": "MT DOMINO",
+      "noPo": "MIL-PO-26-00063",
+      "noFpb": "MIL-FPB-26-00000060"
+    },
+    "createdAt": "2026-10-24T16:26:12.040Z",
+    "readBy": [
+      "davila.zalianti",
+      "agussalim",
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1792859109995-9ya8f",
+    "type": "FSTB_VALIDATED",
+    "title": "✍️ FSTB Divalidasi & Ditandatangani",
+    "message": "User IDHAM KHALID telah mengesahkan FSTB MIL-FSTB-26-00064 (MT DOMINO). Berkas siap dilanjutkan ke proses TTB.",
+    "senderName": "IDHAM KHALID",
+    "senderUsername": "idham.khalid",
+    "senderRole": "staf_ttb",
+    "targetRole": "staf_ttb",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noFstb": "MIL-FSTB-26-00064",
+      "armada": "MT DOMINO",
+      "noPo": "MIL-PO-26-00063",
+      "noFpb": "MIL-FPB-26-00000060"
+    },
+    "createdAt": "2026-10-24T16:25:09.995Z",
+    "readBy": [
+      "davila.zalianti",
+      "agussalim",
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1792859020874-9s3oc",
+    "type": "FSTB_UPLOADED",
+    "title": "📦 Dokumen FSTB Baru Siap Diproses TTB",
+    "message": "User NURHAYATI telah mengunggah 1 berkas FSTB MIL-FSTB-26-00064 (MT DOMINO). Mohon diproses untuk persiapan penerimaan & TTB.",
+    "senderName": "NURHAYATI",
+    "senderUsername": "nurhayati",
+    "senderRole": "staf_purchasing",
+    "targetRole": "staf_ttb",
+    "linkTab": "monitoring-internal",
+    "metadata": {
+      "noFstb": "MIL-FSTB-26-00064",
+      "armada": "MT DOMINO",
+      "noPo": "MIL-PO-26-00063",
+      "noFpb": "MIL-FPB-26-00000060",
+      "fileCount": 1,
+      "renamedFileName": "MIL-FSTB-26-00064.pdf",
+      "fileUrl": "/api/r2-file?key=fstb-documents%2FMIL-FSTB-26-00064.pdf"
+    },
+    "createdAt": "2026-10-24T16:23:40.874Z",
+    "readBy": [
+      "idham.khalid",
+      "davila.zalianti",
+      "agussalim",
+      "admin"
+    ]
+  },
+  {
     "id": "notif-1792855659914-lh6nh",
     "type": "FSTB_VALIDATED",
     "title": "✍️ FSTB Divalidasi & Ditandatangani",
@@ -16,7 +389,11 @@
       "noFpb": "HL-FPB-26-0001417"
     },
     "createdAt": "2026-10-24T15:27:39.914Z",
-    "readBy": []
+    "readBy": [
+      "davila.zalianti",
+      "agussalim",
+      "admin"
+    ]
   },
   {
     "id": "notif-1792855609122-qxf24",
@@ -35,7 +412,11 @@
       "noFpb": "GAJ-FPB-26-0001060"
     },
     "createdAt": "2026-10-24T15:26:49.122Z",
-    "readBy": []
+    "readBy": [
+      "davila.zalianti",
+      "agussalim",
+      "admin"
+    ]
   },
   {
     "id": "notif-1792759845182-61oej",
@@ -59,7 +440,9 @@
     "createdAt": "2026-10-23T12:50:45.182Z",
     "readBy": [
       "admin",
-      "hadi.sunaryo"
+      "hadi.sunaryo",
+      "davila.zalianti",
+      "agussalim"
     ]
   },
   {
@@ -84,7 +467,9 @@
     "createdAt": "2026-10-23T12:50:40.509Z",
     "readBy": [
       "admin",
-      "hadi.sunaryo"
+      "hadi.sunaryo",
+      "davila.zalianti",
+      "agussalim"
     ]
   },
   {
@@ -108,7 +493,9 @@
     "createdAt": "2026-10-23T12:50:35.423Z",
     "readBy": [
       "admin",
-      "hadi.sunaryo"
+      "hadi.sunaryo",
+      "davila.zalianti",
+      "agussalim"
     ]
   }
 ]

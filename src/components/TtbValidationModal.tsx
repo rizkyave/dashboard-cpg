@@ -413,6 +413,31 @@ export default function TtbValidationModal({
         );
       }
 
+      // Kirim Notifikasi In-App & WA Gateway bahwa TTB telah divalidasi dan siap untuk serah terima lapangan
+      try {
+        fetch('/api/notifications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'TTB_VALIDATED',
+            title: '🛡️ TTB Divalidasi & Disahkan',
+            message: `User ${user?.name || 'Manager'} telah mengesahkan dokumen TTB ${record.docNumber} (${record.armada || 'Kapal/Unit'}). Berkas siap untuk proses serah terima di lapangan.`,
+            senderName: user?.name || 'User Pengesah',
+            senderUsername: user?.username || 'user',
+            senderRole: user?.jabatan || user?.role || 'Manager/Atasan',
+            targetRole: 'staf_lapangan',
+            linkTab: 'serah-terima',
+            metadata: {
+              noTtb: record.docNumber,
+              armada: record.armada,
+              noPo: record.poNumber,
+              noFpb: record.fpbNumber,
+              itemSummary: (record as Record<string, any>).itemDetails || (record as Record<string, any>).itemSummary,
+            },
+          }),
+        }).catch(() => {});
+      } catch {}
+
       // Reset pilihan checklist
       setSelectedSlots({
         deliveredBy: false,

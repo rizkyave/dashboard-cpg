@@ -3,6 +3,8 @@ export type NotificationType =
   | 'FSTB_VALIDATED'
   | 'TTB_UPLOADED'
   | 'TTB_VALIDATED'
+  | 'TTB_DISPATCHED'
+  | 'SERAH_TERIMA_COMPLETED'
   | 'SYSTEM_INFO';
 
 export interface AppNotification {
@@ -13,14 +15,21 @@ export interface AppNotification {
   senderName: string;
   senderUsername: string;
   senderRole?: string;
-  targetRole?: string; // e.g. 'staf_ttb', 'all', etc.
+  targetRole?: string; // e.g. 'staf_ttb', 'staf_lapangan', 'all', etc.
   targetUsers?: string[]; // optional specific usernames
-  linkTab?: string; // Tab to navigate to, e.g. 'monitoring-internal', 'validasi-dokumen', 'upload-fstb'
+  linkTab?: string; // Tab to navigate to: 'monitoring-internal', 'validasi-dokumen', 'upload-fstb', 'upload-ttb', 'serah-terima'
   metadata?: {
     noFstb?: string;
+    noTtb?: string;
     noPo?: string;
     noFpb?: string;
     armada?: string;
+    itemSummary?: string;
+    recipientName?: string;
+    recipientRole?: string;
+    courierName?: string;
+    carrierContact?: string;
+    shippingMethod?: string;
     fileUrl?: string;
     renamedFileName?: string;
     [key: string]: any;
@@ -36,4 +45,3 @@ export interface WaGatewayConfig {
   groupTarget?: string;
   enabled: boolean;
 }
-

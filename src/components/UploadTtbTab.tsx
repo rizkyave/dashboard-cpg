@@ -615,6 +615,33 @@ export default function UploadTtbTab({
           'success'
         );
 
+        // Kirim Notifikasi In-App & WA Gateway: Dokumen TTB Baru Diunggah
+        try {
+          const sampleTtbs = newlyUploaded.map((u) => u.noTtb).slice(0, 3).join(', ') + (newlyUploaded.length > 3 ? ` (+${newlyUploaded.length - 3} lainnya)` : '');
+          const sampleArmada = Array.from(new Set(newlyUploaded.map((u) => u.armada).filter(Boolean))).join(', ');
+          const samplePo = Array.from(new Set(newlyUploaded.map((u) => u.noPo).filter(Boolean))).join(', ');
+
+          fetch('/api/notifications', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'TTB_UPLOADED',
+              title: '📦 Dokumen TTB Baru Siap Divalidasi',
+              message: `User ${uploaderName || user?.name || 'Staf Logistik'} telah mengunggah ${newlyUploaded.length} berkas TTB (${sampleTtbs}). Mohon diproses untuk pengesahan & validasi digital.`,
+              senderName: uploaderName || user?.name || 'Staf Logistik',
+              senderUsername: user?.username || 'user',
+              senderRole: user?.role || 'logistik',
+              targetRole: 'manager',
+              linkTab: 'validasi-dokumen',
+              metadata: {
+                noTtb: sampleTtbs,
+                armada: sampleArmada || undefined,
+                noPo: samplePo || undefined,
+              },
+            }),
+          }).catch(() => {});
+        } catch {}
+
         // Bersihkan antrean yang baru diunggah
         const uploadedIds = new Set(targetQueue.map((t) => t.id));
         setQueue((prev) => {

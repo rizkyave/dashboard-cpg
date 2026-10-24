@@ -5,11 +5,17 @@ import {
   Bell,
   Check,
   CheckCheck,
+  CheckCircle2,
+  Clock,
   ExternalLink,
+  FileSignature,
+  FileText,
   MessageCircle,
   Package,
-  Clock,
+  PackageCheck,
+  ShieldCheck,
   Sparkles,
+  Truck,
   X,
 } from 'lucide-react';
 import { AppNotification } from '@/types/notification';
@@ -203,20 +209,71 @@ export default function NotificationBell({ onNavigateTab, showToast }: Notificat
                 <Sparkles className="size-8 mx-auto mb-2 opacity-30 text-emerald-500" />
                 <p className="text-xs font-medium text-foreground">Tidak Ada Notifikasi Baru</p>
                 <p className="text-[11px] mt-1">
-                  Saat ada dokumen FSTB baru yang diunggah oleh Purchasing, info pekerjaan akan muncul di sini.
+                  Saat ada dokumen FSTB, TTB, atau serah terima lapangan baru, info pekerjaan akan muncul di sini.
                 </p>
               </div>
             ) : (
               notifications.map((notif) => {
                 const isUnread = !user || !notif.readBy.includes(user.username);
                 const waLink = generateDirectWaLink({
-                  noFstb: notif.metadata?.noFstb || '-',
+                  type: notif.type,
+                  noFstb: notif.metadata?.noFstb,
+                  noTtb: notif.metadata?.noTtb,
+                  armada: notif.metadata?.armada,
                   noPo: notif.metadata?.noPo,
                   noFpb: notif.metadata?.noFpb,
-                  armada: notif.metadata?.armada,
                   uploaderName: notif.senderName,
                   uploaderRole: notif.senderRole,
+                  itemSummary: notif.metadata?.itemSummary,
+                  recipientName: notif.metadata?.recipientName,
+                  recipientRole: notif.metadata?.recipientRole,
+                  courierName: notif.metadata?.courierName,
+                  carrierContact: notif.metadata?.carrierContact,
+                  shippingMethod: notif.metadata?.shippingMethod,
+                  notes: notif.metadata?.notes,
                 });
+
+                const getIconConfig = () => {
+                  switch (notif.type) {
+                    case 'FSTB_UPLOADED':
+                      return {
+                        icon: <Package className="size-4" />,
+                        className: 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
+                      };
+                    case 'FSTB_VALIDATED':
+                      return {
+                        icon: <FileSignature className="size-4" />,
+                        className: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400',
+                      };
+                    case 'TTB_UPLOADED':
+                      return {
+                        icon: <PackageCheck className="size-4" />,
+                        className: 'bg-blue-500/15 text-blue-600 dark:text-blue-400',
+                      };
+                    case 'TTB_VALIDATED':
+                      return {
+                        icon: <ShieldCheck className="size-4" />,
+                        className: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400',
+                      };
+                    case 'TTB_DISPATCHED':
+                      return {
+                        icon: <Truck className="size-4" />,
+                        className: 'bg-sky-500/15 text-sky-600 dark:text-sky-400',
+                      };
+                    case 'SERAH_TERIMA_COMPLETED':
+                      return {
+                        icon: <CheckCircle2 className="size-4" />,
+                        className: 'bg-teal-500/15 text-teal-600 dark:text-teal-400',
+                      };
+                    default:
+                      return {
+                        icon: <Package className="size-4" />,
+                        className: 'bg-primary/15 text-primary',
+                      };
+                  }
+                };
+
+                const iconCfg = getIconConfig();
 
                 return (
                   <div
@@ -229,13 +286,9 @@ export default function NotificationBell({ onNavigateTab, showToast }: Notificat
                     {/* Icon Indikator */}
                     <div className="shrink-0 mt-0.5">
                       <div
-                        className={`size-8 rounded-xl flex items-center justify-center ${
-                          notif.type === 'FSTB_UPLOADED'
-                            ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
-                            : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-                        }`}
+                        className={`size-8 rounded-xl flex items-center justify-center ${iconCfg.className}`}
                       >
-                        <Package className="size-4" />
+                        {iconCfg.icon}
                       </div>
                     </div>
 
