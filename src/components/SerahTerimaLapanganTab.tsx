@@ -37,6 +37,7 @@ import {
   RotateCcw,
   Upload,
   Lock,
+  Tablet,
 } from 'lucide-react';
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
 import { SisaLayananItem } from '@/types/sisaLayanan';
@@ -274,6 +275,33 @@ export default function SerahTerimaLapanganTab({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [uploadProgressMsg, setUploadProgressMsg] = useState<string>('');
   const [lastSubmittedRecord, setLastSubmittedRecord] = useState<SerahTerimaItem | null>(null);
+
+  // --- MODE KHUSUS TABLET / IPAD KIOSK LAPANGAN ---
+  const [isTabletMode, setIsTabletMode] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('cpg_serah_terima_tablet_mode') === 'true';
+    }
+    return false;
+  });
+
+  const toggleTabletMode = () => {
+    setIsTabletMode((prev) => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('cpg_serah_terima_tablet_mode', String(next));
+      }
+      return next;
+    });
+  };
+
+  const toggleBrowserFullscreen = () => {
+    if (typeof document === 'undefined') return;
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+  };
 
   // --- DIGITAL SIGNATURE EVIDENCE STATE (PENERIMA AKHIR) ---
   const sigCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -1269,7 +1297,57 @@ export default function SerahTerimaLapanganTab({
   }, [selectedTtbRef, isManualTtb, manualNoTtb, manualArmada]);
 
   return (
-    <div className="space-y-5 animate-in fade-in duration-200">
+    <div
+      className={
+        isTabletMode
+          ? 'fixed inset-0 z-50 overflow-y-auto bg-slate-950 p-3 sm:p-5 lg:p-7 space-y-5 animate-in fade-in duration-200'
+          : 'space-y-5 animate-in fade-in duration-200'
+      }
+    >
+      {/* Tablet / iPad Dedicated Kiosk Bar (Muncul saat Mode Tablet Aktif) */}
+      {isTabletMode && (
+        <div className="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-md border-2 border-cyan-500/50 rounded-3xl p-3 sm:p-4.5 shadow-2xl flex items-center justify-between gap-3 text-white ring-4 ring-cyan-500/10">
+          <div className="flex items-center gap-3">
+            <div className="size-11 rounded-2xl bg-cyan-500/25 border-2 border-cyan-400/50 flex items-center justify-center text-cyan-300 shadow-inner">
+              <Tablet className="size-6 stroke-[2.2]" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm sm:text-base lg:text-lg font-black text-white tracking-wide">
+                  Mode Tablet / iPad Kiosk Lapangan
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-black bg-cyan-500/25 text-cyan-300 border border-cyan-400/50 animate-pulse">
+                  LAYAR PENUH AKTIF
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 hidden sm:block mt-0.5">
+                Navigasi sidebar dinonaktifkan sementara. Layar 100% difokuskan untuk verifikasi fisik, kamera, dan TTD kru kapal.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleBrowserFullscreen}
+              className="px-3.5 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-xs sm:text-sm font-bold text-slate-200 border border-slate-700 flex items-center gap-2 transition cursor-pointer shadow-xs"
+              title="Aktifkan Layar Penuh Perangkat"
+            >
+              <Maximize2 className="size-4 text-cyan-400" />
+              <span className="hidden sm:inline">Fullscreen Layar</span>
+            </button>
+            <button
+              type="button"
+              onClick={toggleTabletMode}
+              className="px-4 py-2.5 rounded-2xl bg-rose-500/25 hover:bg-rose-500/35 active:scale-95 text-xs sm:text-sm font-black text-rose-300 border border-rose-500/50 flex items-center gap-2 transition cursor-pointer shadow-xs"
+              title="Keluar dari mode tablet dan kembali ke tampilan normal"
+            >
+              <X className="size-4" />
+              <span>Keluar Tablet</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Top Banner - Tim Lapangan Delivery Portal */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border-2 border-indigo-500/40 p-6 sm:p-7 shadow-2xl text-white">
         <div className="absolute top-0 right-0 -mr-16 -mt-16 size-72 rounded-full bg-cyan-500/15 blur-3xl pointer-events-none" />
@@ -1322,32 +1400,58 @@ export default function SerahTerimaLapanganTab({
           </div>
         </div>
 
-        {/* View Switcher Tabs (Ekstra Besar & Kontras Ramah Petugas Lapangan) */}
-        <div className="relative z-10 flex flex-wrap items-center gap-3 mt-6 pt-5 border-t border-slate-800/80">
-          <button
-            onClick={() => setActiveView('form')}
-            className={`px-5 sm:px-6 py-3 rounded-2xl text-sm sm:text-base font-black flex items-center gap-2.5 transition-all shadow-md cursor-pointer ${
-              activeView === 'form'
-                ? 'bg-cyan-400 hover:bg-cyan-300 text-slate-950 shadow-cyan-500/30 ring-2 ring-cyan-300'
-                : 'bg-slate-800/80 text-slate-200 hover:bg-slate-800 hover:text-white border border-slate-700'
-            }`}
-          >
-            <Plus className="size-5 stroke-[2.5]" />
-            <span>Form Input Serah Terima Baru</span>
-          </button>
+        {/* View Switcher Tabs & Mode Tablet Toggle */}
+        <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 mt-6 pt-5 border-t border-slate-800/80">
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => setActiveView('form')}
+              className={`px-5 sm:px-6 py-3 rounded-2xl text-sm sm:text-base font-black flex items-center gap-2.5 transition-all shadow-md cursor-pointer ${
+                activeView === 'form'
+                  ? 'bg-cyan-400 hover:bg-cyan-300 text-slate-950 shadow-cyan-500/30 ring-2 ring-cyan-300'
+                  : 'bg-slate-800/80 text-slate-200 hover:bg-slate-800 hover:text-white border border-slate-700'
+              }`}
+            >
+              <Plus className="size-5 stroke-[2.5]" />
+              <span>Form Input Serah Terima Baru</span>
+            </button>
 
+            <button
+              onClick={() => setActiveView('history')}
+              className={`px-5 sm:px-6 py-3 rounded-2xl text-sm sm:text-base font-black flex items-center gap-2.5 transition-all shadow-md cursor-pointer ${
+                activeView === 'history'
+                  ? 'bg-cyan-400 hover:bg-cyan-300 text-slate-950 shadow-cyan-500/30 ring-2 ring-cyan-300'
+                  : 'bg-slate-800/80 text-slate-200 hover:bg-slate-800 hover:text-white border border-slate-700'
+              }`}
+            >
+              <Clock className="size-5 stroke-[2.5]" />
+              <span>Riwayat Pengantaran Lapangan</span>
+              <span className="px-2 py-0.5 rounded-full text-xs font-mono font-black bg-slate-900/80 text-cyan-300 border border-cyan-500/40">
+                {historyRecords.length}
+              </span>
+            </button>
+          </div>
+
+          {/* Tombol Khusus Mode Tablet / iPad Kiosk */}
           <button
-            onClick={() => setActiveView('history')}
-            className={`px-5 sm:px-6 py-3 rounded-2xl text-sm sm:text-base font-black flex items-center gap-2.5 transition-all shadow-md cursor-pointer ${
-              activeView === 'history'
-                ? 'bg-cyan-400 hover:bg-cyan-300 text-slate-950 shadow-cyan-500/30 ring-2 ring-cyan-300'
-                : 'bg-slate-800/80 text-slate-200 hover:bg-slate-800 hover:text-white border border-slate-700'
+            type="button"
+            onClick={toggleTabletMode}
+            className={`px-5 sm:px-6 py-3 rounded-2xl text-sm sm:text-base font-black flex items-center gap-2.5 transition-all shadow-lg cursor-pointer ${
+              isTabletMode
+                ? 'bg-emerald-400 hover:bg-emerald-300 text-slate-950 shadow-emerald-500/30 ring-2 ring-emerald-300'
+                : 'bg-gradient-to-r from-cyan-500/20 to-indigo-500/20 hover:from-cyan-500/30 hover:to-indigo-500/30 text-cyan-300 border-2 border-cyan-500/50 hover:border-cyan-400'
             }`}
+            title="Buka Mode Tablet / iPad (Layar Penuh Tanpa Sidebar Navigasi untuk Penggunaan Lapangan)"
           >
-            <Clock className="size-5 stroke-[2.5]" />
-            <span>Riwayat Pengantaran Lapangan</span>
-            <span className="px-2 py-0.5 rounded-full text-xs font-mono font-black bg-slate-900/80 text-cyan-300 border border-cyan-500/40">
-              {historyRecords.length}
+            <Tablet className="size-5 stroke-[2.5]" />
+            <span>{isTabletMode ? 'Tampilan Standar' : 'Mode Tablet / iPad'}</span>
+            <span
+              className={`px-2 py-0.5 rounded-full text-xs font-mono font-black border ${
+                isTabletMode
+                  ? 'bg-slate-950 text-emerald-300 border-slate-800'
+                  : 'bg-cyan-500/30 text-cyan-200 border-cyan-400/50'
+              }`}
+            >
+              {isTabletMode ? 'ON' : 'Kiosk'}
             </span>
           </button>
         </div>
@@ -2131,7 +2235,34 @@ export default function SerahTerimaLapanganTab({
                       </label>
 
                       {matchedCrewList.length > 0 && !isManualPenerima ? (
-                        <div className="space-y-2">
+                        <div className="space-y-2.5">
+                          {/* Tap Cepat Kru untuk Tablet/iPad */}
+                          <div className="flex flex-wrap items-center gap-1.5 pb-1">
+                            <span className="text-xs font-black text-muted-foreground mr-1 flex items-center gap-1">
+                              <span>⚓</span>
+                              <span>Pilih Cepat:</span>
+                            </span>
+                            {matchedCrewList.slice(0, 4).map((crew) => {
+                              const isSelected = selectedCrewId === crew.id;
+                              return (
+                                <button
+                                  key={crew.id}
+                                  type="button"
+                                  onClick={() => handleSelectCrew(String(crew.id))}
+                                  className={`px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all border flex items-center gap-1.5 active:scale-95 cursor-pointer shadow-2xs ${
+                                    isSelected
+                                      ? 'bg-emerald-600 text-white border-emerald-500 ring-2 ring-emerald-500/30'
+                                      : 'bg-emerald-500/10 text-emerald-800 dark:text-emerald-200 border-emerald-500/30 hover:bg-emerald-500/20'
+                                  }`}
+                                >
+                                  <span>{crew.jabatan}</span>
+                                  <span className="opacity-60">•</span>
+                                  <span>{crew.namaPersonel}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+
                           <select
                             value={selectedCrewId}
                             onChange={(e) => handleSelectCrew(e.target.value)}
