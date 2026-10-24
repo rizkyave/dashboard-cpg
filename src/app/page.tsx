@@ -77,7 +77,7 @@ import AuditModal from '@/components/AuditModal';
 import NewRecordModal from '@/components/NewRecordModal';
 import LoginPage from '@/components/LoginPage';
 import { useAuth } from '@/context/AuthContext';
-import { canAccessTab, getRoleDisplayName } from '@/types/auth';
+import { canAccessTab, getRoleDisplayName, getDefaultTabForRole } from '@/types/auth';
 
 import ToastNotification from '@/components/ToastNotification';
 import { PanelLeftOpen, ChevronDown } from 'lucide-react';
@@ -721,16 +721,24 @@ export default function DashboardPage() {
     }, 3500);
   };
 
-  // RBAC Tab Route Guard: Reset to 'overview' if activeTab is not permitted for active role
+  // RBAC Tab Route Guard: Reset to role's authorized default tab if activeTab is not permitted
   useEffect(() => {
     if (user && !canAccessTab(user.role, activeTab)) {
-      setActiveTab('overview');
+      const targetTab = getDefaultTabForRole(user.role);
+      setActiveTab(targetTab);
       showToast(
-        `Akses ke modul "${activeTab}" dibatasi untuk peran ${getRoleDisplayName(user.role)}. Dialihkan ke Overview.`,
+        `Akses ke modul "${activeTab}" dibatasi untuk peran ${getRoleDisplayName(user.role)}. Dialihkan ke menu utama Anda.`,
         'warning'
       );
     }
   }, [user, activeTab]);
+
+  // Initial landing tab sync when user logs in or role is identified
+  useEffect(() => {
+    if (user && !canAccessTab(user.role, activeTab)) {
+      setActiveTab(getDefaultTabForRole(user.role));
+    }
+  }, [user]);
 
   // Filtered dataset
   const filteredProcurement = useMemo(() => {

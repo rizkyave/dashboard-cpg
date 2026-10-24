@@ -127,7 +127,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
       supervisor: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Monitoring pipeline lead time, KPI & status pengadaan' },
       staf_purchasing: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Melihat ringkasan pipeline pengadaan' },
       staf_ttb: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
-      staf_lapangan: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
+      staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       visitor: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
     },
   },
@@ -142,7 +142,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
       supervisor: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Review teknis, cek urgensi & disposisi ke staf purchasing' },
       staf_purchasing: { allowed: true, level: 'Upload & Kelola', badgeTone: 'emerald', notes: 'Analisa item FPB, cek stok gudang & penugasan PIC PO' },
       staf_ttb: { allowed: true, level: 'View & Verifikasi', badgeTone: 'blue', notes: 'Verifikasi stok gudang logistik terhadap item FPB' },
-      staf_lapangan: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Melihat status perkembangan review FPB armada' },
+      staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
     },
   },
@@ -157,8 +157,8 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
       supervisor: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Monitoring berkas internal, lead time delivery & penyerahan TTB' },
       staf_purchasing: { allowed: true, level: 'Upload & Kelola', badgeTone: 'emerald', notes: 'Monitoring & tracking berkas internal pengadaan yang ditangani' },
       staf_ttb: { allowed: true, level: 'View & Verifikasi', badgeTone: 'blue', notes: 'Verifikasi tanda terima berkas dari purchasing ke logistik TTB' },
-      staf_lapangan: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Melihat status berkas pengadaan' },
-      visitor: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Peninjauan alur berkas internal' },
+      staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
+      visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
     },
   },
   {
@@ -172,7 +172,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
       supervisor: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Verifikasi, approval dokumen PO/FPB, dan SLA lead time' },
       staf_purchasing: { allowed: true, level: 'View & Verifikasi', badgeTone: 'blue', notes: 'Input & verifikasi dokumen PO/FPB' },
       staf_ttb: { allowed: true, level: 'View & Verifikasi', badgeTone: 'blue', notes: 'View & verifikasi kecocokan dokumen PO/FPB' },
-      staf_lapangan: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
+      staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
     },
   },
@@ -232,7 +232,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
       supervisor: { allowed: true, level: 'Validasi & TTD', badgeTone: 'emerald', notes: 'Validasi TTD Approved By FSTB & Lini Purchasing TTB' },
       staf_purchasing: { allowed: true, level: 'Validasi & TTD', badgeTone: 'emerald', notes: 'Validasi TTD Delivered By FSTB & Lini Purchasing TTB' },
       staf_ttb: { allowed: true, level: 'Validasi & TTD', badgeTone: 'emerald', notes: 'Validasi lini Logistik/Gudang' },
-      staf_lapangan: { allowed: true, level: 'Validasi & TTD', badgeTone: 'emerald', notes: 'Validasi lini Tim Lapangan/QC' },
+      staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
     },
   },
@@ -281,7 +281,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
       supervisor: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Pengecekan fisik stok gudang & katalog Accurate' },
       staf_purchasing: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Pengecekan stok persediaan' },
       staf_ttb: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Read-only untuk validasi fisik stok' },
-      staf_lapangan: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
+      staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
     },
   },
@@ -356,7 +356,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
       supervisor: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Laporan rekonsiliasi sisa layanan' },
       staf_purchasing: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Laporan sisa layanan pengadaan' },
       staf_ttb: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
-      staf_lapangan: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
+      staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
     },
   },
@@ -396,7 +396,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
   },
 ];
 
-export const RBAC_MATRIX_STORAGE_KEY = 'CPG_AUTH_RBAC_MATRIX';
+export const RBAC_MATRIX_STORAGE_KEY = 'CPG_AUTH_RBAC_MATRIX_V4';
 
 /**
  * Membaca matriks perizinan dinamis dari localStorage (fallback ke default matrix)
@@ -406,6 +406,11 @@ export function getStoredPermissionsMatrix(): ModulePermissionItem[] {
     return MODULE_PERMISSIONS_MATRIX;
   }
   try {
+    // Bersihkan cache usang versi lama agar update hak akses langsung aktif
+    localStorage.removeItem('CPG_AUTH_RBAC_MATRIX');
+    localStorage.removeItem('CPG_AUTH_RBAC_MATRIX_V2');
+    localStorage.removeItem('CPG_AUTH_RBAC_MATRIX_V3');
+
     const raw = localStorage.getItem(RBAC_MATRIX_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
@@ -439,6 +444,7 @@ export function resetStoredPermissionsMatrix(): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.removeItem(RBAC_MATRIX_STORAGE_KEY);
+    localStorage.removeItem('CPG_AUTH_RBAC_MATRIX');
     window.dispatchEvent(new Event('cpg-rbac-updated'));
   } catch (err) {
     console.error('Gagal reset RBAC Matrix di localStorage:', err);
@@ -468,51 +474,74 @@ export function canAccessTab(role: UserRole | undefined, tab: TabType): boolean 
     }
   }
 
-  // 2. Fallback perizinan statis default
+  // 2. Fallback perizinan statis default yang ketat sesuai role
   if (role === 'manager' || role === 'supervisor') {
     return true;
   }
 
   if (role === 'staf_purchasing') {
-    const forbidden: TabType[] = [
-      'armada',
+    const allowed: TabType[] = [
+      'overview',
+      'review-fpb',
+      'monitoring-internal',
+      'procurement',
+      'upload-fstb',
+      'validasi-dokumen',
+      'galeri-ttb',
+      'inventory',
+      'sisa-layanan',
+    ];
+    return allowed.includes(tab);
+  }
+
+  if (role === 'staf_ttb') {
+    const allowed: TabType[] = [
+      'overview',
+      'review-fpb',
+      'monitoring-internal',
+      'procurement',
+      'upload-fstb',
+      'upload-ttb',
+      'validasi-dokumen',
+      'galeri-ttb',
+      'inventory',
+      'sisa-layanan',
+    ];
+    return allowed.includes(tab);
+  }
+
+  if (role === 'staf_lapangan') {
+    const allowed: TabType[] = [
       'serah-terima-lapangan',
+      'galeri-ttb',
+      'armada',
       'pos-kapal',
       'crew-kapal',
       'work-order',
       'list-sm',
-      'analytics',
     ];
-    return !forbidden.includes(tab);
+    return allowed.includes(tab);
   }
 
   if (role === 'visitor') {
     return tab === 'overview' || tab === 'galeri-ttb';
   }
 
-  if (role === 'staf_ttb') {
-    const forbidden: TabType[] = [
-      'serah-terima-lapangan',
-      'armada',
-      'pos-kapal',
-      'crew-kapal',
-      'work-order',
-      'list-sm',
-      'analytics',
-    ];
-    return !forbidden.includes(tab);
-  }
-
-  if (role === 'staf_lapangan') {
-    const forbidden: TabType[] = ['upload-fstb', 'upload-ttb', 'analytics'];
-    return !forbidden.includes(tab);
-  }
-
   if (role === 'user') {
     return true;
   }
 
-  return true;
+  return false;
+}
+
+/**
+ * Helper RBAC: Menentukan tab default / landing page utama untuk tiap role pengguna
+ */
+export function getDefaultTabForRole(role: UserRole | undefined): TabType {
+  if (role === 'staf_lapangan') return 'serah-terima-lapangan';
+  if (role === 'staf_ttb') return 'upload-ttb';
+  if (role === 'staf_purchasing') return 'procurement';
+  return 'overview';
 }
 
 /**
