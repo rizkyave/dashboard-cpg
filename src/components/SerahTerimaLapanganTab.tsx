@@ -2065,156 +2065,179 @@ export default function SerahTerimaLapanganTab({
 
             {/* 2-Column Responsive Layout: Kolom Isian di Kiri (Menurun) & Tanda Tangan Lebih Besar di Kanan */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-              {/* Kolom Kiri: Isian Form Menurun (lg:col-span-5) */}
-              <div className="lg:col-span-5 flex flex-col justify-between space-y-4.5">
-                {/* 1. Petugas Pengantar */}
-                <div>
-                  <label className="text-xs sm:text-sm font-black text-foreground flex items-center gap-2 mb-2">
-                    <Truck className="size-4 text-cyan-500" />
-                    <span>Petugas Pengantar (Tim Lapangan) *</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={petugasNama}
-                    onChange={(e) => setPetugasNama(e.target.value)}
-                    placeholder="Nama petugas logistik lapangan"
-                    className="w-full px-4 py-3 min-h-[48px] text-sm sm:text-base rounded-2xl bg-background border-2 border-border focus:ring-4 focus:ring-cyan-500/20 focus:border-cyan-500 font-medium"
-                  />
-                </div>
-
-                {/* 2. Penerima Barang (End User) */}
-                <div>
-                  <label className="text-xs sm:text-sm font-black text-foreground flex items-center justify-between mb-2">
-                    <span className="flex items-center gap-2">
-                      <User className="size-4 text-emerald-500" />
-                      <span>Penerima Barang (End User) *</span>
-                    </span>
-                    {matchedCrewList.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (isManualPenerima) {
-                            setIsManualPenerima(false);
-                            if (matchedCrewList[0]) handleSelectCrew(String(matchedCrewList[0].id));
-                          } else {
-                            setIsManualPenerima(true);
-                            setSelectedCrewId('MANUAL');
-                          }
-                        }}
-                        className="text-xs font-bold text-cyan-600 dark:text-cyan-400 hover:underline cursor-pointer"
-                      >
-                        {isManualPenerima ? `← Pilih Kru (${matchedCrewList.length})` : 'Ketik Manual'}
-                      </button>
-                    )}
-                  </label>
-
-                  {matchedCrewList.length > 0 && !isManualPenerima ? (
-                    <div className="space-y-2">
-                      <select
-                        value={selectedCrewId}
-                        onChange={(e) => handleSelectCrew(e.target.value)}
-                        className="w-full px-4 py-3 min-h-[48px] text-sm sm:text-base rounded-2xl bg-background border-2 border-border focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 font-bold text-foreground cursor-pointer"
-                      >
-                        <option value="" disabled>-- Pilih Kru Penerima ({matchedCrewList.length} Personel) --</option>
-                        {matchedCrewList.map((crew) => (
-                          <option key={crew.id} value={crew.id}>
-                            {crew.jabatan} - {crew.namaPersonel} {crew.noHp && crew.noHp !== '-' ? `(WA: ${crew.noHp})` : ''}
-                          </option>
-                        ))}
-                        <option value="MANUAL">✏️ Input Manual (Nama di Luar Daftar Kru)</option>
-                      </select>
-
-                      <div className="flex items-center justify-between text-xs text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 px-3 py-1.5 rounded-xl border border-emerald-500/30 font-bold">
-                        <span className="flex items-center gap-1.5 truncate">
-                          <CheckCircle2 className="size-3.5 text-emerald-500 shrink-0" />
-                          <span>Kru Terverifikasi: <strong>{matchedShipName || currentArmada}</strong></span>
-                        </span>
-                        <span className="text-muted-foreground font-mono text-[11px] shrink-0">
-                          {matchedCrewList.find((c) => c.id === selectedCrewId)?.departemen || 'Deck/Engine'}
+              {/* Kolom Kiri: Isian Form Menurun Proporsional & Lebih Besar (lg:col-span-5) */}
+              <div className="lg:col-span-5 flex flex-col">
+                <div className="h-full p-5 sm:p-6 rounded-3xl border-2 border-cyan-500/30 bg-gradient-to-br from-cyan-50/40 via-background to-slate-50/50 dark:from-cyan-950/20 dark:via-background dark:to-slate-900/30 flex flex-col justify-between gap-4.5 shadow-sm">
+                  {/* Header Kolom Form */}
+                  <div className="flex items-center gap-3 border-b border-border/70 pb-3.5">
+                    <div className="p-2.5 rounded-2xl bg-cyan-500/15 text-cyan-600 dark:text-cyan-400">
+                      <Truck className="size-5 sm:size-6" />
+                    </div>
+                    <div>
+                      <div className="text-sm sm:text-base font-black text-foreground flex items-center gap-2">
+                        <span>Data Pengantar &amp; Penerima</span>
+                        <span className="px-2 py-0.5 rounded-lg text-xs font-bold bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30">
+                          Identitas Lini
                         </span>
                       </div>
+                      <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                        Identitas personel kurir lapangan, kru kapal, &amp; waktu serah terima
+                      </p>
                     </div>
-                  ) : (
-                    <div className="space-y-2">
+                  </div>
+
+                  {/* Body Form: 4 Kolom Isian Lebih Besar & Proporsional */}
+                  <div className="flex-1 flex flex-col justify-between gap-4 pt-1">
+                    {/* 1. Petugas Pengantar */}
+                    <div>
+                      <label className="text-sm sm:text-base font-black text-foreground flex items-center gap-2 mb-2">
+                        <Truck className="size-5 text-cyan-500" />
+                        <span>Petugas Pengantar (Tim Lapangan) *</span>
+                      </label>
                       <input
                         type="text"
                         required
-                        value={penerimaNama}
-                        onChange={(e) => setPenerimaNama(e.target.value)}
-                        placeholder={matchedCrewList.length > 0 ? "Ketik nama penerima..." : "Contoh: Mualim 1 Budi / Chief Eng. Anton"}
-                        className="w-full px-4 py-3 min-h-[48px] text-sm sm:text-base rounded-2xl bg-background border-2 border-border focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium"
+                        value={petugasNama}
+                        onChange={(e) => setPetugasNama(e.target.value)}
+                        placeholder="Nama petugas logistik lapangan"
+                        className="w-full px-4.5 py-3.5 sm:py-4 min-h-[54px] sm:min-h-[58px] text-base sm:text-lg rounded-2xl bg-background border-2 border-border focus:ring-4 focus:ring-cyan-500/20 focus:border-cyan-500 font-bold text-foreground shadow-xs placeholder:text-muted-foreground/60 placeholder:font-normal"
                       />
-                      {matchedCrewList.length === 0 && currentArmada && currentArmada !== '-' && (
-                        <p className="text-xs text-muted-foreground italic">
-                          Tidak ada kru di modul Crew &amp; Armada untuk {currentArmada} (ketik manual).
+                    </div>
+
+                    {/* 2. Penerima Barang (End User) */}
+                    <div>
+                      <label className="text-sm sm:text-base font-black text-foreground flex items-center justify-between mb-2">
+                        <span className="flex items-center gap-2">
+                          <User className="size-5 text-emerald-500" />
+                          <span>Penerima Barang (End User) *</span>
+                        </span>
+                        {matchedCrewList.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (isManualPenerima) {
+                                setIsManualPenerima(false);
+                                if (matchedCrewList[0]) handleSelectCrew(String(matchedCrewList[0].id));
+                              } else {
+                                setIsManualPenerima(true);
+                                setSelectedCrewId('MANUAL');
+                              }
+                            }}
+                            className="text-xs sm:text-sm font-black text-cyan-600 dark:text-cyan-400 hover:underline cursor-pointer bg-cyan-500/10 px-2.5 py-1 rounded-xl border border-cyan-500/20"
+                          >
+                            {isManualPenerima ? `← Pilih Kru (${matchedCrewList.length})` : '✏️ Ketik Manual'}
+                          </button>
+                        )}
+                      </label>
+
+                      {matchedCrewList.length > 0 && !isManualPenerima ? (
+                        <div className="space-y-2">
+                          <select
+                            value={selectedCrewId}
+                            onChange={(e) => handleSelectCrew(e.target.value)}
+                            className="w-full px-4.5 py-3.5 sm:py-4 min-h-[54px] sm:min-h-[58px] text-base sm:text-lg rounded-2xl bg-background border-2 border-border focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 font-bold text-foreground cursor-pointer shadow-xs"
+                          >
+                            <option value="" disabled>-- Pilih Kru Penerima ({matchedCrewList.length} Personel) --</option>
+                            {matchedCrewList.map((crew) => (
+                              <option key={crew.id} value={crew.id}>
+                                {crew.jabatan} - {crew.namaPersonel} {crew.noHp && crew.noHp !== '-' ? `(WA: ${crew.noHp})` : ''}
+                              </option>
+                            ))}
+                            <option value="MANUAL">✏️ Input Manual (Nama di Luar Daftar Kru)</option>
+                          </select>
+
+                          <div className="flex items-center justify-between text-xs sm:text-sm text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 px-3.5 py-2 rounded-xl border border-emerald-500/30 font-bold">
+                            <span className="flex items-center gap-1.5 truncate">
+                              <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
+                              <span>Kru Terverifikasi: <strong>{matchedShipName || currentArmada}</strong></span>
+                            </span>
+                            <span className="text-muted-foreground font-mono text-xs shrink-0">
+                              {matchedCrewList.find((c) => c.id === selectedCrewId)?.departemen || 'Deck/Engine'}
+                            </span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <input
+                            type="text"
+                            required
+                            value={penerimaNama}
+                            onChange={(e) => setPenerimaNama(e.target.value)}
+                            placeholder={matchedCrewList.length > 0 ? "Ketik nama penerima..." : "Contoh: Mualim 1 Budi / Chief Eng. Anton"}
+                            className="w-full px-4.5 py-3.5 sm:py-4 min-h-[54px] sm:min-h-[58px] text-base sm:text-lg rounded-2xl bg-background border-2 border-border focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 font-bold text-foreground shadow-xs placeholder:text-muted-foreground/60 placeholder:font-normal"
+                          />
+                          {matchedCrewList.length === 0 && currentArmada && currentArmada !== '-' && (
+                            <p className="text-xs text-muted-foreground italic">
+                              Tidak ada kru di modul Crew &amp; Armada untuk {currentArmada} (ketik manual).
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 3. No. Telp / WA Penerima */}
+                    <div>
+                      <label className="text-sm sm:text-base font-black text-foreground flex items-center justify-between mb-2">
+                        <span className="flex items-center gap-2">
+                          <Phone className="size-5 text-indigo-500" />
+                          <span>No. Telp / WA Penerima</span>
+                        </span>
+                        {kontakPenerima && (
+                          <span className="text-xs sm:text-sm font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                            <Sparkles className="size-3.5" />
+                            <span>Otomatis</span>
+                          </span>
+                        )}
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="tel"
+                          value={kontakPenerima}
+                          onChange={(e) => setKontakPenerima(e.target.value)}
+                          placeholder="Contoh: 0812-3456-7890"
+                          className="w-full px-4.5 py-3.5 sm:py-4 min-h-[54px] sm:min-h-[58px] text-base sm:text-lg rounded-2xl bg-background border-2 border-border focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono font-black text-foreground shadow-xs placeholder:text-muted-foreground/60 placeholder:font-normal"
+                        />
+                        {kontakPenerima && (
+                          <button
+                            type="button"
+                            onClick={() => setKontakPenerima('')}
+                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-muted"
+                            title="Hapus no telp"
+                          >
+                            <X className="size-4.5" />
+                          </button>
+                        )}
+                      </div>
+                      {matchedShipPhone && kontakPenerima !== matchedShipPhone && (
+                        <p className="text-xs sm:text-sm text-muted-foreground mt-1.5 flex items-center gap-1.5">
+                          <span>No. Telp Kapal:</span>
+                          <button
+                            type="button"
+                            onClick={() => setKontakPenerima(matchedShipPhone)}
+                            className="text-indigo-600 dark:text-indigo-400 font-mono font-bold underline cursor-pointer"
+                            title="Gunakan no telp kapal ini"
+                          >
+                            {matchedShipPhone}
+                          </button>
                         </p>
                       )}
                     </div>
-                  )}
-                </div>
 
-                {/* 3. No. Telp / WA Penerima */}
-                <div>
-                  <label className="text-xs sm:text-sm font-black text-foreground flex items-center justify-between mb-2">
-                    <span className="flex items-center gap-2">
-                      <Phone className="size-4 text-indigo-500" />
-                      <span>No. Telp / WA Penerima</span>
-                    </span>
-                    {kontakPenerima && (
-                      <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                        <Sparkles className="size-3" />
-                        <span>Otomatis</span>
-                      </span>
-                    )}
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="tel"
-                      value={kontakPenerima}
-                      onChange={(e) => setKontakPenerima(e.target.value)}
-                      placeholder="Contoh: 0812-3456-7890"
-                      className="w-full px-4 py-3 min-h-[48px] text-sm sm:text-base rounded-2xl bg-background border-2 border-border focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono font-bold"
-                    />
-                    {kontakPenerima && (
-                      <button
-                        type="button"
-                        onClick={() => setKontakPenerima('')}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
-                        title="Hapus no telp"
-                      >
-                        <X className="size-4" />
-                      </button>
-                    )}
+                    {/* 4. Waktu Serah Terima Barang */}
+                    <div>
+                      <label className="text-sm sm:text-base font-black text-foreground flex items-center gap-2 mb-2">
+                        <Clock className="size-5 text-amber-500" />
+                        <span>Waktu Serah Terima Barang *</span>
+                      </label>
+                      <input
+                        type="datetime-local"
+                        required
+                        value={waktuSerahTerima}
+                        onChange={(e) => setWaktuSerahTerima(e.target.value)}
+                        className="w-full px-4.5 py-3.5 sm:py-4 min-h-[54px] sm:min-h-[58px] text-base sm:text-lg rounded-2xl bg-background border-2 border-border focus:ring-4 focus:ring-amber-500/20 focus:border-amber-500 font-mono font-bold text-foreground shadow-xs"
+                      />
+                    </div>
                   </div>
-                  {matchedShipPhone && kontakPenerima !== matchedShipPhone && (
-                    <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1.5">
-                      <span>No. Telp Kapal:</span>
-                      <button
-                        type="button"
-                        onClick={() => setKontakPenerima(matchedShipPhone)}
-                        className="text-indigo-600 dark:text-indigo-400 font-mono font-bold underline cursor-pointer"
-                        title="Gunakan no telp kapal ini"
-                      >
-                        {matchedShipPhone}
-                      </button>
-                    </p>
-                  )}
-                </div>
-
-                {/* 4. Waktu Serah Terima Barang */}
-                <div>
-                  <label className="text-xs sm:text-sm font-black text-foreground flex items-center gap-2 mb-2">
-                    <Clock className="size-4 text-amber-500" />
-                    <span>Waktu Serah Terima Barang *</span>
-                  </label>
-                  <input
-                    type="datetime-local"
-                    required
-                    value={waktuSerahTerima}
-                    onChange={(e) => setWaktuSerahTerima(e.target.value)}
-                    className="w-full px-4 py-3 min-h-[48px] text-sm sm:text-base rounded-2xl bg-background border-2 border-border focus:ring-4 focus:ring-amber-500/20 focus:border-amber-500 font-mono font-bold"
-                  />
                 </div>
               </div>
 
