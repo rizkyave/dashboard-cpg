@@ -1113,103 +1113,101 @@ export default function DashboardPage() {
 
         <main className="flex-1 min-w-0 p-3.5 sm:p-5 lg:p-8 space-y-4 sm:space-y-6 max-w-[1800px] w-full mx-auto pb-24 lg:pb-8">
           {/* Page Header in clean Studio Admin typography */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="space-y-1">
-              <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-foreground">
-                {activeTab === 'overview'
-                  ? 'Monitoring Logistik'
-                  : activeTab === 'review-fpb'
-                  ? 'Review & Analisa FPB'
-                  : activeTab === 'monitoring-internal'
-                  ? 'Monitoring Berkas Internal Pengadaan'
-                  : activeTab === 'procurement'
-                  ? 'Monitoring Berkas Pengadaan'
-                  : activeTab === 'armada'
-                  ? 'Monitoring Layanan Armada'
-                  : activeTab === 'galeri-ttb'
-                  ? 'Galeri Foto TTB'
-                  : activeTab === 'pos-kapal'
-                  ? 'Posisi Kapal'
-                  : activeTab === 'crew-kapal'
-                  ? 'Data Awak & Monitoring Armada Kapal'
-                  : activeTab === 'work-order'
-                  ? 'Monitoring Work Order (WO)'
-                  : activeTab === 'list-sm'
-                  ? 'Monitoring Layanan Pemeliharaan (SM) Vendor'
-                  : activeTab === 'inventory'
-                  ? 'Cek Stok Persediaan Gudang'
-                  : activeTab === 'sisa-layanan'
-                  ? 'Laporan Sisa Layanan Permintaan (Gabungan)'
-                  : activeTab === 'serah-terima-lapangan'
-                  ? 'Serah Terima Lapangan & Bukti Kirim TTB'
-                  : activeTab === 'upload-fstb'
-                  ? 'Unggah Dokumen FSTB ke Penyimpanan Cloudflare'
-                  : activeTab === 'upload-ttb'
-                  ? 'Unggah Dokumen TTB ke Penyimpanan Cloudflare'
-                  : activeTab === 'validasi-dokumen'
-                  ? 'Validasi & Tanda Tangan Digital Multi-Lini FSTB & TTB'
-                  : activeTab === 'admin-settings'
-                  ? 'Pengaturan Administrator & Pengguna'
-                  : 'Analisis SLA & Waktu Tunggu'}
-              </h1>
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                {isVisitor && activeTab === 'overview'
-                  ? 'Mode Peninjauan Tamu: Silakan masukkan No. FPB, Nama Kapal, atau No. PO pada kolom pencarian di bawah untuk menampilkan data.'
-                  : activeTab === 'overview'
-                  ? 'Pemantauan terpadu alur pengadaan barang, perputaran berkas fisik divisi, distribusi logistik armada kapal, dan status stok persediaan.'
-                  : activeTab === 'review-fpb'
-                  ? 'Sinkronisasi berkas pengajuan e-FPB, analisa ketersediaan stok gudang konsolidasi, deteksi pengajuan berulang armada kapal, dan otorisasi tindak lanjut PO / Logistik.'
-                  : activeTab === 'monitoring-internal'
-                  ? 'Monitoring berkas fisik Done by Purchasing (PO, Delivery Time SLA), serah terima dokumen FSTB ke PIC TTB, dan catatan operasional armada CPG.'
-                  : activeTab === 'procurement'
-                  ? 'Daftar transaksi pengadaan PO, verifikasi berkas fisik antar divisi, dan status penyelesaian berkas.'
-                  : activeTab === 'armada'
-                  ? 'Rekonsiliasi FPB–FSTB & Distribusi Logistik'
-                  : activeTab === 'galeri-ttb'
-                  ? 'Galeri foto penerimaan dan serah terima dokumen fisik TTB terintegrasi Cloudflare R2 Storage.'
-                  : activeTab === 'pos-kapal'
-                  ? 'Laporan posisi, rute, aktivitas, status armada dan pekerjaan pemeliharaan kapal.'
-                  : activeTab === 'crew-kapal'
-                  ? 'Data formasi awak kapal, status manning, posisi lowong mandatori, monitoring cadet prala, dan audit cleansing data armada kapal PT CPL 2026.'
-                  : activeTab === 'work-order'
-                  ? 'Rekap dan Validasi WO Armada'
-                  : activeTab === 'list-sm'
-                  ? 'Pelacakan pekerjaan jasa perbaikan mesin kapal, bubut, servis bengkel rekanan (Karindo, Surabaya Teknik, Sidomukti, Panca Teknik, Tjokro), dan integrasi FPB-PO.'
-                  : activeTab === 'inventory'
-                  ? 'Pemeriksaan stok barang konsolidasi Accurate (CPL, Hana Lines, Mandar Ocean) & pencocokan kebutuhan pengadaan.'
-                  : activeTab === 'sisa-layanan'
-                  ? 'Monitoring pemenuhan pengajuan barang (FPB, PO, FSTB, TTB) gabungan seluruh unit armada kapal & divisi PT Cindara Pratama Group.'
-                  : activeTab === 'serah-terima-lapangan'
-                  ? 'Portal Tim Lapangan untuk dokumentasi dan upload bukti foto serah terima barang ke end user berbasis referensi data TTB resmi.'
-                  : activeTab === 'upload-fstb'
-                  ? 'Unggah berkas Form Serah Terima Barang (FSTB) resmi ke Cloudflare R2 dengan sistem penamaan otomatis sesuai Nomor FSTB.'
-                  : activeTab === 'upload-ttb'
-                  ? 'Unggah foto fisik & dokumen scan tanda terima barang (TTB) ke Cloudflare R2 dengan sistem penamaan otomatis sesuai Nomor TTB resmi.'
-                  : activeTab === 'validasi-dokumen'
-                  ? 'Sistem verifikasi dan pembubuhan tanda tangan digital dari 3 lini (Purchasing, Logistik, Tim Lapangan) untuk berkas FSTB dan TTB sebelum diserahkan ke armada.'
-                  : activeTab === 'admin-settings'
-                  ? 'Kelola akun operasional staf purchasing (User) dan akun tamu/peninjau (Visitor). Tambahkan pengguna baru dan konfigurasi wewenang hak akses.'
-                  : 'Distribusi waktu perputaran berkas fisik (lead time) dan beban kerja produktivitas staf PIC operasional.'}
-              </p>
-            </div>
+          {activeTab !== 'serah-terima-lapangan' && (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="space-y-1">
+                <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-foreground">
+                  {activeTab === 'overview'
+                    ? 'Monitoring Logistik'
+                    : activeTab === 'review-fpb'
+                    ? 'Review & Analisa FPB'
+                    : activeTab === 'monitoring-internal'
+                    ? 'Monitoring Berkas Internal Pengadaan'
+                    : activeTab === 'procurement'
+                    ? 'Monitoring Berkas Pengadaan'
+                    : activeTab === 'armada'
+                    ? 'Monitoring Layanan Armada'
+                    : activeTab === 'galeri-ttb'
+                    ? 'Galeri Foto TTB'
+                    : activeTab === 'pos-kapal'
+                    ? 'Posisi Kapal'
+                    : activeTab === 'crew-kapal'
+                    ? 'Data Awak & Monitoring Armada Kapal'
+                    : activeTab === 'work-order'
+                    ? 'Monitoring Work Order (WO)'
+                    : activeTab === 'list-sm'
+                    ? 'Monitoring Layanan Pemeliharaan (SM) Vendor'
+                    : activeTab === 'inventory'
+                    ? 'Cek Stok Persediaan Gudang'
+                    : activeTab === 'sisa-layanan'
+                    ? 'Laporan Sisa Layanan Permintaan (Gabungan)'
+                    : activeTab === 'upload-fstb'
+                    ? 'Unggah Dokumen FSTB ke Penyimpanan Cloudflare'
+                    : activeTab === 'upload-ttb'
+                    ? 'Unggah Dokumen TTB ke Penyimpanan Cloudflare'
+                    : activeTab === 'validasi-dokumen'
+                    ? 'Validasi & Tanda Tangan Digital Multi-Lini FSTB & TTB'
+                    : activeTab === 'admin-settings'
+                    ? 'Pengaturan Administrator & Pengguna'
+                    : 'Analisis SLA & Waktu Tunggu'}
+                </h1>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  {isVisitor && activeTab === 'overview'
+                    ? 'Mode Peninjauan Tamu: Silakan masukkan No. FPB, Nama Kapal, atau No. PO pada kolom pencarian di bawah untuk menampilkan data.'
+                    : activeTab === 'overview'
+                    ? 'Pemantauan terpadu alur pengadaan barang, perputaran berkas fisik divisi, distribusi logistik armada kapal, dan status stok persediaan.'
+                    : activeTab === 'review-fpb'
+                    ? 'Sinkronisasi berkas pengajuan e-FPB, analisa ketersediaan stok gudang konsolidasi, deteksi pengajuan berulang armada kapal, dan otorisasi tindak lanjut PO / Logistik.'
+                    : activeTab === 'monitoring-internal'
+                    ? 'Monitoring berkas fisik Done by Purchasing (PO, Delivery Time SLA), serah terima dokumen FSTB ke PIC TTB, dan catatan operasional armada CPG.'
+                    : activeTab === 'procurement'
+                    ? 'Daftar transaksi pengadaan PO, verifikasi berkas fisik antar divisi, dan status penyelesaian berkas.'
+                    : activeTab === 'armada'
+                    ? 'Rekonsiliasi FPB–FSTB & Distribusi Logistik'
+                    : activeTab === 'galeri-ttb'
+                    ? 'Galeri foto penerimaan dan serah terima dokumen fisik TTB terintegrasi Cloudflare R2 Storage.'
+                    : activeTab === 'pos-kapal'
+                    ? 'Laporan posisi, rute, aktivitas, status armada dan pekerjaan pemeliharaan kapal.'
+                    : activeTab === 'crew-kapal'
+                    ? 'Data formasi awak kapal, status manning, posisi lowong mandatori, monitoring cadet prala, dan audit cleansing data armada kapal PT CPL 2026.'
+                    : activeTab === 'work-order'
+                    ? 'Rekap dan Validasi WO Armada'
+                    : activeTab === 'list-sm'
+                    ? 'Pelacakan pekerjaan jasa perbaikan mesin kapal, bubut, servis bengkel rekanan (Karindo, Surabaya Teknik, Sidomukti, Panca Teknik, Tjokro), dan integrasi FPB-PO.'
+                    : activeTab === 'inventory'
+                    ? 'Pemeriksaan stok barang konsolidasi Accurate (CPL, Hana Lines, Mandar Ocean) & pencocokan kebutuhan pengadaan.'
+                    : activeTab === 'sisa-layanan'
+                    ? 'Monitoring pemenuhan pengajuan barang (FPB, PO, FSTB, TTB) gabungan seluruh unit armada kapal & divisi PT Cindara Pratama Group.'
+                    : activeTab === 'upload-fstb'
+                    ? 'Unggah berkas Form Serah Terima Barang (FSTB) resmi ke Cloudflare R2 dengan sistem penamaan otomatis sesuai Nomor FSTB.'
+                    : activeTab === 'upload-ttb'
+                    ? 'Unggah foto fisik & dokumen scan tanda terima barang (TTB) ke Cloudflare R2 dengan sistem penamaan otomatis sesuai Nomor TTB resmi.'
+                    : activeTab === 'validasi-dokumen'
+                    ? 'Sistem verifikasi dan pembubuhan tanda tangan digital dari 3 lini (Purchasing, Logistik, Tim Lapangan) untuk berkas FSTB dan TTB sebelum diserahkan ke armada.'
+                    : activeTab === 'admin-settings'
+                    ? 'Kelola akun operasional staf purchasing (User) dan akun tamu/peninjau (Visitor). Tambahkan pengguna baru dan konfigurasi wewenang hak akses.'
+                    : 'Distribusi waktu perputaran berkas fisik (lead time) dan beban kerja produktivitas staf PIC operasional.'}
+                </p>
+              </div>
 
-            {/* Tombol Sembunyikan Ringkasan Metrik KPI */}
-            {activeTab !== 'inventory' && activeTab !== 'review-fpb' && activeTab !== 'monitoring-internal' && activeTab !== 'pos-kapal' && activeTab !== 'crew-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'serah-terima-lapangan' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'validasi-dokumen' && activeTab !== 'admin-settings' && (!isVisitor || searchKeyword.trim() !== '') && (
-              <button
-                type="button"
-                onClick={toggleKpiHidden}
-                className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1.5 py-1.5 px-3 rounded-lg border border-border bg-card hover:bg-muted transition shadow-xs self-start sm:self-auto shrink-0 cursor-pointer"
-                title={isKpiHidden ? 'Tampilkan Ringkasan Metrik' : 'Sembunyikan Ringkasan Metrik'}
-              >
-                <span>{isKpiHidden ? 'Tampilkan Ringkasan' : 'Sembunyikan Ringkasan'}</span>
-                <ChevronDown
-                  className={`size-3.5 transition-transform duration-200 ${
-                    isKpiHidden ? '-rotate-90' : ''
-                  }`}
-                />
-              </button>
-            )}
-          </div>
+              {/* Tombol Sembunyikan Ringkasan Metrik KPI */}
+              {activeTab !== 'inventory' && activeTab !== 'review-fpb' && activeTab !== 'monitoring-internal' && activeTab !== 'pos-kapal' && activeTab !== 'crew-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'validasi-dokumen' && activeTab !== 'admin-settings' && (!isVisitor || searchKeyword.trim() !== '') && (
+                <button
+                  type="button"
+                  onClick={toggleKpiHidden}
+                  className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1.5 py-1.5 px-3 rounded-lg border border-border bg-card hover:bg-muted transition shadow-xs self-start sm:self-auto shrink-0 cursor-pointer"
+                  title={isKpiHidden ? 'Tampilkan Ringkasan Metrik' : 'Sembunyikan Ringkasan Metrik'}
+                >
+                  <span>{isKpiHidden ? 'Tampilkan Ringkasan' : 'Sembunyikan Ringkasan'}</span>
+                  <ChevronDown
+                    className={`size-3.5 transition-transform duration-200 ${
+                      isKpiHidden ? '-rotate-90' : ''
+                    }`}
+                  />
+                </button>
+              )}
+            </div>
+          )}
 
           {/* 4 Pillar Executive Metric Cards (procurement tabs only) */}
           {activeTab !== 'inventory' && activeTab !== 'review-fpb' && activeTab !== 'monitoring-internal' && activeTab !== 'pos-kapal' && activeTab !== 'crew-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'serah-terima-lapangan' && activeTab !== 'galeri-ttb' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'validasi-dokumen' && activeTab !== 'admin-settings' && !isKpiHidden && (!isVisitor || searchKeyword.trim() !== '') && (

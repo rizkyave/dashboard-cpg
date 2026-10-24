@@ -1277,11 +1277,6 @@ export default function SerahTerimaLapanganTab({
 
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
           <div className="space-y-2.5">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 text-xs sm:text-sm font-black tracking-wide">
-              <Truck className="size-4" />
-              <span>Portal Operasional &amp; Tim Lapangan CPG</span>
-              <span className="size-2 rounded-full bg-cyan-400 animate-pulse" />
-            </div>
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white flex items-center gap-3 flex-wrap">
               <span>Serah Terima Lapangan &amp; Bukti Kirim TTB</span>
               <span className="px-3 py-1 rounded-xl text-xs sm:text-sm font-mono font-black bg-emerald-500/25 text-emerald-300 border border-emerald-500/40">
