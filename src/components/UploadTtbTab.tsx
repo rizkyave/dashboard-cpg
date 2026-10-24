@@ -12,6 +12,8 @@ import {
   X,
   Copy,
   Check,
+  ChevronLeft,
+  ChevronRight,
   Search,
   RefreshCw,
   Download,
@@ -714,6 +716,21 @@ export default function UploadTtbTab({
     );
   }, [history, searchHistory]);
 
+  // Pagination state untuk riwayat tabel (10 data per halaman)
+  const [historyPage, setHistoryPage] = useState<number>(1);
+  const historyPageSize = 10;
+  const totalHistoryPages = Math.max(1, Math.ceil(filteredHistory.length / historyPageSize));
+
+  const paginatedHistory = useMemo(() => {
+    const start = (historyPage - 1) * historyPageSize;
+    return filteredHistory.slice(start, start + historyPageSize);
+  }, [filteredHistory, historyPage]);
+
+  // Reset pagination saat pencarian atau riwayat berubah
+  useEffect(() => {
+    setHistoryPage(1);
+  }, [searchHistory, history.length]);
+
   // Statistik Ringkasan (4 Stat Cards)
   const stats = useMemo(() => {
     const total = history.length;
@@ -1218,9 +1235,9 @@ export default function UploadTtbTab({
         </div>
 
         {/* Tabel Data Riwayat */}
-        <div className="overflow-x-auto rounded-xl border border-border">
+        <div className="overflow-x-auto overflow-y-auto max-h-[520px] rounded-xl border border-border relative">
           <table className="w-full text-left text-xs">
-            <thead className="bg-muted/50 text-muted-foreground font-semibold border-b border-border uppercase text-[10px] tracking-wider">
+            <thead className="sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md text-muted-foreground font-semibold border-b border-border uppercase text-[10px] tracking-wider shadow-xs">
               <tr>
                 <th className="py-2.5 px-3">NO. TTB RESMI</th>
                 <th className="py-2.5 px-3">ARMADA / UNIT</th>
@@ -1246,7 +1263,7 @@ export default function UploadTtbTab({
                   </td>
                 </tr>
               ) : (
-                filteredHistory.map((item) => (
+                paginatedHistory.map((item) => (
                   <tr key={item.id} className="hover:bg-muted/30 transition">
                     <td className="py-2.5 px-3 font-mono font-bold text-foreground">
                       <div className="flex items-center gap-1.5">
@@ -1382,6 +1399,51 @@ export default function UploadTtbTab({
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Footer */}
+        {filteredHistory.length > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-border text-xs text-muted-foreground">
+            <div>
+              Menampilkan{' '}
+              <strong className="text-foreground">
+                {(historyPage - 1) * historyPageSize + 1}
+              </strong>{' '}
+              -{' '}
+              <strong className="text-foreground">
+                {Math.min(historyPage * historyPageSize, filteredHistory.length)}
+              </strong>{' '}
+              dari <strong className="text-foreground">{filteredHistory.length}</strong> data
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setHistoryPage((p) => Math.max(1, p - 1))}
+                disabled={historyPage === 1}
+                className="px-2.5 py-1.5 rounded-lg border border-border bg-background hover:bg-muted text-foreground disabled:opacity-40 transition cursor-pointer flex items-center gap-1 text-xs font-medium"
+                title="Halaman Sebelumnya"
+              >
+                <ChevronLeft className="size-3.5" />
+                <span>Sebelumnya</span>
+              </button>
+
+              <span className="px-3 py-1 text-xs font-semibold text-foreground">
+                Halaman {historyPage} dari {totalHistoryPages}
+              </span>
+
+              <button
+                type="button"
+                onClick={() => setHistoryPage((p) => Math.min(totalHistoryPages, p + 1))}
+                disabled={historyPage === totalHistoryPages}
+                className="px-2.5 py-1.5 rounded-lg border border-border bg-background hover:bg-muted text-foreground disabled:opacity-40 transition cursor-pointer flex items-center gap-1 text-xs font-medium"
+                title="Halaman Berikutnya"
+              >
+                <span>Berikutnya</span>
+                <ChevronRight className="size-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Modal Preview Berkas */}

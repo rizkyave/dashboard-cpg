@@ -430,7 +430,7 @@ export default function MonitoringInternalTab({
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(25);
+  const [pageSize, setPageSize] = useState<number>(10);
 
   // Sync state
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
@@ -1732,8 +1732,11 @@ export default function MonitoringInternalTab({
         {/* Counter Info & Reset Filter */}
         <div className="flex items-center justify-between text-xs text-muted-foreground pt-1 border-t border-border/50">
           <div>
-            Menampilkan <span className="font-semibold text-foreground">{filteredData.length.toLocaleString('id-ID')}</span> dari{' '}
-            <span className="font-semibold text-foreground">{localItems.length.toLocaleString('id-ID')}</span> baris berkas internal
+            Menampilkan{' '}
+            <span className="font-semibold text-foreground">
+              {filteredData.length === 0 ? 0 : (currentPage - 1) * pageSize + 1} - {Math.min(currentPage * pageSize, filteredData.length)}
+            </span>{' '}
+            dari <span className="font-semibold text-foreground">{filteredData.length.toLocaleString('id-ID')}</span> baris berkas internal (Total: {localItems.length.toLocaleString('id-ID')})
             {sortField && (
               <span className="ml-2 px-2 py-0.5 rounded bg-muted text-[11px] font-mono">
                 Sorted: {sortField} ({sortDirection})
@@ -1774,13 +1777,13 @@ export default function MonitoringInternalTab({
       {/* 4. Complete Main Table (Seluruh 40 Kolom Spreadsheet)     */}
       {/* ======================================================== */}
       <div className={`rounded-xl border border-border bg-card overflow-hidden shadow-xs transition-all ${paginatedData.length <= 4 ? 'min-h-[380px]' : ''}`}>
-        <div className={`overflow-x-auto ${paginatedData.length <= 4 ? 'min-h-[380px]' : ''}`}>
+        <div className={`overflow-x-auto overflow-y-auto max-h-[calc(100vh-270px)] relative ${paginatedData.length <= 4 ? 'min-h-[380px]' : ''}`}>
           <table className="w-full text-xs text-left border-collapse">
             {/* Super Header: Zona Berkas Sesuai Spreadsheet */}
-            <thead>
-              <tr className="bg-muted/80 text-muted-foreground border-b border-border text-[11px] font-bold uppercase tracking-wider text-center">
+            <thead className="sticky top-0 z-30 shadow-xs">
+              <tr className="bg-muted/95 dark:bg-card/95 text-muted-foreground border-b border-border text-[11px] font-bold uppercase tracking-wider text-center backdrop-blur-md">
                 {/* Zona 1: Identitas & Armada */}
-                <th colSpan={5} className="py-2 px-3 border-r-2 border-border/80 text-left bg-muted/60">
+                <th colSpan={5} className="py-2.5 px-3 border-r-2 border-border/80 text-left bg-muted/95 dark:bg-card/95 sticky left-0 z-40 backdrop-blur-md">
                   Identitas Pengadaan &amp; Armada
                 </th>
 
@@ -1788,7 +1791,7 @@ export default function MonitoringInternalTab({
                 {showPurchasingCols && (
                   <th
                     colSpan={10}
-                    className="py-2 px-3 border-r-2 border-border/80 bg-amber-500/15 text-amber-900 dark:text-amber-200"
+                    className="py-2.5 px-3 border-r-2 border-border/80 bg-amber-500/20 text-amber-900 dark:text-amber-200 backdrop-blur-md"
                   >
                     <div className="flex items-center justify-center gap-1.5">
                       <span>Done by Purchasing</span>
@@ -1803,7 +1806,7 @@ export default function MonitoringInternalTab({
                 {showLogistikCols && (
                   <th
                     colSpan={9}
-                    className="py-2 px-3 border-r-2 border-border/80 bg-emerald-500/15 text-emerald-900 dark:text-emerald-200"
+                    className="py-2.5 px-3 border-r-2 border-border/80 bg-emerald-500/20 text-emerald-900 dark:text-emerald-200 backdrop-blur-md"
                   >
                     <div className="flex items-center justify-center gap-1.5">
                       <span>Done by Logistik &amp; Tim Lapangan</span>
@@ -1818,7 +1821,7 @@ export default function MonitoringInternalTab({
                 {showAdmKeuCols && (
                   <th
                     colSpan={8}
-                    className="py-2 px-3 bg-purple-500/15 text-purple-900 dark:text-purple-200"
+                    className="py-2.5 px-3 bg-purple-500/20 text-purple-900 dark:text-purple-200 backdrop-blur-md"
                   >
                     Done by ADM PCH &amp; Keuangan (SPP)
                   </th>
@@ -1826,13 +1829,13 @@ export default function MonitoringInternalTab({
               </tr>
 
               {/* Header Kolom Rinci */}
-              <tr className="bg-muted/40 text-muted-foreground border-b border-border font-semibold">
+              <tr className="bg-muted/95 dark:bg-card/95 text-muted-foreground border-b border-border font-semibold backdrop-blur-md">
                 {/* Sticky Left: Aksi, No, PT, Dept/Armada, No FPB */}
-                <th className="py-2.5 px-2 w-10 text-center sticky left-0 z-20 bg-muted/90 backdrop-blur-xs">AKSI</th>
-                <th className="py-2.5 px-3 w-10 text-center sticky left-10 z-20 bg-muted/90 backdrop-blur-xs">NO</th>
-                <th className="py-2.5 px-2 text-center sticky left-20 z-20 bg-muted/90 backdrop-blur-xs">PT</th>
-                <th className="py-2.5 px-3 min-w-[180px] sticky left-[136px] z-20 bg-muted/90 backdrop-blur-xs">DEPT/ ARMADA</th>
-                <th className="py-2.5 px-3 min-w-[140px] border-r-2 border-border/80 sticky left-[316px] z-20 bg-muted/90 backdrop-blur-xs">
+                <th className="py-2.5 px-2 w-10 text-center sticky left-0 z-40 bg-muted/95 dark:bg-card/95 backdrop-blur-md">AKSI</th>
+                <th className="py-2.5 px-3 w-10 text-center sticky left-10 z-40 bg-muted/95 dark:bg-card/95 backdrop-blur-md">NO</th>
+                <th className="py-2.5 px-2 text-center sticky left-20 z-40 bg-muted/95 dark:bg-card/95 backdrop-blur-md">PT</th>
+                <th className="py-2.5 px-3 min-w-[180px] sticky left-[136px] z-40 bg-muted/95 dark:bg-card/95 backdrop-blur-md">DEPT/ ARMADA</th>
+                <th className="py-2.5 px-3 min-w-[140px] border-r-2 border-border/80 sticky left-[316px] z-40 bg-muted/95 dark:bg-card/95 backdrop-blur-md">
                   NO. FPB
                 </th>
 
@@ -2786,13 +2789,16 @@ export default function MonitoringInternalTab({
               <span>Baris per halaman:</span>
               <select
                 value={pageSize}
-                onChange={(e) => setPageSize(Number(e.target.value))}
-                className="py-1 px-2 text-xs rounded border border-border bg-background text-foreground"
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="py-1 px-2 text-xs rounded border border-border bg-background text-foreground focus:outline-none"
               >
+                <option value={10}>10</option>
                 <option value={25}>25</option>
                 <option value={50}>50</option>
                 <option value={100}>100</option>
-                <option value={200}>200</option>
               </select>
             </div>
           </div>
@@ -2812,24 +2818,26 @@ export default function MonitoringInternalTab({
               type="button"
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="p-1.5 rounded-lg border border-border bg-background hover:bg-muted text-foreground disabled:opacity-40 transition cursor-pointer"
+              className="px-2.5 py-1.5 rounded-lg border border-border bg-background hover:bg-muted text-foreground disabled:opacity-40 transition cursor-pointer flex items-center gap-1 text-xs font-medium"
               title="Halaman Sebelumnya"
             >
-              <ChevronLeft className="size-4" />
+              <ChevronLeft className="size-3.5" />
+              <span>Sebelumnya</span>
             </button>
 
             <span className="px-3 py-1 text-xs font-semibold text-foreground">
-              {currentPage} / {totalPages}
+              Halaman {currentPage} dari {totalPages}
             </span>
 
             <button
               type="button"
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="p-1.5 rounded-lg border border-border bg-background hover:bg-muted text-foreground disabled:opacity-40 transition cursor-pointer"
+              className="px-2.5 py-1.5 rounded-lg border border-border bg-background hover:bg-muted text-foreground disabled:opacity-40 transition cursor-pointer flex items-center gap-1 text-xs font-medium"
               title="Halaman Berikutnya"
             >
-              <ChevronRight className="size-4" />
+              <span>Berikutnya</span>
+              <ChevronRight className="size-3.5" />
             </button>
             <button
               type="button"
