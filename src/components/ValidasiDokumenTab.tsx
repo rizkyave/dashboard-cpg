@@ -32,6 +32,7 @@ import {
   ArrowRight,
   Link2,
   CheckSquare,
+  ChevronUp,
 } from 'lucide-react';
 import {
   DocumentValidationRecord,
@@ -86,6 +87,23 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isBatchModalOpen, setIsBatchModalOpen] = useState<boolean>(false);
   const headerCheckboxRef = React.useRef<HTMLInputElement | null>(null);
+
+  // Independent Table Scroll & Height State (Freeze/Lock Viewport)
+  const [tableHeight, setTableHeight] = useState<'compact' | 'focus' | 'full'>('focus');
+  const [isTableScrolled, setIsTableScrolled] = useState<boolean>(false);
+  const tableContainerRef = React.useRef<HTMLDivElement | null>(null);
+
+  const handleTableScroll = () => {
+    if (tableContainerRef.current) {
+      setIsTableScrolled(tableContainerRef.current.scrollTop > 60);
+    }
+  };
+
+  const scrollToTop = () => {
+    if (tableContainerRef.current) {
+      tableContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   // Fetch data dari /api/validasi-dokumen
   const fetchValidations = async (isManualRefresh = false) => {
@@ -569,12 +587,90 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
       </div>
 
       {/* Tabel Data Berkas Validasi */}
-      <div className="bg-card border border-border rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
-        <div className="overflow-x-auto rounded-xl border border-border">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-muted/50 text-muted-foreground font-semibold border-b border-border uppercase text-[10px] tracking-wider">
+      <div className="bg-card border border-border rounded-2xl p-4 sm:p-5 shadow-xs space-y-3">
+        {/* Panel Kontrol Scroll & Tinggi Tabel */}
+        <div className="flex flex-wrap items-center justify-between gap-2.5 pb-1 border-b border-border/50">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-primary/10 text-primary border border-primary/20 shadow-2xs">
+              <span className="size-1.5 rounded-full bg-primary animate-pulse" />
+              <span>Header Terkunci (Scroll Mandiri)</span>
+            </span>
+            <span className="text-[11px] text-muted-foreground hidden sm:inline">
+              Hanya area tabel yang bergulir saat di-scroll
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Height Switcher */}
+            <div className="flex items-center gap-1 p-0.5 rounded-lg border border-border bg-muted/40 text-[11px]">
+              <button
+                type="button"
+                onClick={() => setTableHeight('compact')}
+                className={`px-2 py-0.5 rounded-md font-medium transition cursor-pointer ${
+                  tableHeight === 'compact'
+                    ? 'bg-primary text-primary-foreground shadow-2xs font-semibold'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title="Tinggi Ringkas (480px)"
+              >
+                480px
+              </button>
+              <button
+                type="button"
+                onClick={() => setTableHeight('focus')}
+                className={`px-2 py-0.5 rounded-md font-medium transition cursor-pointer ${
+                  tableHeight === 'focus'
+                    ? 'bg-primary text-primary-foreground shadow-2xs font-semibold'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title="Tinggi Fokus Layar (62vh - Rekomendasi)"
+              >
+                Fokus (62vh)
+              </button>
+              <button
+                type="button"
+                onClick={() => setTableHeight('full')}
+                className={`px-2 py-0.5 rounded-md font-medium transition cursor-pointer ${
+                  tableHeight === 'full'
+                    ? 'bg-primary text-primary-foreground shadow-2xs font-semibold'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title="Tinggi Penuh (Scroll Bebas)"
+              >
+                Penuh
+              </button>
+            </div>
+
+            {isTableScrolled && (
+              <button
+                type="button"
+                onClick={scrollToTop}
+                className="h-6.5 px-2 rounded-lg border border-primary/30 bg-primary/10 hover:bg-primary/20 text-primary text-[11px] font-semibold flex items-center gap-1 transition shadow-2xs cursor-pointer active:scale-95 animate-in fade-in"
+                title="Kembali ke baris teratas"
+              >
+                <ChevronUp className="size-3" />
+                <span className="hidden sm:inline">Ke Atas</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Scroll Container with Freeze Header */}
+        <div
+          ref={tableContainerRef}
+          onScroll={handleTableScroll}
+          className={`overflow-auto rounded-xl border border-border transition-all duration-200 relative ${
+            tableHeight === 'compact'
+              ? 'max-h-[480px]'
+              : tableHeight === 'focus'
+              ? 'max-h-[62vh]'
+              : 'max-h-none'
+          }`}
+        >
+          <table className="w-full text-left text-xs border-collapse">
+            <thead className="sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md text-muted-foreground font-semibold border-b border-border uppercase text-[10px] tracking-wider shadow-xs">
               <tr>
-                <th className="py-2.5 px-3 w-10 text-center">
+                <th className="py-2.5 px-3 w-10 text-center sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md">
                   <input
                     ref={headerCheckboxRef}
                     type="checkbox"
@@ -592,15 +688,15 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                     }
                   />
                 </th>
-                <th className="py-2.5 px-3">Tipe</th>
-                <th className="py-2.5 px-3">No. Berkas Resmi</th>
-                <th className="py-2.5 px-3">Armada / Unit</th>
-                <th className="py-2.5 px-3">No. FPB</th>
-                <th className="py-2.5 px-3">No. PO / DO</th>
-                <th className="py-2.5 px-3 whitespace-nowrap">Tahapan Pengesahan (4 PIC)</th>
-                <th className="py-2.5 px-3 whitespace-nowrap">Status Kelayakan</th>
-                <th className="py-2.5 px-3">Tgl Update</th>
-                <th className="py-2.5 px-3 text-right">Aksi</th>
+                <th className="py-2.5 px-3 sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md">Tipe</th>
+                <th className="py-2.5 px-3 sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md">No. Berkas Resmi</th>
+                <th className="py-2.5 px-3 sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md">Armada / Unit</th>
+                <th className="py-2.5 px-3 sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md">No. FPB</th>
+                <th className="py-2.5 px-3 sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md">No. PO / DO</th>
+                <th className="py-2.5 px-3 whitespace-nowrap sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md">Tahapan Pengesahan (4 PIC)</th>
+                <th className="py-2.5 px-3 whitespace-nowrap sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md">Status Kelayakan</th>
+                <th className="py-2.5 px-3 sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md">Tgl Update</th>
+                <th className="py-2.5 px-3 text-right sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
