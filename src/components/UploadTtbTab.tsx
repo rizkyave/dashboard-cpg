@@ -1297,8 +1297,8 @@ export default function UploadTtbTab({
                   <div className="text-[9px] text-muted-foreground/70 font-normal">UPLOADER</div>
                 </th>
                 <th className="py-2.5 px-3">
-                  <div>TGL UPLOAD</div>
-                  <div className="text-[9px] text-muted-foreground/70 font-normal">UPLOAD DATE</div>
+                  <div>TGL &amp; WAKTU UPLOAD</div>
+                  <div className="text-[9px] text-muted-foreground/70 font-normal">UPLOAD DATE &amp; TIME</div>
                 </th>
                 <th className="py-2.5 px-3">
                   <div>STATUS</div>
@@ -1371,8 +1371,44 @@ export default function UploadTtbTab({
                       )}
                     </td>
 
-                    <td className="py-2.5 px-3 text-muted-foreground font-mono text-[11px]">
-                      {item.uploadedAt ? item.uploadedAt.slice(0, 10) : item.receivedDate}
+                    <td className="py-2.5 px-3 font-mono text-[11px] whitespace-nowrap">
+                      {item.uploadedAt ? (
+                        <div className="flex flex-col leading-tight">
+                          <span className="text-foreground font-semibold">
+                            {(() => {
+                              try {
+                                const d = new Date(item.uploadedAt);
+                                return !isNaN(d.getTime())
+                                  ? d.toLocaleDateString('id-ID', {
+                                      day: '2-digit',
+                                      month: '2-digit',
+                                      year: 'numeric',
+                                    })
+                                  : item.uploadedAt.slice(0, 10);
+                              } catch {
+                                return item.uploadedAt.slice(0, 10);
+                              }
+                            })()}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground font-medium">
+                            {(() => {
+                              try {
+                                const d = new Date(item.uploadedAt);
+                                return !isNaN(d.getTime())
+                                  ? `${d.toLocaleTimeString('id-ID', {
+                                      hour: '2-digit',
+                                      minute: '2-digit',
+                                    })} WIB`
+                                  : '';
+                              } catch {
+                                return '';
+                              }
+                            })()}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">{item.receivedDate || '-'}</span>
+                      )}
                     </td>
 
                     <td className="py-2.5 px-3">
