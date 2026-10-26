@@ -1332,11 +1332,15 @@ export async function POST(req: NextRequest) {
       const logistikUrl = `https://e-fpb.cindaragroup.com/files/logistik_Approved_rev_sign_${encodeURIComponent(cleanFpb)}.pdf`;
       const normalUrl = `https://e-fpb.cindaragroup.com/files/Approved_rev_sign_${encodeURIComponent(cleanFpb)}.pdf`;
 
+      // Hanya gunakan logistikUrl jika record asalnya memang sudah memiliki file signed di e-FPB
+      const hasVerifiedSignedFile = currentRec.pdfUrl?.includes('logistik_Approved_');
+      const activePdfUrl = newStatus ? (hasVerifiedSignedFile ? logistikUrl : normalUrl) : normalUrl;
+
       records[targetIdx] = {
         ...currentRec,
         isReceivedLogistik: newStatus,
         pchLogistik: newStatus ? 'Received_Logistic' : '-',
-        pdfUrl: newStatus ? logistikUrl : normalUrl,
+        pdfUrl: activePdfUrl,
         reviewedBy: approvedBy || currentRec.reviewedBy || 'Staf Operasional / Adm. Logistik (Noor Hasanah / Melinda Dwi Putri)',
         reviewedAt: nowIso,
         updatedAt: nowIso,

@@ -115,6 +115,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
   // Modal / Drawer state
   const [selectedRecord, setSelectedRecord] = useState<FpbReviewRecord | null>(null);
   const [activeModalTab, setActiveModalTab] = useState<'items' | 'pdf' | 'attachments' | 'relations'>('items');
+  const [pdfViewMode, setPdfViewMode] = useState<'raw' | 'signed'>('raw');
   const [isParsingItems, setIsParsingItems] = useState<boolean>(false);
   const [isSavingDecision, setIsSavingDecision] = useState<boolean>(false);
 
@@ -236,6 +237,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
     setSelectedAttachmentFile(null);
     setAttachmentCaption('');
     setActiveModalTab('items');
+    setPdfViewMode(rec.pdfUrl?.includes('logistik_Approved_') ? 'signed' : 'raw');
   };
 
   // Upload New Attachment
@@ -1544,14 +1546,14 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                   </button>
                 )}
                 <a
-                  href={(formIsReceivedLogistik || selectedRecord.isReceivedLogistik) && !selectedRecord.pdfUrl.includes('logistik_Approved_') ? selectedRecord.pdfUrl.replace('/files/Approved_', '/files/logistik_Approved_') : selectedRecord.pdfUrl}
+                  href={`https://e-fpb.cindaragroup.com/files/Approved_rev_sign_${encodeURIComponent(selectedRecord.fpbNo)}.pdf`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg border border-border bg-background hover:bg-muted text-foreground transition"
-                  title="Buka dokumen PDF resmi e-FPB bertanda tangan di tab baru"
+                  title="Buka dokumen PDF asli pemohon e-FPB di tab baru"
                 >
                   <ExternalLink className="size-3.5" />
-                  PDF Resmi
+                  PDF Asli
                 </a>
                 <button
                   type="button"
@@ -1842,16 +1844,21 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
 
               {/* TAB 2: Pratinjau Dokumen PDF Resmi */}
               {activeModalTab === 'pdf' && (() => {
-                const isSignedByLogistic = formIsReceivedLogistik || selectedRecord.isReceivedLogistik;
-                const resolvedPdfUrl =
-                  isSignedByLogistic && !selectedRecord.pdfUrl.includes('logistik_Approved_')
-                    ? selectedRecord.pdfUrl.replace('/files/Approved_', '/files/logistik_Approved_')
-                    : selectedRecord.pdfUrl;
+                const cleanFpb = (selectedRecord.fpbNo || '').trim();
+                const rawPdfUrl = `https://e-fpb.cindaragroup.com/files/Approved_rev_sign_${encodeURIComponent(cleanFpb)}.pdf`;
+                const signedPdfUrl = `https://e-fpb.cindaragroup.com/files/logistik_Approved_rev_sign_${encodeURIComponent(cleanFpb)}.pdf`;
+
+                // Cek apakah dokumen ini memiliki berkas signed di server e-FPB
+                const hasSignedFileOnServer = selectedRecord.pdfUrl?.includes('logistik_Approved_');
+                const isApproved = formIsReceivedLogistik || selectedRecord.isReceivedLogistik;
+
+                // URL aktif yang ditampilkan: default selalu Dokumen Asli Pemohon, kecuali jika memang sudah ada signed file dan mode signed aktif
+                const activePdfUrl = (pdfViewMode === 'signed' && hasSignedFileOnServer) ? signedPdfUrl : rawPdfUrl;
 
                 return (
                   <div className="space-y-3">
-                    {/* Status Tanda Tangan Logistik Alert */}
-                    {isSignedByLogistic ? (
+                    {/* Status Persetujuan Alert */}
+                    {isApproved ? (
                       <div className="p-3.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
                           <div className="size-8 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold shrink-0">
@@ -1860,45 +1867,93 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                           <div className="space-y-0.5">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-xs font-bold text-emerald-950 dark:text-emerald-200">
-                                Dokumen Telah Disetujui Logistik & Siap Diteruskan ke Purchasing
+                                Dokumen Telah Disetujui Logistik &amp; Siap Pengadaan
                               </span>
                               <span className="px-2 py-0.5 rounded-full text-[10px] bg-emerald-600 text-white font-bold">
-                                Tanda Tangan &amp; Stempel Tertera
+                                Siap Diteruskan ke Purchasing
                               </span>
                             </div>
                             <p className="text-[11px] text-emerald-700 dark:text-emerald-300">
-                              Disetujui oleh: <strong>{selectedRecord.reviewedBy || 'Staf Operasional / Adm. Logistik (Noor Hasanah / Melinda Dwi Putri)'}</strong> • Tanda tangan stempel sah telah dibubuhkan pada kolom <em>Received By: (Logistic Staff)</em> pada berkas PDF di bawah.
+                              Disetujui oleh: <strong>{selectedRecord.reviewedBy || 'Staf Operasional / Adm. Logistik (Noor Hasanah / Melinda Dwi Putri)'}</strong>
                             </p>
                           </div>
                         </div>
-                        <a
-                          href={resolvedPdfUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-xs shrink-0"
-                        >
-                          <ExternalLink className="size-3.5" />
-                          <span>Buka PDF Bertanda Tangan</span>
-                        </a>
+
+                        {hasSignedFileOnServer && (
+                          <div className="flex items-center gap-2 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => setPdfViewMode('raw')}
+                              className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition cursor-pointer ${
+                                pdfViewMode === 'raw'
+                                  ? 'bg-emerald-700 text-white shadow-xs'
+                                  : 'bg-white/80 dark:bg-black/30 text-foreground hover:bg-white'
+                              }`}
+                            >
+                              Dokumen Asli
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setPdfViewMode('signed')}
+                              className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition cursor-pointer ${
+                                pdfViewMode === 'signed'
+                                  ? 'bg-emerald-700 text-white shadow-xs'
+                                  : 'bg-white/80 dark:bg-black/30 text-foreground hover:bg-white'
+                              }`}
+                            >
+                              Bertanda Tangan
+                            </button>
+                          </div>
+                        )}
                       </div>
                     ) : (
-                      <div className="p-3 rounded-xl border border-amber-500/30 bg-amber-500/10 flex items-center justify-between gap-3 text-xs">
-                        <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300">
-                          <AlertTriangle className="size-4 text-amber-600 shrink-0" />
-                          <span>
-                            Dokumen ini belum disetujui logistik (kolom <strong>Received By</strong> masih kosong). Tekan tombol <strong>&quot;Setujui Logistik&quot;</strong> di kanan atas untuk membubuhkan persetujuan resmi.
-                          </span>
+                      <div className="p-3.5 rounded-xl border border-amber-500/30 bg-amber-500/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="size-8 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold shrink-0">
+                            <FileText className="size-5" />
+                          </div>
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-xs font-bold text-amber-950 dark:text-amber-200">
+                                Dokumen Asli Pemohon e-FPB (Menunggu Persetujuan)
+                              </span>
+                              <span className="px-2 py-0.5 rounded-full text-[10px] bg-amber-500 text-white font-bold">
+                                Memerlukan Approval
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-amber-800 dark:text-amber-300">
+                              Dokumen resmi yang diajukan pemohon dan telah disetujui Manager. Kolom <em>Received By: (Logistic Staff)</em> masih kosong menunggu persetujuan pengadaan.
+                            </p>
+                          </div>
                         </div>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (selectedRecord) handleQuickApproveLogistic(selectedRecord, true);
+                            else setFormIsReceivedLogistik(true);
+                          }}
+                          disabled={isApprovingLogistic}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-xs shrink-0 cursor-pointer disabled:opacity-50"
+                        >
+                          <CheckCircle2 className="size-3.5" />
+                          <span>Setujui &amp; Teruskan ke Purchasing</span>
+                        </button>
                       </div>
                     )}
 
+                    {/* Toolbar Baris URL & Buka Tab Baru */}
                     <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border border-border text-xs">
                       <div className="truncate mr-3">
-                        <span className="font-semibold text-foreground">Berkas Dokumen PDF: </span>
-                        <span className="text-muted-foreground font-mono text-[11px]">{resolvedPdfUrl}</span>
+                        <span className="font-semibold text-foreground">
+                          {pdfViewMode === 'signed' && hasSignedFileOnServer
+                            ? 'Berkas PDF Bertanda Tangan Logistik: '
+                            : 'Berkas PDF Asli e-FPB (Pemohon): '}
+                        </span>
+                        <span className="text-muted-foreground font-mono text-[11px]">{activePdfUrl}</span>
                       </div>
                       <a
-                        href={resolvedPdfUrl}
+                        href={activePdfUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition shadow-xs shrink-0"
@@ -1908,10 +1963,11 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                       </a>
                     </div>
 
+                    {/* PDF Viewer Iframe */}
                     <div className="w-full h-[520px] rounded-xl border border-border overflow-hidden bg-muted/20">
                       <iframe
-                        src={resolvedPdfUrl}
-                        title={`PDF ${selectedRecord.fpbNo}`}
+                        src={activePdfUrl}
+                        title={`Dokumen Resmi FPB ${selectedRecord.fpbNo}`}
                         className="w-full h-full border-none"
                       />
                     </div>
