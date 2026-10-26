@@ -124,6 +124,8 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
   const [formPriority, setFormPriority] = useState<FpbPriorityLevel>('P3');
   const [formPic, setFormPic] = useState<string>('');
   const [formNotes, setFormNotes] = useState<string>('');
+  const [formIsReceivedLogistik, setFormIsReceivedLogistik] = useState<boolean>(false);
+  const [isApprovingLogistic, setIsApprovingLogistic] = useState<boolean>(false);
   const [formItems, setFormItems] = useState<FpbItemReview[]>([]);
   const [formAttachments, setFormAttachments] = useState<FpbAttachment[]>([]);
   const [isUploadingAttachment, setIsUploadingAttachment] = useState<boolean>(false);
@@ -227,6 +229,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
     setFormPriority(rec.priorityLevel || 'P3');
     setFormPic(rec.picPurchasing || '');
     setFormNotes(rec.reviewNotes || '');
+    setFormIsReceivedLogistik(Boolean(rec.isReceivedLogistik));
     setFormItems(rec.items ? JSON.parse(JSON.stringify(rec.items)) : []);
     setFormAttachments(rec.attachments ? JSON.parse(JSON.stringify(rec.attachments)) : []);
     setSelectedAttachmentFile(null);
@@ -346,6 +349,67 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
     }
   };
 
+  // Quick / Direct Logistics Approval (Received_Logistic) from Table or Modal
+  const handleQuickApproveLogistic = async (rec: FpbReviewRecord, overrideState?: boolean) => {
+    setIsApprovingLogistic(true);
+    const newIsReceived = overrideState !== undefined ? overrideState : !rec.isReceivedLogistik;
+    try {
+      const res = await fetch('/api/review-fpb', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'approve_logistic',
+          fpbNo: rec.fpbNo,
+          isReceived: newIsReceived,
+          approvedBy: user?.name || user?.username || 'Tim Logistik',
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.record) {
+        setReviews((prev) =>
+          prev.map((r) =>
+            r.fpbNo.toLowerCase() === rec.fpbNo.toLowerCase()
+              ? {
+                  ...r,
+                  isReceivedLogistik: newIsReceived,
+                  pchLogistik: newIsReceived ? 'Received_Logistic' : '-',
+                  reviewedBy: data.record.reviewedBy || r.reviewedBy,
+                  reviewedAt: data.record.reviewedAt || r.reviewedAt,
+                }
+              : r
+          )
+        );
+        if (selectedRecord && selectedRecord.fpbNo.toLowerCase() === rec.fpbNo.toLowerCase()) {
+          setSelectedRecord((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  isReceivedLogistik: newIsReceived,
+                  pchLogistik: newIsReceived ? 'Received_Logistic' : '-',
+                  reviewedBy: data.record.reviewedBy || prev.reviewedBy,
+                  reviewedAt: data.record.reviewedAt || prev.reviewedAt,
+                }
+              : null
+          );
+          setFormIsReceivedLogistik(newIsReceived);
+        }
+        showToast?.(
+          data.message ||
+            (newIsReceived
+              ? 'Berhasil disetujui Logistik (Received_Logistic)! Pengadaan siap diproses Purchasing.'
+              : 'Status persetujuan Logistik (Received_Logistic) dibatalkan.'),
+          'success'
+        );
+      } else {
+        showToast?.(data.message || 'Gagal mengubah status persetujuan logistik', 'error');
+      }
+    } catch (err: any) {
+      showToast?.(err.message || 'Gagal mengubah status persetujuan logistik', 'error');
+    } finally {
+      setIsApprovingLogistic(false);
+    }
+  };
+
   // Close Modal
   const handleCloseModal = () => {
     setSelectedRecord(null);
@@ -434,6 +498,8 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
         items: formItems,
         attachments: formAttachments,
         reviewedBy: user?.name || user?.username || 'Tim FPB',
+        isReceivedLogistik: formIsReceivedLogistik,
+        pchLogistik: formIsReceivedLogistik ? 'Received_Logistic' : '-',
       };
 
       const res = await fetch('/api/review-fpb', {
@@ -460,6 +526,8 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                   attachments: formAttachments,
                   reviewedBy: user?.name || user?.username || 'Tim FPB',
                   reviewedAt: new Date().toISOString(),
+                  isReceivedLogistik: formIsReceivedLogistik,
+                  pchLogistik: formIsReceivedLogistik ? 'Received_Logistic' : '-',
                   updatedAt: new Date().toISOString(),
                 }
               : r
@@ -1283,10 +1351,30 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                       </td>
 
                       {/* Status e-FPB */}
-                      <td className="py-3 px-3 whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                          {rec.isReceivedLogistik ? 'Diterima Logistik' : 'e-FPB Terdaftar'}
-                        </span>
+                      <td className="py-3 px-3 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                        {rec.isReceivedLogistik ? (
+                          <button
+                            type="button"
+                            onClick={() => handleQuickApproveLogistic(rec, false)}
+                            disabled={isApprovingLogistic}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 hover:bg-amber-500/25 transition cursor-pointer"
+                            title="Status: Received_Logistic (Disetujui Logistik). Klik jika ingin membatalkan."
+                          >
+                            <span className="size-2 rounded-full bg-amber-500" />
+                            <span>Received_Logistic</span>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleQuickApproveLogistic(rec, true)}
+                            disabled={isApprovingLogistic}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-2xs transition cursor-pointer disabled:opacity-50"
+                            title="Klik untuk menyetujui dokumen ini (Received_Logistic) agar pengadaan dilanjutkan ke Purchasing"
+                          >
+                            <CheckCircle2 className="size-3" />
+                            <span>Setujui Logistik</span>
+                          </button>
+                        )}
                       </td>
 
                       {/* Status Review Tim FPB */}
@@ -1425,6 +1513,35 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
 
               {/* Close & External Links */}
               <div className="flex items-center gap-2">
+                {formIsReceivedLogistik ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (selectedRecord) handleQuickApproveLogistic(selectedRecord, false);
+                      else setFormIsReceivedLogistik(false);
+                    }}
+                    disabled={isApprovingLogistic}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg border border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20 transition cursor-pointer"
+                    title="Status: Received_Logistic. Klik untuk membatalkan persetujuan logistik."
+                  >
+                    <CheckCircle2 className="size-3.5 text-amber-600 dark:text-amber-400" />
+                    <span>Received_Logistic</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (selectedRecord) handleQuickApproveLogistic(selectedRecord, true);
+                      else setFormIsReceivedLogistik(true);
+                    }}
+                    disabled={isApprovingLogistic}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg bg-amber-500 hover:bg-amber-600 text-white shadow-xs transition cursor-pointer disabled:opacity-50"
+                    title="Setujui dokumen ini agar pengadaan dapat dilanjutkan ke tahap purchasing"
+                  >
+                    <CheckCircle2 className="size-3.5" />
+                    <span>Setujui Logistik (Received_Logistic)</span>
+                  </button>
+                )}
                 <a
                   href={selectedRecord.pdfUrl}
                   target="_blank"
@@ -2013,6 +2130,44 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
 
             {/* Modal Footer: Keputusan Review Tim FPB */}
             <div className="p-5 border-t border-border bg-muted/30 space-y-4">
+              {/* Persetujuan Logistik Banner / Switch */}
+              <div className="p-3.5 rounded-xl border border-amber-500/30 bg-amber-500/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-800 dark:text-amber-300">
+                      <CheckCircle2 className="size-4 text-amber-600 dark:text-amber-400" />
+                      Persetujuan Logistik (Received_Logistic)
+                    </span>
+                    {formIsReceivedLogistik ? (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white">
+                        SUDAH DISETUJUI
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-muted text-muted-foreground border border-border">
+                        MENUNGGU PERSETUJUAN
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    {formIsReceivedLogistik
+                      ? 'Dokumen FPB ini telah disetujui oleh Tim Logistik. Tim Purchasing dapat segera melanjutkan proses PO atau tender.'
+                      : 'Aktifkan status ini untuk menyatakan bahwa dokumen FPB telah diverifikasi Logistik dan diizinkan lanjut ke Purchasing.'}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFormIsReceivedLogistik(!formIsReceivedLogistik)}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition shadow-xs cursor-pointer inline-flex items-center gap-1.5 ${
+                    formIsReceivedLogistik
+                      ? 'bg-amber-500 hover:bg-amber-600 text-white'
+                      : 'bg-background hover:bg-muted border border-border text-foreground'
+                  }`}
+                >
+                  <CheckCircle2 className="size-4" />
+                  <span>{formIsReceivedLogistik ? 'Status: Received_Logistic' : 'Setujui Sekarang'}</span>
+                </button>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* 1. Skala Prioritas Dokumen (SLA Lead Time) */}
                 <div>

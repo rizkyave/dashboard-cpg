@@ -37,13 +37,34 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T12:19:31.021Z",
+    "updatedAt": "2026-10-26T13:47:10.862Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P2",
     "slaTargetDate": "09/11/26",
     "slaDaysRemaining": 14,
     "slaStatus": "ON_TRACK",
-    "attachments": []
+    "attachments": [
+      {
+        "id": "efpb-att-MO-FPB-26-0001918-2",
+        "name": "MO-LKK-KT 8257 YA (LAMPU KOMBINASI).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/MO-LKK-KT%208257%20YA%20%28LAMPU%20KOMBINASI%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "26/10/26 13:42",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      },
+      {
+        "id": "efpb-att-MO-FPB-26-0001918-3",
+        "name": "MO-FOTO-KT 8257 YA (LAMPU KOMBINASI).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/MO-FOTO-KT%208257%20YA%20%28LAMPU%20KOMBINASI%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "26/10/26 13:42",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ]
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001094",
@@ -82,7 +103,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T12:05:06.421Z",
+    "updatedAt": "2026-10-26T13:47:10.862Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -111,13 +132,34 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T12:05:06.421Z",
+    "updatedAt": "2026-10-26T13:47:10.862Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
     "slaDaysRemaining": 30,
     "slaStatus": "ON_TRACK",
-    "attachments": []
+    "attachments": [
+      {
+        "id": "efpb-att-MO-FPB-26-0001920-2",
+        "name": "MO-LKK-KT 8703 ZU (HOSE HIDROLIK TANGGA).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/MO-LKK-KT%208703%20ZU%20%28HOSE%20HIDROLIK%20TANGGA%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "26/10/26 13:53",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      },
+      {
+        "id": "efpb-att-MO-FPB-26-0001920-3",
+        "name": "MO-FOTO-KT 8703 ZU (HOSE HIDROLIK TANGGA).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/MO-FOTO-KT%208703%20ZU%20%28HOSE%20HIDROLIK%20TANGGA%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "26/10/26 13:53",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ]
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0000712",
@@ -546,7 +588,7 @@
         "GAJ-TTB-26-00943"
       ]
     },
-    "updatedAt": "2026-10-26T12:26:48.496Z",
+    "updatedAt": "2026-10-26T13:47:10.862Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -591,12 +633,24 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T12:31:55.750Z",
+    "updatedAt": "2026-10-26T13:47:10.862Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P2",
     "slaTargetDate": "09/11/26",
     "slaDaysRemaining": 14,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "attachments": [
+      {
+        "id": "efpb-att-HL-FPB-26-0001525-2",
+        "name": "HL-FPB-26-0001525 WO.pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/HL-FPB-26-0001525%20WO.pdf",
+        "type": "pdf",
+        "uploadedAt": "26/10/26 15:03",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ]
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004985",
@@ -620,7 +674,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T12:05:06.421Z",
+    "updatedAt": "2026-10-26T13:47:10.862Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -671,7 +725,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T12:05:06.421Z",
+    "updatedAt": "2026-10-26T13:47:10.862Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -817,7 +871,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T12:17:33.746Z",
+    "updatedAt": "2026-10-26T13:47:10.862Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P2",
     "slaTargetDate": "09/11/26",
@@ -868,7 +922,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T12:05:06.421Z",
+    "updatedAt": "2026-10-26T13:47:10.862Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -913,12 +967,34 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T12:56:32.466Z",
+    "updatedAt": "2026-10-26T13:47:10.862Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P2",
     "slaTargetDate": "09/11/26",
     "slaDaysRemaining": 14,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "attachments": [
+      {
+        "id": "efpb-att-MO-FPB-26-0001923-2",
+        "name": "MO-LKK-KT 8026 YA (HOSE SPL).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/MO-LKK-KT%208026%20YA%20%28HOSE%20SPL%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "26/10/26 15:22",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      },
+      {
+        "id": "efpb-att-MO-FPB-26-0001923-3",
+        "name": "MO-FOTO-KT 8026 YA (HOSE SPL).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/MO-FOTO-KT%208026%20YA%20%28HOSE%20SPL%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "26/10/26 15:22",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ]
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004980",
@@ -964,7 +1040,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T12:05:06.421Z",
+    "updatedAt": "2026-10-26T13:47:10.862Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -1015,7 +1091,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T12:05:06.421Z",
+    "updatedAt": "2026-10-26T13:47:10.862Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -1044,7 +1120,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T12:05:06.421Z",
+    "updatedAt": "2026-10-26T13:47:10.862Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -1081,7 +1157,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T12:05:06.421Z",
+    "updatedAt": "2026-10-26T13:47:10.862Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -1100,24 +1176,113 @@
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0001922.pdf",
     "reviewStatus": "PENDING_REVIEW",
-    "urgency": "NORMAL",
+    "urgency": "URGENT",
     "picPurchasing": "-",
     "reviewNotes": "",
     "isRevised": true,
     "revisionCount": 2,
     "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 26/10/26 (berkas lain tgl 26/10/26).",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "ACC01202001-ZZZ",
+        "itemName": "KEPALA ACCU (+/-) TIMAH (00)",
+        "qty": 20,
+        "unit": "SET",
+        "description": "U/ STOCK GUDANG (26 - 01078)",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[ACCU-ACC012] ACCU - KEPALA ACCU (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 2,
+        "itemCode": "PIP01204002-ZZZ",
+        "itemName": "PIPA SGP 2 1/2\" (2,8 MM) X 6 MTR (00)",
+        "qty": 1,
+        "unit": "BTG",
+        "description": "U/ SARANA KERJA KNALPO (26 - 01078)",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[PIPA-PIP012] PIPA (PIPE) - PIPA (PIPE) SGP (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 3,
+        "itemCode": "CAI00801005-C&C",
+        "itemName": "CONTACT CLEANER 475 ML (C&C)",
+        "qty": 10,
+        "unit": "KLG",
+        "description": "U/ SARANA KERJA (26 - 01078)",
+        "priority": "P2",
+        "stockAvailable": 43,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[CAI00801003-ZZZ] CONTACT CLEANER ELECTRIC (00) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (43 KLG). Disarankan penuhi dari stok gudang."
+      },
+      {
+        "no": 4,
+        "itemCode": "WTC00201003-JU",
+        "itemName": "WATER COOLANT RADIATOR 5 LITER (JUMBO)",
+        "qty": 20,
+        "unit": "JRG",
+        "description": "U/ STOCK GUDANG (26 - 01078)",
+        "priority": "P2",
+        "stockAvailable": 125,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[WTC00201002-ZZZ] WATER COOLANT RADIATOR (LITER) (00) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (125 JRG). Disarankan penuhi dari stok gudang."
+      },
+      {
+        "no": 5,
+        "itemCode": "LEM02901002-TH",
+        "itemName": "LEM THREEBOND/GASKET MERAH (THREEBOND)",
+        "qty": 10,
+        "unit": "PCS",
+        "description": "U/ SARANA KERJA (26 - 01078)",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[LEM1-LEM029] LEM (GLUE) - LEM THREEBOND/GASKET (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 6,
+        "itemCode": "CAI02301001-UTC",
+        "itemName": "ADBLUE 10 LITER (UD TRUCK)",
+        "qty": 30,
+        "unit": "JRG",
+        "description": "U/ SARANA KERJA (26 - 01078)",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
     "duplicateAlerts": [],
     "relatedDocs": {
       "poNos": [],
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T12:05:06.421Z",
+    "updatedAt": "2026-10-26T13:47:10.862Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
-    "priorityLevel": "P3",
-    "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 30,
+    "priorityLevel": "P2",
+    "slaTargetDate": "09/11/26",
+    "slaDaysRemaining": 14,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -1150,7 +1315,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T12:05:06.421Z",
+    "updatedAt": "2026-10-26T13:47:10.862Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -1179,7 +1344,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T12:05:06.421Z",
+    "updatedAt": "2026-10-26T13:47:10.862Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -1223,7 +1388,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T12:10:00.957Z",
+    "updatedAt": "2026-10-26T13:47:10.862Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",

@@ -878,6 +878,10 @@ export async function POST(req: NextRequest) {
           reviewNotes: reviewNotes !== undefined ? reviewNotes : current.reviewNotes,
           items: Array.isArray(items) ? items : current.items,
           attachments: incomingAttachments,
+          isReceivedLogistik: body.isReceivedLogistik !== undefined ? Boolean(body.isReceivedLogistik) : current.isReceivedLogistik,
+          pchLogistik: body.pchLogistik !== undefined
+            ? body.pchLogistik
+            : (body.isReceivedLogistik ? 'Received_Logistic' : current.pchLogistik),
           isRevised: body.isRevised !== undefined ? body.isRevised : current.isRevised,
           revisionCount: body.revisionCount !== undefined ? body.revisionCount : current.revisionCount,
           revisionNote: body.revisionNote !== undefined ? body.revisionNote : current.revisionNote,
@@ -1307,6 +1311,40 @@ export async function POST(req: NextRequest) {
           ? `Berhasil memuat ${currentAttachments.length} berkas lampiran & foto fisik dari e-FPB!`
           : 'Belum ada lampiran terpisah yang terunggah di e-FPB untuk dokumen ini.',
         attachments: currentAttachments,
+      });
+    }
+
+    // ----------------------------------------------------
+    // Action 6: Direct Logistics Approval (Received_Logistic)
+    // ----------------------------------------------------
+    if (action === 'approve_logistic' || action === 'toggle_logistic') {
+      const { fpbNo, isReceived, approvedBy } = body;
+      const targetIdx = records.findIndex((r) => r.fpbNo.toLowerCase() === (fpbNo || '').toLowerCase());
+      if (targetIdx === -1) {
+        return NextResponse.json({ success: false, message: 'FPB tidak ditemukan.' }, { status: 404 });
+      }
+
+      const currentRec = records[targetIdx];
+      const newStatus = isReceived !== undefined ? Boolean(isReceived) : !currentRec.isReceivedLogistik;
+      const nowIso = new Date().toISOString();
+
+      records[targetIdx] = {
+        ...currentRec,
+        isReceivedLogistik: newStatus,
+        pchLogistik: newStatus ? 'Received_Logistic' : '-',
+        reviewedBy: approvedBy || currentRec.reviewedBy || 'Tim Logistik',
+        reviewedAt: nowIso,
+        updatedAt: nowIso,
+      };
+
+      await saveReviews(records);
+
+      return NextResponse.json({
+        success: true,
+        message: newStatus
+          ? `Dokumen ${currentRec.fpbNo} berhasil disetujui Logistik (Received_Logistic)! Pengadaan siap diproses Purchasing.`
+          : `Status persetujuan logistik (Received_Logistic) untuk ${currentRec.fpbNo} dibatalkan.`,
+        record: records[targetIdx],
       });
     }
 
