@@ -17,6 +17,7 @@ export type TabType =
   | 'list-sm'
   | 'analytics'
   | 'inventory'
+  | 'stok-gudang'
   | 'galeri-ttb'
   | 'admin-settings'
   | 'sisa-layanan'

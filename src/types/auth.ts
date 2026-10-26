@@ -301,6 +301,21 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
     },
   },
   {
+    tabId: 'stok-gudang',
+    category: 'Modul Tambahan',
+    name: 'Stok Gudang Pusat',
+    description: 'Penerimaan masuk PO & pengambilan barang keluar dari stok fisik Gudang Somber Pak Budi Agustiansyah',
+    permissions: {
+      admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
+      manager: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Monitoring persediaan fisik & approval mutasi' },
+      supervisor: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Monitoring persediaan & mutasi barang Somber' },
+      staf_purchasing: { allowed: true, level: 'Input & Upload', badgeTone: 'emerald', notes: 'Input penerimaan PO supplier & cek stok' },
+      staf_ttb: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Pengelolaan penuh stok fisik Pak Budi Somber' },
+      staf_lapangan: { allowed: true, level: 'Input & Upload', badgeTone: 'emerald', notes: 'Catat pengambilan keluar & bon barang' },
+      visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
+    },
+  },
+  {
     tabId: 'pos-kapal',
     category: 'Modul Tambahan',
     name: 'Posisi Kapal',
@@ -505,6 +520,7 @@ export function canAccessTab(role: UserRole | undefined, tab: TabType): boolean 
       'validasi-dokumen',
       'galeri-ttb',
       'inventory',
+      'stok-gudang',
       'sisa-layanan',
     ];
     return allowed.includes(tab);
@@ -522,6 +538,7 @@ export function canAccessTab(role: UserRole | undefined, tab: TabType): boolean 
       'validasi-dokumen',
       'galeri-ttb',
       'inventory',
+      'stok-gudang',
       'sisa-layanan',
     ];
     return allowed.includes(tab);
@@ -536,6 +553,7 @@ export function canAccessTab(role: UserRole | undefined, tab: TabType): boolean 
       'crew-kapal',
       'work-order',
       'list-sm',
+    'stok-gudang',
     ];
     return allowed.includes(tab);
   }

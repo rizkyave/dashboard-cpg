@@ -15,6 +15,7 @@ Dashboard operasional dan monitoring alur rantai pengadaan (*procurement*), alur
 - **Eskalasi Cepat WhatsApp (`wa.me`)**: Pengiriman template chat percepatan dokumen ke PIC aktif.
 - **Unggah Excel (`xlsx`) & Ekspor CSV**: Pemrosesan file langsung di peramban tanpa perlu backend database terpisah.
 - **Live WITA Clock**: Waktu real-time Balikpapan (UTC+8).
+- **Modul Stok Gudang Pusat Somber (Pak Budi Agustiansyah)**: Pencatatan penerimaan barang masuk dari vendor/PO (+ Inbound), mutasi pengeluaran ke armada kapal (- Outbound), kartu stok fisik real-time, alert minimum stock, cetak bukti serah terima (BPBG), dan ekspor Excel.
 
 ---
 

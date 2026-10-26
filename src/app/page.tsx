@@ -60,6 +60,7 @@ import ReviewFpbTab from '@/components/ReviewFpbTab';
 import PratenderTab from '@/components/PratenderTab';
 import MonitoringInternalTab from '@/components/MonitoringInternalTab';
 import InventoryTab from '@/components/InventoryTab';
+import WarehouseStockTab from '@/components/WarehouseStockTab';
 import TtbGalleryTab from '@/components/TtbGalleryTab';
 import AdminSettingsTab from '@/components/AdminSettingsTab';
 import SisaLayananTab from '@/components/SisaLayananTab';
@@ -1150,6 +1151,8 @@ export default function DashboardPage() {
                     ? 'Monitoring Layanan Pemeliharaan (SM) Vendor'
                     : activeTab === 'inventory'
                     ? 'Cek Stok Persediaan Gudang'
+                    : activeTab === 'stok-gudang'
+                    ? 'Stok Gudang Pusat Somber (Pak Budi)'
                     : activeTab === 'sisa-layanan'
                     ? 'Laporan Sisa Layanan Permintaan (Gabungan)'
                     : activeTab === 'upload-fstb'
@@ -1187,6 +1190,8 @@ export default function DashboardPage() {
                     ? 'Pelacakan pekerjaan jasa perbaikan mesin kapal, bubut, servis bengkel rekanan (Karindo, Surabaya Teknik, Sidomukti, Panca Teknik, Tjokro), dan integrasi FPB-PO.'
                     : activeTab === 'inventory'
                     ? 'Pemeriksaan stok barang konsolidasi Accurate (CPL, Hana Lines, Mandar Ocean) & pencocokan kebutuhan pengadaan.'
+                    : activeTab === 'stok-gudang'
+                    ? 'Pengendalian persediaan fisik gudang pusat Somber Balikpapan: pencatatan penerimaan barang masuk dari PO pengadaan serta mutasi pengeluaran ke armada kapal oleh Pak Budi Agustiansyah.'
                     : activeTab === 'sisa-layanan'
                     ? 'Monitoring pemenuhan pengajuan barang (FPB, PO, FSTB, TTB) gabungan seluruh unit armada kapal & divisi PT Cindara Pratama Group.'
                     : activeTab === 'upload-fstb'
@@ -1200,7 +1205,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Tombol Sembunyikan Ringkasan Metrik KPI */}
-              {activeTab !== 'inventory' && activeTab !== 'review-fpb' && activeTab !== 'monitoring-internal' && activeTab !== 'pos-kapal' && activeTab !== 'crew-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'admin-settings' && (!isVisitor || searchKeyword.trim() !== '') && (
+              {activeTab !== 'inventory' && activeTab !== 'stok-gudang' && activeTab !== 'review-fpb' && activeTab !== 'monitoring-internal' && activeTab !== 'pos-kapal' && activeTab !== 'crew-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'admin-settings' && (!isVisitor || searchKeyword.trim() !== '') && (
                 <button
                   type="button"
                   onClick={toggleKpiHidden}
@@ -1375,6 +1380,11 @@ export default function DashboardPage() {
               onLoadSampleInventory={handleLoadSampleInventory}
               showToast={showToast}
             />
+          )}
+
+          {/* Tab Modul Tambahan: Stok Gudang Pusat (Pak Budi - Somber) */}
+          {activeTab === 'stok-gudang' && (
+            <WarehouseStockTab showToast={showToast} />
           )}
 
           {/* Tab Modul Tambahan: Sisa Layanan Gabungan Semua Unit */}

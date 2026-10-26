@@ -347,7 +347,7 @@ export default function Sidebar({
         </div>
 
         {/* Modul Tambahan - Disaring Berdasarkan RBAC canAccessTab */}
-        {(['inventory', 'pos-kapal', 'crew-kapal', 'work-order', 'list-sm', 'sisa-layanan'] as TabType[]).some(
+        {(['inventory', 'stok-gudang', 'pos-kapal', 'crew-kapal', 'work-order', 'list-sm', 'sisa-layanan'] as TabType[]).some(
           (t) => canAccessTab(user?.role, t)
         ) && (
           <div className="space-y-1 pt-2 border-t border-border">
@@ -381,6 +381,32 @@ export default function Sidebar({
                         ? `${(inventoryCount / 1000).toFixed(0)}k`
                         : `${inventoryCount}`
                       : '10k'}
+                  </span>
+                </button>
+              )}
+
+
+              {/* Stok Gudang Pusat (Pak Budi - Somber) */}
+              {canAccessTab(user?.role, 'stok-gudang') && (
+                <button
+                  onClick={() => handleSelectTab('stok-gudang')}
+                  className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation cursor-pointer ${
+                    activeTab === 'stok-gudang'
+                      ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-border'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  }`}
+                  title="Stok Gudang Pusat Somber: Penerimaan Masuk PO & Pengeluaran ke Armada (Pak Budi Agustiansyah)"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Boxes
+                      className={`size-4 shrink-0 ${
+                        activeTab === 'stok-gudang' ? 'text-teal-500' : 'text-muted-foreground'
+                      }`}
+                    />
+                    <span className="truncate whitespace-nowrap">Stok Gudang Pusat</span>
+                  </div>
+                  <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20">
+                    Pak Budi
                   </span>
                 </button>
               )}
