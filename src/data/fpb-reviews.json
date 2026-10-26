@@ -93,7 +93,68 @@
     "urgency": "NORMAL",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "UNI02806001-ZZZ",
+        "itemName": "BAJU ATASAN BIRU PT. MO (XXL) (00)",
+        "qty": 2,
+        "unit": "PCS",
+        "description": "U/ FIRDAUS - DRIVER PAGATAN",
+        "priority": "P3",
+        "stockAvailable": 22,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[UNI02806001-ZZZ] BAJU ATASAN BIRU PT. MO (XXL) (00) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (22 PCS). Disarankan penuhi dari stok gudang."
+      },
+      {
+        "no": 2,
+        "itemCode": "UNI02304001-ZZZ",
+        "itemName": "SEPATU SAFETY NO. 08 (00)",
+        "qty": 1,
+        "unit": "PSG",
+        "description": "U/ FIRDAUS - DRIVER PAGATAN",
+        "priority": "P3",
+        "stockAvailable": 5,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[UNI02304001-ZZZ] SEPATU SAFETY NO. 08 (00) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (5 PSG). Disarankan penuhi dari stok gudang."
+      },
+      {
+        "no": 3,
+        "itemCode": "SFT00401001-ZZZ",
+        "itemName": "HELM SAFETY BIRU (00)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ FIRDAUS - DRIVER PAGATAN",
+        "priority": "P3",
+        "stockAvailable": 26,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[SFTY-SFT004] SAFETY - HELM SAFETY (MO)",
+        "inventoryEntity": "MO",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (26 PCS). Disarankan penuhi dari stok gudang."
+      },
+      {
+        "no": 4,
+        "itemCode": "SFT00401006-ZZZ",
+        "itemName": "HELM SAFETY TALI PENGAMA (00)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ FIRDAUS - DRIVER PAGATAN",
+        "priority": "P3",
+        "stockAvailable": 13,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[SFT00401006-ZZZ] HELM SAFETY TALI PENGAMAN (00) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (13 PCS). Disarankan penuhi dari stok gudang."
+      }
+    ],
     "attachments": [
       {
         "id": "efpb-att-MO-FPB-26-0001903-2",
@@ -120,7 +181,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T16:07:43.101Z",
+    "updatedAt": "2026-10-26T17:08:06.693Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P3",
     "slaTargetDate": "22/11/26",
@@ -190,9 +251,9 @@
     "updatedAt": "2026-10-26T16:36:20.562Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
-    "slaTargetDate": "06/11/26",
-    "slaDaysRemaining": 10,
-    "slaStatus": "ON_TRACK",
+    "slaTargetDate": "25/10/26",
+    "slaDaysRemaining": -2,
+    "slaStatus": "OVERDUE",
     "pchLogistik": "Received_Logistic"
   },
   {
@@ -259,10 +320,24 @@
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0004943.pdf",
     "reviewStatus": "PENDING_REVIEW",
-    "urgency": "NORMAL",
+    "urgency": "EMERGENCY",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "KDG00101009-TE",
+        "itemName": "GEMBOK LONG 50 MM (TEKIRO)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/GERBANG PARKIRAN SAMPING GEDUNG LOGISTIK LAMA",
+        "priority": "P1",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
     "attachments": [],
     "duplicateAlerts": [],
     "relatedDocs": {
@@ -270,12 +345,12 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T16:07:43.101Z",
+    "updatedAt": "2026-10-26T17:24:01.481Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
-    "priorityLevel": "P3",
-    "slaTargetDate": "22/11/26",
-    "slaDaysRemaining": 26,
-    "slaStatus": "ON_TRACK"
+    "priorityLevel": "P1",
+    "slaTargetDate": "25/10/26",
+    "slaDaysRemaining": -2,
+    "slaStatus": "OVERDUE"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001082",
@@ -477,9 +552,9 @@
     "updatedAt": "2026-10-26T16:38:36.099Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
-    "slaTargetDate": "07/11/26",
-    "slaDaysRemaining": 11,
-    "slaStatus": "ON_TRACK",
+    "slaTargetDate": "26/10/26",
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE",
     "pchLogistik": "-",
     "reviewedBy": "Administrator CPG",
     "reviewedAt": "2026-10-26T16:26:57.471Z"
@@ -930,7 +1005,7 @@
     "date": "26/10/26",
     "purpose": "Kebutuhan Operasional TB PMI ABADI",
     "efpbStatus": "Approved",
-    "isReceivedLogistik": true,
+    "isReceivedLogistik": false,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0004971.pdf",
     "reviewStatus": "PENDING_REVIEW",
     "urgency": "NORMAL",
@@ -965,12 +1040,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T16:07:43.101Z",
+    "updatedAt": "2026-10-26T17:03:43.403Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
     "slaDaysRemaining": 29,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "pchLogistik": "-",
+    "reviewedBy": "NOOR HASANAH",
+    "reviewedAt": "2026-10-26T17:03:43.403Z"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001089",
@@ -981,7 +1059,7 @@
     "date": "26/10/26",
     "purpose": "Kebutuhan Operasional OFFICE GAJ",
     "efpbStatus": "Approved",
-    "isReceivedLogistik": true,
+    "isReceivedLogistik": false,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0001089.pdf",
     "reviewStatus": "PENDING_REVIEW",
     "urgency": "NORMAL",
@@ -1031,12 +1109,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T16:07:43.101Z",
+    "updatedAt": "2026-10-26T17:03:50.491Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
     "slaDaysRemaining": 29,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "pchLogistik": "-",
+    "reviewedBy": "NOOR HASANAH",
+    "reviewedAt": "2026-10-26T17:03:50.491Z"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0003987",
@@ -1047,13 +1128,359 @@
     "date": "26/10/26",
     "purpose": "Kebutuhan Operasional SPOB ROYAL REY 5001",
     "efpbStatus": "Approved",
-    "isReceivedLogistik": true,
+    "isReceivedLogistik": false,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0003987.pdf",
     "reviewStatus": "PENDING_REVIEW",
-    "urgency": "NORMAL",
+    "urgency": "URGENT",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "JAS01706004-JSA",
+        "itemName": "APAR CO2 SYSTEM (INSPECTIO (JASA)",
+        "qty": 1,
+        "unit": "UNT",
+        "description": "U/ INSPECTION CO2 SYSTEM 18 TBG, PILOT TBG",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[FIRE-FIR003] FIRE SAFETY - APAR CO2 SYSTEM (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 2,
+        "itemCode": "JAS00906001-JSA",
+        "itemName": "CO2 SYSTEM (RE-CERTIFICATION) (JASA)",
+        "qty": 1,
+        "unit": "LBR",
+        "description": "EXP",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[FIRE-FIR003] FIRE SAFETY - APAR CO2 SYSTEM (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 3,
+        "itemCode": "JAS01725001-JSA",
+        "itemName": "FIXED FOAM SYSTEM APPLICATOR (INSPECTION) (JAS",
+        "qty": 1,
+        "unit": "UNT",
+        "description": "U/ INSPECTION",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[JASA-JAS017] JASA (SERVICE) - INSPECTION (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 4,
+        "itemCode": "JAS01702002-JSA",
+        "itemName": "EMERGENCY ESCAPE BREATHING DEVICE (EEBD) (INSPECTION) SET (JASA)",
+        "qty": 4,
+        "unit": "SET",
+        "description": "U/ INSPECTION",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[EEBD-EEB001] EMERGENCY ESCAPE BREATHING DEVICE (EEBD) - EEBD (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 5,
+        "itemCode": "JAS01702001-JSA",
+        "itemName": "EMERGENCY ESCAPE BREATHING DEVICE (EEBD) (INSPECTION) (JASA)",
+        "qty": 4,
+        "unit": "TBG",
+        "description": "U/ INSPECTION",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[EEBD-EEB001] EMERGENCY ESCAPE BREATHING DEVICE (EEBD) - EEBD (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 6,
+        "itemCode": "JAS00905001-JSA",
+        "itemName": "EMERGENCY ESCAPE BREATHING DEVICE (EEBD) (RE-CERTIFICATION) (JASA)",
+        "qty": 1,
+        "unit": "LBR",
+        "description": "EXP",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[EEBD-EEB001] EMERGENCY ESCAPE BREATHING DEVICE (EEBD) - EEBD (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 7,
+        "itemCode": "JAS01701002-JSA",
+        "itemName": "SCBA / BREATHING APPARATUS (INSPECTION) SET (JASA)",
+        "qty": 2,
+        "unit": "SET",
+        "description": "U/ INSPECTION",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[SCBA-SCB001] SELF CONTAINED BREATHING APPARATUS (SCBA) - SCBA (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 8,
+        "itemCode": "JAS01701001-JSA",
+        "itemName": "SCBA / BREATHING APPARATUS (INSPECTION) (JASA)",
+        "qty": 2,
+        "unit": "TBG",
+        "description": "U/ INSPECTION",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[SCBA-SCB001] SELF CONTAINED BREATHING APPARATUS (SCBA) - SCBA (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 9,
+        "itemCode": "JAS00904001-JSA",
+        "itemName": "SCBA / BREATHING APPARATUS (RE-CERTIFICATION) (JASA)",
+        "qty": 1,
+        "unit": "LBR",
+        "description": "EXP",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[SCBA-SCB001] SELF CONTAINED BREATHING APPARATUS (SCBA) - SCBA (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 10,
+        "itemCode": "JAS01712001-JSA",
+        "itemName": "FIREMAN OUTFIT (INSPECTION) (JASA)",
+        "qty": 2,
+        "unit": "UNT",
+        "description": "U/ INSPECTION",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[JASA-JAS017] JASA (SERVICE) - INSPECTION (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 11,
+        "itemCode": "JAS01708002-JSA",
+        "itemName": "LIFE RAFT (INSPECTION) KAPASITAS 15 ORANG (JASA)",
+        "qty": 2,
+        "unit": "UNT",
+        "description": "U/ INSPECTION",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[JASA-JAS063] JASA (SERVICE) - CONTAINER LIFE RAFT (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 12,
+        "itemCode": "JTP00153001-ZZZ",
+        "itemName": "LABEL LIFE RAFT KAPASITAS 15 ORANG (00)",
+        "qty": 2,
+        "unit": "SET",
+        "description": "U/ REPLACEMENT",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[HRU1-HRU002] HYDROSTATIC RELEASE UNIT (HRU) - HRU LIFE RAFT (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 13,
+        "itemCode": "JTP00154001-ZZZ",
+        "itemName": "LIFE RAFT (REFILL) KAPASITAS ORANG (00)",
+        "qty": 2,
+        "unit": "UNT",
+        "description": "U/ REFILL",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[HRU1-HRU002] HYDROSTATIC RELEASE UNIT (HRU) - HRU LIFE RAFT (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 14,
+        "itemCode": "JAS00902001-JSA",
+        "itemName": "LIFE RAFT (RE-CERTIFICATION) KAPASITAS 15 ORANG (JASA)",
+        "qty": 1,
+        "unit": "LBR",
+        "description": "EXP",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[JASA-JAS063] JASA (SERVICE) - CONTAINER LIFE RAFT (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 15,
+        "itemCode": "JAS01715001-JSA",
+        "itemName": "HRU LIFE RAFT (INSPECTION) (JASA)",
+        "qty": 2,
+        "unit": "PCS",
+        "description": "U/ INSPECTION",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[HRU1-HRU002] HYDROSTATIC RELEASE UNIT (HRU) - HRU LIFE RAFT (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 16,
+        "itemCode": "JAS00901001-JSA",
+        "itemName": "HRU LIFE RAFT (RE-CERTIFICATION) (JASA)",
+        "qty": 2,
+        "unit": "LBR",
+        "description": "EXP 09/2026",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[HRU1-HRU002] HYDROSTATIC RELEASE UNIT (HRU) - HRU LIFE RAFT (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 17,
+        "itemCode": "JAS01705001-JSA",
+        "itemName": "APAR CO2 PORTABLE (INSPECTION) 5 KG (JASA)",
+        "qty": 2,
+        "unit": "TBG",
+        "description": "U/ INSPECTION",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[FIRE-FIR001] FIRE SAFETY - APAR CO2 PORTABLE (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 18,
+        "itemCode": "JAS01703005-JSA",
+        "itemName": "APAR DRY POWDER (INSPECTIO 2 KG (JASA)",
+        "qty": 2,
+        "unit": "TBG",
+        "description": "U/ INSPECTION",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[FIRE-FIR006] FIRE SAFETY - APAR DRY POWDER (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 19,
+        "itemCode": "JAS01703001-JSA",
+        "itemName": "APAR DRY POWDER (INSPECTIO 6 KG (JASA)",
+        "qty": 21,
+        "unit": "TBG",
+        "description": "U/ INSPECTION",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[FIRE-FIR006] FIRE SAFETY - APAR DRY POWDER (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 20,
+        "itemCode": "JAS01704003-JSA",
+        "itemName": "APAR FOAM AFFF (INSPECTION) 135 LITER (JASA)",
+        "qty": 1,
+        "unit": "TBG",
+        "description": "U/ INSPECTION",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[FIRE-FIR008] FIRE SAFETY - APAR FOAM (AFFF) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 21,
+        "itemCode": "JAS01704002-JSA",
+        "itemName": "APAR FOAM AFFF (INSPECTION) 45 LITER (JASA)",
+        "qty": 1,
+        "unit": "TBG",
+        "description": "U/ INSPECTION",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[FIRE-FIR008] FIRE SAFETY - APAR FOAM (AFFF) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 22,
+        "itemCode": "JAS01704001-JSA",
+        "itemName": "APAR FOAM AFFF (INSPECTION) LITER (JASA)",
+        "qty": 17,
+        "unit": "TBG",
+        "description": "U/ INSPECTION",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[FIRE-FIR008] FIRE SAFETY - APAR FOAM (AFFF) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 23,
+        "itemCode": "JAS00903001-JSA",
+        "itemName": "FIRE EXTINGUISHER (RE-CERTIFICATION) (JASA)",
+        "qty": 1,
+        "unit": "LBR",
+        "description": "EXP",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[JASA-JAS009] JASA (SERVICE) - RE-CERTIFICATION (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
     "attachments": [
       {
         "id": "efpb-att-CPL-FPB-26-0003987-2",
@@ -1079,12 +1506,15 @@
         "CPL-TTB-26-06631"
       ]
     },
-    "updatedAt": "2026-10-26T16:07:43.101Z",
+    "updatedAt": "2026-10-26T17:03:57.450Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
-    "priorityLevel": "P3",
-    "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 29,
-    "slaStatus": "ON_TRACK"
+    "priorityLevel": "P1",
+    "slaTargetDate": "28/10/26",
+    "slaDaysRemaining": 1,
+    "slaStatus": "DUE_SOON",
+    "pchLogistik": "-",
+    "reviewedBy": "NOOR HASANAH",
+    "reviewedAt": "2026-10-26T17:03:57.450Z"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001918",
@@ -1097,7 +1527,7 @@
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
     "pdfUrl": "/api/review-fpb/pdf?fpbNo=MO-FPB-26-0001918&type=signed",
-    "reviewStatus": "APPROVED_PO",
+    "reviewStatus": "PENDING_REVIEW",
     "urgency": "URGENT",
     "picPurchasing": "-",
     "reviewNotes": "",
@@ -1124,12 +1554,12 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T15:58:28.521Z",
+    "updatedAt": "2026-10-26T17:06:08.453Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
-    "slaTargetDate": "09/11/26",
-    "slaDaysRemaining": 13,
-    "slaStatus": "ON_TRACK",
+    "slaTargetDate": "28/10/26",
+    "slaDaysRemaining": 1,
+    "slaStatus": "DUE_SOON",
     "attachments": [
       {
         "id": "efpb-att-MO-FPB-26-0001918-2",
@@ -1152,9 +1582,9 @@
         "caption": "Dokumen / Scan Lampiran FPB"
       }
     ],
-    "pchLogistik": "Received_Logistic",
+    "pchLogistik": "-",
     "reviewedBy": "NOOR HASANAH",
-    "reviewedAt": "2026-10-26T15:58:28.521Z"
+    "reviewedAt": "2026-10-26T17:04:13.680Z"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001094",
@@ -1230,16 +1660,16 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T15:51:18.581Z",
+    "updatedAt": "2026-10-26T17:06:08.453Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
-    "slaTargetDate": "09/11/26",
-    "slaDaysRemaining": 13,
-    "slaStatus": "ON_TRACK",
+    "slaTargetDate": "28/10/26",
+    "slaDaysRemaining": 1,
+    "slaStatus": "DUE_SOON",
     "attachments": [],
-    "pchLogistik": "Received_Logistic",
+    "pchLogistik": "-",
     "reviewedBy": "NOOR HASANAH",
-    "reviewedAt": "2026-10-26T15:12:24.213Z"
+    "reviewedAt": "2026-10-26T17:04:21.655Z"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001920",
@@ -1292,12 +1722,12 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T15:51:18.581Z",
+    "updatedAt": "2026-10-26T17:06:08.453Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
-    "slaTargetDate": "09/11/26",
-    "slaDaysRemaining": 13,
-    "slaStatus": "ON_TRACK",
+    "slaTargetDate": "28/10/26",
+    "slaDaysRemaining": 1,
+    "slaStatus": "DUE_SOON",
     "attachments": [
       {
         "id": "efpb-att-MO-FPB-26-0001920-2",
@@ -1319,7 +1749,10 @@
         "source": "EFPB_MAKER",
         "caption": "Dokumen / Scan Lampiran FPB"
       }
-    ]
+    ],
+    "pchLogistik": "-",
+    "reviewedBy": "NOOR HASANAH",
+    "reviewedAt": "2026-10-26T17:03:24.040Z"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0000712",
@@ -1769,13 +2202,16 @@
         "GAJ-TTB-26-00943"
       ]
     },
-    "updatedAt": "2026-10-26T15:51:18.581Z",
+    "updatedAt": "2026-10-26T17:06:08.453Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
     "slaDaysRemaining": 29,
     "slaStatus": "ON_TRACK",
-    "pchLogistik": "Received_Logistic"
+    "pchLogistik": "-",
+    "attachments": [],
+    "reviewedBy": "NOOR HASANAH",
+    "reviewedAt": "2026-10-26T17:04:36.990Z"
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001525",
@@ -1815,12 +2251,12 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T15:51:18.581Z",
+    "updatedAt": "2026-10-26T17:06:08.453Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
-    "slaTargetDate": "09/11/26",
-    "slaDaysRemaining": 13,
-    "slaStatus": "ON_TRACK",
+    "slaTargetDate": "28/10/26",
+    "slaDaysRemaining": 1,
+    "slaStatus": "DUE_SOON",
     "attachments": [
       {
         "id": "efpb-att-HL-FPB-26-0001525-2",
@@ -1832,7 +2268,10 @@
         "source": "EFPB_MAKER",
         "caption": "Dokumen / Scan Lampiran FPB"
       }
-    ]
+    ],
+    "pchLogistik": "-",
+    "reviewedBy": "NOOR HASANAH",
+    "reviewedAt": "2026-10-26T17:04:46.176Z"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004985",
@@ -1856,12 +2295,16 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T15:51:18.581Z",
+    "updatedAt": "2026-10-26T17:06:08.453Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
     "slaDaysRemaining": 29,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "attachments": [],
+    "pchLogistik": "-",
+    "reviewedBy": "NOOR HASANAH",
+    "reviewedAt": "2026-10-26T17:04:53.144Z"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004967",
@@ -1907,7 +2350,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T15:51:18.581Z",
+    "updatedAt": "2026-10-26T17:06:08.453Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -2053,12 +2496,12 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T15:51:18.581Z",
+    "updatedAt": "2026-10-26T17:06:08.453Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
-    "slaTargetDate": "09/11/26",
-    "slaDaysRemaining": 13,
-    "slaStatus": "ON_TRACK"
+    "slaTargetDate": "28/10/26",
+    "slaDaysRemaining": 1,
+    "slaStatus": "DUE_SOON"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004976",
@@ -2120,7 +2563,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T15:51:18.581Z",
+    "updatedAt": "2026-10-26T17:06:08.453Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -2165,12 +2608,12 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T15:51:18.581Z",
+    "updatedAt": "2026-10-26T17:06:08.453Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
-    "slaTargetDate": "09/11/26",
-    "slaDaysRemaining": 13,
-    "slaStatus": "ON_TRACK",
+    "slaTargetDate": "28/10/26",
+    "slaDaysRemaining": 1,
+    "slaStatus": "DUE_SOON",
     "attachments": [
       {
         "id": "efpb-att-MO-FPB-26-0001923-2",
@@ -2238,7 +2681,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T15:51:18.581Z",
+    "updatedAt": "2026-10-26T17:06:08.453Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -2289,7 +2732,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T15:51:18.581Z",
+    "updatedAt": "2026-10-26T17:06:08.453Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -2318,7 +2761,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T15:51:18.581Z",
+    "updatedAt": "2026-10-26T17:06:08.453Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -2358,7 +2801,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T15:51:18.581Z",
+    "updatedAt": "2026-10-26T17:06:08.453Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -2487,12 +2930,12 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T15:51:18.581Z",
+    "updatedAt": "2026-10-26T17:06:08.453Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
-    "slaTargetDate": "09/11/26",
-    "slaDaysRemaining": 13,
-    "slaStatus": "ON_TRACK"
+    "slaTargetDate": "28/10/26",
+    "slaDaysRemaining": 1,
+    "slaStatus": "DUE_SOON"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001100",
@@ -2524,7 +2967,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T15:51:18.581Z",
+    "updatedAt": "2026-10-26T17:06:08.453Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -2569,7 +3012,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T16:32:28.257Z",
+    "updatedAt": "2026-10-26T17:06:08.453Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -2634,7 +3077,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T15:51:18.581Z",
+    "updatedAt": "2026-10-26T17:06:08.453Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
