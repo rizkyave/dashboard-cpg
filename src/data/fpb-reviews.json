@@ -8,13 +8,29 @@
     "date": "23/10/26",
     "purpose": "Kebutuhan Operasional HEAD OFFICE",
     "efpbStatus": "Approved",
-    "isReceivedLogistik": false,
-    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0004962.pdf",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/logistik_Approved_rev_sign_CPL-FPB-26-0004962.pdf",
     "reviewStatus": "PENDING_REVIEW",
     "urgency": "NORMAL",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "JAS01205001-JSA",
+        "itemName": "BIAYA PENGIRIMAN BARANG (JASA)",
+        "qty": 1,
+        "unit": "PKT",
+        "description": "JKT-BPN VIA DUTA CARGO, BERAT 26 KG, ISI: SAFTEY RELIEF VALVE 2 1/2\" PN16 = 1 PC",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[ACC-62001015] JASA PENGIRIMAN BARANG/DOKUMEN (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
     "attachments": [],
     "duplicateAlerts": [],
     "relatedDocs": {
@@ -22,12 +38,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T16:07:43.101Z",
+    "updatedAt": "2026-10-26T16:26:12.513Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P3",
     "slaTargetDate": "22/11/26",
     "slaDaysRemaining": 26,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "pchLogistik": "Received_Logistic",
+    "reviewedBy": "Administrator CPG",
+    "reviewedAt": "2026-10-26T16:26:12.513Z"
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001513",
@@ -117,13 +136,29 @@
     "date": "23/10/26",
     "purpose": "Kebutuhan Operasional TRUCK TANKI KT 8324 LU",
     "efpbStatus": "Approved",
-    "isReceivedLogistik": false,
-    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0001902.pdf",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/logistik_Approved_rev_sign_MO-FPB-26-0001902.pdf",
     "reviewStatus": "PENDING_REVIEW",
-    "urgency": "NORMAL",
+    "urgency": "URGENT",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "KAC01509002-EM",
+        "itemName": "KACA SPION BAWAH KOTAK 6424 CW520 (EMGI)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ PENGGANTIAN KACA SPION SET",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[KACA-KAC015] KACA (GLASS) - KACA SPION (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
     "attachments": [
       {
         "id": "efpb-att-MO-FPB-26-0001902-2",
@@ -152,12 +187,13 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T16:07:43.101Z",
+    "updatedAt": "2026-10-26T16:36:20.562Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
-    "priorityLevel": "P3",
-    "slaTargetDate": "22/11/26",
-    "slaDaysRemaining": 26,
-    "slaStatus": "ON_TRACK"
+    "priorityLevel": "P2",
+    "slaTargetDate": "06/11/26",
+    "slaDaysRemaining": 10,
+    "slaStatus": "ON_TRACK",
+    "pchLogistik": "Received_Logistic"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001904",
@@ -168,8 +204,8 @@
     "date": "23/10/26",
     "purpose": "Kebutuhan Operasional TRUCK TANKI KT 8408 LA",
     "efpbStatus": "Approved",
-    "isReceivedLogistik": false,
-    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0001904.pdf",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/logistik_Approved_rev_sign_MO-FPB-26-0001904.pdf",
     "reviewStatus": "PENDING_REVIEW",
     "urgency": "NORMAL",
     "picPurchasing": "-",
@@ -203,12 +239,13 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T16:07:43.101Z",
+    "updatedAt": "2026-10-26T16:19:28.598Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P3",
     "slaTargetDate": "22/11/26",
     "slaDaysRemaining": 26,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "pchLogistik": "Received_Logistic"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004943",
@@ -326,13 +363,102 @@
     "date": "24/10/26",
     "purpose": "Kebutuhan Operasional TRUCK TANKI KT 8651 LU",
     "efpbStatus": "Approved",
-    "isReceivedLogistik": true,
+    "isReceivedLogistik": false,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0004964.pdf",
     "reviewStatus": "PENDING_REVIEW",
-    "urgency": "NORMAL",
+    "urgency": "URGENT",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "PAC00801049-HIN",
+        "itemName": "GASKET FULL SET 04111-E0K77 FG8J (HINO)",
+        "qty": 1,
+        "unit": "SET",
+        "description": "U/ OH ENGINE HINO FM 260",
+        "priority": "P2",
+        "stockAvailable": 1,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[PAC00801005-MIT] GASKET FULL SET 6D15 (MITSUBISHI) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (1 SET). Disarankan penuhi dari stok gudang."
+      },
+      {
+        "no": 2,
+        "itemCode": "OIC00107001-ZZZ",
+        "itemName": "OIL COOLER 16403-EV010 FG8J (00)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ OH ENGINE HINO FM 260",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[COVE-COV008] CAP TUTUP (COVER) - COVER OIL COOLER (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 3,
+        "itemCode": "WTC00102001-ZZZ",
+        "itemName": "WATER COOLANT 5 LITER (00)",
+        "qty": 4,
+        "unit": "GLN",
+        "description": "U/ OH ENGINE HINO FM 260",
+        "priority": "P2",
+        "stockAvailable": 125,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[WTC00201002-ZZZ] WATER COOLANT RADIATOR (LITER) (00) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (125 GLN). Disarankan penuhi dari stok gudang."
+      },
+      {
+        "no": 4,
+        "itemCode": "OLI02203001-PTM",
+        "itemName": "OLI MEDITRAN SX15W-40 (PERTAMINA)",
+        "qty": 15,
+        "unit": "LTR",
+        "description": "U/ OH ENGINE HINO FM 260",
+        "priority": "P2",
+        "stockAvailable": 627,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[OLI02202001-PTM] OLI MEDITRAN SAE 40 (PERTAMINA) (HL)",
+        "inventoryEntity": "HL",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (627 LTR). Disarankan penuhi dari stok gudang."
+      },
+      {
+        "no": 5,
+        "itemCode": "FLT00805003-HOP",
+        "itemName": "FILTER LO 15607-2190L (HOP)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ OH ENGINE HINO FM 260",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 6,
+        "itemCode": "LEM02804002-THR",
+        "itemName": "LEM SILICON (SEALANT) 75 GRAM MERAH (THREEBOND)",
+        "qty": 2,
+        "unit": "PCS",
+        "description": "U/ OH ENGINE HINO FM 260",
+        "priority": "P2",
+        "stockAvailable": 28,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[LEM02803001-ZZZ] LEM SILICON (SEALANT) 70 GRAM MERAH (00) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (28 PCS). Disarankan penuhi dari stok gudang."
+      }
+    ],
     "attachments": [],
     "duplicateAlerts": [
       {
@@ -348,12 +474,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T16:07:43.101Z",
+    "updatedAt": "2026-10-26T16:38:36.099Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
-    "priorityLevel": "P3",
-    "slaTargetDate": "23/11/26",
-    "slaDaysRemaining": 27,
-    "slaStatus": "ON_TRACK"
+    "priorityLevel": "P2",
+    "slaTargetDate": "07/11/26",
+    "slaDaysRemaining": 11,
+    "slaStatus": "ON_TRACK",
+    "pchLogistik": "-",
+    "reviewedBy": "Administrator CPG",
+    "reviewedAt": "2026-10-26T16:26:57.471Z"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001906",
@@ -608,7 +737,7 @@
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0001909.pdf",
-    "reviewStatus": "PENDING_REVIEW",
+    "reviewStatus": "APPROVED_PO",
     "urgency": "NORMAL",
     "picPurchasing": "-",
     "reviewNotes": "",
@@ -631,12 +760,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T16:07:43.101Z",
+    "updatedAt": "2026-10-26T16:34:17.283Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P3",
     "slaTargetDate": "23/11/26",
     "slaDaysRemaining": 27,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "pchLogistik": "Received_Logistic",
+    "reviewedBy": "Administrator CPG",
+    "reviewedAt": "2026-10-26T16:31:44.764Z"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001088",
@@ -647,9 +779,9 @@
     "date": "24/10/26",
     "purpose": "Kebutuhan Operasional OFFICE GAJ",
     "efpbStatus": "Approved",
-    "isReceivedLogistik": false,
-    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0001088.pdf",
-    "reviewStatus": "PENDING_REVIEW",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/logistik_Approved_rev_sign_GAJ-FPB-26-0001088.pdf",
+    "reviewStatus": "APPROVED_PO",
     "urgency": "NORMAL",
     "picPurchasing": "-",
     "reviewNotes": "",
@@ -697,12 +829,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T16:07:43.101Z",
+    "updatedAt": "2026-10-26T16:29:34.321Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P3",
     "slaTargetDate": "23/11/26",
     "slaDaysRemaining": 27,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "pchLogistik": "Received_Logistic",
+    "reviewedBy": "Administrator CPG",
+    "reviewedAt": "2026-10-26T16:29:34.321Z"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004963",
@@ -2411,14 +2546,30 @@
     "urgency": "NORMAL",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "LAS00603001-ESA",
+        "itemName": "KAWAT LAS 6013 4,0 MM (ESAB)",
+        "qty": 1000,
+        "unit": "KG",
+        "description": "U/SARANA KERJA KONSTRUKSI",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[LAS1-LAS006] LAS (WELDING) - KAWAT LAS 6013 (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
     "duplicateAlerts": [],
     "relatedDocs": {
       "poNos": [],
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T15:51:18.581Z",
+    "updatedAt": "2026-10-26T16:32:28.257Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",

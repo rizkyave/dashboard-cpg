@@ -2,9 +2,9 @@
 const nextConfig = {
   reactStrictMode: true,
   experimental: {
-    webpackBuildWorker: false,
-    serverComponentsExternalPackages: ['xlsx', 'sharp'],
+    serverComponentsExternalPackages: ['xlsx', 'sharp', 'pdf-lib'],
   },
 };
 
 export default nextConfig;
+
