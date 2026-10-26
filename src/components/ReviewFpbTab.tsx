@@ -57,6 +57,8 @@ import {
   ItemDecision,
 } from '@/types/fpbReview';
 import { useAuth } from '@/context/AuthContext';
+import LogisticsApprovalCell from './LogisticsApprovalCell';
+import LogisticsApprovalConfirmModal from './LogisticsApprovalConfirmModal';
 
 interface ReviewFpbTabProps {
   showToast?: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
@@ -127,6 +129,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
   const [formNotes, setFormNotes] = useState<string>('');
   const [formIsReceivedLogistik, setFormIsReceivedLogistik] = useState<boolean>(false);
   const [isApprovingLogistic, setIsApprovingLogistic] = useState<boolean>(false);
+  const [confirmApprovalRecord, setConfirmApprovalRecord] = useState<FpbReviewRecord | null>(null);
   const [formItems, setFormItems] = useState<FpbItemReview[]>([]);
   const [formAttachments, setFormAttachments] = useState<FpbAttachment[]>([]);
   const [isUploadingAttachment, setIsUploadingAttachment] = useState<boolean>(false);
@@ -1353,31 +1356,13 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                         {rec.purpose || '-'}
                       </td>
 
-                      {/* Status e-FPB */}
+                      {/* Persetujuan Logistik */}
                       <td className="py-3 px-3 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                        {rec.isReceivedLogistik ? (
-                          <button
-                            type="button"
-                            onClick={() => handleQuickApproveLogistic(rec, false)}
-                            disabled={isApprovingLogistic}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25 transition cursor-pointer"
-                            title="Dokumen telah disetujui Logistik & siap diproses Purchasing. Klik jika ingin membatalkan."
-                          >
-                            <CheckCircle2 className="size-3 text-emerald-600 dark:text-emerald-400" />
-                            <span>Siap Pengadaan</span>
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleQuickApproveLogistic(rec, true)}
-                            disabled={isApprovingLogistic}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-2xs transition cursor-pointer disabled:opacity-50"
-                            title="Klik untuk menyetujui dokumen ini dan meneruskannya ke antrean Purchasing"
-                          >
-                            <CheckCircle2 className="size-3" />
-                            <span>Setujui &amp; Teruskan ke Purchasing</span>
-                          </button>
-                        )}
+                        <LogisticsApprovalCell
+                          record={rec}
+                          onApproveClick={(targetRec) => setConfirmApprovalRecord(targetRec)}
+                          isLoading={isApprovingLogistic}
+                        />
                       </td>
 
                       {/* Status Review Tim FPB */}
@@ -2603,6 +2588,18 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
           </div>
         </div>
       )}
+
+      {/* MODAL KONFIRMASI PERSETUJUAN LOGISTIK */}
+      <LogisticsApprovalConfirmModal
+        isOpen={Boolean(confirmApprovalRecord)}
+        record={confirmApprovalRecord}
+        onClose={() => setConfirmApprovalRecord(null)}
+        onConfirm={async (targetRec) => {
+          await handleQuickApproveLogistic(targetRec, true);
+          setConfirmApprovalRecord(null);
+        }}
+        isLoading={isApprovingLogistic}
+      />
 
       {/* IMAGE PREVIEW LIGHTBOX MODAL */}
       {previewImageModal && (
