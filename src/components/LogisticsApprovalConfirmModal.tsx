@@ -1,7 +1,18 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, ShieldCheck, AlertCircle, Check, Loader2, UserCheck, Stamp } from 'lucide-react';
+import {
+  X,
+  ShieldCheck,
+  Check,
+  Loader2,
+  UserCheck,
+  Stamp,
+  ExternalLink,
+  Globe,
+  KeyRound,
+  Zap,
+} from 'lucide-react';
 import { FpbReviewRecord } from '@/types/fpbReview';
 import { OPERATIONAL_STAFF_LIST, OperationalStaff } from '@/utils/fpbSignatureAssets';
 
@@ -9,8 +20,10 @@ export interface LogisticsApprovalConfirmModalProps {
   isOpen: boolean;
   record: FpbReviewRecord | null;
   onClose: () => void;
-  onConfirm: (record: FpbReviewRecord, signerName: string) => Promise<void> | void;
+  onConfirm: (record: FpbReviewRecord, signerName: string, sessionId?: string) => Promise<void> | void;
   isLoading?: boolean;
+  efpbSessionId?: string;
+  onOpenSyncModal?: () => void;
 }
 
 export default function LogisticsApprovalConfirmModal({
@@ -19,21 +32,31 @@ export default function LogisticsApprovalConfirmModal({
   onClose,
   onConfirm,
   isLoading = false,
+  efpbSessionId = '',
+  onOpenSyncModal,
 }: LogisticsApprovalConfirmModalProps) {
   const [selectedStaff, setSelectedStaff] = useState<OperationalStaff>(OPERATIONAL_STAFF_LIST[0]);
+  const [customSessionId, setCustomSessionId] = useState<string>('');
+  const [showSessionInput, setShowSessionInput] = useState<boolean>(false);
 
   useEffect(() => {
     if (record) {
-      // Jika record sebelumnya pernah ditandatangani oleh Melinda, pilih Melinda
       if (record.reviewedBy?.toLowerCase().includes('melinda')) {
         setSelectedStaff(OPERATIONAL_STAFF_LIST[1]);
       } else {
         setSelectedStaff(OPERATIONAL_STAFF_LIST[0]);
       }
     }
-  }, [record]);
+    if (efpbSessionId) {
+      setCustomSessionId(efpbSessionId);
+    }
+  }, [record, efpbSessionId]);
 
   if (!isOpen || !record) return null;
+
+  const cleanFpb = (record.fpbNo || '').trim();
+  const directEfpbUrl = `https://e-fpb.cindaragroup.com/FilesList?psearch=${encodeURIComponent(cleanFpb)}`;
+  const hasActiveSession = Boolean(customSessionId.trim());
 
   return (
     <div
@@ -52,10 +75,10 @@ export default function LogisticsApprovalConfirmModal({
             </div>
             <div>
               <h3 className="font-bold text-sm text-foreground">
-                Persetujuan &amp; Tanda Tangan Pengadaan FPB
+                Persetujuan &amp; Tanda Tangan e-FPB
               </h3>
               <p className="text-[11px] text-muted-foreground">
-                Membubuhkan tanda tangan staf logistik &amp; meneruskan izin ke Purchasing
+                Memicu tombol <em>Received_Logistic</em> di e-FPB &amp; mengesahkan Siap Pengadaan
               </p>
             </div>
           </div>
@@ -149,15 +172,66 @@ export default function LogisticsApprovalConfirmModal({
             </div>
           </div>
 
-          {/* Penjelasan Prosedur Pengesahan */}
-          <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-950 dark:text-emerald-200 space-y-1.5">
-            <div className="flex items-center gap-2 font-bold text-xs text-emerald-800 dark:text-emerald-300">
-              <Stamp className="size-4 shrink-0" />
-              <span>Prosedur Pengesahan Dokumen (e-FPB)</span>
+          {/* SINKRONISASI TOMBOL e-FPB */}
+          <div className="p-3.5 rounded-xl border border-border bg-muted/30 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Zap className="size-4 text-amber-500 shrink-0" />
+                <span className="font-bold text-xs text-foreground">
+                  Aksi Tombol Received_Logistic di e-FPB
+                </span>
+              </div>
+              <a
+                href={directEfpbUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline font-semibold"
+                title="Buka baris dokumen ini di web e-FPB FilesList"
+              >
+                <span>Buka di e-FPB</span>
+                <ExternalLink className="size-3" />
+              </a>
             </div>
-            <p className="text-[11px] leading-relaxed">
-              Dengan mengonfirmasi, tanda tangan resmi <strong>{selectedStaff.name}</strong> dan cap <em>Received</em> akan dibubuhkan langsung pada kotak <strong>Received By: (Logistic Staff)</strong> di dokumen PDF, serta status diubah menjadi <strong className="text-emerald-700 dark:text-emerald-300">Siap Pengadaan</strong> sehingga sah untuk diproses Tim Purchasing.
+
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              Saat disetujui, sistem akan otomatis mengirimkan sinyal persetujuan untuk menekan tombol <strong>Received_Logistic</strong> pada baris FPB ini di web e-FPB, membubuhkan tanda tangan staf secara sah, dan mengubah status di dashboard menjadi <strong>Siap Pengadaan</strong>.
             </p>
+
+            <div className="pt-2 border-t border-border/60 flex items-center justify-between text-[11px]">
+              <div className="flex items-center gap-1.5">
+                <span
+                  className={`size-2 rounded-full ${
+                    hasActiveSession ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
+                  }`}
+                />
+                <span className="text-muted-foreground">
+                  {hasActiveSession ? 'Sesi e-FPB aktif terhubung' : 'Sesi e-FPB (Opsional / Standby)'}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSessionInput(!showSessionInput)}
+                className="text-primary hover:underline font-medium text-[11px] cursor-pointer"
+              >
+                {showSessionInput ? 'Sembunyikan Cookie' : 'Atur Cookie PHPSESSID'}
+              </button>
+            </div>
+
+            {showSessionInput && (
+              <div className="pt-2 space-y-1.5 animate-in fade-in duration-150">
+                <label className="text-[10px] text-muted-foreground font-semibold flex items-center gap-1">
+                  <KeyRound className="size-3" />
+                  <span>Cookie PHPSESSID Browser e-FPB (dari browser):</span>
+                </label>
+                <input
+                  type="text"
+                  value={customSessionId}
+                  onChange={(e) => setCustomSessionId(e.target.value)}
+                  placeholder="Contoh: us04j0rcujqntjltp9qf9n4j39"
+                  className="w-full px-3 py-1.5 rounded-lg border border-border bg-background text-foreground font-mono text-[11px] focus:outline-hidden focus:ring-1 focus:ring-primary"
+                />
+              </div>
+            )}
           </div>
         </div>
 
@@ -173,19 +247,19 @@ export default function LogisticsApprovalConfirmModal({
           </button>
           <button
             type="button"
-            onClick={() => onConfirm(record, selectedStaff.name)}
+            onClick={() => onConfirm(record, selectedStaff.name, customSessionId.trim())}
             disabled={isLoading}
             className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
           >
             {isLoading ? (
               <>
                 <Loader2 className="size-3.5 animate-spin" />
-                <span>Membubuhkan Tanda Tangan...</span>
+                <span>Memproses &amp; Menekan Tombol e-FPB...</span>
               </>
             ) : (
               <>
                 <Check className="size-3.5" />
-                <span>Setujui &amp; Bubuhkan Tanda Tangan</span>
+                <span>Setujui &amp; Tekan Received_Logistic</span>
               </>
             )}
           </button>

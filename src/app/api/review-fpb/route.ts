@@ -18,6 +18,7 @@ import { isR2Configured, getObjectFromR2, uploadToR2 } from '@/utils/r2Client';
 import { findDocumentsByFpb } from '@/utils/docRelationResolver';
 import { formatDateDdMmYy } from '@/utils/formatDate';
 import { stampFpbPdf, formatToStampDate, formatToStampTimestamp } from '@/utils/fpbStamper';
+import { triggerEfpbReceivedLogistic } from '@/utils/efpbApprovalTrigger';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -1319,7 +1320,7 @@ export async function POST(req: NextRequest) {
     // Action 6: Direct Logistics Approval (Received_Logistic)
     // ----------------------------------------------------
     if (action === 'approve_logistic' || action === 'toggle_logistic') {
-      const { fpbNo, isReceived, approvedBy } = body;
+      const { fpbNo, isReceived, approvedBy, sessionId } = body;
       const targetIdx = records.findIndex((r) => r.fpbNo.toLowerCase() === (fpbNo || '').toLowerCase());
       if (targetIdx === -1) {
         return NextResponse.json({ success: false, message: 'FPB tidak ditemukan.' }, { status: 404 });
@@ -1332,11 +1333,23 @@ export async function POST(req: NextRequest) {
       const effectiveSigner = approvedBy || currentRec.reviewedBy || 'NOOR HASANAH';
 
       let activePdfUrl = `/api/review-fpb/pdf?fpbNo=${encodeURIComponent(cleanFpb)}&type=raw`;
+      let efpbTriggerResult: any = null;
 
       if (newStatus) {
         activePdfUrl = `/api/review-fpb/pdf?fpbNo=${encodeURIComponent(cleanFpb)}&type=signed`;
 
-        // Generate stamped PDF dan simpan ke Cloudflare R2
+        // 1. Trigger aksi tombol Received_Logistic otomatis ke server e-FPB
+        try {
+          efpbTriggerResult = await triggerEfpbReceivedLogistic({
+            fpbNo: cleanFpb,
+            sessionId,
+            signerName: effectiveSigner,
+          });
+        } catch (efpbErr) {
+          console.warn(`[review-fpb] Gagal trigger aksi Received_Logistic ke e-FPB untuk ${cleanFpb}:`, efpbErr);
+        }
+
+        // 2. Generate stamped PDF dan simpan ke Cloudflare R2
         try {
           const rawUrl = `https://e-fpb.cindaragroup.com/files/Approved_rev_sign_${encodeURIComponent(cleanFpb)}.pdf`;
           const baseRes = await fetch(rawUrl, { cache: 'no-store' });
@@ -1369,12 +1382,17 @@ export async function POST(req: NextRequest) {
 
       await saveReviews(records);
 
+      const triggerMsg = efpbTriggerResult?.triggeredOnEfpb
+        ? ' Aksi tombol Received_Logistic di e-FPB berhasil ditekan otomatis.'
+        : '';
+
       return NextResponse.json({
         success: true,
         message: newStatus
-          ? `Dokumen ${currentRec.fpbNo} berhasil disetujui & ditandatangani oleh ${effectiveSigner}. Dokumen sah Siap Pengadaan!`
+          ? `Dokumen ${currentRec.fpbNo} berhasil disetujui & ditandatangani oleh ${effectiveSigner}.${triggerMsg} Status sah Siap Pengadaan!`
           : `Persetujuan pengadaan untuk ${currentRec.fpbNo} dibatalkan.`,
         record: records[targetIdx],
+        efpbTriggerResult,
       });
     }
 

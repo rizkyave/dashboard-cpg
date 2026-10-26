@@ -121,3 +121,4 @@ export async function stampFpbPdf(options: StampFpbOptions): Promise<Buffer> {
   const savedBytes = await pdfDoc.save();
   return Buffer.from(savedBytes);
 }
+

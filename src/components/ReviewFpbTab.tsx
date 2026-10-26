@@ -360,12 +360,18 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
   const handleQuickApproveLogistic = async (
     rec: FpbReviewRecord,
     overrideState?: boolean,
-    signerName?: string
+    signerName?: string,
+    sessionId?: string
   ) => {
     setIsApprovingLogistic(true);
     const newIsReceived = overrideState !== undefined ? overrideState : !rec.isReceivedLogistik;
     try {
       const effectiveSigner = signerName || user?.name || user?.username || 'NOOR HASANAH';
+      const effectiveSession = sessionId !== undefined ? sessionId : efpbSessionId;
+      if (sessionId && typeof window !== 'undefined') {
+        localStorage.setItem('EFPB_SESSION_ID', sessionId);
+        setEfpbSessionId(sessionId);
+      }
       const res = await fetch('/api/review-fpb', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -374,6 +380,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
           fpbNo: rec.fpbNo,
           isReceived: newIsReceived,
           approvedBy: effectiveSigner,
+          sessionId: effectiveSession,
         }),
       });
       const data = await res.json();
@@ -1947,15 +1954,27 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                         </span>
                         <span className="text-muted-foreground font-mono text-[11px]">{activePdfUrl}</span>
                       </div>
-                      <a
-                        href={activePdfUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition shadow-xs shrink-0"
-                      >
-                        <ExternalLink className="size-3.5" />
-                        Buka di Tab Baru
-                      </a>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <a
+                          href={`https://e-fpb.cindaragroup.com/FilesList?psearch=${encodeURIComponent(cleanFpb)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-lg bg-amber-500/15 text-amber-700 dark:text-amber-400 hover:bg-amber-500/25 border border-amber-500/30 transition shadow-xs"
+                          title="Buka baris dokumen ini di web e-FPB FilesList"
+                        >
+                          <ExternalLink className="size-3.5" />
+                          Buka Baris e-FPB
+                        </a>
+                        <a
+                          href={activePdfUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition shadow-xs"
+                        >
+                          <ExternalLink className="size-3.5" />
+                          Buka di Tab Baru
+                        </a>
+                      </div>
                     </div>
 
                     {/* PDF Viewer Iframe */}
@@ -2604,11 +2623,13 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
         isOpen={Boolean(confirmApprovalRecord)}
         record={confirmApprovalRecord}
         onClose={() => setConfirmApprovalRecord(null)}
-        onConfirm={async (targetRec, signerName) => {
-          await handleQuickApproveLogistic(targetRec, true, signerName);
+        onConfirm={async (targetRec, signerName, sessId) => {
+          await handleQuickApproveLogistic(targetRec, true, signerName, sessId);
           setConfirmApprovalRecord(null);
         }}
         isLoading={isApprovingLogistic}
+        efpbSessionId={efpbSessionId}
+        onOpenSyncModal={() => setIsSyncModalOpen(true)}
       />
 
       {/* IMAGE PREVIEW LIGHTBOX MODAL */}
