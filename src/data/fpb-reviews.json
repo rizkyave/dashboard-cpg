@@ -31,6 +31,28 @@
         "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
       }
     ],
+    "attachments": [
+      {
+        "id": "efpb-att-MO-FPB-26-0001918-1",
+        "name": "Scan_Dokumen_FPB_MO-FPB-26-0001918.pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0001918.pdf",
+        "type": "pdf",
+        "uploadedBy": "FPB Maker (TRUCK TANKI KT 8257 YA)",
+        "uploadedAt": "26/10/26 13:42",
+        "source": "EFPB_MAKER",
+        "caption": "Lampiran Dokumen e-FPB / Work Order Permintaan Barang"
+      },
+      {
+        "id": "efpb-att-MO-FPB-26-0001918-2",
+        "name": "Foto_Fisik_Lampu_Kombinasi_Belakang_KT_8257_YA.jpg",
+        "url": "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=800&q=80",
+        "type": "image",
+        "uploadedBy": "FPB Maker (TRUCK TANKI KT 8257 YA)",
+        "uploadedAt": "26/10/26 13:42",
+        "source": "EFPB_MAKER",
+        "caption": "Foto Fisik Kerusakan: Lampu Kombinasi Belakang LED 24V DNY-001 (RH/LH) Rusak/Pecah"
+      }
+    ],
     "duplicateAlerts": [],
     "relatedDocs": {
       "poNos": [],

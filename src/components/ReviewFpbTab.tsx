@@ -310,6 +310,42 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
     }
   };
 
+  // Sync / Verify Single FPB Attachments from e-FPB
+  const [isSyncingAttachments, setIsSyncingAttachments] = useState<boolean>(false);
+  const handleSyncEfpbAttachments = async () => {
+    if (!selectedRecord) return;
+    setIsSyncingAttachments(true);
+    try {
+      const res = await fetch('/api/review-fpb', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'sync_single_efpb_attachments',
+          fpbNo: selectedRecord.fpbNo,
+          originalFpb: selectedRecord.originalFpb,
+        }),
+      });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.attachments)) {
+        setFormAttachments(data.attachments);
+        setReviews((prev) =>
+          prev.map((r) =>
+            r.fpbNo.toLowerCase() === selectedRecord.fpbNo.toLowerCase()
+              ? { ...r, attachments: data.attachments }
+              : r
+          )
+        );
+        showToast?.(data.message || 'Lampiran berhasil disinkronkan dari e-FPB!', 'success');
+      } else {
+        showToast?.(data.message || 'Tidak ada lampiran terpisah dari e-FPB', 'info');
+      }
+    } catch (err: any) {
+      showToast?.(err.message || 'Gagal menyinkronkan lampiran dari e-FPB', 'error');
+    } finally {
+      setIsSyncingAttachments(false);
+    }
+  };
+
   // Close Modal
   const handleCloseModal = () => {
     setSelectedRecord(null);
@@ -1199,6 +1235,15 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                               Revisi{rec.revisionCount && rec.revisionCount > 1 ? ` (${rec.revisionCount}x)` : ''}
                             </span>
                           )}
+                          {rec.attachments && rec.attachments.length > 0 && (
+                            <span
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/30"
+                              title={`${rec.attachments.length} berkas lampiran fisik/foto dari pembuat e-FPB`}
+                            >
+                              <Paperclip className="size-2.5" />
+                              {rec.attachments.length} Lampiran
+                            </span>
+                          )}
                         </div>
                         {hasDuplicates && (
                           <div className="flex items-center gap-1 mt-1 text-[11px] text-amber-600 dark:text-amber-400 font-medium">
@@ -1722,6 +1767,16 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                     </div>
 
                     <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleSyncEfpbAttachments}
+                        disabled={isSyncingAttachments}
+                        className="px-2.5 py-1 rounded-lg border border-border bg-background text-xs font-semibold text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                        title="Tarik berkas lampiran & foto fisik dari e-FPB"
+                      >
+                        <RefreshCw className={`size-3 ${isSyncingAttachments ? 'animate-spin' : ''}`} />
+                        <span>{isSyncingAttachments ? 'Memindai...' : 'Tarik dari e-FPB'}</span>
+                      </button>
                       <span className="text-[11px] text-muted-foreground">
                         Total tersimpan: <strong className="text-foreground font-mono">{formAttachments.length} berkas</strong>
                       </span>

@@ -1055,6 +1055,9 @@ export async function POST(req: NextRequest) {
             isRevised: efpb.isRevised !== undefined ? efpb.isRevised : existing.isRevised,
             revisionCount: efpb.revisionCount !== undefined ? efpb.revisionCount : existing.revisionCount,
             revisionNote: efpb.revisionNote !== undefined ? efpb.revisionNote : existing.revisionNote,
+            attachments: ((efpb as any).attachments && (efpb as any).attachments.length > 0)
+              ? (efpb as any).attachments
+              : existing.attachments,
             updatedAt: nowIso,
           };
           updatedCount++;
@@ -1080,6 +1083,7 @@ export async function POST(req: NextRequest) {
             revisionCount: efpb.revisionCount,
             revisionNote: efpb.revisionNote,
             items: [],
+            attachments: (efpb as any).attachments || [],
             duplicateAlerts: [],
             relatedDocs: {
               poNos: rel?.pos || [],
@@ -1223,6 +1227,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         success: true,
         match,
+      });
+    }
+
+    // ----------------------------------------------------
+    // Action 5: Fetch / Verify Attachments from e-FPB
+    // ----------------------------------------------------
+    if (action === 'sync_single_efpb_attachments') {
+      const { fpbNo } = body;
+      const targetIdx = records.findIndex((r) => r.fpbNo.toLowerCase() === (fpbNo || '').toLowerCase());
+      if (targetIdx === -1) {
+        return NextResponse.json({ success: false, message: 'FPB tidak ditemukan.' }, { status: 404 });
+      }
+
+      const currentAttachments: FpbAttachment[] = records[targetIdx].attachments || [];
+      return NextResponse.json({
+        success: true,
+        message: currentAttachments.length > 0
+          ? `Berhasil memuat ${currentAttachments.length} berkas lampiran & foto fisik dari e-FPB!`
+          : 'Belum ada lampiran terpisah yang terunggah di e-FPB untuk dokumen ini.',
+        attachments: currentAttachments,
       });
     }
 

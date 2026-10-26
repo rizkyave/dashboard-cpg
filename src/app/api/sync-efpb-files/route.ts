@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
 import { formatDateDdMmYy } from '@/utils/formatDate';
+import { FpbAttachment } from '@/types/fpbReview';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -54,6 +55,7 @@ interface ParsedEfpbFileRow {
   keterangan: string;
   isReceivedLogistik: boolean;
   pdfUrl: string;
+  attachments?: FpbAttachment[];
   isRevised?: boolean;
   revisionCount?: number;
   revisionNote?: string;
@@ -196,6 +198,42 @@ function parseFilesListHtml(html: string): ParsedEfpbFileRow[] {
       ? `https://e-fpb.cindaragroup.com/${pdfMatch[0].replace(/^\/+/, '')}`
       : `https://e-fpb.cindaragroup.com/files/Approved_rev_sign_${encodeURIComponent(cleanFpb)}.pdf`;
 
+    // Ekstraksi berkas lampiran (Attachment & Foto Fisik dari Kotak Hitam e-FPB)
+    const fileMatches = Array.from(
+      rowContent.matchAll(/(?:href|src)=["']([^"']+\.(?:jpe?g|png|webp|gif|bmp|pdf))["']/gi)
+    ).map((m) => m[1]);
+    const directFileMatches = rowContent.match(/(?:files|uploads)\/[^\s"'<>\\]+\.(?:jpe?g|png|webp|gif|bmp|pdf)/gi) || [];
+    const allCandidates = Array.from(new Set([...fileMatches, ...directFileMatches]));
+
+    const extractedAttachments: FpbAttachment[] = [];
+    allCandidates.forEach((rawPath, attIdx) => {
+      const cleanPath = rawPath.replace(/^\/+/, '');
+      const lower = cleanPath.toLowerCase();
+
+      // Abaikan berkas formulir PDF utama (Approved_...sign_...pdf) dan logo web
+      if (lower.includes('approved_') && lower.includes('sign_')) return;
+      if (lower.includes('logo') || lower.includes('company_group') || lower.includes('avatar') || lower.includes('icon')) return;
+
+      const fullUrl = cleanPath.startsWith('http')
+        ? cleanPath
+        : `https://e-fpb.cindaragroup.com/${cleanPath}`;
+
+      const fileName = cleanPath.split('/').pop() || `lampiran_${attIdx + 1}`;
+      const isImg = /\.(jpe?g|png|webp|gif|bmp)$/i.test(fileName);
+      const isPdf = /\.pdf$/i.test(fileName);
+
+      extractedAttachments.push({
+        id: `efpb-att-${cleanFpb}-${attIdx + 1}`,
+        name: decodeURIComponent(fileName),
+        url: fullUrl,
+        type: isImg ? 'image' : isPdf ? 'pdf' : 'document',
+        uploadedAt: rawTgl || new Date().toISOString(),
+        uploadedBy: 'FPB Maker (e-FPB)',
+        source: 'EFPB_MAKER',
+        caption: isImg ? 'Foto Fisik Kerusakan / Barang' : 'Dokumen / Scan Lampiran FPB',
+      });
+    });
+
     if (seenFpbs.has(fpbKey)) {
       const existingIdx = rows.findIndex((r) => r.fpb.toLowerCase() === fpbKey);
       if (existingIdx >= 0) {
@@ -203,6 +241,7 @@ function parseFilesListHtml(html: string): ParsedEfpbFileRow[] {
         const revCount = (existing.revisionCount || 1) + 1;
         const combinedReceived = existing.isReceivedLogistik || isReceivedLogistik;
         const combinedPch = pchLogistik || existing.pchLogistik;
+        const combinedAtts = extractedAttachments.length > 0 ? extractedAttachments : existing.attachments;
 
         if (timestamp > existing.timestamp) {
           // New row has a later timestamp: replace existing row with the newer version
@@ -219,6 +258,7 @@ function parseFilesListHtml(html: string): ParsedEfpbFileRow[] {
             keterangan: keterangan || existing.keterangan,
             isReceivedLogistik: combinedReceived,
             pdfUrl,
+            attachments: combinedAtts,
             isRevised: true,
             revisionCount: revCount,
             revisionNote: `Revisi e-FPB (${revCount}x): Menggunakan berkas terbaru tgl ${formattedDate || rawTgl} (menggantikan berkas lama tgl ${existing.tgl || existing.rawDate}).`,
@@ -228,6 +268,7 @@ function parseFilesListHtml(html: string): ParsedEfpbFileRow[] {
           existing.isRevised = true;
           existing.revisionCount = revCount;
           existing.isReceivedLogistik = combinedReceived;
+          if (extractedAttachments.length > 0) existing.attachments = extractedAttachments;
           if (!existing.pchLogistik && pchLogistik) existing.pchLogistik = pchLogistik;
           existing.revisionNote = `Revisi e-FPB (${revCount}x): Menggunakan berkas terbaru tgl ${existing.tgl || existing.rawDate} (berkas lain tgl ${formattedDate || rawTgl}).`;
         }
@@ -249,6 +290,7 @@ function parseFilesListHtml(html: string): ParsedEfpbFileRow[] {
       keterangan,
       isReceivedLogistik,
       pdfUrl,
+      attachments: extractedAttachments,
     });
   }
 
@@ -393,6 +435,7 @@ function buildItems(efpb: ParsedEfpbFileRow): { proc: ProcurementItem; arm: Arma
     isRevised: efpb.isRevised,
     revisionCount: efpb.revisionCount,
     revisionNote: efpb.revisionNote,
+    ...(efpb.attachments && efpb.attachments.length > 0 ? { attachments: efpb.attachments } : {}),
   };
 
   const arm: ArmadaItem = {
@@ -416,6 +459,7 @@ function buildItems(efpb: ParsedEfpbFileRow): { proc: ProcurementItem; arm: Arma
     isRevised: efpb.isRevised,
     revisionCount: efpb.revisionCount,
     revisionNote: efpb.revisionNote,
+    ...(efpb.attachments && efpb.attachments.length > 0 ? { attachments: efpb.attachments } : {}),
   };
 
   return { proc, arm };
