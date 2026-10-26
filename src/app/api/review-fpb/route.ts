@@ -31,6 +31,15 @@ const LOCAL_INVENTORY_PATH = path.join(process.cwd(), 'src', 'data', 'initialInv
 
 // Memory cache for fast response
 let cachedReviews: FpbReviewRecord[] | null = null;
+
+// Daftar FPB dummy yang wajib dihapus permanen
+const DUMMY_FPB_BLACKLIST = new Set([
+  'CPL-FPB-26-0004498',
+  'MO-FPB-26-0001751',
+  'GAJ-FPB-26-0000976',
+  'HL-FPB-26-0000412',
+  'CPL-FPB-26-0004497',
+]);
 let cachedInventory: InventoryItem[] | null = null;
 
 /**
@@ -146,7 +155,7 @@ async function loadReviews(): Promise<FpbReviewRecord[]> {
     if (fs.existsSync(LOCAL_REVIEWS_PATH)) {
       const raw = fs.readFileSync(LOCAL_REVIEWS_PATH, 'utf-8');
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) localList = parsed;
+      if (Array.isArray(parsed)) localList = parsed.filter((r) => !DUMMY_FPB_BLACKLIST.has(r.fpbNo));
     }
   } catch (err) {
     console.warn('[review-fpb] Gagal membaca file lokal:', err);
@@ -158,10 +167,15 @@ async function loadReviews(): Promise<FpbReviewRecord[]> {
       const obj = await getObjectFromR2(R2_FPB_REVIEWS_KEY);
       if (obj && obj.body) {
         const text = Buffer.from(obj.body).toString('utf-8');
-        const parsed = JSON.parse(text);
+        let parsed: FpbReviewRecord[] = JSON.parse(text);
         if (Array.isArray(parsed) && parsed.length > 0) {
           // Clean up any old mock/stock images from R2
           let hasMergedUpdates = false;
+          const withoutDummy = parsed.filter((r: FpbReviewRecord) => !DUMMY_FPB_BLACKLIST.has(r.fpbNo));
+          if (withoutDummy.length !== parsed.length) {
+            parsed = withoutDummy;
+            hasMergedUpdates = true;
+          }
           for (const r2Rec of parsed) {
             if (Array.isArray(r2Rec.attachments) && r2Rec.attachments.length > 0) {
               const cleaned = r2Rec.attachments.filter((a: FpbAttachment) => !a.url?.includes('unsplash.com'));
@@ -174,7 +188,7 @@ async function loadReviews(): Promise<FpbReviewRecord[]> {
 
           // If local has FPBs not yet in R2, unshift them
           for (const loc of localList) {
-            const existsInR2 = parsed.some((r) => r.fpbNo.toLowerCase() === loc.fpbNo.toLowerCase());
+            const existsInR2 = parsed.some((r: FpbReviewRecord) => r.fpbNo.toLowerCase() === loc.fpbNo.toLowerCase());
             if (!existsInR2) {
               parsed.unshift(loc);
               hasMergedUpdates = true;
@@ -353,249 +367,7 @@ function enrichDuplicateAlerts(records: FpbReviewRecord[]): FpbReviewRecord[] {
  * Seed initial review records from real known FPBs and procurement records
  */
 function seedInitialReviews(): FpbReviewRecord[] {
-  const sampleFpbs: Array<{
-    fpbNo: string;
-    entity: string;
-    armada: string;
-    date: string;
-    purpose: string;
-    efpbStatus: string;
-    isReceivedLogistik: boolean;
-    urgency: FpbUrgency;
-    reviewStatus: FpbReviewStatus;
-    picPurchasing: string;
-    reviewNotes: string;
-    items: FpbItemReview[];
-  }> = [
-    {
-      fpbNo: 'CPL-FPB-26-0004498',
-      entity: 'CPL',
-      armada: 'TB. CINDARA PRATAMA 01',
-      date: '18/10/26',
-      purpose: 'Pengadaan Spare Part Main Engine & Filter Oli Genset No. 1',
-      efpbStatus: 'Approved',
-      isReceivedLogistik: true,
-      urgency: 'URGENT',
-      reviewStatus: 'PENDING_REVIEW',
-      picPurchasing: 'Wahyu Hidayat',
-      reviewNotes: 'Prioritas tinggi: Armada beroperasi di Selat Makassar, butuh pasokan filter segera.',
-      items: [
-        {
-          no: 1,
-          itemCode: 'FLT-OIL-001',
-          itemName: 'OIL FILTER CARTRIDGE CATERPILLAR 3406',
-          qty: 4,
-          unit: 'Pcs',
-          description: 'Ganti filter berkala 500 jam genset',
-          priority: 'Urgent',
-          stockAvailable: 2,
-          stockStatus: 'PARTIAL',
-          matchedInventoryItem: '[FLT-OIL-001] FILTER OLI MESIN CPL',
-          inventoryEntity: 'CPL',
-          decision: 'STOCK',
-          notes: 'Ambil 2 pcs dari gudang Samarinda, 2 pcs sisa dibuatkan PO',
-        },
-        {
-          no: 2,
-          itemCode: 'OIL-MED-040',
-          itemName: 'MEDITRAN S SAE 40 (DRUM 209L)',
-          qty: 2,
-          unit: 'Drum',
-          description: 'Oli pelumas mesin genset',
-          priority: 'Urgent',
-          stockAvailable: 5,
-          stockStatus: 'IN_STOCK',
-          matchedInventoryItem: '[OIL-MED-040] OLI PERTAMINA MEDITRAN S 40',
-          inventoryEntity: 'CPL',
-          decision: 'STOCK',
-          notes: 'Stok mencukupi di gudang CPL Samarinda',
-        },
-      ],
-    },
-    {
-      fpbNo: 'MO-FPB-26-0001751',
-      entity: 'MO',
-      armada: 'TB. MANDAR 08',
-      date: '15/10/26',
-      purpose: 'Pengadaan Kebutuhan Deck & Safety Tools Operasional Kapal',
-      efpbStatus: 'Approved',
-      isReceivedLogistik: true,
-      urgency: 'NORMAL',
-      reviewStatus: 'APPROVED_PO',
-      picPurchasing: 'Rina Sugiarto',
-      reviewNotes: 'Disetujui untuk penerbitan PO ke vendor PT Surya Perdana.',
-      items: [
-        {
-          no: 1,
-          itemCode: 'KAI01301001-UGO',
-          itemName: 'KAIN ABSORBENT OIL PAD (UGO)',
-          qty: 20,
-          unit: 'Pcs',
-          description: 'Penanganan ceceran minyak di kamar mesin',
-          priority: 'Normal',
-          stockAvailable: 350,
-          stockStatus: 'IN_STOCK',
-          matchedInventoryItem: '[KAI01301001-UGO] KAIN ABSORBENT OIL PAD (UGO) (MO)',
-          inventoryEntity: 'MO',
-          decision: 'STOCK',
-          notes: 'Disediakan langsung dari gudang MO',
-        },
-        {
-          no: 2,
-          itemCode: 'GUR00602001-ZZZ',
-          itemName: 'MATA GURINDA POTONG 4" (PCS)',
-          qty: 50,
-          unit: 'Pcs',
-          description: 'Perbaikan konstruksi railing deck',
-          priority: 'Normal',
-          stockAvailable: 230,
-          stockStatus: 'IN_STOCK',
-          matchedInventoryItem: '[GUR00602001-ZZZ] MATA GURINDA POTONG 4" (PCS) (00) (MO)',
-          inventoryEntity: 'MO',
-          decision: 'STOCK',
-          notes: 'Ambil dari inventori workshop Mandar Ocean',
-        },
-      ],
-    },
-    {
-      fpbNo: 'GAJ-FPB-26-0000976',
-      entity: 'GAJ',
-      armada: 'DOCKING GAJ BALIKPAPAN',
-      date: '12/10/26',
-      purpose: 'Material Pelat Baja & Kawat Las Repair Lambung Kapal Tongkang',
-      efpbStatus: 'Approved',
-      isReceivedLogistik: true,
-      urgency: 'EMERGENCY',
-      reviewStatus: 'APPROVED_PO',
-      picPurchasing: 'Budi Santoso',
-      reviewNotes: 'Docking darurat: Tongkang mengalami kebocoran di kompartemen depan.',
-      items: [
-        {
-          no: 1,
-          itemCode: 'PLT-BJ-012',
-          itemName: 'PELAT BAJA BKI GRADE A 12MM X 5FT X 20FT',
-          qty: 6,
-          unit: 'Lembar',
-          description: 'Replating plat lambung bottom',
-          priority: 'Emergency',
-          stockAvailable: 0,
-          stockStatus: 'OUT_OF_STOCK',
-          matchedInventoryItem: 'Belum ada stok di gudang galangan',
-          inventoryEntity: 'GAJ',
-          decision: 'PO',
-          notes: 'PO kilat ke PT Krakatau Steel / Distributor Balikpapan',
-        },
-        {
-          no: 2,
-          itemCode: 'KWT-LAS-LB52',
-          itemName: 'KAWAT LAS KOBELCO LB-52 DIA 3.2MM (DOS 20KG)',
-          qty: 15,
-          unit: 'Dos',
-          description: 'Pengelasan struktural BKI',
-          priority: 'Emergency',
-          stockAvailable: 0,
-          stockStatus: 'OUT_OF_STOCK',
-          matchedInventoryItem: 'Stok kosong di workshop',
-          inventoryEntity: 'GAJ',
-          decision: 'PO',
-          notes: 'PO darurat',
-        },
-      ],
-    },
-    {
-      fpbNo: 'HL-FPB-26-0000412',
-      entity: 'HL',
-      armada: 'TB. HANA 02',
-      date: '08/10/26',
-      purpose: 'Peralatan Navigasi GPS & Marine Radio VHF',
-      efpbStatus: 'Approved',
-      isReceivedLogistik: false,
-      urgency: 'NORMAL',
-      reviewStatus: 'NEED_CLARIFICATION',
-      picPurchasing: 'Wahyu Hidayat',
-      reviewNotes: 'Perlu klarifikasi spesifikasi antena radio VHF yang sesuai dengan bracket yang ada di kapal.',
-      items: [
-        {
-          no: 1,
-          itemCode: 'RAD-VHF-ICOM',
-          itemName: 'RADIO MARINE VHF ICOM IC-M330',
-          qty: 1,
-          unit: 'Unit',
-          description: 'Ganti radio VHF kamar kemudi yang rusak',
-          priority: 'Normal',
-          stockAvailable: 0,
-          stockStatus: 'OUT_OF_STOCK',
-          matchedInventoryItem: 'Non-stock item',
-          inventoryEntity: 'HL',
-          decision: 'HOLD',
-          notes: 'Menunggu konfirmasi panjang kabel & tipe antena dari nahkoda',
-        },
-      ],
-    },
-    {
-      fpbNo: 'CPL-FPB-26-0004497',
-      entity: 'CPL',
-      armada: 'TB. CINDARA PRATAMA 01',
-      date: '28/09/26',
-      purpose: 'Perlengkapan Cat & Thinner Maintenance Lambung Kapal',
-      efpbStatus: 'Approved',
-      isReceivedLogistik: true,
-      urgency: 'NORMAL',
-      reviewStatus: 'FULFILL_STOCK',
-      picPurchasing: 'Rina Sugiarto',
-      reviewNotes: 'Seluruh material disuplai langsung dari stok persediaan CPL Samarinda.',
-      items: [
-        {
-          no: 1,
-          itemCode: 'CAT-EPX-001',
-          itemName: 'CAT PRIMER EPOXY JOTUN BARRIER 80 (PAIL)',
-          qty: 4,
-          unit: 'Pail',
-          description: 'Pengecatan deck & lambung',
-          priority: 'Normal',
-          stockAvailable: 12,
-          stockStatus: 'IN_STOCK',
-          matchedInventoryItem: '[CAT-EPX-001] CAT JOTUN BARRIER 80 (CPL)',
-          inventoryEntity: 'CPL',
-          decision: 'STOCK',
-          notes: 'Tersedia di gudang cat CPL',
-        },
-      ],
-    },
-  ];
-
-  const nowIso = new Date().toISOString();
-
-  return sampleFpbs.map((s) => {
-    const rel = findDocumentsByFpb(s.fpbNo);
-    return {
-      id: `fpb-rev-${s.fpbNo}`,
-      fpbNo: s.fpbNo,
-      originalFpb: s.fpbNo.replace(/-FPB-/i, '/LOG/FPB/'),
-      entity: s.entity,
-      armada: s.armada,
-      date: s.date,
-      purpose: s.purpose,
-      efpbStatus: s.efpbStatus,
-      isReceivedLogistik: s.isReceivedLogistik,
-      pdfUrl: `https://e-fpb.cindaragroup.com/files/Approved_rev_sign_${encodeURIComponent(s.fpbNo)}.pdf`,
-      reviewStatus: s.reviewStatus,
-      urgency: s.urgency,
-      picPurchasing: s.picPurchasing,
-      reviewNotes: s.reviewNotes,
-      items: s.items,
-      duplicateAlerts: [],
-      relatedDocs: {
-        poNos: rel?.pos || [],
-        fstbNos: rel?.fstbs || [],
-        ttbNos: rel?.ttbs || [],
-      },
-      reviewedBy: 'Wahyu Hidayat',
-      reviewedAt: nowIso,
-      updatedAt: nowIso,
-      createdAt: nowIso,
-    };
-  });
+  return [];
 }
 
 /**
