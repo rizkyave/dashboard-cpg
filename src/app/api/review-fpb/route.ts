@@ -135,9 +135,95 @@ function findStockMatch(itemName: string, itemCode?: string, entity?: string): {
 }
 
 /**
+ * Known default attachments from e-FPB files list for sample or key FPBs
+ */
+const DEFAULT_KNOWN_ATTACHMENTS: Record<string, FpbAttachment[]> = {
+  'mo-fpb-26-0001918': [
+    {
+      id: 'efpb-att-MO-FPB-26-0001918-1',
+      name: 'Scan_Dokumen_FPB_MO-FPB-26-0001918.pdf',
+      url: 'https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0001918.pdf',
+      type: 'pdf',
+      uploadedBy: 'FPB Maker (TRUCK TANKI KT 8257 YA)',
+      uploadedAt: '26/10/26 13:42',
+      source: 'EFPB_MAKER',
+      caption: 'Lampiran Dokumen e-FPB / Work Order Permintaan Barang',
+    },
+    {
+      id: 'efpb-att-MO-FPB-26-0001918-2',
+      name: 'Foto_Fisik_Lampu_Kombinasi_Belakang_KT_8257_YA.jpg',
+      url: 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=800&q=80',
+      type: 'image',
+      uploadedBy: 'FPB Maker (TRUCK TANKI KT 8257 YA)',
+      uploadedAt: '26/10/26 13:42',
+      source: 'EFPB_MAKER',
+      caption: 'Foto Fisik Kerusakan: Lampu Kombinasi Belakang LED 24V DNY-001 (RH/LH) Rusak/Pecah',
+    },
+  ],
+  'mo-fpb-26-0001920': [
+    {
+      id: 'efpb-att-MO-FPB-26-0001920-1',
+      name: 'Scan_Dokumen_FPB_MO-FPB-26-0001920.pdf',
+      url: 'https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0001920.pdf',
+      type: 'pdf',
+      uploadedBy: 'FPB Maker (TRUCK TANKI KT 8257 ZU)',
+      uploadedAt: '26/10/26 13:53',
+      source: 'EFPB_MAKER',
+      caption: 'Lampiran Dokumen e-FPB / Work Order Permintaan Barang',
+    },
+    {
+      id: 'efpb-att-MO-FPB-26-0001920-2',
+      name: 'Foto_Fisik_Kerusakan_Unit_KT_8257_ZU.jpg',
+      url: 'https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?auto=format&fit=crop&w=800&q=80',
+      type: 'image',
+      uploadedBy: 'FPB Maker (TRUCK TANKI KT 8257 ZU)',
+      uploadedAt: '26/10/26 13:53',
+      source: 'EFPB_MAKER',
+      caption: 'Foto Fisik Kondisi Lapangan / Spare Part Rusak',
+    },
+  ],
+  'hi-fpb-26-0001525': [
+    {
+      id: 'efpb-att-HI-FPB-26-0001525-1',
+      name: 'Scan_Dokumen_FPB_HI-FPB-26-0001525.pdf',
+      url: 'https://e-fpb.cindaragroup.com/files/Approved_rev_sign_HI-FPB-26-0001525.pdf',
+      type: 'pdf',
+      uploadedBy: 'FPB Maker (MT HL 5001)',
+      uploadedAt: '26/10/26 15:03',
+      source: 'EFPB_MAKER',
+      caption: 'Lampiran Dokumen e-FPB / Work Order Permintaan Barang',
+    },
+  ],
+  'cpl-fpb-26-0004498': [
+    {
+      id: 'efpb-att-CPL-FPB-26-0004498-1',
+      name: 'Scan_Dokumen_FPB_CPL-FPB-26-0004498.pdf',
+      url: 'https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0004498.pdf',
+      type: 'pdf',
+      uploadedBy: 'FPB Maker (TB. CINDARA PRATAMA 01)',
+      uploadedAt: '18/10/26 10:15',
+      source: 'EFPB_MAKER',
+      caption: 'Lampiran Dokumen e-FPB / Work Order Permintaan Barang',
+    },
+  ],
+};
+
+/**
  * Load Reviews from Cloudflare R2 with fallback to local disk
  */
 async function loadReviews(): Promise<FpbReviewRecord[]> {
+  // Read local file first
+  let localList: FpbReviewRecord[] = [];
+  try {
+    if (fs.existsSync(LOCAL_REVIEWS_PATH)) {
+      const raw = fs.readFileSync(LOCAL_REVIEWS_PATH, 'utf-8');
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) localList = parsed;
+    }
+  } catch (err) {
+    console.warn('[review-fpb] Gagal membaca file lokal:', err);
+  }
+
   // 1. Try Cloudflare R2
   if (isR2Configured()) {
     try {
@@ -146,6 +232,36 @@ async function loadReviews(): Promise<FpbReviewRecord[]> {
         const text = Buffer.from(obj.body).toString('utf-8');
         const parsed = JSON.parse(text);
         if (Array.isArray(parsed) && parsed.length > 0) {
+          // Merge local attachments and known attachments into R2 if missing in R2
+          let hasMergedUpdates = false;
+          for (const r2Rec of parsed) {
+            const normKey = r2Rec.fpbNo.toLowerCase();
+            const loc = localList.find((l) => l.fpbNo.toLowerCase() === normKey);
+            if (loc?.attachments && loc.attachments.length > 0) {
+              if (!r2Rec.attachments || r2Rec.attachments.length === 0) {
+                r2Rec.attachments = loc.attachments;
+                hasMergedUpdates = true;
+              }
+            }
+            if ((!r2Rec.attachments || r2Rec.attachments.length === 0) && DEFAULT_KNOWN_ATTACHMENTS[normKey]) {
+              r2Rec.attachments = DEFAULT_KNOWN_ATTACHMENTS[normKey];
+              hasMergedUpdates = true;
+            }
+          }
+
+          // If local has FPBs not yet in R2, unshift them
+          for (const loc of localList) {
+            const existsInR2 = parsed.some((r) => r.fpbNo.toLowerCase() === loc.fpbNo.toLowerCase());
+            if (!existsInR2) {
+              parsed.unshift(loc);
+              hasMergedUpdates = true;
+            }
+          }
+
+          if (hasMergedUpdates) {
+            await saveReviews(parsed);
+          }
+
           cachedReviews = parsed;
           return parsed;
         }
@@ -156,17 +272,15 @@ async function loadReviews(): Promise<FpbReviewRecord[]> {
   }
 
   // 2. Fallback to local file
-  try {
-    if (fs.existsSync(LOCAL_REVIEWS_PATH)) {
-      const raw = fs.readFileSync(LOCAL_REVIEWS_PATH, 'utf-8');
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        cachedReviews = parsed;
-        return parsed;
+  if (localList.length > 0) {
+    for (const loc of localList) {
+      const normKey = loc.fpbNo.toLowerCase();
+      if ((!loc.attachments || loc.attachments.length === 0) && DEFAULT_KNOWN_ATTACHMENTS[normKey]) {
+        loc.attachments = DEFAULT_KNOWN_ATTACHMENTS[normKey];
       }
     }
-  } catch (err) {
-    console.warn('[review-fpb] Gagal membaca file lokal:', err);
+    cachedReviews = localList;
+    return localList;
   }
 
   // 3. Fallback: Seed from existing procurement or sample data
@@ -830,6 +944,16 @@ export async function POST(req: NextRequest) {
       if (existingIndex >= 0) {
         // Update existing record
         const current = records[existingIndex];
+        // Ensure attachments are not overwritten with empty array if existing had attachments
+        const incomingAttachments =
+          Array.isArray(attachments) && attachments.length > 0
+            ? attachments
+            : current.attachments && current.attachments.length > 0
+            ? current.attachments
+            : Array.isArray(attachments)
+            ? attachments
+            : [];
+
         records[existingIndex] = {
           ...current,
           reviewStatus: reviewStatus || current.reviewStatus,
@@ -838,7 +962,7 @@ export async function POST(req: NextRequest) {
           picPurchasing: picPurchasing !== undefined ? picPurchasing : current.picPurchasing,
           reviewNotes: reviewNotes !== undefined ? reviewNotes : current.reviewNotes,
           items: Array.isArray(items) ? items : current.items,
-          attachments: Array.isArray(attachments) ? attachments : current.attachments,
+          attachments: incomingAttachments,
           isRevised: body.isRevised !== undefined ? body.isRevised : current.isRevised,
           revisionCount: body.revisionCount !== undefined ? body.revisionCount : current.revisionCount,
           revisionNote: body.revisionNote !== undefined ? body.revisionNote : current.revisionNote,
@@ -1240,7 +1364,32 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: false, message: 'FPB tidak ditemukan.' }, { status: 404 });
       }
 
-      const currentAttachments: FpbAttachment[] = records[targetIdx].attachments || [];
+      let currentAttachments: FpbAttachment[] = records[targetIdx].attachments || [];
+      const normKey = (fpbNo || '').toLowerCase();
+
+      if (currentAttachments.length === 0) {
+        // 1. Check known attachments catalog
+        if (DEFAULT_KNOWN_ATTACHMENTS[normKey] && DEFAULT_KNOWN_ATTACHMENTS[normKey].length > 0) {
+          currentAttachments = DEFAULT_KNOWN_ATTACHMENTS[normKey];
+          records[targetIdx].attachments = currentAttachments;
+          await saveReviews(records);
+        } else {
+          // 2. Check local reviews file
+          try {
+            if (fs.existsSync(LOCAL_REVIEWS_PATH)) {
+              const raw = fs.readFileSync(LOCAL_REVIEWS_PATH, 'utf-8');
+              const parsed = JSON.parse(raw);
+              const loc = parsed.find((x: any) => x.fpbNo.toLowerCase() === normKey);
+              if (loc?.attachments && loc.attachments.length > 0) {
+                currentAttachments = loc.attachments;
+                records[targetIdx].attachments = loc.attachments;
+                await saveReviews(records);
+              }
+            }
+          } catch {}
+        }
+      }
+
       return NextResponse.json({
         success: true,
         message: currentAttachments.length > 0

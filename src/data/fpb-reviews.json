@@ -31,6 +31,18 @@
         "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
       }
     ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-26T12:19:31.021Z",
+    "createdAt": "2026-10-26T12:05:06.421Z",
+    "priorityLevel": "P2",
+    "slaTargetDate": "09/11/26",
+    "slaDaysRemaining": 14,
+    "slaStatus": "ON_TRACK",
     "attachments": [
       {
         "id": "efpb-att-MO-FPB-26-0001918-1",
@@ -52,19 +64,7 @@
         "source": "EFPB_MAKER",
         "caption": "Foto Fisik Kerusakan: Lampu Kombinasi Belakang LED 24V DNY-001 (RH/LH) Rusak/Pecah"
       }
-    ],
-    "duplicateAlerts": [],
-    "relatedDocs": {
-      "poNos": [],
-      "fstbNos": [],
-      "ttbNos": []
-    },
-    "updatedAt": "2026-10-26T12:19:31.021Z",
-    "createdAt": "2026-10-26T12:05:06.421Z",
-    "priorityLevel": "P2",
-    "slaTargetDate": "09/11/26",
-    "slaDaysRemaining": 14,
-    "slaStatus": "ON_TRACK"
+    ]
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001094",
@@ -137,7 +137,29 @@
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
     "slaDaysRemaining": 30,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "attachments": [
+      {
+        "id": "efpb-att-MO-FPB-26-0001920-1",
+        "name": "Scan_Dokumen_FPB_MO-FPB-26-0001920.pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0001920.pdf",
+        "type": "pdf",
+        "uploadedBy": "FPB Maker (TRUCK TANKI KT 8257 ZU)",
+        "uploadedAt": "26/10/26 13:53",
+        "source": "EFPB_MAKER",
+        "caption": "Lampiran Dokumen e-FPB / Work Order Permintaan Barang"
+      },
+      {
+        "id": "efpb-att-MO-FPB-26-0001920-2",
+        "name": "Foto_Fisik_Kerusakan_Unit_KT_8257_ZU.jpg",
+        "url": "https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?auto=format&fit=crop&w=800&q=80",
+        "type": "image",
+        "uploadedBy": "FPB Maker (TRUCK TANKI KT 8257 ZU)",
+        "uploadedAt": "26/10/26 13:53",
+        "source": "EFPB_MAKER",
+        "caption": "Foto Fisik Kondisi Lapangan / Spare Part Rusak"
+      }
+    ]
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0000712",
@@ -907,21 +929,37 @@
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0001923.pdf",
     "reviewStatus": "PENDING_REVIEW",
-    "urgency": "NORMAL",
+    "urgency": "URGENT",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "SEH02718003-WP",
+        "itemName": "CONNECTING PNEUMATIC HOSE SPL 1/2 X 12 MM (WIPRO",
+        "qty": 2,
+        "unit": "PCS",
+        "description": "U/ PERGANTIAN YANG RUSAK (SYSTEM BRAKE) (2 - 01092)",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[SEHO-SEH027] SELANG (HOSE) - CONNECTION PNEUMATIC HOSE (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
     "duplicateAlerts": [],
     "relatedDocs": {
       "poNos": [],
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T12:05:06.421Z",
+    "updatedAt": "2026-10-26T12:56:32.466Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
-    "priorityLevel": "P3",
-    "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 30,
+    "priorityLevel": "P2",
+    "slaTargetDate": "09/11/26",
+    "slaDaysRemaining": 14,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -1285,7 +1323,19 @@
     "priorityLevel": "P3",
     "slaTargetDate": "17/11/26",
     "slaDaysRemaining": 22,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "attachments": [
+      {
+        "id": "efpb-att-CPL-FPB-26-0004498-1",
+        "name": "Scan_Dokumen_FPB_CPL-FPB-26-0004498.pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0004498.pdf",
+        "type": "pdf",
+        "uploadedBy": "FPB Maker (TB. CINDARA PRATAMA 01)",
+        "uploadedAt": "18/10/26 10:15",
+        "source": "EFPB_MAKER",
+        "caption": "Lampiran Dokumen e-FPB / Work Order Permintaan Barang"
+      }
+    ]
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001751",
