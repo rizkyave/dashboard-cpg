@@ -23,6 +23,7 @@ import {
   Layers,
   Building2,
   Ship,
+  Truck,
   Calendar,
   UserCheck,
   FileText,
@@ -515,7 +516,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
         let autoP: FpbPriorityLevel = 'P3';
         for (const it of json.items) {
           const p = (it.priority || '').toUpperCase().trim();
-          if (p === 'P1' || p.includes('P1') || p.includes('EMERGENCY') || p.includes('DARURAT')) {
+          if (p === 'P1' || p.includes('P1') || p.includes('EMERGENCY') || p.includes('DARURAT') || p.includes('URGENT') || p.includes('KRITIS')) {
             autoP = 'P1';
             break;
           } else if (p === 'P2' || p.includes('P2') || p.includes('URGENT') || p.includes('MENENGAH')) {
@@ -861,6 +862,35 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
           </span>
         );
     }
+  };
+
+  // Helper: Ikon Armada/Departemen Dinamis (Truk/Darat, Gedung/Kantor/Site, Kapal/Marine)
+  const renderArmadaIcon = (armadaName?: string) => {
+    const name = (armadaName || '').toUpperCase();
+    if (
+      name.includes('TRUCK') ||
+      name.includes('TANKI') ||
+      name.includes('MOBIL') ||
+      name.includes('KENDARAAN') ||
+      /\bKT\s*\d+/i.test(name)
+    ) {
+      return <Truck className="size-3.5 text-blue-600 dark:text-blue-400 shrink-0" />;
+    }
+    if (
+      name.includes('OFFICE') ||
+      name.includes('SITE') ||
+      name.includes('DEPT') ||
+      name.includes('DEPARTEMENT') ||
+      name.includes('WORKSHOP') ||
+      name.includes('GUDANG') ||
+      name.includes('DEPO') ||
+      name.includes('MUSHOLLA') ||
+      name.includes('POS') ||
+      name.includes('MESS')
+    ) {
+      return <Building2 className="size-3.5 text-amber-600 dark:text-amber-400 shrink-0" />;
+    }
+    return <Ship className="size-3.5 text-cyan-600 dark:text-cyan-400 shrink-0" />;
   };
 
   const getEntityBadge = (entity: string) => {
@@ -1340,15 +1370,15 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
               <thead className="bg-muted/50 text-muted-foreground border-b border-border font-medium">
                 <tr>
                   <th className="py-3 px-4">No. FPB & Entitas</th>
-                  <th className="py-3 px-3">Prioritas & SLA</th>
+                  <th className="py-3 px-3" title="Target batas waktu pengadaan: P1 Utama (1-2 hari untuk Urgent/Darurat), P2 Menengah (3-14 hari), P3 Rutin (14-30 hari)">Prioritas & SLA</th>
                   <th className="py-3 px-4">Armada Kapal / Dept</th>
                   <th className="py-3 px-3">Tanggal</th>
                   <th className="py-3 px-4">Peruntukan / Keperluan</th>
-                  <th className="py-3 px-3">Persetujuan Logistik</th>
+                  <th className="py-3 px-3" title="Alur logistik berurutan: Menunggu Review -> Disetujui Tim Review -> Sahkan di e-FPB -> Siap Pengadaan">Persetujuan Logistik</th>
                   <th className="py-3 px-3">Status Review Tim FPB</th>
-                  <th className="py-3 px-3">Urgensi</th>
+                  <th className="py-3 px-3" title="Tingkat kegentingan operasional armada (Normal / Urgent / Emergency). Pengajuan Urgent otomatis diprioritaskan P1 (SLA 1-2 hari)">Urgensi</th>
                   <th className="py-3 px-3">PIC Purchasing</th>
-                  <th className="py-3 px-3">Item & Stok</th>
+                  <th className="py-3 px-3" title="Status alokasi barang (Dalam analisa tim sebelum disetujui, Perlu PO / Stok gudang setelah disetujui)">Item & Stok</th>
                   <th className="py-3 px-3">Dokumen Terkait</th>
                   <th className="py-3 px-4 text-center">Aksi</th>
                 </tr>
@@ -1410,7 +1440,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                       {/* Armada */}
                       <td className="py-3 px-4 font-medium text-foreground">
                         <div className="flex items-center gap-1.5">
-                          <Ship className="size-3.5 text-muted-foreground shrink-0" />
+                          {renderArmadaIcon(rec.armada)}
                           <span>{rec.armada}</span>
                         </div>
                       </td>
@@ -1466,9 +1496,28 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                             <span className="font-semibold text-foreground">
                               {itemsCount} item
                             </span>
-                            <span className="text-[11px] text-muted-foreground">
-                              {inStockCount > 0 ? `${inStockCount} dari stok gudang` : 'Perlu PO'}
-                            </span>
+                            {/* Status kolom "Item & Stok" (misal: "Perlu PO") hanya boleh aktif setelah FPB disetujui, bukan saat berkas masih di tahap analisa awal */}
+                            {rec.reviewStatus === 'APPROVED_PO' ? (
+                              <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                                {inStockCount > 0 ? `${inStockCount} stok / sisa PO` : 'Perlu PO'}
+                              </span>
+                            ) : rec.reviewStatus === 'FULFILL_STOCK' ? (
+                              <span className="text-[11px] font-medium text-cyan-600 dark:text-cyan-400">
+                                Penuhi dari stok
+                              </span>
+                            ) : rec.reviewStatus === 'NEED_CLARIFICATION' ? (
+                              <span className="text-[11px] text-amber-600 dark:text-amber-400">
+                                Perlu klarifikasi
+                              </span>
+                            ) : rec.reviewStatus === 'REJECTED' ? (
+                              <span className="text-[11px] text-rose-500 line-through">
+                                Dibatalkan
+                              </span>
+                            ) : (
+                              <span className="text-[11px] text-muted-foreground italic">
+                                Dalam analisa tim
+                              </span>
+                            )}
                           </div>
                         ) : (
                           <span className="text-[11px] text-muted-foreground italic">
@@ -1549,7 +1598,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                   </div>
                   <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mt-0.5">
                     <span className="flex items-center gap-1 font-medium text-foreground">
-                      <Ship className="size-3.5 text-muted-foreground" />
+                      {renderArmadaIcon(selectedRecord.armada)}
                       {selectedRecord.armada}
                     </span>
                     <span>•</span>
@@ -2372,8 +2421,9 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                     onChange={(e) => {
                       const p = e.target.value as FpbPriorityLevel;
                       setFormPriority(p);
-                      if (p === 'P1') setFormUrgency('EMERGENCY');
-                      else if (p === 'P2') setFormUrgency('URGENT');
+                      if (p === 'P1' && formUrgency === 'NORMAL') {
+                        setFormUrgency('URGENT');
+                      }
                     }}
                     className="w-full py-2 px-3 text-xs font-semibold rounded-lg border border-border bg-background text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20"
                   >
@@ -2413,12 +2463,18 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                   </label>
                   <select
                     value={formUrgency}
-                    onChange={(e) => setFormUrgency(e.target.value as FpbUrgency)}
+                    onChange={(e) => {
+                      const u = e.target.value as FpbUrgency;
+                      setFormUrgency(u);
+                      if (u === 'URGENT' || u === 'EMERGENCY') {
+                        setFormPriority('P1');
+                      }
+                    }}
                     className="w-full py-2 px-3 text-xs font-semibold rounded-lg border border-border bg-background text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20"
                   >
                     <option value="NORMAL">Normal (Rutin)</option>
-                    <option value="URGENT">⚠️ Urgent (Mendesak)</option>
-                    <option value="EMERGENCY">🚨 EMERGENCY (Darurat Kapal / Breakdown)</option>
+                    <option value="URGENT">⚠️ Urgent (Mendesak - Auto P1)</option>
+                    <option value="EMERGENCY">🚨 EMERGENCY (Darurat Kapal - Auto P1)</option>
                   </select>
                 </div>
 

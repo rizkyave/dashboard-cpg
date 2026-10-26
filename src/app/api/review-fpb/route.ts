@@ -374,28 +374,36 @@ function seedInitialReviews(): FpbReviewRecord[] {
  * Helper: Menghitung target SLA dan status prioritas (P1: 1-2 hari, P2: 3-14 hari, P3: 14-30 hari)
  */
 function enrichSlaAndPriority(rec: FpbReviewRecord): FpbReviewRecord {
-  // 1. Tentukan level prioritas dari item barang jika ada
-  let level: FpbPriorityLevel = rec.priorityLevel || 'P3';
+  // 1. Tentukan level prioritas
+  let level: FpbPriorityLevel = 'P3';
 
-  if (rec.items && rec.items.length > 0) {
+  // ATURAN SINKRONISASI: Jika Urgensi = URGENT atau EMERGENCY -> Prioritas otomatis P1 - UTAMA (SLA 1-2 Hari)
+  if (rec.urgency === 'URGENT' || rec.urgency === 'EMERGENCY') {
+    level = 'P1';
+  } else if (rec.items && rec.items.length > 0) {
     let hasP1 = false;
     let hasP2 = false;
     for (const it of rec.items) {
       const p = (it.priority || '').toUpperCase().trim();
-      if (p === 'P1' || p.includes('P1') || p.includes('EMERGENCY') || p.includes('DARURAT')) {
+      if (
+        p === 'P1' ||
+        p.includes('P1') ||
+        p.includes('EMERGENCY') ||
+        p.includes('DARURAT') ||
+        p.includes('URGENT') ||
+        p.includes('KRITIS')
+      ) {
         hasP1 = true;
         break;
-      } else if (p === 'P2' || p.includes('P2') || p.includes('URGENT') || p.includes('MENENGAH')) {
+      } else if (p === 'P2' || p.includes('P2') || p.includes('MENENGAH')) {
         hasP2 = true;
       }
     }
     if (hasP1) level = 'P1';
     else if (hasP2) level = 'P2';
-    else level = 'P3';
-  } else if (!rec.priorityLevel) {
-    if (rec.urgency === 'EMERGENCY') level = 'P1';
-    else if (rec.urgency === 'URGENT') level = 'P2';
-    else level = 'P3';
+    else level = rec.priorityLevel || 'P3';
+  } else if (rec.priorityLevel) {
+    level = rec.priorityLevel;
   }
 
   // 2. SLA target pengadaan: P1 (2 hari), P2 (14 hari), P3 (30 hari)
