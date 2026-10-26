@@ -397,7 +397,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
         showToast?.(
           data.message ||
             (newIsReceived
-              ? 'Berhasil disetujui Logistik (Received_Logistic)! Pengadaan siap diproses Purchasing.'
+              ? 'Dokumen berhasil disetujui Logistik & diteruskan ke Purchasing!'
               : 'Status persetujuan Logistik (Received_Logistic) dibatalkan.'),
           'success'
         );
@@ -1267,7 +1267,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                   <th className="py-3 px-4">Armada Kapal / Dept</th>
                   <th className="py-3 px-3">Tanggal</th>
                   <th className="py-3 px-4">Peruntukan / Keperluan</th>
-                  <th className="py-3 px-3">Status e-FPB</th>
+                  <th className="py-3 px-3">Persetujuan Logistik</th>
                   <th className="py-3 px-3">Status Review Tim FPB</th>
                   <th className="py-3 px-3">Urgensi</th>
                   <th className="py-3 px-3">PIC Purchasing</th>
@@ -1358,22 +1358,22 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                             type="button"
                             onClick={() => handleQuickApproveLogistic(rec, false)}
                             disabled={isApprovingLogistic}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 hover:bg-amber-500/25 transition cursor-pointer"
-                            title="Status: Received_Logistic (Disetujui Logistik). Klik jika ingin membatalkan."
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25 transition cursor-pointer"
+                            title="Dokumen telah disetujui Logistik & siap diproses Purchasing. Klik jika ingin membatalkan."
                           >
-                            <span className="size-2 rounded-full bg-amber-500" />
-                            <span>Received_Logistic</span>
+                            <CheckCircle2 className="size-3 text-emerald-600 dark:text-emerald-400" />
+                            <span>Siap Pengadaan</span>
                           </button>
                         ) : (
                           <button
                             type="button"
                             onClick={() => handleQuickApproveLogistic(rec, true)}
                             disabled={isApprovingLogistic}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-2xs transition cursor-pointer disabled:opacity-50"
-                            title="Klik untuk menyetujui dokumen ini (Received_Logistic) agar pengadaan dilanjutkan ke Purchasing"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-2xs transition cursor-pointer disabled:opacity-50"
+                            title="Klik untuk menyetujui dokumen ini dan meneruskannya ke antrean Purchasing"
                           >
                             <CheckCircle2 className="size-3" />
-                            <span>Setujui Logistik</span>
+                            <span>Setujui &amp; Teruskan ke Purchasing</span>
                           </button>
                         )}
                       </td>
@@ -1522,11 +1522,11 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                       else setFormIsReceivedLogistik(false);
                     }}
                     disabled={isApprovingLogistic}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg border border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20 transition cursor-pointer"
-                    title="Status: Received_Logistic. Klik untuk membatalkan persetujuan logistik."
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg border border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20 transition cursor-pointer"
+                    title="Dokumen telah disetujui Logistik & siap diproses Purchasing. Klik jika ingin membatalkan."
                   >
-                    <CheckCircle2 className="size-3.5 text-amber-600 dark:text-amber-400" />
-                    <span>Received_Logistic</span>
+                    <CheckCircle2 className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                    <span>Siap Pengadaan (Disetujui Logistik)</span>
                   </button>
                 ) : (
                   <button
@@ -1537,10 +1537,10 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                     }}
                     disabled={isApprovingLogistic}
                     className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg bg-amber-500 hover:bg-amber-600 text-white shadow-xs transition cursor-pointer disabled:opacity-50"
-                    title="Setujui dokumen ini agar pengadaan dapat dilanjutkan ke tahap purchasing"
+                    title="Klik untuk menyetujui dokumen ini dan meneruskannya ke antrean Purchasing"
                   >
                     <CheckCircle2 className="size-3.5" />
-                    <span>Setujui Logistik (Received_Logistic)</span>
+                    <span>Setujui &amp; Teruskan ke Purchasing</span>
                   </button>
                 )}
                 <a
@@ -1860,7 +1860,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                           <div className="space-y-0.5">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-xs font-bold text-emerald-950 dark:text-emerald-200">
-                                Dokumen Resmi Telah Diterima Logistik (Received_Logistic)
+                                Dokumen Telah Disetujui Logistik & Siap Diteruskan ke Purchasing
                               </span>
                               <span className="px-2 py-0.5 rounded-full text-[10px] bg-emerald-600 text-white font-bold">
                                 Tanda Tangan &amp; Stempel Tertera
@@ -2185,33 +2185,37 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
               <div className="p-3.5 rounded-xl border border-amber-500/30 bg-amber-500/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="space-y-0.5">
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-800 dark:text-amber-300">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-900 dark:text-amber-200">
                       <CheckCircle2 className="size-4 text-amber-600 dark:text-amber-400" />
-                      Persetujuan Logistik (Received_Logistic)
+                      Persetujuan Logistik &amp; Izin Pengadaan
                     </span>
                     {formIsReceivedLogistik ? (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white">
-                        SUDAH DISETUJUI
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-600 text-white">
+                        SIAP PENGADAAN (DISETUJUI)
                       </span>
                     ) : (
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-muted text-muted-foreground border border-border">
-                        MENUNGGU PERSETUJUAN
+                        MENUNGGU PERSETUJUAN LOGISTIK
                       </span>
                     )}
                   </div>
                   <p className="text-[11px] text-muted-foreground">
                     {formIsReceivedLogistik
-                      ? 'Dokumen FPB ini telah disetujui oleh Tim Logistik. Tim Purchasing dapat segera melanjutkan proses PO atau tender.'
-                      : 'Aktifkan status ini untuk menyatakan bahwa dokumen FPB telah diverifikasi Logistik dan diizinkan lanjut ke Purchasing.'}
+                      ? 'Dokumen FPB ini telah diverifikasi & disetujui Tim Logistik. Tim Purchasing diizinkan segera memproses pembelian (PO / Pra-tender).'
+                      : 'Dokumen FPB ini belum disetujui. Tekan tombol persetujuan di sebelah kanan untuk mengizinkan Tim Purchasing melanjutkan proses pengadaan.'}
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setFormIsReceivedLogistik(!formIsReceivedLogistik)}
-                  className={`px-4 py-2 rounded-lg text-xs font-bold transition shadow-xs cursor-pointer inline-flex items-center gap-1.5 ${formIsReceivedLogistik ? 'bg-amber-500 hover:bg-amber-600 text-white' : 'bg-background hover:bg-muted border border-border text-foreground'}`}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition shadow-xs cursor-pointer inline-flex items-center gap-1.5 ${
+                    formIsReceivedLogistik
+                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                      : 'bg-amber-500 hover:bg-amber-600 text-white'
+                  }`}
                 >
                   <CheckCircle2 className="size-4" />
-                  <span>{formIsReceivedLogistik ? 'Status: Received_Logistic' : 'Setujui Sekarang'}</span>
+                  <span>{formIsReceivedLogistik ? 'Disetujui untuk Purchasing' : 'Setujui & Teruskan ke Purchasing'}</span>
                 </button>
               </div>
 

@@ -1347,8 +1347,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         success: true,
         message: newStatus
-          ? `Dokumen ${currentRec.fpbNo} berhasil disetujui Logistik (Received_Logistic)! Pengadaan siap diproses Purchasing.`
-          : `Status persetujuan logistik (Received_Logistic) untuk ${currentRec.fpbNo} dibatalkan.`,
+          ? `Dokumen ${currentRec.fpbNo} berhasil disetujui Logistik dan diteruskan ke antrean Purchasing!`
+          : `Persetujuan pengadaan untuk ${currentRec.fpbNo} dibatalkan.`,
         record: records[targetIdx],
       });
     }
