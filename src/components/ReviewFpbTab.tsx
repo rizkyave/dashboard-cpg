@@ -346,13 +346,6 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
     }
   };
 
-  // Auto-fetch attachments when switching to attachments tab if empty
-  useEffect(() => {
-    if (activeModalTab === 'attachments' && selectedRecord && formAttachments.length === 0 && !isSyncingAttachments) {
-      handleSyncEfpbAttachments();
-    }
-  }, [activeModalTab, selectedRecord?.fpbNo]);
-
   // Close Modal
   const handleCloseModal = () => {
     setSelectedRecord(null);
@@ -1854,38 +1847,14 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
 
                   {/* Galeri Lampiran */}
                   {formAttachments.length === 0 ? (
-                    <div className="p-10 border border-border rounded-xl bg-card text-center space-y-3">
-                      {isSyncingAttachments ? (
-                        <div className="space-y-2 py-4">
-                          <RefreshCw className="size-8 mx-auto text-primary animate-spin" />
-                          <p className="text-xs font-bold text-foreground">
-                            Memeriksa dan menyinkronkan lampiran dari e-FPB...
-                          </p>
-                          <p className="text-[11px] text-muted-foreground">
-                            Mengambil berkas scan dokumen dan foto fisik kerusakan yang dilampirkan oleh pengaju.
-                          </p>
-                        </div>
-                      ) : (
-                        <>
-                          <ImageIcon className="size-10 mx-auto text-muted-foreground/40" />
-                          <p className="text-xs font-semibold text-foreground">
-                            Belum ada berkas foto/dokumen lampiran terpisah untuk FPB ini.
-                          </p>
-                          <p className="text-[11px] text-muted-foreground max-w-md mx-auto">
-                            Jika FPB maker melampirkan foto melalui dokumen PDF resmi, Anda dapat memeriksanya di tab <strong>&quot;Pratinjau Dokumen PDF Resmi&quot;</strong>. Jika Anda menerima foto fisik/bukti kerusakan dari user lapangan (misal via WhatsApp), silakan unggah melalui form di atas atau tekan tombol <strong>&quot;Tarik dari e-FPB&quot;</strong>.
-                          </p>
-                          <div className="pt-2">
-                            <button
-                              type="button"
-                              onClick={handleSyncEfpbAttachments}
-                              className="px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20 text-xs font-semibold text-primary hover:bg-primary hover:text-primary-foreground transition cursor-pointer inline-flex items-center gap-1.5"
-                            >
-                              <RefreshCw className="size-3.5" />
-                              <span>Cek & Tarik Lampiran dari e-FPB</span>
-                            </button>
-                          </div>
-                        </>
-                      )}
+                    <div className="p-10 border border-border rounded-xl bg-card text-center space-y-2">
+                      <ImageIcon className="size-10 mx-auto text-muted-foreground/40" />
+                      <p className="text-xs font-semibold text-foreground">
+                        Belum ada berkas lampiran tambahan untuk FPB ini.
+                      </p>
+                      <p className="text-[11px] text-muted-foreground max-w-md mx-auto">
+                        Dokumen permohonan FPB resmi dari user pemohon dapat diperiksa pada tab <strong>&quot;Pratinjau Dokumen PDF Resmi&quot;</strong>. Jika Anda menerima foto kondisi fisik/bukti kerusakan tambahan (misal dari WhatsApp atau laporan tim lapangan), Anda dapat mengunggahnya melalui form di atas untuk disimpan permanen di Cloudflare R2.
+                      </p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">

@@ -135,80 +135,6 @@ function findStockMatch(itemName: string, itemCode?: string, entity?: string): {
 }
 
 /**
- * Known default attachments from e-FPB files list for sample or key FPBs
- */
-const DEFAULT_KNOWN_ATTACHMENTS: Record<string, FpbAttachment[]> = {
-  'mo-fpb-26-0001918': [
-    {
-      id: 'efpb-att-MO-FPB-26-0001918-1',
-      name: 'Scan_Dokumen_FPB_MO-FPB-26-0001918.pdf',
-      url: 'https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0001918.pdf',
-      type: 'pdf',
-      uploadedBy: 'FPB Maker (TRUCK TANKI KT 8257 YA)',
-      uploadedAt: '26/10/26 13:42',
-      source: 'EFPB_MAKER',
-      caption: 'Lampiran Dokumen e-FPB / Work Order Permintaan Barang',
-    },
-    {
-      id: 'efpb-att-MO-FPB-26-0001918-2',
-      name: 'Foto_Fisik_Lampu_Kombinasi_Belakang_KT_8257_YA.jpg',
-      url: 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=800&q=80',
-      type: 'image',
-      uploadedBy: 'FPB Maker (TRUCK TANKI KT 8257 YA)',
-      uploadedAt: '26/10/26 13:42',
-      source: 'EFPB_MAKER',
-      caption: 'Foto Fisik Kerusakan: Lampu Kombinasi Belakang LED 24V DNY-001 (RH/LH) Rusak/Pecah',
-    },
-  ],
-  'mo-fpb-26-0001920': [
-    {
-      id: 'efpb-att-MO-FPB-26-0001920-1',
-      name: 'Scan_Dokumen_FPB_MO-FPB-26-0001920.pdf',
-      url: 'https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0001920.pdf',
-      type: 'pdf',
-      uploadedBy: 'FPB Maker (TRUCK TANKI KT 8257 ZU)',
-      uploadedAt: '26/10/26 13:53',
-      source: 'EFPB_MAKER',
-      caption: 'Lampiran Dokumen e-FPB / Work Order Permintaan Barang',
-    },
-    {
-      id: 'efpb-att-MO-FPB-26-0001920-2',
-      name: 'Foto_Fisik_Kerusakan_Unit_KT_8257_ZU.jpg',
-      url: 'https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?auto=format&fit=crop&w=800&q=80',
-      type: 'image',
-      uploadedBy: 'FPB Maker (TRUCK TANKI KT 8257 ZU)',
-      uploadedAt: '26/10/26 13:53',
-      source: 'EFPB_MAKER',
-      caption: 'Foto Fisik Kondisi Lapangan / Spare Part Rusak',
-    },
-  ],
-  'hi-fpb-26-0001525': [
-    {
-      id: 'efpb-att-HI-FPB-26-0001525-1',
-      name: 'Scan_Dokumen_FPB_HI-FPB-26-0001525.pdf',
-      url: 'https://e-fpb.cindaragroup.com/files/Approved_rev_sign_HI-FPB-26-0001525.pdf',
-      type: 'pdf',
-      uploadedBy: 'FPB Maker (MT HL 5001)',
-      uploadedAt: '26/10/26 15:03',
-      source: 'EFPB_MAKER',
-      caption: 'Lampiran Dokumen e-FPB / Work Order Permintaan Barang',
-    },
-  ],
-  'cpl-fpb-26-0004498': [
-    {
-      id: 'efpb-att-CPL-FPB-26-0004498-1',
-      name: 'Scan_Dokumen_FPB_CPL-FPB-26-0004498.pdf',
-      url: 'https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0004498.pdf',
-      type: 'pdf',
-      uploadedBy: 'FPB Maker (TB. CINDARA PRATAMA 01)',
-      uploadedAt: '18/10/26 10:15',
-      source: 'EFPB_MAKER',
-      caption: 'Lampiran Dokumen e-FPB / Work Order Permintaan Barang',
-    },
-  ],
-};
-
-/**
  * Load Reviews from Cloudflare R2 with fallback to local disk
  */
 async function loadReviews(): Promise<FpbReviewRecord[]> {
@@ -232,20 +158,15 @@ async function loadReviews(): Promise<FpbReviewRecord[]> {
         const text = Buffer.from(obj.body).toString('utf-8');
         const parsed = JSON.parse(text);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Merge local attachments and known attachments into R2 if missing in R2
+          // Clean up any old mock/stock images from R2
           let hasMergedUpdates = false;
           for (const r2Rec of parsed) {
-            const normKey = r2Rec.fpbNo.toLowerCase();
-            const loc = localList.find((l) => l.fpbNo.toLowerCase() === normKey);
-            if (loc?.attachments && loc.attachments.length > 0) {
-              if (!r2Rec.attachments || r2Rec.attachments.length === 0) {
-                r2Rec.attachments = loc.attachments;
+            if (Array.isArray(r2Rec.attachments) && r2Rec.attachments.length > 0) {
+              const cleaned = r2Rec.attachments.filter((a: FpbAttachment) => !a.url?.includes('unsplash.com'));
+              if (cleaned.length !== r2Rec.attachments.length) {
+                r2Rec.attachments = cleaned;
                 hasMergedUpdates = true;
               }
-            }
-            if ((!r2Rec.attachments || r2Rec.attachments.length === 0) && DEFAULT_KNOWN_ATTACHMENTS[normKey]) {
-              r2Rec.attachments = DEFAULT_KNOWN_ATTACHMENTS[normKey];
-              hasMergedUpdates = true;
             }
           }
 
@@ -273,12 +194,6 @@ async function loadReviews(): Promise<FpbReviewRecord[]> {
 
   // 2. Fallback to local file
   if (localList.length > 0) {
-    for (const loc of localList) {
-      const normKey = loc.fpbNo.toLowerCase();
-      if ((!loc.attachments || loc.attachments.length === 0) && DEFAULT_KNOWN_ATTACHMENTS[normKey]) {
-        loc.attachments = DEFAULT_KNOWN_ATTACHMENTS[normKey];
-      }
-    }
     cachedReviews = localList;
     return localList;
   }
@@ -1368,26 +1283,22 @@ export async function POST(req: NextRequest) {
       const normKey = (fpbNo || '').toLowerCase();
 
       if (currentAttachments.length === 0) {
-        // 1. Check known attachments catalog
-        if (DEFAULT_KNOWN_ATTACHMENTS[normKey] && DEFAULT_KNOWN_ATTACHMENTS[normKey].length > 0) {
-          currentAttachments = DEFAULT_KNOWN_ATTACHMENTS[normKey];
-          records[targetIdx].attachments = currentAttachments;
-          await saveReviews(records);
-        } else {
-          // 2. Check local reviews file
-          try {
-            if (fs.existsSync(LOCAL_REVIEWS_PATH)) {
-              const raw = fs.readFileSync(LOCAL_REVIEWS_PATH, 'utf-8');
-              const parsed = JSON.parse(raw);
-              const loc = parsed.find((x: any) => x.fpbNo.toLowerCase() === normKey);
-              if (loc?.attachments && loc.attachments.length > 0) {
-                currentAttachments = loc.attachments;
-                records[targetIdx].attachments = loc.attachments;
+        // Check local reviews file
+        try {
+          if (fs.existsSync(LOCAL_REVIEWS_PATH)) {
+            const raw = fs.readFileSync(LOCAL_REVIEWS_PATH, 'utf-8');
+            const parsed = JSON.parse(raw);
+            const loc = parsed.find((x: any) => x.fpbNo.toLowerCase() === normKey);
+            if (loc?.attachments && loc.attachments.length > 0) {
+              const cleaned = loc.attachments.filter((a: FpbAttachment) => !a.url?.includes('unsplash.com'));
+              if (cleaned.length > 0) {
+                currentAttachments = cleaned;
+                records[targetIdx].attachments = cleaned;
                 await saveReviews(records);
               }
             }
-          } catch {}
-        }
+          }
+        } catch {}
       }
 
       return NextResponse.json({

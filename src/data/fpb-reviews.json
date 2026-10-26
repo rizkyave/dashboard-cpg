@@ -43,28 +43,7 @@
     "slaTargetDate": "09/11/26",
     "slaDaysRemaining": 14,
     "slaStatus": "ON_TRACK",
-    "attachments": [
-      {
-        "id": "efpb-att-MO-FPB-26-0001918-1",
-        "name": "Scan_Dokumen_FPB_MO-FPB-26-0001918.pdf",
-        "url": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0001918.pdf",
-        "type": "pdf",
-        "uploadedBy": "FPB Maker (TRUCK TANKI KT 8257 YA)",
-        "uploadedAt": "26/10/26 13:42",
-        "source": "EFPB_MAKER",
-        "caption": "Lampiran Dokumen e-FPB / Work Order Permintaan Barang"
-      },
-      {
-        "id": "efpb-att-MO-FPB-26-0001918-2",
-        "name": "Foto_Fisik_Lampu_Kombinasi_Belakang_KT_8257_YA.jpg",
-        "url": "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=800&q=80",
-        "type": "image",
-        "uploadedBy": "FPB Maker (TRUCK TANKI KT 8257 YA)",
-        "uploadedAt": "26/10/26 13:42",
-        "source": "EFPB_MAKER",
-        "caption": "Foto Fisik Kerusakan: Lampu Kombinasi Belakang LED 24V DNY-001 (RH/LH) Rusak/Pecah"
-      }
-    ]
+    "attachments": []
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001094",
@@ -138,28 +117,7 @@
     "slaTargetDate": "25/11/26",
     "slaDaysRemaining": 30,
     "slaStatus": "ON_TRACK",
-    "attachments": [
-      {
-        "id": "efpb-att-MO-FPB-26-0001920-1",
-        "name": "Scan_Dokumen_FPB_MO-FPB-26-0001920.pdf",
-        "url": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0001920.pdf",
-        "type": "pdf",
-        "uploadedBy": "FPB Maker (TRUCK TANKI KT 8257 ZU)",
-        "uploadedAt": "26/10/26 13:53",
-        "source": "EFPB_MAKER",
-        "caption": "Lampiran Dokumen e-FPB / Work Order Permintaan Barang"
-      },
-      {
-        "id": "efpb-att-MO-FPB-26-0001920-2",
-        "name": "Foto_Fisik_Kerusakan_Unit_KT_8257_ZU.jpg",
-        "url": "https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?auto=format&fit=crop&w=800&q=80",
-        "type": "image",
-        "uploadedBy": "FPB Maker (TRUCK TANKI KT 8257 ZU)",
-        "uploadedAt": "26/10/26 13:53",
-        "source": "EFPB_MAKER",
-        "caption": "Foto Fisik Kondisi Lapangan / Spare Part Rusak"
-      }
-    ]
+    "attachments": []
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0000712",
@@ -1324,18 +1282,7 @@
     "slaTargetDate": "17/11/26",
     "slaDaysRemaining": 22,
     "slaStatus": "ON_TRACK",
-    "attachments": [
-      {
-        "id": "efpb-att-CPL-FPB-26-0004498-1",
-        "name": "Scan_Dokumen_FPB_CPL-FPB-26-0004498.pdf",
-        "url": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0004498.pdf",
-        "type": "pdf",
-        "uploadedBy": "FPB Maker (TB. CINDARA PRATAMA 01)",
-        "uploadedAt": "18/10/26 10:15",
-        "source": "EFPB_MAKER",
-        "caption": "Lampiran Dokumen e-FPB / Work Order Permintaan Barang"
-      }
-    ]
+    "attachments": []
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001751",
