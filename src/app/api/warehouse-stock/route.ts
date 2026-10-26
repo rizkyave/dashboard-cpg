@@ -245,6 +245,221 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    if (action === 'import-items') {
+      const importedList: Partial<WarehouseStockItem>[] = body.items || [];
+      const mode: 'merge' | 'replace' = body.mode || 'merge';
+
+      if (!Array.isArray(importedList) || importedList.length === 0) {
+        return NextResponse.json(
+          { success: false, error: 'Tidak ada data item yang dikirim untuk diimpor' },
+          { status: 400 }
+        );
+      }
+
+      let resultItems: WarehouseStockItem[] = [];
+
+      if (mode === 'replace') {
+        resultItems = importedList.map((raw, idx) => {
+          const saldoAwal = Number(raw.saldoAwal ?? raw.sisaStok) || 0;
+          const minStock = Number(raw.minStock) || 2;
+          const sisaStok = saldoAwal;
+          let status: 'AMAN' | 'MENIPIS' | 'HABIS' = 'AMAN';
+          if (sisaStok === 0) status = 'HABIS';
+          else if (sisaStok <= minStock) status = 'MENIPIS';
+
+          return {
+            id: raw.id || `WH-ITM-${String(idx + 1).padStart(3, '0')}`,
+            kodeBarang: (raw.kodeBarang || `BRG-${idx + 1}`).toUpperCase().trim(),
+            namaBarang: (raw.namaBarang || 'BARANG TANPA NAMA').toUpperCase().trim(),
+            kategori: raw.kategori || 'Sparepart Mesin',
+            satuan: (raw.satuan || 'PCS').toUpperCase().trim(),
+            lokasiRak: raw.lokasiRak || 'Gudang Somber',
+            minStock,
+            saldoAwal,
+            totalMasuk: 0,
+            totalKeluar: 0,
+            sisaStok,
+            status,
+            kondisi: raw.kondisi || 'Baru',
+            hargaSatuanPerkiraan: Number(raw.hargaSatuanPerkiraan) || 0,
+            lastMutationDate: new Date().toISOString().split('T')[0],
+            keterangan: raw.keterangan || '',
+          };
+        });
+      } else {
+        // Merge mode: update if exists by kodeBarang or namaBarang, or add if new
+        const workingItems = [...items];
+        importedList.forEach((raw) => {
+          if (!raw.namaBarang && !raw.kodeBarang) return;
+          const cleanCode = (raw.kodeBarang || '').toUpperCase().trim();
+          const cleanName = (raw.namaBarang || '').toUpperCase().trim();
+
+          const existingIdx = workingItems.findIndex(
+            (i) =>
+              (cleanCode && i.kodeBarang.toUpperCase().trim() === cleanCode) ||
+              (cleanName && i.namaBarang.toUpperCase().trim() === cleanName)
+          );
+
+          if (existingIdx !== -1) {
+            const current = workingItems[existingIdx];
+            const newSaldoAwal = raw.saldoAwal !== undefined ? Number(raw.saldoAwal) : current.saldoAwal;
+            const newMinStock = raw.minStock !== undefined ? Number(raw.minStock) : current.minStock;
+            const sisaStok = newSaldoAwal + current.totalMasuk - current.totalKeluar;
+
+            let status: 'AMAN' | 'MENIPIS' | 'HABIS' = 'AMAN';
+            if (sisaStok <= 0) status = 'HABIS';
+            else if (sisaStok <= newMinStock) status = 'MENIPIS';
+
+            workingItems[existingIdx] = {
+              ...current,
+              kodeBarang: cleanCode || current.kodeBarang,
+              namaBarang: cleanName || current.namaBarang,
+              kategori: raw.kategori || current.kategori,
+              satuan: (raw.satuan || current.satuan).toUpperCase().trim(),
+              lokasiRak: raw.lokasiRak || current.lokasiRak,
+              minStock: newMinStock,
+              saldoAwal: newSaldoAwal,
+              sisaStok,
+              status,
+              kondisi: raw.kondisi || current.kondisi,
+              hargaSatuanPerkiraan:
+                raw.hargaSatuanPerkiraan !== undefined
+                  ? Number(raw.hargaSatuanPerkiraan)
+                  : current.hargaSatuanPerkiraan,
+              keterangan: raw.keterangan || current.keterangan,
+            };
+          } else {
+            const saldoAwal = Number(raw.saldoAwal ?? raw.sisaStok) || 0;
+            const minStock = Number(raw.minStock) || 2;
+            const sisaStok = saldoAwal;
+            let status: 'AMAN' | 'MENIPIS' | 'HABIS' = 'AMAN';
+            if (sisaStok === 0) status = 'HABIS';
+            else if (sisaStok <= minStock) status = 'MENIPIS';
+
+            workingItems.unshift({
+              id: raw.id || `WH-ITM-${String(workingItems.length + 1).padStart(3, '0')}`,
+              kodeBarang: cleanCode || `BRG-${workingItems.length + 1}`,
+              namaBarang: cleanName,
+              kategori: raw.kategori || 'Sparepart Mesin',
+              satuan: (raw.satuan || 'PCS').toUpperCase().trim(),
+              lokasiRak: raw.lokasiRak || 'Gudang Somber',
+              minStock,
+              saldoAwal,
+              totalMasuk: 0,
+              totalKeluar: 0,
+              sisaStok,
+              status,
+              kondisi: raw.kondisi || 'Baru',
+              hargaSatuanPerkiraan: Number(raw.hargaSatuanPerkiraan) || 0,
+              lastMutationDate: new Date().toISOString().split('T')[0],
+              keterangan: raw.keterangan || '',
+            });
+          }
+        });
+        resultItems = workingItems;
+      }
+
+      saveDataToDisk(resultItems, mutations);
+      const summary = calculateWarehouseSummary(resultItems, mutations);
+
+      return NextResponse.json({
+        success: true,
+        message: `Berhasil mengimpor ${importedList.length} data barang ke gudang (${
+          mode === 'merge' ? 'Digabungkan' : 'Gantikan Seluruh Data'
+        }).`,
+        items: resultItems,
+        mutations,
+        summary,
+      });
+    }
+
+    if (action === 'import-mutations') {
+      const importedMutations: Partial<WarehouseMutation>[] = body.mutations || [];
+      if (!Array.isArray(importedMutations) || importedMutations.length === 0) {
+        return NextResponse.json(
+          { success: false, error: 'Tidak ada data mutasi yang dikirim untuk diimpor' },
+          { status: 400 }
+        );
+      }
+
+      const workingMutations = [...mutations];
+      const workingItems = [...items];
+
+      importedMutations.forEach((m, idx) => {
+        const item = workingItems.find(
+          (i) =>
+            (m.itemId && i.id === m.itemId) ||
+            (m.kodeBarang && i.kodeBarang.toUpperCase().trim() === m.kodeBarang.toUpperCase().trim()) ||
+            (m.namaBarang && i.namaBarang.toUpperCase().trim() === m.namaBarang.toUpperCase().trim())
+        );
+
+        const jenis: MutationType = m.jenis === 'KELUAR' ? 'KELUAR' : 'MASUK';
+        const qty = Number(m.qty) || 1;
+        const now = new Date();
+        const dateStr = m.tanggal || now.toISOString().split('T')[0];
+        const timeStr = m.waktu || '10:00';
+
+        let saldoSebelum = item ? item.sisaStok : 0;
+        let saldoSesudah = saldoSebelum;
+
+        if (item) {
+          if (jenis === 'MASUK') {
+            item.totalMasuk += qty;
+            saldoSesudah = saldoSebelum + qty;
+          } else {
+            item.totalKeluar += qty;
+            saldoSesudah = saldoSebelum - qty;
+          }
+          item.sisaStok = saldoSesudah;
+          if (saldoSesudah <= 0) item.status = 'HABIS';
+          else if (saldoSesudah <= item.minStock) item.status = 'MENIPIS';
+          else item.status = 'AMAN';
+          item.lastMutationDate = dateStr;
+        }
+
+        const newMut: WarehouseMutation = {
+          id:
+            m.id ||
+            `MUT-${jenis === 'MASUK' ? 'IN' : 'OUT'}-2026-${String(
+              workingMutations.length + idx + 1045
+            ).padStart(4, '0')}`,
+          tanggal: dateStr,
+          waktu: timeStr,
+          jenis,
+          itemId: item ? item.id : 'WH-UNKNOWN',
+          kodeBarang: (item ? item.kodeBarang : m.kodeBarang || '-').toUpperCase().trim(),
+          namaBarang: (item ? item.namaBarang : m.namaBarang || '-').toUpperCase().trim(),
+          kategori: item ? item.kategori : m.kategori || 'Sparepart Mesin',
+          qty,
+          satuan: item ? item.satuan : m.satuan || 'PCS',
+          saldoSebelum,
+          saldoSesudah,
+          noDokumenRef: m.noDokumenRef || '-',
+          entitas: m.entitas || 'CPL',
+          sumberAtauTujuan: m.sumberAtauTujuan || '-',
+          picGudang: m.picGudang || 'Budi Agustiansyah (Staf Gudang Somber)',
+          picPenerimaPengambil: m.picPenerimaPengambil || '-',
+          keperluan: m.keperluan || '-',
+          status: 'VERIFIED',
+          catatan: m.catatan || '',
+          createdAt: now.toISOString(),
+        };
+
+        workingMutations.unshift(newMut);
+      });
+
+      saveDataToDisk(workingItems, workingMutations);
+      const summary = calculateWarehouseSummary(workingItems, workingMutations);
+
+      return NextResponse.json({
+        success: true,
+        message: `Berhasil mengimpor ${importedMutations.length} transaksi mutasi ke buku jurnal gudang.`,
+        items: workingItems,
+        mutations: workingMutations,
+        summary,
+      });
+    }
+
     return NextResponse.json({ success: false, error: 'Aksi tidak dikenali' }, { status: 400 });
   } catch (error: any) {
     console.error('Error in POST /api/warehouse-stock:', error);

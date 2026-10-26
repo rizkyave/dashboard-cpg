@@ -32,6 +32,9 @@ import {
   TrendingDown,
   Check,
   RotateCcw,
+  Upload,
+  Download,
+  FileUp,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import {
@@ -119,6 +122,16 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
     hargaSatuanPerkiraan: 0,
     keterangan: '',
   });
+
+  // Modal State for Import File
+  const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
+  const [importTarget, setImportTarget] = useState<'items' | 'mutations'>('items');
+  const [importMode, setImportMode] = useState<'merge' | 'replace'>('merge');
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [parsedPreviewItems, setParsedPreviewItems] = useState<Partial<WarehouseStockItem>[]>([]);
+  const [parsedPreviewMutations, setParsedPreviewMutations] = useState<Partial<WarehouseMutation>[]>([]);
+  const [isParsingImport, setIsParsingImport] = useState<boolean>(false);
+  const importFileInputRef = useRef<HTMLInputElement>(null);
 
   // Form State for Inbound (+ Masuk)
   const [inboundForm, setInboundForm] = useState({
@@ -446,6 +459,314 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
     }
   };
 
+  // Download Official Excel Template
+  const handleDownloadTemplate = () => {
+    try {
+      const wb = XLSX.utils.book_new();
+
+      // Template 1: Master Stok Barang
+      const sampleStockData = [
+        {
+          'Kode Barang': 'LUB-MED-040',
+          'Nama Barang': 'OLI MESIN MEDITRAN S SAE 40 (PERTAMINA)',
+          Kategori: 'Pelumas & Kimia',
+          Satuan: 'DRUM',
+          'Lokasi Rak': 'Pallet Pelumas B-01 Somber',
+          'Saldo Awal': 15,
+          'Min Stock': 5,
+          'Harga Satuan': 6200000,
+          Kondisi: 'Baru',
+          Keterangan: 'Pelumas mesin induk armada TB & SPOB CPG',
+        },
+        {
+          'Kode Barang': 'FLT-YAN-6AY',
+          'Nama Barang': 'FILTER OLI YANMAR 6AYM-ETE',
+          Kategori: 'Filter & Separator',
+          Satuan: 'PCS',
+          'Lokasi Rak': 'Rak Suku Cadang A-03 Somber',
+          'Saldo Awal': 30,
+          'Min Stock': 8,
+          'Harga Satuan': 385000,
+          Kondisi: 'Baru',
+          Keterangan: 'Filter genuine mesin kapal seri 6AY',
+        },
+        {
+          'Kode Barang': 'DCK-TRS-PP8',
+          'Nama Barang': 'TALI TROSS PP 8-STRAND CIR 8 INCH',
+          Kategori: 'Deck, Tali & Jangkar',
+          Satuan: 'ROLL',
+          'Lokasi Rak': 'Gudang Terbuka C-01 Somber',
+          'Saldo Awal': 4,
+          'Min Stock': 2,
+          'Harga Satuan': 18500000,
+          Kondisi: 'Baru',
+          Keterangan: 'Tali tambat utama tongkang batubara',
+        },
+      ];
+
+      // Template 2: Mutasi Transaksi
+      const sampleMutationData = [
+        {
+          Tanggal: '2026-10-25',
+          Waktu: '10:30',
+          'Jenis Mutasi': 'MASUK',
+          'Kode Barang': 'LUB-MED-040',
+          'Nama Barang': 'OLI MESIN MEDITRAN S SAE 40 (PERTAMINA)',
+          Kategori: 'Pelumas & Kimia',
+          'Jumlah Qty': 10,
+          Satuan: 'DRUM',
+          'No Dokumen Ref': 'PO-CPG-26-002194',
+          'Tujuan / Sumber': 'PT. Pertamina Lubricants',
+          'PIC Penerima': 'Supir Ekspedisi Dwi',
+          Keperluan: 'Penerimaan PO resmi bulanan',
+          Catatan: 'Segel utuh di Pallet B-01',
+        },
+        {
+          Tanggal: '2026-10-25',
+          Waktu: '14:15',
+          'Jenis Mutasi': 'KELUAR',
+          'Kode Barang': 'FLT-YAN-6AY',
+          'Nama Barang': 'FILTER OLI YANMAR 6AYM-ETE',
+          Kategori: 'Filter & Separator',
+          'Jumlah Qty': 4,
+          Satuan: 'PCS',
+          'No Dokumen Ref': 'TTB-CPL-26-004390',
+          'Tujuan / Sumber': 'TB. CINDARA PRATAMA 01',
+          'PIC Penerima': 'Chief Eng. Bambang',
+          Keperluan: 'Pergantian oli berkala mesin induk',
+          Catatan: 'Diserahkan langsung di Dermaga Somber',
+        },
+      ];
+
+      const wsStock = XLSX.utils.json_to_sheet(sampleStockData);
+      const wsMut = XLSX.utils.json_to_sheet(sampleMutationData);
+
+      XLSX.utils.book_append_sheet(wb, wsStock, 'Template Stok Barang');
+      XLSX.utils.book_append_sheet(wb, wsMut, 'Template Mutasi Transaksi');
+
+      XLSX.writeFile(wb, 'Template_Import_Stok_Gudang_Somber.xlsx');
+      showToast?.('Template file Excel berhasil diunduh.', 'success');
+    } catch {
+      showToast?.('Gagal mengunduh template.', 'error');
+    }
+  };
+
+  // Process File Upload for Import
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImportFile(file);
+    setIsParsingImport(true);
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const buffer = evt.target?.result as ArrayBuffer;
+        const wb = XLSX.read(new Uint8Array(buffer), { type: 'array' });
+
+        if (wb.SheetNames.length === 0) {
+          showToast?.('File Excel tidak memiliki lembar kerja (sheet).', 'error');
+          setIsParsingImport(false);
+          return;
+        }
+
+        // Check if there is a specific sheet name matching import target
+        let targetSheetName = wb.SheetNames[0];
+        if (importTarget === 'mutations') {
+          const mutSheet = wb.SheetNames.find((s) => s.toLowerCase().includes('mutasi'));
+          if (mutSheet) targetSheetName = mutSheet;
+        } else {
+          const stockSheet = wb.SheetNames.find((s) => s.toLowerCase().includes('stok') || s.toLowerCase().includes('barang'));
+          if (stockSheet) targetSheetName = stockSheet;
+        }
+
+        const ws = wb.Sheets[targetSheetName];
+        const rawJson: any[] = XLSX.utils.sheet_to_json(ws, { defval: '' });
+
+        if (!rawJson || rawJson.length === 0) {
+          showToast?.('Tidak ada baris data yang terbaca pada sheet Excel.', 'warning');
+          setIsParsingImport(false);
+          return;
+        }
+
+        if (importTarget === 'items') {
+          // Parse as Stock Items
+          const mappedItems: Partial<WarehouseStockItem>[] = [];
+
+          rawJson.forEach((row) => {
+            // Smart column search
+            const keys = Object.keys(row);
+            const getVal = (patterns: string[]) => {
+              for (const p of patterns) {
+                const found = keys.find((k) => k.toLowerCase().replace(/[^a-z0-9]/g, '').includes(p));
+                if (found && row[found] !== undefined && row[found] !== '') {
+                  return row[found];
+                }
+              }
+              return '';
+            };
+
+            const kode = String(getVal(['kodebarang', 'partnumber', 'partno', 'nobarang', 'kode', 'sku']) || '').trim();
+            const nama = String(getVal(['namabarang', 'deskripsibarang', 'deskripsi', 'itemname', 'nama', 'material']) || '').trim();
+
+            if (!kode && !nama) return; // Skip empty row
+
+            const kategoriRaw = String(getVal(['kategori', 'category', 'tipepersediaan', 'tipebarang']) || '');
+            let kategori: WarehouseCategory = 'Sparepart Mesin';
+            for (const cat of WAREHOUSE_CATEGORIES) {
+              if (kategoriRaw.toLowerCase().includes(cat.toLowerCase().split(' ')[0])) {
+                kategori = cat;
+                break;
+              }
+            }
+
+            const satuan = String(getVal(['satuan', 'unit', 'uom']) || 'PCS').toUpperCase().trim();
+            const lokasiRak = String(getVal(['lokasirak', 'lokasigudang', 'lokasi', 'rak', 'bin']) || 'Gudang Somber').trim();
+            const minStock = Number(getVal(['minstock', 'batasminimum', 'minimum', 'min'])) || 2;
+            const saldoAwal = Number(getVal(['saldoawal', 'kuantitas', 'qty', 'stok', 'sisastok', 'stokfisik'])) || 0;
+            const harga = Number(getVal(['hargasatuan', 'harga', 'price', 'unitprice'])) || 0;
+            const kondisi = String(getVal(['kondisi']) || 'Baru') as any;
+            const keterangan = String(getVal(['keterangan', 'notes', 'catatan', 'remark']) || '').trim();
+
+            mappedItems.push({
+              kodeBarang: kode || `BRG-${mappedItems.length + 1}`,
+              namaBarang: nama || kode,
+              kategori,
+              satuan: satuan || 'PCS',
+              lokasiRak: lokasiRak || 'Gudang Somber',
+              minStock,
+              saldoAwal,
+              sisaStok: saldoAwal,
+              hargaSatuanPerkiraan: harga,
+              kondisi: kondisi === 'Rekondisi' || kondisi === 'Baik' ? kondisi : 'Baru',
+              keterangan,
+            });
+          });
+
+          setParsedPreviewItems(mappedItems);
+          setParsedPreviewMutations([]);
+          showToast?.(`Berhasil membaca ${mappedItems.length} baris data barang dari Excel!`, 'success');
+        } else {
+          // Parse as Mutations
+          const mappedMutations: Partial<WarehouseMutation>[] = [];
+
+          rawJson.forEach((row) => {
+            const keys = Object.keys(row);
+            const getVal = (patterns: string[]) => {
+              for (const p of patterns) {
+                const found = keys.find((k) => k.toLowerCase().replace(/[^a-z0-9]/g, '').includes(p));
+                if (found && row[found] !== undefined && row[found] !== '') {
+                  return row[found];
+                }
+              }
+              return '';
+            };
+
+            const tgl = String(getVal(['tanggal', 'date', 'tgl']) || new Date().toISOString().split('T')[0]).trim();
+            const waktu = String(getVal(['waktu', 'time', 'jam']) || '10:00').trim();
+            const jenisRaw = String(getVal(['jenismutasi', 'jenis', 'type', 'arah']) || 'MASUK').toUpperCase();
+            const jenis: MutationType = jenisRaw.includes('KELUAR') || jenisRaw.includes('OUT') ? 'KELUAR' : 'MASUK';
+
+            const kode = String(getVal(['kodebarang', 'partnumber', 'nobarang', 'kode', 'sku']) || '').trim();
+            const nama = String(getVal(['namabarang', 'deskripsi', 'nama']) || '').trim();
+            const qty = Number(getVal(['jumlahqty', 'qty', 'jumlah', 'volume'])) || 1;
+            const satuan = String(getVal(['satuan', 'unit']) || 'PCS').toUpperCase().trim();
+            const noDok = String(getVal(['nodokumenref', 'nodokumen', 'nopo', 'nofstb', 'nottb', 'suratjalan']) || '-').trim();
+            const tujuan = String(getVal(['tujuansumber', 'tujuan', 'sumber', 'kapal', 'armada', 'supplier']) || '-').trim();
+            const penerima = String(getVal(['penerimapengambil', 'penerima', 'pengambil', 'kru']) || '-').trim();
+            const keperluan = String(getVal(['keperluan', 'alasan']) || '-').trim();
+            const catatan = String(getVal(['catatan', 'keterangan']) || '').trim();
+
+            if (!kode && !nama && !noDok) return;
+
+            mappedMutations.push({
+              tanggal: tgl,
+              waktu,
+              jenis,
+              kodeBarang: kode || '-',
+              namaBarang: nama || kode,
+              qty,
+              satuan,
+              noDokumenRef: noDok,
+              sumberAtauTujuan: tujuan,
+              picPenerimaPengambil: penerima,
+              keperluan,
+              catatan,
+            });
+          });
+
+          setParsedPreviewMutations(mappedMutations);
+          setParsedPreviewItems([]);
+          showToast?.(`Berhasil membaca ${mappedMutations.length} baris riwayat mutasi dari Excel!`, 'success');
+        }
+      } catch (err: any) {
+        showToast?.('Gagal memproses file Excel: ' + (err?.message || 'Format tidak valid'), 'error');
+      } finally {
+        setIsParsingImport(false);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    e.target.value = '';
+  };
+
+  // Submit Import to Server
+  const handleConfirmImport = async () => {
+    if (importTarget === 'items' && parsedPreviewItems.length === 0) {
+      showToast?.('Tidak ada data barang yang valid untuk diimpor.', 'warning');
+      return;
+    }
+    if (importTarget === 'mutations' && parsedPreviewMutations.length === 0) {
+      showToast?.('Tidak ada data mutasi yang valid untuk diimpor.', 'warning');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const payload =
+        importTarget === 'items'
+          ? {
+              action: 'import-items',
+              items: parsedPreviewItems,
+              mode: importMode,
+            }
+          : {
+              action: 'import-mutations',
+              mutations: parsedPreviewMutations,
+            };
+
+      const res = await fetch('/api/warehouse-stock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setItems(data.items);
+        setMutations(data.mutations);
+        setSummary(data.summary);
+        saveLocalWarehouseData(data.items, data.mutations);
+        showToast?.(data.message || 'Data berhasil diimpor ke sistem!', 'success');
+        setIsImportModalOpen(false);
+        setImportFile(null);
+        setParsedPreviewItems([]);
+        setParsedPreviewMutations([]);
+        if (importTarget === 'items') {
+          setActiveView('kartu-stok');
+        } else {
+          setActiveView('riwayat-mutasi');
+        }
+      } else {
+        showToast?.(data.error || 'Gagal menyimpan data impor.', 'error');
+      }
+    } catch {
+      showToast?.('Terjadi kesalahan jaringan saat menyimpan data impor.', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   // Filtered Items for Stock Card
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
@@ -594,8 +915,9 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
             </button>
           </div>
 
-          {/* Quick Actions */}
+          {/* Quick Actions Toolbar */}
           <div className="flex items-center gap-2 shrink-0">
+            {/* Tambah SKU Manual */}
             <button
               onClick={() => setIsAddSkuModalOpen(true)}
               className="h-8.5 px-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-medium flex items-center gap-1.5 transition shadow-xs cursor-pointer"
@@ -604,6 +926,22 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
               <span>Tambah SKU Baru</span>
             </button>
 
+            {/* Impor File Excel / CSV */}
+            <button
+              onClick={() => {
+                setIsImportModalOpen(true);
+                setImportFile(null);
+                setParsedPreviewItems([]);
+                setParsedPreviewMutations([]);
+              }}
+              className="h-8.5 px-3 rounded-lg border border-border bg-card hover:bg-muted text-foreground text-xs font-medium flex items-center gap-1.5 transition shadow-xs cursor-pointer"
+              title="Impor Data Persediaan atau Riwayat Mutasi dari File Excel (.xlsx / .csv)"
+            >
+              <Upload className="size-3.5 text-blue-600 dark:text-blue-400" />
+              <span>Impor File</span>
+            </button>
+
+            {/* Ekspor Excel */}
             <button
               onClick={handleExportExcel}
               className="h-8.5 px-3 rounded-lg border border-border bg-card hover:bg-muted text-foreground text-xs font-medium flex items-center gap-1.5 transition shadow-xs cursor-pointer"
@@ -613,6 +951,7 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
               <span className="hidden sm:inline">Ekspor Excel</span>
             </button>
 
+            {/* Refresh */}
             <button
               onClick={handleRefreshServer}
               disabled={isLoading}
@@ -1495,6 +1834,300 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
       )}
 
       {/* ========================================================================= */}
+      {/* MODAL: IMPOR FILE EXCEL / CSV                                            */}
+      {/* ========================================================================= */}
+      {isImportModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-card border border-border rounded-2xl w-full max-w-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
+            {/* Modal Header */}
+            <div className="p-5 border-b border-border flex items-center justify-between bg-muted/30 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="size-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-xs">
+                  <Upload className="size-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-foreground">
+                    Impor Data ke Gudang Pusat Somber
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Unggah file Excel (.xlsx, .xls) atau CSV untuk memperbarui stok barang atau mutasi transaksi
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsImportModalOpen(false)}
+                className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-muted transition"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 md:p-6 overflow-y-auto space-y-5 text-xs flex-1">
+              {/* Type and Template Download Row */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl border border-border bg-muted/20">
+                <div className="space-y-1">
+                  <span className="font-semibold text-foreground">Target Impor Data:</span>
+                  <div className="flex items-center gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setImportTarget('items');
+                        setParsedPreviewItems([]);
+                        setParsedPreviewMutations([]);
+                      }}
+                      className={`px-3 py-1.5 rounded-lg font-medium transition cursor-pointer flex items-center gap-1.5 ${
+                        importTarget === 'items'
+                          ? 'bg-blue-600 text-white shadow-xs font-semibold'
+                          : 'bg-muted text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      <Boxes className="size-3.5" />
+                      <span>Master Stok Barang</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setImportTarget('mutations');
+                        setParsedPreviewItems([]);
+                        setParsedPreviewMutations([]);
+                      }}
+                      className={`px-3 py-1.5 rounded-lg font-medium transition cursor-pointer flex items-center gap-1.5 ${
+                        importTarget === 'mutations'
+                          ? 'bg-blue-600 text-white shadow-xs font-semibold'
+                          : 'bg-muted text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      <Layers className="size-3.5" />
+                      <span>Jurnal Riwayat Mutasi</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Download Template Button */}
+                <button
+                  type="button"
+                  onClick={handleDownloadTemplate}
+                  className="h-8.5 px-3 rounded-lg border border-border bg-card hover:bg-muted text-foreground font-medium flex items-center gap-1.5 transition shadow-xs cursor-pointer self-start sm:self-auto shrink-0"
+                >
+                  <Download className="size-3.5 text-blue-600 dark:text-blue-400" />
+                  <span>Unduh Template Excel Resmi</span>
+                </button>
+              </div>
+
+              {/* Upload Dropzone */}
+              <div
+                onClick={() => importFileInputRef.current?.click()}
+                className="border-2 border-dashed border-border hover:border-blue-500/50 rounded-2xl p-6 text-center cursor-pointer transition bg-muted/10 hover:bg-muted/30 group"
+              >
+                <input
+                  ref={importFileInputRef}
+                  type="file"
+                  accept=".xlsx, .xls, .csv"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+                <div className="size-12 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 mx-auto flex items-center justify-center group-hover:scale-105 transition">
+                  <FileUp className="size-6" />
+                </div>
+                <div className="mt-3">
+                  <span className="font-semibold text-foreground text-sm">
+                    {importFile ? importFile.name : 'Klik untuk memilih file Excel atau drag file ke sini'}
+                  </span>
+                  <p className="text-muted-foreground text-[11px] mt-1">
+                    Mendukung format .xlsx, .xls, .csv (Template Resmi CPG, Export Accurate, atau File Excel Custom)
+                  </p>
+                </div>
+                {isParsingImport && (
+                  <div className="mt-3 flex items-center justify-center gap-2 text-primary font-medium">
+                    <RefreshCw className="size-3.5 animate-spin" />
+                    <span>Menganalisis baris data...</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Import Options (Only for Stock Items) */}
+              {importTarget === 'items' && parsedPreviewItems.length > 0 && (
+                <div className="p-3.5 rounded-xl border border-border bg-card space-y-2">
+                  <div className="font-semibold text-foreground text-xs">Metode Penerapan Data:</div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <label
+                      className={`p-3 rounded-lg border cursor-pointer flex items-start gap-2.5 transition ${
+                        importMode === 'merge'
+                          ? 'border-blue-500/50 bg-blue-500/5 text-foreground'
+                          : 'border-border text-muted-foreground hover:bg-muted/30'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="importMode"
+                        checked={importMode === 'merge'}
+                        onChange={() => setImportMode('merge')}
+                        className="mt-0.5 text-blue-600"
+                      />
+                      <div className="leading-tight">
+                        <div className="font-bold text-foreground text-xs">Gabungkan (Merge &amp; Update)</div>
+                        <div className="text-[11px] text-muted-foreground mt-0.5">
+                          Perbarui saldo/data pada kode barang yang cocok, dan tambahkan barang baru yang belum ada.
+                        </div>
+                      </div>
+                    </label>
+
+                    <label
+                      className={`p-3 rounded-lg border cursor-pointer flex items-start gap-2.5 transition ${
+                        importMode === 'replace'
+                          ? 'border-rose-500/50 bg-rose-500/5 text-foreground'
+                          : 'border-border text-muted-foreground hover:bg-muted/30'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="importMode"
+                        checked={importMode === 'replace'}
+                        onChange={() => setImportMode('replace')}
+                        className="mt-0.5 text-rose-600"
+                      />
+                      <div className="leading-tight">
+                        <div className="font-bold text-rose-600 dark:text-rose-400 text-xs">Gantikan Semua (Replace All)</div>
+                        <div className="text-[11px] text-muted-foreground mt-0.5">
+                          Hapus katalog barang lama dan gantikan sepenuhnya dengan isi file Excel ini.
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {/* Preview Table: Stock Items */}
+              {importTarget === 'items' && parsedPreviewItems.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-foreground">
+                      Pratinjau Data Barang ({parsedPreviewItems.length} baris terdeteksi):
+                    </span>
+                    <span className="text-[11px] text-muted-foreground">Menampilkan 5 baris pertama</span>
+                  </div>
+                  <div className="border border-border rounded-xl overflow-x-auto max-h-48">
+                    <table className="w-full text-left border-collapse text-[11px]">
+                      <thead className="bg-muted/50 border-b border-border sticky top-0 text-muted-foreground font-semibold">
+                        <tr>
+                          <th className="p-2">Kode</th>
+                          <th className="p-2">Nama Barang</th>
+                          <th className="p-2">Kategori</th>
+                          <th className="p-2 text-right">Saldo Fisik</th>
+                          <th className="p-2">Satuan</th>
+                          <th className="p-2">Lokasi Rak</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/60">
+                        {parsedPreviewItems.slice(0, 5).map((row, i) => (
+                          <tr key={i} className="hover:bg-muted/20">
+                            <td className="p-2 font-mono font-medium text-foreground">{row.kodeBarang}</td>
+                            <td className="p-2 font-medium text-foreground">{row.namaBarang}</td>
+                            <td className="p-2 text-muted-foreground">{row.kategori}</td>
+                            <td className="p-2 text-right font-mono font-bold text-foreground">
+                              {row.saldoAwal ?? row.sisaStok}
+                            </td>
+                            <td className="p-2 font-mono text-muted-foreground">{row.satuan}</td>
+                            <td className="p-2 text-muted-foreground">{row.lokasiRak}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Preview Table: Mutations */}
+              {importTarget === 'mutations' && parsedPreviewMutations.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-foreground">
+                      Pratinjau Mutasi Transaksi ({parsedPreviewMutations.length} baris terdeteksi):
+                    </span>
+                    <span className="text-[11px] text-muted-foreground">Menampilkan 5 baris pertama</span>
+                  </div>
+                  <div className="border border-border rounded-xl overflow-x-auto max-h-48">
+                    <table className="w-full text-left border-collapse text-[11px]">
+                      <thead className="bg-muted/50 border-b border-border sticky top-0 text-muted-foreground font-semibold">
+                        <tr>
+                          <th className="p-2">Tanggal</th>
+                          <th className="p-2 text-center">Jenis</th>
+                          <th className="p-2">Nama Barang</th>
+                          <th className="p-2 text-right">Qty</th>
+                          <th className="p-2">No. Dokumen</th>
+                          <th className="p-2">Tujuan / Sumber</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/60">
+                        {parsedPreviewMutations.slice(0, 5).map((row, i) => (
+                          <tr key={i} className="hover:bg-muted/20">
+                            <td className="p-2 whitespace-nowrap text-muted-foreground">{row.tanggal}</td>
+                            <td className="p-2 text-center whitespace-nowrap">
+                              <span
+                                className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                  row.jenis === 'MASUK'
+                                    ? 'bg-emerald-500/10 text-emerald-600'
+                                    : 'bg-amber-500/10 text-amber-600'
+                                }`}
+                              >
+                                {row.jenis}
+                              </span>
+                            </td>
+                            <td className="p-2 font-medium text-foreground">{row.namaBarang}</td>
+                            <td className="p-2 text-right font-mono font-bold text-foreground">
+                              {row.qty} {row.satuan}
+                            </td>
+                            <td className="p-2 font-mono text-muted-foreground">{row.noDokumenRef}</td>
+                            <td className="p-2 text-muted-foreground">{row.sumberAtauTujuan}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-border flex items-center justify-between bg-muted/20 shrink-0">
+              <span className="text-[11px] text-muted-foreground">
+                Gudang Somber Balikpapan &bull; Budi Agustiansyah
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsImportModalOpen(false)}
+                  className="h-9 px-3.5 rounded-lg border border-border bg-card hover:bg-muted text-xs font-medium cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  disabled={
+                    isSubmitting ||
+                    (importTarget === 'items' && parsedPreviewItems.length === 0) ||
+                    (importTarget === 'mutations' && parsedPreviewMutations.length === 0)
+                  }
+                  onClick={handleConfirmImport}
+                  className="h-9 px-5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-xs cursor-pointer disabled:opacity-50"
+                >
+                  <Check className="size-3.5" />
+                  <span>
+                    {isSubmitting
+                      ? 'Menyimpan...'
+                      : `Terapkan Impor (${
+                          importTarget === 'items' ? parsedPreviewItems.length : parsedPreviewMutations.length
+                        } Data)`}
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
       {/* MODAL: TAMBAH SKU BARU                                                   */}
       {/* ========================================================================= */}
       {isAddSkuModalOpen && (
@@ -1847,4 +2480,3 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
     </div>
   );
 }
-
