@@ -112,3 +112,4 @@ export async function triggerEfpbReceivedLogistic(
     efpbStatus: 'Received_Logistic',
   };
 }
+

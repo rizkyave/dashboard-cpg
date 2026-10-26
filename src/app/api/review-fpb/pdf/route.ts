@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Mode: Dokumen Bertanda Tangan Logistik (Signed)
-    // 1. Cek apakah di server e-FPB sudah ada file logistik_Approved_rev_sign_*.pdf
+    // 1. Cek apakah di server e-FPB sudah ada file resmi logistik_Approved_rev_sign_*.pdf
     try {
       const headRes = await fetch(logistikUrl, { method: 'HEAD', cache: 'no-store' });
       if (headRes.ok) {
@@ -77,7 +77,23 @@ export async function GET(request: NextRequest) {
       console.warn(`[review-fpb/pdf] Gagal fetch logistikUrl untuk ${cleanFpb}:`, e);
     }
 
-    // 2. Jika tidak ada di e-FPB, cek Cloudflare R2 untuk versi stamped yang pernah digenerate
+    // 2. Jika di e-FPB belum ada dan status di database belum disetujui, kembalikan dokumen asli (belum bertanda tangan)
+    const reviewRecord = await getReviewRecord(cleanFpb);
+    if (!reviewRecord?.isReceivedLogistik) {
+      const baseRes = await fetch(rawUrl, { cache: 'no-store' });
+      if (baseRes.ok) {
+        const baseBuffer = Buffer.from(await baseRes.arrayBuffer());
+        return new NextResponse(new Uint8Array(baseBuffer), {
+          headers: {
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': `inline; filename="Approved_rev_sign_${cleanFpb}.pdf"`,
+            'Cache-Control': 'public, max-age=1800',
+          },
+        });
+      }
+    }
+
+    // 3. Jika status internal sudah disahkan, cek R2 atau generate dynamic stamp
     const r2Key = `fpb-signed/${cleanFpb}.pdf`;
     if (isR2Configured()) {
       try {
@@ -91,21 +107,16 @@ export async function GET(request: NextRequest) {
             },
           });
         }
-      } catch (r2Err) {
-        // Abaikan jika belum ada di R2, lanjutkan ke dynamic stamp
-      }
+      } catch (r2Err) {}
     }
 
-    // 3. Generate dynamic stamp jika belum ada
-    // Ambil dokumen base dari e-FPB
+    // Fallback ambil dokumen base dari e-FPB
     const baseRes = await fetch(rawUrl, { cache: 'no-store' });
     if (!baseRes.ok) {
       return NextResponse.json({ error: `Dokumen base FPB ${cleanFpb} tidak ditemukan di e-FPB.` }, { status: 404 });
     }
     const baseBuffer = Buffer.from(await baseRes.arrayBuffer());
 
-    // Ambil metadata review (penandatangan & tanggal)
-    const reviewRecord = await getReviewRecord(cleanFpb);
     const signerName = reviewRecord?.reviewedBy || 'NOOR HASANAH';
     const reviewedAt = reviewRecord?.reviewedAt ? new Date(reviewRecord.reviewedAt) : new Date();
 
@@ -116,7 +127,6 @@ export async function GET(request: NextRequest) {
       receivedAt: formatToStampTimestamp(reviewedAt),
     });
 
-    // Simpan ke Cloudflare R2 di background agar request berikutnya instan
     if (isR2Configured()) {
       uploadToR2({
         key: r2Key,
@@ -142,4 +152,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-

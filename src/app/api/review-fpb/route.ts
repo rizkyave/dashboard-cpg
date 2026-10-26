@@ -1317,6 +1317,56 @@ export async function POST(req: NextRequest) {
     }
 
     // ----------------------------------------------------
+    // Action 5b: Verifikasi Pengesahan Dokumen di Real Server e-FPB
+    // ----------------------------------------------------
+    if (action === 'verify_efpb' || action === 'check_efpb_status') {
+      const { fpbNo } = body;
+      const targetIdx = records.findIndex((r) => r.fpbNo.toLowerCase() === (fpbNo || '').toLowerCase());
+      if (targetIdx === -1) {
+        return NextResponse.json({ success: false, message: 'FPB tidak ditemukan.' }, { status: 404 });
+      }
+
+      const cleanFpb = records[targetIdx].fpbNo;
+      const signedUrl = `https://e-fpb.cindaragroup.com/files/logistik_Approved_rev_sign_${encodeURIComponent(cleanFpb)}.pdf`;
+
+      try {
+        const headRes = await fetch(signedUrl, { method: 'HEAD', cache: 'no-store' });
+        if (headRes.ok) {
+          records[targetIdx] = {
+            ...records[targetIdx],
+            isReceivedLogistik: true,
+            pchLogistik: 'Received_Logistic',
+            pdfUrl: signedUrl,
+            updatedAt: new Date().toISOString(),
+          };
+          await saveReviews(records);
+
+          return NextResponse.json({
+            success: true,
+            isSignedOnEfpb: true,
+            message: `Dokumen ${cleanFpb} telah sah ditandatangani di e-FPB dan siap untuk pengadaan!`,
+            record: records[targetIdx],
+          });
+        } else {
+          // Dokumen belum ditekan Received_Logistic di e-FPB
+          return NextResponse.json({
+            success: false,
+            isSignedOnEfpb: false,
+            message: `Tombol Received_Logistic untuk ${cleanFpb} belum ditekan di e-FPB. Silakan klik tombol 'Sahkan di e-FPB' terlebih dahulu.`,
+            record: records[targetIdx],
+          });
+        }
+      } catch (err: any) {
+        return NextResponse.json({
+          success: false,
+          isSignedOnEfpb: false,
+          message: `Gagal memeriksa status e-FPB: ${err.message}`,
+          record: records[targetIdx],
+        });
+      }
+    }
+
+    // ----------------------------------------------------
     // Action 6: Direct Logistics Approval (Received_Logistic)
     // ----------------------------------------------------
     if (action === 'approve_logistic' || action === 'toggle_logistic') {

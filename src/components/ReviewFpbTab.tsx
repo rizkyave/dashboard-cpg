@@ -14,6 +14,7 @@ import {
   Clock,
   PackageCheck,
   CheckCircle2,
+  Loader2,
   XCircle,
   HelpCircle,
   Eye,
@@ -129,6 +130,59 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
   const [formNotes, setFormNotes] = useState<string>('');
   const [formIsReceivedLogistik, setFormIsReceivedLogistik] = useState<boolean>(false);
   const [isApprovingLogistic, setIsApprovingLogistic] = useState<boolean>(false);
+  const [isVerifyingEfpb, setIsVerifyingEfpb] = useState<boolean>(false);
+
+  // Verifikasi Pengesahan Dokumen di Real Server e-FPB
+  const handleVerifyEfpb = async (rec: FpbReviewRecord) => {
+    setIsVerifyingEfpb(true);
+    try {
+      const res = await fetch('/api/review-fpb', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'verify_efpb',
+          fpbNo: rec.fpbNo,
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.record) {
+        setReviews((prev) =>
+          prev.map((r) =>
+            r.fpbNo.toLowerCase() === rec.fpbNo.toLowerCase()
+              ? {
+                  ...r,
+                  isReceivedLogistik: true,
+                  pchLogistik: 'Received_Logistic',
+                  pdfUrl: data.record.pdfUrl || r.pdfUrl,
+                }
+              : r
+          )
+        );
+        setSelectedRecord((prev) =>
+          prev && prev.fpbNo.toLowerCase() === rec.fpbNo.toLowerCase()
+            ? {
+                ...prev,
+                isReceivedLogistik: true,
+                pchLogistik: 'Received_Logistic',
+                pdfUrl: data.record.pdfUrl || prev.pdfUrl,
+              }
+            : prev
+        );
+        setFormIsReceivedLogistik(true);
+        setPdfViewMode('signed');
+        showToast?.('Berhasil! Dokumen telah sah ditandatangani di e-FPB & berstatus Siap Pengadaan.', 'success');
+      } else {
+        showToast?.(
+          data.message || 'Dokumen belum ditandatangani di e-FPB. Silakan tekan tombol Received_Logistic di web e-FPB terlebih dahulu.',
+          'warning'
+        );
+      }
+    } catch (err: any) {
+      showToast?.('Gagal memeriksa status e-FPB: ' + err.message, 'error');
+    } finally {
+      setIsVerifyingEfpb(false);
+    }
+  };
   const [confirmApprovalRecord, setConfirmApprovalRecord] = useState<FpbReviewRecord | null>(null);
   const [formItems, setFormItems] = useState<FpbItemReview[]>([]);
   const [formAttachments, setFormAttachments] = useState<FpbAttachment[]>([]);
@@ -1917,30 +1971,47 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                           <div className="space-y-0.5">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-xs font-bold text-amber-950 dark:text-amber-200">
-                                Dokumen Asli Pemohon e-FPB (Menunggu Persetujuan)
+                                Menunggu Pengesahan Logistik di e-FPB
                               </span>
                               <span className="px-2 py-0.5 rounded-full text-[10px] bg-amber-500 text-white font-bold">
-                                Memerlukan Approval
+                                Belum Ditekan di e-FPB
                               </span>
                             </div>
                             <p className="text-[11px] text-amber-800 dark:text-amber-300">
-                              Dokumen resmi yang diajukan pemohon dan telah disetujui Manager. Kolom <em>Received By: (Logistic Staff)</em> masih kosong menunggu persetujuan pengadaan.
+                              SOP Pengesahan: Silakan buka baris dokumen di web e-FPB dan tekan tombol <strong>Received_Logistic</strong> agar tombol di e-FPB menghilang dan tanda tangan resmi tercetak.
                             </p>
                           </div>
                         </div>
 
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (selectedRecord) setConfirmApprovalRecord(selectedRecord);
-                            else setFormIsReceivedLogistik(true);
-                          }}
-                          disabled={isApprovingLogistic}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-xs shrink-0 cursor-pointer disabled:opacity-50"
-                        >
-                          <CheckCircle2 className="size-3.5" />
-                          <span>Setujui &amp; Teruskan ke Purchasing</span>
-                        </button>
+                        <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                          <a
+                            href={`https://e-fpb.cindaragroup.com/FilesList?psearch=${encodeURIComponent(cleanFpb)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-amber-600 hover:bg-amber-700 text-white transition shadow-xs cursor-pointer"
+                            title="Buka baris dokumen ini di web e-FPB untuk menekan tombol Received_Logistic"
+                          >
+                            <ExternalLink className="size-3.5" />
+                            <span>Buka &amp; Sahkan di e-FPB</span>
+                          </a>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (selectedRecord) handleVerifyEfpb(selectedRecord);
+                            }}
+                            disabled={isVerifyingEfpb}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-xs cursor-pointer disabled:opacity-50"
+                            title="Periksa apakah tombol di e-FPB sudah ditekan dan dokumen bertanda tangan sudah terbit di server"
+                          >
+                            {isVerifyingEfpb ? (
+                              <Loader2 className="size-3.5 animate-spin" />
+                            ) : (
+                              <RefreshCw className="size-3.5" />
+                            )}
+                            <span>Cek Status e-FPB</span>
+                          </button>
+                        </div>
                       </div>
                     )}
 
