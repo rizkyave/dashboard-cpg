@@ -11,6 +11,7 @@ import {
   FpbReviewSummaryMetrics,
   ItemDecision,
   ItemStockStatus,
+  FpbAttachment,
 } from '@/types/fpbReview';
 import { InventoryItem } from '@/types/procurement';
 import { isR2Configured, getObjectFromR2, uploadToR2 } from '@/utils/r2Client';
@@ -778,9 +779,23 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const action = body.action || 'save_review';
+    const contentType = req.headers.get('content-type') || '';
+    let body: any = {};
+    let uploadFile: File | null = null;
 
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await req.formData();
+      body.action = (formData.get('action') as string) || 'upload_attachment';
+      body.fpbNo = formData.get('fpbNo') as string;
+      body.caption = (formData.get('caption') as string) || '';
+      body.uploadedBy = (formData.get('uploadedBy') as string) || 'Reviewer';
+      body.source = (formData.get('source') as string) || 'REVIEWER_UPLOAD';
+      uploadFile = formData.get('file') as File | null;
+    } else {
+      body = await req.json().catch(() => ({}));
+    }
+
+    const action = body.action || 'save_review';
     let records = await loadReviews();
 
     // ----------------------------------------------------
@@ -795,6 +810,7 @@ export async function POST(req: NextRequest) {
         picPurchasing,
         reviewNotes,
         items,
+        attachments,
         reviewedBy,
       } = body;
 
@@ -822,6 +838,7 @@ export async function POST(req: NextRequest) {
           picPurchasing: picPurchasing !== undefined ? picPurchasing : current.picPurchasing,
           reviewNotes: reviewNotes !== undefined ? reviewNotes : current.reviewNotes,
           items: Array.isArray(items) ? items : current.items,
+          attachments: Array.isArray(attachments) ? attachments : current.attachments,
           isRevised: body.isRevised !== undefined ? body.isRevised : current.isRevised,
           revisionCount: body.revisionCount !== undefined ? body.revisionCount : current.revisionCount,
           revisionNote: body.revisionNote !== undefined ? body.revisionNote : current.revisionNote,
@@ -848,6 +865,7 @@ export async function POST(req: NextRequest) {
           picPurchasing: picPurchasing || '-',
           reviewNotes: reviewNotes || '',
           items: Array.isArray(items) ? items : [],
+          attachments: Array.isArray(attachments) ? attachments : [],
           duplicateAlerts: [],
           relatedDocs: {
             poNos: rel?.pos || [],
@@ -874,6 +892,107 @@ export async function POST(req: NextRequest) {
         message: `Keputusan review untuk FPB ${fpbNo} berhasil disimpan & disinkronkan ke Cloudflare R2!`,
         metrics: calculateMetrics(records),
       });
+    }
+
+    // ----------------------------------------------------
+    // Action 1b: Upload New Attachment
+    // ----------------------------------------------------
+    if (action === 'upload_attachment') {
+      const { fpbNo, caption, uploadedBy, source } = body;
+      if (!fpbNo || !uploadFile) {
+        return NextResponse.json(
+          { success: false, message: 'Nomor FPB dan berkas file wajib disertakan.' },
+          { status: 400 }
+        );
+      }
+
+      const fileBuffer = Buffer.from(await uploadFile.arrayBuffer());
+      const fileName = uploadFile.name;
+      const fileExt = path.extname(fileName).toLowerCase();
+      const isImg = /\.(jpe?g|png|webp|gif|bmp|svg)$/i.test(fileExt);
+      const isPdf = fileExt === '.pdf';
+      const fileType = isImg ? 'image' : isPdf ? 'pdf' : 'document';
+      const uniqueId = `att-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+      const safeFileName = `${Date.now()}_${fileName.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+
+      let fileUrl = '';
+      const r2Key = `fpb-attachments/${encodeURIComponent(fpbNo)}/${safeFileName}`;
+
+      if (isR2Configured()) {
+        try {
+          const contentType = uploadFile.type || (isImg ? 'image/jpeg' : isPdf ? 'application/pdf' : 'application/octet-stream');
+          await uploadToR2({
+            key: r2Key,
+            body: fileBuffer,
+            contentType,
+          });
+          fileUrl = `/api/r2-file?key=${encodeURIComponent(r2Key)}`;
+        } catch (r2Err) {
+          console.warn('[review-fpb] Gagal upload attachment ke R2:', r2Err);
+        }
+      }
+
+      if (!fileUrl) {
+        const localDir = path.join(process.cwd(), 'src', 'app', 'public', 'fpb_attachments', fpbNo);
+        if (!fs.existsSync(localDir)) {
+          fs.mkdirSync(localDir, { recursive: true });
+        }
+        const localFilePath = path.join(localDir, safeFileName);
+        fs.writeFileSync(localFilePath, fileBuffer);
+        fileUrl = `/public/fpb_attachments/${encodeURIComponent(fpbNo)}/${encodeURIComponent(safeFileName)}`;
+      }
+
+      const newAttachment: FpbAttachment = {
+        id: uniqueId,
+        name: fileName,
+        url: fileUrl,
+        type: fileType,
+        size: fileBuffer.length,
+        uploadedBy: uploadedBy || 'Tim Review FPB',
+        uploadedAt: new Date().toISOString(),
+        source: (source as any) || 'REVIEWER_UPLOAD',
+        caption: caption || undefined,
+      };
+
+      const targetIdx = records.findIndex((r) => r.fpbNo.toLowerCase() === fpbNo.toLowerCase());
+      if (targetIdx >= 0) {
+        records[targetIdx].attachments = records[targetIdx].attachments || [];
+        records[targetIdx].attachments.push(newAttachment);
+        records[targetIdx].updatedAt = new Date().toISOString();
+        await saveReviews(records);
+        return NextResponse.json({
+          success: true,
+          message: `Lampiran "${fileName}" berhasil disimpan!`,
+          attachment: newAttachment,
+          attachments: records[targetIdx].attachments,
+        });
+      }
+
+      return NextResponse.json({
+        success: false,
+        message: `FPB ${fpbNo} tidak ditemukan dalam database review.`,
+      }, { status: 404 });
+    }
+
+    // ----------------------------------------------------
+    // Action 1c: Delete Attachment
+    // ----------------------------------------------------
+    if (action === 'delete_attachment') {
+      const { fpbNo, attachmentId } = body;
+      const targetIdx = records.findIndex((r) => r.fpbNo.toLowerCase() === fpbNo.toLowerCase());
+      if (targetIdx >= 0) {
+        records[targetIdx].attachments = (records[targetIdx].attachments || []).filter(
+          (a) => a.id !== attachmentId
+        );
+        records[targetIdx].updatedAt = new Date().toISOString();
+        await saveReviews(records);
+        return NextResponse.json({
+          success: true,
+          message: 'Lampiran berhasil dihapus.',
+          attachments: records[targetIdx].attachments,
+        });
+      }
+      return NextResponse.json({ success: false, message: 'FPB tidak ditemukan.' }, { status: 404 });
     }
 
     // ----------------------------------------------------

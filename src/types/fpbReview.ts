@@ -79,6 +79,19 @@ export interface FpbRelatedDocs {
   ttbNos: string[];
 }
 
+export interface FpbAttachment {
+  id: string;
+  name: string;
+  url: string;
+  type: 'image' | 'pdf' | 'document';
+  size?: number;
+  uploadedBy?: string;
+  uploadedAt: string;
+  source: 'EFPB_MAKER' | 'REVIEWER_UPLOAD';
+  thumbnailUrl?: string;
+  caption?: string;
+}
+
 export interface FpbReviewRecord {
   id: string;
   fpbNo: string;
@@ -102,6 +115,7 @@ export interface FpbReviewRecord {
   items: FpbItemReview[];
   duplicateAlerts: FpbDuplicateAlert[];
   relatedDocs: FpbRelatedDocs;
+  attachments?: FpbAttachment[];
   reviewedBy?: string;
   reviewedAt?: string;
   isRevised?: boolean;

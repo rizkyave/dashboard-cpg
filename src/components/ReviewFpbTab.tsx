@@ -38,6 +38,12 @@ import {
   Zap,
   Timer,
   History,
+  Paperclip,
+  Image as ImageIcon,
+  UploadCloud,
+  Trash2,
+  Maximize2,
+  ZoomIn,
 } from 'lucide-react';
 import {
   FpbReviewRecord,
@@ -46,6 +52,7 @@ import {
   FpbPriorityLevel,
   FPB_PRIORITIES,
   FpbItemReview,
+  FpbAttachment,
   FpbReviewSummaryMetrics,
   ItemDecision,
 } from '@/types/fpbReview';
@@ -107,7 +114,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
 
   // Modal / Drawer state
   const [selectedRecord, setSelectedRecord] = useState<FpbReviewRecord | null>(null);
-  const [activeModalTab, setActiveModalTab] = useState<'items' | 'pdf' | 'relations'>('items');
+  const [activeModalTab, setActiveModalTab] = useState<'items' | 'pdf' | 'attachments' | 'relations'>('items');
   const [isParsingItems, setIsParsingItems] = useState<boolean>(false);
   const [isSavingDecision, setIsSavingDecision] = useState<boolean>(false);
 
@@ -118,6 +125,11 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
   const [formPic, setFormPic] = useState<string>('');
   const [formNotes, setFormNotes] = useState<string>('');
   const [formItems, setFormItems] = useState<FpbItemReview[]>([]);
+  const [formAttachments, setFormAttachments] = useState<FpbAttachment[]>([]);
+  const [isUploadingAttachment, setIsUploadingAttachment] = useState<boolean>(false);
+  const [attachmentCaption, setAttachmentCaption] = useState<string>('');
+  const [selectedAttachmentFile, setSelectedAttachmentFile] = useState<File | null>(null);
+  const [previewImageModal, setPreviewImageModal] = useState<{ url: string; title: string } | null>(null);
 
   // Fetch reviews from API
   const fetchReviews = async () => {
@@ -216,7 +228,86 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
     setFormPic(rec.picPurchasing || '');
     setFormNotes(rec.reviewNotes || '');
     setFormItems(rec.items ? JSON.parse(JSON.stringify(rec.items)) : []);
+    setFormAttachments(rec.attachments ? JSON.parse(JSON.stringify(rec.attachments)) : []);
+    setSelectedAttachmentFile(null);
+    setAttachmentCaption('');
     setActiveModalTab('items');
+  };
+
+  // Upload New Attachment
+  const handleUploadAttachment = async () => {
+    if (!selectedRecord || !selectedAttachmentFile) {
+      showToast?.('Pilih berkas foto/dokumen lampiran terlebih dahulu', 'warning');
+      return;
+    }
+    setIsUploadingAttachment(true);
+    try {
+      const fd = new FormData();
+      fd.append('action', 'upload_attachment');
+      fd.append('fpbNo', selectedRecord.fpbNo);
+      fd.append('caption', attachmentCaption.trim());
+      fd.append('uploadedBy', user?.name || user?.username || 'Tim Review FPB');
+      fd.append('source', 'REVIEWER_UPLOAD');
+      fd.append('file', selectedAttachmentFile);
+
+      const res = await fetch('/api/review-fpb', {
+        method: 'POST',
+        body: fd,
+      });
+      const data = await res.json();
+      if (data.success && data.attachment) {
+        const updatedAtts = [...formAttachments, data.attachment];
+        setFormAttachments(updatedAtts);
+        setReviews((prev) =>
+          prev.map((r) =>
+            r.fpbNo.toLowerCase() === selectedRecord.fpbNo.toLowerCase()
+              ? { ...r, attachments: updatedAtts }
+              : r
+          )
+        );
+        setSelectedAttachmentFile(null);
+        setAttachmentCaption('');
+        showToast?.(data.message || 'Lampiran berhasil diunggah ke Cloudflare R2!', 'success');
+      } else {
+        showToast?.(data.message || 'Gagal mengunggah lampiran', 'error');
+      }
+    } catch (err: any) {
+      showToast?.(err.message || 'Gagal mengunggah lampiran', 'error');
+    } finally {
+      setIsUploadingAttachment(false);
+    }
+  };
+
+  // Delete Attachment
+  const handleDeleteAttachment = async (attachmentId: string) => {
+    if (!selectedRecord) return;
+    if (!confirm('Hapus berkas lampiran ini?')) return;
+    try {
+      const res = await fetch('/api/review-fpb', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'delete_attachment',
+          fpbNo: selectedRecord.fpbNo,
+          attachmentId,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        const updated = formAttachments.filter((a) => a.id !== attachmentId);
+        setFormAttachments(updated);
+        setReviews((prev) =>
+          prev.map((r) =>
+            r.fpbNo.toLowerCase() === selectedRecord.fpbNo.toLowerCase()
+              ? { ...r, attachments: updated }
+              : r
+          )
+        );
+        showToast?.('Lampiran berhasil dihapus', 'info');
+      }
+    } catch (err: any) {
+      showToast?.('Gagal menghapus berkas lampiran', 'error');
+    }
   };
 
   // Close Modal
@@ -305,6 +396,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
         picPurchasing: formPic,
         reviewNotes: formNotes,
         items: formItems,
+        attachments: formAttachments,
         reviewedBy: user?.name || user?.username || 'Tim FPB',
       };
 
@@ -329,6 +421,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                   picPurchasing: formPic,
                   reviewNotes: formNotes,
                   items: formItems,
+                  attachments: formAttachments,
                   reviewedBy: user?.name || user?.username || 'Tim FPB',
                   reviewedAt: new Date().toISOString(),
                   updatedAt: new Date().toISOString(),
@@ -1384,6 +1477,26 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
 
               <button
                 type="button"
+                onClick={() => setActiveModalTab('attachments')}
+                className={`flex items-center gap-2 py-2 px-3 text-xs font-semibold border-b-2 transition cursor-pointer ${
+                  activeModalTab === 'attachments'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Paperclip className="size-4" />
+                <span>Lampiran &amp; Foto Fisik Pemohon</span>
+                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                  formAttachments.length > 0
+                    ? 'bg-primary/15 text-primary'
+                    : 'bg-muted text-muted-foreground'
+                }`}>
+                  {formAttachments.length}
+                </span>
+              </button>
+
+              <button
+                type="button"
                 onClick={() => setActiveModalTab('relations')}
                 className={`flex items-center gap-2 py-2 px-3 text-xs font-semibold border-b-2 transition cursor-pointer ${
                   activeModalTab === 'relations'
@@ -1593,7 +1706,197 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                 </div>
               )}
 
-              {/* TAB 3: Relasi Dokumen */}
+              {/* TAB 3: Lampiran & Foto Fisik Pemohon */}
+              {activeModalTab === 'attachments' && (
+                <div className="space-y-4">
+                  {/* Info Header */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-muted/40 border border-border">
+                    <div className="space-y-0.5">
+                      <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                        <Paperclip className="size-4 text-primary" />
+                        Lampiran Berkas &amp; Foto Fisik Barang
+                      </h4>
+                      <p className="text-[11px] text-muted-foreground">
+                        Foto fisik kondisi kerusakan, foto plat nameplate spesifikasi mesin/unit, atau dokumen penawaran dari pembuat e-FPB.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] text-muted-foreground">
+                        Total tersimpan: <strong className="text-foreground font-mono">{formAttachments.length} berkas</strong>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Form Upload Lampiran Baru */}
+                  <div className="p-4 rounded-xl border-2 border-dashed border-border bg-card/60 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                        <UploadCloud className="size-4 text-primary" />
+                        Unggah Foto / Berkas Lampiran Tambahan (Disimpan ke Cloudflare R2)
+                      </span>
+                      {selectedAttachmentFile && (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedAttachmentFile(null)}
+                          className="text-[11px] text-rose-500 hover:underline cursor-pointer"
+                        >
+                          Batal pilih
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                      <div className="md:col-span-5">
+                        <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
+                          Pilih Berkas (Foto JPG, PNG, WEBP, atau Dokumen PDF)
+                        </label>
+                        <input
+                          type="file"
+                          accept="image/*,.pdf"
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              setSelectedAttachmentFile(e.target.files[0]);
+                            }
+                          }}
+                          className="w-full text-xs file:mr-2.5 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 file:cursor-pointer text-muted-foreground"
+                        />
+                      </div>
+
+                      <div className="md:col-span-5">
+                        <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
+                          Catatan / Keterangan Lampiran (Opsional)
+                        </label>
+                        <input
+                          type="text"
+                          value={attachmentCaption}
+                          onChange={(e) => setAttachmentCaption(e.target.value)}
+                          placeholder="Contoh: Foto lampu belakang pecah sebelum diganti..."
+                          className="w-full py-1.5 px-3 text-xs rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-1 focus:ring-primary"
+                        />
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <button
+                          type="button"
+                          onClick={handleUploadAttachment}
+                          disabled={isUploadingAttachment || !selectedAttachmentFile}
+                          className="w-full py-2 px-3 text-xs font-bold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition shadow-xs cursor-pointer disabled:opacity-50 inline-flex items-center justify-center gap-1.5"
+                        >
+                          <UploadCloud className={`size-3.5 ${isUploadingAttachment ? 'animate-spin' : ''}`} />
+                          <span>{isUploadingAttachment ? 'Mengunggah...' : 'Unggah'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Galeri Lampiran */}
+                  {formAttachments.length === 0 ? (
+                    <div className="p-10 border border-border rounded-xl bg-card text-center space-y-2">
+                      <ImageIcon className="size-10 mx-auto text-muted-foreground/40" />
+                      <p className="text-xs font-semibold text-foreground">
+                        Belum ada berkas foto/dokumen lampiran terpisah untuk FPB ini.
+                      </p>
+                      <p className="text-[11px] text-muted-foreground max-w-md mx-auto">
+                        Jika FPB maker melampirkan foto melalui dokumen PDF resmi, Anda dapat memeriksanya di tab <strong>&quot;Pratinjau Dokumen PDF Resmi&quot;</strong>. Jika Anda menerima foto fisik/bukti kerusakan dari user lapangan (misal via WhatsApp), silakan unggah melalui form di atas.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                      {formAttachments.map((att, idx) => {
+                        const isImg = att.type === 'image' || /\.(jpe?g|png|webp|gif|bmp)$/i.test(att.url || att.name);
+
+                        return (
+                          <div
+                            key={att.id || idx}
+                            className="group relative rounded-xl border border-border bg-card overflow-hidden shadow-xs hover:border-primary/40 transition flex flex-col justify-between"
+                          >
+                            {/* Preview Area */}
+                            {isImg ? (
+                              <div
+                                onClick={() => setPreviewImageModal({ url: att.url, title: att.caption || att.name })}
+                                className="relative h-44 w-full bg-black/10 overflow-hidden cursor-pointer"
+                              >
+                                <img
+                                  src={att.url}
+                                  alt={att.name}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                                />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2">
+                                  <span className="p-2 rounded-full bg-white/20 text-white backdrop-blur-xs">
+                                    <ZoomIn className="size-4" />
+                                  </span>
+                                  <span className="text-white text-[11px] font-bold">Perbesar</span>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="h-36 w-full bg-muted/40 flex flex-col items-center justify-center p-4 text-center">
+                                <FileText className="size-10 text-primary mb-2 opacity-80" />
+                                <span className="text-xs font-bold text-foreground truncate max-w-full">
+                                  {att.name}
+                                </span>
+                                <span className="text-[10px] text-muted-foreground mt-0.5">
+                                  {att.size ? `${Math.round(att.size / 1024)} KB` : 'Dokumen PDF'}
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Meta & Actions */}
+                            <div className="p-3 space-y-2">
+                              <div className="flex items-start justify-between gap-1.5">
+                                <div className="min-w-0">
+                                  <span className="font-semibold text-xs text-foreground block truncate" title={att.name}>
+                                    {att.name}
+                                  </span>
+                                  {att.caption && (
+                                    <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">
+                                      {att.caption}
+                                    </p>
+                                  )}
+                                </div>
+
+                                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${
+                                  att.source === 'EFPB_MAKER'
+                                    ? 'bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-500/20'
+                                    : 'bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20'
+                                }`}>
+                                  {att.source === 'EFPB_MAKER' ? 'FPB Maker' : 'Reviewer'}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center justify-between pt-2 border-t border-border/60 text-[10px] text-muted-foreground">
+                                <span>{att.uploadedBy || 'User'}</span>
+
+                                <div className="flex items-center gap-1.5">
+                                  <a
+                                    href={att.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition cursor-pointer"
+                                    title="Buka di tab baru / Unduh"
+                                  >
+                                    <Download className="size-3.5" />
+                                  </a>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteAttachment(att.id)}
+                                    className="p-1 rounded hover:bg-rose-500/10 text-rose-500 transition cursor-pointer"
+                                    title="Hapus lampiran"
+                                  >
+                                    <Trash2 className="size-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* TAB 4: Relasi Dokumen */}
               {activeModalTab === 'relations' && (
                 <div className="space-y-4">
                   <div className="p-4 rounded-xl border border-border bg-card space-y-3">
@@ -1979,6 +2282,51 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                 <CloudDownload className={`size-3.5 ${isSyncing ? 'animate-bounce' : ''}`} />
                 <span>{isSyncing ? 'Menghubungkan...' : 'Mulai Sinkronisasi'}</span>
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* IMAGE PREVIEW LIGHTBOX MODAL */}
+      {previewImageModal && (
+        <div
+          onClick={() => setPreviewImageModal(null)}
+          className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in-50 cursor-zoom-out"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative max-w-4xl max-h-[90vh] bg-card border border-border rounded-2xl shadow-2xl overflow-hidden flex flex-col cursor-default"
+          >
+            <div className="flex items-center justify-between p-3.5 border-b border-border bg-muted/60">
+              <span className="text-xs font-bold text-foreground truncate max-w-md">
+                {previewImageModal.title}
+              </span>
+              <div className="flex items-center gap-2">
+                <a
+                  href={previewImageModal.url}
+                  download
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition cursor-pointer"
+                  title="Unduh Berkas Asli"
+                >
+                  <Download className="size-4" />
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setPreviewImageModal(null)}
+                  className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition cursor-pointer"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+            </div>
+            <div className="p-2 overflow-auto max-h-[80vh] flex items-center justify-center bg-black/20">
+              <img
+                src={previewImageModal.url}
+                alt={previewImageModal.title}
+                className="max-w-full max-h-[75vh] object-contain rounded-lg shadow-md"
+              />
             </div>
           </div>
         </div>
