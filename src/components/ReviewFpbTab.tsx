@@ -1544,14 +1544,14 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                   </button>
                 )}
                 <a
-                  href={selectedRecord.pdfUrl}
+                  href={(formIsReceivedLogistik || selectedRecord.isReceivedLogistik) && !selectedRecord.pdfUrl.includes('logistik_Approved_') ? selectedRecord.pdfUrl.replace('/files/Approved_', '/files/logistik_Approved_') : selectedRecord.pdfUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg border border-border bg-background hover:bg-muted text-foreground transition"
-                  title="Buka dokumen PDF resmi e-FPB di tab baru"
+                  title="Buka dokumen PDF resmi e-FPB bertanda tangan di tab baru"
                 >
                   <ExternalLink className="size-3.5" />
-                  PDF Asli
+                  PDF Resmi
                 </a>
                 <button
                   type="button"
@@ -1841,33 +1841,83 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
               )}
 
               {/* TAB 2: Pratinjau Dokumen PDF Resmi */}
-              {activeModalTab === 'pdf' && (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border border-border text-xs">
-                    <div>
-                      <span className="font-semibold text-foreground">Berkas PDF e-FPB: </span>
-                      <span className="text-muted-foreground">{selectedRecord.pdfUrl}</span>
-                    </div>
-                    <a
-                      href={selectedRecord.pdfUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition shadow-xs"
-                    >
-                      <ExternalLink className="size-3.5" />
-                      Buka di Tab Baru
-                    </a>
-                  </div>
+              {activeModalTab === 'pdf' && (() => {
+                const isSignedByLogistic = formIsReceivedLogistik || selectedRecord.isReceivedLogistik;
+                const resolvedPdfUrl =
+                  isSignedByLogistic && !selectedRecord.pdfUrl.includes('logistik_Approved_')
+                    ? selectedRecord.pdfUrl.replace('/files/Approved_', '/files/logistik_Approved_')
+                    : selectedRecord.pdfUrl;
 
-                  <div className="w-full h-[520px] rounded-xl border border-border overflow-hidden bg-muted/20">
-                    <iframe
-                      src={selectedRecord.pdfUrl}
-                      title={`PDF ${selectedRecord.fpbNo}`}
-                      className="w-full h-full border-none"
-                    />
+                return (
+                  <div className="space-y-3">
+                    {/* Status Tanda Tangan Logistik Alert */}
+                    {isSignedByLogistic ? (
+                      <div className="p-3.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="size-8 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold shrink-0">
+                            <CheckCircle2 className="size-5" />
+                          </div>
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-xs font-bold text-emerald-950 dark:text-emerald-200">
+                                Dokumen Resmi Telah Diterima Logistik (Received_Logistic)
+                              </span>
+                              <span className="px-2 py-0.5 rounded-full text-[10px] bg-emerald-600 text-white font-bold">
+                                Tanda Tangan &amp; Stempel Tertera
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-emerald-700 dark:text-emerald-300">
+                              Disetujui oleh: <strong>{selectedRecord.reviewedBy || 'Staf Operasional / Adm. Logistik (Noor Hasanah / Melinda Dwi Putri)'}</strong> • Tanda tangan stempel sah telah dibubuhkan pada kolom <em>Received By: (Logistic Staff)</em> pada berkas PDF di bawah.
+                            </p>
+                          </div>
+                        </div>
+                        <a
+                          href={resolvedPdfUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-xs shrink-0"
+                        >
+                          <ExternalLink className="size-3.5" />
+                          <span>Buka PDF Bertanda Tangan</span>
+                        </a>
+                      </div>
+                    ) : (
+                      <div className="p-3 rounded-xl border border-amber-500/30 bg-amber-500/10 flex items-center justify-between gap-3 text-xs">
+                        <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300">
+                          <AlertTriangle className="size-4 text-amber-600 shrink-0" />
+                          <span>
+                            Dokumen ini belum disetujui logistik (kolom <strong>Received By</strong> masih kosong). Tekan tombol <strong>&quot;Setujui Logistik&quot;</strong> di kanan atas untuk membubuhkan persetujuan resmi.
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border border-border text-xs">
+                      <div className="truncate mr-3">
+                        <span className="font-semibold text-foreground">Berkas Dokumen PDF: </span>
+                        <span className="text-muted-foreground font-mono text-[11px]">{resolvedPdfUrl}</span>
+                      </div>
+                      <a
+                        href={resolvedPdfUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition shadow-xs shrink-0"
+                      >
+                        <ExternalLink className="size-3.5" />
+                        Buka di Tab Baru
+                      </a>
+                    </div>
+
+                    <div className="w-full h-[520px] rounded-xl border border-border overflow-hidden bg-muted/20">
+                      <iframe
+                        src={resolvedPdfUrl}
+                        title={`PDF ${selectedRecord.fpbNo}`}
+                        className="w-full h-full border-none"
+                      />
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* TAB 3: Lampiran & Foto Fisik Pemohon */}
               {activeModalTab === 'attachments' && (
