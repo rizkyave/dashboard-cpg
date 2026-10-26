@@ -230,6 +230,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
     setFormPic(rec.picPurchasing || '');
     setFormNotes(rec.reviewNotes || '');
     setFormIsReceivedLogistik(Boolean(rec.isReceivedLogistik));
+    setFormIsReceivedLogistik(Boolean(rec.isReceivedLogistik));
     setFormItems(rec.items ? JSON.parse(JSON.stringify(rec.items)) : []);
     setFormAttachments(rec.attachments ? JSON.parse(JSON.stringify(rec.attachments)) : []);
     setSelectedAttachmentFile(null);
@@ -2157,11 +2158,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                 <button
                   type="button"
                   onClick={() => setFormIsReceivedLogistik(!formIsReceivedLogistik)}
-                  className={`px-4 py-2 rounded-lg text-xs font-bold transition shadow-xs cursor-pointer inline-flex items-center gap-1.5 ${
-                    formIsReceivedLogistik
-                      ? 'bg-amber-500 hover:bg-amber-600 text-white'
-                      : 'bg-background hover:bg-muted border border-border text-foreground'
-                  }`}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition shadow-xs cursor-pointer inline-flex items-center gap-1.5 ${formIsReceivedLogistik ? 'bg-amber-500 hover:bg-amber-600 text-white' : 'bg-background hover:bg-muted border border-border text-foreground'}`}
                 >
                   <CheckCircle2 className="size-4" />
                   <span>{formIsReceivedLogistik ? 'Status: Received_Logistic' : 'Setujui Sekarang'}</span>
