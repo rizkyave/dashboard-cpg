@@ -240,7 +240,8 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
     setSelectedAttachmentFile(null);
     setAttachmentCaption('');
     setActiveModalTab('items');
-    setPdfViewMode(rec.pdfUrl?.includes('logistik_Approved_') ? 'signed' : 'raw');
+    const isApprovedInitial = Boolean(rec.isReceivedLogistik || rec.pchLogistik === 'Received_Logistic' || rec.pdfUrl?.includes('logistik_Approved_'));
+    setPdfViewMode(isApprovedInitial ? 'signed' : 'raw');
   };
 
   // Upload New Attachment
@@ -356,10 +357,15 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
   };
 
   // Quick / Direct Logistics Approval (Received_Logistic) from Table or Modal
-  const handleQuickApproveLogistic = async (rec: FpbReviewRecord, overrideState?: boolean) => {
+  const handleQuickApproveLogistic = async (
+    rec: FpbReviewRecord,
+    overrideState?: boolean,
+    signerName?: string
+  ) => {
     setIsApprovingLogistic(true);
     const newIsReceived = overrideState !== undefined ? overrideState : !rec.isReceivedLogistik;
     try {
+      const effectiveSigner = signerName || user?.name || user?.username || 'NOOR HASANAH';
       const res = await fetch('/api/review-fpb', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -367,7 +373,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
           action: 'approve_logistic',
           fpbNo: rec.fpbNo,
           isReceived: newIsReceived,
-          approvedBy: user?.name || user?.username || 'Tim Logistik',
+          approvedBy: effectiveSigner,
         }),
       });
       const data = await res.json();
@@ -379,6 +385,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                   ...r,
                   isReceivedLogistik: newIsReceived,
                   pchLogistik: newIsReceived ? 'Received_Logistic' : '-',
+                  pdfUrl: data.record.pdfUrl || r.pdfUrl,
                   reviewedBy: data.record.reviewedBy || r.reviewedBy,
                   reviewedAt: data.record.reviewedAt || r.reviewedAt,
                 }
@@ -392,12 +399,16 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                   ...prev,
                   isReceivedLogistik: newIsReceived,
                   pchLogistik: newIsReceived ? 'Received_Logistic' : '-',
+                  pdfUrl: data.record.pdfUrl || prev.pdfUrl,
                   reviewedBy: data.record.reviewedBy || prev.reviewedBy,
                   reviewedAt: data.record.reviewedAt || prev.reviewedAt,
                 }
               : null
           );
           setFormIsReceivedLogistik(newIsReceived);
+          if (newIsReceived) {
+            setPdfViewMode('signed');
+          }
         }
         showToast?.(
           data.message ||
@@ -1830,15 +1841,14 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
               {/* TAB 2: Pratinjau Dokumen PDF Resmi */}
               {activeModalTab === 'pdf' && (() => {
                 const cleanFpb = (selectedRecord.fpbNo || '').trim();
-                const rawPdfUrl = `https://e-fpb.cindaragroup.com/files/Approved_rev_sign_${encodeURIComponent(cleanFpb)}.pdf`;
-                const signedPdfUrl = `https://e-fpb.cindaragroup.com/files/logistik_Approved_rev_sign_${encodeURIComponent(cleanFpb)}.pdf`;
+                const rawPdfUrl = `/api/review-fpb/pdf?fpbNo=${encodeURIComponent(cleanFpb)}&type=raw`;
+                const signedPdfUrl = `/api/review-fpb/pdf?fpbNo=${encodeURIComponent(cleanFpb)}&type=signed`;
 
-                // Cek apakah dokumen ini memiliki berkas signed di server e-FPB
-                const hasSignedFileOnServer = selectedRecord.pdfUrl?.includes('logistik_Approved_');
-                const isApproved = formIsReceivedLogistik || selectedRecord.isReceivedLogistik;
+                // Cek apakah dokumen berstatus Siap Pengadaan (Disetujui Logistik)
+                const isApproved = Boolean(formIsReceivedLogistik || selectedRecord.isReceivedLogistik || selectedRecord.pchLogistik === 'Received_Logistic');
 
-                // URL aktif yang ditampilkan: default selalu Dokumen Asli Pemohon, kecuali jika memang sudah ada signed file dan mode signed aktif
-                const activePdfUrl = (pdfViewMode === 'signed' && hasSignedFileOnServer) ? signedPdfUrl : rawPdfUrl;
+                // URL aktif yang ditampilkan: default Dokumen Bertanda Tangan jika disetujui, atau Dokumen Asli jika belum
+                const activePdfUrl = (isApproved && pdfViewMode === 'signed') ? signedPdfUrl : rawPdfUrl;
 
                 return (
                   <div className="space-y-3">
@@ -1864,7 +1874,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                           </div>
                         </div>
 
-                        {hasSignedFileOnServer && (
+                        {isApproved && (
                           <div className="flex items-center gap-2 shrink-0">
                             <button
                               type="button"
@@ -1915,7 +1925,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                         <button
                           type="button"
                           onClick={() => {
-                            if (selectedRecord) handleQuickApproveLogistic(selectedRecord, true);
+                            if (selectedRecord) setConfirmApprovalRecord(selectedRecord);
                             else setFormIsReceivedLogistik(true);
                           }}
                           disabled={isApprovingLogistic}
@@ -1931,7 +1941,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                     <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border border-border text-xs">
                       <div className="truncate mr-3">
                         <span className="font-semibold text-foreground">
-                          {pdfViewMode === 'signed' && hasSignedFileOnServer
+                          {pdfViewMode === 'signed' && isApproved
                             ? 'Berkas PDF Bertanda Tangan Logistik: '
                             : 'Berkas PDF Asli e-FPB (Pemohon): '}
                         </span>
@@ -2594,8 +2604,8 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
         isOpen={Boolean(confirmApprovalRecord)}
         record={confirmApprovalRecord}
         onClose={() => setConfirmApprovalRecord(null)}
-        onConfirm={async (targetRec) => {
-          await handleQuickApproveLogistic(targetRec, true);
+        onConfirm={async (targetRec, signerName) => {
+          await handleQuickApproveLogistic(targetRec, true, signerName);
           setConfirmApprovalRecord(null);
         }}
         isLoading={isApprovingLogistic}

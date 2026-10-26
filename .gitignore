@@ -45,3 +45,6 @@ next-env.d.ts
 
 # backups
 src/data/backups/
+
+# scratch scripts and temp files
+scratch/

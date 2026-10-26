@@ -1,14 +1,15 @@
 'use client';
 
-import React from 'react';
-import { X, ShieldCheck, AlertCircle, Check, Loader2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, ShieldCheck, AlertCircle, Check, Loader2, UserCheck, Stamp } from 'lucide-react';
 import { FpbReviewRecord } from '@/types/fpbReview';
+import { OPERATIONAL_STAFF_LIST, OperationalStaff } from '@/utils/fpbSignatureAssets';
 
 export interface LogisticsApprovalConfirmModalProps {
   isOpen: boolean;
   record: FpbReviewRecord | null;
   onClose: () => void;
-  onConfirm: (record: FpbReviewRecord) => Promise<void> | void;
+  onConfirm: (record: FpbReviewRecord, signerName: string) => Promise<void> | void;
   isLoading?: boolean;
 }
 
@@ -19,15 +20,28 @@ export default function LogisticsApprovalConfirmModal({
   onConfirm,
   isLoading = false,
 }: LogisticsApprovalConfirmModalProps) {
+  const [selectedStaff, setSelectedStaff] = useState<OperationalStaff>(OPERATIONAL_STAFF_LIST[0]);
+
+  useEffect(() => {
+    if (record) {
+      // Jika record sebelumnya pernah ditandatangani oleh Melinda, pilih Melinda
+      if (record.reviewedBy?.toLowerCase().includes('melinda')) {
+        setSelectedStaff(OPERATIONAL_STAFF_LIST[1]);
+      } else {
+        setSelectedStaff(OPERATIONAL_STAFF_LIST[0]);
+      }
+    }
+  }, [record]);
+
   if (!isOpen || !record) return null;
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-xs animate-in fade-in duration-150"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-md bg-card border border-border rounded-2xl shadow-2xl overflow-hidden"
+        className="relative w-full max-w-lg bg-card border border-border rounded-2xl shadow-2xl overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -38,10 +52,10 @@ export default function LogisticsApprovalConfirmModal({
             </div>
             <div>
               <h3 className="font-bold text-sm text-foreground">
-                Konfirmasi Persetujuan Pengadaan
+                Persetujuan &amp; Tanda Tangan Pengadaan FPB
               </h3>
               <p className="text-[11px] text-muted-foreground">
-                Verifikasi izin pengadaan logistik untuk diteruskan ke Purchasing
+                Membubuhkan tanda tangan staf logistik &amp; meneruskan izin ke Purchasing
               </p>
             </div>
           </div>
@@ -56,7 +70,8 @@ export default function LogisticsApprovalConfirmModal({
         </div>
 
         {/* Body Ringkasan Berkas */}
-        <div className="p-5 space-y-4 text-xs">
+        <div className="p-5 space-y-4 text-xs overflow-y-auto max-h-[75vh]">
+          {/* Metadata FPB */}
           <div className="p-3.5 rounded-xl bg-muted/40 border border-border space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Nomor Dokumen FPB:</span>
@@ -71,17 +86,77 @@ export default function LogisticsApprovalConfirmModal({
               <span className="text-foreground">{record.date || '-'}</span>
             </div>
             {record.purpose && (
-              <div className="pt-1 border-t border-border/60">
+              <div className="pt-1.5 border-t border-border/60">
                 <span className="text-muted-foreground block text-[11px] mb-0.5">Keperluan:</span>
                 <span className="font-medium text-foreground line-clamp-2">{record.purpose}</span>
               </div>
             )}
           </div>
 
-          <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200">
-            <AlertCircle className="size-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+          {/* Pemilihan Staf Operasional / Adm. Logistik Penandatangan */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                <UserCheck className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span>Pilih Staf Logistik Penandatangan (Received By):</span>
+              </label>
+              <span className="text-[10px] text-muted-foreground font-medium">Resmi e-FPB CPG</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {OPERATIONAL_STAFF_LIST.map((staff) => {
+                const isSelected = selectedStaff.id === staff.id;
+                return (
+                  <button
+                    key={staff.id}
+                    type="button"
+                    onClick={() => setSelectedStaff(staff)}
+                    disabled={isLoading}
+                    className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between gap-2 cursor-pointer ${
+                      isSelected
+                        ? 'border-emerald-500 bg-emerald-500/10 shadow-xs ring-1 ring-emerald-500/30'
+                        : 'border-border bg-card hover:bg-muted/50'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-1">
+                      <div>
+                        <p className="font-bold text-foreground text-xs">{staff.name}</p>
+                        <p className="text-[10px] text-muted-foreground">{staff.role}</p>
+                      </div>
+                      <div
+                        className={`size-4 rounded-full border flex items-center justify-center shrink-0 mt-0.5 ${
+                          isSelected
+                            ? 'border-emerald-600 bg-emerald-600 text-white'
+                            : 'border-muted-foreground/40'
+                        }`}
+                      >
+                        {isSelected && <Check className="size-2.5 stroke-[3]" />}
+                      </div>
+                    </div>
+
+                    {/* Signature Preview Thumbnail */}
+                    <div className="h-10 w-full bg-white dark:bg-zinc-900 rounded border border-border/60 flex items-center justify-center p-1 overflow-hidden">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={staff.signatureBase64}
+                        alt={`Tanda Tangan ${staff.name}`}
+                        className="max-h-full max-w-full object-contain filter dark:invert"
+                      />
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Penjelasan Prosedur Pengesahan */}
+          <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-950 dark:text-emerald-200 space-y-1.5">
+            <div className="flex items-center gap-2 font-bold text-xs text-emerald-800 dark:text-emerald-300">
+              <Stamp className="size-4 shrink-0" />
+              <span>Prosedur Pengesahan Dokumen (e-FPB)</span>
+            </div>
             <p className="text-[11px] leading-relaxed">
-              Tindakan ini akan menandai dokumen FPB sebagai <strong>Siap Pengadaan</strong> dan memberikan izin kepada Tim Purchasing untuk segera memproses penerbitan PO atau negosiasi vendor.
+              Dengan mengonfirmasi, tanda tangan resmi <strong>{selectedStaff.name}</strong> dan cap <em>Received</em> akan dibubuhkan langsung pada kotak <strong>Received By: (Logistic Staff)</strong> di dokumen PDF, serta status diubah menjadi <strong className="text-emerald-700 dark:text-emerald-300">Siap Pengadaan</strong> sehingga sah untuk diproses Tim Purchasing.
             </p>
           </div>
         </div>
@@ -98,19 +173,19 @@ export default function LogisticsApprovalConfirmModal({
           </button>
           <button
             type="button"
-            onClick={() => onConfirm(record)}
+            onClick={() => onConfirm(record, selectedStaff.name)}
             disabled={isLoading}
             className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
           >
             {isLoading ? (
               <>
                 <Loader2 className="size-3.5 animate-spin" />
-                <span>Menyimpan...</span>
+                <span>Membubuhkan Tanda Tangan...</span>
               </>
             ) : (
               <>
                 <Check className="size-3.5" />
-                <span>Ya, Setujui Pengadaan</span>
+                <span>Setujui &amp; Bubuhkan Tanda Tangan</span>
               </>
             )}
           </button>

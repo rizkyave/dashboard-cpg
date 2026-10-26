@@ -37,7 +37,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T14:17:33.557Z",
+    "updatedAt": "2026-10-26T15:04:13.417Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P2",
     "slaTargetDate": "09/11/26",
@@ -66,8 +66,8 @@
       }
     ],
     "pchLogistik": "Received_Logistic",
-    "reviewedBy": "NOOR HASANAH",
-    "reviewedAt": "2026-10-26T13:59:18.516Z"
+    "reviewedBy": "Administrator CPG",
+    "reviewedAt": "2026-10-26T15:04:13.417Z"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001094",
@@ -122,12 +122,16 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T14:31:09.676Z",
+    "updatedAt": "2026-10-26T15:12:24.213Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P2",
     "slaTargetDate": "09/11/26",
     "slaDaysRemaining": 14,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "attachments": [],
+    "pchLogistik": "Received_Logistic",
+    "reviewedBy": "NOOR HASANAH",
+    "reviewedAt": "2026-10-26T15:12:24.213Z"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001920",
@@ -180,7 +184,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T14:17:33.557Z",
+    "updatedAt": "2026-10-26T15:01:43.925Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P2",
     "slaTargetDate": "09/11/26",
@@ -636,7 +640,7 @@
         "GAJ-TTB-26-00943"
       ]
     },
-    "updatedAt": "2026-10-26T14:30:25.059Z",
+    "updatedAt": "2026-10-26T15:01:43.925Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -682,7 +686,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T14:17:33.557Z",
+    "updatedAt": "2026-10-26T15:01:43.925Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P2",
     "slaTargetDate": "09/11/26",
@@ -723,7 +727,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T14:17:33.557Z",
+    "updatedAt": "2026-10-26T15:01:43.925Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -774,7 +778,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T14:17:33.557Z",
+    "updatedAt": "2026-10-26T15:01:43.925Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -920,7 +924,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T14:17:33.557Z",
+    "updatedAt": "2026-10-26T15:01:43.925Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P2",
     "slaTargetDate": "09/11/26",
@@ -942,7 +946,23 @@
     "urgency": "NORMAL",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "JRG00101001-ZZZ",
+        "itemName": "DRUM BEKAS OLI (00)",
+        "qty": 10,
+        "unit": "PCS",
+        "description": "U/ PENGAMBILAN LIMBAH B3",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[JRGN-JRG001] JERIGEN - DRUM BEKAS OLI (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
     "duplicateAlerts": [
       {
         "fpbNo": "CPL-FPB-26-0004967",
@@ -971,7 +991,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T14:17:33.557Z",
+    "updatedAt": "2026-10-26T15:01:56.187Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -1016,7 +1036,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T14:17:33.557Z",
+    "updatedAt": "2026-10-26T15:01:43.925Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P2",
     "slaTargetDate": "09/11/26",
@@ -1089,7 +1109,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T14:17:33.557Z",
+    "updatedAt": "2026-10-26T15:01:43.925Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -1140,7 +1160,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T14:17:33.557Z",
+    "updatedAt": "2026-10-26T15:01:43.925Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -1169,7 +1189,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T14:17:33.557Z",
+    "updatedAt": "2026-10-26T15:01:43.925Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -1209,7 +1229,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T14:17:33.557Z",
+    "updatedAt": "2026-10-26T15:01:43.925Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -1330,7 +1350,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T14:17:33.557Z",
+    "updatedAt": "2026-10-26T15:01:43.925Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P2",
     "slaTargetDate": "09/11/26",
@@ -1367,7 +1387,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T14:17:33.557Z",
+    "updatedAt": "2026-10-26T15:01:43.925Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -1396,7 +1416,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T14:17:33.557Z",
+    "updatedAt": "2026-10-26T15:01:43.925Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -1440,7 +1460,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T14:17:33.557Z",
+    "updatedAt": "2026-10-26T15:01:43.925Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",

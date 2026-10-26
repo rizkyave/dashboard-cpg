@@ -17,6 +17,7 @@ import { InventoryItem } from '@/types/procurement';
 import { isR2Configured, getObjectFromR2, uploadToR2 } from '@/utils/r2Client';
 import { findDocumentsByFpb } from '@/utils/docRelationResolver';
 import { formatDateDdMmYy } from '@/utils/formatDate';
+import { stampFpbPdf, formatToStampDate, formatToStampTimestamp } from '@/utils/fpbStamper';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -1327,21 +1328,41 @@ export async function POST(req: NextRequest) {
       const currentRec = records[targetIdx];
       const newStatus = isReceived !== undefined ? Boolean(isReceived) : !currentRec.isReceivedLogistik;
       const nowIso = new Date().toISOString();
-
       const cleanFpb = currentRec.fpbNo;
-      const logistikUrl = `https://e-fpb.cindaragroup.com/files/logistik_Approved_rev_sign_${encodeURIComponent(cleanFpb)}.pdf`;
-      const normalUrl = `https://e-fpb.cindaragroup.com/files/Approved_rev_sign_${encodeURIComponent(cleanFpb)}.pdf`;
+      const effectiveSigner = approvedBy || currentRec.reviewedBy || 'NOOR HASANAH';
 
-      // Hanya gunakan logistikUrl jika record asalnya memang sudah memiliki file signed di e-FPB
-      const hasVerifiedSignedFile = currentRec.pdfUrl?.includes('logistik_Approved_');
-      const activePdfUrl = newStatus ? (hasVerifiedSignedFile ? logistikUrl : normalUrl) : normalUrl;
+      let activePdfUrl = `/api/review-fpb/pdf?fpbNo=${encodeURIComponent(cleanFpb)}&type=raw`;
+
+      if (newStatus) {
+        activePdfUrl = `/api/review-fpb/pdf?fpbNo=${encodeURIComponent(cleanFpb)}&type=signed`;
+
+        // Generate stamped PDF dan simpan ke Cloudflare R2
+        try {
+          const rawUrl = `https://e-fpb.cindaragroup.com/files/Approved_rev_sign_${encodeURIComponent(cleanFpb)}.pdf`;
+          const baseRes = await fetch(rawUrl, { cache: 'no-store' });
+          if (baseRes.ok) {
+            const baseBuf = Buffer.from(await baseRes.arrayBuffer());
+            const stampedBuf = await stampFpbPdf({
+              pdfBuffer: baseBuf,
+              signerName: effectiveSigner,
+              signDate: formatToStampDate(nowIso),
+              receivedAt: formatToStampTimestamp(nowIso),
+            });
+            if (isR2Configured()) {
+              await uploadToR2({ key: `fpb-signed/${cleanFpb}.pdf`, body: stampedBuf, contentType: 'application/pdf' });
+            }
+          }
+        } catch (stampErr) {
+          console.warn(`[review-fpb] Gagal pre-stamping PDF untuk ${cleanFpb}:`, stampErr);
+        }
+      }
 
       records[targetIdx] = {
         ...currentRec,
         isReceivedLogistik: newStatus,
         pchLogistik: newStatus ? 'Received_Logistic' : '-',
         pdfUrl: activePdfUrl,
-        reviewedBy: approvedBy || currentRec.reviewedBy || 'Staf Operasional / Adm. Logistik (Noor Hasanah / Melinda Dwi Putri)',
+        reviewedBy: effectiveSigner,
         reviewedAt: nowIso,
         updatedAt: nowIso,
       };
@@ -1351,7 +1372,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         success: true,
         message: newStatus
-          ? `Dokumen ${currentRec.fpbNo} berhasil disetujui Logistik dan diteruskan ke antrean Purchasing!`
+          ? `Dokumen ${currentRec.fpbNo} berhasil disetujui & ditandatangani oleh ${effectiveSigner}. Dokumen sah Siap Pengadaan!`
           : `Persetujuan pengadaan untuk ${currentRec.fpbNo} dibatalkan.`,
         record: records[targetIdx],
       });
