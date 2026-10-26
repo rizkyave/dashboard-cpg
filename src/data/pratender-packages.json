@@ -1,37 +1,139 @@
 [
   {
-    "id": "pkg-1792877047595",
-    "packageNumber": "CPG-TDR-26-2384",
-    "title": "Paket Pengadaan Pompa & Valve Armada Q4 2026",
-    "category": "Pompa & Valve",
-    "status": "DRAFT",
-    "createdAt": "2026-10-24T21:24:07.595Z",
+    "id": "pkg-1792878583821",
+    "packageNumber": "CPG-TDR-26-5643",
+    "title": "Paket Pengadaan Umum / Lainnya Armada Q4 2026",
+    "category": "Umum / Lainnya",
+    "status": "EVALUATION",
+    "createdAt": "2026-10-24T21:49:43.821Z",
     "createdBy": "Administrator CPG",
     "targetClosingDate": "2026-10-31",
     "description": "Spesifikasi asli (OEM) bergaransi resmi, sertifikat asal barang (COO) terlampir.",
     "items": [
       {
-        "itemId": "VALVE_HYDRANT_2_",
-        "itemName": "VALVE HYDRANT 2\"",
-        "category": "Pompa & Valve",
+        "itemId": "SPRING_BANTU_HN00130H_02_FG8J__HINO_",
+        "itemName": "SPRING BANTU HN00130H-02 FG8J (HINO)",
+        "category": "Umum / Lainnya",
         "satuan": "PCS",
-        "totalQty": 6,
+        "totalQty": 1,
         "vessels": [
-          "TK CPL 235",
-          "SPOB OCEAN POLMAN",
-          "MT BARONGKO",
-          "SPOB ROYAL REY 300",
-          "SPOB SEA LION"
+          "TRUK TANGKI B 9088 FFU"
         ],
         "requestFpbs": [
-          "CPL-FPB-26-0000206",
-          "CPL-FPB-26-0002362",
-          "CPL-FPB-26-0002600",
-          "HL-FPB-26-0000797",
-          "HL-FPB-26-0001268"
+          "MO-FPB-26-0001892"
         ]
       }
     ],
-    "updatedAt": "2026-10-24T21:24:07.862Z"
+    "totalEstimatedBudget": 1000000,
+    "updatedAt": "2026-10-24T21:51:03.012Z",
+    "vendorBids": [
+      {
+        "id": "bid-1-1792878591226",
+        "vendorName": "PT. Samudra Bahari Teknik",
+        "vendorPic": "Bpk. Hendra Gunawan",
+        "vendorContact": "+62 812-8877-6655",
+        "quotationRefNo": "SBT/QUO/2026/0421",
+        "bidDate": "2026-10-24",
+        "termOfPayment": "NET 30 Hari",
+        "deliveryLeadTimeDays": 5,
+        "francoDeliveryPoint": "Franco Dermaga Somber Balikpapan",
+        "validityDays": 30,
+        "subtotal": 68500,
+        "ppnPercent": 11,
+        "ppnAmount": 7535,
+        "deliveryFee": 1500000,
+        "grandTotal": 1576035,
+        "status": "UNDER_EVALUATION",
+        "items": [
+          {
+            "itemId": "SPRING_BANTU_HN00130H_02_FG8J__HINO_",
+            "itemName": "SPRING BANTU HN00130H-02 FG8J (HINO)",
+            "qty": 1,
+            "unitPrice": 68500,
+            "totalPrice": 68500,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          }
+        ],
+        "negotiatedGrandTotal": 1576035
+      },
+      {
+        "id": "bid-2-1792878591226",
+        "vendorName": "CV. Cipta Marine Mandiri",
+        "vendorPic": "Ibu Ratna Dewi",
+        "vendorContact": "+62 813-9988-1122",
+        "quotationRefNo": "CMM-RFQ-26-891",
+        "bidDate": "2026-10-24",
+        "termOfPayment": "NET 45 Hari",
+        "deliveryLeadTimeDays": 7,
+        "francoDeliveryPoint": "Franco Dermaga Somber Balikpapan",
+        "validityDays": 30,
+        "subtotal": 75000,
+        "ppnPercent": 11,
+        "ppnAmount": 8250,
+        "deliveryFee": 2000000,
+        "grandTotal": 2083250,
+        "status": "UNDER_EVALUATION",
+        "items": [
+          {
+            "itemId": "SPRING_BANTU_HN00130H_02_FG8J__HINO_",
+            "itemName": "SPRING BANTU HN00130H-02 FG8J (HINO)",
+            "qty": 1,
+            "unitPrice": 75000,
+            "totalPrice": 75000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          }
+        ],
+        "negotiatedGrandTotal": 2083250
+      },
+      {
+        "id": "bid-3-1792878591226",
+        "vendorName": "PT. Pelayaran Global Nusantara Supply",
+        "vendorPic": "Bpk. Dimas Pratama",
+        "vendorContact": "+62 821-4433-2211",
+        "quotationRefNo": "PGN/P/2026/019",
+        "bidDate": "2026-10-24",
+        "termOfPayment": "COD / 14 Hari",
+        "deliveryLeadTimeDays": 4,
+        "francoDeliveryPoint": "Franco Gudang Transit Balikpapan",
+        "validityDays": 14,
+        "subtotal": 66000,
+        "ppnPercent": 11,
+        "ppnAmount": 7260,
+        "deliveryFee": 1000000,
+        "grandTotal": 1073260,
+        "status": "RECOMMENDED",
+        "items": [
+          {
+            "itemId": "SPRING_BANTU_HN00130H_02_FG8J__HINO_",
+            "itemName": "SPRING BANTU HN00130H-02 FG8J (HINO)",
+            "qty": 1,
+            "unitPrice": 66000,
+            "totalPrice": 66000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          }
+        ],
+        "negotiatedGrandTotal": 1073260
+      }
+    ],
+    "evaluationSummary": {
+      "evaluatedBy": "Administrator CPG",
+      "evaluatedAt": "2026-10-24T21:51:02.862Z",
+      "recommendationNotes": "Direkomendasikan pemenang tender kepada PT. Pelayaran Global Nusantara Supply berdasarkan evaluasi komparasi harga terendah responsif (CBT) dan kepatuhan RKS.",
+      "winningVendorId": "bid-3-1792878591226",
+      "winningVendorName": "PT. Pelayaran Global Nusantara Supply",
+      "winningAmount": 1073260,
+      "costSavingVsHps": -73260,
+      "costSavingPercent": -7.3,
+      "approvalLevel": "SUPERVISOR",
+      "approvalStatus": "PENDING_APPROVAL",
+      "approvalNotes": "",
+      "baepNumber": "BAEP-CPG-TDR-26-5643"
+    },
+    "awardedVendor": "PT. Pelayaran Global Nusantara Supply",
+    "awardedValue": 1073260,
+    "poNumberGenerated": "TRUK-PO-26-10457"
   }
 ]
