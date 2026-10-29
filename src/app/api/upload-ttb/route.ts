@@ -5,6 +5,7 @@ import { sanitizeTtbNumber, formatTtbFilename, extractTtbComponents } from '@/ut
 import { getPhotosDir } from '@/utils/ttbPhotosDir';
 import { UploadedTtbItem, UploadTtbResponse } from '@/types/ttbUpload';
 import { stampTtbPdf, formatTtbStampDate } from '@/utils/ttbStamper';
+import { enrichSingleTtbItem } from '@/utils/ttbEnricher';
 import {
   uploadToR2,
   isR2Configured,
@@ -209,6 +210,34 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    // Load dataset relasi & pengayaan metadata TTB dari Monitoring Internal dan arsip operasional
+    let docRelationRef: any = null;
+    let budiTtbRecords: any[] = [];
+    let procurementRecords: any[] = [];
+
+    try {
+      const refRaw = await fs.readFile(path.join(process.cwd(), 'src', 'data', 'doc-relation-reference.json'), 'utf8');
+      docRelationRef = JSON.parse(refRaw);
+    } catch {}
+
+    try {
+      const budiRaw = await fs.readFile(path.join(process.cwd(), 'src', 'data', 'budi-ttb-sync-data.json'), 'utf8');
+      const budiJson = JSON.parse(budiRaw);
+      if (Array.isArray(budiJson.records)) budiTtbRecords = budiJson.records;
+    } catch {}
+
+    if (isR2Active) {
+      try {
+        const procObj = await getObjectFromR2('dashboard-metadata/procurement-data.json');
+        if (procObj && procObj.body) {
+          const parsedProc = JSON.parse(Buffer.from(procObj.body).toString('utf8'));
+          if (Array.isArray(parsedProc)) procurementRecords = parsedProc;
+        }
+      } catch {}
+    }
+
+    let hasEnrichmentChanges = false;
+
     // Pastikan URL file selalu merujuk ke endpoint yang valid dan memuat versi dokumen terbaru
     const formattedHistory = history.map((item) => {
       let updatedItem = { ...item };
@@ -251,8 +280,33 @@ export async function GET(req: NextRequest) {
         updatedItem.fileUrl = baseFileUrl;
       }
 
+      // Auto-enrich data kosong (armada, noPo, noFpb, uploaderName) dari Monitoring Internal & relasi dokumen
+      const beforeArmada = updatedItem.armada;
+      const beforePo = updatedItem.noPo;
+      const beforeUploader = updatedItem.uploaderName;
+
+      updatedItem = enrichSingleTtbItem(updatedItem, {
+        procurementItems: procurementRecords,
+        docRelationRef,
+        budiTtbRecords,
+      });
+
+      if (
+        updatedItem.armada !== beforeArmada ||
+        updatedItem.noPo !== beforePo ||
+        updatedItem.uploaderName !== beforeUploader
+      ) {
+        hasEnrichmentChanges = true;
+      }
+
       return updatedItem;
     });
+
+    if (hasEnrichmentChanges) {
+      saveHistory(formattedHistory).catch((err) =>
+        console.warn('Gagal menyimpan hasil auto-enrichment TTB:', err)
+      );
+    }
 
     formattedHistory.sort(
       (a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()

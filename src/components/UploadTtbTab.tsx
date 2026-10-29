@@ -40,6 +40,7 @@ import { useAuth } from '@/context/AuthContext';
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
 import { SisaLayananItem } from '@/types/sisaLayanan';
 import { UploadedTtbItem, UploadTtbResponse } from '@/types/ttbUpload';
+import { enrichTtbRecords } from '@/utils/ttbEnricher';
 import {
   sanitizeTtbNumber,
   formatTtbFilename,
@@ -736,11 +737,20 @@ export default function UploadTtbTab({
     }
   };
 
+  // Auto-enrich riwayat pengarsipan TTB dengan data dari Monitoring Internal, Armada, dan Sisa Layanan
+  const enrichedHistory = useMemo(() => {
+    return enrichTtbRecords(history, {
+      procurementItems,
+      armadaItems,
+      sisaLayananItems,
+    });
+  }, [history, procurementItems, armadaItems, sisaLayananItems]);
+
   // Filter riwayat berdasarkan pencarian
   const filteredHistory = useMemo(() => {
-    if (!searchHistory.trim()) return history;
+    if (!searchHistory.trim()) return enrichedHistory;
     const q = searchHistory.toLowerCase().trim();
-    return history.filter(
+    return enrichedHistory.filter(
       (h) =>
         h.noTtb?.toLowerCase().includes(q) ||
         h.cleanNoTtb?.toLowerCase().includes(q) ||
@@ -750,7 +760,7 @@ export default function UploadTtbTab({
         h.renamedFileName?.toLowerCase().includes(q) ||
         h.uploaderName?.toLowerCase().includes(q)
     );
-  }, [history, searchHistory]);
+  }, [enrichedHistory, searchHistory]);
 
   // Pagination state untuk riwayat tabel (10 data per halaman)
   const [historyPage, setHistoryPage] = useState<number>(1);
@@ -765,20 +775,20 @@ export default function UploadTtbTab({
   // Reset pagination saat pencarian atau riwayat berubah
   useEffect(() => {
     setHistoryPage(1);
-  }, [searchHistory, history.length]);
+  }, [searchHistory, enrichedHistory.length]);
 
   // Statistik Ringkasan (4 Stat Cards)
   const stats = useMemo(() => {
-    const total = history.length;
-    const pdfCount = history.filter(
+    const total = enrichedHistory.length;
+    const pdfCount = enrichedHistory.filter(
       (h) => h.fileType === 'application/pdf' || h.renamedFileName.toLowerCase().endsWith('.pdf')
     ).length;
     const imgCount = total - pdfCount;
-    const r2Count = history.filter(
+    const r2Count = enrichedHistory.filter(
       (h) => h.storageProvider === 'CLOUDFLARE_R2' || h.status === 'STORED_IN_CLOUDFLARE_R2' || h.fileUrl
     ).length;
     return { total, pdfCount, imgCount, r2Count };
-  }, [history]);
+  }, [enrichedHistory]);
 
   const distinctTtbCount = useMemo(() => {
     const set = new Set(queue.map((item) => sanitizeTtbNumber(item.noTtb.trim() || batchNoTtb.trim())).filter(Boolean));
@@ -1258,7 +1268,25 @@ export default function UploadTtbTab({
             </div>
           </div>
 
-          <div className="relative w-full sm:w-72">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 text-[11px] font-medium self-start sm:self-auto">
+              <CheckCircle2 className="size-3 text-emerald-500 shrink-0" />
+              <span>Sinkronisasi Monitoring Internal Aktif</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={fetchHistory}
+                disabled={isLoadingHistory}
+                className="h-8 px-2.5 rounded-lg border border-border bg-card hover:bg-muted text-foreground text-xs font-medium flex items-center gap-1.5 transition cursor-pointer disabled:opacity-50"
+                title="Sinkronkan Ulang Riwayat dengan Monitoring Internal"
+              >
+                <RefreshCw className={`size-3.5 ${isLoadingHistory ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">Refresh</span>
+              </button>
+
+              <div className="relative w-full sm:w-64">
             <Search className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
@@ -1267,6 +1295,8 @@ export default function UploadTtbTab({
               placeholder="Cari nomor TTB, armada, PO..."
               className="w-full h-8 pl-8 pr-3 text-xs rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:ring-1 focus:ring-primary focus:outline-none"
             />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1319,26 +1349,47 @@ export default function UploadTtbTab({
                       </div>
                     </td>
 
-                    <td className="py-2.5 px-3 font-medium text-foreground">
-                      {item.armada || '-'}
+                    <td className="py-2.5 px-3 font-medium text-foreground whitespace-nowrap">
+                      {item.armada && item.armada !== '-' ? (
+                        <div className="flex items-center gap-1.5">
+                          <Ship className="size-3 text-blue-500 shrink-0" />
+                          <span className="font-semibold text-foreground">{item.armada}</span>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
                     </td>
 
-                    <td className="py-2.5 px-3 font-mono text-muted-foreground">
-                      {item.noPo || item.noFpb || '-'}
+                    <td className="py-2.5 px-3 font-mono text-muted-foreground whitespace-nowrap">
+                      {item.noPo && item.noPo !== '-' ? (
+                        <div className="space-y-0.5">
+                          <span className="text-foreground font-semibold block">{item.noPo}</span>
+                          {item.noFpb && item.noFpb !== '-' && item.noFpb !== item.noPo && (
+                            <span className="text-[10px] text-muted-foreground block font-sans">
+                              Ref FPB: <strong className="font-mono">{item.noFpb}</strong>
+                            </span>
+                          )}
+                        </div>
+                      ) : item.noFpb && item.noFpb !== '-' ? (
+                        <div className="space-y-0.5">
+                          <span className="text-foreground font-semibold block">{item.noFpb}</span>
+                          <span className="text-[9px] text-muted-foreground block uppercase font-sans">No. FPB Acuan</span>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
                     </td>
 
                     <td className="py-2.5 px-3">
-                      {item.uploaderName ? (
+                      {item.uploaderName && item.uploaderName !== '-' ? (
                         <div className="space-y-0.5">
                           <span className="font-semibold text-foreground text-[11px] block">
                             {item.uploaderName}
                           </span>
-                          {item.isAutoStamped && (
-                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[8px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                              <FileSignature className="size-2.5" />
-                              <span>Auto-Signed</span>
-                            </span>
-                          )}
+                          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[8px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                            <FileSignature className="size-2.5" />
+                            <span>Auto-Signed</span>
+                          </span>
                         </div>
                       ) : (
                         <span className="text-muted-foreground">-</span>
