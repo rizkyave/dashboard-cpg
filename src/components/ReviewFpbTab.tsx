@@ -510,7 +510,40 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
       const json = await res.json();
       if (json.success && Array.isArray(json.items)) {
         setFormItems(json.items);
-        showToast?.(json.message || 'Item barang berhasil diekstrak dan dicocokkan dengan stok!', 'success');
+        showToast?.(json.message || 'Item barang & keperluan berhasil diekstrak!', 'success');
+
+        const updatedPurpose = json.purpose || selectedRecord.purpose;
+        const updatedAlerts = Array.isArray(json.duplicateAlerts) ? json.duplicateAlerts : [];
+        const updatedPriority = json.priorityLevel || formPriority;
+        const updatedUrgency = json.urgency || formUrgency;
+
+        setSelectedRecord((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            items: json.items,
+            purpose: updatedPurpose,
+            duplicateAlerts: updatedAlerts,
+            priorityLevel: updatedPriority,
+            urgency: updatedUrgency,
+          };
+        });
+
+        // Update list tabel review
+        setReviews((prevList) =>
+          prevList.map((r) =>
+            r.fpbNo.toLowerCase() === selectedRecord.fpbNo.toLowerCase()
+              ? {
+                  ...r,
+                  items: json.items,
+                  purpose: updatedPurpose,
+                  duplicateAlerts: updatedAlerts,
+                  priorityLevel: updatedPriority,
+                  urgency: updatedUrgency,
+                }
+              : r
+          )
+        );
 
         // Auto-detect skala prioritas dari item barang (P1: Utama 1-2 hari, P2: Menengah 3-14 hari, P3: Rutin 14-30 hari)
         let autoP: FpbPriorityLevel = 'P3';

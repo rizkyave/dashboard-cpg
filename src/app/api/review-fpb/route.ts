@@ -279,6 +279,27 @@ function parseDateToTs(dStr?: string): number {
  * Compute Duplicate Alerts across all records
  */
 function enrichDuplicateAlerts(records: FpbReviewRecord[]): FpbReviewRecord[] {
+  // Helper: Mengecek apakah teks peruntukan adalah teks template generic bawaan
+  const isGenericPurposeText = (text?: string): boolean => {
+    if (!text) return true;
+    const lower = text.trim().toLowerCase();
+    if (lower.length < 5) return true;
+    if (
+      lower.startsWith('kebutuhan operasional') ||
+      lower.startsWith('pengadaan kebutuhan') ||
+      lower.startsWith('kebutuhan rutin') ||
+      lower.startsWith('operasional kantor') ||
+      lower.startsWith('operasional kapal') ||
+      lower.includes('kebutuhan operasional') ||
+      lower === 'pengadaan operasional' ||
+      lower === 'pengadaan kebutuhan operasional kapal' ||
+      lower === '-'
+    ) {
+      return true;
+    }
+    return false;
+  };
+
   // Group by normalized armada
   const byArmada = new Map<string, FpbReviewRecord[]>();
 
@@ -301,28 +322,55 @@ function enrichDuplicateAlerts(records: FpbReviewRecord[]): FpbReviewRecord[] {
       const currentTs = parseDateToTs(current.date);
       const alerts: FpbDuplicateAlert[] = [];
 
+      // ATURAN: Jika berkas belum diekstrak (items kosong) DAN purpose masih template generic,
+      // jangan berikan peringatan palsu karena keperluan asli belum dibaca dari PDF!
+      const currentHasItems = Array.isArray(current.items) && current.items.length > 0;
+      const currentHasSpecificPurpose = !isGenericPurposeText(current.purpose);
+
+      if (!currentHasItems && !currentHasSpecificPurpose) {
+        current.duplicateAlerts = [];
+        continue;
+      }
+
       for (let j = 0; j < armRecords.length; j++) {
         if (i === j) continue;
         const other = armRecords[j];
         const otherTs = parseDateToTs(other.date);
 
+        const otherHasItems = Array.isArray(other.items) && other.items.length > 0;
+        const otherHasSpecificPurpose = !isGenericPurposeText(other.purpose);
+
+        // Abaikan pembanding jika pembanding juga belum memiliki data spesifik dari PDF
+        if (!otherHasItems && !otherHasSpecificPurpose) {
+          continue;
+        }
+
         const diffDays = Math.abs(currentTs - otherTs) / DAY_MS;
         if (diffDays <= WINDOW_DAYS) {
-          // Check for similar purpose or matching items
-          const currentPurpose = (current.purpose || '').toLowerCase();
-          const otherPurpose = (other.purpose || '').toLowerCase();
-
           let matchReason = '';
 
-          // Compare items if available
-          if (current.items && current.items.length > 0 && other.items && other.items.length > 0) {
-            for (const itemA of current.items) {
-              for (const itemB of other.items) {
-                if (
-                  (itemA.itemCode && itemB.itemCode && itemA.itemCode === itemB.itemCode) ||
-                  (itemA.itemName && itemB.itemName && itemA.itemName.toLowerCase().includes(itemB.itemName.toLowerCase()))
-                ) {
+          // 1. Prioritas Utama: Cocokkan item barang riil dari hasil ekstraksi PDF
+          if (currentHasItems && otherHasItems) {
+            for (const itemA of current.items!) {
+              for (const itemB of other.items!) {
+                const codeA = (itemA.itemCode || '').trim().toUpperCase();
+                const codeB = (itemB.itemCode || '').trim().toUpperCase();
+                const nameA = (itemA.itemName || '').trim().toLowerCase();
+                const nameB = (itemB.itemName || '').trim().toLowerCase();
+
+                // Match kode item valid
+                if (codeA && codeB && codeA === codeB && !codeA.startsWith('ITEM-')) {
                   matchReason = `Item sama: "${itemA.itemName}" diajukan pada ${other.date}`;
+                  break;
+                }
+
+                // Match nama item substansial (panjang >= 6 karakter dan identik/substring)
+                if (
+                  nameA.length >= 6 &&
+                  nameB.length >= 6 &&
+                  (nameA === nameB || (nameA.length > 10 && (nameA.includes(nameB) || nameB.includes(nameA))))
+                ) {
+                  matchReason = `Item serupa: "${itemA.itemName}" diajukan pada ${other.date}`;
                   break;
                 }
               }
@@ -330,18 +378,38 @@ function enrichDuplicateAlerts(records: FpbReviewRecord[]): FpbReviewRecord[] {
             }
           }
 
-          // Compare purpose keywords if no item match yet
-          if (!matchReason && currentPurpose.length > 5 && otherPurpose.length > 5) {
-            const wordsA = currentPurpose.split(/\s+/).filter((w) => w.length >= 4);
-            const commonWords = wordsA.filter((w) => otherPurpose.includes(w));
-            if (commonWords.length >= 2) {
-              matchReason = `Keperluan mirip: "${commonWords.join(' ')}" pada ${other.date}`;
-            }
-          }
+          // 2. Cocokkan Keperluan / Peruntukan spesifik dari PDF (jika bukan generic)
+          if (!matchReason && currentHasSpecificPurpose && otherHasSpecificPurpose) {
+            const cleanA = (current.purpose || '').trim().toLowerCase();
+            const cleanB = (other.purpose || '').trim().toLowerCase();
 
-          // If general frequent submission within 14 days
-          if (!matchReason && diffDays <= 14) {
-            matchReason = `Pengajuan berdekatan (${Math.round(diffDays)} hari lalu: ${other.date})`;
+            // Jika peruntukan persis sama
+            if (cleanA === cleanB) {
+              matchReason = `Keperluan persis: "${current.purpose}" pada ${other.date}`;
+            } else {
+              const STOPWORDS = new Set([
+                'untuk', 'u/', 'dan', 'yang', 'pada', 'dari', 'ke', 'di', 'ini', 'itu',
+                'kebutuhan', 'operasional', 'pengadaan', 'rutin', 'kantor', 'office',
+                'kapal', 'armada', 'dept', 'departemen', 'bagian', 'dengan', 'bulan',
+                'tahun', 'unit', 'pcs', 'set', 'lot', 'pakai', 'habis', 'kerja'
+              ]);
+
+              const wordsA = cleanA
+                .split(/[\s•,/-]+/)
+                .map((w) => w.trim())
+                .filter((w) => w.length >= 4 && !STOPWORDS.has(w));
+
+              const wordsB = cleanB
+                .split(/[\s•,/-]+/)
+                .map((w) => w.trim())
+                .filter((w) => w.length >= 4 && !STOPWORDS.has(w));
+
+              // Minimal 2 kata spesifik cocok (contoh: "cat primer", "hose blasting")
+              const commonWords = wordsA.filter((w) => wordsB.includes(w));
+              if (commonWords.length >= 2) {
+                matchReason = `Keperluan mirip: "${commonWords.join(' ')}" pada ${other.date}`;
+              }
+            }
           }
 
           if (matchReason) {
@@ -1010,8 +1078,22 @@ export async function POST(req: NextRequest) {
         );
         if (targetIdx >= 0) {
           records[targetIdx].items = extractedItems;
-          if (parseData.data.tujuanPeruntukan && !records[targetIdx].purpose) {
-            records[targetIdx].purpose = parseData.data.tujuanPeruntukan;
+          // Selalu update purpose dengan hasil ekstraksi PDF riil
+          const extractedPurpose = (parseData.data.tujuanPeruntukan || '').trim();
+          if (extractedPurpose && extractedPurpose !== '-') {
+            records[targetIdx].purpose = extractedPurpose;
+          } else if (extractedItems.length > 0) {
+            const itemDescs = extractedItems
+              .map((i: any) => (i.description || '').trim())
+              .filter((d: string) => d && d !== '-' && d.length > 1);
+            if (itemDescs.length > 0) {
+              records[targetIdx].purpose = Array.from(new Set(itemDescs)).join(' • ');
+            } else {
+              records[targetIdx].purpose = extractedItems
+                .map((i: any) => i.itemName)
+                .slice(0, 3)
+                .join(', ');
+            }
           }
 
           // Otomatis deteksi prioritas tertinggi dari item (P1: Utama, P2: Menengah, P3: Rutin)
@@ -1036,10 +1118,20 @@ export async function POST(req: NextRequest) {
         }
       }
 
+      // Re-apply duplicate alerts with new real items & purpose
+      records = enrichDuplicateAlerts(records);
+      await saveReviews(records);
+
+      const updatedRec = records.find((r) => r.fpbNo.toLowerCase() === fpbNo.toLowerCase());
+
       return NextResponse.json({
         success: true,
-        message: `Berhasil mengekstrak ${extractedItems.length} item dari PDF resmi e-FPB.`,
+        message: `Berhasil mengekstrak ${extractedItems.length} item & peruntukan dari PDF: "${updatedRec?.purpose || ''}"`,
         items: extractedItems,
+        purpose: updatedRec?.purpose || '',
+        duplicateAlerts: updatedRec?.duplicateAlerts || [],
+        priorityLevel: updatedRec?.priorityLevel,
+        urgency: updatedRec?.urgency,
       });
     }
 

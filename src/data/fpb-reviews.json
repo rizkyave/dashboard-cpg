@@ -1,5 +1,3286 @@
 [
   {
+    "id": "fpb-rev-GAJ-FPB-26-0001115",
+    "fpbNo": "GAJ-FPB-26-0001115",
+    "originalFpb": "GAJ/LOG/FPB/26-0001115",
+    "entity": "GAJ",
+    "armada": "OFFICE GAJ",
+    "date": "28/10/26",
+    "purpose": "U/SARANA KERJA BLASTING",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0001115.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "URGENT",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "FLT04101001-WDT",
+        "itemName": "FILTER MANIFOLD AIRLESS 68:1 (WINDTECH)",
+        "qty": 2,
+        "unit": "PCS",
+        "description": "U/SARANA KERJA BLASTING",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-29T12:45:40.810Z",
+    "createdAt": "2026-10-29T00:39:20.305Z",
+    "priorityLevel": "P1",
+    "slaTargetDate": "30/10/26",
+    "slaDaysRemaining": 1,
+    "slaStatus": "DUE_SOON"
+  },
+  {
+    "id": "fpb-rev-GAJ-FPB-26-0001116",
+    "fpbNo": "GAJ-FPB-26-0001116",
+    "originalFpb": "GAJ/LOG/FPB/26-0001116",
+    "entity": "GAJ",
+    "armada": "OFFICE GAJ",
+    "date": "28/10/26",
+    "purpose": "U/ IKAT HOSE BLASTING",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0001116.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "KWA01403001-ZZZ",
+        "itemName": "KAWAT BENDRAT GALVANIS 2 MM (00)",
+        "qty": 5,
+        "unit": "KG",
+        "description": "U/ IKAT HOSE BLASTING",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[KWAT-KWA014] KAWAT (WIRE) - KAWAT BENDRAT GALVANIS (HL)",
+        "inventoryEntity": "HL",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-29T12:46:56.535Z",
+    "createdAt": "2026-10-29T00:39:20.305Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "27/11/26",
+    "slaDaysRemaining": 29,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-MO-FPB-26-0001928",
+    "fpbNo": "MO-FPB-26-0001928",
+    "originalFpb": "MO/LOG/FPB/26-0001928",
+    "entity": "MO",
+    "armada": "TRUCK TANGKI KT 8327 LU",
+    "date": "28/10/26",
+    "purpose": "U/ PERGANTIAN YANG RUSAK (FR RH/LH) (26 - 01096)",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0001928.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "URGENT",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "RPR01001002-UT",
+        "itemName": "REPAIR KIT 44342-9Z00A CWE 280 (UD TRUCK)",
+        "qty": 2,
+        "unit": "SET",
+        "description": "U/ PERGANTIAN YANG RUSAK (FR RH/LH) (26 - 01096)",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[REM1-REM003] REM (BRAKE) - BRAKE KIT REPAIR (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [
+      {
+        "id": "efpb-att-MO-FPB-26-0001928-2",
+        "name": "MO-LKK-KT 8327 LU (REPAIR KIT).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/MO-LKK-KT%208327%20LU%20%28REPAIR%20KIT%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "28/10/26 13:01",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      },
+      {
+        "id": "efpb-att-MO-FPB-26-0001928-3",
+        "name": "MO-FOTO-KT 8327 LU (REPAIR KIT).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/MO-FOTO-KT%208327%20LU%20%28REPAIR%20KIT%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "28/10/26 13:01",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-29T12:46:59.026Z",
+    "createdAt": "2026-10-29T00:39:20.305Z",
+    "priorityLevel": "P1",
+    "slaTargetDate": "30/10/26",
+    "slaDaysRemaining": 1,
+    "slaStatus": "DUE_SOON"
+  },
+  {
+    "id": "fpb-rev-CPL-FPB-26-0005004",
+    "fpbNo": "CPL-FPB-26-0005004",
+    "originalFpb": "CPL/LOG/FPB/26-0005004",
+    "entity": "CPL",
+    "armada": "MT BARONGKO",
+    "date": "28/10/26",
+    "purpose": "Kebutuhan Operasional MT BARONGKO",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0005004.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "CAI00601005-ZZZ",
+        "itemName": "DETERJEN (00)",
+        "qty": 24,
+        "unit": "BKS",
+        "description": "U/ SARANA KERJA",
+        "priority": "P3",
+        "stockAvailable": 144,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[CAI00601005-ZZZ] DETERJEN (00) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (144 BKS). Disarankan penuhi dari stok gudang."
+      },
+      {
+        "no": 2,
+        "itemCode": "SAT00101001-ZZZ",
+        "itemName": "SARUNG TANGAN BIASA (00)",
+        "qty": 48,
+        "unit": "PSG",
+        "description": "U/ SARANA KERJA",
+        "priority": "P3",
+        "stockAvailable": 395,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[SAT00101001-ZZZ] SARUNG TANGAN BIASA (00) (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (395 PSG). Disarankan penuhi dari stok gudang."
+      },
+      {
+        "no": 3,
+        "itemCode": "SGE00302001-ZZZ",
+        "itemName": "SEGEL GALVANIS 3/4\" (00)",
+        "qty": 28,
+        "unit": "PCS",
+        "description": "U/ DAPRA",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[SGEL-SGE001] SEGEL - SEGEL D GALVANIS (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 4,
+        "itemCode": "RNT00203002-ZZZ",
+        "itemName": "RANTAI GALVANIS 3/4\" (KRG) (00)",
+        "qty": 3,
+        "unit": "KRG",
+        "description": "U/ DAPRA",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[RNTI-RNT002] RANTAI (CHAIN) - RANTAI (CHAIN) GALVANIS (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-29T00:48:42.370Z",
+    "createdAt": "2026-10-29T00:39:20.305Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "27/11/26",
+    "slaDaysRemaining": 29,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-MO-FPB-26-0001929",
+    "fpbNo": "MO-FPB-26-0001929",
+    "originalFpb": "MO/LOG/FPB/26-0001929",
+    "entity": "MO",
+    "armada": "TRUCK TANKI B 9074 FFU",
+    "date": "28/10/26",
+    "purpose": "U/ PERGANTIAN YANG RUSAK (26 - 01091)",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0001929.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "URGENT",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "KPL01101001-SEI",
+        "itemName": "MASTER KOPLING ATAS C/M KI HINO (SEIKEN)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ PERGANTIAN YANG RUSAK (26 - 01091)",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[KPLG-KPL011] KOPLING (COUPLING) - MASTER KOPLING ATAS (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [
+      {
+        "id": "efpb-att-MO-FPB-26-0001929-2",
+        "name": "MO-LKK-B 9074 FFU (MASTER KOPLING)(2).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/MO-LKK-B%209074%20FFU%20%28MASTER%20KOPLING%29%282%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "28/10/26 13:55",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      },
+      {
+        "id": "efpb-att-MO-FPB-26-0001929-3",
+        "name": "MO-FOTO-B 9074 FFU (MASTER KOPLING).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/MO-FOTO-B%209074%20FFU%20%28MASTER%20KOPLING%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "28/10/26 13:55",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-29T12:47:02.058Z",
+    "createdAt": "2026-10-29T00:39:20.305Z",
+    "priorityLevel": "P1",
+    "slaTargetDate": "30/10/26",
+    "slaDaysRemaining": 1,
+    "slaStatus": "DUE_SOON"
+  },
+  {
+    "id": "fpb-rev-GAJ-FPB-26-0001117",
+    "fpbNo": "GAJ-FPB-26-0001117",
+    "originalFpb": "GAJ/LOG/FPB/26-0001117",
+    "entity": "GAJ",
+    "armada": "OFFICE GAJ",
+    "date": "28/10/26",
+    "purpose": "U/ PERBAIKAN JETTY GAJ (PENAMBAHAN)",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": false,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0001117.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "URGENT",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "B/O03801001-ZZ",
+        "itemName": "STUD BOLT (SS) 1/2\" X 1 METER (00)",
+        "qty": 8,
+        "unit": "BTG",
+        "description": "U/ PERBAIKAN JETTY GAJ (PENAMBAHAN)",
+        "priority": "P2",
+        "stockAvailable": 3,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[B/O03801001-ZZZ] STUD BOLT (SS) 1/2\" X 1 METER (00) (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "PO",
+        "notes": "Stok gudang parsial (3 BTG). Sisa dibuatkan PO."
+      },
+      {
+        "no": 2,
+        "itemCode": "PAK00902001-ZZZ",
+        "itemName": "PAKU ULIN 2 1/2\" (00)",
+        "qty": 3,
+        "unit": "KG",
+        "description": "U/ PERBAIKAN JETTY GAJ (PENAMBAHAN)",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[PAKU-PAK009] PAKU (NAIL) - PAKU ULIN (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [
+      {
+        "id": "efpb-att-GAJ-FPB-26-0001117-2",
+        "name": "SPK-156 (PERBAIKAN JETTY GAJ).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/SPK-156%20%28PERBAIKAN%20JETTY%20GAJ%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "28/10/26 14:06",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      },
+      {
+        "id": "efpb-att-GAJ-FPB-26-0001117-3",
+        "name": "SPK-156 (PERBAIKAN JETTY GAJ) FOTO.pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/SPK-156%20%28PERBAIKAN%20JETTY%20GAJ%29%20FOTO.pdf",
+        "type": "pdf",
+        "uploadedAt": "28/10/26 14:06",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-29T12:47:04.958Z",
+    "createdAt": "2026-10-29T00:39:20.305Z",
+    "priorityLevel": "P1",
+    "slaTargetDate": "30/10/26",
+    "slaDaysRemaining": 1,
+    "slaStatus": "DUE_SOON"
+  },
+  {
+    "id": "fpb-rev-CPL-FPB-26-0005026",
+    "fpbNo": "CPL-FPB-26-0005026",
+    "originalFpb": "CPL/LOG/FPB/26-0005026",
+    "entity": "CPL",
+    "armada": "DEPT PROCUREMENT",
+    "date": "28/10/26",
+    "purpose": "Kebutuhan Operasional DEPT PROCUREMENT",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0005026.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "SAT00201001-NIT",
+        "itemName": "SARUNG TANGAN KARET (NITRILE)",
+        "qty": 30,
+        "unit": "PSG",
+        "description": "U/ STOCK GUDANG",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[SATA-SAT002] SARUNG TANGAN - SARUNG TANGAN KARET (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-29T05:41:36.761Z",
+    "createdAt": "2026-10-29T00:39:20.305Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "27/11/26",
+    "slaDaysRemaining": 29,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-GAJ-FPB-26-0001118",
+    "fpbNo": "GAJ-FPB-26-0001118",
+    "originalFpb": "GAJ/LOG/FPB/26-0001118",
+    "entity": "GAJ",
+    "armada": "OFFICE GAJ",
+    "date": "28/10/26",
+    "purpose": "U/ PENGECETAN JETTY SPEED BOAT",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": false,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0001118.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "URGENT",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "CAT02503002-TCE",
+        "itemName": "CAT TRANSEPOXY 20 LITER BARRIE 92.16 BLACK FINISH + HARDENER (TRANSOCEAN)",
+        "qty": 1,
+        "unit": "PIL",
+        "description": "U/ PENGECETAN JETTY SPEED BOAT",
+        "priority": "P2",
+        "stockAvailable": 50,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[CAT00403002-HMP] CAT 5 LITER 52140 ABU-ABU (HEMPEL) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (50 PIL). Disarankan penuhi dari stok gudang."
+      },
+      {
+        "no": 2,
+        "itemCode": "CAT02504001-NI",
+        "itemName": "CAT EPOXY 5 LITER RAL 1023 KUNING (NIPPON PAINT)",
+        "qty": 2,
+        "unit": "KLG",
+        "description": "U/ PENGECETAN JETTY SPEED BOAT",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[CAT1-CAT025] CAT (PAINTING) - EPOXY (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [
+      {
+        "id": "efpb-att-GAJ-FPB-26-0001118-2",
+        "name": "FOTO (JETTY SPEED BOAT) 1(2).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/FOTO%20%28JETTY%20SPEED%20BOAT%29%201%282%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "28/10/26 14:14",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [
+      {
+        "fpbNo": "GAJ-FPB-26-0001122",
+        "date": "28/10/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Keperluan mirip: \"jetty speed boat\" pada 28/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (0 hari selisih)"
+      },
+      {
+        "fpbNo": "GAJ-FPB-26-0001111",
+        "date": "27/10/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Keperluan mirip: \"jetty speed boat\" pada 27/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (1 hari selisih)"
+      }
+    ],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-29T12:47:08.695Z",
+    "createdAt": "2026-10-29T00:39:20.305Z",
+    "priorityLevel": "P1",
+    "slaTargetDate": "30/10/26",
+    "slaDaysRemaining": 1,
+    "slaStatus": "DUE_SOON"
+  },
+  {
+    "id": "fpb-rev-CPL-FPB-26-0005027",
+    "fpbNo": "CPL-FPB-26-0005027",
+    "originalFpb": "CPL/LOG/FPB/26-0005027",
+    "entity": "CPL",
+    "armada": "DEPT OPERATION",
+    "date": "28/10/26",
+    "purpose": "Kebutuhan Operasional DEPT OPERATION",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0005027.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-29T00:39:20.305Z",
+    "createdAt": "2026-10-29T00:39:20.305Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "27/11/26",
+    "slaDaysRemaining": 29,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-CPL-FPB-26-0005028",
+    "fpbNo": "CPL-FPB-26-0005028",
+    "originalFpb": "CPL/LOG/FPB/26-0005028",
+    "entity": "CPL",
+    "armada": "DEPT PROCUREMENT",
+    "date": "28/10/26",
+    "purpose": "U/ STOCK GUDANG",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0005028.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "ACC00301004-ZZZ",
+        "itemName": "AIR ACCU TAMBAH (00)",
+        "qty": 100,
+        "unit": "LTR",
+        "description": "U/ STOCK GUDANG",
+        "priority": "P3",
+        "stockAvailable": 40,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[ACC00301004-ZZZ] AIR ACCU TAMBAH (00) (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "PO",
+        "notes": "Stok gudang parsial (40 LTR). Sisa dibuatkan PO."
+      },
+      {
+        "no": 2,
+        "itemCode": "CAI00601005-ZZZ",
+        "itemName": "DETERJEN (00)",
+        "qty": 240,
+        "unit": "BKS",
+        "description": "U/ STOCK GUDANG",
+        "priority": "P3",
+        "stockAvailable": 144,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[CAI00601005-ZZZ] DETERJEN (00) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang parsial (144 BKS). Sisa dibuatkan PO."
+      },
+      {
+        "no": 3,
+        "itemCode": "SFT00401004-ZZZ",
+        "itemName": "HELM SAFETY PUTIH (00)",
+        "qty": 12,
+        "unit": "PCS",
+        "description": "U/ STOCK GUDANG",
+        "priority": "P3",
+        "stockAvailable": 35,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[SFT00401004-ZZZ] HELM SAFETY PUTIH (00) (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (35 PCS). Disarankan penuhi dari stok gudang."
+      },
+      {
+        "no": 4,
+        "itemCode": "SFT00401006-ZZZ",
+        "itemName": "HELM SAFETY TALI PENGAMAN (00)",
+        "qty": 12,
+        "unit": "PCS",
+        "description": "U/ STOCK GUDANG",
+        "priority": "P3",
+        "stockAvailable": 35,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[SFT00401006-ZZZ] HELM SAFETY TALI PENGAMAN (00) (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (35 PCS). Disarankan penuhi dari stok gudang."
+      },
+      {
+        "no": 5,
+        "itemCode": "KUA00108001-ZZZ",
+        "itemName": "KUAS/BULU ROLL REFILL (00)",
+        "qty": 500,
+        "unit": "PCS",
+        "description": "U/ STOCK GUDANG",
+        "priority": "P3",
+        "stockAvailable": 349,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[KUA00108001-ZZZ] KUAS/BULU ROLL REFILL (00) (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "PO",
+        "notes": "Stok gudang parsial (349 PCS). Sisa dibuatkan PO."
+      },
+      {
+        "no": 6,
+        "itemCode": "CAI01101008-RHA",
+        "itemName": "CARBON CLEANER/REMOVER HD 25 LITER RA 092 CR (RHADARCHEM)",
+        "qty": 4,
+        "unit": "PIL",
+        "description": "U/ STOCK GUDANG",
+        "priority": "P3",
+        "stockAvailable": 150,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[CAI01101005-ZZZ] CARBON CLEANER/REMOVER WAL R-01 (LITER) (00) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (150 PIL). Disarankan penuhi dari stok gudang."
+      }
+    ],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-29T12:47:23.537Z",
+    "createdAt": "2026-10-29T00:39:20.305Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "27/11/26",
+    "slaDaysRemaining": 29,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-CPL-FPB-26-0005030",
+    "fpbNo": "CPL-FPB-26-0005030",
+    "originalFpb": "CPL/LOG/FPB/26-0005030",
+    "entity": "CPL",
+    "armada": "MOBIL OPS KT 1962 ZI",
+    "date": "28/10/26",
+    "purpose": "U/ BAN SEREP",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": false,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0005030.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "EMERGENCY",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "BAN00309001-GY",
+        "itemName": "BAN LUAR 205/65 R15 (GOOD YEAR)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ BAN SEREP",
+        "priority": "P1",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[BAN1-BAN003] BAN (TYRE) - BAN LUAR (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [
+      {
+        "id": "efpb-att-CPL-FPB-26-0005030-2",
+        "name": "26-00003 (KT 1962 ZI).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/26-00003%20%28KT%201962%20ZI%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "28/10/26 14:39",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-29T12:47:29.272Z",
+    "createdAt": "2026-10-29T00:39:20.305Z",
+    "priorityLevel": "P1",
+    "slaTargetDate": "30/10/26",
+    "slaDaysRemaining": 1,
+    "slaStatus": "DUE_SOON"
+  },
+  {
+    "id": "fpb-rev-GAJ-FPB-26-0001119",
+    "fpbNo": "GAJ-FPB-26-0001119",
+    "originalFpb": "GAJ/LOG/FPB/26-0001119",
+    "entity": "GAJ",
+    "armada": "OFFICE GAJ",
+    "date": "28/10/26",
+    "purpose": "U/ PERBAIKAN FD EX-BITUNG",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0001119.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "URGENT",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "PRI01901002-SA",
+        "itemName": "KEYPAD DISPENSER SK10 (SANKI)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ PERBAIKAN FD EX-BITUNG",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[PRIN-PRI019] PRINTER - KEYPAD DISPENSER (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 2,
+        "itemCode": "PRI00501013-SA",
+        "itemName": "PRINTER SK10 (SANKI)",
+        "qty": 1,
+        "unit": "UNT",
+        "description": "U/ PERBAIKAN FD EX-BITUNG",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [
+      {
+        "id": "efpb-att-GAJ-FPB-26-0001119-2",
+        "name": "CPL-LKK-EX BITUNG (KEYPAD & PRINTER).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/CPL-LKK-EX%20BITUNG%20%28KEYPAD%20%26%20PRINTER%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "28/10/26 14:48",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      },
+      {
+        "id": "efpb-att-GAJ-FPB-26-0001119-3",
+        "name": "CPL-FOTO-EX BITUNG (KEYPAD & PRINTER).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/CPL-FOTO-EX%20BITUNG%20%28KEYPAD%20%26%20PRINTER%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "28/10/26 14:48",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [
+      {
+        "fpbNo": "GAJ-FPB-26-0001120",
+        "date": "28/10/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Item sama: \"KEYPAD DISPENSER SK10 (SANKI)\" diajukan pada 28/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (0 hari selisih)"
+      },
+      {
+        "fpbNo": "GAJ-FPB-26-0001121",
+        "date": "28/10/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Item sama: \"KEYPAD DISPENSER SK10 (SANKI)\" diajukan pada 28/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (0 hari selisih)"
+      }
+    ],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-29T12:47:34.618Z",
+    "createdAt": "2026-10-29T00:39:20.305Z",
+    "priorityLevel": "P1",
+    "slaTargetDate": "30/10/26",
+    "slaDaysRemaining": 1,
+    "slaStatus": "DUE_SOON"
+  },
+  {
+    "id": "fpb-rev-GAJ-FPB-26-0001120",
+    "fpbNo": "GAJ-FPB-26-0001120",
+    "originalFpb": "GAJ/LOG/FPB/26-0001120",
+    "entity": "GAJ",
+    "armada": "OFFICE GAJ",
+    "date": "28/10/26",
+    "purpose": "U/ PERBAIKAN FD EX MAKASSAR",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0001120.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "URGENT",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "PRI01901002-SA",
+        "itemName": "KEYPAD DISPENSER SK10 (SANKI)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ PERBAIKAN FD EX MAKASSAR",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[PRIN-PRI019] PRINTER - KEYPAD DISPENSER (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 2,
+        "itemCode": "PRI00501013-SA",
+        "itemName": "PRINTER SK10 (SANKI)",
+        "qty": 1,
+        "unit": "UNT",
+        "description": "U/ PERBAIKAN FD EX MAKASSAR",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [
+      {
+        "id": "efpb-att-GAJ-FPB-26-0001120-2",
+        "name": "CPL-LKK-EX MAKASSAR (KEYPAD & PRINTER).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/CPL-LKK-EX%20MAKASSAR%20%28KEYPAD%20%26%20PRINTER%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "28/10/26 14:49",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      },
+      {
+        "id": "efpb-att-GAJ-FPB-26-0001120-3",
+        "name": "CPL-FOTO-EX MAKASSAR (KEYPAD & PRINTER).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/CPL-FOTO-EX%20MAKASSAR%20%28KEYPAD%20%26%20PRINTER%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "28/10/26 14:49",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [
+      {
+        "fpbNo": "GAJ-FPB-26-0001119",
+        "date": "28/10/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Item sama: \"KEYPAD DISPENSER SK10 (SANKI)\" diajukan pada 28/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (0 hari selisih)"
+      },
+      {
+        "fpbNo": "GAJ-FPB-26-0001121",
+        "date": "28/10/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Item sama: \"KEYPAD DISPENSER SK10 (SANKI)\" diajukan pada 28/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (0 hari selisih)"
+      }
+    ],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-29T12:47:37.014Z",
+    "createdAt": "2026-10-29T00:39:20.305Z",
+    "priorityLevel": "P1",
+    "slaTargetDate": "30/10/26",
+    "slaDaysRemaining": 1,
+    "slaStatus": "DUE_SOON"
+  },
+  {
+    "id": "fpb-rev-GAJ-FPB-26-0001121",
+    "fpbNo": "GAJ-FPB-26-0001121",
+    "originalFpb": "GAJ/LOG/FPB/26-0001121",
+    "entity": "GAJ",
+    "armada": "OFFICE GAJ",
+    "date": "28/10/26",
+    "purpose": "U/ PERBAIKAN FD EX PULAU BALANG",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0001121.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "URGENT",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "PRI01901002-SA",
+        "itemName": "KEYPAD DISPENSER SK10 (SANKI)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ PERBAIKAN FD EX PULAU BALANG",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[PRIN-PRI019] PRINTER - KEYPAD DISPENSER (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [
+      {
+        "id": "efpb-att-GAJ-FPB-26-0001121-2",
+        "name": "CPL-LKK-EX PULAU BALANG (KEYPAD).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/CPL-LKK-EX%20PULAU%20BALANG%20%28KEYPAD%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "28/10/26 14:53",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      },
+      {
+        "id": "efpb-att-GAJ-FPB-26-0001121-3",
+        "name": "CPL-FOTO-EX PULAU BALANG (KEYPAD).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/CPL-FOTO-EX%20PULAU%20BALANG%20%28KEYPAD%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "28/10/26 14:53",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [
+      {
+        "fpbNo": "GAJ-FPB-26-0001119",
+        "date": "28/10/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Item sama: \"KEYPAD DISPENSER SK10 (SANKI)\" diajukan pada 28/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (0 hari selisih)"
+      },
+      {
+        "fpbNo": "GAJ-FPB-26-0001120",
+        "date": "28/10/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Item sama: \"KEYPAD DISPENSER SK10 (SANKI)\" diajukan pada 28/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (0 hari selisih)"
+      }
+    ],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-29T12:47:41.089Z",
+    "createdAt": "2026-10-29T00:39:20.305Z",
+    "priorityLevel": "P1",
+    "slaTargetDate": "30/10/26",
+    "slaDaysRemaining": 1,
+    "slaStatus": "DUE_SOON"
+  },
+  {
+    "id": "fpb-rev-SP-FPB-26-0000992",
+    "fpbNo": "SP-FPB-26-0000992",
+    "originalFpb": "SP/LOG/FPB/26-0000992",
+    "entity": "SP",
+    "armada": "SPEED BOAT 04",
+    "date": "28/10/26",
+    "purpose": "Kebutuhan Operasional SPEED BOAT 04",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_SP-FPB-26-0000992.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "EMERGENCY",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "GSK01017002-YMH",
+        "itemName": "GASKET HEAD 6F5-11181-A2 (YAMAHA)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ MESIN TYPE MESIN YAMAHA 40PK",
+        "priority": "P1",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[GSKT-GSK010] GASKET - GASKET HEAD (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-29T00:50:51.145Z",
+    "createdAt": "2026-10-29T00:39:20.305Z",
+    "priorityLevel": "P1",
+    "slaTargetDate": "30/10/26",
+    "slaDaysRemaining": 1,
+    "slaStatus": "DUE_SOON"
+  },
+  {
+    "id": "fpb-rev-GAJ-FPB-26-0001122",
+    "fpbNo": "GAJ-FPB-26-0001122",
+    "originalFpb": "GAJ/LOG/FPB/26-0001122",
+    "entity": "GAJ",
+    "armada": "OFFICE GAJ",
+    "date": "28/10/26",
+    "purpose": "U/ BLASTING JETTY SPEED BOAT",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0001122.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "URGENT",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "BBG01301002-ZZZ",
+        "itemName": "PASIR BLASTING (ZAK) (00)",
+        "qty": 500,
+        "unit": "ZAK",
+        "description": "U/ BLASTING JETTY SPEED BOAT",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [
+      {
+        "id": "efpb-att-GAJ-FPB-26-0001122-2",
+        "name": "FOTO (JETTY SPEED BOAT) 1(3).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/FOTO%20%28JETTY%20SPEED%20BOAT%29%201%283%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "28/10/26 15:10",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [
+      {
+        "fpbNo": "GAJ-FPB-26-0001118",
+        "date": "28/10/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Keperluan mirip: \"jetty speed boat\" pada 28/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (0 hari selisih)"
+      },
+      {
+        "fpbNo": "GAJ-FPB-26-0001111",
+        "date": "27/10/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Keperluan mirip: \"jetty speed boat\" pada 27/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (1 hari selisih)"
+      }
+    ],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-29T12:47:49.329Z",
+    "createdAt": "2026-10-29T00:39:20.305Z",
+    "priorityLevel": "P1",
+    "slaTargetDate": "30/10/26",
+    "slaDaysRemaining": 1,
+    "slaStatus": "DUE_SOON"
+  },
+  {
+    "id": "fpb-rev-CPL-FPB-26-0004517",
+    "fpbNo": "CPL-FPB-26-0004517",
+    "originalFpb": "CPL/LOG/FPB/26-0004517",
+    "entity": "CPL",
+    "armada": "SV TWINSISTER 307",
+    "date": "28/10/26",
+    "purpose": "U/ PERBAIKAN PART AE KANAN",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0004517.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "URGENT",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "PIP04501002-VLV",
+        "itemName": "FUEL PIPE 20759475 D5AT (VOLVO)",
+        "qty": 4,
+        "unit": "PCS",
+        "description": "U/ PERBAIKAN PART AE KANAN",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[PIPA-PIP022] PIPA (PIPE) - PIPA (PIPE) FUEL INJECTION PUMP (HL)",
+        "inventoryEntity": "HL",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 2,
+        "itemCode": "GSK00101115-VLV",
+        "itemName": "GASKET 977620 D5AT (VOLVO)",
+        "qty": 8,
+        "unit": "PCS",
+        "description": "U/ PERBAIKAN PART AE KANAN",
+        "priority": "P2",
+        "stockAvailable": 2,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[GSK00101036-VLV] GASKET 888880 D5AT (VOLVO) (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "PO",
+        "notes": "Stok gudang parsial (2 PCS). Sisa dibuatkan PO."
+      },
+      {
+        "no": 3,
+        "itemCode": "SKR01104003-VLV",
+        "itemName": "HOLLOW SCREW 888767 D5AT (VOLVO)",
+        "qty": 4,
+        "unit": "PCS",
+        "description": "U/ PERBAIKAN PART AE KANAN",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[SKRP-SKR011] SKRUP (SCREW) - SKRUP (SCREW) HOLLOW (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [
+        "CPL-PO-26-05352"
+      ],
+      "fstbNos": [
+        "CPL-FSTB-26-06022"
+      ],
+      "ttbNos": [
+        "CPL-TTB-26-06934"
+      ]
+    },
+    "updatedAt": "2026-10-29T12:47:59.018Z",
+    "createdAt": "2026-10-29T00:39:20.305Z",
+    "priorityLevel": "P1",
+    "slaTargetDate": "30/10/26",
+    "slaDaysRemaining": 1,
+    "slaStatus": "DUE_SOON"
+  },
+  {
+    "id": "fpb-rev-GAJ-FPB-26-0000993",
+    "fpbNo": "GAJ-FPB-26-0000993",
+    "originalFpb": "GAJ/LOG/FPB/26-0000993",
+    "entity": "GAJ",
+    "armada": "OFFICE GAJ",
+    "date": "28/10/26",
+    "purpose": "U/ SARANA KERJA HSE • U/ SARANA KERJA ELEKTRIK",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0000993.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "SFT03201001-ZZZ",
+        "itemName": "LOTO TAG SAFETY (00)",
+        "qty": 3,
+        "unit": "SET",
+        "description": "U/ SARANA KERJA HSE",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 2,
+        "itemCode": "SAT01402001-ZZZ",
+        "itemName": "SARUNG TANGAN ISOLASI LISTRIK 1000V (00)",
+        "qty": 24,
+        "unit": "PSG",
+        "description": "U/ SARANA KERJA ELEKTRIK",
+        "priority": "P3",
+        "stockAvailable": 36,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[SAT00101001-ZZZ] SARUNG TANGAN BIASA (00) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (36 PSG). Disarankan penuhi dari stok gudang."
+      }
+    ],
+    "attachments": [],
+    "duplicateAlerts": [
+      {
+        "fpbNo": "GAJ-FPB-26-0001115",
+        "date": "28/10/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Keperluan mirip: \"sarana sarana\" pada 28/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (0 hari selisih)"
+      },
+      {
+        "fpbNo": "GAJ-FPB-26-0001080",
+        "date": "27/10/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Keperluan mirip: \"sarana sarana\" pada 27/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (1 hari selisih)"
+      },
+      {
+        "fpbNo": "GAJ-FPB-26-0001083",
+        "date": "27/10/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Keperluan mirip: \"sarana sarana\" pada 27/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (1 hari selisih)"
+      },
+      {
+        "fpbNo": "GAJ-FPB-26-0001108",
+        "date": "27/10/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Keperluan mirip: \"sarana sarana\" pada 27/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (1 hari selisih)"
+      },
+      {
+        "fpbNo": "GAJ-FPB-26-0001104",
+        "date": "26/10/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Keperluan mirip: \"sarana sarana\" pada 26/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (2 hari selisih)"
+      }
+    ],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-29T12:48:05.465Z",
+    "createdAt": "2026-10-29T00:39:20.305Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "27/11/26",
+    "slaDaysRemaining": 29,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-GAJ-FPB-26-0001114",
+    "fpbNo": "GAJ-FPB-26-0001114",
+    "originalFpb": "GAJ/LOG/FPB/26-0001114",
+    "entity": "GAJ",
+    "armada": "OFFICE GAJ",
+    "date": "28/10/26",
+    "purpose": "Kebutuhan Operasional OFFICE GAJ",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0001114.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [],
+    "attachments": [
+      {
+        "id": "efpb-att-GAJ-FPB-26-0001114-2",
+        "name": "Image_20261028_0001.pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/Image_20261028_0001.pdf",
+        "type": "pdf",
+        "uploadedAt": "28/10/26 11:53",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-29T00:39:20.305Z",
+    "createdAt": "2026-10-28T05:50:09.035Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "27/11/26",
+    "slaDaysRemaining": 29,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-GAJ-FPB-26-0001080",
+    "fpbNo": "GAJ-FPB-26-0001080",
+    "originalFpb": "GAJ/LOG/FPB/26-0001080",
+    "entity": "GAJ",
+    "armada": "OFFICE GAJ",
+    "date": "27/10/26",
+    "purpose": "U/ LANTAI DAN DINDING • U/ WALKWAY • U/ ATAP • U/ SARANA KERJA",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": false,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0001080.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "URGENT",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "CAT03301002-INC",
+        "itemName": "CAT INTERBOND 201 FRENCH GREY (KDJ 724/A) (INTERNATIONAL CAT)",
+        "qty": 140,
+        "unit": "LTR",
+        "description": "U/ LANTAI DAN DINDING",
+        "priority": "P2",
+        "stockAvailable": 5,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[CAT01101004-INC] CAT INTERLAC 665 FRENCH GREY (CLJ 724) (INTERNATIONAL CAT) (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "PO",
+        "notes": "Stok gudang parsial (5 LTR). Sisa dibuatkan PO."
+      },
+      {
+        "no": 2,
+        "itemCode": "THI00304001-INC",
+        "itemName": "THINNER GTA 220 (INTERNATIONAL CAT)",
+        "qty": 120,
+        "unit": "LTR",
+        "description": "U/ LANTAI DAN DINDING",
+        "priority": "P2",
+        "stockAvailable": 85,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[THI00304001-INC] THINNER GTA 220 (INTERNATIONAL CAT) (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "PO",
+        "notes": "Stok gudang parsial (85 LTR). Sisa dibuatkan PO."
+      },
+      {
+        "no": 3,
+        "itemCode": "CAT01101002-INC",
+        "itemName": "CAT INTERLAC 665 BLACK (CLY 999/A) (INTERNATIONAL CAT)",
+        "qty": 15,
+        "unit": "LTR",
+        "description": "U/ WALKWAY",
+        "priority": "P2",
+        "stockAvailable": 5,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[CAT01101004-INC] CAT INTERLAC 665 FRENCH GREY (CLJ 724) (INTERNATIONAL CAT) (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "PO",
+        "notes": "Stok gudang parsial (5 LTR). Sisa dibuatkan PO."
+      },
+      {
+        "no": 4,
+        "itemCode": "CAT01101005-INC",
+        "itemName": "CAT INTERLAC 665 FLAME RED (CLF 287) (INTERNATIONAL CAT)",
+        "qty": 20,
+        "unit": "LTR",
+        "description": "U/ ATAP",
+        "priority": "P2",
+        "stockAvailable": 5,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[CAT01101004-INC] CAT INTERLAC 665 FRENCH GREY (CLJ 724) (INTERNATIONAL CAT) (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "PO",
+        "notes": "Stok gudang parsial (5 LTR). Sisa dibuatkan PO."
+      },
+      {
+        "no": 5,
+        "itemCode": "KUA00108002-ZZZ",
+        "itemName": "KUAS/BULU ROLL REFILL (KTK) (00)",
+        "qty": 1,
+        "unit": "KTK",
+        "description": "U/ SARANA KERJA",
+        "priority": "P2",
+        "stockAvailable": 140,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[KUA00108001-ZZZ] KUAS/BULU ROLL REFILL (00) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (140 KTK). Disarankan penuhi dari stok gudang."
+      }
+    ],
+    "attachments": [],
+    "duplicateAlerts": [
+      {
+        "fpbNo": "GAJ-FPB-26-0001083",
+        "date": "27/10/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Keperluan mirip: \"lantai dinding sarana\" pada 27/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (0 hari selisih)"
+      }
+    ],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-29T12:48:24.230Z",
+    "createdAt": "2026-10-28T01:02:53.918Z",
+    "priorityLevel": "P1",
+    "slaTargetDate": "29/10/26",
+    "slaDaysRemaining": 0,
+    "slaStatus": "DUE_SOON"
+  },
+  {
+    "id": "fpb-rev-GAJ-FPB-26-0001101",
+    "fpbNo": "GAJ-FPB-26-0001101",
+    "originalFpb": "GAJ/LOG/FPB/26-0001101",
+    "entity": "GAJ",
+    "armada": "TB GAJ 02",
+    "date": "27/10/26",
+    "purpose": "Kebutuhan Operasional TB GAJ 02",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0001101.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "URGENT",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "LAS00603001-ESA",
+        "itemName": "KAWAT LAS 6013 4,0 MM (ESAB)",
+        "qty": 420,
+        "unit": "KG",
+        "description": "U/ SARANA KERJA PENGELASAN",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[LAS1-LAS006] LAS (WELDING) - KAWAT LAS 6013 (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [
+      {
+        "id": "efpb-att-GAJ-FPB-26-0001101-2",
+        "name": "GAJ-FPB-26-0001101 DOCK LIST(2).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/GAJ-FPB-26-0001101%20DOCK%20LIST%282%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "27/10/26 15:50",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-28T05:52:40.841Z",
+    "createdAt": "2026-10-28T01:02:53.918Z",
+    "priorityLevel": "P1",
+    "slaTargetDate": "29/10/26",
+    "slaDaysRemaining": 0,
+    "slaStatus": "DUE_SOON"
+  },
+  {
+    "id": "fpb-rev-GAJ-FPB-26-0001111",
+    "fpbNo": "GAJ-FPB-26-0001111",
+    "originalFpb": "GAJ/LOG/FPB/26-0001111",
+    "entity": "GAJ",
+    "armada": "OFFICE GAJ",
+    "date": "27/10/26",
+    "purpose": "U/ INSTALASI LAMPU JETTY SPEED BOAT • U/ ANTI KARAT JETTY SPEED BOAT",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "/api/review-fpb/pdf?fpbNo=GAJ-FPB-26-0001111&type=raw",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "URGENT",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "KBE01902003-JEM",
+        "itemName": "KABEL NYYHY 3 X 2,5 MM (JEMBO)",
+        "qty": 50,
+        "unit": "MTR",
+        "description": "U/ INSTALASI LAMPU JETTY SPEED BOAT",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[KBEL-KBE019] KABEL (CABLE) - KABEL NYYHY (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 2,
+        "itemCode": "MCB00104001-SH",
+        "itemName": "MCB 4 PHASE 32 AMPERE IC60N (SCHNEIDER)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ INSTALASI LAMPU JETTY SPEED BOAT",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 3,
+        "itemCode": "MCB00102004-SH",
+        "itemName": "MCB 2 PHASE 25 AMPERE IC60N (SCHNEIDER)",
+        "qty": 2,
+        "unit": "PCS",
+        "description": "U/ INSTALASI LAMPU JETTY SPEED BOAT",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 4,
+        "itemCode": "PLU02101001-LEG",
+        "itemName": "PLUG 3 PIN 32 AMPERE (LEGRAND)",
+        "qty": 2,
+        "unit": "PCS",
+        "description": "U/ INSTALASI LAMPU JETTY SPEED BOAT",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[PLUG-PLU023] PLUG - PLUG 5 PIN (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 5,
+        "itemCode": "LAM06507001-OP",
+        "itemName": "LAMPU SOROT LED 200W 220V (OPPLE)",
+        "qty": 3,
+        "unit": "PCS",
+        "description": "U/ INSTALASI LAMPU JETTY SPEED BOAT",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[LAMP-LAM065] LAMPU (LAMP) - LAMPU SOROT LED 220V (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 6,
+        "itemCode": "ZIN00208001-ST",
+        "itemName": "ZINC ANODE S-4 (STAR)",
+        "qty": 10,
+        "unit": "PCS",
+        "description": "U/ ANTI KARAT JETTY SPEED BOAT",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[ZINC-ZIN002] ZINC - ZINC ANODE (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [
+      {
+        "id": "efpb-att-GAJ-FPB-26-0001111-2",
+        "name": "SPK-167 (ZINC ANODE)(3).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/SPK-167%20%28ZINC%20ANODE%29%283%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "28/10/26 14:41",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      },
+      {
+        "id": "efpb-att-GAJ-FPB-26-0001111-3",
+        "name": "SPK-169 (INSTALASI LAMPU)(3).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/SPK-169%20%28INSTALASI%20LAMPU%29%283%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "28/10/26 14:41",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      },
+      {
+        "id": "efpb-att-GAJ-FPB-26-0001111-4",
+        "name": "FOTO (JETTY SPEED BOAT)(3).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/FOTO%20%28JETTY%20SPEED%20BOAT%29%283%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "28/10/26 14:41",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [
+      {
+        "fpbNo": "GAJ-FPB-26-0001117",
+        "date": "28/10/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Keperluan mirip: \"jetty jetty\" pada 28/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (1 hari selisih)"
+      },
+      {
+        "fpbNo": "GAJ-FPB-26-0001118",
+        "date": "28/10/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Keperluan mirip: \"jetty speed boat jetty speed boat\" pada 28/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (1 hari selisih)"
+      },
+      {
+        "fpbNo": "GAJ-FPB-26-0001122",
+        "date": "28/10/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Keperluan mirip: \"jetty speed boat jetty speed boat\" pada 28/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (1 hari selisih)"
+      },
+      {
+        "fpbNo": "GAJ-FPB-26-0001088",
+        "date": "24/10/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Item serupa: \"MCB 2 PHASE 25 AMPERE IC60N (SCHNEIDER)\" diajukan pada 24/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (3 hari selisih)"
+      }
+    ],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-29T12:48:28.619Z",
+    "createdAt": "2026-10-28T01:02:53.918Z",
+    "priorityLevel": "P1",
+    "slaTargetDate": "29/10/26",
+    "slaDaysRemaining": 0,
+    "slaStatus": "DUE_SOON",
+    "pchLogistik": "-",
+    "reviewedBy": "Administrator CPG",
+    "reviewedAt": "2026-10-28T06:06:38.001Z"
+  },
+  {
+    "id": "fpb-rev-CPL-FPB-26-0004998",
+    "fpbNo": "CPL-FPB-26-0004998",
+    "originalFpb": "CPL/LOG/FPB/26-0004998",
+    "entity": "CPL",
+    "armada": "PSV BRITOIL JUSTICE",
+    "date": "26/10/26",
+    "purpose": "Kebutuhan Operasional PSV BRITOIL JUSTICE",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0004998.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "UNI00103003-ZZZ",
+        "itemName": "BAJU COVERALL PT. CPL (ALL SIZE) ORANGE (00)",
+        "qty": 2,
+        "unit": "PCS",
+        "description": "A/N ANAS HAFID (MUALIM II)",
+        "priority": "P3",
+        "stockAvailable": 6,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[UNI00103003-ZZZ] BAJU COVERALL PT. CPL (ALL SIZE) ORANGE (00) (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (6 PCS). Disarankan penuhi dari stok gudang."
+      },
+      {
+        "no": 2,
+        "itemCode": "UNI02303001-ZZZ",
+        "itemName": "SEPATU SAFETY NO. 07 (00)",
+        "qty": 1,
+        "unit": "PSG",
+        "description": "A/N ANAS HAFID (MUALIM II)",
+        "priority": "P3",
+        "stockAvailable": 14,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[UNI02303001-ZZZ] SEPATU SAFETY NO. 07 (00) (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (14 PSG). Disarankan penuhi dari stok gudang."
+      },
+      {
+        "no": 3,
+        "itemCode": "SFT00401006-ZZZ",
+        "itemName": "HELM SAFETY TALI PENGAMAN (00)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "A/N ANAS HAFID (MUALIM II)",
+        "priority": "P3",
+        "stockAvailable": 35,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[SFT00401006-ZZZ] HELM SAFETY TALI PENGAMAN (00) (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (35 PCS). Disarankan penuhi dari stok gudang."
+      },
+      {
+        "no": 4,
+        "itemCode": "SFT00401004-ZZZ",
+        "itemName": "HELM SAFETY PUTIH (00)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "A/N ANAS HAFID (MUALIM II)",
+        "priority": "P3",
+        "stockAvailable": 35,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[SFT00401004-ZZZ] HELM SAFETY PUTIH (00) (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (35 PCS). Disarankan penuhi dari stok gudang."
+      }
+    ],
+    "attachments": [
+      {
+        "id": "efpb-att-CPL-FPB-26-0004998-2",
+        "name": "No- 145 surat permintaan APD AN- ANAS HAFID (MUALIM II - PSV) 26 OKTOBER 2026_CPL.pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/No-%20145%20surat%20permintaan%20APD%20AN-%20ANAS%20HAFID%20%28MUALIM%20II%20-%20PSV%29%2026%20OKTOBER%202026_CPL.pdf",
+        "type": "pdf",
+        "uploadedAt": "26/10/26 17:11",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-27T08:21:35.818Z",
+    "createdAt": "2026-10-27T08:21:01.960Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "25/11/26",
+    "slaDaysRemaining": 27,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-HL-FPB-26-0001213",
+    "fpbNo": "HL-FPB-26-0001213",
+    "originalFpb": "HL/LOG/FPB/26-0001213",
+    "entity": "HL",
+    "armada": "TB KING BORNEO",
+    "date": "27/10/26",
+    "purpose": "Kebutuhan Operasional TB KING BORNEO",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": false,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_HL-FPB-26-0001213.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [],
+    "attachments": [
+      {
+        "id": "efpb-att-HL-FPB-26-0001213-2",
+        "name": "HL-FPB-26-0001213 LKA Kompor Listrik TB-King Borneo.pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/HL-FPB-26-0001213%20LKA%20Kompor%20Listrik%20TB-King%20Borneo.pdf",
+        "type": "pdf",
+        "uploadedAt": "27/10/26 09:32",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      },
+      {
+        "id": "efpb-att-HL-FPB-26-0001213-3",
+        "name": "HL-FPB-26-0001213 BA.pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/HL-FPB-26-0001213%20BA.pdf",
+        "type": "pdf",
+        "uploadedAt": "27/10/26 09:32",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-29T12:48:41.589Z",
+    "createdAt": "2026-10-27T08:21:01.960Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "26/11/26",
+    "slaDaysRemaining": 28,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-CPL-FPB-26-0005003",
+    "fpbNo": "CPL-FPB-26-0005003",
+    "originalFpb": "CPL/LOG/FPB/26-0005003",
+    "entity": "CPL",
+    "armada": "SV TWINSISTER 307",
+    "date": "27/10/26",
+    "purpose": "Kebutuhan Operasional SV TWINSISTER 307",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0005003.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "GUR00801001-BOS",
+        "itemName": "MESIN GURINDA 4\" (BOSCH)",
+        "qty": 1,
+        "unit": "UNT",
+        "description": "U/ SARANA KERJA, PENGGANTIAN YANG RUSAK",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[GURI-GUR008] GURINDA - MESIN GURINDA (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [
+      {
+        "id": "efpb-att-CPL-FPB-26-0005003-2",
+        "name": "CPL-FPB-26-0005003 LKA GURINDA.pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/CPL-FPB-26-0005003%20LKA%20GURINDA.pdf",
+        "type": "pdf",
+        "uploadedAt": "27/10/26 09:39",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-28T01:09:16.726Z",
+    "createdAt": "2026-10-27T08:21:01.960Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "26/11/26",
+    "slaDaysRemaining": 28,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-GAJ-FPB-26-0001105",
+    "fpbNo": "GAJ-FPB-26-0001105",
+    "originalFpb": "GAJ/LOG/FPB/26-0001105",
+    "entity": "GAJ",
+    "armada": "MUSHOLLA GAJ",
+    "date": "27/10/26",
+    "purpose": "U/ TOILET (2) MUSHOLAH GAJ • U/ PIPA PEMBUANGAN TOILET (2) MUSHOLAH GAJ",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0001105.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "URGENT",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "ELB01001001-ZZZ",
+        "itemName": "ELBOW PVC 1\" (00)",
+        "qty": 3,
+        "unit": "PCS",
+        "description": "U/ TOILET (2) MUSHOLAH GAJ",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[ELBO-ELB002] ELBOW - ELBOW DRAT DALAM PVC (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 2,
+        "itemCode": "TEE00701001-ZZZ",
+        "itemName": "TEE PVC 1\" (00)",
+        "qty": 3,
+        "unit": "PCS",
+        "description": "U/ PIPA PEMBUANGAN TOILET (2) MUSHOLAH GAJ",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[TEE1-TEE003] TEE - TEE DRAT PVC (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-29T12:48:45.758Z",
+    "createdAt": "2026-10-27T08:21:01.960Z",
+    "priorityLevel": "P1",
+    "slaTargetDate": "29/10/26",
+    "slaDaysRemaining": 0,
+    "slaStatus": "DUE_SOON"
+  },
+  {
+    "id": "fpb-rev-MO-FPB-26-0005005",
+    "fpbNo": "MO-FPB-26-0005005",
+    "originalFpb": "MO/LOG/FPB/26-0005005",
+    "entity": "MO",
+    "armada": "MOBIL OPS KT 1962 ZI",
+    "date": "27/10/26",
+    "purpose": "Kebutuhan Operasional MOBIL OPS KT 1962 ZI",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0005005.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [],
+    "attachments": [
+      {
+        "id": "efpb-att-MO-FPB-26-0005005-2",
+        "name": "26-00002 (KT 1962 ZI).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/26-00002%20%28KT%201962%20ZI%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "27/10/26 09:54",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      },
+      {
+        "id": "efpb-att-MO-FPB-26-0005005-3",
+        "name": "26-00002 (KT 1962 ZI) FOTO.pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/26-00002%20%28KT%201962%20ZI%29%20FOTO.pdf",
+        "type": "pdf",
+        "uploadedAt": "27/10/26 09:54",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-28T01:02:53.918Z",
+    "createdAt": "2026-10-27T08:21:01.960Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "26/11/26",
+    "slaDaysRemaining": 28,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-CPL-FPB-26-0005006",
+    "fpbNo": "CPL-FPB-26-0005006",
+    "originalFpb": "CPL/LOG/FPB/26-0005006",
+    "entity": "CPL",
+    "armada": "SPOB OCEAN MANDAR",
+    "date": "27/10/26",
+    "purpose": "U/ EMERGENCY FIRE PUMP",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0005006.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "URGENT",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "PMM01002004-MTS",
+        "itemName": "POMPA ALKON SOLAR 3\" MDP-30 (MATSUMOTO)",
+        "qty": 1,
+        "unit": "UNT",
+        "description": "U/ EMERGENCY FIRE PUMP",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[FLTR-FLT009] FILTER - FILTER POMPA ALKON (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 2,
+        "itemCode": "ADM00102001-ZZZ",
+        "itemName": "ADAPTOR MACHINO 3\" TO 2\" (00)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ EMERGENCY FIRE PUMP",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[ADAM-ADM001] ADAPTOR MACHINO - ADAPTOR MACHINO (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [
+      {
+        "id": "efpb-att-CPL-FPB-26-0005006-2",
+        "name": "CPL-FPB-26-0005006 LKA POMPA ALKON DIESEL.pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/CPL-FPB-26-0005006%20LKA%20POMPA%20ALKON%20DIESEL.pdf",
+        "type": "pdf",
+        "uploadedAt": "27/10/26 09:57",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      },
+      {
+        "id": "efpb-att-CPL-FPB-26-0005006-3",
+        "name": "CPL-FPB-26-0005006 BA POMPA ALKON DIESEL.pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/CPL-FPB-26-0005006%20BA%20POMPA%20ALKON%20DIESEL.pdf",
+        "type": "pdf",
+        "uploadedAt": "27/10/26 09:57",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-29T12:49:01.431Z",
+    "createdAt": "2026-10-27T08:21:01.960Z",
+    "priorityLevel": "P1",
+    "slaTargetDate": "29/10/26",
+    "slaDaysRemaining": 0,
+    "slaStatus": "DUE_SOON"
+  },
+  {
+    "id": "fpb-rev-CPL-FPB-26-0005007",
+    "fpbNo": "CPL-FPB-26-0005007",
+    "originalFpb": "CPL/LOG/FPB/26-0005007",
+    "entity": "CPL",
+    "armada": "SV TWINSISTER 307",
+    "date": "27/10/26",
+    "purpose": "U/ SARANA KERJA",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0005007.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "SPR00201002-EHL",
+        "itemName": "SPRAY GUN (TABUNG BAWAH) F-75S (EINHILL)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ SARANA KERJA",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[SPRA-SPR002] SPRAY GUN - SPRAY GUN (TABUNG BAWAH) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 2,
+        "itemCode": "SEH00402001-WTH",
+        "itemName": "HOSE PAINT SPRAY AIRLESS 1/4\" X 15 MTR (WINTECH KOREA)",
+        "qty": 1,
+        "unit": "ROL",
+        "description": "U/ SARANA KERJA",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[NZZL-NZZ011] NOZZLE - NOZZLE HOSE PMK JET SPRAY (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-29T12:49:11.590Z",
+    "createdAt": "2026-10-27T08:21:01.960Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "26/11/26",
+    "slaDaysRemaining": 28,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-GAJ-FPB-26-0001107",
+    "fpbNo": "GAJ-FPB-26-0001107",
+    "originalFpb": "GAJ/LOG/FPB/26-0001107",
+    "entity": "GAJ",
+    "armada": "OFFICE GAJ",
+    "date": "27/10/26",
+    "purpose": "U/SERVICE BERKALA",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": false,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0001107.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "OLI02203001-PTM",
+        "itemName": "OLI MEDITRAN SX15W-40 (PERTAMINA)",
+        "qty": 209,
+        "unit": "LTR",
+        "description": "U/SERVICE BERKALA",
+        "priority": "P3",
+        "stockAvailable": 627,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[OLI02202001-PTM] OLI MEDITRAN SAE 40 (PERTAMINA) (HL)",
+        "inventoryEntity": "HL",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (627 LTR). Disarankan penuhi dari stok gudang."
+      }
+    ],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-29T12:49:17.000Z",
+    "createdAt": "2026-10-27T08:21:01.960Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "26/11/26",
+    "slaDaysRemaining": 28,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-HL-FPB-26-001528",
+    "fpbNo": "HL-FPB-26-001528",
+    "originalFpb": "HL/LOG/FPB/26-001528",
+    "entity": "HL",
+    "armada": "MT HL 5001",
+    "date": "27/10/26",
+    "purpose": "Kebutuhan Operasional MT HL 5001",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_HL-FPB-26-001528.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-28T05:52:40.841Z",
+    "createdAt": "2026-10-27T08:21:01.960Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "26/11/26",
+    "slaDaysRemaining": 28,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-HL-FPB-26-0001303",
+    "fpbNo": "HL-FPB-26-0001303",
+    "originalFpb": "HL/LOG/FPB/26-0001303",
+    "entity": "HL",
+    "armada": "SPOB SEA LION",
+    "date": "27/10/26",
+    "purpose": "U/ CARGO ENGINE",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_HL-FPB-26-0001303.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "URGENT",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "GSK01009001-MIT",
+        "itemName": "GASKET HEAD 6D15 (MITSUBISHI)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ CARGO ENGINE",
+        "priority": "P2",
+        "stockAvailable": 1,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[PAC00801005-MIT] GASKET FULL SET 6D15 (MITSUBISHI) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (1 PCS). Disarankan penuhi dari stok gudang."
+      },
+      {
+        "no": 2,
+        "itemCode": "INJ00101007-MIT",
+        "itemName": "CHAMBER INJECTOR 6D15 (MITSUBISHI)",
+        "qty": 6,
+        "unit": "PCS",
+        "description": "U/ CARGO ENGINE",
+        "priority": "P2",
+        "stockAvailable": 6,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[NZZ02401001-MIT] NOZZLE CHAMBER ME036781 6D15 (MITSUBISHI) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (6 PCS). Disarankan penuhi dari stok gudang."
+      }
+    ],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [
+        "HL-PO-26-01543"
+      ],
+      "fstbNos": [
+        "HL-FSTB-26-01696"
+      ],
+      "ttbNos": [
+        "HL-TTB-26-01996"
+      ]
+    },
+    "updatedAt": "2026-10-29T12:49:32.827Z",
+    "createdAt": "2026-10-27T08:21:01.960Z",
+    "priorityLevel": "P1",
+    "slaTargetDate": "29/10/26",
+    "slaDaysRemaining": 0,
+    "slaStatus": "DUE_SOON"
+  },
+  {
+    "id": "fpb-rev-GAJ-FPB-26-0001083",
+    "fpbNo": "GAJ-FPB-26-0001083",
+    "originalFpb": "GAJ/LOG/FPB/26-0001083",
+    "entity": "GAJ",
+    "armada": "OFFICE GAJ",
+    "date": "27/10/26",
+    "purpose": "U/ LANTAI DAN DINDING • U/ SARANA KERJA",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": false,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0001083.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "URGENT",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "CAT03301003-INC",
+        "itemName": "CAT INTERBOND 201 RED OXIDE (KDL 274) (INTERNATIONAL CAT)",
+        "qty": 200,
+        "unit": "LTR",
+        "description": "U/ LANTAI DAN DINDING",
+        "priority": "P2",
+        "stockAvailable": 180,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[CAT01501002-INC] CAT INTERTUF RED 262 (KHA303/A) (INTERNATIONAL CAT) (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "PO",
+        "notes": "Stok gudang parsial (180 LTR). Sisa dibuatkan PO."
+      },
+      {
+        "no": 2,
+        "itemCode": "CAT01001004-INC",
+        "itemName": "CAT INTERGARD 740 SIGNAL GREEN (ECL 549) (INTERNATIONAL CAT)",
+        "qty": 100,
+        "unit": "LTR",
+        "description": "U/ LANTAI DAN DINDING",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[CAT1-CAT029] CAT (PAINTING) - CAT UPOX SIGNAL GREEN (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 3,
+        "itemCode": "KUA00301002-ZZZ",
+        "itemName": "STICK KUAS ROLL 9\" (00)",
+        "qty": 5,
+        "unit": "PCS",
+        "description": "U/ SARANA KERJA",
+        "priority": "P2",
+        "stockAvailable": 30,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[KUA00301001-FIA] STICK KUAS ROLL (FIA) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (30 PCS). Disarankan penuhi dari stok gudang."
+      },
+      {
+        "no": 4,
+        "itemCode": "CAT00201001-ZZZ",
+        "itemName": "BAK CAT ROLL (00)",
+        "qty": 5,
+        "unit": "PCS",
+        "description": "U/ SARANA KERJA",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[CAT1-CAT002] CAT (PAINTING) - BAK CAT ROLL (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [],
+    "duplicateAlerts": [
+      {
+        "fpbNo": "GAJ-FPB-26-0001080",
+        "date": "27/10/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Keperluan mirip: \"lantai dinding sarana\" pada 27/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (0 hari selisih)"
+      }
+    ],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-29T12:49:36.669Z",
+    "createdAt": "2026-10-27T08:21:01.960Z",
+    "priorityLevel": "P1",
+    "slaTargetDate": "29/10/26",
+    "slaDaysRemaining": 0,
+    "slaStatus": "DUE_SOON"
+  },
+  {
+    "id": "fpb-rev-GAJ-FPB-26-0001108",
+    "fpbNo": "GAJ-FPB-26-0001108",
+    "originalFpb": "GAJ/LOG/FPB/26-0001108",
+    "entity": "GAJ",
+    "armada": "OFFICE GAJ",
+    "date": "27/10/26",
+    "purpose": "U/SARANA KERJA KONSTRUKSI",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0001108.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "A2T09901001-HAS",
+        "itemName": "TIP CLEANER E500 (HASTON)",
+        "qty": 6,
+        "unit": "PCS",
+        "description": "U/SARANA KERJA KONSTRUKSI",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[A2TK-A2T099] ALAT2 TUKANG - TIP CLEANER (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 2,
+        "itemCode": "ATK02701001-ZZZ",
+        "itemName": "PENGGARIS SIKU BESI 30 CM (00)",
+        "qty": 2,
+        "unit": "PCS",
+        "description": "U/SARANA KERJA KONSTRUKSI",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[ATK1-ATK027] ATK - PENGGARIS SIKU BESI (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [],
+    "duplicateAlerts": [
+      {
+        "fpbNo": "GAJ-FPB-26-0001104",
+        "date": "26/10/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Keperluan persis: \"U/SARANA KERJA KONSTRUKSI\" pada 26/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (1 hari selisih)"
+      }
+    ],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-29T12:49:41.278Z",
+    "createdAt": "2026-10-27T08:21:01.960Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "26/11/26",
+    "slaDaysRemaining": 28,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 27/10/26 (berkas lain tgl 27/10/26)."
+  },
+  {
+    "id": "fpb-rev-GAJ-FPB-26-0001110",
+    "fpbNo": "GAJ-FPB-26-0001110",
+    "originalFpb": "GAJ/LOG/FPB/26-0001110",
+    "entity": "GAJ",
+    "armada": "TB GAJ 02",
+    "date": "27/10/26",
+    "purpose": "U/ PERGANTIAN PROPELLER KANAN KIRI",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": false,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0001110.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "URGENT",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "MCH00301005-ZZZ",
+        "itemName": "PROPELLER ASSY 4\" Ø 1250 MM PITCH 1100 (LEBAR DAUN 36 CM) (00)",
+        "qty": 2,
+        "unit": "PCS",
+        "description": "U/ PERGANTIAN PROPELLER KANAN KIRI",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 2,
+        "itemCode": "MUR02953001-ZZZ",
+        "itemName": "MUR PROPELLER 4\" (00)",
+        "qty": 2,
+        "unit": "PCS",
+        "description": "U/ PERGANTIAN PROPELLER KANAN KIRI",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [
+      {
+        "id": "efpb-att-GAJ-FPB-26-0001110-2",
+        "name": "GAJ-FPB-26-0001110 LIST DOCK.pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/GAJ-FPB-26-0001110%20LIST%20DOCK.pdf",
+        "type": "pdf",
+        "uploadedAt": "27/10/26 14:26",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-29T12:49:45.382Z",
+    "createdAt": "2026-10-27T08:21:01.960Z",
+    "priorityLevel": "P1",
+    "slaTargetDate": "29/10/26",
+    "slaDaysRemaining": 0,
+    "slaStatus": "DUE_SOON"
+  },
+  {
+    "id": "fpb-rev-GAJ-FPB-26-0001102",
+    "fpbNo": "GAJ-FPB-26-0001102",
+    "originalFpb": "GAJ/LOG/FPB/26-0001102",
+    "entity": "GAJ",
+    "armada": "OFFICE GAJ",
+    "date": "27/10/26",
+    "purpose": "Kebutuhan Operasional OFFICE GAJ",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": false,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0001102.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "URGENT",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "PIP01002001-ZZ",
+        "itemName": "PIPA PVC 1/2\" (00)",
+        "qty": 10,
+        "unit": "PCS",
+        "description": "U/ PEMBUATAN BAK CUCI TANGAN",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[LEM1-LEM026] LEM (GLUE) - LEM PIPA PVC (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 2,
+        "itemCode": "ELB01002001-RUC",
+        "itemName": "ELBOW PVC 1/2\" (RUCIKA)",
+        "qty": 6,
+        "unit": "PCS",
+        "description": "U/ PEMBUATAN BAK CUCI TANGAN",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[ELBO-ELB002] ELBOW - ELBOW DRAT DALAM PVC (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 3,
+        "itemCode": "TEE00702001-ZZZ",
+        "itemName": "TEE PVC 1/2\" (00)",
+        "qty": 2,
+        "unit": "PCS",
+        "description": "U/ PEMBUATAN BAK CUCI TANGAN",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[TEE1-TEE003] TEE - TEE DRAT PVC (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 4,
+        "itemCode": "LEM02603001-RG",
+        "itemName": "LEM PIPA PVC 400 GRAM (RU-GLUE)",
+        "qty": 1,
+        "unit": "KLG",
+        "description": "U/ PEMBUATAN BAK CUCI TANGAN",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[LEM1-LEM026] LEM (GLUE) - LEM PIPA PVC (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 5,
+        "itemCode": "SAL03201001-ZZ",
+        "itemName": "SEAL TAPE 1/2\" (00)",
+        "qty": 3,
+        "unit": "PCS",
+        "description": "U/ PEMBUATAN BAK CUCI TANGAN",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[SEAL-SAL031] SEAL - SEAL TAPE 1\" (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 6,
+        "itemCode": "SOC00801001-ZZ",
+        "itemName": "SOCK DRAT DALAM PVC 1/2\" (00)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ PEMBUATAN BAK CUCI TANGAN",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[SOCK-SOC008] SOCK - SOCK DRAT DALAM PVC (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 7,
+        "itemCode": "ADK02902008-ZZZ",
+        "itemName": "WASTAFEL CUCI PIRING 50 CM X 40 CM X 23 CM (00)",
+        "qty": 1,
+        "unit": "SET",
+        "description": "U/ PEMBUATAN BAK CUCI TANGAN",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 8,
+        "itemCode": "KRA00501001-ZZZ",
+        "itemName": "KRAN AIR (SS) 1/2\" (00)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ PEMBUATAN BAK CUCI TANGAN",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[KRAN-KRA001] KRAN - KRAN AIR (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 9,
+        "itemCode": "VAL00504001-OD",
+        "itemName": "BALL VALVE PVC 1/2\" (ONDA)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ PEMBUATAN BAK CUCI TANGAN",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[VALV-VAL005] VALVE - BALL VALVE PVC (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 10,
+        "itemCode": "SEH00602002-ZZZ",
+        "itemName": "SELANG WASTAFEL BCP SL 11 (00)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ PEMBUATAN BAK CUCI TANGAN",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [
+      {
+        "id": "efpb-att-GAJ-FPB-26-0001102-2",
+        "name": "SPK-PEMBUATAN BAK CUCI TANGAN(2).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/SPK-PEMBUATAN%20BAK%20CUCI%20TANGAN%282%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "27/10/26 15:05",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      },
+      {
+        "id": "efpb-att-GAJ-FPB-26-0001102-3",
+        "name": "JALUR PIPA CUCI TANGAN.pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/JALUR%20PIPA%20CUCI%20TANGAN.pdf",
+        "type": "pdf",
+        "uploadedAt": "27/10/26 15:05",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-28T05:52:40.841Z",
+    "createdAt": "2026-10-27T08:21:01.960Z",
+    "priorityLevel": "P1",
+    "slaTargetDate": "29/10/26",
+    "slaDaysRemaining": 0,
+    "slaStatus": "DUE_SOON"
+  },
+  {
+    "id": "fpb-rev-CPL-FPB-26-0005013",
+    "fpbNo": "CPL-FPB-26-0005013",
+    "originalFpb": "CPL/LOG/FPB/26-0005013",
+    "entity": "CPL",
+    "armada": "HEAD OFFICE",
+    "date": "27/10/26",
+    "purpose": "REQUEST BY OWNER",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0005013.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "URGENT",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "KBE01906001-JEM",
+        "itemName": "KABEL NYYHY 5 X 6 MM (JEMBO)",
+        "qty": 70,
+        "unit": "MTR",
+        "description": "REQUEST BY OWNER",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[KBEL-KBE019] KABEL (CABLE) - KABEL NYYHY (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-29T12:49:52.781Z",
+    "createdAt": "2026-10-27T08:21:01.960Z",
+    "priorityLevel": "P1",
+    "slaTargetDate": "29/10/26",
+    "slaDaysRemaining": 0,
+    "slaStatus": "DUE_SOON"
+  },
+  {
+    "id": "fpb-rev-CPL-FPB-26-0005015",
+    "fpbNo": "CPL-FPB-26-0005015",
+    "originalFpb": "CPL/LOG/FPB/26-0005015",
+    "entity": "CPL",
+    "armada": "SPOB PERKASA INDONESIA",
+    "date": "27/10/26",
+    "purpose": "U/ ENGINE ROOM",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0005015.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "TRF00203003-PHI",
+        "itemName": "TRAFO (TRAVO) BALLAST 18W 220V (PHILIPS)",
+        "qty": 4,
+        "unit": "PCS",
+        "description": "U/ ENGINE ROOM",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[LAS1-LAS015] LAS (WELDING) - TRAFO (TRAVO) LAS (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 2,
+        "itemCode": "LAM00111001-ZZZ",
+        "itemName": "FITTING LAMPU TL VEER (00)",
+        "qty": 4,
+        "unit": "PCS",
+        "description": "U/ ENGINE ROOM",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[LAMP-LAM001] LAMPU (LAMP) - FITTING LAMPU (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [
+      {
+        "id": "efpb-att-CPL-FPB-26-0005015-2",
+        "name": "CPL-FPB-26-0005015 LKA TRAFO BALLAST.pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/CPL-FPB-26-0005015%20LKA%20TRAFO%20BALLAST.pdf",
+        "type": "pdf",
+        "uploadedAt": "27/10/26 15:37",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-29T12:49:59.342Z",
+    "createdAt": "2026-10-27T08:21:01.960Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "26/11/26",
+    "slaDaysRemaining": 28,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-CPL-FPB-26-0005018",
+    "fpbNo": "CPL-FPB-26-0005018",
+    "originalFpb": "CPL/LOG/FPB/26-0005018",
+    "entity": "CPL",
+    "armada": "MOBIL OPS KT 8552 ZF",
+    "date": "27/10/26",
+    "purpose": "U/ PERAWATAN BERKALA",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0005018.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "JTP00151001-ZZZ",
+        "itemName": "BIAYA CUCI MOBIL (00)",
+        "qty": 1,
+        "unit": "UNT",
+        "description": "U/ PERAWATAN BERKALA",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[ACC-611001016] BIAYA PEMELIHARAAN MOBIL (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-29T12:50:04.561Z",
+    "createdAt": "2026-10-27T08:21:01.960Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "26/11/26",
+    "slaDaysRemaining": 28,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-CPL-FPB-26-0004742",
+    "fpbNo": "CPL-FPB-26-0004742",
+    "originalFpb": "CPL/LOG/FPB/26-0004742",
+    "entity": "CPL",
+    "armada": "SPEED BOAT2",
+    "date": "26/10/26",
+    "purpose": "Kebutuhan Operasional SPEED BOAT2",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": false,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0004742.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "JTP00175001-ZZZ",
+        "itemName": "PERBAIKAN BODY SPEEDBOAT (00)",
+        "qty": 1,
+        "unit": "UNT",
+        "description": "U/ GANTI LES RH/LH",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 2,
+        "itemCode": "JTP00175001-ZZZ",
+        "itemName": "PERBAIKAN BODY SPEEDBOAT (00)",
+        "qty": 1,
+        "unit": "UNT",
+        "description": "U/ GANTI KURSI DEPAN RH/LH",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 3,
+        "itemCode": "JTP00175001-ZZZ",
+        "itemName": "PERBAIKAN BODY SPEEDBOAT (00)",
+        "qty": 1,
+        "unit": "UNT",
+        "description": "U/ PENAMBALAN LANTA",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [
+      {
+        "id": "efpb-att-CPL-FPB-26-0004742-2",
+        "name": "013697.pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/013697.pdf",
+        "type": "pdf",
+        "uploadedAt": "26/10/26 14:56",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      },
+      {
+        "id": "efpb-att-CPL-FPB-26-0004742-3",
+        "name": "FOTO BODY SPEED 02(2).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/FOTO%20BODY%20SPEED%2002%282%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "26/10/26 14:56",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-27T01:51:56.838Z",
+    "createdAt": "2026-10-27T01:49:18.402Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "25/11/26",
+    "slaDaysRemaining": 27,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-CPL-FPB-26-0004667",
+    "fpbNo": "CPL-FPB-26-0004667",
+    "originalFpb": "CPL/LOG/FPB/26-0004667",
+    "entity": "CPL",
+    "armada": "SPOB ROYAL REY 3002",
+    "date": "26/10/26",
+    "purpose": "U/ PERLENGKAPAN DAPUR",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0004667.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "ADK00501003-PHI",
+        "itemName": "BLENDER HR2115/60 (PHILIPS)",
+        "qty": 1,
+        "unit": "UNT",
+        "description": "U/ PERLENGKAPAN DAPUR",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 2,
+        "itemCode": "ADK01701003-MIY",
+        "itemName": "HAND MIXER SM-625 (MIYAKO)",
+        "qty": 1,
+        "unit": "UNT",
+        "description": "U/ PERLENGKAPAN DAPUR",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 3,
+        "itemCode": "ADK02801001-DOL",
+        "itemName": "SENDOK MAKAN (SUPER DOLL)",
+        "qty": 24,
+        "unit": "PCS",
+        "description": "U/ PERLENGKAPAN DAPUR",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 4,
+        "itemCode": "MGK00301001-ZZZ",
+        "itemName": "MANGKUK MAKAN MELAMIN (00)",
+        "qty": 12,
+        "unit": "PCS",
+        "description": "U/ PERLENGKAPAN DAPUR",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[MGKK-MGK003] MANGKUK (BOWL) - MANGKUK MAKAN MELAMIN (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 5,
+        "itemCode": "ADK00801001-DOL",
+        "itemName": "GARFU MAKAN (SUPER DOLL)",
+        "qty": 12,
+        "unit": "PCS",
+        "description": "U/ PERLENGKAPAN DAPUR",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[ADKC-ADK008] ALAT2 DAPUR - GARFU MAKAN (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 6,
+        "itemCode": "ADK00903001-ZZZ",
+        "itemName": "GELAS MINUM MELAMIN (00)",
+        "qty": 12,
+        "unit": "PCS",
+        "description": "U/ PERLENGKAPAN DAPUR",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 7,
+        "itemCode": "ADK02401002-MIY",
+        "itemName": "TEMPAT PENYIMPANAN BERAS (RICE BOX) TB-38 (MIYAKO)",
+        "qty": 1,
+        "unit": "UNT",
+        "description": "U/ PERLENGKAPAN DAPUR",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[ADKC-ADK024] ALAT2 DAPUR - PENYIMPANAN BERAS (RICE BOX) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-29T12:50:08.977Z",
+    "createdAt": "2026-10-27T01:49:18.402Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "25/11/26",
+    "slaDaysRemaining": 27,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-CPL-FPB-26-0004993",
+    "fpbNo": "CPL-FPB-26-0004993",
+    "originalFpb": "CPL/LOG/FPB/26-0004993",
+    "entity": "CPL",
+    "armada": "DEPT OPERATION",
+    "date": "26/10/26",
+    "purpose": "Kebutuhan Operasional DEPT OPERATION",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0004993.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "BUK00201008-ZZZ",
+        "itemName": "BUKU DAFTAR/LIST PASANG SURUT KEPULAUAN INDONESIA EDISI 2027 (00)",
+        "qty": 5,
+        "unit": "SET",
+        "description": "U/ OPERASIONAL KAPAL",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[BUKU-BUK002] BUKU (BOOK) - BUKU DAFTAR/LIST (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-27T01:51:00.300Z",
+    "createdAt": "2026-10-27T01:49:18.402Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "25/11/26",
+    "slaDaysRemaining": 27,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-CPL-FPB-26-0004994",
+    "fpbNo": "CPL-FPB-26-0004994",
+    "originalFpb": "CPL/LOG/FPB/26-0004994",
+    "entity": "CPL",
+    "armada": "DEPT OPERATION",
+    "date": "26/10/26",
+    "purpose": "U/ PERGANTIAN LCD LAPTOP YANG RUSAK (DIVISI MARINE)",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0004994.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "KOM01702004-HP1",
+        "itemName": "LCD LAPTOP 14S CF2516TU-DK1524AU-DQ0508TU-D Q2518TU (HAWLETT PACKARD)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ PERGANTIAN LCD LAPTOP YANG RUSAK (DIVISI MARINE)",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [
+      {
+        "id": "efpb-att-CPL-FPB-26-0004994-2",
+        "name": "Penggantian sparepart layar lcd laptop Dept- Opr Div- Marine.pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/Penggantian%20sparepart%20layar%20lcd%20laptop%20Dept-%20Opr%20Div-%20Marine.pdf",
+        "type": "pdf",
+        "uploadedAt": "26/10/26 16:30",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      },
+      {
+        "id": "efpb-att-CPL-FPB-26-0004994-3",
+        "name": "Berita acara kerusakan LCD Laptop Dept- Operation (Div- Marine).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/Berita%20acara%20kerusakan%20LCD%20Laptop%20Dept-%20Operation%20%28Div-%20Marine%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "26/10/26 16:30",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-29T12:50:15.059Z",
+    "createdAt": "2026-10-27T01:49:18.402Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "25/11/26",
+    "slaDaysRemaining": 27,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-CPL-FPB-26-0004996",
+    "fpbNo": "CPL-FPB-26-0004996",
+    "originalFpb": "CPL/LOG/FPB/26-0004996",
+    "entity": "CPL",
+    "armada": "SV TWINSISTER 307",
+    "date": "26/10/26",
+    "purpose": "Kebutuhan Operasional SV TWINSISTER 307",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0004996.pdf",
+    "reviewStatus": "APPROVED_PO",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "ATK01703002-BNT",
+        "itemName": "ODNER F4 BIRU (BANTEX)",
+        "qty": 15,
+        "unit": "PCS",
+        "description": "U/ OPERASIONAL KAPAL",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-27T01:53:04.940Z",
+    "createdAt": "2026-10-27T01:49:18.402Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "25/11/26",
+    "slaDaysRemaining": 27,
+    "slaStatus": "ON_TRACK",
+    "pchLogistik": "Received_Logistic",
+    "reviewedBy": "Administrator CPG",
+    "reviewedAt": "2026-10-27T01:53:04.940Z"
+  },
+  {
     "id": "fpb-rev-CPL-FPB-26-0004962",
     "fpbNo": "CPL-FPB-26-0004962",
     "originalFpb": "CPL/LOG/FPB/26-0004962",
@@ -42,7 +3323,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P3",
     "slaTargetDate": "22/11/26",
-    "slaDaysRemaining": 26,
+    "slaDaysRemaining": 24,
     "slaStatus": "ON_TRACK",
     "pchLogistik": "Received_Logistic",
     "reviewedBy": "Administrator CPG",
@@ -55,7 +3336,7 @@
     "entity": "HL",
     "armada": "TK CPL 250",
     "date": "23/10/26",
-    "purpose": "Kebutuhan Operasional TK CPL 250",
+    "purpose": "SUB-BPN VIA SUMBER KEMBANG TRANSPORT, BERAT 580 KG, ISI: WIRE SLING =1 SET",
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_HL-FPB-26-0001513.pdf",
@@ -63,7 +3344,23 @@
     "urgency": "NORMAL",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "JAS01205001-JSA",
+        "itemName": "BIAYA PENGIRIMAN BARANG (JASA)",
+        "qty": 1,
+        "unit": "PKT",
+        "description": "SUB-BPN VIA SUMBER KEMBANG TRANSPORT, BERAT 580 KG, ISI: WIRE SLING =1 SET",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[ACC-62001015] JASA PENGIRIMAN BARANG/DOKUMEN (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
     "attachments": [],
     "duplicateAlerts": [],
     "relatedDocs": {
@@ -71,11 +3368,11 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T16:07:43.101Z",
+    "updatedAt": "2026-10-29T12:52:01.254Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P3",
     "slaTargetDate": "22/11/26",
-    "slaDaysRemaining": 26,
+    "slaDaysRemaining": 24,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -167,15 +3464,7 @@
         "caption": "Dokumen / Scan Lampiran FPB"
       }
     ],
-    "duplicateAlerts": [
-      {
-        "fpbNo": "MO-FPB-26-0001922",
-        "date": "26/10/26",
-        "armada": "SITE PAGATAN",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional site pagatan\" pada 26/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada SITE PAGATAN (3 hari selisih)"
-      }
-    ],
+    "duplicateAlerts": [],
     "relatedDocs": {
       "poNos": [],
       "fstbNos": [],
@@ -185,7 +3474,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P3",
     "slaTargetDate": "22/11/26",
-    "slaDaysRemaining": 26,
+    "slaDaysRemaining": 24,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -252,7 +3541,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "25/10/26",
-    "slaDaysRemaining": -2,
+    "slaDaysRemaining": -4,
     "slaStatus": "OVERDUE",
     "pchLogistik": "Received_Logistic"
   },
@@ -263,15 +3552,31 @@
     "entity": "MO",
     "armada": "TRUCK TANKI KT 8408 LA",
     "date": "23/10/26",
-    "purpose": "Kebutuhan Operasional TRUCK TANKI KT 8408 LA",
+    "purpose": "U/ PENGGANTIAN HOSE RADIATOR YG PECAH",
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/logistik_Approved_rev_sign_MO-FPB-26-0001904.pdf",
     "reviewStatus": "PENDING_REVIEW",
-    "urgency": "NORMAL",
+    "urgency": "EMERGENCY",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "RDT00504001-UT",
+        "itemName": "HOSE RADIATOR ATAS 21504-30Z77 CWA 260X (UD TRUCK)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ PENGGANTIAN HOSE RADIATOR YG PECAH",
+        "priority": "P1",
+        "stockAvailable": 1,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[B/O03912001-ZZZ] U-BOLT SPRING BELAKANG 27 MM X 93 MM X 400 MM CWA 260X (00) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (1 PCS). Disarankan penuhi dari stok gudang."
+      }
+    ],
     "attachments": [
       {
         "id": "efpb-att-MO-FPB-26-0001904-2",
@@ -300,12 +3605,12 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T16:19:28.598Z",
+    "updatedAt": "2026-10-29T12:52:05.196Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
-    "priorityLevel": "P3",
-    "slaTargetDate": "22/11/26",
-    "slaDaysRemaining": 26,
-    "slaStatus": "ON_TRACK",
+    "priorityLevel": "P1",
+    "slaTargetDate": "25/10/26",
+    "slaDaysRemaining": -4,
+    "slaStatus": "OVERDUE",
     "pchLogistik": "Received_Logistic"
   },
   {
@@ -345,11 +3650,11 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T17:24:01.481Z",
+    "updatedAt": "2026-10-28T01:33:57.531Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "25/10/26",
-    "slaDaysRemaining": -2,
+    "slaDaysRemaining": -4,
     "slaStatus": "OVERDUE"
   },
   {
@@ -380,43 +3685,7 @@
         "caption": "Dokumen / Scan Lampiran FPB"
       }
     ],
-    "duplicateAlerts": [
-      {
-        "fpbNo": "GAJ-FPB-26-0001088",
-        "date": "24/10/26",
-        "armada": "OFFICE GAJ",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional office\" pada 24/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (1 hari selisih)"
-      },
-      {
-        "fpbNo": "GAJ-FPB-26-0001089",
-        "date": "26/10/26",
-        "armada": "OFFICE GAJ",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional office\" pada 26/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (3 hari selisih)"
-      },
-      {
-        "fpbNo": "GAJ-FPB-26-0001094",
-        "date": "26/10/26",
-        "armada": "OFFICE GAJ",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional office\" pada 26/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (3 hari selisih)"
-      },
-      {
-        "fpbNo": "GAJ-FPB-26-0000712",
-        "date": "26/10/26",
-        "armada": "OFFICE GAJ",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional office\" pada 26/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (3 hari selisih)"
-      },
-      {
-        "fpbNo": "GAJ-FPB-26-0001104",
-        "date": "26/10/26",
-        "armada": "OFFICE GAJ",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional office\" pada 26/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (3 hari selisih)"
-      }
-    ],
+    "duplicateAlerts": [],
     "relatedDocs": {
       "poNos": [],
       "fstbNos": [],
@@ -426,7 +3695,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P3",
     "slaTargetDate": "22/11/26",
-    "slaDaysRemaining": 26,
+    "slaDaysRemaining": 24,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -535,15 +3804,7 @@
       }
     ],
     "attachments": [],
-    "duplicateAlerts": [
-      {
-        "fpbNo": "CPL-FPB-26-0004915",
-        "date": "24/10/26",
-        "armada": "TRUCK TANKI KT 8651 LU",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional truck tanki 8651\" pada 24/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada TRUCK TANKI KT 8651 LU (0 hari selisih)"
-      }
-    ],
+    "duplicateAlerts": [],
     "relatedDocs": {
       "poNos": [],
       "fstbNos": [],
@@ -553,7 +3814,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
-    "slaDaysRemaining": -1,
+    "slaDaysRemaining": -3,
     "slaStatus": "OVERDUE",
     "pchLogistik": "-",
     "reviewedBy": "Administrator CPG",
@@ -566,15 +3827,31 @@
     "entity": "MO",
     "armada": "TRUCK TANKI KT 8983 LU",
     "date": "24/10/26",
-    "purpose": "Kebutuhan Operasional TRUCK TANKI KT 8983 LU",
+    "purpose": "U/ PERBAIKAN RADIATOR YANG BOCOR (26 - 01075)",
     "efpbStatus": "Approved",
     "isReceivedLogistik": false,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0001906.pdf",
     "reviewStatus": "PENDING_REVIEW",
-    "urgency": "NORMAL",
+    "urgency": "EMERGENCY",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "JTP00146002-ZZZ",
+        "itemName": "RADIATOR ASSY (SERVICE) FG8J (00)",
+        "qty": 1,
+        "unit": "UNT",
+        "description": "U/ PERBAIKAN RADIATOR YANG BOCOR (26 - 01075)",
+        "priority": "P1",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[RDTR-RDT003] RADIATOR - RADIATOR ASSY (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
     "attachments": [
       {
         "id": "efpb-att-MO-FPB-26-0001906-2",
@@ -603,12 +3880,12 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T16:07:43.101Z",
+    "updatedAt": "2026-10-29T12:51:06.630Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
-    "priorityLevel": "P3",
-    "slaTargetDate": "23/11/26",
-    "slaDaysRemaining": 27,
-    "slaStatus": "ON_TRACK"
+    "priorityLevel": "P1",
+    "slaTargetDate": "26/10/26",
+    "slaDaysRemaining": -3,
+    "slaStatus": "OVERDUE"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004915",
@@ -627,15 +3904,7 @@
     "reviewNotes": "",
     "items": [],
     "attachments": [],
-    "duplicateAlerts": [
-      {
-        "fpbNo": "CPL-FPB-26-0004964",
-        "date": "24/10/26",
-        "armada": "TRUCK TANKI KT 8651 LU",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional truck tanki 8651\" pada 24/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada TRUCK TANKI KT 8651 LU (0 hari selisih)"
-      }
-    ],
+    "duplicateAlerts": [],
     "relatedDocs": {
       "poNos": [],
       "fstbNos": [],
@@ -645,7 +3914,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P3",
     "slaTargetDate": "23/11/26",
-    "slaDaysRemaining": 27,
+    "slaDaysRemaining": 25,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -655,15 +3924,31 @@
     "entity": "MO",
     "armada": "TRUCK TANKI KT 8076 ZU",
     "date": "24/10/26",
-    "purpose": "Kebutuhan Operasional TRUCK TANKI KT 8076 ZU",
+    "purpose": "U/ PERBAIKAN JALUR YANG BUNTU",
     "efpbStatus": "Approved",
     "isReceivedLogistik": false,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0001907.pdf",
     "reviewStatus": "PENDING_REVIEW",
-    "urgency": "NORMAL",
+    "urgency": "EMERGENCY",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "JTP00146002-ZZZ",
+        "itemName": "RADIATOR ASSY (SERVICE) FG8J (00)",
+        "qty": 1,
+        "unit": "UNT",
+        "description": "U/ PERBAIKAN JALUR YANG BUNTU",
+        "priority": "P1",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[RDTR-RDT003] RADIATOR - RADIATOR ASSY (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
     "attachments": [
       {
         "id": "efpb-att-MO-FPB-26-0001907-2",
@@ -692,12 +3977,12 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T16:07:43.101Z",
+    "updatedAt": "2026-10-29T12:51:19.363Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
-    "priorityLevel": "P3",
-    "slaTargetDate": "23/11/26",
-    "slaDaysRemaining": 27,
-    "slaStatus": "ON_TRACK"
+    "priorityLevel": "P1",
+    "slaTargetDate": "26/10/26",
+    "slaDaysRemaining": -3,
+    "slaStatus": "OVERDUE"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001908",
@@ -706,15 +3991,55 @@
     "entity": "MO",
     "armada": "TRUCK TANKI KT 8068 ZU",
     "date": "24/10/26",
-    "purpose": "Kebutuhan Operasional TRUCK TANKI KT 8068 ZU",
+    "purpose": "U/ PERBAIKAN RADIO YG RUSAK (26 - 01069)",
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0001908.pdf",
     "reviewStatus": "PENDING_REVIEW",
-    "urgency": "NORMAL",
+    "urgency": "URGENT",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "JTP00133001-ZZZ",
+        "itemName": "PENGGANTIAN FINAL RADIO IC-2300 (00)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ PERBAIKAN RADIO YG RUSAK (26 - 01069)",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 2,
+        "itemCode": "JTP00136001-ZZZ",
+        "itemName": "PENGGANTIAN SPEAKER RADI IC-2300 (00)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ PERBAIKAN RADIO YG RUSAK (26 - 01069)",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 3,
+        "itemCode": "JTP00382001-ZZZ",
+        "itemName": "PENGGANTIAN KAPASITOR RADIO IC-2300 (00)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ PERBAIKAN RADIO YG RUSAK (26 - 01069)",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
     "attachments": [
       {
         "id": "efpb-att-MO-FPB-26-0001908-2",
@@ -743,12 +4068,12 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T16:07:43.101Z",
+    "updatedAt": "2026-10-29T12:51:26.437Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
-    "priorityLevel": "P3",
-    "slaTargetDate": "23/11/26",
-    "slaDaysRemaining": 27,
-    "slaStatus": "ON_TRACK"
+    "priorityLevel": "P1",
+    "slaTargetDate": "26/10/26",
+    "slaDaysRemaining": -3,
+    "slaStatus": "OVERDUE"
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001514",
@@ -757,15 +4082,31 @@
     "entity": "HL",
     "armada": "TK CPL 235",
     "date": "24/10/26",
-    "purpose": "Kebutuhan Operasional TK CPL 235",
+    "purpose": "U/ FIFI ENGINE",
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_HL-FPB-26-0001514.pdf",
     "reviewStatus": "PENDING_REVIEW",
-    "urgency": "NORMAL",
+    "urgency": "URGENT",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "PMM00202013-KO",
+        "itemName": "WATER PUMP ASSY ME157543 6D22 (KOREA)",
+        "qty": 1,
+        "unit": "UNT",
+        "description": "U/ FIFI ENGINE",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[PUMP-PUM016] POMPA (PUMP) - WATER PUMP ASSY (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
     "attachments": [
       {
         "id": "efpb-att-HL-FPB-26-0001514-2",
@@ -794,12 +4135,12 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T16:07:43.101Z",
+    "updatedAt": "2026-10-29T12:51:31.170Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
-    "priorityLevel": "P3",
-    "slaTargetDate": "23/11/26",
-    "slaDaysRemaining": 27,
-    "slaStatus": "ON_TRACK"
+    "priorityLevel": "P1",
+    "slaTargetDate": "26/10/26",
+    "slaDaysRemaining": -3,
+    "slaStatus": "OVERDUE"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001909",
@@ -808,15 +4149,29 @@
     "entity": "MO",
     "armada": "TRUCK TANKI KT 8122 LU",
     "date": "24/10/26",
-    "purpose": "Kebutuhan Operasional TRUCK TANKI KT 8122 LU",
+    "purpose": "U/ PERBAIKAN JALUR PENDINGIN (26 - 01081)",
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0001909.pdf",
     "reviewStatus": "APPROVED_PO",
-    "urgency": "NORMAL",
+    "urgency": "EMERGENCY",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "PIP04701001-UTC",
+        "itemName": "COOLANT PIPE Q21446-9Z04D CWE 280 (UD TRUCK)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ PERBAIKAN JALUR PENDINGIN (26 - 01081)",
+        "priority": "P1",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
     "attachments": [
       {
         "id": "efpb-att-MO-FPB-26-0001909-2",
@@ -835,12 +4190,12 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T16:34:17.283Z",
+    "updatedAt": "2026-10-29T12:51:37.777Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
-    "priorityLevel": "P3",
-    "slaTargetDate": "23/11/26",
-    "slaDaysRemaining": 27,
-    "slaStatus": "ON_TRACK",
+    "priorityLevel": "P1",
+    "slaTargetDate": "26/10/26",
+    "slaDaysRemaining": -3,
+    "slaStatus": "OVERDUE",
     "pchLogistik": "Received_Logistic",
     "reviewedBy": "Administrator CPG",
     "reviewedAt": "2026-10-26T16:31:44.764Z"
@@ -852,50 +4207,147 @@
     "entity": "GAJ",
     "armada": "OFFICE GAJ",
     "date": "24/10/26",
-    "purpose": "Kebutuhan Operasional OFFICE GAJ",
+    "purpose": "U/PENERANGAN LANTAI 2 LOGISTIK GAJ (PEMASANGAN BARU) • U/ INSTALASI PENERANGAN LANTAI 2 LOGISTIK GAJ (PEMASANGAN BARU)",
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/logistik_Approved_rev_sign_GAJ-FPB-26-0001088.pdf",
     "reviewStatus": "APPROVED_PO",
-    "urgency": "NORMAL",
+    "urgency": "URGENT",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "LAM06501001-OPP",
+        "itemName": "LAMPU SOROT LED 100W 220V (OPPLE)",
+        "qty": 2,
+        "unit": "PCS",
+        "description": "U/PENERANGAN LANTAI 2 LOGISTIK GAJ (PEMASANGAN BARU)",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[LAMP-LAM065] LAMPU (LAMP) - LAMPU SOROT LED 220V (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 2,
+        "itemCode": "KBE01901003-JEM",
+        "itemName": "KABEL NYYHY 2 X 2,5 MM (JEMBO)",
+        "qty": 100,
+        "unit": "MTR",
+        "description": "U/ INSTALASI PENERANGAN LANTAI 2 LOGISTIK GAJ (PEMASANGAN BARU)",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[KBEL-KBE019] KABEL (CABLE) - KABEL NYYHY (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 3,
+        "itemCode": "STK00601001-MAS",
+        "itemName": "STOP KONTAK 4 LUBANG (MASKO)",
+        "qty": 4,
+        "unit": "PCS",
+        "description": "U/ INSTALASI PENERANGAN LANTAI 2 LOGISTIK GAJ (PEMASANGAN BARU)",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[STKO-STK001] STOP KONTAK - STOP KONTAK 1 LUBANG (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 4,
+        "itemCode": "STE00501001-MAS",
+        "itemName": "STEKER LISTRIK 2 KAKI (MASKO)",
+        "qty": 4,
+        "unit": "PCS",
+        "description": "U/ INSTALASI PENERANGAN LANTAI 2 LOGISTIK GAJ (PEMASANGAN BARU)",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[STEK-STE005] STEKER/STECKER (PLUG) - STEKER (PLUG) LISTRIK 2 KAKI (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 5,
+        "itemCode": "MCB00102004-SCH",
+        "itemName": "MCB 2 PHASE 25 AMPERE IC60N (SCHNEIDER)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ INSTALASI PENERANGAN LANTAI 2 LOGISTIK GAJ (PEMASANGAN BARU)",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 6,
+        "itemCode": "SKL01002001-MAS",
+        "itemName": "SAKLAR SERI TUNGGAL OUTBOW (MASKO)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ INSTALASI PENERANGAN LANTAI 2 LOGISTIK GAJ",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[SKLR-SKL009] SAKLAR - SAKLAR TUNGGAL (OUTBOW) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 7,
+        "itemCode": "LEM00903001-3M1",
+        "itemName": "ISOLASI 3M 33+ (3M)",
+        "qty": 2,
+        "unit": "PCS",
+        "description": "U/ INSTALASI PENERANGAN LANTAI 2 LOGISTIK GAJ (PEMASANGAN BARU)",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[LEM1-LEM009] LEM (GLUE) - ISOLASI 3M (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
     "attachments": [],
     "duplicateAlerts": [
       {
-        "fpbNo": "GAJ-FPB-26-0001082",
-        "date": "23/10/26",
+        "fpbNo": "GAJ-FPB-26-0001080",
+        "date": "27/10/26",
         "armada": "OFFICE GAJ",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional office\" pada 23/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (1 hari selisih)"
+        "matchedItem": "Keperluan mirip: \"lantai lantai\" pada 27/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (3 hari selisih)"
+      },
+      {
+        "fpbNo": "GAJ-FPB-26-0001111",
+        "date": "27/10/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Item serupa: \"MCB 2 PHASE 25 AMPERE IC60N (SCHNEIDER)\" diajukan pada 27/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (3 hari selisih)"
+      },
+      {
+        "fpbNo": "GAJ-FPB-26-0001083",
+        "date": "27/10/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Keperluan mirip: \"lantai lantai\" pada 27/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (3 hari selisih)"
       },
       {
         "fpbNo": "GAJ-FPB-26-0001089",
         "date": "26/10/26",
         "armada": "OFFICE GAJ",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional office\" pada 26/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (2 hari selisih)"
-      },
-      {
-        "fpbNo": "GAJ-FPB-26-0001094",
-        "date": "26/10/26",
-        "armada": "OFFICE GAJ",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional office\" pada 26/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (2 hari selisih)"
-      },
-      {
-        "fpbNo": "GAJ-FPB-26-0000712",
-        "date": "26/10/26",
-        "armada": "OFFICE GAJ",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional office\" pada 26/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (2 hari selisih)"
-      },
-      {
-        "fpbNo": "GAJ-FPB-26-0001104",
-        "date": "26/10/26",
-        "armada": "OFFICE GAJ",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional office\" pada 26/10/26",
+        "matchedItem": "Keperluan mirip: \"lantai logistik lantai logistik\" pada 26/10/26",
         "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (2 hari selisih)"
       }
     ],
@@ -904,12 +4356,12 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T16:29:34.321Z",
+    "updatedAt": "2026-10-29T12:51:44.731Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
-    "priorityLevel": "P3",
-    "slaTargetDate": "23/11/26",
-    "slaDaysRemaining": 27,
-    "slaStatus": "ON_TRACK",
+    "priorityLevel": "P1",
+    "slaTargetDate": "26/10/26",
+    "slaDaysRemaining": -3,
+    "slaStatus": "OVERDUE",
     "pchLogistik": "Received_Logistic",
     "reviewedBy": "Administrator CPG",
     "reviewedAt": "2026-10-26T16:29:34.321Z"
@@ -921,15 +4373,145 @@
     "entity": "CPL",
     "armada": "SPEED BOAT1",
     "date": "24/10/26",
-    "purpose": "Kebutuhan Operasional SPEED BOAT1",
+    "purpose": "U/ ENGINE SPEED YAMAHA 40 PK",
     "efpbStatus": "Approved",
     "isReceivedLogistik": false,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0004963.pdf",
     "reviewStatus": "PENDING_REVIEW",
-    "urgency": "NORMAL",
+    "urgency": "EMERGENCY",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "PI100102002-YMH",
+        "itemName": "PINION GEAR 6F5-45551-01 (YAMAHA)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ ENGINE SPEED YAMAHA 40 PK",
+        "priority": "P1",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 2,
+        "itemCode": "GSK01017002-YMH",
+        "itemName": "GASKET HEAD 6F5-11181-A2 (YAMAHA)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ ENGINE SPEED YAMAHA 40 PK",
+        "priority": "P1",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[GSKT-GSK010] GASKET - GASKET HEAD (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 3,
+        "itemCode": "GSK02602002-YMH",
+        "itemName": "GASKET UPPER CASING 6F5-45113-A2 (YAMAHA)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ ENGINE SPEED YAMAHA 40 PK",
+        "priority": "P1",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[GSKT-GSK026] GASKET - GASKET UPPER (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 4,
+        "itemCode": "BEA00183101-YMH",
+        "itemName": "BEARING 93306-20401 (YAMAHA)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ ENGINE SPEED YAMAHA 40 PK",
+        "priority": "P1",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 5,
+        "itemCode": "PIN03401001-YMH",
+        "itemName": "PIN DRIVE 6F6-45614-00 (YAMAHA)",
+        "qty": 2,
+        "unit": "PCS",
+        "description": "U/ ENGINE SPEED YAMAHA 40 PK",
+        "priority": "P1",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 6,
+        "itemCode": "KBE02004001-YMH",
+        "itemName": "CABLE REMOTE 701-48320-20 (YAMAHA)",
+        "qty": 2,
+        "unit": "PCS",
+        "description": "U/ ENGINE SPEED YAMAHA 40 PK",
+        "priority": "P1",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[KBEL-KBE020] KABEL (CABLE) - KABEL REMOTE (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 7,
+        "itemCode": "RIN00905001-YMH",
+        "itemName": "RING PISTON 6F5-11610-00 (YAMAHA)",
+        "qty": 4,
+        "unit": "SET",
+        "description": "U/ ENGINE SPEED YAMAHA 40 PK",
+        "priority": "P1",
+        "stockAvailable": 1,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[RIN01101001-MIT] RING PISTON STD ME-032403 6D15 (MITSUBISHI) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang parsial (1 SET). Sisa dibuatkan PO."
+      },
+      {
+        "no": 8,
+        "itemCode": "GSK03304002-YMH",
+        "itemName": "GASKET MANIFOLD 6F5-13646-A2 (YAMAHA)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ ENGINE SPEED YAMAHA 40 PK",
+        "priority": "P1",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[GSKT-GSK033] GASKET - GASKET MANIFOLD (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 9,
+        "itemCode": "GSK03304001-YMH",
+        "itemName": "GASKET MANIFOLD 6F5-13645-A1 (YAMAHA)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ ENGINE SPEED YAMAHA 40 PK",
+        "priority": "P1",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[GSKT-GSK033] GASKET - GASKET MANIFOLD (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
     "attachments": [
       {
         "id": "efpb-att-CPL-FPB-26-0004963-2",
@@ -948,12 +4530,12 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T16:07:43.101Z",
+    "updatedAt": "2026-10-29T12:51:51.650Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
-    "priorityLevel": "P3",
-    "slaTargetDate": "23/11/26",
-    "slaDaysRemaining": 27,
-    "slaStatus": "ON_TRACK"
+    "priorityLevel": "P1",
+    "slaTargetDate": "26/10/26",
+    "slaDaysRemaining": -3,
+    "slaStatus": "OVERDUE"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004961",
@@ -962,15 +4544,57 @@
     "entity": "CPL",
     "armada": "SPEED BOAT2",
     "date": "24/10/26",
-    "purpose": "Kebutuhan Operasional SPEED BOAT2",
+    "purpose": "U/ ENGINE SPEED YAMAHA 40 PK",
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0004961.pdf",
     "reviewStatus": "PENDING_REVIEW",
-    "urgency": "NORMAL",
+    "urgency": "EMERGENCY",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "BUI00101011-NGK",
+        "itemName": "BUSI B7HS (NGK)",
+        "qty": 10,
+        "unit": "PCS",
+        "description": "U/ ENGINE SPEED YAMAHA 40 PK",
+        "priority": "P1",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 2,
+        "itemCode": "GSK01017002-YMH",
+        "itemName": "GASKET HEAD 6F5-11181-A2 (YAMAHA)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ ENGINE SPEED YAMAHA 40 PK",
+        "priority": "P1",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[GSKT-GSK010] GASKET - GASKET HEAD (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 3,
+        "itemCode": "GSK00191002-YMH",
+        "itemName": "GASKET 6F5-13621-A1 (YAMAHA)",
+        "qty": 2,
+        "unit": "PCS",
+        "description": "U/ ENGINE SPEED YAMAHA 40 PK",
+        "priority": "P1",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
     "attachments": [
       {
         "id": "efpb-att-CPL-FPB-26-0004961-2",
@@ -989,12 +4613,12 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T16:07:43.101Z",
+    "updatedAt": "2026-10-29T12:51:56.352Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
-    "priorityLevel": "P3",
-    "slaTargetDate": "23/11/26",
-    "slaDaysRemaining": 27,
-    "slaStatus": "ON_TRACK"
+    "priorityLevel": "P1",
+    "slaTargetDate": "26/10/26",
+    "slaDaysRemaining": -3,
+    "slaStatus": "OVERDUE"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004971",
@@ -1008,10 +4632,26 @@
     "isReceivedLogistik": false,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0004971.pdf",
     "reviewStatus": "PENDING_REVIEW",
-    "urgency": "NORMAL",
+    "urgency": "URGENT",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "MTA00101002-MIT",
+        "itemName": "THRUST BEARING 37509-38100 S6B (MITSUBISHI)",
+        "qty": 2,
+        "unit": "SET",
+        "description": "U/ ME KANAN",
+        "priority": "P2",
+        "stockAvailable": 4,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[THR00201001-MIT] THRUST METAL 6D15 MITS (MITSUBISHI) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (4 SET). Disarankan penuhi dari stok gudang."
+      }
+    ],
     "attachments": [
       {
         "id": "efpb-att-CPL-FPB-26-0004971-2",
@@ -1040,12 +4680,12 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T17:03:43.403Z",
+    "updatedAt": "2026-10-27T01:53:23.071Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
-    "priorityLevel": "P3",
-    "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 29,
-    "slaStatus": "ON_TRACK",
+    "priorityLevel": "P1",
+    "slaTargetDate": "28/10/26",
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE",
     "pchLogistik": "-",
     "reviewedBy": "NOOR HASANAH",
     "reviewedAt": "2026-10-26T17:03:43.403Z"
@@ -1057,51 +4697,39 @@
     "entity": "GAJ",
     "armada": "OFFICE GAJ",
     "date": "26/10/26",
-    "purpose": "Kebutuhan Operasional OFFICE GAJ",
+    "purpose": "U/ RUANGAN LANTAI 2 LOGISTIK GAJ",
     "efpbStatus": "Approved",
     "isReceivedLogistik": false,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0001089.pdf",
     "reviewStatus": "PENDING_REVIEW",
-    "urgency": "NORMAL",
+    "urgency": "URGENT",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "KIE00301007-SEK",
+        "itemName": "KIPAS ANGIN DINDING 26\" IWF-2639 (SEKAI)",
+        "qty": 2,
+        "unit": "UNT",
+        "description": "U/ RUANGAN LANTAI 2 LOGISTIK GAJ",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[KIEX-KIE003] KIPAS ANGIN & EXHAUST FAN - KIPAS ANGIN DINDING (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
     "attachments": [],
     "duplicateAlerts": [
-      {
-        "fpbNo": "GAJ-FPB-26-0001082",
-        "date": "23/10/26",
-        "armada": "OFFICE GAJ",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional office\" pada 23/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (3 hari selisih)"
-      },
       {
         "fpbNo": "GAJ-FPB-26-0001088",
         "date": "24/10/26",
         "armada": "OFFICE GAJ",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional office\" pada 24/10/26",
+        "matchedItem": "Keperluan mirip: \"lantai logistik\" pada 24/10/26",
         "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (2 hari selisih)"
-      },
-      {
-        "fpbNo": "GAJ-FPB-26-0001094",
-        "date": "26/10/26",
-        "armada": "OFFICE GAJ",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional office\" pada 26/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (0 hari selisih)"
-      },
-      {
-        "fpbNo": "GAJ-FPB-26-0000712",
-        "date": "26/10/26",
-        "armada": "OFFICE GAJ",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional office\" pada 26/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (0 hari selisih)"
-      },
-      {
-        "fpbNo": "GAJ-FPB-26-0001104",
-        "date": "26/10/26",
-        "armada": "OFFICE GAJ",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional office\" pada 26/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (0 hari selisih)"
       }
     ],
     "relatedDocs": {
@@ -1109,12 +4737,12 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T17:03:50.491Z",
+    "updatedAt": "2026-10-29T12:50:19.757Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
-    "priorityLevel": "P3",
-    "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 29,
-    "slaStatus": "ON_TRACK",
+    "priorityLevel": "P1",
+    "slaTargetDate": "28/10/26",
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE",
     "pchLogistik": "-",
     "reviewedBy": "NOOR HASANAH",
     "reviewedAt": "2026-10-26T17:03:50.491Z"
@@ -1506,15 +5134,15 @@
         "CPL-TTB-26-06631"
       ]
     },
-    "updatedAt": "2026-10-26T17:03:57.450Z",
+    "updatedAt": "2026-10-26T17:32:46.948Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": 1,
-    "slaStatus": "DUE_SOON",
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE",
     "pchLogistik": "-",
-    "reviewedBy": "NOOR HASANAH",
-    "reviewedAt": "2026-10-26T17:03:57.450Z"
+    "reviewedBy": "Administrator CPG",
+    "reviewedAt": "2026-10-26T17:32:46.948Z"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001918",
@@ -1558,8 +5186,8 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": 1,
-    "slaStatus": "DUE_SOON",
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE",
     "attachments": [
       {
         "id": "efpb-att-MO-FPB-26-0001918-2",
@@ -1618,43 +5246,7 @@
         "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
       }
     ],
-    "duplicateAlerts": [
-      {
-        "fpbNo": "GAJ-FPB-26-0001082",
-        "date": "23/10/26",
-        "armada": "OFFICE GAJ",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional office\" pada 23/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (3 hari selisih)"
-      },
-      {
-        "fpbNo": "GAJ-FPB-26-0001088",
-        "date": "24/10/26",
-        "armada": "OFFICE GAJ",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional office\" pada 24/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (2 hari selisih)"
-      },
-      {
-        "fpbNo": "GAJ-FPB-26-0001089",
-        "date": "26/10/26",
-        "armada": "OFFICE GAJ",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional office\" pada 26/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (0 hari selisih)"
-      },
-      {
-        "fpbNo": "GAJ-FPB-26-0000712",
-        "date": "26/10/26",
-        "armada": "OFFICE GAJ",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional office\" pada 26/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (0 hari selisih)"
-      },
-      {
-        "fpbNo": "GAJ-FPB-26-0001104",
-        "date": "26/10/26",
-        "armada": "OFFICE GAJ",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional office\" pada 26/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (0 hari selisih)"
-      }
-    ],
+    "duplicateAlerts": [],
     "relatedDocs": {
       "poNos": [],
       "fstbNos": [],
@@ -1664,8 +5256,8 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": 1,
-    "slaStatus": "DUE_SOON",
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE",
     "attachments": [],
     "pchLogistik": "-",
     "reviewedBy": "NOOR HASANAH",
@@ -1726,8 +5318,8 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": 1,
-    "slaStatus": "DUE_SOON",
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE",
     "attachments": [
       {
         "id": "efpb-att-MO-FPB-26-0001920-2",
@@ -2140,43 +5732,7 @@
         "notes": "Stok gudang mencukupi (230 PCS). Disarankan penuhi dari stok gudang."
       }
     ],
-    "duplicateAlerts": [
-      {
-        "fpbNo": "GAJ-FPB-26-0001082",
-        "date": "23/10/26",
-        "armada": "OFFICE GAJ",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional office\" pada 23/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (3 hari selisih)"
-      },
-      {
-        "fpbNo": "GAJ-FPB-26-0001088",
-        "date": "24/10/26",
-        "armada": "OFFICE GAJ",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional office\" pada 24/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (2 hari selisih)"
-      },
-      {
-        "fpbNo": "GAJ-FPB-26-0001089",
-        "date": "26/10/26",
-        "armada": "OFFICE GAJ",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional office\" pada 26/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (0 hari selisih)"
-      },
-      {
-        "fpbNo": "GAJ-FPB-26-0001094",
-        "date": "26/10/26",
-        "armada": "OFFICE GAJ",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional office\" pada 26/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (0 hari selisih)"
-      },
-      {
-        "fpbNo": "GAJ-FPB-26-0001104",
-        "date": "26/10/26",
-        "armada": "OFFICE GAJ",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional office\" pada 26/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (0 hari selisih)"
-      }
-    ],
+    "duplicateAlerts": [],
     "relatedDocs": {
       "poNos": [
         "GAJ-PO-26-00790",
@@ -2206,7 +5762,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 29,
+    "slaDaysRemaining": 27,
     "slaStatus": "ON_TRACK",
     "pchLogistik": "-",
     "attachments": [],
@@ -2251,12 +5807,12 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T17:06:08.453Z",
+    "updatedAt": "2026-10-27T01:49:18.402Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": 1,
-    "slaStatus": "DUE_SOON",
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE",
     "attachments": [
       {
         "id": "efpb-att-HL-FPB-26-0001525-2",
@@ -2295,11 +5851,11 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T17:06:08.453Z",
+    "updatedAt": "2026-10-27T01:49:18.402Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 29,
+    "slaDaysRemaining": 27,
     "slaStatus": "ON_TRACK",
     "attachments": [],
     "pchLogistik": "-",
@@ -2313,7 +5869,7 @@
     "entity": "CPL",
     "armada": "DEPT HSE",
     "date": "26/10/26",
-    "purpose": "Kebutuhan Operasional DEPT HSE",
+    "purpose": "U/ PENGAMBILAN LIMBAH B3",
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0004967.pdf",
@@ -2321,27 +5877,34 @@
     "urgency": "NORMAL",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
-    "duplicateAlerts": [
+    "items": [
       {
-        "fpbNo": "CPL-FPB-26-0004976",
-        "date": "26/10/26",
-        "armada": "DEPT HSE",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional dept\" pada 26/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada DEPT HSE (0 hari selisih)"
-      },
+        "no": 1,
+        "itemCode": "JTP00226001-ZZZ",
+        "itemName": "SLUDGE (00)",
+        "qty": 24,
+        "unit": "DRM",
+        "description": "U/ PENGAMBILAN LIMBAH B3",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "duplicateAlerts": [
       {
         "fpbNo": "CPL-FPB-26-0004980",
         "date": "26/10/26",
         "armada": "DEPT HSE",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional dept\" pada 26/10/26",
+        "matchedItem": "Item sama: \"SLUDGE (00)\" diajukan pada 26/10/26",
         "similarityNotes": "Pengajuan serupa dari armada DEPT HSE (0 hari selisih)"
       },
       {
         "fpbNo": "CPL-FPB-26-0004982",
         "date": "26/10/26",
         "armada": "DEPT HSE",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional dept\" pada 26/10/26",
+        "matchedItem": "Item sama: \"SLUDGE (00)\" diajukan pada 26/10/26",
         "similarityNotes": "Pengajuan serupa dari armada DEPT HSE (0 hari selisih)"
       }
     ],
@@ -2350,11 +5913,11 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T17:06:08.453Z",
+    "updatedAt": "2026-10-29T12:50:37.784Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 29,
+    "slaDaysRemaining": 27,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -2496,12 +6059,34 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T17:06:08.453Z",
+    "updatedAt": "2026-10-28T05:52:40.841Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": 1,
-    "slaStatus": "DUE_SOON"
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE",
+    "attachments": [
+      {
+        "id": "efpb-att-GAJ-FPB-26-0001099-2",
+        "name": "SPK-163 (PEMBUATAN KAMAR MANDI MUSHOLAH)(2).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/SPK-163%20%28PEMBUATAN%20KAMAR%20MANDI%20MUSHOLAH%29%282%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "27/10/26 10:09",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      },
+      {
+        "id": "efpb-att-GAJ-FPB-26-0001099-3",
+        "name": "FOTO-163 (PEMBUATAN KAMAR MANDI MUSHOLAH)(2).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/FOTO-163%20%28PEMBUATAN%20KAMAR%20MANDI%20MUSHOLAH%29%282%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "27/10/26 10:09",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ]
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004976",
@@ -2537,24 +6122,10 @@
     ],
     "duplicateAlerts": [
       {
-        "fpbNo": "CPL-FPB-26-0004967",
-        "date": "26/10/26",
-        "armada": "DEPT HSE",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional dept\" pada 26/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada DEPT HSE (0 hari selisih)"
-      },
-      {
-        "fpbNo": "CPL-FPB-26-0004980",
-        "date": "26/10/26",
-        "armada": "DEPT HSE",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional dept\" pada 26/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada DEPT HSE (0 hari selisih)"
-      },
-      {
         "fpbNo": "CPL-FPB-26-0004982",
         "date": "26/10/26",
         "armada": "DEPT HSE",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional dept\" pada 26/10/26",
+        "matchedItem": "Item sama: \"DRUM BEKAS OLI (00)\" diajukan pada 26/10/26",
         "similarityNotes": "Pengajuan serupa dari armada DEPT HSE (0 hari selisih)"
       }
     ],
@@ -2563,11 +6134,11 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T17:06:08.453Z",
+    "updatedAt": "2026-10-27T01:49:18.402Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 29,
+    "slaDaysRemaining": 27,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -2608,12 +6179,12 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T17:06:08.453Z",
+    "updatedAt": "2026-10-27T01:49:18.402Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": 1,
-    "slaStatus": "DUE_SOON",
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE",
     "attachments": [
       {
         "id": "efpb-att-MO-FPB-26-0001923-2",
@@ -2644,7 +6215,7 @@
     "entity": "CPL",
     "armada": "DEPT HSE",
     "date": "26/10/26",
-    "purpose": "Kebutuhan Operasional DEPT HSE",
+    "purpose": "U/ PENGAMBILAN LIMBAH B3",
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0004980.pdf",
@@ -2652,27 +6223,34 @@
     "urgency": "NORMAL",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "JTP00226001-ZZZ",
+        "itemName": "SLUDGE (00)",
+        "qty": 10,
+        "unit": "DRM",
+        "description": "U/ PENGAMBILAN LIMBAH B3",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
     "duplicateAlerts": [
       {
         "fpbNo": "CPL-FPB-26-0004967",
         "date": "26/10/26",
         "armada": "DEPT HSE",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional dept\" pada 26/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada DEPT HSE (0 hari selisih)"
-      },
-      {
-        "fpbNo": "CPL-FPB-26-0004976",
-        "date": "26/10/26",
-        "armada": "DEPT HSE",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional dept\" pada 26/10/26",
+        "matchedItem": "Item sama: \"SLUDGE (00)\" diajukan pada 26/10/26",
         "similarityNotes": "Pengajuan serupa dari armada DEPT HSE (0 hari selisih)"
       },
       {
         "fpbNo": "CPL-FPB-26-0004982",
         "date": "26/10/26",
         "armada": "DEPT HSE",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional dept\" pada 26/10/26",
+        "matchedItem": "Item sama: \"SLUDGE (00)\" diajukan pada 26/10/26",
         "similarityNotes": "Pengajuan serupa dari armada DEPT HSE (0 hari selisih)"
       }
     ],
@@ -2681,11 +6259,11 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T17:06:08.453Z",
+    "updatedAt": "2026-10-29T12:50:44.195Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 29,
+    "slaDaysRemaining": 27,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -2695,7 +6273,7 @@
     "entity": "CPL",
     "armada": "DEPT HSE",
     "date": "26/10/26",
-    "purpose": "Kebutuhan Operasional DEPT HSE",
+    "purpose": "U/ PENGAMBILAN LIMBAH B3",
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0004982.pdf",
@@ -2703,27 +6281,56 @@
     "urgency": "NORMAL",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "JTP00226001-ZZZ",
+        "itemName": "SLUDGE (00)",
+        "qty": 10,
+        "unit": "DRM",
+        "description": "U/ PENGAMBILAN LIMBAH B3",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 2,
+        "itemCode": "JRG00101001-ZZZ",
+        "itemName": "DRUM BEKAS OLI (00)",
+        "qty": 2,
+        "unit": "PCS",
+        "description": "U/ PENGAMBILAN LIMBAH B3",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[JRGN-JRG001] JERIGEN - DRUM BEKAS OLI (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
     "duplicateAlerts": [
       {
         "fpbNo": "CPL-FPB-26-0004967",
         "date": "26/10/26",
         "armada": "DEPT HSE",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional dept\" pada 26/10/26",
+        "matchedItem": "Item sama: \"SLUDGE (00)\" diajukan pada 26/10/26",
         "similarityNotes": "Pengajuan serupa dari armada DEPT HSE (0 hari selisih)"
       },
       {
         "fpbNo": "CPL-FPB-26-0004976",
         "date": "26/10/26",
         "armada": "DEPT HSE",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional dept\" pada 26/10/26",
+        "matchedItem": "Item sama: \"DRUM BEKAS OLI (00)\" diajukan pada 26/10/26",
         "similarityNotes": "Pengajuan serupa dari armada DEPT HSE (0 hari selisih)"
       },
       {
         "fpbNo": "CPL-FPB-26-0004980",
         "date": "26/10/26",
         "armada": "DEPT HSE",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional dept\" pada 26/10/26",
+        "matchedItem": "Item sama: \"SLUDGE (00)\" diajukan pada 26/10/26",
         "similarityNotes": "Pengajuan serupa dari armada DEPT HSE (0 hari selisih)"
       }
     ],
@@ -2732,11 +6339,11 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T17:06:08.453Z",
+    "updatedAt": "2026-10-29T12:50:47.727Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 29,
+    "slaDaysRemaining": 27,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -2746,7 +6353,7 @@
     "entity": "MO",
     "armada": "TB EQUATOR 15",
     "date": "26/10/26",
-    "purpose": "Kebutuhan Operasional TB EQUATOR 15",
+    "purpose": "U/ PEMBASMI HAMA DI KAP",
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/logistik_Approved_rev_sign_MO-FPB-26-0001921.pdf",
@@ -2754,18 +6361,32 @@
     "urgency": "NORMAL",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "JAS08274001-JSA",
+        "itemName": "PEST CONTROL 141 GT (JASA)",
+        "qty": 1,
+        "unit": "LOT",
+        "description": "U/ PEMBASMI HAMA DI KAP",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
     "duplicateAlerts": [],
     "relatedDocs": {
       "poNos": [],
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T17:06:08.453Z",
+    "updatedAt": "2026-10-29T12:50:52.761Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 29,
+    "slaDaysRemaining": 27,
     "slaStatus": "ON_TRACK",
     "pchLogistik": "Received_Logistic",
     "reviewedBy": "NOOR HASANAH",
@@ -2778,35 +6399,43 @@
     "entity": "GAJ",
     "armada": "WORKSHOP 01 GAJ",
     "date": "26/10/26",
-    "purpose": "Kebutuhan Operasional WORKSHOP 01 GAJ",
+    "purpose": "U/SARANA KERJA",
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0001085.pdf",
     "reviewStatus": "PENDING_REVIEW",
-    "urgency": "NORMAL",
+    "urgency": "URGENT",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
-    "duplicateAlerts": [
+    "items": [
       {
-        "fpbNo": "GAJ-FPB-26-0001100",
-        "date": "26/10/26",
-        "armada": "WORKSHOP 01 GAJ",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional workshop\" pada 26/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada WORKSHOP 01 GAJ (0 hari selisih)"
+        "no": 1,
+        "itemCode": "LEM02001001-DX",
+        "itemName": "LEM BESI (DEXTONE)",
+        "qty": 5,
+        "unit": "PCS",
+        "description": "U/SARANA KERJA",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[LEM1-LEM020] LEM (GLUE) - LEM BESI (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
       }
     ],
+    "duplicateAlerts": [],
     "relatedDocs": {
       "poNos": [],
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T17:06:08.453Z",
+    "updatedAt": "2026-10-29T12:50:57.240Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
-    "priorityLevel": "P3",
-    "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 29,
-    "slaStatus": "ON_TRACK"
+    "priorityLevel": "P1",
+    "slaTargetDate": "28/10/26",
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001922",
@@ -2916,26 +6545,18 @@
         "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
       }
     ],
-    "duplicateAlerts": [
-      {
-        "fpbNo": "MO-FPB-26-0001903",
-        "date": "23/10/26",
-        "armada": "SITE PAGATAN",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional site pagatan\" pada 23/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada SITE PAGATAN (3 hari selisih)"
-      }
-    ],
+    "duplicateAlerts": [],
     "relatedDocs": {
       "poNos": [],
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T17:06:08.453Z",
+    "updatedAt": "2026-10-27T01:49:18.402Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": 1,
-    "slaStatus": "DUE_SOON"
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001100",
@@ -2949,30 +6570,36 @@
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0001100.pdf",
     "reviewStatus": "PENDING_REVIEW",
-    "urgency": "NORMAL",
+    "urgency": "URGENT",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
-    "duplicateAlerts": [
+    "items": [
       {
-        "fpbNo": "GAJ-FPB-26-0001085",
-        "date": "26/10/26",
-        "armada": "WORKSHOP 01 GAJ",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional workshop\" pada 26/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada WORKSHOP 01 GAJ (0 hari selisih)"
+        "no": 1,
+        "itemCode": "HOU01902001-ZZ",
+        "itemName": "JUMBO BAG 1 TON (00)",
+        "qty": 5,
+        "unit": "PCS",
+        "description": "U/ SARANA KERJA",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
       }
     ],
+    "duplicateAlerts": [],
     "relatedDocs": {
       "poNos": [],
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T17:06:08.453Z",
+    "updatedAt": "2026-10-27T01:49:18.402Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
-    "priorityLevel": "P3",
-    "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 29,
-    "slaStatus": "ON_TRACK"
+    "priorityLevel": "P1",
+    "slaTargetDate": "28/10/26",
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004997",
@@ -3012,11 +6639,11 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T17:06:08.453Z",
+    "updatedAt": "2026-10-28T05:52:40.841Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 29,
+    "slaDaysRemaining": 27,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -3026,7 +6653,7 @@
     "entity": "GAJ",
     "armada": "OFFICE GAJ",
     "date": "26/10/26",
-    "purpose": "Kebutuhan Operasional OFFICE GAJ",
+    "purpose": "U/SARANA KERJA KONSTRUKSI",
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0001104.pdf",
@@ -3034,42 +6661,45 @@
     "urgency": "NORMAL",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "LPG00101003-PTM",
+        "itemName": "GAS LPG 50 KG (REFILL) (PERTAMINA)",
+        "qty": 3,
+        "unit": "TBG",
+        "description": "U/SARANA KERJA KONSTRUKSI",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[LPG1-LPG001] LPG - GAS LPG (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 2,
+        "itemCode": "GAS00501001-ZZZ",
+        "itemName": "OXYGEN (O2) LIQUID 175 KG (REFILL) (00)",
+        "qty": 3,
+        "unit": "TBG",
+        "description": "U/SARANA KERJA KONSTRUKSI",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[GAS1-GAS005] GAS & LIQUID - OXYGEN (O2) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
     "duplicateAlerts": [
       {
-        "fpbNo": "GAJ-FPB-26-0001082",
-        "date": "23/10/26",
+        "fpbNo": "GAJ-FPB-26-0001108",
+        "date": "27/10/26",
         "armada": "OFFICE GAJ",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional office\" pada 23/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (3 hari selisih)"
-      },
-      {
-        "fpbNo": "GAJ-FPB-26-0001088",
-        "date": "24/10/26",
-        "armada": "OFFICE GAJ",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional office\" pada 24/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (2 hari selisih)"
-      },
-      {
-        "fpbNo": "GAJ-FPB-26-0001089",
-        "date": "26/10/26",
-        "armada": "OFFICE GAJ",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional office\" pada 26/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (0 hari selisih)"
-      },
-      {
-        "fpbNo": "GAJ-FPB-26-0001094",
-        "date": "26/10/26",
-        "armada": "OFFICE GAJ",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional office\" pada 26/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (0 hari selisih)"
-      },
-      {
-        "fpbNo": "GAJ-FPB-26-0000712",
-        "date": "26/10/26",
-        "armada": "OFFICE GAJ",
-        "matchedItem": "Keperluan mirip: \"kebutuhan operasional office\" pada 26/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (0 hari selisih)"
+        "matchedItem": "Keperluan persis: \"U/SARANA KERJA KONSTRUKSI\" pada 27/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (1 hari selisih)"
       }
     ],
     "relatedDocs": {
@@ -3077,11 +6707,11 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T17:06:08.453Z",
+    "updatedAt": "2026-10-29T12:51:01.511Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 29,
+    "slaDaysRemaining": 27,
     "slaStatus": "ON_TRACK"
   }
 ]
