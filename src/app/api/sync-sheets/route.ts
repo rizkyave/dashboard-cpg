@@ -195,6 +195,33 @@ async function processSheet(rawTargetUrl: string) {
   const workbook = XLSX.read(buffer, { type: 'buffer' });
   const result = parseAndMergeWorkbook(workbook);
 
+  // Auto-enrich data verifikasi FPB dari Google Sheet (Bu Noor gid: 76614569 & Bu Melinda gid: 1411569542)
+  try {
+    const checkFpbPath = path.join(process.cwd(), 'src', 'data', 'check-fpb-data.json');
+    if (fs.existsSync(checkFpbPath)) {
+      const checkFpbRaw = JSON.parse(fs.readFileSync(checkFpbPath, 'utf8'));
+      const checkMap: Record<string, any> = checkFpbRaw?.records || {};
+      for (const p of result.procurement) {
+        if (!p.sourceCheckFpb || p.sourceCheckFpb === '') {
+          const norm = (p.fpb || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+          const match = checkMap[norm];
+          if (match) {
+            p.sourceCheckFpb = match.sourceSheet;
+            p.verifiedByFpb = match.checkerLabel;
+            p.picCheckFpb = match.checker;
+            p.statusCheckFpb = match.statusCek || p.statusCheckFpb || 'CLOSE';
+            if (match.tglCek && !p.tglCheckFpb) p.tglCheckFpb = match.tglCek;
+            if (match.tglApproveWeb && !p.tglApproveWeb) p.tglApproveWeb = match.tglApproveWeb;
+            if (match.done && !p.doneCheckFpb) p.doneCheckFpb = match.done;
+            if (match.note && !p.noteCheckFpb) p.noteCheckFpb = match.note;
+          }
+        }
+      }
+    }
+  } catch (enrichErr) {
+    console.warn('Gagal enrich check FPB data di sync-sheets:', enrichErr);
+  }
+
   if (result.procurement.length === 0 && result.armada.length === 0) {
     return NextResponse.json(
       {

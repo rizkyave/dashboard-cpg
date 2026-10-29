@@ -49,6 +49,8 @@ import { SisaLayananItem } from '@/types/sisaLayanan';
 import { loadStoredSisaLayanan } from '@/utils/sisaLayananStorage';
 import { extractFpbKeys } from '@/utils/sisaLayananParser';
 import { formatFpbTooltip, isInvalidOrGenericItem } from '@/utils/itemResolver';
+import { CheckFpbRecord, BU_NOOR_SHEET_URL, MELINDA_SHEET_URL } from '@/types/checkFpbSync';
+import { getDefaultCheckFpbUrl } from '@/utils/checkFpbStorage';
 
 function normalizeVesselName(name: string): string {
   return (name || '')
@@ -678,6 +680,29 @@ export default function AuditModal({
   const cleanPo = docPo.replace(/^["']|["']$/g, '');
   const primaryDocNum = cleanFpb || cleanPo;
 
+  // Sinkronisasi data verifikasi FPB dari Google Sheet (Bu Noor gid: 76614569 & Bu Melinda gid: 1411569542)
+  const [liveCheckFpb, setLiveCheckFpb] = useState<CheckFpbRecord | null>(null);
+
+  useEffect(() => {
+    if (!primaryDocNum) {
+      setLiveCheckFpb(null);
+      return;
+    }
+    let isMounted = true;
+    const pt = (primaryDocNum.match(/^([A-Z]{2,6})[-_/\\s]/i)?.[1] || itemS1?.entity || '').toUpperCase();
+    fetch(`/api/sync-check-fpb?fpb=${encodeURIComponent(primaryDocNum)}&entity=${encodeURIComponent(pt)}`)
+      .then((r) => r.json())
+      .then((res) => {
+        if (isMounted && res?.success && res.record) {
+          setLiveCheckFpb(res.record);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, [primaryDocNum, itemS1?.entity]);
+
   // Sinkronisasi status operasional fase 4 & 5 (TTB/BAST & Teknisi Lapangan)
   useEffect(() => {
     if (!primaryDocNum) {
@@ -1120,6 +1145,15 @@ export default function AuditModal({
 
   // Menentukan sumber verifikasi data FPB Check (Bu Noor atau Bu Melinda)
   const fpbCheckInfo = useMemo(() => {
+    if (liveCheckFpb?.checkerLabel) {
+      return {
+        checkerName: liveCheckFpb.checkerLabel,
+        label: `Terverifikasi oleh data ${liveCheckFpb.sourceSheet} (Baris ${liveCheckFpb.rowNumber || '-'})`,
+        sourceSheet: liveCheckFpb.sourceSheet,
+        sheetUrl: liveCheckFpb.sheetUrl,
+      };
+    }
+
     // 1. Cek dari field eksplisit hasil parsing workbook
     const explicitVerified = itemS1?.verifiedByFpb || itemsS2[0]?.verifiedByFpb;
     const explicitSource = itemS1?.sourceCheckFpb || itemsS2[0]?.sourceCheckFpb;
@@ -1157,14 +1191,36 @@ export default function AuditModal({
       }
     }
 
-    const activeChecker = checker || 'Bu Noor';
+    const fallback = getDefaultCheckFpbUrl(primaryDocNum || itemS1?.fpb);
+    const activeChecker = checker || fallback.label;
     const label = `Terverifikasi oleh data FPB Check ${activeChecker}`;
 
     return {
       checkerName: activeChecker,
       label,
+      sourceSheet: activeChecker.includes('Melinda') ? ('FBP CHECK MELINDA' as const) : ('FBP CHECK BU NOOR' as const),
+      sheetUrl: activeChecker.includes('Melinda') ? MELINDA_SHEET_URL : BU_NOOR_SHEET_URL,
     };
-  }, [itemS1, itemsS2, primaryDocNum, pdfData?.receivedBy]);
+  }, [liveCheckFpb, itemS1, itemsS2, primaryDocNum, pdfData?.receivedBy]);
+
+  const effectiveReceivedUrl = useMemo(() => {
+    if (liveCheckFpb?.sheetUrl) return liveCheckFpb.sheetUrl;
+    if (fpbCheckInfo.sheetUrl) return fpbCheckInfo.sheetUrl;
+    const fallback = getDefaultCheckFpbUrl(primaryDocNum || pdfData?.receivedBy || itemS1?.fpb);
+    return fallback.url;
+  }, [liveCheckFpb, fpbCheckInfo, primaryDocNum, pdfData?.receivedBy, itemS1?.fpb]);
+
+  const effectiveReceivedBy = useMemo(() => {
+    if (liveCheckFpb?.checker) return liveCheckFpb.checker;
+    if (pdfData?.receivedBy && isValidPicName(pdfData.receivedBy)) return pdfData.receivedBy.trim();
+    if (itemS1?.picCheckFpb && itemS1.picCheckFpb !== '-') return itemS1.picCheckFpb;
+    if (fpbCheckInfo.checkerName.includes('Melinda')) return 'MELINDA DWI PUTRI';
+    return 'NOOR HASANAH';
+  }, [liveCheckFpb, pdfData?.receivedBy, itemS1?.picCheckFpb, fpbCheckInfo.checkerName]);
+
+  const effectiveReceivedDate = useMemo(() => {
+    return liveCheckFpb?.tglCek || pdfData?.receivedDate || itemS1?.tglCheckFpb || '';
+  }, [liveCheckFpb?.tglCek, pdfData?.receivedDate, itemS1?.tglCheckFpb]);
 
   // Penentuan Status Validasi Modul 1-4 untuk Audit Header:
   const isModul1Done = true; // Input data master FPB terdaftar di sheet Melinda
@@ -2269,18 +2325,22 @@ export default function AuditModal({
                   <div className="flex items-center justify-between min-w-0">
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">Status:</span>
                     <span className="text-blue-600 dark:text-blue-400 font-mono font-bold text-right ml-1.5 truncate min-w-0">
-                      {itemS1?.statusCheckFpb || itemsS2[0]?.statusCheckFpb || (itemS1?.doneCheckFpb ? 'DONE' : 'CLOSE')}
+                      {liveCheckFpb?.statusCek || itemS1?.statusCheckFpb || itemsS2[0]?.statusCheckFpb || (itemS1?.doneCheckFpb ? 'DONE' : 'CLOSE')}
                     </span>
                   </div>
                   <div className="flex items-start justify-between gap-1.5 min-w-0">
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">Verifikasi:</span>
                     {fpbCheckInfo.checkerName ? (
-                      <span
-                        className="text-[10px] font-mono text-right text-emerald-700 dark:text-emerald-400 font-medium leading-tight ml-1.5 truncate min-w-0"
-                        title={fpbCheckInfo.label}
+                      <a
+                        href={effectiveReceivedUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] font-mono text-right text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 font-medium leading-tight ml-1.5 truncate min-w-0 inline-flex items-center gap-1 cursor-pointer hover:underline group"
+                        title={`${fpbCheckInfo.label} - Klik untuk membuka lembar kerja Google Sheet (${fpbCheckInfo.sourceSheet || 'Google Sheet'})`}
                       >
-                        FPB Check {fpbCheckInfo.checkerName}
-                      </span>
+                        <span className="truncate">FPB Check {fpbCheckInfo.checkerName}</span>
+                        <ExternalLink className="size-2.5 opacity-60 group-hover:opacity-100 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                      </a>
                     ) : (
                       <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
                         Belum Diverifikasi
@@ -2295,6 +2355,10 @@ export default function AuditModal({
                         title={`Approved By: ${pdfData.approvedBy} (${formatDateDdMmYy(pdfData.approvedDate) || ''})`}
                       >
                         {pdfData.approvedBy}{pdfData.approvedDate ? ` (${formatDateDdMmYy(pdfData.approvedDate)})` : ''}
+                      </span>
+                    ) : liveCheckFpb?.tglApproveWeb ? (
+                      <span className="text-muted-foreground font-mono text-right ml-1.5 truncate min-w-0" title={`Tgl Approve Web dari ${liveCheckFpb.sourceSheet}`}>
+                        {formatDateDdMmYy(liveCheckFpb.tglApproveWeb)}
                       </span>
                     ) : itemS1?.tglApproveWeb ? (
                       <span className="text-muted-foreground font-mono text-right ml-1.5 truncate min-w-0">
@@ -2316,13 +2380,17 @@ export default function AuditModal({
                   </div>
                   <div className="flex items-center justify-between gap-1.5 min-w-0">
                     <span className="text-muted-foreground shrink-0 whitespace-nowrap">Received:</span>
-                    {pdfData?.receivedBy ? (
-                      <span
-                        className="font-semibold text-foreground font-mono text-right ml-1.5 truncate min-w-0"
-                        title={`Received By (Logistic Staff): ${pdfData.receivedBy} (${formatDateDdMmYy(pdfData.receivedDate) || ''})`}
+                    {effectiveReceivedBy ? (
+                      <a
+                        href={effectiveReceivedUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-semibold text-foreground hover:text-blue-600 dark:hover:text-blue-400 font-mono text-right ml-1.5 truncate min-w-0 inline-flex items-center gap-1 cursor-pointer hover:underline group"
+                        title={`Received By (Logistic Staff): ${effectiveReceivedBy}${effectiveReceivedDate ? ` (${formatDateDdMmYy(effectiveReceivedDate)})` : ''} - Klik untuk membuka lembar kerja Google Sheet (${liveCheckFpb?.sourceSheet || (effectiveReceivedUrl.includes('76614569') ? 'FBP CHECK BU NOOR' : 'FBP CHECK MELINDA')})`}
                       >
-                        {pdfData.receivedBy}
-                      </span>
+                        <span className="truncate">{effectiveReceivedBy}</span>
+                        <ExternalLink className="size-2.5 opacity-60 group-hover:opacity-100 shrink-0 text-blue-600 dark:text-blue-400" />
+                      </a>
                     ) : (
                       <span
                         className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0"
