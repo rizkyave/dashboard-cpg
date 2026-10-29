@@ -71,8 +71,8 @@
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P1",
     "slaTargetDate": "31/10/26",
-    "slaDaysRemaining": 2,
-    "slaStatus": "ON_TRACK",
+    "slaDaysRemaining": 1,
+    "slaStatus": "DUE_SOON",
     "pchLogistik": "-",
     "reviewedBy": "NOOR HASANAH",
     "reviewedAt": "2026-10-29T13:59:48.752Z"
@@ -144,7 +144,7 @@
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 30,
+    "slaDaysRemaining": 29,
     "slaStatus": "ON_TRACK",
     "pchLogistik": "-",
     "reviewedBy": "NOOR HASANAH",
@@ -238,7 +238,7 @@
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 30,
+    "slaDaysRemaining": 29,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -279,7 +279,7 @@
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 30,
+    "slaDaysRemaining": 29,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -309,7 +309,7 @@
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 30,
+    "slaDaysRemaining": 29,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -319,15 +319,250 @@
     "entity": "CPL",
     "armada": "MT DEWI SRI",
     "date": "29/10/26",
-    "purpose": "Kebutuhan Operasional MT DEWI SRI",
+    "purpose": "U/ SARANA KERJA AE 3 • U/ SARANA KERJA ENGINE",
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0005056.pdf",
     "reviewStatus": "PENDING_REVIEW",
-    "urgency": "NORMAL",
+    "urgency": "URGENT",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "PAC02003001-TOM",
+        "itemName": "PACKING TOMBO 1 MM (TOMBO)",
+        "qty": 2,
+        "unit": "MTR",
+        "description": "U/ SARANA KERJA AE 3",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[PACK-PAC020] PACKING - PACKING TOMBO (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 2,
+        "itemCode": "PAC01202001-ZZZ",
+        "itemName": "PACKING KARET 1 MM (00)",
+        "qty": 2,
+        "unit": "MTR",
+        "description": "U/ SARANA KERJA AE 3",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[PACK-PAC012] PACKING - PACKING KARET (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 3,
+        "itemCode": "PAC01203001-ZZZ",
+        "itemName": "PACKING KARET 2 MM (00)",
+        "qty": 2,
+        "unit": "MTR",
+        "description": "U/ SARANA KERJA AE 3",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[PACK-PAC012] PACKING - PACKING KARET (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 4,
+        "itemCode": "PAC01903001-TBA",
+        "itemName": "PACKING TBA 1 MM (TBA)",
+        "qty": 2,
+        "unit": "MTR",
+        "description": "U/ SARANA KERJA AE 3",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[PACK-PAC019] PACKING - PACKING TBA (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 5,
+        "itemCode": "KLE00605001-ZZZ",
+        "itemName": "CLAMP SELANG (SS) 2\" (00)",
+        "qty": 20,
+        "unit": "PCS",
+        "description": "U/ SARANA KERJA AE 3",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[KLEM-KLE005] KLEM (CLAMP) - KLEM SELANG (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 6,
+        "itemCode": "KLE00604001-ZZZ",
+        "itemName": "CLAMP SELANG (SS) 2 1/2\" (00)",
+        "qty": 20,
+        "unit": "PCS",
+        "description": "U/ SARANA KERJA AE 3",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[KLEM-KLE005] KLEM (CLAMP) - KLEM SELANG (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 7,
+        "itemCode": "SAL03101001-ZZZ",
+        "itemName": "SEAL TAPE 1\" (00)",
+        "qty": 10,
+        "unit": "PCS",
+        "description": "U/ SARANA KERJA AE 3",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[SEAL-SAL031] SEAL - SEAL TAPE 1\" (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 8,
+        "itemCode": "LEM02803001-ZZZ",
+        "itemName": "LEM SILICON (SEALANT) 70 GRAM MERAH (00)",
+        "qty": 12,
+        "unit": "PCS",
+        "description": "U/ SARANA KERJA AE 3",
+        "priority": "P2",
+        "stockAvailable": 4,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[LEM02803001-ZZZ] LEM SILICON (SEALANT) 70 GRAM MERAH (00) (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "PO",
+        "notes": "Stok gudang parsial (4 PCS). Sisa dibuatkan PO."
+      },
+      {
+        "no": 9,
+        "itemCode": "APL00117001-ZZZ",
+        "itemName": "AMPLAS NO. 400 ROLL (00)",
+        "qty": 10,
+        "unit": "MTR",
+        "description": "U/ SARANA KERJA AE 3",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 10,
+        "itemCode": "APL00120002-ZZZ",
+        "itemName": "AMPLAS NO. 1000 ROLL (00)",
+        "qty": 10,
+        "unit": "MTR",
+        "description": "U/ SARANA KERJA AE 3",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 11,
+        "itemCode": "CAI01101008-RHA",
+        "itemName": "CARBON CLEANER/REMOVER HD 25 LITER RA 092 CR (RHADARCHEM)",
+        "qty": 4,
+        "unit": "PIL",
+        "description": "U/ SARANA KERJA AE 3",
+        "priority": "P2",
+        "stockAvailable": 150,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[CAI01101005-ZZZ] CARBON CLEANER/REMOVER WAL R-01 (LITER) (00) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (150 PIL). Disarankan penuhi dari stok gudang."
+      },
+      {
+        "no": 12,
+        "itemCode": "SNT00501001-ZZZ",
+        "itemName": "SENTER LED KEPALA RECHARGEABLE (00)",
+        "qty": 5,
+        "unit": "PCS",
+        "description": "U/ SARANA KERJA ENGINE",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[SNTR-SNT005] SENTER - SENTER LED KEPALA (RECHARGEABLE) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 13,
+        "itemCode": "KEY00304002-TJM",
+        "itemName": "KUNCI MOMENT 3/4\" SQ HT-7200 (TJAP MATA)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ SARANA KERJA ENGINE",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[KEYT-KEY003] KUNCI TUKANG - KUNCI MOMENT (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 14,
+        "itemCode": "SAT00101001-ZZZ",
+        "itemName": "SARUNG TANGAN BIASA (00)",
+        "qty": 84,
+        "unit": "PSG",
+        "description": "U/ SARANA KERJA",
+        "priority": "P2",
+        "stockAvailable": 395,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[SAT00101001-ZZZ] SARUNG TANGAN BIASA (00) (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (395 PSG). Disarankan penuhi dari stok gudang."
+      },
+      {
+        "no": 15,
+        "itemCode": "AKU03501001-ZZZ",
+        "itemName": "PLASTIGAUGE (00)",
+        "qty": 1,
+        "unit": "KTK",
+        "description": "U/ SARANA KERJA ENGINE",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[AKUR-AKU035] ALAT UKUR - PLASTIGAUGE (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 16,
+        "itemCode": "APL00118002-ZZZ",
+        "itemName": "AMPLAS NO. 600 ROLL (00)",
+        "qty": 10,
+        "unit": "MTR",
+        "description": "U/ SARANA KERJA AE 3",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
     "attachments": [],
     "duplicateAlerts": [],
     "relatedDocs": {
@@ -335,12 +570,13 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T13:14:25.535Z",
+    "updatedAt": "2026-10-29T16:04:17.337Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
-    "priorityLevel": "P3",
-    "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 30,
-    "slaStatus": "ON_TRACK"
+    "priorityLevel": "P1",
+    "slaTargetDate": "31/10/26",
+    "slaDaysRemaining": 1,
+    "slaStatus": "DUE_SOON",
+    "requestedBy": "Iqbal Polejiwa"
   },
   {
     "id": "fpb-rev-MIL-FPB-26-0000064",
@@ -380,7 +616,7 @@
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 30,
+    "slaDaysRemaining": 29,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -390,15 +626,31 @@
     "entity": "MO",
     "armada": "TK MO 27",
     "date": "29/10/26",
-    "purpose": "Kebutuhan Operasional TK MO 27",
+    "purpose": "U/ TALI TAMBAT (PENAMBAHAN)",
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0001931.pdf",
     "reviewStatus": "PENDING_REVIEW",
-    "urgency": "NORMAL",
+    "urgency": "EMERGENCY",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "TAL00511001-ZZZ",
+        "itemName": "TALI PP 3\" (00)",
+        "qty": 200,
+        "unit": "MTR",
+        "description": "U/ TALI TAMBAT (PENAMBAHAN)",
+        "priority": "P1",
+        "stockAvailable": 13,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[SFT00401006-ZZZ] HELM SAFETY TALI PENGAMAN (00) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang parsial (13 MTR). Sisa dibuatkan PO."
+      }
+    ],
     "attachments": [],
     "duplicateAlerts": [],
     "relatedDocs": {
@@ -406,12 +658,13 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T13:14:25.535Z",
+    "updatedAt": "2026-10-29T15:22:01.278Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
-    "priorityLevel": "P3",
-    "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 30,
-    "slaStatus": "ON_TRACK"
+    "priorityLevel": "P1",
+    "slaTargetDate": "31/10/26",
+    "slaDaysRemaining": 1,
+    "slaStatus": "DUE_SOON",
+    "requestedBy": "YULIANINGSIH AMANDA"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001130",
@@ -440,7 +693,7 @@
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 30,
+    "slaDaysRemaining": 29,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -491,7 +744,7 @@
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 30,
+    "slaDaysRemaining": 29,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -542,7 +795,7 @@
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 30,
+    "slaDaysRemaining": 29,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -593,7 +846,7 @@
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 30,
+    "slaDaysRemaining": 29,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -623,7 +876,7 @@
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 30,
+    "slaDaysRemaining": 29,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -633,7 +886,7 @@
     "entity": "HL",
     "armada": "TB KING BORNEO",
     "date": "29/10/26",
-    "purpose": "Kebutuhan Operasional TB KING BORNEO",
+    "purpose": "A/N WIDOYO (NAKHOD",
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_HL-FPB-26-0001536.pdf",
@@ -641,7 +894,68 @@
     "urgency": "NORMAL",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "UNI00107002-ZZZ",
+        "itemName": "BAJU COVERALL PT. CPL (XXXL ORANGE (00)",
+        "qty": 2,
+        "unit": "PCS",
+        "description": "A/N WIDOYO (NAKHOD",
+        "priority": "P3",
+        "stockAvailable": 3,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[UNI00107002-ZZZ] BAJU COVERALL PT. CPL (XXXL) ORANGE (00) (HL)",
+        "inventoryEntity": "HL",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (3 PCS). Disarankan penuhi dari stok gudang."
+      },
+      {
+        "no": 2,
+        "itemCode": "SFT00401004-ZZZ",
+        "itemName": "HELM SAFETY PUTIH (00)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "A/N WIDOYO (NAKHOD",
+        "priority": "P3",
+        "stockAvailable": 13,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[SFT00401004-ZZZ] HELM SAFETY PUTIH (00) (HL)",
+        "inventoryEntity": "HL",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (13 PCS). Disarankan penuhi dari stok gudang."
+      },
+      {
+        "no": 3,
+        "itemCode": "SFT00401006-ZZZ",
+        "itemName": "HELM SAFETY TALI PENGAMAN (00)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "A/N WIDOYO (NAKHOD",
+        "priority": "P3",
+        "stockAvailable": 13,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[SFT00401006-ZZZ] HELM SAFETY TALI PENGAMAN (00) (HL)",
+        "inventoryEntity": "HL",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (13 PCS). Disarankan penuhi dari stok gudang."
+      },
+      {
+        "no": 4,
+        "itemCode": "UNI02304001-ZZZ",
+        "itemName": "SEPATU SAFETY NO. 08 (00)",
+        "qty": 1,
+        "unit": "PSG",
+        "description": "A/N WIDOYO (NAKHOD",
+        "priority": "P3",
+        "stockAvailable": 6,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[UNI02304001-ZZZ] SEPATU SAFETY NO. 08 (00) (HL)",
+        "inventoryEntity": "HL",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (6 PSG). Disarankan penuhi dari stok gudang."
+      }
+    ],
     "attachments": [
       {
         "id": "efpb-att-HL-FPB-26-0001536-2",
@@ -660,12 +974,13 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T13:14:25.535Z",
+    "updatedAt": "2026-10-29T15:33:25.851Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 30,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 29,
+    "slaStatus": "ON_TRACK",
+    "requestedBy": "SUPRIYONO"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005060",
@@ -721,7 +1036,7 @@
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 30,
+    "slaDaysRemaining": 29,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -868,8 +1183,8 @@
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P1",
     "slaTargetDate": "31/10/26",
-    "slaDaysRemaining": 2,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 1,
+    "slaStatus": "DUE_SOON"
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001535",
@@ -898,7 +1213,7 @@
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 30,
+    "slaDaysRemaining": 29,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -970,8 +1285,8 @@
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P1",
     "slaTargetDate": "31/10/26",
-    "slaDaysRemaining": 2,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 1,
+    "slaStatus": "DUE_SOON"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001115",
@@ -1022,7 +1337,7 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
-    "slaDaysRemaining": 1,
+    "slaDaysRemaining": 0,
     "slaStatus": "DUE_SOON",
     "reviewedAt": "2026-10-29T13:21:43.701Z"
   },
@@ -1069,7 +1384,7 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P3",
     "slaTargetDate": "27/11/26",
-    "slaDaysRemaining": 29,
+    "slaDaysRemaining": 28,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -1136,7 +1451,7 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P2",
     "slaTargetDate": "11/11/26",
-    "slaDaysRemaining": 13,
+    "slaDaysRemaining": 12,
     "slaStatus": "ON_TRACK",
     "pchLogistik": "Received_Logistic",
     "reviewedBy": "Administrator CPG",
@@ -1230,7 +1545,7 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P3",
     "slaTargetDate": "27/11/26",
-    "slaDaysRemaining": 29,
+    "slaDaysRemaining": 28,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -1297,7 +1612,7 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
-    "slaDaysRemaining": 1,
+    "slaDaysRemaining": 0,
     "slaStatus": "DUE_SOON"
   },
   {
@@ -1387,7 +1702,7 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
-    "slaDaysRemaining": 1,
+    "slaDaysRemaining": 0,
     "slaStatus": "DUE_SOON"
   },
   {
@@ -1433,7 +1748,7 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P3",
     "slaTargetDate": "27/11/26",
-    "slaDaysRemaining": 29,
+    "slaDaysRemaining": 28,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -1520,7 +1835,7 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
-    "slaDaysRemaining": 1,
+    "slaDaysRemaining": 0,
     "slaStatus": "DUE_SOON"
   },
   {
@@ -1550,7 +1865,7 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P3",
     "slaTargetDate": "27/11/26",
-    "slaDaysRemaining": 29,
+    "slaDaysRemaining": 28,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -1671,7 +1986,7 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P3",
     "slaTargetDate": "27/11/26",
-    "slaDaysRemaining": 29,
+    "slaDaysRemaining": 28,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -1728,7 +2043,7 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
-    "slaDaysRemaining": 1,
+    "slaDaysRemaining": 0,
     "slaStatus": "DUE_SOON"
   },
   {
@@ -1823,7 +2138,7 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
-    "slaDaysRemaining": 1,
+    "slaDaysRemaining": 0,
     "slaStatus": "DUE_SOON"
   },
   {
@@ -1918,7 +2233,7 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
-    "slaDaysRemaining": 1,
+    "slaDaysRemaining": 0,
     "slaStatus": "DUE_SOON"
   },
   {
@@ -2000,7 +2315,7 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
-    "slaDaysRemaining": 1,
+    "slaDaysRemaining": 0,
     "slaStatus": "DUE_SOON"
   },
   {
@@ -2046,7 +2361,7 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
-    "slaDaysRemaining": 1,
+    "slaDaysRemaining": 0,
     "slaStatus": "DUE_SOON"
   },
   {
@@ -2116,7 +2431,7 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
-    "slaDaysRemaining": 1,
+    "slaDaysRemaining": 0,
     "slaStatus": "DUE_SOON"
   },
   {
@@ -2198,7 +2513,7 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
-    "slaDaysRemaining": 1,
+    "slaDaysRemaining": 0,
     "slaStatus": "DUE_SOON",
     "tkbNo": "TKB-004",
     "pchLogistik": "Received_Logistic",
@@ -2304,7 +2619,7 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P3",
     "slaTargetDate": "27/11/26",
-    "slaDaysRemaining": 29,
+    "slaDaysRemaining": 28,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -2345,7 +2660,7 @@
     "createdAt": "2026-10-28T05:50:09.035Z",
     "priorityLevel": "P3",
     "slaTargetDate": "27/11/26",
-    "slaDaysRemaining": 29,
+    "slaDaysRemaining": 28,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -2459,8 +2774,8 @@
     "createdAt": "2026-10-28T01:02:53.918Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
-    "slaDaysRemaining": 0,
-    "slaStatus": "DUE_SOON"
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001101",
@@ -2516,8 +2831,8 @@
     "createdAt": "2026-10-28T01:02:53.918Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
-    "slaDaysRemaining": 0,
-    "slaStatus": "DUE_SOON"
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001111",
@@ -2700,8 +3015,8 @@
     "createdAt": "2026-10-28T01:02:53.918Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
-    "slaDaysRemaining": 0,
-    "slaStatus": "DUE_SOON",
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE",
     "pchLogistik": "-",
     "reviewedBy": "Administrator CPG",
     "reviewedAt": "2026-10-28T06:06:38.001Z"
@@ -2805,7 +3120,7 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 27,
+    "slaDaysRemaining": 26,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -2856,7 +3171,7 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
-    "slaDaysRemaining": 28,
+    "slaDaysRemaining": 27,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -2913,7 +3228,7 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
-    "slaDaysRemaining": 28,
+    "slaDaysRemaining": 27,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -2974,8 +3289,8 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
-    "slaDaysRemaining": 0,
-    "slaStatus": "DUE_SOON"
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0005005",
@@ -3025,7 +3340,7 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
-    "slaDaysRemaining": 28,
+    "slaDaysRemaining": 27,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -3107,8 +3422,8 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
-    "slaDaysRemaining": 0,
-    "slaStatus": "DUE_SOON"
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005007",
@@ -3168,7 +3483,7 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
-    "slaDaysRemaining": 28,
+    "slaDaysRemaining": 27,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -3214,7 +3529,7 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
-    "slaDaysRemaining": 28,
+    "slaDaysRemaining": 27,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -3244,7 +3559,7 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
-    "slaDaysRemaining": 28,
+    "slaDaysRemaining": 27,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -3311,8 +3626,8 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
-    "slaDaysRemaining": 0,
-    "slaStatus": "DUE_SOON"
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001083",
@@ -3410,8 +3725,8 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
-    "slaDaysRemaining": 0,
-    "slaStatus": "DUE_SOON"
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001108",
@@ -3486,7 +3801,7 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
-    "slaDaysRemaining": 28,
+    "slaDaysRemaining": 27,
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
@@ -3557,8 +3872,8 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
-    "slaDaysRemaining": 0,
-    "slaStatus": "DUE_SOON"
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001102",
@@ -3755,8 +4070,8 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
-    "slaDaysRemaining": 0,
-    "slaStatus": "DUE_SOON"
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005013",
@@ -3801,8 +4116,8 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
-    "slaDaysRemaining": 0,
-    "slaStatus": "DUE_SOON"
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005015",
@@ -3873,7 +4188,7 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
-    "slaDaysRemaining": 28,
+    "slaDaysRemaining": 27,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -3919,7 +4234,7 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
-    "slaDaysRemaining": 28,
+    "slaDaysRemaining": 27,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -4010,7 +4325,7 @@
     "createdAt": "2026-10-27T01:49:18.402Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 27,
+    "slaDaysRemaining": 26,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -4138,7 +4453,7 @@
     "createdAt": "2026-10-27T01:49:18.402Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 27,
+    "slaDaysRemaining": 26,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -4184,7 +4499,7 @@
     "createdAt": "2026-10-27T01:49:18.402Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 27,
+    "slaDaysRemaining": 26,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -4249,7 +4564,7 @@
     "createdAt": "2026-10-27T01:49:18.402Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 27,
+    "slaDaysRemaining": 26,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -4293,7 +4608,7 @@
     "createdAt": "2026-10-27T01:49:18.402Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 27,
+    "slaDaysRemaining": 26,
     "slaStatus": "ON_TRACK",
     "pchLogistik": "Received_Logistic",
     "reviewedBy": "Administrator CPG",
@@ -4343,7 +4658,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P3",
     "slaTargetDate": "22/11/26",
-    "slaDaysRemaining": 24,
+    "slaDaysRemaining": 23,
     "slaStatus": "ON_TRACK",
     "pchLogistik": "Received_Logistic",
     "reviewedBy": "Administrator CPG",
@@ -4392,7 +4707,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P3",
     "slaTargetDate": "22/11/26",
-    "slaDaysRemaining": 24,
+    "slaDaysRemaining": 23,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -4494,7 +4809,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P3",
     "slaTargetDate": "22/11/26",
-    "slaDaysRemaining": 24,
+    "slaDaysRemaining": 23,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -4561,7 +4876,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "25/10/26",
-    "slaDaysRemaining": -4,
+    "slaDaysRemaining": -5,
     "slaStatus": "OVERDUE",
     "pchLogistik": "Received_Logistic"
   },
@@ -4629,7 +4944,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "25/10/26",
-    "slaDaysRemaining": -4,
+    "slaDaysRemaining": -5,
     "slaStatus": "OVERDUE",
     "pchLogistik": "Received_Logistic"
   },
@@ -4674,7 +4989,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "25/10/26",
-    "slaDaysRemaining": -4,
+    "slaDaysRemaining": -5,
     "slaStatus": "OVERDUE"
   },
   {
@@ -4715,7 +5030,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P3",
     "slaTargetDate": "22/11/26",
-    "slaDaysRemaining": 24,
+    "slaDaysRemaining": 23,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -4834,7 +5149,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
-    "slaDaysRemaining": -3,
+    "slaDaysRemaining": -4,
     "slaStatus": "OVERDUE",
     "pchLogistik": "-",
     "reviewedBy": "Administrator CPG",
@@ -4904,7 +5219,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
-    "slaDaysRemaining": -3,
+    "slaDaysRemaining": -4,
     "slaStatus": "OVERDUE"
   },
   {
@@ -4934,7 +5249,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P3",
     "slaTargetDate": "23/11/26",
-    "slaDaysRemaining": 25,
+    "slaDaysRemaining": 24,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -5001,7 +5316,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
-    "slaDaysRemaining": -3,
+    "slaDaysRemaining": -4,
     "slaStatus": "OVERDUE"
   },
   {
@@ -5092,7 +5407,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
-    "slaDaysRemaining": -3,
+    "slaDaysRemaining": -4,
     "slaStatus": "OVERDUE"
   },
   {
@@ -5159,7 +5474,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
-    "slaDaysRemaining": -3,
+    "slaDaysRemaining": -4,
     "slaStatus": "OVERDUE"
   },
   {
@@ -5214,7 +5529,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
-    "slaDaysRemaining": -3,
+    "slaDaysRemaining": -4,
     "slaStatus": "OVERDUE",
     "pchLogistik": "Received_Logistic",
     "reviewedBy": "Administrator CPG",
@@ -5381,7 +5696,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
-    "slaDaysRemaining": -3,
+    "slaDaysRemaining": -4,
     "slaStatus": "OVERDUE",
     "pchLogistik": "Received_Logistic",
     "reviewedBy": "Administrator CPG",
@@ -5556,7 +5871,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
-    "slaDaysRemaining": -3,
+    "slaDaysRemaining": -4,
     "slaStatus": "OVERDUE"
   },
   {
@@ -5639,7 +5954,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
-    "slaDaysRemaining": -3,
+    "slaDaysRemaining": -4,
     "slaStatus": "OVERDUE"
   },
   {
@@ -5706,7 +6021,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -1,
+    "slaDaysRemaining": -2,
     "slaStatus": "OVERDUE",
     "pchLogistik": "-",
     "reviewedBy": "NOOR HASANAH",
@@ -5763,7 +6078,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -1,
+    "slaDaysRemaining": -2,
     "slaStatus": "OVERDUE",
     "pchLogistik": "-",
     "reviewedBy": "NOOR HASANAH",
@@ -6160,7 +6475,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -1,
+    "slaDaysRemaining": -2,
     "slaStatus": "OVERDUE",
     "pchLogistik": "Received_Logistic",
     "reviewedBy": "NOOR HASANAH",
@@ -6209,7 +6524,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -1,
+    "slaDaysRemaining": -2,
     "slaStatus": "OVERDUE",
     "attachments": [
       {
@@ -6279,7 +6594,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -1,
+    "slaDaysRemaining": -2,
     "slaStatus": "OVERDUE",
     "attachments": [],
     "pchLogistik": "-",
@@ -6341,7 +6656,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -1,
+    "slaDaysRemaining": -2,
     "slaStatus": "OVERDUE",
     "attachments": [
       {
@@ -6828,7 +7143,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 27,
+    "slaDaysRemaining": 26,
     "slaStatus": "ON_TRACK",
     "pchLogistik": "Received_Logistic",
     "attachments": [],
@@ -6878,7 +7193,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -1,
+    "slaDaysRemaining": -2,
     "slaStatus": "OVERDUE",
     "attachments": [
       {
@@ -6922,7 +7237,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 27,
+    "slaDaysRemaining": 26,
     "slaStatus": "ON_TRACK",
     "attachments": [],
     "pchLogistik": "-",
@@ -6984,7 +7299,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 27,
+    "slaDaysRemaining": 26,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -7130,7 +7445,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -1,
+    "slaDaysRemaining": -2,
     "slaStatus": "OVERDUE",
     "attachments": [
       {
@@ -7205,7 +7520,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 27,
+    "slaDaysRemaining": 26,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -7250,7 +7565,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -1,
+    "slaDaysRemaining": -2,
     "slaStatus": "OVERDUE",
     "attachments": [
       {
@@ -7330,7 +7645,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 27,
+    "slaDaysRemaining": 26,
     "slaStatus": "ON_TRACK",
     "attachments": [
       {
@@ -7432,7 +7747,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 27,
+    "slaDaysRemaining": 26,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -7475,7 +7790,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 27,
+    "slaDaysRemaining": 26,
     "slaStatus": "ON_TRACK",
     "pchLogistik": "Received_Logistic",
     "reviewedBy": "NOOR HASANAH",
@@ -7523,7 +7838,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -1,
+    "slaDaysRemaining": -2,
     "slaStatus": "OVERDUE"
   },
   {
@@ -7644,7 +7959,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -1,
+    "slaDaysRemaining": -2,
     "slaStatus": "OVERDUE"
   },
   {
@@ -7687,7 +8002,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -1,
+    "slaDaysRemaining": -2,
     "slaStatus": "OVERDUE"
   },
   {
@@ -7732,7 +8047,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 27,
+    "slaDaysRemaining": 26,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -7807,7 +8122,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 27,
+    "slaDaysRemaining": 26,
     "slaStatus": "ON_TRACK"
   }
 ]
