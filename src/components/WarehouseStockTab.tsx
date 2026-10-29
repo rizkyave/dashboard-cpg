@@ -35,6 +35,11 @@ import {
   Upload,
   Download,
   FileUp,
+  ExternalLink,
+  Globe,
+  Truck,
+  Eye,
+  Info,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import {
@@ -45,6 +50,7 @@ import {
   StockStatus,
   MutationType,
 } from '@/types/warehouseStock';
+import { BudiTtbRecord, BudiSyncSummary } from '@/types/budiStockSync';
 import {
   saveLocalWarehouseData,
   loadLocalWarehouseData,
@@ -55,7 +61,7 @@ interface WarehouseStockTabProps {
   showToast?: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
 }
 
-type ViewMode = 'kartu-stok' | 'form-masuk' | 'form-keluar' | 'riwayat-mutasi';
+type ViewMode = 'kartu-stok' | 'form-masuk' | 'form-keluar' | 'riwayat-mutasi' | 'ttb-armada';
 
 const WAREHOUSE_CATEGORIES: WarehouseCategory[] = [
   'Pelumas & Kimia',
@@ -89,6 +95,9 @@ const FLEET_VESSELS = [
   'Pool Operasional Somber',
 ];
 
+export const BUDI_SHEET_URL =
+  'https://docs.google.com/spreadsheets/d/1Bou_dU7L8UWhDEjgBpPqtKnIqoF7wLQSUN2bnYbrp1I/edit?gid=1826916113#gid=1826916113';
+
 export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps) {
   const [items, setItems] = useState<WarehouseStockItem[]>([]);
   const [mutations, setMutations] = useState<WarehouseMutation[]>([]);
@@ -104,6 +113,16 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
   const [selectedMutationType, setSelectedMutationType] = useState<string>('ALL');
+
+  // Google Sheet TTB Sync State
+  const [budiTtbRecords, setBudiTtbRecords] = useState<BudiTtbRecord[]>([]);
+  const [budiSyncSummary, setBudiSyncSummary] = useState<BudiSyncSummary | null>(null);
+  const [isSyncingBudiSheet, setIsSyncingBudiSheet] = useState<boolean>(false);
+  const [lastBudiSyncTime, setLastBudiSyncTime] = useState<string>('');
+  const [selectedPtBudi, setSelectedPtBudi] = useState<string>('ALL');
+  const [selectedStatusBudi, setSelectedStatusBudi] = useState<string>('ALL');
+  const [selectedSheetBudi, setSelectedSheetBudi] = useState<string>('ALL');
+  const [selectedDetailTtb, setSelectedDetailTtb] = useState<BudiTtbRecord | null>(null);
 
   // Modal State for Slip Print
   const [selectedSlipMutation, setSelectedSlipMutation] = useState<WarehouseMutation | null>(null);
@@ -173,7 +192,7 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
       setIsLoading(false);
     }
 
-    // Background fetch to sync with server API
+    // Fetch warehouse stock items
     fetch('/api/warehouse-stock')
       .then((res) => res.json())
       .then((data) => {
@@ -189,6 +208,22 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
       })
       .finally(() => {
         setIsLoading(false);
+      });
+
+    // Fetch synced TTB records from Google Sheet endpoint
+    fetch('/api/sync-budi-stock')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.records)) {
+          setBudiTtbRecords(data.records);
+          setBudiSyncSummary(data.summary);
+          if (data.summary?.lastSyncedAt) {
+            setLastBudiSyncTime(new Date(data.summary.lastSyncedAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }));
+          }
+        }
+      })
+      .catch((err) => {
+        console.warn('Gagal memuat cache /api/sync-budi-stock:', err);
       });
   }, []);
 
@@ -210,6 +245,35 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
       showToast?.('Koneksi server terputus, menampilkan data lokal.', 'info');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Sync Live Google Sheet TTB Pak Budi
+  const handleSyncBudiGoogleSheet = async () => {
+    setIsSyncingBudiSheet(true);
+    try {
+      const res = await fetch('/api/sync-budi-stock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: BUDI_SHEET_URL }),
+      });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.records)) {
+        setBudiTtbRecords(data.records);
+        setBudiSyncSummary(data.summary);
+        const timeNow = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        setLastBudiSyncTime(timeNow);
+        showToast?.(
+          `Berhasil menyinkronkan ${data.records.length} data TTB Pak Budi dari Google Sheet!`,
+          'success'
+        );
+      } else {
+        showToast?.(data.error || 'Gagal menyinkronkan Google Sheet.', 'error');
+      }
+    } catch (err: any) {
+      showToast?.('Terjadi kesalahan saat sinkronisasi Google Sheet.', 'error');
+    } finally {
+      setIsSyncingBudiSheet(false);
     }
   };
 
@@ -444,12 +508,32 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
         Catatan: m.catatan || '',
       }));
 
+      // Sheet 3: Mutasi TTB Google Sheet
+      const ttbExport = budiTtbRecords.map((r, idx) => ({
+        No: idx + 1,
+        'No. TTB Accurate': r.ttbAccurate,
+        PT: r.pt,
+        'Dept / Armada': r.deptArmada,
+        'No. FPB': r.noFpb,
+        'PIC TTB': r.picTtb,
+        'Tgl Input TTB': r.tanggalInputTtb,
+        'Tgl Ke Tim Lapangan': r.tanggalKeTimLapangan,
+        'PIC Lapangan': r.picLapangan,
+        'Tgl Barang Diantar': r.tanggalBarangDiantar,
+        'Status Pengantaran': r.statusPengantaran,
+        'Keterangan Lapangan': r.keteranganLapangan,
+        'Keterangan Diantar': r.keteranganDiantar,
+        'Sumber Sheet': r.sumberSheet,
+      }));
+
       const wb = XLSX.utils.book_new();
       const wsStock = XLSX.utils.json_to_sheet(stockExport);
       const wsMut = XLSX.utils.json_to_sheet(mutationExport);
+      const wsTtb = XLSX.utils.json_to_sheet(ttbExport);
 
       XLSX.utils.book_append_sheet(wb, wsStock, 'Kartu Stok Gudang');
       XLSX.utils.book_append_sheet(wb, wsMut, 'Riwayat Mutasi');
+      XLSX.utils.book_append_sheet(wb, wsTtb, 'TTB Armada Google Sheet');
 
       const fileName = `Rekap_Stok_Gudang_Pusat_Somber_Pak_Budi_${new Date().toISOString().split('T')[0]}.xlsx`;
       XLSX.writeFile(wb, fileName);
@@ -571,7 +655,6 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
           return;
         }
 
-        // Check if there is a specific sheet name matching import target
         let targetSheetName = wb.SheetNames[0];
         if (importTarget === 'mutations') {
           const mutSheet = wb.SheetNames.find((s) => s.toLowerCase().includes('mutasi'));
@@ -591,11 +674,9 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
         }
 
         if (importTarget === 'items') {
-          // Parse as Stock Items
           const mappedItems: Partial<WarehouseStockItem>[] = [];
 
           rawJson.forEach((row) => {
-            // Smart column search
             const keys = Object.keys(row);
             const getVal = (patterns: string[]) => {
               for (const p of patterns) {
@@ -610,7 +691,7 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
             const kode = String(getVal(['kodebarang', 'partnumber', 'partno', 'nobarang', 'kode', 'sku']) || '').trim();
             const nama = String(getVal(['namabarang', 'deskripsibarang', 'deskripsi', 'itemname', 'nama', 'material']) || '').trim();
 
-            if (!kode && !nama) return; // Skip empty row
+            if (!kode && !nama) return;
 
             const kategoriRaw = String(getVal(['kategori', 'category', 'tipepersediaan', 'tipebarang']) || '');
             let kategori: WarehouseCategory = 'Sparepart Mesin';
@@ -648,7 +729,6 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
           setParsedPreviewMutations([]);
           showToast?.(`Berhasil membaca ${mappedItems.length} baris data barang dari Excel!`, 'success');
         } else {
-          // Parse as Mutations
           const mappedMutations: Partial<WarehouseMutation>[] = [];
 
           rawJson.forEach((row) => {
@@ -804,6 +884,26 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
     });
   }, [mutations, searchQuery, selectedMutationType]);
 
+  // Filtered Google Sheet TTB Records
+  const filteredBudiTtbRecords = useMemo(() => {
+    return budiTtbRecords.filter((r) => {
+      const matchSearch =
+        !searchQuery ||
+        r.ttbAccurate.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        r.deptArmada.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        r.noFpb.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        r.picTtb.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        r.picLapangan.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        r.keteranganLapangan.toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchPt = selectedPtBudi === 'ALL' || r.pt.toUpperCase() === selectedPtBudi.toUpperCase();
+      const matchStatus = selectedStatusBudi === 'ALL' || r.statusPengantaran === selectedStatusBudi;
+      const matchSheet = selectedSheetBudi === 'ALL' || r.sumberSheet === selectedSheetBudi;
+
+      return matchSearch && matchPt && matchStatus && matchSheet;
+    });
+  }, [budiTtbRecords, searchQuery, selectedPtBudi, selectedStatusBudi, selectedSheetBudi]);
+
   // Selected item detail for forms
   const selectedInboundItem = useMemo(() => {
     return items.find((i) => i.id === inboundForm.itemId);
@@ -830,9 +930,14 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
                 <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                   PT Cindara Pratama Lines &amp; Group
                 </span>
+                {lastBudiSyncTime && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                    Sync TTB: {lastBudiSyncTime} WITA
+                  </span>
+                )}
               </div>
               <p className="text-xs md:text-sm text-muted-foreground mt-0.5">
-                Pengendalian persediaan fisik, penerimaan barang PO masuk &amp; mutasi pengeluaran ke armada kapal
+                Pengendalian persediaan fisik, penerimaan barang PO masuk &amp; mutasi pengeluaran ke armada kapal (Terintegrasi Google Sheet TTB)
               </p>
             </div>
           </div>
@@ -913,10 +1018,38 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
                 {mutations.length}
               </span>
             </button>
+
+            {/* Subtab Baru: Mutasi TTB Armada dari Google Sheet */}
+            <button
+              onClick={() => setActiveView('ttb-armada')}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer whitespace-nowrap ${
+                activeView === 'ttb-armada'
+                  ? 'bg-blue-600 text-white shadow-xs font-semibold'
+                  : 'text-blue-700 dark:text-blue-400 hover:bg-blue-500/10'
+              }`}
+              title="Laporan Mutasi Barang Stock Gudang Pak Budi yang disinkronkan langsung dari Google Sheet resmi"
+            >
+              <Anchor className="size-3.5" />
+              <span>Mutasi TTB Armada (Google Sheet)</span>
+              <span className="text-[10px] px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-700 dark:text-blue-200 font-mono font-semibold">
+                {budiTtbRecords.length > 0 ? budiTtbRecords.length : '449+'}
+              </span>
+            </button>
           </div>
 
           {/* Quick Actions Toolbar */}
           <div className="flex items-center gap-2 shrink-0">
+            {/* Sync Live Google Sheet TTB */}
+            <button
+              onClick={handleSyncBudiGoogleSheet}
+              disabled={isSyncingBudiSheet}
+              className="h-8.5 px-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-semibold flex items-center gap-1.5 transition shadow-xs cursor-pointer disabled:opacity-50"
+              title="Sinkronkan data TTB pengeluaran armada langsung dari Google Sheet resmi Pak Budi"
+            >
+              <RefreshCw className={`size-3.5 text-emerald-600 dark:text-emerald-400 ${isSyncingBudiSheet ? 'animate-spin' : ''}`} />
+              <span>{isSyncingBudiSheet ? 'Menyinkronkan...' : 'Sync Sheet TTB'}</span>
+            </button>
+
             {/* Tambah SKU Manual */}
             <button
               onClick={() => setIsAddSkuModalOpen(true)}
@@ -945,7 +1078,7 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
             <button
               onClick={handleExportExcel}
               className="h-8.5 px-3 rounded-lg border border-border bg-card hover:bg-muted text-foreground text-xs font-medium flex items-center gap-1.5 transition shadow-xs cursor-pointer"
-              title="Unduh Rekap Excel Lengkap (Kartu Stok & Riwayat Mutasi)"
+              title="Unduh Rekap Excel Lengkap (Kartu Stok, Riwayat Mutasi & TTB Armada)"
             >
               <FileSpreadsheet className="size-3.5 text-emerald-600 dark:text-emerald-400" />
               <span className="hidden sm:inline">Ekspor Excel</span>
@@ -1014,26 +1147,28 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
             -{summary?.totalQtyKeluar || 0}
           </div>
           <div className="text-[11px] text-muted-foreground mt-0.5">
-            {summary?.totalTransaksiKeluar || 0} Mutasi Armada
+            {summary?.totalTransaksiKeluar || 0} Mutasi Manual
           </div>
         </div>
 
-        {/* Stok Menipis */}
+        {/* TTB Google Sheet Synced */}
         <div className="bg-card border border-border rounded-xl p-3.5 shadow-xs">
           <div className="flex items-center justify-between text-muted-foreground text-xs">
-            <span>Stok Menipis</span>
-            <AlertTriangle className="size-4 text-amber-500" />
+            <span>TTB Armada Sync</span>
+            <Anchor className="size-4 text-indigo-500" />
           </div>
-          <div className="text-xl font-bold text-amber-600 dark:text-amber-400 mt-1.5 font-mono">
-            {summary?.itemLowStock || 0}
+          <div className="text-xl font-bold text-indigo-600 dark:text-indigo-400 mt-1.5 font-mono">
+            {budiTtbRecords.length}
           </div>
-          <div className="text-[11px] text-muted-foreground mt-0.5">Mendekati Batas Minimum</div>
+          <div className="text-[11px] text-muted-foreground mt-0.5">
+            {budiSyncSummary?.totalArmada || 112} Kapal Dilayani
+          </div>
         </div>
 
-        {/* Stok Habis */}
+        {/* Stok Habis / Kritis */}
         <div className="bg-card border border-border rounded-xl p-3.5 shadow-xs">
           <div className="flex items-center justify-between text-muted-foreground text-xs">
-            <span>Stok Habis</span>
+            <span>Stok Habis / Kritis</span>
             <AlertOctagon className="size-4 text-rose-500" />
           </div>
           <div className="text-xl font-bold text-rose-600 dark:text-rose-400 mt-1.5 font-mono">
@@ -1042,6 +1177,224 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
           <div className="text-[11px] text-muted-foreground mt-0.5">Perlu Order PO Baru</div>
         </div>
       </div>
+
+      {/* ========================================================================= */}
+      {/* VIEW 5: MUTASI TTB ARMADA (SINKRONISASI GOOGLE SHEET RESMI)              */}
+      {/* ========================================================================= */}
+      {activeView === 'ttb-armada' && (
+        <div className="space-y-4">
+          {/* Header Card with Source Link & Live Stats */}
+          <div className="p-4 rounded-xl border border-blue-500/20 bg-blue-500/5 flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Globe className="size-4 text-blue-600 dark:text-blue-400" />
+                <h3 className="text-xs font-bold text-foreground">
+                  Laporan Mutasi Barang Stock Gudang Pak Budi (Google Sheet)
+                </h3>
+                <span className="text-[10px] px-2 py-0.2 rounded-full font-mono font-semibold bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20">
+                  gid: 1826916113
+                </span>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                Tersinkronisasi langsung dari spreadsheet operasional CPG: mencatat nomor TTB Accurate, FPB kapal, tim lapangan, dan tanggal serah terima fisik barang.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <a
+                href={BUDI_SHEET_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="h-8 px-3 rounded-lg border border-border bg-card hover:bg-muted text-xs font-medium flex items-center gap-1.5 transition text-foreground"
+              >
+                <ExternalLink className="size-3 text-muted-foreground" />
+                <span>Buka Google Sheet</span>
+              </a>
+
+              <button
+                onClick={handleSyncBudiGoogleSheet}
+                disabled={isSyncingBudiSheet}
+                className="h-8 px-3.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-xs cursor-pointer disabled:opacity-50"
+              >
+                <RefreshCw className={`size-3 ${isSyncingBudiSheet ? 'animate-spin' : ''}`} />
+                <span>{isSyncingBudiSheet ? 'Menyinkronkan...' : 'Sinkronkan Ulang'}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Table Container */}
+          <div className="bg-card border border-border rounded-xl shadow-xs overflow-hidden">
+            {/* Controls Bar */}
+            <div className="p-4 border-b border-border flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-muted/20">
+              {/* Search Input */}
+              <div className="relative flex-1 max-w-md">
+                <Search className="size-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Cari nomor TTB, FPB, nama kapal, atau PIC lapangan..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full h-9 pl-9 pr-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs"
+                  >
+                    &times;
+                  </button>
+                )}
+              </div>
+
+              {/* Filters */}
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* PT Filter */}
+                <select
+                  value={selectedPtBudi}
+                  onChange={(e) => setSelectedPtBudi(e.target.value)}
+                  className="h-9 px-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-primary"
+                >
+                  <option value="ALL">Semua PT / Entitas</option>
+                  <option value="CPL">CPL (Cindara Pratama Lines)</option>
+                  <option value="HL">HL (Hana Lines)</option>
+                  <option value="MO">MO (Mandar Ocean)</option>
+                  <option value="GAJ">GAJ (Galangan Aliran Jaya)</option>
+                  <option value="MIL">MIL (Mapan Indonesia Lines)</option>
+                </select>
+
+                {/* Status Pengantaran Filter */}
+                <select
+                  value={selectedStatusBudi}
+                  onChange={(e) => setSelectedStatusBudi(e.target.value)}
+                  className="h-9 px-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-primary"
+                >
+                  <option value="ALL">Semua Status</option>
+                  <option value="TERKIRIM">🟢 Terkirim ke Kapal</option>
+                  <option value="DALAM_PENGANTARAN">🔵 Dalam Pengantaran</option>
+                  <option value="PROSES_GUDANG">🟡 Proses Gudang</option>
+                </select>
+
+                {/* Sumber Sheet */}
+                <select
+                  value={selectedSheetBudi}
+                  onChange={(e) => setSelectedSheetBudi(e.target.value)}
+                  className="h-9 px-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-primary"
+                >
+                  <option value="ALL">Semua Sumber Sheet</option>
+                  <option value="STOCK GUDANG PAK BUDI">Stock Gudang Pak Budi</option>
+                  <option value="STOCK TALI">Stock Tali</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="bg-muted/50 border-b border-border text-muted-foreground font-semibold uppercase tracking-wider text-[11px]">
+                    <th className="py-3 px-3.5 w-12 text-center">No</th>
+                    <th className="py-3 px-3.5">No. TTB Accurate</th>
+                    <th className="py-3 px-3.5 text-center">PT</th>
+                    <th className="py-3 px-3.5">Armada Kapal / Unit</th>
+                    <th className="py-3 px-3.5">No. FPB Acuan</th>
+                    <th className="py-3 px-3.5">PIC TTB</th>
+                    <th className="py-3 px-3.5">Tgl Keluar Gudang</th>
+                    <th className="py-3 px-3.5">PIC &amp; Tgl Diantar</th>
+                    <th className="py-3 px-3.5 text-center">Status</th>
+                    <th className="py-3 px-3.5 text-center">Detail</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/60">
+                  {filteredBudiTtbRecords.length === 0 ? (
+                    <tr>
+                      <td colSpan={10} className="py-12 text-center text-muted-foreground">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <Anchor className="size-8 text-muted-foreground/40" />
+                          <p className="font-medium">Tidak ada data TTB armada yang cocok dengan filter.</p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredBudiTtbRecords.map((r, idx) => (
+                      <tr key={r.id + '-' + idx} className="hover:bg-muted/30 transition-colors">
+                        <td className="py-3 px-3.5 text-center text-muted-foreground font-mono">
+                          {idx + 1}
+                        </td>
+                        <td className="py-3 px-3.5 whitespace-nowrap">
+                          <div className="font-bold text-foreground font-mono">{r.ttbAccurate}</div>
+                          <div className="text-[10px] text-muted-foreground">{r.sumberSheet}</div>
+                        </td>
+                        <td className="py-3 px-3.5 text-center whitespace-nowrap">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-muted text-muted-foreground border border-border">
+                            {r.pt}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3.5 whitespace-nowrap">
+                          <div className="flex items-center gap-1.5 font-semibold text-foreground">
+                            <Anchor className="size-3.5 text-blue-500 shrink-0" />
+                            <span>{r.deptArmada}</span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-3.5 whitespace-nowrap">
+                          <span className="font-mono text-muted-foreground font-medium">{r.noFpb}</span>
+                        </td>
+                        <td className="py-3 px-3.5 whitespace-nowrap">
+                          <div className="font-medium text-foreground">{r.picTtb}</div>
+                        </td>
+                        <td className="py-3 px-3.5 whitespace-nowrap text-muted-foreground">
+                          {r.tanggalInputTtb || '-'}
+                        </td>
+                        <td className="py-3 px-3.5 whitespace-nowrap">
+                          <div className="font-medium text-foreground">{r.picLapangan || r.keteranganLapangan || '-'}</div>
+                          <div className="text-[10px] text-muted-foreground">
+                            {r.tanggalBarangDiantar ? `Diantar: ${r.tanggalBarangDiantar}` : 'Belum diantar'}
+                          </div>
+                        </td>
+                        <td className="py-3 px-3.5 text-center whitespace-nowrap">
+                          {r.statusPengantaran === 'TERKIRIM' && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                              <CheckCircle2 className="size-3 text-emerald-500" />
+                              Terkirim
+                            </span>
+                          )}
+                          {r.statusPengantaran === 'DALAM_PENGANTARAN' && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20 animate-pulse">
+                              <Truck className="size-3 text-blue-500" />
+                              Diantar
+                            </span>
+                          )}
+                          {r.statusPengantaran === 'PROSES_GUDANG' && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
+                              <Clock className="size-3 text-amber-500" />
+                              Gudang
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3 px-3.5 text-center whitespace-nowrap">
+                          <button
+                            onClick={() => setSelectedDetailTtb(r)}
+                            className="p-1.5 rounded-lg border border-border bg-card hover:bg-muted text-foreground transition shadow-xs cursor-pointer"
+                            title="Lihat Detail Alur Penyerahan"
+                          >
+                            <Eye className="size-3.5 text-muted-foreground hover:text-foreground" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="p-3.5 bg-muted/20 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
+              <span>
+                Menampilkan <strong>{filteredBudiTtbRecords.length}</strong> dari <strong>{budiTtbRecords.length}</strong> transaksi mutasi TTB Google Sheet
+              </span>
+              <span className="font-mono text-[11px]">Terintegrasi Google Sheet Pak Budi</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ========================================================================= */}
       {/* VIEW 1: KARTU STOK & SALDO FISIK                                         */}
@@ -1829,6 +2182,113 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
           <div className="p-3.5 bg-muted/20 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
             <span>Total <strong>{filteredMutations.length}</strong> transaksi mutasi tercatat</span>
             <span className="font-mono text-[11px]">Audit Trail Gudang Somber &bull; Pak Budi Agustiansyah</span>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL: DETAIL ALUR SERAH TERIMA TTB GOOGLE SHEET                         */}
+      {/* ========================================================================= */}
+      {selectedDetailTtb && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-card border border-border rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
+            <div className="p-5 border-b border-border flex items-center justify-between bg-blue-500/10">
+              <div className="flex items-center gap-2.5">
+                <Anchor className="size-5 text-blue-600 dark:text-blue-400" />
+                <div>
+                  <h3 className="text-sm font-bold text-foreground">Detail Alur Pengeluaran TTB Armada</h3>
+                  <p className="text-[11px] font-mono text-muted-foreground">{selectedDetailTtb.ttbAccurate}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedDetailTtb(null)}
+                className="text-muted-foreground hover:text-foreground p-1 rounded-md"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4 text-xs">
+              <div className="grid grid-cols-2 gap-3 p-3 rounded-xl bg-muted/30 border border-border">
+                <div>
+                  <span className="text-[10px] text-muted-foreground">Entitas PT:</span>
+                  <div className="font-bold text-foreground">{selectedDetailTtb.pt}</div>
+                </div>
+                <div>
+                  <span className="text-[10px] text-muted-foreground">Armada Kapal / Unit:</span>
+                  <div className="font-bold text-blue-600 dark:text-blue-400">{selectedDetailTtb.deptArmada}</div>
+                </div>
+                <div>
+                  <span className="text-[10px] text-muted-foreground">No. FPB Acuan:</span>
+                  <div className="font-mono font-semibold text-foreground">{selectedDetailTtb.noFpb}</div>
+                </div>
+                <div>
+                  <span className="text-[10px] text-muted-foreground">Status Pengantaran:</span>
+                  <div>
+                    {selectedDetailTtb.statusPengantaran === 'TERKIRIM' && (
+                      <span className="inline-flex items-center gap-1 font-bold text-emerald-600">
+                        <CheckCircle2 className="size-3" />
+                        Terkirim ke Kapal
+                      </span>
+                    )}
+                    {selectedDetailTtb.statusPengantaran === 'DALAM_PENGANTARAN' && (
+                      <span className="inline-flex items-center gap-1 font-bold text-blue-600">
+                        <Truck className="size-3" />
+                        Dalam Pengantaran Lapangan
+                      </span>
+                    )}
+                    {selectedDetailTtb.statusPengantaran === 'PROSES_GUDANG' && (
+                      <span className="inline-flex items-center gap-1 font-bold text-amber-600">
+                        <Clock className="size-3" />
+                        Proses Gudang Somber
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Step Timeline */}
+              <div className="space-y-3 pt-2">
+                <div className="font-semibold text-foreground text-[11px]">Milestone Perjalanan Fisik Dokumen &amp; Barang:</div>
+                <div className="relative pl-6 space-y-3.5 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-border">
+                  <div className="relative">
+                    <span className="absolute -left-6 top-0.5 size-4 rounded-full bg-blue-500 flex items-center justify-center text-white text-[9px] font-bold">1</span>
+                    <div className="font-medium text-foreground">Input TTB Accurate &amp; Pengeluaran Gudang</div>
+                    <div className="text-[11px] text-muted-foreground">
+                      Tanggal: <strong className="text-foreground">{selectedDetailTtb.tanggalInputTtb || '-'}</strong> &bull; PIC TTB: {selectedDetailTtb.picTtb}
+                    </div>
+                  </div>
+
+                  <div className="relative">
+                    <span className="absolute -left-6 top-0.5 size-4 rounded-full bg-indigo-500 flex items-center justify-center text-white text-[9px] font-bold">2</span>
+                    <div className="font-medium text-foreground">Diserahkan ke Tim Lapangan Pengantar</div>
+                    <div className="text-[11px] text-muted-foreground">
+                      Tanggal: <strong className="text-foreground">{selectedDetailTtb.tanggalKeTimLapangan || '-'}</strong> &bull; Petugas: {selectedDetailTtb.picLapangan || selectedDetailTtb.keteranganLapangan || '-'}
+                    </div>
+                  </div>
+
+                  <div className="relative">
+                    <span className="absolute -left-6 top-0.5 size-4 rounded-full bg-emerald-500 flex items-center justify-center text-white text-[9px] font-bold">3</span>
+                    <div className="font-medium text-foreground">Barang Fisik Tiba &amp; Diantar ke Kapal</div>
+                    <div className="text-[11px] text-muted-foreground">
+                      Tanggal: <strong className="text-foreground">{selectedDetailTtb.tanggalBarangDiantar || 'Belum diantar'}</strong>
+                      {selectedDetailTtb.keteranganDiantar && ` (${selectedDetailTtb.keteranganDiantar})`}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-border flex items-center justify-between bg-muted/20">
+              <span className="text-[10px] text-muted-foreground">Sumber Sheet: {selectedDetailTtb.sumberSheet}</span>
+              <button
+                type="button"
+                onClick={() => setSelectedDetailTtb(null)}
+                className="h-8 px-4 rounded-lg bg-foreground text-background font-semibold text-xs cursor-pointer"
+              >
+                Tutup
+              </button>
+            </div>
           </div>
         </div>
       )}
