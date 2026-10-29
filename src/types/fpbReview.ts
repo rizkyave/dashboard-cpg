@@ -111,6 +111,7 @@ export interface FpbReviewRecord {
   slaDaysRemaining?: number;
   slaStatus?: 'ON_TRACK' | 'DUE_SOON' | 'OVERDUE';
   picPurchasing: string;
+  tkbNo?: string;
   reviewNotes: string;
   items: FpbItemReview[];
   duplicateAlerts: FpbDuplicateAlert[];

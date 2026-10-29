@@ -262,9 +262,14 @@ async function saveReviews(records: FpbReviewRecord[]): Promise<boolean> {
  */
 function parseDateToTs(dStr?: string): number {
   if (!dStr) return 0;
+  // If ISO or contains 'T' or YYYY-MM-DD
+  if (dStr.includes('T') || /^\d{4}-\d{2}-\d{2}/.test(dStr)) {
+    const parsed = Date.parse(dStr);
+    return isNaN(parsed) ? 0 : parsed;
+  }
   // Format dd/mm/yy or dd/mm/yyyy
   const parts = dStr.split(/[-/]/);
-  if (parts.length === 3) {
+  if (parts.length === 3 && parts[0].length <= 2) {
     let day = parseInt(parts[0], 10);
     let month = parseInt(parts[1], 10) - 1;
     let year = parseInt(parts[2], 10);
@@ -273,6 +278,60 @@ function parseDateToTs(dStr?: string): number {
   }
   const parsed = Date.parse(dStr);
   return isNaN(parsed) ? 0 : parsed;
+}
+
+/**
+ * Automatically assign and maintain sequential TKB codes (TKB-001, TKB-002, ...)
+ * based on confirmation / approval order for records approved for purchasing (APPROVED_PO).
+ */
+function ensureTkbNumbers(records: FpbReviewRecord[]): { records: FpbReviewRecord[]; changed: boolean } {
+  let changed = false;
+
+  // 1. Clear tkbNo if record is not approved for PO
+  for (const r of records) {
+    if (r.reviewStatus !== 'APPROVED_PO' && r.tkbNo) {
+      delete r.tkbNo;
+      changed = true;
+    }
+  }
+
+  // 2. Identify all approved records
+  const approvedRecords = records.filter((r) => r.reviewStatus === 'APPROVED_PO');
+
+  // Collect existing numbers
+  const usedNumbers = new Set<number>();
+  for (const r of approvedRecords) {
+    if (r.tkbNo) {
+      const match = r.tkbNo.match(/^TKB-(\d+)$/i);
+      if (match) {
+        usedNumbers.add(parseInt(match[1], 10));
+      }
+    }
+  }
+
+  // Find approved records that do not have a TKB number yet
+  const unassigned = approvedRecords.filter((r) => !r.tkbNo);
+  if (unassigned.length > 0) {
+    // Sort unassigned chronologically by reviewedAt, then date, then createdAt
+    unassigned.sort((a, b) => {
+      const tsA = parseDateToTs(a.reviewedAt || a.date);
+      const tsB = parseDateToTs(b.reviewedAt || b.date);
+      if (tsA !== tsB) return tsA - tsB;
+      return (a.fpbNo || '').localeCompare(b.fpbNo || '');
+    });
+
+    let nextNum = 1;
+    for (const r of unassigned) {
+      while (usedNumbers.has(nextNum)) {
+        nextNum++;
+      }
+      r.tkbNo = `TKB-${String(nextNum).padStart(3, '0')}`;
+      usedNumbers.add(nextNum);
+      changed = true;
+    }
+  }
+
+  return { records, changed };
 }
 
 /**
@@ -588,6 +647,13 @@ export async function GET(req: NextRequest) {
 
     let records = await loadReviews();
 
+    // Ensure sequential TKB numbers for approved records
+    const { records: tkbRecords, changed: tkbChanged } = ensureTkbNumbers(records);
+    records = tkbRecords;
+    if (tkbChanged) {
+      await saveReviews(records);
+    }
+
     // Cross-link latest document relations
     records = records.map((rec) => {
       const rel = findDocumentsByFpb(rec.fpbNo);
@@ -615,7 +681,8 @@ export async function GET(req: NextRequest) {
         (r) =>
           r.fpbNo.toLowerCase().includes(q) ||
           r.armada.toLowerCase().includes(q) ||
-          r.purpose.toLowerCase().includes(q)
+          r.purpose.toLowerCase().includes(q) ||
+          (r.tkbNo && r.tkbNo.toLowerCase().includes(q))
       );
     }
     if (entity && entity !== 'ALL') {
@@ -719,9 +786,16 @@ export async function POST(req: NextRequest) {
             ? attachments
             : [];
 
+        const effectiveStatus = reviewStatus || current.reviewStatus;
+        let updatedTkbNo = current.tkbNo;
+        if (effectiveStatus !== 'APPROVED_PO') {
+          updatedTkbNo = undefined;
+        }
+
         records[existingIndex] = {
           ...current,
-          reviewStatus: reviewStatus || current.reviewStatus,
+          reviewStatus: effectiveStatus,
+          tkbNo: updatedTkbNo,
           urgency: urgency || current.urgency,
           priorityLevel: priorityLevel || current.priorityLevel,
           picPurchasing: picPurchasing !== undefined ? picPurchasing : current.picPurchasing,
@@ -776,13 +850,19 @@ export async function POST(req: NextRequest) {
         records.unshift(newRecord);
       }
 
+      const { records: tkbRecords } = ensureTkbNumbers(records);
+      records = tkbRecords;
       records = enrichDuplicateAlerts(records);
       records = records.map(enrichSlaAndPriority);
       await saveReviews(records);
 
+      const updatedRecord = records.find((r) => r.fpbNo.toLowerCase() === fpbNo.toLowerCase());
+
       return NextResponse.json({
         success: true,
         message: `Keputusan review untuk FPB ${fpbNo} berhasil disimpan & disinkronkan ke Cloudflare R2!`,
+        record: updatedRecord,
+        tkbNo: updatedRecord?.tkbNo,
         metrics: calculateMetrics(records),
       });
     }
@@ -990,6 +1070,8 @@ export async function POST(req: NextRequest) {
         }
       }
 
+      const { records: tkbRecords } = ensureTkbNumbers(records);
+      records = tkbRecords;
       records = enrichDuplicateAlerts(records);
       records = records.map(enrichSlaAndPriority);
       await saveReviews(records);

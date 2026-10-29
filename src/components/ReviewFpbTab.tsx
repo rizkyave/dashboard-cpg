@@ -46,6 +46,7 @@ import {
   Trash2,
   Maximize2,
   ZoomIn,
+  Tag,
 } from 'lucide-react';
 import {
   FpbReviewRecord,
@@ -630,6 +631,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
               ? {
                   ...r,
                   reviewStatus: formStatus,
+                  tkbNo: json.tkbNo || json.record?.tkbNo || (formStatus === 'APPROVED_PO' ? r.tkbNo : undefined),
                   urgency: formUrgency,
                   priorityLevel: formPriority,
                   picPurchasing: formPic,
@@ -647,6 +649,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
         );
         if (json.metrics) setMetrics(json.metrics);
         handleCloseModal();
+        fetchReviews();
       } else {
         showToast?.(json.message || 'Gagal menyimpan keputusan review', 'error');
       }
@@ -678,6 +681,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
       'Status e-FPB',
       'Status Review Tim FPB',
       'Urgensi',
+      'Status TKB',
       'PIC Purchasing',
       'Catatan Review',
       'Jumlah Item',
@@ -706,6 +710,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
         `"${r.efpbStatus}"`,
         `"${r.reviewStatus}"`,
         `"${r.urgency}"`,
+        `"${r.tkbNo || '-'}"`,
         `"${r.picPurchasing || '-'}"`,
         `"${(r.reviewNotes || '').replace(/"/g, '""')}"`,
         itemsCount,
@@ -736,12 +741,13 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
         const fpbMatch = r.fpbNo.toLowerCase().includes(q);
+        const tkbMatch = (r.tkbNo || '').toLowerCase().includes(q);
         const armadaMatch = r.armada.toLowerCase().includes(q);
         const purposeMatch = (r.purpose || '').toLowerCase().includes(q);
         const picMatch = (r.picPurchasing || '').toLowerCase().includes(q);
         const notesMatch = (r.reviewNotes || '').toLowerCase().includes(q);
         const poMatch = r.relatedDocs?.poNos?.some((p) => p.toLowerCase().includes(q));
-        if (!fpbMatch && !armadaMatch && !purposeMatch && !picMatch && !notesMatch && !poMatch) {
+        if (!fpbMatch && !tkbMatch && !armadaMatch && !purposeMatch && !picMatch && !notesMatch && !poMatch) {
           return false;
         }
       }
@@ -1246,7 +1252,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari No. FPB, Armada Kapal, Keperluan, PIC, atau No. PO..."
+              placeholder="Cari No. FPB, Status TKB, Armada, Keperluan, PIC, atau No. PO..."
               className="w-full pl-9 pr-4 py-2 text-xs rounded-lg border border-border bg-background focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary text-foreground placeholder:text-muted-foreground transition"
             />
             {searchQuery && (
@@ -1410,7 +1416,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                   <th className="py-3 px-3" title="Alur logistik berurutan: Menunggu Review -> Disetujui Tim Review -> Sahkan di e-FPB -> Siap Pengadaan">Persetujuan Logistik</th>
                   <th className="py-3 px-3">Status Review Tim FPB</th>
                   <th className="py-3 px-3" title="Tingkat kegentingan operasional armada (Normal / Urgent / Emergency). Pengajuan Urgent otomatis diprioritaskan P1 (SLA 1-2 hari)">Urgensi</th>
-                  <th className="py-3 px-3">PIC Purchasing</th>
+                  <th className="py-3 px-3 text-center" title="Nomor urutan konfirmasi pengadaan TKB saat disetujui untuk purchasing">Status TKB</th>
                   <th className="py-3 px-3" title="Status alokasi barang (Dalam analisa tim sebelum disetujui, Perlu PO / Stok gudang setelah disetujui)">Item & Stok</th>
                   <th className="py-3 px-3">Dokumen Terkait</th>
                   <th className="py-3 px-4 text-center">Aksi</th>
@@ -1510,15 +1516,18 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                         {getUrgencyBadge(rec.urgency)}
                       </td>
 
-                      {/* PIC Purchasing */}
-                      <td className="py-3 px-3 whitespace-nowrap text-foreground font-medium">
-                        {rec.picPurchasing && rec.picPurchasing !== '-' ? (
-                          <div className="flex items-center gap-1 text-primary">
-                            <UserCheck className="size-3" />
-                            <span>{rec.picPurchasing}</span>
-                          </div>
+                      {/* Status TKB (Nomor Konfirmasi Pengadaan Sesuai Urutan Disahkan) */}
+                      <td className="py-3 px-3 whitespace-nowrap text-center">
+                        {rec.reviewStatus === 'APPROVED_PO' && rec.tkbNo ? (
+                          <span
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25 shadow-xs"
+                            title={`Kode urutan konfirmasi purchasing: ${rec.tkbNo}`}
+                          >
+                            <Tag className="size-3 text-emerald-500 shrink-0" />
+                            <span>{rec.tkbNo}</span>
+                          </span>
                         ) : (
-                          <span className="text-muted-foreground">-</span>
+                          <span className="text-muted-foreground font-mono">-</span>
                         )}
                       </td>
 
@@ -2511,19 +2520,35 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                   </select>
                 </div>
 
-                {/* 4. PIC Purchasing */}
+                {/* 4. Status TKB / PIC Purchasing */}
                 <div>
-                  <label className="block text-xs font-bold text-foreground mb-1.5">
-                    Penugasan PIC Purchasing
+                  <label className="block text-xs font-bold text-foreground mb-1.5 flex items-center justify-between">
+                    <span>Status TKB Pengadaan</span>
+                    {selectedRecord.tkbNo && (
+                      <span className="inline-flex items-center gap-1 font-mono text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                        <Tag className="size-2.5" />
+                        {selectedRecord.tkbNo}
+                      </span>
+                    )}
                   </label>
-                  <input
-                    type="text"
-                    list="pic-purchasing-list"
-                    value={formPic}
-                    onChange={(e) => setFormPic(e.target.value)}
-                    placeholder="Pilih atau ketik nama PIC..."
-                    className="w-full py-2 px-3 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20"
-                  />
+                  {formStatus === 'APPROVED_PO' ? (
+                    <div className="py-2 px-3 text-xs rounded-lg border border-emerald-500/30 bg-emerald-500/5 text-foreground flex items-center justify-between">
+                      <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                        <Tag className="size-3.5" />
+                        {selectedRecord.tkbNo || 'TKB-Otomatis (Saat Disetujui)'}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">Urutan sah PO</span>
+                    </div>
+                  ) : (
+                    <input
+                      type="text"
+                      list="pic-purchasing-list"
+                      value={formPic}
+                      onChange={(e) => setFormPic(e.target.value)}
+                      placeholder="PIC Purchasing (Opsional)..."
+                      className="w-full py-2 px-3 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20"
+                    />
+                  )}
                   <datalist id="pic-purchasing-list">
                     {PURCHASING_PICS.map((p) => (
                       <option key={p} value={p} />
