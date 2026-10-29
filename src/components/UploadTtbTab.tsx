@@ -53,6 +53,7 @@ import {
   stampTtbImageFile,
 } from '@/utils/stampDateFormatter';
 import { optimizeAndScaleImage, formatByteSize } from '@/utils/imageCompressor';
+import { getSignatureForUploader } from '@/utils/uploaderSignatures';
 
 interface UploadTtbTabProps {
   procurementItems?: ProcurementItem[];
@@ -199,13 +200,16 @@ export default function UploadTtbTab({
     }
   }, [user?.name, user?.username, uploaderName]);
 
-  useEffect(() => {
+    useEffect(() => {
     if (user?.signature?.signatureDataUrl) {
-      convertSvgToPngDataUrl(user.signature.signatureDataUrl).then(setUserSignaturePng);
+      convertSvgToPngDataUrl(user.signature.signatureDataUrl).then((sig) => {
+        setUserSignaturePng(sig || getSignatureForUploader(uploaderName || user?.username || user?.name));
+      });
     } else {
-      setUserSignaturePng(null);
+      const fallbackSig = getSignatureForUploader(uploaderName || user?.username || user?.name);
+      setUserSignaturePng(fallbackSig);
     }
-  }, [user?.signature?.signatureDataUrl]);
+  }, [user?.signature?.signatureDataUrl, uploaderName, user?.username, user?.name]);
 
   // Antrean Berkas (Queue)
   const [queue, setQueue] = useState<QueuedFile[]>([]);
@@ -592,8 +596,9 @@ export default function UploadTtbTab({
         if (user?.jabatan) formData.append('uploaderJabatan', user.jabatan);
 
         formData.append('autoStamp', enableAutoStamp ? 'true' : 'false');
-        if (enableAutoStamp) {
-          if (userSignaturePng) formData.append('signatureDataUrl', userSignaturePng);
+                if (enableAutoStamp) {
+          const effectiveSig = userSignaturePng || getSignatureForUploader(uploaderName || user?.username || user?.name);
+          if (effectiveSig) formData.append('signatureDataUrl', effectiveSig);
           formData.append('stampDate', formatTtbStampDate(batchReceivedDate));
         }
 

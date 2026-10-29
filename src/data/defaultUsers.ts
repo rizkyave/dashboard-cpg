@@ -1,4 +1,9 @@
 import { UserAccount, DigitalSignatureInfo } from '@/types/auth';
+import {
+  FIFI_SIGNATURE_PNG,
+  IDHAM_SIGNATURE_PNG,
+  DAVILA_SIGNATURE_PNG,
+} from '@/utils/uploaderSignatures';
 
 const SAMPLE_ADMIN_SIGNATURE: DigitalSignatureInfo = {
   signatureDataUrl:
@@ -60,17 +65,40 @@ const SAMPLE_PURCHASING_SIGNATURE: DigitalSignatureInfo = {
   status: 'verified',
 };
 
-const SAMPLE_TTB_SIGNATURE: DigitalSignatureInfo = {
-  signatureDataUrl:
-    'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 100" width="300" height="100"><path d="M 30 65 Q 60 20, 90 60 T 150 45 Q 180 75, 220 35 T 270 60" fill="none" stroke="%230f172a" stroke-width="3.5" stroke-linecap="round"/><path d="M 50 82 L 250 82" fill="none" stroke="%230f172a" stroke-width="2" stroke-linecap="round"/></svg>',
+const FIFI_TTB_SIGNATURE: DigitalSignatureInfo = {
+  signatureDataUrl: FIFI_SIGNATURE_PNG,
+  uploadedAt: '2026-02-01T10:00:00.000Z',
+  verifiedBy: 'admin',
+  verifiedByName: 'Administrator CPG',
+  certificateId: 'CPG-AUTH-2026-TTB02',
+  signeeTitle: 'Staf Dokumen TTB Logistik (Fifi)',
+  notes: 'Spesimen tanda tangan resmi verifikasi berkas fisik TTB Nurul Hafifah Alim',
+  status: 'verified',
+};
+
+const IDHAM_TTB_SIGNATURE: DigitalSignatureInfo = {
+  signatureDataUrl: IDHAM_SIGNATURE_PNG,
+  uploadedAt: '2026-02-01T10:00:00.000Z',
+  verifiedBy: 'admin',
+  verifiedByName: 'Administrator CPG',
+  certificateId: 'CPG-AUTH-2026-TTB03',
+  signeeTitle: 'Staf Dokumen TTB Logistik (Idham Khalid)',
+  notes: 'Spesimen tanda tangan resmi verifikasi berkas fisik TTB Idham Khalid',
+  status: 'verified',
+};
+
+const DAVILA_TTB_SIGNATURE: DigitalSignatureInfo = {
+  signatureDataUrl: DAVILA_SIGNATURE_PNG,
   uploadedAt: '2026-02-01T10:00:00.000Z',
   verifiedBy: 'admin',
   verifiedByName: 'Administrator CPG',
   certificateId: 'CPG-AUTH-2026-TTB01',
-  signeeTitle: 'Staf Dokumen TTB Logistik',
-  notes: 'Spesimen tanda tangan verifikasi penerimaan berkas fisik TTB',
+  signeeTitle: 'Staf Dokumen TTB Logistik (Davila)',
+  notes: 'Spesimen tanda tangan resmi verifikasi berkas fisik TTB Davila Zalianti Putri',
   status: 'verified',
 };
+
+const SAMPLE_TTB_SIGNATURE: DigitalSignatureInfo = FIFI_TTB_SIGNATURE;
 
 const SAMPLE_LAPANGAN_SIGNATURE: DigitalSignatureInfo = {
   signatureDataUrl:
@@ -192,7 +220,7 @@ export const DEFAULT_USERS: UserAccount[] = [
     avatar: 'D',
     status: 'active',
     createdAt: '2026-01-01T00:00:00.000Z',
-    signature: SAMPLE_TTB_SIGNATURE,
+    signature: DAVILA_TTB_SIGNATURE,
   },
   {
     id: 'usr-ttb-0534',
@@ -207,6 +235,7 @@ export const DEFAULT_USERS: UserAccount[] = [
     avatar: 'I',
     status: 'active',
     createdAt: '2026-01-01T00:00:00.000Z',
+    signature: IDHAM_TTB_SIGNATURE,
   },
   {
     id: 'usr-ttb-0490',
@@ -221,6 +250,7 @@ export const DEFAULT_USERS: UserAccount[] = [
     avatar: 'N',
     status: 'active',
     createdAt: '2026-01-01T00:00:00.000Z',
+    signature: FIFI_TTB_SIGNATURE,
   },
 
   // =========================================================================

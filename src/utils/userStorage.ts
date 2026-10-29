@@ -24,7 +24,8 @@ export function getStoredUsers(): UserAccount[] {
           (def) => def.username.toLowerCase() === p.username?.toLowerCase()
         );
         if (defaultMatch) {
-          if (!p.signature && defaultMatch.signature) {
+          const hasPngSignature = p.signature?.signatureDataUrl?.startsWith('data:image/png;base64,');
+          if ((!p.signature || !hasPngSignature) && defaultMatch.signature) {
             needsSave = true;
             p = { ...p, signature: defaultMatch.signature };
           }

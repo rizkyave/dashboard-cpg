@@ -5,6 +5,7 @@ import { sanitizeTtbNumber, formatTtbFilename, extractTtbComponents } from '@/ut
 import { getPhotosDir } from '@/utils/ttbPhotosDir';
 import { UploadedTtbItem, UploadTtbResponse } from '@/types/ttbUpload';
 import { stampTtbPdf, formatTtbStampDate } from '@/utils/ttbStamper';
+import { getSignatureForUploader } from '@/utils/uploaderSignatures';
 import { enrichSingleTtbItem } from '@/utils/ttbEnricher';
 import {
   uploadToR2,
@@ -374,7 +375,10 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
     const uploaderJabatan = ((formData.get('uploaderJabatan') as string) || '').trim();
     const autoStampRaw = formData.get('autoStamp');
     const autoStamp = autoStampRaw === null ? true : autoStampRaw === 'true' || autoStampRaw === '1';
-    const signatureDataUrl = ((formData.get('signatureDataUrl') as string) || '').trim();
+    let signatureDataUrl = ((formData.get('signatureDataUrl') as string) || '').trim();
+    if (!signatureDataUrl) {
+      signatureDataUrl = getSignatureForUploader(uploaderUsername) || getSignatureForUploader(uploaderName) || '';
+    }
     const stampDate = ((formData.get('stampDate') as string) || '').trim() || formatTtbStampDate(receivedDate);
 
     if (!noTtbRaw) {
@@ -471,7 +475,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
         try {
           const stampedBuffer = await stampTtbPdf({
             pdfBuffer: buffer,
-            signatureDataUrl: signatureDataUrl || undefined,
+            signatureDataUrl: (signatureDataUrl || getSignatureForUploader(uploaderUsername) || getSignatureForUploader(uploaderName)) || undefined,
             uploaderName,
             uploadDate: stampDate,
           });
