@@ -8,10 +8,10 @@
     "date": "29/10/26",
     "purpose": "U/ PERBAIKAN ATAP JETTY GAJ",
     "efpbStatus": "Approved",
-    "isReceivedLogistik": true,
+    "isReceivedLogistik": false,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0001126.pdf",
     "reviewStatus": "PENDING_REVIEW",
-    "urgency": "NORMAL",
+    "urgency": "URGENT",
     "picPurchasing": "-",
     "reviewNotes": "",
     "items": [
@@ -67,15 +67,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T13:27:19.225Z",
+    "updatedAt": "2026-10-29T14:27:25.920Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
-    "priorityLevel": "P2",
-    "slaTargetDate": "12/11/26",
-    "slaDaysRemaining": 14,
+    "priorityLevel": "P1",
+    "slaTargetDate": "31/10/26",
+    "slaDaysRemaining": 2,
     "slaStatus": "ON_TRACK",
-    "pchLogistik": "Received_Logistic",
-    "reviewedBy": "Administrator CPG",
-    "reviewedAt": "2026-10-29T13:27:19.225Z"
+    "pchLogistik": "-",
+    "reviewedBy": "NOOR HASANAH",
+    "reviewedAt": "2026-10-29T13:59:48.752Z"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005055",
@@ -88,7 +88,7 @@
     "efpbStatus": "Approved",
     "isReceivedLogistik": false,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0005055.pdf",
-    "reviewStatus": "APPROVED_PO",
+    "reviewStatus": "PENDING_REVIEW",
     "urgency": "NORMAL",
     "picPurchasing": "-",
     "reviewNotes": "",
@@ -140,16 +140,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T13:32:33.208Z",
+    "updatedAt": "2026-10-29T13:51:31.474Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
     "slaDaysRemaining": 30,
     "slaStatus": "ON_TRACK",
-    "tkbNo": "TKB-004",
     "pchLogistik": "-",
-    "reviewedBy": "Administrator CPG",
-    "reviewedAt": "2026-10-29T13:32:33.208Z"
+    "reviewedBy": "NOOR HASANAH",
+    "reviewedAt": "2026-10-29T13:51:31.474Z"
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001532",
@@ -2113,7 +2112,7 @@
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0004517.pdf",
-    "reviewStatus": "PENDING_REVIEW",
+    "reviewStatus": "APPROVED_PO",
     "urgency": "URGENT",
     "picPurchasing": "-",
     "reviewNotes": "",
@@ -2177,12 +2176,16 @@
         "CPL-TTB-26-06934"
       ]
     },
-    "updatedAt": "2026-10-29T12:47:59.018Z",
+    "updatedAt": "2026-10-29T13:52:38.392Z",
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
     "slaDaysRemaining": 1,
-    "slaStatus": "DUE_SOON"
+    "slaStatus": "DUE_SOON",
+    "tkbNo": "TKB-004",
+    "pchLogistik": "Received_Logistic",
+    "reviewedBy": "NOOR HASANAH",
+    "reviewedAt": "2026-10-29T13:52:38.392Z"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0000993",
@@ -5757,9 +5760,9 @@
     "date": "26/10/26",
     "purpose": "Kebutuhan Operasional SPOB ROYAL REY 5001",
     "efpbStatus": "Approved",
-    "isReceivedLogistik": false,
+    "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0003987.pdf",
-    "reviewStatus": "PENDING_REVIEW",
+    "reviewStatus": "APPROVED_PO",
     "urgency": "URGENT",
     "picPurchasing": "-",
     "reviewNotes": "",
@@ -6135,15 +6138,16 @@
         "CPL-TTB-26-06631"
       ]
     },
-    "updatedAt": "2026-10-26T17:32:46.948Z",
+    "updatedAt": "2026-10-29T13:53:56.221Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
     "slaDaysRemaining": -1,
     "slaStatus": "OVERDUE",
-    "pchLogistik": "-",
-    "reviewedBy": "Administrator CPG",
-    "reviewedAt": "2026-10-26T17:32:46.948Z"
+    "pchLogistik": "Received_Logistic",
+    "reviewedBy": "NOOR HASANAH",
+    "reviewedAt": "2026-10-29T13:53:56.221Z",
+    "tkbNo": "TKB-005"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001918",
@@ -6358,7 +6362,7 @@
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/logistik_Approved_rev_sign_GAJ-FPB-26-0000712.pdf",
-    "reviewStatus": "PENDING_REVIEW",
+    "reviewStatus": "APPROVED_PO",
     "urgency": "NORMAL",
     "picPurchasing": "-",
     "reviewNotes": "",
@@ -6802,16 +6806,17 @@
         "GAJ-TTB-26-00943"
       ]
     },
-    "updatedAt": "2026-10-29T13:21:38.999Z",
+    "updatedAt": "2026-10-29T13:57:46.433Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
     "slaDaysRemaining": 27,
     "slaStatus": "ON_TRACK",
-    "pchLogistik": "-",
+    "pchLogistik": "Received_Logistic",
     "attachments": [],
     "reviewedBy": "NOOR HASANAH",
-    "reviewedAt": "2026-10-26T17:04:36.990Z"
+    "reviewedAt": "2026-10-29T13:57:46.433Z",
+    "tkbNo": "TKB-006"
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001525",

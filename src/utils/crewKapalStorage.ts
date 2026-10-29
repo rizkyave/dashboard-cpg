@@ -517,3 +517,69 @@ export function parseCrewWorkbook(wb: XLSX.WorkBook): StoredCrewData {
   };
 }
 
+/**
+ * Recalculate summary and ship statistics from current arrays
+ */
+export function recalculateCrewKapalData(
+  kapalRekap: KapalRekapItem[],
+  masterCrew: CrewMasterItem[],
+  posisiLowong: LowongItem[],
+  cadetMonitoring: CadetMonitoringItem[],
+  auditLogs: AuditLogItem[]
+): StoredCrewData {
+  const updatedKapal = kapalRekap.map((k) => {
+    const crewsForKapal = masterCrew.filter(
+      (c) => c.namaKapal.trim().toUpperCase() === k.namaKapal.trim().toUpperCase()
+    );
+    const aktif = crewsForKapal.filter((c) => c.statusSlot === 'AKTIF').length;
+    const cadet = crewsForKapal.filter((c) => c.statusSlot === 'CADET (MAGANG)').length;
+    const lowongFromCrew = crewsForKapal.filter((c) => c.statusSlot === 'LOWONG (VACANT)').length;
+    const kuota = Math.max(k.totalKuota || 0, aktif + cadet + lowongFromCrew, crewsForKapal.length);
+    const lowong = Math.max(lowongFromCrew, kuota - (aktif + cadet));
+    const ratio = kuota > 0 ? (aktif + cadet) / kuota : 0;
+    const persentaseTerisi = (ratio * 100).toFixed(0) + '%';
+
+    return {
+      ...k,
+      totalKuota: kuota,
+      kruAktif: aktif,
+      cadet,
+      posisiLowong: lowong,
+      persentaseTerisi,
+      terisiRatio: ratio,
+    };
+  });
+
+  const totalArmada = updatedKapal.length;
+  const totalKuota = updatedKapal.reduce((acc, k) => acc + (k.totalKuota || 0), 0);
+  const kruAktif = masterCrew.filter((c) => c.statusSlot === 'AKTIF').length;
+  const cadet = masterCrew.filter((c) => c.statusSlot === 'CADET (MAGANG)').length;
+  const lowong = updatedKapal.reduce((acc, k) => acc + (k.posisiLowong || 0), 0);
+  const ratio = totalKuota > 0 ? (kruAktif + cadet) / totalKuota : 0;
+  const persentaseTerisi = (ratio * 100).toFixed(1) + '%';
+
+  const now = new Date();
+  const lastUpdated = now.toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+
+  return {
+    summary: {
+      totalArmada,
+      totalKuota,
+      kruAktif,
+      cadet,
+      posisiLowong: lowong,
+      persentaseTerisi,
+    },
+    kapalRekap: updatedKapal,
+    masterCrew,
+    posisiLowong,
+    cadetMonitoring,
+    auditLogs,
+    lastUpdated,
+  };
+}
+

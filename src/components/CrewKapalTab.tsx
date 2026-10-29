@@ -27,6 +27,9 @@ import {
   Award,
   Layers,
   Upload,
+  Ship,
+  Plus,
+  UserPlus,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import {
@@ -43,8 +46,36 @@ import {
   resetCrewData,
   exportCrewDataToExcel,
   parseCrewWorkbook,
+  recalculateCrewKapalData,
   StoredCrewData,
 } from '@/utils/crewKapalStorage';
+
+// Helper to convert number to Roman numeral
+function toRoman(num: number): string {
+  const lookup: [string, number][] = [
+    ['M', 1000],
+    ['CM', 900],
+    ['D', 500],
+    ['CD', 400],
+    ['C', 100],
+    ['XC', 90],
+    ['L', 50],
+    ['XL', 40],
+    ['X', 10],
+    ['IX', 9],
+    ['V', 5],
+    ['IV', 4],
+    ['I', 1],
+  ];
+  let roman = '';
+  for (const [letter, val] of lookup) {
+    while (num >= val) {
+      roman += letter;
+      num -= val;
+    }
+  }
+  return roman || 'I';
+}
 
 interface CrewKapalTabProps {
   showToast?: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
@@ -68,6 +99,30 @@ export default function CrewKapalTab({ showToast }: CrewKapalTabProps) {
   // Modal Detail Kapal & Personel
   const [selectedKapalForModal, setSelectedKapalForModal] = useState<KapalRekapItem | null>(null);
   const [selectedCrewForModal, setSelectedCrewForModal] = useState<CrewMasterItem | null>(null);
+
+  // Modal Tambah Armada / Dept state
+  const [isAddArmadaModalOpen, setIsAddArmadaModalOpen] = useState(false);
+  const [formArmadaNama, setFormArmadaNama] = useState('');
+  const [formArmadaTipe, setFormArmadaTipe] = useState('Tug Boat (TB)');
+  const [formArmadaGt, setFormArmadaGt] = useState('');
+  const [formArmadaMesin, setFormArmadaMesin] = useState('');
+  const [formArmadaTelp, setFormArmadaTelp] = useState('');
+  const [formArmadaKuota, setFormArmadaKuota] = useState('10');
+
+  // Modal Tambah Crew state
+  const [isAddCrewModalOpen, setIsAddCrewModalOpen] = useState(false);
+  const [formCrewNama, setFormCrewNama] = useState('');
+  const [formCrewNik, setFormCrewNik] = useState('');
+  const [formCrewKapal, setFormCrewKapal] = useState('');
+  const [formCrewJabatan, setFormCrewJabatan] = useState('');
+  const [formCrewDepartemen, setFormCrewDepartemen] = useState('Deck');
+  const [formCrewStatusSlot, setFormCrewStatusSlot] = useState<'AKTIF' | 'CADET (MAGANG)' | 'LOWONG (VACANT)'>('AKTIF');
+  const [formCrewHp, setFormCrewHp] = useState('');
+  const [formCrewIjazah, setFormCrewIjazah] = useState('');
+  const [formCrewTahunIjazah, setFormCrewTahunIjazah] = useState('');
+  const [formCrewTglOnBoard, setFormCrewTglOnBoard] = useState(() => new Date().toISOString().split('T')[0]);
+  const [formCrewAsalKampus, setFormCrewAsalKampus] = useState('');
+  const [formCrewCatatan, setFormCrewCatatan] = useState('');
 
   // Distinct ship types
   const shipTypes = useMemo(() => {
@@ -235,6 +290,188 @@ export default function CrewKapalTab({ showToast }: CrewKapalTabProps) {
     }
   };
 
+  // Handler Tambah Armada / Dept
+  const handleAddArmada = (e: React.FormEvent) => {
+    e.preventDefault();
+    const namaClean = formArmadaNama.trim().toUpperCase();
+    if (!namaClean) {
+      showToast?.('Nama armada / departemen wajib diisi!', 'warning');
+      return;
+    }
+
+    if (data.kapalRekap.some((k) => k.namaKapal.trim().toUpperCase() === namaClean)) {
+      showToast?.(`Armada / departemen "${namaClean}" sudah terdaftar!`, 'warning');
+      return;
+    }
+
+    const nextNo = data.kapalRekap.length + 1;
+    const kuotaNum = Math.max(1, parseInt(formArmadaKuota, 10) || 1);
+
+    const newArmada: KapalRekapItem = {
+      no: nextNo,
+      noKapal: toRoman(nextNo),
+      namaKapal: namaClean,
+      tipeKapal: formArmadaTipe,
+      gt: formArmadaGt.trim() || '-',
+      mesinHp: formArmadaMesin.trim() || '-',
+      dayaKwPs: '-',
+      noTelp: formArmadaTelp.trim() || '-',
+      totalKuota: kuotaNum,
+      kruAktif: 0,
+      cadet: 0,
+      posisiLowong: kuotaNum,
+      persentaseTerisi: '0%',
+      terisiRatio: 0,
+    };
+
+    const newAuditLog: AuditLogItem = {
+      no: data.auditLogs.length + 1,
+      barisSumber: 'Manual Input',
+      kategoriMasalah: 'Penambahan Armada',
+      deskripsi: `Penambahan armada/dept ${newArmada.namaKapal} (${newArmada.tipeKapal}) dengan target kuota ${newArmada.totalKuota} kru.`,
+    };
+
+    const updatedData = recalculateCrewKapalData(
+      [...data.kapalRekap, newArmada],
+      data.masterCrew,
+      data.posisiLowong,
+      data.cadetMonitoring,
+      [...data.auditLogs, newAuditLog]
+    );
+
+    setData(updatedData);
+    saveCrewData(updatedData);
+
+    // Reset Form
+    setFormArmadaNama('');
+    setFormArmadaTipe('Tug Boat (TB)');
+    setFormArmadaGt('');
+    setFormArmadaMesin('');
+    setFormArmadaTelp('');
+    setFormArmadaKuota('10');
+    setIsAddArmadaModalOpen(false);
+
+    showToast?.(`Armada / Dept "${namaClean}" berhasil ditambahkan!`, 'success');
+  };
+
+  // Handler Tambah Crew
+  const handleAddCrew = (e: React.FormEvent) => {
+    e.preventDefault();
+    const isVacant = formCrewStatusSlot === 'LOWONG (VACANT)';
+    const namaPersonelClean = formCrewNama.trim() || (isVacant ? '[POSISI LOWONG]' : '');
+
+    if (!namaPersonelClean && !isVacant) {
+      showToast?.('Nama personel kru wajib diisi!', 'warning');
+      return;
+    }
+
+    const targetKapalName = formCrewKapal.trim() || (data.kapalRekap[0]?.namaKapal ?? '');
+    const matchedKapal = data.kapalRekap.find(
+      (k) => k.namaKapal.trim().toUpperCase() === targetKapalName.trim().toUpperCase()
+    );
+
+    if (!matchedKapal) {
+      showToast?.('Pilih armada / kapal penugasan terlebih dahulu!', 'warning');
+      return;
+    }
+
+    const jabatanClean = formCrewJabatan.trim() || 'Awak Kapal';
+    const nextId = (data.masterCrew.length > 0 ? Math.max(...data.masterCrew.map((c) => c.id || 0)) : 0) + 1;
+    const existingCrewsOnKapal = data.masterCrew.filter(
+      (c) => c.namaKapal.trim().toUpperCase() === matchedKapal.namaKapal.trim().toUpperCase()
+    );
+    const nextNoKru = existingCrewsOnKapal.length + 1;
+
+    const newCrew: CrewMasterItem = {
+      id: nextId,
+      noKapal: matchedKapal.noKapal || '-',
+      namaKapal: matchedKapal.namaKapal,
+      tipeKapal: matchedKapal.tipeKapal,
+      noKru: nextNoKru,
+      nik: formCrewNik.trim() || (isVacant ? '-' : `CPL-VSL-${String(1000 + data.masterCrew.length).slice(-4)}`),
+      namaPersonel: namaPersonelClean,
+      statusSlot: formCrewStatusSlot,
+      jabatan: jabatanClean,
+      departemen: formCrewDepartemen,
+      noHp: formCrewHp.trim() || '-',
+      ijazah: formCrewIjazah.trim() || '-',
+      tahunIjazah: formCrewTahunIjazah.trim() || '-',
+      tglOnBoard: formCrewTglOnBoard || new Date().toISOString().split('T')[0],
+      statusPenugasan: isVacant ? 'Belum Terisi' : 'Penugasan Baru',
+      asalKampus: formCrewAsalKampus.trim() || '-',
+      catatanMutasi: formCrewCatatan.trim() || (isVacant ? '-' : 'Penambahan personel via sistem'),
+      catatanAudit: 'Input manual form crew',
+    };
+
+    let updatedCadet = [...data.cadetMonitoring];
+    if (formCrewStatusSlot === 'CADET (MAGANG)') {
+      const newCadet: CadetMonitoringItem = {
+        no: data.cadetMonitoring.length + 1,
+        noKapal: matchedKapal.noKapal,
+        namaKapal: matchedKapal.namaKapal,
+        namaCadet: namaPersonelClean,
+        jabatan: jabatanClean,
+        departemen: `${formCrewDepartemen} (Cadet)`,
+        noHp: formCrewHp.trim() || '-',
+        sertifikat: formCrewIjazah.trim() || 'BST',
+        tglOnBoard: formCrewTglOnBoard || new Date().toISOString().split('T')[0],
+        asalKampus: formCrewAsalKampus.trim() || '-',
+        catatan: formCrewCatatan.trim() || '-',
+      };
+      updatedCadet.push(newCadet);
+    }
+
+    let updatedLowong = [...data.posisiLowong];
+    if (formCrewStatusSlot === 'LOWONG (VACANT)') {
+      const newLowong: LowongItem = {
+        no: data.posisiLowong.length + 1,
+        noKapal: matchedKapal.noKapal,
+        namaKapal: matchedKapal.namaKapal,
+        tipeKapal: matchedKapal.tipeKapal,
+        jabatan: jabatanClean,
+        departemen: formCrewDepartemen,
+        kualifikasi: formCrewIjazah.trim() || 'Sesuai Standar Safe Manning',
+        noTelpKapal: matchedKapal.noTelp,
+        rekomendasi: 'Prioritas Rekrutmen / Mutasi Internal',
+        isMandatory: false,
+      };
+      updatedLowong.push(newLowong);
+    }
+
+    const newAuditLog: AuditLogItem = {
+      no: data.auditLogs.length + 1,
+      barisSumber: 'Manual Input',
+      kategoriMasalah: 'Penambahan Kru',
+      deskripsi: `Penambahan personel ${namaPersonelClean} (${jabatanClean} - ${formCrewStatusSlot}) pada armada ${matchedKapal.namaKapal}.`,
+    };
+
+    const updatedData = recalculateCrewKapalData(
+      data.kapalRekap,
+      [...data.masterCrew, newCrew],
+      updatedLowong,
+      updatedCadet,
+      [...data.auditLogs, newAuditLog]
+    );
+
+    setData(updatedData);
+    saveCrewData(updatedData);
+
+    // Reset Form
+    setFormCrewNama('');
+    setFormCrewNik('');
+    setFormCrewJabatan('');
+    setFormCrewDepartemen('Deck');
+    setFormCrewStatusSlot('AKTIF');
+    setFormCrewHp('');
+    setFormCrewIjazah('');
+    setFormCrewTahunIjazah('');
+    setFormCrewAsalKampus('');
+    setFormCrewCatatan('');
+    setIsAddCrewModalOpen(false);
+
+    showToast?.(`Personel "${namaPersonelClean}" berhasil ditambahkan ke ${matchedKapal.namaKapal}!`, 'success');
+  };
+
   // Helper formatting WhatsApp URL
   const getWaUrl = (phone: string, text: string) => {
     const clean = phone.replace(/[^0-9]/g, '');
@@ -278,6 +515,32 @@ export default function CrewKapalTab({ showToast }: CrewKapalTabProps) {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2 flex-wrap">
+          {/* Tombol Tambah Armada & Tambah Crew (Area Kotak Hitam di sebelah kiri Unggah Excel) */}
+          <button
+            type="button"
+            onClick={() => setIsAddArmadaModalOpen(true)}
+            className="h-8 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-xs cursor-pointer active:scale-95"
+            title="Tambah armada kapal atau departemen baru secara manual"
+          >
+            <Ship className="size-3.5" />
+            <span>+ Tambah Armada / Dept</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (!formCrewKapal && data.kapalRekap.length > 0) {
+                setFormCrewKapal(data.kapalRekap[0].namaKapal);
+              }
+              setIsAddCrewModalOpen(true);
+            }}
+            className="h-8 px-3 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-xs cursor-pointer active:scale-95"
+            title="Tambah personel crew baru secara manual"
+          >
+            <UserPlus className="size-3.5" />
+            <span>+ Tambah Crew</span>
+          </button>
+
           {/* Tombol Unggah Excel (Posisi Kotak Hitam di sebelah kiri Ekspor Excel) */}
           <button
             type="button"
@@ -1242,7 +1505,19 @@ export default function CrewKapalTab({ showToast }: CrewKapalTabProps) {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-3 border-t border-border flex justify-end bg-muted/20">
+            <div className="p-3 border-t border-border flex items-center justify-between bg-muted/20">
+              <button
+                type="button"
+                onClick={() => {
+                  setFormCrewKapal(selectedKapalForModal.namaKapal);
+                  setSelectedKapalForModal(null);
+                  setIsAddCrewModalOpen(true);
+                }}
+                className="h-8 px-3 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer active:scale-95 shadow-xs"
+              >
+                <UserPlus className="size-3.5" />
+                <span>+ Tambah Kru di Armada Ini</span>
+              </button>
               <button
                 type="button"
                 onClick={() => setSelectedKapalForModal(null)}
@@ -1355,6 +1630,413 @@ export default function CrewKapalTab({ showToast }: CrewKapalTabProps) {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 3: TAMBAH ARMADA / DEPARTEMEN BARU */}
+      {isAddArmadaModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 md:p-6 overflow-y-auto">
+          <div className="bg-card border border-border rounded-2xl w-full max-w-lg flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150 my-auto">
+            {/* Header */}
+            <div className="p-4 border-b border-border flex items-center justify-between bg-muted/40">
+              <div className="flex items-center gap-2.5">
+                <span className="p-2 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                  <Ship className="size-5" />
+                </span>
+                <div>
+                  <h3 className="text-base font-bold text-foreground">
+                    Tambah Armada / Departemen
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground">
+                    Daftarkan kapal atau unit operasional baru ke database formasi kru
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAddArmadaModalOpen(false)}
+                className="size-8 rounded-lg border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition cursor-pointer"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            {/* Form Body */}
+            <form onSubmit={handleAddArmada} className="p-4 space-y-3.5 text-xs">
+              <div>
+                <label className="block font-semibold text-foreground mb-1">
+                  Nama Armada Kapal / Departemen <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Contoh: TB CINDARA 05, SPOB CPL 02, atau KANTOR GAJ"
+                  value={formArmadaNama}
+                  onChange={(e) => setFormArmadaNama(e.target.value)}
+                  className="w-full h-9 px-3 rounded-lg bg-background border border-border text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-foreground mb-1">
+                    Tipe Armada / Unit <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    value={formArmadaTipe}
+                    onChange={(e) => setFormArmadaTipe(e.target.value)}
+                    className="w-full h-9 px-2.5 rounded-lg bg-background border border-border text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="Tug Boat (TB)">Tug Boat (TB)</option>
+                    <option value="SPOB">SPOB</option>
+                    <option value="Supply Vessel (SV)">Supply Vessel (SV)</option>
+                    <option value="Motor Tanker (MT)">Motor Tanker (MT)</option>
+                    <option value="Oil Barge (OB)">Oil Barge (OB)</option>
+                    <option value="Tongkang / Barge (TK)">Tongkang / Barge (TK)</option>
+                    <option value="LCT">LCT</option>
+                    <option value="Crane Barge">Crane Barge</option>
+                    <option value="Crew Boat">Crew Boat</option>
+                    <option value="Hopper Barge">Hopper Barge</option>
+                    <option value="Kantor / Departemen">Kantor / Departemen</option>
+                    <option value="Lainnya">Lainnya</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-foreground mb-1">
+                    Target Kuota Kru (Slot) <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="100"
+                    required
+                    value={formArmadaKuota}
+                    onChange={(e) => setFormArmadaKuota(e.target.value)}
+                    className="w-full h-9 px-3 rounded-lg bg-background border border-border text-foreground text-xs font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                  <span className="text-[10px] text-muted-foreground mt-0.5 block">
+                    Safe manning kapasitas personil armada
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-foreground mb-1">
+                    Gross Tonnage (GT)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: 150 GT atau 922"
+                    value={formArmadaGt}
+                    onChange={(e) => setFormArmadaGt(e.target.value)}
+                    className="w-full h-9 px-3 rounded-lg bg-background border border-border text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-foreground mb-1">
+                    Mesin / Tenaga (HP)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: 2 X 650 HP"
+                    value={formArmadaMesin}
+                    onChange={(e) => setFormArmadaMesin(e.target.value)}
+                    className="w-full h-9 px-3 rounded-lg bg-background border border-border text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-foreground mb-1">
+                  No. Telepon / Radio Komunikasi Kapal
+                </label>
+                <input
+                  type="text"
+                  placeholder="Contoh: 08115916597 atau -"
+                  value={formArmadaTelp}
+                  onChange={(e) => setFormArmadaTelp(e.target.value)}
+                  className="w-full h-9 px-3 rounded-lg bg-background border border-border text-foreground text-xs font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-3 border-t border-border flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsAddArmadaModalOpen(false)}
+                  className="h-8 px-4 rounded-lg bg-muted hover:bg-muted/80 text-foreground font-medium cursor-pointer transition"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="h-8 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold flex items-center gap-1.5 cursor-pointer transition shadow-xs"
+                >
+                  <Ship className="size-3.5" />
+                  <span>Simpan Armada</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 4: TAMBAH PERSONEL CREW BARU */}
+      {isAddCrewModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 md:p-6 overflow-y-auto">
+          <div className="bg-card border border-border rounded-2xl w-full max-w-lg flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150 my-auto">
+            {/* Header */}
+            <div className="p-4 border-b border-border flex items-center justify-between bg-muted/40">
+              <div className="flex items-center gap-2.5">
+                <span className="p-2 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20">
+                  <UserPlus className="size-5" />
+                </span>
+                <div>
+                  <h3 className="text-base font-bold text-foreground">
+                    Tambah Personel Crew
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground">
+                    Daftarkan kru aktif, cadet magang, atau alokasikan slot posisi kru baru
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAddCrewModalOpen(false)}
+                className="size-8 rounded-lg border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition cursor-pointer"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            {/* Form Body */}
+            <form onSubmit={handleAddCrew} className="p-4 space-y-3.5 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-foreground mb-1">
+                    Nama Lengkap Personel <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required={formCrewStatusSlot !== 'LOWONG (VACANT)'}
+                    placeholder={
+                      formCrewStatusSlot === 'LOWONG (VACANT)'
+                        ? 'Otomatis: [POSISI LOWONG]'
+                        : 'Contoh: Mochammad Firdaus'
+                    }
+                    value={formCrewNama}
+                    onChange={(e) => setFormCrewNama(e.target.value)}
+                    className="w-full h-9 px-3 rounded-lg bg-background border border-border text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-foreground mb-1">
+                    NIK / No. Registrasi
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: CPL-VSL-1480 (Otomatis jika kosong)"
+                    value={formCrewNik}
+                    onChange={(e) => setFormCrewNik(e.target.value)}
+                    className="w-full h-9 px-3 rounded-lg bg-background border border-border text-foreground text-xs font-mono focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-foreground mb-1">
+                    Penugasan Armada / Kapal <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    value={formCrewKapal}
+                    onChange={(e) => setFormCrewKapal(e.target.value)}
+                    className="w-full h-9 px-2.5 rounded-lg bg-background border border-border text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  >
+                    {data.kapalRekap.map((k) => (
+                      <option key={k.no} value={k.namaKapal}>
+                        {k.namaKapal} ({k.tipeKapal})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-foreground mb-1">
+                    Status Slot Awak <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    value={formCrewStatusSlot}
+                    onChange={(e) =>
+                      setFormCrewStatusSlot(
+                        e.target.value as 'AKTIF' | 'CADET (MAGANG)' | 'LOWONG (VACANT)'
+                      )
+                    }
+                    className="w-full h-9 px-2.5 rounded-lg bg-background border border-border text-foreground text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  >
+                    <option value="AKTIF">AKTIF (Awak Resmi)</option>
+                    <option value="CADET (MAGANG)">CADET (MAGANG) (Taruna Prala)</option>
+                    <option value="LOWONG (VACANT)">LOWONG (VACANT) (Slot Kosong)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-foreground mb-1">
+                    Jabatan / Posisi <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    list="crew-jabatan-list"
+                    placeholder="Pilih atau ketik jabatan..."
+                    value={formCrewJabatan}
+                    onChange={(e) => setFormCrewJabatan(e.target.value)}
+                    className="w-full h-9 px-3 rounded-lg bg-background border border-border text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  />
+                  <datalist id="crew-jabatan-list">
+                    <option value="Nakhoda" />
+                    <option value="Mualim I" />
+                    <option value="Mualim II" />
+                    <option value="Mualim III" />
+                    <option value="KKM (Chief Engineer)" />
+                    <option value="Masinis II" />
+                    <option value="Masinis III" />
+                    <option value="Juru Mudi" />
+                    <option value="Juru Mudi I" />
+                    <option value="Juru Mudi II" />
+                    <option value="Oiler" />
+                    <option value="Oiler I" />
+                    <option value="Oiler II" />
+                    <option value="Koki" />
+                    <option value="Cadet Deck" />
+                    <option value="Cadet Engine" />
+                    <option value="Staff Operasional" />
+                  </datalist>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-foreground mb-1">
+                    Departemen <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    value={formCrewDepartemen}
+                    onChange={(e) => setFormCrewDepartemen(e.target.value)}
+                    className="w-full h-9 px-2.5 rounded-lg bg-background border border-border text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  >
+                    <option value="Deck">Deck</option>
+                    <option value="Engine">Engine</option>
+                    <option value="Office / Darat">Office / Darat</option>
+                    <option value="Catering / Umum">Catering / Umum</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block font-semibold text-foreground mb-1">
+                    No. Handphone / WA
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: 08123456789"
+                    value={formCrewHp}
+                    onChange={(e) => setFormCrewHp(e.target.value)}
+                    className="w-full h-9 px-3 rounded-lg bg-background border border-border text-foreground text-xs font-mono focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-foreground mb-1">
+                    Ijazah / Sertifikat
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: ANT-III, BST, S1"
+                    value={formCrewIjazah}
+                    onChange={(e) => setFormCrewIjazah(e.target.value)}
+                    className="w-full h-9 px-3 rounded-lg bg-background border border-border text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-foreground mb-1">
+                    Tahun Ijazah
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: 2021"
+                    value={formCrewTahunIjazah}
+                    onChange={(e) => setFormCrewTahunIjazah(e.target.value)}
+                    className="w-full h-9 px-3 rounded-lg bg-background border border-border text-foreground text-xs font-mono focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-foreground mb-1">
+                    Tanggal On Board / Mulai
+                  </label>
+                  <input
+                    type="date"
+                    value={formCrewTglOnBoard}
+                    onChange={(e) => setFormCrewTglOnBoard(e.target.value)}
+                    className="w-full h-9 px-3 rounded-lg bg-background border border-border text-foreground text-xs font-mono focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-foreground mb-1">
+                    Asal Kampus / Sekolah
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: PIP Semarang, STIP Jakarta"
+                    value={formCrewAsalKampus}
+                    onChange={(e) => setFormCrewAsalKampus(e.target.value)}
+                    className="w-full h-9 px-3 rounded-lg bg-background border border-border text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-foreground mb-1">
+                  Catatan Mutasi / Keterangan
+                </label>
+                <input
+                  type="text"
+                  placeholder="Contoh: Penugasan perdana kru baru atau mutasi internal"
+                  value={formCrewCatatan}
+                  onChange={(e) => setFormCrewCatatan(e.target.value)}
+                  className="w-full h-9 px-3 rounded-lg bg-background border border-border text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-3 border-t border-border flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsAddCrewModalOpen(false)}
+                  className="h-8 px-4 rounded-lg bg-muted hover:bg-muted/80 text-foreground font-medium cursor-pointer transition"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="h-8 px-4 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-semibold flex items-center gap-1.5 cursor-pointer transition shadow-xs"
+                >
+                  <UserPlus className="size-3.5" />
+                  <span>Simpan Personel</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
