@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { useAuth } from '@/context/AuthContext';
 import { createPortal } from 'react-dom';
 import {
   FileSpreadsheet,
@@ -404,6 +405,8 @@ export default function MonitoringInternalTab({
   onSyncSuccess,
   showToast,
 }: MonitoringInternalTabProps) {
+  const { user, isAdmin } = useAuth();
+  const isLogistikUser = user?.role === 'staf_ttb' || user?.role === 'staf_lapangan';
   // State lokal untuk data berkas internal (optimistic update)
   const [localItems, setLocalItems] = useState<ProcurementItem[]>(items);
 
@@ -1089,6 +1092,10 @@ export default function MonitoringInternalTab({
 
     setIsSubmitting(true);
     const isNew = !editingItem;
+    // Jaminan integritas: Tim logistik tidak berhak merubah field ADM Purchasing (Kolom AB)
+    const effectiveFormData = isLogistikUser && editingItem
+      ? { ...formData, tglKeAdmPch: editingItem.tglKeAdmPch || '' }
+      : formData;
 
     try {
       const res = await fetch('/api/monitoring-internal', {
@@ -1096,7 +1103,7 @@ export default function MonitoringInternalTab({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: isNew ? 'create_row' : 'update_row',
-          data: formData,
+          data: effectiveFormData,
         }),
       });
 
@@ -2698,14 +2705,13 @@ export default function MonitoringInternalTab({
                               onSelect={(iso) => {
                                 handleQuickUpdate(row, {
                                   tglTtbKePicPch: iso,
-                                  tglKeAdmPch: row.tglKeAdmPch || iso,
-                                  statusBadge: 'SIAP SPP',
+                                  statusBadge: 'TTB KE PIC PCH',
                                   statusTone: 'purple',
                                 });
-                                showToast?.(`➡️ Berkas ${row.fpb || row.po} diserahkan ke ADM Purchasing untuk pembuatan SPP!`, 'success');
+                                showToast?.(`➡️ Dokumen TTB ${row.fpb || row.po} diserahkan ke PIC Purchasing!`, 'success');
                               }}
                               onClear={() => {
-                                if (window.confirm(`Batalkan serah terima berkas ke ADM Purchasing untuk ${row.fpb || row.po}?`)) {
+                                if (window.confirm(`Batalkan serah terima TTB ke PIC Purchasing untuk ${row.fpb || row.po}?`)) {
                                   handleQuickUpdate(row, {
                                     tglTtbKePicPch: '',
                                     statusBadge: 'SELESAI DIANTAR',
@@ -2713,7 +2719,7 @@ export default function MonitoringInternalTab({
                                   });
                                 }
                               }}
-                              label="➡️ Serah ke ADM PCH"
+                              label="➡️ TTB ke PIC PCH"
                               labelIcon={<Receipt className="size-3" />}
                               filledColor="text-purple-600 dark:text-purple-400"
                               buttonClass="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-500/25 transition cursor-pointer shadow-2xs"
@@ -3344,17 +3350,24 @@ export default function MonitoringInternalTab({
               {/* TAB 3: ADM PCH & KEUANGAN */}
               {modalActiveTab === 'ADM' && (
                 <div className="space-y-4 animate-in fade-in-50 duration-150">
+                  {isLogistikUser && (
+                    <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/25 text-amber-800 dark:text-amber-300 text-xs flex items-center gap-2">
+                      <AlertCircle className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                      <span><strong>Wewenang Terbatas:</strong> Kolom ADM Purchasing &amp; Keuangan (Kolom AB) dikelola khusus oleh Tim Purchasing / Finance.</span>
+                    </div>
+                  )}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {/* TGL KE ADM PCH */}
                     <div>
                       <label className="block text-xs font-semibold text-foreground mb-1">
-                        Tanggal ke ADM PCH
+                        Tanggal ke ADM PCH (Kolom AB)
                       </label>
                       <input
                         type="date"
                         value={formData.tglKeAdmPch ? formData.tglKeAdmPch.slice(0, 10) : ''}
                         onChange={(e) => setFormData({ ...formData, tglKeAdmPch: e.target.value })}
-                        className="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:ring-2 focus:ring-primary/20"
+                        disabled={isLogistikUser}
+                        className="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:ring-2 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
                       />
                     </div>
 
