@@ -1,6 +1,7 @@
 import * as XLSX from 'xlsx';
 import { SisaLayananItem, SisaLayananSummary, SisaGoodsSummary } from '@/types/sisaLayanan';
 import { normalizeFpbKey } from '@/utils/dataMerger';
+import { formatDateDdMmYy } from '@/utils/formatDate';
 
 export function calculateSisaLayananSummary(items: SisaLayananItem[]): SisaLayananSummary {
   const byPt: Record<string, { total: number; close: number; open: number; kurang: number; belumTtb: number }> = {};
@@ -139,13 +140,21 @@ export function parseSisaLayananWorkbook(workbook: XLSX.WorkBook): {
 
     const fpbNoBarang = String(r['FPB+NO BARANG'] || '').trim();
     const poNoBarang = String(r['PO+NO BARANG'] || '').trim();
-    const tglFpb = String(r['TGL FPB'] || r['TANGGAL FPB'] || '').trim();
+    const rawTglFpb = r['TGL FPB'] ?? r['TANGGAL FPB'] ?? '';
+    const formattedTglFpb = formatDateDdMmYy(rawTglFpb);
+    const tglFpb = formattedTglFpb !== '-' ? formattedTglFpb : (typeof rawTglFpb === 'string' ? rawTglFpb.trim() : '');
     const noPo = String(r['NO. PO'] || r['NO PO'] || r['PO'] || '').trim();
-    const tglPo = String(r['TGL PO'] || r['TANGGAL PO'] || '').trim();
+    const rawTglPo = r['TGL PO'] ?? r['TANGGAL PO'] ?? '';
+    const formattedTglPo = formatDateDdMmYy(rawTglPo);
+    const tglPo = formattedTglPo !== '-' ? formattedTglPo : (typeof rawTglPo === 'string' ? rawTglPo.trim() : '');
     const noFstb = String(r['NO. FSTB'] || r['NO FSTB'] || r['FSTB'] || '').trim();
-    const tglFstb = String(r['TGL FSTB'] || r['TANGGAL FSTB'] || '').trim();
+    const rawTglFstb = r['TGL FSTB'] ?? r['TANGGAL FSTB'] ?? '';
+    const formattedTglFstb = formatDateDdMmYy(rawTglFstb);
+    const tglFstb = formattedTglFstb !== '-' ? formattedTglFstb : (typeof rawTglFstb === 'string' ? rawTglFstb.trim() : '');
     const noTtb = String(r['NO. TTB'] || r['NO TTB'] || r['TTB'] || '').trim();
-    const tglTtb = String(r['TGL TTB'] || r['TANGGAL TTB'] || '').trim();
+    const rawTglTtb = r['TGL TTB'] ?? r['TANGGAL TTB'] ?? '';
+    const formattedTglTtb = formatDateDdMmYy(rawTglTtb);
+    const tglTtb = formattedTglTtb !== '-' ? formattedTglTtb : (typeof rawTglTtb === 'string' ? rawTglTtb.trim() : '');
 
     const jmlFpb = Math.max(0, Number(r['JML FPB'] || r['QTY FPB']) || 0);
     const jmlPo = Math.max(0, Number(r['JML PO'] || r['QTY PO']) || 0);

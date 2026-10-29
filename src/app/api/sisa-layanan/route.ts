@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import * as XLSX from 'xlsx';
 import { parseSisaLayananWorkbook, calculateSisaLayananSummary } from '@/utils/sisaLayananParser';
+import { formatDateDdMmYy } from '@/utils/formatDate';
 import { SisaLayananItem, SisaLayananSummary } from '@/types/sisaLayanan';
 import {
   isR2Configured,
@@ -87,6 +88,20 @@ function loadInitialFromDisk(): { items: SisaLayananItem[]; summary: SisaLayanan
   return { items: [], summary: emptySummary };
 }
 
+function normalizeItemDates(item: SisaLayananItem): SisaLayananItem {
+  const tglFpb = formatDateDdMmYy(item.tglFpb);
+  const tglPo = formatDateDdMmYy(item.tglPo);
+  const tglFstb = formatDateDdMmYy(item.tglFstb);
+  const tglTtb = formatDateDdMmYy(item.tglTtb);
+  return {
+    ...item,
+    tglFpb: tglFpb !== '-' ? tglFpb : (item.tglFpb || ''),
+    tglPo: tglPo !== '-' ? tglPo : (item.tglPo || ''),
+    tglFstb: tglFstb !== '-' ? tglFstb : (item.tglFstb || ''),
+    tglTtb: tglTtb !== '-' ? tglTtb : (item.tglTtb || ''),
+  };
+}
+
 export async function GET(req: NextRequest) {
   try {
     let data: { items: SisaLayananItem[]; summary: SisaLayananSummary } | null = null;
@@ -101,6 +116,10 @@ export async function GET(req: NextRequest) {
       if (data.items.length > 0 && isR2Configured()) {
         saveToR2(data.items, data.summary).catch(() => {});
       }
+    }
+
+    if (data.items && data.items.length > 0) {
+      data.items = data.items.map(normalizeItemDates);
     }
 
     cachedItems = data.items;
@@ -165,7 +184,7 @@ export async function POST(req: NextRequest) {
     if (contentType.includes('application/json')) {
       const body = await req.json();
       if (Array.isArray(body?.items)) {
-        const items = body.items;
+        const items = body.items.map(normalizeItemDates);
         const summary = body.summary || calculateSisaLayananSummary(items);
         cachedItems = items;
         cachedSummary = summary;

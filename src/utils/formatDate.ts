@@ -1,6 +1,8 @@
 /**
  * Utility to format various date representations to standard dd/mm/yy format.
  * Examples:
+ * - 46120 (Excel serial) -> '08/04/26'
+ * - '46120' -> '08/04/26'
  * - '2026-08-06' -> '06/08/26'
  * - '7/29/2026'  -> '29/07/26'
  * - '8/13/2026'  -> '13/08/26'
@@ -27,7 +29,19 @@ export function formatDateDdMmYy(val?: string | number | null): string {
     return str;
   }
 
-  // 1. ISO date: YYYY-MM-DD or YYYY/MM/DD (with optional timestamp)
+  // 1. Excel serial date number (e.g. 46120 -> 08/04/26)
+  // Range 10000..99999 covers years 1927 to 2173. Year 2026 is ~46000-46400.
+  const num = typeof val === 'number' ? val : Number(str);
+  if (!isNaN(num) && num >= 10000 && num <= 99999 && !str.includes('/') && !str.includes('-')) {
+    const utcDays = Math.floor(num) - 25569;
+    const date = new Date(utcDays * 86400 * 1000);
+    const dd = String(date.getUTCDate()).padStart(2, '0');
+    const mm = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const yy = String(date.getUTCFullYear()).slice(-2);
+    return `${dd}/${mm}/${yy}`;
+  }
+
+  // 2. ISO date: YYYY-MM-DD or YYYY/MM/DD (with optional timestamp)
   const isoMatch = str.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
   if (isoMatch) {
     const yy = isoMatch[1].slice(-2);
@@ -36,7 +50,7 @@ export function formatDateDdMmYy(val?: string | number | null): string {
     return `${dd}/${mm}/${yy}`;
   }
 
-  // 2. Slash or dash separated: D/M/YYYY, M/D/YYYY, DD/MM/YYYY, or DD/MM/YY
+  // 3. Slash or dash separated: D/M/YYYY, M/D/YYYY, DD/MM/YYYY, or DD/MM/YY
   const slashMatch = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{2,4})/);
   if (slashMatch) {
     const p1 = parseInt(slashMatch[1], 10);
@@ -62,7 +76,7 @@ export function formatDateDdMmYy(val?: string | number | null): string {
     return `${dd}/${mm}/${yy}`;
   }
 
-  // 3. Fallback: Parse textual dates like '29 Jul 2026', '29 July 2026', ISO string
+  // 4. Fallback: Parse textual dates like '29 Jul 2026', '29 July 2026', ISO string
   const parsed = Date.parse(str);
   if (!isNaN(parsed)) {
     const d = new Date(parsed);
@@ -92,6 +106,7 @@ export interface DateInfo {
 /**
  * Ekstraksi informasi tanggal secara akurat (Tahun 4-digit, Bulan 2-digit, Tanggal 2-digit, Timestamp).
  * Menangani format:
+ * - Excel serial date: 46120 -> 2026-04-08
  * - ISO: YYYY-MM-DD atau YYYY/MM/DD
  * - Standar Indonesia: DD/MM/YYYY, DD/MM/YY, DD-MM-YYYY, DD-MM-YY
  * - Fallback teks/Date.parse
@@ -101,6 +116,19 @@ export function extractDateInfo(dateStr?: string | number | null): DateInfo {
   const str = String(dateStr).trim();
   if (!str || str === '-' || str === '(kosong)' || str.toLowerCase() === 'null') {
     return { year: '', month: '', day: '', fullDate: '', timestamp: 0 };
+  }
+
+  // 0. Excel serial number: e.g. 46120
+  const num = typeof dateStr === 'number' ? dateStr : Number(str);
+  if (!isNaN(num) && num >= 10000 && num <= 99999 && !str.includes('/') && !str.includes('-')) {
+    const utcDays = Math.floor(num) - 25569;
+    const date = new Date(utcDays * 86400 * 1000);
+    const year = String(date.getUTCFullYear());
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    const fullDate = `${year}-${month}-${day}`;
+    const timestamp = date.getTime();
+    return { year, month, day, fullDate, timestamp: isNaN(timestamp) ? 0 : timestamp };
   }
 
   // 1. Format ISO: YYYY-MM-DD atau YYYY/MM/DD
@@ -162,4 +190,3 @@ export function extractDateInfo(dateStr?: string | number | null): DateInfo {
 }
 
 export default formatDateDdMmYy;
-

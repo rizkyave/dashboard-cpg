@@ -36,6 +36,7 @@ import {
 import * as XLSX from 'xlsx';
 import { SisaLayananItem, SisaLayananSummary } from '@/types/sisaLayanan';
 import { parseSisaLayananWorkbook, calculateSisaLayananSummary } from '@/utils/sisaLayananParser';
+import { formatDateDdMmYy } from '@/utils/formatDate';
 import TtbMediaModal from './TtbMediaModal';
 
 interface SisaLayananTabProps {
@@ -214,9 +215,17 @@ export default function SisaLayananTab({
       result = result.filter(
         (it) =>
           (it.noFpb || '').toLowerCase().includes(q) ||
+          (it.tglFpb || '').toLowerCase().includes(q) ||
+          formatDateDdMmYy(it.tglFpb).toLowerCase().includes(q) ||
           (it.noPo || '').toLowerCase().includes(q) ||
+          (it.tglPo || '').toLowerCase().includes(q) ||
+          formatDateDdMmYy(it.tglPo).toLowerCase().includes(q) ||
           (it.noFstb || '').toLowerCase().includes(q) ||
+          (it.tglFstb || '').toLowerCase().includes(q) ||
+          formatDateDdMmYy(it.tglFstb).toLowerCase().includes(q) ||
           (it.noTtb || '').toLowerCase().includes(q) ||
+          (it.tglTtb || '').toLowerCase().includes(q) ||
+          formatDateDdMmYy(it.tglTtb).toLowerCase().includes(q) ||
           (it.kodeBarang || '').toLowerCase().includes(q) ||
           (it.namaBarang || '').toLowerCase().includes(q) ||
           (it.departement || '').toLowerCase().includes(q) ||
@@ -287,13 +296,13 @@ export default function SisaLayananTab({
       try {
         const exportRows = filteredItems.map((r) => ({
           'NO. FPB': r.noFpb,
-          'TGL FPB': r.tglFpb,
+          'TGL FPB': formatDateDdMmYy(r.tglFpb),
           'NO. PO': r.noPo,
-          'TGL PO': r.tglPo,
+          'TGL PO': formatDateDdMmYy(r.tglPo),
           'NO. FSTB': r.noFstb,
-          'TGL FSTB': r.tglFstb,
+          'TGL FSTB': formatDateDdMmYy(r.tglFstb),
           'NO. TTB': r.noTtb,
-          'TGL TTB': r.tglTtb,
+          'TGL TTB': formatDateDdMmYy(r.tglTtb),
           'KODE BARANG': r.kodeBarang,
           'NAMA BARANG': r.namaBarang,
           'JML FPB': r.jmlFpb,
@@ -948,7 +957,9 @@ export default function SisaLayananTab({
                             </button>
                           )}
                         </div>
-                        <div className="text-[10px] text-muted-foreground">{item.tglFpb || '-'}</div>
+                        <div className="text-[10px] text-muted-foreground font-mono">
+                          {formatDateDdMmYy(item.tglFpb)}
+                        </div>
                       </td>
 
                       {/* No. PO */}
@@ -956,8 +967,8 @@ export default function SisaLayananTab({
                         <div className="font-mono text-foreground text-[11px]">
                           {item.noPo ? item.noPo : <span className="text-muted-foreground/60 italic">-</span>}
                         </div>
-                        {item.tglPo && (
-                          <div className="text-[10px] text-muted-foreground">{item.tglPo}</div>
+                        {item.tglPo && formatDateDdMmYy(item.tglPo) !== '-' && (
+                          <div className="text-[10px] text-muted-foreground font-mono">{formatDateDdMmYy(item.tglPo)}</div>
                         )}
                       </td>
 
@@ -1010,8 +1021,8 @@ export default function SisaLayananTab({
                             <span className="text-muted-foreground/60 italic">-</span>
                           )}
                         </div>
-                        {item.tglTtb && (
-                          <div className="text-[10px] text-muted-foreground">{item.tglTtb}</div>
+                        {item.tglTtb && formatDateDdMmYy(item.tglTtb) !== '-' && (
+                          <div className="text-[10px] text-muted-foreground font-mono">{formatDateDdMmYy(item.tglTtb)}</div>
                         )}
                       </td>
 
@@ -1260,8 +1271,8 @@ export default function SisaLayananTab({
                     <span className="font-mono font-semibold text-foreground text-xs block truncate mt-0.5">
                       {selectedItem.noFpb || '-'}
                     </span>
-                    <span className="text-[10px] text-muted-foreground block mt-1">
-                      {selectedItem.tglFpb || 'Tanpa Tgl'}
+                    <span className="text-[10px] text-muted-foreground block mt-1 font-mono">
+                      {formatDateDdMmYy(selectedItem.tglFpb) !== '-' ? formatDateDdMmYy(selectedItem.tglFpb) : 'Tanpa Tgl'}
                     </span>
                   </div>
 
@@ -1271,8 +1282,8 @@ export default function SisaLayananTab({
                     <span className="font-mono font-semibold text-foreground text-xs block truncate mt-0.5">
                       {selectedItem.noPo || '-'}
                     </span>
-                    <span className="text-[10px] text-muted-foreground block mt-1">
-                      {selectedItem.tglPo || 'Tanpa Tgl'}
+                    <span className="text-[10px] text-muted-foreground block mt-1 font-mono">
+                      {formatDateDdMmYy(selectedItem.tglPo) !== '-' ? formatDateDdMmYy(selectedItem.tglPo) : 'Tanpa Tgl'}
                     </span>
                   </div>
 
@@ -1282,8 +1293,8 @@ export default function SisaLayananTab({
                       <span className="font-mono font-semibold text-foreground text-xs block truncate mt-0.5">
                         {selectedItem.noFstb || '-'}
                       </span>
-                      <span className="text-[10px] text-muted-foreground block mt-1">
-                        {selectedItem.tglFstb || 'Tanpa Tgl'}
+                      <span className="text-[10px] text-muted-foreground block mt-1 font-mono">
+                        {formatDateDdMmYy(selectedItem.tglFstb) !== '-' ? formatDateDdMmYy(selectedItem.tglFstb) : 'Tanpa Tgl'}
                       </span>
                       {selectedItem.noFstb && (
                         <button
@@ -1313,8 +1324,8 @@ export default function SisaLayananTab({
                       <span className="font-mono font-semibold text-foreground text-xs block truncate mt-0.5">
                         {selectedItem.noTtb || '-'}
                       </span>
-                      <span className="text-[10px] text-muted-foreground block mt-1">
-                        {selectedItem.tglTtb || 'Tanpa Tgl'}
+                      <span className="text-[10px] text-muted-foreground block mt-1 font-mono">
+                        {formatDateDdMmYy(selectedItem.tglTtb) !== '-' ? formatDateDdMmYy(selectedItem.tglTtb) : 'Tanpa Tgl'}
                       </span>
                       {selectedItem.noTtb && (
                         <button
