@@ -186,12 +186,21 @@ async function loadReviews(): Promise<FpbReviewRecord[]> {
             }
           }
 
-          // If local has FPBs not yet in R2, unshift them
+          // If local has FPBs not yet in R2, unshift them; or merge requestedBy/requesterPhone
           for (const loc of localList) {
-            const existsInR2 = parsed.some((r: FpbReviewRecord) => r.fpbNo.toLowerCase() === loc.fpbNo.toLowerCase());
-            if (!existsInR2) {
+            const r2Item = parsed.find((r: FpbReviewRecord) => r.fpbNo.toLowerCase() === loc.fpbNo.toLowerCase());
+            if (!r2Item) {
               parsed.unshift(loc);
               hasMergedUpdates = true;
+            } else {
+              if (loc.requestedBy && !r2Item.requestedBy) {
+                r2Item.requestedBy = loc.requestedBy;
+                hasMergedUpdates = true;
+              }
+              if (loc.requesterPhone && !r2Item.requesterPhone) {
+                r2Item.requesterPhone = loc.requesterPhone;
+                hasMergedUpdates = true;
+              }
             }
           }
 
@@ -811,6 +820,8 @@ export async function POST(req: NextRequest) {
           revisionNote: body.revisionNote !== undefined ? body.revisionNote : current.revisionNote,
           reviewedBy: reviewedBy || current.reviewedBy,
           reviewedAt: nowIso,
+          requestedBy: body.requestedBy !== undefined ? body.requestedBy : current.requestedBy,
+          requesterPhone: body.requesterPhone !== undefined ? body.requesterPhone : current.requesterPhone,
           updatedAt: nowIso,
         };
       } else {
@@ -1160,6 +1171,9 @@ export async function POST(req: NextRequest) {
         );
         if (targetIdx >= 0) {
           records[targetIdx].items = extractedItems;
+          if (parseData.data.requestedBy) {
+            records[targetIdx].requestedBy = parseData.data.requestedBy;
+          }
           // Selalu update purpose dengan hasil ekstraksi PDF riil
           const extractedPurpose = (parseData.data.tujuanPeruntukan || '').trim();
           if (extractedPurpose && extractedPurpose !== '-') {
@@ -1214,6 +1228,7 @@ export async function POST(req: NextRequest) {
         duplicateAlerts: updatedRec?.duplicateAlerts || [],
         priorityLevel: updatedRec?.priorityLevel,
         urgency: updatedRec?.urgency,
+        requestedBy: updatedRec?.requestedBy || parseData.data.requestedBy || '',
       });
     }
 

@@ -148,7 +148,9 @@
     "slaStatus": "ON_TRACK",
     "pchLogistik": "-",
     "reviewedBy": "NOOR HASANAH",
-    "reviewedAt": "2026-10-29T13:51:31.474Z"
+    "reviewedAt": "2026-10-29T13:51:31.474Z",
+    "requestedBy": "YULIANINGSIH AMANDA",
+    "requesterPhone": "081254332901"
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001532",
@@ -672,7 +674,7 @@
     "entity": "CPL",
     "armada": "SPOB OCEAN POLMAN",
     "date": "29/10/26",
-    "purpose": "Kebutuhan Operasional SPOB OCEAN POLMAN",
+    "purpose": "A/N MUHAMMAD AQZA ( CADET)",
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0005060.pdf",
@@ -680,7 +682,23 @@
     "urgency": "NORMAL",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "UNI00101003-ZZZ",
+        "itemName": "BAJU COVERALL PT. CPL (L) ORANGE PRALA (00)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "A/N MUHAMMAD AQZA ( CADET)",
+        "priority": "P3",
+        "stockAvailable": 27,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[UNI00101003-ZZZ] BAJU COVERALL PT. CPL (L) ORANGE PRALA (00) (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (27 PCS). Disarankan penuhi dari stok gudang."
+      }
+    ],
     "attachments": [
       {
         "id": "efpb-att-CPL-FPB-26-0005060-2",
@@ -699,7 +717,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T13:14:25.535Z",
+    "updatedAt": "2026-10-29T14:52:21.297Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",

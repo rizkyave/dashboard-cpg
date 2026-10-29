@@ -1,5 +1,90 @@
 [
   {
+    "id": "notif-1793245235934-32j1z",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User Administrator CPG telah mengunggah 2 berkas TTB (GAJ-TTB-26-01311-1, GAJ-TTB-26-01311-2). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "Administrator CPG",
+    "senderUsername": "admin",
+    "senderRole": "admin",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "GAJ-TTB-26-01311-1, GAJ-TTB-26-01311-2",
+      "armada": "OFFICE GAJ",
+      "noPo": "GAJ-PO-26-01209"
+    },
+    "createdAt": "2026-10-29T03:40:35.934Z",
+    "readBy": [
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1793243172623-pmw1u",
+    "type": "TTB_VALIDATED",
+    "title": "🛡️ TTB Divalidasi & Disahkan",
+    "message": "User NURUL HAFIFAH ALIM telah mengesahkan dokumen TTB CPL-TTB-26-07618 (MT DEWA YANI). Berkas siap untuk proses serah terima di lapangan.",
+    "senderName": "NURUL HAFIFAH ALIM",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "Admin Logistik",
+    "targetRole": "staf_lapangan",
+    "linkTab": "serah-terima",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07618",
+      "armada": "MT DEWA YANI",
+      "noPo": "",
+      "noFpb": ""
+    },
+    "createdAt": "2026-10-29T03:06:12.623Z",
+    "readBy": [
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1793243042603-0y6vy",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User NURUL HAFIFAH ALIM telah mengunggah 2 berkas TTB (CPL-TTB-26-07618, CPL-TTB-26-07618). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "NURUL HAFIFAH ALIM",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07618, CPL-TTB-26-07618",
+      "armada": "MT DEWA YANI",
+      "noPo": "CPL-PO-26-05725"
+    },
+    "createdAt": "2026-10-29T03:04:02.603Z",
+    "readBy": [
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1793069177253-ntc8p",
+    "type": "SERAH_TERIMA_COMPLETED",
+    "title": "✅ Serah Terima TTB Selesai (4/4)",
+    "message": "Barang TTB CPL-TTB-26-07542 telah diterima oleh ANWAR RASYID di -. Dokumentasi dan tanda tangan penerima berhasil terekam.",
+    "senderName": "Kapal umum (Tim Lapangan)",
+    "senderUsername": "receiver",
+    "senderRole": "Staf Lapangan",
+    "targetRole": "manager",
+    "linkTab": "serah-terima",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07542",
+      "armada": "-",
+      "noPo": "",
+      "noFpb": "",
+      "recipientName": "ANWAR RASYID",
+      "courierName": "Kapal umum (Tim Lapangan)",
+      "itemSummary": "CPL-TTB-26-07542.pdf"
+    },
+    "createdAt": "2026-10-27T02:46:17.253Z",
+    "readBy": [
+      "admin"
+    ]
+  },
+  {
     "id": "notif-1793006490104-cprxm",
     "type": "FSTB_UPLOADED",
     "title": "📦 Dokumen FSTB Baru Siap Diproses TTB",

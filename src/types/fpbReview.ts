@@ -119,6 +119,8 @@ export interface FpbReviewRecord {
   attachments?: FpbAttachment[];
   reviewedBy?: string;
   reviewedAt?: string;
+  requestedBy?: string;
+  requesterPhone?: string;
   isRevised?: boolean;
   revisionCount?: number;
   revisionNote?: string;

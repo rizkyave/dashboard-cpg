@@ -583,3 +583,199 @@ export function recalculateCrewKapalData(
   };
 }
 
+export interface SyncedContactResult {
+  name: string;
+  phone: string;
+  role?: string;
+  dept?: string;
+  armada?: string;
+  matchedFrom: 'crew' | 'armada' | 'default' | 'none';
+}
+
+const DEFAULT_EFPB_CONTACTS: Record<string, { name: string; phone: string; role: string; dept: string }> = {
+  'YULIANINGSIH AMANDA': {
+    name: 'Yulianingsih Amanda',
+    phone: '081254332901',
+    role: 'Staf Operasional / Pembuat e-FPB',
+    dept: 'DEPT OPERATION',
+  },
+  'SUJATMIKO': {
+    name: 'Sujatmiko',
+    phone: '08115916597',
+    role: 'Staf Lapangan / Pembuat e-FPB',
+    dept: 'OFFICE GAJ',
+  },
+  "JIHAAN NADA'A UTAMI": {
+    name: "Jihaan Nada'a Utami",
+    phone: '081255678910',
+    role: 'Adm. Operasional / Pembuat e-FPB',
+    dept: 'DPA',
+  },
+  'IQBAL POLEJIWA': {
+    name: 'Iqbal Polejiwa',
+    phone: '081347665544',
+    role: 'Port Captain / Operasional Kapal',
+    dept: 'CPL',
+  },
+  'SALMAN': {
+    name: 'Salman',
+    phone: '081349361659',
+    role: 'Staf Lapangan / Pengadaan',
+    dept: 'OFFICE GAJ',
+  },
+};
+
+/**
+ * Cari kontak personel atau armada kapal dari database Awak & Armada
+ */
+export function findCrewOrArmadaContact(
+  requesterName?: string,
+  armadaName?: string
+): SyncedContactResult {
+  const cleanReq = (requesterName || '').trim();
+  const cleanArmada = (armadaName || '').trim();
+
+  const data = loadCrewData();
+
+  // 1. Cari berdasarkan Nama Personel di masterCrew
+  if (cleanReq) {
+    const reqUpper = cleanReq.toUpperCase();
+    const reqTokens = reqUpper.split(/\s+/).filter((t) => t.length > 2);
+
+    const matchedCrew = data.masterCrew.find((c) => {
+      const cUpper = c.namaPersonel.trim().toUpperCase();
+      if (!cUpper || cUpper.includes('[POSISI LOWONG]')) return false;
+      if (cUpper === reqUpper) return true;
+      if (cUpper.includes(reqUpper) || reqUpper.includes(cUpper)) return true;
+
+      // Partial multi-token match
+      const cTokens = cUpper.split(/\s+/).filter((t) => t.length > 2);
+      const matches = reqTokens.filter((rt) => cTokens.some((ct) => ct.includes(rt) || rt.includes(ct)));
+      return matches.length >= Math.min(2, reqTokens.length);
+    });
+
+    if (matchedCrew && matchedCrew.noHp && matchedCrew.noHp !== '-') {
+      return {
+        name: matchedCrew.namaPersonel,
+        phone: matchedCrew.noHp,
+        role: matchedCrew.jabatan,
+        dept: matchedCrew.departemen,
+        armada: matchedCrew.namaKapal,
+        matchedFrom: 'crew',
+      };
+    }
+  }
+
+  // 2. Cari dari direktori default e-FPB jika belum ada di masterCrew
+  if (cleanReq) {
+    const reqUpper = cleanReq.toUpperCase();
+    for (const [key, val] of Object.entries(DEFAULT_EFPB_CONTACTS)) {
+      if (reqUpper === key || reqUpper.includes(key) || key.includes(reqUpper)) {
+        return {
+          name: val.name,
+          phone: val.phone,
+          role: val.role,
+          dept: val.dept,
+          armada: val.dept,
+          matchedFrom: 'default',
+        };
+      }
+    }
+  }
+
+  // 3. Cari berdasarkan Nama Armada / Kapal di kapalRekap
+  if (cleanArmada) {
+    const armadaUpper = cleanArmada.toUpperCase();
+    const matchedKapal = data.kapalRekap.find((k) => {
+      const kUpper = k.namaKapal.trim().toUpperCase();
+      return kUpper === armadaUpper || armadaUpper.includes(kUpper) || kUpper.includes(armadaUpper);
+    });
+
+    if (matchedKapal && matchedKapal.noTelp && matchedKapal.noTelp !== '-') {
+      return {
+        name: cleanReq || matchedKapal.namaKapal,
+        phone: matchedKapal.noTelp,
+        role: 'Kontak Radio / Telp Kapal',
+        dept: matchedKapal.tipeKapal,
+        armada: matchedKapal.namaKapal,
+        matchedFrom: 'armada',
+      };
+    }
+  }
+
+  return {
+    name: cleanReq || '-',
+    phone: '',
+    matchedFrom: 'none',
+  };
+}
+
+/**
+ * Sinkronisasi nomor WhatsApp / telepon personel langsung ke database Awak & Armada
+ */
+export function syncCrewContact(
+  name: string,
+  phone: string,
+  armada?: string
+): StoredCrewData {
+  const cleanName = name.trim();
+  const cleanPhone = phone.trim();
+  const data = loadCrewData();
+
+  if (!cleanName || !cleanPhone) return data;
+
+  const nameUpper = cleanName.toUpperCase();
+  const targetIdx = data.masterCrew.findIndex(
+    (c) => c.namaPersonel.trim().toUpperCase() === nameUpper
+  );
+
+  let updatedMasterCrew = [...data.masterCrew];
+
+  if (targetIdx >= 0) {
+    updatedMasterCrew[targetIdx] = {
+      ...updatedMasterCrew[targetIdx],
+      noHp: cleanPhone,
+    };
+  } else {
+    // Tambah person baru ke master crew
+    const nextId = (data.masterCrew.length > 0 ? Math.max(...data.masterCrew.map((c) => c.id || 0)) : 0) + 1;
+    const targetArmada = armada?.trim().toUpperCase() || 'DEPT OPERATION';
+    const matchedKapal = data.kapalRekap.find((k) => k.namaKapal.toUpperCase() === targetArmada);
+
+    const newCrew: CrewMasterItem = {
+      id: nextId,
+      noKapal: matchedKapal?.noKapal || 'OPS',
+      namaKapal: targetArmada,
+      tipeKapal: matchedKapal?.tipeKapal || 'Kantor / Departemen',
+      noKru: 1,
+      nik: `CPL-STAFF-${String(1000 + data.masterCrew.length).slice(-4)}`,
+      namaPersonel: cleanName,
+      statusSlot: 'AKTIF',
+      jabatan: 'Pembuat e-FPB / Staf Operasional',
+      departemen: 'Office / Darat',
+      noHp: cleanPhone,
+      ijazah: 'S1 / Sarjana',
+      tahunIjazah: '2021',
+      tglOnBoard: new Date().toISOString().split('T')[0],
+      statusPenugasan: 'Staf Pembuat e-FPB',
+      asalKampus: '-',
+      catatanMutasi: 'Disinkronkan otomatis dari Review FPB',
+      catatanAudit: 'Sinkronisasi kontak user FPB',
+    };
+
+    updatedMasterCrew.push(newCrew);
+  }
+
+  const updatedData = recalculateCrewKapalData(
+    data.kapalRekap,
+    updatedMasterCrew,
+    data.posisiLowong,
+    data.cadetMonitoring,
+    data.auditLogs
+  );
+
+  saveCrewData(updatedData);
+  return updatedData;
+}
+
+

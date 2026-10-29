@@ -47,6 +47,9 @@ import {
   Maximize2,
   ZoomIn,
   Tag,
+  MessageSquare,
+  Phone,
+  User,
 } from 'lucide-react';
 import {
   FpbReviewRecord,
@@ -60,8 +63,18 @@ import {
   ItemDecision,
 } from '@/types/fpbReview';
 import { useAuth } from '@/context/AuthContext';
+import { findCrewOrArmadaContact, syncCrewContact } from '@/utils/crewKapalStorage';
 import LogisticsApprovalCell from './LogisticsApprovalCell';
 import LogisticsApprovalConfirmModal from './LogisticsApprovalConfirmModal';
+
+// Helper formatting WhatsApp URL
+const getWaUrl = (phone: string, text: string) => {
+  const clean = phone.replace(/[^0-9]/g, '');
+  let formatted = clean;
+  if (formatted.startsWith('0')) formatted = '62' + formatted.slice(1);
+  else if (!formatted.startsWith('62')) formatted = '62' + formatted;
+  return `https://wa.me/${formatted}?text=${encodeURIComponent(text)}`;
+};
 
 interface ReviewFpbTabProps {
   showToast?: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
@@ -133,6 +146,13 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
   const [formIsReceivedLogistik, setFormIsReceivedLogistik] = useState<boolean>(false);
   const [isApprovingLogistic, setIsApprovingLogistic] = useState<boolean>(false);
   const [isVerifyingEfpb, setIsVerifyingEfpb] = useState<boolean>(false);
+
+  // Requester (Pembuat e-FPB) & Kontak WA state
+  const [formRequestedBy, setFormRequestedBy] = useState<string>('');
+  const [formRequesterPhone, setFormRequesterPhone] = useState<string>('');
+  const [isFetchingRequester, setIsFetchingRequester] = useState<boolean>(false);
+  const [isEditingPhone, setIsEditingPhone] = useState<boolean>(false);
+  const [tempPhoneInput, setTempPhoneInput] = useState<string>('');
 
   // Verifikasi Pengesahan Dokumen di Real Server e-FPB
   const handleVerifyEfpb = async (rec: FpbReviewRecord) => {
@@ -290,7 +310,6 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
     setFormPic(rec.picPurchasing || '');
     setFormNotes(rec.reviewNotes || '');
     setFormIsReceivedLogistik(Boolean(rec.isReceivedLogistik));
-    setFormIsReceivedLogistik(Boolean(rec.isReceivedLogistik));
     setFormItems(rec.items ? JSON.parse(JSON.stringify(rec.items)) : []);
     setFormAttachments(rec.attachments ? JSON.parse(JSON.stringify(rec.attachments)) : []);
     setSelectedAttachmentFile(null);
@@ -298,6 +317,42 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
     setActiveModalTab('items');
     const isApprovedInitial = Boolean(rec.isReceivedLogistik || rec.pchLogistik === 'Received_Logistic' || rec.pdfUrl?.includes('logistik_Approved_'));
     setPdfViewMode(isApprovedInitial ? 'signed' : 'raw');
+
+    // Inisialisasi Kontak Pembuat e-FPB dari record / Awak & Armada
+    setIsEditingPhone(false);
+    const existingReq = (rec.requestedBy || '').trim();
+    setFormRequestedBy(existingReq);
+
+    const matched = findCrewOrArmadaContact(existingReq, rec.armada);
+    const effectivePhone = rec.requesterPhone || matched.phone || '';
+    setFormRequesterPhone(effectivePhone);
+    setTempPhoneInput(effectivePhone);
+
+    // Jika nama pembuat belum ada di record, fetch otomatis dari PDF parser
+    if (!existingReq) {
+      setIsFetchingRequester(true);
+      fetch(`/api/parse-fpb-pdf?fpb=${encodeURIComponent(rec.fpbNo)}`)
+        .then((res) => res.json())
+        .then((json) => {
+          if (json.success && json.data?.requestedBy) {
+            const parsedName = json.data.requestedBy;
+            setFormRequestedBy(parsedName);
+
+            const newMatched = findCrewOrArmadaContact(parsedName, rec.armada);
+            if (newMatched.phone && !rec.requesterPhone) {
+              setFormRequesterPhone(newMatched.phone);
+              setTempPhoneInput(newMatched.phone);
+            }
+
+            setSelectedRecord((prev) => (prev ? { ...prev, requestedBy: parsedName } : null));
+            setReviews((prev) =>
+              prev.map((r) => (r.fpbNo.toLowerCase() === rec.fpbNo.toLowerCase() ? { ...r, requestedBy: parsedName } : r))
+            );
+          }
+        })
+        .catch((err) => console.warn('Error fetching requester from PDF:', err))
+        .finally(() => setIsFetchingRequester(false));
+    }
   };
 
   // Upload New Attachment
@@ -517,6 +572,16 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
         const updatedAlerts = Array.isArray(json.duplicateAlerts) ? json.duplicateAlerts : [];
         const updatedPriority = json.priorityLevel || formPriority;
         const updatedUrgency = json.urgency || formUrgency;
+        const updatedRequestedBy = json.requestedBy || formRequestedBy;
+
+        if (json.requestedBy) {
+          setFormRequestedBy(json.requestedBy);
+          const newMatched = findCrewOrArmadaContact(json.requestedBy, selectedRecord.armada);
+          if (newMatched.phone && !formRequesterPhone) {
+            setFormRequesterPhone(newMatched.phone);
+            setTempPhoneInput(newMatched.phone);
+          }
+        }
 
         setSelectedRecord((prev) => {
           if (!prev) return null;
@@ -527,6 +592,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
             duplicateAlerts: updatedAlerts,
             priorityLevel: updatedPriority,
             urgency: updatedUrgency,
+            requestedBy: updatedRequestedBy,
           };
         });
 
@@ -541,6 +607,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                   duplicateAlerts: updatedAlerts,
                   priorityLevel: updatedPriority,
                   urgency: updatedUrgency,
+                  requestedBy: updatedRequestedBy,
                 }
               : r
           )
@@ -611,6 +678,8 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
         items: formItems,
         attachments: formAttachments,
         reviewedBy: user?.name || user?.username || 'Tim FPB',
+        requestedBy: formRequestedBy || selectedRecord.requestedBy,
+        requesterPhone: formRequesterPhone || selectedRecord.requesterPhone,
         isReceivedLogistik: formIsReceivedLogistik,
         pchLogistik: formIsReceivedLogistik ? 'Received_Logistic' : '-',
       };
@@ -624,6 +693,11 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
       const json = await res.json();
       if (json.success) {
         showToast?.(json.message || 'Keputusan review berhasil disimpan ke Cloudflare R2!', 'success');
+        // Sinkronkan kontak ke database Awak & Armada jika ada nomor
+        if (formRequesterPhone && formRequestedBy) {
+          syncCrewContact(formRequestedBy, formRequesterPhone, selectedRecord.armada);
+        }
+
         // Update local state
         setReviews((prev) =>
           prev.map((r) =>
@@ -638,6 +712,8 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                   reviewNotes: formNotes,
                   items: formItems,
                   attachments: formAttachments,
+                  requestedBy: formRequestedBy || selectedRecord.requestedBy,
+                  requesterPhone: formRequesterPhone || selectedRecord.requesterPhone,
                   reviewedBy: user?.name || user?.username || 'Tim FPB',
                   reviewedAt: new Date().toISOString(),
                   isReceivedLogistik: formIsReceivedLogistik,
@@ -2600,26 +2676,169 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                 />
               </div>
 
-              {/* Buttons */}
-              <div className="flex items-center justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  className="px-4 py-2 text-xs font-medium rounded-lg border border-border bg-background text-foreground hover:bg-muted transition cursor-pointer"
-                >
-                  Batal
-                </button>
+              {/* Bottom Footer: Data Pembuat e-FPB (Kotak Hitam) + Action Buttons */}
+              {(() => {
+                const matchedContact = findCrewOrArmadaContact(formRequestedBy, selectedRecord.armada);
+                return (
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pt-3 border-t border-border/80">
+                    {/* KOTAK HITAM: Data Pembuat e-FPB & Sinkronisasi WA dari Menu Awak & Armada */}
+                    <div className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-muted/40 border border-border/80 hover:border-emerald-500/40 transition flex-1 max-w-xl shadow-2xs">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="size-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center shrink-0">
+                          <MessageSquare className="size-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="text-[10px] font-mono font-bold uppercase text-muted-foreground">
+                              Pembuat e-FPB:
+                            </span>
+                            <strong className="text-xs font-bold text-foreground truncate">
+                              {formRequestedBy || (isFetchingRequester ? 'Mengekstrak nama dari PDF...' : 'Belum Terdata')}
+                            </strong>
+                            {matchedContact?.matchedFrom === 'crew' && (
+                              <span className="text-[9px] font-mono px-1.5 py-0.2 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-semibold border border-emerald-500/20">
+                                Sync Awak & Armada
+                              </span>
+                            )}
+                            {matchedContact?.matchedFrom === 'default' && (
+                              <span className="text-[9px] font-mono px-1.5 py-0.2 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-semibold border border-emerald-500/20">
+                                Terverifikasi
+                              </span>
+                            )}
+                            {matchedContact?.matchedFrom === 'armada' && (
+                              <span className="text-[9px] font-mono px-1.5 py-0.2 rounded-full bg-blue-500/15 text-blue-600 dark:text-blue-400 font-semibold border border-blue-500/20">
+                                Radio Armada
+                              </span>
+                            )}
+                          </div>
 
-                <button
-                  type="button"
-                  onClick={handleSaveDecision}
-                  disabled={isSavingDecision}
-                  className="inline-flex items-center gap-2 px-5 py-2 text-xs font-bold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition shadow-md cursor-pointer disabled:opacity-50"
-                >
-                  <FileCheck className={`size-4 ${isSavingDecision ? 'animate-spin' : ''}`} />
-                  <span>{isSavingDecision ? 'Menyimpan & Menyinkronkan...' : 'Simpan & Sinkronkan Keputusan ke Cloud'}</span>
-                </button>
-              </div>
+                          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mt-0.5">
+                            <span className="font-medium text-foreground">{selectedRecord.armada}</span>
+                            {formRequesterPhone ? (
+                              <>
+                                <span>&bull;</span>
+                                <span className="font-mono font-semibold text-emerald-600 dark:text-emerald-400">
+                                  {formRequesterPhone}
+                                </span>
+                                {matchedContact?.role && (
+                                  <span className="text-[10px] italic text-muted-foreground truncate hidden sm:inline">
+                                    ({matchedContact.role})
+                                  </span>
+                                )}
+                              </>
+                            ) : (
+                              <>
+                                <span>&bull;</span>
+                                <span className="text-amber-600 dark:text-amber-400 text-[10px]">
+                                  Nomor WA belum tersinkron
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* WhatsApp Action Button / Phone Input */}
+                      <div className="shrink-0 flex items-center gap-1.5">
+                        {isEditingPhone ? (
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="text"
+                              value={tempPhoneInput}
+                              onChange={(e) => setTempPhoneInput(e.target.value)}
+                              placeholder="0812xxxx"
+                              className="w-28 h-7 px-2 text-[11px] font-mono rounded border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const clean = tempPhoneInput.trim();
+                                setFormRequesterPhone(clean);
+                                setIsEditingPhone(false);
+                                if (clean && formRequestedBy) {
+                                  syncCrewContact(formRequestedBy, clean, selectedRecord.armada);
+                                  showToast?.(`Nomor WA ${clean} berhasil disinkronkan ke menu Awak & Armada!`, 'success');
+                                }
+                              }}
+                              className="h-7 px-2 text-[10px] font-bold rounded bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer active:scale-95"
+                            >
+                              Simpan
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setIsEditingPhone(false)}
+                              className="h-7 px-1.5 text-[10px] rounded border border-border text-muted-foreground hover:text-foreground cursor-pointer"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ) : formRequesterPhone ? (
+                          <div className="flex items-center gap-1">
+                            <a
+                              href={getWaUrl(
+                                formRequesterPhone,
+                                `Halo ${formRequestedBy || 'Bpk/Ibu'} (${selectedRecord.armada}), kami dari Tim Analisa & Review FPB Logistik CPG ingin mengonfirmasi pengajuan berkas FPB ${selectedRecord.fpbNo} dengan peruntukan: "${selectedRecord.purpose || '-'}". Mohon info detail spesifikasi kebutuhan barang tersebut. Terima kasih.`
+                              )}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="h-7 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold inline-flex items-center gap-1 transition shadow-xs cursor-pointer active:scale-95"
+                              title="Hubungi pembuat e-FPB langsung secara online melalui WhatsApp"
+                            >
+                              <MessageSquare className="size-3" />
+                              <span>Chat WA</span>
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setTempPhoneInput(formRequesterPhone);
+                                setIsEditingPhone(true);
+                              }}
+                              className="size-7 rounded-lg border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center text-[10px] cursor-pointer"
+                              title="Ubah / sinkronkan nomor WhatsApp baru"
+                            >
+                              ✎
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setTempPhoneInput(formRequesterPhone);
+                              setIsEditingPhone(true);
+                            }}
+                            className="h-7 px-2.5 rounded-lg border border-border bg-background hover:bg-muted text-foreground text-[11px] font-semibold inline-flex items-center gap-1 cursor-pointer active:scale-95"
+                            title="Atur nomor WhatsApp pemohon untuk komunikasi langsung"
+                          >
+                            <Phone className="size-3 text-emerald-500" />
+                            <span>+ No. WA</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex items-center justify-end gap-2.5 shrink-0">
+                      <button
+                        type="button"
+                        onClick={handleCloseModal}
+                        className="px-4 py-2 text-xs font-medium rounded-lg border border-border bg-background text-foreground hover:bg-muted transition cursor-pointer"
+                      >
+                        Batal
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleSaveDecision}
+                        disabled={isSavingDecision}
+                        className="inline-flex items-center gap-2 px-5 py-2 text-xs font-bold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition shadow-md cursor-pointer disabled:opacity-50"
+                      >
+                        <FileCheck className={`size-4 ${isSavingDecision ? 'animate-spin' : ''}`} />
+                        <span>{isSavingDecision ? 'Menyimpan & Menyinkronkan...' : 'Simpan & Sinkronkan Keputusan ke Cloud'}</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>

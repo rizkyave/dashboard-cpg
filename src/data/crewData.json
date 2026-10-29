@@ -1,11 +1,11 @@
 {
   "summary": {
-    "totalArmada": 60,
-    "totalKuota": 633,
-    "kruAktif": 531,
+    "totalArmada": 61,
+    "totalKuota": 637,
+    "kruAktif": 532,
     "cadet": 70,
-    "posisiLowong": 32,
-    "persentaseTerisi": "94.9%"
+    "posisiLowong": 36,
+    "persentaseTerisi": "94.5%"
   },
   "kapalRekap": [
     {
@@ -22,7 +22,7 @@
       "cadet": 2,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 2,
@@ -38,7 +38,7 @@
       "cadet": 0,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 3,
@@ -54,7 +54,7 @@
       "cadet": 2,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 4,
@@ -70,7 +70,7 @@
       "cadet": 0,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 5,
@@ -86,7 +86,7 @@
       "cadet": 2,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 6,
@@ -118,7 +118,7 @@
       "cadet": 0,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 8,
@@ -134,7 +134,7 @@
       "cadet": 0,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 9,
@@ -150,7 +150,7 @@
       "cadet": 0,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 10,
@@ -182,7 +182,7 @@
       "cadet": 0,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 12,
@@ -198,7 +198,7 @@
       "cadet": 1,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 13,
@@ -214,7 +214,7 @@
       "cadet": 2,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 14,
@@ -246,7 +246,7 @@
       "cadet": 0,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 16,
@@ -262,7 +262,7 @@
       "cadet": 1,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 17,
@@ -278,7 +278,7 @@
       "cadet": 2,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 18,
@@ -294,7 +294,7 @@
       "cadet": 0,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 19,
@@ -310,7 +310,7 @@
       "cadet": 2,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 20,
@@ -326,7 +326,7 @@
       "cadet": 0,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 21,
@@ -342,7 +342,7 @@
       "cadet": 2,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 22,
@@ -358,7 +358,7 @@
       "cadet": 2,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 23,
@@ -374,7 +374,7 @@
       "cadet": 0,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 24,
@@ -390,7 +390,7 @@
       "cadet": 2,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 25,
@@ -438,7 +438,7 @@
       "cadet": 0,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 28,
@@ -454,7 +454,7 @@
       "cadet": 0,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 29,
@@ -470,7 +470,7 @@
       "cadet": 2,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 30,
@@ -486,7 +486,7 @@
       "cadet": 2,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 31,
@@ -502,7 +502,7 @@
       "cadet": 0,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 32,
@@ -534,7 +534,7 @@
       "cadet": 0,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 34,
@@ -566,7 +566,7 @@
       "cadet": 1,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 36,
@@ -582,7 +582,7 @@
       "cadet": 0,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 37,
@@ -598,7 +598,7 @@
       "cadet": 2,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 38,
@@ -614,7 +614,7 @@
       "cadet": 2,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 39,
@@ -630,7 +630,7 @@
       "cadet": 1,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 40,
@@ -662,7 +662,7 @@
       "cadet": 4,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 42,
@@ -694,7 +694,7 @@
       "cadet": 0,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 44,
@@ -726,7 +726,7 @@
       "cadet": 3,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 46,
@@ -742,7 +742,7 @@
       "cadet": 0,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 47,
@@ -758,7 +758,7 @@
       "cadet": 0,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 48,
@@ -774,7 +774,7 @@
       "cadet": 1,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 49,
@@ -790,7 +790,7 @@
       "cadet": 0,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 50,
@@ -806,7 +806,7 @@
       "cadet": 2,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 51,
@@ -854,7 +854,7 @@
       "cadet": 0,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 54,
@@ -870,7 +870,7 @@
       "cadet": 3,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 55,
@@ -918,7 +918,7 @@
       "cadet": 4,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 58,
@@ -934,7 +934,7 @@
       "cadet": 3,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 59,
@@ -950,7 +950,7 @@
       "cadet": 2,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
     },
     {
       "no": 60,
@@ -966,7 +966,23 @@
       "cadet": 2,
       "posisiLowong": 0,
       "persentaseTerisi": "100%",
-      "terisiRatio": 1.0
+      "terisiRatio": 1
+    },
+    {
+      "no": 61,
+      "noKapal": "LXI",
+      "namaKapal": "DEPT OPERATION",
+      "tipeKapal": "Kantor / Departemen",
+      "gt": "-",
+      "mesinHp": "-",
+      "dayaKwPs": "-",
+      "noTelp": "081254332901",
+      "totalKuota": 5,
+      "kruAktif": 1,
+      "cadet": 0,
+      "posisiLowong": 4,
+      "persentaseTerisi": "20%",
+      "terisiRatio": 0.2
     }
   ],
   "masterCrew": [
@@ -13628,6 +13644,26 @@
       "statusPenugasan": "On Board",
       "asalKampus": "Politeknik Pelayaran Barombong",
       "catatanMutasi": "Poltekpel Barombong",
+      "catatanAudit": "-"
+    },
+    {
+      "id": 634,
+      "noKapal": "LXI",
+      "namaKapal": "DEPT OPERATION",
+      "tipeKapal": "Kantor / Departemen",
+      "noKru": 1,
+      "nik": "CPL-OPS-0021",
+      "namaPersonel": "Yulianingsih Amanda",
+      "statusSlot": "AKTIF",
+      "jabatan": "Staf Operasional / Pembuat e-FPB",
+      "departemen": "Office / Darat",
+      "noHp": "081254332901",
+      "ijazah": "S1 Manajemen",
+      "tahunIjazah": "2021",
+      "tglOnBoard": "2024-01-15",
+      "statusPenugasan": "Staf Operasional",
+      "asalKampus": "Universitas Mulawarman",
+      "catatanMutasi": "Pembuat e-FPB Dept Operation CPL",
       "catatanAudit": "-"
     }
   ],
