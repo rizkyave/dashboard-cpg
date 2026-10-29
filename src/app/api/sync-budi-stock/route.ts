@@ -50,6 +50,137 @@ function formatExcelDate(val: any): string {
   return str;
 }
 
+/**
+ * Cross-reference & enrich Budi TTB records with official system document relations
+ * (No. FPB Acuan, No. PO, No. FSTB) from doc-relation-reference.json.
+ */
+function enrichBudiRecords(records: BudiTtbRecord[]): BudiTtbRecord[] {
+  let docRel: any = null;
+  try {
+    const docRelPath = path.join(process.cwd(), 'src', 'data', 'doc-relation-reference.json');
+    if (fs.existsSync(docRelPath)) {
+      docRel = JSON.parse(fs.readFileSync(docRelPath, 'utf8'));
+    }
+  } catch (err) {
+    console.warn('[sync-budi-stock] Gagal membaca doc-relation-reference:', err);
+  }
+
+  if (!docRel) return records;
+
+  function getPrefix(str?: string): string {
+    if (!str) return '';
+    const m = str.trim().toUpperCase().match(/^([A-Z]{2,6})/);
+    return m ? m[1] : '';
+  }
+
+  function cleanArmada(str?: string): string {
+    if (!str) return '';
+    return str
+      .toUpperCase()
+      .replace(/^(TK|TB|BG|MT|SPOB|HOPPER BARGE|BARGE|SV|TRUCK TANKI|TRUCK|MOBIL|SITE)\s+/i, '')
+      .replace(/[^A-Z0-9]/g, '');
+  }
+
+  const fpbByTtbArray = new Map<string, { fpb: string; po: string; fstb: string; prefix: string }>();
+  if (docRel.byFpb) {
+    Object.entries(docRel.byFpb).forEach(([fpbNum, fpbData]: [string, any]) => {
+      const fpbPrefix = getPrefix(fpbNum);
+      if (fpbData.ttbs && Array.isArray(fpbData.ttbs)) {
+        fpbData.ttbs.forEach((t: string) => {
+          const ttbPrefix = getPrefix(t) || fpbPrefix;
+          const fullKey = t.trim().toUpperCase();
+          const info = {
+            fpb: fpbNum,
+            po: fpbData.pos?.[0] || '',
+            fstb: fpbData.fstbs?.[0] || '',
+            prefix: fpbPrefix,
+          };
+          fpbByTtbArray.set(fullKey, info);
+
+          const m = t.match(/26-0*(\d+)/);
+          if (m) {
+            const padKey = `${ttbPrefix}-26${m[1].padStart(5, '0')}`;
+            fpbByTtbArray.set(padKey, info);
+          }
+        });
+      }
+    });
+  }
+
+  return records.map((r) => {
+    let fpb = r.noFpb && r.noFpb !== '-' ? r.noFpb : '';
+    let po = r.noPo || '';
+    let fstb = r.noFstb || '';
+    let isEnriched = r.isEnriched || false;
+
+    const rawTtb = (r.ttbAccurate || '').trim().toUpperCase();
+    const targetPrefix = getPrefix(rawTtb) || getPrefix(r.pt) || 'CPL';
+
+    if (!fpb && rawTtb) {
+      const m = rawTtb.match(/26-0*(\d+)/);
+      const seq = m ? parseInt(m[1], 10) : 0;
+      const paddedKey = m ? `26${m[1].padStart(5, '0')}` : '';
+      const normKey = m ? `26${m[1]}` : '';
+
+      // 1. Direct lookup in byTtb
+      const entry =
+        docRel.byTtb?.[rawTtb] ||
+        (paddedKey ? docRel.byTtb?.[paddedKey] : undefined) ||
+        (normKey ? docRel.byTtb?.[normKey] : undefined);
+
+      if (entry && entry.fpb && getPrefix(entry.fpb) === targetPrefix) {
+        fpb = entry.fpb;
+        po = entry.po || po;
+        fstb = entry.fstb || fstb;
+        isEnriched = true;
+      }
+
+      // 2. Lookup in byFpb ttbs array
+      if (!fpb && fpbByTtbArray.size > 0) {
+        const f =
+          fpbByTtbArray.get(rawTtb) ||
+          (paddedKey ? fpbByTtbArray.get(`${targetPrefix}-${paddedKey}`) : undefined);
+        if (f && f.fpb && f.prefix === targetPrefix) {
+          fpb = f.fpb;
+          po = f.po || po;
+          fstb = f.fstb || fstb;
+          isEnriched = true;
+        }
+      }
+
+      // 3. Adjacent TTB sequence lookup (+- 1 to 5) with armada matching
+      if (!fpb && seq > 0 && docRel.byTtb) {
+        const armClean = cleanArmada(r.deptArmada);
+        if (armClean) {
+          for (const offset of [-1, 1, -2, 2, -3, 3, -4, 4, -5, 5]) {
+            const adjSeq = seq + offset;
+            const adjKey = `26${String(adjSeq).padStart(5, '0')}`;
+            const adjEntry = docRel.byTtb[adjKey];
+            if (adjEntry && adjEntry.fpb && getPrefix(adjEntry.fpb) === targetPrefix) {
+              const adjArmClean = cleanArmada(adjEntry.armada);
+              if (adjArmClean && (adjArmClean.includes(armClean) || armClean.includes(adjArmClean))) {
+                fpb = adjEntry.fpb;
+                po = adjEntry.po || po;
+                fstb = adjEntry.fstb || fstb;
+                isEnriched = true;
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return {
+      ...r,
+      noFpb: fpb || '-',
+      noPo: po || undefined,
+      noFstb: fstb || undefined,
+      isEnriched,
+    };
+  });
+}
+
 function parseBudiSheets(wb: XLSX.WorkBook, sourceUrl: string): { records: BudiTtbRecord[]; summary: BudiSyncSummary } {
   const records: BudiTtbRecord[] = [];
   const targetSheets = ['STOCK GUDANG PAK BUDI', 'STOCK TALI'];
@@ -122,14 +253,17 @@ function parseBudiSheets(wb: XLSX.WorkBook, sourceUrl: string): { records: BudiT
     }
   }
 
+  // Cross-reference & enrich records with system relations
+  const enrichedRecords = enrichBudiRecords(records);
+
   // Summary calculations
-  const totalRecords = records.length;
-  const uniqueArmada = new Set(records.map((r) => r.deptArmada.toUpperCase().trim()).filter(Boolean));
-  const totalTerkirim = records.filter((r) => r.statusPengantaran === 'TERKIRIM').length;
+  const totalRecords = enrichedRecords.length;
+  const uniqueArmada = new Set(enrichedRecords.map((r) => r.deptArmada.toUpperCase().trim()).filter(Boolean));
+  const totalTerkirim = enrichedRecords.filter((r) => r.statusPengantaran === 'TERKIRIM').length;
   const totalDalamProses = totalRecords - totalTerkirim;
 
   const ptBreakdown: Record<string, number> = {};
-  records.forEach((r) => {
+  enrichedRecords.forEach((r) => {
     const code = r.pt.toUpperCase().trim() || 'LAINNYA';
     ptBreakdown[code] = (ptBreakdown[code] || 0) + 1;
   });
@@ -144,7 +278,7 @@ function parseBudiSheets(wb: XLSX.WorkBook, sourceUrl: string): { records: BudiT
     sourceUrl,
   };
 
-  return { records, summary };
+  return { records: enrichedRecords, summary };
 }
 
 function loadFromLocalCache(): { records: BudiTtbRecord[]; summary: BudiSyncSummary } | null {
@@ -153,7 +287,10 @@ function loadFromLocalCache(): { records: BudiTtbRecord[]; summary: BudiSyncSumm
       const raw = fs.readFileSync(CACHE_FILE_PATH, 'utf-8');
       const parsed = JSON.parse(raw);
       if (parsed && Array.isArray(parsed.records) && parsed.records.length > 0) {
-        return parsed;
+        return {
+          ...parsed,
+          records: enrichBudiRecords(parsed.records),
+        };
       }
     }
   } catch (err) {
@@ -278,4 +415,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-

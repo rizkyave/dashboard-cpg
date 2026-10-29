@@ -4,6 +4,9 @@ export interface BudiTtbRecord {
   pt: string;
   deptArmada: string;
   noFpb: string;
+  noPo?: string;
+  noFstb?: string;
+  isEnriched?: boolean;
   picTtb: string;
   ttbAccurate: string;
   tanggalInputTtb: string;
@@ -34,4 +37,3 @@ export interface BudiSyncSummary {
 
 export const DEFAULT_BUDI_SHEET_URL =
   'https://docs.google.com/spreadsheets/d/1Bou_dU7L8UWhDEjgBpPqtKnIqoF7wLQSUN2bnYbrp1I/edit?gid=1826916113#gid=1826916113';
-

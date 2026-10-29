@@ -536,7 +536,8 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
         'No. TTB Accurate': r.ttbAccurate,
         PT: r.pt,
         'Dept / Armada': r.deptArmada,
-        'No. FPB': r.noFpb,
+        'No. FPB Acuan': r.noFpb,
+        'No. PO Terkait': r.noPo || '-',
         'PIC TTB': r.picTtb,
         'Tgl Input TTB': r.tanggalInputTtb,
         'Tgl Ke Tim Lapangan': r.tanggalKeTimLapangan,
@@ -891,6 +892,7 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
         r.ttbAccurate.toLowerCase().includes(searchQueryMutasi.toLowerCase()) ||
         r.deptArmada.toLowerCase().includes(searchQueryMutasi.toLowerCase()) ||
         r.noFpb.toLowerCase().includes(searchQueryMutasi.toLowerCase()) ||
+        (r.noPo && r.noPo.toLowerCase().includes(searchQueryMutasi.toLowerCase())) ||
         r.picTtb.toLowerCase().includes(searchQueryMutasi.toLowerCase()) ||
         r.picLapangan.toLowerCase().includes(searchQueryMutasi.toLowerCase()) ||
         r.keteranganLapangan.toLowerCase().includes(searchQueryMutasi.toLowerCase());
@@ -1366,7 +1368,24 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
                         </div>
                       </td>
                       <td className="py-2.5 px-3 whitespace-nowrap">
-                        <span className="font-mono text-muted-foreground font-medium">{r.noFpb}</span>
+                        {r.noFpb && r.noFpb !== '-' ? (
+                          <div className="flex flex-col gap-0.5">
+                            <span
+                              className="inline-flex items-center gap-1 font-mono font-bold text-xs text-primary bg-primary/10 hover:bg-primary/20 px-2 py-0.5 rounded border border-primary/20 transition"
+                              title={`No. FPB Acuan: ${r.noFpb}${r.isEnriched ? ' (Tersinkronisasi otomatis dengan data sistem CPG)' : ''}`}
+                            >
+                              <FileText className="size-3 text-primary/70 shrink-0" />
+                              <span>{r.noFpb}</span>
+                            </span>
+                            {r.noPo && r.noPo !== '-' && (
+                              <span className="text-[10px] text-muted-foreground font-mono pl-0.5" title={`No. PO: ${r.noPo}`}>
+                                PO: {r.noPo}
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="font-mono text-muted-foreground font-medium">-</span>
+                        )}
                       </td>
                       <td className="py-2.5 px-3 whitespace-nowrap">
                         <div className="font-medium text-foreground">{r.picTtb}</div>
@@ -2505,7 +2524,31 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
                 </div>
                 <div>
                   <span className="text-[10px] text-muted-foreground">No. FPB Acuan:</span>
-                  <div className="font-mono font-semibold text-foreground">{selectedDetailTtb.noFpb}</div>
+                  <div className="font-mono font-bold text-primary flex items-center gap-1.5 mt-0.5">
+                    {selectedDetailTtb.noFpb && selectedDetailTtb.noFpb !== '-' ? (
+                      <>
+                        <FileText className="size-3.5 text-primary" />
+                        <span>{selectedDetailTtb.noFpb}</span>
+                        {selectedDetailTtb.isEnriched && (
+                          <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-sans font-medium">
+                            Tersinkron
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <span className="text-muted-foreground font-normal">-</span>
+                    )}
+                  </div>
+                  {selectedDetailTtb.noPo && (
+                    <div className="text-[10px] text-muted-foreground font-mono mt-0.5">
+                      PO: {selectedDetailTtb.noPo}
+                    </div>
+                  )}
+                  {selectedDetailTtb.noFstb && (
+                    <div className="text-[10px] text-muted-foreground font-mono">
+                      FSTB: {selectedDetailTtb.noFstb}
+                    </div>
+                  )}
                 </div>
                 <div>
                   <span className="text-[10px] text-muted-foreground">Status Pengantaran:</span>
