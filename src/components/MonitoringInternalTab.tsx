@@ -2829,7 +2829,28 @@ export default function MonitoringInternalTab({
         {/* ======================================================== */}
         {/* 5. Pagination Footer                                      */}
         {/* ======================================================== */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-t border-border bg-muted/20 text-xs">
+        <div className="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-3.5 p-4 border-t border-border bg-muted/20 text-xs">
+          {/* Bottom Search Box */}
+          <div className="relative w-full xl:w-96">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Cari No. FPB, PO, FSTB, TTB, SPP, Armada, PIC, atau Catatan..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-8 py-2 text-xs rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20 shadow-xs transition"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs p-0.5 cursor-pointer"
+                title="Hapus pencarian"
+              >
+                ✕
+              </button>
+            )}
+          </div>
           <div className="flex items-center gap-3 text-muted-foreground">
             <span>
               Menampilkan {filteredData.length === 0 ? 0 : (currentPage - 1) * pageSize + 1} -{' '}

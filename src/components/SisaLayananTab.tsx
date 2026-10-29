@@ -1131,7 +1131,30 @@ export default function SisaLayananTab({
         </div>
 
         {/* Footer Pagination Bar */}
-        <div className="p-3.5 border-t border-border bg-card flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+        <div className="p-3.5 border-t border-border bg-card flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 text-xs">
+          {/* Bottom Search Box */}
+          <div className="relative w-full lg:w-96">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Cari No. FPB, PO, FSTB, TTB, Kode/Nama Barang, Armada, Keterangan..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full pl-9 pr-8 py-2 rounded-lg bg-background border border-border text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 shadow-xs transition"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-muted-foreground hover:text-foreground text-xs rounded transition cursor-pointer"
+                title="Hapus pencarian"
+              >
+                ✕
+              </button>
+            )}
+          </div>
           <div className="text-muted-foreground text-xs">
             Menampilkan baris{' '}
             <strong className="text-foreground">

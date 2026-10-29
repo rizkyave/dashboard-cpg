@@ -1404,7 +1404,8 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
             </button>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+            <div className="overflow-x-auto">
             <table className="w-full text-xs text-left">
               <thead className="bg-muted/50 text-muted-foreground border-b border-border font-medium">
                 <tr>
@@ -1604,6 +1605,34 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
               </tbody>
             </table>
           </div>
+
+        {/* Bottom Search Bar & Footer Info */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 border-t border-border bg-muted/20 text-xs">
+          <div className="relative w-full sm:w-96">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Cari No. FPB, Status TKB, Armada, Keperluan, PIC, atau No. PO..."
+              className="w-full pl-9 pr-8 py-2 text-xs rounded-lg border border-border bg-background focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary text-foreground placeholder:text-muted-foreground transition shadow-xs"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs p-0.5 cursor-pointer"
+                title="Hapus pencarian"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+          <div className="text-xs text-muted-foreground">
+            Menampilkan <span className="font-semibold text-foreground">{filteredReviews.length}</span> dari <span className="font-semibold text-foreground">{reviews.length}</span> pengajuan FPB
+          </div>
+        </div>
+          </>
         )}
       </div>
 
