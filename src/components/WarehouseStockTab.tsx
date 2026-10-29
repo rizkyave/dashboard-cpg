@@ -40,6 +40,11 @@ import {
   Truck,
   Eye,
   Info,
+  Split,
+  Columns2,
+  Rows2,
+  Maximize2,
+  SlidersHorizontal,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import {
@@ -61,7 +66,11 @@ interface WarehouseStockTabProps {
   showToast?: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
 }
 
-type ViewMode = 'kartu-stok' | 'form-masuk' | 'form-keluar' | 'riwayat-mutasi' | 'ttb-armada';
+// Navigasi & Mode Tampilan
+type MainView = 'simultan' | 'stok' | 'mutasi';
+type SimultanLayout = 'stacked' | 'side-by-side';
+type MutasiSubTab = 'ttb-armada' | 'riwayat-mutasi';
+type ActiveForm = 'form-masuk' | 'form-keluar' | null;
 
 const WAREHOUSE_CATEGORIES: WarehouseCategory[] = [
   'Pelumas & Kimia',
@@ -105,13 +114,29 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  // Active View
-  const [activeView, setActiveView] = useState<ViewMode>('kartu-stok');
+  // Active Main View: 'simultan' (Menampilkan kedua data sekaligus), 'stok' (Data 1 saja), 'mutasi' (Data 2 saja)
+  const [activeMainView, setActiveMainView] = useState<MainView>('simultan');
 
-  // Filter & Search
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  // Layout untuk mode simultan: 'stacked' (Atas-Bawah) atau 'side-by-side' (Berdampingan 2 Kolom)
+  const [simultanLayout, setSimultanLayout] = useState<SimultanLayout>('stacked');
+
+  // Sub-tab di dalam Data 2 Mutasi Barang
+  const [mutasiSubTab, setMutasiSubTab] = useState<MutasiSubTab>('ttb-armada');
+
+  // Active form slide-in / accordion
+  const [activeForm, setActiveForm] = useState<ActiveForm>(null);
+
+  // Filter & Search Terpisah (Independen)
+  const [searchQueryStock, setSearchQueryStock] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
+
+  const [searchQueryMutasi, setSearchQueryMutasi] = useState<string>('');
+  const [selectedPtBudi, setSelectedPtBudi] = useState<string>('ALL');
+  const [selectedStatusBudi, setSelectedStatusBudi] = useState<string>('ALL');
+  const [selectedSheetBudi, setSelectedSheetBudi] = useState<string>('ALL');
+
+  const [searchQueryLedger, setSearchQueryLedger] = useState<string>('');
   const [selectedMutationType, setSelectedMutationType] = useState<string>('ALL');
 
   // Google Sheet TTB Sync State
@@ -119,9 +144,6 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
   const [budiSyncSummary, setBudiSyncSummary] = useState<BudiSyncSummary | null>(null);
   const [isSyncingBudiSheet, setIsSyncingBudiSheet] = useState<boolean>(false);
   const [lastBudiSyncTime, setLastBudiSyncTime] = useState<string>('');
-  const [selectedPtBudi, setSelectedPtBudi] = useState<string>('ALL');
-  const [selectedStatusBudi, setSelectedStatusBudi] = useState<string>('ALL');
-  const [selectedSheetBudi, setSelectedSheetBudi] = useState<string>('ALL');
   const [selectedDetailTtb, setSelectedDetailTtb] = useState<BudiTtbRecord | null>(null);
 
   // Modal State for Slip Print
@@ -270,7 +292,7 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
       } else {
         showToast?.(data.error || 'Gagal menyinkronkan Google Sheet.', 'error');
       }
-    } catch (err: any) {
+    } catch {
       showToast?.('Terjadi kesalahan saat sinkronisasi Google Sheet.', 'error');
     } finally {
       setIsSyncingBudiSheet(false);
@@ -285,7 +307,7 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
       noDokumenRef: '',
       sumberAtauTujuan: '',
     }));
-    setActiveView('form-masuk');
+    setActiveForm('form-masuk');
   };
 
   // Helper to open Outbound Form with pre-selected item
@@ -296,7 +318,7 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
       noDokumenRef: '',
       qty: 1,
     }));
-    setActiveView('form-keluar');
+    setActiveForm('form-keluar');
   };
 
   // Submit Inbound (+ Masuk)
@@ -331,7 +353,7 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
         setSummary(data.summary);
         saveLocalWarehouseData(data.items, data.mutations);
         showToast?.(data.message || 'Penerimaan barang berhasil dicatat!', 'success');
-        setActiveView('riwayat-mutasi');
+        setActiveForm(null);
         // Reset form
         setInboundForm((prev) => ({
           ...prev,
@@ -393,7 +415,7 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
         setSummary(data.summary);
         saveLocalWarehouseData(data.items, data.mutations);
         showToast?.(data.message || 'Pengeluaran barang berhasil dicatat!', 'success');
-        setActiveView('riwayat-mutasi');
+        setActiveForm(null);
         // Reset form
         setOutboundForm((prev) => ({
           ...prev,
@@ -832,11 +854,6 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
         setImportFile(null);
         setParsedPreviewItems([]);
         setParsedPreviewMutations([]);
-        if (importTarget === 'items') {
-          setActiveView('kartu-stok');
-        } else {
-          setActiveView('riwayat-mutasi');
-        }
       } else {
         showToast?.(data.error || 'Gagal menyimpan data impor.', 'error');
       }
@@ -847,14 +864,14 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
     }
   };
 
-  // Filtered Items for Stock Card
+  // Filtered Items for Stock Card (Data 1)
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
       const matchSearch =
-        !searchQuery ||
-        item.namaBarang.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.kodeBarang.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.lokasiRak.toLowerCase().includes(searchQuery.toLowerCase());
+        !searchQueryStock ||
+        item.namaBarang.toLowerCase().includes(searchQueryStock.toLowerCase()) ||
+        item.kodeBarang.toLowerCase().includes(searchQueryStock.toLowerCase()) ||
+        item.lokasiRak.toLowerCase().includes(searchQueryStock.toLowerCase());
 
       const matchCategory =
         selectedCategory === 'ALL' || item.kategori === selectedCategory;
@@ -864,37 +881,19 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
 
       return matchSearch && matchCategory && matchStatus;
     });
-  }, [items, searchQuery, selectedCategory, selectedStatus]);
+  }, [items, searchQueryStock, selectedCategory, selectedStatus]);
 
-  // Filtered Mutations for Ledger
-  const filteredMutations = useMemo(() => {
-    return mutations.filter((m) => {
-      const matchSearch =
-        !searchQuery ||
-        m.namaBarang.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        m.kodeBarang.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        m.noDokumenRef.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        m.sumberAtauTujuan.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        m.picPenerimaPengambil.toLowerCase().includes(searchQuery.toLowerCase());
-
-      const matchType =
-        selectedMutationType === 'ALL' || m.jenis === selectedMutationType;
-
-      return matchSearch && matchType;
-    });
-  }, [mutations, searchQuery, selectedMutationType]);
-
-  // Filtered Google Sheet TTB Records
+  // Filtered Google Sheet TTB Records (Data 2)
   const filteredBudiTtbRecords = useMemo(() => {
     return budiTtbRecords.filter((r) => {
       const matchSearch =
-        !searchQuery ||
-        r.ttbAccurate.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        r.deptArmada.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        r.noFpb.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        r.picTtb.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        r.picLapangan.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        r.keteranganLapangan.toLowerCase().includes(searchQuery.toLowerCase());
+        !searchQueryMutasi ||
+        r.ttbAccurate.toLowerCase().includes(searchQueryMutasi.toLowerCase()) ||
+        r.deptArmada.toLowerCase().includes(searchQueryMutasi.toLowerCase()) ||
+        r.noFpb.toLowerCase().includes(searchQueryMutasi.toLowerCase()) ||
+        r.picTtb.toLowerCase().includes(searchQueryMutasi.toLowerCase()) ||
+        r.picLapangan.toLowerCase().includes(searchQueryMutasi.toLowerCase()) ||
+        r.keteranganLapangan.toLowerCase().includes(searchQueryMutasi.toLowerCase());
 
       const matchPt = selectedPtBudi === 'ALL' || r.pt.toUpperCase() === selectedPtBudi.toUpperCase();
       const matchStatus = selectedStatusBudi === 'ALL' || r.statusPengantaran === selectedStatusBudi;
@@ -902,7 +901,25 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
 
       return matchSearch && matchPt && matchStatus && matchSheet;
     });
-  }, [budiTtbRecords, searchQuery, selectedPtBudi, selectedStatusBudi, selectedSheetBudi]);
+  }, [budiTtbRecords, searchQueryMutasi, selectedPtBudi, selectedStatusBudi, selectedSheetBudi]);
+
+  // Filtered Mutations for Ledger
+  const filteredMutations = useMemo(() => {
+    return mutations.filter((m) => {
+      const matchSearch =
+        !searchQueryLedger ||
+        m.namaBarang.toLowerCase().includes(searchQueryLedger.toLowerCase()) ||
+        m.kodeBarang.toLowerCase().includes(searchQueryLedger.toLowerCase()) ||
+        m.noDokumenRef.toLowerCase().includes(searchQueryLedger.toLowerCase()) ||
+        m.sumberAtauTujuan.toLowerCase().includes(searchQueryLedger.toLowerCase()) ||
+        m.picPenerimaPengambil.toLowerCase().includes(searchQueryLedger.toLowerCase());
+
+      const matchType =
+        selectedMutationType === 'ALL' || m.jenis === selectedMutationType;
+
+      return matchSearch && matchType;
+    });
+  }, [mutations, searchQueryLedger, selectedMutationType]);
 
   // Selected item detail for forms
   const selectedInboundItem = useMemo(() => {
@@ -912,6 +929,678 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
   const selectedOutboundItem = useMemo(() => {
     return items.find((i) => i.id === outboundForm.itemId);
   }, [items, outboundForm.itemId]);
+
+  // =========================================================================
+  // RENDER SECTION 1: DATA 1 - STOK BARANG
+  // =========================================================================
+  const renderStockTableContent = (isSplit = false) => (
+    <div className="bg-card border border-border rounded-xl shadow-xs overflow-hidden flex flex-col h-full">
+      {/* Section Header Card */}
+      <div className="p-4 border-b border-border bg-emerald-500/5 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="size-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center shadow-xs">
+            <Boxes className="size-4" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-xs md:text-sm font-bold text-foreground">
+                Data 1: Stok Barang Fisik Gudang Pusat
+              </h2>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 font-mono">
+                {items.length} SKU
+              </span>
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Katalog persediaan, saldo awal, penerimaan (+), pengeluaran (-), sisa stok &amp; posisi rak
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {isSplit && (
+            <button
+              onClick={() => setActiveMainView('stok')}
+              className="h-7 px-2.5 rounded-md border border-border bg-card hover:bg-muted text-[11px] font-medium flex items-center gap-1.5 transition text-muted-foreground hover:text-foreground"
+              title="Perbesar Tampilan Data 1 (Layar Penuh)"
+            >
+              <Maximize2 className="size-3" />
+              <span className="hidden sm:inline">Layar Penuh</span>
+            </button>
+          )}
+
+          <button
+            onClick={() => setIsAddSkuModalOpen(true)}
+            className="h-7 px-2.5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold flex items-center gap-1 transition shadow-xs cursor-pointer"
+          >
+            <Plus className="size-3" />
+            <span>Tambah SKU</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Controls Bar: Search & Filter */}
+      <div className="p-3.5 border-b border-border flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 bg-muted/20">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="size-3.5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            placeholder="Cari nama barang, kode SKU, atau lokasi rak..."
+            value={searchQueryStock}
+            onChange={(e) => setSearchQueryStock(e.target.value)}
+            className="w-full h-8 pl-8 pr-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+          />
+          {searchQueryStock && (
+            <button
+              onClick={() => setSearchQueryStock('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs"
+            >
+              &times;
+            </button>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="h-8 px-2.5 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+          >
+            <option value="ALL">Semua Kategori</option>
+            {WAREHOUSE_CATEGORIES.map((cat) => (
+              <option key={cat} value={cat}>
+                {cat}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
+            className="h-8 px-2.5 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+          >
+            <option value="ALL">Semua Status Stok</option>
+            <option value="AMAN">Aman (Stok Cukup)</option>
+            <option value="MENIPIS">Menipis (Low Stock)</option>
+            <option value="HABIS">Habis (Out of Stock)</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Table Data 1 */}
+      <div className="overflow-x-auto flex-1">
+        <table className="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr className="bg-muted/50 border-b border-border text-muted-foreground font-semibold uppercase tracking-wider text-[11px]">
+              <th className="py-2.5 px-3 w-10 text-center">No</th>
+              <th className="py-2.5 px-3">Kode &amp; Nama Barang</th>
+              <th className="py-2.5 px-3">Kategori</th>
+              <th className="py-2.5 px-3">Lokasi Rak Somber</th>
+              <th className="py-2.5 px-3 text-right">Min. Stok</th>
+              <th className="py-2.5 px-3 text-right">Saldo Awal</th>
+              <th className="py-2.5 px-3 text-right text-emerald-600 dark:text-emerald-400">Masuk (+)</th>
+              <th className="py-2.5 px-3 text-right text-amber-600 dark:text-amber-400">Keluar (-)</th>
+              <th className="py-2.5 px-3 text-right font-bold text-foreground">Sisa Stok Fisik</th>
+              <th className="py-2.5 px-3 text-center">Status</th>
+              <th className="py-2.5 px-3 text-center">Aksi Cepat</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border/60">
+            {filteredItems.length === 0 ? (
+              <tr>
+                <td colSpan={11} className="py-10 text-center text-muted-foreground">
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <Boxes className="size-7 text-muted-foreground/40" />
+                    <p className="font-medium text-xs">Tidak ada data barang yang sesuai kriteria pencarian.</p>
+                  </div>
+                </td>
+              </tr>
+            ) : (
+              filteredItems.map((item, idx) => (
+                <tr key={item.id} className="hover:bg-muted/30 transition-colors group">
+                  <td className="py-2.5 px-3 text-center text-muted-foreground font-mono">
+                    {idx + 1}
+                  </td>
+                  <td className="py-2.5 px-3">
+                    <div className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                      {item.namaBarang}
+                    </div>
+                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground mt-0.5 font-mono">
+                      <span className="font-medium text-foreground/80">{item.kodeBarang}</span>
+                      <span>&bull;</span>
+                      <span>Satuan: <strong className="text-foreground">{item.satuan}</strong></span>
+                    </div>
+                  </td>
+                  <td className="py-2.5 px-3 text-muted-foreground whitespace-nowrap">
+                    <span className="inline-block px-2 py-0.5 rounded text-[10px] font-medium bg-muted text-muted-foreground border border-border">
+                      {item.kategori}
+                    </span>
+                  </td>
+                  <td className="py-2.5 px-3 text-muted-foreground whitespace-nowrap">
+                    <div className="flex items-center gap-1.5 text-foreground/80 text-[11px]">
+                      <MapPin className="size-3 text-muted-foreground shrink-0" />
+                      <span>{item.lokasiRak}</span>
+                    </div>
+                  </td>
+                  <td className="py-2.5 px-3 text-right font-mono text-muted-foreground text-[11px]">
+                    {item.minStock} {item.satuan}
+                  </td>
+                  <td className="py-2.5 px-3 text-right font-mono text-muted-foreground text-[11px]">
+                    {item.saldoAwal}
+                  </td>
+                  <td className="py-2.5 px-3 text-right font-mono text-emerald-600 dark:text-emerald-400 font-semibold text-[11px]">
+                    +{item.totalMasuk}
+                  </td>
+                  <td className="py-2.5 px-3 text-right font-mono text-amber-600 dark:text-amber-400 font-semibold text-[11px]">
+                    -{item.totalKeluar}
+                  </td>
+                  <td className="py-2.5 px-3 text-right">
+                    <div className="font-mono font-bold text-xs text-foreground">
+                      {item.sisaStok} <span className="text-[10px] text-muted-foreground font-normal">{item.satuan}</span>
+                    </div>
+                  </td>
+                  <td className="py-2.5 px-3 text-center whitespace-nowrap">
+                    {item.status === 'AMAN' && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                        <span className="size-1.5 rounded-full bg-emerald-500" />
+                        Aman
+                      </span>
+                    )}
+                    {item.status === 'MENIPIS' && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 animate-pulse">
+                        <span className="size-1.5 rounded-full bg-amber-500" />
+                        Menipis
+                      </span>
+                    )}
+                    {item.status === 'HABIS' && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/20">
+                        <span className="size-1.5 rounded-full bg-rose-500" />
+                        Habis
+                      </span>
+                    )}
+                  </td>
+                  <td className="py-2.5 px-3 text-center whitespace-nowrap">
+                    <div className="flex items-center justify-center gap-1">
+                      <button
+                        onClick={() => handleOpenInboundForItem(item)}
+                        className="p-1 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 transition cursor-pointer"
+                        title={`Catat Penerimaan Masuk (+) untuk ${item.namaBarang}`}
+                      >
+                        <PackagePlus className="size-3" />
+                      </button>
+                      <button
+                        onClick={() => handleOpenOutboundForItem(item)}
+                        disabled={item.sisaStok <= 0}
+                        className="p-1 rounded-md bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/20 transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                        title={
+                          item.sisaStok > 0
+                            ? `Catat Pengambilan Keluar (-) untuk ${item.namaBarang}`
+                            : 'Stok habis, tidak bisa dikeluarkan'
+                        }
+                      >
+                        <PackageMinus className="size-3" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Footer Data 1 */}
+      <div className="p-2.5 bg-muted/20 border-t border-border flex items-center justify-between text-[11px] text-muted-foreground">
+        <span>Menampilkan <strong>{filteredItems.length}</strong> dari <strong>{items.length}</strong> SKU barang</span>
+        <span className="font-mono">Gudang Pusat Somber &bull; Pak Budi</span>
+      </div>
+    </div>
+  );
+
+  // =========================================================================
+  // RENDER SECTION 2: DATA 2 - MUTASI BARANG (GOOGLE SHEET & JURNAL)
+  // =========================================================================
+  const renderMutasiSection = (isSplit = false) => (
+    <div className="bg-card border border-border rounded-xl shadow-xs overflow-hidden flex flex-col h-full space-y-0">
+      {/* Google Sheet Live Header Banner */}
+      <div className="p-4 border-b border-border bg-blue-500/5 flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Globe className="size-4 text-blue-600 dark:text-blue-400" />
+            <h2 className="text-xs md:text-sm font-bold text-foreground">
+              Data 2: Mutasi Barang Stock Gudang Pak Budi (Google Sheet)
+            </h2>
+            <span className="text-[10px] px-2 py-0.2 rounded-full font-mono font-semibold bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20">
+              gid: 1826916113
+            </span>
+          </div>
+          <p className="text-[11px] text-muted-foreground">
+            Sinkronisasi spreadsheet resmi operasional CPG: nomor TTB Accurate, FPB kapal acuan, tim pengantar &amp; tanggal fisik barang.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          {isSplit && (
+            <button
+              onClick={() => setActiveMainView('mutasi')}
+              className="h-7 px-2.5 rounded-md border border-border bg-card hover:bg-muted text-[11px] font-medium flex items-center gap-1.5 transition text-muted-foreground hover:text-foreground"
+              title="Perbesar Tampilan Data 2 (Layar Penuh)"
+            >
+              <Maximize2 className="size-3" />
+              <span className="hidden sm:inline">Layar Penuh</span>
+            </button>
+          )}
+
+          <a
+            href={BUDI_SHEET_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="h-7 px-2.5 rounded-md border border-border bg-card hover:bg-muted text-[11px] font-medium flex items-center gap-1.5 transition text-foreground"
+          >
+            <ExternalLink className="size-3 text-muted-foreground" />
+            <span>Buka Google Sheet</span>
+          </a>
+
+          <button
+            onClick={handleSyncBudiGoogleSheet}
+            disabled={isSyncingBudiSheet}
+            className="h-7 px-3 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-semibold flex items-center gap-1.5 transition shadow-xs cursor-pointer disabled:opacity-50"
+          >
+            <RefreshCw className={`size-3 ${isSyncingBudiSheet ? 'animate-spin' : ''}`} />
+            <span>{isSyncingBudiSheet ? 'Sync...' : 'Sinkronkan'}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Subtab Mutasi Selector: TTB Armada Google Sheet vs Jurnal Mutasi Internal */}
+      <div className="px-3.5 pt-2.5 pb-2 bg-muted/10 border-b border-border flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 bg-muted/70 p-0.5 rounded-lg">
+          <button
+            onClick={() => setMutasiSubTab('ttb-armada')}
+            className={`px-3 py-1 rounded-md text-[11px] font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+              mutasiSubTab === 'ttb-armada'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Anchor className="size-3" />
+            <span>Mutasi TTB Armada (Google Sheet)</span>
+            <span className={`text-[10px] px-1.5 py-0.2 rounded font-mono ${
+              mutasiSubTab === 'ttb-armada' ? 'bg-white/20 text-white' : 'bg-muted text-muted-foreground'
+            }`}>
+              {budiTtbRecords.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setMutasiSubTab('riwayat-mutasi')}
+            className={`px-3 py-1 rounded-md text-[11px] font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+              mutasiSubTab === 'riwayat-mutasi'
+                ? 'bg-foreground text-background shadow-xs'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Layers className="size-3" />
+            <span>Jurnal Mutasi Lengkap Internal</span>
+            <span className={`text-[10px] px-1.5 py-0.2 rounded font-mono ${
+              mutasiSubTab === 'riwayat-mutasi' ? 'bg-background/20 text-background' : 'bg-muted text-muted-foreground'
+            }`}>
+              {mutations.length}
+            </span>
+          </button>
+        </div>
+
+        {mutasiSubTab === 'ttb-armada' && (
+          <div className="hidden lg:flex items-center gap-2 text-[11px] text-muted-foreground font-mono">
+            <span>Terakhir sync: {lastBudiSyncTime || 'Hari ini'}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Tab Content A: Mutasi TTB Google Sheet */}
+      {mutasiSubTab === 'ttb-armada' && (
+        <div className="flex flex-col flex-1">
+          {/* Controls Bar */}
+          <div className="p-3.5 border-b border-border flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 bg-muted/20">
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="size-3.5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Cari nomor TTB, FPB, nama kapal, atau PIC lapangan..."
+                value={searchQueryMutasi}
+                onChange={(e) => setSearchQueryMutasi(e.target.value)}
+                className="w-full h-8 pl-8 pr-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+              {searchQueryMutasi && (
+                <button
+                  onClick={() => setSearchQueryMutasi('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs"
+                >
+                  &times;
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap">
+              <select
+                value={selectedPtBudi}
+                onChange={(e) => setSelectedPtBudi(e.target.value)}
+                className="h-8 px-2.5 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="ALL">Semua PT / Entitas</option>
+                <option value="CPL">CPL (Cindara)</option>
+                <option value="HL">HL (Hana Lines)</option>
+                <option value="MO">MO (Mandar)</option>
+                <option value="GAJ">GAJ (Galangan)</option>
+                <option value="MIL">MIL (Mapan)</option>
+              </select>
+
+              <select
+                value={selectedStatusBudi}
+                onChange={(e) => setSelectedStatusBudi(e.target.value)}
+                className="h-8 px-2.5 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="ALL">Semua Status</option>
+                <option value="TERKIRIM">Terkirim ke Kapal</option>
+                <option value="DALAM_PENGANTARAN">Dalam Pengantaran</option>
+                <option value="PROSES_GUDANG">Proses Gudang</option>
+              </select>
+
+              <select
+                value={selectedSheetBudi}
+                onChange={(e) => setSelectedSheetBudi(e.target.value)}
+                className="h-8 px-2.5 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="ALL">Semua Sumber Sheet</option>
+                <option value="STOCK GUDANG PAK BUDI">Stock Gudang Pak Budi</option>
+                <option value="STOCK TALI">Stock Tali</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Table TTB Armada */}
+          <div className="overflow-x-auto flex-1">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="bg-muted/50 border-b border-border text-muted-foreground font-semibold uppercase tracking-wider text-[11px]">
+                  <th className="py-2.5 px-3 w-10 text-center">No</th>
+                  <th className="py-2.5 px-3">No. TTB Accurate</th>
+                  <th className="py-2.5 px-3 text-center">PT</th>
+                  <th className="py-2.5 px-3">Armada Kapal / Unit</th>
+                  <th className="py-2.5 px-3">No. FPB Acuan</th>
+                  <th className="py-2.5 px-3">PIC TTB</th>
+                  <th className="py-2.5 px-3">Tgl Keluar Gudang</th>
+                  <th className="py-2.5 px-3">PIC &amp; Tgl Diantar</th>
+                  <th className="py-2.5 px-3 text-center">Status</th>
+                  <th className="py-2.5 px-3 text-center">Detail</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/60">
+                {filteredBudiTtbRecords.length === 0 ? (
+                  <tr>
+                    <td colSpan={10} className="py-10 text-center text-muted-foreground">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <Anchor className="size-7 text-muted-foreground/40" />
+                        <p className="font-medium text-xs">Tidak ada data TTB armada yang cocok dengan filter.</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredBudiTtbRecords.map((r, idx) => (
+                    <tr key={r.id + '-' + idx} className="hover:bg-muted/30 transition-colors">
+                      <td className="py-2.5 px-3 text-center text-muted-foreground font-mono">
+                        {idx + 1}
+                      </td>
+                      <td className="py-2.5 px-3 whitespace-nowrap">
+                        <div className="font-bold text-foreground font-mono">{r.ttbAccurate}</div>
+                        <div className="text-[10px] text-muted-foreground">{r.sumberSheet}</div>
+                      </td>
+                      <td className="py-2.5 px-3 text-center whitespace-nowrap">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-muted text-muted-foreground border border-border">
+                          {r.pt}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-3 whitespace-nowrap">
+                        <div className="flex items-center gap-1.5 font-semibold text-foreground">
+                          <Anchor className="size-3.5 text-blue-500 shrink-0" />
+                          <span>{r.deptArmada}</span>
+                        </div>
+                      </td>
+                      <td className="py-2.5 px-3 whitespace-nowrap">
+                        <span className="font-mono text-muted-foreground font-medium">{r.noFpb}</span>
+                      </td>
+                      <td className="py-2.5 px-3 whitespace-nowrap">
+                        <div className="font-medium text-foreground">{r.picTtb}</div>
+                      </td>
+                      <td className="py-2.5 px-3 whitespace-nowrap text-muted-foreground">
+                        {r.tanggalInputTtb || '-'}
+                      </td>
+                      <td className="py-2.5 px-3 whitespace-nowrap">
+                        <div className="font-medium text-foreground">{r.picLapangan || r.keteranganLapangan || '-'}</div>
+                        <div className="text-[10px] text-muted-foreground">
+                          {r.tanggalBarangDiantar ? `Diantar: ${r.tanggalBarangDiantar}` : 'Belum diantar'}
+                        </div>
+                      </td>
+                      <td className="py-2.5 px-3 text-center whitespace-nowrap">
+                        {r.statusPengantaran === 'TERKIRIM' && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                            <CheckCircle2 className="size-3 text-emerald-500" />
+                            Terkirim
+                          </span>
+                        )}
+                        {r.statusPengantaran === 'DALAM_PENGANTARAN' && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20 animate-pulse">
+                            <Truck className="size-3 text-blue-500" />
+                            Diantar
+                          </span>
+                        )}
+                        {r.statusPengantaran === 'PROSES_GUDANG' && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
+                            <Clock className="size-3 text-amber-500" />
+                            Gudang
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-2.5 px-3 text-center whitespace-nowrap">
+                        <button
+                          onClick={() => setSelectedDetailTtb(r)}
+                          className="p-1.5 rounded-lg border border-border bg-card hover:bg-muted text-foreground transition shadow-xs cursor-pointer"
+                          title="Lihat Detail Alur Penyerahan"
+                        >
+                          <Eye className="size-3.5 text-muted-foreground hover:text-foreground" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Footer TTB Armada */}
+          <div className="p-2.5 bg-muted/20 border-t border-border flex items-center justify-between text-[11px] text-muted-foreground">
+            <span>Menampilkan <strong>{filteredBudiTtbRecords.length}</strong> dari <strong>{budiTtbRecords.length}</strong> mutasi TTB Google Sheet</span>
+            <span className="font-mono">Sinkronisasi Live Google Sheet &bull; Pak Budi</span>
+          </div>
+        </div>
+      )}
+
+      {/* Tab Content B: Jurnal Mutasi Internal */}
+      {mutasiSubTab === 'riwayat-mutasi' && (
+        <div className="flex flex-col flex-1">
+          {/* Controls Bar Jurnal */}
+          <div className="p-3.5 border-b border-border flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 bg-muted/20">
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="size-3.5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Cari transaksi, no. dokumen, kapal tujuan, atau penerima..."
+                value={searchQueryLedger}
+                onChange={(e) => setSearchQueryLedger(e.target.value)}
+                className="w-full h-8 pl-8 pr-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+              {searchQueryLedger && (
+                <button
+                  onClick={() => setSearchQueryLedger('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs"
+                >
+                  &times;
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setSelectedMutationType('ALL')}
+                className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition cursor-pointer ${
+                  selectedMutationType === 'ALL'
+                    ? 'bg-foreground text-background font-semibold'
+                    : 'bg-muted text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Semua ({mutations.length})
+              </button>
+              <button
+                onClick={() => setSelectedMutationType('MASUK')}
+                className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition cursor-pointer flex items-center gap-1 ${
+                  selectedMutationType === 'MASUK'
+                    ? 'bg-emerald-600 text-white font-semibold'
+                    : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20'
+                }`}
+              >
+                <ArrowDownRight className="size-3" />
+                <span>Masuk (+)</span>
+              </button>
+              <button
+                onClick={() => setSelectedMutationType('KELUAR')}
+                className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition cursor-pointer flex items-center gap-1 ${
+                  selectedMutationType === 'KELUAR'
+                    ? 'bg-amber-600 text-white font-semibold'
+                    : 'bg-amber-500/10 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20'
+                }`}
+              >
+                <ArrowUpRight className="size-3" />
+                <span>Keluar (-)</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Table Jurnal */}
+          <div className="overflow-x-auto flex-1">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="bg-muted/50 border-b border-border text-muted-foreground font-semibold uppercase tracking-wider text-[11px]">
+                  <th className="py-2.5 px-3 w-10 text-center">No</th>
+                  <th className="py-2.5 px-3">Waktu &amp; ID Mutasi</th>
+                  <th className="py-2.5 px-3 text-center">Jenis</th>
+                  <th className="py-2.5 px-3">Nama &amp; Kode Barang</th>
+                  <th className="py-2.5 px-3 text-right">Jumlah Qty</th>
+                  <th className="py-2.5 px-3 text-center">Mutasi Saldo</th>
+                  <th className="py-2.5 px-3">Dokumen Acuan</th>
+                  <th className="py-2.5 px-3">Tujuan / Sumber</th>
+                  <th className="py-2.5 px-3">Penerima</th>
+                  <th className="py-2.5 px-3 text-center">Cetak</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/60">
+                {filteredMutations.length === 0 ? (
+                  <tr>
+                    <td colSpan={10} className="py-10 text-center text-muted-foreground">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <Layers className="size-7 text-muted-foreground/40" />
+                        <p className="font-medium text-xs">Belum ada riwayat mutasi internal yang tercatat.</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredMutations.map((m, idx) => (
+                    <tr key={m.id} className="hover:bg-muted/30 transition-colors">
+                      <td className="py-2.5 px-3 text-center text-muted-foreground font-mono">
+                        {idx + 1}
+                      </td>
+                      <td className="py-2.5 px-3 whitespace-nowrap">
+                        <div className="font-semibold text-foreground font-mono text-[11px]">{m.id}</div>
+                        <div className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
+                          <span>{m.tanggal}</span>
+                          <span>&bull;</span>
+                          <span>{m.waktu} WITA</span>
+                        </div>
+                      </td>
+                      <td className="py-2.5 px-3 text-center whitespace-nowrap">
+                        {m.jenis === 'MASUK' ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                            <ArrowDownRight className="size-3" />
+                            MASUK
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
+                            <ArrowUpRight className="size-3" />
+                            KELUAR
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-2.5 px-3">
+                        <div className="font-medium text-foreground">{m.namaBarang}</div>
+                        <div className="text-[10px] text-muted-foreground font-mono">{m.kodeBarang}</div>
+                      </td>
+                      <td className="py-2.5 px-3 text-right whitespace-nowrap">
+                        <span
+                          className={`font-mono font-bold text-xs ${
+                            m.jenis === 'MASUK'
+                              ? 'text-emerald-600 dark:text-emerald-400'
+                              : 'text-amber-600 dark:text-amber-400'
+                          }`}
+                        >
+                          {m.jenis === 'MASUK' ? `+${m.qty}` : `-${m.qty}`} {m.satuan}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-3 text-center whitespace-nowrap font-mono text-[10px]">
+                        <span className="text-muted-foreground">{m.saldoSebelum}</span>
+                        <span className="mx-1 text-muted-foreground">&rarr;</span>
+                        <span className="font-bold text-foreground">{m.saldoSesudah}</span>
+                      </td>
+                      <td className="py-2.5 px-3 whitespace-nowrap">
+                        <div className="font-mono text-foreground font-medium text-[11px]">{m.noDokumenRef}</div>
+                        <div className="text-[10px] text-muted-foreground">{m.keperluan}</div>
+                      </td>
+                      <td className="py-2.5 px-3 whitespace-nowrap">
+                        <div className="flex items-center gap-1 text-[11px] font-medium text-foreground">
+                          {m.jenis === 'KELUAR' ? (
+                            <Anchor className="size-3 text-muted-foreground" />
+                          ) : (
+                            <Building2 className="size-3 text-muted-foreground" />
+                          )}
+                          <span>{m.sumberAtauTujuan}</span>
+                        </div>
+                      </td>
+                      <td className="py-2.5 px-3 whitespace-nowrap">
+                        <div className="font-medium text-foreground text-[11px]">{m.picPenerimaPengambil}</div>
+                        <div className="text-[10px] text-muted-foreground">Petugas: Pak Budi</div>
+                      </td>
+                      <td className="py-2.5 px-3 text-center whitespace-nowrap">
+                        <button
+                          onClick={() => setSelectedSlipMutation(m)}
+                          className="p-1 rounded-md border border-border bg-card hover:bg-muted text-foreground transition shadow-xs cursor-pointer"
+                          title="Cetak Bukti Transaksi Gudang (BPBG)"
+                        >
+                          <Printer className="size-3 text-muted-foreground hover:text-foreground" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Footer Jurnal */}
+          <div className="p-2.5 bg-muted/20 border-t border-border flex items-center justify-between text-[11px] text-muted-foreground">
+            <span>Total <strong>{filteredMutations.length}</strong> transaksi jurnal mutasi tercatat</span>
+            <span className="font-mono">Audit Trail Gudang Somber</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="space-y-6 pb-12">
@@ -931,7 +1620,7 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
                   PT Cindara Pratama Lines &amp; Group
                 </span>
                 {lastBudiSyncTime && (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 font-mono">
                     Sync TTB: {lastBudiSyncTime} WITA
                   </span>
                 )}
@@ -961,80 +1650,100 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
           </div>
         </div>
 
-        {/* Action Header Buttons & Subtab Switcher */}
+        {/* Action Header: 2 Tab Utama + Mode Tampilan Simultan + Quick Buttons */}
         <div className="mt-5 pt-4 border-t border-border flex flex-wrap items-center justify-between gap-3">
-          {/* Subnav Pills */}
-          <div className="flex items-center gap-1.5 bg-muted/70 p-1 rounded-xl overflow-x-auto max-w-full">
-            <button
-              onClick={() => setActiveView('kartu-stok')}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer whitespace-nowrap ${
-                activeView === 'kartu-stok'
-                  ? 'bg-background text-foreground shadow-xs font-semibold'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <Boxes className="size-3.5" />
-              <span>Kartu Stok &amp; Saldo</span>
-              <span className="text-[10px] px-1.5 py-0.2 rounded bg-muted-foreground/10 text-muted-foreground font-mono">
-                {items.length}
-              </span>
-            </button>
+          {/* Main Tabs Navigation */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5 bg-muted/70 p-1 rounded-xl">
+              {/* TAB 1: STOK BARANG */}
+              <button
+                onClick={() => {
+                  setActiveMainView('stok');
+                  setActiveForm(null);
+                }}
+                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer whitespace-nowrap ${
+                  activeMainView === 'stok'
+                    ? 'bg-background text-foreground shadow-xs font-bold border border-border/80'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Boxes className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span>Data 1: Stok Barang</span>
+                <span className="text-[10px] px-1.5 py-0.2 rounded bg-muted-foreground/10 text-muted-foreground font-mono">
+                  {items.length}
+                </span>
+              </button>
 
-            <button
-              onClick={() => setActiveView('form-masuk')}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer whitespace-nowrap ${
-                activeView === 'form-masuk'
-                  ? 'bg-emerald-600 text-white shadow-xs font-semibold'
-                  : 'text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10'
-              }`}
-            >
-              <PackagePlus className="size-3.5" />
-              <span>Penerimaan Masuk (+)</span>
-            </button>
+              {/* TAB 2: MUTASI BARANG */}
+              <button
+                onClick={() => {
+                  setActiveMainView('mutasi');
+                  setActiveForm(null);
+                }}
+                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer whitespace-nowrap ${
+                  activeMainView === 'mutasi'
+                    ? 'bg-background text-foreground shadow-xs font-bold border border-border/80'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Globe className="size-3.5 text-blue-600 dark:text-blue-400" />
+                <span>Data 2: Mutasi Barang</span>
+                <span className="text-[10px] px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-700 dark:text-blue-300 font-mono font-semibold">
+                  {budiTtbRecords.length > 0 ? budiTtbRecords.length : '449+'}
+                </span>
+              </button>
 
-            <button
-              onClick={() => setActiveView('form-keluar')}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer whitespace-nowrap ${
-                activeView === 'form-keluar'
-                  ? 'bg-amber-600 text-white shadow-xs font-semibold'
-                  : 'text-amber-700 dark:text-amber-400 hover:bg-amber-500/10'
-              }`}
-            >
-              <PackageMinus className="size-3.5" />
-              <span>Pengambilan Keluar (-)</span>
-            </button>
+              <div className="h-4 w-px bg-border mx-1" />
 
-            <button
-              onClick={() => setActiveView('riwayat-mutasi')}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer whitespace-nowrap ${
-                activeView === 'riwayat-mutasi'
-                  ? 'bg-background text-foreground shadow-xs font-semibold'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <Layers className="size-3.5" />
-              <span>Jurnal Riwayat Mutasi</span>
-              <span className="text-[10px] px-1.5 py-0.2 rounded bg-muted-foreground/10 text-muted-foreground font-mono">
-                {mutations.length}
-              </span>
-            </button>
+              {/* TAMPILAN SIMULTAN (2 DATA) */}
+              <button
+                onClick={() => {
+                  setActiveMainView('simultan');
+                  setActiveForm(null);
+                }}
+                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer whitespace-nowrap ${
+                  activeMainView === 'simultan'
+                    ? 'bg-linear-to-r from-emerald-600 to-teal-600 text-white shadow-xs font-bold'
+                    : 'text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10'
+                }`}
+                title="Menampilkan 2 data (Stok Barang dan Mutasi Barang) secara simultan bersamaan di satu layar"
+              >
+                <Split className="size-3.5" />
+                <span>Tampilan Simultan (2 Data)</span>
+                <span className={`text-[9px] px-1.5 py-0.2 rounded uppercase font-bold tracking-wider ${
+                  activeMainView === 'simultan' ? 'bg-white/20 text-white' : 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-200'
+                }`}>
+                  Dual View
+                </span>
+              </button>
+            </div>
 
-            {/* Subtab Baru: Mutasi TTB Armada dari Google Sheet */}
-            <button
-              onClick={() => setActiveView('ttb-armada')}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer whitespace-nowrap ${
-                activeView === 'ttb-armada'
-                  ? 'bg-blue-600 text-white shadow-xs font-semibold'
-                  : 'text-blue-700 dark:text-blue-400 hover:bg-blue-500/10'
-              }`}
-              title="Laporan Mutasi Barang Stock Gudang Pak Budi yang disinkronkan langsung dari Google Sheet resmi"
-            >
-              <Anchor className="size-3.5" />
-              <span>Mutasi TTB Armada (Google Sheet)</span>
-              <span className="text-[10px] px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-700 dark:text-blue-200 font-mono font-semibold">
-                {budiTtbRecords.length > 0 ? budiTtbRecords.length : '449+'}
-              </span>
-            </button>
+            {/* Quick Action Buttons: Masuk & Keluar Form */}
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setActiveForm(activeForm === 'form-masuk' ? null : 'form-masuk')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
+                  activeForm === 'form-masuk'
+                    ? 'bg-emerald-600 text-white shadow-xs font-semibold'
+                    : 'text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20'
+                }`}
+              >
+                <PackagePlus className="size-3.5" />
+                <span>+ Masuk</span>
+              </button>
+
+              <button
+                onClick={() => setActiveForm(activeForm === 'form-keluar' ? null : 'form-keluar')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
+                  activeForm === 'form-keluar'
+                    ? 'bg-amber-600 text-white shadow-xs font-semibold'
+                    : 'text-amber-700 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20'
+                }`}
+              >
+                <PackageMinus className="size-3.5" />
+                <span>- Keluar</span>
+              </button>
+            </div>
           </div>
 
           {/* Quick Actions Toolbar */}
@@ -1056,7 +1765,7 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
               className="h-8.5 px-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-medium flex items-center gap-1.5 transition shadow-xs cursor-pointer"
             >
               <Plus className="size-3.5" />
-              <span>Tambah SKU Baru</span>
+              <span>Tambah SKU</span>
             </button>
 
             {/* Impor File Excel / CSV */}
@@ -1100,10 +1809,18 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
       {/* KPI Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {/* Total SKU */}
-        <div className="bg-card border border-border rounded-xl p-3.5 shadow-xs">
+        <div
+          onClick={() => {
+            setActiveMainView('stok');
+            setSelectedStatus('ALL');
+            setSelectedCategory('ALL');
+          }}
+          className="bg-card hover:bg-muted/40 transition border border-border rounded-xl p-3.5 shadow-xs cursor-pointer group"
+          title="Klik untuk membuka Data 1 (Stok Barang)"
+        >
           <div className="flex items-center justify-between text-muted-foreground text-xs">
             <span>Total SKU Barang</span>
-            <Boxes className="size-4 text-emerald-500" />
+            <Boxes className="size-4 text-emerald-500 group-hover:scale-110 transition" />
           </div>
           <div className="text-xl font-bold text-foreground mt-1.5 font-mono">
             {summary?.totalSKU || items.length}
@@ -1112,10 +1829,14 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
         </div>
 
         {/* Total Unit Fisik */}
-        <div className="bg-card border border-border rounded-xl p-3.5 shadow-xs">
+        <div
+          onClick={() => setActiveMainView('stok')}
+          className="bg-card hover:bg-muted/40 transition border border-border rounded-xl p-3.5 shadow-xs cursor-pointer group"
+          title="Klik untuk membuka Data 1 (Stok Barang)"
+        >
           <div className="flex items-center justify-between text-muted-foreground text-xs">
             <span>Stok Fisik Tersedia</span>
-            <Building2 className="size-4 text-blue-500" />
+            <Building2 className="size-4 text-blue-500 group-hover:scale-110 transition" />
           </div>
           <div className="text-xl font-bold text-blue-600 dark:text-blue-400 mt-1.5 font-mono">
             {summary?.totalFisikUnit?.toLocaleString() || 0}
@@ -1124,10 +1845,14 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
         </div>
 
         {/* Transaksi Masuk */}
-        <div className="bg-card border border-border rounded-xl p-3.5 shadow-xs">
+        <div
+          onClick={() => setActiveForm('form-masuk')}
+          className="bg-card hover:bg-muted/40 transition border border-border rounded-xl p-3.5 shadow-xs cursor-pointer group"
+          title="Klik untuk membuka Form Penerimaan Masuk (+)"
+        >
           <div className="flex items-center justify-between text-muted-foreground text-xs">
             <span>Penerimaan Masuk</span>
-            <ArrowDownRight className="size-4 text-emerald-500" />
+            <ArrowDownRight className="size-4 text-emerald-500 group-hover:scale-110 transition" />
           </div>
           <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-1.5 font-mono">
             +{summary?.totalQtyMasuk || 0}
@@ -1138,10 +1863,14 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
         </div>
 
         {/* Transaksi Keluar */}
-        <div className="bg-card border border-border rounded-xl p-3.5 shadow-xs">
+        <div
+          onClick={() => setActiveForm('form-keluar')}
+          className="bg-card hover:bg-muted/40 transition border border-border rounded-xl p-3.5 shadow-xs cursor-pointer group"
+          title="Klik untuk membuka Form Pengambilan Keluar (-)"
+        >
           <div className="flex items-center justify-between text-muted-foreground text-xs">
             <span>Pengambilan Keluar</span>
-            <ArrowUpRight className="size-4 text-amber-500" />
+            <ArrowUpRight className="size-4 text-amber-500 group-hover:scale-110 transition" />
           </div>
           <div className="text-xl font-bold text-amber-600 dark:text-amber-400 mt-1.5 font-mono">
             -{summary?.totalQtyKeluar || 0}
@@ -1152,10 +1881,17 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
         </div>
 
         {/* TTB Google Sheet Synced */}
-        <div className="bg-card border border-border rounded-xl p-3.5 shadow-xs">
+        <div
+          onClick={() => {
+            setActiveMainView('mutasi');
+            setMutasiSubTab('ttb-armada');
+          }}
+          className="bg-card hover:bg-muted/40 transition border border-border rounded-xl p-3.5 shadow-xs cursor-pointer group"
+          title="Klik untuk membuka Data 2 (Mutasi TTB Armada Google Sheet)"
+        >
           <div className="flex items-center justify-between text-muted-foreground text-xs">
             <span>TTB Armada Sync</span>
-            <Anchor className="size-4 text-indigo-500" />
+            <Anchor className="size-4 text-indigo-500 group-hover:scale-110 transition" />
           </div>
           <div className="text-xl font-bold text-indigo-600 dark:text-indigo-400 mt-1.5 font-mono">
             {budiTtbRecords.length}
@@ -1166,10 +1902,17 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
         </div>
 
         {/* Stok Habis / Kritis */}
-        <div className="bg-card border border-border rounded-xl p-3.5 shadow-xs">
+        <div
+          onClick={() => {
+            setActiveMainView('stok');
+            setSelectedStatus('HABIS');
+          }}
+          className="bg-card hover:bg-muted/40 transition border border-border rounded-xl p-3.5 shadow-xs cursor-pointer group"
+          title="Klik untuk memfilter stok barang habis/kritis"
+        >
           <div className="flex items-center justify-between text-muted-foreground text-xs">
             <span>Stok Habis / Kritis</span>
-            <AlertOctagon className="size-4 text-rose-500" />
+            <AlertOctagon className="size-4 text-rose-500 group-hover:scale-110 transition" />
           </div>
           <div className="text-xl font-bold text-rose-600 dark:text-rose-400 mt-1.5 font-mono">
             {summary?.itemOutOfStock || 0}
@@ -1179,437 +1922,31 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
       </div>
 
       {/* ========================================================================= */}
-      {/* VIEW 5: MUTASI TTB ARMADA (SINKRONISASI GOOGLE SHEET RESMI)              */}
+      {/* FORM MODUL: FORM MASUK (+)                                               */}
       {/* ========================================================================= */}
-      {activeView === 'ttb-armada' && (
-        <div className="space-y-4">
-          {/* Header Card with Source Link & Live Stats */}
-          <div className="p-4 rounded-xl border border-blue-500/20 bg-blue-500/5 flex flex-col md:flex-row md:items-center justify-between gap-3">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <Globe className="size-4 text-blue-600 dark:text-blue-400" />
-                <h3 className="text-xs font-bold text-foreground">
-                  Laporan Mutasi Barang Stock Gudang Pak Budi (Google Sheet)
-                </h3>
-                <span className="text-[10px] px-2 py-0.2 rounded-full font-mono font-semibold bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20">
-                  gid: 1826916113
-                </span>
-              </div>
-              <p className="text-[11px] text-muted-foreground">
-                Tersinkronisasi langsung dari spreadsheet operasional CPG: mencatat nomor TTB Accurate, FPB kapal, tim lapangan, dan tanggal serah terima fisik barang.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2 shrink-0">
-              <a
-                href={BUDI_SHEET_URL}
-                target="_blank"
-                rel="noreferrer"
-                className="h-8 px-3 rounded-lg border border-border bg-card hover:bg-muted text-xs font-medium flex items-center gap-1.5 transition text-foreground"
-              >
-                <ExternalLink className="size-3 text-muted-foreground" />
-                <span>Buka Google Sheet</span>
-              </a>
-
-              <button
-                onClick={handleSyncBudiGoogleSheet}
-                disabled={isSyncingBudiSheet}
-                className="h-8 px-3.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-xs cursor-pointer disabled:opacity-50"
-              >
-                <RefreshCw className={`size-3 ${isSyncingBudiSheet ? 'animate-spin' : ''}`} />
-                <span>{isSyncingBudiSheet ? 'Menyinkronkan...' : 'Sinkronkan Ulang'}</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Table Container */}
-          <div className="bg-card border border-border rounded-xl shadow-xs overflow-hidden">
-            {/* Controls Bar */}
-            <div className="p-4 border-b border-border flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-muted/20">
-              {/* Search Input */}
-              <div className="relative flex-1 max-w-md">
-                <Search className="size-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Cari nomor TTB, FPB, nama kapal, atau PIC lapangan..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full h-9 pl-9 pr-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-primary"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs"
-                  >
-                    &times;
-                  </button>
-                )}
-              </div>
-
-              {/* Filters */}
-              <div className="flex items-center gap-2 flex-wrap">
-                {/* PT Filter */}
-                <select
-                  value={selectedPtBudi}
-                  onChange={(e) => setSelectedPtBudi(e.target.value)}
-                  className="h-9 px-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-primary"
-                >
-                  <option value="ALL">Semua PT / Entitas</option>
-                  <option value="CPL">CPL (Cindara Pratama Lines)</option>
-                  <option value="HL">HL (Hana Lines)</option>
-                  <option value="MO">MO (Mandar Ocean)</option>
-                  <option value="GAJ">GAJ (Galangan Aliran Jaya)</option>
-                  <option value="MIL">MIL (Mapan Indonesia Lines)</option>
-                </select>
-
-                {/* Status Pengantaran Filter */}
-                <select
-                  value={selectedStatusBudi}
-                  onChange={(e) => setSelectedStatusBudi(e.target.value)}
-                  className="h-9 px-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-primary"
-                >
-                  <option value="ALL">Semua Status</option>
-                  <option value="TERKIRIM">🟢 Terkirim ke Kapal</option>
-                  <option value="DALAM_PENGANTARAN">🔵 Dalam Pengantaran</option>
-                  <option value="PROSES_GUDANG">🟡 Proses Gudang</option>
-                </select>
-
-                {/* Sumber Sheet */}
-                <select
-                  value={selectedSheetBudi}
-                  onChange={(e) => setSelectedSheetBudi(e.target.value)}
-                  className="h-9 px-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-primary"
-                >
-                  <option value="ALL">Semua Sumber Sheet</option>
-                  <option value="STOCK GUDANG PAK BUDI">Stock Gudang Pak Budi</option>
-                  <option value="STOCK TALI">Stock Tali</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr className="bg-muted/50 border-b border-border text-muted-foreground font-semibold uppercase tracking-wider text-[11px]">
-                    <th className="py-3 px-3.5 w-12 text-center">No</th>
-                    <th className="py-3 px-3.5">No. TTB Accurate</th>
-                    <th className="py-3 px-3.5 text-center">PT</th>
-                    <th className="py-3 px-3.5">Armada Kapal / Unit</th>
-                    <th className="py-3 px-3.5">No. FPB Acuan</th>
-                    <th className="py-3 px-3.5">PIC TTB</th>
-                    <th className="py-3 px-3.5">Tgl Keluar Gudang</th>
-                    <th className="py-3 px-3.5">PIC &amp; Tgl Diantar</th>
-                    <th className="py-3 px-3.5 text-center">Status</th>
-                    <th className="py-3 px-3.5 text-center">Detail</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/60">
-                  {filteredBudiTtbRecords.length === 0 ? (
-                    <tr>
-                      <td colSpan={10} className="py-12 text-center text-muted-foreground">
-                        <div className="flex flex-col items-center justify-center gap-2">
-                          <Anchor className="size-8 text-muted-foreground/40" />
-                          <p className="font-medium">Tidak ada data TTB armada yang cocok dengan filter.</p>
-                        </div>
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredBudiTtbRecords.map((r, idx) => (
-                      <tr key={r.id + '-' + idx} className="hover:bg-muted/30 transition-colors">
-                        <td className="py-3 px-3.5 text-center text-muted-foreground font-mono">
-                          {idx + 1}
-                        </td>
-                        <td className="py-3 px-3.5 whitespace-nowrap">
-                          <div className="font-bold text-foreground font-mono">{r.ttbAccurate}</div>
-                          <div className="text-[10px] text-muted-foreground">{r.sumberSheet}</div>
-                        </td>
-                        <td className="py-3 px-3.5 text-center whitespace-nowrap">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-muted text-muted-foreground border border-border">
-                            {r.pt}
-                          </span>
-                        </td>
-                        <td className="py-3 px-3.5 whitespace-nowrap">
-                          <div className="flex items-center gap-1.5 font-semibold text-foreground">
-                            <Anchor className="size-3.5 text-blue-500 shrink-0" />
-                            <span>{r.deptArmada}</span>
-                          </div>
-                        </td>
-                        <td className="py-3 px-3.5 whitespace-nowrap">
-                          <span className="font-mono text-muted-foreground font-medium">{r.noFpb}</span>
-                        </td>
-                        <td className="py-3 px-3.5 whitespace-nowrap">
-                          <div className="font-medium text-foreground">{r.picTtb}</div>
-                        </td>
-                        <td className="py-3 px-3.5 whitespace-nowrap text-muted-foreground">
-                          {r.tanggalInputTtb || '-'}
-                        </td>
-                        <td className="py-3 px-3.5 whitespace-nowrap">
-                          <div className="font-medium text-foreground">{r.picLapangan || r.keteranganLapangan || '-'}</div>
-                          <div className="text-[10px] text-muted-foreground">
-                            {r.tanggalBarangDiantar ? `Diantar: ${r.tanggalBarangDiantar}` : 'Belum diantar'}
-                          </div>
-                        </td>
-                        <td className="py-3 px-3.5 text-center whitespace-nowrap">
-                          {r.statusPengantaran === 'TERKIRIM' && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
-                              <CheckCircle2 className="size-3 text-emerald-500" />
-                              Terkirim
-                            </span>
-                          )}
-                          {r.statusPengantaran === 'DALAM_PENGANTARAN' && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20 animate-pulse">
-                              <Truck className="size-3 text-blue-500" />
-                              Diantar
-                            </span>
-                          )}
-                          {r.statusPengantaran === 'PROSES_GUDANG' && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
-                              <Clock className="size-3 text-amber-500" />
-                              Gudang
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-3 px-3.5 text-center whitespace-nowrap">
-                          <button
-                            onClick={() => setSelectedDetailTtb(r)}
-                            className="p-1.5 rounded-lg border border-border bg-card hover:bg-muted text-foreground transition shadow-xs cursor-pointer"
-                            title="Lihat Detail Alur Penyerahan"
-                          >
-                            <Eye className="size-3.5 text-muted-foreground hover:text-foreground" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="p-3.5 bg-muted/20 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
-              <span>
-                Menampilkan <strong>{filteredBudiTtbRecords.length}</strong> dari <strong>{budiTtbRecords.length}</strong> transaksi mutasi TTB Google Sheet
-              </span>
-              <span className="font-mono text-[11px]">Terintegrasi Google Sheet Pak Budi</span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* VIEW 1: KARTU STOK & SALDO FISIK                                         */}
-      {/* ========================================================================= */}
-      {activeView === 'kartu-stok' && (
-        <div className="bg-card border border-border rounded-xl shadow-xs overflow-hidden">
-          {/* Controls Bar */}
-          <div className="p-4 border-b border-border flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-muted/20">
-            {/* Search Input */}
-            <div className="relative flex-1 max-w-md">
-              <Search className="size-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Cari nama barang, kode SKU, atau lokasi rak..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-9 pl-9 pr-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-primary"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs"
-                >
-                  &times;
-                </button>
-              )}
-            </div>
-
-            {/* Dropdown Filters */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="h-9 px-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-primary"
-              >
-                <option value="ALL">Semua Kategori</option>
-                {WAREHOUSE_CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
-
-              <select
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-                className="h-9 px-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-primary"
-              >
-                <option value="ALL">Semua Status Stok</option>
-                <option value="AMAN">🟢 Aman</option>
-                <option value="MENIPIS">🟡 Menipis (Low Stock)</option>
-                <option value="HABIS">🔴 Habis (Out of Stock)</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="bg-muted/50 border-b border-border text-muted-foreground font-semibold uppercase tracking-wider text-[11px]">
-                  <th className="py-3 px-3.5 w-12 text-center">No</th>
-                  <th className="py-3 px-3.5">Kode &amp; Nama Barang</th>
-                  <th className="py-3 px-3.5">Kategori</th>
-                  <th className="py-3 px-3.5">Lokasi Rak Somber</th>
-                  <th className="py-3 px-3.5 text-right">Min. Stok</th>
-                  <th className="py-3 px-3.5 text-right">Saldo Awal</th>
-                  <th className="py-3 px-3.5 text-right text-emerald-600 dark:text-emerald-400">Masuk (+)</th>
-                  <th className="py-3 px-3.5 text-right text-amber-600 dark:text-amber-400">Keluar (-)</th>
-                  <th className="py-3 px-3.5 text-right font-bold text-foreground">Sisa Stok Fisik</th>
-                  <th className="py-3 px-3.5 text-center">Status</th>
-                  <th className="py-3 px-3.5 text-center">Aksi Cepat</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/60">
-                {filteredItems.length === 0 ? (
-                  <tr>
-                    <td colSpan={11} className="py-12 text-center text-muted-foreground">
-                      <div className="flex flex-col items-center justify-center gap-2">
-                        <Boxes className="size-8 text-muted-foreground/40" />
-                        <p className="font-medium">Tidak ada barang yang cocok dengan kriteria pencarian.</p>
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  filteredItems.map((item, idx) => (
-                    <tr
-                      key={item.id}
-                      className="hover:bg-muted/30 transition-colors group"
-                    >
-                      <td className="py-3 px-3.5 text-center text-muted-foreground font-mono">
-                        {idx + 1}
-                      </td>
-                      <td className="py-3 px-3.5">
-                        <div className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                          {item.namaBarang}
-                        </div>
-                        <div className="flex items-center gap-2 text-[11px] text-muted-foreground mt-0.5 font-mono">
-                          <span className="font-medium text-foreground/80">{item.kodeBarang}</span>
-                          <span>&bull;</span>
-                          <span>Satuan: <strong className="text-foreground">{item.satuan}</strong></span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-3.5 text-muted-foreground whitespace-nowrap">
-                        <span className="inline-block px-2 py-0.5 rounded text-[10px] font-medium bg-muted text-muted-foreground border border-border">
-                          {item.kategori}
-                        </span>
-                      </td>
-                      <td className="py-3 px-3.5 text-muted-foreground whitespace-nowrap">
-                        <div className="flex items-center gap-1.5 text-foreground/80">
-                          <MapPin className="size-3.5 text-muted-foreground shrink-0" />
-                          <span>{item.lokasiRak}</span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-3.5 text-right font-mono text-muted-foreground">
-                        {item.minStock} {item.satuan}
-                      </td>
-                      <td className="py-3 px-3.5 text-right font-mono text-muted-foreground">
-                        {item.saldoAwal}
-                      </td>
-                      <td className="py-3 px-3.5 text-right font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
-                        +{item.totalMasuk}
-                      </td>
-                      <td className="py-3 px-3.5 text-right font-mono text-amber-600 dark:text-amber-400 font-semibold">
-                        -{item.totalKeluar}
-                      </td>
-                      <td className="py-3 px-3.5 text-right">
-                        <div className="font-mono font-bold text-sm text-foreground">
-                          {item.sisaStok} <span className="text-[10px] text-muted-foreground font-normal">{item.satuan}</span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-3.5 text-center whitespace-nowrap">
-                        {item.status === 'AMAN' && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
-                            <span className="size-1.5 rounded-full bg-emerald-500" />
-                            Aman
-                          </span>
-                        )}
-                        {item.status === 'MENIPIS' && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 animate-pulse">
-                            <span className="size-1.5 rounded-full bg-amber-500" />
-                            Menipis
-                          </span>
-                        )}
-                        {item.status === 'HABIS' && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/20">
-                            <span className="size-1.5 rounded-full bg-rose-500" />
-                            Habis
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-3 px-3.5 text-center whitespace-nowrap">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <button
-                            onClick={() => handleOpenInboundForItem(item)}
-                            className="p-1.5 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 transition cursor-pointer"
-                            title={`Catat Penerimaan Masuk untuk ${item.namaBarang}`}
-                          >
-                            <PackagePlus className="size-3.5" />
-                          </button>
-                          <button
-                            onClick={() => handleOpenOutboundForItem(item)}
-                            disabled={item.sisaStok <= 0}
-                            className="p-1.5 rounded-md bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/20 transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-                            title={
-                              item.sisaStok > 0
-                                ? `Catat Pengeluaran untuk ${item.namaBarang}`
-                                : 'Stok habis, tidak bisa dikeluarkan'
-                            }
-                          >
-                            <PackageMinus className="size-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="p-3.5 bg-muted/20 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
-            <span>Menampilkan <strong>{filteredItems.length}</strong> dari <strong>{items.length}</strong> barang terdaftar</span>
-            <span className="font-mono text-[11px]">Gudang Pusat Somber &bull; PIC: Pak Budi</span>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* VIEW 2: FORM PENERIMAAN MASUK (+ INBOUND)                                */}
-      {/* ========================================================================= */}
-      {activeView === 'form-masuk' && (
-        <div className="max-w-3xl mx-auto bg-card border border-border rounded-2xl shadow-xs overflow-hidden">
-          <div className="p-5 border-b border-border bg-emerald-500/5 flex items-center justify-between">
+      {activeForm === 'form-masuk' && (
+        <div className="max-w-3xl mx-auto bg-card border-2 border-emerald-500/30 rounded-2xl shadow-xl overflow-hidden animate-in fade-in-50 duration-200">
+          <div className="p-4 border-b border-border bg-emerald-500/10 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="size-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
-                <PackagePlus className="size-5" />
+              <div className="size-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
+                <PackagePlus className="size-4" />
               </div>
               <div>
-                <h2 className="text-base font-bold text-foreground">Form Pencatatan Penerimaan Barang Masuk</h2>
-                <p className="text-xs text-muted-foreground">
+                <h3 className="text-sm font-bold text-foreground">Form Pencatatan Penerimaan Barang Masuk</h3>
+                <p className="text-[11px] text-muted-foreground">
                   Catat barang masuk dari Supplier / PO Pengadaan / Retur Armada ke Gudang Somber
                 </p>
               </div>
             </div>
             <button
-              onClick={() => setActiveView('kartu-stok')}
-              className="text-xs text-muted-foreground hover:text-foreground p-1 rounded-md"
+              onClick={() => setActiveForm(null)}
+              className="text-muted-foreground hover:text-foreground p-1 rounded-md"
             >
-              Kembali ke Stok
+              <X className="size-4" />
             </button>
           </div>
 
-          <form onSubmit={handleSubmitInbound} className="p-5 md:p-6 space-y-4">
-            {/* Barang Selector */}
+          <form onSubmit={handleSubmitInbound} className="p-5 space-y-3.5">
             <div>
               <label className="block text-xs font-semibold text-foreground mb-1.5">
                 Pilih Barang Persediaan <span className="text-rose-500">*</span>
@@ -1618,7 +1955,7 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
                 required
                 value={inboundForm.itemId}
                 onChange={(e) => setInboundForm({ ...inboundForm, itemId: e.target.value })}
-                className="w-full h-10 px-3 rounded-lg border border-border bg-background text-xs font-medium focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                className="w-full h-9 px-3 rounded-lg border border-border bg-background text-xs font-medium focus:outline-none focus:ring-1 focus:ring-emerald-500"
               >
                 <option value="">-- Pilih Barang dari Gudang --</option>
                 {items.map((i) => (
@@ -1629,9 +1966,8 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
               </select>
             </div>
 
-            {/* Item Live Preview */}
             {selectedInboundItem && (
-              <div className="p-3.5 rounded-xl border border-emerald-500/20 bg-emerald-500/5 flex items-center justify-between">
+              <div className="p-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 flex items-center justify-between">
                 <div>
                   <div className="text-xs font-bold text-foreground">{selectedInboundItem.namaBarang}</div>
                   <div className="text-[11px] text-muted-foreground mt-0.5">
@@ -1639,7 +1975,7 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-[11px] text-muted-foreground">Saldo Saat Ini</div>
+                  <div className="text-[10px] text-muted-foreground">Saldo Saat Ini</div>
                   <div className="font-mono font-bold text-sm text-foreground">
                     {selectedInboundItem.sisaStok} {selectedInboundItem.satuan}
                   </div>
@@ -1647,10 +1983,9 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
               </div>
             )}
 
-            {/* Grid 2 Column */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-1.5">
+                <label className="block text-xs font-semibold text-foreground mb-1">
                   Jumlah Qty Masuk <span className="text-rose-500">*</span>
                 </label>
                 <div className="flex items-center gap-2">
@@ -1660,127 +1995,155 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
                     required
                     value={inboundForm.qty}
                     onChange={(e) => setInboundForm({ ...inboundForm, qty: Number(e.target.value) })}
-                    className="flex-1 h-10 px-3 rounded-lg border border-border bg-background text-xs font-mono font-bold focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    className="w-full h-9 px-3 rounded-lg border border-border bg-background text-xs font-mono font-bold focus:outline-none focus:ring-1 focus:ring-emerald-500"
                   />
-                  <span className="px-3 h-10 rounded-lg border border-border bg-muted flex items-center text-xs font-semibold text-muted-foreground">
-                    {selectedInboundItem ? selectedInboundItem.satuan : 'SATUAN'}
+                  <span className="text-xs font-semibold text-muted-foreground shrink-0 px-2">
+                    {selectedInboundItem?.satuan || 'UNIT'}
                   </span>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-1.5">
+                <label className="block text-xs font-semibold text-foreground mb-1">
                   No. Dokumen Acuan (PO / FSTB / Surat Jalan) <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="Contoh: PO-CPG-26-002199 atau SJ-SUPPLIER-123"
+                  placeholder="Contoh: PO-CPG-26-002194 / SJ-7819"
                   value={inboundForm.noDokumenRef}
                   onChange={(e) => setInboundForm({ ...inboundForm, noDokumenRef: e.target.value })}
-                  className="w-full h-10 px-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  className="w-full h-9 px-3 rounded-lg border border-border bg-background text-xs font-mono uppercase focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-foreground mb-1">
+                  Tanggal Masuk
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={inboundForm.tanggal}
+                  onChange={(e) => setInboundForm({ ...inboundForm, tanggal: e.target.value })}
+                  className="w-full h-9 px-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-1.5">
-                  Sumber Pengirim / Nama Supplier <span className="text-rose-500">*</span>
+                <label className="block text-xs font-semibold text-foreground mb-1">
+                  Waktu (WITA)
+                </label>
+                <input
+                  type="time"
+                  required
+                  value={inboundForm.waktu}
+                  onChange={(e) => setInboundForm({ ...inboundForm, waktu: e.target.value })}
+                  className="w-full h-9 px-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-foreground mb-1">
+                  Entitas Perusahaan
+                </label>
+                <select
+                  value={inboundForm.entitas}
+                  onChange={(e) => setInboundForm({ ...inboundForm, entitas: e.target.value as any })}
+                  className="w-full h-9 px-3 rounded-lg border border-border bg-background text-xs font-medium focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                >
+                  <option value="HOLDING">HOLDING (CPG)</option>
+                  <option value="CPL">CPL (Cindara)</option>
+                  <option value="HL">HL (Hana Lines)</option>
+                  <option value="MO">MO (Mandar Ocean)</option>
+                  <option value="GAJ">GAJ (Galangan)</option>
+                  <option value="MIL">MIL (Mapan)</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-foreground mb-1">
+                  Sumber Pengirim / Supplier <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="Contoh: PT. Sumber Sarana Maritim / PT. Pertamina"
+                  placeholder="Contoh: PT. Pertamina Lubricants / CV. Berkat Jaya"
                   value={inboundForm.sumberAtauTujuan}
                   onChange={(e) => setInboundForm({ ...inboundForm, sumberAtauTujuan: e.target.value })}
-                  className="w-full h-10 px-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  className="w-full h-9 px-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-1.5">
-                  Kurir / Supir Pengantar
+                <label className="block text-xs font-semibold text-foreground mb-1">
+                  Pengantar / Supir / Kurir
                 </label>
                 <input
                   type="text"
-                  placeholder="Nama pengantar / ekspedisi"
+                  placeholder="Contoh: Dwi Supir Ekspedisi"
                   value={inboundForm.picPenerimaPengambil}
                   onChange={(e) => setInboundForm({ ...inboundForm, picPenerimaPengambil: e.target.value })}
-                  className="w-full h-10 px-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  className="w-full h-9 px-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
                 />
               </div>
+            </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-1.5">
-                  Tanggal &amp; Jam Penerimaan
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <input
-                    type="date"
-                    required
-                    value={inboundForm.tanggal}
-                    onChange={(e) => setInboundForm({ ...inboundForm, tanggal: e.target.value })}
-                    className="h-10 px-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                  />
-                  <input
-                    type="time"
-                    required
-                    value={inboundForm.waktu}
-                    onChange={(e) => setInboundForm({ ...inboundForm, waktu: e.target.value })}
-                    className="h-10 px-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-foreground mb-1.5">
-                  Petugas Penerima Gudang
+                <label className="block text-xs font-semibold text-foreground mb-1">
+                  Petugas Penerima Gudang Somber
                 </label>
                 <input
                   type="text"
                   disabled
                   value={inboundForm.picGudang}
-                  className="w-full h-10 px-3 rounded-lg border border-border bg-muted text-muted-foreground text-xs font-medium cursor-not-allowed"
+                  className="w-full h-9 px-3 rounded-lg border border-border bg-muted text-muted-foreground text-xs font-medium cursor-not-allowed"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-foreground mb-1">
+                  Catatan / Lokasi Penyimpanan
+                </label>
+                <input
+                  type="text"
+                  placeholder="Contoh: Barang diletakkan di Rak Suku Cadang A-03"
+                  value={inboundForm.catatan}
+                  onChange={(e) => setInboundForm({ ...inboundForm, catatan: e.target.value })}
+                  className="w-full h-9 px-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-foreground mb-1.5">
-                Catatan Penerimaan / Kondisi Kemasan
-              </label>
-              <textarea
-                rows={2}
-                placeholder="Contoh: Barang diterima kondisi baik dan segel utuh, disimpan di Pallet A-02 Somber."
-                value={inboundForm.catatan}
-                onChange={(e) => setInboundForm({ ...inboundForm, catatan: e.target.value })}
-                className="w-full p-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
-              />
-            </div>
-
-            {/* Calculations preview */}
             {selectedInboundItem && (
-              <div className="text-xs text-muted-foreground bg-muted/40 p-3 rounded-xl border border-border flex items-center justify-between">
-                <span>Saldo Baru Setelah Penerimaan:</span>
+              <div className="text-xs text-muted-foreground bg-muted/40 p-2.5 rounded-lg border border-border flex items-center justify-between">
+                <span>Prediksi Sisa Stok Setelah Penerimaan:</span>
                 <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                  {selectedInboundItem.sisaStok} + {inboundForm.qty} = {selectedInboundItem.sisaStok + inboundForm.qty} {selectedInboundItem.satuan}
+                  {selectedInboundItem.sisaStok} + {inboundForm.qty} ={' '}
+                  {selectedInboundItem.sisaStok + inboundForm.qty} {selectedInboundItem.satuan}
                 </span>
               </div>
             )}
 
-            <div className="pt-3 border-t border-border flex items-center justify-end gap-2.5">
+            <div className="pt-2 border-t border-border flex items-center justify-end gap-2">
               <button
                 type="button"
-                onClick={() => setActiveView('kartu-stok')}
-                className="h-10 px-4 rounded-lg border border-border bg-card hover:bg-muted text-xs font-medium transition cursor-pointer"
+                onClick={() => setActiveForm(null)}
+                className="h-8.5 px-3.5 rounded-lg border border-border bg-card hover:bg-muted text-xs font-medium transition cursor-pointer"
               >
                 Batal
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="h-10 px-6 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition flex items-center gap-2 shadow-xs cursor-pointer disabled:opacity-50"
+                className="h-8.5 px-5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50"
               >
-                <PackagePlus className="size-4" />
+                <PackagePlus className="size-3.5" />
                 <span>{isSubmitting ? 'Menyimpan...' : 'Simpan Penerimaan Masuk'}</span>
               </button>
             </div>
@@ -1789,32 +2152,31 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
       )}
 
       {/* ========================================================================= */}
-      {/* VIEW 3: FORM PENGAMBILAN KELUAR (- OUTBOUND)                             */}
+      {/* FORM MODUL: FORM KELUAR (-)                                              */}
       {/* ========================================================================= */}
-      {activeView === 'form-keluar' && (
-        <div className="max-w-3xl mx-auto bg-card border border-border rounded-2xl shadow-xs overflow-hidden">
-          <div className="p-5 border-b border-border bg-amber-500/5 flex items-center justify-between">
+      {activeForm === 'form-keluar' && (
+        <div className="max-w-3xl mx-auto bg-card border-2 border-amber-500/30 rounded-2xl shadow-xl overflow-hidden animate-in fade-in-50 duration-200">
+          <div className="p-4 border-b border-border bg-amber-500/10 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="size-10 rounded-xl bg-amber-600 text-white flex items-center justify-center shadow-xs">
-                <PackageMinus className="size-5" />
+              <div className="size-9 rounded-xl bg-amber-600 text-white flex items-center justify-center shadow-xs">
+                <PackageMinus className="size-4" />
               </div>
               <div>
-                <h2 className="text-base font-bold text-foreground">Form Pencatatan Pengeluaran Barang Keluar</h2>
-                <p className="text-xs text-muted-foreground">
-                  Catat pengeluaran barang dari Stok Pak Budi ke Armada Kapal / Bengkel MTC Somber
+                <h3 className="text-sm font-bold text-foreground">Form Pengeluaran Barang / Mutasi Armada</h3>
+                <p className="text-[11px] text-muted-foreground">
+                  Catat pengeluaran barang untuk armada kapal / workshop kebon / galangan somber
                 </p>
               </div>
             </div>
             <button
-              onClick={() => setActiveView('kartu-stok')}
-              className="text-xs text-muted-foreground hover:text-foreground p-1 rounded-md"
+              onClick={() => setActiveForm(null)}
+              className="text-muted-foreground hover:text-foreground p-1 rounded-md"
             >
-              Kembali ke Stok
+              <X className="size-4" />
             </button>
           </div>
 
-          <form onSubmit={handleSubmitOutbound} className="p-5 md:p-6 space-y-4">
-            {/* Barang Selector */}
+          <form onSubmit={handleSubmitOutbound} className="p-5 space-y-3.5">
             <div>
               <label className="block text-xs font-semibold text-foreground mb-1.5">
                 Pilih Barang yang Dikeluarkan <span className="text-rose-500">*</span>
@@ -1823,20 +2185,19 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
                 required
                 value={outboundForm.itemId}
                 onChange={(e) => setOutboundForm({ ...outboundForm, itemId: e.target.value })}
-                className="w-full h-10 px-3 rounded-lg border border-border bg-background text-xs font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                className="w-full h-9 px-3 rounded-lg border border-border bg-background text-xs font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
               >
-                <option value="">-- Pilih Barang dari Stok Gudang --</option>
+                <option value="">-- Pilih Barang dari Gudang --</option>
                 {items.map((i) => (
                   <option key={i.id} value={i.id} disabled={i.sisaStok <= 0}>
-                    [{i.kodeBarang}] {i.namaBarang} (Tersedia: {i.sisaStok} {i.satuan}) {i.sisaStok <= 0 ? ' - [HABIS]' : ''}
+                    [{i.kodeBarang}] {i.namaBarang} (Sisa Stok: {i.sisaStok} {i.satuan}) {i.sisaStok <= 0 ? '- [HABIS]' : ''}
                   </option>
                 ))}
               </select>
             </div>
 
-            {/* Item Live Preview */}
             {selectedOutboundItem && (
-              <div className="p-3.5 rounded-xl border border-amber-500/20 bg-amber-500/5 flex items-center justify-between">
+              <div className="p-3 rounded-xl border border-amber-500/20 bg-amber-500/5 flex items-center justify-between">
                 <div>
                   <div className="text-xs font-bold text-foreground">{selectedOutboundItem.namaBarang}</div>
                   <div className="text-[11px] text-muted-foreground mt-0.5">
@@ -1844,61 +2205,108 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-[11px] text-muted-foreground">Stok Tersedia Saat Ini</div>
-                  <div className={`font-mono font-bold text-sm ${selectedOutboundItem.sisaStok <= 0 ? 'text-rose-600' : 'text-foreground'}`}>
+                  <div className="text-[10px] text-muted-foreground">Sisa Stok Fisik</div>
+                  <div className={`font-mono font-bold text-sm ${selectedOutboundItem.sisaStok <= 2 ? 'text-rose-600' : 'text-foreground'}`}>
                     {selectedOutboundItem.sisaStok} {selectedOutboundItem.satuan}
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Grid 2 Column */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-1.5">
+                <label className="block text-xs font-semibold text-foreground mb-1">
                   Jumlah Qty Keluar <span className="text-rose-500">*</span>
                 </label>
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
                     min="1"
-                    max={selectedOutboundItem ? selectedOutboundItem.sisaStok : 9999}
+                    max={selectedOutboundItem?.sisaStok || 9999}
                     required
                     value={outboundForm.qty}
                     onChange={(e) => setOutboundForm({ ...outboundForm, qty: Number(e.target.value) })}
-                    className="flex-1 h-10 px-3 rounded-lg border border-border bg-background text-xs font-mono font-bold focus:outline-none focus:ring-1 focus:ring-amber-500"
+                    className="w-full h-9 px-3 rounded-lg border border-border bg-background text-xs font-mono font-bold focus:outline-none focus:ring-1 focus:ring-amber-500"
                   />
-                  <span className="px-3 h-10 rounded-lg border border-border bg-muted flex items-center text-xs font-semibold text-muted-foreground">
-                    {selectedOutboundItem ? selectedOutboundItem.satuan : 'SATUAN'}
+                  <span className="text-xs font-semibold text-muted-foreground shrink-0 px-2">
+                    {selectedOutboundItem?.satuan || 'UNIT'}
                   </span>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-1.5">
-                  No. TTB / FPB / Bon Pengeluaran <span className="text-rose-500">*</span>
+                <label className="block text-xs font-semibold text-foreground mb-1">
+                  No. Dokumen Acuan (TTB / FPB Acuan) <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="Contoh: TTB-CPL-26-004390 atau FPB-HL-26-000850"
+                  placeholder="Contoh: CPL-TTB-26-0004576 / FPB-029"
                   value={outboundForm.noDokumenRef}
                   onChange={(e) => setOutboundForm({ ...outboundForm, noDokumenRef: e.target.value })}
-                  className="w-full h-10 px-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  className="w-full h-9 px-3 rounded-lg border border-border bg-background text-xs font-mono uppercase focus:outline-none focus:ring-1 focus:ring-amber-500"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-foreground mb-1">
+                  Tanggal Pengeluaran
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={outboundForm.tanggal}
+                  onChange={(e) => setOutboundForm({ ...outboundForm, tanggal: e.target.value })}
+                  className="w-full h-9 px-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-1.5">
+                <label className="block text-xs font-semibold text-foreground mb-1">
+                  Waktu (WITA)
+                </label>
+                <input
+                  type="time"
+                  required
+                  value={outboundForm.waktu}
+                  onChange={(e) => setOutboundForm({ ...outboundForm, waktu: e.target.value })}
+                  className="w-full h-9 px-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-foreground mb-1">
+                  Entitas Pemilik Armada
+                </label>
+                <select
+                  value={outboundForm.entitas}
+                  onChange={(e) => setOutboundForm({ ...outboundForm, entitas: e.target.value as any })}
+                  className="w-full h-9 px-3 rounded-lg border border-border bg-background text-xs font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
+                >
+                  <option value="CPL">CPL (Cindara)</option>
+                  <option value="HL">HL (Hana Lines)</option>
+                  <option value="MO">MO (Mandar Ocean)</option>
+                  <option value="GAJ">GAJ (Galangan)</option>
+                  <option value="MIL">MIL (Mapan)</option>
+                  <option value="HOLDING">HOLDING (CPG)</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-foreground mb-1">
                   Armada Kapal / Unit Tujuan <span className="text-rose-500">*</span>
                 </label>
                 <select
                   required
                   value={outboundForm.sumberAtauTujuan}
                   onChange={(e) => setOutboundForm({ ...outboundForm, sumberAtauTujuan: e.target.value })}
-                  className="w-full h-10 px-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  className="w-full h-9 px-3 rounded-lg border border-border bg-background text-xs font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
                 >
-                  <option value="">-- Pilih Armada / Unit --</option>
+                  <option value="">-- Pilih Armada Kapal / Workshop --</option>
                   {FLEET_VESSELS.map((v) => (
                     <option key={v} value={v}>
                       {v}
@@ -1908,70 +2316,35 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-1.5">
-                  Kru Penerima / Pengambil <span className="text-rose-500">*</span>
+                <label className="block text-xs font-semibold text-foreground mb-1">
+                  Penerima / Pengambil Barang di Dermaga <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="Contoh: Chief Eng. Bambang / Mualim 1 Hendra"
+                  placeholder="Contoh: Chief Engineer Bambang / Mandor Agus"
                   value={outboundForm.picPenerimaPengambil}
                   onChange={(e) => setOutboundForm({ ...outboundForm, picPenerimaPengambil: e.target.value })}
-                  className="w-full h-10 px-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-foreground mb-1.5">
-                  Tanggal &amp; Jam Pengeluaran
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <input
-                    type="date"
-                    required
-                    value={outboundForm.tanggal}
-                    onChange={(e) => setOutboundForm({ ...outboundForm, tanggal: e.target.value })}
-                    className="h-10 px-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
-                  />
-                  <input
-                    type="time"
-                    required
-                    value={outboundForm.waktu}
-                    onChange={(e) => setOutboundForm({ ...outboundForm, waktu: e.target.value })}
-                    className="h-10 px-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-foreground mb-1.5">
-                  Petugas Gudang Penyerah
-                </label>
-                <input
-                  type="text"
-                  disabled
-                  value={outboundForm.picGudang}
-                  className="w-full h-10 px-3 rounded-lg border border-border bg-muted text-muted-foreground text-xs font-medium cursor-not-allowed"
+                  className="w-full h-9 px-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-foreground mb-1.5">
+              <label className="block text-xs font-semibold text-foreground mb-1">
                 Alasan / Keperluan Pengambilan
               </label>
               <textarea
                 rows={2}
-                placeholder="Contoh: Maintenance berkala kamar mesin kapal atau penggantian darurat di dermaga."
+                placeholder="Contoh: Kebutuhan operasional armada kapal rutin / penggantian darurat di dermaga."
                 value={outboundForm.keperluan}
                 onChange={(e) => setOutboundForm({ ...outboundForm, keperluan: e.target.value })}
-                className="w-full p-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                className="w-full p-2.5 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
               />
             </div>
 
-            {/* Calculations preview */}
             {selectedOutboundItem && (
-              <div className="text-xs text-muted-foreground bg-muted/40 p-3 rounded-xl border border-border flex items-center justify-between">
+              <div className="text-xs text-muted-foreground bg-muted/40 p-2.5 rounded-lg border border-border flex items-center justify-between">
                 <span>Sisa Stok Fisik Setelah Pengeluaran:</span>
                 <span
                   className={`font-mono font-bold ${
@@ -1986,20 +2359,20 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
               </div>
             )}
 
-            <div className="pt-3 border-t border-border flex items-center justify-end gap-2.5">
+            <div className="pt-2 border-t border-border flex items-center justify-end gap-2">
               <button
                 type="button"
-                onClick={() => setActiveView('kartu-stok')}
-                className="h-10 px-4 rounded-lg border border-border bg-card hover:bg-muted text-xs font-medium transition cursor-pointer"
+                onClick={() => setActiveForm(null)}
+                className="h-8.5 px-3.5 rounded-lg border border-border bg-card hover:bg-muted text-xs font-medium transition cursor-pointer"
               >
                 Batal
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting || (selectedOutboundItem && selectedOutboundItem.sisaStok < outboundForm.qty)}
-                className="h-10 px-6 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold transition flex items-center gap-2 shadow-xs cursor-pointer disabled:opacity-50"
+                className="h-8.5 px-5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50"
               >
-                <PackageMinus className="size-4" />
+                <PackageMinus className="size-3.5" />
                 <span>{isSubmitting ? 'Menyimpan...' : 'Simpan & Keluarkan Barang'}</span>
               </button>
             </div>
@@ -2008,181 +2381,93 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
       )}
 
       {/* ========================================================================= */}
-      {/* VIEW 4: JURNAL RIWAYAT MUTASI LENGKAP                                    */}
+      {/* TAMPILAN UTAMA (MODE SIMULTAN / TAB TERPISAH)                             */}
       {/* ========================================================================= */}
-      {activeView === 'riwayat-mutasi' && (
-        <div className="bg-card border border-border rounded-xl shadow-xs overflow-hidden">
-          {/* Controls Bar */}
-          <div className="p-4 border-b border-border flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-muted/20">
-            {/* Search Input */}
-            <div className="relative flex-1 max-w-md">
-              <Search className="size-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Cari transaksi, no. dokumen, kapal tujuan, atau penerima..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-9 pl-9 pr-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-primary"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs"
-                >
-                  &times;
-                </button>
-              )}
-            </div>
-
-            {/* Filter by Type */}
+      {activeMainView === 'simultan' && (
+        <div className="space-y-4">
+          {/* Layout Controller Bar for Simultaneous Mode */}
+          <div className="p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => setSelectedMutationType('ALL')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
-                  selectedMutationType === 'ALL'
-                    ? 'bg-foreground text-background font-semibold'
-                    : 'bg-muted text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                Semua Mutasi ({mutations.length})
-              </button>
-              <button
-                onClick={() => setSelectedMutationType('MASUK')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer flex items-center gap-1.5 ${
-                  selectedMutationType === 'MASUK'
-                    ? 'bg-emerald-600 text-white font-semibold'
-                    : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20'
-                }`}
-              >
-                <ArrowDownRight className="size-3.5" />
-                <span>Masuk (+)</span>
-              </button>
-              <button
-                onClick={() => setSelectedMutationType('KELUAR')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer flex items-center gap-1.5 ${
-                  selectedMutationType === 'KELUAR'
-                    ? 'bg-amber-600 text-white font-semibold'
-                    : 'bg-amber-500/10 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20'
-                }`}
-              >
-                <ArrowUpRight className="size-3.5" />
-                <span>Keluar (-)</span>
-              </button>
+              <Split className="size-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <div className="text-xs">
+                <span className="font-bold text-foreground">Mode Tampilan Simultan Aktif: </span>
+                <span className="text-muted-foreground">
+                  Menampilkan <strong>Data 1 (Stok Barang)</strong> &amp; <strong>Data 2 (Mutasi Barang)</strong> secara bersamaan.
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-[11px] text-muted-foreground font-medium hidden sm:inline">Pilihan Tata Letak:</span>
+              <div className="flex items-center gap-1 bg-background/80 border border-border p-0.5 rounded-lg">
+                <button
+                  onClick={() => setSimultanLayout('stacked')}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold transition cursor-pointer ${
+                    simultanLayout === 'stacked'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                  title="Tampilan Bertingkat: Data 1 di atas, Data 2 di bawah (Lebar tabel maksimal 100%)"
+                >
+                  <Rows2 className="size-3.5" />
+                  <span>Bertingkat (Atas-Bawah)</span>
+                </button>
+
+                <button
+                  onClick={() => setSimultanLayout('side-by-side')}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold transition cursor-pointer ${
+                    simultanLayout === 'side-by-side'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                  title="Tampilan Berdampingan: 2 Kolom berdampingan split screen"
+                >
+                  <Columns2 className="size-3.5" />
+                  <span>Berdampingan (2 Kolom)</span>
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="bg-muted/50 border-b border-border text-muted-foreground font-semibold uppercase tracking-wider text-[11px]">
-                  <th className="py-3 px-3.5 w-12 text-center">No</th>
-                  <th className="py-3 px-3.5">Waktu &amp; ID Mutasi</th>
-                  <th className="py-3 px-3.5 text-center">Jenis</th>
-                  <th className="py-3 px-3.5">Nama &amp; Kode Barang</th>
-                  <th className="py-3 px-3.5 text-right">Jumlah Qty</th>
-                  <th className="py-3 px-3.5 text-center">Mutasi Saldo</th>
-                  <th className="py-3 px-3.5">Dokumen Acuan</th>
-                  <th className="py-3 px-3.5">Tujuan / Sumber Unit</th>
-                  <th className="py-3 px-3.5">Penerima / Pengambil</th>
-                  <th className="py-3 px-3.5 text-center">Cetak Slip</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/60">
-                {filteredMutations.length === 0 ? (
-                  <tr>
-                    <td colSpan={10} className="py-12 text-center text-muted-foreground">
-                      <div className="flex flex-col items-center justify-center gap-2">
-                        <Layers className="size-8 text-muted-foreground/40" />
-                        <p className="font-medium">Belum ada riwayat mutasi yang tercatat.</p>
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  filteredMutations.map((m, idx) => (
-                    <tr key={m.id} className="hover:bg-muted/30 transition-colors">
-                      <td className="py-3 px-3.5 text-center text-muted-foreground font-mono">
-                        {idx + 1}
-                      </td>
-                      <td className="py-3 px-3.5 whitespace-nowrap">
-                        <div className="font-semibold text-foreground font-mono text-[11px]">{m.id}</div>
-                        <div className="text-[11px] text-muted-foreground flex items-center gap-1.5 mt-0.5">
-                          <span>{m.tanggal}</span>
-                          <span>&bull;</span>
-                          <span>{m.waktu} WITA</span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-3.5 text-center whitespace-nowrap">
-                        {m.jenis === 'MASUK' ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
-                            <ArrowDownRight className="size-3" />
-                            MASUK
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
-                            <ArrowUpRight className="size-3" />
-                            KELUAR
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-3 px-3.5">
-                        <div className="font-medium text-foreground">{m.namaBarang}</div>
-                        <div className="text-[11px] text-muted-foreground font-mono">{m.kodeBarang}</div>
-                      </td>
-                      <td className="py-3 px-3.5 text-right whitespace-nowrap">
-                        <span
-                          className={`font-mono font-bold text-sm ${
-                            m.jenis === 'MASUK'
-                              ? 'text-emerald-600 dark:text-emerald-400'
-                              : 'text-amber-600 dark:text-amber-400'
-                          }`}
-                        >
-                          {m.jenis === 'MASUK' ? `+${m.qty}` : `-${m.qty}`} {m.satuan}
-                        </span>
-                      </td>
-                      <td className="py-3 px-3.5 text-center whitespace-nowrap font-mono text-[11px]">
-                        <span className="text-muted-foreground">{m.saldoSebelum}</span>
-                        <span className="mx-1.5 text-muted-foreground">&rarr;</span>
-                        <span className="font-bold text-foreground">{m.saldoSesudah}</span>
-                      </td>
-                      <td className="py-3 px-3.5 whitespace-nowrap">
-                        <div className="font-mono text-foreground font-medium">{m.noDokumenRef}</div>
-                        <div className="text-[10px] text-muted-foreground">{m.keperluan}</div>
-                      </td>
-                      <td className="py-3 px-3.5 whitespace-nowrap">
-                        <div className="flex items-center gap-1.5 font-medium text-foreground">
-                          {m.jenis === 'KELUAR' ? (
-                            <Anchor className="size-3 text-muted-foreground" />
-                          ) : (
-                            <Building2 className="size-3 text-muted-foreground" />
-                          )}
-                          <span>{m.sumberAtauTujuan}</span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-3.5 whitespace-nowrap">
-                        <div className="font-medium text-foreground">{m.picPenerimaPengambil}</div>
-                        <div className="text-[10px] text-muted-foreground">Petugas: Pak Budi</div>
-                      </td>
-                      <td className="py-3 px-3.5 text-center whitespace-nowrap">
-                        <button
-                          onClick={() => setSelectedSlipMutation(m)}
-                          className="p-1.5 rounded-lg border border-border bg-card hover:bg-muted text-foreground transition shadow-xs cursor-pointer"
-                          title="Cetak Bukti Transaksi Gudang"
-                        >
-                          <Printer className="size-3.5 text-muted-foreground hover:text-foreground" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+          {/* Simultaneous View: Stacked Layout (Atas - Bawah) */}
+          {simultanLayout === 'stacked' && (
+            <div className="space-y-6">
+              {/* Bagian Atas: Data 1 Stok Barang */}
+              <div>{renderStockTableContent(true)}</div>
 
-          <div className="p-3.5 bg-muted/20 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
-            <span>Total <strong>{filteredMutations.length}</strong> transaksi mutasi tercatat</span>
-            <span className="font-mono text-[11px]">Audit Trail Gudang Somber &bull; Pak Budi Agustiansyah</span>
-          </div>
+              {/* Bagian Bawah: Data 2 Mutasi Barang */}
+              <div>{renderMutasiSection(true)}</div>
+            </div>
+          )}
+
+          {/* Simultaneous View: Side-by-Side Layout (2 Kolom) */}
+          {simultanLayout === 'side-by-side' && (
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
+              {/* Kolom Kiri: Data 1 Stok Barang */}
+              <div className="h-full">{renderStockTableContent(true)}</div>
+
+              {/* Kolom Kanan: Data 2 Mutasi Barang */}
+              <div className="h-full">{renderMutasiSection(true)}</div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* TAMPILAN TAB TUNGGAL: DATA 1 STOK BARANG SAJA                            */}
+      {/* ========================================================================= */}
+      {activeMainView === 'stok' && (
+        <div className="space-y-4">
+          {renderStockTableContent(false)}
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* TAMPILAN TAB TUNGGAL: DATA 2 MUTASI BARANG SAJA                          */}
+      {/* ========================================================================= */}
+      {activeMainView === 'mutasi' && (
+        <div className="space-y-4">
+          {renderMutasiSection(false)}
         </div>
       )}
 
@@ -2191,7 +2476,7 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
       {/* ========================================================================= */}
       {selectedDetailTtb && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-card border border-border rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
+          <div className="bg-card border border-border rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in-50 duration-200">
             <div className="p-5 border-b border-border flex items-center justify-between bg-blue-500/10">
               <div className="flex items-center gap-2.5">
                 <Anchor className="size-5 text-blue-600 dark:text-blue-400" />
@@ -2298,7 +2583,7 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
       {/* ========================================================================= */}
       {isImportModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-card border border-border rounded-2xl w-full max-w-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
+          <div className="bg-card border border-border rounded-2xl w-full max-w-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col animate-in fade-in-50 duration-200">
             {/* Modal Header */}
             <div className="p-5 border-b border-border flex items-center justify-between bg-muted/30 shrink-0">
               <div className="flex items-center gap-3">
@@ -2359,19 +2644,18 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
                       }`}
                     >
                       <Layers className="size-3.5" />
-                      <span>Jurnal Riwayat Mutasi</span>
+                      <span>Riwayat Mutasi</span>
                     </button>
                   </div>
                 </div>
 
-                {/* Download Template Button */}
                 <button
                   type="button"
                   onClick={handleDownloadTemplate}
-                  className="h-8.5 px-3 rounded-lg border border-border bg-card hover:bg-muted text-foreground font-medium flex items-center gap-1.5 transition shadow-xs cursor-pointer self-start sm:self-auto shrink-0"
+                  className="h-8.5 px-3 rounded-lg border border-border bg-card hover:bg-muted text-xs font-medium flex items-center gap-1.5 transition text-foreground self-start sm:self-auto"
                 >
-                  <Download className="size-3.5 text-blue-600 dark:text-blue-400" />
-                  <span>Unduh Template Excel Resmi</span>
+                  <Download className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <span>Unduh Template Excel</span>
                 </button>
               </div>
 
@@ -2527,8 +2811,8 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
                               <span
                                 className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                                   row.jenis === 'MASUK'
-                                    ? 'bg-emerald-500/10 text-emerald-600'
-                                    : 'bg-amber-500/10 text-amber-600'
+                                    ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                                    : 'bg-amber-500/10 text-amber-700 dark:text-amber-300'
                                 }`}
                               >
                                 {row.jenis}
@@ -2592,7 +2876,7 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
       {/* ========================================================================= */}
       {isAddSkuModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-card border border-border rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden">
+          <div className="bg-card border border-border rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden animate-in fade-in-50 duration-200">
             <div className="p-5 border-b border-border flex items-center justify-between bg-muted/30">
               <div className="flex items-center gap-2.5">
                 <Boxes className="size-5 text-primary" />
@@ -2650,21 +2934,21 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
                   placeholder="Contoh: FILTER OLI YANMAR 6AYM-ETE (152623-35150)"
                   value={newSkuForm.namaBarang}
                   onChange={(e) => setNewSkuForm({ ...newSkuForm, namaBarang: e.target.value })}
-                  className="w-full h-9 px-3 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-full h-9 px-3 rounded-lg border border-border bg-background text-xs uppercase focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-foreground mb-1">
-                    Satuan <span className="text-rose-500">*</span>
+                    Satuan Unit <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="PCS / DRUM / SET"
+                    placeholder="Contoh: DRUM, PCS, ROLL"
                     value={newSkuForm.satuan}
-                    onChange={(e) => setNewSkuForm({ ...newSkuForm, satuan: e.target.value })}
+                    onChange={(e) => setNewSkuForm({ ...newSkuForm, satuan: e.target.value.toUpperCase() })}
                     className="w-full h-9 px-3 rounded-lg border border-border bg-background text-xs uppercase font-mono focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
@@ -2684,7 +2968,7 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
 
                 <div>
                   <label className="block text-xs font-semibold text-foreground mb-1">
-                    Batas Min. Stok
+                    Batas Minimum Stok
                   </label>
                   <input
                     type="number"
@@ -2763,7 +3047,7 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
       {/* ========================================================================= */}
       {selectedSlipMutation && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-card border border-border rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+          <div className="bg-card border border-border rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-in fade-in-50 duration-200">
             {/* Modal Header */}
             <div className="p-4 border-b border-border flex items-center justify-between bg-muted/40 shrink-0">
               <div className="flex items-center gap-2">
@@ -2794,14 +3078,14 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
               {/* Kop Surat */}
               <div className="border-b-2 border-black pb-3 flex items-start justify-between">
                 <div>
-                  <h1 className="text-sm font-extrabold tracking-tight uppercase">
-                    PT CINDARA PRATAMA LINES &amp; GROUP
-                  </h1>
-                  <p className="text-[10px] text-gray-700">
-                    DIVISI LOGISTIK &amp; PENGENDALIAN PERSEDIAAN GUDANG PUSAT SOMBER
-                  </p>
-                  <p className="text-[9px] text-gray-500">
-                    Jl. Somber RT. 08, Balikpapan Barat, Kalimantan Timur &bull; Telp / WA: 08115986581
+                  <div className="font-extrabold text-base tracking-wide text-black">
+                    PT. CINDARA PRATAMA LINES &amp; GROUP
+                  </div>
+                  <div className="text-[11px] font-semibold text-gray-700">
+                    DEPARTEMEN LOGISTIK &amp; PERGUDANGAN PUSAT SOMBER
+                  </div>
+                  <p className="text-[10px] text-gray-600">
+                    Jl. Somber RT. 38, Batu Ampar, Balikpapan Utara, Kalimantan Timur &bull; Telp / WA: 08115986581
                   </p>
                 </div>
                 <div className="text-right">
@@ -2898,41 +3182,48 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
               <div className="pt-6 grid grid-cols-3 gap-4 text-center text-[10px]">
                 <div>
                   <p className="text-gray-600">Dikelola / Diserahkan Oleh:</p>
-                  <div className="h-16 flex items-center justify-center font-bold text-gray-400 italic">
-                    [Tanda Tangan]
+                  <div className="h-16 flex items-end justify-center font-bold">
+                    Budi Agustiansyah
                   </div>
-                  <p className="font-bold border-t border-black pt-1">
-                    BUDI AGUSTIANSYAH
-                  </p>
-                  <p className="text-[9px] text-gray-500">Staf Gudang Somber</p>
-                </div>
-
-                <div>
-                  <p className="text-gray-600">
-                    {selectedSlipMutation.jenis === 'MASUK' ? 'Diantar Oleh:' : 'Diterima Oleh Kru Kapal:'}
-                  </p>
-                  <div className="h-16 flex items-center justify-center font-bold text-gray-400 italic">
-                    [Tanda Tangan]
-                  </div>
-                  <p className="font-bold border-t border-black pt-1 uppercase">
-                    {selectedSlipMutation.picPenerimaPengambil || 'KRU KAPAL'}
-                  </p>
-                  <p className="text-[9px] text-gray-500">
-                    {selectedSlipMutation.sumberAtauTujuan}
+                  <p className="text-[9px] text-gray-500 border-t border-gray-300 pt-1 mt-1">
+                    Staf Gudang Somber (MP-DAO-0281)
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-gray-600">Mengetahui / Menyetujui:</p>
-                  <div className="h-16 flex items-center justify-center font-bold text-gray-400 italic">
-                    [Tanda Tangan]
+                  <p className="text-gray-600">Diterima / Diambil Oleh:</p>
+                  <div className="h-16 flex items-end justify-center font-bold">
+                    {selectedSlipMutation.picPenerimaPengambil || '( .......................... )'}
                   </div>
-                  <p className="font-bold border-t border-black pt-1">
-                    KEPALA LOGISTIK / PURCHASING
+                  <p className="text-[9px] text-gray-500 border-t border-gray-300 pt-1 mt-1">
+                    Kru Kapal / Mandor Penerima
                   </p>
-                  <p className="text-[9px] text-gray-500">PT Cindara Pratama Lines</p>
+                </div>
+
+                <div>
+                  <p className="text-gray-600">Mengetahui (Head of Logistic):</p>
+                  <div className="h-16 flex items-end justify-center font-bold">
+                    ( .......................... )
+                  </div>
+                  <p className="text-[9px] text-gray-500 border-t border-gray-300 pt-1 mt-1">
+                    Supervisor / Dept. Head
+                  </p>
                 </div>
               </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-border flex items-center justify-between bg-muted/30 shrink-0">
+              <span className="text-[11px] text-muted-foreground font-mono">
+                ID Dokumen: {selectedSlipMutation.id}
+              </span>
+              <button
+                type="button"
+                onClick={() => setSelectedSlipMutation(null)}
+                className="h-8 px-4 rounded-lg bg-foreground text-background font-semibold text-xs cursor-pointer"
+              >
+                Tutup
+              </button>
             </div>
           </div>
         </div>
