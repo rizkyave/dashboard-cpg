@@ -191,9 +191,13 @@ export default function UploadTtbTab({
 
   useEffect(() => {
     if (user?.name && !uploaderName) {
-      setUploaderName(user.name);
+      if (user.username === 'nurul.hafifah' || user.name.toUpperCase().includes('HAFIFAH')) {
+        setUploaderName('FIFI');
+      } else {
+        setUploaderName(user.name);
+      }
     }
-  }, [user?.name, uploaderName]);
+  }, [user?.name, user?.username, uploaderName]);
 
   useEffect(() => {
     if (user?.signature?.signatureDataUrl) {

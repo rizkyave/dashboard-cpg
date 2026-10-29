@@ -75,32 +75,50 @@ export function enrichSingleTtbItem(
     });
 
     if (procMatch) {
-      // Armada / Unit
-      if (!updated.armada || updated.armada === '-' || updated.armada === 'SEMUA ARMADA') {
-        const arm = (procMatch.deptArmada || procMatch.peruntukan || '').trim();
-        if (arm && arm !== '-') updated.armada = arm;
+      // 1. Armada / Unit (Prioritas dari Monitoring Internal)
+      const arm = (procMatch.deptArmada || procMatch.peruntukan || '').trim();
+      if (arm && arm !== '-') {
+        updated.armada = arm;
       }
 
-      // No. PO
-      if (!updated.noPo || updated.noPo === '-') {
-        const po = (procMatch.po || procMatch.noPo || '').trim();
-        if (po && po !== '-') updated.noPo = po;
+      // 2. No. FPB (Prioritas dari Monitoring Internal)
+      const fpb = (procMatch.fpb || '').trim();
+      if (fpb && fpb !== '-') {
+        updated.noFpb = fpb;
       }
 
-      // No. FPB
-      if (!updated.noFpb || updated.noFpb === '-') {
-        const fpb = (procMatch.fpb || '').trim();
-        if (fpb && fpb !== '-') updated.noFpb = fpb;
+      // 3. No. PO (Prioritas dari Monitoring Internal)
+      const po = (procMatch.po || procMatch.noPo || '').trim();
+      if (po && po !== '-') {
+        updated.noPo = po;
+      } else {
+        // Jika di monitoring internal belum ada nomor PO, reset PO agar tidak memakai dummy PO lama
+        updated.noPo = '-';
       }
 
-      // Pengunggah / PIC Logistik TTB
-      if (!updated.uploaderName || updated.uploaderName === '-') {
-        const pic = (procMatch.picTtb || (procMatch as any).creator || procMatch.picPch || '').trim();
-        if (pic && pic !== '-') {
-          updated.uploaderName = pic.toUpperCase();
-          updated.uploaderJabatan = updated.uploaderJabatan || 'Staf Logistik & Pergudangan';
-          updated.isAutoStamped = true;
+      // 4. Pengunggah / PIC Logistik TTB (Prioritas dari Monitoring Internal)
+      const pic = (procMatch.picTtb || (procMatch as any).creator || procMatch.picPch || '').trim();
+      if (pic && pic !== '-') {
+        const picUpper = pic.toUpperCase();
+        let resolvedName = picUpper;
+        if (picUpper === 'FIFI' || picUpper.includes('HAFIFAH')) {
+          resolvedName = 'FIFI';
+          updated.uploaderUsername = 'nurul.hafifah';
+          updated.uploaderNik = 'MP-DAO-0490';
+          updated.uploaderJabatan = 'Admin Logistik TTB';
+        } else if (picUpper.includes('IDHAM')) {
+          resolvedName = 'IDHAM KHALID';
+          updated.uploaderUsername = 'idham.khalid';
+          updated.uploaderNik = 'MP-DAO-0534';
+          updated.uploaderJabatan = 'Admin Logistik';
+        } else if (picUpper.includes('DAVILA') || picUpper.includes('VILA')) {
+          resolvedName = 'DAVILA ZALIANTI PUTRI';
+          updated.uploaderUsername = 'davila.zalianti';
+          updated.uploaderNik = 'MP-DAO-0662';
+          updated.uploaderJabatan = 'Admin Logistik';
         }
+        updated.uploaderName = resolvedName;
+        updated.isAutoStamped = true;
       }
     }
   }
@@ -216,39 +234,10 @@ export function enrichSingleTtbItem(
     }
   }
 
-  // 6. Fallback Pengunggah Standar berdasarkan Entitas Operasional CPG
+  // 6. Fallback Pengunggah Standar jika belum tercatat di sistem
   if (!updated.uploaderName || updated.uploaderName === '-') {
-    if (prefix === 'CPL') {
-      updated.uploaderName = 'IDHAM KHALID';
-      updated.uploaderJabatan = 'Staf Logistik CPL';
-      updated.isAutoStamped = true;
-    } else if (prefix === 'HL') {
-      updated.uploaderName = 'DAVILA ZALIANTI PUTRI';
-      updated.uploaderJabatan = 'Admin Logistik HL';
-      updated.isAutoStamped = true;
-    } else if (prefix === 'GAJ') {
-      updated.uploaderName = 'NURUL HAFIFAH ALIM';
-      updated.uploaderJabatan = 'Admin Logistik GAJ';
-      updated.isAutoStamped = true;
-    } else if (prefix === 'MO') {
-      updated.uploaderName = 'DAVILA ZALIANTI PUTRI';
-      updated.uploaderJabatan = 'Staf Logistik MO';
-      updated.isAutoStamped = true;
-    } else if (prefix === 'MIL') {
-      updated.uploaderName = 'IDHAM KHALID';
-      updated.uploaderJabatan = 'Staf Logistik MIL';
-      updated.isAutoStamped = true;
-    } else {
-      updated.uploaderName = 'STAF LOGISTIK CPG';
-      updated.isAutoStamped = true;
-    }
-  }
-
-  // 7. Jika nomor PO masih kosong tapi nomor FPB ada, gunakan FPB sebagai acuan PO / DO
-  if (!updated.noPo || updated.noPo === '-') {
-    if (updated.noFpb && updated.noFpb !== '-') {
-      updated.noPo = updated.noFpb;
-    }
+    updated.uploaderName = 'STAF LOGISTIK CPG';
+    updated.isAutoStamped = true;
   }
 
   return updated;
