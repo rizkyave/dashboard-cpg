@@ -51,6 +51,7 @@ import {
   MessageCircle,
   Save,
   ArrowRight,
+  PackageCheck,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import ImageOptimizationCard from './ImageOptimizationCard';
@@ -216,6 +217,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
   const stafPurchasingCount = users.filter((u) => u.role === 'staf_purchasing').length;
   const stafTtbCount = users.filter((u) => u.role === 'staf_ttb').length;
   const stafLapanganCount = users.filter((u) => u.role === 'staf_lapangan').length;
+  const endUserCount = users.filter((u) => u.role === 'end_user').length;
   const visitorCount = users.filter((u) => u.role === 'visitor').length;
 
   // Filter category for Matrix table
@@ -228,7 +230,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
   const [isSavingMatrix, setIsSavingMatrix] = useState<boolean>(false);
 
   // Quick switch dropdown state
-  const [quickRole, setQuickRole] = useState<'ALL' | 'manager' | 'supervisor' | 'staf_purchasing' | 'staf_ttb' | 'staf_lapangan' | 'visitor'>('manager');
+  const [quickRole, setQuickRole] = useState<'ALL' | 'manager' | 'supervisor' | 'staf_purchasing' | 'staf_ttb' | 'staf_lapangan' | 'end_user' | 'visitor'>('manager');
   const [quickModule, setQuickModule] = useState<'ALL' | TabType>('ALL');
   const [quickLevel, setQuickLevel] = useState<AccessLevel>('Full Access');
 
@@ -253,13 +255,14 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
       staf_purchasing: '🛒 Staf Purchasing',
       staf_ttb: '📄 Staf Dokumen TTB',
       staf_lapangan: '🚚 Staf Serah Terima Lap.',
+      end_user: '📦 End User / Penerima Barang',
       visitor: '👁️ Visitor',
     };
 
     for (const curMod of matrixData) {
       const origMod = savedMatrixData.find((m) => m.tabId === curMod.tabId);
       if (!origMod) continue;
-      const roles = ['manager', 'supervisor', 'staf_purchasing', 'staf_ttb', 'staf_lapangan', 'visitor'] as const;
+      const roles = ['manager', 'supervisor', 'staf_purchasing', 'staf_ttb', 'staf_lapangan', 'end_user', 'visitor'] as const;
       for (const r of roles) {
         const curRule = curMod.permissions[r];
         const origRule = origMod.permissions[r];
@@ -317,7 +320,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
 
     const targetRoles =
       quickRole === 'ALL'
-        ? (['manager', 'supervisor', 'staf_purchasing', 'staf_ttb', 'staf_lapangan', 'visitor'] as const)
+        ? (['manager', 'supervisor', 'staf_purchasing', 'staf_ttb', 'staf_lapangan', 'end_user', 'visitor'] as const)
         : [quickRole];
 
     let count = 0;
@@ -543,6 +546,8 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
         ? 'Dokumen & Arsip TTB Logistik'
         : targetRole === 'staf_lapangan'
         ? 'Operasional Lapangan & Dermaga'
+        : targetRole === 'end_user'
+        ? 'Operasional Armada & Kapal'
         : ''
     );
     setNewEmail('');
@@ -742,6 +747,8 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
         return 'Staf Dokumen TTB Logistik';
       case 'staf_lapangan':
         return 'Staf Serah Terima Lapangan & Dermaga';
+      case 'end_user':
+        return 'Penerima Barang / End User (Kapal / Dept)';
       case 'user':
         return 'Staf Operasional Logistik';
       case 'visitor':
@@ -939,6 +946,8 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
           ? 'TTB'
           : signatureTargetUser.role === 'staf_lapangan'
           ? 'LAP'
+          : signatureTargetUser.role === 'end_user'
+          ? 'RCV'
           : signatureTargetUser.role === 'visitor'
           ? 'VIS'
           : 'OPR';
@@ -1108,6 +1117,16 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
             <span>+ Visitor</span>
           </button>
 
+          {/* Quick Add End User */}
+          <button
+            onClick={() => handleOpenAddModal('end_user')}
+            className="flex-1 md:flex-initial h-9 px-3 rounded-lg border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-xs cursor-pointer active:scale-95"
+            title="Tambah Akun End User / Penerima Barang di Kapal & Departemen"
+          >
+            <PackageCheck className="size-3.5" />
+            <span>+ End User</span>
+          </button>
+
           {/* Quick Add User */}
           <button
             onClick={() => handleOpenAddModal('user')}
@@ -1144,7 +1163,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
       </div>
 
       {/* KPI Cards - 8 Kolom Sesuai RBAC Logistik Maritim */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-9 gap-3 sm:gap-4">
         {/* Total Akun */}
         <div className="bg-card border border-border rounded-xl p-4 shadow-xs">
           <div className="flex items-center justify-between text-muted-foreground mb-2">
@@ -1256,6 +1275,20 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
         </div>
       </div>
 
+        {/* End User / Penerima */}
+        <div className="bg-card border border-rose-500/20 bg-rose-500/5 rounded-xl p-4 shadow-xs">
+          <div className="flex items-center justify-between text-rose-600 dark:text-rose-400 mb-2">
+            <span className="text-xs font-medium">End User</span>
+            <PackageCheck className="size-4" />
+          </div>
+          <div className="text-2xl font-bold font-mono text-rose-700 dark:text-rose-300">
+            {endUserCount}
+          </div>
+          <span className="text-[11px] text-muted-foreground mt-1 block">
+            Penerima / Kapal
+          </span>
+        </div>
+
       {/* Filter and User List Section */}
       <div className="bg-card border border-border rounded-xl shadow-xs overflow-hidden">
         {/* Table Controls Bar */}
@@ -1282,7 +1315,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
 
           {/* Role Filter Tabs */}
           <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
-            {(['ALL', 'admin', 'manager', 'supervisor', 'staf_purchasing', 'staf_ttb', 'staf_lapangan', 'visitor', 'user'] as const).map((r) => {
+            {(['ALL', 'admin', 'manager', 'supervisor', 'staf_purchasing', 'staf_ttb', 'staf_lapangan', 'end_user', 'visitor', 'user'] as const).map((r) => {
               const isActive = roleFilter === r;
               const label =
                 r === 'ALL'
@@ -1299,6 +1332,8 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                   ? 'Staf TTB'
                   : r === 'staf_lapangan'
                   ? 'Staf Lapangan'
+                  : r === 'end_user'
+                  ? 'End User'
                   : r === 'visitor'
                   ? 'Visitor'
                   : 'User (Umum)';
@@ -1372,6 +1407,8 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                                 ? 'bg-linear-to-tr from-blue-600 to-cyan-600'
                                 : item.role === 'staf_lapangan'
                                 ? 'bg-linear-to-tr from-amber-600 to-emerald-600'
+                                : item.role === 'end_user'
+                                ? 'bg-linear-to-tr from-rose-600 to-pink-600'
                                 : item.role === 'visitor'
                                 ? 'bg-linear-to-tr from-emerald-600 to-teal-600'
                                 : 'bg-linear-to-tr from-sky-600 to-blue-600'
@@ -1434,6 +1471,8 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                                   ? 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/30'
                                   : item.role === 'staf_lapangan'
                                   ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30'
+                                  : item.role === 'end_user'
+                                  ? 'bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/30'
                                   : item.role === 'visitor'
                                   ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
                                   : 'bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-500/30'
@@ -1446,6 +1485,8 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                               <option value="staf_purchasing">🛒 Staf Purchasing</option>
                               <option value="staf_ttb">📄 Staf Dokumen TTB</option>
                               <option value="staf_lapangan">🚚 Staf Serah Terima Lap.</option>
+                    <option value="end_user">📦 End User / Penerima Barang</option>
+                              <option value="end_user">📦 End User / Penerima</option>
                               <option value="user">📦 Staff Operasional</option>
                               <option value="visitor">👁️ Visitor (Read-Only)</option>
                             </select>
@@ -1480,6 +1521,11 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
                             <Truck className="size-3" />
                             <span>Staf Serah Terima Lap.</span>
+                        ) : item.role === 'end_user' ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/20">
+                            <PackageCheck className="size-3" />
+                            <span>End User / Penerima</span>
+                          </span>
                           </span>
                         ) : item.role === 'visitor' ? (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
@@ -1846,6 +1892,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                 <th className="py-2.5 px-3 text-center w-36">🛒 Staf Purchasing</th>
                 <th className="py-2.5 px-3 text-center w-36">📄 Staf Dokumen TTB</th>
                 <th className="py-2.5 px-3 text-center w-40">🚚 Staf Serah Terima Lap.</th>
+                <th className="py-2.5 px-3 text-center w-36">📦 End User</th>
                 <th className="py-2.5 px-3 text-center w-32">👁️ Visitor</th>
               </tr>
             </thead>
@@ -1857,7 +1904,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                 return (
                   <React.Fragment key={category}>
                     <tr className="bg-muted/60 border-y border-border">
-                      <td colSpan={9} className="py-2 px-3 font-bold text-xs uppercase tracking-wider text-foreground">
+                      <td colSpan={10} className="py-2 px-3 font-bold text-xs uppercase tracking-wider text-foreground">
                         <div className="flex items-center gap-2">
                           <span
                             className={`size-2 rounded-full ${
@@ -1901,6 +1948,9 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                         </td>
                         <td className="py-2.5 px-3 text-center">
                           {renderPermissionCell(perm, 'staf_lapangan')}
+                        </td>
+                        <td className="py-2.5 px-3 text-center">
+                          {renderPermissionCell(perm, 'end_user')}
                         </td>
                         <td className="py-2.5 px-3 text-center">
                           {renderPermissionCell(perm, 'visitor')}
@@ -2252,6 +2302,27 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                   <button
                     type="button"
                     onClick={() => {
+                      setNewRole('end_user');
+                      if (!newDepartment) setNewDepartment('Operasional Armada & Kapal');
+                    }}
+                    className={`p-2.5 rounded-lg border text-left transition cursor-pointer flex flex-col justify-between ${
+                      newRole === 'end_user'
+                        ? 'border-rose-500 bg-rose-500/10 text-rose-700 dark:text-rose-300 ring-1 ring-rose-500'
+                        : 'border-border bg-card text-muted-foreground hover:border-border/80'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 font-bold text-xs">
+                      <PackageCheck className="size-3.5" />
+                      <span>End User</span>
+                    </div>
+                    <span className="text-[9px] mt-1 text-muted-foreground leading-tight">
+                      Penerima Barang Kapal
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
                       setNewRole('visitor');
                       if (!newDepartment) setNewDepartment('Tamu / Observer Eksternal');
                     }}
@@ -2583,6 +2654,19 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
 
                   <button
                     type="button"
+                    onClick={() => setEditRole('end_user')}
+                    className={`p-2.5 rounded-lg border text-left transition cursor-pointer flex flex-col justify-between ${
+                      editRole === 'end_user'
+                        ? 'border-rose-500 bg-rose-500/10 text-rose-700 dark:text-rose-300 ring-1 ring-rose-500'
+                        : 'border-border bg-card text-muted-foreground hover:border-border/80'
+                    }`}
+                  >
+                    <div className="font-bold text-xs">📦 End User</div>
+                    <span className="text-[9px] text-muted-foreground">Penerima Barang</span>
+                  </button>
+
+                  <button
+                    type="button"
                     onClick={() => setEditRole('visitor')}
                     className={`p-2.5 rounded-lg border text-left transition cursor-pointer flex flex-col justify-between ${
                       editRole === 'visitor'
@@ -2855,6 +2939,8 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                         ? 'bg-linear-to-tr from-blue-600 to-cyan-600'
                         : signatureTargetUser.role === 'staf_lapangan'
                         ? 'bg-linear-to-tr from-amber-600 to-emerald-600'
+                        : signatureTargetUser.role === 'end_user'
+                        ? 'bg-linear-to-tr from-rose-600 to-pink-600'
                         : signatureTargetUser.role === 'visitor'
                         ? 'bg-linear-to-tr from-emerald-600 to-teal-600'
                         : 'bg-linear-to-tr from-sky-600 to-blue-600'

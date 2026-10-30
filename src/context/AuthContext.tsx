@@ -28,6 +28,7 @@ interface AuthContextType {
   isVisitor: boolean;
   isStafTtb: boolean;
   isStafLapangan: boolean;
+  isEndUser: boolean;
   canEdit: boolean;
   canAccess: (tab: TabType) => boolean;
   login: (username: string, password: string) => Promise<{ success: boolean; message?: string; user?: AuthUser }>;
@@ -274,6 +275,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isStafPurchasing = user?.role === 'staf_purchasing';
   const isStafTtb = user?.role === 'staf_ttb';
   const isStafLapangan = user?.role === 'staf_lapangan';
+  const isEndUser = user?.role === 'end_user';
   const isUser = user?.role === 'user';
   const isVisitor = user?.role === 'visitor';
   const canEdit =
@@ -283,6 +285,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isStafPurchasing ||
     isStafTtb ||
     isStafLapangan ||
+    isEndUser ||
     isUser;
   const canAccess = useCallback((tab: TabType) => canAccessTab(user?.role, tab), [user?.role]);
 
@@ -301,6 +304,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isVisitor,
         isStafTtb,
         isStafLapangan,
+        isEndUser,
         canEdit,
         canAccess,
         login,

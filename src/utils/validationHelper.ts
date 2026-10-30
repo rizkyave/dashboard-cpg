@@ -335,6 +335,7 @@ export function getUserActionForRecord(
           isAdmin ||
           (!isCourierUser &&
             (role === 'user' ||
+              role === 'end_user' ||
               jabatan.includes('armada') ||
               jabatan.includes('kapal') ||
               jabatan.includes('crew') ||

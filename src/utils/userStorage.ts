@@ -183,7 +183,23 @@ export function authenticate(usernameInput: string, passwordInput: string): { su
       }
     }
 
-    // 6. Password alias khusus Tim TTB Logistik
+        // Password alias khusus End User / Penerima Barang
+    if (role === 'end_user') {
+      if (
+        cleanPassword === 'enduser' ||
+        cleanPassword === 'enduser123' ||
+        cleanPassword === 'penerima' ||
+        cleanPassword === 'penerima123' ||
+        cleanPassword === 'kapal' ||
+        cleanPassword === 'kapal123' ||
+        cleanPassword === 'user123' ||
+        cleanPassword === 'staff123'
+      ) {
+        return true;
+      }
+    }
+
+// 6. Password alias khusus Tim TTB Logistik
     if (role === 'staf_ttb') {
       if (
         cleanPassword === 'ttb' ||
@@ -245,6 +261,8 @@ export function authenticate(usernameInput: string, passwordInput: string): { su
         ? 'Petunjuk: Password default Staf Lapangan adalah "cpg123", "123", "cpg", atau "lapangan123".'
         : role === 'staf_ttb'
         ? 'Petunjuk: Password default Staf TTB adalah "cpg123", "123", atau "ttb123".'
+        : role === 'end_user'
+        ? 'Petunjuk: Password default End User adalah "cpg123", "123", atau "enduser123".'
         : role === 'admin' || role === 'manager' || role === 'supervisor' || role === 'staf_purchasing'
         ? 'Petunjuk: Password default adalah "admin" atau "cpg123".'
         : 'Petunjuk: Password default adalah "cpg123" atau "123".';
@@ -311,7 +329,7 @@ export function createUserAccount(input: {
     jabatan: input.jabatan?.trim() || undefined,
     password: input.password || (cleanUsername + '123'),
     role: input.role,
-    department: input.department?.trim() || (input.role === 'visitor' ? 'Visitor / Tamu' : 'Staf Operasional'),
+    department: input.department?.trim() || (input.role === 'visitor' ? 'Visitor / Tamu' : input.role === 'end_user' ? 'Operasional Armada & Penerima' : 'Staf Operasional'),
     email: input.email?.trim() || (cleanUsername + '@cindaragroup.com'),
     avatar: avatarLetter,
     status: input.status || 'active',

@@ -7,6 +7,7 @@ export type UserRole =
   | 'staf_purchasing'
   | 'staf_ttb'
   | 'staf_lapangan'
+  | 'end_user'
   | 'visitor'
   | 'user';
 
@@ -108,6 +109,7 @@ export interface ModulePermissionItem {
     staf_purchasing: RolePermissionRule;
     staf_ttb: RolePermissionRule;
     staf_lapangan: RolePermissionRule;
+    end_user: RolePermissionRule;
     visitor: RolePermissionRule;
   };
 }
@@ -128,6 +130,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
       staf_purchasing: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Melihat ringkasan pipeline pengadaan' },
       staf_ttb: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
       staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
+      end_user: {"allowed":true,"level":"Read-only","badgeTone":"slate","notes":"Melihat status pengadaan umum & KPI"},
       visitor: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
     },
   },
@@ -143,6 +146,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
       staf_purchasing: { allowed: true, level: 'Upload & Kelola', badgeTone: 'emerald', notes: 'Analisa item FPB, cek stok gudang & penugasan PIC PO' },
       staf_ttb: { allowed: true, level: 'View & Verifikasi', badgeTone: 'blue', notes: 'Verifikasi stok gudang logistik terhadap item FPB' },
       staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
+      end_user: {"allowed":true,"level":"Read-only","badgeTone":"slate","notes":"Melihat status analisa & ketersediaan stok FPB yang diajukan"},
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
     },
   },
@@ -158,6 +162,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
       staf_purchasing: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Kelola paket tender & dokumen RFQ vendor' },
       staf_ttb: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Pantau paket pengadaan terbuka logistik' },
       staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
+      end_user: {"allowed":false,"level":"Dilarang","badgeTone":"rose","notes":"Menu komersial tender vendor disembunyikan"},
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
     },
   },
@@ -173,6 +178,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
       staf_purchasing: { allowed: true, level: 'Upload & Kelola', badgeTone: 'emerald', notes: 'Monitoring & tracking berkas internal pengadaan yang ditangani' },
       staf_ttb: { allowed: true, level: 'View & Verifikasi', badgeTone: 'blue', notes: 'Verifikasi tanda terima berkas dari purchasing ke logistik TTB' },
       staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
+      end_user: {"allowed":false,"level":"Dilarang","badgeTone":"rose","notes":"Alur internal purchasing disembunyikan"},
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
     },
   },
@@ -188,6 +194,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
       staf_purchasing: { allowed: true, level: 'View & Verifikasi', badgeTone: 'blue', notes: 'Input & verifikasi dokumen PO/FPB' },
       staf_ttb: { allowed: true, level: 'View & Verifikasi', badgeTone: 'blue', notes: 'View & verifikasi kecocokan dokumen PO/FPB' },
       staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
+      end_user: {"allowed":true,"level":"Read-only","badgeTone":"slate","notes":"Memantau progres pesanan PO & lead time pengadaan"},
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
     },
   },
@@ -203,6 +210,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
       staf_purchasing: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_lapangan: { allowed: true, level: 'Input & Upload', badgeTone: 'emerald', notes: 'Input update operasional & servis armada' },
+      end_user: {"allowed":true,"level":"Read-only","badgeTone":"slate","notes":"Monitoring status layanan armada & FSTB"},
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
     },
   },
@@ -218,6 +226,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
       staf_purchasing: { allowed: true, level: 'Upload & Kelola', badgeTone: 'emerald', notes: 'Upload & kelola berkas FSTB resmi' },
       staf_ttb: { allowed: true, level: 'Upload & Kelola', badgeTone: 'emerald', notes: 'Full access upload berkas FSTB ke cloud' },
       staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
+      end_user: {"allowed":false,"level":"Dilarang","badgeTone":"rose","notes":"Menu disembunyikan"},
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
     },
   },
@@ -233,6 +242,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
       staf_purchasing: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_ttb: { allowed: true, level: 'Upload & Kelola', badgeTone: 'emerald', notes: 'Full access upload berkas ke cloud' },
       staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
+      end_user: {"allowed":false,"level":"Dilarang","badgeTone":"rose","notes":"Menu disembunyikan"},
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
     },
   },
@@ -248,6 +258,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
       staf_purchasing: { allowed: true, level: 'Validasi & TTD', badgeTone: 'emerald', notes: 'Validasi TTD Delivered By FSTB & Lini Purchasing TTB' },
       staf_ttb: { allowed: true, level: 'Validasi & TTD', badgeTone: 'emerald', notes: 'Validasi lini Logistik/Gudang' },
       staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
+      end_user: {"allowed":true,"level":"Validasi & TTD","badgeTone":"emerald","notes":"Otorisasi & TTD digital Received By (User/Penerima Barang)"},
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
     },
   },
@@ -263,6 +274,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
       staf_purchasing: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_lapangan: { allowed: true, level: 'Full Access', badgeTone: 'emerald', notes: 'Input data fisik & upload bukti serah terima' },
+      end_user: {"allowed":true,"level":"Input & Upload","badgeTone":"emerald","notes":"Konfirmasi fisik penerimaan barang & upload bukti"},
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
     },
   },
@@ -278,6 +290,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
       staf_purchasing: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Katalog arsip foto serah terima' },
       staf_ttb: { allowed: true, level: 'Upload & Kelola', badgeTone: 'emerald', notes: 'Upload, view, dan kelola arsip foto TTB' },
       staf_lapangan: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
+      end_user: {"allowed":true,"level":"Read-only","badgeTone":"slate","notes":"Melihat arsip foto serah terima barang"},
       visitor: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
     },
   },
@@ -297,6 +310,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
       staf_purchasing: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Pengecekan stok persediaan' },
       staf_ttb: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Read-only untuk validasi fisik stok' },
       staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
+      end_user: {"allowed":true,"level":"Read-only","badgeTone":"slate","notes":"Pengecekan persediaan stok barang gudang"},
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
     },
   },
@@ -312,6 +326,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
       staf_purchasing: { allowed: true, level: 'Input & Upload', badgeTone: 'emerald', notes: 'Input penerimaan PO supplier & cek stok' },
       staf_ttb: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Pengelolaan penuh stok fisik Pak Budi Somber' },
       staf_lapangan: { allowed: true, level: 'Input & Upload', badgeTone: 'emerald', notes: 'Catat pengambilan keluar & bon barang' },
+      end_user: {"allowed":true,"level":"Input & Upload","badgeTone":"emerald","notes":"Catat pengambilan bon barang gudang armada"},
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
     },
   },
@@ -327,6 +342,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
       staf_purchasing: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_lapangan: { allowed: true, level: 'Update Status', badgeTone: 'sky', notes: 'Update status pekerjaan lapangan' },
+      end_user: {"allowed":true,"level":"Read-only","badgeTone":"slate","notes":"Pemantauan posisi harian armada"},
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
     },
   },
@@ -342,6 +358,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
       staf_purchasing: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_lapangan: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Akses kontak nahkoda / kru' },
+      end_user: {"allowed":true,"level":"Read-only","badgeTone":"slate","notes":"Akses kontak armada & kru"},
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
     },
   },
@@ -357,6 +374,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
       staf_purchasing: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_lapangan: { allowed: true, level: 'Update Status', badgeTone: 'sky', notes: 'Update status pekerjaan lapangan' },
+      end_user: {"allowed":true,"level":"Read-only","badgeTone":"slate","notes":"Monitoring SPK & WO perawatan armada"},
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
     },
   },
@@ -372,6 +390,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
       staf_purchasing: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_lapangan: { allowed: true, level: 'Update Status', badgeTone: 'sky', notes: 'Pantau & update servis kapal' },
+      end_user: {"allowed":true,"level":"Read-only","badgeTone":"slate","notes":"Monitoring Service & Maintenance armada"},
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
     },
   },
@@ -387,6 +406,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
       staf_purchasing: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Laporan sisa layanan pengadaan' },
       staf_ttb: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
       staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
+      end_user: {"allowed":true,"level":"Read-only","badgeTone":"slate","notes":"Laporan pemenuhan sisa layanan FPB armada"},
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
     },
   },
@@ -406,6 +426,7 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
       staf_purchasing: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
+      end_user: {"allowed":false,"level":"Dilarang","badgeTone":"rose","notes":"Menu disembunyikan"},
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
     },
   },
@@ -421,12 +442,13 @@ export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
       staf_purchasing: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu konfigurasi sistem khusus Administrator' },
       staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
       staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
+      end_user: {"allowed":false,"level":"Dilarang","badgeTone":"rose","notes":"Menu konfigurasi sistem khusus Administrator"},
       visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
     },
   },
 ];
 
-export const RBAC_MATRIX_STORAGE_KEY = 'CPG_AUTH_RBAC_MATRIX_V4';
+export const RBAC_MATRIX_STORAGE_KEY = 'CPG_AUTH_RBAC_MATRIX_V5';
 
 /**
  * Membaca matriks perizinan dinamis dari localStorage (fallback ke default matrix)
@@ -440,6 +462,7 @@ export function getStoredPermissionsMatrix(): ModulePermissionItem[] {
     localStorage.removeItem('CPG_AUTH_RBAC_MATRIX');
     localStorage.removeItem('CPG_AUTH_RBAC_MATRIX_V2');
     localStorage.removeItem('CPG_AUTH_RBAC_MATRIX_V3');
+    localStorage.removeItem('CPG_AUTH_RBAC_MATRIX_V4');
 
     const raw = localStorage.getItem(RBAC_MATRIX_STORAGE_KEY);
     if (raw) {
@@ -558,6 +581,26 @@ export function canAccessTab(role: UserRole | undefined, tab: TabType): boolean 
     return allowed.includes(tab);
   }
 
+if (role === 'end_user') {
+    const allowed: TabType[] = [
+      'overview',
+      'review-fpb',
+      'procurement',
+      'armada',
+      'validasi-dokumen',
+      'serah-terima-lapangan',
+      'galeri-ttb',
+      'inventory',
+      'stok-gudang',
+      'pos-kapal',
+      'crew-kapal',
+      'work-order',
+      'list-sm',
+      'sisa-layanan',
+    ];
+    return allowed.includes(tab);
+  }
+
   if (role === 'visitor') {
     return tab === 'overview' || tab === 'galeri-ttb';
   }
@@ -574,6 +617,7 @@ export function canAccessTab(role: UserRole | undefined, tab: TabType): boolean 
  */
 export function getDefaultTabForRole(role: UserRole | undefined): TabType {
   if (role === 'staf_lapangan') return 'serah-terima-lapangan';
+  if (role === 'end_user') return 'serah-terima-lapangan';
   if (role === 'staf_ttb') return 'upload-ttb';
   if (role === 'staf_purchasing') return 'procurement';
   return 'overview';
@@ -596,6 +640,8 @@ export function getRoleDisplayName(role: UserRole | undefined): string {
       return 'Staf Dokumen TTB';
     case 'staf_lapangan':
       return 'Staf Serah Terima Lapangan';
+    case 'end_user':
+      return 'End User / Penerima Barang';
     case 'visitor':
       return 'Visitor (Tamu)';
     case 'user':

@@ -269,6 +269,11 @@ export default function Sidebar({
               <span className="size-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
               <span className="truncate">Staf Lapangan &amp; Serah Terima</span>
             </div>
+          ) : user?.role === 'end_user' ? (
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-300 text-[11px] font-medium">
+              <span className="size-2 rounded-full bg-rose-500 animate-pulse shrink-0" />
+              <span className="truncate">End User &bull; Penerima Barang</span>
+            </div>
           ) : (
             <div className="flex items-center gap-1.5">
               {onOpenNewRecord && (
@@ -632,6 +637,8 @@ export default function Sidebar({
                 ? 'bg-linear-to-tr from-blue-600 to-cyan-600'
                 : user?.role === 'staf_lapangan'
                 ? 'bg-linear-to-tr from-amber-600 to-emerald-600'
+                : user?.role === 'end_user'
+                ? 'bg-linear-to-tr from-rose-600 to-pink-600'
                 : 'bg-linear-to-tr from-sky-500 to-indigo-500'
             }`}
           >
