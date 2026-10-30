@@ -99,6 +99,7 @@ export interface PratenderPackageItem {
   category: string;
   satuan: string;
   totalQty: number;
+  originalQty?: number;
   targetPrice?: number;
   targetTotalPrice?: number;
   notes?: string;

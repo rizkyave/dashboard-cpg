@@ -32,6 +32,9 @@ import {
   ShoppingBag,
   Building2,
   Scale,
+  SlidersHorizontal,
+  RotateCcw,
+  Check,
 } from 'lucide-react';
 import CommercialBidTabulationModal from './CommercialBidTabulationModal';
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
@@ -273,6 +276,14 @@ export default function PratenderTab({
   const [pkgNotes, setPkgNotes] = useState<string>('');
   const [pkgEstimatedBudget, setPkgEstimatedBudget] = useState<string>('');
   const [isSubmittingPkg, setIsSubmittingPkg] = useState<boolean>(false);
+
+  // Penyesuaian kuantitas tender (custom / adjusted quantities)
+  const [customQuantities, setCustomQuantities] = useState<Record<string, number>>({});
+
+  // Inline edit kuantitas pada paket yang sudah ada (Detail Modal)
+  const [isEditingPackageItems, setIsEditingPackageItems] = useState<boolean>(false);
+  const [editPackageItemQtys, setEditPackageItemQtys] = useState<Record<string, number>>({});
+  const [isSavingPackageItems, setIsSavingPackageItems] = useState<boolean>(false);
 
   // Status update modal state
   const [isStatusModalOpen, setIsStatusModalOpen] = useState<boolean>(false);
@@ -529,9 +540,13 @@ export default function PratenderTab({
 
     const selectedItems = openItemsPool.filter((i) => selectedItemIds.has(i.id));
     const catFreq: Record<string, number> = {};
+    const initialQtys: Record<string, number> = {};
     selectedItems.forEach((i) => {
       catFreq[i.category] = (catFreq[i.category] || 0) + 1;
+      initialQtys[i.id] = i.totalQtyRemaining;
     });
+    setCustomQuantities(initialQtys);
+
     const domCat = Object.entries(catFreq).sort((a, b) => b[1] - a[1])[0]?.[0] || 'Suku Cadang Mesin';
 
     setPkgCategory(domCat);
@@ -560,15 +575,22 @@ export default function PratenderTab({
       const randomSeq = String(Math.floor(1000 + Math.random() * 9000));
       const packageNumber = `CPG-TDR-${dateStr}-${randomSeq}`;
 
-      const packageItems: PratenderPackageItem[] = selectedItems.map((item) => ({
-        itemId: item.id,
-        itemName: item.cleanName,
-        category: item.category,
-        satuan: item.satuan,
-        totalQty: item.totalQtyRemaining,
-        vessels: item.vessels,
-        requestFpbs: item.requests.map((r) => r.fpb),
-      }));
+      const packageItems: PratenderPackageItem[] = selectedItems.map((item) => {
+        const adjustedQty =
+          customQuantities[item.id] !== undefined && customQuantities[item.id] > 0
+            ? customQuantities[item.id]
+            : item.totalQtyRemaining;
+        return {
+          itemId: item.id,
+          itemName: item.cleanName,
+          category: item.category,
+          satuan: item.satuan,
+          totalQty: adjustedQty,
+          originalQty: item.totalQtyRemaining,
+          vessels: item.vessels,
+          requestFpbs: item.requests.map((r) => r.fpb),
+        };
+      });
 
       const newPkg: PratenderPackage = {
         id: `pkg-${Date.now()}`,
@@ -608,6 +630,56 @@ export default function PratenderTab({
       showToast?.((err as Error).message || 'Terjadi kesalahan.', 'error');
     } finally {
       setIsSubmittingPkg(false);
+    }
+  };
+
+  // Simpan Penyesuaian Kuantitas Item pada Paket Yang Sudah Ada (Detail Modal)
+  const handleSaveEditedPackageQuantities = async () => {
+    if (!selectedPackage) return;
+    setIsSavingPackageItems(true);
+    try {
+      const updatedItems: PratenderPackageItem[] = selectedPackage.items.map((it) => {
+        const itKey = it.itemId || it.itemName;
+        const newQty =
+          editPackageItemQtys[itKey] !== undefined && editPackageItemQtys[itKey] > 0
+            ? editPackageItemQtys[itKey]
+            : it.totalQty;
+        return {
+          ...it,
+          totalQty: newQty,
+          originalQty: it.originalQty ?? it.totalQty,
+        };
+      });
+
+      const updatedPackage: PratenderPackage = {
+        ...selectedPackage,
+        items: updatedItems,
+      };
+
+      const res = await fetch('/api/pratender', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'SAVE_PACKAGE',
+          package: updatedPackage,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Gagal memperbarui kuantitas paket.');
+      }
+
+      setPackages((prev) =>
+        prev.map((p) => (p.id === updatedPackage.id ? updatedPackage : p))
+      );
+      setSelectedPackage(updatedPackage);
+      setIsEditingPackageItems(false);
+      showToast?.('Kuantitas tender berhasil disesuaikan & diperbarui!', 'success');
+    } catch (err) {
+      showToast?.((err as Error).message || 'Terjadi kesalahan.', 'error');
+    } finally {
+      setIsSavingPackageItems(false);
     }
   };
 
@@ -1208,6 +1280,7 @@ export default function PratenderTab({
                           type="button"
                           onClick={() => {
                             setSelectedPackage(pkg);
+                            setIsEditingPackageItems(false);
                             setIsDetailModalOpen(true);
                           }}
                           className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 transition inline-flex items-center gap-1 cursor-pointer"
@@ -1228,7 +1301,7 @@ export default function PratenderTab({
       {/* MODAL: BENTUK PAKET PRATENDER BARU */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/70 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-card border border-border rounded-3xl w-full max-w-xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
+          <div className="bg-card border border-border rounded-3xl w-full max-w-2xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
             {/* Header */}
             <div className="p-4 sm:p-5 bg-muted/50 border-b border-border flex items-center justify-between">
               <div className="flex items-center gap-2.5">
@@ -1316,31 +1389,100 @@ export default function PratenderTab({
                 />
               </div>
 
-              {/* Rincian Item Terpilih */}
+              {/* Rincian Item Terpilih & Pengaturan Kuantitas Tender */}
               <div>
-                <label className="font-semibold text-foreground block mb-1.5">
-                  Daftar Material Gabungan ({selectedItemIds.size} Item)
-                </label>
-                <div className="border border-border rounded-xl divide-y divide-border/60 max-h-44 overflow-y-auto">
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <label className="font-semibold text-foreground block">
+                      Daftar Material &amp; Penyesuaian Kuantitas Tender ({selectedItemIds.size} Item)
+                    </label>
+                    <p className="text-[11px] text-muted-foreground">
+                      Sesuaikan kuantitas yang akan ditenderkan ke vendor (misal pembulatan kemasan drum/pail, buffer stok, atau tender bertahap).
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const resetMap: Record<string, number> = {};
+                      openItemsPool
+                        .filter((i) => selectedItemIds.has(i.id))
+                        .forEach((i) => {
+                          resetMap[i.id] = i.totalQtyRemaining;
+                        });
+                      setCustomQuantities(resetMap);
+                    }}
+                    className="text-[11px] font-semibold text-purple-600 hover:text-purple-700 dark:text-purple-400 inline-flex items-center gap-1 hover:underline cursor-pointer shrink-0"
+                  >
+                    <RotateCcw className="size-3" />
+                    <span>Reset ke Asli</span>
+                  </button>
+                </div>
+                <div className="border border-border rounded-2xl divide-y divide-border/60 max-h-56 overflow-y-auto bg-muted/20">
                   {openItemsPool
                     .filter((i) => selectedItemIds.has(i.id))
-                    .map((item, idx) => (
-                      <div key={item.id} className="p-2.5 flex items-center justify-between text-xs">
-                        <div className="min-w-0 pr-2">
-                          <span className="font-semibold text-foreground block truncate">
-                            {idx + 1}. {item.cleanName}
-                          </span>
-                          <span className="text-[10px] text-muted-foreground">
-                            Kapal: {item.vessels.join(', ')}
-                          </span>
+                    .map((item, idx) => {
+                      const currentVal = customQuantities[item.id] ?? item.totalQtyRemaining;
+                      const diff = currentVal - item.totalQtyRemaining;
+                      const isModified = Math.abs(diff) > 0.001;
+
+                      return (
+                        <div key={item.id} className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-semibold text-foreground">
+                                {idx + 1}. {item.cleanName}
+                              </span>
+                              <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground font-mono">
+                                {item.category}
+                              </span>
+                            </div>
+                            <div className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-2 flex-wrap">
+                              <span>Kapal: <strong className="text-foreground">{item.vessels.join(', ')}</strong></span>
+                              <span>•</span>
+                              <span>Kebutuhan Asli FPB: <strong className="font-mono text-foreground">{item.totalQtyRemaining} {item.satuan}</strong></span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0 justify-end">
+                            <div className="flex flex-col items-end">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[10px] font-medium text-muted-foreground">Qty Tender:</span>
+                                <input
+                                  type="number"
+                                  min="0.1"
+                                  step="any"
+                                  value={currentVal}
+                                  onChange={(e) => {
+                                    const val = parseFloat(e.target.value) || 0;
+                                    setCustomQuantities((prev) => ({
+                                      ...prev,
+                                      [item.id]: val,
+                                    }));
+                                  }}
+                                  className="w-24 h-8 px-2.5 text-right font-mono font-bold text-xs rounded-xl border border-purple-500/40 bg-background text-foreground focus:ring-2 focus:ring-purple-500/30 focus:border-purple-600 focus:outline-none"
+                                />
+                                <span className="font-mono font-bold text-xs text-purple-600 dark:text-purple-400 min-w-8">
+                                  {item.satuan}
+                                </span>
+                              </div>
+                              {isModified && (
+                                <div className="text-[10px] mt-0.5 font-mono font-bold flex items-center gap-1">
+                                  {diff > 0 ? (
+                                    <span className="text-amber-600 dark:text-amber-400">
+                                      +{diff.toFixed(1).replace(/\.0$/, '')} {item.satuan} (Naik/Buffer)
+                                    </span>
+                                  ) : (
+                                    <span className="text-blue-600 dark:text-blue-400">
+                                      {diff.toFixed(1).replace(/\.0$/, '')} {item.satuan} (Turun/Parsial)
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-right shrink-0">
-                          <span className="font-mono font-bold text-foreground">
-                            {item.totalQtyRemaining} {item.satuan}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                 </div>
               </div>
             </div>
@@ -1426,34 +1568,123 @@ export default function PratenderTab({
                 </div>
               )}
 
-              {/* Rincian Material */}
+              {/* Rincian Material & Penyesuaian Kuantitas */}
               <div>
-                <h4 className="font-bold text-foreground mb-1.5">
-                  Daftar Kebutuhan Material Dalam Paket ({selectedPackage.items.length} Item)
-                </h4>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                  <div>
+                    <h4 className="font-bold text-foreground">
+                      Daftar Material Dalam Paket ({selectedPackage.items.length} Item)
+                    </h4>
+                    <p className="text-[11px] text-muted-foreground">
+                      Kuantitas tender yang disesuaikan untuk permintaan penawaran vendor (RFQ).
+                    </p>
+                  </div>
+                  {selectedPackage.status !== 'COMPLETED' && selectedPackage.status !== 'CANCELLED' && (
+                    <div>
+                      {isEditingPackageItems ? (
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setIsEditingPackageItems(false)}
+                            className="px-2.5 py-1 rounded-lg border border-border bg-background hover:bg-muted text-xs font-semibold cursor-pointer"
+                          >
+                            Batal
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleSaveEditedPackageQuantities}
+                            disabled={isSavingPackageItems}
+                            className="px-3 py-1 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold inline-flex items-center gap-1 cursor-pointer shadow-xs disabled:opacity-50"
+                          >
+                            <Check className="size-3" />
+                            <span>{isSavingPackageItems ? 'Menyimpan...' : 'Simpan Kuantitas'}</span>
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const map: Record<string, number> = {};
+                            selectedPackage.items.forEach((it) => {
+                              map[it.itemId || it.itemName] = it.totalQty;
+                            });
+                            setEditPackageItemQtys(map);
+                            setIsEditingPackageItems(true);
+                          }}
+                          className="px-2.5 py-1 rounded-lg border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 text-xs font-semibold inline-flex items-center gap-1 transition cursor-pointer"
+                        >
+                          <SlidersHorizontal className="size-3" />
+                          <span>Adjust Kuantitas Tender</span>
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
                 <div className="border border-border rounded-xl overflow-hidden">
                   <table className="w-full text-left text-xs">
                     <thead className="bg-muted/70 text-muted-foreground uppercase text-[10px]">
                       <tr>
                         <th className="py-2 px-3">No</th>
                         <th className="py-2 px-3">Nama Material &amp; Spesifikasi</th>
-                        <th className="py-2 px-3 text-right">Total Kuantitas</th>
+                        <th className="py-2 px-3 text-right">Kuantitas Tender</th>
+                        <th className="py-2 px-3 text-right">Asli FPB</th>
                         <th className="py-2 px-3">Kapal Peminta</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/60">
-                      {selectedPackage.items.map((it, idx) => (
-                        <tr key={idx} className="hover:bg-muted/30">
-                          <td className="py-2.5 px-3 font-mono">{idx + 1}</td>
-                          <td className="py-2.5 px-3 font-medium text-foreground">{it.itemName}</td>
-                          <td className="py-2.5 px-3 text-right font-mono font-bold">
-                            {it.totalQty} {it.satuan}
-                          </td>
-                          <td className="py-2.5 px-3 text-[11px] text-muted-foreground">
-                            {it.vessels.join(', ')}
-                          </td>
-                        </tr>
-                      ))}
+                      {selectedPackage.items.map((it, idx) => {
+                        const itKey = it.itemId || it.itemName;
+                        const currentQty = editPackageItemQtys[itKey] ?? it.totalQty;
+                        const origQty = it.originalQty ?? it.totalQty;
+                        const hasDiff = Math.abs(currentQty - origQty) > 0.001;
+
+                        return (
+                          <tr key={idx} className="hover:bg-muted/30">
+                            <td className="py-2.5 px-3 font-mono">{idx + 1}</td>
+                            <td className="py-2.5 px-3 font-medium text-foreground">{it.itemName}</td>
+                            <td className="py-2.5 px-3 text-right font-mono font-bold">
+                              {isEditingPackageItems ? (
+                                <div className="flex items-center justify-end gap-1">
+                                  <input
+                                    type="number"
+                                    min="0.1"
+                                    step="any"
+                                    value={currentQty}
+                                    onChange={(e) => {
+                                      const val = parseFloat(e.target.value) || 0;
+                                      setEditPackageItemQtys((prev) => ({
+                                        ...prev,
+                                        [itKey]: val,
+                                      }));
+                                    }}
+                                    className="w-20 h-7 px-2 text-right font-mono font-bold text-xs rounded-md border border-purple-500 bg-background text-foreground focus:ring-1 focus:ring-purple-500 focus:outline-none"
+                                  />
+                                  <span className="text-[11px] text-purple-600">{it.satuan}</span>
+                                </div>
+                              ) : (
+                                <div className="flex flex-col items-end">
+                                  <span className="text-purple-600 dark:text-purple-400">
+                                    {it.totalQty} {it.satuan}
+                                  </span>
+                                  {hasDiff && (
+                                    <span className="text-[9px] font-mono font-bold text-amber-600">
+                                      {it.totalQty > origQty
+                                        ? `+${(it.totalQty - origQty).toFixed(1).replace(/\.0$/, '')}`
+                                        : `${(it.totalQty - origQty).toFixed(1).replace(/\.0$/, '')}`}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </td>
+                            <td className="py-2.5 px-3 text-right font-mono text-muted-foreground text-[11px]">
+                              {origQty} {it.satuan}
+                            </td>
+                            <td className="py-2.5 px-3 text-[11px] text-muted-foreground">
+                              {it.vessels.join(', ')}
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>

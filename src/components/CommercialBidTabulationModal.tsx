@@ -715,7 +715,12 @@ PT. Cipta Sarana Transindo - CPG Group
                                 {it.itemName}
                               </td>
                               <td className="py-2 px-3 text-center font-mono">
-                                {it.totalQty} {it.satuan}
+                                <div>{it.totalQty} {it.satuan}</div>
+                                {it.originalQty !== undefined && Math.abs(it.totalQty - it.originalQty) > 0.001 && (
+                                  <div className="text-[9px] font-normal text-muted-foreground font-sans">
+                                    (FPB: {it.originalQty})
+                                  </div>
+                                )}
                               </td>
                               <td className="py-2 px-3">
                                 <input
@@ -875,7 +880,12 @@ PT. Cipta Sarana Transindo - CPG Group
                                 </div>
                               </td>
                               <td className="py-2.5 px-3 text-center font-mono font-bold border-r border-border">
-                                {it.totalQty} {it.satuan}
+                                <div>{it.totalQty} {it.satuan}</div>
+                                {it.originalQty !== undefined && Math.abs(it.totalQty - it.originalQty) > 0.001 && (
+                                  <div className="text-[9px] font-normal text-muted-foreground font-sans">
+                                    (FPB: {it.originalQty})
+                                  </div>
+                                )}
                               </td>
 
                               {/* Nilai Harga Satuan Tiap Vendor */}
