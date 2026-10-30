@@ -3,9 +3,6 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { getPhotosDir } from '@/utils/ttbPhotosDir';
 import { getObjectFromR2, isR2Configured } from '@/utils/r2Client';
-import rawHistory from '@/data/ttb-uploads-history.json';
-import { stampTtbPdf, formatTtbStampDate } from '@/utils/ttbStamper';
-import { getSignatureForUploader } from '@/utils/uploaderSignatures';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -19,39 +16,6 @@ const MIME_TYPES: Record<string, string> = {
   '.pdf': 'application/pdf',
 };
 
-
-async function ensureTtbPdfStamped(
-  pdfBuffer: Buffer,
-  filename: string
-): Promise<Buffer> {
-  try {
-    const isTtbDoc = filename.toUpperCase().includes('TTB');
-    if (!isTtbDoc) return pdfBuffer;
-
-    const historyItem = (rawHistory as any[]).find(
-      (h) => h.renamedFileName === filename || (h.noTtb && filename.toUpperCase().includes(h.noTtb.toUpperCase()))
-    );
-
-    const uploader = historyItem?.uploaderUsername || historyItem?.uploaderName;
-    const sig = getSignatureForUploader(uploader || 'fifi');
-    if (!sig) return pdfBuffer;
-
-    const uploaderDisplayName = historyItem?.uploaderName || 'NURUL HAFIFAH ALIM';
-    const stampDate = historyItem?.receivedDate
-      ? formatTtbStampDate(historyItem.receivedDate)
-      : formatTtbStampDate(new Date().toISOString().slice(0, 10));
-
-    return await stampTtbPdf({
-      pdfBuffer,
-      signatureDataUrl: sig,
-      uploaderName: uploaderDisplayName,
-      uploadDate: stampDate,
-    });
-  } catch (err) {
-    console.warn('Gagal memastikan stempel TTB pada berkas PDF:', err);
-    return pdfBuffer;
-  }
-}
 
 // GET /api/upload-ttb/file?name=<renamedFileName>&download=true
 export async function GET(req: NextRequest) {
@@ -85,9 +49,8 @@ export async function GET(req: NextRequest) {
       headers['Content-Disposition'] = `inline; filename="${encodeURIComponent(name)}"`;
     }
 
-    const stampedBytes = ext === '.pdf' ? await ensureTtbPdfStamped(data, name) : data;
-    headers['Content-Length'] = String(stampedBytes.length);
-    return new NextResponse(new Uint8Array(stampedBytes), { headers });
+    headers['Content-Length'] = String(data.length);
+    return new NextResponse(new Uint8Array(data), { headers });
   } catch {
     // 2. Jika tidak ada di lokal, coba ambil dari Cloudflare R2
     if (isR2Configured()) {
@@ -114,9 +77,9 @@ export async function GET(req: NextRequest) {
             headers['Content-Disposition'] = `inline; filename="${encodeURIComponent(name)}"`;
           }
 
-          const stampedBytes = ext === '.pdf' ? await ensureTtbPdfStamped(Buffer.from(r2Object.body), name) : Buffer.from(r2Object.body);
-          headers['Content-Length'] = String(stampedBytes.length);
-          return new NextResponse(new Uint8Array(stampedBytes), { headers });
+          const fileBytes = Buffer.from(r2Object.body);
+          headers['Content-Length'] = String(fileBytes.length);
+          return new NextResponse(new Uint8Array(fileBytes), { headers });
         }
       } catch (r2Err) {
         console.warn('Gagal membaca berkas dari Cloudflare R2:', r2Err);

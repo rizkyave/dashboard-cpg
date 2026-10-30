@@ -291,6 +291,16 @@ export async function stampTtbPdf(options: StampTtbOptions): Promise<Buffer> {
       const nameY = nameYRatio * pageHeight;
       const nameFontSize = cleanName.length > 20 ? 6.5 : cleanName.length > 15 ? 7 : 7.5;
 
+      // Bersihkan area teks nama terlebih dahulu agar teks tidak bertumpuk jika ada teks sebelumnya
+      targetPage.drawRectangle({
+        x: nameX - 1,
+        y: nameY - 2,
+        width: 125,
+        height: nameFontSize + 4,
+        color: rgb(1, 1, 1),
+        borderWidth: 0,
+      });
+
       targetPage.drawText(cleanName, {
         x: nameX,
         y: nameY,
@@ -305,6 +315,16 @@ export async function stampTtbPdf(options: StampTtbOptions): Promise<Buffer> {
       const cleanDate = uploadDate.trim();
       const dateX = dateXRatio * pageWidth;
       const dateY = dateYRatio * pageHeight;
+
+      // Bersihkan area teks tanggal
+      targetPage.drawRectangle({
+        x: dateX - 1,
+        y: dateY - 2,
+        width: 80,
+        height: 11,
+        color: rgb(1, 1, 1),
+        borderWidth: 0,
+      });
 
       targetPage.drawText(cleanDate, {
         x: dateX,

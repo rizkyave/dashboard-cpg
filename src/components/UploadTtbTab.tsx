@@ -191,22 +191,26 @@ export default function UploadTtbTab({
   const [userSignaturePng, setUserSignaturePng] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user?.name && !uploaderName) {
+    if (user?.name) {
       if (user.username === 'nurul.hafifah' || user.name.toUpperCase().includes('HAFIFAH')) {
         setUploaderName('FIFI');
+      } else if (user.username === 'idham.khalid' || user.name.toUpperCase().includes('IDHAM')) {
+        setUploaderName('IDHAM KHALID');
+      } else if (user.username === 'davila.zalianti' || user.name.toUpperCase().includes('DAVILA')) {
+        setUploaderName('DAVILA');
       } else {
         setUploaderName(user.name);
       }
     }
-  }, [user?.name, user?.username, uploaderName]);
+  }, [user?.name, user?.username]);
 
     useEffect(() => {
+    const fallbackSig = getSignatureForUploader(uploaderName || user?.username || user?.name);
     if (user?.signature?.signatureDataUrl) {
       convertSvgToPngDataUrl(user.signature.signatureDataUrl).then((sig) => {
-        setUserSignaturePng(sig || getSignatureForUploader(uploaderName || user?.username || user?.name));
+        setUserSignaturePng(sig || fallbackSig);
       });
     } else {
-      const fallbackSig = getSignatureForUploader(uploaderName || user?.username || user?.name);
       setUserSignaturePng(fallbackSig);
     }
   }, [user?.signature?.signatureDataUrl, uploaderName, user?.username, user?.name]);
@@ -589,15 +593,16 @@ export default function UploadTtbTab({
         formData.append('files', fileToUpload);
 
         const currentUploader = uploaderName.trim() || user?.name || 'Administrator CPG';
+        const currentUsername = user?.username || (currentUploader.toUpperCase().includes('IDHAM') ? 'idham.khalid' : currentUploader.toUpperCase().includes('DAVILA') ? 'davila.zalianti' : currentUploader.toUpperCase().includes('FIFI') || currentUploader.toUpperCase().includes('HAFIFAH') ? 'nurul.hafifah' : '');
         formData.append('uploaderName', currentUploader);
-        if (user?.username) formData.append('uploaderUsername', user.username);
+        if (currentUsername) formData.append('uploaderUsername', currentUsername);
         if (user?.role) formData.append('uploaderRole', user.role);
         if (user?.nik) formData.append('uploaderNik', user.nik);
         if (user?.jabatan) formData.append('uploaderJabatan', user.jabatan);
 
         formData.append('autoStamp', enableAutoStamp ? 'true' : 'false');
-                if (enableAutoStamp) {
-          const effectiveSig = userSignaturePng || getSignatureForUploader(uploaderName || user?.username || user?.name);
+        if (enableAutoStamp) {
+          const effectiveSig = userSignaturePng || getSignatureForUploader(currentUsername) || getSignatureForUploader(currentUploader);
           if (effectiveSig) formData.append('signatureDataUrl', effectiveSig);
           formData.append('stampDate', formatTtbStampDate(batchReceivedDate));
         }
