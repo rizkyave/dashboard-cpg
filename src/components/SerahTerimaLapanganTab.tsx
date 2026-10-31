@@ -1699,7 +1699,7 @@ export default function SerahTerimaLapanganTab({
 
                     {/* List Kolom (Tabel Daftar TTB Terbit - Ramah Penglihatan / Font Besar) */}
                     <div className="rounded-2xl border-2 border-border bg-card overflow-hidden shadow-sm">
-                      <div className="max-h-[460px] overflow-y-auto overflow-x-auto">
+                      <div className="table-container max-h-[460px] overflow-y-auto overflow-x-auto">
                         <table className="w-full text-left text-sm border-collapse">
                           <thead className="bg-muted/90 backdrop-blur sticky top-0 z-10 text-foreground font-black border-b-2 border-border uppercase text-xs tracking-wider">
                             <tr>
@@ -1707,7 +1707,6 @@ export default function SerahTerimaLapanganTab({
                               <th className="py-3.5 px-4 whitespace-nowrap">Nomor TTB Resmi</th>
                               <th className="py-3.5 px-4 whitespace-nowrap">Armada / Unit</th>
                               <th className="py-3.5 px-4 min-w-[220px]">Rincian Item Barang</th>
-                              <th className="py-3.5 px-4 whitespace-nowrap">No. FPB / PO</th>
                               <th className="py-3.5 px-4 whitespace-nowrap">Otorisasi Manager &amp; Logistik</th>
                               <th className="py-3.5 px-4 whitespace-nowrap">Status TTD Digital Armada</th>
                               <th className="py-3.5 px-4 text-right whitespace-nowrap">Aksi</th>
@@ -1716,7 +1715,7 @@ export default function SerahTerimaLapanganTab({
                           <tbody className="divide-y divide-border/80">
                             {filteredTtbOptions.length === 0 ? (
                               <tr>
-                                <td colSpan={8} className="py-12 text-center text-sm text-muted-foreground">
+                                <td colSpan={7} className="py-12 text-center text-sm text-muted-foreground">
                                   {isLoadingHistory ? (
                                     <div className="flex flex-col items-center justify-center gap-2.5">
                                       <RefreshCw className="size-6 text-indigo-500 animate-spin" />
@@ -1849,13 +1848,6 @@ export default function SerahTerimaLapanganTab({
                                     <p className="text-xs sm:text-sm text-foreground/90 font-medium line-clamp-2 leading-relaxed" title={opt.itemSummary}>
                                       {opt.itemSummary}
                                     </p>
-                                  </td>
-
-                                  {/* No. FPB / PO */}
-                                  <td className="py-3.5 px-4 whitespace-nowrap font-mono text-xs sm:text-sm text-muted-foreground">
-                                    {opt.noFpb && <div className="font-semibold text-foreground/80">FPB: {opt.noFpb}</div>}
-                                    {opt.noPo && <div className="text-foreground font-bold">PO: {opt.noPo}</div>}
-                                    {!opt.noFpb && !opt.noPo && <span>-</span>}
                                   </td>
 
                                   {/* Otorisasi Manager & Logistik */}
