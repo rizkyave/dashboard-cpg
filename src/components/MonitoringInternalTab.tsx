@@ -44,6 +44,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { ProcurementItem } from '@/types/procurement';
+import StockTaliSubTab from './StockTaliSubTab';
 
 // ============================================================
 // InlineDatePicker: Mini Calendar Popover (Bulan Berjalan)
@@ -417,6 +418,9 @@ export default function MonitoringInternalTab({
   }, [items]);
 
   // Mode Tampilan Kolom (Lengkap atau per Seksi)
+  // Sub-Tab View: Master (40 kolom) vs Mutasi Stock Tali
+  const [internalViewTab, setInternalViewTab] = useState<'MASTER' | 'STOCK_TALI'>('MASTER');
+
   const [columnSection, setColumnSection] = useState<'ALL' | 'PCH' | 'LOG' | 'ADM'>('ALL');
 
   // Filter states
@@ -1447,8 +1451,57 @@ export default function MonitoringInternalTab({
   return (
     <div className="space-y-6 animate-in fade-in-50 duration-200">
       {/* ======================================================== */}
-      {/* 1. Header Hub & Action Bar                                */}
+      {/* 0. Sub-Tab Switcher: Master 40 Kolom vs Mutasi Stock Tali*/}
       {/* ======================================================== */}
+      <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-2xl bg-card border border-border shadow-xs">
+        <div className="flex flex-wrap items-center gap-1.5 p-1 bg-muted/60 rounded-xl border border-border/80">
+          <button
+            type="button"
+            onClick={() => setInternalViewTab('MASTER')}
+            className={`inline-flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+              internalViewTab === 'MASTER'
+                ? 'bg-card text-foreground shadow-xs border border-border font-bold'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
+            }`}
+          >
+            <FileSpreadsheet className="size-4 text-emerald-500" />
+            <span>Berkas Internal Utama (Master 40 Kolom)</span>
+            <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+              {localItems.length.toLocaleString('id-ID')}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setInternalViewTab('STOCK_TALI')}
+            className={`inline-flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+              internalViewTab === 'STOCK_TALI'
+                ? 'bg-card text-foreground shadow-xs border border-border font-bold'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
+            }`}
+          >
+            <Package className="size-4 text-purple-500" />
+            <span>Mutasi Stock Tali &amp; Gudang (Sheet GID: 2021352613)</span>
+            <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/10 text-purple-600 dark:text-purple-400">
+              58 Mutasi
+            </span>
+            <span className="size-2 rounded-full bg-emerald-500 animate-pulse" title="Terhubung Google Sheets GID 2021352613" />
+          </button>
+        </div>
+
+        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-muted/30 text-[11px] text-muted-foreground">
+          <span className="size-2 rounded-full bg-emerald-500" />
+          <span>Sumber: <strong>{internalViewTab === 'MASTER' ? 'Sheet Pengadaan Master' : 'Google Sheets (GID: 2021352613)'}</strong></span>
+        </div>
+      </div>
+
+      {internalViewTab === 'STOCK_TALI' ? (
+        <StockTaliSubTab showToast={showToast} />
+      ) : (
+        <>
+          {/* ======================================================== */}
+          {/* 1. Header Hub & Action Bar                                */}
+          {/* ======================================================== */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-2xl bg-card border border-border shadow-xs">
         <div>
           <div className="flex items-center gap-2.5">
@@ -4071,6 +4124,8 @@ export default function MonitoringInternalTab({
             </div>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );
