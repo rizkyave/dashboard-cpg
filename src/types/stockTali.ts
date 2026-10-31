@@ -1,4 +1,5 @@
 export interface StockTaliItem {
+  id?: string;
   no: string;
   pt: string;
   deptArmada: string;
@@ -17,6 +18,11 @@ export interface StockTaliItem {
   tglTtbKePicPch: string;
   keteranganPch: string;
   lapseDay3: string;
+}
+
+export interface StockTaliWebhookConfig {
+  webhookUrl: string;
+  updatedAt: string;
 }
 
 export interface StockTaliSummary {

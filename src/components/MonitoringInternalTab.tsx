@@ -45,6 +45,7 @@ import {
 } from 'lucide-react';
 import { ProcurementItem } from '@/types/procurement';
 import StockTaliSubTab from './StockTaliSubTab';
+import initialStockTaliData from '@/data/stock-tali-data.json';
 
 // ============================================================
 // InlineDatePicker: Mini Calendar Popover (Bulan Berjalan)
@@ -420,6 +421,18 @@ export default function MonitoringInternalTab({
   // Mode Tampilan Kolom (Lengkap atau per Seksi)
   // Sub-Tab View: Master (40 kolom) vs Mutasi Stock Tali
   const [internalViewTab, setInternalViewTab] = useState<'MASTER' | 'STOCK_TALI'>('MASTER');
+  const [stockTaliCount, setStockTaliCount] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('cpg_stock_tali_items');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed.length;
+        }
+      } catch {}
+    }
+    return (initialStockTaliData.items?.length) || 58;
+  });
 
   const [columnSection, setColumnSection] = useState<'ALL' | 'PCH' | 'LOG' | 'ADM'>('ALL');
 
@@ -1483,7 +1496,7 @@ export default function MonitoringInternalTab({
             <Package className="size-4 text-purple-500" />
             <span>Mutasi Stock Tali &amp; Gudang (Sheet GID: 2021352613)</span>
             <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/10 text-purple-600 dark:text-purple-400">
-              58 Mutasi
+              {stockTaliCount} Mutasi
             </span>
             <span className="size-2 rounded-full bg-emerald-500 animate-pulse" title="Terhubung Google Sheets GID 2021352613" />
           </button>
@@ -1496,7 +1509,7 @@ export default function MonitoringInternalTab({
       </div>
 
       {internalViewTab === 'STOCK_TALI' ? (
-        <StockTaliSubTab showToast={showToast} />
+        <StockTaliSubTab showToast={showToast} onCountChange={(c) => setStockTaliCount(c)} />
       ) : (
         <>
           {/* ======================================================== */}
