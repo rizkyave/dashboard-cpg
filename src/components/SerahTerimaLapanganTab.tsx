@@ -1706,7 +1706,7 @@ export default function SerahTerimaLapanganTab({
                               <th className="py-4 px-4.5 whitespace-nowrap">Tgl Terbit TTB</th>
                               <th className="py-4 px-4.5 whitespace-nowrap">Nomor TTB Resmi</th>
                               <th className="py-4 px-4.5 whitespace-nowrap">Armada / Unit</th>
-                              <th className="py-4 px-4.5 whitespace-nowrap">Otorisasi Manager &amp; Logistik</th>
+                              <th className="py-4 px-4.5 whitespace-nowrap">Status Logistik</th>
                               <th className="py-4 px-4.5 whitespace-nowrap">Status TTD Digital Armada</th>
                               <th className="py-4 px-4.5 text-right whitespace-nowrap">Aksi</th>
                             </tr>
@@ -1842,7 +1842,7 @@ export default function SerahTerimaLapanganTab({
                                     </span>
                                   </td>
 
-                                  {/* Otorisasi Manager & Logistik */}
+                                  {/* Status Logistik */}
                                   <td className="py-4 px-4.5 whitespace-nowrap">
                                     {opt.isRecipientSigned ? (
                                       <div className="space-y-1">
