@@ -36,6 +36,7 @@ import FstbMediaModal from './FstbMediaModal';
 import OperationalUpdateModal from './OperationalUpdateModal';
 import { getOperationalOverride, OperationalOverride } from '@/utils/operationalProgressStorage';
 import { extractFstbLast5, openTimemarkWithFstb, parseTtbList } from '@/utils/timemark';
+import { extractDocPrefix } from '@/utils/docRelationResolver';
 import { updatePdfItemsCacheForFpb, loadPdfItemsCache, loadStoredWorkOrder, loadStoredKapalPosisi } from '@/utils/appStorage';
 import { formatDateDdMmYy, extractDateInfo } from '@/utils/formatDate';
 import { cleanSingleDescription, deduplicateDescriptions, cleanTujuanPeruntukan } from '@/utils/descriptionCleaner';
@@ -843,6 +844,25 @@ export default function AuditModal({
   );
   const hasValidTglTtb = Boolean(activeTglTtb && activeTglTtb !== '-' && activeTglTtb.trim() !== '');
   const isLogistikTtbFilled = hasValidTtbDoc || hasValidTglTtb || Boolean(operationalOverride?.isCompleted);
+
+  // Deteksi anomali mismatch prefix entitas (misal FPB/PO adalah MOI tapi No TTB diinput MIL dari sheet master)
+  const currentEntityPrefix = (
+    primaryDocNum?.match(/^([A-Z]{2,6})[-_/\\s]/i)?.[1] ||
+    activePo?.match(/^([A-Z]{2,6})[-_/\\s]/i)?.[1] ||
+    itemS1?.entity ||
+    itemsS2[0]?.entity ||
+    ''
+  ).toUpperCase();
+
+  const primaryTtb = parsedTtbList[0] || activeTtb || '';
+  const ttbEntityPrefix = extractDocPrefix(primaryTtb);
+  const isTtbEntityMismatch = Boolean(
+    currentEntityPrefix &&
+    ttbEntityPrefix &&
+    currentEntityPrefix !== ttbEntityPrefix &&
+    !(currentEntityPrefix === 'MO' && ttbEntityPrefix === 'MOI') &&
+    !(currentEntityPrefix === 'MOI' && ttbEntityPrefix === 'MO')
+  );
 
   // PIC Purchasing (Kotak 2) & FSTB (Kotak 3): dikerjakan oleh orang yang sama (staf Purchasing / Pembuat PO)
   const activePicPch =
@@ -2668,12 +2688,25 @@ export default function AuditModal({
                       {isJasaOnly ? 'No. BAST/TTB:' : 'No. TTB:'}
                     </span>
                     {parsedTtbList.length > 0 || (activeTtb && activeTtb !== '-' && activeTtb !== '(kosong)') ? (
-                      <span
-                        className="font-semibold text-foreground font-mono truncate text-right ml-1.5 min-w-0"
-                        title={parsedTtbList.length > 0 ? parsedTtbList.join(', ') : activeTtb}
-                      >
-                        {parsedTtbList.length > 0 ? parsedTtbList.join(', ') : activeTtb}
-                      </span>
+                      <div className="flex items-center justify-end gap-1 ml-1.5 min-w-0">
+                        {isTtbEntityMismatch && (
+                          <span
+                            className="inline-flex items-center gap-0.5 text-[8.5px] px-1 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 font-semibold shrink-0 cursor-help"
+                            title={`Peringatan Mismatch Entitas: Dokumen transaksi adalah ${currentEntityPrefix}, namun No. TTB tercatat ${primaryTtb} (${ttbEntityPrefix}). Ini terjadi akibat kesalahan ketik (typo) prefix entitas pada sheet master monitoring internal.`}
+                          >
+                            <AlertTriangle className="size-2.5 text-amber-500 shrink-0" />
+                            {ttbEntityPrefix} &ne; {currentEntityPrefix}
+                          </span>
+                        )}
+                        <span
+                          className={`font-semibold font-mono truncate text-right min-w-0 ${
+                            isTtbEntityMismatch ? 'text-amber-600 dark:text-amber-400 font-bold' : 'text-foreground'
+                          }`}
+                          title={parsedTtbList.length > 0 ? parsedTtbList.join(', ') : activeTtb}
+                        >
+                          {parsedTtbList.length > 0 ? parsedTtbList.join(', ') : activeTtb}
+                        </span>
+                      </div>
                     ) : (
                       <span className="text-muted-foreground/60 font-mono text-[10px] italic text-right ml-1.5 shrink-0">
                         Belum Terbit
@@ -2713,6 +2746,16 @@ export default function AuditModal({
                       </span>
                     )}
                   </div>
+                  {isTtbEntityMismatch && (
+                    <div className="mt-2 p-1.5 rounded-md bg-amber-500/10 border border-amber-500/25 flex items-start gap-1 text-[9.5px] text-amber-800 dark:text-amber-300 leading-snug">
+                      <AlertTriangle className="size-3 text-amber-500 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="font-semibold">Indikasi Typo Sheet:</span> No. TTB tercatat{' '}
+                        <span className="font-mono font-bold text-amber-900 dark:text-amber-200">{primaryTtb}</span> ({ttbEntityPrefix}), seharusnya ber-prefix{' '}
+                        <span className="font-mono font-bold text-amber-900 dark:text-amber-200">{currentEntityPrefix}</span>.
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="pt-2 border-t border-border min-w-0">
