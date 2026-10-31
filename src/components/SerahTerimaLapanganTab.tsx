@@ -1212,13 +1212,23 @@ export default function SerahTerimaLapanganTab({
       return;
     }
 
-    if (!penerimaNama.trim()) {
-      showToast?.('Nama penerima barang di lapangan (end user) wajib diisi.', 'warning');
-      return;
-    }
-
-    if (queuedPhotos.length === 0) {
-      showToast?.('Harap ambil atau unggah minimal 1 foto bukti penyerahan barang.', 'warning');
+    if (!isFormReadyToSubmit) {
+      if (!isStep1Fulfilled) {
+        showToast?.('Prosedur 1 belum lengkap: Nomor TTB referensi wajib dipilih atau diisi.', 'warning');
+        return;
+      }
+      if (!isStep2PenerimaNamaFilled) {
+        showToast?.('Prosedur 2 belum lengkap: Nama penerima barang di lapangan (end user) wajib diisi.', 'warning');
+        return;
+      }
+      if (!isStep2SignatureFilled) {
+        showToast?.('Prosedur 2 belum lengkap: Tanda tangan digital penerima barang wajib digoreskan pada canvas atau diunggah.', 'warning');
+        return;
+      }
+      if (!isStep3Fulfilled) {
+        showToast?.('Prosedur 3 belum lengkap: Harap ambil atau unggah minimal 1 foto bukti penyerahan barang.', 'warning');
+        return;
+      }
       return;
     }
 
@@ -1376,6 +1386,16 @@ export default function SerahTerimaLapanganTab({
     const ss = String(d.getSeconds()).padStart(2, '0');
     return `${targetArmada.toUpperCase()} ${targetNoTtb.toUpperCase()} ${yyyy}-${mm}-${dd} at ${hh}.${min}.${ss}.jpeg`;
   }, [selectedTtbRef, isManualTtb, manualNoTtb, manualArmada]);
+
+  // Evaluasi Kelengkapan Interaktif Prosedur 1, 2, dan 3 untuk Penguncian Tombol Kirim
+  const activeNoTtb = isManualTtb ? manualNoTtb.trim() : (selectedTtbRef?.noTtb || '').trim();
+  const isStep1Fulfilled = Boolean(activeNoTtb);
+  const isStep2PenerimaNamaFilled = Boolean(penerimaNama.trim());
+  const isStep2PetugasNamaFilled = Boolean(petugasNama.trim());
+  const isStep2SignatureFilled = hasDrawnSig || Boolean(sigDataUrl);
+  const isStep2Fulfilled = isStep2PenerimaNamaFilled && isStep2PetugasNamaFilled && isStep2SignatureFilled;
+  const isStep3Fulfilled = queuedPhotos.length > 0;
+  const isFormReadyToSubmit = isStep1Fulfilled && isStep2Fulfilled && isStep3Fulfilled;
 
   return (
     <div
@@ -2249,18 +2269,32 @@ export default function SerahTerimaLapanganTab({
 
           {/* STEP 2: DATA SERAH TERIMA & END USER */}
           <div className="bg-card border-2 border-border rounded-3xl p-6 sm:p-7 shadow-xs space-y-5">
-            <div className="flex items-center gap-3 border-b border-border pb-4">
-              <div className="size-9 sm:size-10 rounded-2xl bg-cyan-500/20 border-2 border-cyan-500/40 flex items-center justify-center text-cyan-600 dark:text-cyan-400 font-black text-sm sm:text-base shadow-xs">
-                2
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-4">
+              <div className="flex items-center gap-3">
+                <div className="size-9 sm:size-10 rounded-2xl bg-cyan-500/20 border-2 border-cyan-500/40 flex items-center justify-center text-cyan-600 dark:text-cyan-400 font-black text-sm sm:text-base shadow-xs">
+                  2
+                </div>
+                <div>
+                  <h2 className="text-base sm:text-lg lg:text-xl font-black text-foreground">
+                    Informasi Petugas Pengantar &amp; Penerima End User
+                  </h2>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                    Identitas petugas lapangan yang mengantar dan personel end-user penerima barang di armada kapal
+                  </p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-base sm:text-lg lg:text-xl font-black text-foreground">
-                  Informasi Petugas Pengantar &amp; Penerima End User
-                </h2>
-                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                  Identitas petugas lapangan yang mengantar dan personel end-user penerima barang di armada kapal
-                </p>
-              </div>
+
+              {isStep2Fulfilled ? (
+                <span className="text-xs sm:text-sm font-mono font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/15 px-3 py-1.5 rounded-xl border border-emerald-500/30 shadow-2xs flex items-center gap-1.5 self-start sm:self-auto">
+                  <Check className="size-3.5" />
+                  <span>Prosedur 2 Terpenuhi</span>
+                </span>
+              ) : (
+                <span className="text-xs sm:text-sm font-mono font-bold text-amber-700 dark:text-amber-400 bg-amber-500/10 px-3 py-1.5 rounded-xl border border-amber-500/20 shadow-2xs flex items-center gap-1.5 self-start sm:self-auto">
+                  <Lock className="size-3.5" />
+                  <span>Wajib: Penerima &amp; TTD</span>
+                </span>
+              )}
             </div>
 
             {/* 2-Column Responsive Layout: Kolom Isian di Kiri (Menurun) & Tanda Tangan Lebih Besar di Kanan */}
@@ -2675,9 +2709,15 @@ export default function SerahTerimaLapanganTab({
                 </div>
               </div>
 
-              {queuedPhotos.length > 0 && (
-                <span className="text-xs sm:text-sm font-mono font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/15 px-3 py-1.5 rounded-xl border border-emerald-500/30 shadow-2xs">
-                  {queuedPhotos.length} Foto Siap Diupload
+              {isStep3Fulfilled ? (
+                <span className="text-xs sm:text-sm font-mono font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/15 px-3 py-1.5 rounded-xl border border-emerald-500/30 shadow-2xs flex items-center gap-1.5 self-start sm:self-auto">
+                  <Check className="size-3.5" />
+                  <span>{queuedPhotos.length} Foto Siap Diupload</span>
+                </span>
+              ) : (
+                <span className="text-xs sm:text-sm font-mono font-bold text-amber-700 dark:text-amber-400 bg-amber-500/10 px-3 py-1.5 rounded-xl border border-amber-500/20 shadow-2xs flex items-center gap-1.5 self-start sm:self-auto">
+                  <Lock className="size-3.5" />
+                  <span>Wajib: Minimal 1 Foto</span>
                 </span>
               )}
             </div>
@@ -2820,18 +2860,71 @@ export default function SerahTerimaLapanganTab({
             )}
           </div>
 
-          {/* SUBMIT BUTTON BAR (Ramah Petugas Lapangan, Jelas, & Kontras) */}
+          {/* SUBMIT BUTTON BAR (Terkunci jika Prosedur 2 & 3 Belum Terpenuhi) */}
           <div className="sticky bottom-4 z-20 bg-background/95 backdrop-blur-md border-2 border-border p-4 sm:p-5 rounded-3xl shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="text-xs sm:text-sm text-muted-foreground font-medium">
+            <div className="text-xs sm:text-sm font-medium">
               {uploadProgressMsg ? (
                 <span className="text-cyan-600 dark:text-cyan-400 font-bold flex items-center gap-2">
                   <RefreshCw className="size-4 animate-spin" />
                   <span>{uploadProgressMsg}</span>
                 </span>
+              ) : !isFormReadyToSubmit ? (
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2 font-bold text-amber-700 dark:text-amber-400">
+                    <Lock className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                    <span>Tombol Terkunci — Lengkapi Data Prosedur Wajib:</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-wrap text-xs">
+                    {!isStep1Fulfilled ? (
+                      <span className="px-2.5 py-0.5 rounded-lg bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 font-semibold">
+                        ⚠️ 1. Pilih TTB Referensi
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded-lg bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 font-semibold flex items-center gap-1">
+                        <Check className="size-3" />
+                        <span>TTB: {activeNoTtb}</span>
+                      </span>
+                    )}
+
+                    {!isStep2PenerimaNamaFilled ? (
+                      <span className="px-2.5 py-0.5 rounded-lg bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 font-semibold">
+                        ⚠️ 2. Nama Penerima End User
+                      </span>
+                    ) : !isStep2SignatureFilled ? (
+                      <span className="px-2.5 py-0.5 rounded-lg bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 font-semibold">
+                        ⚠️ 2. Tanda Tangan Penerima di Canvas
+                      </span>
+                    ) : (
+                      <span className="px-2.5 py-0.5 rounded-lg bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 font-semibold flex items-center gap-1">
+                        <Check className="size-3" />
+                        <span>Penerima &amp; TTD Lengkap</span>
+                      </span>
+                    )}
+
+                    {!isStep3Fulfilled ? (
+                      <span className="px-2.5 py-0.5 rounded-lg bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 font-semibold">
+                        ⚠️ 3. Unggah Minimal 1 Foto
+                      </span>
+                    ) : (
+                      <span className="px-2.5 py-0.5 rounded-lg bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 font-semibold flex items-center gap-1">
+                        <Check className="size-3" />
+                        <span>{queuedPhotos.length} Foto Siap</span>
+                      </span>
+                    )}
+                  </div>
+                </div>
               ) : (
-                <span>
-                  Pastikan data TTB referensi, nama penerima di kapal, dan minimal 1 foto telah terisi dengan benar.
-                </span>
+                <div className="flex items-center gap-2.5 text-emerald-700 dark:text-emerald-300">
+                  <CheckCircle2 className="size-5 text-emerald-500 shrink-0" />
+                  <div>
+                    <span className="font-black text-sm block">
+                      Semua Prosedur Terpenuhi (Prosedur 1, 2, &amp; 3 Lengkap)!
+                    </span>
+                    <span className="text-xs text-muted-foreground block font-normal">
+                      Data TTB, identitas penerima, tanda tangan digital, &amp; foto bukti siap dikirim ke Cloudflare R2.
+                    </span>
+                  </div>
+                </div>
               )}
             </div>
 
@@ -2847,13 +2940,29 @@ export default function SerahTerimaLapanganTab({
 
               <button
                 type="submit"
-                disabled={isSubmitting}
-                className="h-12 sm:h-13 px-7 sm:px-9 rounded-2xl text-sm sm:text-base font-black text-slate-950 bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 hover:from-emerald-300 hover:to-cyan-300 shadow-xl shadow-teal-500/25 transition-all flex items-center justify-center gap-2.5 cursor-pointer flex-1 sm:flex-initial disabled:opacity-50 active:scale-95"
+                disabled={isSubmitting || !isFormReadyToSubmit}
+                className={`h-12 sm:h-13 px-7 sm:px-9 rounded-2xl text-sm sm:text-base font-black transition-all flex items-center justify-center gap-2.5 flex-1 sm:flex-initial ${
+                  isSubmitting
+                    ? 'bg-slate-700 text-white opacity-80 cursor-wait'
+                    : !isFormReadyToSubmit
+                    ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-2 border-slate-300 dark:border-slate-700 shadow-none cursor-not-allowed opacity-75'
+                    : 'text-slate-950 bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 hover:from-emerald-300 hover:to-cyan-300 shadow-xl shadow-teal-500/25 cursor-pointer active:scale-95 animate-pulse'
+                }`}
+                title={
+                  !isFormReadyToSubmit
+                    ? 'Tombol terkunci. Wajib melengkapi data Prosedur 2 (Penerima & TTD) dan Prosedur 3 (Minimal 1 Foto Bukti) untuk mengaktifkan'
+                    : 'Semua prosedur lengkap. Klik untuk mengirim dan mengarsipkan bukti serah terima lapangan ke Cloudflare R2'
+                }
               >
                 {isSubmitting ? (
                   <>
                     <RefreshCw className="size-5 animate-spin" />
                     <span>Menyimpan ke R2...</span>
+                  </>
+                ) : !isFormReadyToSubmit ? (
+                  <>
+                    <Lock className="size-5 stroke-[2.2] text-slate-400 dark:text-slate-500" />
+                    <span>Kirim Bukti Serah Terima Lapangan (Terkunci)</span>
                   </>
                 ) : (
                   <>
