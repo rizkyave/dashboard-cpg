@@ -9,6 +9,7 @@ import {
   normalizeArmadaName,
   isMarineArmada,
   parseDateObj,
+  evaluateFleetItemStatus,
 } from './utils';
 
 import GlobalFilterBar from './GlobalFilterBar';
@@ -156,19 +157,12 @@ export default function DashboardContainer({
 
       // 4. Filter Status
       if (filterState.statusFilter !== 'ALL') {
-        const statusUpper = (it.status || '').toUpperCase();
-        const qFpb = Number(it.qtyFPB) || 0;
-        const qFstb = Number(it.qtyFSTB) || 0;
-        const qSel = it.selisih !== undefined ? Number(it.selisih) : Math.max(0, qFpb - qFstb);
+        const evalRes = evaluateFleetItemStatus(it);
 
-        const isComp = statusUpper.includes('LENGKAP') || statusUpper.includes('CLOSE') || statusUpper.includes('SELESAI') || (qSel === 0 && qFstb > 0);
-        const isPart = !isComp && (statusUpper.includes('PARSIAL') || (qFstb > 0 && qSel > 0));
-        const isBacklog = !isComp && (statusUpper.includes('BACKLOG') || statusUpper.includes('KRITIS') || (qFstb === 0 && qSel > 0));
-
-        if (filterState.statusFilter === 'LENGKAP' && !isComp) return false;
-        if (filterState.statusFilter === 'PROSES' && (isComp || isPart || isBacklog)) return false;
-        if (filterState.statusFilter === 'PARSIAL' && !isPart) return false;
-        if (filterState.statusFilter === 'BACKLOG' && !isBacklog) return false;
+        if (filterState.statusFilter === 'LENGKAP' && !evalRes.isComplete) return false;
+        if (filterState.statusFilter === 'PROSES' && !evalRes.isProses) return false;
+        if (filterState.statusFilter === 'PARSIAL' && !evalRes.isPartial) return false;
+        if (filterState.statusFilter === 'BACKLOG' && !evalRes.isBacklog) return false;
       }
 
       // 5. Filter Search Term
@@ -527,21 +521,15 @@ export default function DashboardContainer({
       totalQtyFSTB += qFstb;
       totalBacklogQty += qSel;
 
-      const statusUpper = (it.status || '').toUpperCase();
-      if (
-        (qSel === 0 && qFstb > 0) ||
-        ((statusUpper.includes('LENGKAP') || statusUpper.includes('CLOSE') || statusUpper.includes('SELESAI')) && !(qFstb === 0 && qSel > 0))
-      ) {
+      const evalRes = evaluateFleetItemStatus(it);
+      if (evalRes.isComplete) {
         completeItemCount++;
-      } else if (statusUpper.includes('PARSIAL') || (qFstb > 0 && qSel > 0)) {
+      } else if (evalRes.isPartial) {
         partialItemCount++;
-      } else if (
-        statusUpper.includes('PROSES') ||
-        (it.noPo && it.noPo !== '-' && !statusUpper.includes('BACKLOG') && !statusUpper.includes('KRITIS') && !statusUpper.includes('OPEN') && qFstb === 0)
-      ) {
-        processItemCount++;
-      } else {
+      } else if (evalRes.isBacklog) {
         backlogItemCount++;
+      } else {
+        processItemCount++;
       }
     }
 

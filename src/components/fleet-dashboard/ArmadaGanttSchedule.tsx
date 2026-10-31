@@ -31,6 +31,7 @@ import {
   formatShortDate,
   calculateDateRangePosition,
   normalizeArmadaName,
+  evaluateFleetItemStatus,
 } from './utils';
 
 export interface GanttSubTicket {
@@ -60,6 +61,7 @@ export interface GanttSubTicket {
   picTtb?: string;
   tglDiantar?: string;
   picLap?: string;
+  unservedReason?: string;
 }
 
 export interface ArmadaGanttVessel {
@@ -252,90 +254,29 @@ export default function ArmadaGanttSchedule({
         const fpbClean = fpbNum.replace(/[^A-Z0-9]/gi, '').toUpperCase();
         const override = overrides[fpbClean];
 
-        const childStatusUpper = (child.status || '').toUpperCase();
-
         // Evaluasi 4 status operasional: Selesai / Lengkap, Proses, Parsial, Backlog
-        // Sinkron 100% dengan widget Status Operasional & SLA
-        let childStatus: 'LENGKAP' | 'PROSES' | 'PARSIAL' | 'BACKLOG' = 'PROSES';
+        // Prinsip CPG: "Walaupun sudah ada PO ataupun FSTB, jika belum terlayani ke armada maka dinyatakan sebagai Backlog jika melampaui SLA"
+        const evalRes = evaluateFleetItemStatus(child, override);
+        const childStatus = evalRes.status;
 
-        if (
-          override?.isCompleted ||
-          (qSel === 0 && qFstb > 0) ||
-          ((childStatusUpper.includes('LENGKAP') || childStatusUpper.includes('CLOSE') || childStatusUpper.includes('SELESAI')) && !(qFstb === 0 && qSel > 0))
-        ) {
-          childStatus = 'LENGKAP';
+        if (evalRes.isComplete) {
           cntLengkap++;
-        } else if (childStatusUpper.includes('PARSIAL') || (qFstb > 0 && qSel > 0)) {
-          childStatus = 'PARSIAL';
+        } else if (evalRes.isPartial) {
           cntParsial++;
-        } else if (
-          childStatusUpper.includes('PROSES') ||
-          (child.noPo && child.noPo !== '-' && !childStatusUpper.includes('BACKLOG') && !childStatusUpper.includes('KRITIS') && !childStatusUpper.includes('OPEN') && qFstb === 0)
-        ) {
-          childStatus = 'PROSES';
-          cntProses++;
-        } else {
-          childStatus = 'BACKLOG';
+        } else if (evalRes.isBacklog) {
           cntBacklog++;
-        }
-
-        // 1. Tanggal Mulai (Kotak 1: Buat FPB / PO / Date)
-        let dStart = parseDateObj(
-          child.tglFpb ||
-          child.tglPo ||
-          (child as any).date ||
-          (child as any).tglCek ||
-          (child as any).receivedDate
-        );
-        if (!dStart) {
-          // Distribusikan tanggal fallback harian berbasis nomor urut tiket FPB (1..26 Okt)
-          const numMatch = fpbNum.match(/\d+/g);
-          const serial = numMatch ? parseInt(numMatch[numMatch.length - 1], 10) : sampleItems.length + 1;
-          const day = 1 + (Math.abs(serial) % 25);
-          dStart = new Date(2026, 9, day);
-        }
-
-        // 2. Tanggal Selesai (Kotak 5: Serah Terima Tim Lapangan / TTB / FSTB)
-        let dEnd: Date | null = null;
-        const rawKotak5 =
-          override?.tglDiantar ||
-          override?.tglKeTimLapangan ||
-          child.tglBarangDiantar ||
-          (child as any).tglDiantar ||
-          child.tglTimLapKePicTtb;
-
-        if (childStatus === 'LENGKAP') {
-          if (rawKotak5) {
-            dEnd = parseDateObj(rawKotak5);
-          }
-          if (!dEnd) {
-            const rawFstbTtb =
-              override?.tglTtb ||
-              child.tglTtb ||
-              (child as any).tglInputTtb ||
-              child.tglFstb ||
-              (child as any).tglInputFstb;
-            dEnd = rawFstbTtb ? parseDateObj(rawFstbTtb) : new Date(dStart.getTime() + 4 * 86400000);
-          }
-        } else if (childStatus === 'BACKLOG') {
-          // Backlog memanjang hingga hari ini untuk merefleksikan tiket yang belum terselesaikan
-          dEnd = new Date(2026, 9, Math.min(new Date().getDate(), 31));
-        } else if (childStatus === 'PARSIAL') {
-          dEnd = rawKotak5 ? parseDateObj(rawKotak5) : new Date(dStart.getTime() + 7 * 86400000);
         } else {
-          // PROSES
-          dEnd = new Date(dStart.getTime() + 5 * 86400000);
+          cntProses++;
         }
 
-        if (!dEnd || isNaN(dEnd.getTime()) || dEnd.getTime() < dStart.getTime()) {
-          dEnd = new Date(dStart.getTime() + 2 * 86400000);
-        }
+        const dStart = evalRes.dStart;
+        const dEnd = evalRes.dEnd;
 
         // Update rentang tanggal total armada
         if (dStart.getTime() < minArmadaTime) minArmadaTime = dStart.getTime();
         if (dEnd.getTime() > maxArmadaTime) maxArmadaTime = dEnd.getTime();
 
-        const durationDays = Math.max(1, Math.round(Math.abs(dEnd.getTime() - dStart.getTime()) / 86400000));
+        const durationDays = evalRes.durationDays;
         const durationText = `${durationDays} Hari Kerja`;
         const startLabel = formatShortDate(dStart);
         const endLabel = formatShortDate(dEnd);
@@ -367,6 +308,7 @@ export default function ArmadaGanttSchedule({
           picTtb: override?.picTtb || (child as any).picTtb || 'Fifi (Logistik)',
           tglDiantar: endLabel,
           picLap: override?.picLap || child.picLap || (child as any).picLapangan || 'Agus (Tim Lapangan)',
+          unservedReason: evalRes.unservedReason,
         });
       }
 
@@ -975,9 +917,18 @@ export default function ArmadaGanttSchedule({
                                     >
                                       {config.label}
                                     </span>
+                                    {sub.status === 'BACKLOG' && (
+                                      <span
+                                        className="font-mono text-[8.5px] text-rose-300 font-bold bg-rose-500/20 px-1.5 py-0.5 rounded border border-rose-500/40 shrink-0 flex items-center gap-1 shadow-xs"
+                                        title={sub.unservedReason || 'Belum terlayani ke armada & melebihi SLA'}
+                                      >
+                                        <AlertTriangle className="size-2.5 text-rose-400 shrink-0" />
+                                        <span>Belum Terlayani ({sub.durationDays}h)</span>
+                                      </span>
+                                    )}
                                   </div>
                                   <div className="flex items-center gap-1 text-[10.5px] text-slate-400 mt-0.5 truncate leading-tight">
-                                    <span className="truncate max-w-[200px] sm:max-w-[240px]" title={sub.item}>
+                                    <span className="truncate max-w-[180px] sm:max-w-[210px]" title={sub.item}>
                                       {sub.item}
                                     </span>
                                     {sub.qtyFpb !== undefined && sub.qtyFpb > 0 && (
@@ -1163,16 +1114,28 @@ export default function ArmadaGanttSchedule({
                 </span>
               </div>
 
-              <div className="flex items-center justify-between gap-2 bg-emerald-950/40 p-1.5 rounded-lg border border-emerald-700/40">
-                <span className="text-emerald-300 font-semibold flex items-center gap-1 shrink-0">
-                  <HardHat className="size-3 text-emerald-400" />
-                  <span>Tahap 5 (Serah Terima):</span>
-                </span>
-                <span className="text-right text-emerald-200 truncate">
-                  <span className="font-bold text-white">{hoveredSubItem.sub.endLabel}</span>
-                  <span className="text-emerald-300/80 text-[10px] ml-1">oleh {hoveredSubItem.sub.picLap}</span>
-                </span>
-              </div>
+              {hoveredSubItem.sub.status === 'BACKLOG' ? (
+                <div className="flex items-center justify-between gap-2 bg-rose-950/50 p-1.5 rounded-lg border border-rose-600/50">
+                  <span className="text-rose-300 font-semibold flex items-center gap-1 shrink-0">
+                    <AlertTriangle className="size-3 text-rose-400" />
+                    <span>Tahap 5 (Serah Terima):</span>
+                  </span>
+                  <span className="text-right text-rose-300 font-bold truncate">
+                    Belum Terlayani ({hoveredSubItem.sub.durationDays} Hari Tertunda)
+                  </span>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between gap-2 bg-emerald-950/40 p-1.5 rounded-lg border border-emerald-700/40">
+                  <span className="text-emerald-300 font-semibold flex items-center gap-1 shrink-0">
+                    <HardHat className="size-3 text-emerald-400" />
+                    <span>Tahap 5 (Serah Terima):</span>
+                  </span>
+                  <span className="text-right text-emerald-200 truncate">
+                    <span className="font-bold text-white">{hoveredSubItem.sub.endLabel}</span>
+                    <span className="text-emerald-300/80 text-[10px] ml-1">oleh {hoveredSubItem.sub.picLap}</span>
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[11px] font-mono">

@@ -316,3 +316,131 @@ export function calculateDateRangePosition(
   }
 }
 
+export interface FleetItemStatusEvaluation {
+  status: 'LENGKAP' | 'PROSES' | 'PARSIAL' | 'BACKLOG';
+  isComplete: boolean;
+  isPartial: boolean;
+  isBacklog: boolean;
+  isProses: boolean;
+  dStart: Date;
+  dEnd: Date;
+  ageDays: number;
+  durationDays: number;
+  isOverdue: boolean;
+  unservedReason?: string;
+}
+
+/**
+ * Evaluasi 4 Status Operasional (Lengkap/Selesai, Proses, Parsial, Backlog)
+ * Sinkron 100% antara KPI Metrics, Summary Widget, dan Gantt Timeline Schedule.
+ * 
+ * Prinsip Bisnis CPG:
+ * "Walaupun sudah ada PO ataupun FSTB, namun jika belum terlayani (belum serah terima fisik di kapal/unit)
+ * maka dinyatakan sebagai Backlog jika telah melampaui siklus SLA wajar (> 14 hari) atau berasal dari bulan lampau."
+ */
+export function evaluateFleetItemStatus(
+  item: any,
+  override?: any,
+  referenceDate: Date = new Date(2026, 9, 31)
+): FleetItemStatusEvaluation {
+  const fpbNum = (item.fpb || '').trim();
+  const qFpb = Number(item.qtyFPB) || 0;
+  const qFstb = Number(item.qtyFSTB) || 0;
+  const qSel = item.selisih !== undefined ? Number(item.selisih) : Math.max(0, qFpb - qFstb);
+
+  const statusUpper = (item.status || item.statusBadge || item.rawStatus || '').toUpperCase();
+
+  // 1. Tanggal Mulai (Kotak 1: Buat FPB / PO / Date)
+  let dStart = parseDateObj(
+    item.tglFpb ||
+    item.tglPo ||
+    item.date ||
+    item.tglCek ||
+    item.receivedDate
+  );
+  if (!dStart) {
+    const numMatch = fpbNum.match(/\d+/g);
+    const serial = numMatch ? parseInt(numMatch[numMatch.length - 1], 10) : 1;
+    const day = 1 + (Math.abs(serial) % 25);
+    dStart = new Date(2026, 9, day);
+  }
+
+  const refTime = referenceDate.getTime();
+  const ageDays = Math.max(0, Math.round((refTime - dStart.getTime()) / 86400000));
+  const isFromPriorMonth = dStart.getFullYear() < 2026 || (dStart.getFullYear() === 2026 && dStart.getMonth() < 9);
+
+  // Cek apakah serah terima fisik ke unit / armada sudah tuntas (Kotak 5 / Tim Lapangan)
+  const rawKotak5 =
+    override?.tglDiantar ||
+    override?.tglKeTimLapangan ||
+    item.tglBarangDiantar ||
+    item.tglDiantar ||
+    item.tglKeTimLap ||
+    item.tglTimLapKePicTtb;
+
+  const hasFieldHandover = Boolean(
+    override?.isCompleted ||
+    (rawKotak5 && (qSel === 0 || qFstb >= qFpb)) ||
+    (qSel === 0 && qFstb > 0 && (item.noTtb || item.tglTtb || item.picLap || rawKotak5)) ||
+    ((statusUpper.includes('LENGKAP') || statusUpper.includes('CLOSE') || statusUpper.includes('SELESAI')) && !(qFstb === 0 && qSel > 0))
+  );
+
+  let status: 'LENGKAP' | 'PROSES' | 'PARSIAL' | 'BACKLOG' = 'PROSES';
+  let dEnd: Date = new Date(dStart.getTime() + 5 * 86400000);
+  let isOverdue = false;
+  let unservedReason: string | undefined;
+
+  if (hasFieldHandover) {
+    status = 'LENGKAP';
+    if (rawKotak5) {
+      dEnd = parseDateObj(rawKotak5) || new Date(dStart.getTime() + 4 * 86400000);
+    } else {
+      const rawFstbTtb = override?.tglTtb || item.tglTtb || item.tglInputTtb || item.tglFstb || item.tglInputFstb;
+      dEnd = rawFstbTtb ? (parseDateObj(rawFstbTtb) || new Date(dStart.getTime() + 4 * 86400000)) : new Date(dStart.getTime() + 4 * 86400000);
+    }
+  } else if (statusUpper.includes('PARSIAL') || (qFstb > 0 && qSel > 0)) {
+    status = 'PARSIAL';
+    dEnd = rawKotak5 ? (parseDateObj(rawKotak5) || new Date(dStart.getTime() + 7 * 86400000)) : new Date(dStart.getTime() + 7 * 86400000);
+  } else {
+    // Belum Terlayani (Unserved):
+    // "Walaupun sudah ada PO ataupun FSTB, namun jika belum terlayani maka dinyatakan sebagai Backlog jika melampaui batas SLA (> 14 hari) atau dari bulan lampau"
+    isOverdue =
+      ageDays > 14 ||
+      isFromPriorMonth ||
+      statusUpper.includes('BACKLOG') ||
+      statusUpper.includes('KRITIS') ||
+      statusUpper.includes('BELUM TERPENUHI') ||
+      (typeof item.lapse === 'number' && item.lapse > 14);
+
+    if (isOverdue) {
+      status = 'BACKLOG';
+      // Bar Backlog memanjang penuh hingga HARI INI (referenceDate) untuk mencerminkan keterlambatan riil
+      dEnd = new Date(referenceDate);
+      unservedReason = `${ageDays} Hari Tertunda (Melebihi SLA)`;
+    } else {
+      status = 'PROSES';
+      dEnd = new Date(dStart.getTime() + 5 * 86400000);
+    }
+  }
+
+  if (!dEnd || isNaN(dEnd.getTime()) || dEnd.getTime() < dStart.getTime()) {
+    dEnd = new Date(dStart.getTime() + 2 * 86400000);
+  }
+
+  const durationDays = Math.max(1, Math.round(Math.abs(dEnd.getTime() - dStart.getTime()) / 86400000));
+
+  return {
+    status,
+    isComplete: status === 'LENGKAP',
+    isPartial: status === 'PARSIAL',
+    isBacklog: status === 'BACKLOG',
+    isProses: status === 'PROSES',
+    dStart,
+    dEnd,
+    ageDays,
+    durationDays,
+    isOverdue,
+    unservedReason,
+  };
+}
+
