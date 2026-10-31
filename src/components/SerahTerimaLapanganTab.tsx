@@ -1706,7 +1706,6 @@ export default function SerahTerimaLapanganTab({
                               <th className="py-3.5 px-4 whitespace-nowrap">Tgl Terbit TTB</th>
                               <th className="py-3.5 px-4 whitespace-nowrap">Nomor TTB Resmi</th>
                               <th className="py-3.5 px-4 whitespace-nowrap">Armada / Unit</th>
-                              <th className="py-3.5 px-4 min-w-[220px]">Rincian Item Barang</th>
                               <th className="py-3.5 px-4 whitespace-nowrap">Otorisasi Manager &amp; Logistik</th>
                               <th className="py-3.5 px-4 whitespace-nowrap">Status TTD Digital Armada</th>
                               <th className="py-3.5 px-4 text-right whitespace-nowrap">Aksi</th>
@@ -1715,7 +1714,7 @@ export default function SerahTerimaLapanganTab({
                           <tbody className="divide-y divide-border/80">
                             {filteredTtbOptions.length === 0 ? (
                               <tr>
-                                <td colSpan={7} className="py-12 text-center text-sm text-muted-foreground">
+                                <td colSpan={6} className="py-12 text-center text-sm text-muted-foreground">
                                   {isLoadingHistory ? (
                                     <div className="flex flex-col items-center justify-center gap-2.5">
                                       <RefreshCw className="size-6 text-indigo-500 animate-spin" />
@@ -1841,13 +1840,6 @@ export default function SerahTerimaLapanganTab({
                                       <Ship className="size-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
                                       <span className="truncate max-w-[180px]">{opt.armada}</span>
                                     </span>
-                                  </td>
-
-                                  {/* Rincian Item Barang */}
-                                  <td className="py-3.5 px-4">
-                                    <p className="text-xs sm:text-sm text-foreground/90 font-medium line-clamp-2 leading-relaxed" title={opt.itemSummary}>
-                                      {opt.itemSummary}
-                                    </p>
                                   </td>
 
                                   {/* Otorisasi Manager & Logistik */}
