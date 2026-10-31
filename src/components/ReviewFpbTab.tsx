@@ -1584,18 +1584,18 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
             <table className="w-full text-xs text-left">
               <thead className="bg-muted/50 text-muted-foreground border-b border-border font-medium">
                 <tr>
-                  <th className="py-3 px-4">No. FPB & Entitas</th>
-                  <th className="py-3 px-3" title="Target batas waktu pengadaan: P1 Utama (1-2 hari untuk Urgent/Darurat), P2 Menengah (3-14 hari), P3 Rutin (14-30 hari)">Prioritas & SLA</th>
-                  <th className="py-3 px-4">Armada Kapal / Dept</th>
-                  <th className="py-3 px-3">Tanggal</th>
-                  <th className="py-3 px-4">Peruntukan / Keperluan</th>
-                  <th className="py-3 px-3" title="Alur logistik berurutan: Menunggu Review -> Disetujui Tim Review -> Sahkan di e-FPB -> Siap Pengadaan">Persetujuan Logistik</th>
-                  <th className="py-3 px-3">Status Review Tim FPB</th>
-                  <th className="py-3 px-3" title="Tingkat kegentingan operasional armada (Normal / Urgent / Emergency). Pengajuan Urgent otomatis diprioritaskan P1 (SLA 1-2 hari)">Urgensi</th>
-                  <th className="py-3 px-3 text-center" title="Nomor urutan konfirmasi pengadaan TKB saat disetujui untuk purchasing">Status TKB</th>
-                  <th className="py-3 px-3" title="Status alokasi barang (Dalam analisa tim sebelum disetujui, Perlu PO / Stok gudang setelah disetujui)">Item & Stok</th>
-                  <th className="py-3 px-3">Dokumen Terkait</th>
-                  <th className="py-3 px-4 text-center">Aksi</th>
+                  <th className="py-3 px-4 min-w-[190px]">No. FPB & Entitas</th>
+                  <th className="py-3 px-3 whitespace-nowrap min-w-[125px]" title="Target batas waktu pengadaan: P1 Utama (1-2 hari untuk Urgent/Darurat), P2 Menengah (3-14 hari), P3 Rutin (14-30 hari)">Prioritas & SLA</th>
+                  <th className="py-3 px-4 min-w-[140px]">Armada Kapal / Dept</th>
+                  <th className="py-3 px-3 whitespace-nowrap min-w-[95px]">Tanggal</th>
+                  <th className="py-3 px-4 min-w-[220px] w-full">Peruntukan / Keperluan</th>
+                  <th className="py-3 px-3 whitespace-nowrap min-w-[140px] w-36" title="Alur logistik berurutan: Menunggu Review -> Disetujui Tim Review -> Sahkan di e-FPB -> Siap Pengadaan">Persetujuan Logistik</th>
+                  <th className="py-3 px-3 whitespace-nowrap min-w-[140px] w-36">Status Review Tim FPB</th>
+                  <th className="py-3 px-3 whitespace-nowrap min-w-[90px] w-24" title="Tingkat kegentingan operasional armada (Normal / Urgent / Emergency). Pengajuan Urgent otomatis diprioritaskan P1 (SLA 1-2 hari)">Urgensi</th>
+                  <th className="py-3 px-3 text-center whitespace-nowrap min-w-[90px] w-24" title="Nomor urutan konfirmasi pengadaan TKB saat disetujui untuk purchasing">Status TKB</th>
+                  <th className="py-3 px-3 whitespace-nowrap min-w-[110px] w-28" title="Status alokasi barang (Dalam analisa tim sebelum disetujui, Perlu PO / Stok gudang setelah disetujui)">Item & Stok</th>
+                  <th className="py-3 px-3 whitespace-nowrap min-w-[120px] w-32">Dokumen Terkait</th>
+                  <th className="py-3 px-4 text-center whitespace-nowrap min-w-[90px] w-24">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -1669,8 +1669,10 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                       </td>
 
                       {/* Peruntukan */}
-                      <td className="py-3 px-4 max-w-xs truncate text-foreground" title={rec.purpose}>
-                        {rec.purpose || '-'}
+                      <td className="py-3 px-4 text-foreground" title={rec.purpose}>
+                        <div className="line-clamp-2 max-w-xl">
+                          {rec.purpose || '-'}
+                        </div>
                       </td>
 
                       {/* Persetujuan Logistik */}
@@ -1745,7 +1747,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                       </td>
 
                       {/* Dokumen Terkait */}
-                      <td className="py-3 px-3 whitespace-nowrap">
+                      <td className="py-3 px-3 whitespace-nowrap w-32">
                         <div className="flex flex-col gap-0.5">
                           {rec.relatedDocs?.poNos && rec.relatedDocs.poNos.length > 0 ? (
                             <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
@@ -1763,7 +1765,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                       </td>
 
                       {/* Aksi */}
-                      <td className="py-3 px-4 text-center whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                      <td className="py-3 px-4 text-center whitespace-nowrap w-24" onClick={(e) => e.stopPropagation()}>
                         <button
                           type="button"
                           onClick={() => handleOpenReview(rec)}
