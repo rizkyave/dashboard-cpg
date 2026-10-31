@@ -34,6 +34,7 @@ export interface KPIMetrics {
   backlogItemCount: number;
   partialItemCount: number;
   completeItemCount: number;
+  processItemCount?: number;
   vesselCount: number;
   topVesselName: string;
   topVesselFpb: number;

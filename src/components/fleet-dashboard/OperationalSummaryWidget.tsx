@@ -24,10 +24,16 @@ export default function OperationalSummaryWidget({
   selectedPeriod,
   onScrollToGantt,
 }: OperationalSummaryWidgetProps) {
+  const processCount =
+    metrics.processItemCount !== undefined
+      ? metrics.processItemCount
+      : 0;
+
   const total =
     metrics.completeItemCount +
     metrics.partialItemCount +
-    metrics.backlogItemCount || 1;
+    metrics.backlogItemCount +
+    processCount || 1;
 
   const pctLengkap = Math.round((metrics.completeItemCount / total) * 100);
   const pctParsial = Math.round((metrics.partialItemCount / total) * 100);
@@ -95,7 +101,7 @@ export default function OperationalSummaryWidget({
         </div>
         <div className="bg-sky-500/10 border border-sky-500/30 rounded-lg p-1.5">
           <div className="text-sky-400 font-bold text-sm">
-            {Math.max(0, total - metrics.completeItemCount - metrics.partialItemCount - metrics.backlogItemCount)}
+            {processCount}
           </div>
           <div className="text-[10px] text-slate-400 font-sans">Proses</div>
         </div>

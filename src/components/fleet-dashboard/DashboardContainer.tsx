@@ -511,6 +511,7 @@ export default function DashboardContainer({
     let backlogItemCount = 0;
     let partialItemCount = 0;
     let completeItemCount = 0;
+    let processItemCount = 0;
     const vesselSet = new Set<string>();
 
     for (const it of targetData) {
@@ -527,10 +528,18 @@ export default function DashboardContainer({
       totalBacklogQty += qSel;
 
       const statusUpper = (it.status || '').toUpperCase();
-      if (statusUpper.includes('LENGKAP') || statusUpper.includes('CLOSE') || (qSel === 0 && qFstb > 0)) {
+      if (
+        (qSel === 0 && qFstb > 0) ||
+        ((statusUpper.includes('LENGKAP') || statusUpper.includes('CLOSE') || statusUpper.includes('SELESAI')) && !(qFstb === 0 && qSel > 0))
+      ) {
         completeItemCount++;
       } else if (statusUpper.includes('PARSIAL') || (qFstb > 0 && qSel > 0)) {
         partialItemCount++;
+      } else if (
+        statusUpper.includes('PROSES') ||
+        (it.noPo && it.noPo !== '-' && !statusUpper.includes('BACKLOG') && !statusUpper.includes('KRITIS') && !statusUpper.includes('OPEN') && qFstb === 0)
+      ) {
+        processItemCount++;
       } else {
         backlogItemCount++;
       }
@@ -553,6 +562,7 @@ export default function DashboardContainer({
       backlogItemCount,
       partialItemCount,
       completeItemCount,
+      processItemCount,
       vesselCount: vesselSet.size,
       topVesselName: topVessel?.name || '-',
       topVesselFpb: topVessel?.fpbCount || 0,

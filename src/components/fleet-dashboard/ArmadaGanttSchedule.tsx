@@ -95,6 +95,57 @@ const TIMELINE_MONTHS = [
 const WEEKS_PER_MONTH = ['W1', 'W2', 'W3', 'W4'];
 const TODAY_COL = 18; // 15 Okt 2026 (W3)
 
+// Konfigurasi Visual Terpadu 4 Status Operasional (Konsisten 100% dengan Widget Status Operasional & SLA)
+export const GANTT_STATUS_CONFIG: Record<
+  'LENGKAP' | 'PROSES' | 'PARSIAL' | 'BACKLOG',
+  {
+    label: string;
+    badgeLabel: string;
+    barBg: string;
+    badge: string;
+    barBadge: string;
+    startNodeRing: string;
+    endNodeBg: string;
+  }
+> = {
+  LENGKAP: {
+    label: 'SELESAI',
+    badgeLabel: 'Selesai',
+    barBg: 'bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 border-emerald-400/70 shadow-[0_2px_8px_rgba(16,185,129,0.3)] text-white hover:brightness-110',
+    badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+    barBadge: 'bg-black/35 text-emerald-200 border-emerald-400/40 font-bold',
+    startNodeRing: 'ring-emerald-300/80',
+    endNodeBg: 'bg-emerald-200 ring-2 ring-emerald-400 shadow-xs',
+  },
+  PROSES: {
+    label: 'PROSES',
+    badgeLabel: 'Proses',
+    barBg: 'bg-gradient-to-r from-sky-600 via-sky-500 to-blue-500 border-sky-400/70 shadow-[0_2px_8px_rgba(14,165,233,0.3)] text-white hover:brightness-110',
+    badge: 'bg-sky-500/20 text-sky-300 border-sky-500/40',
+    barBadge: 'bg-black/35 text-sky-200 border-sky-400/40 font-bold',
+    startNodeRing: 'ring-sky-300/80',
+    endNodeBg: 'bg-sky-200 ring-2 ring-sky-400 shadow-xs',
+  },
+  PARSIAL: {
+    label: 'PARSIAL',
+    badgeLabel: 'Parsial',
+    barBg: 'bg-gradient-to-r from-amber-600 via-amber-500 to-orange-500 border-amber-400/70 shadow-[0_2px_8px_rgba(245,158,11,0.3)] text-white hover:brightness-110',
+    badge: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+    barBadge: 'bg-black/35 text-amber-200 border-amber-400/40 font-bold',
+    startNodeRing: 'ring-amber-300/80',
+    endNodeBg: 'bg-amber-200 ring-2 ring-amber-400 shadow-xs',
+  },
+  BACKLOG: {
+    label: 'BACKLOG',
+    badgeLabel: 'Backlog',
+    barBg: 'bg-gradient-to-r from-rose-600 via-rose-500 to-red-600 border-rose-400/80 shadow-[0_2px_12px_rgba(244,63,94,0.4)] text-white ring-1 ring-rose-400/40 hover:brightness-110',
+    badge: 'bg-rose-500/25 text-rose-300 border-rose-500/50 animate-pulse font-extrabold',
+    barBadge: 'bg-black/45 text-rose-200 border-rose-400/60 font-bold',
+    startNodeRing: 'ring-rose-300/80',
+    endNodeBg: 'bg-rose-300 ring-2 ring-rose-400 animate-pulse shadow-xs',
+  },
+};
+
 export default function ArmadaGanttSchedule({
   items = [],
   selectedArmadaId,
@@ -104,6 +155,7 @@ export default function ArmadaGanttSchedule({
 }: ArmadaGanttScheduleProps) {
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
   const [allExpanded, setAllExpanded] = useState<boolean>(false);
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'LENGKAP' | 'PROSES' | 'PARSIAL' | 'BACKLOG'>('ALL');
   const [hoveredSubItem, setHoveredSubItem] = useState<{
     vesselName: string;
     sub: GanttSubTicket;
@@ -164,65 +216,23 @@ export default function ArmadaGanttSchedule({
 
       if (it.fpb) entry.fpbs.add(it.fpb.trim());
       entry.items.push(it);
-
-      const qFpb = Number(it.qtyFPB) || 0;
-      const qFstb = Number(it.qtyFSTB) || 0;
-      const qSel = it.selisih !== undefined ? Number(it.selisih) : Math.max(0, qFpb - qFstb);
-
-      const fpbClean = (it.fpb || '').replace(/[^A-Z0-9]/gi, '').toUpperCase();
-      const override = overrides[fpbClean];
-
-      const statusUpper = (it.status || '').toUpperCase();
-      const isDelivered = Boolean(
-        override?.isCompleted ||
-        override?.tglDiantar ||
-        it.tglBarangDiantar ||
-        (it as any).picLap ||
-        it.tglTimLapKePicTtb ||
-        it.tglTtbKePicPch
-      );
-      const isComp =
-        isDelivered ||
-        (qSel === 0 && qFstb > 0) ||
-        statusUpper.includes('LENGKAP') ||
-        statusUpper.includes('CLOSE') ||
-        statusUpper.includes('SELESAI') ||
-        Boolean(it.noTtb) ||
-        Boolean(override?.noTtb);
-      const isPart = !isComp && (statusUpper.includes('PARSIAL') || (qFstb > 0 && qSel > 0));
-      const isBacklog =
-        !isComp &&
-        (statusUpper.includes('BACKLOG') ||
-          statusUpper.includes('KRITIS') ||
-          statusUpper.includes('OPEN') ||
-          (!isPart && (!it.noPo || it.noPo === '-')));
-
-      if (isComp) entry.lengkap++;
-      else if (isPart) entry.parsial++;
-      else if (isBacklog) entry.backlog++;
-      else entry.proses++;
     }
 
     const result: ArmadaGanttVessel[] = [];
 
     for (const entry of Array.from(map.values())) {
       const fpbCount = Math.max(entry.fpbs.size, 1);
-      const totalStatus = entry.lengkap + entry.proses + entry.parsial + entry.backlog || 1;
-      const lkRatio = entry.lengkap / totalStatus;
-
-      let gradientStyle = 'bg-gradient-to-r from-sky-600 via-sky-500 to-amber-500';
-      if (lkRatio >= 0.7) {
-        gradientStyle = 'bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500';
-      } else if (entry.backlog > 0) {
-        gradientStyle = 'bg-gradient-to-r from-emerald-600 via-amber-500 to-rose-600';
-      }
-
       const sampleItems: GanttSubTicket[] = [];
       const seen = new Set<string>();
 
       // Kumpulkan rentang tanggal untuk SEMUA item di armada ini (bukan hanya sliced)
       let minArmadaTime = Infinity;
       let maxArmadaTime = -Infinity;
+
+      let cntLengkap = 0;
+      let cntProses = 0;
+      let cntParsial = 0;
+      let cntBacklog = 0;
 
       for (const child of entry.items) {
         const fpbNum = (child.fpb || '').trim();
@@ -241,35 +251,30 @@ export default function ArmadaGanttSchedule({
         const override = overrides[fpbClean];
 
         const childStatusUpper = (child.status || '').toUpperCase();
-        const isChildDelivered = Boolean(
-          override?.isCompleted ||
-          override?.tglDiantar ||
-          child.tglBarangDiantar ||
-          (child as any).picLap
-        );
 
+        // Evaluasi 4 status operasional: Selesai / Lengkap, Proses, Parsial, Backlog
+        // Sinkron 100% dengan widget Status Operasional & SLA
         let childStatus: 'LENGKAP' | 'PROSES' | 'PARSIAL' | 'BACKLOG' = 'PROSES';
+
         if (
-          isChildDelivered ||
+          override?.isCompleted ||
           (qSel === 0 && qFstb > 0) ||
-          childStatusUpper.includes('LENGKAP') ||
-          childStatusUpper.includes('CLOSE') ||
-          childStatusUpper.includes('SELESAI') ||
-          child.noTtb ||
-          override?.noTtb
+          ((childStatusUpper.includes('LENGKAP') || childStatusUpper.includes('CLOSE') || childStatusUpper.includes('SELESAI')) && !(qFstb === 0 && qSel > 0))
         ) {
           childStatus = 'LENGKAP';
+          cntLengkap++;
         } else if (childStatusUpper.includes('PARSIAL') || (qFstb > 0 && qSel > 0)) {
           childStatus = 'PARSIAL';
+          cntParsial++;
         } else if (
-          childStatusUpper.includes('BACKLOG') ||
-          childStatusUpper.includes('KRITIS') ||
-          (qFstb === 0 && qSel > 0) ||
-          childStatusUpper.includes('OPEN')
+          childStatusUpper.includes('PROSES') ||
+          (child.noPo && child.noPo !== '-' && !childStatusUpper.includes('BACKLOG') && !childStatusUpper.includes('KRITIS') && !childStatusUpper.includes('OPEN') && qFstb === 0)
         ) {
-          childStatus = 'BACKLOG';
-        } else if (child.noPo && child.noPo !== '-') {
           childStatus = 'PROSES';
+          cntProses++;
+        } else {
+          childStatus = 'BACKLOG';
+          cntBacklog++;
         }
 
         // 1. Tanggal Mulai (Kotak 1: Buat FPB / PO / Date)
@@ -297,12 +302,11 @@ export default function ArmadaGanttSchedule({
           (child as any).tglDiantar ||
           child.tglTimLapKePicTtb;
 
-        if (rawKotak5) {
-          dEnd = parseDateObj(rawKotak5);
-        }
-
-        if (!dEnd) {
-          if (childStatus === 'LENGKAP') {
+        if (childStatus === 'LENGKAP') {
+          if (rawKotak5) {
+            dEnd = parseDateObj(rawKotak5);
+          }
+          if (!dEnd) {
             const rawFstbTtb =
               override?.tglTtb ||
               child.tglTtb ||
@@ -310,11 +314,15 @@ export default function ArmadaGanttSchedule({
               child.tglFstb ||
               (child as any).tglInputFstb;
             dEnd = rawFstbTtb ? parseDateObj(rawFstbTtb) : new Date(dStart.getTime() + 4 * 86400000);
-          } else if (childStatus === 'BACKLOG') {
-            dEnd = new Date(); // Dinamis Hari Ini
-          } else {
-            dEnd = new Date(dStart.getTime() + 5 * 86400000);
           }
+        } else if (childStatus === 'BACKLOG') {
+          // Backlog memanjang hingga hari ini untuk merefleksikan tiket yang belum terselesaikan
+          dEnd = new Date(2026, 9, Math.min(new Date().getDate(), 31));
+        } else if (childStatus === 'PARSIAL') {
+          dEnd = rawKotak5 ? parseDateObj(rawKotak5) : new Date(dStart.getTime() + 7 * 86400000);
+        } else {
+          // PROSES
+          dEnd = new Date(dStart.getTime() + 5 * 86400000);
         }
 
         if (!dEnd || isNaN(dEnd.getTime()) || dEnd.getTime() < dStart.getTime()) {
@@ -363,6 +371,18 @@ export default function ArmadaGanttSchedule({
       // Urutkan sub-tiket berdasarkan startDate menaik (tiket awal W1 muncul duluan)
       sampleItems.sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
 
+      // Gaya Gradien Bar Induk Sesuai Distribusi Status Nyata
+      let gradientStyle = 'bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 border-emerald-400/60 shadow-[0_2px_10px_rgba(16,185,129,0.3)]';
+      if (cntBacklog > 0 && cntLengkap > 0) {
+        gradientStyle = 'bg-gradient-to-r from-emerald-600 via-teal-600 to-rose-600 border-rose-400/60 shadow-[0_2px_10px_rgba(244,63,94,0.3)]';
+      } else if (cntBacklog > 0 && cntLengkap === 0) {
+        gradientStyle = 'bg-gradient-to-r from-rose-600 via-rose-500 to-red-600 border-rose-400/60 shadow-[0_2px_10px_rgba(244,63,94,0.35)]';
+      } else if (cntParsial > 0) {
+        gradientStyle = 'bg-gradient-to-r from-emerald-600 via-amber-500 to-orange-500 border-amber-400/60 shadow-[0_2px_10px_rgba(245,158,11,0.3)]';
+      } else if (cntProses > 0) {
+        gradientStyle = 'bg-gradient-to-r from-emerald-600 via-sky-500 to-blue-500 border-sky-400/60 shadow-[0_2px_10px_rgba(14,165,233,0.3)]';
+      }
+
       const vStartDate = minArmadaTime !== Infinity ? new Date(minArmadaTime) : new Date(2026, 9, 1);
       const vEndDate = maxArmadaTime !== -Infinity ? new Date(maxArmadaTime) : new Date(2026, 9, 31);
 
@@ -377,10 +397,10 @@ export default function ArmadaGanttSchedule({
         summaryText: `${formatShortDate(vStartDate)} → ${formatShortDate(vEndDate)}`,
         gradientStyle,
         statusBadge: {
-          lengkap: entry.lengkap,
-          proses: entry.proses,
-          parsial: entry.parsial,
-          backlog: entry.backlog,
+          lengkap: cntLengkap,
+          proses: cntProses,
+          parsial: cntParsial,
+          backlog: cntBacklog,
         },
         sampleItems,
       });
@@ -397,6 +417,23 @@ export default function ArmadaGanttSchedule({
 
     return result;
   }, [items, selectedArmadaId]);
+
+  // Total akumulasi status tiket di Gantt untuk Legend & Filter Cepat (Terkoneksi langsung dengan 4 kartu KPI)
+  const statusCounts = useMemo(() => {
+    let lengkap = 0;
+    let proses = 0;
+    let parsial = 0;
+    let backlog = 0;
+    let total = 0;
+    for (const v of vesselList) {
+      lengkap += v.statusBadge.lengkap;
+      proses += v.statusBadge.proses;
+      parsial += v.statusBadge.parsial;
+      backlog += v.statusBadge.backlog;
+      total += v.sampleItems.length;
+    }
+    return { lengkap, proses, parsial, backlog, total };
+  }, [vesselList]);
 
   // Bulan yang ditampilkan di header grid
   const displayMonths = useMemo(() => {
@@ -527,6 +564,90 @@ export default function ArmadaGanttSchedule({
         </div>
       </div>
 
+      {/* Legend Status Operasional & Filter Cepat (Terkoneksi Langsung dengan 4 Kartu Status Widget) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 px-3.5 py-2.5 bg-slate-950/80 rounded-xl border border-slate-800 text-xs">
+        <div className="flex items-center gap-2 text-slate-300 text-[11px] font-mono">
+          <span className="font-bold text-teal-300 flex items-center gap-1">
+            <Sparkles className="size-3 text-teal-400" />
+            <span>Warna Status Gantt:</span>
+          </span>
+          <span className="text-slate-400 hidden sm:inline">
+            Klik tombol status untuk memfilter tiket sesuai kartu status operasional
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <button
+            type="button"
+            onClick={() => setStatusFilter('ALL')}
+            className={`px-2.5 py-1 rounded-lg text-[10.5px] font-mono font-bold transition flex items-center gap-1 cursor-pointer ${
+              statusFilter === 'ALL'
+                ? 'bg-slate-700 text-white border border-slate-500 shadow-xs'
+                : 'bg-slate-900/90 text-slate-400 hover:text-white border border-slate-800'
+            }`}
+          >
+            <span>Semua</span>
+            <span className="opacity-75">({statusCounts.total})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setStatusFilter((prev) => (prev === 'LENGKAP' ? 'ALL' : 'LENGKAP'))}
+            className={`px-2.5 py-1 rounded-lg text-[10.5px] font-mono font-bold transition flex items-center gap-1.5 cursor-pointer ${
+              statusFilter === 'LENGKAP'
+                ? 'bg-emerald-500 text-white border border-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.5)]'
+                : 'bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 border border-emerald-500/30'
+            }`}
+            title="Klik untuk filter tiket Selesai"
+          >
+            <span className="size-2 rounded-full bg-emerald-400" />
+            <span>Selesai ({statusCounts.lengkap})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setStatusFilter((prev) => (prev === 'PROSES' ? 'ALL' : 'PROSES'))}
+            className={`px-2.5 py-1 rounded-lg text-[10.5px] font-mono font-bold transition flex items-center gap-1.5 cursor-pointer ${
+              statusFilter === 'PROSES'
+                ? 'bg-sky-500 text-white border border-sky-400 shadow-[0_0_8px_rgba(14,165,233,0.5)]'
+                : 'bg-sky-500/15 text-sky-300 hover:bg-sky-500/25 border border-sky-500/30'
+            }`}
+            title="Klik untuk filter tiket Proses"
+          >
+            <span className="size-2 rounded-full bg-sky-400" />
+            <span>Proses ({statusCounts.proses})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setStatusFilter((prev) => (prev === 'PARSIAL' ? 'ALL' : 'PARSIAL'))}
+            className={`px-2.5 py-1 rounded-lg text-[10.5px] font-mono font-bold transition flex items-center gap-1.5 cursor-pointer ${
+              statusFilter === 'PARSIAL'
+                ? 'bg-amber-500 text-white border border-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.5)]'
+                : 'bg-amber-500/15 text-amber-300 hover:bg-amber-500/25 border border-amber-500/30'
+            }`}
+            title="Klik untuk filter tiket Parsial"
+          >
+            <span className="size-2 rounded-full bg-amber-400" />
+            <span>Parsial ({statusCounts.parsial})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setStatusFilter((prev) => (prev === 'BACKLOG' ? 'ALL' : 'BACKLOG'))}
+            className={`px-2.5 py-1 rounded-lg text-[10.5px] font-mono font-bold transition flex items-center gap-1.5 cursor-pointer ${
+              statusFilter === 'BACKLOG'
+                ? 'bg-rose-600 text-white border border-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.6)] animate-pulse'
+                : 'bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 border border-rose-500/40'
+            }`}
+            title="Klik untuk filter tiket Backlog"
+          >
+            <span className="size-2 rounded-full bg-rose-400 animate-pulse" />
+            <span>Backlog ({statusCounts.backlog})</span>
+          </button>
+        </div>
+      </div>
+
       {/* Tabel Gantt Schedule dengan Sticky Header & Grid Tanggal */}
       <div className="relative border border-slate-800 rounded-xl overflow-hidden bg-slate-950 shadow-sm">
         <div className="overflow-x-auto min-w-full">
@@ -640,13 +761,34 @@ export default function ArmadaGanttSchedule({
                           <span className="truncate text-xs">{vessel.name}</span>
                         </button>
 
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 border border-slate-700 text-slate-300">
+                        <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 border border-slate-700 text-slate-300">
                             {vessel.tag}
                           </span>
-                          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-sky-500/20 text-sky-300 border border-sky-500/40">
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-sky-500/20 text-sky-300 border border-sky-500/40">
                             {vessel.fpbCount} FPB
                           </span>
+                          {/* Status Breakdown Chips Sinkron dengan 4 Kotak Status */}
+                          {vessel.statusBadge.lengkap > 0 && (
+                            <span className="px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shrink-0">
+                              {vessel.statusBadge.lengkap} Selesai
+                            </span>
+                          )}
+                          {vessel.statusBadge.proses > 0 && (
+                            <span className="px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold bg-sky-500/20 text-sky-300 border border-sky-500/40 shrink-0">
+                              {vessel.statusBadge.proses} Proses
+                            </span>
+                          )}
+                          {vessel.statusBadge.parsial > 0 && (
+                            <span className="px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 shrink-0">
+                              {vessel.statusBadge.parsial} Parsial
+                            </span>
+                          )}
+                          {vessel.statusBadge.backlog > 0 && (
+                            <span className="px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold bg-rose-500/25 text-rose-300 border border-rose-500/50 shrink-0 animate-pulse">
+                              {vessel.statusBadge.backlog} Backlog
+                            </span>
+                          )}
                         </div>
                       </div>
 
@@ -679,7 +821,7 @@ export default function ArmadaGanttSchedule({
 
                         {/* Bar Gantt Armada Induk */}
                         <div
-                          className={`absolute h-8.5 rounded-lg shadow-sm flex items-center px-3 transition-all cursor-pointer hover:shadow-md hover:scale-[1.003] text-white select-none overflow-hidden border border-white/20 ${vessel.gradientStyle}`}
+                          className={`absolute h-8.5 rounded-lg shadow-sm flex items-center px-3 transition-all cursor-pointer hover:shadow-md hover:scale-[1.003] text-white select-none overflow-hidden border ${vessel.gradientStyle}`}
                           style={{
                             left: `calc(${parentLeft}% + 2px)`,
                             width: `calc(${parentWidth}% - 4px)`,
@@ -692,8 +834,13 @@ export default function ArmadaGanttSchedule({
                               <Ship className="size-3.5 shrink-0 opacity-90" />
                               <span className="truncate">{vessel.name}</span>
                             </span>
-                            <span className="text-[10px] font-mono bg-black/30 px-2 py-0.5 rounded ml-1.5 shrink-0 border border-white/20">
-                              {vessel.fpbCount} FPB • {vessel.summaryText}
+                            <span className="text-[10px] font-mono bg-black/40 px-2 py-0.5 rounded ml-1.5 shrink-0 border border-white/20 whitespace-nowrap">
+                              {vessel.fpbCount} FPB • {[
+                                vessel.statusBadge.lengkap > 0 ? `${vessel.statusBadge.lengkap} Selesai` : '',
+                                vessel.statusBadge.proses > 0 ? `${vessel.statusBadge.proses} Proses` : '',
+                                vessel.statusBadge.parsial > 0 ? `${vessel.statusBadge.parsial} Parsial` : '',
+                                vessel.statusBadge.backlog > 0 ? `${vessel.statusBadge.backlog} Backlog` : '',
+                              ].filter(Boolean).join(' • ') || vessel.summaryText}
                             </span>
                           </div>
                         </div>
@@ -702,171 +849,167 @@ export default function ArmadaGanttSchedule({
 
                     {/* Baris Rincian Sub-Tiket FPB (Dinamis Sesuai Fase 1 s/d Fase 5) */}
                     {isExpanded &&
-                      vessel.sampleItems.map((sub, sIdx) => {
-                        const { left: subLeft, width: subWidth } = calculateDateRangePosition(
-                          sub.startDate,
-                          sub.endDate,
-                          selectedPeriod
-                        );
+                      (() => {
+                        const visibleSubItems =
+                          statusFilter === 'ALL'
+                            ? vessel.sampleItems
+                            : vessel.sampleItems.filter((sub) => sub.status === statusFilter);
 
-                        let barBg = 'bg-gradient-to-r from-emerald-600 to-teal-500 border-emerald-400/50 text-white';
-                        let statusLabel = 'LENGKAP';
-
-                        if (sub.status === 'PROSES') {
-                          barBg = 'bg-gradient-to-r from-sky-600 to-blue-500 border-sky-400/50 text-white';
-                          statusLabel = 'PROSES';
-                        } else if (sub.status === 'PARSIAL') {
-                          barBg = 'bg-gradient-to-r from-amber-600 to-orange-500 border-amber-400/50 text-white';
-                          statusLabel = 'PARSIAL';
-                        } else if (sub.status === 'BACKLOG') {
-                          barBg = 'bg-gradient-to-r from-rose-600 to-red-500 border-rose-400/50 text-white';
-                          statusLabel = 'BACKLOG';
+                        if (visibleSubItems.length === 0) {
+                          return (
+                            <div className="py-3 px-6 text-slate-400 text-xs font-mono italic bg-slate-950/60 border-b border-slate-800/50 flex items-center gap-2">
+                              <Info className="size-3.5 text-slate-500" />
+                              <span>
+                                Tidak ada tiket berstatus <strong className="text-slate-200">{statusFilter !== 'ALL' ? GANTT_STATUS_CONFIG[statusFilter]?.label : 'terpilih'}</strong> pada armada {vessel.name} ({vessel.sampleItems.length} total tiket).
+                              </span>
+                            </div>
+                          );
                         }
 
-                        return (
-                          <div
-                            key={`${sub.fpb}-${sIdx}`}
-                            className="flex items-stretch min-h-[46px] bg-slate-950/60 hover:bg-slate-900/60 transition border-b border-slate-800/50 group/sub"
-                          >
-                            {/* Kolom Kiri Rincian Tiket */}
-                            <div className="w-80 sm:w-96 shrink-0 pl-7 pr-3 py-1.5 border-r border-slate-800 flex items-center justify-between gap-2 sticky left-0 bg-slate-950 group-hover/sub:bg-slate-900 z-20 shadow-[2px_0_6px_-2px_rgba(0,0,0,0.3)] transition">
-                              <div className="min-w-0 flex-1">
-                                <div className="flex items-center gap-1.5 flex-wrap">
-                                  <span
-                                    onClick={() => onOpenAudit && onOpenAudit(sub.fpb)}
-                                    className="font-mono font-bold text-[11px] text-slate-100 hover:text-sky-400 transition cursor-pointer"
-                                    title="Klik untuk membuka audit berkas"
-                                  >
-                                    {sub.fpb}
-                                  </span>
-                                  <span
-                                    className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold border leading-none ${
-                                      sub.status === 'LENGKAP'
-                                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                                        : sub.status === 'PROSES'
-                                        ? 'bg-sky-500/20 text-sky-300 border-sky-500/40'
-                                        : sub.status === 'PARSIAL'
-                                        ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                                        : 'bg-rose-500/20 text-rose-300 border-rose-500/40'
-                                    }`}
-                                  >
-                                    {sub.status}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-1 text-[10.5px] text-slate-400 mt-0.5 truncate leading-tight">
-                                  <span className="truncate max-w-[200px] sm:max-w-[240px]" title={sub.item}>
-                                    {sub.item}
-                                  </span>
-                                  {sub.qtyFpb !== undefined && sub.qtyFpb > 0 && (
-                                    <span className="font-mono text-[9px] text-slate-500 shrink-0">
-                                      ({sub.qtyFstb || 0}/{sub.qtyFpb} {sub.satuan || 'UNIT'})
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
+                        return visibleSubItems.map((sub, sIdx) => {
+                          const { left: subLeft, width: subWidth } = calculateDateRangePosition(
+                            sub.startDate,
+                            sub.endDate,
+                            selectedPeriod
+                          );
 
-                              {onOpenAudit && (
-                                <button
-                                  type="button"
-                                  onClick={() => onOpenAudit(sub.fpb)}
-                                  className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition shrink-0 cursor-pointer"
-                                  title="Buka Audit Trail Berkas"
-                                >
-                                  <ExternalLink className="size-3.5" />
-                                </button>
-                              )}
-                            </div>
+                          const config = GANTT_STATUS_CONFIG[sub.status] || GANTT_STATUS_CONFIG.PROSES;
 
-                            {/* Kolom Kanan Timeline Sub-Bar dengan Milestone Nodes & Lead Time */}
-                            <div className="flex-1 relative flex items-center h-full min-h-[46px] px-1">
-                              {/* Grid Kolom */}
-                              <div
-                                className="absolute inset-0 grid pointer-events-none"
-                                style={{ gridTemplateColumns: `repeat(${totalCols}, minmax(0, 1fr))` }}
-                              >
-                                {Array.from({ length: totalCols }).map((_, cIdx) => (
-                                  <div
-                                    key={cIdx}
-                                    className={`h-full border-r ${
-                                      cIdx % 4 === 3 ? 'border-slate-800' : 'border-slate-800/40'
-                                    }`}
-                                  />
-                                ))}
-                              </div>
-
-                              {todayPercent !== null && (
-                                <div
-                                  className="absolute top-0 bottom-0 -translate-x-1/2 z-15 pointer-events-none flex flex-col items-center"
-                                  style={{ left: `${todayPercent}%` }}
-                                >
-                                  <div className="w-0.5 h-full bg-rose-500/80 shadow-[0_0_6px_rgba(244,63,94,0.4)]" />
-                                </div>
-                              )}
-
-                              {/* Bar Gantt Sub-Item dengan Min-Width Aman & Truncation Handling */}
-                              <div
-                                className={`absolute h-7 min-w-[56px] rounded-lg shadow-xs flex items-center px-1.5 transition-all cursor-pointer hover:shadow-md hover:scale-[1.004] z-10 select-none border overflow-hidden ${barBg}`}
-                                style={{
-                                  left: `calc(${subLeft}% + 1px)`,
-                                  width: `calc(${subWidth}% - 2px)`,
-                                }}
-                                onClick={() => onOpenAudit && onOpenAudit(sub.fpb)}
-                                onMouseEnter={() => setHoveredSubItem({ vesselName: vessel.name, sub })}
-                                onMouseLeave={() => setHoveredSubItem(null)}
-                                title={`${sub.fpb}: ${sub.item} | ${sub.startLabel} → ${sub.endLabel} (${sub.durationDays} Hari) [${sub.status}]`}
-                              >
-                                <div className="flex items-center justify-between w-full text-[10px] font-semibold truncate leading-none overflow-hidden">
-                                  {/* Node Kiri & Label FPB */}
-                                  <span className="truncate flex items-center gap-1 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
-                                    {/* Milestone Node Kiri (Buat FPB) */}
+                          return (
+                            <div
+                              key={`${sub.fpb}-${sIdx}`}
+                              className={`flex items-stretch min-h-[46px] transition border-b border-slate-800/50 group/sub ${
+                                sub.status === 'BACKLOG'
+                                  ? 'bg-rose-950/15 hover:bg-rose-950/30'
+                                  : 'bg-slate-950/60 hover:bg-slate-900/60'
+                              }`}
+                            >
+                              {/* Kolom Kiri Rincian Tiket */}
+                              <div className="w-80 sm:w-96 shrink-0 pl-7 pr-3 py-1.5 border-r border-slate-800 flex items-center justify-between gap-2 sticky left-0 bg-slate-950 group-hover/sub:bg-slate-900 z-20 shadow-[2px_0_6px_-2px_rgba(0,0,0,0.3)] transition">
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
                                     <span
-                                      className="size-2 rounded-full bg-white ring-2 ring-white/60 shadow-xs shrink-0"
-                                      title={`Milestone Buka FPB: ${sub.startLabel}`}
-                                    />
-                                    {/* Sembunyikan ID FPB teks hanya jika bar terlalu sempit (< 6.5%) */}
-                                    {subWidth >= 6.5 ? (
-                                      <span className="font-mono font-bold tracking-tight truncate text-ellipsis">
-                                        {sub.fpb}
-                                      </span>
-                                    ) : null}
-                                    {/* Deskripsi Barang jika bar cukup lebar (>= 16%) */}
-                                    {subWidth >= 16 ? (
-                                      <span className="truncate opacity-95 font-medium hidden sm:inline">• {sub.item}</span>
-                                    ) : null}
-                                    {/* Badge Rentang Tanggal jika bar sangat lebar (>= 25%) */}
-                                    {subWidth >= 25 ? (
-                                      <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-black/30 border border-white/20 shrink-0 font-medium ml-1">
-                                        {sub.startLabel} &rarr; {sub.endLabel} ({sub.durationDays} Hari)
-                                      </span>
-                                    ) : null}
-                                  </span>
-
-                                  {/* Status Badge & Node Kanan */}
-                                  <span className="flex items-center gap-1 shrink-0 ml-1">
-                                    {/* Tampilkan teks status hanya jika bar cukup lapang (>= 9%), jika sangat sempit tampilkan hanya milestone icon agar tidak terpotong menjadi 'L' */}
-                                    {subWidth >= 9 && (
-                                      <span className="text-[8.5px] font-mono font-bold bg-black/35 px-1.5 py-0.5 rounded border border-white/20 uppercase whitespace-nowrap">
-                                        {statusLabel}
+                                      onClick={() => onOpenAudit && onOpenAudit(sub.fpb)}
+                                      className="font-mono font-bold text-[11px] text-slate-100 hover:text-sky-400 transition cursor-pointer"
+                                      title="Klik untuk membuka audit berkas"
+                                    >
+                                      {sub.fpb}
+                                    </span>
+                                    <span
+                                      className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold leading-none ${config.badge}`}
+                                    >
+                                      {config.label}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-1 text-[10.5px] text-slate-400 mt-0.5 truncate leading-tight">
+                                    <span className="truncate max-w-[200px] sm:max-w-[240px]" title={sub.item}>
+                                      {sub.item}
+                                    </span>
+                                    {sub.qtyFpb !== undefined && sub.qtyFpb > 0 && (
+                                      <span className="font-mono text-[9px] text-slate-500 shrink-0">
+                                        ({sub.qtyFstb || 0}/{sub.qtyFpb} {sub.satuan || 'UNIT'})
                                       </span>
                                     )}
-                                    {/* Milestone Node Kanan (Serah Terima Lapangan) */}
-                                    <span
-                                      className={`size-2 rounded-full ring-2 shadow-xs shrink-0 ${
-                                        sub.status === 'LENGKAP'
-                                          ? 'bg-emerald-200 ring-white'
-                                          : sub.status === 'BACKLOG'
-                                          ? 'bg-rose-200 ring-rose-300'
-                                          : 'bg-amber-200 ring-amber-300'
+                                  </div>
+                                </div>
+
+                                {onOpenAudit && (
+                                  <button
+                                    type="button"
+                                    onClick={() => onOpenAudit(sub.fpb)}
+                                    className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition shrink-0 cursor-pointer"
+                                    title="Buka Audit Trail Berkas"
+                                  >
+                                    <ExternalLink className="size-3.5" />
+                                  </button>
+                                )}
+                              </div>
+
+                              {/* Kolom Kanan Timeline Sub-Bar dengan Milestone Nodes & Lead Time */}
+                              <div className="flex-1 relative flex items-center h-full min-h-[46px] px-1">
+                                {/* Grid Kolom */}
+                                <div
+                                  className="absolute inset-0 grid pointer-events-none"
+                                  style={{ gridTemplateColumns: `repeat(${totalCols}, minmax(0, 1fr))` }}
+                                >
+                                  {Array.from({ length: totalCols }).map((_, cIdx) => (
+                                    <div
+                                      key={cIdx}
+                                      className={`h-full border-r ${
+                                        cIdx % 4 === 3 ? 'border-slate-800' : 'border-slate-800/40'
                                       }`}
-                                      title={`Milestone Serah Terima: ${sub.endLabel}`}
                                     />
-                                  </span>
+                                  ))}
+                                </div>
+
+                                {todayPercent !== null && (
+                                  <div
+                                    className="absolute top-0 bottom-0 -translate-x-1/2 z-15 pointer-events-none flex flex-col items-center"
+                                    style={{ left: `${todayPercent}%` }}
+                                  >
+                                    <div className="w-0.5 h-full bg-rose-500/80 shadow-[0_0_6px_rgba(244,63,94,0.4)]" />
+                                  </div>
+                                )}
+
+                                {/* Bar Gantt Sub-Item dengan Min-Width Aman & Truncation Handling */}
+                                <div
+                                  className={`absolute h-7 min-w-[56px] rounded-lg shadow-xs flex items-center px-1.5 transition-all cursor-pointer hover:shadow-md hover:scale-[1.004] z-10 select-none border overflow-hidden ${config.barBg}`}
+                                  style={{
+                                    left: `calc(${subLeft}% + 1px)`,
+                                    width: `calc(${subWidth}% - 2px)`,
+                                  }}
+                                  onClick={() => onOpenAudit && onOpenAudit(sub.fpb)}
+                                  onMouseEnter={() => setHoveredSubItem({ vesselName: vessel.name, sub })}
+                                  onMouseLeave={() => setHoveredSubItem(null)}
+                                  title={`${sub.fpb}: ${sub.item} | ${sub.startLabel} → ${sub.endLabel} (${sub.durationDays} Hari) [${config.label}]`}
+                                >
+                                  <div className="flex items-center justify-between w-full text-[10px] font-semibold truncate leading-none overflow-hidden">
+                                    {/* Node Kiri & Label FPB */}
+                                    <span className="truncate flex items-center gap-1 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
+                                      {/* Milestone Node Kiri (Buat FPB) */}
+                                      <span
+                                        className={`size-2 rounded-full bg-white ring-2 ${config.startNodeRing} shadow-xs shrink-0`}
+                                        title={`Milestone Buka FPB: ${sub.startLabel}`}
+                                      />
+                                      {/* Sembunyikan ID FPB teks hanya jika bar terlalu sempit (< 6.5%) */}
+                                      {subWidth >= 6.5 ? (
+                                        <span className="font-mono font-bold tracking-tight truncate text-ellipsis">
+                                          {sub.fpb}
+                                        </span>
+                                      ) : null}
+                                      {/* Deskripsi Barang jika bar cukup lebar (>= 16%) */}
+                                      {subWidth >= 16 ? (
+                                        <span className="truncate opacity-95 font-medium hidden sm:inline">• {sub.item}</span>
+                                      ) : null}
+                                      {/* Badge Rentang Tanggal jika bar sangat lebar (>= 25%) */}
+                                      {subWidth >= 25 ? (
+                                        <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-black/35 border border-white/20 shrink-0 font-medium ml-1">
+                                          {sub.startLabel} &rarr; {sub.endLabel} ({sub.durationDays} Hari)
+                                        </span>
+                                      ) : null}
+                                    </span>
+
+                                    {/* Status Badge & Node Kanan */}
+                                    <span className="flex items-center gap-1 shrink-0 ml-1">
+                                      {/* Tampilkan teks status hanya jika bar cukup lapang (>= 9%), jika sangat sempit tampilkan hanya milestone icon agar tidak terpotong menjadi 'L' */}
+                                      {subWidth >= 9 && (
+                                        <span className={`text-[8.5px] font-mono font-bold px-1.5 py-0.5 rounded border uppercase whitespace-nowrap ${config.barBadge}`}>
+                                          {config.label}
+                                        </span>
+                                      )}
+                                      {/* Milestone Node Kanan (Serah Terima Lapangan) */}
+                                      <span
+                                        className={`size-2 rounded-full shrink-0 ${config.endNodeBg}`}
+                                        title={`Milestone Serah Terima: ${sub.endLabel}`}
+                                      />
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        });
+                      })()}
                   </React.Fragment>
                 );
               })}
@@ -884,16 +1027,11 @@ export default function ArmadaGanttSchedule({
               </div>
               <span
                 className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border shrink-0 ${
-                  hoveredSubItem.sub.status === 'LENGKAP'
-                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                    : hoveredSubItem.sub.status === 'PROSES'
-                    ? 'bg-sky-500/20 text-sky-300 border-sky-500/40'
-                    : hoveredSubItem.sub.status === 'PARSIAL'
-                    ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                    : 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                  GANTT_STATUS_CONFIG[hoveredSubItem.sub.status]?.badge ||
+                  'bg-slate-700 text-white'
                 }`}
               >
-                {hoveredSubItem.sub.status}
+                {GANTT_STATUS_CONFIG[hoveredSubItem.sub.status]?.label || hoveredSubItem.sub.status}
               </span>
             </div>
 
