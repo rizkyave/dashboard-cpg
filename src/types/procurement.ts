@@ -196,6 +196,8 @@ export interface ProcurementItem {
   isRevised?: boolean;
   revisionCount?: number;
   revisionNote?: string;
+  pdfUrl?: string;
+  timestamp?: number;
 }
 
 export interface ArmadaItem {
@@ -212,6 +214,7 @@ export interface ArmadaItem {
   isRevised?: boolean;
   revisionCount?: number;
   revisionNote?: string;
+  timestamp?: number;
   // Extended fields from "Monitoring Layanan Armada" sheet & Merge
   tglFpb?: string;
   noPo?: string;

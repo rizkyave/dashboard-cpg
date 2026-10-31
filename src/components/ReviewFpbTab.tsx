@@ -1799,7 +1799,7 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                   </button>
                 )}
                 <a
-                  href={`https://e-fpb.cindaragroup.com/files/Approved_rev_sign_${encodeURIComponent(selectedRecord.fpbNo)}.pdf`}
+                  href={`/api/review-fpb/pdf?fpbNo=${encodeURIComponent(selectedRecord.fpbNo)}&type=raw`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg border border-border bg-background hover:bg-muted text-foreground transition"

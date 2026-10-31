@@ -128,9 +128,65 @@ function normalizeFpb(raw: string): string {
   return fpb;
 }
 
+/**
+ * Deduplicate rows strictly:
+ * If multiple postings exist for the same FPB number (due to revisions or double posting on e-FPB),
+ * ONLY keep the newest record (based on timestamp).
+ * Preserve merged fields:
+ * - isReceivedLogistik (if ANY posting has received logistic status, preserve it)
+ * - pchLogistik
+ * - attachments (merge without duplicates, preferring newest)
+ * - flag as revised (isRevised = true, revisionCount, revisionNote)
+ */
+function deduplicateEfpbRows(rows: ParsedEfpbFileRow[]): ParsedEfpbFileRow[] {
+  const dedupedMap = new Map<string, ParsedEfpbFileRow>();
+
+  for (const row of rows) {
+    const key = row.fpb.toLowerCase();
+    if (!dedupedMap.has(key)) {
+      dedupedMap.set(key, { ...row });
+    } else {
+      const existing = dedupedMap.get(key)!;
+      const revCount = (existing.revisionCount || 1) + (row.revisionCount ? (row.revisionCount - 1) : 1);
+      const combinedReceived = existing.isReceivedLogistik || row.isReceivedLogistik;
+      const combinedPch = row.pchLogistik || existing.pchLogistik;
+
+      // Safely merge attachments without duplicates
+      const mergedAtts = [...(existing.attachments || [])];
+      for (const att of (row.attachments || [])) {
+        if (!mergedAtts.some((a) => a.url === att.url || a.name === att.name)) {
+          mergedAtts.push(att);
+        }
+      }
+
+      if (row.timestamp > existing.timestamp) {
+        // Newer row completely replaces older row
+        dedupedMap.set(key, {
+          ...row,
+          pchLogistik: combinedPch,
+          isReceivedLogistik: combinedReceived,
+          attachments: mergedAtts,
+          isRevised: true,
+          revisionCount: revCount,
+          revisionNote: `Revisi e-FPB (${revCount}x): Mengambil data terbaru tgl ${row.tgl || row.rawDate} (menggantikan postingan lama tgl ${existing.tgl || existing.rawDate}).`,
+        });
+      } else {
+        // Existing row is already newer. Keep existing, but merge received status and attachments
+        existing.isRevised = true;
+        existing.revisionCount = revCount;
+        existing.isReceivedLogistik = combinedReceived;
+        if (!existing.pchLogistik && row.pchLogistik) existing.pchLogistik = row.pchLogistik;
+        existing.attachments = mergedAtts;
+        existing.revisionNote = `Revisi e-FPB (${revCount}x): Mengambil data terbaru tgl ${existing.tgl || existing.rawDate} (postingan lain tgl ${row.tgl || row.rawDate} dilewati).`;
+      }
+    }
+  }
+
+  return Array.from(dedupedMap.values());
+}
+
 function parseFilesListHtml(html: string): ParsedEfpbFileRow[] {
   const rows: ParsedEfpbFileRow[] = [];
-  const seenFpbs = new Set<string>();
   const trRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
   let trMatch: RegExpExecArray | null;
 
@@ -188,15 +244,32 @@ function parseFilesListHtml(html: string): ParsedEfpbFileRow[] {
     }
 
     // Deduplicate: prioritaskan file dengan tanggal & waktu terkini
-    const fpbKey = cleanFpb.toLowerCase();
     const timestamp = parseEfpbTimestamp(rawTgl);
     const isReceivedLogistik = pchLogistik.toLowerCase().includes('received');
     const formattedDate = formatDateDdMmYy(rawTgl.slice(0, 10)) || formatDateDdMmYy(rawTgl);
 
-    const pdfMatch = rowContent.match(/files\/[^\s"'\\]+\.pdf/i);
-    const pdfUrl = pdfMatch
-      ? `https://e-fpb.cindaragroup.com/${pdfMatch[0].replace(/^\/+/, '')}`
-      : `https://e-fpb.cindaragroup.com/files/Approved_rev_sign_${encodeURIComponent(cleanFpb)}.pdf`;
+    const allPdfs = Array.from(rowContent.matchAll(/files\/[^\s"'\\]+\.pdf/gi)).map((m) =>
+      m[0].replace(/^\/+/, '')
+    );
+    // Find PDF specifically matching cleanFpb or primary document (avoiding attachment names like LAMPIRAN)
+    const primaryPdf =
+      allPdfs.find((p) => {
+        const lower = p.toLowerCase();
+        return (
+          lower.includes(cleanFpb.toLowerCase()) &&
+          !lower.includes('lampiran') &&
+          !lower.includes('foto')
+        );
+      }) ||
+      allPdfs.find((p) => {
+        const lower = p.toLowerCase();
+        return !lower.includes('lampiran') && !lower.includes('foto') && !lower.includes('avatar') && !lower.includes('logo');
+      }) ||
+      allPdfs[0];
+
+    const pdfUrl = primaryPdf
+      ? `https://e-fpb.cindaragroup.com/${primaryPdf}`
+      : `https://e-fpb.cindaragroup.com/files/${encodeURIComponent(cleanFpb)}.pdf`;
 
     // Ekstraksi berkas lampiran (Attachment & Foto Fisik dari Kotak Hitam e-FPB)
     const fileMatches = Array.from(
@@ -210,7 +283,8 @@ function parseFilesListHtml(html: string): ParsedEfpbFileRow[] {
       const cleanPath = rawPath.replace(/^\/+/, '');
       const lower = cleanPath.toLowerCase();
 
-      // Abaikan berkas formulir PDF utama (Approved_...sign_...pdf) dan logo web
+      // Abaikan berkas formulir PDF utama (Approved_...sign_...pdf atau file sama dengan primaryPdf) dan logo web
+      if (primaryPdf && cleanPath.toLowerCase() === primaryPdf.toLowerCase()) return;
       if (lower.includes('approved_') && lower.includes('sign_')) return;
       if (lower.includes('logo') || lower.includes('company_group') || lower.includes('avatar') || lower.includes('icon')) return;
 
@@ -234,49 +308,6 @@ function parseFilesListHtml(html: string): ParsedEfpbFileRow[] {
       });
     });
 
-    if (seenFpbs.has(fpbKey)) {
-      const existingIdx = rows.findIndex((r) => r.fpb.toLowerCase() === fpbKey);
-      if (existingIdx >= 0) {
-        const existing = rows[existingIdx];
-        const revCount = (existing.revisionCount || 1) + 1;
-        const combinedReceived = existing.isReceivedLogistik || isReceivedLogistik;
-        const combinedPch = pchLogistik || existing.pchLogistik;
-        const combinedAtts = extractedAttachments.length > 0 ? extractedAttachments : existing.attachments;
-
-        if (timestamp > existing.timestamp) {
-          // New row has a later timestamp: replace existing row with the newer version
-          rows[existingIdx] = {
-            fpb: cleanFpb,
-            originalFpb: rawFpb,
-            tgl: formattedDate,
-            rawDate: rawTgl,
-            timestamp,
-            pchLogistik: combinedPch,
-            armada: armada || existing.armada,
-            company: company || existing.company,
-            status,
-            keterangan: keterangan || existing.keterangan,
-            isReceivedLogistik: combinedReceived,
-            pdfUrl,
-            attachments: combinedAtts,
-            isRevised: true,
-            revisionCount: revCount,
-            revisionNote: `Revisi e-FPB (${revCount}x): Menggunakan berkas terbaru tgl ${formattedDate || rawTgl} (menggantikan berkas lama tgl ${existing.tgl || existing.rawDate}).`,
-          };
-        } else {
-          // Existing row has an equal or later timestamp: keep existing but flag as revised
-          existing.isRevised = true;
-          existing.revisionCount = revCount;
-          existing.isReceivedLogistik = combinedReceived;
-          if (extractedAttachments.length > 0) existing.attachments = extractedAttachments;
-          if (!existing.pchLogistik && pchLogistik) existing.pchLogistik = pchLogistik;
-          existing.revisionNote = `Revisi e-FPB (${revCount}x): Menggunakan berkas terbaru tgl ${existing.tgl || existing.rawDate} (berkas lain tgl ${formattedDate || rawTgl}).`;
-        }
-      }
-      continue;
-    }
-    seenFpbs.add(fpbKey);
-
     rows.push({
       fpb: cleanFpb,
       originalFpb: rawFpb,
@@ -294,7 +325,8 @@ function parseFilesListHtml(html: string): ParsedEfpbFileRow[] {
     });
   }
 
-  return rows;
+  // Deduplikasi baris dalam 1 halaman: pastikan hanya data terbaru yang disimpan
+  return deduplicateEfpbRows(rows);
 }
 
 /**
@@ -435,6 +467,8 @@ function buildItems(efpb: ParsedEfpbFileRow): { proc: ProcurementItem; arm: Arma
     isRevised: efpb.isRevised,
     revisionCount: efpb.revisionCount,
     revisionNote: efpb.revisionNote,
+    pdfUrl: efpb.pdfUrl,
+    timestamp: efpb.timestamp,
     ...(efpb.attachments && efpb.attachments.length > 0 ? { attachments: efpb.attachments } : {}),
   };
 
@@ -459,6 +493,7 @@ function buildItems(efpb: ParsedEfpbFileRow): { proc: ProcurementItem; arm: Arma
     isRevised: efpb.isRevised,
     revisionCount: efpb.revisionCount,
     revisionNote: efpb.revisionNote,
+    timestamp: efpb.timestamp,
     ...(efpb.attachments && efpb.attachments.length > 0 ? { attachments: efpb.attachments } : {}),
   };
 
@@ -591,38 +626,7 @@ async function processEfpbFiles(
     }
 
     // Deduplicate across all pages (some FPBs may appear on multiple pages)
-    const dedupedMap = new Map<string, ParsedEfpbFileRow>();
-    for (const row of allRows) {
-      const key = row.fpb.toLowerCase();
-      if (!dedupedMap.has(key)) {
-        dedupedMap.set(key, { ...row });
-      } else {
-        const existing = dedupedMap.get(key)!;
-        const revCount = (existing.revisionCount || 1) + (row.revisionCount ? (row.revisionCount - 1) : 1);
-        const combinedReceived = existing.isReceivedLogistik || row.isReceivedLogistik;
-        const combinedPch = row.pchLogistik || existing.pchLogistik;
-
-        if (row.timestamp > existing.timestamp) {
-          // Newer row replaces older row
-          dedupedMap.set(key, {
-            ...row,
-            pchLogistik: combinedPch,
-            isReceivedLogistik: combinedReceived,
-            isRevised: true,
-            revisionCount: revCount,
-            revisionNote: `Revisi e-FPB (${revCount}x): Menggunakan berkas terbaru tgl ${row.tgl || row.rawDate} (menggantikan berkas lama tgl ${existing.tgl || existing.rawDate}).`,
-          });
-        } else {
-          // Retain existing, flag as revised
-          existing.isRevised = true;
-          existing.revisionCount = revCount;
-          existing.isReceivedLogistik = combinedReceived;
-          if (!existing.pchLogistik && row.pchLogistik) existing.pchLogistik = row.pchLogistik;
-          existing.revisionNote = `Revisi e-FPB (${revCount}x): Menggunakan berkas terbaru tgl ${existing.tgl || existing.rawDate} (berkas lain tgl ${row.tgl || row.rawDate}).`;
-        }
-      }
-    }
-    allRows = Array.from(dedupedMap.values());
+    allRows = deduplicateEfpbRows(allRows);
   } else {
     // Quick mode: fetch only the default page (20 most recent) with session retry
     const quickFetch = async (sess: string) => {
@@ -664,7 +668,7 @@ async function processEfpbFiles(
       );
     }
 
-    allRows = parseFilesListHtml(html);
+    allRows = deduplicateEfpbRows(parseFilesListHtml(html));
   }
 
   if (allRows.length === 0) {

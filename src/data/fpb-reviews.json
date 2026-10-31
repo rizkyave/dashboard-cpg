@@ -5950,7 +5950,7 @@
     "purpose": "Kebutuhan Operasional OFFICE GAJ",
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
-    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0001082.pdf",
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/GAJ-FPB-26-0001082.pdf",
     "reviewStatus": "PENDING_REVIEW",
     "urgency": "NORMAL",
     "picPurchasing": "-",
@@ -5979,7 +5979,10 @@
     "priorityLevel": "P3",
     "slaTargetDate": "22/11/26",
     "slaDaysRemaining": 22,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004964",

@@ -146,6 +146,68 @@ function findStockMatch(itemName: string, itemCode?: string, entity?: string): {
 }
 
 /**
+ * Deduplicate reviews strictly by fpbNo:
+ * Ensures only the latest revision of any FPB is retained in memory & storage.
+ */
+function deduplicateReviews(records: FpbReviewRecord[]): { records: FpbReviewRecord[]; hasDuplicates: boolean } {
+  const map = new Map<string, FpbReviewRecord>();
+  let hasDuplicates = false;
+
+  for (const rec of records) {
+    const key = (rec.fpbNo || '').trim().toLowerCase();
+    if (!key) continue;
+
+    if (!map.has(key)) {
+      map.set(key, { ...rec });
+    } else {
+      hasDuplicates = true;
+      const existing = map.get(key)!;
+      const recTs = parseDateToTs(rec.updatedAt || rec.createdAt || rec.date);
+      const existingTs = parseDateToTs(existing.updatedAt || existing.createdAt || existing.date);
+
+      // Merge attachments
+      const mergedAtts = [...(existing.attachments || [])];
+      for (const att of (rec.attachments || [])) {
+        if (!mergedAtts.some((a) => a.url === att.url || a.name === att.name)) {
+          mergedAtts.push(att);
+        }
+      }
+
+      // Preserve extracted items and review decision
+      const bestItems = (Array.isArray(rec.items) && rec.items.length > 0)
+        ? rec.items
+        : existing.items;
+
+      const combinedReceived = existing.isReceivedLogistik || rec.isReceivedLogistik;
+      const revCount = (existing.revisionCount || 1) + 1;
+
+      if (recTs > existingTs) {
+        // Newer record wins
+        map.set(key, {
+          ...rec,
+          isReceivedLogistik: combinedReceived,
+          items: bestItems,
+          attachments: mergedAtts,
+          isRevised: true,
+          revisionCount: revCount,
+          revisionNote: `Revisi e-FPB (${revCount}x): Menggunakan data terbaru (${rec.date || rec.updatedAt}).`,
+        });
+      } else {
+        // Existing record wins
+        existing.isReceivedLogistik = combinedReceived;
+        if (!existing.items || existing.items.length === 0) existing.items = bestItems;
+        existing.attachments = mergedAtts;
+        existing.isRevised = true;
+        existing.revisionCount = revCount;
+        existing.revisionNote = `Revisi e-FPB (${revCount}x): Menggunakan data terbaru (${existing.date || existing.updatedAt}).`;
+      }
+    }
+  }
+
+  return { records: Array.from(map.values()), hasDuplicates };
+}
+
+/**
  * Load Reviews from Cloudflare R2 with fallback to local disk
  */
 async function loadReviews(): Promise<FpbReviewRecord[]> {
@@ -201,7 +263,24 @@ async function loadReviews(): Promise<FpbReviewRecord[]> {
                 r2Item.requesterPhone = loc.requesterPhone;
                 hasMergedUpdates = true;
               }
+              if (loc.isRevised !== undefined && r2Item.isRevised !== loc.isRevised) {
+                r2Item.isRevised = loc.isRevised;
+                r2Item.revisionCount = loc.revisionCount;
+                r2Item.revisionNote = loc.revisionNote;
+                hasMergedUpdates = true;
+              }
+              if (loc.pdfUrl && loc.pdfUrl.includes('.pdf') && !loc.pdfUrl.includes('Approved_rev_sign_') && r2Item.pdfUrl !== loc.pdfUrl) {
+                r2Item.pdfUrl = loc.pdfUrl;
+                hasMergedUpdates = true;
+              }
             }
+          }
+
+          // Deduplicate across the merged set to guarantee no duplicate FPB records exist
+          const { records: dedupedR2, hasDuplicates: hasR2Dupes } = deduplicateReviews(parsed);
+          if (hasR2Dupes) {
+            parsed = dedupedR2;
+            hasMergedUpdates = true;
           }
 
           if (hasMergedUpdates) {
@@ -219,6 +298,11 @@ async function loadReviews(): Promise<FpbReviewRecord[]> {
 
   // 2. Fallback to local file
   if (localList.length > 0) {
+    const { records: dedupedLocal, hasDuplicates: hasLocalDupes } = deduplicateReviews(localList);
+    if (hasLocalDupes) {
+      localList = dedupedLocal;
+      saveReviews(localList).catch(() => {});
+    }
     cachedReviews = localList;
     return localList;
   }
@@ -1029,8 +1113,18 @@ export async function POST(req: NextRequest) {
         );
 
         if (existingIdx >= 0) {
-          // Preserve existing review status, pic, notes, items
+          // Preserve existing review status, pic, notes, items, but update with latest metadata
           const existing = records[existingIdx];
+          const newAtts = ((efpb as any).attachments && (efpb as any).attachments.length > 0)
+            ? (efpb as any).attachments
+            : [];
+          const mergedAtts = [...(existing.attachments || [])];
+          for (const att of newAtts) {
+            if (!mergedAtts.some((a: any) => a.url === att.url || a.name === att.name)) {
+              mergedAtts.push(att);
+            }
+          }
+
           records[existingIdx] = {
             ...existing,
             armada: efpb.deptArmada || existing.armada,
@@ -1039,9 +1133,8 @@ export async function POST(req: NextRequest) {
             isRevised: efpb.isRevised !== undefined ? efpb.isRevised : existing.isRevised,
             revisionCount: efpb.revisionCount !== undefined ? efpb.revisionCount : existing.revisionCount,
             revisionNote: efpb.revisionNote !== undefined ? efpb.revisionNote : existing.revisionNote,
-            attachments: ((efpb as any).attachments && (efpb as any).attachments.length > 0)
-              ? (efpb as any).attachments
-              : existing.attachments,
+            pdfUrl: (efpb.pdfUrl && !efpb.pdfUrl.includes('Approved_rev_sign_')) ? efpb.pdfUrl : existing.pdfUrl,
+            attachments: mergedAtts,
             updatedAt: nowIso,
           };
           updatedCount++;
@@ -1058,7 +1151,7 @@ export async function POST(req: NextRequest) {
             purpose: efpb.peruntukan || 'Pengadaan Kebutuhan Operasional Kapal',
             efpbStatus: 'Approved',
             isReceivedLogistik: Boolean(efpb.statusBadge?.includes('TERDAFTAR')),
-            pdfUrl: `https://e-fpb.cindaragroup.com/files/Approved_rev_sign_${encodeURIComponent(cleanNo)}.pdf`,
+            pdfUrl: efpb.pdfUrl || `https://e-fpb.cindaragroup.com/files/${encodeURIComponent(cleanNo)}.pdf`,
             reviewStatus: 'PENDING_REVIEW',
             urgency: 'NORMAL',
             picPurchasing: '-',
@@ -1080,6 +1173,10 @@ export async function POST(req: NextRequest) {
           addedCount++;
         }
       }
+
+      // Deduplikasi ketat: pastikan satu nomor FPB hanya memiliki satu rekaman dengan revisi terbaru
+      const { records: dedupedAfterSync } = deduplicateReviews(records);
+      records = dedupedAfterSync;
 
       const { records: tkbRecords } = ensureTkbNumbers(records);
       records = tkbRecords;
