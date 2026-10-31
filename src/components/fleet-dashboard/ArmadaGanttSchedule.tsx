@@ -227,7 +227,6 @@ export default function ArmadaGanttSchedule({
     for (const entry of Array.from(map.values())) {
       const fpbCount = Math.max(entry.fpbs.size, 1);
       const sampleItems: GanttSubTicket[] = [];
-      const seen = new Set<string>();
 
       // Kumpulkan rentang tanggal untuk SEMUA item di armada ini (bukan hanya sliced)
       let minArmadaTime = Infinity;
@@ -243,10 +242,6 @@ export default function ArmadaGanttSchedule({
         if (!fpbNum) continue;
 
         const rawItemName = (child.item || '').trim();
-        const key = `${fpbNum}_${rawItemName}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
-
         const qFpb = Number(child.qtyFPB) || 0;
         const qFstb = Number(child.qtyFSTB) || 0;
         const qSel = child.selisih !== undefined ? Number(child.selisih) : Math.max(0, qFpb - qFstb);
@@ -782,8 +777,11 @@ export default function ArmadaGanttSchedule({
                           <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 border border-slate-700 text-slate-300">
                             {vessel.tag}
                           </span>
-                          <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-sky-500/20 text-sky-300 border border-sky-500/40">
-                            {vessel.fpbCount} FPB
+                          <span
+                            className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-sky-500/20 text-sky-300 border border-sky-500/40"
+                            title={`${vessel.fpbCount} Tiket FPB (${vessel.sampleItems.length} Rincian Berkas Item)`}
+                          >
+                            {vessel.fpbCount} FPB{vessel.sampleItems.length !== vessel.fpbCount ? ` (${vessel.sampleItems.length} Item)` : ''}
                           </span>
                           {/* Status Breakdown Chips Sinkron dengan 4 Kotak Status */}
                           {vessel.statusBadge.lengkap > 0 && (
@@ -852,7 +850,7 @@ export default function ArmadaGanttSchedule({
                               <span className="truncate">{vessel.name}</span>
                             </span>
                             <span className="text-[10px] font-mono bg-black/40 px-2 py-0.5 rounded ml-1.5 shrink-0 border border-white/20 whitespace-nowrap">
-                              {vessel.fpbCount} FPB • {[
+                              {vessel.fpbCount} FPB{vessel.sampleItems.length !== vessel.fpbCount ? ` (${vessel.sampleItems.length} Item)` : ''} • {[
                                 vessel.statusBadge.lengkap > 0 ? `${vessel.statusBadge.lengkap} Selesai` : '',
                                 vessel.statusBadge.proses > 0 ? `${vessel.statusBadge.proses} Proses` : '',
                                 vessel.statusBadge.parsial > 0 ? `${vessel.statusBadge.parsial} Parsial` : '',
