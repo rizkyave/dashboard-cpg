@@ -1848,13 +1848,14 @@ export default function SerahTerimaLapanganTab({
                                       <div className="space-y-1">
                                         <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-black bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30 shadow-2xs">
                                           <Truck className="size-4 text-blue-600 dark:text-blue-400 shrink-0" />
-                                          <span>Disetujui Manager (Siap Kirim)</span>
+                                          <span>Siap Kirim</span>
                                         </span>
-                                        {opt.managerValidatorName && (
-                                          <span className="block text-xs text-muted-foreground font-semibold font-mono truncate max-w-[190px]" title={opt.managerValidatorName}>
-                                            Manager: {opt.managerValidatorName}
-                                          </span>
-                                        )}
+                                        <span
+                                          className="block text-xs text-muted-foreground font-semibold font-mono truncate max-w-[190px]"
+                                          title={opt.managerValidatorName ? `Disahkan Manager: ${opt.managerValidatorName}` : 'Administrasi Lengkap'}
+                                        >
+                                          Administrasi Lengkap
+                                        </span>
                                       </div>
                                     ) : isDispatched ? (
                                       <div className="space-y-1">
@@ -1872,13 +1873,14 @@ export default function SerahTerimaLapanganTab({
                                       <div className="space-y-1">
                                         <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-black bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30 shadow-2xs">
                                           <Truck className="size-4 text-blue-600 dark:text-blue-400 shrink-0" />
-                                          <span>Disetujui Manager (Siap Kirim)</span>
+                                          <span>Siap Kirim</span>
                                         </span>
-                                        {opt.managerValidatorName && (
-                                          <span className="block text-xs text-muted-foreground font-semibold font-mono truncate max-w-[190px]" title={opt.managerValidatorName}>
-                                            Manager: {opt.managerValidatorName}
-                                          </span>
-                                        )}
+                                        <span
+                                          className="block text-xs text-muted-foreground font-semibold font-mono truncate max-w-[190px]"
+                                          title={opt.managerValidatorName ? `Disahkan Manager: ${opt.managerValidatorName}` : 'Administrasi Lengkap'}
+                                        >
+                                          Administrasi Lengkap
+                                        </span>
                                       </div>
                                     ) : (
                                       <div className="space-y-1">
