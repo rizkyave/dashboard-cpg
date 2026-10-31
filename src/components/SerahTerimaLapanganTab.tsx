@@ -1802,7 +1802,7 @@ export default function SerahTerimaLapanganTab({
                                   }`}
                                 >
                                   {/* Tgl Terbit TTB */}
-                                  <td className="py-4 px-4.5 whitespace-nowrap font-mono">
+                                  <td className="py-4 px-4.5 whitespace-nowrap font-mono align-middle">
                                     {opt.tglTtbFormatted ? (
                                       <div className="flex items-center gap-2 text-foreground font-bold text-sm sm:text-base">
                                         <Calendar className="size-4.5 text-indigo-500 shrink-0" />
@@ -1816,7 +1816,7 @@ export default function SerahTerimaLapanganTab({
                                   </td>
 
                                   {/* Nomor TTB Resmi */}
-                                  <td className="py-4 px-4.5 whitespace-nowrap font-mono font-black text-base sm:text-lg text-foreground group-hover:text-indigo-600 dark:group-hover:text-indigo-400 tracking-tight">
+                                  <td className="py-4 px-4.5 whitespace-nowrap font-mono font-black text-base sm:text-lg text-foreground group-hover:text-indigo-600 dark:group-hover:text-indigo-400 tracking-tight align-middle">
                                     <div className="flex items-center gap-2.5">
                                       <span>{opt.noTtb}</span>
                                       <button
@@ -1835,7 +1835,7 @@ export default function SerahTerimaLapanganTab({
                                   </td>
 
                                   {/* Armada / Unit */}
-                                  <td className="py-4 px-4.5 whitespace-nowrap">
+                                  <td className="py-4 px-4.5 whitespace-nowrap align-middle">
                                     <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-black bg-indigo-500/15 text-indigo-800 dark:text-indigo-200 border border-indigo-500/30 shadow-2xs">
                                       <Ship className="size-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
                                       <span className="truncate max-w-[200px]">{opt.armada}</span>
@@ -1843,7 +1843,7 @@ export default function SerahTerimaLapanganTab({
                                   </td>
 
                                   {/* Status Logistik */}
-                                  <td className="py-4 px-4.5 whitespace-nowrap">
+                                  <td className="py-4 px-4.5 whitespace-nowrap align-middle">
                                     {opt.isRecipientSigned ? (
                                       <div className="space-y-1">
                                         <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-black bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30 shadow-2xs">
@@ -1896,7 +1896,7 @@ export default function SerahTerimaLapanganTab({
                                   </td>
 
                                   {/* Status TTD Digital Armada / Penerima Akhir */}
-                                  <td className="py-4 px-4.5 whitespace-nowrap">
+                                  <td className="py-4 px-4.5 whitespace-nowrap align-middle">
                                     {opt.isRecipientSigned ? (
                                       <div className="space-y-1">
                                         <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-sm font-black bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 shadow-2xs">
@@ -1943,48 +1943,22 @@ export default function SerahTerimaLapanganTab({
                                   </td>
 
                                   {/* Aksi: Dinamis (Lihat Berkas jika sudah TTD, PILIH TTB / Pre-Check jika Siap Kirim, Terkunci jika belum Manager) */}
-                                  <td className="py-4 px-4.5 text-right whitespace-nowrap">
-                                    {opt.isRecipientSigned ? (
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setSelectedTtbForModal(opt.noTtb);
-                                        }}
-                                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 shadow-sm transition-colors dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800 cursor-pointer"
-                                        title={`Lihat berkas & detail bukti TTB ${opt.noTtb}`}
-                                      >
-                                        <Eye className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
-                                        <span>Lihat Berkas</span>
-                                      </button>
-                                    ) : isDispatched ? (
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setSelectedTtbRef(opt);
-                                          setIsSearchingTtb(false);
-                                        }}
-                                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-amber-600 hover:bg-amber-700 active:scale-95 text-white shadow-sm transition-colors cursor-pointer"
-                                        title="Lanjutkan pengisian form serah terima & tanda tangan crew"
-                                      >
-                                        <span>LANJUT TTD</span>
-                                        <ChevronRight className="w-3.5 h-3.5" />
-                                      </button>
-                                    ) : isRemoteDispatched ? (
-                                      <div className="inline-flex items-center gap-1.5 justify-end">
+                                  <td className="py-4 px-4.5 text-right whitespace-nowrap align-middle">
+                                    <div className="inline-flex items-center justify-end gap-2">
+                                      {opt.isRecipientSigned ? (
                                         <button
                                           type="button"
                                           onClick={(e) => {
                                             e.stopPropagation();
-                                            setPendingRemoteDispatchTtb(opt);
+                                            setSelectedTtbForModal(opt.noTtb);
                                           }}
-                                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-colors cursor-pointer"
-                                          title="Buka detail titipan & bagikan ulang link WhatsApp"
+                                          className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800 cursor-pointer"
+                                          title={`Lihat berkas & detail bukti TTB ${opt.noTtb}`}
                                         >
-                                          <Share2 className="w-3.5 h-3.5" />
-                                          <span>Link WA</span>
+                                          <Eye className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
+                                          <span>Lihat Berkas</span>
                                         </button>
+                                      ) : isDispatched ? (
                                         <button
                                           type="button"
                                           onClick={(e) => {
@@ -1992,54 +1966,83 @@ export default function SerahTerimaLapanganTab({
                                             setSelectedTtbRef(opt);
                                             setIsSearchingTtb(false);
                                           }}
-                                          className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-border bg-background hover:bg-muted text-foreground transition cursor-pointer"
-                                          title="Lanjut input langsung jika barang sudah sampai di kapal"
+                                          className="inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl bg-amber-600 hover:bg-amber-700 active:scale-95 text-white shadow-2xs transition-colors cursor-pointer"
+                                          title="Lanjutkan pengisian form serah terima & tanda tangan crew"
                                         >
-                                          <span>Input TTD</span>
-                                        </button>
-                                      </div>
-                                    ) : opt.isManagerApproved ? (
-                                      <div className="inline-flex items-center gap-1.5 justify-end">
-                                        <button
-                                          type="button"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            setPendingPreDispatchTtb(opt);
-                                          }}
-                                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm transition-colors cursor-pointer"
-                                          title="Pemeriksaan fisik barang sebelum keberangkatan kurir internal (Pre-Check)"
-                                        >
-                                          <span>PILIH TTB</span>
+                                          <span>Lanjut TTD</span>
                                           <ChevronRight className="w-3.5 h-3.5" />
                                         </button>
+                                      ) : isRemoteDispatched ? (
+                                        <div className="inline-flex items-center gap-2">
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              setPendingRemoteDispatchTtb(opt);
+                                            }}
+                                            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 shadow-2xs transition-colors cursor-pointer"
+                                            title="Buka detail titipan & bagikan ulang link WhatsApp"
+                                          >
+                                            <Share2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                                            <span>Link WA</span>
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              setSelectedTtbRef(opt);
+                                              setIsSearchingTtb(false);
+                                            }}
+                                            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-2xs transition-colors cursor-pointer"
+                                            title="Lanjut input langsung jika barang sudah sampai di kapal"
+                                          >
+                                            <span>Input TTD</span>
+                                            <ChevronRight className="w-3.5 h-3.5" />
+                                          </button>
+                                        </div>
+                                      ) : opt.isManagerApproved ? (
+                                        <div className="inline-flex items-center gap-2">
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              setPendingRemoteDispatchTtb(opt);
+                                            }}
+                                            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl border border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 shadow-2xs transition-colors cursor-pointer"
+                                            title="Disposisi titipan pihak ketiga (travel/kapal perintis) & buat tautan WhatsApp"
+                                          >
+                                            <Share2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                                            <span>Titip Remote</span>
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              setPendingPreDispatchTtb(opt);
+                                            }}
+                                            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 shadow-2xs transition-colors cursor-pointer"
+                                            title="Pemeriksaan fisik barang sebelum keberangkatan kurir internal (Pre-Check)"
+                                          >
+                                            <span>Pilih TTB</span>
+                                            <ChevronRight className="w-3.5 h-3.5" />
+                                          </button>
+                                        </div>
+                                      ) : (
                                         <button
                                           type="button"
+                                          disabled
                                           onClick={(e) => {
                                             e.stopPropagation();
-                                            setPendingRemoteDispatchTtb(opt);
+                                            handleBlockedTtbClick(opt);
                                           }}
-                                          className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg border border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 shadow-sm transition-colors cursor-pointer"
-                                          title="Disposisi titipan pihak ketiga (travel/kapal perintis) & buat tautan WhatsApp"
+                                          className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl bg-muted text-muted-foreground/60 border border-border cursor-not-allowed opacity-60"
+                                          title={`Belum bisa serah terima: TTB ${opt.noTtb} belum ditandatangani oleh Manager.`}
                                         >
-                                          <Share2 className="w-3.5 h-3.5" />
-                                          <span className="hidden xl:inline">Titip Remote</span>
+                                          <Lock className="w-3.5 h-3.5 shrink-0" />
+                                          <span>Terkunci</span>
                                         </button>
-                                      </div>
-                                    ) : (
-                                      <button
-                                        type="button"
-                                        disabled
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleBlockedTtbClick(opt);
-                                        }}
-                                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-muted text-muted-foreground/60 border border-border cursor-not-allowed opacity-60"
-                                        title={`Belum bisa serah terima: TTB ${opt.noTtb} belum ditandatangani oleh Manager.`}
-                                      >
-                                        <Lock className="w-3.5 h-3.5 shrink-0" />
-                                        <span>TERKUNCI</span>
-                                      </button>
-                                    )}
+                                      )}
+                                    </div>
                                   </td>
                                 </tr>
                               );
