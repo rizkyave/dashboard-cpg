@@ -1899,7 +1899,7 @@ export default function SerahTerimaLapanganTab({
                                       <div className="space-y-1">
                                         <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-sm font-black bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 shadow-2xs">
                                           <CheckCircle2 className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
-                                          <span>Sudah Ditandatangani</span>
+                                          <span>Sudah Ditandatangani dan Diterima</span>
                                         </span>
                                         {opt.recipientName && (
                                           <span className="block text-xs text-muted-foreground font-bold font-mono truncate max-w-[180px]">
