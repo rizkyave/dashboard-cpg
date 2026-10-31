@@ -1830,7 +1830,7 @@ export default function MonitoringInternalTab({
       {/* 4. Complete Main Table (Seluruh 40 Kolom Spreadsheet)     */}
       {/* ======================================================== */}
       <div className={`rounded-xl border border-border bg-card overflow-hidden shadow-xs transition-all ${paginatedData.length <= 4 ? 'min-h-[380px]' : ''}`}>
-        <div className={`overflow-x-auto overflow-y-auto max-h-[calc(100vh-270px)] relative ${paginatedData.length <= 4 ? 'min-h-[380px]' : ''}`}>
+        <div className={`table-container overflow-x-auto overflow-y-auto max-h-[calc(100vh-270px)] relative ${paginatedData.length <= 4 ? 'min-h-[380px]' : ''}`}>
           <table className="w-full text-xs text-left border-collapse">
             {/* Super Header: Zona Berkas Sesuai Spreadsheet */}
             <thead className="sticky top-0 z-30 shadow-xs">

@@ -823,7 +823,7 @@ export default function SisaLayananTab({
         </div>
 
         {/* Responsive Table Container */}
-        <div className="overflow-x-auto min-h-[420px] max-h-[640px] overflow-y-auto no-scrollbar">
+        <div className="table-container overflow-x-auto min-h-[420px] max-h-[640px] overflow-y-auto">
           <table className="w-full text-xs text-left border-collapse">
             <thead className="bg-muted/80 text-muted-foreground sticky top-0 z-10 backdrop-blur-xs border-b border-border select-none">
               <tr>

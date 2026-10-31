@@ -1638,7 +1638,7 @@ export default function ProcurementTab({
             <div
               ref={tableContainerRef}
               onScroll={handleTableScroll}
-              className={`overflow-auto relative transition-all duration-200 ${
+              className={`table-container overflow-auto relative transition-all duration-200 ${
                 splitHeight === 'compact'
                   ? 'max-h-[500px]'
                   : splitHeight === 'default'
