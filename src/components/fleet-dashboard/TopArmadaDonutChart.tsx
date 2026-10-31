@@ -49,6 +49,12 @@ export default function TopArmadaDonutChart({
   remainderCount = 0,
   onOpenRemainderModal,
 }: TopArmadaDonutChartProps) {
+  // Armada item yang sedang aktif dipilih (jika ada)
+  const selectedItem = useMemo(() => {
+    if (!selectedArmadaId) return null;
+    return armadaList.find((a) => a.name === selectedArmadaId) || null;
+  }, [armadaList, selectedArmadaId]);
+
   // Chart.js Data Memoization
   const chartData = useMemo(() => {
     return {
@@ -238,21 +244,29 @@ export default function TopArmadaDonutChart({
             <div className="text-slate-500 text-xs font-mono">Tidak ada data</div>
           )}
 
-          {/* Teks Agregat di Tengah Donut Cutout */}
+          {/* Teks Agregat di Tengah Donut Cutout (Otomatis berubah mengikuti armada yang diklik) */}
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none text-center px-2">
             <span className="text-[9px] font-mono font-bold tracking-widest text-slate-400 uppercase">
-              TOTAL FPB
+              {selectedItem ? 'FPB ARMADA' : 'TOTAL FPB'}
             </span>
-            <span className="text-2xl font-extrabold font-mono text-white tracking-tight drop-shadow-sm my-0.5">
-              {totalFpb.toLocaleString('id-ID')}
+            <span
+              className="text-2xl sm:text-3xl font-black font-mono tracking-tight drop-shadow-sm my-0.5 transition-all duration-300"
+              style={{ color: selectedItem ? '#38BDF8' : '#ffffff' }}
+            >
+              {(selectedItem ? selectedItem.fpbCount : totalFpb).toLocaleString('id-ID')}
             </span>
-            <span className="text-[10px] font-semibold text-teal-400 truncate max-w-[130px]">
-              {selectedArmadaId
-                ? selectedArmadaId
+            <span className="text-[10px] font-bold text-teal-400 truncate max-w-[130px]">
+              {selectedItem
+                ? selectedItem.name
                 : focusTop12Only
                 ? '🎯 12 Besar (100%)'
                 : '12 Armada + Lainnya'}
             </span>
+            {selectedItem && (
+              <span className="text-[9px] font-mono text-slate-400 font-semibold mt-0.5 animate-in fade-in duration-200">
+                {selectedItem.percentage.toFixed(1)}% dari {totalFpb.toLocaleString('id-ID')} FPB
+              </span>
+            )}
           </div>
         </div>
 
