@@ -31,6 +31,8 @@ import {
   Plus,
   Pencil,
   Settings2,
+  Tag,
+  RotateCcw,
   X,
   Check,
   AlertCircle,
@@ -508,6 +510,92 @@ export default function MonitoringInternalTab({
     handleQuickUpdate(quickInputModal.item, updates);
     setQuickInputModal({ isOpen: false, title: '', field: '', value: '', item: null });
   };
+
+  // Quick Tags Lapangan State & Management
+  const DEFAULT_QUICK_TAGS_LAPANGAN = useMemo(() => [
+    'Diterima KKM',
+    'Diterima Mualim',
+    'Diterima Driver',
+    'Titip Posko Dermaga',
+    'Barang Parsial',
+    'Bypass - Urgent',
+  ], []);
+
+  const [quickTags, setQuickTags] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('cpg_quick_tags_lapangan');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (e) {
+        console.warn('Failed to parse quick tags from localStorage', e);
+      }
+    }
+    return [
+      'Diterima KKM',
+      'Diterima Mualim',
+      'Diterima Driver',
+      'Titip Posko Dermaga',
+      'Barang Parsial',
+      'Bypass - Urgent',
+    ];
+  });
+
+  const [activeTagRowId, setActiveTagRowId] = useState<string | null>(null);
+  const [isTagManagerOpen, setIsTagManagerOpen] = useState<boolean>(false);
+  const [newTagInput, setNewTagInput] = useState<string>('');
+
+  const saveQuickTags = (newTags: string[]) => {
+    setQuickTags(newTags);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('cpg_quick_tags_lapangan', JSON.stringify(newTags));
+      } catch (e) {
+        console.warn('Failed to save quick tags to localStorage', e);
+      }
+    }
+  };
+
+  const handleAddCustomTag = () => {
+    const trimmed = newTagInput.trim();
+    if (!trimmed) return;
+    if (quickTags.some((t) => t.toLowerCase() === trimmed.toLowerCase())) {
+      showToast?.(`Tag "${trimmed}" sudah ada di dalam daftar!`, 'warning');
+      return;
+    }
+    const updated = [...quickTags, trimmed];
+    saveQuickTags(updated);
+    setNewTagInput('');
+    showToast?.(`Tag baru "${trimmed}" berhasil ditambahkan!`, 'success');
+  };
+
+  const handleDeleteCustomTag = (tagToDelete: string) => {
+    const updated = quickTags.filter((t) => t !== tagToDelete);
+    saveQuickTags(updated);
+    showToast?.(`Tag "${tagToDelete}" dihapus.`, 'info');
+  };
+
+  const handleResetTagsToDefault = () => {
+    if (window.confirm('Kembalikan daftar tag cepat ke 6 tag default bawaan?')) {
+      saveQuickTags(DEFAULT_QUICK_TAGS_LAPANGAN);
+      showToast?.('Daftar tag cepat berhasil di-reset ke default.', 'success');
+    }
+  };
+
+  // Close active tag popover when clicking anywhere outside
+  useEffect(() => {
+    const handleDocumentClick = (e: MouseEvent) => {
+      if (!(e.target as HTMLElement)?.closest('.quick-tag-popover-container')) {
+        setActiveTagRowId(null);
+      }
+    };
+    if (activeTagRowId) {
+      document.addEventListener('click', handleDocumentClick);
+      return () => document.removeEventListener('click', handleDocumentClick);
+    }
+  }, [activeTagRowId]);
 
   // Webhook settings state
   const [webhookUrl, setWebhookUrl] = useState<string>('');
@@ -2023,10 +2111,11 @@ export default function MonitoringInternalTab({
                     (row.deptArmada || '').toUpperCase().includes('TANKI');
                   const ketPchText = (row.ketPch || row.keterangan || '').trim();
                   const ketLapText = (row.ketLap || '').trim();
+                  const rowKey = String(row.id || `${row.fpb}-${row.po}-${idx}`);
 
                   return (
                     <tr
-                      key={row.id || `${row.fpb}-${idx}`}
+                      key={rowKey}
                       className="hover:bg-muted/40 transition group"
                     >
                       {/* Sticky 0: AKSI EDIT CEPAT */}
@@ -2585,7 +2674,7 @@ export default function MonitoringInternalTab({
 
                           {/* 7. KETERANGAN LAPANGAN (CLICK-TO-EDIT & QUICK TAGS) */}
                           <td className="py-2.5 px-3 max-w-[200px] bg-emerald-500/[0.01]">
-                            <div className="relative group/ketlap">
+                            <div className="relative group/ketlap quick-tag-popover-container">
                               {ketLapText && ketLapText !== '-' ? (
                                 <div className="flex items-center gap-1.5">
                                   <span
@@ -2621,6 +2710,21 @@ export default function MonitoringInternalTab({
                                   >
                                     <Pencil className="size-2.5" />
                                   </button>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setActiveTagRowId(activeTagRowId === rowKey ? null : rowKey);
+                                    }}
+                                    className={`p-1 rounded transition cursor-pointer shrink-0 ${
+                                      activeTagRowId === rowKey
+                                        ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 opacity-100'
+                                        : 'opacity-0 group-hover/ketlap:opacity-100 text-muted-foreground hover:text-emerald-600 hover:bg-emerald-500/10'
+                                    }`}
+                                    title="Pilih / Kunci Tag Cepat"
+                                  >
+                                    <Tag className="size-2.5" />
+                                  </button>
                                 </div>
                               ) : (
                                 <div className="flex items-center gap-1">
@@ -2642,37 +2746,84 @@ export default function MonitoringInternalTab({
                                     <Plus className="size-2.5" />
                                     <span>+ Catatan</span>
                                   </button>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setActiveTagRowId(activeTagRowId === rowKey ? null : rowKey);
+                                    }}
+                                    className={`inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded border transition cursor-pointer ${
+                                      activeTagRowId === rowKey
+                                        ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/40 font-semibold'
+                                        : 'text-muted-foreground/60 hover:text-emerald-600 border-border/60 hover:border-emerald-500/30'
+                                    }`}
+                                    title="Klik untuk buka / kunci menu Tag Cepat"
+                                  >
+                                    <Tag className="size-2.5" />
+                                    <span>Tag</span>
+                                  </button>
                                 </div>
                               )}
 
-                              {/* Quick Tags Popover on Hover */}
-                              <div className="absolute top-full left-0 mt-1 hidden group-hover/ketlap:block z-30 w-52 p-2 rounded-xl bg-card border border-border shadow-xl text-xs pointer-events-auto animate-in fade-in-50 zoom-in-95 duration-150">
-                                <div className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-1.5 px-1">
-                                  Tag Cepat Lapangan
-                                </div>
-                                <div className="flex flex-wrap gap-1">
-                                  {[
-                                    'Diterima KKM',
-                                    'Diterima Mualim',
-                                    'Diterima Driver',
-                                    'Titip Posko Dermaga',
-                                    'Barang Parsial',
-                                    'Bypass - Urgent',
-                                  ].map((tag) => (
-                                    <button
-                                      key={tag}
-                                      type="button"
-                                      onClick={() => {
-                                        const existing = (ketLapText && ketLapText !== '-') ? ketLapText : '';
-                                        const newKet = existing ? `${existing}; [${tag}]` : `[${tag}]`;
-                                        handleQuickUpdate(row, { ketLap: newKet });
-                                        showToast?.(`Tag [${tag}] ditambahkan ke catatan lapangan ${row.fpb || row.po}`, 'info');
-                                      }}
-                                      className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 hover:bg-emerald-500/20 transition cursor-pointer"
-                                    >
-                                      {tag}
-                                    </button>
-                                  ))}
+                              {/* Quick Tags Popover with zero-gap and click-to-pin support */}
+                              <div
+                                className={`absolute top-full left-0 pt-1.5 z-40 w-64 pointer-events-auto ${
+                                  activeTagRowId === rowKey
+                                    ? 'block'
+                                    : 'hidden group-hover/ketlap:block'
+                                }`}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {/* Invisible hover bridge to eliminate any gap across browsers */}
+                                <div className="absolute -top-3 left-0 right-0 h-3 bg-transparent pointer-events-auto" />
+
+                                <div className="p-2.5 rounded-xl bg-card border border-border shadow-2xl text-xs animate-in fade-in-50 zoom-in-95 duration-150">
+                                  <div className="flex items-center justify-between pb-1.5 mb-2 border-b border-border/60">
+                                    <div className="flex items-center gap-1 text-[10px] font-bold text-foreground uppercase tracking-wider">
+                                      <Tag className="size-3 text-emerald-600 dark:text-emerald-400" />
+                                      <span>Tag Cepat Lapangan</span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <button
+                                        type="button"
+                                        onClick={() => setIsTagManagerOpen(true)}
+                                        className="inline-flex items-center gap-0.5 text-[9.5px] font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 px-1.5 py-0.5 rounded hover:bg-emerald-500/10 transition cursor-pointer"
+                                        title="Kelola / Tambah / Hapus Tag Cepat"
+                                      >
+                                        <Settings2 className="size-2.5" />
+                                        <span>Kelola</span>
+                                      </button>
+                                      {activeTagRowId === rowKey && (
+                                        <button
+                                          type="button"
+                                          onClick={() => setActiveTagRowId(null)}
+                                          className="text-muted-foreground hover:text-foreground p-0.5 rounded hover:bg-muted transition cursor-pointer"
+                                          title="Tutup Menu"
+                                        >
+                                          <X className="size-3" />
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  <div className="flex flex-wrap gap-1 max-h-48 overflow-y-auto pr-0.5">
+                                    {quickTags.map((tag) => (
+                                      <button
+                                        key={tag}
+                                        type="button"
+                                        onClick={() => {
+                                          const existing = (ketLapText && ketLapText !== '-') ? ketLapText : '';
+                                          const newKet = existing ? `${existing}; [${tag}]` : `[${tag}]`;
+                                          handleQuickUpdate(row, { ketLap: newKet });
+                                          showToast?.(`Tag [${tag}] ditambahkan ke catatan lapangan ${row.fpb || row.po}`, 'info');
+                                          setActiveTagRowId(null);
+                                        }}
+                                        className="px-2 py-1 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 hover:bg-emerald-500/20 hover:border-emerald-500/40 active:scale-95 transition cursor-pointer"
+                                      >
+                                        {tag}
+                                      </button>
+                                    ))}
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -3794,6 +3945,130 @@ export default function MonitoringInternalTab({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Kelola Tag Cepat Lapangan */}
+      {isTagManagerOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="relative w-full max-w-md rounded-2xl border border-border bg-card shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-150">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-border bg-muted/40">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  <Tag className="size-4" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-foreground">Kelola Tag Cepat Lapangan</h4>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Sesuaikan daftar opsi tag cepat serah terima lapangan.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsTagManagerOpen(false)}
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition cursor-pointer"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-4 space-y-4">
+              {/* Form Tambah Tag Baru */}
+              <div>
+                <label className="text-xs font-semibold text-foreground block mb-1.5">
+                  Tambah Tag Baru:
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newTagInput}
+                    onChange={(e) => setNewTagInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddCustomTag();
+                      }
+                    }}
+                    placeholder="Contoh: Diterima Mandor..."
+                    className="flex-1 px-3 py-2 rounded-xl border border-border bg-background text-xs font-medium text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddCustomTag}
+                    disabled={!newTagInput.trim()}
+                    className="px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-50 flex items-center gap-1 transition cursor-pointer shrink-0 shadow-xs"
+                  >
+                    <Plus className="size-3.5" />
+                    <span>Tambah</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Daftar Tag Aktif */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-semibold text-foreground">
+                    Daftar Tag Aktif ({quickTags.length}):
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleResetTagsToDefault}
+                    className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-1 transition underline cursor-pointer"
+                    title="Kembalikan ke 6 tag default bawaan sistem"
+                  >
+                    <RotateCcw className="size-3" />
+                    <span>Reset Default</span>
+                  </button>
+                </div>
+
+                <div className="flex flex-wrap gap-1.5 max-h-52 overflow-y-auto p-2 rounded-xl bg-muted/30 border border-border">
+                  {quickTags.length === 0 ? (
+                    <p className="text-xs text-muted-foreground italic p-2">
+                      Belum ada tag. Tambahkan tag baru di atas atau klik Reset Default.
+                    </p>
+                  ) : (
+                    quickTags.map((tag, idx) => (
+                      <span
+                        key={`${tag}-${idx}`}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25 shadow-2xs group"
+                      >
+                        <span>{tag}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteCustomTag(tag)}
+                          className="text-emerald-600 hover:text-red-600 dark:text-emerald-400 dark:hover:text-red-400 rounded-full p-0.5 hover:bg-red-500/10 transition cursor-pointer"
+                          title={`Hapus tag "${tag}"`}
+                        >
+                          <X className="size-3" />
+                        </button>
+                      </span>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-700 dark:text-amber-300 flex items-start gap-1.5">
+                <Info className="size-3.5 shrink-0 mt-0.5" />
+                <span>
+                  Tag yang ditambahkan atau dihapus akan otomatis tersimpan di browser Anda dan langsung muncul di opsi tag cepat lapangan.
+                </span>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-end p-4 border-t border-border bg-muted/20">
+              <button
+                type="button"
+                onClick={() => setIsTagManagerOpen(false)}
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-primary hover:bg-primary/90 text-primary-foreground transition cursor-pointer shadow-xs"
+              >
+                Selesai
+              </button>
+            </div>
           </div>
         </div>
       )}
