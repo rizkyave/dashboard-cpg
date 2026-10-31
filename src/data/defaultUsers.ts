@@ -577,44 +577,20 @@ export const DEFAULT_USERS: UserAccount[] = [
   },
 
   // =========================================================================
-  // 8. END USER / PENERIMA BARANG (end_user)
+  // 8. END USER GENERIC / PENERIMA BARANG KAPAL & ARMADA (end_user)
+  // Akun tunggal bersama (generic shared account) untuk seluruh armada kapal
   // =========================================================================
   {
     id: 'usr-enduser-01',
     username: 'enduser',
-    name: 'KAPTEN ARDIANSYAH (NAKHODA)',
-    nik: 'CPG-CREW-0042',
-    jabatan: 'Nakhoda / Chief Officer',
+    name: 'End User (Kru Armada & Lapangan)',
+    nik: 'CPG-CREW-GENERIC',
+    jabatan: 'Penerima Barang / Kru Kapal',
     password: 'cpg',
     role: 'end_user',
     department: 'Operasional Armada & Kapal',
-    email: 'ardiansyah.armada@cindaragroup.com',
-    avatar: 'A',
-    status: 'active',
-    createdAt: '2026-01-01T00:00:00.000Z',
-    signature: {
-      signatureDataUrl:
-        'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 100" width="300" height="100"><path d="M 20 65 Q 45 15, 75 55 T 130 45 Q 165 75, 200 30 T 260 55" fill="none" stroke="%23059669" stroke-width="3.5" stroke-linecap="round"/><path d="M 30 82 L 265 80" fill="none" stroke="%23059669" stroke-width="2.5" stroke-linecap="round"/></svg>',
-      uploadedAt: '2026-02-01T11:30:00.000Z',
-      verifiedBy: 'admin',
-      verifiedByName: 'Administrator CPG',
-      certificateId: 'CPG-AUTH-2026-RCV01',
-      signeeTitle: 'Nakhoda / Penerima Barang Armada (Received By)',
-      notes: 'Spesimen tanda tangan digital sah penerima barang kapal (Received By)',
-      status: 'verified',
-    },
-  },
-  {
-    id: 'usr-enduser-02',
-    username: 'enduser.kapal',
-    name: 'BAMBANG SUTRISNO (KKM)',
-    nik: 'CPG-CREW-0089',
-    jabatan: 'Chief Engineer / KKM',
-    password: 'cpg',
-    role: 'end_user',
-    department: 'Operasional Armada & Kapal',
-    email: 'bambang.kkm@cindaragroup.com',
-    avatar: 'B',
+    email: 'enduser.armada@cindaragroup.com',
+    avatar: '🚢',
     status: 'active',
     createdAt: '2026-01-01T00:00:00.000Z',
   },

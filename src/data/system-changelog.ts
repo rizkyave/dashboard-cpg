@@ -67,6 +67,14 @@ export const SYSTEM_CHANGELOG: SystemVersionRelease[] = [
       },
       {
         type: 'feature',
+        title: 'Akun Generic Tunggal untuk End User (Kru Armada & Lapangan)',
+        description:
+          'Menerapkan konsolidasi akun tunggal bersama (generic shared account: @enduser) untuk seluruh kapal dan armada. Memudahkan seluruh kru kapal mengakses portal tanpa kendala lupa password, sementara pencatatan tanda terima fisik TTB tetap mencatat nama asli dan tanda tangan kru penerima.',
+        module: 'Manajemen Pengguna & Autentikasi',
+        impact: 'Administrasi akun praktis, menghilangkan beban pengelolaan ratusan akun individual kapal.',
+      },
+      {
+        type: 'feature',
         title: 'Integrasi Role "End User" pada Toolbar Pengalihan Cepat RBAC',
         description:
           'Menambahkan opsi role "📦 End User (Penerima Barang)" pada menu dropdown "1. Role Pemakai Target" di toolbar pengalihan cepat matriks hak akses. Memungkinkan Admin mengubah wewenang multi-modul untuk role End User secara instan serentak.',
@@ -203,3 +211,4 @@ export const SYSTEM_CHANGELOG: SystemVersionRelease[] = [
     ],
   },
 ];
+
