@@ -1485,8 +1485,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                               <option value="staf_purchasing">🛒 Staf Purchasing</option>
                               <option value="staf_ttb">📄 Staf Dokumen TTB</option>
                               <option value="staf_lapangan">🚚 Staf Serah Terima Lap.</option>
-                    <option value="end_user">📦 End User / Penerima Barang</option>
-                              <option value="end_user">📦 End User / Penerima</option>
+                              <option value="end_user">📦 End User / Penerima Barang</option>
                               <option value="user">📦 Staff Operasional</option>
                               <option value="visitor">👁️ Visitor (Read-Only)</option>
                             </select>
@@ -1790,6 +1789,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                     <option value="staf_purchasing">🛒 Staf Purchasing</option>
                     <option value="staf_ttb">📄 Staf Dokumen TTB</option>
                     <option value="staf_lapangan">🚚 Staf Serah Terima Lap.</option>
+                    <option value="end_user">📦 End User (Penerima Barang)</option>
                     <option value="visitor">👁️ Visitor (Tamu)</option>
                   </select>
                   <ChevronDown className="size-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground" />
