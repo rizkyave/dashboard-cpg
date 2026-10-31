@@ -187,16 +187,33 @@ export default function MonthlyTrendChart({
 
         {/* Indikator Total & Reset Filter Armada */}
         <div className="flex items-center gap-1.5 shrink-0">
-          <span
-            className={`px-2 py-0.5 rounded font-mono text-[10px] font-bold border ${
-              selectedArmadaName
-                ? 'bg-sky-500/20 text-sky-300 border-sky-500/40'
-                : 'bg-slate-800 text-slate-300 border-slate-700'
-            }`}
-            title="Total FPB sepanjang periode aktif"
-          >
-            {totalTrendFpb.toLocaleString('id-ID')} FPB
-          </span>
+          {activeMonth !== 'ALL' && data.find((d) => d.monthKey === activeMonth) ? (
+            <div className="flex items-center gap-1 font-mono text-[10px]">
+              <span
+                className="px-2 py-0.5 rounded font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                title={`Jumlah FPB di bulan ${data.find((d) => d.monthKey === activeMonth)?.monthName}`}
+              >
+                {data.find((d) => d.monthKey === activeMonth)?.monthName}: {data.find((d) => d.monthKey === activeMonth)?.totalFpb} FPB
+              </span>
+              <span
+                className="hidden sm:inline px-1.5 py-0.5 rounded text-slate-400 bg-slate-800 border border-slate-700"
+                title="Akumulasi seluruh 5 bulan"
+              >
+                Total: {totalTrendFpb} FPB
+              </span>
+            </div>
+          ) : (
+            <span
+              className={`px-2 py-0.5 rounded font-mono text-[10px] font-bold border ${
+                selectedArmadaName
+                  ? 'bg-sky-500/20 text-sky-300 border-sky-500/40'
+                  : 'bg-slate-800 text-slate-300 border-slate-700'
+              }`}
+              title="Total FPB sepanjang periode aktif"
+            >
+              Total: {totalTrendFpb.toLocaleString('id-ID')} FPB
+            </span>
+          )}
 
           {selectedArmadaName && onClearSelectedArmada && (
             <button
@@ -210,7 +227,7 @@ export default function MonthlyTrendChart({
             </button>
           )}
 
-          {!selectedArmadaName && (
+          {!selectedArmadaName && activeMonth === 'ALL' && (
             <span className="hidden sm:inline px-1.5 py-0.5 rounded font-mono text-[10px] text-slate-400 bg-slate-800/60 border border-slate-700/60">
               Jun – Okt 2026
             </span>

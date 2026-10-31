@@ -319,13 +319,64 @@ export default function DashboardContainer({
       });
     }
 
+    // KUNCI KONSISTENSI: Jika ada armada spesifik yang sedang dipilih (misal SPOB CINTIANA PRATAMA),
+    // pastikan kapal tersebut SELALU masuk ke dalam `list` meskipun di bulan terpilih ia berada di peringkat 13+ (di luar top 12).
+    if (
+      filterState.selectedArmadaId &&
+      filterState.selectedArmadaId !== 'OTHERS' &&
+      filterState.selectedArmadaId !== 'Armada Lainnya'
+    ) {
+      const selectedArmadaName = filterState.selectedArmadaId;
+      const foundIdx = allVessels.findIndex((v) => v.name === selectedArmadaName);
+
+      if (foundIdx !== -1) {
+        const found = allVessels[foundIdx];
+        const isAlreadyInTop12 = foundIdx < 12;
+
+        if (!isAlreadyInTop12) {
+          list.push({
+            id: found.id,
+            name: found.name,
+            normalizedName: found.name,
+            tag: found.tag,
+            fpbCount: found.fpbCount,
+            qtyFPB: found.qtyFPB,
+            qtyFSTB: found.qtyFSTB,
+            backlogQty: found.backlogQty,
+            percentage: divisor > 0 ? (found.fpbCount / divisor) * 100 : 0,
+            color: '#38BDF8', // Cyan spotlight
+            items: found.items,
+            isMarine: isMarineArmada(found.name),
+            realRank: foundIdx + 1,
+          });
+        }
+      } else {
+        // Kapal ini 0 FPB di bulan terpilih (tidak ada pengajuan sama sekali)
+        list.push({
+          id: selectedArmadaName,
+          name: selectedArmadaName,
+          normalizedName: selectedArmadaName,
+          tag: 'CPL',
+          fpbCount: 0,
+          qtyFPB: 0,
+          qtyFSTB: 0,
+          backlogQty: 0,
+          percentage: 0,
+          color: '#38BDF8',
+          items: [],
+          isMarine: isMarineArmada(selectedArmadaName),
+          realRank: allVessels.length + 1,
+        });
+      }
+    }
+
     return {
       topArmadas: list,
       totalFpbPeriod: filterState.focusTop12Only ? top12Fpb : totalFpbAll,
       remainderArmadas: remainderList,
       totalFpbAllArmadas: totalFpbAll,
     };
-  }, [filteredData, filterState.focusTop12Only, filterState.fleetTypeFilter]);
+  }, [filteredData, filterState.focusTop12Only, filterState.fleetTypeFilter, filterState.selectedArmadaId]);
 
   // ==========================================================================
   // 5. KALKULASI TREN BULANAN SINKRON DENGAN ARMADA TERPILIH / 12 BESAR

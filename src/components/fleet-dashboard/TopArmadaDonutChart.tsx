@@ -264,7 +264,9 @@ export default function TopArmadaDonutChart({
             </span>
             {selectedItem && (
               <span className="text-[9px] font-mono text-slate-400 font-semibold mt-0.5 animate-in fade-in duration-200">
-                {selectedItem.percentage.toFixed(1)}% dari {totalFpb.toLocaleString('id-ID')} FPB
+                {selectedItem.fpbCount > 0
+                  ? `${selectedItem.fpbCount} dari ${totalFpb.toLocaleString('id-ID')} FPB (${totalFpb > 0 ? ((selectedItem.fpbCount / totalFpb) * 100).toFixed(1) : 0}%)`
+                  : `0 FPB di ${periodLabel}`}
               </span>
             )}
           </div>
@@ -276,9 +278,11 @@ export default function TopArmadaDonutChart({
             const isSelected = selectedArmadaId === item.name;
             const isOthers = item.id === 'OTHERS';
 
-            // Medali untuk Top 3
+            // Medali untuk Top 3 atau ranking di luar 12 besar jika kapal terpilih disisipkan
             let rankBadge: React.ReactNode = `#${idx + 1}`;
-            if (idx === 0) rankBadge = <span title="Juara 1 Permintaan">🥇</span>;
+            if (item.realRank && item.realRank > 12) {
+              rankBadge = <span className="text-sky-300 font-bold text-[9px]">#{item.realRank}</span>;
+            } else if (idx === 0) rankBadge = <span title="Juara 1 Permintaan">🥇</span>;
             else if (idx === 1) rankBadge = <span title="Juara 2 Permintaan">🥈</span>;
             else if (idx === 2) rankBadge = <span title="Juara 3 Permintaan">🥉</span>;
             else if (isOthers) rankBadge = <span className="text-slate-400 font-bold">•</span>;

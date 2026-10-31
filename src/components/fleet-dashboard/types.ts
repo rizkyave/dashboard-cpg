@@ -22,6 +22,7 @@ export interface ArmadaDataPoint {
   color: string;
   items: any[];
   isMarine?: boolean;
+  realRank?: number;
 }
 
 export interface KPIMetrics {

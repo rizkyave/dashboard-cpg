@@ -18,8 +18,14 @@ export default function TopArmadaDemandBar({
   // Pilihan jumlah armada yang ditampilkan: 12 (default) atau 8
   const [displayCount, setDisplayCount] = useState<8 | 12>(12);
 
-  // Ambil list sesuai displayCount, kecualikan 'OTHERS' jika ingin fokus armada nyata
-  const displayList = armadaList.slice(0, displayCount);
+  // Ambil list sesuai displayCount, pastikan armada yang sedang dipilih SELALU masuk jika ada!
+  let displayList = armadaList.slice(0, displayCount);
+  if (selectedArmadaId && !displayList.some((a) => a.name === selectedArmadaId)) {
+    const selectedObj = armadaList.find((a) => a.name === selectedArmadaId);
+    if (selectedObj) {
+      displayList = [...displayList, selectedObj];
+    }
+  }
   const maxQty = Math.max(...displayList.map((a) => Math.max(a.qtyFPB, a.qtyFSTB, 1)), 100);
 
   return (
@@ -110,7 +116,7 @@ export default function TopArmadaDemandBar({
                     style={{ backgroundColor: armada.color }}
                   />
                   <span className="font-mono text-[9px] text-slate-400 font-bold shrink-0">
-                    {idx < 12 ? `#${idx + 1}` : '•'}
+                    {armada.realRank && armada.realRank > 12 ? `#${armada.realRank}` : (idx < 12 ? `#${idx + 1}` : '•')}
                   </span>
                   <span className="font-semibold text-xs truncate max-w-[170px] sm:max-w-[220px]">
                     {armada.name}
