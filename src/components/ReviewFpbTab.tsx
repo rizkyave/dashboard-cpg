@@ -667,6 +667,100 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
     });
   };
 
+  // Kalkulasi statistik ketersediaan stok fisik gudang
+  const stockStats = useMemo(() => {
+    let inStock = 0;
+    let partial = 0;
+    let outOfStock = 0;
+    formItems.forEach((item) => {
+      if (item.stockStatus === 'IN_STOCK' || (item.stockAvailable && item.stockAvailable >= item.qty)) {
+        inStock++;
+      } else if (item.stockStatus === 'PARTIAL' || (item.stockAvailable && item.stockAvailable > 0)) {
+        partial++;
+      } else {
+        outOfStock++;
+      }
+    });
+    return {
+      inStock,
+      partial,
+      outOfStock,
+      total: formItems.length,
+      hasAvailableStock: inStock > 0 || partial > 0,
+      allInStock: inStock === formItems.length && formItems.length > 0,
+    };
+  }, [formItems]);
+
+  // Helper: Terapkan rekomendasi cerdas alokasi stok vs PO secara otomatis
+  const handleApplySmartStockAdvisory = () => {
+    if (formItems.length === 0) return;
+
+    const stockItemNames: string[] = [];
+    const poItemNames: string[] = [];
+
+    const updatedItems = formItems.map((item) => {
+      const isAvail =
+        item.stockStatus === 'IN_STOCK' ||
+        (item.stockAvailable !== undefined && item.stockAvailable >= item.qty);
+
+      if (isAvail) {
+        stockItemNames.push(item.itemName);
+        return {
+          ...item,
+          decision: 'STOCK' as ItemDecision,
+          notes: item.notes || `Penuhi dari stok fisik gudang (${item.stockAvailable || item.qty} ${item.unit})`,
+        };
+      } else {
+        poItemNames.push(item.itemName);
+        return {
+          ...item,
+          decision: 'PO' as ItemDecision,
+          notes:
+            item.notes ||
+            (item.stockStatus === 'PARTIAL'
+              ? `Stok kurang ${item.qty - (item.stockAvailable || 0)} unit, buat PO sisa`
+              : 'Stok kosong di gudang, buat PO pengadaan'),
+        };
+      }
+    });
+
+    setFormItems(updatedItems);
+
+    if (stockItemNames.length > 0 && poItemNames.length === 0) {
+      setFormStatus('FULFILL_STOCK');
+      setFormNotes(
+        (prev) =>
+          prev ||
+          `100% kebutuhan (${stockItemNames.length} item) tersedia di persediaan gudang. Dipenuhi langsung via TTB Mutasi Stok tanpa PO baru.`
+      );
+      showToast?.(
+        `Semua item (${stockItemNames.length}) tersedia di gudang! Status diatur ke "Dipenuhi dari Stok Gudang".`,
+        'success'
+      );
+    } else {
+      setFormStatus('APPROVED_PO');
+      const autoNote = `Alokasi Cerdas: ${stockItemNames.length} item dipenuhi dari stok fisik gudang (${stockItemNames.slice(0, 2).join(', ')}${
+        stockItemNames.length > 2 ? ' dll' : ''
+      }). Sisa ${poItemNames.length} item diterbitkan PO pengadaan oleh Purchasing.`;
+      setFormNotes((prev) => prev || autoNote);
+      showToast?.(
+        `Advis diterapkan: ${stockItemNames.length} item penuhi stok gudang, ${poItemNames.length} item buat PO Purchasing!`,
+        'success'
+      );
+    }
+  };
+
+  // Helper: Set semua item ke PO (Beli Baru)
+  const handleSetAllPo = () => {
+    const updatedItems = formItems.map((item) => ({
+      ...item,
+      decision: 'PO' as ItemDecision,
+    }));
+    setFormItems(updatedItems);
+    setFormStatus('APPROVED_PO');
+    showToast?.('Semua item diatur untuk Beli Baru (PO Purchasing).', 'info');
+  };
+
   // Save Review Decision to Cloudflare R2
   const handleSaveDecision = async () => {
     if (!selectedRecord) return;
@@ -1774,30 +1868,34 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
 
               {/* Close & External Links */}
               <div className="flex items-center gap-2">
-                {formIsReceivedLogistik ? (
+                {formStatus === 'APPROVED_PO' ? (
                   <button
                     type="button"
                     onClick={() => {
+                      setFormStatus('PENDING_REVIEW');
+                      setFormIsReceivedLogistik(false);
                       if (selectedRecord) handleQuickApproveLogistic(selectedRecord, false);
-                      else setFormIsReceivedLogistik(false);
+                      showToast?.('Status approval dikembalikan ke Menunggu Analisa.', 'info');
                     }}
                     disabled={isApprovingLogistic}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg border border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20 transition cursor-pointer"
-                    title="Dokumen telah disetujui Logistik & siap diproses Purchasing. Klik jika ingin membatalkan."
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition cursor-pointer"
+                    title="Telah disetujui untuk Terbit PO. Klik untuk membatalkan / kembalikan ke Menunggu Analisa."
                   >
-                    <CheckCircle2 className="size-3.5 text-emerald-600 dark:text-emerald-400" />
-                    <span>Siap Pengadaan (Disetujui Logistik)</span>
+                    <CheckCircle2 className="size-3.5 text-white" />
+                    <span>✓ Disetujui Terbit PO</span>
                   </button>
                 ) : (
                   <button
                     type="button"
                     onClick={() => {
+                      setFormStatus('APPROVED_PO');
+                      setFormIsReceivedLogistik(true);
                       if (selectedRecord) handleQuickApproveLogistic(selectedRecord, true);
-                      else setFormIsReceivedLogistik(true);
+                      showToast?.('Pengajuan FPB disetujui untuk terbit PO pengadaan!', 'success');
                     }}
                     disabled={isApprovingLogistic}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg bg-amber-500 hover:bg-amber-600 text-white shadow-xs transition cursor-pointer disabled:opacity-50"
-                    title="Klik untuk menyetujui dokumen ini dan meneruskannya ke antrean Purchasing"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white shadow-xs transition cursor-pointer disabled:opacity-50"
+                    title="Klik untuk menyetujui dokumen ini dan meneruskannya ke antrean Purchasing (mengubah status menjadi hijau)"
                   >
                     <CheckCircle2 className="size-3.5" />
                     <span>Setujui &amp; Teruskan ke Purchasing</span>
@@ -1966,6 +2064,86 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                     <span className="text-muted-foreground">{selectedRecord.purpose || 'Pengadaan Kebutuhan Operasional Kapal'}</span>
                   </div>
 
+                  {/* Smart Stock Advisory Card */}
+                  {stockStats.total > 0 && (
+                    <div className={`p-3.5 rounded-xl border transition-all ${
+                      stockStats.hasAvailableStock
+                        ? 'border-cyan-500/30 bg-cyan-500/5 dark:bg-cyan-950/20'
+                        : 'border-border bg-card'
+                    }`}>
+                      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <Boxes className="size-4 text-cyan-600 dark:text-cyan-400 shrink-0" />
+                            <span className="text-xs font-bold text-foreground">
+                              Advis Alokasi Material &amp; Ketersediaan Stok Gudang
+                            </span>
+                            {stockStats.allInStock && (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-600 text-white shadow-2xs">
+                                100% Stok Tersedia di Gudang
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Breakdown badge */}
+                          <div className="flex flex-wrap items-center gap-2 text-xs">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[11px]">
+                              <CheckCircle2 className="size-3" />
+                              {stockStats.inStock} Tersedia Penuh di Gudang
+                            </span>
+                            {stockStats.partial > 0 && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-[11px]">
+                                <AlertTriangle className="size-3" />
+                                {stockStats.partial} Stok Parsial
+                              </span>
+                            )}
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-medium bg-muted text-muted-foreground border border-border text-[11px]">
+                              {stockStats.outOfStock} Perlu PO Baru
+                            </span>
+                          </div>
+
+                          <p className="text-[11px] text-muted-foreground">
+                            {stockStats.hasAvailableStock ? (
+                              <>
+                                💡 <strong className="text-foreground">Advis Efisiensi:</strong> Ditemukan{' '}
+                                <strong className="text-cyan-600 dark:text-cyan-400 font-bold">
+                                  {stockStats.inStock + stockStats.partial} item
+                                </strong>{' '}
+                                persediaan tersedia di gudang galangan perusahaan. Disarankan memenuhi item tersebut langsung dari stok gudang (TTB Mutasi) untuk memotong lead time menjadi <strong>0 hari kerja</strong> dan menghemat pengeluaran kas perusahaan.
+                              </>
+                            ) : (
+                              'Seluruh item stok kosong di gudang fisik, alokasi diarahkan 100% untuk penerbitan PO baru ke vendor.'
+                            )}
+                          </p>
+                        </div>
+
+                        {/* Quick Action Buttons */}
+                        <div className="flex flex-wrap items-center gap-2 shrink-0">
+                          {stockStats.hasAvailableStock && (
+                            <button
+                              type="button"
+                              onClick={handleApplySmartStockAdvisory}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-cyan-600 hover:bg-cyan-700 active:bg-cyan-800 text-white shadow-xs transition cursor-pointer"
+                              title="Otomatis alokasikan item yang tersedia ke stok gudang, dan sisanya ke PO purchasing"
+                            >
+                              <Sparkles className="size-3.5" />
+                              <span>Terapkan Alokasi Otomatis (Stok ➔ Gudang, Sisa ➔ PO)</span>
+                            </button>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={handleSetAllPo}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-border bg-background hover:bg-muted text-foreground transition cursor-pointer"
+                            title="Tetapkan semua item untuk dibeli baru melalui PO Purchasing"
+                          >
+                            <span>Set Semua PO</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Items Table */}
                   {formItems.length === 0 ? (
                     <div className="p-8 text-center border border-dashed border-border rounded-xl space-y-2">
@@ -2078,6 +2256,26 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                                     <option value="HOLD">Tahan (Hold)</option>
                                     <option value="REJECT">Tolak Item</option>
                                   </select>
+
+                                  {/* Peringatan Anti-Pembelian Ganda jika stok fisik tersedia tapi diset ke PO */}
+                                  {isStockOk && item.decision === 'PO' && (
+                                    <div
+                                      className="text-[10px] text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1 mt-1 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20"
+                                      title="Stok fisik barang ini tersedia di gudang perusahaan. Pertimbangkan untuk memenuhinya langsung dari stok (TTB Mutasi) tanpa menerbitkan PO baru."
+                                    >
+                                      <AlertTriangle className="size-3 shrink-0" />
+                                      <span>Stok fisik ada ({item.stockAvailable} {item.unit})!</span>
+                                    </div>
+                                  )}
+                                  {isStockPartial && item.decision === 'PO' && (
+                                    <div
+                                      className="text-[10px] text-cyan-600 dark:text-cyan-400 font-medium flex items-center gap-1 mt-1 bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/20"
+                                      title="Ada stok parsial di gudang. Bisa diambil dari stok sebagian dan sisanya dibuatkan PO."
+                                    >
+                                      <Boxes className="size-3 shrink-0" />
+                                      <span>Ada {item.stockAvailable} {item.unit} di stok</span>
+                                    </div>
+                                  )}
                                 </td>
 
                                 {/* Notes Input */}
@@ -2523,41 +2721,92 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
 
             {/* Modal Footer: Keputusan Review Tim FPB */}
             <div className="p-5 border-t border-border bg-muted/30 space-y-4">
-              {/* Persetujuan Logistik Banner / Switch */}
-              <div className="p-3.5 rounded-xl border border-amber-500/30 bg-amber-500/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              {/* Persetujuan Logistik & Izin Pengadaan Banner */}
+              <div className={`p-3.5 rounded-xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                formStatus === 'APPROVED_PO'
+                  ? 'border-emerald-500/30 bg-emerald-500/10'
+                  : formStatus === 'FULFILL_STOCK'
+                  ? 'border-cyan-500/30 bg-cyan-500/10'
+                  : 'border-amber-500/30 bg-amber-500/10'
+              }`}>
                 <div className="space-y-0.5">
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-900 dark:text-amber-200">
-                      <CheckCircle2 className="size-4 text-amber-600 dark:text-amber-400" />
+                    <span className={`inline-flex items-center gap-1.5 text-xs font-bold ${
+                      formStatus === 'APPROVED_PO'
+                        ? 'text-emerald-900 dark:text-emerald-200'
+                        : formStatus === 'FULFILL_STOCK'
+                        ? 'text-cyan-900 dark:text-cyan-200'
+                        : 'text-amber-900 dark:text-amber-200'
+                    }`}>
+                      <CheckCircle2 className={`size-4 ${
+                        formStatus === 'APPROVED_PO'
+                          ? 'text-emerald-600 dark:text-emerald-400'
+                          : formStatus === 'FULFILL_STOCK'
+                          ? 'text-cyan-600 dark:text-cyan-400'
+                          : 'text-amber-600 dark:text-amber-400'
+                      }`} />
                       Persetujuan Logistik &amp; Izin Pengadaan
                     </span>
-                    {formIsReceivedLogistik ? (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-600 text-white">
-                        SIAP PENGADAAN (DISETUJUI)
+                    {formStatus === 'APPROVED_PO' ? (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-600 text-white shadow-2xs">
+                        ✓ DISETUJUI TERBIT PO (PURCHASING)
+                      </span>
+                    ) : formStatus === 'FULFILL_STOCK' ? (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-600 text-white shadow-2xs">
+                        📦 DIPENUHI DARI STOK GUDANG (TTB MUTASI)
                       </span>
                     ) : (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-muted text-muted-foreground border border-border">
-                        MENUNGGU PERSETUJUAN LOGISTIK
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30">
+                        MENUNGGU APPROVAL TIM FPB
                       </span>
                     )}
                   </div>
                   <p className="text-[11px] text-muted-foreground">
-                    {formIsReceivedLogistik
-                      ? 'Dokumen FPB ini telah diverifikasi & disetujui Tim Logistik. Tim Purchasing diizinkan segera memproses pembelian (PO / Pra-tender).'
-                      : 'Dokumen FPB ini belum disetujui. Tekan tombol persetujuan di sebelah kanan untuk mengizinkan Tim Purchasing melanjutkan proses pengadaan.'}
+                    {formStatus === 'APPROVED_PO'
+                      ? 'Dokumen FPB ini telah disetujui Tim FPB untuk diterbitkan PO pengadaan. Tim Purchasing diizinkan segera memproses PO.'
+                      : formStatus === 'FULFILL_STOCK'
+                      ? 'Dokumen FPB ini disetujui untuk dipenuhi dari stok gudang perusahaan tanpa menerbitkan PO baru.'
+                      : 'Dokumen FPB ini belum disetujui (default: tombol orange). Tekan tombol di sebelah kanan untuk menyetujui dan mengubah status menjadi hijau.'}
                   </p>
                 </div>
+
+                {/* Tombol Persetujuan (Default: Orange, Menjadi Hijau jika Tim FPB menyetujui untuk PO) */}
                 <button
                   type="button"
-                  onClick={() => setFormIsReceivedLogistik(!formIsReceivedLogistik)}
-                  className={`px-4 py-2 rounded-lg text-xs font-bold transition shadow-xs cursor-pointer inline-flex items-center gap-1.5 ${
-                    formIsReceivedLogistik
-                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                      : 'bg-amber-500 hover:bg-amber-600 text-white'
+                  onClick={() => {
+                    if (formStatus === 'APPROVED_PO') {
+                      setFormStatus('PENDING_REVIEW');
+                      setFormIsReceivedLogistik(false);
+                      if (selectedRecord) handleQuickApproveLogistic(selectedRecord, false);
+                      showToast?.('Status approval dikembalikan ke Menunggu Analisa.', 'info');
+                    } else {
+                      setFormStatus('APPROVED_PO');
+                      setFormIsReceivedLogistik(true);
+                      if (selectedRecord) handleQuickApproveLogistic(selectedRecord, true);
+                      showToast?.('Pengajuan FPB disetujui untuk terbit PO pengadaan!', 'success');
+                    }
+                  }}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition shadow-xs cursor-pointer inline-flex items-center gap-1.5 select-none ${
+                    formStatus === 'APPROVED_PO'
+                      ? 'bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-emerald-500/20'
+                      : formStatus === 'FULFILL_STOCK'
+                      ? 'bg-cyan-600 hover:bg-cyan-700 active:bg-cyan-800 text-white'
+                      : 'bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white shadow-amber-500/20'
                   }`}
+                  title={
+                    formStatus === 'APPROVED_PO'
+                      ? 'Telah disetujui untuk dibuatkan PO. Klik untuk membatalkan / mengembalikan ke Menunggu Analisa.'
+                      : 'Klik untuk menyetujui pengajuan ini agar Tim Purchasing dapat menerbitkan PO.'
+                  }
                 >
                   <CheckCircle2 className="size-4" />
-                  <span>{formIsReceivedLogistik ? 'Disetujui untuk Purchasing' : 'Setujui & Teruskan ke Purchasing'}</span>
+                  <span>
+                    {formStatus === 'APPROVED_PO'
+                      ? '✓ Disetujui Terbit PO (Purchasing)'
+                      : formStatus === 'FULFILL_STOCK'
+                      ? '✓ Disetujui Penuhi Stok Gudang'
+                      : 'Setujui & Teruskan ke Purchasing'}
+                  </span>
                 </button>
               </div>
 
@@ -2597,7 +2846,17 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                   </label>
                   <select
                     value={formStatus}
-                    onChange={(e) => setFormStatus(e.target.value as FpbReviewStatus)}
+                    onChange={(e) => {
+                      const st = e.target.value as FpbReviewStatus;
+                      setFormStatus(st);
+                      if (st === 'APPROVED_PO') {
+                        setFormIsReceivedLogistik(true);
+                        if (selectedRecord) handleQuickApproveLogistic(selectedRecord, true);
+                      } else if (st === 'PENDING_REVIEW') {
+                        setFormIsReceivedLogistik(false);
+                        if (selectedRecord) handleQuickApproveLogistic(selectedRecord, false);
+                      }
+                    }}
                     className="w-full py-2 px-3 text-xs font-semibold rounded-lg border border-border bg-background text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20"
                   >
                     <option value="PENDING_REVIEW">⏳ Menunggu Analisa / Belum Selesai</option>
