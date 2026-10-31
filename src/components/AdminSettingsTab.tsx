@@ -52,9 +52,13 @@ import {
   Save,
   ArrowRight,
   PackageCheck,
+  History,
+  Tag,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import ImageOptimizationCard from './ImageOptimizationCard';
+import SystemReleaseLogsCard from './SystemReleaseLogsCard';
+import { SYSTEM_CURRENT_VERSION } from '@/data/system-changelog';
 import { TabType } from '@/types/procurement';
 import {
   AuthUser,
@@ -1043,13 +1047,16 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
       {/* Top Banner & Header */}
       <div className="bg-card border border-border rounded-xl p-5 md:p-6 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1.5">
+          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
             <span className="p-1.5 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
               <ShieldCheck className="size-5" />
             </span>
             <h1 className="text-lg md:text-xl font-bold text-foreground">
-              Admin Settings &bull; Manajemen Pengguna & Visitor
+              Admin Settings &bull; Manajemen Pengguna &amp; Visitor
             </h1>
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-black font-mono bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30 shadow-2xs">
+              {SYSTEM_CURRENT_VERSION}
+            </span>
           </div>
           <p className="text-xs text-muted-foreground max-w-2xl">
             Kelola akses manajerial, supervisor, staf purchasing, staf logistik/TTB, tim operasional (User), dan akun tamu peninjau (Visitor). Atur wewenang otorisasi, validasi &amp; TTD digital, atau akses mode monitor baca-saja.
@@ -1057,6 +1064,19 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 self-stretch md:self-auto">
+          {/* Quick Jump to Release Logs */}
+          <button
+            onClick={() => {
+              const el = document.getElementById('system-release-logs-section');
+              if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }}
+            className="flex-1 md:flex-initial h-9 px-3 rounded-lg border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 dark:text-purple-300 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-xs cursor-pointer active:scale-95"
+            title="Lihat Log Riwayat Versi & Pembaruan Sistem (Khusus Admin)"
+          >
+            <History className="size-3.5" />
+            <span>Log Versi {SYSTEM_CURRENT_VERSION}</span>
+          </button>
+
           {/* Quick Add Manager */}
           <button
             onClick={() => handleOpenAddModal('manager')}
@@ -2134,6 +2154,11 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
 
       {/* Kartu Pengaturan Optimasi & Auto-Scaling Penyimpanan Foto */}
       <ImageOptimizationCard isAdmin={isAdmin} showToast={showToast} />
+
+      {/* Log Riwayat Versi & Pembaruan Sistem (Changelog - Khusus Administrator) */}
+      <div id="system-release-logs-section">
+        <SystemReleaseLogsCard isAdmin={isAdmin} showToast={showToast} />
+      </div>
 
       {/* ============================================================== */}
       {/* MODAL: TAMBAH PENGGUNA / VISITOR                               */}
