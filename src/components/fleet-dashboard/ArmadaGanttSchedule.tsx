@@ -156,14 +156,16 @@ export default function ArmadaGanttSchedule({
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
   const [allExpanded, setAllExpanded] = useState<boolean>(false);
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'LENGKAP' | 'PROSES' | 'PARSIAL' | 'BACKLOG'>('ALL');
+  const [focusOnlySelected, setFocusOnlySelected] = useState<boolean>(true);
   const [hoveredSubItem, setHoveredSubItem] = useState<{
     vesselName: string;
     sub: GanttSubTicket;
   } | null>(null);
 
-  // Jika ada armada terpilih dari Donut Chart, otomatis buka (expand) baris tersebut
+  // Jika ada armada terpilih dari Donut Chart / Bar Chart, otomatis aktifkan mode fokus & buka (expand) baris tersebut
   useEffect(() => {
     if (selectedArmadaId) {
+      setFocusOnlySelected(true);
       setExpandedRows((prev) => ({
         ...prev,
         [selectedArmadaId]: true,
@@ -418,14 +420,36 @@ export default function ArmadaGanttSchedule({
     return result;
   }, [items, selectedArmadaId]);
 
-  // Total akumulasi status tiket di Gantt untuk Legend & Filter Cepat (Terkoneksi langsung dengan 4 kartu KPI)
+  // Filter daftar armada yang ditampilkan:
+  // Jika ada armada yang dipilih / di-highlight dan mode fokus aktif (default: true),
+  // HANYA tampilkan armada tersebut agar perhatian fokus penuh pada chart armada terpilih!
+  const displayVessels = useMemo(() => {
+    if (!selectedArmadaId || !focusOnlySelected) {
+      return vesselList;
+    }
+    const normTarget = normalizeArmadaName(selectedArmadaId).toUpperCase();
+    const cleanTarget = normTarget.replace(/[^A-Z0-9]/g, '');
+
+    const filtered = vesselList.filter((v) => {
+      const normV = normalizeArmadaName(v.name).toUpperCase();
+      if (normV === normTarget || v.name.toUpperCase() === normTarget) return true;
+      const cleanV = normV.replace(/[^A-Z0-9]/g, '');
+      return cleanV === cleanTarget;
+    });
+
+    return filtered.length > 0 ? filtered : vesselList;
+  }, [vesselList, selectedArmadaId, focusOnlySelected]);
+
+  // Total akumulasi status tiket di Gantt untuk Legend & Filter Cepat:
+  // Dihitung berdasarkan displayVessels sehingga saat fokus pada 1 armada,
+  // angka counter status persis sama dengan tiket armada tersebut!
   const statusCounts = useMemo(() => {
     let lengkap = 0;
     let proses = 0;
     let parsial = 0;
     let backlog = 0;
     let total = 0;
-    for (const v of vesselList) {
+    for (const v of displayVessels) {
       lengkap += v.statusBadge.lengkap;
       proses += v.statusBadge.proses;
       parsial += v.statusBadge.parsial;
@@ -433,7 +457,7 @@ export default function ArmadaGanttSchedule({
       total += v.sampleItems.length;
     }
     return { lengkap, proses, parsial, backlog, total };
-  }, [vesselList]);
+  }, [displayVessels]);
 
   // Bulan yang ditampilkan di header grid
   const displayMonths = useMemo(() => {
@@ -507,7 +531,7 @@ export default function ArmadaGanttSchedule({
       setAllExpanded(false);
     } else {
       const next: Record<string, boolean> = {};
-      vesselList.forEach((v) => {
+      displayVessels.forEach((v) => {
         next[v.name] = true;
       });
       setExpandedRows(next);
@@ -538,16 +562,49 @@ export default function ArmadaGanttSchedule({
 
         <div className="flex items-center gap-2 flex-wrap">
           {selectedArmadaId && (
-            <div className="px-2.5 py-1 rounded-lg bg-sky-500/20 border border-sky-500/40 text-sky-300 text-xs font-mono flex items-center gap-1.5">
-              <span>Menyorot: <strong>{selectedArmadaId}</strong></span>
+            <div className="flex items-center rounded-xl bg-slate-950/90 border border-sky-500/40 p-0.5 text-xs font-mono shadow-sm">
+              {/* Tombol Mode Fokus Hanya Armada Ini */}
+              <button
+                type="button"
+                onClick={() => setFocusOnlySelected(true)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                  focusOnlySelected
+                    ? 'bg-sky-500 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+                title="Hanya tampilkan Gantt chart untuk armada yang di-highlight agar fokus"
+              >
+                <Sparkles className="size-3 text-sky-200" />
+                <span>Fokus: {selectedArmadaId}</span>
+              </button>
+
+              {/* Tombol Mode Tampilkan Semua Armada */}
+              <button
+                type="button"
+                onClick={() => setFocusOnlySelected(false)}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5 cursor-pointer ${
+                  !focusOnlySelected
+                    ? 'bg-slate-800 text-slate-200 shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+                title="Tampilkan semua armada (armada terpilih tetap berada di urutan teratas)"
+              >
+                <Layers className="size-3 text-slate-400" />
+                <span>Semua Armada ({vesselList.length})</span>
+              </button>
+
+              {/* Tombol Reset Filter Armada */}
               {onSelectArmada && (
                 <button
                   type="button"
-                  onClick={() => onSelectArmada(null)}
-                  className="hover:text-white p-0.5 rounded cursor-pointer"
-                  title="Tampilkan semua armada"
+                  onClick={() => {
+                    onSelectArmada(null);
+                    setFocusOnlySelected(true);
+                  }}
+                  className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-900 rounded-lg transition cursor-pointer ml-0.5"
+                  title="Reset filter armada terpilih"
                 >
-                  <X className="size-3" />
+                  <X className="size-3.5" />
                 </button>
               )}
             </div>
@@ -731,35 +788,53 @@ export default function ArmadaGanttSchedule({
 
             {/* Rows Table */}
             <div className="divide-y divide-slate-800/80 text-xs">
-              {vesselList.map((vessel, vIdx) => {
-                const isExpanded = Boolean(expandedRows[vessel.name]);
-                const isSelected = selectedArmadaId === vessel.name;
+              {displayVessels.length === 0 ? (
+                <div className="py-12 text-center text-slate-400">
+                  <Ship className="size-8 mx-auto text-slate-600 mb-2 opacity-50" />
+                  <p className="text-sm font-semibold text-slate-300">
+                    Tidak ditemukan data Gantt chart untuk armada {selectedArmadaId || 'terpilih'}.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setFocusOnlySelected(false)}
+                    className="mt-3 px-3 py-1.5 rounded-lg bg-slate-800 text-slate-200 text-xs font-semibold hover:bg-slate-700 transition cursor-pointer"
+                  >
+                    Tampilkan Semua Armada
+                  </button>
+                </div>
+              ) : (
+                displayVessels.map((vessel, vIdx) => {
+                  const isExpanded = Boolean(expandedRows[vessel.name]);
+                  const isSelected = selectedArmadaId === vessel.name;
+                  const originalRank = vesselList.findIndex((v) => v.name === vessel.name) + 1;
 
-                const { left: parentLeft, width: parentWidth } = calculateDateRangePosition(
-                  vessel.startDate,
-                  vessel.endDate,
-                  selectedPeriod
-                );
+                  const { left: parentLeft, width: parentWidth } = calculateDateRangePosition(
+                    vessel.startDate,
+                    vessel.endDate,
+                    selectedPeriod
+                  );
 
-                return (
-                  <React.Fragment key={vessel.name}>
-                    {/* Baris Induk Armada */}
-                    <div className={`flex items-stretch min-h-[52px] transition group border-b border-slate-800/80 ${
-                      isSelected ? 'bg-sky-950/30' : 'bg-slate-900/60 hover:bg-slate-800/50'
-                    }`}>
-                      {/* Kolom Kiri Nama Armada */}
-                      <div className="w-80 sm:w-96 shrink-0 px-3.5 py-2 border-r border-slate-800 flex items-center justify-between gap-2 sticky left-0 bg-slate-900 z-20 shadow-[2px_0_6px_-2px_rgba(0,0,0,0.3)]">
-                        <button
-                          type="button"
-                          onClick={() => toggleRow(vessel.name)}
-                          className="flex items-center gap-1.5 text-left font-bold text-white hover:text-teal-400 transition truncate flex-1 cursor-pointer"
-                        >
-                          <span className="size-4.5 rounded flex items-center justify-center text-slate-400 group-hover:text-teal-400 shrink-0">
-                            {isExpanded ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}
-                          </span>
-                          <span className="text-[11px] font-mono text-slate-500 shrink-0">#{vIdx + 1}</span>
-                          <span className="truncate text-xs">{vessel.name}</span>
-                        </button>
+                  return (
+                    <React.Fragment key={vessel.name}>
+                      {/* Baris Induk Armada */}
+                      <div className={`flex items-stretch min-h-[52px] transition group border-b border-slate-800/80 ${
+                        isSelected ? 'bg-sky-950/30' : 'bg-slate-900/60 hover:bg-slate-800/50'
+                      }`}>
+                        {/* Kolom Kiri Nama Armada */}
+                        <div className="w-80 sm:w-96 shrink-0 px-3.5 py-2 border-r border-slate-800 flex items-center justify-between gap-2 sticky left-0 bg-slate-900 z-20 shadow-[2px_0_6px_-2px_rgba(0,0,0,0.3)]">
+                          <button
+                            type="button"
+                            onClick={() => toggleRow(vessel.name)}
+                            className="flex items-center gap-1.5 text-left font-bold text-white hover:text-teal-400 transition truncate flex-1 cursor-pointer"
+                          >
+                            <span className="size-4.5 rounded flex items-center justify-center text-slate-400 group-hover:text-teal-400 shrink-0">
+                              {isExpanded ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}
+                            </span>
+                            <span className="text-[11px] font-mono text-slate-500 shrink-0">
+                              #{originalRank > 0 ? originalRank : vIdx + 1}
+                            </span>
+                            <span className="truncate text-xs">{vessel.name}</span>
+                          </button>
 
                         <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
                           <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 border border-slate-700 text-slate-300">
@@ -1012,7 +1087,7 @@ export default function ArmadaGanttSchedule({
                       })()}
                   </React.Fragment>
                 );
-              })}
+              }))}
             </div>
           </div>
         </div>

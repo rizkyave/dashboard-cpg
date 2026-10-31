@@ -340,15 +340,31 @@
     "entity": "MOI",
     "armada": "SPEED BOAT KENARI",
     "date": "30/10/26",
-    "purpose": "Kebutuhan Operasional SPEED BOAT KENARI",
+    "purpose": "U/ MESIN SPEED BOAT",
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
-    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MOI-FPB-26-0000103.pdf",
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/MOI-FPB-26-0000103.pdf",
     "reviewStatus": "PENDING_REVIEW",
-    "urgency": "NORMAL",
+    "urgency": "URGENT",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "OLI00101002-YAL",
+        "itemName": "OLI MESRANIA 2T 20W-50 SAE 20 LITER (YAMALUBE)",
+        "qty": 5,
+        "unit": "JRG",
+        "description": "U/ MESIN SPEED BOAT",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[OLI1-OLI039] OLI (LUBRICANT) - OLI SAE 20W (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
     "attachments": [
       {
         "id": "efpb-att-MOI-FPB-26-0000103-2",
@@ -367,12 +383,13 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "updatedAt": "2026-10-31T07:58:12.182Z",
     "createdAt": "2026-10-31T01:26:01.011Z",
-    "priorityLevel": "P3",
-    "slaTargetDate": "29/11/26",
-    "slaDaysRemaining": 29,
-    "slaStatus": "ON_TRACK"
+    "priorityLevel": "P1",
+    "slaTargetDate": "01/11/26",
+    "slaDaysRemaining": 1,
+    "slaStatus": "DUE_SOON",
+    "requestedBy": "Yoga Aditya Windrawan"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001943",
