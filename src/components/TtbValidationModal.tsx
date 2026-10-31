@@ -25,6 +25,11 @@ import {
   Layers,
   Phone,
   Truck,
+  Camera,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  Image as ImageIcon,
 } from 'lucide-react';
 import {
   DocumentValidationRecord,
@@ -217,6 +222,22 @@ export default function TtbValidationModal({
   const [pdfRefreshKey, setPdfRefreshKey] = useState<number>(Date.now());
   const [pdfPageCount, setPdfPageCount] = useState<number | null>(null);
 
+  // Data Foto Bukti Serah Terima Lapangan (TimeMark R2)
+  interface PhotoItem {
+    name: string;
+    url: string;
+    takenAt?: string | null;
+    ttbInfo?: {
+      prefix?: string | null;
+      numbers?: string[];
+    };
+  }
+  const [photos, setPhotos] = useState<PhotoItem[]>([]);
+  const [isLoadingPhotos, setIsLoadingPhotos] = useState<boolean>(false);
+  const [showPhotoModal, setShowPhotoModal] = useState<boolean>(false);
+  const [selectedPhotoIdx, setSelectedPhotoIdx] = useState<number>(0);
+  const [leftPanelView, setLeftPanelView] = useState<'document' | 'photo'>('document');
+
   // Deteksi jumlah halaman riil PDF secara dinamis menggunakan pdf-lib
   useEffect(() => {
     let isMounted = true;
@@ -244,6 +265,44 @@ export default function TtbValidationModal({
     };
   }, [record?.fileUrl, pdfRefreshKey]);
 
+  // Fetch Foto Lapangan Real-time dari Cloudflare R2
+  useEffect(() => {
+    if (!isOpen || !record?.docNumber) {
+      setPhotos([]);
+      setShowPhotoModal(false);
+      setSelectedPhotoIdx(0);
+      setLeftPanelView('document');
+      return;
+    }
+
+    let isMounted = true;
+    setIsLoadingPhotos(true);
+
+    const cleanTtb = (record.docNumber || record.cleanDocNumber || '').trim();
+
+    fetch(`/api/ttb-photos?ttb=${encodeURIComponent(cleanTtb)}&_t=${Date.now()}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (!isMounted) return;
+        if (Array.isArray(data.photos) && data.photos.length > 0) {
+          setPhotos(data.photos);
+        } else {
+          setPhotos([]);
+        }
+      })
+      .catch((err) => {
+        console.warn('Gagal memuat foto TTB:', err);
+        if (isMounted) setPhotos([]);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoadingPhotos(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen, record?.docNumber, record?.cleanDocNumber, pdfRefreshKey]);
+
   // Reset state saat modal dibuka
   useEffect(() => {
     if (!isOpen || !record) {
@@ -270,7 +329,8 @@ export default function TtbValidationModal({
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (isFullscreen) setIsFullscreen(false);
+        if (showPhotoModal) setShowPhotoModal(false);
+        else if (isFullscreen) setIsFullscreen(false);
         else onClose();
       }
     };
@@ -545,6 +605,40 @@ export default function TtbValidationModal({
                   <span>Menunggu Validasi (0/4)</span>
                 </span>
               )}
+
+
+              {/* ═══════════════════════════════════════════════════════════ */}
+              {/* TOMBOL FOTO LAPANGAN (AREA KOTAK HITAM)                     */}
+              {/* ═══════════════════════════════════════════════════════════ */}
+              {isLoadingPhotos ? (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground border border-border">
+                  <Loader2 className="size-3 animate-spin text-purple-500" />
+                  <span>Memeriksa Foto...</span>
+                </span>
+              ) : photos.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => setShowPhotoModal(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-bold transition shadow-xs cursor-pointer active:scale-95 bg-purple-500/15 hover:bg-purple-500/25 text-purple-700 dark:text-purple-300 border border-purple-500/35 hover:border-purple-500/50 group"
+                  title={`Klik untuk membuka ${photos.length} foto bukti fisik serah terima TimeMark dari kru/kurir lapangan`}
+                >
+                  <Camera className="size-3.5 text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform" />
+                  <span>Foto Lapangan ({photos.length})</span>
+                  <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse ml-0.5" />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (showToast) showToast('Belum ada foto serah terima yang diunggah untuk dokumen TTB ini.', 'info');
+                  }}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted/60 hover:bg-muted text-muted-foreground border border-border/60 transition cursor-help"
+                  title="Belum ada foto dokumentasi serah terima barang yang diunggah untuk No. TTB ini"
+                >
+                  <Camera className="size-3.5 text-muted-foreground/50" />
+                  <span>Foto Lapangan (Belum Ada)</span>
+                </button>
+              )}
             </div>
 
             <div className="flex items-center gap-2 flex-wrap text-xs">
@@ -693,27 +787,97 @@ export default function TtbValidationModal({
               activeTabMobile === 'document' ? 'flex' : 'hidden lg:flex'
             }`}
           >
-            <div className="p-3 border-b border-border bg-muted/20 flex items-center justify-between text-xs text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <FileCheck2 className="size-4 text-amber-500" />
-                <span className="font-semibold text-foreground">
-                  Pratinjau Dokumen TTB Resmi {pdfPageCount ? `(${pdfPageCount} Halaman • 1 of ${pdfPageCount})` : ''}
-                </span>
+            <div className="p-2 sm:p-2.5 border-b border-border bg-muted/20 flex items-center justify-between text-xs text-muted-foreground flex-wrap gap-2">
+              <div className="flex items-center gap-1 bg-background/80 p-0.5 rounded-lg border border-border/80">
+                <button
+                  type="button"
+                  onClick={() => setLeftPanelView('document')}
+                  className={`px-2.5 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
+                    leftPanelView === 'document'
+                      ? 'bg-card text-foreground shadow-xs border border-border/60'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <FileText className="size-3.5 text-amber-500" />
+                  <span>Dokumen PDF</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLeftPanelView('photo')}
+                  className={`px-2.5 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
+                    leftPanelView === 'photo'
+                      ? 'bg-card text-purple-700 dark:text-purple-300 shadow-xs border border-purple-500/30'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <Camera className="size-3.5 text-purple-500" />
+                  <span>Foto Fisik (${photos.length})</span>
+                </button>
               </div>
-              <span className="text-[11px] font-mono text-muted-foreground">
-                {pdfPageCount
-                  ? `Halaman 1 of ${pdfPageCount} • Memuat Kolom Pengesahan`
-                  : 'Memuat 4 Kolom Pengesahan Lini Terkait'}
-              </span>
+
+              {leftPanelView === 'document' ? (
+                <span className="text-[11px] font-mono text-muted-foreground">
+                  {pdfPageCount
+                    ? `Halaman 1 of ${pdfPageCount} • Memuat Kolom Pengesahan`
+                    : 'Memuat 4 Kolom Pengesahan Lini Terkait'}
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowPhotoModal(true)}
+                  className="text-[11px] font-semibold text-purple-600 dark:text-purple-400 hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <Maximize2 className="size-3" />
+                  <span>Perbesar Lightbox</span>
+                </button>
+              )}
             </div>
 
             <div className="flex-1 p-2 sm:p-3 overflow-hidden bg-slate-900/10 flex flex-col min-h-[400px]">
-              <iframe
-                key={previewPdfUrl}
-                src={previewPdfUrl}
-                title={`Pratinjau ${record.docNumber}`}
-                className="w-full h-full rounded-xl border border-border bg-card shadow-inner"
-              />
+              {leftPanelView === 'document' ? (
+                <iframe
+                  key={previewPdfUrl}
+                  src={previewPdfUrl}
+                  title={`Pratinjau ${record.docNumber}`}
+                  className="w-full h-full rounded-xl border border-border bg-card shadow-inner"
+                />
+              ) : photos.length > 0 ? (
+                <div className="w-full h-full rounded-xl border border-border bg-card shadow-inner flex flex-col overflow-hidden">
+                  <div className="relative flex-1 bg-black/30 flex items-center justify-center p-3 overflow-hidden">
+                    <img
+                      src={photos[selectedPhotoIdx]?.url}
+                      alt={photos[selectedPhotoIdx]?.name}
+                      className="max-h-full max-w-full object-contain rounded-lg shadow-md cursor-pointer hover:scale-[1.01] transition-transform"
+                      onClick={() => setShowPhotoModal(true)}
+                      title="Klik untuk membuka foto di lightbox layar penuh"
+                    />
+                  </div>
+                  {photos.length > 1 && (
+                    <div className="p-2 border-t border-border bg-muted/30 flex items-center justify-center gap-1.5 overflow-x-auto">
+                      {photos.map((p, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setSelectedPhotoIdx(idx)}
+                          className={`size-8 rounded overflow-hidden border-2 transition cursor-pointer ${
+                            idx === selectedPhotoIdx ? 'border-purple-500 ring-2 ring-purple-500/30' : 'border-transparent opacity-60 hover:opacity-100'
+                          }`}
+                        >
+                          <img src={p.url} alt={p.name} className="w-full h-full object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="w-full h-full rounded-xl border border-dashed border-border bg-muted/20 flex flex-col items-center justify-center p-6 text-center text-muted-foreground gap-2">
+                  <Camera className="size-8 text-muted-foreground/40" />
+                  <p className="text-xs font-semibold">Belum Ada Foto Terunggah</p>
+                  <p className="text-[11px] text-muted-foreground/80 max-w-xs">
+                    Petugas kurir lapangan belum mengunggah foto serah terima TimeMark untuk No. TTB ini.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -1066,6 +1230,146 @@ export default function TtbValidationModal({
               </div>
             </div>
           </div>
+
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {/* MODAL LIGHTBOX FOTO SERAH TERIMA LAPANGAN                  */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {showPhotoModal && photos.length > 0 && (
+        <div className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 animate-in fade-in duration-200">
+          <div className="relative w-full max-w-4xl bg-card border border-border rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+            {/* Lightbox Header */}
+            <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-border bg-muted/40">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="size-8 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 flex items-center justify-center shrink-0">
+                  <Camera className="size-4" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-xs sm:text-sm font-bold text-foreground truncate flex items-center gap-1.5">
+                    <span>Foto Dokumentasi Serah Terima Barang</span>
+                    <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20 font-semibold">
+                      {record.docNumber}
+                    </span>
+                  </h3>
+                  <p className="text-[10px] text-muted-foreground truncate">
+                    Unit: <span className="font-semibold text-foreground">{record.armada}</span>
+                    {photos.length > 1 && ` • Foto ${selectedPhotoIdx + 1} dari ${photos.length}`}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5 shrink-0">
+                <a
+                  href={photos[selectedPhotoIdx]?.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-1.5 sm:px-2.5 sm:py-1 rounded-lg border border-border bg-background hover:bg-muted text-foreground text-xs font-medium flex items-center gap-1 transition"
+                  title="Buka Foto Asli di Tab Baru"
+                >
+                  <ExternalLink className="size-3.5" />
+                  <span className="hidden sm:inline">Buka Penuh</span>
+                </a>
+                <a
+                  href={photos[selectedPhotoIdx]?.url}
+                  download={photos[selectedPhotoIdx]?.name || 'foto-ttb.jpg'}
+                  className="p-1.5 sm:px-2.5 sm:py-1 rounded-lg border border-border bg-background hover:bg-muted text-foreground text-xs font-medium flex items-center gap-1 transition"
+                  title="Unduh Berkas Foto"
+                >
+                  <Download className="size-3.5" />
+                  <span className="hidden sm:inline">Unduh</span>
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setShowPhotoModal(false)}
+                  className="p-1.5 rounded-lg border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition cursor-pointer"
+                  title="Tutup Pratinjau Foto (Esc)"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Lightbox Body: Photo Display */}
+            <div className="relative flex-1 bg-black/40 flex items-center justify-center p-3 sm:p-5 overflow-hidden min-h-[350px]">
+              {photos[selectedPhotoIdx] && (
+                <img
+                  src={photos[selectedPhotoIdx].url}
+                  alt={photos[selectedPhotoIdx].name}
+                  className="max-h-[62vh] max-w-full object-contain rounded-lg shadow-xl border border-white/10"
+                />
+              )}
+
+              {/* Prev / Next buttons if multiple photos */}
+              {photos.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPhotoIdx((prev) => (prev > 0 ? prev - 1 : photos.length - 1))}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 size-9 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition border border-white/20 shadow-lg cursor-pointer"
+                    title="Foto Sebelumnya"
+                  >
+                    <ChevronLeft className="size-5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPhotoIdx((prev) => (prev < photos.length - 1 ? prev + 1 : 0))}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 size-9 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition border border-white/20 shadow-lg cursor-pointer"
+                    title="Foto Berikutnya"
+                  >
+                    <ChevronRight className="size-5" />
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Lightbox Footer & Thumbnails */}
+            <div className="px-4 py-3 border-t border-border bg-card flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs">
+              <div className="flex items-center gap-2 min-w-0">
+                <Sparkles className="size-3.5 text-purple-500 shrink-0" />
+                <div className="min-w-0">
+                  <span className="font-mono text-[11px] text-foreground truncate block">
+                    {photos[selectedPhotoIdx]?.name}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground block truncate">
+                    {photos[selectedPhotoIdx]?.takenAt
+                      ? `Waktu Foto: ${photos[selectedPhotoIdx].takenAt}`
+                      : 'Dokumentasi Fisik TimeMark Lapangan • Cloudflare R2'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Thumbnail strip if multiple photos */}
+              {photos.length > 1 && (
+                <div className="flex items-center gap-1.5 overflow-x-auto max-w-full py-0.5">
+                  {photos.map((p, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setSelectedPhotoIdx(idx)}
+                      className={`size-10 rounded-md overflow-hidden border-2 transition cursor-pointer shrink-0 ${
+                        idx === selectedPhotoIdx
+                          ? 'border-purple-500 ring-2 ring-purple-500/30'
+                          : 'border-border/60 opacity-60 hover:opacity-100'
+                      }`}
+                      title={p.name}
+                    >
+                      <img src={p.url} alt={p.name} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setShowPhotoModal(false)}
+                className="h-7 px-3 rounded-lg border border-border bg-muted hover:bg-muted/80 text-foreground text-xs font-semibold transition cursor-pointer shrink-0"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
         </div>
       </div>
     </div>
