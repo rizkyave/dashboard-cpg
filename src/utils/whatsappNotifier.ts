@@ -1,4 +1,5 @@
 import { WaGatewayConfig, NotificationType } from '@/types/notification';
+import { FpbReviewRecord } from '@/types/fpbReview';
 
 export interface WhatsAppNotificationPayload {
   type?: NotificationType;
@@ -329,3 +330,101 @@ export async function sendViaWaGateway(
     return { success: false, message: err?.message || 'Gagal menghubungi server WA Gateway.' };
   }
 }
+
+/**
+ * 7. Format teks WhatsApp: Persetujuan Review FPB untuk Terbit PO (ke Tim Purchasing)
+ */
+export function formatFpbApprovalWaMessage(record: FpbReviewRecord): string {
+  const { dateStr, timeStr } = getFormattedDateTime();
+  const cleanFpb = (record.fpbNo || '').trim();
+  const efpbUrl = `https://e-fpb.cindaragroup.com/FilesList?psearch=${encodeURIComponent(cleanFpb)}`;
+  const tkb = record.tkbNo ? record.tkbNo.trim() : '-';
+
+  // Hitung jumlah item
+  const items = record.items || [];
+  const totalItem = items.length;
+  const poItems = items.filter((i) => !i.decision || i.decision === 'PO');
+  const stockItems = items.filter((i) => i.decision === 'STOCK');
+
+  // Ambil cuplikan 3-5 item barang
+  let itemSummaryLines = '';
+  if (items.length > 0) {
+    const sampleItems = items.slice(0, 5);
+    const lines = sampleItems.map(
+      (item, idx) =>
+        `  ${idx + 1}. ${item.itemName} (${item.qty} ${item.unit || 'UNIT'})${
+          item.decision === 'STOCK' ? ' ➔ [Stok Gudang]' : ' ➔ [PO]'
+        }`
+    );
+    if (items.length > 5) {
+      lines.push(`  ... dan ${items.length - 5} item lainnya`);
+    }
+    itemSummaryLines = `\n📦 *Daftar Item Disetujui:*\n${lines.join('\n')}\n`;
+  }
+
+  const urgencyLabel =
+    record.urgency === 'EMERGENCY'
+      ? '🚨 EMERGENCY (Kritis Armada)'
+      : record.urgency === 'URGENT'
+      ? '⚡ URGENT'
+      : 'NORMAL';
+
+  const priorityLabel = record.priorityLevel
+    ? `${record.priorityLevel} (Target SLA)`
+    : 'P1 (Utama: 1-2 Hari)';
+
+  return `🔔 *NOTIFIKASI APPROVAL FPB SIAP TERBIT PO* 📄
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+Halo Tim Purchasing CPG,
+
+Pengajuan FPB berikut telah selesai di-review oleh Tim FPB / Logistik dan telah *DISETUJUI UNTUK PENERBITAN PO*:
+
+📄 *No. FPB:* ${record.fpbNo}
+🏷️ *No. TKB:* *${tkb}*
+🚢 *Armada / Unit:* ${record.armada} (${record.entity})
+📅 *Tanggal FPB:* ${record.date || dateStr}
+⚡ *Prioritas & Urgensi:* ${priorityLabel} • ${urgencyLabel}
+🎯 *Peruntukan / Keperluan:* ${record.purpose || '-'}
+
+📊 *Ringkasan Alokasi Barang:*
+• Total Kebutuhan: *${totalItem} item*
+• Disetujui Terbit PO: *${poItems.length} item*
+• Dipenuhi dari Stok Gudang: *${stockItems.length} item*
+${itemSummaryLines}
+📝 *Catatan Review Tim FPB:*
+_${record.reviewNotes || 'Disetujui untuk segera diproses PO pengadaan'}_
+
+👤 *Reviewer:* ${record.reviewedBy || 'Tim Review FPB'}
+⏰ *Waktu Disetujui:* ${dateStr} ${timeStr}
+
+Mohon bantuan Tim Purchasing untuk segera memproses penerbitan PO pengadaan sesuai konfirmasi No. TKB di atas.
+
+🔗 *Buka Berkas e-FPB:*
+${efpbUrl}
+
+Terima kasih atas kerja samanya.
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+_Dashboard CPG - Monitoring Procurement & Review FPB_`;
+}
+
+/**
+ * Hasilkan URL WhatsApp untuk Notifikasi Approval FPB ke Purchasing
+ */
+export function generateFpbApprovalWaLink(
+  record: FpbReviewRecord,
+  phoneNumber?: string
+): string {
+  const text = formatFpbApprovalWaMessage(record);
+  const encodedText = encodeURIComponent(text);
+
+  if (phoneNumber) {
+    let cleaned = phoneNumber.replace(/[^0-9]/g, '');
+    if (cleaned.startsWith('0')) {
+      cleaned = '62' + cleaned.slice(1);
+    }
+    return `https://wa.me/${cleaned}?text=${encodedText}`;
+  }
+
+  return `https://api.whatsapp.com/send?text=${encodedText}`;
+}
+

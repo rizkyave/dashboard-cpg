@@ -50,7 +50,12 @@ import {
   MessageSquare,
   Phone,
   User,
+  Copy,
 } from 'lucide-react';
+import {
+  formatFpbApprovalWaMessage,
+  generateFpbApprovalWaLink,
+} from '@/utils/whatsappNotifier';
 import {
   FpbReviewRecord,
   FpbReviewStatus,
@@ -2817,7 +2822,54 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex items-center justify-end gap-2.5 shrink-0">
+                    <div className="flex items-center justify-end gap-2.5 shrink-0 flex-wrap">
+                      {/* Tombol Notifikasi WA ke Tim Purchasing (dengan No. TKB) */}
+                      {(formStatus === 'APPROVED_PO' || selectedRecord.reviewStatus === 'APPROVED_PO') && (
+                        <div className="flex items-center gap-1">
+                          <a
+                            href={generateFpbApprovalWaLink({
+                              ...selectedRecord,
+                              reviewStatus: 'APPROVED_PO',
+                              tkbNo: selectedRecord.tkbNo || 'TKB-Otomatis (Saat Disetujui)',
+                              reviewNotes: formNotes,
+                              urgency: formUrgency,
+                              priorityLevel: formPriority,
+                            })}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-xs hover:shadow transition select-none cursor-pointer"
+                            title={`Kirim notifikasi WhatsApp ke Tim Purchasing bahwa pengajuan ini disetujui terbit PO (${selectedRecord.tkbNo ? `No. TKB: ${selectedRecord.tkbNo}` : 'TKB Otomatis'})`}
+                          >
+                            <MessageSquare className="size-3.5" />
+                            <span>Kirim WA Purchasing</span>
+                            {selectedRecord.tkbNo && (
+                              <span className="font-mono text-[10px] bg-emerald-800/80 px-1.5 py-0.5 rounded text-emerald-100 font-bold">
+                                {selectedRecord.tkbNo}
+                              </span>
+                            )}
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const text = formatFpbApprovalWaMessage({
+                                ...selectedRecord,
+                                reviewStatus: 'APPROVED_PO',
+                                tkbNo: selectedRecord.tkbNo || 'TKB-Otomatis',
+                                reviewNotes: formNotes,
+                                urgency: formUrgency,
+                                priorityLevel: formPriority,
+                              });
+                              navigator.clipboard.writeText(text);
+                              showToast?.('Format pesan WhatsApp persetujuan PO & No. TKB berhasil disalin ke clipboard!', 'success');
+                            }}
+                            className="p-2 rounded-lg border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition cursor-pointer"
+                            title="Salin format pesan WhatsApp ke clipboard"
+                          >
+                            <Copy className="size-3.5" />
+                          </button>
+                        </div>
+                      )}
+
                       <button
                         type="button"
                         onClick={handleCloseModal}

@@ -1,8 +1,21 @@
 'use client';
 
-import React from 'react';
-import { CheckCircle2, ExternalLink, Clock, HelpCircle, XCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import {
+  CheckCircle2,
+  ExternalLink,
+  Clock,
+  HelpCircle,
+  XCircle,
+  MessageSquare,
+  Copy,
+  Check,
+} from 'lucide-react';
 import { FpbReviewRecord } from '@/types/fpbReview';
+import {
+  formatFpbApprovalWaMessage,
+  generateFpbApprovalWaLink,
+} from '@/utils/whatsappNotifier';
 
 export interface LogisticsApprovalCellProps {
   record: FpbReviewRecord;
@@ -15,6 +28,8 @@ export default function LogisticsApprovalCell({
   onApproveClick,
   isLoading = false,
 }: LogisticsApprovalCellProps) {
+  const [isCopied, setIsCopied] = useState<boolean>(false);
+
   const cleanFpb = (record.fpbNo || '').trim();
   const directEfpbUrl = `https://e-fpb.cindaragroup.com/FilesList?psearch=${encodeURIComponent(cleanFpb)}`;
 
@@ -24,6 +39,20 @@ export default function LogisticsApprovalCell({
   const isClarification = record.reviewStatus === 'NEED_CLARIFICATION';
   const isRejected = record.reviewStatus === 'REJECTED';
   const isReceivedLogistik = Boolean(record.isReceivedLogistik || record.pchLogistik === 'Received_Logistic');
+
+  // Helper copy WA format message
+  const handleCopyWa = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      const text = formatFpbApprovalWaMessage(record);
+      navigator.clipboard.writeText(text);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.warn('Gagal menyalin teks WA:', err);
+    }
+  };
 
   // 1. KONDISI: Ditolak oleh Tim Review
   if (isRejected) {
@@ -81,6 +110,38 @@ export default function LogisticsApprovalCell({
 
   // 5. ATURAN BISNIS: Tim FPB telah menyetujui (APPROVED_PO atau FULFILL_STOCK)
   if (isApproved) {
+    const isApprovedPo = record.reviewStatus === 'APPROVED_PO';
+    const waUrl = isApprovedPo ? generateFpbApprovalWaLink(record) : '';
+
+    // Tombol Notifikasi WA ke Tim Purchasing (dengan No. TKB)
+    const waButton = isApprovedPo ? (
+      <div className="flex items-center gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
+        <a
+          href={waUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-2xs hover:shadow-xs transition select-none cursor-pointer"
+          title={`Kirim notifikasi WhatsApp ke Tim Purchasing (FPB: ${cleanFpb}, No. TKB: ${record.tkbNo || '-'})`}
+        >
+          <MessageSquare className="size-3 shrink-0" />
+          <span>Link WA Purchasing</span>
+          {record.tkbNo && (
+            <span className="font-mono text-[9px] bg-emerald-800/80 px-1 py-0.2 rounded text-emerald-100 font-bold">
+              {record.tkbNo}
+            </span>
+          )}
+        </a>
+        <button
+          type="button"
+          onClick={handleCopyWa}
+          className="p-1 rounded text-muted-foreground hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-500/10 transition cursor-pointer"
+          title="Salin teks format WhatsApp persetujuan PO & No. TKB ke clipboard"
+        >
+          {isCopied ? <Check className="size-3 text-emerald-500" /> : <Copy className="size-3" />}
+        </button>
+      </div>
+    ) : null;
+
     // 5A. Sudah disahkan di e-FPB (Received_Logistic telah ditekan & ttd tertera)
     if (isReceivedLogistik) {
       const approver = record.reviewedBy || 'Staf Logistik';
@@ -93,21 +154,24 @@ export default function LogisticsApprovalCell({
         : '';
 
       return (
-        <span
-          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 select-none shadow-2xs"
-          title={`Telah disetujui tim review & disahkan di e-FPB (Tombol Received_Logistic telah ditekan)${
-            approver ? ` - Disetujui: ${approver}` : ''
-          }${dateFormatted ? ` (${dateFormatted})` : ''}`}
-        >
-          <CheckCircle2 className="size-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
-          <span>Siap Pengadaan</span>
-        </span>
+        <div className="flex flex-col items-start gap-0.5" onClick={(e) => e.stopPropagation()}>
+          <span
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 select-none shadow-2xs"
+            title={`Telah disetujui tim review & disahkan di e-FPB (Tombol Received_Logistic telah ditekan)${
+              approver ? ` - Disetujui: ${approver}` : ''
+            }${dateFormatted ? ` (${dateFormatted})` : ''}`}
+          >
+            <CheckCircle2 className="size-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <span>Siap Pengadaan</span>
+          </span>
+          {waButton}
+        </div>
       );
     }
 
     // 5B. Sudah disetujui Tim Review, tetapi tombol Received_Logistic di e-FPB belum ditekan
     return (
-      <div onClick={(e) => e.stopPropagation()}>
+      <div className="flex flex-col items-start gap-1" onClick={(e) => e.stopPropagation()}>
         <a
           href={directEfpbUrl}
           target="_blank"
@@ -118,6 +182,7 @@ export default function LogisticsApprovalCell({
           <span>Sahkan di e-FPB</span>
           <ExternalLink className="size-3 shrink-0 opacity-80" />
         </a>
+        {waButton}
       </div>
     );
   }
