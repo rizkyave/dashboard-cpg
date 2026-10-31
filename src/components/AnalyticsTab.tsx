@@ -3202,8 +3202,11 @@ export default function AnalyticsTab({
                 <div className="flex items-center justify-between pb-2 border-b border-border/60 gap-2">
                   <div className="flex items-center gap-1.5">
                     <TrendingUp className="size-3.5 text-emerald-500 shrink-0" />
-                    <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-foreground uppercase tracking-wider">
-                      TREN PERMINTAAN BULANAN
+                    <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-foreground uppercase tracking-wider flex items-center gap-1.5 flex-wrap">
+                      <span>TREN PERMINTAAN BULANAN</span>
+                      {selectedFleetArmada !== 'ALL' && (
+                        <span className="text-sky-600 dark:text-sky-400 font-bold">({selectedFleetArmada})</span>
+                      )}
                     </h4>
                   </div>
                   <span className="px-2 py-0.5 rounded-md font-mono text-[10px] font-semibold bg-slate-100 text-slate-600 dark:bg-muted dark:text-muted-foreground border border-slate-200 dark:border-border shrink-0">
@@ -3211,7 +3214,9 @@ export default function AnalyticsTab({
                   </span>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-muted-foreground">
-                  Fluktuasi pengajuan kebutuhan kapal sepanjang periode aktif (Combo Bar &amp; Line).
+                  {selectedFleetArmada !== 'ALL'
+                    ? `Fluktuasi pengajuan kebutuhan FPB khusus armada ${selectedFleetArmada} sepanjang periode aktif.`
+                    : 'Fluktuasi pengajuan kebutuhan kapal sepanjang periode aktif (Combo Bar & Line).'}
                 </p>
                 <div className="h-64 mt-auto">
                   <FleetMonthlyTrendChart monthlyData={fleetMonthlyTrend} defaultMode="combo" />
@@ -3227,6 +3232,8 @@ export default function AnalyticsTab({
               onOpenAudit={onOpenAudit}
               initialMonth={selectedMonth !== 'ALL' ? selectedMonth : '10'}
               initialYear={selectedYear !== 'ALL' ? selectedYear : '2026'}
+              selectedArmadaProp={selectedFleetArmada}
+              onSelectArmadaProp={(name) => setSelectedFleetArmada(name || 'ALL')}
             />
           )}
 

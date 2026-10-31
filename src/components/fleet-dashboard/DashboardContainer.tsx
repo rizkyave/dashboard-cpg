@@ -26,6 +26,8 @@ interface DashboardContainerProps {
   onOpenAudit?: (item: any) => void;
   initialMonth?: string;
   initialYear?: string;
+  selectedArmadaProp?: string | null;
+  onSelectArmadaProp?: (armadaName: string | null) => void;
 }
 
 export default function DashboardContainer({
@@ -33,6 +35,8 @@ export default function DashboardContainer({
   onOpenAudit,
   initialMonth = '10', // Default: Oktober 2026
   initialYear = '2026',
+  selectedArmadaProp,
+  onSelectArmadaProp,
 }: DashboardContainerProps) {
   const ganttRef = useRef<HTMLDivElement>(null);
   const [isRemainderModalOpen, setIsRemainderModalOpen] = useState(false);
@@ -45,18 +49,37 @@ export default function DashboardContainer({
     tahun: initialYear,
     bulan: initialMonth,
     entitas: 'ALL',
-    selectedArmadaId: null,
+    selectedArmadaId: selectedArmadaProp && selectedArmadaProp !== 'ALL' ? selectedArmadaProp : null,
     statusFilter: 'ALL',
     searchTerm: '',
     focusTop12Only: true, // Default: Fokus 12 Besar Murni (Skala 100%)
     fleetTypeFilter: 'ALL', // 'ALL' | 'MARINE' | 'OFFICE_SITE'
   });
 
+  // Sinkronisasi jika prop armada dari luar berubah
+  React.useEffect(() => {
+    if (selectedArmadaProp !== undefined) {
+      const nextId = !selectedArmadaProp || selectedArmadaProp === 'ALL' ? null : selectedArmadaProp;
+      setFilterState((prev) => {
+        if (prev.selectedArmadaId === nextId) return prev;
+        return {
+          ...prev,
+          selectedArmadaId: nextId,
+        };
+      });
+    }
+  }, [selectedArmadaProp]);
+
   const handleFilterChange = (updates: Partial<GlobalFilterState>) => {
-    setFilterState((prev) => ({
-      ...prev,
-      ...updates,
-    }));
+    setFilterState((prev) => {
+      if (updates.selectedArmadaId !== undefined && updates.selectedArmadaId !== prev.selectedArmadaId) {
+        onSelectArmadaProp?.(updates.selectedArmadaId);
+      }
+      return {
+        ...prev,
+        ...updates,
+      };
+    });
   };
 
   const handleScrollToGantt = () => {
@@ -74,6 +97,10 @@ export default function DashboardContainer({
     const expanded: any[] = [];
     (REAL_FLEET_DATA as any[]).forEach((v) => {
       (v.sampleItems || []).forEach((item: any, idx: number) => {
+        const col = item.startCol !== undefined ? item.startCol : (idx % 20);
+        const mOffset = Math.floor(col / 4); // 0=Jun, 1=Jul, 2=Agu, 3=Sep, 4=Okt
+        const mStr = String(6 + Math.min(4, Math.max(0, mOffset))).padStart(2, '0');
+        const dStr = String(1 + (col % 4) * 7).padStart(2, '0');
         expanded.push({
           armada: v.name,
           entity: v.tag,
@@ -83,8 +110,8 @@ export default function DashboardContainer({
           qtyFSTB: item.status === 'LENGKAP' ? 1 : 0,
           selisih: item.status === 'LENGKAP' ? 0 : 1,
           status: item.status,
-          date: '2026-10-02',
-          tglFpb: '02/10/2026',
+          date: `2026-${mStr}-${dStr}`,
+          tglFpb: `${dStr}/${mStr}/2026`,
           noPo: `PO-26-0${1000 + idx}`,
         });
       });
@@ -301,7 +328,7 @@ export default function DashboardContainer({
   }, [filteredData, filterState.focusTop12Only, filterState.fleetTypeFilter]);
 
   // ==========================================================================
-  // 5. KALKULASI TREN BULANAN SINKRON DENGAN TOTAL DONUT CHART
+  // 5. KALKULASI TREN BULANAN SINKRON DENGAN ARMADA TERPILIH / 12 BESAR
   // ==========================================================================
   const monthlyTrendData = useMemo<MonthlyTrendPoint[]>(() => {
     const monthKeys = ['06', '07', '08', '09', '10'];
@@ -312,26 +339,55 @@ export default function DashboardContainer({
     });
 
     const top12Names = new Set(topArmadas.filter((a) => a.id !== 'OTHERS').map((a) => a.name));
+    const remainderNames = new Set(remainderArmadas.map((r) => r.name));
 
     rawDataSource.forEach((it) => {
       const rawName = (it.armada || (it as any).deptArmada || '').trim();
+      if (!rawName || rawName === '-' || rawName.length < 2) return;
       const norm = normalizeArmadaName(rawName);
 
-      // Jika fokus 12 besar, batasi tren bulanan hanya untuk 12 armada juara
-      if (filterState.focusTop12Only && !top12Names.has(norm)) {
-        return;
+      // 1. FILTER ARMADA SPESIFIK JIKA DIPILIH!
+      if (filterState.selectedArmadaId) {
+        if (filterState.selectedArmadaId === 'OTHERS' || filterState.selectedArmadaId === 'Armada Lainnya') {
+          if (!remainderNames.has(norm)) return;
+        } else {
+          if (norm !== filterState.selectedArmadaId) return;
+        }
+      } else {
+        // Jika tidak ada armada spesifik:
+        // Cek filter tipe unit (Kapal Laut vs Kantor/Site)
+        if (filterState.fleetTypeFilter === 'MARINE' && !isMarineArmada(norm)) {
+          return;
+        } else if (filterState.fleetTypeFilter === 'OFFICE_SITE' && isMarineArmada(norm)) {
+          return;
+        }
+
+        // Cek fokus 12 besar
+        if (filterState.focusTop12Only && !top12Names.has(norm)) {
+          return;
+        }
       }
-      if (filterState.fleetTypeFilter === 'MARINE' && !isMarineArmada(norm)) {
-        return;
+
+      // 2. Filter entitas jika ada
+      if (filterState.entitas !== 'ALL') {
+        const ent = (it.entity || '').trim().toUpperCase();
+        if (ent && ent !== filterState.entitas.toUpperCase()) {
+          return;
+        }
       }
 
       const d = parseDateObj(it.tglFpb || it.date || it.tglPo || it.tglFstb);
       if (!d) return;
 
+      if (filterState.tahun !== 'ALL' && String(d.getFullYear()) !== filterState.tahun) {
+        return;
+      }
+
       const mKey = String(d.getMonth() + 1).padStart(2, '0');
       const entry = map.get(mKey);
       if (entry) {
-        if (it.fpb) entry.fpbSet.add(it.fpb.trim());
+        const fpbKey = it.fpb ? it.fpb.trim() : (it.noPo || `${norm}-${d.getTime()}`);
+        entry.fpbSet.add(fpbKey);
         entry.qFpb += Number(it.qtyFPB) || 0;
         entry.qFstb += Number(it.qtyFSTB) || 0;
       }
@@ -339,20 +395,28 @@ export default function DashboardContainer({
 
     return monthKeys.map((mk) => {
       const entry = map.get(mk);
-      let totalFpb = entry ? entry.fpbSet.size : 0;
-      if (filterState.bulan === mk && totalFpbPeriod > 0) {
-        totalFpb = totalFpbPeriod;
-      }
+      const totalFpb = entry ? entry.fpbSet.size : 0;
+      const qFpb = entry ? entry.qFpb : 0;
+      const qFstb = entry ? entry.qFstb : 0;
 
       return {
         monthKey: mk,
         monthName: MONTH_NAMES_ID[mk]?.slice(0, 3) || mk,
-        totalFpb: totalFpb || (mk === '10' ? totalFpbPeriod || 932 : 650),
-        qtyFPB: entry?.qFpb || 1000,
-        qtyFSTB: entry?.qFstb || 850,
+        totalFpb,
+        qtyFPB: qFpb,
+        qtyFSTB: qFstb,
       };
     });
-  }, [rawDataSource, filterState.bulan, filterState.focusTop12Only, filterState.fleetTypeFilter, topArmadas, totalFpbPeriod]);
+  }, [
+    rawDataSource,
+    filterState.selectedArmadaId,
+    filterState.focusTop12Only,
+    filterState.fleetTypeFilter,
+    filterState.entitas,
+    filterState.tahun,
+    topArmadas,
+    remainderArmadas,
+  ]);
 
   // ==========================================================================
   // 6. KALKULASI METRIK KPI (Dukungan Respons Saat Armada Dipilih / Fokus 12 Besar)
@@ -539,6 +603,8 @@ export default function DashboardContainer({
               data={monthlyTrendData}
               activeMonth={filterState.bulan}
               onSelectMonth={(m) => handleFilterChange({ bulan: m })}
+              selectedArmadaName={filterState.selectedArmadaId}
+              onClearSelectedArmada={() => handleFilterChange({ selectedArmadaId: null })}
             />
           </div>
 
