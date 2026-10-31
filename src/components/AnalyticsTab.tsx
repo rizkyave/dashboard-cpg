@@ -56,6 +56,7 @@ import {
   FleetCategoryDonutChart,
   FleetMonthlyTrendChart,
 } from './Charts';
+import { buildFleetClassificationSummary } from '@/utils/procurementClassifier';
 import FleetGanttSchedule from './FleetGanttSchedule';
 import TopFleetPieInfographic from './TopFleetPieInfographic';
 import { DashboardContainer as FleetInteractiveDashboard } from './fleet-dashboard';
@@ -1090,247 +1091,12 @@ export default function AnalyticsTab({
     return fleetFilteredItems.slice(start, start + fleetTablePageSize);
   }, [fleetFilteredItems, fleetTablePage, fleetTablePageSize]);
 
-  // 6. Category breakdown across fleet items (Expanded Maritime & Shipyard Taxonomy)
-  const fleetCategoryBreakdown = useMemo(() => {
-    const cats: Record<string, number> = {
-      'Suku Cadang Mesin': 0,
-      'Pipa & Hose Hidrolik': 0,
-      'Peralatan Listrik': 0,
-      'Material Logam & Las': 0,
-      'Cat & Zinc Anode': 0,
-      'Pompa & Valve': 0,
-      'Consumables & ATK': 0,
-      'Safety & K3 Maritim': 0,
-      'Perlengkapan Deck & Tali': 0,
-      'Pelumas & Oli': 0,
-      'Alat Kerja Bengkel (Tools)': 0,
-      'Perlengkapan Akomodasi': 0,
-      'Navigasi & Komunikasi': 0,
-      'Kendaraan & Roda': 0,
-      'Jasa & Perbaikan': 0,
-      'Umum / Lainnya': 0,
-    };
-
-    fleetFilteredItems.forEach((it) => {
-      // Ambil nama item, fallback ke sisaMatch atau keterangan jika nama item kosong / generik
-      const rawItem = (it.item || '').trim();
-      const sisaPrimary = it.sisaMatch?.primaryName || '';
-      const validItem = rawItem && rawItem !== '-' && rawItem.length > 2 ? rawItem : sisaPrimary;
-      const rawCat = (it.kategori || '').trim();
-      const rawKet = (it.keterangan || (it as any).peruntukan || '').trim();
-
-      const text = `${validItem} ${rawCat} ${rawKet}`.toLowerCase();
-
-      // 1. Suku Cadang Mesin Utama & Propulsi
-      if (
-        text.includes('filter') || text.includes('engine') || text.includes('piston') ||
-        text.includes('injector') || text.includes('gasket') || text.includes('liner') ||
-        text.includes('turbo') || text.includes('nozzle') || text.includes('cooler') ||
-        text.includes('bearing') || text.includes('v-belt') || text.includes('fanbelt') ||
-        text.includes('fan belt') || text.includes('timing belt') || text.includes('cylinder') ||
-        text.includes('crankshaft') || text.includes('camshaft') || text.includes('rocker arm') ||
-        text.includes('valve guide') || text.includes('conrod') || text.includes('connecting rod') ||
-        text.includes('oil seal') || text.includes('seal kit') || text.includes('packing') ||
-        text.includes('ring set') || text.includes('radiator') || text.includes('thermostat') ||
-        text.includes('bushing') || text.includes('pulley') || text.includes('plunger') ||
-        text.includes('mesin') || text.includes('fip') || text.includes('propeller') ||
-        text.includes('rudder') || text.includes('stern tube') || text.includes('flywheel') ||
-        text.includes('exhaust valve') || text.includes('inlet valve')
-      ) {
-        cats['Suku Cadang Mesin']++;
-      }
-      // 2. Sistem Pipa, Hose & Saluran Tekanan
-      else if (
-        text.includes('hose') || text.includes('selang') || text.includes('hydraulic') ||
-        text.includes('hidrolik') || text.includes('pipa') || text.includes('pipe') ||
-        text.includes('fitting') || text.includes('flange') || text.includes('niple') ||
-        text.includes('nipple') || text.includes('elbow') || text.includes('reducer') ||
-        text.includes('tee') || text.includes('clamp') || text.includes('klem') ||
-        text.includes('coupling') || text.includes('tubing') || text.includes('union') ||
-        text.includes('banjo') || text.includes('quick release')
-      ) {
-        cats['Pipa & Hose Hidrolik']++;
-      }
-      // 3. Pompa & Valve
-      else if (
-        text.includes('pompa') || text.includes('pump') || text.includes('valve') ||
-        text.includes('kran') || text.includes('stop kran') || text.includes('cock') ||
-        text.includes('impeller') || text.includes('mechanical seal') || text.includes('strainer') ||
-        text.includes('ejector') || text.includes('diaphragm') || text.includes('actuator') ||
-        text.includes('solenoid')
-      ) {
-        cats['Pompa & Valve']++;
-      }
-      // 4. Peralatan Listrik & Otomasi
-      else if (
-        text.includes('kabel') || text.includes('cable') || text.includes('lampu') ||
-        text.includes('lamp') || text.includes('bulb') || text.includes('accu') ||
-        text.includes('aki') || text.includes('battery') || text.includes('baterai') ||
-        text.includes('mcb') || text.includes('mccb') || text.includes('kontaktor') ||
-        text.includes('relay') || text.includes('trafo') || text.includes('transformer') ||
-        text.includes('inverter') || text.includes('genset') || text.includes('dynamo') ||
-        text.includes('dinamo') || text.includes('saklar') || text.includes('switch') ||
-        text.includes('stop kontak') || text.includes('terminal') || text.includes('skun') ||
-        text.includes('solar panel') || text.includes('fuse') || text.includes('sekring') ||
-        text.includes('listrik') || text.includes('electric') || text.includes('alternator') ||
-        text.includes('starter motor')
-      ) {
-        cats['Peralatan Listrik']++;
-      }
-      // 5. Material Logam, Fabrikasi & Pengelasan
-      else if (
-        text.includes('plat') || text.includes('plate') || text.includes('besi') ||
-        text.includes('baja') || text.includes('siku') || text.includes('hollow') ||
-        text.includes('unp') || text.includes('wf') || text.includes('h-beam') ||
-        text.includes('as bulat') || text.includes('round bar') || text.includes('strip bar') ||
-        text.includes('expanded') || text.includes('grating') || text.includes('kawat las') ||
-        text.includes('welding') || text.includes('elektroda') || text.includes('gerinda') ||
-        text.includes('gurinda') || text.includes('cutting disc') || text.includes('grinding disc') ||
-        text.includes('amplas') || text.includes('sander') || text.includes('batu potong') ||
-        text.includes('las') || text.includes('cutting tip') || text.includes('blender las')
-      ) {
-        cats['Material Logam & Las']++;
-      }
-      // 6. Cat, Coating & Anti-Karat
-      else if (
-        text.includes('cat') || text.includes('paint') || text.includes('primer') ||
-        text.includes('thinner') || text.includes('tiner') || text.includes('epoxy') ||
-        text.includes('antifouling') || text.includes('anti-fouling') || text.includes('zinc anode') ||
-        text.includes('anode') || text.includes('polyurethane') || text.includes('kuas') ||
-        text.includes('brush') || text.includes('roller cat') || text.includes('kape') ||
-        text.includes('dempul') || text.includes('sealer') || text.includes('sika') ||
-        text.includes('coating') || text.includes('marine paint') || text.includes('alkyd')
-      ) {
-        cats['Cat & Zinc Anode']++;
-      }
-      // 7. Perlengkapan Deck, Mooring & Rigging
-      else if (
-        text.includes('tali') || text.includes('rope') || text.includes('tros') ||
-        text.includes('sling') || text.includes('webbing') || text.includes('wire') ||
-        text.includes('seling') || text.includes('jangkar') || text.includes('anchor') ||
-        text.includes('rantai') || text.includes('chain') || text.includes('shackle') ||
-        text.includes('segel') || text.includes('turnbuckle') || text.includes('jarum keras') ||
-        text.includes('winch') || text.includes('capstan') || text.includes('fairlead') ||
-        text.includes('bollard') || text.includes('fender') || text.includes('deck') ||
-        text.includes('mooring') || text.includes('terpal') || text.includes('towing')
-      ) {
-        cats['Perlengkapan Deck & Tali']++;
-      }
-      // 8. Keselamatan Maritim & APD (Safety & PPE)
-      else if (
-        text.includes('safety') || text.includes('pemadam') || text.includes('apar') ||
-        text.includes('fire') || text.includes('lifebuoy') || text.includes('life buoy') ||
-        text.includes('lifejacket') || text.includes('life jacket') || text.includes('pelampung') ||
-        text.includes('rompi') || text.includes('helmet') || text.includes('helm') ||
-        text.includes('sepatu safety') || text.includes('safety shoes') || text.includes('boot') ||
-        text.includes('sarung tangan') || text.includes('glove') || text.includes('kacamata') ||
-        text.includes('goggle') || text.includes('ear plug') || text.includes('earmuff') ||
-        text.includes('scba') || text.includes('breathing') || text.includes('flare') ||
-        text.includes('smoke signal') || text.includes('red hand') || text.includes('parachut') ||
-        text.includes('p3k') || text.includes('first aid') || text.includes('masker') ||
-        text.includes('respirator') || text.includes('coverall') || text.includes('wearpack')
-      ) {
-        cats['Safety & K3 Maritim']++;
-      }
-      // 9. Navigasi, Komunikasi & IT
-      else if (
-        text.includes('navigasi') || text.includes('radio') || text.includes('radar') ||
-        text.includes('gps') || text.includes('antena') || text.includes('antenna') ||
-        text.includes('kompas') || text.includes('compass') || text.includes('ais') ||
-        text.includes('echo sounder') || text.includes('sounder') || text.includes('transceiver') ||
-        text.includes('walkie') || text.includes('ht') || text.includes('vhf') ||
-        text.includes('ssb') || text.includes('intercom') || text.includes('satellite') ||
-        text.includes('cctv') || text.includes('printer') || text.includes('tinta') ||
-        text.includes('cartridge') || text.includes('laptop') || text.includes('computer') ||
-        text.includes('monitor') || text.includes('hardisk') || text.includes('hdd')
-      ) {
-        cats['Navigasi & Komunikasi']++;
-      }
-      // 10. Alat Kerja Bengkel & Perkakas (Tools)
-      else if (
-        text.includes('kunci') || text.includes('wrench') || text.includes('spanner') ||
-        text.includes('obeng') || text.includes('screwdriver') || text.includes('tang') ||
-        text.includes('plier') || text.includes('palu') || text.includes('hammer') ||
-        text.includes('dongkrak') || text.includes('jack') || text.includes('chain block') ||
-        text.includes('lever block') || text.includes('bor') || text.includes('drill') ||
-        text.includes('mata bor') || text.includes('gergaji') || text.includes('saw') ||
-        text.includes('tracker') || text.includes('treker') || text.includes('ragum') ||
-        text.includes('vice') || text.includes('meteran') || text.includes('jangka') ||
-        text.includes('multitester') || text.includes('avometer') || text.includes('pressure gauge') ||
-        text.includes('manometer') || text.includes('kompresor') || text.includes('compressor') ||
-        text.includes('perkakas') || text.includes('toolbox') || text.includes('sounding')
-      ) {
-        cats['Alat Kerja Bengkel (Tools)']++;
-      }
-      // 11. Pelumas, Oli & Chemical
-      else if (
-        text.includes('oli') || text.includes('oil') || text.includes('pelumas') ||
-        text.includes('lubricant') || text.includes('grease') || text.includes('gemuk') ||
-        text.includes('chemical') || text.includes('kimia') || text.includes('degreaser') ||
-        text.includes('cleaner') || text.includes('coolant') || text.includes('rust remover') ||
-        text.includes('penetrant') || text.includes('wd-40') || text.includes('wd40') ||
-        text.includes('carbon remover') || text.includes('meditran') || text.includes('salyx') ||
-        text.includes('turalik') || text.includes('rored')
-      ) {
-        cats['Pelumas & Oli']++;
-      }
-      // 12. Perlengkapan Akomodasi & Galley
-      else if (
-        text.includes('ac') || text.includes('air conditioner') || text.includes('kipas') ||
-        text.includes('fan') || text.includes('exhaust') || text.includes('kulkas') ||
-        text.includes('freezer') || text.includes('kasur') || text.includes('bed') ||
-        text.includes('sprei') || text.includes('bantal') || text.includes('dapur') ||
-        text.includes('galley') || text.includes('kompor') || text.includes('stove') ||
-        text.includes('rice cooker') || text.includes('blender') || text.includes('dispenser') ||
-        text.includes('water heater') || text.includes('pemanas') || text.includes('gas lpg') ||
-        text.includes('lpg') || text.includes('toilet') || text.includes('saniter') ||
-        text.includes('shower') || text.includes('akomodasi')
-      ) {
-        cats['Perlengkapan Akomodasi']++;
-      }
-      // 13. Kendaraan & Roda Operasional
-      else if (
-        text.includes('ban luar') || text.includes('ban dalam') || text.includes('velg') ||
-        text.includes('flap ban') || text.includes('tambal ban') || text.includes('wiper') ||
-        text.includes('shockbreaker') || text.includes('kampas rem') || text.includes('brake') ||
-        text.includes('kendaraan') || text.includes('mobil') || text.includes('motor')
-      ) {
-        cats['Kendaraan & Roda']++;
-      }
-      // 14. Jasa & Layanan Perbaikan
-      else if (
-        text.includes('jasa') || text.includes('ongkos') || text.includes('sewa') ||
-        text.includes('biaya pengiriman') || text.includes('perbaikan') || text.includes('service') ||
-        text.includes('kalibrasi') || text.includes('inspeksi') || text.includes('transportasi')
-      ) {
-        cats['Jasa & Perbaikan']++;
-      }
-      // 15. Consumables & ATK Kantor/Kapal
-      else if (
-        text.includes('baut') || text.includes('bolt') || text.includes('mur') ||
-        text.includes('nut') || text.includes('washer') || text.includes('ring plat') ||
-        text.includes('dynabolt') || text.includes('sekrup') || text.includes('screw') ||
-        text.includes('majun') || text.includes('sabun') || text.includes('deterjen') ||
-        text.includes('lem') || text.includes('glue') || text.includes('sealant') ||
-        text.includes('lakban') || text.includes('tape') || text.includes('isolasi') ||
-        text.includes('plastik') || text.includes('gembok') || text.includes('padlock') ||
-        text.includes('engsel') || text.includes('kertas') || text.includes('buku') ||
-        text.includes('alat tulis') || text.includes('atk') || text.includes('spidol') ||
-        text.includes('pulpen') || text.includes('sapu') || text.includes('pel') ||
-        text.includes('kantong sampah') || text.includes('consumable') || text.includes('stempel') ||
-        text.includes('stiker') || text.includes('banner') || text.includes('sign') ||
-        text.includes('bendera')
-      ) {
-        cats['Consumables & ATK']++;
-      }
-      // Fallback
-      else {
-        cats['Umum / Lainnya']++;
-      }
-    });
-
-    return cats;
+  // 6. Intelligent Category & Sub-Category breakdown (Powered by procurementClassifier + 10,024 Master Inventory DB)
+  const fleetClassification = useMemo(() => {
+    return buildFleetClassificationSummary(fleetFilteredItems);
   }, [fleetFilteredItems]);
+
+  const fleetCategoryBreakdown = fleetClassification.categories;
 
   // 7. Monthly trend data across fleet items
   const fleetMonthlyTrend = useMemo(() => {
@@ -3187,13 +2953,21 @@ export default function AnalyticsTab({
                       Komposisi Kategori Kebutuhan
                     </h4>
                   </div>
-                  <span className="text-[10px] font-mono text-muted-foreground">Proporsi</span>
+                  <span className="px-2 py-0.5 rounded-full font-mono text-[10px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
+                    <Sparkles className="size-3 text-amber-500" />
+                    <span>{fleetClassification.intellectualMetrics.classificationRate}% Valid</span>
+                  </span>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-muted-foreground">
-                  Distribusi kelompok suku cadang dan perlengkapan kapal.
+                  Distribusi kelompok suku cadang dan perlengkapan kapal berbasis Master DB (10.024 Items) & Taksonomi Maritim.
                 </p>
-                <div className="h-[320px] mt-auto">
-                  <FleetCategoryDonutChart categories={fleetCategoryBreakdown} />
+                <div className="min-h-[320px] flex-1 flex flex-col mt-auto">
+                  <FleetCategoryDonutChart
+                    categories={fleetClassification.categories}
+                    subCategories={fleetClassification.subCategories}
+                    categoryDetails={fleetClassification.categoryDetails}
+                    intellectualMetrics={fleetClassification.intellectualMetrics}
+                  />
                 </div>
               </div>
 

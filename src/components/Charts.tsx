@@ -17,7 +17,8 @@ import {
 } from 'chart.js';
 import { Doughnut, Bar, PolarArea, Chart } from 'react-chartjs-2';
 import { ProcurementItem } from '@/types/procurement';
-import { FileSpreadsheet } from 'lucide-react';
+import { FileSpreadsheet, Sparkles, Layers, ArrowLeft, ChevronRight, Database, Info, Filter } from 'lucide-react';
+import { getCategoryColor } from '@/utils/procurementClassifier';
 
 ChartJS.register(
   ArcElement,
@@ -444,14 +445,38 @@ export function FleetDemandBarChart({
   return <Bar data={chartData as any} options={options as any} plugins={[horizontalDataLabelsPlugin]} />;
 }
 
+export interface FleetCategoryDonutChartProps {
+  categories: Record<string, number>;
+  subCategories?: Record<string, number>;
+  categoryDetails?: Record<
+    string,
+    {
+      count: number;
+      percentage: number;
+      subCategories: Record<string, number>;
+      topItems: { name: string; count: number }[];
+    }
+  >;
+  intellectualMetrics?: {
+    totalItems: number;
+    classifiedCount: number;
+    unclassifiedCount: number;
+    classificationRate: number;
+    dbMatchedCount: number;
+    heuristicMatchedCount: number;
+  };
+  defaultView?: 'bar' | 'sub_category' | 'donut';
+}
+
 export function FleetCategoryDonutChart({
   categories,
+  subCategories = {},
+  categoryDetails = {},
+  intellectualMetrics,
   defaultView = 'bar',
-}: {
-  categories: Record<string, number>;
-  defaultView?: 'bar' | 'donut';
-}) {
-  const [viewMode, setViewMode] = React.useState<'bar' | 'donut'>(defaultView);
+}: FleetCategoryDonutChartProps) {
+  const [viewMode, setViewMode] = React.useState<'bar' | 'sub_category' | 'donut'>(defaultView);
+  const [selectedCategory, setSelectedCategory] = React.useState<string | null>(null);
 
   const safeCategories = categories || {};
   const entries = Object.entries(safeCategories).filter(([_, count]) => typeof count === 'number' && count > 0);
@@ -462,26 +487,241 @@ export function FleetCategoryDonutChart({
   entries.sort((a, b) => b[1] - a[1]);
   const totalItems = entries.reduce((acc, curr) => acc + (curr[1] || 0), 0);
 
-  // Palet Korporat Harmonis untuk Visualisasi Kategori Maritim Terpadu
-  const palette = [
-    '#0284c7', // Biru Sky (Suku Cadang Mesin)
-    '#0d9488', // Teal (Pipa & Hose Hidrolik)
-    '#7c3aed', // Ungu (Peralatan Listrik)
-    '#06b6d4', // Cyan (Pompa & Valve)
-    '#f59e0b', // Amber (Consumables & ATK)
-    '#10b981', // Emerald (Safety & K3)
-    '#ec4899', // Pink / Rose (Cat & Zinc Anode)
-    '#6366f1', // Indigo (Deck & Mooring)
-    '#f97316', // Orange (Material Logam & Las)
-    '#8b5cf6', // Violet (Alat Kerja Bengkel)
-    '#14b8a6', // Teal Terang (Akomodasi & Galley)
-    '#3b82f6', // Biru Royal (Navigasi & IT)
-    '#e11d48', // Rose / Merah (Kendaraan & Roda)
-    '#64748b', // Slate (Jasa / Umum / Lainnya)
-  ];
+  // Sub-categories sorted
+  const subEntries = Object.entries(subCategories || {}).filter(([_, count]) => typeof count === 'number' && count > 0);
+  subEntries.sort((a, b) => b[1] - a[1]);
 
-  // View Mode: Horizontal Bar Chart Breakdown (Default)
-  // Menampilkan hingga 10 kategori teratas agar rincian belanja operasional kapal terpampang lengkap
+  // Selected Category Detail Drilldown View
+  if (selectedCategory && categoryDetails[selectedCategory]) {
+    const detail = categoryDetails[selectedCategory];
+    const subList = Object.entries(detail.subCategories || {}).sort((a, b) => b[1] - a[1]);
+    const catColor = getCategoryColor(selectedCategory);
+
+    return (
+      <div className="w-full h-full flex flex-col justify-between space-y-2.5 animate-in fade-in duration-200">
+        {/* Drilldown Header */}
+        <div className="flex items-center justify-between pb-1.5 border-b border-border/70">
+          <button
+            type="button"
+            onClick={() => setSelectedCategory(null)}
+            className="flex items-center gap-1 text-[11px] font-bold text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 transition-colors cursor-pointer group"
+          >
+            <ArrowLeft className="size-3.5 transition-transform group-hover:-translate-x-0.5" />
+            <span>Kembali ke Overview Kategori</span>
+          </button>
+          <span className="px-2 py-0.5 rounded-full font-mono text-[10px] font-bold bg-sky-100 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-300 dark:border-sky-800">
+            {Number(detail.count).toLocaleString('id-ID')} item ({detail.percentage}%)
+          </span>
+        </div>
+
+        {/* Category Identity */}
+        <div className="flex items-center gap-2">
+          <span className="size-3 rounded-full shrink-0 shadow-xs" style={{ backgroundColor: catColor }}></span>
+          <h5 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-foreground tracking-tight">
+            {selectedCategory}
+          </h5>
+          <span className="text-[10px] text-muted-foreground ml-auto font-mono">
+            {subList.length} Sub-Kategori Teridentifikasi
+          </span>
+        </div>
+
+        {/* Sub-Category Progress List */}
+        <div className="flex-1 overflow-y-auto max-h-[190px] pr-1.5 space-y-2 divide-y divide-border/40">
+          {subList.map(([subName, count], idx) => {
+            const pct = detail.count > 0 ? Math.round((count / detail.count) * 100) : 0;
+            return (
+              <div key={idx} className="pt-1.5 first:pt-0 space-y-1">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="font-medium text-slate-700 dark:text-slate-200 truncate pr-2">
+                    {subName}
+                  </span>
+                  <span className="font-mono text-[10px] font-semibold text-slate-500 dark:text-muted-foreground shrink-0">
+                    {Number(count).toLocaleString('id-ID')} ({pct}%)
+                  </span>
+                </div>
+                <div className="w-full bg-slate-100 dark:bg-muted/70 rounded-full h-1.5 overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: `${Math.max(4, pct)}%`,
+                      backgroundColor: catColor,
+                    }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Sample Items Identified */}
+        {detail.topItems && detail.topItems.length > 0 && (
+          <div className="pt-2 border-t border-border/60 space-y-1">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Sampel Barang Teridentifikasi:
+            </span>
+            <div className="flex flex-wrap gap-1">
+              {detail.topItems.slice(0, 4).map((item, idx) => (
+                <span
+                  key={idx}
+                  className="px-1.5 py-0.5 rounded text-[9.5px] font-mono bg-slate-100 dark:bg-muted/80 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-border truncate max-w-[200px]"
+                  title={item.name}
+                >
+                  {item.name} ({item.count})
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Intelligence Validation Footer */}
+        <div className="flex items-center gap-1.5 text-[9.5px] text-muted-foreground/80 pt-1 border-t border-border/40">
+          <Sparkles className="size-3 text-amber-500 shrink-0" />
+          <span className="truncate">
+            Divalidasi Master Inventory CPG (10.024 Items) & Taksonomi Maritim.
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  // 1. Donut Data & Options
+  const topCategories = entries.slice(0, 8);
+  const otherCount = entries.slice(8).reduce((acc, curr) => acc + curr[1], 0);
+  if (otherCount > 0) {
+    topCategories.push(['Lainnya', otherCount]);
+  }
+
+  const donutData = {
+    labels: topCategories.map(([cat]) => cat),
+    datasets: [
+      {
+        data: topCategories.map(([_, count]) => count),
+        backgroundColor: topCategories.map(([cat]) => getCategoryColor(cat)),
+        borderWidth: 2,
+        borderColor: '#ffffff',
+      },
+    ],
+  };
+
+  const donutOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'right' as const,
+        labels: { boxWidth: 10, color: '#475569', font: { size: 9, family: 'Inter, sans-serif' } },
+      },
+      tooltip: {
+        callbacks: {
+          label: (context: any) => {
+            const count = context.raw || 0;
+            const pct = totalItems > 0 ? Math.round((count / totalItems) * 100) : 0;
+            return ` ${context.label}: ${Number(count).toLocaleString('id-ID')} item (${pct}%)`;
+          },
+        },
+      },
+    },
+    cutout: '65%',
+  };
+
+  // 2. Sub-Kategori Detail Data & Options (Top 10 Granular Maritime Subcategories)
+  const displaySubs = subEntries.slice(0, 10);
+  const subLabels = displaySubs.map(([s]) => s);
+  const subCounts = displaySubs.map(([_, c]) => c);
+
+  const subCategoryLabelsPlugin = {
+    id: 'subCategoryLabelsPlugin',
+    afterDatasetsDraw(chart: any) {
+      try {
+        const { ctx } = chart;
+        if (!ctx || !chart.isDatasetVisible?.(0)) return;
+        const meta = chart.getDatasetMeta(0);
+        if (!meta || meta.hidden || !Array.isArray(meta.data)) return;
+
+        meta.data.forEach((element: any, index: number) => {
+          if (!element || typeof element.x !== 'number' || typeof element.y !== 'number') return;
+          const val = subCounts[index];
+          if (val === undefined || val === null) return;
+          const pct = totalItems > 0 ? Math.round((val / totalItems) * 100) : 0;
+          const text = `${Number(val).toLocaleString('id-ID')} (${pct}%)`;
+
+          ctx.save();
+          ctx.font = '600 9px "JetBrains Mono", monospace, sans-serif';
+          ctx.fillStyle = '#334155';
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(text, element.x + 6, element.y);
+          ctx.restore();
+        });
+      } catch (err) {
+        // Guard
+      }
+    },
+  };
+
+  const subBarData = {
+    labels: subLabels,
+    datasets: [
+      {
+        label: 'Kuantitas Sub-Kategori',
+        data: subCounts,
+        backgroundColor: subLabels.map((_, idx) => {
+          const colors = ['#0284c7', '#0d9488', '#7c3aed', '#f97316', '#8b5cf6', '#06b6d4', '#ea580c', '#ec4899', '#eab308', '#14b8a6'];
+          return colors[idx % colors.length];
+        }),
+        borderRadius: 4,
+        barPercentage: 0.72,
+        categoryPercentage: 0.85,
+      },
+    ],
+  };
+
+  const subBarOptions = {
+    indexAxis: 'y' as const,
+    responsive: true,
+    maintainAspectRatio: false,
+    layout: {
+      padding: { right: 50, left: 0, top: 2, bottom: 2 },
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#0f172a',
+        titleColor: '#f8fafc',
+        bodyColor: '#e2e8f0',
+        borderColor: '#334155',
+        borderWidth: 1,
+        padding: 10,
+        cornerRadius: 8,
+        callbacks: {
+          label: (context: any) => {
+            const count = context.raw || 0;
+            const pct = totalItems > 0 ? Math.round((count / totalItems) * 100) : 0;
+            return ` Sub-Kategori: ${Number(count).toLocaleString('id-ID')} item (${pct}% dari total)`;
+          },
+        },
+      },
+    },
+    scales: {
+      y: {
+        grid: { display: false },
+        ticks: {
+          color: '#1e293b',
+          font: { size: 9, weight: '600', family: 'Inter, sans-serif' },
+        },
+      },
+      x: {
+        grid: { color: 'rgba(226, 232, 240, 0.85)' },
+        ticks: {
+          color: '#64748b',
+          font: { size: 9, family: 'JetBrains Mono, monospace' },
+          callback: (value: any) => Number(value).toLocaleString('id-ID'),
+        },
+      },
+    },
+  };
+
+  // View Mode: Primary Categories Bar Chart (Default)
   const displayCategories = entries.slice(0, 10);
   const labels = displayCategories.map(([cat]) => cat);
   const counts = displayCategories.map(([_, count]) => count);
@@ -492,8 +732,7 @@ export function FleetCategoryDonutChart({
       afterDatasetsDraw(chart: any) {
         try {
           const { ctx } = chart;
-          if (!ctx) return;
-          if (!chart.isDatasetVisible?.(0)) return;
+          if (!ctx || !chart.isDatasetVisible?.(0)) return;
           const meta = chart.getDatasetMeta(0);
           if (!meta || meta.hidden || !Array.isArray(meta.data)) return;
 
@@ -528,71 +767,13 @@ export function FleetCategoryDonutChart({
     [counts, totalItems]
   );
 
-  if (viewMode === 'donut') {
-    const topCategories = entries.slice(0, 8);
-    const otherCount = entries.slice(8).reduce((acc, curr) => acc + curr[1], 0);
-    if (otherCount > 0) {
-      topCategories.push(['Lainnya', otherCount]);
-    }
-
-    const donutData = {
-      labels: topCategories.map(([cat]) => cat),
-      datasets: [
-        {
-          data: topCategories.map(([_, count]) => count),
-          backgroundColor: palette.slice(0, topCategories.length),
-          borderWidth: 2,
-          borderColor: '#ffffff',
-        },
-      ],
-    };
-
-    const donutOptions = {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'right' as const,
-          labels: { boxWidth: 10, color: '#475569', font: { size: 9, family: 'Inter, sans-serif' } },
-        },
-        tooltip: {
-          callbacks: {
-            label: (context: any) => {
-              const count = context.raw || 0;
-              const pct = totalItems > 0 ? Math.round((count / totalItems) * 100) : 0;
-              return ` ${context.label}: ${Number(count).toLocaleString('id-ID')} item (${pct}%)`;
-            },
-          },
-        },
-      },
-      cutout: '65%',
-    };
-
-    return (
-      <div className="w-full h-full flex flex-col justify-between">
-        <div className="flex justify-end pb-1">
-          <button
-            type="button"
-            onClick={() => setViewMode('bar')}
-            className="text-[10px] font-semibold text-primary hover:underline cursor-pointer"
-          >
-            Lihat Breakdown Bar &rarr;
-          </button>
-        </div>
-        <div className="flex-1 min-h-[190px]">
-          <Doughnut data={donutData as any} options={donutOptions as any} />
-        </div>
-      </div>
-    );
-  }
-
   const barData = {
     labels,
     datasets: [
       {
         label: 'Kuantitas Permintaan',
         data: counts,
-        backgroundColor: palette.slice(0, displayCategories.length),
+        backgroundColor: labels.map((cat) => getCategoryColor(cat)),
         borderRadius: 4,
         barPercentage: 0.72,
         categoryPercentage: 0.85,
@@ -606,11 +787,20 @@ export function FleetCategoryDonutChart({
     maintainAspectRatio: false,
     layout: {
       padding: {
-        right: 48, // Ruang untuk teks persentase & kuantitas
+        right: 48,
         left: 0,
         top: 2,
         bottom: 2,
       },
+    },
+    onClick: (event: any, elements: any[]) => {
+      if (elements && elements.length > 0) {
+        const idx = elements[0].index;
+        const clickedCat = labels[idx];
+        if (clickedCat && categoryDetails[clickedCat]) {
+          setSelectedCategory(clickedCat);
+        }
+      }
     },
     plugins: {
       legend: { display: false },
@@ -626,7 +816,7 @@ export function FleetCategoryDonutChart({
           label: (context: any) => {
             const count = context.raw || 0;
             const pct = totalItems > 0 ? Math.round((count / totalItems) * 100) : 0;
-            return ` Jumlah: ${Number(count).toLocaleString('id-ID')} item (${pct}% dari total)`;
+            return ` Jumlah: ${Number(count).toLocaleString('id-ID')} item (${pct}% dari total) • Klik untuk drilldown`;
           },
         },
       },
@@ -652,18 +842,65 @@ export function FleetCategoryDonutChart({
 
   return (
     <div className="w-full h-full flex flex-col justify-between">
-      <div className="flex items-center justify-between pb-1 text-[10px] text-muted-foreground">
-        <span className="font-semibold text-slate-600 dark:text-slate-300">Breakdown Proporsi per Kategori</span>
-        <button
-          type="button"
-          onClick={() => setViewMode('donut')}
-          className="text-primary hover:underline font-semibold cursor-pointer"
-        >
-          Tampilan Donut &rarr;
-        </button>
+      <div className="flex items-center justify-between pb-1.5 text-[10px]">
+        {/* View Mode Switcher Pills */}
+        <div className="flex items-center gap-1 bg-slate-100 dark:bg-muted p-0.5 rounded-lg border border-border/60">
+          <button
+            type="button"
+            onClick={() => setViewMode('bar')}
+            className={`px-2 py-0.5 rounded-md text-[10px] font-bold cursor-pointer transition-all ${
+              viewMode === 'bar'
+                ? 'bg-white dark:bg-card text-foreground shadow-2xs'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Kategori
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('sub_category')}
+            className={`px-2 py-0.5 rounded-md text-[10px] font-bold cursor-pointer transition-all ${
+              viewMode === 'sub_category'
+                ? 'bg-white dark:bg-card text-foreground shadow-2xs'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Sub-Kategori
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('donut')}
+            className={`px-2 py-0.5 rounded-md text-[10px] font-bold cursor-pointer transition-all ${
+              viewMode === 'donut'
+                ? 'bg-white dark:bg-card text-foreground shadow-2xs'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Donut
+          </button>
+        </div>
+
+        {/* Click hint or validation indicator */}
+        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+          <span className="hidden sm:inline text-sky-600 dark:text-sky-400 font-medium">Klik bar untuk detail &rarr;</span>
+          {intellectualMetrics && (
+            <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800/50">
+              {intellectualMetrics.classificationRate}% Valid
+            </span>
+          )}
+        </div>
       </div>
+
       <div className="flex-1 min-h-[190px]">
-        <Bar data={barData as any} options={barOptions as any} plugins={[categoryLabelsPlugin]} />
+        {viewMode === 'donut' && (
+          <Doughnut data={donutData as any} options={donutOptions as any} />
+        )}
+        {viewMode === 'sub_category' && (
+          <Bar data={subBarData as any} options={subBarOptions as any} plugins={[subCategoryLabelsPlugin]} />
+        )}
+        {viewMode === 'bar' && (
+          <Bar data={barData as any} options={barOptions as any} plugins={[categoryLabelsPlugin]} />
+        )}
       </div>
     </div>
   );

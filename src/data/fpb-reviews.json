@@ -1,14 +1,885 @@
 [
   {
+    "id": "fpb-rev-GAJ-FPB-26-0001133",
+    "fpbNo": "GAJ-FPB-26-0001133",
+    "originalFpb": "GAJ/LOG/FPB/26-0001133",
+    "entity": "GAJ",
+    "armada": "OFFICE GAJ",
+    "date": "30/10/26",
+    "purpose": "U/ PEMBUATAN CANOPY CONTAINER DI SAMPING LOGISTIK (PENAMBAHAN) • U/ TIANG PONDASI CANOPY CONTAINER",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0001133.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "URGENT",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "B/O02304008-ZZ",
+        "itemName": "B/O ROOFING 12 MM X 20 MM (00)",
+        "qty": 300,
+        "unit": "PCS",
+        "description": "U/ PEMBUATAN CANOPY CONTAINER DI SAMPING LOGISTIK (PENAMBAHAN)",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[BBMN-B/O023] BAUT (BOLT) & MUR (NUT) - BAUT ROOFING (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 2,
+        "itemCode": "B/O02304003-ZZ",
+        "itemName": "B/O ROOFING 12 MM X 50 MM (00)",
+        "qty": 300,
+        "unit": "PCS",
+        "description": "U/ PEMBUATAN CANOPY CONTAINER DI SAMPING LOGISTIK (PENAMBAHAN)",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[BBMN-B/O023] BAUT (BOLT) & MUR (NUT) - BAUT ROOFING (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 3,
+        "itemCode": "BBG01502001-CC",
+        "itemName": "SEMEN 50 KG (CONCH)",
+        "qty": 1,
+        "unit": "ZAK",
+        "description": "U/ TIANG PONDASI CANOPY CONTAINER",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [
+      {
+        "id": "efpb-att-GAJ-FPB-26-0001133-2",
+        "name": "SPK-129-CANOPY CONTAINER.pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/SPK-129-CANOPY%20CONTAINER.pdf",
+        "type": "pdf",
+        "uploadedAt": "30/10/26 14:23",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      },
+      {
+        "id": "efpb-att-GAJ-FPB-26-0001133-3",
+        "name": "SPK-129-CANOPY CONTAINER FOTO.pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/SPK-129-CANOPY%20CONTAINER%20FOTO.pdf",
+        "type": "pdf",
+        "uploadedAt": "30/10/26 14:23",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-31T05:42:29.085Z",
+    "createdAt": "2026-10-31T01:26:01.011Z",
+    "priorityLevel": "P1",
+    "slaTargetDate": "01/11/26",
+    "slaDaysRemaining": 1,
+    "slaStatus": "DUE_SOON",
+    "requestedBy": "SALMAN"
+  },
+  {
+    "id": "fpb-rev-MO-FPB-26-0001942",
+    "fpbNo": "MO-FPB-26-0001942",
+    "originalFpb": "MO/LOG/FPB/26-0001942",
+    "entity": "MO",
+    "armada": "TRUCK TANKI KT 8406 LA",
+    "date": "30/10/26",
+    "purpose": "Kebutuhan Operasional TRUCK TANKI KT 8406 LA",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0001942.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [],
+    "attachments": [
+      {
+        "id": "efpb-att-MO-FPB-26-0001942-2",
+        "name": "MO-LKK-KT 8406 LA (KARET BUSHING).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/MO-LKK-KT%208406%20LA%20%28KARET%20BUSHING%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "30/10/26 14:43",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      },
+      {
+        "id": "efpb-att-MO-FPB-26-0001942-3",
+        "name": "MO-FOTO-KT 8406 LA (KARET BUSHING).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/MO-FOTO-KT%208406%20LA%20%28KARET%20BUSHING%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "30/10/26 14:43",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "createdAt": "2026-10-31T01:26:01.011Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "29/11/26",
+    "slaDaysRemaining": 29,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-CPL-FPB-26-0005075",
+    "fpbNo": "CPL-FPB-26-0005075",
+    "originalFpb": "CPL/LOG/FPB/26-0005075",
+    "entity": "CPL",
+    "armada": "TB PMI ABADI",
+    "date": "30/10/26",
+    "purpose": "Kebutuhan Operasional TB PMI ABADI",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0005075.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 30/10/26 (berkas lain tgl 30/10/26).",
+    "items": [],
+    "attachments": [
+      {
+        "id": "efpb-att-CPL-FPB-26-0005075-2",
+        "name": "CPL-FPB-26-0004950 WO(7).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/CPL-FPB-26-0004950%20WO%287%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "30/10/26 14:47",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      },
+      {
+        "id": "efpb-att-CPL-FPB-26-0005075-3",
+        "name": "CPL-FPB-26-0004950 FOTO(7).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/CPL-FPB-26-0004950%20FOTO%287%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "30/10/26 14:47",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "createdAt": "2026-10-31T01:26:01.011Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "29/11/26",
+    "slaDaysRemaining": 29,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-CPL-FPB-26-0005076",
+    "fpbNo": "CPL-FPB-26-0005076",
+    "originalFpb": "CPL/LOG/FPB/26-0005076",
+    "entity": "CPL",
+    "armada": "HEAD OFFICE",
+    "date": "30/10/26",
+    "purpose": "Kebutuhan Operasional HEAD OFFICE",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0005076.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [],
+    "attachments": [
+      {
+        "id": "efpb-att-CPL-FPB-26-0005076-2",
+        "name": "180-SPK-INT-X-2026.pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/180-SPK-INT-X-2026.pdf",
+        "type": "pdf",
+        "uploadedAt": "30/10/26 15:17",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      },
+      {
+        "id": "efpb-att-CPL-FPB-26-0005076-3",
+        "name": "180-SPK-INT-X-2026 FOTO.pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/180-SPK-INT-X-2026%20FOTO.pdf",
+        "type": "pdf",
+        "uploadedAt": "30/10/26 15:17",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "createdAt": "2026-10-31T01:26:01.011Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "29/11/26",
+    "slaDaysRemaining": 29,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-CPL-FPB-26-0005046",
+    "fpbNo": "CPL-FPB-26-0005046",
+    "originalFpb": "CPL/LOG/FPB/26-0005046",
+    "entity": "CPL",
+    "armada": "HEAD OFFICE",
+    "date": "30/10/26",
+    "purpose": "Kebutuhan Operasional HEAD OFFICE",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": false,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0005046.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [],
+    "attachments": [
+      {
+        "id": "efpb-att-CPL-FPB-26-0005046-2",
+        "name": "WO_070_PEMASANGAN AC STANDING_27 AGUSTUS 2026 - miko okt (1) (1).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/WO_070_PEMASANGAN%20AC%20STANDING_27%20AGUSTUS%202026%20-%20miko%20okt%20%281%29%20%281%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "30/10/26 15:24",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "createdAt": "2026-10-31T01:26:01.011Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "29/11/26",
+    "slaDaysRemaining": 29,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-GAJ-FPB-26-0001135",
+    "fpbNo": "GAJ-FPB-26-0001135",
+    "originalFpb": "GAJ/LOG/FPB/26-0001135",
+    "entity": "GAJ",
+    "armada": "TB GAJ 02",
+    "date": "30/10/26",
+    "purpose": "Kebutuhan Operasional TB GAJ 02",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0001135.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [],
+    "attachments": [
+      {
+        "id": "efpb-att-GAJ-FPB-26-0001135-2",
+        "name": "GAJ-FPB-26-0001135 DOCK LIST.pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/GAJ-FPB-26-0001135%20DOCK%20LIST.pdf",
+        "type": "pdf",
+        "uploadedAt": "30/10/26 15:39",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "createdAt": "2026-10-31T01:26:01.011Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "29/11/26",
+    "slaDaysRemaining": 29,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-MOI-FPB-26-0000103",
+    "fpbNo": "MOI-FPB-26-0000103",
+    "originalFpb": "MOI/LOG/FPB/26-0000103",
+    "entity": "MOI",
+    "armada": "SPEED BOAT KENARI",
+    "date": "30/10/26",
+    "purpose": "Kebutuhan Operasional SPEED BOAT KENARI",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MOI-FPB-26-0000103.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [],
+    "attachments": [
+      {
+        "id": "efpb-att-MOI-FPB-26-0000103-2",
+        "name": "LAPORAN PENGGUNAAN OLI MESIN(2).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/LAPORAN%20PENGGUNAAN%20OLI%20MESIN%282%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "30/10/26 15:44",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "createdAt": "2026-10-31T01:26:01.011Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "29/11/26",
+    "slaDaysRemaining": 29,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-MO-FPB-26-0001943",
+    "fpbNo": "MO-FPB-26-0001943",
+    "originalFpb": "MO/LOG/FPB/26-0001943",
+    "entity": "MO",
+    "armada": "TB EQUATOR 15",
+    "date": "30/10/26",
+    "purpose": "Kebutuhan Operasional TB EQUATOR 15",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0001943.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "createdAt": "2026-10-31T01:26:01.011Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "29/11/26",
+    "slaDaysRemaining": 29,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-MO-FPB-26-0001944",
+    "fpbNo": "MO-FPB-26-0001944",
+    "originalFpb": "MO/LOG/FPB/26-0001944",
+    "entity": "MO",
+    "armada": "TRUCK TANKI KT 8324 LU",
+    "date": "30/10/26",
+    "purpose": "Kebutuhan Operasional TRUCK TANKI KT 8324 LU",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0001944.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [],
+    "attachments": [
+      {
+        "id": "efpb-att-MO-FPB-26-0001944-2",
+        "name": "MO-LKK-KT 8324 LU (TYRE).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/MO-LKK-KT%208324%20LU%20%28TYRE%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "30/10/26 16:01",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      },
+      {
+        "id": "efpb-att-MO-FPB-26-0001944-3",
+        "name": "MO-FOTO-KT 8324 LU (TYRE).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/MO-FOTO-KT%208324%20LU%20%28TYRE%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "30/10/26 16:01",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "createdAt": "2026-10-31T01:26:01.011Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "29/11/26",
+    "slaDaysRemaining": 29,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-CPL-FPB-26-0005079",
+    "fpbNo": "CPL-FPB-26-0005079",
+    "originalFpb": "CPL/LOG/FPB/26-0005079",
+    "entity": "CPL",
+    "armada": "SPOB ROYAL REY",
+    "date": "30/10/26",
+    "purpose": "Kebutuhan Operasional SPOB ROYAL REY",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0005079.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "createdAt": "2026-10-31T01:26:01.011Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "29/11/26",
+    "slaDaysRemaining": 29,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-CPL-FPB-26-0005081",
+    "fpbNo": "CPL-FPB-26-0005081",
+    "originalFpb": "CPL/LOG/FPB/26-0005081",
+    "entity": "CPL",
+    "armada": "TB PMI ABADI",
+    "date": "30/10/26",
+    "purpose": "Kebutuhan Operasional TB PMI ABADI",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0005081.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "createdAt": "2026-10-31T01:26:01.011Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "29/11/26",
+    "slaDaysRemaining": 29,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-CPL-FPB-26-0005083",
+    "fpbNo": "CPL-FPB-26-0005083",
+    "originalFpb": "CPL/LOG/FPB/26-0005083",
+    "entity": "CPL",
+    "armada": "TB PMI ABADI",
+    "date": "30/10/26",
+    "purpose": "Kebutuhan Operasional TB PMI ABADI",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0005083.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "createdAt": "2026-10-31T01:26:01.011Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "29/11/26",
+    "slaDaysRemaining": 29,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-MO-FPB-26-0001932",
+    "fpbNo": "MO-FPB-26-0001932",
+    "originalFpb": "MO/LOG/FPB/26-0001932",
+    "entity": "MO",
+    "armada": "TRUCK TANGKI KT 8719 KG",
+    "date": "30/10/26",
+    "purpose": "Kebutuhan Operasional TRUCK TANGKI KT 8719 KG",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0001932.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "createdAt": "2026-10-31T01:26:01.011Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "29/11/26",
+    "slaDaysRemaining": 29,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-MO-FPB-26-0001941",
+    "fpbNo": "MO-FPB-26-0001941",
+    "originalFpb": "MO/LOG/FPB/26-0001941",
+    "entity": "MO",
+    "armada": "TRUCK TANKI KT 8327 ZU",
+    "date": "30/10/26",
+    "purpose": "Kebutuhan Operasional TRUCK TANKI KT 8327 ZU",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0001941.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "createdAt": "2026-10-31T01:26:01.011Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "29/11/26",
+    "slaDaysRemaining": 29,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-MO-FPB-26-0001933",
+    "fpbNo": "MO-FPB-26-0001933",
+    "originalFpb": "MO/LOG/FPB/26-0001933",
+    "entity": "MO",
+    "armada": "TRUCK TANKI KT 8026 YA",
+    "date": "30/10/26",
+    "purpose": "Kebutuhan Operasional TRUCK TANKI KT 8026 YA",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0001933.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "createdAt": "2026-10-31T01:26:01.011Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "29/11/26",
+    "slaDaysRemaining": 29,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-MO-FPB-26-0001934",
+    "fpbNo": "MO-FPB-26-0001934",
+    "originalFpb": "MO/LOG/FPB/26-0001934",
+    "entity": "MO",
+    "armada": "TRUCK TANKI KT 8027 YA",
+    "date": "30/10/26",
+    "purpose": "Kebutuhan Operasional TRUCK TANKI KT 8027 YA",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0001934.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "createdAt": "2026-10-31T01:26:01.011Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "29/11/26",
+    "slaDaysRemaining": 29,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-CPL-FPB-26-0005078",
+    "fpbNo": "CPL-FPB-26-0005078",
+    "originalFpb": "CPL/LOG/FPB/26-0005078",
+    "entity": "CPL",
+    "armada": "SV TWINSISTER 307",
+    "date": "30/10/26",
+    "purpose": "Kebutuhan Operasional SV TWINSISTER 307",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0005078.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [],
+    "attachments": [
+      {
+        "id": "efpb-att-CPL-FPB-26-0005078-2",
+        "name": "Lampiran TS 307.pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/Lampiran%20TS%20307.pdf",
+        "type": "pdf",
+        "uploadedAt": "30/10/26 17:43",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "createdAt": "2026-10-31T01:26:01.011Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "29/11/26",
+    "slaDaysRemaining": 29,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-CPL-FPB-26-0005070",
+    "fpbNo": "CPL-FPB-26-0005070",
+    "originalFpb": "CPL/LOG/FPB/26-0005070",
+    "entity": "CPL",
+    "armada": "SPOB OCEAN POLMAN",
+    "date": "30/10/26",
+    "purpose": "Kebutuhan Operasional SPOB OCEAN POLMAN",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0005070.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [],
+    "attachments": [
+      {
+        "id": "efpb-att-CPL-FPB-26-0005070-2",
+        "name": "LAMPIRAN OCEAN POLMAN.pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/LAMPIRAN%20OCEAN%20POLMAN.pdf",
+        "type": "pdf",
+        "uploadedAt": "30/10/26 17:46",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "createdAt": "2026-10-31T01:26:01.011Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "29/11/26",
+    "slaDaysRemaining": 29,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-MOI-FPB-26-0000102",
+    "fpbNo": "MOI-FPB-26-0000102",
+    "originalFpb": "MOI/LOG/FPB/26-0000102",
+    "entity": "MOI",
+    "armada": "KANTOR KEPANDUAN BALIKPAPAN",
+    "date": "30/10/26",
+    "purpose": "Kebutuhan Operasional KANTOR KEPANDUAN BALIKPAPAN",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MOI-FPB-26-0000102.pdf",
+    "reviewStatus": "APPROVED_PO",
+    "urgency": "URGENT",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "OLI00101002-YAL",
+        "itemName": "OLI MESRANIA 2T 20W-50 SAE 20 LITER (YAMALUBE)",
+        "qty": 5,
+        "unit": "JRG",
+        "description": "U/ MESIN SPEED BOAT",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[OLI1-OLI039] OLI (LUBRICANT) - OLI SAE 20W (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [
+      {
+        "id": "efpb-att-MOI-FPB-26-0000102-2",
+        "name": "LAPORAN PENGGUNAAN OLI MESIN.pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/LAPORAN%20PENGGUNAAN%20OLI%20MESIN.pdf",
+        "type": "pdf",
+        "uploadedAt": "30/10/26 09:21",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "createdAt": "2026-10-30T01:49:50.792Z",
+    "priorityLevel": "P1",
+    "slaTargetDate": "01/11/26",
+    "slaDaysRemaining": 1,
+    "slaStatus": "DUE_SOON",
+    "requestedBy": "Yoga Aditya Windrawan",
+    "tkbNo": "TKB-007",
+    "pchLogistik": "-",
+    "reviewedBy": "Administrator CPG",
+    "reviewedAt": "2026-10-30T01:54:42.869Z",
+    "requesterPhone": "081244752362"
+  },
+  {
+    "id": "fpb-rev-CPL-FPB-26-0005068",
+    "fpbNo": "CPL-FPB-26-0005068",
+    "originalFpb": "CPL/LOG/FPB/26-0005068",
+    "entity": "CPL",
+    "armada": "TRUCK TANKI B 9069 FFU",
+    "date": "30/10/26",
+    "purpose": "Kebutuhan Operasional TRUCK TANKI B 9069 FFU",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0005068.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-30T01:49:50.792Z",
+    "createdAt": "2026-10-30T01:49:50.792Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "29/11/26",
+    "slaDaysRemaining": 29,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-HL-FPB-26-0001537",
+    "fpbNo": "HL-FPB-26-0001537",
+    "originalFpb": "HL/LOG/FPB/26-0001537",
+    "entity": "HL",
+    "armada": "TB KING BORNEO",
+    "date": "30/10/26",
+    "purpose": "Kebutuhan Operasional TB KING BORNEO",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_HL-FPB-26-0001537.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-10-30T01:49:50.792Z",
+    "createdAt": "2026-10-30T01:49:50.792Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "29/11/26",
+    "slaDaysRemaining": 29,
+    "slaStatus": "ON_TRACK"
+  },
+  {
     "id": "fpb-rev-GAJ-FPB-26-0001126",
     "fpbNo": "GAJ-FPB-26-0001126",
     "originalFpb": "GAJ/LOG/FPB/26-0001126",
     "entity": "GAJ",
     "armada": "OFFICE GAJ",
     "date": "29/10/26",
-    "purpose": "U/ PERBAIKAN ATAP JETTY GAJ",
+    "purpose": "Kebutuhan Operasional OFFICE GAJ",
     "efpbStatus": "Approved",
-    "isReceivedLogistik": false,
+    "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0001126.pdf",
     "reviewStatus": "PENDING_REVIEW",
     "urgency": "URGENT",
@@ -53,29 +924,22 @@
         "caption": "Dokumen / Scan Lampiran FPB"
       }
     ],
-    "duplicateAlerts": [
-      {
-        "fpbNo": "GAJ-FPB-26-0001117",
-        "date": "28/10/26",
-        "armada": "OFFICE GAJ",
-        "matchedItem": "Keperluan mirip: \"perbaikan jetty\" pada 28/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (1 hari selisih)"
-      }
-    ],
+    "duplicateAlerts": [],
     "relatedDocs": {
       "poNos": [],
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T14:27:25.920Z",
+    "updatedAt": "2026-10-30T01:04:21.792Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P1",
     "slaTargetDate": "31/10/26",
-    "slaDaysRemaining": 1,
+    "slaDaysRemaining": 0,
     "slaStatus": "DUE_SOON",
     "pchLogistik": "-",
     "reviewedBy": "NOOR HASANAH",
-    "reviewedAt": "2026-10-29T13:59:48.752Z"
+    "reviewedAt": "2026-10-29T13:59:48.752Z",
+    "requestedBy": "Sujatmiko"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005055",
@@ -84,9 +948,9 @@
     "entity": "CPL",
     "armada": "DEPT OPERATION",
     "date": "29/10/26",
-    "purpose": "U/ SEMBAKO NOVEMBER 2026",
+    "purpose": "Kebutuhan Operasional DEPT OPERATION",
     "efpbStatus": "Approved",
-    "isReceivedLogistik": false,
+    "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0005055.pdf",
     "reviewStatus": "PENDING_REVIEW",
     "urgency": "NORMAL",
@@ -140,11 +1004,11 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T13:51:31.474Z",
+    "updatedAt": "2026-10-30T01:04:21.792Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 29,
+    "slaDaysRemaining": 28,
     "slaStatus": "ON_TRACK",
     "pchLogistik": "-",
     "reviewedBy": "NOOR HASANAH",
@@ -159,7 +1023,7 @@
     "entity": "HL",
     "armada": "DPA",
     "date": "29/10/26",
-    "purpose": "U/ ATK NOVEMBER 202",
+    "purpose": "Kebutuhan Operasional DPA",
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_HL-FPB-26-0001532.pdf",
@@ -234,12 +1098,13 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T13:29:02.262Z",
+    "updatedAt": "2026-10-30T01:04:21.792Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 29,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 28,
+    "slaStatus": "ON_TRACK",
+    "requestedBy": "jihaan nada'a utami"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001930",
@@ -253,10 +1118,26 @@
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0001930.pdf",
     "reviewStatus": "PENDING_REVIEW",
-    "urgency": "NORMAL",
+    "urgency": "EMERGENCY",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "SAL02495003-ZZZ",
+        "itemName": "SEAL OIL TC 35 X 50 X 10 (00)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/PERBAIKAN GENSET SILENT",
+        "priority": "P1",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[SEAG-SEG006] SEALING - SEALING OIL (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
     "attachments": [
       {
         "id": "efpb-att-MO-FPB-26-0001930-2",
@@ -275,12 +1156,13 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T13:14:25.535Z",
+    "updatedAt": "2026-10-30T01:49:50.792Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
-    "priorityLevel": "P3",
-    "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 29,
-    "slaStatus": "ON_TRACK"
+    "priorityLevel": "P1",
+    "slaTargetDate": "31/10/26",
+    "slaDaysRemaining": 0,
+    "slaStatus": "DUE_SOON",
+    "requestedBy": "nilo mardianto"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005057",
@@ -294,10 +1176,26 @@
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0005057.pdf",
     "reviewStatus": "PENDING_REVIEW",
-    "urgency": "NORMAL",
+    "urgency": "URGENT",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "B/N00207022-ZZZ",
+        "itemName": "B/N BAJA 12 MM X 90 MM P1.25 (00)",
+        "qty": 2,
+        "unit": "PCS",
+        "description": "U/ COVER FLYWHEEL ME KANAN",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[BBMN-B/N002] BAUT (BOLT) & MUR (NUT) - B/N BAJA (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
     "attachments": [],
     "duplicateAlerts": [],
     "relatedDocs": {
@@ -305,12 +1203,13 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T13:14:25.535Z",
+    "updatedAt": "2026-10-30T01:49:50.792Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
-    "priorityLevel": "P3",
-    "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 29,
-    "slaStatus": "ON_TRACK"
+    "priorityLevel": "P1",
+    "slaTargetDate": "31/10/26",
+    "slaDaysRemaining": 0,
+    "slaStatus": "DUE_SOON",
+    "requestedBy": "Iqbal Polejiwa"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005056",
@@ -319,7 +1218,7 @@
     "entity": "CPL",
     "armada": "MT DEWI SRI",
     "date": "29/10/26",
-    "purpose": "U/ SARANA KERJA AE 3 • U/ SARANA KERJA ENGINE",
+    "purpose": "Kebutuhan Operasional MT DEWI SRI",
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0005056.pdf",
@@ -570,11 +1469,11 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T16:04:17.337Z",
+    "updatedAt": "2026-10-30T01:49:50.792Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P1",
     "slaTargetDate": "31/10/26",
-    "slaDaysRemaining": 1,
+    "slaDaysRemaining": 0,
     "slaStatus": "DUE_SOON",
     "requestedBy": "Iqbal Polejiwa"
   },
@@ -590,10 +1489,56 @@
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MIL-FPB-26-0000064.pdf",
     "reviewStatus": "PENDING_REVIEW",
-    "urgency": "NORMAL",
+    "urgency": "URGENT",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "ACA00504001-PAN",
+        "itemName": "AIR CONDITIONER (AC) 2 PK YN18AKJ (PANASONIC)",
+        "qty": 1,
+        "unit": "UNT",
+        "description": "U/ RUANG CONTROL CARGO",
+        "priority": "P2",
+        "stockAvailable": 2,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[ACAC-ACA004] AIR CONDITIONER (AC) - KOMPRESSOR (MO)",
+        "inventoryEntity": "MO",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (2 UNT). Disarankan penuhi dari stok gudang."
+      },
+      {
+        "no": 2,
+        "itemCode": "KBE01902003-JEM",
+        "itemName": "KABEL NYYHY 3 X 2,5 MM (JEMBO)",
+        "qty": 10,
+        "unit": "MTR",
+        "description": "U/ RUANG CONTROL CARGO",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[KBEL-KBE019] KABEL (CABLE) - KABEL NYYHY (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 3,
+        "itemCode": "PIP01301001-TAT",
+        "itemName": "PIPA TUBING AC 1/2\" + 1/4\" (TATEYAMA)",
+        "qty": 10,
+        "unit": "MTR",
+        "description": "U/ RUANG CONTROL CARGO",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[PIPA-PIP013] PIPA (PIPE) - PIPA (PIPE) TUBING AC (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
     "attachments": [
       {
         "id": "efpb-att-MIL-FPB-26-0000064-2",
@@ -612,12 +1557,13 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T13:14:25.535Z",
+    "updatedAt": "2026-10-30T01:49:50.792Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
-    "priorityLevel": "P3",
-    "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 29,
-    "slaStatus": "ON_TRACK"
+    "priorityLevel": "P1",
+    "slaTargetDate": "31/10/26",
+    "slaDaysRemaining": 0,
+    "slaStatus": "DUE_SOON",
+    "requestedBy": "Iqbal Polejiwa"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001931",
@@ -626,7 +1572,7 @@
     "entity": "MO",
     "armada": "TK MO 27",
     "date": "29/10/26",
-    "purpose": "U/ TALI TAMBAT (PENAMBAHAN)",
+    "purpose": "Kebutuhan Operasional TK MO 27",
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0001931.pdf",
@@ -658,11 +1604,11 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T15:22:01.278Z",
+    "updatedAt": "2026-10-30T01:49:50.792Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P1",
     "slaTargetDate": "31/10/26",
-    "slaDaysRemaining": 1,
+    "slaDaysRemaining": 0,
     "slaStatus": "DUE_SOON",
     "requestedBy": "YULIANINGSIH AMANDA"
   },
@@ -689,11 +1635,11 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T13:14:25.535Z",
+    "updatedAt": "2026-10-30T01:49:50.792Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 29,
+    "slaDaysRemaining": 28,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -740,11 +1686,11 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T13:14:25.535Z",
+    "updatedAt": "2026-10-30T01:49:50.792Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 29,
+    "slaDaysRemaining": 28,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -791,11 +1737,11 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T13:14:25.535Z",
+    "updatedAt": "2026-10-30T01:49:50.792Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 29,
+    "slaDaysRemaining": 28,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -842,11 +1788,11 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T13:14:25.535Z",
+    "updatedAt": "2026-10-30T01:49:50.792Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 29,
+    "slaDaysRemaining": 28,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -872,11 +1818,11 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T13:14:25.535Z",
+    "updatedAt": "2026-10-30T01:49:50.792Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 29,
+    "slaDaysRemaining": 28,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -886,7 +1832,7 @@
     "entity": "HL",
     "armada": "TB KING BORNEO",
     "date": "29/10/26",
-    "purpose": "A/N WIDOYO (NAKHOD",
+    "purpose": "Kebutuhan Operasional TB KING BORNEO",
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_HL-FPB-26-0001536.pdf",
@@ -974,11 +1920,11 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T15:33:25.851Z",
+    "updatedAt": "2026-10-30T01:49:50.792Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 29,
+    "slaDaysRemaining": 28,
     "slaStatus": "ON_TRACK",
     "requestedBy": "SUPRIYONO"
   },
@@ -989,7 +1935,7 @@
     "entity": "CPL",
     "armada": "SPOB OCEAN POLMAN",
     "date": "29/10/26",
-    "purpose": "A/N MUHAMMAD AQZA ( CADET)",
+    "purpose": "Kebutuhan Operasional SPOB OCEAN POLMAN",
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0005060.pdf",
@@ -1032,11 +1978,11 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T14:52:21.297Z",
+    "updatedAt": "2026-10-30T01:49:50.792Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 29,
+    "slaDaysRemaining": 28,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -1046,7 +1992,7 @@
     "entity": "CPL",
     "armada": "SPOB AJ PUTRA",
     "date": "29/10/26",
-    "purpose": "EXP • U/ REFILL • U/ INSPECTION",
+    "purpose": "Kebutuhan Operasional SPOB AJ PUTRA",
     "efpbStatus": "Approved",
     "isReceivedLogistik": false,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0005061.pdf",
@@ -1179,11 +2125,11 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T13:22:23.765Z",
+    "updatedAt": "2026-10-30T01:49:50.792Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P1",
     "slaTargetDate": "31/10/26",
-    "slaDaysRemaining": 1,
+    "slaDaysRemaining": 0,
     "slaStatus": "DUE_SOON"
   },
   {
@@ -1193,7 +2139,7 @@
     "entity": "HL",
     "armada": "HOPPER BARGE CAKRA 10",
     "date": "29/10/26",
-    "purpose": "U/ PERGANTIAN YANG RUSAK",
+    "purpose": "Kebutuhan Operasional HOPPER BARGE CAKRA 10",
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_HL-FPB-26-0001535.pdf",
@@ -1225,11 +2171,11 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T16:10:21.921Z",
+    "updatedAt": "2026-10-30T01:49:50.792Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 29,
+    "slaDaysRemaining": 28,
     "slaStatus": "ON_TRACK",
     "requestedBy": "Iqbal Polejiwa"
   },
@@ -1240,7 +2186,7 @@
     "entity": "GAJ",
     "armada": "TB GAJ 02",
     "date": "29/10/26",
-    "purpose": "U/ PERGANTIAN CUTLESS BEARING",
+    "purpose": "Kebutuhan Operasional TB GAJ 02",
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0001131.pdf",
@@ -1298,11 +2244,11 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T13:18:35.583Z",
+    "updatedAt": "2026-10-30T01:49:50.792Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P1",
     "slaTargetDate": "31/10/26",
-    "slaDaysRemaining": 1,
+    "slaDaysRemaining": 0,
     "slaStatus": "DUE_SOON"
   },
   {
@@ -1354,8 +2300,8 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
-    "slaDaysRemaining": 0,
-    "slaStatus": "DUE_SOON",
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE",
     "reviewedAt": "2026-10-29T13:21:43.701Z"
   },
   {
@@ -1401,7 +2347,7 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P3",
     "slaTargetDate": "27/11/26",
-    "slaDaysRemaining": 28,
+    "slaDaysRemaining": 27,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -1468,7 +2414,7 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P2",
     "slaTargetDate": "11/11/26",
-    "slaDaysRemaining": 12,
+    "slaDaysRemaining": 11,
     "slaStatus": "ON_TRACK",
     "pchLogistik": "Received_Logistic",
     "reviewedBy": "Administrator CPG",
@@ -1558,11 +2504,11 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T13:14:25.535Z",
+    "updatedAt": "2026-10-30T01:49:50.792Z",
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P3",
     "slaTargetDate": "27/11/26",
-    "slaDaysRemaining": 28,
+    "slaDaysRemaining": 27,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -1629,8 +2575,8 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
-    "slaDaysRemaining": 0,
-    "slaStatus": "DUE_SOON"
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001117",
@@ -1701,15 +2647,7 @@
         "caption": "Dokumen / Scan Lampiran FPB"
       }
     ],
-    "duplicateAlerts": [
-      {
-        "fpbNo": "GAJ-FPB-26-0001126",
-        "date": "29/10/26",
-        "armada": "OFFICE GAJ",
-        "matchedItem": "Keperluan mirip: \"perbaikan jetty\" pada 29/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (1 hari selisih)"
-      }
-    ],
+    "duplicateAlerts": [],
     "relatedDocs": {
       "poNos": [],
       "fstbNos": [],
@@ -1719,8 +2657,8 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
-    "slaDaysRemaining": 0,
-    "slaStatus": "DUE_SOON"
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005026",
@@ -1765,7 +2703,7 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P3",
     "slaTargetDate": "27/11/26",
-    "slaDaysRemaining": 28,
+    "slaDaysRemaining": 27,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -1852,8 +2790,8 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
-    "slaDaysRemaining": 0,
-    "slaStatus": "DUE_SOON"
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005027",
@@ -1882,7 +2820,7 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P3",
     "slaTargetDate": "27/11/26",
-    "slaDaysRemaining": 28,
+    "slaDaysRemaining": 27,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -2003,7 +2941,7 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P3",
     "slaTargetDate": "27/11/26",
-    "slaDaysRemaining": 28,
+    "slaDaysRemaining": 27,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -2060,8 +2998,8 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
-    "slaDaysRemaining": 0,
-    "slaStatus": "DUE_SOON"
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001119",
@@ -2155,8 +3093,8 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
-    "slaDaysRemaining": 0,
-    "slaStatus": "DUE_SOON"
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001120",
@@ -2250,8 +3188,8 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
-    "slaDaysRemaining": 0,
-    "slaStatus": "DUE_SOON"
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001121",
@@ -2332,8 +3270,8 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
-    "slaDaysRemaining": 0,
-    "slaStatus": "DUE_SOON"
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE"
   },
   {
     "id": "fpb-rev-SP-FPB-26-0000992",
@@ -2378,8 +3316,8 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
-    "slaDaysRemaining": 0,
-    "slaStatus": "DUE_SOON"
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001122",
@@ -2448,8 +3386,8 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
-    "slaDaysRemaining": 0,
-    "slaStatus": "DUE_SOON"
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004517",
@@ -2530,8 +3468,8 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
-    "slaDaysRemaining": 0,
-    "slaStatus": "DUE_SOON",
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE",
     "tkbNo": "TKB-004",
     "pchLogistik": "Received_Logistic",
     "reviewedBy": "NOOR HASANAH",
@@ -2636,7 +3574,7 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P3",
     "slaTargetDate": "27/11/26",
-    "slaDaysRemaining": 28,
+    "slaDaysRemaining": 27,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -2677,7 +3615,7 @@
     "createdAt": "2026-10-28T05:50:09.035Z",
     "priorityLevel": "P3",
     "slaTargetDate": "27/11/26",
-    "slaDaysRemaining": 28,
+    "slaDaysRemaining": 27,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -2791,7 +3729,7 @@
     "createdAt": "2026-10-28T01:02:53.918Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
-    "slaDaysRemaining": -1,
+    "slaDaysRemaining": -2,
     "slaStatus": "OVERDUE"
   },
   {
@@ -2848,7 +3786,7 @@
     "createdAt": "2026-10-28T01:02:53.918Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
-    "slaDaysRemaining": -1,
+    "slaDaysRemaining": -2,
     "slaStatus": "OVERDUE"
   },
   {
@@ -2988,13 +3926,6 @@
     ],
     "duplicateAlerts": [
       {
-        "fpbNo": "GAJ-FPB-26-0001126",
-        "date": "29/10/26",
-        "armada": "OFFICE GAJ",
-        "matchedItem": "Keperluan mirip: \"jetty jetty\" pada 29/10/26",
-        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (2 hari selisih)"
-      },
-      {
         "fpbNo": "GAJ-FPB-26-0001117",
         "date": "28/10/26",
         "armada": "OFFICE GAJ",
@@ -3032,7 +3963,7 @@
     "createdAt": "2026-10-28T01:02:53.918Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
-    "slaDaysRemaining": -1,
+    "slaDaysRemaining": -2,
     "slaStatus": "OVERDUE",
     "pchLogistik": "-",
     "reviewedBy": "Administrator CPG",
@@ -3137,7 +4068,7 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 26,
+    "slaDaysRemaining": 25,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -3188,7 +4119,7 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
-    "slaDaysRemaining": 27,
+    "slaDaysRemaining": 26,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -3245,7 +4176,7 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
-    "slaDaysRemaining": 27,
+    "slaDaysRemaining": 26,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -3306,7 +4237,7 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
-    "slaDaysRemaining": -1,
+    "slaDaysRemaining": -2,
     "slaStatus": "OVERDUE"
   },
   {
@@ -3357,7 +4288,7 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
-    "slaDaysRemaining": 27,
+    "slaDaysRemaining": 26,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -3439,7 +4370,7 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
-    "slaDaysRemaining": -1,
+    "slaDaysRemaining": -2,
     "slaStatus": "OVERDUE"
   },
   {
@@ -3500,7 +4431,7 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
-    "slaDaysRemaining": 27,
+    "slaDaysRemaining": 26,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -3546,7 +4477,7 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
-    "slaDaysRemaining": 27,
+    "slaDaysRemaining": 26,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -3576,7 +4507,7 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
-    "slaDaysRemaining": 27,
+    "slaDaysRemaining": 26,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -3643,7 +4574,7 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
-    "slaDaysRemaining": -1,
+    "slaDaysRemaining": -2,
     "slaStatus": "OVERDUE"
   },
   {
@@ -3742,7 +4673,7 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
-    "slaDaysRemaining": -1,
+    "slaDaysRemaining": -2,
     "slaStatus": "OVERDUE"
   },
   {
@@ -3818,7 +4749,7 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
-    "slaDaysRemaining": 27,
+    "slaDaysRemaining": 26,
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
@@ -3889,7 +4820,7 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
-    "slaDaysRemaining": -1,
+    "slaDaysRemaining": -2,
     "slaStatus": "OVERDUE"
   },
   {
@@ -4087,7 +5018,7 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
-    "slaDaysRemaining": -1,
+    "slaDaysRemaining": -2,
     "slaStatus": "OVERDUE"
   },
   {
@@ -4133,7 +5064,7 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
-    "slaDaysRemaining": -1,
+    "slaDaysRemaining": -2,
     "slaStatus": "OVERDUE"
   },
   {
@@ -4205,7 +5136,7 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
-    "slaDaysRemaining": 27,
+    "slaDaysRemaining": 26,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -4251,7 +5182,7 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
-    "slaDaysRemaining": 27,
+    "slaDaysRemaining": 26,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -4342,7 +5273,7 @@
     "createdAt": "2026-10-27T01:49:18.402Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 26,
+    "slaDaysRemaining": 25,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -4470,7 +5401,7 @@
     "createdAt": "2026-10-27T01:49:18.402Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 26,
+    "slaDaysRemaining": 25,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -4516,7 +5447,7 @@
     "createdAt": "2026-10-27T01:49:18.402Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 26,
+    "slaDaysRemaining": 25,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -4581,7 +5512,7 @@
     "createdAt": "2026-10-27T01:49:18.402Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 26,
+    "slaDaysRemaining": 25,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -4625,7 +5556,7 @@
     "createdAt": "2026-10-27T01:49:18.402Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 26,
+    "slaDaysRemaining": 25,
     "slaStatus": "ON_TRACK",
     "pchLogistik": "Received_Logistic",
     "reviewedBy": "Administrator CPG",
@@ -4675,7 +5606,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P3",
     "slaTargetDate": "22/11/26",
-    "slaDaysRemaining": 23,
+    "slaDaysRemaining": 22,
     "slaStatus": "ON_TRACK",
     "pchLogistik": "Received_Logistic",
     "reviewedBy": "Administrator CPG",
@@ -4724,7 +5655,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P3",
     "slaTargetDate": "22/11/26",
-    "slaDaysRemaining": 23,
+    "slaDaysRemaining": 22,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -4826,7 +5757,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P3",
     "slaTargetDate": "22/11/26",
-    "slaDaysRemaining": 23,
+    "slaDaysRemaining": 22,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -4893,7 +5824,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "25/10/26",
-    "slaDaysRemaining": -5,
+    "slaDaysRemaining": -6,
     "slaStatus": "OVERDUE",
     "pchLogistik": "Received_Logistic"
   },
@@ -4961,7 +5892,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "25/10/26",
-    "slaDaysRemaining": -5,
+    "slaDaysRemaining": -6,
     "slaStatus": "OVERDUE",
     "pchLogistik": "Received_Logistic"
   },
@@ -5006,7 +5937,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "25/10/26",
-    "slaDaysRemaining": -5,
+    "slaDaysRemaining": -6,
     "slaStatus": "OVERDUE"
   },
   {
@@ -5047,7 +5978,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P3",
     "slaTargetDate": "22/11/26",
-    "slaDaysRemaining": 23,
+    "slaDaysRemaining": 22,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -5166,7 +6097,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
-    "slaDaysRemaining": -4,
+    "slaDaysRemaining": -5,
     "slaStatus": "OVERDUE",
     "pchLogistik": "-",
     "reviewedBy": "Administrator CPG",
@@ -5236,7 +6167,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
-    "slaDaysRemaining": -4,
+    "slaDaysRemaining": -5,
     "slaStatus": "OVERDUE"
   },
   {
@@ -5266,7 +6197,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P3",
     "slaTargetDate": "23/11/26",
-    "slaDaysRemaining": 24,
+    "slaDaysRemaining": 23,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -5333,7 +6264,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
-    "slaDaysRemaining": -4,
+    "slaDaysRemaining": -5,
     "slaStatus": "OVERDUE"
   },
   {
@@ -5424,7 +6355,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
-    "slaDaysRemaining": -4,
+    "slaDaysRemaining": -5,
     "slaStatus": "OVERDUE"
   },
   {
@@ -5491,7 +6422,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
-    "slaDaysRemaining": -4,
+    "slaDaysRemaining": -5,
     "slaStatus": "OVERDUE"
   },
   {
@@ -5546,7 +6477,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
-    "slaDaysRemaining": -4,
+    "slaDaysRemaining": -5,
     "slaStatus": "OVERDUE",
     "pchLogistik": "Received_Logistic",
     "reviewedBy": "Administrator CPG",
@@ -5676,6 +6607,13 @@
     "attachments": [],
     "duplicateAlerts": [
       {
+        "fpbNo": "GAJ-FPB-26-0001133",
+        "date": "30/10/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Keperluan mirip: \"logistik logistik\" pada 30/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (6 hari selisih)"
+      },
+      {
         "fpbNo": "GAJ-FPB-26-0001080",
         "date": "27/10/26",
         "armada": "OFFICE GAJ",
@@ -5713,7 +6651,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
-    "slaDaysRemaining": -4,
+    "slaDaysRemaining": -5,
     "slaStatus": "OVERDUE",
     "pchLogistik": "Received_Logistic",
     "reviewedBy": "Administrator CPG",
@@ -5888,7 +6826,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
-    "slaDaysRemaining": -4,
+    "slaDaysRemaining": -5,
     "slaStatus": "OVERDUE"
   },
   {
@@ -5971,7 +6909,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
-    "slaDaysRemaining": -4,
+    "slaDaysRemaining": -5,
     "slaStatus": "OVERDUE"
   },
   {
@@ -6038,7 +6976,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -2,
+    "slaDaysRemaining": -3,
     "slaStatus": "OVERDUE",
     "pchLogistik": "-",
     "reviewedBy": "NOOR HASANAH",
@@ -6095,7 +7033,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -2,
+    "slaDaysRemaining": -3,
     "slaStatus": "OVERDUE",
     "pchLogistik": "-",
     "reviewedBy": "NOOR HASANAH",
@@ -6492,7 +7430,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -2,
+    "slaDaysRemaining": -3,
     "slaStatus": "OVERDUE",
     "pchLogistik": "Received_Logistic",
     "reviewedBy": "NOOR HASANAH",
@@ -6541,7 +7479,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -2,
+    "slaDaysRemaining": -3,
     "slaStatus": "OVERDUE",
     "attachments": [
       {
@@ -6611,7 +7549,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -2,
+    "slaDaysRemaining": -3,
     "slaStatus": "OVERDUE",
     "attachments": [],
     "pchLogistik": "-",
@@ -6673,7 +7611,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -2,
+    "slaDaysRemaining": -3,
     "slaStatus": "OVERDUE",
     "attachments": [
       {
@@ -7160,7 +8098,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 26,
+    "slaDaysRemaining": 25,
     "slaStatus": "ON_TRACK",
     "pchLogistik": "Received_Logistic",
     "attachments": [],
@@ -7210,7 +8148,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -2,
+    "slaDaysRemaining": -3,
     "slaStatus": "OVERDUE",
     "attachments": [
       {
@@ -7254,7 +8192,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 26,
+    "slaDaysRemaining": 25,
     "slaStatus": "ON_TRACK",
     "attachments": [],
     "pchLogistik": "-",
@@ -7316,7 +8254,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 26,
+    "slaDaysRemaining": 25,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -7462,7 +8400,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -2,
+    "slaDaysRemaining": -3,
     "slaStatus": "OVERDUE",
     "attachments": [
       {
@@ -7537,7 +8475,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 26,
+    "slaDaysRemaining": 25,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -7582,7 +8520,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -2,
+    "slaDaysRemaining": -3,
     "slaStatus": "OVERDUE",
     "attachments": [
       {
@@ -7658,11 +8596,11 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T13:14:25.535Z",
+    "updatedAt": "2026-10-30T01:49:50.792Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 26,
+    "slaDaysRemaining": 25,
     "slaStatus": "ON_TRACK",
     "attachments": [
       {
@@ -7764,7 +8702,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 26,
+    "slaDaysRemaining": 25,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -7807,7 +8745,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 26,
+    "slaDaysRemaining": 25,
     "slaStatus": "ON_TRACK",
     "pchLogistik": "Received_Logistic",
     "reviewedBy": "NOOR HASANAH",
@@ -7855,7 +8793,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -2,
+    "slaDaysRemaining": -3,
     "slaStatus": "OVERDUE"
   },
   {
@@ -7976,7 +8914,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -2,
+    "slaDaysRemaining": -3,
     "slaStatus": "OVERDUE"
   },
   {
@@ -8019,7 +8957,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -2,
+    "slaDaysRemaining": -3,
     "slaStatus": "OVERDUE"
   },
   {
@@ -8064,7 +9002,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 26,
+    "slaDaysRemaining": 25,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -8139,7 +9077,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 26,
+    "slaDaysRemaining": 25,
     "slaStatus": "ON_TRACK"
   }
 ]
