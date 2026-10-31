@@ -627,3 +627,4 @@ export function buildFleetClassificationSummary(items: any[]): FleetClassificati
     },
   };
 }
+

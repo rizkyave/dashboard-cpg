@@ -28,6 +28,7 @@ import {
   Database,
   Navigation,
   ChevronDown,
+  Loader2,
 } from 'lucide-react';
 import { ProcurementItem, ArmadaItem, InventoryItem, KapalPosisiItem, PdfItemsCache } from '@/types/procurement';
 import StockAuditModal from './StockAuditModal';
@@ -176,6 +177,19 @@ export default function AuditModal({
   const [showFstbModal, setShowFstbModal] = useState<boolean>(false);
   const [showOperationalModal, setShowOperationalModal] = useState<boolean>(false);
   const [operationalOverride, setOperationalOverride] = useState<OperationalOverride | null>(null);
+  const [softcopySummary, setSoftcopySummary] = useState<{
+    fstbCount: number;
+    isCheckingFstb: boolean;
+    ttbDocCount: number;
+    ttbPhotoCount: number;
+    isCheckingTtb: boolean;
+  }>({
+    fstbCount: 0,
+    isCheckingFstb: false,
+    ttbDocCount: 0,
+    ttbPhotoCount: 0,
+    isCheckingTtb: false,
+  });
   const [selectedTtbForPhoto, setSelectedTtbForPhoto] = useState<string | null>(null);
   const [internalInventory, setInternalInventory] = useState<InventoryItem[]>([]);
   const [internalWorkOrders, setInternalWorkOrders] = useState<WorkOrderItem[]>(workOrderItems || []);
@@ -863,6 +877,98 @@ export default function AuditModal({
     !(currentEntityPrefix === 'MO' && ttbEntityPrefix === 'MOI') &&
     !(currentEntityPrefix === 'MOI' && ttbEntityPrefix === 'MO')
   );
+
+  // ─── KELENGKAPAN BERKAS SOFTCOPY DIGITAL (6 FASE) ───────────────────────────
+  const hasFpbSoftcopy = Boolean(fpbPdfUrl);
+
+  const hasPoSoftcopy = Boolean(
+    matchedWoUrl ||
+    operationalOverride?.attachments?.some((a) => a.name.toLowerCase().includes('po') || a.name.toLowerCase().includes('wo'))
+  );
+  const poSoftcopyUrl =
+    matchedWoUrl ||
+    operationalOverride?.attachments?.find((a) => a.name.toLowerCase().includes('po') || a.name.toLowerCase().includes('wo'))?.driveViewUrl ||
+    operationalOverride?.attachments?.find((a) => a.name.toLowerCase().includes('po') || a.name.toLowerCase().includes('wo'))?.url ||
+    null;
+
+  // Fetch softcopy status FSTB & TTB dari API Cloudflare R2
+  useEffect(() => {
+    let isCancelled = false;
+
+    // 1. Cek Softcopy Berkas FSTB
+    const targetFstb = (effectiveNoFstb || activeFstb || '').trim();
+    const targetPo = (activePo || '').trim();
+    const targetFpb = (primaryDocNum || fpbNumber || '').trim();
+
+    if (targetFstb || targetPo || targetFpb) {
+      setSoftcopySummary((prev) => ({ ...prev, isCheckingFstb: true }));
+      const query = targetFstb || targetPo || targetFpb;
+      fetch(`/api/upload-fstb?fstb=${encodeURIComponent(query)}&_t=${Date.now()}`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (isCancelled) return;
+          const items = Array.isArray(data.items) ? data.items : [];
+          setSoftcopySummary((prev) => ({
+            ...prev,
+            fstbCount: items.length,
+            isCheckingFstb: false,
+          }));
+        })
+        .catch(() => {
+          if (!isCancelled) {
+            setSoftcopySummary((prev) => ({ ...prev, isCheckingFstb: false }));
+          }
+        });
+    } else {
+      setSoftcopySummary((prev) => ({ ...prev, fstbCount: 0, isCheckingFstb: false }));
+    }
+
+    // 2. Cek Softcopy Berkas Scan PDF & Foto TTB
+    const targetTtb = (primaryTtb || activeTtb || '').trim();
+    if (targetTtb) {
+      setSoftcopySummary((prev) => ({ ...prev, isCheckingTtb: true }));
+      Promise.all([
+        fetch(`/api/upload-ttb?ttb=${encodeURIComponent(targetTtb)}&_t=${Date.now()}`)
+          .then((r) => r.json())
+          .catch(() => ({ items: [] })),
+        fetch(`/api/ttb-photos?ttb=${encodeURIComponent(targetTtb)}&_t=${Date.now()}`)
+          .then((r) => r.json())
+          .catch(() => ({ photos: [] })),
+      ])
+        .then(([docData, photoData]) => {
+          if (isCancelled) return;
+          const docCount = Array.isArray(docData.items) ? docData.items.length : 0;
+          const photoCount = Array.isArray(photoData.photos) ? photoData.photos.length : 0;
+          setSoftcopySummary((prev) => ({
+            ...prev,
+            ttbDocCount: docCount,
+            ttbPhotoCount: photoCount,
+            isCheckingTtb: false,
+          }));
+        })
+        .catch(() => {
+          if (!isCancelled) {
+            setSoftcopySummary((prev) => ({ ...prev, isCheckingTtb: false }));
+          }
+        });
+    } else {
+      setSoftcopySummary((prev) => ({ ...prev, ttbDocCount: 0, ttbPhotoCount: 0, isCheckingTtb: false }));
+    }
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [effectiveNoFstb, activeFstb, activePo, primaryDocNum, fpbNumber, primaryTtb, activeTtb, showFstbModal, showTimemarkModal]);
+
+  // Penghitungan agregat total softcopy dari 4 fase utama
+  const availableSoftcopyCount = useMemo(() => {
+    let count = 0;
+    if (hasFpbSoftcopy) count++;
+    if (hasPoSoftcopy) count++;
+    if (softcopySummary.fstbCount > 0) count++;
+    if (softcopySummary.ttbDocCount > 0 || softcopySummary.ttbPhotoCount > 0) count++;
+    return count;
+  }, [hasFpbSoftcopy, hasPoSoftcopy, softcopySummary.fstbCount, softcopySummary.ttbDocCount, softcopySummary.ttbPhotoCount]);
 
   // PIC Purchasing (Kotak 2) & FSTB (Kotak 3): dikerjakan oleh orang yang sama (staf Purchasing / Pembuat PO)
   const activePicPch =
@@ -2222,9 +2328,24 @@ export default function AuditModal({
             ═══════════════════════════════════════════════════════════ */}
         <div className="space-y-2.5 pt-1">
           <div className="flex items-center justify-between flex-wrap gap-2">
-            <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-1.5">
-              <span>ALUR TANGGUNG JAWAB & PIC (6 FASE)</span>
-            </h4>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+                <span>ALUR TANGGUNG JAWAB & PIC (6 FASE)</span>
+              </h4>
+              <span
+                className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold flex items-center gap-1 border shadow-2xs ${
+                  availableSoftcopyCount === 4
+                    ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/30'
+                    : availableSoftcopyCount > 0
+                    ? 'bg-blue-500/15 text-blue-800 dark:text-blue-300 border-blue-500/30'
+                    : 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border-amber-500/30'
+                }`}
+                title={`Status kelengkapan berkas softcopy digital: ${availableSoftcopyCount} dari 4 fase utama memiliki softcopy (e-FPB, PO Drive, Scan FSTB R2, Scan/Foto TTB R2)`}
+              >
+                <FileText className="size-3 shrink-0" />
+                <span>Softcopy: {availableSoftcopyCount}/4 Berkas Siap</span>
+              </span>
+            </div>
             <div className="flex items-center gap-2.5 flex-wrap">
               {slaDeliveryAnomaly && (
                 <button
@@ -2442,6 +2563,33 @@ export default function AuditModal({
                       : 'Menunggu FPB'}
                   </span>
                 )}
+
+                {/* Softcopy Status Row (Kotak Bawah) */}
+                <div className="mt-0.5">
+                  {hasFpbSoftcopy ? (
+                    <a
+                      href={fpbPdfUrl!}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-between w-full px-2 py-1 rounded-md text-[9.5px] font-mono font-medium bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-500/25 transition group cursor-pointer shadow-2xs"
+                      title="Softcopy e-FPB Tersedia: Klik untuk membuka dokumen PDF digital resmi"
+                    >
+                      <span className="flex items-center gap-1 min-w-0 truncate">
+                        <CheckCircle2 className="size-2.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        <span className="truncate">Softcopy: Tersedia (PDF)</span>
+                      </span>
+                      <ExternalLink className="size-2 text-emerald-600 dark:text-emerald-400 opacity-60 group-hover:opacity-100 shrink-0 ml-1" />
+                    </a>
+                  ) : (
+                    <div
+                      className="inline-flex items-center gap-1 w-full px-2 py-1 rounded-md text-[9.5px] font-mono text-muted-foreground bg-muted/50 border border-border/50"
+                      title="Softcopy PDF e-FPB belum tersedia"
+                    >
+                      <Clock className="size-2.5 text-muted-foreground/60 shrink-0" />
+                      <span className="truncate">Softcopy: Belum Ada</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -2528,7 +2676,7 @@ export default function AuditModal({
                   </div>
                 </div>
               </div>
-              <div className="pt-2 border-t border-border min-w-0">
+              <div className="pt-2 border-t border-border flex flex-col gap-1.5 min-w-0">
                 {activePo ? (
                   <span className="inline-flex items-center justify-center gap-1 text-[10px] font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-md border border-emerald-500/20 w-full truncate font-semibold min-w-0">
                     <Check className="size-3 text-emerald-600 dark:text-emerald-400" />
@@ -2540,6 +2688,41 @@ export default function AuditModal({
                     Menunggu PO
                   </span>
                 )}
+
+                {/* Softcopy Status Row (Kotak Bawah) */}
+                <div className="mt-0.5">
+                  {hasPoSoftcopy && poSoftcopyUrl ? (
+                    <a
+                      href={poSoftcopyUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-between w-full px-2 py-1 rounded-md text-[9.5px] font-mono font-medium bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-500/25 transition group cursor-pointer shadow-2xs"
+                      title={`Softcopy PO/WO Tersedia: Klik untuk membuka berkas di Google Drive (${activePo || 'PO'})`}
+                    >
+                      <span className="flex items-center gap-1 min-w-0 truncate">
+                        <CheckCircle2 className="size-2.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        <span className="truncate">Softcopy: Tersedia (Drive)</span>
+                      </span>
+                      <ExternalLink className="size-2 text-emerald-600 dark:text-emerald-400 opacity-60 group-hover:opacity-100 shrink-0 ml-1" />
+                    </a>
+                  ) : activePo ? (
+                    <div
+                      className="inline-flex items-center gap-1 w-full px-2 py-1 rounded-md text-[9.5px] font-mono text-amber-700 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 cursor-help"
+                      title={`PO ${activePo} telah terbit, namun berkas softcopy (scan/PDF) belum diunggah ke Google Drive / Cloud.`}
+                    >
+                      <Clock className="size-2.5 text-amber-500 shrink-0" />
+                      <span className="truncate">Softcopy: Belum Diunggah</span>
+                    </div>
+                  ) : (
+                    <div
+                      className="inline-flex items-center gap-1 w-full px-2 py-1 rounded-md text-[9.5px] font-mono text-muted-foreground bg-muted/50 border border-border/50"
+                      title="PO belum diterbitkan"
+                    >
+                      <Clock className="size-2.5 text-muted-foreground/60 shrink-0" />
+                      <span className="truncate">Softcopy: Belum Ada</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -2626,7 +2809,7 @@ export default function AuditModal({
                   </div>
                 </div>
               </div>
-              <div className="pt-2 border-t border-border min-w-0">
+              <div className="pt-2 border-t border-border flex flex-col gap-1.5 min-w-0">
                 <button
                   type="button"
                   onClick={() => setShowFstbModal(true)}
@@ -2649,6 +2832,50 @@ export default function AuditModal({
                   <span className="truncate">{isFstbDone ? 'FSTB Diterbitkan' : 'Menunggu FSTB'}</span>
                   <ExternalLink className="size-2.5 opacity-60 group-hover:opacity-100 shrink-0 ml-0.5" />
                 </button>
+
+                {/* Softcopy Status Row (Kotak Bawah) */}
+                <div className="mt-0.5">
+                  {softcopySummary.isCheckingFstb ? (
+                    <div className="inline-flex items-center gap-1 w-full px-2 py-1 rounded-md text-[9.5px] font-mono text-muted-foreground bg-muted/40 border border-border/40">
+                      <Loader2 className="size-2.5 animate-spin text-teal-500 shrink-0" />
+                      <span className="truncate">Memeriksa Berkas...</span>
+                    </div>
+                  ) : softcopySummary.fstbCount > 0 ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowFstbModal(true)}
+                      className="inline-flex items-center justify-between w-full px-2 py-1 rounded-md text-[9.5px] font-mono font-medium bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-500/25 transition group cursor-pointer shadow-2xs"
+                      title={`Softcopy FSTB Tersedia (${softcopySummary.fstbCount} berkas di Cloudflare R2): Klik untuk pratinjau / unduh`}
+                    >
+                      <span className="flex items-center gap-1 min-w-0 truncate">
+                        <CheckCircle2 className="size-2.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        <span className="truncate">Softcopy: Tersedia ({softcopySummary.fstbCount} Berkas)</span>
+                      </span>
+                      <ExternalLink className="size-2 text-emerald-600 dark:text-emerald-400 opacity-60 group-hover:opacity-100 shrink-0 ml-1" />
+                    </button>
+                  ) : effectiveNoFstb && !isFieldBelum(effectiveNoFstb) ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowFstbModal(true)}
+                      className="inline-flex items-center justify-between w-full px-2 py-1 rounded-md text-[9.5px] font-mono text-amber-700 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 transition cursor-pointer"
+                      title={`FSTB ${effectiveNoFstb} tercatat secara fisik, namun berkas softcopy scan belum diunggah ke Cloudflare R2. Klik untuk unggah berkas.`}
+                    >
+                      <span className="flex items-center gap-1 min-w-0 truncate">
+                        <Clock className="size-2.5 text-amber-500 shrink-0" />
+                        <span className="truncate">Softcopy: Belum Diunggah</span>
+                      </span>
+                      <span className="text-[9px] underline opacity-75 shrink-0 ml-1">Unggah</span>
+                    </button>
+                  ) : (
+                    <div
+                      className="inline-flex items-center gap-1 w-full px-2 py-1 rounded-md text-[9.5px] font-mono text-muted-foreground bg-muted/50 border border-border/50"
+                      title="FSTB belum terbit"
+                    >
+                      <Clock className="size-2.5 text-muted-foreground/60 shrink-0" />
+                      <span className="truncate">Softcopy: Belum Ada</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -2758,7 +2985,7 @@ export default function AuditModal({
                   )}
                 </div>
               </div>
-              <div className="pt-2 border-t border-border min-w-0">
+              <div className="pt-2 border-t border-border flex flex-col gap-1.5 min-w-0">
                 {isCard4Done || isLogistikTtbFilled ? (
                   <span className="inline-flex items-center justify-center gap-1 text-[10px] font-mono text-purple-700 dark:text-purple-400 bg-purple-500/10 px-2 py-1 rounded-md border border-purple-500/20 w-full truncate font-semibold min-w-0">
                     <Check className="size-3 text-purple-600 dark:text-purple-400" />
@@ -2770,6 +2997,62 @@ export default function AuditModal({
                     {isJasaOnly ? 'Menunggu BAST' : 'Menunggu TTB'}
                   </span>
                 )}
+
+                {/* Softcopy Status Row (Kotak Bawah) */}
+                <div className="mt-0.5">
+                  {softcopySummary.isCheckingTtb ? (
+                    <div className="inline-flex items-center gap-1 w-full px-2 py-1 rounded-md text-[9.5px] font-mono text-muted-foreground bg-muted/40 border border-border/40">
+                      <Loader2 className="size-2.5 animate-spin text-purple-500 shrink-0" />
+                      <span className="truncate">Memeriksa Berkas...</span>
+                    </div>
+                  ) : (softcopySummary.ttbDocCount > 0 || softcopySummary.ttbPhotoCount > 0) ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedTtbForPhoto(primaryTtb || activeTtb);
+                        setShowTimemarkModal(true);
+                      }}
+                      className="inline-flex items-center justify-between w-full px-2 py-1 rounded-md text-[9.5px] font-mono font-medium bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-500/25 transition group cursor-pointer shadow-2xs"
+                      title={`Softcopy TTB Tersedia (${softcopySummary.ttbDocCount} Berkas Scan, ${softcopySummary.ttbPhotoCount} Foto): Klik untuk pratinjau`}
+                    >
+                      <span className="flex items-center gap-1 min-w-0 truncate">
+                        <CheckCircle2 className="size-2.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        <span className="truncate">
+                          {softcopySummary.ttbDocCount > 0 && softcopySummary.ttbPhotoCount > 0
+                            ? `Softcopy: ${softcopySummary.ttbDocCount} Scan, ${softcopySummary.ttbPhotoCount} Foto`
+                            : softcopySummary.ttbDocCount > 0
+                            ? `Softcopy: ${softcopySummary.ttbDocCount} Scan`
+                            : `Softcopy: ${softcopySummary.ttbPhotoCount} Foto`}
+                        </span>
+                      </span>
+                      <ExternalLink className="size-2 text-emerald-600 dark:text-emerald-400 opacity-60 group-hover:opacity-100 shrink-0 ml-1" />
+                    </button>
+                  ) : (hasValidTtbDoc || isLogistikTtbFilled) ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedTtbForPhoto(primaryTtb || activeTtb);
+                        setShowTimemarkModal(true);
+                      }}
+                      className="inline-flex items-center justify-between w-full px-2 py-1 rounded-md text-[9.5px] font-mono text-amber-700 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 transition cursor-pointer"
+                      title={`TTB ${primaryTtb || activeTtb} tercatat secara fisik, namun scan PDF atau foto TimeMark belum diunggah. Klik untuk buka portal / unggah.`}
+                    >
+                      <span className="flex items-center gap-1 min-w-0 truncate">
+                        <Clock className="size-2.5 text-amber-500 shrink-0" />
+                        <span className="truncate">Softcopy: Belum Diunggah</span>
+                      </span>
+                      <span className="text-[9px] underline opacity-75 shrink-0 ml-1">Portal</span>
+                    </button>
+                  ) : (
+                    <div
+                      className="inline-flex items-center gap-1 w-full px-2 py-1 rounded-md text-[9.5px] font-mono text-muted-foreground bg-muted/50 border border-border/50"
+                      title="TTB belum tercatat"
+                    >
+                      <Clock className="size-2.5 text-muted-foreground/60 shrink-0" />
+                      <span className="truncate">Softcopy: Belum Ada</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -2902,7 +3185,7 @@ export default function AuditModal({
                   )}
                 </div>
               </div>
-              <div className="pt-2 border-t border-border min-w-0">
+              <div className="pt-2 border-t border-border flex flex-col gap-1.5 min-w-0">
                 {isCard4Done ? (
                   <span className="inline-flex items-center justify-center gap-1 text-[10px] font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-md border border-emerald-500/20 w-full truncate font-semibold min-w-0">
                     <Check className="size-3 text-emerald-600 dark:text-emerald-400" />
@@ -2919,6 +3202,37 @@ export default function AuditModal({
                     Pending Lapangan
                   </span>
                 )}
+
+                {/* Softcopy Status Row (Kotak Bawah) */}
+                <div className="mt-0.5">
+                  {softcopySummary.ttbPhotoCount > 0 || (operationalOverride?.attachments && operationalOverride.attachments.length > 0) ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedTtbForPhoto(primaryTtb || activeTtb);
+                        setShowTimemarkModal(true);
+                      }}
+                      className="inline-flex items-center justify-between w-full px-2 py-1 rounded-md text-[9.5px] font-mono font-medium bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-500/25 transition group cursor-pointer shadow-2xs"
+                      title="Foto dokumentasi lapangan tersedia: Klik untuk melihat foto serah terima"
+                    >
+                      <span className="flex items-center gap-1 min-w-0 truncate">
+                        <Camera className="size-2.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        <span className="truncate">
+                          Foto: {softcopySummary.ttbPhotoCount || operationalOverride?.attachments?.length} Berkas
+                        </span>
+                      </span>
+                      <ExternalLink className="size-2 text-emerald-600 dark:text-emerald-400 opacity-60 group-hover:opacity-100 shrink-0 ml-1" />
+                    </button>
+                  ) : (
+                    <div
+                      className="inline-flex items-center gap-1 w-full px-2 py-1 rounded-md text-[9.5px] font-mono text-muted-foreground bg-muted/50 border border-border/50"
+                      title="Belum ada foto dokumentasi serah terima lapangan"
+                    >
+                      <Camera className="size-2.5 text-muted-foreground/50 shrink-0" />
+                      <span className="truncate">Foto: Belum Ada</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -2997,7 +3311,7 @@ export default function AuditModal({
                   </div>
                 </div>
               </div>
-              <div className="pt-2 border-t border-border min-w-0">
+              <div className="pt-2 border-t border-border flex flex-col gap-1.5 min-w-0">
                 {hasValidSpp && (itemS1?.tglKeKeuangan || itemsS2[0]?.tglKeKeuangan) ? (
                   <span className="inline-flex items-center justify-center gap-1 text-[10px] font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-md border border-emerald-500/20 w-full truncate font-semibold min-w-0">
                     <Check className="size-3 text-emerald-600 dark:text-emerald-400" />
@@ -3019,6 +3333,27 @@ export default function AuditModal({
                     Menunggu Berkas ADM
                   </span>
                 )}
+
+                {/* Softcopy Status Row (Kotak Bawah) */}
+                <div className="mt-0.5">
+                  {hasValidSpp ? (
+                    <div
+                      className="inline-flex items-center gap-1 w-full px-2 py-1 rounded-md text-[9.5px] font-mono font-medium bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border border-emerald-500/25"
+                      title={`Berkas SPP tercatat: ${(hasValue(itemS1?.noSpp) ? itemS1!.noSpp : '') || (hasValue(itemsS2[0]?.noSpp) ? itemsS2[0]!.noSpp : '')}`}
+                    >
+                      <CheckCircle2 className="size-2.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      <span className="truncate">Arsip: SPP Valid</span>
+                    </div>
+                  ) : (
+                    <div
+                      className="inline-flex items-center gap-1 w-full px-2 py-1 rounded-md text-[9.5px] font-mono text-muted-foreground bg-muted/50 border border-border/50"
+                      title="Berkas SPP belum terbit dari bagian ADM"
+                    >
+                      <Clock className="size-2.5 text-muted-foreground/60 shrink-0" />
+                      <span className="truncate">Arsip: Menunggu SPP</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
