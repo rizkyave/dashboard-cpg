@@ -3296,6 +3296,36 @@ export default function SerahTerimaLapanganTab({
         />
       )}
 
+      {/* Modal Disposisi Pengiriman Titipan Pihak Ketiga (Remote Handover via WhatsApp) */}
+      {pendingRemoteDispatchTtb && (
+        <RemoteDispatchModal
+          isOpen={!!pendingRemoteDispatchTtb}
+          onClose={() => setPendingRemoteDispatchTtb(null)}
+          targetTtb={{
+            noTtb: pendingRemoteDispatchTtb.noTtb,
+            cleanNoTtb: pendingRemoteDispatchTtb.cleanNoTtb,
+            armada: pendingRemoteDispatchTtb.armada,
+            noFpb: pendingRemoteDispatchTtb.noFpb,
+            noPo: pendingRemoteDispatchTtb.noPo,
+            itemSummary: pendingRemoteDispatchTtb.itemSummary,
+            fileUrl: pendingRemoteDispatchTtb.fileUrl,
+          }}
+          dispatchedBy={petugasNama}
+          showToast={showToast}
+          onSuccess={(tokenData) => {
+            const mapKey = tokenData.cleanNoTtb || tokenData.ttbId;
+            setRemoteTokens((prev) => ({
+              ...prev,
+              [mapKey]: tokenData,
+              [tokenData.ttbId]: tokenData,
+              [tokenData.noTtb || '']: tokenData,
+            }));
+            setPendingRemoteDispatchTtb(null);
+            showToast?.('Status TTB berhasil diperbarui ke pengiriman remote!', 'success');
+          }}
+        />
+      )}
+
       {/* Modal Konfirmasi Hapus Rekaman & Sinkronisasi Cloudflare R2 */}
       {confirmDeleteRecord && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-150">
