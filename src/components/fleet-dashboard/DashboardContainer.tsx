@@ -2,6 +2,15 @@
 
 import React, { useState, useMemo, useRef } from 'react';
 import { GlobalFilterState, KPIMetrics, ArmadaDataPoint, MonthlyTrendPoint } from './types';
+import REAL_FLEET_DATA from '@/data/realFleetData.json';
+import {
+  TOP_FLEET_COLORS,
+  MONTH_NAMES_ID,
+  normalizeArmadaName,
+  isMarineArmada,
+  parseDateObj,
+} from './utils';
+
 import GlobalFilterBar from './GlobalFilterBar';
 import KPISummary from './KPISummary';
 import TopArmadaDonutChart from './TopArmadaDonutChart';
@@ -9,28 +18,25 @@ import TopArmadaDemandBar from './TopArmadaDemandBar';
 import MonthlyTrendChart from './MonthlyTrendChart';
 import OperationalSummaryWidget from './OperationalSummaryWidget';
 import ArmadaGanttSchedule from './ArmadaGanttSchedule';
-import REAL_FLEET_DATA from '@/data/realFleetData.json';
-import {
-  normalizeArmadaName,
-  parseDateObj,
-  TOP_FLEET_COLORS,
-  MONTH_NAMES_ID,
-} from './utils';
+import RemainderArmadaModal from './RemainderArmadaModal';
+import ExecutiveTalkingPoints from './ExecutiveTalkingPoints';
 
 interface DashboardContainerProps {
   items?: any[];
-  onOpenAudit?: (fpb: string, po?: string) => void;
+  onOpenAudit?: (item: any) => void;
   initialMonth?: string;
   initialYear?: string;
 }
 
 export default function DashboardContainer({
-  items = [],
+  items,
   onOpenAudit,
   initialMonth = '10', // Default: Oktober 2026
   initialYear = '2026',
 }: DashboardContainerProps) {
   const ganttRef = useRef<HTMLDivElement>(null);
+  const [isRemainderModalOpen, setIsRemainderModalOpen] = useState(false);
+  const [presentationMode, setPresentationMode] = useState(false);
 
   // ==========================================================================
   // 1. STATE MANAJEMEN & FILTER GLOBAL TERPUSAT (Single Source of Truth)
@@ -42,6 +48,8 @@ export default function DashboardContainer({
     selectedArmadaId: null,
     statusFilter: 'ALL',
     searchTerm: '',
+    focusTop12Only: true, // Default: Fokus 12 Besar Murni (Skala 100%)
+    fleetTypeFilter: 'ALL', // 'ALL' | 'MARINE' | 'OFFICE_SITE'
   });
 
   const handleFilterChange = (updates: Partial<GlobalFilterState>) => {
@@ -154,7 +162,15 @@ export default function DashboardContainer({
   // ==========================================================================
   // 4. AGREGASI DONUT CHART: TOP 12 ARMADA + "ARMADA LAINNYA" (Total 100%)
   // ==========================================================================
-  const { topArmadas, totalFpbPeriod } = useMemo(() => {
+  const { topArmadas, totalFpbPeriod, remainderArmadas, totalFpbAllArmadas } = useMemo(() => {
+    // Saring berdasarkan tipe unit: Kapal Saja vs Semua
+    let dataForFleet = filteredData;
+    if (filterState.fleetTypeFilter === 'MARINE') {
+      dataForFleet = dataForFleet.filter((it) => isMarineArmada(it.armada || (it as any).deptArmada));
+    } else if (filterState.fleetTypeFilter === 'OFFICE_SITE') {
+      dataForFleet = dataForFleet.filter((it) => !isMarineArmada(it.armada || (it as any).deptArmada));
+    }
+
     const vesselMap = new Map<string, {
       id: string;
       name: string;
@@ -166,7 +182,7 @@ export default function DashboardContainer({
       items: any[];
     }>();
 
-    for (const it of filteredData) {
+    for (const it of dataForFleet) {
       const rawName = (it.armada || (it as any).deptArmada || '').trim();
       const normName = normalizeArmadaName(rawName);
 
@@ -211,10 +227,33 @@ export default function DashboardContainer({
 
     allVessels.sort((a, b) => b.fpbCount - a.fpbCount);
 
-    const totalFpbCount = allVessels.reduce((acc, curr) => acc + curr.fpbCount, 0);
+    const totalFpbAll = allVessels.reduce((acc, curr) => acc + curr.fpbCount, 0);
 
     const top12 = allVessels.slice(0, 12);
     const remainder = allVessels.slice(12);
+
+    const top12Fpb = top12.reduce((acc, curr) => acc + curr.fpbCount, 0);
+    const remainderFpb = remainder.reduce((acc, curr) => acc + curr.fpbCount, 0);
+
+    const remainderList: ArmadaDataPoint[] = remainder.map((v) => ({
+      id: v.id,
+      name: v.name,
+      normalizedName: v.name,
+      tag: v.tag,
+      fpbCount: v.fpbCount,
+      qtyFPB: v.qtyFPB,
+      qtyFSTB: v.qtyFSTB,
+      backlogQty: v.backlogQty,
+      percentage: totalFpbAll > 0 ? (v.fpbCount / totalFpbAll) * 100 : 0,
+      color: '#64748B',
+      items: v.items,
+      isMarine: isMarineArmada(v.name),
+    }));
+
+    // Basis pembagi: jika fokus 12 besar = top12Fpb (100% Top 12), jika tidak = totalFpbAll
+    const divisor = filterState.focusTop12Only
+      ? (top12Fpb > 0 ? top12Fpb : 1)
+      : (totalFpbAll > 0 ? totalFpbAll : 1);
 
     const list: ArmadaDataPoint[] = top12.map((v, idx) => ({
       id: v.id,
@@ -225,13 +264,14 @@ export default function DashboardContainer({
       qtyFPB: v.qtyFPB,
       qtyFSTB: v.qtyFSTB,
       backlogQty: v.backlogQty,
-      percentage: totalFpbCount > 0 ? (v.fpbCount / totalFpbCount) * 100 : 0,
+      percentage: (v.fpbCount / divisor) * 100,
       color: TOP_FLEET_COLORS[idx] || '#64748B',
       items: v.items,
+      isMarine: isMarineArmada(v.name),
     }));
 
-    if (remainder.length > 0) {
-      const remainderFpb = remainder.reduce((acc, curr) => acc + curr.fpbCount, 0);
+    // Jika TIDAK fokus 12 besar murni dan ada remainder, tambahkan irisan 'Armada Lainnya'
+    if (!filterState.focusTop12Only && remainder.length > 0) {
       const remainderQtyFPB = remainder.reduce((acc, curr) => acc + curr.qtyFPB, 0);
       const remainderQtyFSTB = remainder.reduce((acc, curr) => acc + curr.qtyFSTB, 0);
       const remainderBacklog = remainder.reduce((acc, curr) => acc + curr.backlogQty, 0);
@@ -246,7 +286,7 @@ export default function DashboardContainer({
         qtyFPB: remainderQtyFPB,
         qtyFSTB: remainderQtyFSTB,
         backlogQty: remainderBacklog,
-        percentage: totalFpbCount > 0 ? (remainderFpb / totalFpbCount) * 100 : 0,
+        percentage: (remainderFpb / divisor) * 100,
         color: TOP_FLEET_COLORS[12] || '#64748B',
         items: remainderItems,
       });
@@ -254,9 +294,11 @@ export default function DashboardContainer({
 
     return {
       topArmadas: list,
-      totalFpbPeriod: totalFpbCount,
+      totalFpbPeriod: filterState.focusTop12Only ? top12Fpb : totalFpbAll,
+      remainderArmadas: remainderList,
+      totalFpbAllArmadas: totalFpbAll,
     };
-  }, [filteredData]);
+  }, [filteredData, filterState.focusTop12Only, filterState.fleetTypeFilter]);
 
   // ==========================================================================
   // 5. KALKULASI TREN BULANAN SINKRON DENGAN TOTAL DONUT CHART
@@ -269,7 +311,20 @@ export default function DashboardContainer({
       map.set(mk, { fpbSet: new Set(), qFpb: 0, qFstb: 0 });
     });
 
+    const top12Names = new Set(topArmadas.filter((a) => a.id !== 'OTHERS').map((a) => a.name));
+
     rawDataSource.forEach((it) => {
+      const rawName = (it.armada || (it as any).deptArmada || '').trim();
+      const norm = normalizeArmadaName(rawName);
+
+      // Jika fokus 12 besar, batasi tren bulanan hanya untuk 12 armada juara
+      if (filterState.focusTop12Only && !top12Names.has(norm)) {
+        return;
+      }
+      if (filterState.fleetTypeFilter === 'MARINE' && !isMarineArmada(norm)) {
+        return;
+      }
+
       const d = parseDateObj(it.tglFpb || it.date || it.tglPo || it.tglFstb);
       if (!d) return;
 
@@ -297,18 +352,42 @@ export default function DashboardContainer({
         qtyFSTB: entry?.qFstb || 850,
       };
     });
-  }, [rawDataSource, filterState.bulan, totalFpbPeriod]);
+  }, [rawDataSource, filterState.bulan, filterState.focusTop12Only, filterState.fleetTypeFilter, topArmadas, totalFpbPeriod]);
 
   // ==========================================================================
-  // 6. KALKULASI METRIK KPI (Dukungan Respons Saat Armada Dipilih)
+  // 6. KALKULASI METRIK KPI (Dukungan Respons Saat Armada Dipilih / Fokus 12 Besar)
   // ==========================================================================
   const kpiMetrics = useMemo<KPIMetrics>(() => {
-    const targetData = filterState.selectedArmadaId
-      ? filteredData.filter((it) => {
+    let targetData = filteredData;
+
+    // Saring berdasarkan tipe unit: Kapal Saja vs Semua
+    if (filterState.fleetTypeFilter === 'MARINE') {
+      targetData = targetData.filter((it) => isMarineArmada(it.armada || (it as any).deptArmada));
+    } else if (filterState.fleetTypeFilter === 'OFFICE_SITE') {
+      targetData = targetData.filter((it) => !isMarineArmada(it.armada || (it as any).deptArmada));
+    }
+
+    if (filterState.selectedArmadaId) {
+      if (filterState.selectedArmadaId === 'OTHERS' || filterState.selectedArmadaId === 'Armada Lainnya') {
+        const remainderNames = new Set(remainderArmadas.map((r) => r.name));
+        targetData = targetData.filter((it) => {
+          const rawName = (it.armada || (it as any).deptArmada || '').trim();
+          return remainderNames.has(normalizeArmadaName(rawName));
+        });
+      } else {
+        targetData = targetData.filter((it) => {
           const rawName = (it.armada || (it as any).deptArmada || '').trim();
           return normalizeArmadaName(rawName) === filterState.selectedArmadaId;
-        })
-      : filteredData;
+        });
+      }
+    } else if (filterState.focusTop12Only) {
+      // Jika mode fokus 12 besar aktif dan tidak memilih 1 kapal, batasi data KPI HANYA ke 12 besar!
+      const top12Names = new Set(topArmadas.filter((a) => a.id !== 'OTHERS').map((t) => t.name));
+      targetData = targetData.filter((it) => {
+        const rawName = (it.armada || (it as any).deptArmada || '').trim();
+        return top12Names.has(normalizeArmadaName(rawName));
+      });
+    }
 
     const fpbSet = new Set<string>();
     let totalQtyFPB = 0;
@@ -345,6 +424,10 @@ export default function DashboardContainer({
     const totalFpb = Math.max(fpbSet.size, targetData.length > 0 ? 1 : 0);
     const fulfillmentRate = totalQtyFPB > 0 ? Math.round((totalQtyFSTB / totalQtyFPB) * 100) : 0;
     const topVessel = topArmadas[0];
+    const topVesselRealization =
+      topVessel && topVessel.qtyFPB > 0
+        ? Math.round((topVessel.qtyFSTB / topVessel.qtyFPB) * 100)
+        : 100;
 
     return {
       totalFpb,
@@ -358,8 +441,23 @@ export default function DashboardContainer({
       vesselCount: vesselSet.size,
       topVesselName: topVessel?.name || '-',
       topVesselFpb: topVessel?.fpbCount || 0,
+      topVesselRealization,
+      top12ConcentrationPct:
+        totalFpbAllArmadas > 0
+          ? Math.round((totalFpbPeriod / totalFpbAllArmadas) * 100)
+          : 100,
+      totalAllArmadasFpb: totalFpbAllArmadas,
     };
-  }, [filteredData, filterState.selectedArmadaId, topArmadas]);
+  }, [
+    filteredData,
+    filterState.selectedArmadaId,
+    filterState.focusTop12Only,
+    filterState.fleetTypeFilter,
+    topArmadas,
+    remainderArmadas,
+    totalFpbPeriod,
+    totalFpbAllArmadas,
+  ]);
 
   const activePeriodLabel =
     filterState.bulan !== 'ALL'
@@ -369,7 +467,11 @@ export default function DashboardContainer({
       : 'Semua Periode';
 
   return (
-    <div className="bg-slate-950 text-slate-100 p-4 sm:p-5 rounded-2xl border border-slate-800 shadow-xl space-y-4 transition">
+    <div
+      className={`bg-slate-950 text-slate-100 p-4 sm:p-5 rounded-2xl border border-slate-800 shadow-xl space-y-4 transition ${
+        presentationMode ? 'ring-2 ring-sky-500/50 shadow-2xl p-6' : ''
+      }`}
+    >
       {/* 1. Global Filter Bar Terpusat (Single-Row Compact) */}
       <GlobalFilterBar
         filterState={filterState}
@@ -386,6 +488,18 @@ export default function DashboardContainer({
         periodLabel={activePeriodLabel}
       />
 
+      {/* 2.5 Poin Narasi Presentasi Eksekutif (Executive Talking Points) */}
+      <ExecutiveTalkingPoints
+        metrics={kpiMetrics}
+        topArmadas={topArmadas}
+        focusTop12Only={filterState.focusTop12Only ?? true}
+        fleetTypeFilter={filterState.fleetTypeFilter ?? 'ALL'}
+        periodLabel={activePeriodLabel}
+        totalAllFpb={totalFpbAllArmadas}
+        presentationMode={presentationMode}
+        onTogglePresentationMode={() => setPresentationMode((prev) => !prev)}
+      />
+
       {/* 3. Sistem Grid 2-Kolom Seimbang (Equal Height & Flush Baselines) */}
       <div className="grid grid-cols-12 gap-4 items-stretch">
         {/* Kolom Kiri (col-span-12 lg:col-span-7): Donut Chart + Horizontal Bar Di Bawahnya */}
@@ -398,6 +512,12 @@ export default function DashboardContainer({
               selectedArmadaId={filterState.selectedArmadaId}
               onSelectArmada={(name) => handleFilterChange({ selectedArmadaId: name })}
               periodLabel={activePeriodLabel}
+              focusTop12Only={filterState.focusTop12Only ?? true}
+              onToggleFocusTop12={(val) => handleFilterChange({ focusTop12Only: val })}
+              fleetTypeFilter={filterState.fleetTypeFilter ?? 'ALL'}
+              onFleetTypeChange={(val) => handleFilterChange({ fleetTypeFilter: val })}
+              remainderCount={remainderArmadas.length}
+              onOpenRemainderModal={() => setIsRemainderModalOpen(true)}
             />
           </div>
 
@@ -443,6 +563,17 @@ export default function DashboardContainer({
           onOpenAudit={onOpenAudit}
         />
       </div>
+
+      {/* 5. Modal Rincian Armada di Luar 12 Besar */}
+      <RemainderArmadaModal
+        isOpen={isRemainderModalOpen}
+        onClose={() => setIsRemainderModalOpen(false)}
+        remainderList={remainderArmadas}
+        totalFpbAll={totalFpbAllArmadas}
+        totalRemainderFpb={remainderArmadas.reduce((sum, r) => sum + r.fpbCount, 0)}
+        onSelectArmada={(name) => handleFilterChange({ selectedArmadaId: name })}
+        onFocusTop12Only={() => handleFilterChange({ focusTop12Only: true })}
+      />
     </div>
   );
 }

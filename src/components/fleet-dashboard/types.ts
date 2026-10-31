@@ -5,6 +5,8 @@ export interface GlobalFilterState {
   selectedArmadaId: string | null; // e.g. 'OFFICE GAJ' atau null jika semua armada
   statusFilter: 'ALL' | 'LENGKAP' | 'PROSES' | 'PARSIAL' | 'BACKLOG';
   searchTerm: string;
+  focusTop12Only?: boolean;   // true = Murni 12 Besar (100%), false = + Armada Lainnya (13 Kategori)
+  fleetTypeFilter?: 'ALL' | 'MARINE' | 'OFFICE_SITE'; // 'ALL' = Semua, 'MARINE' = Khusus Kapal Laut, 'OFFICE_SITE' = Kantor/Site
 }
 
 export interface ArmadaDataPoint {
@@ -19,6 +21,7 @@ export interface ArmadaDataPoint {
   percentage: number;
   color: string;
   items: any[];
+  isMarine?: boolean;
 }
 
 export interface KPIMetrics {
@@ -33,6 +36,9 @@ export interface KPIMetrics {
   vesselCount: number;
   topVesselName: string;
   topVesselFpb: number;
+  topVesselRealization?: number;
+  top12ConcentrationPct?: number;
+  totalAllArmadasFpb?: number;
 }
 
 export interface MonthlyTrendPoint {
@@ -42,4 +48,3 @@ export interface MonthlyTrendPoint {
   qtyFPB: number;
   qtyFSTB: number;
 }
-

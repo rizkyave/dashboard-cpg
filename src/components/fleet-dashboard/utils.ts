@@ -108,6 +108,40 @@ export function normalizeArmadaName(name?: string | null): string {
 }
 
 /**
+ * Deteksi apakah nama armada tergolong unit kapal laut (Marine Fleet)
+ * vs unit kantor operasional darat / site / departemen
+ */
+export function isMarineArmada(name?: string | null): boolean {
+  if (!name) return false;
+  const n = normalizeArmadaName(name).toUpperCase();
+  // Daftar eksplisit Office / Site / Non-Kapal / Departemen
+  if (
+    n.includes('OFFICE') ||
+    n.includes('SITE') ||
+    n.includes('DEPT') ||
+    n.includes('PROCUREMENT') ||
+    n.includes('GUDANG') ||
+    n.includes('WORKSHOP') ||
+    n.includes('KANTOR') ||
+    n.includes('LOGISTIK') ||
+    n.includes('POOL') ||
+    n.includes('SECURITY') ||
+    n.includes('HRD') ||
+    n.includes('FINANCE') ||
+    n.includes('ACCOUNTING') ||
+    n.includes('MES') ||
+    n.includes('MESS') ||
+    n === 'GAJ' ||
+    n === 'HO' ||
+    n === 'OTHERS' ||
+    n === 'ARMADA LAINNYA'
+  ) {
+    return false;
+  }
+  return true;
+}
+
+/**
  * Parser Tanggal Serbaguna (DMY, ISO, Serial Excel, Teks Indonesia)
  */
 export function parseDateObj(val: any): Date | null {

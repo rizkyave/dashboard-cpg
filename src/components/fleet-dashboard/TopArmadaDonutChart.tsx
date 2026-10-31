@@ -9,7 +9,16 @@ import {
 } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
 import { ArmadaDataPoint } from './types';
-import { PieChart, X } from 'lucide-react';
+import {
+  PieChart,
+  X,
+  Target,
+  Globe,
+  Ship,
+  Anchor,
+  ListOrdered,
+  Sparkles,
+} from 'lucide-react';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -19,6 +28,12 @@ interface TopArmadaDonutChartProps {
   selectedArmadaId: string | null;
   onSelectArmada: (armadaName: string | null) => void;
   periodLabel: string;
+  focusTop12Only?: boolean;
+  onToggleFocusTop12?: (val: boolean) => void;
+  fleetTypeFilter?: 'ALL' | 'MARINE' | 'OFFICE_SITE';
+  onFleetTypeChange?: (val: 'ALL' | 'MARINE' | 'OFFICE_SITE') => void;
+  remainderCount?: number;
+  onOpenRemainderModal?: () => void;
 }
 
 export default function TopArmadaDonutChart({
@@ -27,6 +42,12 @@ export default function TopArmadaDonutChart({
   selectedArmadaId,
   onSelectArmada,
   periodLabel,
+  focusTop12Only = true,
+  onToggleFocusTop12,
+  fleetTypeFilter = 'ALL',
+  onFleetTypeChange,
+  remainderCount = 0,
+  onOpenRemainderModal,
 }: TopArmadaDonutChartProps) {
   // Chart.js Data Memoization
   const chartData = useMemo(() => {
@@ -90,28 +111,32 @@ export default function TopArmadaDonutChart({
           const idx = elements[0].index;
           const clicked = armadaList[idx];
           if (clicked) {
-            onSelectArmada(selectedArmadaId === clicked.name ? null : clicked.name);
+            if (clicked.id === 'OTHERS' && onOpenRemainderModal) {
+              onOpenRemainderModal();
+            } else {
+              onSelectArmada(selectedArmadaId === clicked.name ? null : clicked.name);
+            }
           }
         } else {
           onSelectArmada(null);
         }
       },
     };
-  }, [armadaList, selectedArmadaId, totalFpb, onSelectArmada]);
+  }, [armadaList, selectedArmadaId, totalFpb, onSelectArmada, onOpenRemainderModal]);
 
   return (
-    <div className="bg-slate-900/80 border border-slate-800/80 rounded-xl p-4 shadow-md backdrop-blur-md flex flex-col justify-between h-full">
+    <div className="bg-slate-900/80 border border-slate-800/80 rounded-xl p-4 shadow-md backdrop-blur-md flex flex-col justify-between h-full space-y-3">
       {/* Header Donut Chart Compact */}
-      <div className="flex items-center justify-between pb-2.5 border-b border-slate-800/80 gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2.5 border-b border-slate-800/80 gap-2.5">
         <div className="flex items-center gap-2">
           <div className="size-7 rounded-lg bg-pink-500/10 border border-pink-500/30 text-pink-400 flex items-center justify-center shrink-0">
             <PieChart className="size-3.5" />
           </div>
           <div>
-            <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+            <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5 flex-wrap">
               <span>12 ARMADA DENGAN PERMINTAAN FPB TERBANYAK</span>
               <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-pink-500/20 text-pink-300 border border-pink-500/30">
-                2D Donut
+                {focusTop12Only ? 'Top 12 (100%)' : '12 + Lainnya'}
               </span>
             </h4>
             <p className="text-[11px] text-slate-400">
@@ -120,10 +145,76 @@ export default function TopArmadaDonutChart({
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 shrink-0">
+        {/* Dual Control Pills: 1) Fokus 12 vs Lainnya, 2) Marine vs Semua */}
+        <div className="flex items-center gap-1.5 flex-wrap shrink-0">
+          {/* Segmented Control 1: Fokus 12 Besar vs + Lainnya */}
+          {onToggleFocusTop12 && (
+            <div className="inline-flex rounded-lg bg-slate-800/90 p-0.5 border border-slate-700 text-[11px]">
+              <button
+                type="button"
+                onClick={() => onToggleFocusTop12(true)}
+                className={`px-2 py-0.5 rounded-md font-semibold transition cursor-pointer flex items-center gap-1 ${
+                  focusTop12Only
+                    ? 'bg-sky-500 text-slate-950 shadow-xs'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+                title="Kunci perhitungan dan irisan grafik hanya pada 12 besar (skala 100%)"
+              >
+                <Target className="size-3" />
+                <span>12 Besar Saja</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => onToggleFocusTop12(false)}
+                className={`px-2 py-0.5 rounded-md font-semibold transition cursor-pointer flex items-center gap-1 ${
+                  !focusTop12Only
+                    ? 'bg-sky-500 text-slate-950 shadow-xs'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+                title="Tampilkan 12 armada + 1 kategori gabungan Armada Lainnya"
+              >
+                <Globe className="size-3" />
+                <span>+ Lainnya</span>
+              </button>
+            </div>
+          )}
+
+          {/* Segmented Control 2: Khusus Kapal Laut vs Semua */}
+          {onFleetTypeChange && (
+            <div className="inline-flex rounded-lg bg-slate-800/90 p-0.5 border border-slate-700 text-[11px]">
+              <button
+                type="button"
+                onClick={() => onFleetTypeChange('ALL')}
+                className={`px-2 py-0.5 rounded-md font-semibold transition cursor-pointer flex items-center gap-1 ${
+                  fleetTypeFilter === 'ALL'
+                    ? 'bg-teal-500 text-slate-950 shadow-xs'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+                title="Tampilkan semua unit (termasuk Office & Site darat)"
+              >
+                <span>Semua</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => onFleetTypeChange('MARINE')}
+                className={`px-2 py-0.5 rounded-md font-semibold transition cursor-pointer flex items-center gap-1 ${
+                  fleetTypeFilter === 'MARINE'
+                    ? 'bg-teal-500 text-slate-950 shadow-xs'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+                title="Khusus unit kapal laut operasional (SPOB, Tugboat, Tongkang, Supply Vessel)"
+              >
+                <Ship className="size-3" />
+                <span>Kapal Saja</span>
+              </button>
+            </div>
+          )}
+
+          {/* Active Period Label */}
           <span className="px-2 py-0.5 rounded font-mono text-[10px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">
             {periodLabel}
           </span>
+
           {selectedArmadaId && (
             <button
               type="button"
@@ -138,9 +229,9 @@ export default function TopArmadaDonutChart({
       </div>
 
       {/* Konten Horizontal Inline: Donut Kiri + 2 Kolom Legenda Kanan */}
-      <div className="flex flex-col sm:flex-row items-center gap-4 pt-2">
+      <div className="flex flex-col sm:flex-row items-center gap-4 pt-1">
         {/* Sisi Kiri: Donut Chart Proporsional (~200px - 220px) */}
-        <div className="w-[200px] h-[200px] sm:w-[210px] sm:h-[210px] relative shrink-0 flex items-center justify-center">
+        <div className="w-[200px] h-[200px] sm:w-[215px] sm:h-[215px] relative shrink-0 flex items-center justify-center">
           {armadaList.length > 0 ? (
             <Doughnut data={chartData} options={chartOptions as any} />
           ) : (
@@ -156,30 +247,53 @@ export default function TopArmadaDonutChart({
               {totalFpb.toLocaleString('id-ID')}
             </span>
             <span className="text-[10px] font-semibold text-teal-400 truncate max-w-[130px]">
-              {selectedArmadaId ? selectedArmadaId : '12 Armada + Lainnya'}
+              {selectedArmadaId
+                ? selectedArmadaId
+                : focusTop12Only
+                ? '🎯 12 Besar (100%)'
+                : '12 Armada + Lainnya'}
             </span>
           </div>
         </div>
 
-        {/* Sisi Kanan: 2 Kolom List Legenda Armada yang Padat (py-1 text-xs) */}
+        {/* Sisi Kanan: 2 Kolom List Legenda Armada yang Padat */}
         <div className="flex-1 w-full grid grid-cols-2 gap-1.5 text-xs">
           {armadaList.map((item, idx) => {
             const isSelected = selectedArmadaId === item.name;
-            const rankText = idx < 12 ? `#${idx + 1}` : '•';
+            const isOthers = item.id === 'OTHERS';
+
+            // Medali untuk Top 3
+            let rankBadge: React.ReactNode = `#${idx + 1}`;
+            if (idx === 0) rankBadge = <span title="Juara 1 Permintaan">🥇</span>;
+            else if (idx === 1) rankBadge = <span title="Juara 2 Permintaan">🥈</span>;
+            else if (idx === 2) rankBadge = <span title="Juara 3 Permintaan">🥉</span>;
+            else if (isOthers) rankBadge = <span className="text-slate-400 font-bold">•</span>;
 
             return (
               <button
                 key={item.id}
                 type="button"
-                onClick={() => onSelectArmada(selectedArmadaId === item.name ? null : item.name)}
+                onClick={() => {
+                  if (isOthers && onOpenRemainderModal) {
+                    onOpenRemainderModal();
+                  } else {
+                    onSelectArmada(selectedArmadaId === item.name ? null : item.name);
+                  }
+                }}
                 className={`flex items-center justify-between py-1 px-2 rounded-lg border text-left transition cursor-pointer group ${
                   isSelected
                     ? 'bg-sky-500/25 border-sky-400 text-white shadow-sm ring-1 ring-sky-400/50'
+                    : isOthers
+                    ? 'bg-slate-850/80 hover:bg-slate-800 border-dashed border-slate-700 text-slate-300'
                     : selectedArmadaId
                     ? 'bg-slate-800/40 border-slate-800/80 text-slate-500 opacity-60 hover:opacity-100 hover:bg-slate-800'
                     : 'bg-slate-800/60 hover:bg-slate-800 border-slate-700/60 text-slate-300'
                 }`}
-                title={`${item.name} (${item.fpbCount} FPB - ${item.percentage.toFixed(1)}%)`}
+                title={
+                  isOthers
+                    ? `${item.name} (${item.fpbCount} FPB - ${item.percentage.toFixed(1)}%). Klik untuk melihat rincian seluruh armada lainnya.`
+                    : `${item.name} (${item.fpbCount} FPB - ${item.percentage.toFixed(1)}%)`
+                }
               >
                 <div className="flex items-center gap-1.5 min-w-0 flex-1 mr-1.5">
                   <span
@@ -187,11 +301,16 @@ export default function TopArmadaDonutChart({
                     style={{ backgroundColor: item.color }}
                   />
                   <span className="font-mono text-[9px] text-slate-400 font-bold shrink-0">
-                    {rankText}
+                    {rankBadge}
                   </span>
                   <span className="truncate text-[11px] font-medium group-hover:text-white transition">
                     {item.name}
                   </span>
+                  {isOthers && remainderCount > 0 && (
+                    <span className="px-1 py-0.2 rounded text-[8px] font-mono bg-sky-500/20 text-sky-300 border border-sky-500/30 shrink-0">
+                      Rincian
+                    </span>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-1 shrink-0 font-mono text-[10px]">
@@ -206,6 +325,25 @@ export default function TopArmadaDonutChart({
             );
           })}
         </div>
+      </div>
+
+      {/* Footer Sub-indicator */}
+      <div className="pt-1 flex items-center justify-between text-[10px] text-slate-400 font-mono border-t border-slate-800/60">
+        <span>
+          {focusTop12Only
+            ? '🎯 Menampilkan murni 12 armada teratas (Skala 100%)'
+            : `🌐 Menampilkan 12 armada teratas + Armada Lainnya (${remainderCount} unit)`}
+        </span>
+        {focusTop12Only && remainderCount > 0 && onOpenRemainderModal && (
+          <button
+            type="button"
+            onClick={onOpenRemainderModal}
+            className="text-sky-400 hover:text-sky-300 hover:underline cursor-pointer flex items-center gap-1"
+          >
+            <span>Lihat {remainderCount} armada lainnya</span>
+            <ListOrdered className="size-2.5" />
+          </button>
+        )}
       </div>
     </div>
   );
