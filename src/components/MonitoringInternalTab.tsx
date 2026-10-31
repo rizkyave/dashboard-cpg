@@ -627,7 +627,20 @@ export default function MonitoringInternalTab({
     const fetchWebhookConfig = async () => {
       try {
         const res = await fetch('/api/monitoring-internal');
-        const json = await res.json();
+        const contentType = res.headers.get('content-type') || '';
+      const text = await res.text();
+      let json: any = null;
+      if (contentType.includes('application/json') || (!text.trim().startsWith('<') && text.trim().startsWith('{'))) {
+        try {
+          json = JSON.parse(text);
+        } catch {
+          // ignore
+        }
+      }
+      if (!json) {
+        showToast?.('Respon server bukan format data JSON atau server mengembalikan error.', 'error');
+        return;
+      }
         if (json.success && json.webhookUrl) {
           setWebhookUrl(json.webhookUrl);
           setIsWebhookConfigured(true);
@@ -759,7 +772,20 @@ export default function MonitoringInternalTab({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: GOOGLE_SHEET_URL }),
       });
-      const json = await res.json();
+      const contentType = res.headers.get('content-type') || '';
+      const text = await res.text();
+      let json: any = null;
+      if (contentType.includes('application/json') || (!text.trim().startsWith('<') && text.trim().startsWith('{'))) {
+        try {
+          json = JSON.parse(text);
+        } catch {
+          // ignore
+        }
+      }
+      if (!json) {
+        showToast?.('Respon server bukan format data JSON atau server mengembalikan error.', 'error');
+        return;
+      }
       if (json.success && Array.isArray(json.procurement)) {
         setLocalItems(json.procurement);
         onSyncSuccess?.(json.procurement);
@@ -1088,7 +1114,20 @@ export default function MonitoringInternalTab({
           updates: updates,
         }),
       });
-      const json = await res.json();
+      const contentType = res.headers.get('content-type') || '';
+      const text = await res.text();
+      let json: any = null;
+      if (contentType.includes('application/json') || (!text.trim().startsWith('<') && text.trim().startsWith('{'))) {
+        try {
+          json = JSON.parse(text);
+        } catch {
+          // ignore
+        }
+      }
+      if (!json) {
+        showToast?.('Respon server bukan format data JSON atau server mengembalikan error.', 'error');
+        return;
+      }
       if (json.success) {
         if (json.googleSync) {
           showToast?.(
@@ -1212,7 +1251,20 @@ export default function MonitoringInternalTab({
         }),
       });
 
-      const json = await res.json();
+      const contentType = res.headers.get('content-type') || '';
+      const text = await res.text();
+      let json: any = null;
+      if (contentType.includes('application/json') || (!text.trim().startsWith('<') && text.trim().startsWith('{'))) {
+        try {
+          json = JSON.parse(text);
+        } catch {
+          // ignore
+        }
+      }
+      if (!json) {
+        showToast?.('Respon server bukan format data JSON atau server mengembalikan error.', 'error');
+        return;
+      }
 
       if (json.success) {
         setLocalItems((prev) => {
@@ -1302,7 +1354,20 @@ export default function MonitoringInternalTab({
           webhookUrl,
         }),
       });
-      const json = await res.json();
+      const contentType = res.headers.get('content-type') || '';
+      const text = await res.text();
+      let json: any = null;
+      if (contentType.includes('application/json') || (!text.trim().startsWith('<') && text.trim().startsWith('{'))) {
+        try {
+          json = JSON.parse(text);
+        } catch {
+          // ignore
+        }
+      }
+      if (!json) {
+        showToast?.('Respon server bukan format data JSON atau server mengembalikan error.', 'error');
+        return;
+      }
       if (json.success) {
         setIsWebhookConfigured(!!webhookUrl.trim());
         showToast?.(json.message, 'success');
@@ -1332,7 +1397,20 @@ export default function MonitoringInternalTab({
           webhookUrl,
         }),
       });
-      const json = await res.json();
+      const contentType = res.headers.get('content-type') || '';
+      const text = await res.text();
+      let json: any = null;
+      if (contentType.includes('application/json') || (!text.trim().startsWith('<') && text.trim().startsWith('{'))) {
+        try {
+          json = JSON.parse(text);
+        } catch {
+          // ignore
+        }
+      }
+      if (!json) {
+        showToast?.('Respon server bukan format data JSON atau server mengembalikan error.', 'error');
+        return;
+      }
       if (json.success) {
         setWebhookStatus({ checked: true, active: true, message: json.message });
         showToast?.(json.message, 'success');
@@ -1351,7 +1429,20 @@ export default function MonitoringInternalTab({
   const handleCopyAppsScript = async () => {
     try {
       const res = await fetch('/api/monitoring-internal?script=true');
-      const json = await res.json();
+      const contentType = res.headers.get('content-type') || '';
+      const text = await res.text();
+      let json: any = null;
+      if (contentType.includes('application/json') || (!text.trim().startsWith('<') && text.trim().startsWith('{'))) {
+        try {
+          json = JSON.parse(text);
+        } catch {
+          // ignore
+        }
+      }
+      if (!json) {
+        showToast?.('Respon server bukan format data JSON atau server mengembalikan error.', 'error');
+        return;
+      }
       if (json.success && json.script) {
         await navigator.clipboard.writeText(json.script);
         setCopiedScript(true);

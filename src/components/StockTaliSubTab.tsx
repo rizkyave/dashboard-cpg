@@ -114,6 +114,32 @@ const INITIAL_STOCK_TALI_FORM: Partial<StockTaliItem> = {
   keteranganPch: '',
 };
 
+// Helper fetch JSON aman untuk mencegah error Unexpected token '<'
+async function safeFetchJson<T = any>(url: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(url, options);
+  const contentType = res.headers.get('content-type') || '';
+  const text = await res.text();
+
+  if (!contentType.includes('application/json') || text.trim().startsWith('<')) {
+    if (res.status === 404) {
+      throw new Error(`Endpoint API tidak ditemukan (HTTP 404). Silakan refresh halaman atau periksa rute server.`);
+    }
+    if (res.status === 500) {
+      throw new Error(`Terjadi kendala server internal (HTTP 500). Silakan coba beberapa saat lagi.`);
+    }
+    if (text.includes('Halaman Tidak Ditemukan') || text.includes('<!DOCTYPE') || text.includes('<html')) {
+      throw new Error(`Server atau Google Sheets merespons halaman HTML (HTTP ${res.status}), bukan data JSON.`);
+    }
+    throw new Error(`Server mengembalikan respon tidak terduga (HTTP ${res.status}).`);
+  }
+
+  try {
+    return JSON.parse(text) as T;
+  } catch (err: any) {
+    throw new Error(`Respon server bukan format JSON yang valid: ${err.message}`);
+  }
+}
+
 export default function StockTaliSubTab({ showToast, onCountChange }: StockTaliSubTabProps) {
   // Data state
   const [items, setItems] = useState<StockTaliItem[]>(() => {
@@ -177,8 +203,7 @@ export default function StockTaliSubTab({ showToast, onCountChange }: StockTaliS
   useEffect(() => {
     async function loadInitial() {
       try {
-        const res = await fetch('/api/sync-stock-tali');
-        const json = await res.json();
+        const json = await safeFetchJson('/api/sync-stock-tali');
         if (json.success) {
           if (Array.isArray(json.items) && json.items.length > 0) {
             setItems(json.items);
@@ -193,12 +218,11 @@ export default function StockTaliSubTab({ showToast, onCountChange }: StockTaliS
             setIsWebhookConfigured(true);
 
             // Tes koneksi latar belakang
-            fetch('/api/sync-stock-tali', {
+            safeFetchJson('/api/sync-stock-tali', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ action: 'test_webhook', webhookUrl: json.webhookUrl }),
             })
-              .then((r) => r.json())
               .then((testRes) => {
                 setWebhookStatus({
                   checked: true,
@@ -226,12 +250,11 @@ export default function StockTaliSubTab({ showToast, onCountChange }: StockTaliS
   const handleSyncGoogleSheet = async () => {
     setIsSyncing(true);
     try {
-      const res = await fetch('/api/sync-stock-tali', {
+      const json = await safeFetchJson('/api/sync-stock-tali', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'sync_csv', url: GOOGLE_SHEET_URL }),
       });
-      const json = await res.json();
       if (json.success && Array.isArray(json.items)) {
         setItems(json.items);
         setLastSyncTime(json.updatedAt);
@@ -318,7 +341,7 @@ export default function StockTaliSubTab({ showToast, onCountChange }: StockTaliS
     const isNew = !editingItem;
 
     try {
-      const res = await fetch('/api/sync-stock-tali', {
+      const json = await safeFetchJson('/api/sync-stock-tali', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -326,8 +349,6 @@ export default function StockTaliSubTab({ showToast, onCountChange }: StockTaliS
           data: formData,
         }),
       });
-
-      const json = await res.json();
 
       if (json.success) {
         setItems((prev) => {
@@ -415,7 +436,7 @@ export default function StockTaliSubTab({ showToast, onCountChange }: StockTaliS
 
     // 2. Kirim update ke server & auto-save Google Sheets
     try {
-      const res = await fetch('/api/sync-stock-tali', {
+      const json = await safeFetchJson('/api/sync-stock-tali', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -423,7 +444,6 @@ export default function StockTaliSubTab({ showToast, onCountChange }: StockTaliS
           data: updatedItem,
         }),
       });
-      const json = await res.json();
       if (json.success) {
         if (json.googleSync) {
           showToast?.(`✓ ${label} untuk No. ${item.no} (${item.deptArmada}) tersimpan & AUTO-SAVE ke Google Sheet!`, 'success');
@@ -442,7 +462,7 @@ export default function StockTaliSubTab({ showToast, onCountChange }: StockTaliS
   const handleSaveWebhook = async () => {
     setIsSavingWebhook(true);
     try {
-      const res = await fetch('/api/sync-stock-tali', {
+      const json = await safeFetchJson('/api/sync-stock-tali', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -450,7 +470,6 @@ export default function StockTaliSubTab({ showToast, onCountChange }: StockTaliS
           webhookUrl,
         }),
       });
-      const json = await res.json();
       if (json.success) {
         setIsWebhookConfigured(!!webhookUrl.trim());
         showToast?.(json.message, 'success');
@@ -472,7 +491,7 @@ export default function StockTaliSubTab({ showToast, onCountChange }: StockTaliS
     setIsTestingWebhook(true);
     setWebhookStatus(null);
     try {
-      const res = await fetch('/api/sync-stock-tali', {
+      const json = await safeFetchJson('/api/sync-stock-tali', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -480,7 +499,6 @@ export default function StockTaliSubTab({ showToast, onCountChange }: StockTaliS
           webhookUrl,
         }),
       });
-      const json = await res.json();
       if (json.success) {
         setWebhookStatus({ checked: true, active: true, message: json.message });
         showToast?.(json.message, 'success');
@@ -498,8 +516,7 @@ export default function StockTaliSubTab({ showToast, onCountChange }: StockTaliS
 
   const handleCopyScript = async () => {
     try {
-      const res = await fetch('/api/sync-stock-tali?script=true');
-      const json = await res.json();
+      const json = await safeFetchJson('/api/sync-stock-tali?script=true');
       if (json.success && json.script) {
         navigator.clipboard.writeText(json.script);
         setCopiedScript(true);

@@ -255,6 +255,32 @@ export async function GET(req: NextRequest) {
     }
 
     const csvText = await res.text();
+
+    // Lindungi dari respon HTML jika Google Sheets mengalihkan ke login
+    if (csvText.includes('<!DOCTYPE') || csvText.includes('<html') || csvText.includes('accounts.google.com')) {
+      if (storedItems.length > 0) {
+        const summary = computeSummary(storedItems);
+        return NextResponse.json({
+          success: true,
+          updatedAt: new Date().toISOString(),
+          sourceUrl: STOCK_TALI_SHEET_URL,
+          total: storedItems.length,
+          items: storedItems,
+          summary,
+          webhookUrl: webhookUrl || '',
+          isWebhookConfigured: !!webhookUrl,
+          warning: 'Google Sheets mengalihkan ke login Google, menampilkan data mutasi tersimpan.',
+        });
+      }
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Google Sheets mengembalikan halaman login HTML. Pastikan setelan akses spreadsheet adalah "Siapa saja yang memiliki tautan dapat melihat".',
+        },
+        { status: 403 }
+      );
+    }
+
     const items = parseCsvRows(csvText);
     const summary = computeSummary(items);
     const updatedAt = new Date().toISOString();
@@ -394,6 +420,31 @@ export async function POST(req: NextRequest) {
       }
 
       const csvText = await res.text();
+
+      // Lindungi dari respon HTML jika Google Sheets mengalihkan ke login
+      if (csvText.includes('<!DOCTYPE') || csvText.includes('<html') || csvText.includes('accounts.google.com')) {
+        const stored = await getStoredStockTali();
+        if (stored.length > 0) {
+          const summary = computeSummary(stored);
+          return NextResponse.json({
+            success: true,
+            message: 'Google Sheets mengalihkan ke halaman login, menampilkan data mutasi tersimpan.',
+            updatedAt: new Date().toISOString(),
+            sourceUrl: STOCK_TALI_SHEET_URL,
+            total: stored.length,
+            items: stored,
+            summary,
+          });
+        }
+        return NextResponse.json(
+          {
+            success: false,
+            message: 'Google Sheets mengembalikan halaman login HTML. Pastikan setelan akses spreadsheet adalah "Siapa saja yang memiliki tautan dapat melihat".',
+          },
+          { status: 403 }
+        );
+      }
+
       const items = parseCsvRows(csvText);
       const summary = computeSummary(items);
       const updatedAt = new Date().toISOString();
