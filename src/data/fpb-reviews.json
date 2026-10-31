@@ -1193,7 +1193,7 @@
     "entity": "HL",
     "armada": "HOPPER BARGE CAKRA 10",
     "date": "29/10/26",
-    "purpose": "Kebutuhan Operasional HOPPER BARGE CAKRA 10",
+    "purpose": "U/ PERGANTIAN YANG RUSAK",
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_HL-FPB-26-0001535.pdf",
@@ -1201,7 +1201,23 @@
     "urgency": "NORMAL",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "ELE00103001-SNK",
+        "itemName": "DISPENSER AIR MINUM GALON BAWAH E500 (SANKEN)",
+        "qty": 1,
+        "unit": "UNT",
+        "description": "U/ PERGANTIAN YANG RUSAK",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[ELEK-ELE001] ELEKTRONIK - DISPENSER AIR MINUM (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
     "attachments": [],
     "duplicateAlerts": [],
     "relatedDocs": {
@@ -1209,12 +1225,13 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T13:14:25.535Z",
+    "updatedAt": "2026-10-29T16:10:21.921Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
     "slaDaysRemaining": 29,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "requestedBy": "Iqbal Polejiwa"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001131",

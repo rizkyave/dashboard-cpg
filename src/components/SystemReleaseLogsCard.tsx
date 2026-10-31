@@ -300,3 +300,4 @@ export default function SystemReleaseLogsCard({ isAdmin, showToast }: SystemRele
     </div>
   );
 }
+

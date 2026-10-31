@@ -1,5 +1,444 @@
 [
   {
+    "id": "notif-1793411230962-a4syg",
+    "type": "TTB_DISPATCHED",
+    "title": "📦 TTB Dikirim via Pihak Ketiga / Remote",
+    "message": "Pengiriman TTB CPL-TTB-26-07570 ke TB PMI ABADI dititipkan via Ekspedisi Lokal (Travel Samarinda). Tautan serah terima mandiri telah diterbitkan.",
+    "senderName": "Administrator CPG (Tim Lapangan)",
+    "senderUsername": "logistik",
+    "senderRole": "Staf Logistik",
+    "targetRole": "manager",
+    "linkTab": "serah-terima",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07570",
+      "armada": "TB PMI ABADI",
+      "noPo": "CPL-PO-26-05770",
+      "noFpb": "CPL-FPB-26-0004960",
+      "shippingMethod": "Ekspedisi Lokal",
+      "carrierContact": "Travel Samarinda",
+      "recipientName": "Hermansyah",
+      "itemSummary": "BY PASS PAK NILO"
+    },
+    "createdAt": "2026-10-31T01:47:10.962Z",
+    "readBy": [
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1793353762429-svamu",
+    "type": "FSTB_UPLOADED",
+    "title": "📦 Dokumen FSTB Baru Siap Diproses TTB",
+    "message": "User LUTFI ANDRIANTO NUGROHO telah mengunggah 1 berkas FSTB HL-FSTB-26-01915 (SPOB CINTIANA PRATAMA). Mohon diproses untuk persiapan penerimaan & TTB.",
+    "senderName": "LUTFI ANDRIANTO NUGROHO",
+    "senderUsername": "lutfi.andrianto",
+    "senderRole": "staf_purchasing",
+    "targetRole": "staf_ttb",
+    "linkTab": "monitoring-internal",
+    "metadata": {
+      "noFstb": "HL-FSTB-26-01915",
+      "armada": "SPOB CINTIANA PRATAMA",
+      "noPo": "HL-PO-26-01743",
+      "noFpb": "HL-FPB-26-0001488",
+      "fileCount": 1,
+      "renamedFileName": "HL-FSTB-26-01915.pdf",
+      "fileUrl": "/api/r2-file?key=fstb-documents%2FHL-FSTB-26-01915.pdf"
+    },
+    "createdAt": "2026-10-30T09:49:22.429Z",
+    "readBy": [
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1793353757323-9vrql",
+    "type": "FSTB_UPLOADED",
+    "title": "📦 Dokumen FSTB Baru Siap Diproses TTB",
+    "message": "User LUTFI ANDRIANTO NUGROHO telah mengunggah 1 berkas FSTB HL-FSTB-26-01914 (SPOB CINTIANA PRATAMA). Mohon diproses untuk persiapan penerimaan & TTB.",
+    "senderName": "LUTFI ANDRIANTO NUGROHO",
+    "senderUsername": "lutfi.andrianto",
+    "senderRole": "staf_purchasing",
+    "targetRole": "staf_ttb",
+    "linkTab": "monitoring-internal",
+    "metadata": {
+      "noFstb": "HL-FSTB-26-01914",
+      "armada": "SPOB CINTIANA PRATAMA",
+      "noPo": "HL-PO-26-01742",
+      "noFpb": "HL-FPB-26-0001489",
+      "fileCount": 1,
+      "renamedFileName": "HL-FSTB-26-01914.pdf",
+      "fileUrl": "/api/r2-file?key=fstb-documents%2FHL-FSTB-26-01914.pdf"
+    },
+    "createdAt": "2026-10-30T09:49:17.323Z",
+    "readBy": [
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1793353751863-vgrr0",
+    "type": "FSTB_UPLOADED",
+    "title": "📦 Dokumen FSTB Baru Siap Diproses TTB",
+    "message": "User LUTFI ANDRIANTO NUGROHO telah mengunggah 1 berkas FSTB GAJ-FSTB-26-01231 (TB GAJ 02). Mohon diproses untuk persiapan penerimaan & TTB.",
+    "senderName": "LUTFI ANDRIANTO NUGROHO",
+    "senderUsername": "lutfi.andrianto",
+    "senderRole": "staf_purchasing",
+    "targetRole": "staf_ttb",
+    "linkTab": "monitoring-internal",
+    "metadata": {
+      "noFstb": "GAJ-FSTB-26-01231",
+      "armada": "TB GAJ 02",
+      "noPo": "GAJ-PO-26-01171",
+      "noFpb": "GAJ-FPB-26-0001059",
+      "fileCount": 1,
+      "renamedFileName": "GAJ-FSTB-26-01231.pdf",
+      "fileUrl": "/api/r2-file?key=fstb-documents%2FGAJ-FSTB-26-01231.pdf"
+    },
+    "createdAt": "2026-10-30T09:49:11.863Z",
+    "readBy": [
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1793353747088-lbajv",
+    "type": "FSTB_UPLOADED",
+    "title": "📦 Dokumen FSTB Baru Siap Diproses TTB",
+    "message": "User LUTFI ANDRIANTO NUGROHO telah mengunggah 1 berkas FSTB CPL-FSTB-26-06361 (TB MAPAN 1405). Mohon diproses untuk persiapan penerimaan & TTB.",
+    "senderName": "LUTFI ANDRIANTO NUGROHO",
+    "senderUsername": "lutfi.andrianto",
+    "senderRole": "staf_purchasing",
+    "targetRole": "staf_ttb",
+    "linkTab": "monitoring-internal",
+    "metadata": {
+      "noFstb": "CPL-FSTB-26-06361",
+      "armada": "TB MAPAN 1405",
+      "noPo": "CPL-PO-26-05714",
+      "noFpb": "CPL-FPB-26-0003829",
+      "fileCount": 1,
+      "renamedFileName": "CPL-FSTB-26-06361.pdf",
+      "fileUrl": "/api/r2-file?key=fstb-documents%2FCPL-FSTB-26-06361.pdf"
+    },
+    "createdAt": "2026-10-30T09:49:07.088Z",
+    "readBy": [
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1793353742676-yi926",
+    "type": "FSTB_UPLOADED",
+    "title": "📦 Dokumen FSTB Baru Siap Diproses TTB",
+    "message": "User LUTFI ANDRIANTO NUGROHO telah mengunggah 1 berkas FSTB CPL-FSTB-26-06360 (SPOB ROYAL REY 3001). Mohon diproses untuk persiapan penerimaan & TTB.",
+    "senderName": "LUTFI ANDRIANTO NUGROHO",
+    "senderUsername": "lutfi.andrianto",
+    "senderRole": "staf_purchasing",
+    "targetRole": "staf_ttb",
+    "linkTab": "monitoring-internal",
+    "metadata": {
+      "noFstb": "CPL-FSTB-26-06360",
+      "armada": "SPOB ROYAL REY 3001",
+      "noPo": "CPL-PO-26-05715",
+      "noFpb": "CPL-FPB-26-0003624",
+      "fileCount": 1,
+      "renamedFileName": "CPL-FSTB-26-06360.pdf",
+      "fileUrl": "/api/r2-file?key=fstb-documents%2FCPL-FSTB-26-06360.pdf"
+    },
+    "createdAt": "2026-10-30T09:49:02.676Z",
+    "readBy": [
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1793353736733-95jgq",
+    "type": "FSTB_UPLOADED",
+    "title": "📦 Dokumen FSTB Baru Siap Diproses TTB",
+    "message": "User LUTFI ANDRIANTO NUGROHO telah mengunggah 1 berkas FSTB CPL-FSTB-26-06341 (HEAD OFFICE). Mohon diproses untuk persiapan penerimaan & TTB.",
+    "senderName": "LUTFI ANDRIANTO NUGROHO",
+    "senderUsername": "lutfi.andrianto",
+    "senderRole": "staf_purchasing",
+    "targetRole": "staf_ttb",
+    "linkTab": "monitoring-internal",
+    "metadata": {
+      "noFstb": "CPL-FSTB-26-06341",
+      "armada": "HEAD OFFICE",
+      "noPo": "CPL-PO-26-05687",
+      "noFpb": "CPL-FPB-26-0004895",
+      "fileCount": 1,
+      "renamedFileName": "CPL-FSTB-26-06341.pdf",
+      "fileUrl": "/api/r2-file?key=fstb-documents%2FCPL-FSTB-26-06341.pdf"
+    },
+    "createdAt": "2026-10-30T09:48:56.733Z",
+    "readBy": [
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1793353731582-d2rk9",
+    "type": "FSTB_UPLOADED",
+    "title": "📦 Dokumen FSTB Baru Siap Diproses TTB",
+    "message": "User LUTFI ANDRIANTO NUGROHO telah mengunggah 1 berkas FSTB CPL-FSTB-26-06259 (TWIN SISTER 305). Mohon diproses untuk persiapan penerimaan & TTB.",
+    "senderName": "LUTFI ANDRIANTO NUGROHO",
+    "senderUsername": "lutfi.andrianto",
+    "senderRole": "staf_purchasing",
+    "targetRole": "staf_ttb",
+    "linkTab": "monitoring-internal",
+    "metadata": {
+      "noFstb": "CPL-FSTB-26-06259",
+      "armada": "TWIN SISTER 305",
+      "noPo": "CPL-PO-26-05612",
+      "noFpb": "CPL-FPB-26-0004780",
+      "fileCount": 1,
+      "renamedFileName": "CPL-FSTB-26-06259.pdf",
+      "fileUrl": "/api/r2-file?key=fstb-documents%2FCPL-FSTB-26-06259.pdf"
+    },
+    "createdAt": "2026-10-30T09:48:51.582Z",
+    "readBy": [
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1793353410024-vetr5",
+    "type": "FSTB_UPLOADED",
+    "title": "📦 Dokumen FSTB Baru Siap Diproses TTB",
+    "message": "User LUTFI ANDRIANTO NUGROHO telah mengunggah 1 berkas FSTB CPL-FSTB-26-06378 (TB EQUATOR 07). Mohon diproses untuk persiapan penerimaan & TTB.",
+    "senderName": "LUTFI ANDRIANTO NUGROHO",
+    "senderUsername": "lutfi.andrianto",
+    "senderRole": "staf_purchasing",
+    "targetRole": "staf_ttb",
+    "linkTab": "monitoring-internal",
+    "metadata": {
+      "noFstb": "CPL-FSTB-26-06378",
+      "armada": "TB EQUATOR 07",
+      "noPo": "CPL-PO-26-05720",
+      "noFpb": "CPL-FPB-26-0004908",
+      "fileCount": 1,
+      "renamedFileName": "CPL-FSTB-26-06378.pdf",
+      "fileUrl": "/api/r2-file?key=fstb-documents%2FCPL-FSTB-26-06378.pdf"
+    },
+    "createdAt": "2026-10-30T09:43:30.024Z",
+    "readBy": [
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1793346064355-bd6i6",
+    "type": "FSTB_VALIDATED",
+    "title": "✍️ FSTB Divalidasi & Ditandatangani",
+    "message": "User IDHAM KHALID telah mengesahkan FSTB CPL-FSTB-26-06449 (SPOB ROYAL REY 3001). Berkas siap dilanjutkan ke proses TTB.",
+    "senderName": "IDHAM KHALID",
+    "senderUsername": "idham.khalid",
+    "senderRole": "staf_ttb",
+    "targetRole": "staf_ttb",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noFstb": "CPL-FSTB-26-06449",
+      "armada": "SPOB ROYAL REY 3001",
+      "noPo": "CPL-PO-26-05686",
+      "noFpb": "CPL-FPB-26-0004782"
+    },
+    "createdAt": "2026-10-30T07:41:04.355Z",
+    "readBy": [
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1793345887261-4j01z",
+    "type": "FSTB_UPLOADED",
+    "title": "📦 Dokumen FSTB Baru Siap Diproses TTB",
+    "message": "User TRI WIDIYANTO telah mengunggah 1 berkas FSTB CPL-FSTB-26-06449 (SPOB ROYAL REY 3001). Mohon diproses untuk persiapan penerimaan & TTB.",
+    "senderName": "TRI WIDIYANTO",
+    "senderUsername": "tri.widiyanto",
+    "senderRole": "staf_purchasing",
+    "targetRole": "staf_ttb",
+    "linkTab": "monitoring-internal",
+    "metadata": {
+      "noFstb": "CPL-FSTB-26-06449",
+      "armada": "SPOB ROYAL REY 3001",
+      "noPo": "CPL-PO-26-05686",
+      "noFpb": "CPL-FPB-26-0004782",
+      "fileCount": 1,
+      "renamedFileName": "CPL-FSTB-26-06449.pdf",
+      "fileUrl": "/api/r2-file?key=fstb-documents%2FCPL-FSTB-26-06449.pdf"
+    },
+    "createdAt": "2026-10-30T07:38:07.261Z",
+    "readBy": [
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1793345669118-1g5ej",
+    "type": "FSTB_VALIDATED",
+    "title": "✍️ FSTB Divalidasi & Ditandatangani",
+    "message": "User Hermansyah telah mengesahkan FSTB CPL-FSTB-26-06449 (SPOB ROYAL REY 3001). Berkas siap dilanjutkan ke proses TTB.",
+    "senderName": "Hermansyah",
+    "senderUsername": "hermansyahz",
+    "senderRole": "supervisor",
+    "targetRole": "staf_ttb",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noFstb": "CPL-FSTB-26-06449",
+      "armada": "SPOB ROYAL REY 3001",
+      "noPo": "CPL-PO-26-05686",
+      "noFpb": "CPL-FPB-26-0004782"
+    },
+    "createdAt": "2026-10-30T07:34:29.118Z",
+    "readBy": [
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1793345283119-ldyut",
+    "type": "TTB_VALIDATED",
+    "title": "🛡️ Batch TTB Divalidasi & Disahkan",
+    "message": "User HADI SUNARYO telah mengesahkan 3 berkas TTB (CPL-TTB-26-07629, CPL-TTB-26-07570, CPL-TTB-26-07618) secara massal. Berkas siap diproses ke tahap berikutnya.",
+    "senderName": "HADI SUNARYO",
+    "senderUsername": "hadi.sunaryo",
+    "senderRole": "Manager Procurement",
+    "targetRole": "staf_lapangan",
+    "linkTab": "serah-terima",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07629, CPL-TTB-26-07570, CPL-TTB-26-07618",
+      "armada": "SV TWINSISTER 307, TB PMI ABADI"
+    },
+    "createdAt": "2026-10-30T07:28:03.119Z",
+    "readBy": [
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1793345234630-o16hj",
+    "type": "TTB_VALIDATED",
+    "title": "🛡️ TTB Divalidasi & Disahkan",
+    "message": "User HADI SUNARYO telah mengesahkan dokumen TTB CPL-TTB-26-07646 (HEAD OFFICE). Berkas siap untuk proses serah terima di lapangan.",
+    "senderName": "HADI SUNARYO",
+    "senderUsername": "hadi.sunaryo",
+    "senderRole": "Manager Procurement",
+    "targetRole": "staf_lapangan",
+    "linkTab": "serah-terima",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07646",
+      "armada": "HEAD OFFICE",
+      "noPo": "",
+      "noFpb": ""
+    },
+    "createdAt": "2026-10-30T07:27:14.630Z",
+    "readBy": [
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1793344793695-yt1i7",
+    "type": "TTB_VALIDATED",
+    "title": "🛡️ Batch TTB Divalidasi & Disahkan",
+    "message": "User Hermansyah telah mengesahkan 3 berkas TTB (CPL-TTB-26-07646, CPL-TTB-26-07629, CPL-FSTB-26-06449) secara massal. Berkas siap diproses ke tahap berikutnya.",
+    "senderName": "Hermansyah",
+    "senderUsername": "hermansyahz",
+    "senderRole": "Logistik Supervisor",
+    "targetRole": "staf_lapangan",
+    "linkTab": "serah-terima",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07646, CPL-TTB-26-07629, CPL-FSTB-26-06449",
+      "armada": "HEAD OFFICE, SV TWINSISTER 307"
+    },
+    "createdAt": "2026-10-30T07:19:53.695Z",
+    "readBy": [
+      "hermansyahz",
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1793344658705-92w5e",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User DAVILA telah mengunggah 1 berkas TTB (CPL-TTB-26-07629). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "DAVILA",
+    "senderUsername": "davila.zalianti",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07629",
+      "armada": "-"
+    },
+    "createdAt": "2026-10-30T07:17:38.705Z",
+    "readBy": [
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1793327694601-akyhh",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User IDHAM KHALID telah mengunggah 1 berkas TTB (CPL-TTB-26-07646). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "IDHAM KHALID",
+    "senderUsername": "idham.khalid",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07646",
+      "armada": "HEAD OFFICE"
+    },
+    "createdAt": "2026-10-30T02:34:54.601Z",
+    "readBy": [
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1793326776033-nvzem",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User DAVILA ZALIANTI PUTRI telah mengunggah 1 berkas TTB (CPL-TTB-26-07629). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "DAVILA ZALIANTI PUTRI",
+    "senderUsername": "davila.zalianti",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07629",
+      "armada": "SV TWINSISTER 307"
+    },
+    "createdAt": "2026-10-30T02:19:36.033Z",
+    "readBy": [
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1793326310455-a0vs6",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User DAVILA ZALIANTI PUTRI telah mengunggah 1 berkas TTB (CPL-TTB-26-07629). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "DAVILA ZALIANTI PUTRI",
+    "senderUsername": "davila.zalianti",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07629",
+      "armada": "SV TWINSISTER 307"
+    },
+    "createdAt": "2026-10-30T02:11:50.455Z",
+    "readBy": [
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1793290992099-85ar1",
+    "type": "TTB_VALIDATED",
+    "title": "🛡️ Batch TTB Divalidasi & Disahkan",
+    "message": "User Hermansyah telah mengesahkan 2 berkas TTB (CPL-TTB-26-07618, CPL-TTB-26-07570) secara massal. Berkas siap diproses ke tahap berikutnya.",
+    "senderName": "Hermansyah",
+    "senderUsername": "hermansyahz",
+    "senderRole": "Logistik Supervisor",
+    "targetRole": "staf_lapangan",
+    "linkTab": "serah-terima",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07618, CPL-TTB-26-07570",
+      "armada": "MT DEWA YANI, TB PMI ABADI"
+    },
+    "createdAt": "2026-10-29T16:23:12.099Z",
+    "readBy": [
+      "hermansyahz",
+      "admin"
+    ]
+  },
+  {
     "id": "notif-1793245235934-32j1z",
     "type": "TTB_UPLOADED",
     "title": "📦 Dokumen TTB Baru Siap Divalidasi",
@@ -16,7 +455,8 @@
     },
     "createdAt": "2026-10-29T03:40:35.934Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz"
     ]
   },
   {
@@ -37,7 +477,8 @@
     },
     "createdAt": "2026-10-29T03:06:12.623Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz"
     ]
   },
   {
@@ -57,7 +498,8 @@
     },
     "createdAt": "2026-10-29T03:04:02.603Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz"
     ]
   },
   {
@@ -81,7 +523,8 @@
     },
     "createdAt": "2026-10-27T02:46:17.253Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz"
     ]
   },
   {
@@ -105,7 +548,8 @@
     },
     "createdAt": "2026-10-26T09:21:30.104Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz"
     ]
   },
   {
@@ -125,7 +569,8 @@
     },
     "createdAt": "2026-10-26T08:44:53.820Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz"
     ]
   },
   {
@@ -145,7 +590,8 @@
     },
     "createdAt": "2026-10-26T08:40:42.746Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz"
     ]
   },
   {
@@ -165,7 +611,8 @@
     "createdAt": "2026-10-26T07:45:43.248Z",
     "readBy": [
       "receiver",
-      "admin"
+      "admin",
+      "hermansyahz"
     ]
   },
   {
@@ -191,7 +638,8 @@
     "createdAt": "2026-10-26T07:34:03.456Z",
     "readBy": [
       "receiver",
-      "admin"
+      "admin",
+      "hermansyahz"
     ]
   },
   {
@@ -216,7 +664,8 @@
     "createdAt": "2026-10-26T07:22:50.336Z",
     "readBy": [
       "receiver",
-      "admin"
+      "admin",
+      "hermansyahz"
     ]
   },
   {
@@ -238,7 +687,8 @@
     "createdAt": "2026-10-26T07:18:24.182Z",
     "readBy": [
       "receiver",
-      "admin"
+      "admin",
+      "hermansyahz"
     ]
   },
   {
@@ -260,7 +710,8 @@
     "createdAt": "2026-10-26T07:17:41.510Z",
     "readBy": [
       "receiver",
-      "admin"
+      "admin",
+      "hermansyahz"
     ]
   },
   {
@@ -280,7 +731,8 @@
     "createdAt": "2026-10-26T07:08:05.037Z",
     "readBy": [
       "receiver",
-      "admin"
+      "admin",
+      "hermansyahz"
     ]
   },
   {
@@ -303,7 +755,8 @@
     "createdAt": "2026-10-26T02:11:57.766Z",
     "readBy": [
       "receiver",
-      "admin"
+      "admin",
+      "hermansyahz"
     ]
   },
   {
@@ -348,7 +801,8 @@
     "createdAt": "2026-10-26T02:04:32.488Z",
     "readBy": [
       "receiver",
-      "admin"
+      "admin",
+      "hermansyahz"
     ]
   },
   {
@@ -368,7 +822,8 @@
     "createdAt": "2026-10-26T01:54:39.802Z",
     "readBy": [
       "receiver",
-      "admin"
+      "admin",
+      "hermansyahz"
     ]
   },
   {
@@ -391,7 +846,8 @@
     "readBy": [
       "agussalim",
       "admin",
-      "receiver"
+      "receiver",
+      "hermansyahz"
     ]
   },
   {
@@ -414,7 +870,8 @@
     "readBy": [
       "agussalim",
       "admin",
-      "receiver"
+      "receiver",
+      "hermansyahz"
     ]
   },
   {
@@ -437,7 +894,8 @@
     "readBy": [
       "agussalim",
       "admin",
-      "receiver"
+      "receiver",
+      "hermansyahz"
     ]
   },
   {
@@ -463,7 +921,8 @@
     "readBy": [
       "agussalim",
       "admin",
-      "receiver"
+      "receiver",
+      "hermansyahz"
     ]
   },
   {
@@ -486,7 +945,8 @@
     "readBy": [
       "agussalim",
       "admin",
-      "receiver"
+      "receiver",
+      "hermansyahz"
     ]
   },
   {
@@ -509,7 +969,8 @@
     "readBy": [
       "agussalim",
       "admin",
-      "receiver"
+      "receiver",
+      "hermansyahz"
     ]
   },
   {
@@ -532,7 +993,8 @@
     "readBy": [
       "agussalim",
       "admin",
-      "receiver"
+      "receiver",
+      "hermansyahz"
     ]
   },
   {
@@ -558,7 +1020,8 @@
     "readBy": [
       "agussalim",
       "admin",
-      "receiver"
+      "receiver",
+      "hermansyahz"
     ]
   },
   {
@@ -582,7 +1045,8 @@
       "davila.zalianti",
       "agussalim",
       "admin",
-      "receiver"
+      "receiver",
+      "hermansyahz"
     ]
   },
   {
@@ -606,7 +1070,8 @@
       "davila.zalianti",
       "agussalim",
       "admin",
-      "receiver"
+      "receiver",
+      "hermansyahz"
     ]
   },
   {
@@ -630,7 +1095,8 @@
       "davila.zalianti",
       "agussalim",
       "admin",
-      "receiver"
+      "receiver",
+      "hermansyahz"
     ]
   },
   {
@@ -657,7 +1123,8 @@
       "davila.zalianti",
       "agussalim",
       "admin",
-      "receiver"
+      "receiver",
+      "hermansyahz"
     ]
   },
   {
@@ -681,7 +1148,8 @@
       "davila.zalianti",
       "agussalim",
       "admin",
-      "receiver"
+      "receiver",
+      "hermansyahz"
     ]
   },
   {
@@ -705,7 +1173,8 @@
       "davila.zalianti",
       "agussalim",
       "admin",
-      "receiver"
+      "receiver",
+      "hermansyahz"
     ]
   },
   {
@@ -729,7 +1198,8 @@
       "davila.zalianti",
       "agussalim",
       "admin",
-      "receiver"
+      "receiver",
+      "hermansyahz"
     ]
   },
   {
@@ -757,7 +1227,8 @@
       "davila.zalianti",
       "agussalim",
       "admin",
-      "receiver"
+      "receiver",
+      "hermansyahz"
     ]
   },
   {
@@ -781,7 +1252,8 @@
       "davila.zalianti",
       "agussalim",
       "admin",
-      "receiver"
+      "receiver",
+      "hermansyahz"
     ]
   },
   {
@@ -805,7 +1277,8 @@
       "davila.zalianti",
       "agussalim",
       "admin",
-      "receiver"
+      "receiver",
+      "hermansyahz"
     ]
   },
   {
@@ -833,7 +1306,8 @@
       "hadi.sunaryo",
       "davila.zalianti",
       "agussalim",
-      "receiver"
+      "receiver",
+      "hermansyahz"
     ]
   },
   {
@@ -861,7 +1335,8 @@
       "hadi.sunaryo",
       "davila.zalianti",
       "agussalim",
-      "receiver"
+      "receiver",
+      "hermansyahz"
     ]
   },
   {
@@ -888,7 +1363,8 @@
       "hadi.sunaryo",
       "davila.zalianti",
       "agussalim",
-      "receiver"
+      "receiver",
+      "hermansyahz"
     ]
   }
 ]

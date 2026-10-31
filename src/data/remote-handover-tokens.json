@@ -1,2 +1,24 @@
-[]
-
+[
+  {
+    "id": "bfce95ae-fe05-4b3c-a434-fe1c985ab58c",
+    "token": "273ea7b834499bee6fa7f2b9",
+    "ttbId": "CPL-TTB-26-07570",
+    "noTtb": "CPL-TTB-26-07570",
+    "cleanNoTtb": "CPL-TTB-26-07570",
+    "armada": "TB PMI ABADI",
+    "noFpb": "CPL-FPB-26-0004960",
+    "noPo": "CPL-PO-26-05770",
+    "itemSummary": "BY PASS PAK NILO",
+    "fileUrl": "/api/r2-file?key=ttb-documents%2FCPL-TTB-26-07570.pdf&v=1793345278831",
+    "shippingMethod": "Ekspedisi Lokal",
+    "carrierContact": "Travel Samarinda",
+    "trackingNumber": "#123",
+    "recipientPhone": "628115409729",
+    "recipientNameTarget": "Hermansyah",
+    "createdAt": "2026-10-31T01:47:09.194Z",
+    "expiresAt": "2026-11-07T01:47:09.194Z",
+    "isUsed": false,
+    "dispatchedBy": "Administrator CPG (Tim Lapangan)",
+    "dispatchedAt": "2026-10-31T01:47:09.194Z"
+  }
+]
