@@ -1701,14 +1701,14 @@ export default function SerahTerimaLapanganTab({
                     <div className="rounded-2xl border-2 border-border bg-card overflow-hidden shadow-sm">
                       <div className="table-container max-h-[460px] overflow-y-auto overflow-x-auto">
                         <table className="w-full text-left text-sm border-collapse">
-                          <thead className="bg-muted/90 backdrop-blur sticky top-0 z-10 text-foreground font-black border-b-2 border-border uppercase text-xs tracking-wider">
+                          <thead className="bg-muted/90 backdrop-blur sticky top-0 z-10 text-foreground font-black border-b-2 border-border uppercase text-sm sm:text-base tracking-wide">
                             <tr>
-                              <th className="py-3.5 px-4 whitespace-nowrap">Tgl Terbit TTB</th>
-                              <th className="py-3.5 px-4 whitespace-nowrap">Nomor TTB Resmi</th>
-                              <th className="py-3.5 px-4 whitespace-nowrap">Armada / Unit</th>
-                              <th className="py-3.5 px-4 whitespace-nowrap">Otorisasi Manager &amp; Logistik</th>
-                              <th className="py-3.5 px-4 whitespace-nowrap">Status TTD Digital Armada</th>
-                              <th className="py-3.5 px-4 text-right whitespace-nowrap">Aksi</th>
+                              <th className="py-4 px-4.5 whitespace-nowrap">Tgl Terbit TTB</th>
+                              <th className="py-4 px-4.5 whitespace-nowrap">Nomor TTB Resmi</th>
+                              <th className="py-4 px-4.5 whitespace-nowrap">Armada / Unit</th>
+                              <th className="py-4 px-4.5 whitespace-nowrap">Otorisasi Manager &amp; Logistik</th>
+                              <th className="py-4 px-4.5 whitespace-nowrap">Status TTD Digital Armada</th>
+                              <th className="py-4 px-4.5 text-right whitespace-nowrap">Aksi</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-border/80">
@@ -1802,22 +1802,22 @@ export default function SerahTerimaLapanganTab({
                                   }`}
                                 >
                                   {/* Tgl Terbit TTB */}
-                                  <td className="py-3.5 px-4 whitespace-nowrap font-mono text-xs sm:text-sm">
+                                  <td className="py-4 px-4.5 whitespace-nowrap font-mono">
                                     {opt.tglTtbFormatted ? (
-                                      <div className="flex items-center gap-2 text-foreground font-bold">
-                                        <Calendar className="size-4 text-indigo-500 shrink-0" />
+                                      <div className="flex items-center gap-2 text-foreground font-bold text-sm sm:text-base">
+                                        <Calendar className="size-4.5 text-indigo-500 shrink-0" />
                                         <span>{opt.tglTtbFormatted}</span>
                                       </div>
                                     ) : (
-                                      <span className="text-muted-foreground/60 italic text-xs">
+                                      <span className="text-muted-foreground/60 italic text-xs sm:text-sm">
                                         Belum Ada Tgl
                                       </span>
                                     )}
                                   </td>
 
                                   {/* Nomor TTB Resmi */}
-                                  <td className="py-3.5 px-4 whitespace-nowrap font-mono font-black text-sm sm:text-base text-foreground group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
-                                    <div className="flex items-center gap-2">
+                                  <td className="py-4 px-4.5 whitespace-nowrap font-mono font-black text-base sm:text-lg text-foreground group-hover:text-indigo-600 dark:group-hover:text-indigo-400 tracking-tight">
+                                    <div className="flex items-center gap-2.5">
                                       <span>{opt.noTtb}</span>
                                       <button
                                         type="button"
@@ -1829,21 +1829,21 @@ export default function SerahTerimaLapanganTab({
                                         className="p-1 rounded text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition"
                                         title="Salin No TTB"
                                       >
-                                        <Copy className="size-3.5" />
+                                        <Copy className="size-4" />
                                       </button>
                                     </div>
                                   </td>
 
                                   {/* Armada / Unit */}
-                                  <td className="py-3.5 px-4 whitespace-nowrap">
-                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs sm:text-sm font-black bg-indigo-500/15 text-indigo-800 dark:text-indigo-200 border border-indigo-500/30 shadow-2xs">
-                                      <Ship className="size-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
-                                      <span className="truncate max-w-[180px]">{opt.armada}</span>
+                                  <td className="py-4 px-4.5 whitespace-nowrap">
+                                    <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-black bg-indigo-500/15 text-indigo-800 dark:text-indigo-200 border border-indigo-500/30 shadow-2xs">
+                                      <Ship className="size-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                                      <span className="truncate max-w-[200px]">{opt.armada}</span>
                                     </span>
                                   </td>
 
                                   {/* Otorisasi Manager & Logistik */}
-                                  <td className="py-3.5 px-4 whitespace-nowrap">
+                                  <td className="py-4 px-4.5 whitespace-nowrap">
                                     {opt.isRecipientSigned ? (
                                       <div className="space-y-1">
                                         <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-black bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30 shadow-2xs">
@@ -1894,7 +1894,7 @@ export default function SerahTerimaLapanganTab({
                                   </td>
 
                                   {/* Status TTD Digital Armada / Penerima Akhir */}
-                                  <td className="py-3.5 px-4 whitespace-nowrap">
+                                  <td className="py-4 px-4.5 whitespace-nowrap">
                                     {opt.isRecipientSigned ? (
                                       <div className="space-y-1">
                                         <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-sm font-black bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 shadow-2xs">
@@ -1941,7 +1941,7 @@ export default function SerahTerimaLapanganTab({
                                   </td>
 
                                   {/* Aksi: Dinamis (Lihat Berkas jika sudah TTD, PILIH TTB / Pre-Check jika Siap Kirim, Terkunci jika belum Manager) */}
-                                  <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                                  <td className="py-4 px-4.5 text-right whitespace-nowrap">
                                     {opt.isRecipientSigned ? (
                                       <button
                                         type="button"
