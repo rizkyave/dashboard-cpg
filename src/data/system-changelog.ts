@@ -34,6 +34,14 @@ export const SYSTEM_CHANGELOG: SystemVersionRelease[] = [
     badge: 'Latest',
     items: [
       {
+        type: 'improvement',
+        title: 'Penataan Ulang Alur Matriks Persetujuan FSTB (Purchasing -> Logistik)',
+        description:
+          'Mengatur ulang alur pengesahan 4 PIC formulir FSTB menjadi sekuensial per departemen: 1. Purchasing Staff (Delivered By) -> 2. Purchasing Supervisor (Approved By) -> 3. Logistic Staff (Received By) -> 4. Logistic Supervisor (Acknowledged By).',
+        module: 'Validasi Dokumen FSTB & Tracking Workflow',
+        impact: 'Alur kerja persetujuan menjadi runtut dan logis: departemen Purchasing memvalidasi dan menyetujui terlebih dahulu sebelum diteruskan ke bagian Logistik.',
+      },
+      {
         type: 'ui',
         title: 'Perapian Tata Letak & Perataan Vertikal Kolom AKSI',
         description:

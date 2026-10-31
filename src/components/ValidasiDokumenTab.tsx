@@ -1019,7 +1019,33 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                               );
                             })()}
 
-                            {/* Slot 2: Received By : Logistic Staff (LOG-STF) */}
+                            {/* Slot 2: Approved By : Purchasing Supervisor (PCH-SPV) */}
+                            {(() => {
+                              const isValid = Boolean(item.fstbSlots?.approvedBy?.isValidated);
+                              const name = item.fstbSlots?.approvedBy?.validatorName || 'SPV Purchasing';
+                              return (
+                                <div
+                                  className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border shrink-0 ${
+                                    isValid
+                                      ? 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/30'
+                                      : 'bg-muted/60 text-muted-foreground/60 border-border/40'
+                                  }`}
+                                  title={`2. Approved By (Purchasing Supervisor): ${
+                                    isValid ? `Sah (${name})` : 'Menunggu Pengesahan'
+                                  }`}
+                                >
+                                  <ShieldCheck className="size-2.5 shrink-0" />
+                                  <span>PCH SPV</span>
+                                  {isValid ? (
+                                    <Check className="size-2.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                                  ) : (
+                                    <Clock className="size-2.5 shrink-0" />
+                                  )}
+                                </div>
+                              );
+                            })()}
+
+                            {/* Slot 3: Received By : Logistic Staff (LOG-STF) */}
                             {(() => {
                               const isValid = Boolean(
                                 item.fstbSlots?.receivedBy?.isValidated ||
@@ -1036,7 +1062,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                                       ? 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30'
                                       : 'bg-muted/60 text-muted-foreground/60 border-border/40'
                                   }`}
-                                  title={`2. Received By (Logistic Staff): ${
+                                  title={`3. Received By (Logistic Staff): ${
                                     isValid ? `Sah (${name})` : 'Menunggu Pengesahan'
                                   }`}
                                 >
@@ -1044,32 +1070,6 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                                   <span>LOG STF</span>
                                   {isValid ? (
                                     <Check className="size-2.5 text-purple-600 dark:text-purple-400 shrink-0" />
-                                  ) : (
-                                    <Clock className="size-2.5 shrink-0" />
-                                  )}
-                                </div>
-                              );
-                            })()}
-
-                            {/* Slot 3: Approved By : Purchasing Supervisor (PCH-SPV) */}
-                            {(() => {
-                              const isValid = Boolean(item.fstbSlots?.approvedBy?.isValidated);
-                              const name = item.fstbSlots?.approvedBy?.validatorName || 'SPV Purchasing';
-                              return (
-                                <div
-                                  className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold flex items-center gap-1 border shrink-0 ${
-                                    isValid
-                                      ? 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/30'
-                                      : 'bg-muted/60 text-muted-foreground/60 border-border/40'
-                                  }`}
-                                  title={`3. Approved By (Purchasing Supervisor): ${
-                                    isValid ? `Sah (${name})` : 'Menunggu Pengesahan'
-                                  }`}
-                                >
-                                  <ShieldCheck className="size-2.5 shrink-0" />
-                                  <span>PCH SPV</span>
-                                  {isValid ? (
-                                    <Check className="size-2.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
                                   ) : (
                                     <Clock className="size-2.5 shrink-0" />
                                   )}

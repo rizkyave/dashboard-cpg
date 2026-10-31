@@ -396,12 +396,12 @@ export function getUserActionForRecord(
   }
 
   // =========================================================================
-  // DOKUMEN FSTB: (1. PCH STF -> 2. LOG STF -> 3. PCH SPV -> 4. LOG SPV)
+  // DOKUMEN FSTB: (1. PCH STF -> 2. PCH SPV -> 3. LOG STF -> 4. LOG SPV)
   // =========================================================================
   const s = record.fstbSlots;
   const isPchStaff = Boolean(s?.deliveredBy?.isValidated || record.purchasingValidation?.isValidated);
-  const isLogStaff = Boolean(s?.receivedBy?.isValidated || record.logistikValidation?.isValidated);
   const isPchSpv = Boolean(s?.approvedBy?.isValidated);
+  const isLogStaff = Boolean(s?.receivedBy?.isValidated || record.logistikValidation?.isValidated);
   const isLogSpv = Boolean(s?.acknowledgedBy?.isValidated);
 
   const fstbSlotStates: Array<PendingSlotInfo & { isValid: boolean; hasAuthority: boolean }> = [
@@ -418,18 +418,6 @@ export function getUserActionForRecord(
         dept.includes('purchasing'),
     },
     {
-      key: 'receivedBy',
-      code: 'LOG STF',
-      label: 'LOG STF',
-      roleName: 'Staf Logistik',
-      isValid: isLogStaff,
-      hasAuthority:
-        isAdmin ||
-        role === 'staf_ttb' ||
-        jabatan.includes('logistik') ||
-        dept.includes('logistik'),
-    },
-    {
       key: 'approvedBy',
       code: 'PCH SPV',
       label: 'PCH SPV',
@@ -441,6 +429,18 @@ export function getUserActionForRecord(
         role === 'manager' ||
         ((jabatan.includes('supervisor') || jabatan.includes('spv')) &&
           (jabatan.includes('purchasing') || dept.includes('purchasing'))),
+    },
+    {
+      key: 'receivedBy',
+      code: 'LOG STF',
+      label: 'LOG STF',
+      roleName: 'Staf Logistik',
+      isValid: isLogStaff,
+      hasAuthority:
+        isAdmin ||
+        role === 'staf_ttb' ||
+        jabatan.includes('logistik') ||
+        dept.includes('logistik'),
     },
     {
       key: 'acknowledgedBy',
