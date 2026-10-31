@@ -468,6 +468,122 @@ export interface FleetCategoryDonutChartProps {
   defaultView?: 'bar' | 'sub_category' | 'donut';
 }
 
+
+interface CategoryDetailDrilldownViewProps {
+  selectedCategory: string;
+  detail: {
+    count: number;
+    percentage: number;
+    subCategories: Record<string, number>;
+    topItems: { name: string; count: number }[];
+  };
+  totalItems: number;
+  onBack: () => void;
+}
+
+function CategoryDetailDrilldownView({
+  selectedCategory,
+  detail,
+  totalItems,
+  onBack,
+}: CategoryDetailDrilldownViewProps) {
+  const subList = Object.entries(detail.subCategories || {}).sort((a, b) => b[1] - a[1]);
+  const catColor = getCategoryColor(selectedCategory);
+  const pctTotal = detail.percentage ?? (totalItems > 0 ? Math.round(((detail.count || 0) / totalItems) * 100) : 0);
+
+  return (
+    <div className="w-full h-full flex flex-col justify-between space-y-2.5 animate-in fade-in duration-200">
+      {/* Drilldown Header */}
+      <div className="flex items-center justify-between pb-1.5 border-b border-border/70">
+        <button
+          type="button"
+          onClick={onBack}
+          className="flex items-center gap-1.5 text-[11px] font-bold text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 transition-colors cursor-pointer group"
+        >
+          <ArrowLeft className="size-3.5 transition-transform group-hover:-translate-x-0.5" />
+          <span>Kembali ke Overview Kategori</span>
+        </button>
+        <span className="px-2 py-0.5 rounded-full font-mono text-[10px] font-bold bg-sky-100 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-300 dark:border-sky-800">
+          {Number(detail.count || 0).toLocaleString('id-ID')} item ({pctTotal}%)
+        </span>
+      </div>
+
+      {/* Category Identity */}
+      <div className="flex items-center gap-2">
+        <span className="size-3 rounded-full shrink-0 shadow-xs" style={{ backgroundColor: catColor }}></span>
+        <h5 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-foreground tracking-tight">
+          {selectedCategory}
+        </h5>
+        <span className="text-[10px] text-muted-foreground ml-auto font-mono">
+          {subList.length} Sub-Kategori Teridentifikasi
+        </span>
+      </div>
+
+      {/* Sub-Category Progress List */}
+      <div className="flex-1 overflow-y-auto max-h-[190px] pr-1.5 space-y-2 divide-y divide-border/40">
+        {subList.length > 0 ? (
+          subList.map(([subName, count], idx) => {
+            const pct = (detail.count || 0) > 0 ? Math.round((count / detail.count) * 100) : 0;
+            return (
+              <div key={idx} className="pt-1.5 first:pt-0 space-y-1">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="font-medium text-slate-700 dark:text-slate-200 truncate pr-2">
+                    {subName}
+                  </span>
+                  <span className="font-mono text-[10px] font-semibold text-slate-500 dark:text-muted-foreground shrink-0">
+                    {Number(count).toLocaleString('id-ID')} ({pct}%)
+                  </span>
+                </div>
+                <div className="w-full bg-slate-100 dark:bg-muted/70 rounded-full h-1.5 overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: `${Math.max(4, pct)}%`,
+                      backgroundColor: catColor,
+                    }}
+                  />
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          <div className="py-8 text-center text-xs text-muted-foreground italic">
+            Sub-kategori sedang diolah dari dataset.
+          </div>
+        )}
+      </div>
+
+      {/* Sample Items Identified */}
+      {detail.topItems && detail.topItems.length > 0 && (
+        <div className="pt-2 border-t border-border/60 space-y-1">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Sampel Barang Teridentifikasi:
+          </span>
+          <div className="flex flex-wrap gap-1">
+            {detail.topItems.slice(0, 5).map((item, idx) => (
+              <span
+                key={idx}
+                className="px-1.5 py-0.5 rounded text-[9.5px] font-mono bg-slate-100 dark:bg-muted/80 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-border truncate max-w-[210px]"
+                title={item.name}
+              >
+                {item.name} (x{item.count})
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Intelligence Validation Footer */}
+      <div className="flex items-center gap-1.5 text-[9.5px] text-muted-foreground/80 pt-1 border-t border-border/40">
+        <Sparkles className="size-3 text-amber-500 shrink-0" />
+        <span className="truncate">
+          Divalidasi Master Inventory CPG (10.024 Items) & Taksonomi Maritim.
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export function FleetCategoryDonutChart({
   categories,
   subCategories = {},
@@ -490,97 +606,21 @@ export function FleetCategoryDonutChart({
   // Sub-categories sorted
   const subEntries = Object.entries(subCategories || {}).filter(([_, count]) => typeof count === 'number' && count > 0);
   subEntries.sort((a, b) => b[1] - a[1]);
-
   // Selected Category Detail Drilldown View
-  if (selectedCategory && categoryDetails[selectedCategory]) {
-    const detail = categoryDetails[selectedCategory];
-    const subList = Object.entries(detail.subCategories || {}).sort((a, b) => b[1] - a[1]);
-    const catColor = getCategoryColor(selectedCategory);
-
+  if (selectedCategory) {
+    const detail = categoryDetails[selectedCategory] || {
+      count: safeCategories[selectedCategory] || 0,
+      percentage: totalItems > 0 ? Math.round(((safeCategories[selectedCategory] || 0) / totalItems) * 100) : 0,
+      subCategories: {},
+      topItems: [],
+    };
     return (
-      <div className="w-full h-full flex flex-col justify-between space-y-2.5 animate-in fade-in duration-200">
-        {/* Drilldown Header */}
-        <div className="flex items-center justify-between pb-1.5 border-b border-border/70">
-          <button
-            type="button"
-            onClick={() => setSelectedCategory(null)}
-            className="flex items-center gap-1 text-[11px] font-bold text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 transition-colors cursor-pointer group"
-          >
-            <ArrowLeft className="size-3.5 transition-transform group-hover:-translate-x-0.5" />
-            <span>Kembali ke Overview Kategori</span>
-          </button>
-          <span className="px-2 py-0.5 rounded-full font-mono text-[10px] font-bold bg-sky-100 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-300 dark:border-sky-800">
-            {Number(detail.count).toLocaleString('id-ID')} item ({detail.percentage}%)
-          </span>
-        </div>
-
-        {/* Category Identity */}
-        <div className="flex items-center gap-2">
-          <span className="size-3 rounded-full shrink-0 shadow-xs" style={{ backgroundColor: catColor }}></span>
-          <h5 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-foreground tracking-tight">
-            {selectedCategory}
-          </h5>
-          <span className="text-[10px] text-muted-foreground ml-auto font-mono">
-            {subList.length} Sub-Kategori Teridentifikasi
-          </span>
-        </div>
-
-        {/* Sub-Category Progress List */}
-        <div className="flex-1 overflow-y-auto max-h-[190px] pr-1.5 space-y-2 divide-y divide-border/40">
-          {subList.map(([subName, count], idx) => {
-            const pct = detail.count > 0 ? Math.round((count / detail.count) * 100) : 0;
-            return (
-              <div key={idx} className="pt-1.5 first:pt-0 space-y-1">
-                <div className="flex items-center justify-between text-[11px]">
-                  <span className="font-medium text-slate-700 dark:text-slate-200 truncate pr-2">
-                    {subName}
-                  </span>
-                  <span className="font-mono text-[10px] font-semibold text-slate-500 dark:text-muted-foreground shrink-0">
-                    {Number(count).toLocaleString('id-ID')} ({pct}%)
-                  </span>
-                </div>
-                <div className="w-full bg-slate-100 dark:bg-muted/70 rounded-full h-1.5 overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-500"
-                    style={{
-                      width: `${Math.max(4, pct)}%`,
-                      backgroundColor: catColor,
-                    }}
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Sample Items Identified */}
-        {detail.topItems && detail.topItems.length > 0 && (
-          <div className="pt-2 border-t border-border/60 space-y-1">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Sampel Barang Teridentifikasi:
-            </span>
-            <div className="flex flex-wrap gap-1">
-              {detail.topItems.slice(0, 4).map((item, idx) => (
-                <span
-                  key={idx}
-                  className="px-1.5 py-0.5 rounded text-[9.5px] font-mono bg-slate-100 dark:bg-muted/80 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-border truncate max-w-[200px]"
-                  title={item.name}
-                >
-                  {item.name} ({item.count})
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Intelligence Validation Footer */}
-        <div className="flex items-center gap-1.5 text-[9.5px] text-muted-foreground/80 pt-1 border-t border-border/40">
-          <Sparkles className="size-3 text-amber-500 shrink-0" />
-          <span className="truncate">
-            Divalidasi Master Inventory CPG (10.024 Items) & Taksonomi Maritim.
-          </span>
-        </div>
-      </div>
+      <CategoryDetailDrilldownView
+        selectedCategory={selectedCategory}
+        detail={detail}
+        totalItems={totalItems}
+        onBack={() => setSelectedCategory(null)}
+      />
     );
   }
 
@@ -606,6 +646,20 @@ export function FleetCategoryDonutChart({
   const donutOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    onHover: (event: any, elements: any[]) => {
+      if (event.native && event.native.target) {
+        event.native.target.style.cursor = elements.length > 0 ? 'pointer' : 'default';
+      }
+    },
+    onClick: (event: any, elements: any[]) => {
+      if (elements && elements.length > 0) {
+        const idx = elements[0].index;
+        const clickedCat = topCategories[idx]?.[0];
+        if (clickedCat && clickedCat !== 'Lainnya') {
+          setSelectedCategory(clickedCat);
+        }
+      }
+    },
     plugins: {
       legend: {
         position: 'right' as const,
@@ -726,8 +780,8 @@ export function FleetCategoryDonutChart({
   const labels = displayCategories.map(([cat]) => cat);
   const counts = displayCategories.map(([_, count]) => count);
 
-  const categoryLabelsPlugin = React.useMemo(
-    () => ({
+  const categoryLabelsPlugin = {
+    
       id: 'categoryHorizontalLabels',
       afterDatasetsDraw(chart: any) {
         try {
@@ -763,9 +817,8 @@ export function FleetCategoryDonutChart({
           // Guard against canvas render race conditions
         }
       },
-    }),
-    [counts, totalItems]
-  );
+    
+  };
 
   const barData = {
     labels,
@@ -793,11 +846,16 @@ export function FleetCategoryDonutChart({
         bottom: 2,
       },
     },
+    onHover: (event: any, elements: any[]) => {
+      if (event.native && event.native.target) {
+        event.native.target.style.cursor = elements.length > 0 ? 'pointer' : 'default';
+      }
+    },
     onClick: (event: any, elements: any[]) => {
       if (elements && elements.length > 0) {
         const idx = elements[0].index;
         const clickedCat = labels[idx];
-        if (clickedCat && categoryDetails[clickedCat]) {
+        if (clickedCat) {
           setSelectedCategory(clickedCat);
         }
       }
