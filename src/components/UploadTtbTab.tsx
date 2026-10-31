@@ -35,6 +35,8 @@ import {
   FileSpreadsheet,
   AlertTriangle,
   ShieldAlert,
+  Camera,
+  Bell,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
@@ -234,6 +236,19 @@ export default function UploadTtbTab({
   // Modal State
   const [activePreview, setActivePreview] = useState<UploadedTtbItem | null>(null);
   const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState<boolean>(false);
+  const [isIncompleteModalOpen, setIsIncompleteModalOpen] = useState<boolean>(false);
+
+  // Floating Reminder State (Dismissible Reminder Terbang SOP Logistik)
+  const [showFloatingReminder, setShowFloatingReminder] = useState<boolean>(true);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('cpg_ttb_pair_reminder_closed');
+      if (saved === 'true') {
+        setShowFloatingReminder(false);
+      }
+    } catch {}
+  }, []);
 
   // Cloudflare Storage Connection Test State
   const [isTestingStorage, setIsTestingStorage] = useState<boolean>(false);
@@ -370,6 +385,116 @@ export default function UploadTtbTab({
   }, [queue, history, batchNoTtb]);
 
   const hasDuplicateInQueue = duplicateQueueItems.length > 0;
+
+  // Struktur & Analisis Pasangan Berkas TTB (Pair Analysis: Wajib PDF Resmi & Foto Fisik Barang)
+  interface QueuePairGroup {
+    key: string;
+    displayNoTtb: string;
+    files: QueuedFile[];
+    pdfFiles: QueuedFile[];
+    photoFiles: QueuedFile[];
+    hasPdf: boolean;
+    hasPhoto: boolean;
+    isComplete: boolean;
+    hasHistoryPdf: boolean;
+    hasHistoryPhoto: boolean;
+    status: 'COMPLETE' | 'MISSING_PHOTO' | 'MISSING_PDF';
+  }
+
+  const queuePairAnalysis = useMemo(() => {
+    const groupsMap = new Map<string, QueuePairGroup>();
+
+    for (const item of queue) {
+      const rawTtb = (item.noTtb.trim() || batchNoTtb.trim());
+      let cleanKey = sanitizeTtbNumber(rawTtb);
+      if (!cleanKey) {
+        const baseName = item.file.name.replace(/\.[^/.]+$/, '').trim();
+        cleanKey = sanitizeTtbNumber(baseName) || baseName;
+      }
+      const key = cleanKey.toUpperCase();
+
+      if (!groupsMap.has(key)) {
+        // Cek apakah di riwayat Cloudflare R2 sudah ada pasangannya
+        const histMatches = history.filter((h) => {
+          const cleanH = sanitizeTtbNumber(h.noTtb || h.cleanNoTtb || '');
+          return cleanH && cleanH.toUpperCase() === key;
+        });
+        const hasHistoryPdf = histMatches.some(
+          (h) => h.renamedFileName.toLowerCase().endsWith('.pdf') || h.fileType === 'application/pdf'
+        );
+        const hasHistoryPhoto = histMatches.some(
+          (h) => !h.renamedFileName.toLowerCase().endsWith('.pdf') && h.fileType !== 'application/pdf'
+        );
+
+        groupsMap.set(key, {
+          key,
+          displayNoTtb: item.noTtb || batchNoTtb || key,
+          files: [],
+          pdfFiles: [],
+          photoFiles: [],
+          hasPdf: false,
+          hasPhoto: false,
+          isComplete: false,
+          hasHistoryPdf,
+          hasHistoryPhoto,
+          status: 'COMPLETE',
+        });
+      }
+
+      const group = groupsMap.get(key)!;
+      group.files.push(item);
+      if (item.isPdf) {
+        group.pdfFiles.push(item);
+      } else if (item.isImage) {
+        group.photoFiles.push(item);
+      }
+    }
+
+    const groups = Array.from(groupsMap.values()).map((g) => {
+      const hasPdf = g.pdfFiles.length > 0 || g.hasHistoryPdf;
+      const hasPhoto = g.photoFiles.length > 0 || g.hasHistoryPhoto;
+      const isComplete = hasPdf && hasPhoto;
+      let status: 'COMPLETE' | 'MISSING_PHOTO' | 'MISSING_PDF' = 'COMPLETE';
+      if (!isComplete) {
+        if (hasPdf && !hasPhoto) {
+          status = 'MISSING_PHOTO';
+        } else if (!hasPdf && hasPhoto) {
+          status = 'MISSING_PDF';
+        }
+      }
+      return {
+        ...g,
+        hasPdf,
+        hasPhoto,
+        isComplete,
+        status,
+      };
+    });
+
+    const completeGroups = groups.filter((g) => g.isComplete);
+    const incompleteGroups = groups.filter((g) => !g.isComplete);
+    const missingPhotoGroups = groups.filter((g) => g.status === 'MISSING_PHOTO');
+    const missingPdfGroups = groups.filter((g) => g.status === 'MISSING_PDF');
+
+    const itemGroupMap = new Map<string, QueuePairGroup>();
+    for (const g of groups) {
+      for (const f of g.files) {
+        itemGroupMap.set(f.id, g);
+      }
+    }
+
+    return {
+      groups,
+      completeGroups,
+      incompleteGroups,
+      missingPhotoGroups,
+      missingPdfGroups,
+      hasIncomplete: incompleteGroups.length > 0,
+      itemGroupMap,
+    };
+  }, [queue, history, batchNoTtb]);
+
+  const hasIncompleteInQueue = queuePairAnalysis.hasIncomplete;
 
   // Lewati (Skip) Semua Duplikat & Hapus dari Antrean
   const handleSkipAllDuplicates = () => {
@@ -690,7 +815,7 @@ export default function UploadTtbTab({
     }
   };
 
-  // Submit Handler dengan proteksi duplikat
+  // Submit Handler dengan proteksi duplikat & validasi kelengkapan berkas berpasangan
   const handleExecuteUpload = async () => {
     if (queue.length === 0) {
       showToast?.('Pilih setidaknya 1 berkas TTB untuk diunggah.', 'warning');
@@ -699,6 +824,11 @@ export default function UploadTtbTab({
 
     if (hasDuplicateInQueue) {
       setIsDuplicateModalOpen(true);
+      return;
+    }
+
+    if (hasIncompleteInQueue) {
+      setIsIncompleteModalOpen(true);
       return;
     }
 
@@ -951,9 +1081,15 @@ export default function UploadTtbTab({
             </div>
 
             <div>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold font-mono border border-emerald-500/30 mb-2">
-                <Sparkles className="size-3" />
-                <span>Mendukung Banyak TTB &amp; Unggah Sekaligus</span>
+              <div className="flex items-center justify-center gap-2 flex-wrap mb-2">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold font-mono border border-emerald-500/30">
+                  <Sparkles className="size-3" />
+                  <span>Mendukung Banyak TTB &amp; Unggah Sekaligus</span>
+                </div>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 text-[10px] font-bold border border-amber-500/30">
+                  <AlertCircle className="size-3" />
+                  <span>Wajib Berpasangan: PDF + Foto Fisik</span>
+                </div>
               </div>
 
               <p className="text-sm font-bold text-foreground">
@@ -962,10 +1098,10 @@ export default function UploadTtbTab({
               </p>
 
               <p className="text-xs text-muted-foreground mt-2">
-                Bisa mengunggah <strong>banyak nomor TTB berbeda sekaligus</strong> maupun berkas lampiran multi-halaman/foto.
+                Bisa mengunggah <strong>banyak nomor TTB berbeda sekaligus</strong>. Sesuai SOP Logistik, pastikan setiap TTB menyertakan <strong>scan PDF &amp; foto fisik barang (.jpg)</strong> dengan nama yang sama.
               </p>
               <p className="text-[11px] text-muted-foreground/80 font-mono mt-0.5">
-                Format otomatis: <strong>CPL-TTB-26-00449.pdf</strong> (nomor TTB, armada, &amp; PO terdeteksi otomatis per berkas)
+                Contoh: <strong>CPL-TTB-26-00449.pdf</strong> &amp; <strong>CPL-TTB-26-00449.jpg</strong>
               </p>
             </div>
           </div>
@@ -974,23 +1110,88 @@ export default function UploadTtbTab({
           {queue.length > 0 && (
             <div className="bg-card border border-border rounded-2xl p-5 shadow-xs space-y-3 flex-1 flex flex-col justify-between">
               <div className="flex items-center justify-between pb-2 border-b border-border">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <Layers className="size-4 text-primary" />
-                  <div>
-                    <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
-                      Antrean Berkas ({queue.length})
-                    </h3>
-                  </div>
+                  <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
+                    Antrean Berkas ({queue.length})
+                  </h3>
+                  {queuePairAnalysis.groups.length > 0 && (
+                    <div className="flex items-center gap-1.5 text-[10px] font-mono">
+                      <span className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border">
+                        {queuePairAnalysis.groups.length} Dokumen TTB
+                      </span>
+                      {queuePairAnalysis.completeGroups.length > 0 && (
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-bold">
+                          ✓ {queuePairAnalysis.completeGroups.length} Komplit
+                        </span>
+                      )}
+                      {queuePairAnalysis.incompleteGroups.length > 0 && (
+                        <span className="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 font-bold animate-pulse">
+                          ⚠️ {queuePairAnalysis.incompleteGroups.length} Belum Komplit
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <button
                   type="button"
                   onClick={handleClearQueue}
-                  className="text-xs text-red-500 hover:text-red-600 hover:underline inline-flex items-center gap-1 cursor-pointer"
+                  className="text-xs text-red-500 hover:text-red-600 hover:underline inline-flex items-center gap-1 cursor-pointer shrink-0"
                 >
                   <Trash2 className="size-3" />
                   <span>Kosongkan Antrean</span>
                 </button>
               </div>
+
+              {/* Alert Banner: Kelengkapan Pasangan Belum Komplit */}
+              {hasIncompleteInQueue && (
+                <div className="p-3.5 rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-900 dark:text-amber-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs animate-in fade-in">
+                  <div className="flex items-start gap-2.5 min-w-0">
+                    <AlertTriangle className="size-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                    <div>
+                      <div className="font-bold flex items-center gap-1.5 flex-wrap text-foreground">
+                        <span>⚠️ Kelengkapan Upload Belum Komplit: {queuePairAnalysis.incompleteGroups.length} Dokumen TTB Belum Berpasangan!</span>
+                        <span className="px-2 py-0.5 rounded-full text-[9px] bg-amber-500 text-slate-950 font-bold font-mono">
+                          Wajib SOP Logistik
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+                        Sesuai SOP Tim TTB, setiap upload dokumen wajib menyertakan berkas scan PDF resmi dan foto fisik barang dengan nama nomor TTB yang sama.
+                        Harap lengkapi berkas berikut:
+                      </p>
+                      <div className="flex items-center gap-1.5 flex-wrap mt-1.5">
+                        {queuePairAnalysis.incompleteGroups.slice(0, 4).map((inc) => (
+                          <span
+                            key={inc.key}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-background/80 border border-amber-500/30 text-foreground"
+                          >
+                            <span>{inc.key}</span>
+                            <span className="text-amber-600 dark:text-amber-400 font-sans">
+                              ({inc.status === 'MISSING_PHOTO' ? 'Kurang Foto Fisik' : 'Kurang Scan PDF'})
+                            </span>
+                          </span>
+                        ))}
+                        {queuePairAnalysis.incompleteGroups.length > 4 && (
+                          <span className="text-[10px] text-muted-foreground font-mono">
+                            +{queuePairAnalysis.incompleteGroups.length - 4} lainnya
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                      title="Unggah berkas pelengkap sekarang"
+                    >
+                      <FolderUp className="size-3.5" />
+                      <span>Lengkapi Berkas</span>
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Alert Banner: Terindikasi Duplikat / Pernah Diupload */}
               {hasDuplicateInQueue && (
@@ -1028,6 +1229,8 @@ export default function UploadTtbTab({
                 {queue.map((item, idx) => {
                   const dupInfo = checkTtbDuplicate(item.noTtb, item.file.name);
                   const isDup = Boolean(dupInfo);
+                  const pairGroup = queuePairAnalysis.itemGroupMap.get(item.id);
+                  const isIncomplete = pairGroup && !pairGroup.isComplete;
 
                   return (
                     <div
@@ -1035,6 +1238,8 @@ export default function UploadTtbTab({
                       className={`p-3 rounded-xl border transition text-xs space-y-2 ${
                         isDup
                           ? 'border-amber-500/40 bg-amber-500/5'
+                          : isIncomplete
+                          ? 'border-amber-500/30 bg-amber-500/5/30 hover:bg-background'
                           : 'border-border bg-background/60 hover:bg-background'
                       }`}
                     >
@@ -1105,6 +1310,37 @@ export default function UploadTtbTab({
                           />
                         </div>
                       </div>
+
+                      {/* Status Pasangan Dokumen TTB (PDF & Foto Barang Fisik) */}
+                      {pairGroup && (
+                        <div className="pt-2 border-t border-border/40 flex items-center justify-between gap-2 flex-wrap text-[10px]">
+                          {pairGroup.isComplete ? (
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold border border-emerald-500/25">
+                              <CheckCircle2 className="size-3 text-emerald-500 shrink-0" />
+                              <span>
+                                Pasangan Lengkap ({pairGroup.pdfFiles.length} PDF + {pairGroup.photoFiles.length} Foto Fisik)
+                              </span>
+                            </span>
+                          ) : pairGroup.status === 'MISSING_PHOTO' ? (
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-800 dark:text-amber-200 font-semibold border border-amber-500/30">
+                              <AlertTriangle className="size-3 text-amber-600 dark:text-amber-400 shrink-0 animate-pulse" />
+                              <span>
+                                Kelengkapan Belum Komplit: <strong>Wajib upload Foto Fisik Barang</strong> ({pairGroup.key}.jpg)
+                              </span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-800 dark:text-amber-200 font-semibold border border-amber-500/30">
+                              <AlertCircle className="size-3 text-amber-600 dark:text-amber-400 shrink-0 animate-pulse" />
+                              <span>
+                                Kelengkapan Belum Komplit: <strong>Wajib upload Scan Berkas Resmi PDF</strong> ({pairGroup.key}.pdf)
+                              </span>
+                            </span>
+                          )}
+                          <span className="text-muted-foreground font-mono">
+                            {item.isPdf ? '📄 Berkas PDF' : '📷 Foto Barang Fisik'}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -1692,6 +1928,10 @@ export default function UploadTtbTab({
                 type="button"
                 onClick={async () => {
                   setIsDuplicateModalOpen(false);
+                  if (hasIncompleteInQueue) {
+                    setIsIncompleteModalOpen(true);
+                    return;
+                  }
                   await processUploadForQueue(queue);
                 }}
                 className="px-4 py-2 rounded-xl border border-border bg-background hover:bg-muted text-xs font-semibold text-foreground transition cursor-pointer text-center"
@@ -1701,6 +1941,262 @@ export default function UploadTtbTab({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modal Peringatan Kelengkapan Berkas Belum Komplit (Mandatory Berpasangan) */}
+      {isIncompleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in-50 duration-200">
+          <div className="bg-card border border-border rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+            <div className="p-5 border-b border-border bg-linear-to-r from-amber-500/15 via-orange-500/10 to-transparent flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="size-10 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center justify-center shrink-0">
+                  <AlertTriangle className="size-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-foreground text-sm flex items-center gap-2">
+                    <span>Kelengkapan Dokumen TTB Belum Komplit!</span>
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    SOP Kantor Logistik: Wajib Unggah Berpasangan (Dokumen PDF &amp; Foto Barang Fisik)
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsIncompleteModalOpen(false)}
+                className="size-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted flex items-center justify-center transition cursor-pointer"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            <div className="p-5 overflow-y-auto space-y-3.5 text-xs">
+              <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 leading-relaxed text-[11px] space-y-1">
+                <p>
+                  Sistem mendeteksi <strong>{queuePairAnalysis.incompleteGroups.length} nomor TTB</strong> yang berkasnya <strong>belum memiliki pasangan lengkap</strong>.
+                </p>
+                <p>
+                  Sesuai ketentuan SOP Kantor Logistik, pengarsipan TTB <strong>wajib menyertakan 2 berkas berpasangan</strong> (Scan Dokumen PDF Resmi dan Foto Fisik Barang di Logistik dengan nama yang sama) sebelum diproses.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-[11px] font-bold text-foreground uppercase tracking-wider">
+                  Daftar Nomor TTB yang Belum Komplit:
+                </p>
+                <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                  {queuePairAnalysis.incompleteGroups.map((group, idx) => (
+                    <div
+                      key={group.key}
+                      className="p-3 rounded-xl border border-amber-500/30 bg-amber-500/5 text-xs space-y-2"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="size-5 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300 font-mono text-[10px] font-bold flex items-center justify-center">
+                            {idx + 1}
+                          </span>
+                          <span className="font-mono font-bold text-foreground">
+                            {group.key}
+                          </span>
+                        </div>
+                        <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-amber-500 text-slate-950">
+                          {group.status === 'MISSING_PHOTO' ? 'Kurang Foto Fisik' : 'Kurang Scan PDF'}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 text-[11px]">
+                        <div className="p-2 rounded-lg bg-background/80 border border-border">
+                          <span className="text-[10px] text-muted-foreground block font-medium">Berkas Tersedia:</span>
+                          <div className="flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                            <CheckCircle2 className="size-3 shrink-0" />
+                            <span className="truncate">
+                              {group.pdfFiles.length > 0 ? `${group.pdfFiles.length}x Dokumen PDF` : `${group.photoFiles.length}x Foto Fisik`}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="p-2 rounded-lg bg-red-500/5 border border-red-500/20">
+                          <span className="text-[10px] text-red-600 dark:text-red-400 block font-medium">Wajib Dilengkapi:</span>
+                          <div className="flex items-center gap-1 font-bold text-red-700 dark:text-red-300 mt-0.5">
+                            <AlertCircle className="size-3 shrink-0" />
+                            <span className="truncate">
+                              {group.status === 'MISSING_PHOTO' ? `${group.key}.jpg` : `${group.key}.pdf`}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-border bg-muted/30 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsIncompleteModalOpen(false);
+                  fileInputRef.current?.click();
+                }}
+                className="px-4 py-2 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs shadow-xs transition cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <FolderUp className="size-3.5" />
+                <span>Lengkapi Berkas Sekarang</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={async () => {
+                  setIsIncompleteModalOpen(false);
+                  showToast?.(
+                    'Perhatian: Berkas TTB diunggah dengan status pasangan belum komplit. Wajib dipenuhi segera!',
+                    'warning'
+                  );
+                  await processUploadForQueue(queue);
+                }}
+                className="px-4 py-2 rounded-xl border border-border bg-background hover:bg-muted text-xs font-semibold text-muted-foreground hover:text-foreground transition cursor-pointer text-center"
+              >
+                Tetap Lanjutkan (Draft Sementara)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 0. Reminder Terbang: Wajib Upload Berpasangan (PDF & Foto Barang Fisik) */}
+      {showFloatingReminder ? (
+        <aside
+          aria-label="Floating Reminder SOP Logistik"
+          className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-40 max-w-md w-[calc(100vw-32px)] sm:w-[440px] bg-card/95 backdrop-blur-md border-2 border-amber-500/50 rounded-2xl shadow-2xl p-4 sm:p-5 text-card-foreground animate-in slide-in-from-bottom-5 duration-300"
+        >
+          {/* Ambient Glow */}
+          <div className="absolute -top-10 -right-10 size-32 bg-amber-500/15 rounded-full blur-2xl pointer-events-none" />
+
+          {/* Header Reminder Terbang */}
+          <div className="flex items-start justify-between gap-3 relative z-10 pb-3 border-b border-border/70">
+            <div className="flex items-center gap-2.5">
+              <div className="size-9 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center justify-center shrink-0">
+                <Bell className="size-4.5 animate-bounce" />
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[10px] font-mono font-extrabold px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 uppercase tracking-wider">
+                    Reminder Terbang
+                  </span>
+                  <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400">
+                    SOP Tim TTB • Mandatory
+                  </span>
+                </div>
+                <h4 className="text-xs font-bold text-foreground mt-0.5">
+                  Wajib Upload Berpasangan (PDF + Foto Barang)
+                </h4>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setShowFloatingReminder(false);
+                try {
+                  localStorage.setItem('cpg_ttb_pair_reminder_closed', 'true');
+                } catch {}
+              }}
+              className="size-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted flex items-center justify-center transition cursor-pointer"
+              title="Tutup Reminder Terbang"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
+
+          {/* Konten Reminder Terbang */}
+          <div className="space-y-2.5 py-3 text-xs text-muted-foreground relative z-10">
+            <p className="text-[11px] leading-relaxed text-foreground">
+              Setiap pengarsipan dokumen TTB oleh tim logistik <strong>wajib (mandatory)</strong> mengunggah <strong>2 jenis berkas berpasangan</strong> dengan <strong>nama nomor TTB yang sama</strong>:
+            </p>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div className="p-2.5 rounded-xl border border-blue-500/30 bg-blue-500/5 space-y-1">
+                <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400 font-bold text-[11px]">
+                  <FileText className="size-3.5" />
+                  <span>1. Dokumen Resmi</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground font-mono">
+                  Format: <strong className="text-foreground">.pdf</strong>
+                </p>
+                <p className="text-[9px] text-muted-foreground leading-tight">
+                  Scan formulir TTB bertandatangan &amp; stempel.
+                </p>
+              </div>
+
+              <div className="p-2.5 rounded-xl border border-amber-500/30 bg-amber-500/5 space-y-1">
+                <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-bold text-[11px]">
+                  <Camera className="size-3.5" />
+                  <span>2. Foto Fisik Barang</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground font-mono">
+                  Format: <strong className="text-foreground">.jpg / .png</strong>
+                </p>
+                <p className="text-[9px] text-muted-foreground leading-tight">
+                  Dokumentasi fisik barang di kantor logistik.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-2 rounded-lg bg-muted/60 border border-border text-[10px] space-y-0.5">
+              <div className="font-semibold text-foreground flex items-center gap-1">
+                <AlertCircle className="size-3 text-amber-500 shrink-0" />
+                <span>Contoh Penamaan Identik:</span>
+              </div>
+              <p className="font-mono text-primary font-bold pl-4">
+                CPL-TTB-26-07542.pdf <span className="text-muted-foreground font-normal">&amp;</span> CPL-TTB-26-07542.jpg
+              </p>
+            </div>
+
+            <p className="text-[10px] text-amber-700 dark:text-amber-300 leading-tight">
+              ⚠️ <em>Jika hanya terdapat 1 data upload, sistem otomatis memunculkan status <strong>&ldquo;Kelengkapan Belum Komplit&rdquo;</strong> dan mewajibkan pemenuhan berkas fisik.</em>
+            </p>
+          </div>
+
+          {/* Footer Aksi Reminder Terbang */}
+          <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/70 relative z-10">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="px-3 py-1.5 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold shadow-xs transition cursor-pointer flex items-center gap-1.5"
+            >
+              <FolderUp className="size-3.5" />
+              <span>Pilih Berkas Berpasangan</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setShowFloatingReminder(false);
+                try {
+                  localStorage.setItem('cpg_ttb_pair_reminder_closed', 'true');
+                } catch {}
+              }}
+              className="px-3 py-1.5 rounded-lg border border-border bg-background hover:bg-muted text-foreground text-xs font-semibold transition cursor-pointer"
+            >
+              Saya Mengerti (Tutup)
+            </button>
+          </div>
+        </aside>
+      ) : (
+        <button
+          type="button"
+          onClick={() => {
+            setShowFloatingReminder(true);
+            try {
+              localStorage.removeItem('cpg_ttb_pair_reminder_closed');
+            } catch {}
+          }}
+          className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-40 h-9 px-3.5 rounded-full bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 dark:text-amber-200 border border-amber-500/40 shadow-xl backdrop-blur-md text-xs font-bold inline-flex items-center gap-2 transition cursor-pointer active:scale-95 animate-in fade-in"
+          title="Buka kembali Reminder SOP Logistik (Wajib PDF + Foto)"
+        >
+          <Bell className="size-3.5 text-amber-500 animate-pulse" />
+          <span>Reminder SOP: Wajib PDF + Foto TTB</span>
+        </button>
       )}
     </div>
   );
