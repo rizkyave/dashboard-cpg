@@ -1,5 +1,304 @@
 [
   {
+    "id": "fpb-rev-MO-FPB-26-0001945",
+    "fpbNo": "MO-FPB-26-0001945",
+    "originalFpb": "MO/LOG/FPB/26-0001945",
+    "entity": "MO",
+    "armada": "TRUCK TANKI KT 8026 YA",
+    "date": "30/10/26",
+    "purpose": "Kebutuhan Operasional TRUCK TANKI KT 8026 YA",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0001945.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [],
+    "attachments": [
+      {
+        "id": "efpb-att-MO-FPB-26-0001945-2",
+        "name": "MO-LKK-KT 8026 YA (HANDLE PINTU & LIFT KACA).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/MO-LKK-KT%208026%20YA%20%28HANDLE%20PINTU%20%26%20LIFT%20KACA%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "30/10/26 16:09",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      },
+      {
+        "id": "efpb-att-MO-FPB-26-0001945-3",
+        "name": "MO-FOTO-KT 8026 YA (HANDLE PINTU & LIFT KACA).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/MO-FOTO-KT%208026%20YA%20%28HANDLE%20PINTU%20%26%20LIFT%20KACA%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "30/10/26 16:09",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-11-01T05:36:47.965Z",
+    "createdAt": "2026-11-01T05:36:47.965Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "29/11/26",
+    "slaDaysRemaining": 28,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-CPL-FPB-26-0005082",
+    "fpbNo": "CPL-FPB-26-0005082",
+    "originalFpb": "CPL/LOG/FPB/26-0005082",
+    "entity": "CPL",
+    "armada": "TRUCK TANKI KT 8652 LU",
+    "date": "30/10/26",
+    "purpose": "Kebutuhan Operasional TRUCK TANKI KT 8652 LU",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_rev_sign_CPL-FPB-26-0005082.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-11-01T05:36:47.965Z",
+    "createdAt": "2026-11-01T05:36:47.965Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "29/11/26",
+    "slaDaysRemaining": 28,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-CPL-FPB-26-0005084",
+    "fpbNo": "CPL-FPB-26-0005084",
+    "originalFpb": "CPL/LOG/FPB/26-0005084",
+    "entity": "CPL",
+    "armada": "TRUCK TANKI KT 8653 LU",
+    "date": "30/10/26",
+    "purpose": "Kebutuhan Operasional TRUCK TANKI KT 8653 LU",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_rev_sign_CPL-FPB-26-0005084.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-11-01T05:36:47.965Z",
+    "createdAt": "2026-11-01T05:36:47.965Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "29/11/26",
+    "slaDaysRemaining": 28,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-CPL-FPB-26-0005089",
+    "fpbNo": "CPL-FPB-26-0005089",
+    "originalFpb": "CPL/LOG/FPB/26-0005089",
+    "entity": "CPL",
+    "armada": "MESIN 2",
+    "date": "31/10/26",
+    "purpose": "U/ PERBAIKAN ENGINE (KANAN)",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/CPL-FPB-26-0005089.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "EMERGENCY",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "MOR00501001-YM",
+        "itemName": "MOTOR TRIM ASSY 69J-43880-01 (YAMAHA)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ PERBAIKAN ENGINE (KANAN)",
+        "priority": "P1",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[MOTA-MOR005] MOTOR A - MOTOR TRIM (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-11-01T06:00:38.245Z",
+    "createdAt": "2026-11-01T05:36:47.965Z",
+    "priorityLevel": "P1",
+    "slaTargetDate": "02/11/26",
+    "slaDaysRemaining": 1,
+    "slaStatus": "DUE_SOON",
+    "requestedBy": "SALMAN"
+  },
+  {
+    "id": "fpb-rev-MO-FPB-26-0001946",
+    "fpbNo": "MO-FPB-26-0001946",
+    "originalFpb": "MO/LOG/FPB/26-0001946",
+    "entity": "MO",
+    "armada": "TRUCK TANKI KT 8324 LU",
+    "date": "31/10/26",
+    "purpose": "Kebutuhan Operasional TRUCK TANKI KT 8324 LU",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0001946.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [],
+    "attachments": [
+      {
+        "id": "efpb-att-MO-FPB-26-0001946-2",
+        "name": "MO-LKK-KT 8324 LU (TYRE)(2).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/MO-LKK-KT%208324%20LU%20%28TYRE%29%282%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "31/10/26 09:04",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      },
+      {
+        "id": "efpb-att-MO-FPB-26-0001946-3",
+        "name": "MO-FOTO-KT 8324 LU (TYRE)(2).pdf",
+        "url": "https://e-fpb.cindaragroup.com/files/MO-FOTO-KT%208324%20LU%20%28TYRE%29%282%29.pdf",
+        "type": "pdf",
+        "uploadedAt": "31/10/26 09:04",
+        "uploadedBy": "FPB Maker (e-FPB)",
+        "source": "EFPB_MAKER",
+        "caption": "Dokumen / Scan Lampiran FPB"
+      }
+    ],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-11-01T05:36:47.965Z",
+    "createdAt": "2026-11-01T05:36:47.965Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "30/11/26",
+    "slaDaysRemaining": 29,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-HL-FPB-26-0001546",
+    "fpbNo": "HL-FPB-26-0001546",
+    "originalFpb": "HL/LOG/FPB/26-0001546",
+    "entity": "HL",
+    "armada": "MT HL 5001",
+    "date": "31/10/26",
+    "purpose": "Kebutuhan Operasional MT HL 5001",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_HL-FPB-26-0001546.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-11-01T05:36:47.965Z",
+    "createdAt": "2026-11-01T05:36:47.965Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "30/11/26",
+    "slaDaysRemaining": 29,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-CPL-FPB-26-0005090",
+    "fpbNo": "CPL-FPB-26-0005090",
+    "originalFpb": "CPL/LOG/FPB/26-0005090",
+    "entity": "CPL",
+    "armada": "SV TWINSISTER 307",
+    "date": "31/10/26",
+    "purpose": "Kebutuhan Operasional SV TWINSISTER 307",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0005090.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-11-01T05:36:47.965Z",
+    "createdAt": "2026-11-01T05:36:47.965Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "30/11/26",
+    "slaDaysRemaining": 29,
+    "slaStatus": "ON_TRACK"
+  },
+  {
+    "id": "fpb-rev-CPL-FPB-26-0005086",
+    "fpbNo": "CPL-FPB-26-0005086",
+    "originalFpb": "CPL/LOG/FPB/26-0005086",
+    "entity": "CPL",
+    "armada": "SV TWINSISTER 307",
+    "date": "31/10/26",
+    "purpose": "Kebutuhan Operasional SV TWINSISTER 307",
+    "efpbStatus": "Approved",
+    "isReceivedLogistik": true,
+    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_rev_sign_CPL-FPB-26-0005086.pdf",
+    "reviewStatus": "PENDING_REVIEW",
+    "urgency": "NORMAL",
+    "picPurchasing": "-",
+    "reviewNotes": "",
+    "items": [],
+    "attachments": [],
+    "duplicateAlerts": [],
+    "relatedDocs": {
+      "poNos": [],
+      "fstbNos": [],
+      "ttbNos": []
+    },
+    "updatedAt": "2026-11-01T05:36:47.965Z",
+    "createdAt": "2026-11-01T05:36:47.965Z",
+    "priorityLevel": "P3",
+    "slaTargetDate": "30/11/26",
+    "slaDaysRemaining": 29,
+    "slaStatus": "ON_TRACK"
+  },
+  {
     "id": "fpb-rev-GAJ-FPB-26-0001133",
     "fpbNo": "GAJ-FPB-26-0001133",
     "originalFpb": "GAJ/LOG/FPB/26-0001133",
@@ -9,7 +308,7 @@
     "purpose": "U/ PEMBUATAN CANOPY CONTAINER DI SAMPING LOGISTIK (PENAMBAHAN) • U/ TIANG PONDASI CANOPY CONTAINER",
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
-    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0001133.pdf",
+    "pdfUrl": "/api/review-fpb/pdf?fpbNo=GAJ-FPB-26-0001133&type=signed",
     "reviewStatus": "PENDING_REVIEW",
     "urgency": "URGENT",
     "picPurchasing": "-",
@@ -81,19 +380,33 @@
         "caption": "Dokumen / Scan Lampiran FPB"
       }
     ],
-    "duplicateAlerts": [],
+    "duplicateAlerts": [
+      {
+        "fpbNo": "GAJ-FPB-26-0001129",
+        "date": "29/10/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Item sama: \"B/O ROOFING 12 MM X 20 MM (00)\" diajukan pada 29/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (1 hari selisih)"
+      }
+    ],
     "relatedDocs": {
       "poNos": [],
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-31T05:42:29.085Z",
+    "updatedAt": "2026-10-31T09:42:12.431Z",
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P1",
     "slaTargetDate": "01/11/26",
-    "slaDaysRemaining": 1,
+    "slaDaysRemaining": 0,
     "slaStatus": "DUE_SOON",
-    "requestedBy": "SALMAN"
+    "requestedBy": "SALMAN",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "pchLogistik": "Received_Logistic",
+    "reviewedBy": "Hermansyah",
+    "reviewedAt": "2026-10-31T09:42:12.431Z"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001942",
@@ -143,8 +456,11 @@
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P3",
     "slaTargetDate": "29/11/26",
-    "slaDaysRemaining": 29,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 28,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005075",
@@ -153,18 +469,49 @@
     "entity": "CPL",
     "armada": "TB PMI ABADI",
     "date": "30/10/26",
-    "purpose": "Kebutuhan Operasional TB PMI ABADI",
+    "purpose": "U/ ME KANAN",
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0005075.pdf",
     "reviewStatus": "PENDING_REVIEW",
-    "urgency": "NORMAL",
+    "urgency": "URGENT",
     "picPurchasing": "-",
     "reviewNotes": "",
     "isRevised": true,
     "revisionCount": 2,
     "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 30/10/26 (berkas lain tgl 30/10/26).",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "CAI01601002-REO",
+        "itemName": "MULTI PURPOSE LUBRICANT REXCO 50 (REXCO)",
+        "qty": 10,
+        "unit": "KLG",
+        "description": "U/ ME KANAN",
+        "priority": "P2",
+        "stockAvailable": 22,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[CAI01601002-REO] MULTI PURPOSE LUBRICANT REXCO 50 (REXCO) (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (22 KLG). Disarankan penuhi dari stok gudang."
+      },
+      {
+        "no": 2,
+        "itemCode": "CAI00801003-ZZZ",
+        "itemName": "CONTACT CLEANER ELECTRIC (00)",
+        "qty": 10,
+        "unit": "KLG",
+        "description": "U/ ME KANAN",
+        "priority": "P2",
+        "stockAvailable": 43,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[CAI00801003-ZZZ] CONTACT CLEANER ELECTRIC (00) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (43 KLG). Disarankan penuhi dari stok gudang."
+      }
+    ],
     "attachments": [
       {
         "id": "efpb-att-CPL-FPB-26-0005075-2",
@@ -193,12 +540,13 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "updatedAt": "2026-10-31T09:01:06.357Z",
     "createdAt": "2026-10-31T01:26:01.011Z",
-    "priorityLevel": "P3",
-    "slaTargetDate": "29/11/26",
-    "slaDaysRemaining": 29,
-    "slaStatus": "ON_TRACK"
+    "priorityLevel": "P1",
+    "slaTargetDate": "01/11/26",
+    "slaDaysRemaining": 0,
+    "slaStatus": "DUE_SOON",
+    "requestedBy": "CHOIRU"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005076",
@@ -248,8 +596,11 @@
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P3",
     "slaTargetDate": "29/11/26",
-    "slaDaysRemaining": 29,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 28,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005046",
@@ -289,8 +640,11 @@
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P3",
     "slaTargetDate": "29/11/26",
-    "slaDaysRemaining": 29,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 28,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001135",
@@ -330,8 +684,11 @@
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P3",
     "slaTargetDate": "29/11/26",
-    "slaDaysRemaining": 29,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 28,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-MOI-FPB-26-0000103",
@@ -387,8 +744,11 @@
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P1",
     "slaTargetDate": "01/11/26",
-    "slaDaysRemaining": 1,
+    "slaDaysRemaining": 0,
     "slaStatus": "DUE_SOON",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
     "requestedBy": "Yoga Aditya Windrawan"
   },
   {
@@ -414,12 +774,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "updatedAt": "2026-11-01T05:36:47.965Z",
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P3",
     "slaTargetDate": "29/11/26",
-    "slaDaysRemaining": 29,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 28,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001944",
@@ -431,12 +794,43 @@
     "purpose": "Kebutuhan Operasional TRUCK TANKI KT 8324 LU",
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
-    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_MO-FPB-26-0001944.pdf",
-    "reviewStatus": "PENDING_REVIEW",
+    "pdfUrl": "/api/review-fpb/pdf?fpbNo=MO-FPB-26-0001944&type=signed",
+    "reviewStatus": "APPROVED_PO",
     "urgency": "NORMAL",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "SEG00201005-UT",
+        "itemName": "SEALING RING-HUB R/A-INN (SRED) Q40035-9Z00A OEM CW 280 (UD TRUCK)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ RODA TENGAH KANAN (DALAM)",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[SEAG-SEG002] SEALING - SEALING RING-HUB R/A (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 2,
+        "itemCode": "SEG00201006-UT",
+        "itemName": "SEALING RING-HUB R/A-OUT (SRED) Q43421-9Z00A OEM CW 280 (UD TRUCK)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ RODA TENGAH KIRI (LUA",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[SEAG-SEG002] SEALING - SEALING RING-HUB R/A (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
     "attachments": [
       {
         "id": "efpb-att-MO-FPB-26-0001944-2",
@@ -465,12 +859,21 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "updatedAt": "2026-11-01T05:36:47.965Z",
     "createdAt": "2026-10-31T01:26:01.011Z",
-    "priorityLevel": "P3",
-    "slaTargetDate": "29/11/26",
-    "slaDaysRemaining": 29,
-    "slaStatus": "ON_TRACK"
+    "priorityLevel": "P2",
+    "slaTargetDate": "13/11/26",
+    "slaDaysRemaining": 12,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "requestedBy": "SALMAN",
+    "pchLogistik": "Received_Logistic",
+    "reviewedBy": "Hermansyah",
+    "reviewedAt": "2026-10-31T09:18:11.558Z",
+    "tkbNo": "TKB-009",
+    "requesterPhone": "081349361659"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005079",
@@ -495,12 +898,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "updatedAt": "2026-11-01T05:36:47.965Z",
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P3",
     "slaTargetDate": "29/11/26",
-    "slaDaysRemaining": 29,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 28,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005081",
@@ -525,12 +931,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "updatedAt": "2026-11-01T05:36:47.965Z",
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P3",
     "slaTargetDate": "29/11/26",
-    "slaDaysRemaining": 29,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 28,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005083",
@@ -555,12 +964,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "updatedAt": "2026-11-01T05:36:47.965Z",
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P3",
     "slaTargetDate": "29/11/26",
-    "slaDaysRemaining": 29,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 28,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001932",
@@ -585,12 +997,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "updatedAt": "2026-11-01T05:36:47.965Z",
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P3",
     "slaTargetDate": "29/11/26",
-    "slaDaysRemaining": 29,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 28,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001941",
@@ -615,12 +1030,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "updatedAt": "2026-11-01T05:36:47.965Z",
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P3",
     "slaTargetDate": "29/11/26",
-    "slaDaysRemaining": 29,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 28,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001933",
@@ -645,12 +1063,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "updatedAt": "2026-11-01T05:36:47.965Z",
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P3",
     "slaTargetDate": "29/11/26",
-    "slaDaysRemaining": 29,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 28,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001934",
@@ -675,12 +1096,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "updatedAt": "2026-11-01T05:36:47.965Z",
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P3",
     "slaTargetDate": "29/11/26",
-    "slaDaysRemaining": 29,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 28,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005078",
@@ -716,12 +1140,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "updatedAt": "2026-11-01T05:36:47.965Z",
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P3",
     "slaTargetDate": "29/11/26",
-    "slaDaysRemaining": 29,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 28,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005070",
@@ -757,12 +1184,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "updatedAt": "2026-11-01T05:36:47.965Z",
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P3",
     "slaTargetDate": "29/11/26",
-    "slaDaysRemaining": 29,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 28,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-MOI-FPB-26-0000102",
@@ -814,18 +1244,21 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "updatedAt": "2026-11-01T05:36:47.965Z",
     "createdAt": "2026-10-30T01:49:50.792Z",
     "priorityLevel": "P1",
     "slaTargetDate": "01/11/26",
-    "slaDaysRemaining": 1,
+    "slaDaysRemaining": 0,
     "slaStatus": "DUE_SOON",
     "requestedBy": "Yoga Aditya Windrawan",
     "tkbNo": "TKB-007",
     "pchLogistik": "-",
-    "reviewedBy": "Administrator CPG",
-    "reviewedAt": "2026-10-30T01:54:42.869Z",
-    "requesterPhone": "081244752362"
+    "reviewedBy": "Hermansyah",
+    "reviewedAt": "2026-10-31T08:56:23.287Z",
+    "requesterPhone": "081244752362",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005068",
@@ -854,8 +1287,11 @@
     "createdAt": "2026-10-30T01:49:50.792Z",
     "priorityLevel": "P3",
     "slaTargetDate": "29/11/26",
-    "slaDaysRemaining": 29,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 28,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001537",
@@ -884,8 +1320,11 @@
     "createdAt": "2026-10-30T01:49:50.792Z",
     "priorityLevel": "P3",
     "slaTargetDate": "29/11/26",
-    "slaDaysRemaining": 29,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 28,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001126",
@@ -951,12 +1390,15 @@
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P1",
     "slaTargetDate": "31/10/26",
-    "slaDaysRemaining": 0,
-    "slaStatus": "DUE_SOON",
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE",
     "pchLogistik": "-",
     "reviewedBy": "NOOR HASANAH",
     "reviewedAt": "2026-10-29T13:59:48.752Z",
-    "requestedBy": "Sujatmiko"
+    "requestedBy": "Sujatmiko",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005055",
@@ -1025,13 +1467,16 @@
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 28,
+    "slaDaysRemaining": 27,
     "slaStatus": "ON_TRACK",
     "pchLogistik": "-",
     "reviewedBy": "NOOR HASANAH",
     "reviewedAt": "2026-10-29T13:51:31.474Z",
     "requestedBy": "YULIANINGSIH AMANDA",
-    "requesterPhone": "081254332901"
+    "requesterPhone": "081254332901",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001532",
@@ -1119,9 +1564,12 @@
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 28,
+    "slaDaysRemaining": 27,
     "slaStatus": "ON_TRACK",
-    "requestedBy": "jihaan nada'a utami"
+    "requestedBy": "jihaan nada'a utami",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001930",
@@ -1177,9 +1625,12 @@
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P1",
     "slaTargetDate": "31/10/26",
-    "slaDaysRemaining": 0,
-    "slaStatus": "DUE_SOON",
-    "requestedBy": "nilo mardianto"
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE",
+    "requestedBy": "nilo mardianto",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005057",
@@ -1224,9 +1675,12 @@
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P1",
     "slaTargetDate": "31/10/26",
-    "slaDaysRemaining": 0,
-    "slaStatus": "DUE_SOON",
-    "requestedBy": "Iqbal Polejiwa"
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE",
+    "requestedBy": "Iqbal Polejiwa",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005056",
@@ -1490,9 +1944,12 @@
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P1",
     "slaTargetDate": "31/10/26",
-    "slaDaysRemaining": 0,
-    "slaStatus": "DUE_SOON",
-    "requestedBy": "Iqbal Polejiwa"
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE",
+    "requestedBy": "Iqbal Polejiwa",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-MIL-FPB-26-0000064",
@@ -1578,9 +2035,12 @@
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P1",
     "slaTargetDate": "31/10/26",
-    "slaDaysRemaining": 0,
-    "slaStatus": "DUE_SOON",
-    "requestedBy": "Iqbal Polejiwa"
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE",
+    "requestedBy": "Iqbal Polejiwa",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001931",
@@ -1625,9 +2085,12 @@
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P1",
     "slaTargetDate": "31/10/26",
-    "slaDaysRemaining": 0,
-    "slaStatus": "DUE_SOON",
-    "requestedBy": "YULIANINGSIH AMANDA"
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE",
+    "requestedBy": "YULIANINGSIH AMANDA",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001130",
@@ -1656,8 +2119,11 @@
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 28,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 27,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005025",
@@ -1707,8 +2173,11 @@
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 28,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 27,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001128",
@@ -1758,8 +2227,11 @@
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 28,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 27,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001129",
@@ -1768,15 +2240,162 @@
     "entity": "GAJ",
     "armada": "OFFICE GAJ",
     "date": "29/10/26",
-    "purpose": "Kebutuhan Operasional OFFICE GAJ",
+    "purpose": "U/ PEMBUATAN CANOPI TANKI BBM • U/ PEMBUATAN ATAP & TIANG CANOPI TAN BBM • U/ PEMBUATAN LANT CANOPI TANKI BBM • U/ PEMBUATAN PONDASI CANOPI TANKI BBM • U/ CANOPI TANKI BBM",
     "efpbStatus": "Approved",
-    "isReceivedLogistik": true,
+    "isReceivedLogistik": false,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0001129.pdf",
-    "reviewStatus": "PENDING_REVIEW",
-    "urgency": "NORMAL",
+    "reviewStatus": "APPROVED_PO",
+    "urgency": "URGENT",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "BBG00201010-ZZZ",
+        "itemName": "ATAP SPANDEK 0,5 MM X 80 CM X 6 MTR (00)",
+        "qty": 10,
+        "unit": "PCS",
+        "description": "U/ PEMBUATAN CANOPI TANKI BBM",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[BBGN-BBG002] BAHAN BANGUNAN - ATAP SPANDEK (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 2,
+        "itemCode": "KAN00102002-BTR",
+        "itemName": "KANAL BAJA RINGAN C75 X 0,75 MM (B-TRUSS)",
+        "qty": 56,
+        "unit": "BTG",
+        "description": "U/ PEMBUATAN ATAP & TIANG CANOPI TAN BBM",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[KANA-KAN001] KANAL (CANAL) - KANAL (CANAL) BAJA RINGAN (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 3,
+        "itemCode": "B/O02304012-CE",
+        "itemName": "B/O ROOFING 12 MM X 70 MM @ 250 PCS (CAMEL)",
+        "qty": 2,
+        "unit": "KTK",
+        "description": "U/ PEMBUATAN ATAP & TIANG CANOPI TAN BBM",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 4,
+        "itemCode": "B/O02304008-ZZ",
+        "itemName": "B/O ROOFING 12 MM X 20 MM (00)",
+        "qty": 600,
+        "unit": "PCS",
+        "description": "U/ PEMBUATAN ATAP & TIANG CANOPI TAN BBM",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[BBMN-B/O023] BAUT (BOLT) & MUR (NUT) - BAUT ROOFING (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 5,
+        "itemCode": "BBG01503001-MR",
+        "itemName": "SEMEN BATA RINGAN (MORTAR)",
+        "qty": 1,
+        "unit": "ZAK",
+        "description": "U/ PEMBUATAN LANT CANOPI TANKI BBM",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[GERG-GER008] GERGAJI (SAW) - ALAT GERGAJI BATA RINGAN (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 6,
+        "itemCode": "BBG01502001-CC",
+        "itemName": "SEMEN 50 KG (CONCH)",
+        "qty": 2,
+        "unit": "ZAK",
+        "description": "U/ PEMBUATAN PONDASI CANOPI TANKI BBM",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 7,
+        "itemCode": "B/O02802004-ZZ",
+        "itemName": "DYNABOLT 10 MM X 70 MM (00)",
+        "qty": 24,
+        "unit": "PCS",
+        "description": "U/ PEMBUATAN PONDASI CANOPI TANKI BBM",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[BBMN-B/O028] BAUT (BOLT) & MUR (NUT) - DYNABOLT (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 8,
+        "itemCode": "CAT01101003-IN",
+        "itemName": "CAT INTERLAC 665 YELLOW (CLB 13 (INTERNATIONAL CAT)",
+        "qty": 5,
+        "unit": "LTR",
+        "description": "U/ CANOPI TANKI BBM",
+        "priority": "P2",
+        "stockAvailable": 5,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[CAT01101004-INC] CAT INTERLAC 665 FRENCH GREY (CLJ 724) (INTERNATIONAL CAT) (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (5 LTR). Disarankan penuhi dari stok gudang."
+      },
+      {
+        "no": 9,
+        "itemCode": "CAT01101002-IN",
+        "itemName": "CAT INTERLAC 665 BLACK (CLY 999/A) (INTERNATIONAL CAT)",
+        "qty": 5,
+        "unit": "LTR",
+        "description": "U/ CANOPI TANKI BBM",
+        "priority": "P2",
+        "stockAvailable": 5,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[CAT01101004-INC] CAT INTERLAC 665 FRENCH GREY (CLJ 724) (INTERNATIONAL CAT) (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (5 LTR). Disarankan penuhi dari stok gudang."
+      },
+      {
+        "no": 10,
+        "itemCode": "THI00301001-INC",
+        "itemName": "THINNER GTA 004 (INTERNATIONAL CAT)",
+        "qty": 10,
+        "unit": "LTR",
+        "description": "U/ CANOPI TANKI BBM",
+        "priority": "P2",
+        "stockAvailable": 85,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[THI00304001-INC] THINNER GTA 220 (INTERNATIONAL CAT) (CPL)",
+        "inventoryEntity": "CPL",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (85 LTR). Disarankan penuhi dari stok gudang."
+      }
+    ],
     "attachments": [
       {
         "id": "efpb-att-GAJ-FPB-26-0001129-2",
@@ -1799,18 +2418,42 @@
         "caption": "Dokumen / Scan Lampiran FPB"
       }
     ],
-    "duplicateAlerts": [],
+    "duplicateAlerts": [
+      {
+        "fpbNo": "GAJ-FPB-26-0001133",
+        "date": "30/10/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Item sama: \"B/O ROOFING 12 MM X 20 MM (00)\" diajukan pada 30/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (1 hari selisih)"
+      },
+      {
+        "fpbNo": "GAJ-FPB-26-0001080",
+        "date": "27/10/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Item serupa: \"CAT INTERLAC 665 BLACK (CLY 999/A) (INTERNATIONAL CAT)\" diajukan pada 27/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (2 hari selisih)"
+      }
+    ],
     "relatedDocs": {
       "poNos": [],
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-30T01:49:50.792Z",
+    "updatedAt": "2026-10-31T09:00:10.186Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
-    "priorityLevel": "P3",
-    "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 28,
-    "slaStatus": "ON_TRACK"
+    "priorityLevel": "P1",
+    "slaTargetDate": "31/10/26",
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "requestedBy": "SALMAN",
+    "tkbNo": "TKB-008",
+    "pchLogistik": "-",
+    "reviewedBy": "Hermansyah",
+    "reviewedAt": "2026-10-31T09:00:10.186Z",
+    "requesterPhone": "081349361659"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005059",
@@ -1839,8 +2482,11 @@
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 28,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 27,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001536",
@@ -1941,9 +2587,12 @@
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 28,
+    "slaDaysRemaining": 27,
     "slaStatus": "ON_TRACK",
-    "requestedBy": "SUPRIYONO"
+    "requestedBy": "SUPRIYONO",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005060",
@@ -1999,8 +2648,11 @@
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 28,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 27,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005061",
@@ -2146,8 +2798,11 @@
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P1",
     "slaTargetDate": "31/10/26",
-    "slaDaysRemaining": 0,
-    "slaStatus": "DUE_SOON"
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001535",
@@ -2192,9 +2847,12 @@
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
-    "slaDaysRemaining": 28,
+    "slaDaysRemaining": 27,
     "slaStatus": "ON_TRACK",
-    "requestedBy": "Iqbal Polejiwa"
+    "requestedBy": "Iqbal Polejiwa",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001131",
@@ -2265,8 +2923,11 @@
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P1",
     "slaTargetDate": "31/10/26",
-    "slaDaysRemaining": 0,
-    "slaStatus": "DUE_SOON"
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001115",
@@ -2317,9 +2978,12 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
-    "slaDaysRemaining": -1,
+    "slaDaysRemaining": -2,
     "slaStatus": "OVERDUE",
-    "reviewedAt": "2026-10-29T13:21:43.701Z"
+    "reviewedAt": "2026-10-29T13:21:43.701Z",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001116",
@@ -2364,8 +3028,11 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P3",
     "slaTargetDate": "27/11/26",
-    "slaDaysRemaining": 27,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 26,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001928",
@@ -2431,11 +3098,14 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P2",
     "slaTargetDate": "11/11/26",
-    "slaDaysRemaining": 11,
+    "slaDaysRemaining": 10,
     "slaStatus": "ON_TRACK",
     "pchLogistik": "Received_Logistic",
     "reviewedBy": "Administrator CPG",
-    "reviewedAt": "2026-10-29T13:25:16.008Z"
+    "reviewedAt": "2026-10-29T13:25:16.008Z",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005004",
@@ -2525,8 +3195,11 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P3",
     "slaTargetDate": "27/11/26",
-    "slaDaysRemaining": 27,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 26,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001929",
@@ -2592,8 +3265,11 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
-    "slaDaysRemaining": -1,
-    "slaStatus": "OVERDUE"
+    "slaDaysRemaining": -2,
+    "slaStatus": "OVERDUE",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001117",
@@ -2674,8 +3350,11 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
-    "slaDaysRemaining": -1,
-    "slaStatus": "OVERDUE"
+    "slaDaysRemaining": -2,
+    "slaStatus": "OVERDUE",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005026",
@@ -2720,8 +3399,11 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P3",
     "slaTargetDate": "27/11/26",
-    "slaDaysRemaining": 27,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 26,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001118",
@@ -2807,8 +3489,11 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
-    "slaDaysRemaining": -1,
-    "slaStatus": "OVERDUE"
+    "slaDaysRemaining": -2,
+    "slaStatus": "OVERDUE",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005027",
@@ -2837,8 +3522,11 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P3",
     "slaTargetDate": "27/11/26",
-    "slaDaysRemaining": 27,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 26,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005028",
@@ -2958,8 +3646,11 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P3",
     "slaTargetDate": "27/11/26",
-    "slaDaysRemaining": 27,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 26,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005030",
@@ -3015,8 +3706,11 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
-    "slaDaysRemaining": -1,
-    "slaStatus": "OVERDUE"
+    "slaDaysRemaining": -2,
+    "slaStatus": "OVERDUE",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001119",
@@ -3110,8 +3804,11 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
-    "slaDaysRemaining": -1,
-    "slaStatus": "OVERDUE"
+    "slaDaysRemaining": -2,
+    "slaStatus": "OVERDUE",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001120",
@@ -3205,8 +3902,11 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
-    "slaDaysRemaining": -1,
-    "slaStatus": "OVERDUE"
+    "slaDaysRemaining": -2,
+    "slaStatus": "OVERDUE",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001121",
@@ -3287,8 +3987,11 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
-    "slaDaysRemaining": -1,
-    "slaStatus": "OVERDUE"
+    "slaDaysRemaining": -2,
+    "slaStatus": "OVERDUE",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-SP-FPB-26-0000992",
@@ -3333,8 +4036,11 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
-    "slaDaysRemaining": -1,
-    "slaStatus": "OVERDUE"
+    "slaDaysRemaining": -2,
+    "slaStatus": "OVERDUE",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001122",
@@ -3403,8 +4109,11 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
-    "slaDaysRemaining": -1,
-    "slaStatus": "OVERDUE"
+    "slaDaysRemaining": -2,
+    "slaStatus": "OVERDUE",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004517",
@@ -3485,12 +4194,15 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
-    "slaDaysRemaining": -1,
+    "slaDaysRemaining": -2,
     "slaStatus": "OVERDUE",
     "tkbNo": "TKB-004",
     "pchLogistik": "Received_Logistic",
     "reviewedBy": "NOOR HASANAH",
-    "reviewedAt": "2026-10-29T13:52:38.392Z"
+    "reviewedAt": "2026-10-29T13:52:38.392Z",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0000993",
@@ -3591,8 +4303,11 @@
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P3",
     "slaTargetDate": "27/11/26",
-    "slaDaysRemaining": 27,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 26,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001114",
@@ -3632,8 +4347,11 @@
     "createdAt": "2026-10-28T05:50:09.035Z",
     "priorityLevel": "P3",
     "slaTargetDate": "27/11/26",
-    "slaDaysRemaining": 27,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 26,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001080",
@@ -3730,6 +4448,13 @@
     "attachments": [],
     "duplicateAlerts": [
       {
+        "fpbNo": "GAJ-FPB-26-0001129",
+        "date": "29/10/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Item serupa: \"CAT INTERLAC 665 BLACK (CLY 999/A) (INTERNATIONAL CAT)\" diajukan pada 29/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (2 hari selisih)"
+      },
+      {
         "fpbNo": "GAJ-FPB-26-0001083",
         "date": "27/10/26",
         "armada": "OFFICE GAJ",
@@ -3746,8 +4471,11 @@
     "createdAt": "2026-10-28T01:02:53.918Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
-    "slaDaysRemaining": -2,
-    "slaStatus": "OVERDUE"
+    "slaDaysRemaining": -3,
+    "slaStatus": "OVERDUE",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001101",
@@ -3803,8 +4531,11 @@
     "createdAt": "2026-10-28T01:02:53.918Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
-    "slaDaysRemaining": -2,
-    "slaStatus": "OVERDUE"
+    "slaDaysRemaining": -3,
+    "slaStatus": "OVERDUE",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001111",
@@ -3980,11 +4711,14 @@
     "createdAt": "2026-10-28T01:02:53.918Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
-    "slaDaysRemaining": -2,
+    "slaDaysRemaining": -3,
     "slaStatus": "OVERDUE",
     "pchLogistik": "-",
     "reviewedBy": "Administrator CPG",
-    "reviewedAt": "2026-10-28T06:06:38.001Z"
+    "reviewedAt": "2026-10-28T06:06:38.001Z",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004998",
@@ -4085,8 +4819,11 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 25,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 24,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001213",
@@ -4136,8 +4873,11 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
-    "slaDaysRemaining": 26,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 25,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005003",
@@ -4193,8 +4933,11 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
-    "slaDaysRemaining": 26,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 25,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001105",
@@ -4254,8 +4997,11 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
-    "slaDaysRemaining": -2,
-    "slaStatus": "OVERDUE"
+    "slaDaysRemaining": -3,
+    "slaStatus": "OVERDUE",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-MO-FPB-26-0005005",
@@ -4305,8 +5051,11 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
-    "slaDaysRemaining": 26,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 25,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005006",
@@ -4387,8 +5136,11 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
-    "slaDaysRemaining": -2,
-    "slaStatus": "OVERDUE"
+    "slaDaysRemaining": -3,
+    "slaStatus": "OVERDUE",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005007",
@@ -4448,8 +5200,11 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
-    "slaDaysRemaining": 26,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 25,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001107",
@@ -4494,8 +5249,11 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
-    "slaDaysRemaining": 26,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 25,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-HL-FPB-26-001528",
@@ -4524,8 +5282,11 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
-    "slaDaysRemaining": 26,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 25,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001303",
@@ -4591,8 +5352,11 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
-    "slaDaysRemaining": -2,
-    "slaStatus": "OVERDUE"
+    "slaDaysRemaining": -3,
+    "slaStatus": "OVERDUE",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001083",
@@ -4690,8 +5454,11 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
-    "slaDaysRemaining": -2,
-    "slaStatus": "OVERDUE"
+    "slaDaysRemaining": -3,
+    "slaStatus": "OVERDUE",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001108",
@@ -4766,7 +5533,7 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
-    "slaDaysRemaining": 26,
+    "slaDaysRemaining": 25,
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
@@ -4837,8 +5604,11 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
-    "slaDaysRemaining": -2,
-    "slaStatus": "OVERDUE"
+    "slaDaysRemaining": -3,
+    "slaStatus": "OVERDUE",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001102",
@@ -5035,8 +5805,11 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
-    "slaDaysRemaining": -2,
-    "slaStatus": "OVERDUE"
+    "slaDaysRemaining": -3,
+    "slaStatus": "OVERDUE",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005013",
@@ -5081,8 +5854,11 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
-    "slaDaysRemaining": -2,
-    "slaStatus": "OVERDUE"
+    "slaDaysRemaining": -3,
+    "slaStatus": "OVERDUE",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005015",
@@ -5153,8 +5929,11 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
-    "slaDaysRemaining": 26,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 25,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005018",
@@ -5199,8 +5978,11 @@
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
-    "slaDaysRemaining": 26,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 25,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004742",
@@ -5209,7 +5991,7 @@
     "entity": "CPL",
     "armada": "SPEED BOAT2",
     "date": "26/10/26",
-    "purpose": "Kebutuhan Operasional SPEED BOAT2",
+    "purpose": "U/ GANTI LES RH/LH • U/ GANTI KURSI DEPAN RH/LH • U/ PENAMBALAN LANTA",
     "efpbStatus": "Approved",
     "isReceivedLogistik": false,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0004742.pdf",
@@ -5286,12 +6068,16 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-27T01:51:56.838Z",
+    "updatedAt": "2026-10-31T09:11:37.934Z",
     "createdAt": "2026-10-27T01:49:18.402Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 25,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 24,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "requestedBy": "SALMAN"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004667",
@@ -5418,8 +6204,11 @@
     "createdAt": "2026-10-27T01:49:18.402Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 25,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 24,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004993",
@@ -5464,8 +6253,11 @@
     "createdAt": "2026-10-27T01:49:18.402Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 25,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 24,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004994",
@@ -5529,8 +6321,11 @@
     "createdAt": "2026-10-27T01:49:18.402Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 25,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 24,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004996",
@@ -5573,12 +6368,15 @@
     "createdAt": "2026-10-27T01:49:18.402Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 25,
+    "slaDaysRemaining": 24,
     "slaStatus": "ON_TRACK",
     "pchLogistik": "Received_Logistic",
     "reviewedBy": "Administrator CPG",
     "reviewedAt": "2026-10-27T01:53:04.940Z",
-    "tkbNo": "TKB-003"
+    "tkbNo": "TKB-003",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004962",
@@ -5623,11 +6421,14 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P3",
     "slaTargetDate": "22/11/26",
-    "slaDaysRemaining": 22,
+    "slaDaysRemaining": 21,
     "slaStatus": "ON_TRACK",
     "pchLogistik": "Received_Logistic",
     "reviewedBy": "Administrator CPG",
-    "reviewedAt": "2026-10-26T16:26:12.513Z"
+    "reviewedAt": "2026-10-26T16:26:12.513Z",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001513",
@@ -5672,8 +6473,11 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P3",
     "slaTargetDate": "22/11/26",
-    "slaDaysRemaining": 22,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 21,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001903",
@@ -5774,8 +6578,11 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P3",
     "slaTargetDate": "22/11/26",
-    "slaDaysRemaining": 22,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 21,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001902",
@@ -5841,9 +6648,12 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "25/10/26",
-    "slaDaysRemaining": -6,
+    "slaDaysRemaining": -7,
     "slaStatus": "OVERDUE",
-    "pchLogistik": "Received_Logistic"
+    "pchLogistik": "Received_Logistic",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001904",
@@ -5909,9 +6719,12 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "25/10/26",
-    "slaDaysRemaining": -6,
+    "slaDaysRemaining": -7,
     "slaStatus": "OVERDUE",
-    "pchLogistik": "Received_Logistic"
+    "pchLogistik": "Received_Logistic",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004943",
@@ -5954,8 +6767,11 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "25/10/26",
-    "slaDaysRemaining": -6,
-    "slaStatus": "OVERDUE"
+    "slaDaysRemaining": -7,
+    "slaStatus": "OVERDUE",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001082",
@@ -5995,7 +6811,7 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P3",
     "slaTargetDate": "22/11/26",
-    "slaDaysRemaining": 22,
+    "slaDaysRemaining": 21,
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
@@ -6117,11 +6933,14 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
-    "slaDaysRemaining": -5,
+    "slaDaysRemaining": -6,
     "slaStatus": "OVERDUE",
     "pchLogistik": "-",
     "reviewedBy": "Administrator CPG",
-    "reviewedAt": "2026-10-26T16:26:57.471Z"
+    "reviewedAt": "2026-10-26T16:26:57.471Z",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001906",
@@ -6187,8 +7006,11 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
-    "slaDaysRemaining": -5,
-    "slaStatus": "OVERDUE"
+    "slaDaysRemaining": -6,
+    "slaStatus": "OVERDUE",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004915",
@@ -6217,8 +7039,11 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P3",
     "slaTargetDate": "23/11/26",
-    "slaDaysRemaining": 23,
-    "slaStatus": "ON_TRACK"
+    "slaDaysRemaining": 22,
+    "slaStatus": "ON_TRACK",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001907",
@@ -6284,8 +7109,11 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
-    "slaDaysRemaining": -5,
-    "slaStatus": "OVERDUE"
+    "slaDaysRemaining": -6,
+    "slaStatus": "OVERDUE",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001908",
@@ -6375,8 +7203,11 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
-    "slaDaysRemaining": -5,
-    "slaStatus": "OVERDUE"
+    "slaDaysRemaining": -6,
+    "slaStatus": "OVERDUE",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001514",
@@ -6442,8 +7273,11 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
-    "slaDaysRemaining": -5,
-    "slaStatus": "OVERDUE"
+    "slaDaysRemaining": -6,
+    "slaStatus": "OVERDUE",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001909",
@@ -6497,12 +7331,15 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
-    "slaDaysRemaining": -5,
+    "slaDaysRemaining": -6,
     "slaStatus": "OVERDUE",
     "pchLogistik": "Received_Logistic",
     "reviewedBy": "Administrator CPG",
     "reviewedAt": "2026-10-26T16:31:44.764Z",
-    "tkbNo": "TKB-002"
+    "tkbNo": "TKB-002",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001088",
@@ -6671,12 +7508,15 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
-    "slaDaysRemaining": -5,
+    "slaDaysRemaining": -6,
     "slaStatus": "OVERDUE",
     "pchLogistik": "Received_Logistic",
     "reviewedBy": "Administrator CPG",
     "reviewedAt": "2026-10-26T16:29:34.321Z",
-    "tkbNo": "TKB-001"
+    "tkbNo": "TKB-001",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004963",
@@ -6846,8 +7686,11 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
-    "slaDaysRemaining": -5,
-    "slaStatus": "OVERDUE"
+    "slaDaysRemaining": -6,
+    "slaStatus": "OVERDUE",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004961",
@@ -6929,8 +7772,11 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
-    "slaDaysRemaining": -5,
-    "slaStatus": "OVERDUE"
+    "slaDaysRemaining": -6,
+    "slaStatus": "OVERDUE",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004971",
@@ -6996,11 +7842,14 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -3,
+    "slaDaysRemaining": -4,
     "slaStatus": "OVERDUE",
     "pchLogistik": "-",
     "reviewedBy": "NOOR HASANAH",
-    "reviewedAt": "2026-10-26T17:03:43.403Z"
+    "reviewedAt": "2026-10-26T17:03:43.403Z",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001089",
@@ -7053,11 +7902,14 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -3,
+    "slaDaysRemaining": -4,
     "slaStatus": "OVERDUE",
     "pchLogistik": "-",
     "reviewedBy": "NOOR HASANAH",
-    "reviewedAt": "2026-10-26T17:03:50.491Z"
+    "reviewedAt": "2026-10-26T17:03:50.491Z",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0003987",
@@ -7450,12 +8302,15 @@
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -3,
+    "slaDaysRemaining": -4,
     "slaStatus": "OVERDUE",
     "pchLogistik": "Received_Logistic",
     "reviewedBy": "NOOR HASANAH",
     "reviewedAt": "2026-10-29T13:53:56.221Z",
-    "tkbNo": "TKB-005"
+    "tkbNo": "TKB-005",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001918",
@@ -7499,7 +8354,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -3,
+    "slaDaysRemaining": -4,
     "slaStatus": "OVERDUE",
     "attachments": [
       {
@@ -7525,7 +8380,10 @@
     ],
     "pchLogistik": "-",
     "reviewedBy": "NOOR HASANAH",
-    "reviewedAt": "2026-10-26T17:04:13.680Z"
+    "reviewedAt": "2026-10-26T17:04:13.680Z",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001094",
@@ -7569,12 +8427,15 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -3,
+    "slaDaysRemaining": -4,
     "slaStatus": "OVERDUE",
     "attachments": [],
     "pchLogistik": "-",
     "reviewedBy": "NOOR HASANAH",
-    "reviewedAt": "2026-10-26T17:04:21.655Z"
+    "reviewedAt": "2026-10-26T17:04:21.655Z",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001920",
@@ -7631,7 +8492,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -3,
+    "slaDaysRemaining": -4,
     "slaStatus": "OVERDUE",
     "attachments": [
       {
@@ -7657,7 +8518,10 @@
     ],
     "pchLogistik": "-",
     "reviewedBy": "NOOR HASANAH",
-    "reviewedAt": "2026-10-26T17:03:24.040Z"
+    "reviewedAt": "2026-10-26T17:03:24.040Z",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0000712",
@@ -8118,13 +8982,16 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 25,
+    "slaDaysRemaining": 24,
     "slaStatus": "ON_TRACK",
     "pchLogistik": "Received_Logistic",
     "attachments": [],
     "reviewedBy": "NOOR HASANAH",
     "reviewedAt": "2026-10-29T13:57:46.433Z",
-    "tkbNo": "TKB-006"
+    "tkbNo": "TKB-006",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001525",
@@ -8168,7 +9035,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -3,
+    "slaDaysRemaining": -4,
     "slaStatus": "OVERDUE",
     "attachments": [
       {
@@ -8184,7 +9051,10 @@
     ],
     "pchLogistik": "-",
     "reviewedBy": "NOOR HASANAH",
-    "reviewedAt": "2026-10-26T17:04:46.176Z"
+    "reviewedAt": "2026-10-26T17:04:46.176Z",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004985",
@@ -8212,12 +9082,15 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 25,
+    "slaDaysRemaining": 24,
     "slaStatus": "ON_TRACK",
     "attachments": [],
     "pchLogistik": "-",
     "reviewedBy": "NOOR HASANAH",
-    "reviewedAt": "2026-10-26T17:04:53.144Z"
+    "reviewedAt": "2026-10-26T17:04:53.144Z",
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004967",
@@ -8274,7 +9147,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 25,
+    "slaDaysRemaining": 24,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -8420,7 +9293,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -3,
+    "slaDaysRemaining": -4,
     "slaStatus": "OVERDUE",
     "attachments": [
       {
@@ -8443,7 +9316,10 @@
         "source": "EFPB_MAKER",
         "caption": "Dokumen / Scan Lampiran FPB"
       }
-    ]
+    ],
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004976",
@@ -8495,7 +9371,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 25,
+    "slaDaysRemaining": 24,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -8540,7 +9416,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -3,
+    "slaDaysRemaining": -4,
     "slaStatus": "OVERDUE",
     "attachments": [
       {
@@ -8563,7 +9439,10 @@
         "source": "EFPB_MAKER",
         "caption": "Dokumen / Scan Lampiran FPB"
       }
-    ]
+    ],
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004980",
@@ -8620,7 +9499,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 25,
+    "slaDaysRemaining": 24,
     "slaStatus": "ON_TRACK",
     "attachments": [
       {
@@ -8643,7 +9522,10 @@
         "source": "EFPB_MAKER",
         "caption": "Dokumen / Scan Lampiran FPB"
       }
-    ]
+    ],
+    "isRevised": true,
+    "revisionCount": 2,
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004982",
@@ -8722,7 +9604,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 25,
+    "slaDaysRemaining": 24,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -8765,7 +9647,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 25,
+    "slaDaysRemaining": 24,
     "slaStatus": "ON_TRACK",
     "pchLogistik": "Received_Logistic",
     "reviewedBy": "NOOR HASANAH",
@@ -8813,7 +9695,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -3,
+    "slaDaysRemaining": -4,
     "slaStatus": "OVERDUE"
   },
   {
@@ -8934,7 +9816,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -3,
+    "slaDaysRemaining": -4,
     "slaStatus": "OVERDUE"
   },
   {
@@ -8977,7 +9859,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
-    "slaDaysRemaining": -3,
+    "slaDaysRemaining": -4,
     "slaStatus": "OVERDUE"
   },
   {
@@ -9022,7 +9904,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 25,
+    "slaDaysRemaining": 24,
     "slaStatus": "ON_TRACK"
   },
   {
@@ -9097,7 +9979,7 @@
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
-    "slaDaysRemaining": 25,
+    "slaDaysRemaining": 24,
     "slaStatus": "ON_TRACK"
   }
 ]

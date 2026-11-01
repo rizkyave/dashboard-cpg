@@ -34,6 +34,7 @@ import {
   evaluateFleetItemStatus,
   MONTH_NAMES_ID,
 } from './utils';
+import { findDocumentsByFpb } from '@/utils/docRelationResolver';
 
 export interface GanttSubTicket {
   fpb: string;
@@ -279,6 +280,11 @@ export default function ArmadaGanttSchedule({
         const startLabel = formatShortDate(dStart);
         const endLabel = formatShortDate(dEnd);
 
+        const docRel = fpbNum ? findDocumentsByFpb(fpbNum) : null;
+        const displayQtyFpb = qFpb || 1;
+        const displayQtyFstb = childStatus === 'LENGKAP' ? (qFstb || displayQtyFpb) : qFstb;
+        const displaySelisih = childStatus === 'LENGKAP' ? 0 : qSel;
+
         sampleItems.push({
           fpb: fpbNum,
           item: rawItemName || 'Suku Cadang & Perlengkapan Kapal',
@@ -289,19 +295,19 @@ export default function ArmadaGanttSchedule({
           durationDays,
           durationText,
           status: childStatus,
-          qtyFpb: qFpb,
-          qtyFstb: qFstb,
-          selisih: qSel,
+          qtyFpb: displayQtyFpb,
+          qtyFstb: displayQtyFstb,
+          selisih: displaySelisih,
           satuan: child.satuan || 'UNIT',
           tglFpb: startLabel,
           picFpb: (child as any).picFpb || (child as any).requestedBy || 'Husain (User Lapangan)',
-          noPo: child.noPo && child.noPo !== '-' ? child.noPo : undefined,
+          noPo: child.noPo && child.noPo !== '-' ? child.noPo : (docRel?.pos?.[0] || undefined),
           tglPo: child.tglPo ? formatShortDate(parseDateObj(child.tglPo)) : undefined,
           picPch: child.picPch || 'Putri (Purchasing)',
-          noFstb: child.noFstb && child.noFstb !== '-' ? child.noFstb : undefined,
+          noFstb: child.noFstb && child.noFstb !== '-' ? child.noFstb : (docRel?.fstbs?.[0] || undefined),
           tglFstb: child.tglFstb ? formatShortDate(parseDateObj(child.tglFstb)) : undefined,
           picFstb: (child as any).picFstb || child.picPch || 'Putri (Purchasing)',
-          noTtb: override?.noTtb || (child.noTtb && child.noTtb !== '-' ? child.noTtb : undefined),
+          noTtb: override?.noTtb || (child.noTtb && child.noTtb !== '-' ? child.noTtb : (docRel?.ttbs?.[0] || undefined)),
           tglTtb: override?.tglTtb ? formatShortDate(parseDateObj(override.tglTtb)) : (child.tglTtb ? formatShortDate(parseDateObj(child.tglTtb)) : undefined),
           picTtb: override?.picTtb || (child as any).picTtb || 'Fifi (Logistik)',
           tglDiantar: endLabel,

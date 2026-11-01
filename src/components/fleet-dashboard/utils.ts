@@ -2,6 +2,7 @@
 // HELPER NORMALISASI & UTILITAS DATA ARMADA
 // Menghilangkan duplikasi seperti 'TWIN SISTER 307' dan 'SV TWINSISTER 307'
 // ============================================================================
+import { findDocumentsByFpb } from '@/utils/docRelationResolver';
 
 export const TOP_FLEET_COLORS: string[] = [
   '#EC4899', // 1. OFFICE GAJ - Magenta / Deep Pink
@@ -344,14 +345,25 @@ export interface FleetItemStatusEvaluation {
 export function evaluateFleetItemStatus(
   item: any,
   override?: any,
-  referenceDate: Date = new Date(2026, 9, 31)
+  referenceDate: Date = new Date()
 ): FleetItemStatusEvaluation {
   const fpbNum = (item.fpb || '').trim();
   const qFpb = Number(item.qtyFPB) || 0;
   const qFstb = Number(item.qtyFSTB) || 0;
   const qSel = item.selisih !== undefined ? Number(item.selisih) : Math.max(0, qFpb - qFstb);
 
-  const statusUpper = (item.status || item.statusBadge || item.rawStatus || '').toUpperCase();
+  const statusUpper = (
+    item.status ||
+    item.statusBadge ||
+    item.rawStatus ||
+    item.statusSaatIni ||
+    item.statusCek ||
+    item.statusCheckFpb ||
+    item.done ||
+    item.doneCheckFpb ||
+    item.workflowStatus ||
+    ''
+  ).toUpperCase();
 
   // 1. Tanggal Mulai (Kotak 1: Buat FPB / PO / Date)
   let dStart = parseDateObj(
@@ -370,7 +382,15 @@ export function evaluateFleetItemStatus(
 
   const refTime = referenceDate.getTime();
   const ageDays = Math.max(0, Math.round((refTime - dStart.getTime()) / 86400000));
-  const isFromPriorMonth = dStart.getFullYear() < 2026 || (dStart.getFullYear() === 2026 && dStart.getMonth() < 9);
+  const isFromPriorMonth =
+    dStart.getFullYear() < referenceDate.getFullYear() ||
+    (dStart.getFullYear() === referenceDate.getFullYear() && dStart.getMonth() < referenceDate.getMonth());
+
+  // Cek relasi lintas modul dari docRelationResolver jika nomor dokumen tersedia
+  const docRel = fpbNum ? findDocumentsByFpb(fpbNum) : null;
+  const hasRelTtb = Boolean(docRel && docRel.ttbs && docRel.ttbs.length > 0);
+  const hasRelFstb = Boolean(docRel && docRel.fstbs && docRel.fstbs.length > 0);
+  const hasRelPo = Boolean(docRel && docRel.pos && docRel.pos.length > 0);
 
   // Cek apakah serah terima fisik ke unit / armada sudah tuntas (Kotak 5 / Tim Lapangan)
   const rawKotak5 =
@@ -381,11 +401,18 @@ export function evaluateFleetItemStatus(
     item.tglKeTimLap ||
     item.tglTimLapKePicTtb;
 
+  const isExplicitComplete =
+    statusUpper.includes('KEUANGAN') ||
+    statusUpper.includes('SELESAI') ||
+    statusUpper.includes('CLOSE') ||
+    statusUpper.includes('DONE') ||
+    statusUpper.includes('LENGKAP');
+
   const hasFieldHandover = Boolean(
     override?.isCompleted ||
-    (rawKotak5 && (qSel === 0 || qFstb >= qFpb)) ||
-    (qSel === 0 && qFstb > 0 && (item.noTtb || item.tglTtb || item.picLap || rawKotak5)) ||
-    ((statusUpper.includes('LENGKAP') || statusUpper.includes('CLOSE') || statusUpper.includes('SELESAI')) && !(qFstb === 0 && qSel > 0))
+    (rawKotak5 && (qSel === 0 || qFstb >= qFpb || qFpb === 0)) ||
+    (qSel === 0 && qFstb > 0 && (item.noTtb || item.tglTtb || item.picLap || rawKotak5 || hasRelTtb)) ||
+    (isExplicitComplete && (hasRelTtb || hasRelFstb || rawKotak5 || item.noTtb || item.noFstb || qSel === 0 || qFpb === 0 || qFstb >= qFpb))
   );
 
   let status: 'LENGKAP' | 'PROSES' | 'PARSIAL' | 'BACKLOG' = 'PROSES';
