@@ -32,6 +32,7 @@ import {
   calculateDateRangePosition,
   normalizeArmadaName,
   evaluateFleetItemStatus,
+  MONTH_NAMES_ID,
 } from './utils';
 
 export interface GanttSubTicket {
@@ -92,6 +93,8 @@ const TIMELINE_MONTHS = [
   { key: '08', name: 'AGU', label: 'Agustus 2026', startCol: 8 },
   { key: '09', name: 'SEP', label: 'September 2026', startCol: 12 },
   { key: '10', name: 'OKT', label: 'Oktober 2026', startCol: 16 },
+  { key: '11', name: 'NOV', label: 'November 2026', startCol: 20 },
+  { key: '12', name: 'DES', label: 'Desember 2026', startCol: 24 },
 ];
 
 const WEEKS_PER_MONTH = ['W1', 'W2', 'W3', 'W4'];
@@ -152,7 +155,7 @@ export default function ArmadaGanttSchedule({
   items = [],
   selectedArmadaId,
   onSelectArmada,
-  selectedPeriod = '10',
+  selectedPeriod = String(new Date().getMonth() + 1).padStart(2, '0'),
   onOpenAudit,
 }: ArmadaGanttScheduleProps) {
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
@@ -322,8 +325,11 @@ export default function ArmadaGanttSchedule({
         gradientStyle = 'bg-gradient-to-r from-emerald-600 via-sky-500 to-blue-500 border-sky-400/60 shadow-[0_2px_10px_rgba(14,165,233,0.3)]';
       }
 
-      const vStartDate = minArmadaTime !== Infinity ? new Date(minArmadaTime) : new Date(2026, 9, 1);
-      const vEndDate = maxArmadaTime !== -Infinity ? new Date(maxArmadaTime) : new Date(2026, 9, 31);
+      const now = new Date();
+      const currentMonthIndex = now.getMonth();
+      const lastDayOfCurrentMonth = new Date(2026, currentMonthIndex + 1, 0).getDate();
+      const vStartDate = minArmadaTime !== Infinity ? new Date(minArmadaTime) : new Date(2026, currentMonthIndex, 1);
+      const vEndDate = maxArmadaTime !== -Infinity ? new Date(maxArmadaTime) : new Date(2026, currentMonthIndex, lastDayOfCurrentMonth);
 
       result.push({
         name: entry.name,
@@ -399,7 +405,10 @@ export default function ArmadaGanttSchedule({
   // Bulan yang ditampilkan di header grid
   const displayMonths = useMemo(() => {
     if (selectedPeriod === 'ALL') return TIMELINE_MONTHS;
-    return TIMELINE_MONTHS.filter((m) => m.key === selectedPeriod);
+    const found = TIMELINE_MONTHS.filter((m) => m.key === selectedPeriod);
+    if (found.length > 0) return found;
+    const mName = MONTH_NAMES_ID[selectedPeriod] || selectedPeriod;
+    return [{ key: selectedPeriod, name: mName.slice(0, 3).toUpperCase(), label: `${mName} 2026`, startCol: 0 }];
   }, [selectedPeriod]);
 
   const totalCols = displayMonths.length * 4;
@@ -412,7 +421,7 @@ export default function ArmadaGanttSchedule({
     const currentMonthKey = String(currentMonthNum).padStart(2, '0');
     const day = now.getDate();
 
-    // Format badge tanggal: "dd MMM" (contoh: "23 Okt")
+    // Format badge tanggal: "dd MMM" (contoh: "01 Nov")
     const label = formatShortDate(now);
 
     if (selectedPeriod !== 'ALL') {
@@ -427,33 +436,26 @@ export default function ArmadaGanttSchedule({
         const percent = Math.max(0, Math.min(100, ((now.getTime() - timelineStart) / (timelineEnd - timelineStart)) * 100));
         return { todayPercent: percent, todayLabel: label, isCurrentMonthInView: true };
       } else {
-        // Fallback default untuk simulasi bulan Oktober 2026 jika target adalah '10'
-        if (selectedPeriod === '10') {
-          const timelineStart = new Date(2026, 9, 1).getTime();
-          const timelineEnd = new Date(2026, 9, 31, 23, 59, 59).getTime();
-          const effectiveDate = (currentMonthNum === 10) ? now.getTime() : new Date(2026, 9, Math.min(day, 31)).getTime();
-          const percent = ((effectiveDate - timelineStart) / (timelineEnd - timelineStart)) * 100;
-          return { todayPercent: percent, todayLabel: label, isCurrentMonthInView: true };
-        }
         return { todayPercent: null, todayLabel: label, isCurrentMonthInView: false };
       }
     } else {
-      // Mode Multi-Month ALL (5 Bulan: Jun=6 s/d Okt=10)
-      if (currentMonthNum >= 6 && currentMonthNum <= 10) {
-        const mIdx = currentMonthNum - 6;
-        const daysInMonth = new Date(currentYear, currentMonthNum, 0).getDate();
-        const dayFraction = (day - 1 + 0.5) / daysInMonth;
-        const percent = mIdx * 20 + dayFraction * 20;
-        return { todayPercent: percent, todayLabel: label, isCurrentMonthInView: true };
-      } else {
-        // Default pin di blok Oktober
-        const daysInOct = 31;
-        const dayFraction = (Math.min(day, 31) - 1 + 0.5) / daysInOct;
-        const percent = 4 * 20 + dayFraction * 20;
-        return { todayPercent: percent, todayLabel: label, isCurrentMonthInView: true };
+      // Mode Multi-Month ALL (Berdasarkan displayMonths)
+      const firstMonthKey = parseInt(displayMonths[0]?.key || '6', 10);
+      const lastMonthKey = parseInt(displayMonths[displayMonths.length - 1]?.key || '12', 10);
+      const totalMonths = displayMonths.length;
+
+      if (currentMonthNum >= firstMonthKey && currentMonthNum <= lastMonthKey) {
+        const mIdx = displayMonths.findIndex((m) => m.key === currentMonthKey);
+        if (mIdx >= 0) {
+          const daysInMonth = new Date(currentYear, currentMonthNum, 0).getDate();
+          const dayFraction = (day - 1 + 0.5) / daysInMonth;
+          const percent = (mIdx / totalMonths) * 100 + (dayFraction / totalMonths) * 100;
+          return { todayPercent: percent, todayLabel: label, isCurrentMonthInView: true };
+        }
       }
+      return { todayPercent: null, todayLabel: label, isCurrentMonthInView: false };
     }
-  }, [selectedPeriod]);
+  }, [selectedPeriod, displayMonths]);
 
   const toggleRow = (name: string) => {
     setExpandedRows((prev) => ({
@@ -685,13 +687,13 @@ export default function ArmadaGanttSchedule({
                   style={{ gridTemplateColumns: `repeat(${totalCols}, minmax(0, 1fr))` }}
                 >
                   {displayMonths.map((m) => {
-                    const currentDay = new Date().getDate();
+                    const now = new Date();
+                    const currentDay = now.getDate();
+                    const currentMonthKey = String(now.getMonth() + 1).padStart(2, '0');
                     const activeWeekIdx = currentDay <= 7 ? 0 : currentDay <= 14 ? 1 : currentDay <= 21 ? 2 : 3;
 
                     return WEEKS_PER_MONTH.map((w, wIdx) => {
-                      const isTodayCol =
-                        (selectedPeriod === '10' && wIdx === activeWeekIdx) ||
-                        (selectedPeriod === 'ALL' && m.key === '10' && wIdx === activeWeekIdx);
+                      const isTodayCol = m.key === currentMonthKey && wIdx === activeWeekIdx;
 
                       return (
                         <div

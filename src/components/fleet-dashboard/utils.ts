@@ -149,7 +149,7 @@ export function parseDateObj(val: any): Date | null {
   if (val instanceof Date && !isNaN(val.getTime())) return val;
 
   let year = 2026;
-  let month = 9; // 0-indexed (9 = Oktober)
+  let month = new Date().getMonth(); // Default ke bulan saat ini
   let day = 1;
 
   if (typeof val === 'number') {
@@ -195,7 +195,7 @@ export function parseDateObj(val: any): Date | null {
         nov: 10, november: 10,
         des: 11, desember: 11, dec: 11, december: 11,
       };
-      month = mNames[mStr.slice(0, 3)] ?? 9;
+      month = mNames[mStr.slice(0, 3)] ?? new Date().getMonth();
       return new Date(year, month, day);
     }
 
@@ -284,25 +284,28 @@ export function calculateDateRangePosition(
 
     return { left: clampedLeft, width: clampedWidth };
   } else {
-    // Mode Multi-Month ALL (5 Bulan: Jun=6..Okt=10)
+    // Mode Multi-Month ALL (Dinamis Bulan 06 s/d 12: Juni..Desember 2026)
+    const startM = 6;
+    const endM = 12;
+    const totalM = endM - startM + 1; // 7 bulan
     const getPosPercent = (d: Date, isEnd: boolean = false): number => {
       let m = d.getMonth() + 1;
       let day = d.getDate();
 
-      if (m < 6) {
-        m = 6;
+      if (m < startM) {
+        m = startM;
         day = 1;
-      } else if (m > 10) {
-        m = 10;
+      } else if (m > endM) {
+        m = endM;
         day = 31;
       }
 
-      const mIdx = m - 6;
+      const mIdx = m - startM;
       const daysInM = new Date(2026, m, 0).getDate();
       const dayOffset = isEnd ? day : day - 1;
       const frac = Math.max(0, Math.min(1, dayOffset / daysInM));
 
-      return mIdx * 20 + frac * 20;
+      return (mIdx / totalM) * 100 + (frac / totalM) * 100;
     };
 
     const sPos = getPosPercent(sDate, false);

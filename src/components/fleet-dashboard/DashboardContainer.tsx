@@ -31,10 +31,12 @@ interface DashboardContainerProps {
   onSelectArmadaProp?: (armadaName: string | null) => void;
 }
 
+const defaultCurrentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
+
 export default function DashboardContainer({
   items,
   onOpenAudit,
-  initialMonth = '10', // Default: Oktober 2026
+  initialMonth = defaultCurrentMonth, // Default dinamis ke bulan berjalan saat ini (Nov 2026)
   initialYear = '2026',
   selectedArmadaProp,
   onSelectArmadaProp,
@@ -150,7 +152,7 @@ export default function DashboardContainer({
           if (mStr !== filterState.bulan) return false;
         }
       } else {
-        if (filterState.bulan !== 'ALL' && filterState.bulan !== '10') {
+        if (filterState.bulan !== 'ALL' && filterState.bulan !== defaultCurrentMonth) {
           return false;
         }
       }
@@ -376,7 +378,7 @@ export default function DashboardContainer({
   // 5. KALKULASI TREN BULANAN SINKRON DENGAN ARMADA TERPILIH / 12 BESAR
   // ==========================================================================
   const monthlyTrendData = useMemo<MonthlyTrendPoint[]>(() => {
-    const monthKeys = ['06', '07', '08', '09', '10'];
+    const monthKeys = ['06', '07', '08', '09', '10', '11', '12'];
     const map = new Map<string, { fpbSet: Set<string>; qFpb: number; qFstb: number }>();
 
     monthKeys.forEach((mk) => {

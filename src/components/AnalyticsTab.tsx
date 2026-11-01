@@ -3004,7 +3004,7 @@ export default function AnalyticsTab({
             <FleetInteractiveDashboard
               items={armadaItems && armadaItems.length > 0 ? armadaItems : items}
               onOpenAudit={onOpenAudit}
-              initialMonth={selectedMonth !== 'ALL' ? selectedMonth : '10'}
+              initialMonth={selectedMonth !== 'ALL' ? selectedMonth : String(new Date().getMonth() + 1).padStart(2, '0')}
               initialYear={selectedYear !== 'ALL' ? selectedYear : '2026'}
               selectedArmadaProp={selectedFleetArmada}
               onSelectArmadaProp={(name) => setSelectedFleetArmada(name || 'ALL')}

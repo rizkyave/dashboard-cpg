@@ -44,9 +44,10 @@ export default function GlobalFilterBar({
       : 'Semua Periode';
 
   const handleResetFilters = () => {
+    const currentMonthKey = String(new Date().getMonth() + 1).padStart(2, '0');
     onFilterChange({
       tahun: '2026',
-      bulan: '10',
+      bulan: currentMonthKey,
       entitas: 'ALL',
       selectedArmadaId: null,
       statusFilter: 'ALL',
@@ -92,12 +93,14 @@ export default function GlobalFilterBar({
               onChange={(e) => onFilterChange({ bulan: e.target.value })}
               className="w-full h-8 pl-2 pr-4 bg-slate-800/90 border border-slate-700/80 rounded-lg text-slate-100 text-xs font-semibold focus:ring-1 focus:ring-teal-400 focus:outline-hidden cursor-pointer"
             >
-              <option value="ALL">Bln: Semua (Jun-Okt)</option>
+              <option value="ALL">Bln: Semua Periode</option>
               <option value="06">06 - Juni 2026</option>
               <option value="07">07 - Juli 2026</option>
               <option value="08">08 - Agustus 2026</option>
               <option value="09">09 - September 2026</option>
               <option value="10">10 - Oktober 2026</option>
+              <option value="11">11 - November 2026</option>
+              <option value="12">12 - Desember 2026</option>
             </select>
           </div>
 

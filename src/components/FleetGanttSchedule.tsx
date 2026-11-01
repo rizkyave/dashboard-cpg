@@ -338,13 +338,15 @@ interface FleetGanttScheduleProps {
   selectedEntity?: string;
 }
 
-// 5 Bulan Timeline (Juni - Oktober 2026)
+// Timeline Periode Bulan (Juni - Desember 2026)
 const TIMELINE_MONTHS = [
   { key: '06', name: 'JUN', label: 'Juni 2026', startCol: 0 },
   { key: '07', name: 'JUL', label: 'Juli 2026', startCol: 4 },
   { key: '08', name: 'AGU', label: 'Agustus 2026', startCol: 8 },
   { key: '09', name: 'SEP', label: 'September 2026', startCol: 12 },
   { key: '10', name: 'OKT', label: 'Oktober 2026', startCol: 16 },
+  { key: '11', name: 'NOV', label: 'November 2026', startCol: 20 },
+  { key: '12', name: 'DES', label: 'Desember 2026', startCol: 24 },
 ];
 
 const WEEKS_PER_MONTH = ['W1', 'W2', 'W3', 'W4'];
@@ -987,12 +989,14 @@ export default function FleetGanttSchedule({
               }}
               className="bg-transparent text-xs font-semibold text-foreground focus:outline-hidden cursor-pointer"
             >
-              <option value="ALL">Semua (Jun – Okt 2026)</option>
+              <option value="ALL">Semua Periode</option>
               <option value="06">Juni 2026</option>
               <option value="07">Juli 2026</option>
               <option value="08">Agustus 2026</option>
               <option value="09">September 2026</option>
               <option value="10">Oktober 2026</option>
+              <option value="11">November 2026</option>
+              <option value="12">Desember 2026</option>
             </select>
           </div>
 
