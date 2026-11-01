@@ -1826,7 +1826,7 @@ export default function AuditModal({
         className="bg-card border border-border rounded-t-2xl sm:rounded-xl w-full max-w-5xl xl:max-w-6xl 2xl:max-w-7xl max-h-[92vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl p-4 sm:p-5 md:p-6 space-y-4 text-card-foreground cursor-default pb-12 sm:pb-6 printable-modal-content"
       >
         {/* Modal Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-border">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 pb-3.5 border-b border-border">
           <div className="flex items-start sm:items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
             <div className="flex size-8 sm:size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/60 text-cyan-400 mt-0.5 sm:mt-0">
               <ShieldCheck className="size-4.5 sm:size-5" />
@@ -1974,8 +1974,22 @@ export default function AuditModal({
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2 self-end sm:self-auto shrink-0 flex-wrap sm:flex-nowrap">
-            {/* Indikator Risiko Otomatis (Proaktif Terlihat Langsung) */}
+          {/* Kolom Kanan Header: Widget Traffic Light 6 Fase (Atas) & Tombol Aksi (Bawah) */}
+          <div className="flex flex-col items-end gap-2.5 shrink-0 self-end sm:self-auto">
+            {/* Widget Traffic Light 6 Fase di Pojok Kanan Atas */}
+            {evaluatableWorkflowItem && (
+              <div className="flex items-center justify-end">
+                <WorkflowTrafficLight
+                  item={evaluatableWorkflowItem as any}
+                  showBadge={true}
+                  compact={true}
+                />
+              </div>
+            )}
+
+            {/* Baris Tombol Aksi & Kontrol Modal */}
+            <div className="flex items-center gap-2 self-end sm:self-auto shrink-0 flex-wrap sm:flex-nowrap">
+              {/* Indikator Risiko Otomatis (Proaktif Terlihat Langsung) */}
             <div
               className={`h-8 px-2.5 rounded-lg border font-mono text-[11px] font-semibold flex items-center gap-1.5 shrink-0 shadow-2xs ${auditRisk.color}`}
               title={auditRisk.description}
@@ -2034,6 +2048,7 @@ export default function AuditModal({
             >
               <X className="size-4" />
             </button>
+          </div>
           </div>
         </div>
 
@@ -2362,13 +2377,6 @@ export default function AuditModal({
                   <span>Peringatan SLA</span>
                   <ChevronDown className={`size-3 transition-transform duration-200 ${showSlaAnomaly ? 'rotate-180' : ''}`} />
                 </button>
-              )}
-              {evaluatableWorkflowItem && (
-                <WorkflowTrafficLight
-                  item={evaluatableWorkflowItem as any}
-                  showBadge={true}
-                  compact={true}
-                />
               )}
             </div>
           </div>
