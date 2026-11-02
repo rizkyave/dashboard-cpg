@@ -36,9 +36,17 @@ function syncWithDefaults(existing: UserAccount[]): { users: UserAccount[]; hasC
     );
     if (defaultMatch) {
       let updated = { ...p };
-      if (!p.signature && defaultMatch.signature) {
-        updated.signature = defaultMatch.signature;
-        hasChanges = true;
+      const pHasValidSig = Boolean(p.signature?.signatureDataUrl);
+      const pHasPng = p.signature?.signatureDataUrl?.startsWith('data:image/png;base64,');
+      const defHasPng = defaultMatch.signature?.signatureDataUrl?.startsWith('data:image/png;base64,');
+      if (defaultMatch.signature) {
+        if (!pHasValidSig) {
+          updated.signature = defaultMatch.signature;
+          hasChanges = true;
+        } else if (!pHasPng && defHasPng) {
+          updated.signature = defaultMatch.signature;
+          hasChanges = true;
+        }
       }
       if (!p.nik && defaultMatch.nik) {
         updated.nik = defaultMatch.nik;
