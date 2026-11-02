@@ -36,15 +36,18 @@ function syncWithDefaults(existing: UserAccount[]): { users: UserAccount[]; hasC
     );
     if (defaultMatch) {
       let updated = { ...p };
-      const pHasValidSig = Boolean(p.signature?.signatureDataUrl);
-      const pHasPng = p.signature?.signatureDataUrl?.startsWith('data:image/png;base64,');
-      const defHasPng = defaultMatch.signature?.signatureDataUrl?.startsWith('data:image/png;base64,');
       if (defaultMatch.signature) {
-        if (!pHasValidSig) {
+        if (!p.signature || !p.signature.signatureDataUrl) {
           updated.signature = defaultMatch.signature;
           hasChanges = true;
-        } else if (!pHasPng && defHasPng) {
-          updated.signature = defaultMatch.signature;
+        } else if (
+          p.signature.certificateId === defaultMatch.signature.certificateId &&
+          p.signature.signatureDataUrl !== defaultMatch.signature.signatureDataUrl
+        ) {
+          updated.signature = {
+            ...p.signature,
+            signatureDataUrl: defaultMatch.signature.signatureDataUrl,
+          };
           hasChanges = true;
         }
       }

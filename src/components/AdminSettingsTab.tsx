@@ -106,8 +106,9 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
   const [copiedCertId, setCopiedCertId] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
 
-  // Canvas Drawing Ref & State
+  // Canvas & File Input Ref
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasDrawn, setHasDrawn] = useState(false);
 
@@ -775,7 +776,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
     }
 
     setSignatureTargetUser(target);
-    setUploadedPreviewUrl(target.signature?.signatureDataUrl || '');
+    setUploadedPreviewUrl('');
     setSigneeTitle(target.signature?.signeeTitle || getDefaultSigneeTitle(target.role));
     setVerificationNotes(
       target.signature?.notes ||
@@ -790,7 +791,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
     const target = users.find((u) => u.id === newUserId);
     if (!target) return;
     setSignatureTargetUser(target);
-    setUploadedPreviewUrl(target.signature?.signatureDataUrl || '');
+    setUploadedPreviewUrl('');
     setSigneeTitle(target.signature?.signeeTitle || getDefaultSigneeTitle(target.role));
     setVerificationNotes(
       target.signature?.notes ||
@@ -809,15 +810,55 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
       showToast('Mohon pilih berkas gambar (PNG transparan, JPG, SVG, atau WebP).', 'warning');
       return;
     }
-    if (file.size > 3 * 1024 * 1024) {
-      showToast('Ukuran gambar maksimal 3MB.', 'warning');
+    if (file.size > 10 * 1024 * 1024) {
+      showToast('Ukuran gambar maksimal 10MB.', 'warning');
       return;
     }
+
+    // Untuk SVG, langsung baca sebagai data URL
+    if (file.type === 'image/svg+xml') {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUrl = e.target?.result as string;
+        setUploadedPreviewUrl(dataUrl);
+        showToast('Berkas vektor SVG tanda tangan berhasil dimuat.', 'info');
+      };
+      reader.readAsDataURL(file);
+      return;
+    }
+
+    // Untuk berkas gambar raster (PNG, JPG, WebP), baca dan optimalkan dimensi via canvas
     const reader = new FileReader();
     reader.onload = (e) => {
-      const dataUrl = e.target?.result as string;
-      setUploadedPreviewUrl(dataUrl);
-      showToast('Berkas gambar tanda tangan berhasil dimuat.', 'info');
+      const rawDataUrl = e.target?.result as string;
+      const img = new Image();
+      img.onload = () => {
+        const maxW = 1200;
+        const maxH = 600;
+        let { width, height } = img;
+        if (width > maxW || height > maxH) {
+          const ratio = Math.min(maxW / width, maxH / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const optimizedDataUrl = canvas.toDataURL('image/png');
+          setUploadedPreviewUrl(optimizedDataUrl);
+          showToast('Berkas gambar tanda tangan berhasil dimuat dan dioptimalkan.', 'info');
+        } else {
+          setUploadedPreviewUrl(rawDataUrl);
+          showToast('Berkas gambar tanda tangan berhasil dimuat.', 'info');
+        }
+      };
+      img.onerror = () => {
+        setUploadedPreviewUrl(rawDataUrl);
+      };
+      img.src = rawDataUrl;
     };
     reader.readAsDataURL(file);
   };
@@ -920,14 +961,21 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
     }
     if (!signatureTargetUser) return;
 
-    let finalDataUrl = uploadedPreviewUrl;
-
-    if (signatureTab === 'draw') {
+    let finalDataUrl = '';
+    if (signatureTab === 'upload') {
+      if (!uploadedPreviewUrl) {
+        showToast('Mohon pilih berkas gambar tanda tangan terlebih dahulu pada tab Upload Berkas.', 'warning');
+        return;
+      }
+      finalDataUrl = uploadedPreviewUrl;
+    } else if (signatureTab === 'draw') {
       if (!hasDrawn || !canvasRef.current) {
         showToast('Mohon goreskan tanda tangan terlebih dahulu pada kanvas.', 'warning');
         return;
       }
       finalDataUrl = canvasRef.current.toDataURL('image/png');
+    } else {
+      finalDataUrl = uploadedPreviewUrl || signatureTargetUser.signature?.signatureDataUrl || '';
     }
 
     if (!finalDataUrl) {
@@ -3188,6 +3236,19 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
               {/* Tab 2: Upload File */}
               {signatureTab === 'upload' && (
                 <div className="space-y-4">
+                  <input
+                    ref={fileInputRef}
+                    id="signature-file-input"
+                    type="file"
+                    accept="image/png,image/jpeg,image/jpg,image/svg+xml,image/webp"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        handleSignatureFileSelect(e.target.files[0]);
+                      }
+                      e.target.value = '';
+                    }}
+                  />
                   <div
                     onDragOver={(e) => {
                       e.preventDefault();
@@ -3195,27 +3256,15 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                     }}
                     onDragLeave={() => setIsDragOver(false)}
                     onDrop={handleDropSignatureFile}
+                    onClick={() => {
+                      fileInputRef.current?.click();
+                    }}
                     className={`border-2 border-dashed rounded-xl p-6 text-center transition cursor-pointer ${
                       isDragOver
                         ? 'border-primary bg-primary/10'
                         : 'border-border bg-muted/10 hover:border-primary/50 hover:bg-muted/30'
                     }`}
-                    onClick={() => {
-                      const input = document.getElementById('signature-file-input');
-                      if (input) input.click();
-                    }}
                   >
-                    <input
-                      id="signature-file-input"
-                      type="file"
-                      accept="image/png,image/jpeg,image/svg+xml,image/webp"
-                      className="hidden"
-                      onChange={(e) => {
-                        if (e.target.files && e.target.files[0]) {
-                          handleSignatureFileSelect(e.target.files[0]);
-                        }
-                      }}
-                    />
                     <div className="size-12 rounded-full bg-primary/10 text-primary mx-auto flex items-center justify-center mb-3">
                       <Upload className="size-6" />
                     </div>
@@ -3223,15 +3272,26 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                       Tarik berkas gambar ke sini, atau klik untuk memilih
                     </p>
                     <p className="text-[11px] text-muted-foreground mt-1">
-                      Mendukung format PNG transparan, JPG, SVG, atau WebP (maks. 3MB)
+                      Mendukung format PNG transparan, JPG, SVG, atau WebP (maks. 10MB)
                     </p>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        fileInputRef.current?.click();
+                      }}
+                      className="mt-3 px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 text-xs font-semibold transition"
+                    >
+                      Pilih Berkas dari Komputer
+                    </button>
                   </div>
 
                   {uploadedPreviewUrl && (
                     <div className="border border-border rounded-xl p-4 bg-card">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-semibold text-foreground">
-                          Pratinjau Berkas Unggahan
+                        <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                          <Check className="size-3.5 text-emerald-500" />
+                          Pratinjau Berkas Unggahan Baru
                         </span>
                         <button
                           type="button"

@@ -24,16 +24,22 @@ export function getStoredUsers(): UserAccount[] {
           (def) => def.username.toLowerCase() === p.username?.toLowerCase()
         );
         if (defaultMatch) {
-          const pHasValidSig = Boolean(p.signature?.signatureDataUrl);
-          const pHasPng = p.signature?.signatureDataUrl?.startsWith('data:image/png;base64,');
-          const defHasPng = defaultMatch.signature?.signatureDataUrl?.startsWith('data:image/png;base64,');
           if (defaultMatch.signature) {
-            if (!pHasValidSig) {
+            if (!p.signature || !p.signature.signatureDataUrl) {
               needsSave = true;
               p = { ...p, signature: defaultMatch.signature };
-            } else if (!pHasPng && defHasPng) {
+            } else if (
+              p.signature.certificateId === defaultMatch.signature.certificateId &&
+              p.signature.signatureDataUrl !== defaultMatch.signature.signatureDataUrl
+            ) {
               needsSave = true;
-              p = { ...p, signature: defaultMatch.signature };
+              p = {
+                ...p,
+                signature: {
+                  ...p.signature,
+                  signatureDataUrl: defaultMatch.signature.signatureDataUrl,
+                },
+              };
             }
           }
           if (!p.nik && defaultMatch.nik) {
