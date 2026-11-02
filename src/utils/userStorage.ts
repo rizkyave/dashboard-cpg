@@ -26,20 +26,10 @@ export function getStoredUsers(): UserAccount[] {
         if (defaultMatch) {
           if (defaultMatch.signature) {
             if (!p.signature || !p.signature.signatureDataUrl) {
+              // Inject signature default HANYA jika user belum punya signature sama sekali.
+              // Jangan timpa signature yang sudah di-upload admin!
               needsSave = true;
               p = { ...p, signature: defaultMatch.signature };
-            } else if (
-              p.signature.certificateId === defaultMatch.signature.certificateId &&
-              p.signature.signatureDataUrl !== defaultMatch.signature.signatureDataUrl
-            ) {
-              needsSave = true;
-              p = {
-                ...p,
-                signature: {
-                  ...p.signature,
-                  signatureDataUrl: defaultMatch.signature.signatureDataUrl,
-                },
-              };
             }
           }
           if (!p.nik && defaultMatch.nik) {

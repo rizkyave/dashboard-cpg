@@ -37,17 +37,10 @@ function syncWithDefaults(existing: UserAccount[]): { users: UserAccount[]; hasC
     if (defaultMatch) {
       let updated = { ...p };
       if (defaultMatch.signature) {
+        // Inject signature default HANYA jika user belum punya signature sama sekali.
+        // Jangan timpa signature yang sudah di-upload admin!
         if (!p.signature || !p.signature.signatureDataUrl) {
           updated.signature = defaultMatch.signature;
-          hasChanges = true;
-        } else if (
-          p.signature.certificateId === defaultMatch.signature.certificateId &&
-          p.signature.signatureDataUrl !== defaultMatch.signature.signatureDataUrl
-        ) {
-          updated.signature = {
-            ...p.signature,
-            signatureDataUrl: defaultMatch.signature.signatureDataUrl,
-          };
           hasChanges = true;
         }
       }
