@@ -1361,24 +1361,39 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
       <div className="bg-card border border-border rounded-xl shadow-xs overflow-hidden">
         {/* Table Controls Bar */}
         <div className="p-4 border-b border-border flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-muted/20">
-          {/* Search Box */}
-          <div className="relative flex-1 max-w-md">
-            <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari nama, username, role, atau departemen..."
-              className="w-full pl-9 pr-4 py-1.5 text-xs rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
-              >
-                <X className="size-3.5" />
-              </button>
-            )}
+          {/* Search Box & Refresh Button */}
+          <div className="flex items-center gap-2 flex-1 max-w-lg">
+            <div className="relative flex-1">
+              <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Cari nama, username, role, atau departemen..."
+                className="w-full pl-9 pr-4 py-1.5 text-xs rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
+                >
+                  <X className="size-3.5" />
+                </button>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={async () => {
+                showToast('Menyinkronkan data pengguna dari Cloudflare R2...', 'info');
+                await refreshUsers();
+                showToast('Data pengguna berhasil disegarkan dari Cloudflare R2.', 'success');
+              }}
+              className="h-8 px-2.5 rounded-lg border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground text-xs font-medium flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95"
+              title="Segarkan data pengguna langsung dari database Cloudflare R2 (bypass cache)"
+            >
+              <RefreshCw className="size-3.5 text-primary" />
+              <span className="hidden sm:inline">Segarkan Cloud</span>
+            </button>
           </div>
 
           {/* Role Filter Tabs */}

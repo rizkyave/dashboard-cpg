@@ -172,11 +172,20 @@ export async function GET(req: NextRequest) {
       ? users
       : users.map(({ password: _, ...u }) => u);
 
-    return NextResponse.json({
-      success: true,
-      users: responseUsers,
-      storage: isR2Configured() ? 'CLOUDFLARE_R2' : 'LOCAL',
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        users: responseUsers,
+        storage: isR2Configured() ? 'CLOUDFLARE_R2' : 'LOCAL',
+      },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+          Pragma: 'no-cache',
+          Expires: '0',
+        },
+      }
+    );
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'Gagal memuat pengguna';
     return NextResponse.json(

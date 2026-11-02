@@ -33,7 +33,7 @@ interface AuthContextType {
   canAccess: (tab: TabType) => boolean;
   login: (username: string, password: string) => Promise<{ success: boolean; message?: string; user?: AuthUser }>;
   logout: () => void;
-  refreshUsers: () => void;
+  refreshUsers: () => Promise<void> | void;
   createUser: (data: {
     username: string;
     name: string;
@@ -69,7 +69,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Sinkronisasi data pengguna & role dari Cloudflare R2 ke state dan localStorage
   const syncUsersWithCloud = useCallback(async () => {
     try {
-      const res = await fetch('/api/users?includeAuth=true');
+      const res = await fetch(`/api/users?includeAuth=true&_t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          Pragma: 'no-cache',
+        },
+      });
       if (res.ok) {
         const json = await res.json();
         if (json.success && Array.isArray(json.users)) {
@@ -253,6 +259,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return localRes;
   };
 
+  const refreshUsers = useCallback(async () => {
+    loadUsersFromStorage();
+    await syncUsersWithCloud();
+  }, [loadUsersFromStorage, syncUsersWithCloud]);
+
   const handleResetDefaults = async () => {
     resetToDefaultUsers();
     loadUsersFromStorage();
@@ -309,7 +320,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         canAccess,
         login,
         logout,
-        refreshUsers: loadUsersFromStorage,
+        refreshUsers,
         createUser,
         updateUser,
         deleteUser,
