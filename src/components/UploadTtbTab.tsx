@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
@@ -56,6 +56,8 @@ import {
 } from '@/utils/stampDateFormatter';
 import { optimizeAndScaleImage, formatByteSize } from '@/utils/imageCompressor';
 import { getSignatureForUploader } from '@/utils/uploaderSignatures';
+import CameraWatermarkModal from '@/components/CameraWatermarkModal';
+
 
 interface UploadTtbTabProps {
   procurementItems?: ProcurementItem[];
@@ -237,6 +239,8 @@ export default function UploadTtbTab({
   const [activePreview, setActivePreview] = useState<UploadedTtbItem | null>(null);
   const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState<boolean>(false);
   const [isIncompleteModalOpen, setIsIncompleteModalOpen] = useState<boolean>(false);
+
+  const [isCameraModalOpen, setIsCameraModalOpen] = useState<boolean>(false);
 
   // Floating Reminder State (Dismissible Reminder Terbang SOP Logistik)
   const [showFloatingReminder, setShowFloatingReminder] = useState<boolean>(true);
@@ -1149,6 +1153,18 @@ export default function UploadTtbTab({
               </p>
             </div>
           </div>
+
+          {/* Tombol Kamera Langsung dengan Watermark CPG */}
+          <button
+            type="button"
+            onClick={() => setIsCameraModalOpen(true)}
+            disabled={!canEdit}
+            className="w-full h-10 rounded-xl border-2 border-dashed border-amber-500/50 bg-amber-500/5 hover:bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold inline-flex items-center justify-center gap-2 transition active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            title="Buka kamera langsung dengan watermark CPG (tanggal, user, GPS)"
+          >
+            <Camera className="size-4" />
+            <span>📷 Kamera Langsung — Foto Langsung Ber-Watermark CPG</span>
+          </button>
 
           {/* Daftar Antrean Berkas (Jika Ada) */}
           {queue.length > 0 && (
@@ -2267,6 +2283,22 @@ export default function UploadTtbTab({
           <span>Reminder SOP: Wajib PDF + Foto TTB</span>
         </button>
       )}
+
+      {/* Camera Watermark Modal */}
+      <CameraWatermarkModal
+        isOpen={isCameraModalOpen}
+        onClose={() => setIsCameraModalOpen(false)}
+        docNumber={batchNoTtb || undefined}
+        docType="TTB"
+        onPhotoCaptured={async (dataUrl, filename) => {
+          // Convert dataUrl to File and add to queue
+          const res = await fetch(dataUrl);
+          const blob = await res.blob();
+          const file = new File([blob], filename, { type: 'image/jpeg' });
+          await handleFilesAdded([file]);
+        }}
+        showToast={showToast}
+      />
     </div>
   );
 }
