@@ -170,7 +170,7 @@ export default function DashboardPage() {
     setIsLoadingWorkOrder(true);
     showToast('Menghubungkan & menyinkronkan data Work Order (Form Responses 1)...', 'info');
     try {
-      const res = await fetch('/api/sync-work-order');
+      const res = await fetch('/api/sync-work-order?refresh=true');
       const data = await res.json();
       if (data.success && Array.isArray(data.items)) {
         setWorkOrderItems(data.items);

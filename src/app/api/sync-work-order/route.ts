@@ -90,6 +90,31 @@ function normalizeStatus(st: any): string {
   return String(st).trim();
 }
 
+function findHeaderRow(rawRows: any[][]): { headerRowIndex: number; headers: string[] } {
+  for (let i = 0; i < Math.min(15, rawRows.length); i++) {
+    const row = rawRows[i];
+    if (!row || !Array.isArray(row)) continue;
+    const line = row.map((c) => String(c || '').trim().toLowerCase()).join(' ');
+    if (
+      line.includes('work order') ||
+      line.includes('nomer dokumen') ||
+      line.includes('nomor dokumen') ||
+      line.includes('no. dokumen') ||
+      line.includes('tgl wo masuk') ||
+      line.includes('timestamp')
+    ) {
+      return {
+        headerRowIndex: i,
+        headers: row.map((c) => String(c || '').trim().toLowerCase()),
+      };
+    }
+  }
+  return {
+    headerRowIndex: 0,
+    headers: (rawRows[0] || []).map((c: any) => String(c || '').trim().toLowerCase()),
+  };
+}
+
 async function processWorkOrderSheet(targetUrl: string) {
   const downloadUrl = extractExportUrl(targetUrl);
 
@@ -137,16 +162,23 @@ async function processWorkOrderSheet(targetUrl: string) {
 
   const wb = XLSX.read(buffer, { type: 'buffer', cellDates: true });
 
-  // Cari sheet 'Form Responses 1'
-  let targetSheetName = wb.SheetNames.find(
-    (name) =>
-      name.toLowerCase().replace(/[\s_]+/g, '').includes('formresponse') ||
-      name.toLowerCase().includes('form responses 1')
-  );
+  // Deteksi target sheet:
+  // Jika targetUrl memiliki GID 687878754 atau sheet 'Dashboard' tersedia di workbook, gunakan 'Dashboard' sebagai sumber utama.
+  const gidMatch = targetUrl.match(/[#&?]gid=([0-9]+)/);
+  const targetGid = gidMatch ? gidMatch[1] : null;
 
+  let targetSheetName = '';
+  if (targetGid === '687878754' || !targetGid) {
+    targetSheetName = wb.SheetNames.find((name) => name.toLowerCase() === 'dashboard') || '';
+  }
   if (!targetSheetName) {
-    // Fallback: cari sheet yang memiliki data dokumen WO
-    targetSheetName = wb.SheetNames[0];
+    targetSheetName =
+      wb.SheetNames.find((name) => name.toLowerCase() === 'dashboard') ||
+      wb.SheetNames.find((name) =>
+        name.toLowerCase().replace(/[\s_]+/g, '').includes('formresponse') ||
+        name.toLowerCase().includes('form responses 1')
+      ) ||
+      wb.SheetNames[0];
   }
 
   const ws = wb.Sheets[targetSheetName];
@@ -154,7 +186,7 @@ async function processWorkOrderSheet(targetUrl: string) {
     return NextResponse.json(
       {
         success: false,
-        message: `Sheet "Form Responses 1" tidak ditemukan di dalam dokumen Google Spreadsheet.`,
+        message: `Sheet "${targetSheetName}" tidak ditemukan di dalam dokumen Google Spreadsheet.`,
       },
       { status: 404 }
     );
@@ -173,40 +205,109 @@ async function processWorkOrderSheet(targetUrl: string) {
         withFpb: 0,
         lastSynced: new Date().toISOString(),
       },
-      message: 'Sheet Form Responses 1 kosong.',
+      message: `Sheet ${targetSheetName} kosong.`,
     });
   }
 
-  const headerRow = rawRows[0] || [];
-  const headers = headerRow.map((h: any) => String(h || '').trim().toLowerCase());
+  // Cari baris header secara dinamis (misal baris index 3 untuk Dashboard atau index 0 untuk Form Responses 1)
+  const { headerRowIndex, headers } = findHeaderRow(rawRows);
 
   const colMap: Record<string, number> = {};
   headers.forEach((h: string, idx: number) => {
-    if (h.includes('timestamp')) colMap.timestamp = idx;
-    else if (h.includes('nomer dokumen') || h.includes('nomor dokumen') || h.includes('no. dokumen')) colMap.nomerDokumen = idx;
-    else if (h.includes('tanggal order') || h.includes('tgl order')) colMap.tanggalOrder = idx;
-    else if (h.includes('departemen/armada') || h.includes('departemen') || h.includes('armada')) colMap.departemen = idx;
-    else if (h.includes('nama project') || h.includes('project')) colMap.project = idx;
-    else if (h.includes('lokasi pekerjaan') || h.includes('lokasi')) colMap.lokasi = idx;
-    else if (h.includes('mulai')) colMap.mulai = idx;
-    else if (h.includes('mrp/fpb')) colMap.mrpFpb = idx;
-    else if (h.includes('selesai')) colMap.selesai = idx;
-    else if (h.includes('lka') || h.includes('lkk')) colMap.lka = idx;
-    else if (h.includes('prioritas') || h.includes('urgency')) colMap.prioritas = idx;
-    else if (h.includes('section')) colMap.section = idx;
-    else if (h.includes('uraian singkat') || h.includes('uraian') || h.includes('permintaan')) colMap.uraian = idx;
-    else if (h.includes('upload so/wo') || h.includes('so/wo')) colMap.uploadSoWo = idx;
-    else if (h.includes('gap')) colMap.gap = idx;
-    else if (h.includes('no. fpb/mrp') || h === 'fpb') {
-      if (colMap.noFpb === undefined || h.includes('no. fpb/mrp')) colMap.noFpb = idx;
+    const clean = h.trim().toLowerCase();
+    if (clean.includes('timestamp')) {
+      colMap.timestamp = idx;
+    } else if (
+      clean.includes('work order') ||
+      clean.includes('nomer dokumen') ||
+      clean.includes('nomor dokumen') ||
+      clean.includes('no. dokumen') ||
+      clean.includes('no wo')
+    ) {
+      if (colMap.nomerDokumen === undefined) colMap.nomerDokumen = idx;
+    } else if (
+      clean.includes('tgl wo masuk') ||
+      clean.includes('tanggal order') ||
+      clean.includes('tgl order') ||
+      clean.includes('tanggal wo')
+    ) {
+      if (colMap.tanggalOrder === undefined) colMap.tanggalOrder = idx;
+    } else if (clean.includes('departemen') || clean.includes('armada') || clean.includes('unit')) {
+      if (colMap.departemen === undefined) colMap.departemen = idx;
+    } else if (clean.includes('nama project') || clean.includes('project')) {
+      colMap.project = idx;
+    } else if (clean.includes('lokasi pekerjaan') || clean.includes('lokasi')) {
+      colMap.lokasi = idx;
+    } else if (clean.includes('mulai')) {
+      colMap.mulai = idx;
+    } else if (clean.includes('mrp/fpb')) {
+      colMap.mrpFpb = idx;
+    } else if (clean.includes('selesai') || clean.includes('tgl sr')) {
+      if (colMap.selesai === undefined) colMap.selesai = idx;
+    } else if (clean.includes('lka') || clean.includes('lkk')) {
+      colMap.lka = idx;
+    } else if (clean.includes('prioritas') || clean.includes('urgency')) {
+      colMap.prioritas = idx;
+    } else if (clean.includes('section')) {
+      colMap.section = idx;
+    } else if (clean.includes('uraian singkat') || clean.includes('uraian') || clean.includes('permintaan')) {
+      if (colMap.uraian === undefined) colMap.uraian = idx;
+    } else if (clean.includes('upload so/wo') || clean.includes('so/wo')) {
+      colMap.uploadSoWo = idx;
+    } else if (clean.includes('gap')) {
+      colMap.gap = idx;
+    } else if (clean.includes('no. fpb/mrp') || clean.includes('fpb')) {
+      if (colMap.noFpb === undefined) colMap.noFpb = idx;
+    } else if (clean === 'status' || clean.includes('status')) {
+      if (colMap.status === undefined) colMap.status = idx;
+    } else if (clean === 'progress' || clean.includes('progress')) {
+      if (colMap.progress === undefined) colMap.progress = idx;
+    } else if (clean.includes('evidence') || clean.includes('no sr') || clean.includes('foto')) {
+      if (colMap.evidence === undefined) colMap.evidence = idx;
+    } else if (clean === 'spk') {
+      colMap.spk = idx;
+    } else if (clean === 'bast') {
+      colMap.bast = idx;
+    } else if (clean === 'column 1') {
+      colMap.efpbPdf = idx;
     }
-    else if (h === 'status') colMap.status = idx;
-    else if (h === 'progress') colMap.progress = idx;
-    else if (h.includes('evidence') || h.includes('foto')) colMap.evidence = idx;
-    else if (h === 'spk') colMap.spk = idx;
-    else if (h === 'bast') colMap.bast = idx;
-    else if (h === 'column 1') colMap.efpbPdf = idx;
   });
+
+  // Khusus sheet Dashboard: kolom FPB berada tepat di sebelah kiri kolom STATUS jika belum terpetakan
+  const isDashboardSheet = targetSheetName.toLowerCase() === 'dashboard';
+  if (isDashboardSheet && colMap.noFpb === undefined && colMap.status !== undefined && colMap.status > 0) {
+    colMap.noFpb = colMap.status - 1;
+  }
+
+  // Jika memproses sheet Dashboard, siapkan index lookup dari 'Form Responses 1' untuk melengkapi atribut detail (Drive, Prioritas, BAST, SPK)
+  const frMap = new Map<string, any[]>();
+  const frSheetName = wb.SheetNames.find(
+    (name) =>
+      name.toLowerCase().replace(/[\s_]+/g, '').includes('formresponse') ||
+      name.toLowerCase().includes('form responses 1')
+  );
+
+  if (isDashboardSheet && frSheetName && wb.Sheets[frSheetName]) {
+    try {
+      const frWs = wb.Sheets[frSheetName];
+      const frRawRows: any[][] = XLSX.utils.sheet_to_json(frWs, { header: 1 });
+      if (frRawRows && frRawRows.length > 1) {
+        for (let j = 1; j < frRawRows.length; j++) {
+          const frRow = frRawRows[j];
+          if (!frRow || !frRow[1]) continue;
+          const frDocNo = String(frRow[1]).trim().toLowerCase();
+          const frUraian = String(frRow[12] || '').trim().toLowerCase();
+          const keyCombined = `${frDocNo}::${frUraian}`;
+          frMap.set(keyCombined, frRow);
+          if (!frMap.has(frDocNo)) {
+            frMap.set(frDocNo, frRow);
+          }
+        }
+      }
+    } catch (frErr) {
+      console.warn('Gagal membaca Form Responses 1 untuk enrichment:', frErr);
+    }
+  }
 
   const items: WorkOrderItem[] = [];
   let openCount = 0;
@@ -214,30 +315,21 @@ async function processWorkOrderSheet(targetUrl: string) {
   let closeCount = 0;
   let withFpbCount = 0;
 
-  for (let i = 1; i < rawRows.length; i++) {
+  const startRow = headerRowIndex + 1;
+  for (let i = startRow; i < rawRows.length; i++) {
     const r = rawRows[i];
     if (!r || r.length === 0) continue;
 
-    const docNo = String(r[colMap.nomerDokumen ?? 1] || '').trim();
+    const docNo = String(r[colMap.nomerDokumen ?? 3] || '').trim();
     if (!docNo) continue;
 
-    let fpbVal = String(r[colMap.noFpb ?? 15] || '').trim();
-    // Fallback kolom terakhir jika index 15 kosong
-    if ((!fpbVal || fpbVal === '-' || fpbVal === 'null') && r[23]) {
-      fpbVal = String(r[23]).trim();
-    }
+    let fpbVal = String(r[colMap.noFpb ?? 8] || '').trim();
     if (fpbVal === '-' || fpbVal === 'null') fpbVal = '';
 
-    const rawStatus = r[colMap.status ?? 16];
+    const rawStatus = r[colMap.status ?? 9];
     const status = normalizeStatus(rawStatus);
 
-    if (status === 'Close') closeCount++;
-    else if (status === 'On Progress') onProgressCount++;
-    else openCount++;
-
-    if (fpbVal) withFpbCount++;
-
-    const rawProgress = r[colMap.progress ?? 17];
+    const rawProgress = r[colMap.progress ?? 10];
     let progress = 0;
     if (typeof rawProgress === 'number') {
       progress = rawProgress <= 1 ? Math.round(rawProgress * 100) : Math.round(rawProgress);
@@ -249,35 +341,88 @@ async function processWorkOrderSheet(targetUrl: string) {
       progress = 100;
     }
 
-    const rawTimestamp = r[colMap.timestamp ?? 0];
-    const rawTanggalOrder = r[colMap.tanggalOrder ?? 2];
+    const rawTimestamp = colMap.timestamp !== undefined ? r[colMap.timestamp] : undefined;
+    const rawTanggalOrder = r[colMap.tanggalOrder ?? 4];
     const orderDateMs = getEpochMs(rawTanggalOrder);
     const timestampMs = getEpochMs(rawTimestamp);
-    const efpbPdf = colMap.efpbPdf !== undefined ? String(r[colMap.efpbPdf] || '').trim() : '';
+
+    let rawEvidence = String(r[colMap.evidence ?? 11] || '').trim();
+    if (rawEvidence === '#REF!' || rawEvidence === '-' || rawEvidence === 'null') {
+      rawEvidence = '';
+    }
+
+    const uraianPerbaikan = String(r[colMap.uraian ?? 6] || '').trim();
+    const departemenArmada = String(r[colMap.departemen ?? 5] || '').trim();
+    const section = String(r[colMap.section ?? 7] || '').trim();
+    const tanggalSelesai = formatExcelDate(r[colMap.selesai ?? 12]);
+
+    let namaProject = colMap.project !== undefined ? String(r[colMap.project] || '').trim() : '';
+    let lokasiPekerjaan = colMap.lokasi !== undefined ? String(r[colMap.lokasi] || '').trim() : '';
+    let scalaPrioritas = colMap.prioritas !== undefined ? String(r[colMap.prioritas] || '').trim() : '';
+    let uploadSoWoUrl = colMap.uploadSoWo !== undefined ? String(r[colMap.uploadSoWo] || '').trim() : '';
+    let spk = colMap.spk !== undefined ? String(r[colMap.spk] || '').trim() : '';
+    let bastUrl = colMap.bast !== undefined ? String(r[colMap.bast] || '').trim() : '';
+    let efpbPdf = colMap.efpbPdf !== undefined ? String(r[colMap.efpbPdf] || '').trim() : '';
+    let tanggalMulai = colMap.mulai !== undefined ? formatExcelDate(r[colMap.mulai]) : '';
+    let tanggalMrpFpb = colMap.mrpFpb !== undefined ? formatExcelDate(r[colMap.mrpFpb]) : '';
+    let noLkaLkk = colMap.lka !== undefined ? String(r[colMap.lka] || '').trim() : '';
+    let gapAnalysis = colMap.gap !== undefined ? String(r[colMap.gap] || '').trim() : '';
+
+    // Lakukan enrichment dari Form Responses 1 jika ada
+    if (frMap.size > 0) {
+      const matchKey = `${docNo.toLowerCase()}::${uraianPerbaikan.toLowerCase()}`;
+      const frRow = frMap.get(matchKey) || frMap.get(docNo.toLowerCase());
+      if (frRow) {
+        if (!namaProject && frRow[4]) namaProject = String(frRow[4]).trim();
+        if (!lokasiPekerjaan && frRow[5]) lokasiPekerjaan = String(frRow[5]).trim();
+        if (!scalaPrioritas && frRow[10]) scalaPrioritas = String(frRow[10]).trim();
+        if (!uploadSoWoUrl && frRow[13]) uploadSoWoUrl = String(frRow[13]).trim();
+        if (!rawEvidence && frRow[18]) rawEvidence = String(frRow[18]).trim();
+        if (!spk && frRow[19]) spk = String(frRow[19]).trim();
+        if (!bastUrl && frRow[20]) bastUrl = String(frRow[20]).trim();
+        if (!efpbPdf && frRow[22]) efpbPdf = String(frRow[22]).trim();
+        if (!tanggalMulai && frRow[6]) tanggalMulai = formatExcelDate(frRow[6]);
+        if (!tanggalMrpFpb && frRow[7]) tanggalMrpFpb = formatExcelDate(frRow[7]);
+        if (!noLkaLkk && frRow[9]) noLkaLkk = String(frRow[9]).trim();
+        if (!gapAnalysis && frRow[14]) gapAnalysis = String(frRow[14]).trim();
+        if (!fpbVal && frRow[15]) {
+          const fallbackFpb = String(frRow[15]).trim();
+          if (fallbackFpb && fallbackFpb !== '-' && fallbackFpb !== 'null') {
+            fpbVal = fallbackFpb;
+          }
+        }
+      }
+    }
+
+    if (status === 'Close') closeCount++;
+    else if (status === 'On Progress') onProgressCount++;
+    else openCount++;
+
+    if (fpbVal) withFpbCount++;
 
     items.push({
       id: `wo-${i}-${docNo.replace(/[^a-zA-Z0-9]/g, '-')}`,
       timestamp: formatExcelDate(rawTimestamp),
       nomerDokumen: docNo,
       tanggalOrder: formatExcelDate(rawTanggalOrder),
-      departemenArmada: String(r[colMap.departemen ?? 3] || '').trim(),
-      namaProject: String(r[colMap.project ?? 4] || '').trim(),
-      lokasiPekerjaan: String(r[colMap.lokasi ?? 5] || '').trim(),
-      tanggalMulai: formatExcelDate(r[colMap.mulai ?? 6]),
-      tanggalMrpFpb: formatExcelDate(r[colMap.mrpFpb ?? 7]),
-      tanggalSelesai: formatExcelDate(r[colMap.selesai ?? 8]),
-      noLkaLkk: String(r[colMap.lka ?? 9] || '').trim(),
-      scalaPrioritas: String(r[colMap.prioritas ?? 10] || '').trim(),
-      section: String(r[colMap.section ?? 11] || '').trim(),
-      uraianPerbaikan: String(r[colMap.uraian ?? 12] || '').trim(),
-      uploadSoWoUrl: String(r[colMap.uploadSoWo ?? 13] || '').trim(),
-      gapAnalysis: String(r[colMap.gap ?? 14] || '').trim(),
+      departemenArmada,
+      namaProject,
+      lokasiPekerjaan,
+      tanggalMulai,
+      tanggalMrpFpb,
+      tanggalSelesai,
+      noLkaLkk,
+      scalaPrioritas,
+      section,
+      uraianPerbaikan,
+      uploadSoWoUrl,
+      gapAnalysis,
       noFpbMrp: fpbVal,
       status,
       progress,
-      evidence: String(r[colMap.evidence ?? 18] || '').trim(),
-      spk: String(r[colMap.spk ?? 19] || '').trim(),
-      bastUrl: String(r[colMap.bast ?? 20] || '').trim(),
+      evidence: rawEvidence,
+      spk,
+      bastUrl,
       efpbPdfUrl: efpbPdf,
       orderDateMs,
       timestampMs,
@@ -342,7 +487,7 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({
               success: true,
               fromCloud: true,
-              sheetName: parsed.sheetName || 'Form Responses 1',
+              sheetName: parsed.sheetName || 'Dashboard',
               items: parsed.items,
               summary: parsed.summary,
               totalCount: parsed.items.length,
@@ -388,7 +533,7 @@ export async function POST(req: NextRequest) {
       if (isR2Configured()) {
         await uploadToR2({
           key: R2_WO_KEY,
-          body: Buffer.from(JSON.stringify({ items: body.items, summary }), 'utf8'),
+          body: Buffer.from(JSON.stringify({ items: body.items, summary, sheetName: body.sheetName || 'Dashboard' }), 'utf8'),
           contentType: 'application/json',
         });
       }
@@ -410,4 +555,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-
