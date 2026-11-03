@@ -7,6 +7,7 @@ import {
   Ship,
   Phone,
   User,
+  UserCheck,
   FileText,
   Eye,
   Copy,
@@ -27,6 +28,9 @@ import {
   RemoteHandoverTokenData,
   RemoteHandoverResponse,
 } from '@/types/remoteHandover';
+import { CrewMasterItem } from '@/types/crewKapal';
+import { loadCrewData } from '@/utils/crewKapalStorage';
+import { findCrewByArmada } from '@/utils/crewMatcher';
 import TtbMediaModal from './TtbMediaModal';
 
 export interface RemoteDispatchModalProps {
@@ -66,6 +70,36 @@ export default function RemoteDispatchModal({
   const [isCopied, setIsCopied] = useState<boolean>(false);
   const [isLoadingExisting, setIsLoadingExisting] = useState<boolean>(false);
   const [showTtbDetailModal, setShowTtbDetailModal] = useState<boolean>(false);
+
+  // Informasi kru dan kontak kapal berdasarkan targetTtb.armada
+  const [crewInfo, setCrewInfo] = useState<{
+    crewList: CrewMasterItem[];
+    shipPhone?: string;
+    matchedShipName?: string;
+  }>({ crewList: [] });
+  const [selectedCrewId, setSelectedCrewId] = useState<string>('');
+
+  // Muat kru kapal dan nomor telepon kapal secara otomatis saat modal terbuka
+  useEffect(() => {
+    if (!isOpen || !targetTtb?.armada) {
+      setCrewInfo({ crewList: [] });
+      setSelectedCrewId('');
+      return;
+    }
+
+    try {
+      const stored = loadCrewData();
+      const res = findCrewByArmada(
+        targetTtb.armada,
+        stored.masterCrew || [],
+        stored.kapalRekap || []
+      );
+      setCrewInfo(res);
+      setSelectedCrewId('');
+    } catch (err) {
+      console.warn('Gagal memuat kru kapal:', err);
+    }
+  }, [isOpen, targetTtb?.armada]);
 
   // Cek apakah TTB ini sudah memiliki token remote aktif sebelumnya
   useEffect(() => {
@@ -300,10 +334,31 @@ Terima kasih.`;
                   <span>Lihat TTB</span>
                 </span>
               </button>
-              <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                <Ship className="size-3.5 text-blue-500" />
-                <span>{targetTtb.armada}</span>
-              </span>
+              <div className="flex flex-col items-end">
+                <span className="text-xs font-bold text-foreground flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-700 dark:text-blue-300">
+                  <Ship className="size-3.5 text-blue-500" />
+                  <span>{targetTtb.armada}</span>
+                </span>
+                {crewInfo.shipPhone && crewInfo.shipPhone !== '-' ? (
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <span className="text-[10px] text-muted-foreground font-medium">No. Telp Kapal:</span>
+                    <a
+                      href={`https://wa.me/${formatPhoneNumber(crewInfo.shipPhone)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-[11px] font-mono font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 hover:underline transition"
+                      title="Hubungi nomor telepon/WA kapal langsung"
+                    >
+                      <Phone className="size-3 text-emerald-500" />
+                      <span>{crewInfo.shipPhone}</span>
+                    </a>
+                  </div>
+                ) : (
+                  <span className="text-[10px] text-muted-foreground mt-0.5">
+                    Telp kapal belum tercatat
+                  </span>
+                )}
+              </div>
             </div>
 
             <div className="text-xs text-muted-foreground">
@@ -454,6 +509,53 @@ Terima kasih.`;
               </div>
             </div>
 
+            {/* Pilihan Kru Kapal Otomatis Berdasarkan Alamat Antar (Armada) */}
+            {crewInfo.crewList.length > 0 && (
+              <div className="p-3 rounded-xl bg-blue-500/5 dark:bg-blue-500/10 border border-blue-500/20 space-y-1.5">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <label className="text-xs font-bold text-blue-900 dark:text-blue-300 flex items-center gap-1.5">
+                    <UserCheck className="size-3.5 text-blue-600 dark:text-blue-400" />
+                    <span>Pilih Crew Kapal {crewInfo.matchedShipName || targetTtb.armada}:</span>
+                  </label>
+                  <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-700 dark:text-blue-300">
+                    {crewInfo.crewList.length} Personel Terdaftar
+                  </span>
+                </div>
+                <select
+                  value={selectedCrewId}
+                  onChange={(e) => {
+                    const cId = e.target.value;
+                    setSelectedCrewId(cId);
+                    if (!cId) return;
+                    const c = crewInfo.crewList.find((item) => String(item.id) === cId);
+                    if (c) {
+                      const picName =
+                        c.jabatan && c.jabatan !== '-'
+                          ? `${c.namaPersonel} (${c.jabatan})`
+                          : c.namaPersonel;
+                      setRecipientNameTarget(picName);
+                      if (c.noHp && c.noHp !== '-' && c.noHp.trim().length >= 6) {
+                        setRecipientPhone(c.noHp.trim());
+                      } else if (crewInfo.shipPhone && crewInfo.shipPhone !== '-' && !recipientPhone) {
+                        setRecipientPhone(crewInfo.shipPhone);
+                      }
+                    }
+                  }}
+                  className="w-full text-xs px-3 py-2 rounded-lg bg-background border border-blue-300 dark:border-blue-700 text-foreground focus:ring-2 focus:ring-blue-500 focus:outline-hidden font-medium cursor-pointer"
+                >
+                  <option value="">-- Pilih Kru Kapal (Otomatis isi Nama & No. WA) --</option>
+                  {crewInfo.crewList.map((crew) => (
+                    <option key={crew.id} value={String(crew.id)}>
+                      {crew.namaPersonel} — {crew.jabatan || 'Crew'}{crew.noHp && crew.noHp !== '-' ? ` (WA: ${crew.noHp})` : ' (No WA tidak ada)'}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[10px] text-muted-foreground">
+                  Memilih kru di atas otomatis mengisi Nama PIC dan No. WhatsApp di bawah. Anda tetap dapat mengeditnya secara manual.
+                </p>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-foreground mb-1">
@@ -470,9 +572,19 @@ Terima kasih.`;
                     className="w-full text-xs pl-8.5 pr-3 py-2 rounded-xl bg-background border border-border text-foreground focus:ring-1 focus:ring-primary focus:outline-hidden"
                   />
                 </div>
-                <p className="text-[10px] text-muted-foreground mt-0.5">
-                  Nomor ini akan digunakan sebagai tujuan kirim pesan WA.
-                </p>
+                <div className="flex items-center justify-between text-[10px] text-muted-foreground mt-1 flex-wrap gap-1">
+                  <span>Nomor tujuan pesan WhatsApp.</span>
+                  {crewInfo.shipPhone && crewInfo.shipPhone !== '-' && (
+                    <button
+                      type="button"
+                      onClick={() => setRecipientPhone(crewInfo.shipPhone || '')}
+                      className="text-indigo-600 dark:text-indigo-400 hover:underline font-semibold cursor-pointer shrink-0"
+                      title="Gunakan no. telp kapal yang terdaftar"
+                    >
+                      Gunakan No. Kapal ({crewInfo.shipPhone})
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div>
