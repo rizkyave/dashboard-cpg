@@ -626,7 +626,7 @@ export default function TtbValidationModal({
                   title={`Klik untuk membuka ${photos.length} foto bukti fisik serah terima TimeMark dari kru/kurir lapangan`}
                 >
                   <Camera className="size-3.5 text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform" />
-                  <span>Foto Lapangan ({photos.length})</span>
+                  <span>Foto ({photos.length})</span>
                   <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse ml-0.5" />
                 </button>
               ) : (
@@ -639,7 +639,7 @@ export default function TtbValidationModal({
                   title="Belum ada foto dokumentasi serah terima barang yang diunggah untuk No. TTB ini"
                 >
                   <Camera className="size-3.5 text-muted-foreground/50" />
-                  <span>Foto Lapangan (Belum Ada)</span>
+                  <span>Foto (Belum Ada)</span>
                 </button>
               )}
             </div>
