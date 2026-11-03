@@ -14,43 +14,43 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "supervisor": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_ttb": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Menu disembunyikan"
       },
       "end_user": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       }
     }
   },
@@ -69,43 +69,42 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "supervisor": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_ttb": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Menu disembunyikan"
       },
       "end_user": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       }
     }
   },
@@ -124,43 +123,42 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "supervisor": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_ttb": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Menu disembunyikan"
       },
       "end_user": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Menu komersial tender vendor disembunyikan"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       }
     }
   },
@@ -179,43 +177,42 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "supervisor": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_ttb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Dikonfigurasi manual oleh Admin: Full Access"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dikonfigurasi manual oleh Admin: Dilarang"
       },
       "end_user": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Alur internal purchasing disembunyikan"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       }
     }
   },
@@ -234,43 +231,42 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "supervisor": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_ttb": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Menu disembunyikan"
       },
       "end_user": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       }
     }
   },
@@ -289,43 +285,42 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "supervisor": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Menu disembunyikan"
       },
       "staf_ttb": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Menu disembunyikan"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "end_user": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       }
     }
   },
@@ -344,43 +339,42 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "supervisor": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_ttb": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Menu disembunyikan"
       },
       "end_user": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Menu disembunyikan"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       }
     }
   },
@@ -399,43 +393,42 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "supervisor": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Menu disembunyikan"
       },
       "staf_ttb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Dikonfigurasi manual oleh Admin: Full Access"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dikonfigurasi manual oleh Admin: Dilarang"
       },
       "end_user": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Menu disembunyikan"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       }
     }
   },
@@ -451,46 +444,45 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Dikonfigurasi manual oleh Admin: Full Access"
       },
       "supervisor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Dikonfigurasi manual oleh Admin: Full Access"
       },
       "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_ttb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Dikonfigurasi manual oleh Admin: Full Access"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dikonfigurasi manual oleh Admin: Dilarang"
       },
       "end_user": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       }
     }
   },
@@ -509,43 +501,42 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "supervisor": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Menu disembunyikan"
       },
       "staf_ttb": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Menu disembunyikan"
       },
       "staf_lapangan": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Full Access"
       },
       "end_user": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       }
     }
   },
@@ -564,43 +555,43 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "supervisor": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_ttb": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "end_user": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       }
     }
   },
@@ -619,43 +610,42 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "supervisor": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_ttb": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Menu disembunyikan"
       },
       "end_user": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       }
     }
   },
@@ -674,43 +664,42 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "supervisor": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_ttb": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "end_user": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       }
     }
   },
@@ -729,43 +718,42 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "supervisor": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Menu disembunyikan"
       },
       "staf_ttb": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Menu disembunyikan"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "end_user": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       }
     }
   },
@@ -784,43 +772,42 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "supervisor": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Menu disembunyikan"
       },
       "staf_ttb": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Menu disembunyikan"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "end_user": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       }
     }
   },
@@ -839,43 +826,42 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "supervisor": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Menu disembunyikan"
       },
       "staf_ttb": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Menu disembunyikan"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "end_user": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       }
     }
   },
@@ -894,43 +880,42 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "supervisor": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Menu disembunyikan"
       },
       "staf_ttb": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Menu disembunyikan"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "end_user": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       }
     }
   },
@@ -949,43 +934,42 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "supervisor": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_ttb": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Menu disembunyikan"
       },
       "end_user": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       }
     }
   },
@@ -1059,43 +1043,42 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "supervisor": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Menu disembunyikan"
       },
       "staf_ttb": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Menu disembunyikan"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Menu disembunyikan"
       },
       "end_user": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Menu disembunyikan"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       }
     }
   },
@@ -1114,43 +1097,42 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Menu konfigurasi sistem khusus Administrator"
       },
       "supervisor": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Menu konfigurasi sistem khusus Administrator"
       },
       "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Menu konfigurasi sistem khusus Administrator"
       },
       "staf_ttb": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Menu disembunyikan"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Menu disembunyikan"
       },
       "end_user": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "notes": "Menu konfigurasi sistem khusus Administrator"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       }
     }
   }
