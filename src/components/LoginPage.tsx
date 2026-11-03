@@ -22,8 +22,55 @@ import {
   Activity,
   Check,
   HelpCircle,
+  RotateCcw,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+
+export interface FleetBackgroundItem {
+  id: string;
+  title: string;
+  category: string;
+  status: string;
+  image: string;
+}
+
+export const FLEET_BACKGROUNDS: FleetBackgroundItem[] = [
+  {
+    id: 'tugboat-cindara',
+    title: 'TB Cindara 3112',
+    category: 'Tug Boat',
+    status: 'ACTIVE • SEA OPERATION',
+    image: '/images/fleet_backgrounds/tugboat_cindara_3112.jpg',
+  },
+  {
+    id: 'supply-twinsister',
+    title: 'SV Twin Sister 307',
+    category: 'Supply Vessel',
+    status: 'ACTIVE • OFFSHORE SUPPLY',
+    image: '/images/fleet_backgrounds/supply_vessel_twinsister_307.jpg',
+  },
+  {
+    id: 'oil-barge-mapan',
+    title: 'TK Mapan 27027',
+    category: 'Oil Barge',
+    status: 'ACTIVE • FUEL & CARGO',
+    image: '/images/fleet_backgrounds/oil_barge_mapan_27027.jpg',
+  },
+  {
+    id: 'spob-cintiana',
+    title: 'SPOB Cintiana Pratama',
+    category: 'Self Propelled Oil Barge',
+    status: 'ACTIVE • BUNKERING',
+    image: '/images/fleet_backgrounds/spob_cintiana_pratama.jpg',
+  },
+  {
+    id: 'spob-cintiana-nightcity',
+    title: 'CPG Strategic Fleet Command',
+    category: 'High-Tech Marine Fleet',
+    status: 'ONLINE • HARBOR NODE',
+    image: '/images/fleet_backgrounds/spob_cintiana_pratama_nightcity.jpg',
+  },
+];
 
 interface LoginPageProps {
   onSuccess?: () => void;
@@ -63,6 +110,22 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
 
   // Real-time Maritime Clock (WITA - UTC+8)
   const [currentTime, setCurrentTime] = useState('');
+
+  // Rotasi Latar Belakang Armada Sinematik (Berganti acak saat login & bergilir halus)
+  const [bgIndex, setBgIndex] = useState<number>(0);
+
+  useEffect(() => {
+    // Acak gambar armada saat halaman dibuka
+    const randomStart = Math.floor(Math.random() * FLEET_BACKGROUNDS.length);
+    setBgIndex(randomStart);
+
+    // Berganti otomatis setiap 10 detik secara halus
+    const timer = setInterval(() => {
+      setBgIndex((prev) => (prev + 1) % FLEET_BACKGROUNDS.length);
+    }, 10000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const updateTime = () => {
@@ -248,9 +311,29 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-slate-950 text-slate-100 p-4 sm:p-6 lg:p-8 relative overflow-hidden selection:bg-cyan-500/30 selection:text-cyan-200">
-      {/* Dynamic Animated Ocean & Aurora Glow Background */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(14,165,233,0.18),rgba(2,6,23,0))]" />
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a18_1px,transparent_1px),linear-gradient(to_bottom,#0f172a18_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
+      
+      {/* Dynamic Animated Fleet Background Backdrop */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {FLEET_BACKGROUNDS.map((item, idx) => (
+          <div
+            key={item.id}
+            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+              idx === bgIndex ? 'opacity-35 scale-100' : 'opacity-0 scale-105 pointer-events-none'
+            } transition-all duration-[1200ms]`}
+          >
+            <img
+              src={item.image}
+              alt={item.title}
+              className="w-full h-full object-cover object-center filter saturate-[1.15] contrast-[1.1]"
+            />
+          </div>
+        ))}
+
+        {/* Cinematic Vignette & Ambient Gradient Overlays for crystal-clear readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-slate-950/60" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(14,165,233,0.18),rgba(2,6,23,0.85))]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a18_1px,transparent_1px),linear-gradient(to_bottom,#0f172a18_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
+      </div>
 
       {/* Luminous Ambient Orbs */}
       <div className="absolute -top-32 -left-32 w-96 h-96 bg-cyan-500/15 rounded-full blur-[120px] pointer-events-none animate-pulse duration-[8000ms]" />
@@ -573,6 +656,38 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
               </p>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Floating Bottom Fleet Status & Live Wallpaper Switcher */}
+      <div className="fixed bottom-3 left-3 sm:bottom-4 sm:left-6 z-20 flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setBgIndex((prev) => (prev + 1) % FLEET_BACKGROUNDS.length)}
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/85 hover:bg-slate-900 border border-slate-700/60 text-slate-300 hover:text-white backdrop-blur-xl transition text-[11px] font-mono shadow-xl cursor-pointer group active:scale-95"
+          title="Klik untuk mengganti visual latar armada kapal CPG"
+        >
+          <span className="size-2 rounded-full bg-cyan-400 animate-pulse shrink-0" />
+          <span className="font-semibold text-white group-hover:text-cyan-300 transition">
+            {FLEET_BACKGROUNDS[bgIndex].title}
+          </span>
+          <span className="text-slate-400 hidden sm:inline">&bull; {FLEET_BACKGROUNDS[bgIndex].category}</span>
+          <RotateCcw className="size-3 text-slate-400 group-hover:rotate-180 transition-transform duration-500 shrink-0 ml-0.5" />
+        </button>
+
+        {/* 5 Indicator Dots */}
+        <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-full bg-slate-900/70 border border-slate-800 backdrop-blur-md">
+          {FLEET_BACKGROUNDS.map((item, i) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => setBgIndex(i)}
+              className={`rounded-full transition-all cursor-pointer ${
+                i === bgIndex ? 'bg-cyan-400 w-4 h-2' : 'bg-slate-600 hover:bg-slate-400 size-2'
+              }`}
+              title={item.title}
+            />
+          ))}
         </div>
       </div>
 
