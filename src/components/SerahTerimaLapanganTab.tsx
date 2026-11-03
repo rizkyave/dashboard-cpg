@@ -2032,7 +2032,7 @@ export default function SerahTerimaLapanganTab({
                                             title="Disposisi titipan pihak ketiga (travel/kapal perintis) & buat tautan WhatsApp"
                                           >
                                             <Share2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-                                            <span>Titip Remote</span>
+                                            <span>Opsi Pengantaran</span>
                                           </button>
                                           <button
                                             type="button"
