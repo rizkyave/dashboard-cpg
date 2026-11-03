@@ -65,7 +65,7 @@ export default function RemoteDispatchModal({
   onSuccess,
   showToast,
 }: RemoteDispatchModalProps) {
-  const [shippingMethod, setShippingMethod] = useState<ShippingMethod>('Travel / Mobil Titipan');
+  const [shippingMethod, setShippingMethod] = useState<ShippingMethod>('Diantar Tim Logistik');
   const [carrierContact, setCarrierContact] = useState<string>('');
   const [trackingNumber, setTrackingNumber] = useState<string>('');
   const [recipientPhone, setRecipientPhone] = useState<string>('');
@@ -321,7 +321,7 @@ Terima kasih.`;
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-card border border-border/80 rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden flex flex-col max-h-[94vh] animate-in zoom-in-95 duration-150">
         
-        {/* Header Modal - Elegan dengan Gradient Badge */}
+        {/* Header Modal - Elegan & Tepat Sasaran */}
         <div className="px-5 py-4 border-b border-border bg-gradient-to-r from-indigo-500/10 via-purple-500/5 to-transparent flex items-start justify-between gap-3 shrink-0">
           <div className="flex items-center gap-3.5">
             <div className="size-11 rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-700 text-white flex items-center justify-center shadow-md shadow-indigo-500/25 shrink-0 ring-4 ring-indigo-500/10">
@@ -330,15 +330,15 @@ Terima kasih.`;
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="text-base sm:text-lg font-bold text-foreground tracking-tight">
-                  Pengiriman Pihak Ketiga / Remote
+                  Opsi Pengantaran & Disposisi Logistik
                 </h3>
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/25">
                   <Sparkles className="size-3" />
-                  <span>Tautan Mandiri Kapal</span>
+                  <span>Disposisi Serah Terima</span>
                 </span>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                Kirim barang via titip armada, travel, atau diantar tim logistik tanpa kehadiran kurir internal.
+                Tentukan metode pengantaran barang ke armada dan kirim notifikasi serah terima ke kru kapal.
               </p>
             </div>
           </div>
@@ -500,13 +500,13 @@ Terima kasih.`;
             {/* Pilihan Metode Pengiriman: 3 Card Elegan */}
             <div>
               <label className="block text-xs font-bold text-foreground mb-2">
-                Pilih Metode Pengiriman Titipan:
+                Pilih Metode Pengiriman:
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                 {[
-                  { id: 'Travel / Mobil Titipan', label: 'Travel / Mobil', icon: Car, desc: 'Via supir / kurir darat' },
-                  { id: 'Titip Armada', label: 'Titip Armada', icon: Ship, desc: 'Via kapal perintis / lain' },
-                  { id: 'Diantar Tim Logistik', label: 'Diantar Tim Logistik', icon: Truck, desc: 'Ekspedisi / kurir kantor' },
+                  { id: 'Diantar Tim Logistik', label: 'Diantar Tim Logistik', icon: Truck, desc: 'Kurir internal / logistik CPG' },
+                  { id: 'Titip Armada', label: 'Titip Armada', icon: Ship, desc: 'Via kapal perintis / armada lain' },
+                  { id: 'Travel / Mobil Titipan', label: 'Travel / Mobil', icon: Car, desc: 'Via supir / ekspedisi darat' },
                 ].map((item) => {
                   const Icon = item.icon;
                   const isSelected =
@@ -552,44 +552,33 @@ Terima kasih.`;
               </div>
             </div>
 
-            {/* Nama Perantara & No Resi Input (LEGA, PADDING 40px, NO OVERLAP) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-              <div>
-                <label className="block text-xs font-semibold text-foreground mb-1.5">
-                  Nama Perantara / Kontak Pembawa <span className="text-rose-500">*</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
-                    <User className="size-4" />
-                  </div>
-                  <input
-                    type="text"
-                    required
-                    value={carrierContact}
-                    onChange={(e) => setCarrierContact(e.target.value)}
-                    placeholder="Cth: Travel Barokah - Bpk. Anto"
-                    className="w-full text-xs sm:text-sm pl-10 pr-3.5 py-2.5 rounded-xl bg-background border border-border text-foreground placeholder:text-muted-foreground/60 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-hidden transition shadow-2xs"
-                  />
+            {/* Nama Kurir / Petugas Pengantar (Satu Kolom Memanjang Penuh) */}
+            <div>
+              <label className="block text-xs font-semibold text-foreground mb-1.5">
+                Nama Kurir / Petugas Pengantar <span className="text-rose-500">*</span>
+              </label>
+              <div className="relative">
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
+                  <User className="size-4" />
                 </div>
+                <input
+                  type="text"
+                  required
+                  value={carrierContact}
+                  onChange={(e) => setCarrierContact(e.target.value)}
+                  placeholder={
+                    shippingMethod === 'Diantar Tim Logistik'
+                      ? 'Cth: Agus Salim (Tim Logistik Lapangan)'
+                      : shippingMethod === 'Titip Armada'
+                      ? 'Cth: Capt. Ridwan (TB King Star) / Kru Pembawa'
+                      : 'Cth: Travel Barokah - Bpk. Anto'
+                  }
+                  className="w-full text-xs sm:text-sm pl-10 pr-3.5 py-2.5 rounded-xl bg-background border border-border text-foreground placeholder:text-muted-foreground/60 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-hidden transition shadow-2xs"
+                />
               </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-foreground mb-1.5">
-                  Nomor Resi / Dokumen Titipan <span className="text-[11px] font-normal text-muted-foreground">(Opsional)</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
-                    <FileText className="size-4" />
-                  </div>
-                  <input
-                    type="text"
-                    value={trackingNumber}
-                    onChange={(e) => setTrackingNumber(e.target.value)}
-                    placeholder="Cth: KPL-PRT-0982 / Resi #123"
-                    className="w-full text-xs sm:text-sm pl-10 pr-3.5 py-2.5 rounded-xl bg-background border border-border text-foreground placeholder:text-muted-foreground/60 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-hidden transition shadow-2xs"
-                  />
-                </div>
-              </div>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Nama petugas logistik internal atau pihak perantara yang membawa dan mengantar barang ke kapal.
+              </p>
             </div>
 
             {/* Dropdown Kru Kapal Otomatis & Profil Kru Terpilih */}
