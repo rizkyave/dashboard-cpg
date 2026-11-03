@@ -646,7 +646,7 @@ export default function RemoteHandoverPage() {
             </div>
             <div>
               <h1 className="text-xs font-bold text-white leading-tight">
-                PT. MAPAN INDONESIA LI
+                CINDARA PRATAMA GROUP LOGISTIK DIV
               </h1>
               <p className="text-[10px] text-slate-400">Serah Terima Barang Mandiri</p>
             </div>

@@ -170,7 +170,7 @@ export default function RemoteDispatchModal({
   // Buat teks pesan WhatsApp
   const generateMessageText = (link: string): string => {
     return `*KONFIRMASI SERAH TERIMA BARANG (TTB)*
-*PT. MAPAN INDONESIA LI / CPL*
+*CINDARA PRATAMA GROUP LOGISTIK DIV*
 
 Yth. *${recipientNameTarget.trim() || 'Nakhoda / Perwira Kapal'}*
 Armada: *${targetTtb.armada}*
@@ -761,8 +761,8 @@ Terima kasih.`;
                     <div className="font-bold text-emerald-200">
                       KONFIRMASI SERAH TERIMA BARANG (TTB)
                     </div>
-                    <div className="text-[11px] text-emerald-100">
-                      PT. MAPAN INDONESIA LI / CPL
+                    <div className="text-[11px] text-emerald-100 font-semibold">
+                      CINDARA PRATAMA GROUP LOGISTIK DIV
                     </div>
                     <div className="pt-1 text-[11px]">
                       Yth. <strong className="text-white">{recipientNameTarget.trim() || 'Nakhoda / Perwira Kapal'}</strong><br />
