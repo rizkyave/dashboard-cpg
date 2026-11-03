@@ -366,10 +366,15 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
             {/* Luminous Top Accent Bar */}
             <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-cyan-500 via-teal-400 to-blue-600" />
 
-            {/* Header Brand */}
+            {/* Header Brand dengan Logo Resmi 3D CPG */}
             <div className="text-center mb-6">
-              <div className="inline-flex items-center justify-center size-14 rounded-2xl bg-gradient-to-tr from-cyan-600 to-blue-600 text-white shadow-xl shadow-cyan-500/20 mb-3 border border-cyan-400/40 ring-4 ring-cyan-500/10">
-                <Ship className="size-7" />
+              <div className="relative inline-flex items-center justify-center mb-3 group">
+                <div className="absolute inset-0 bg-cyan-500/20 rounded-full blur-xl scale-90 group-hover:scale-110 transition-all duration-500" />
+                <img
+                  src="/images/logo/cpg_logo_official.png"
+                  alt="Logo Cindara Pratama Group"
+                  className="relative h-20 sm:h-24 w-auto object-contain drop-shadow-[0_12px_28px_rgba(0,0,0,0.65)] hover:scale-105 transition-transform duration-300 select-none pointer-events-none"
+                />
               </div>
               <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
                 CPG Procurement Hub
