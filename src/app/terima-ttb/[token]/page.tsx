@@ -153,7 +153,33 @@ export default function RemoteHandoverPage() {
             setSubmitSuccessData(result.data);
           }
           if (result.data.recipientNameTarget && !receiverName) {
-            setReceiverName(result.data.recipientNameTarget);
+            const rawTarget = result.data.recipientNameTarget.trim();
+            const roleMatch = rawTarget.match(/\(([^)]+)\)$/);
+            if (roleMatch) {
+              setReceiverName(rawTarget.replace(/\s*\([^)]*\)$/, '').trim());
+              const matchedRole = roleMatch[1].trim();
+              const validRoles = [
+                'Nakhoda',
+                'Chief Officer',
+                'Second Officer',
+                'Kepala Kamar Mesin (KKM)',
+                'Masinis',
+                'Barge Master',
+                'Bosun / Mandor',
+                'Staf Lapangan / User',
+              ];
+              const normalizedMatched = validRoles.find(
+                (r) => r.toLowerCase() === matchedRole.toLowerCase() || matchedRole.toLowerCase().includes(r.toLowerCase())
+              );
+              if (normalizedMatched) {
+                setReceiverRole(normalizedMatched);
+              } else {
+                setReceiverRole('Lainnya');
+                setCustomRole(matchedRole);
+              }
+            } else {
+              setReceiverName(rawTarget);
+            }
           }
         } else {
           setTokenStatus(result.status || 'not_found');
@@ -732,6 +758,7 @@ export default function RemoteHandoverPage() {
                 className="w-full text-xs px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white focus:outline-hidden focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
               >
                 <option value="Nakhoda">Nakhoda (Master / Captain)</option>
+                <option value="Barge Master">Barge Master (Pawang Tongkang / TK)</option>
                 <option value="Chief Officer">Chief Officer (Mualim I)</option>
                 <option value="Second Officer">Second Officer (Mualim II)</option>
                 <option value="Kepala Kamar Mesin (KKM)">Kepala Kamar Mesin (KKM / Chief Eng)</option>

@@ -449,11 +449,22 @@ export async function stampTtbRecipientPdf(options: StampTtbRecipientOptions): P
           borderWidth: 0,
         });
 
+        // Pertahankan rasio aspek tanda tangan asli agar proporsional dan tidak terdistorsi/gepeng
+        const imgAspect = embeddedImage.width / embeddedImage.height;
+        let drawW = sigW;
+        let drawH = sigW / imgAspect;
+        if (drawH > sigH) {
+          drawH = sigH;
+          drawW = sigH * imgAspect;
+        }
+        const drawX = sigX + (sigW - drawW) / 2;
+        const drawY = sigY + (sigH - drawH) / 2;
+
         targetPage.drawImage(embeddedImage, {
-          x: sigX,
-          y: sigY,
-          width: sigW,
-          height: sigH,
+          x: drawX,
+          y: drawY,
+          width: drawW,
+          height: drawH,
         });
       }
     } catch (sigErr) {
@@ -461,23 +472,80 @@ export async function stampTtbRecipientPdf(options: StampTtbRecipientOptions): P
     }
   }
 
-  // 2. Sematkan Teks Nama Lengkap Penerima dan Tanggal Serah Terima
+  // 2. Sematkan Teks Nama Lengkap Penerima dan Tanggal Serah Terima (Anti-Overlap & Clean Fit)
   try {
     const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
     const fontNorm = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-    const fontSize = Math.max(6.5, Math.min(9.5, pageHeight * 0.019));
+    // Batas geometri Kolom 2 (Received By : User)
+    const col2StartX = 0.308 * pageWidth;          // x ≈ 183.3 pt
+    const col2EndX = 0.5015 * pageWidth;           // x ≈ 298.4 pt (garis pemisah dengan Kolom 3)
+    const col2Width = col2EndX - col2StartX;       // ≈ 115 pt
 
-    // Nama Penerima Barang
+    // Posisi Label 'Name :' dan 'Date :'
+    const nameLabelX = 0.312 * pageWidth;          // x ≈ 185.6 pt
+    const nameValueX = 0.374 * pageWidth;          // x ≈ 222.5 pt
+    const nameY = coords.nameYRatio * pageHeight;  // y ≈ 62.6 pt
+    const dateY = coords.dateYRatio * pageHeight;  // y ≈ 50.6 pt
+
+    // Bersihkan baris Nama dan Tanggal di Kolom 2 agar tidak ada tumpang tindih dengan teks sebelumnya
+    const cleanRowH = Math.max(10, pageHeight * 0.026);
+    targetPage.drawRectangle({
+      x: col2StartX,
+      y: nameY - 2.5,
+      width: col2Width,
+      height: cleanRowH,
+      color: rgb(1, 1, 1),
+      borderWidth: 0,
+    });
+    targetPage.drawRectangle({
+      x: col2StartX,
+      y: dateY - 2.5,
+      width: col2Width,
+      height: cleanRowH,
+      color: rgb(1, 1, 1),
+      borderWidth: 0,
+    });
+
+    // Gambar label 'Name :' dan 'Date :' seragam dengan Kolom 1
+    targetPage.drawText('Name :', {
+      x: nameLabelX,
+      y: nameY,
+      size: 7.0,
+      font: fontNorm,
+      color: rgb(0, 0, 0),
+    });
+
+    targetPage.drawText('Date :', {
+      x: nameLabelX,
+      y: dateY,
+      size: 7.0,
+      font: fontNorm,
+      color: rgb(0, 0, 0),
+    });
+
+    // Nama Penerima Barang (Bersihkan gelar/jabatan dalam tanda kurung agar hanya nama terang resmi)
     if (recipientName && recipientName.trim()) {
-      const cleanName = recipientName.trim().toUpperCase();
-      const nameX = coords.nameXRatio * pageWidth;
-      const nameY = coords.nameYRatio * pageHeight;
+      let cleanPersonName = recipientName.trim();
+      // Bersihkan tanda kurung jabatan seperti '(BARGE MASTER)', '(NAKHODA)', '(R. NAKHODA)'
+      cleanPersonName = cleanPersonName.replace(/\s*\([^)]*\)$/, '').trim();
+      cleanPersonName = cleanPersonName.replace(/^Capt\.\s+/i, '').trim();
+      cleanPersonName = cleanPersonName.toUpperCase();
 
-      targetPage.drawText(cleanName, {
-        x: nameX,
+      // Hitung ukuran font secara dinamis agar pas sempurna di dalam Kolom 2 dan TIDAK PERNAH menyeberang ke Kolom 3
+      const maxNameWidth = col2EndX - nameValueX - 3; // batas aman sebelum garis pemisah kolom 3
+      let nameFontSize = 7.0;
+      let textW = fontBold.widthOfTextAtSize(cleanPersonName, nameFontSize);
+
+      while (textW > maxNameWidth && nameFontSize > 5.0) {
+        nameFontSize -= 0.25;
+        textW = fontBold.widthOfTextAtSize(cleanPersonName, nameFontSize);
+      }
+
+      targetPage.drawText(cleanPersonName, {
+        x: nameValueX,
         y: nameY,
-        size: fontSize,
+        size: nameFontSize,
         font: fontBold,
         color: rgb(0, 0, 0),
       });
@@ -486,13 +554,10 @@ export async function stampTtbRecipientPdf(options: StampTtbRecipientOptions): P
     // Tanggal Penerimaan
     if (receiptDate && receiptDate.trim()) {
       const cleanDate = receiptDate.trim();
-      const dateX = coords.dateXRatio * pageWidth;
-      const dateY = coords.dateYRatio * pageHeight;
-
       targetPage.drawText(cleanDate, {
-        x: dateX,
+        x: nameValueX,
         y: dateY,
-        size: fontSize,
+        size: 7.0,
         font: fontNorm,
         color: rgb(0, 0, 0),
       });
