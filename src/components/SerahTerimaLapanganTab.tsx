@@ -1101,8 +1101,22 @@ export default function SerahTerimaLapanganTab({
         throw new Error(data.message || 'Gagal membatalkan pre-check.');
       }
 
-      // Hapus dari state lokal preDispatchRecords
+      // Hapus dari state lokal preDispatchRecords & remoteTokens
       setPreDispatchRecords((prev) => {
+        const next = { ...prev };
+        delete next[opt.cleanNoTtb];
+        delete next[opt.noTtb];
+        delete next[opt.key];
+        return next;
+      });
+
+      // Hapus juga token remote jika ada
+      fetch(
+        `/api/remote-handover?cleanNoTtb=${encodeURIComponent(opt.cleanNoTtb)}&noTtb=${encodeURIComponent(opt.noTtb)}`,
+        { method: 'DELETE' }
+      ).catch(() => {});
+
+      setRemoteTokens((prev) => {
         const next = { ...prev };
         delete next[opt.cleanNoTtb];
         delete next[opt.noTtb];
@@ -1964,34 +1978,6 @@ export default function SerahTerimaLapanganTab({
                                             <ChevronRight className="w-3.5 h-3.5" />
                                           </button>
                                         </div>
-                                      ) : isRemoteDispatched ? (
-                                        <div className="inline-flex items-center gap-2">
-                                          <button
-                                            type="button"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              setPendingRemoteDispatchTtb(opt);
-                                            }}
-                                            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 shadow-2xs transition-colors cursor-pointer"
-                                            title="Buka detail titipan & bagikan ulang link WhatsApp"
-                                          >
-                                            <Share2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                                            <span>Link WA</span>
-                                          </button>
-                                          <button
-                                            type="button"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              setSelectedTtbRef(opt);
-                                              setIsSearchingTtb(false);
-                                            }}
-                                            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-2xs transition-colors cursor-pointer"
-                                            title="Lanjut input langsung jika barang sudah sampai di kapal"
-                                          >
-                                            <span>Input TTD</span>
-                                            <ChevronRight className="w-3.5 h-3.5" />
-                                          </button>
-                                        </div>
                                       ) : opt.isManagerApproved ? (
                                         <div className="inline-flex items-center gap-2">
                                           <button
@@ -2000,11 +1986,18 @@ export default function SerahTerimaLapanganTab({
                                               e.stopPropagation();
                                               setPendingRemoteDispatchTtb(opt);
                                             }}
-                                            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl border border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 shadow-2xs transition-colors cursor-pointer"
-                                            title="Disposisi titipan pihak ketiga (travel/kapal perintis) & buat tautan WhatsApp"
+                                            className={`inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl border shadow-2xs transition-colors cursor-pointer ${
+                                              isRemoteDispatched
+                                                ? 'border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
+                                                : 'border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300'
+                                            }`}
+                                            title="Disposisi titipan pihak ketiga (travel/kapal perintis) & buat/bagikan tautan WhatsApp"
                                           >
-                                            <Share2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                                            <Share2 className={`w-3.5 h-3.5 ${isRemoteDispatched ? 'text-emerald-600 dark:text-emerald-400' : 'text-indigo-600 dark:text-indigo-400'}`} />
                                             <span>Opsi Pengantaran</span>
+                                            {isRemoteDispatched && (
+                                              <span className="size-1.5 rounded-full bg-emerald-500" title="Tautan WA aktif" />
+                                            )}
                                           </button>
                                           <button
                                             type="button"

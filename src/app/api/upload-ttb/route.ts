@@ -807,6 +807,46 @@ export async function DELETE(req: NextRequest) {
       } catch (preErr) {
         console.warn('Gagal membersihkan data pre-dispatch saat TTB dihapus:', preErr);
       }
+
+      // 6. Bersihkan juga token remote handover jika ada
+      try {
+        const remotePath = path.join(process.cwd(), 'src', 'data', 'remote-handover-tokens.json');
+        let remoteRecords: any[] = [];
+        if (isR2Active) {
+          const r2Remote = await getObjectFromR2('ttb-metadata/remote-handover-tokens.json');
+          if (r2Remote && r2Remote.body) {
+            remoteRecords = JSON.parse(Buffer.from(r2Remote.body).toString('utf8'));
+          }
+        }
+        if (remoteRecords.length === 0) {
+          try {
+            const raw = await fs.readFile(remotePath, 'utf8');
+            remoteRecords = JSON.parse(raw);
+          } catch {}
+        }
+        if (Array.isArray(remoteRecords) && remoteRecords.length > 0) {
+          const filtered = remoteRecords.filter(
+            (t: any) =>
+              t.cleanNoTtb?.toLowerCase() !== ttbNumberToClean.toLowerCase() &&
+              t.noTtb?.toLowerCase() !== ttbNumberToClean.toLowerCase()
+          );
+          if (filtered.length !== remoteRecords.length) {
+            const remoteJson = JSON.stringify(filtered, null, 2);
+            try {
+              await fs.writeFile(remotePath, remoteJson, 'utf8');
+            } catch {}
+            if (isR2Active) {
+              await uploadToR2({
+                key: 'ttb-metadata/remote-handover-tokens.json',
+                body: Buffer.from(remoteJson, 'utf8'),
+                contentType: 'application/json',
+              });
+            }
+          }
+        }
+      } catch (remoteErr) {
+        console.warn('Gagal membersihkan data remote-handover saat TTB dihapus:', remoteErr);
+      }
     }
 
     return NextResponse.json({

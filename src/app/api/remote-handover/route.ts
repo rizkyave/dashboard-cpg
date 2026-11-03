@@ -904,3 +904,55 @@ export async function PUT(req: NextRequest): Promise<NextResponse<RemoteHandover
     );
   }
 }
+
+// DELETE: Batalkan / hapus token serah terima mandiri (remote handover)
+export async function DELETE(req: NextRequest): Promise<NextResponse<RemoteHandoverResponse>> {
+  try {
+    const { searchParams } = new URL(req.url);
+    const token = searchParams.get('token');
+    const noTtb = searchParams.get('noTtb') || searchParams.get('cleanNoTtb');
+
+    let bodyTarget = '';
+    try {
+      const body = await req.json();
+      bodyTarget = body?.token || body?.noTtb || body?.cleanNoTtb || '';
+    } catch {}
+
+    const target = (token || noTtb || bodyTarget).trim();
+    if (!target) {
+      return NextResponse.json(
+        { success: false, message: 'Token atau Nomor TTB wajib disertakan.' },
+        { status: 400 }
+      );
+    }
+
+    const cleanTarget = sanitizeTtbNumber(target).toLowerCase();
+    const tokens = await getRemoteTokens();
+    const initialCount = tokens.length;
+
+    const filtered = tokens.filter((t) => {
+      if (token && t.token === token) return false;
+      const c1 = sanitizeTtbNumber(t.cleanNoTtb || '').toLowerCase();
+      const c2 = sanitizeTtbNumber(t.noTtb || '').toLowerCase();
+      return c1 !== cleanTarget && c2 !== cleanTarget;
+    });
+
+    if (filtered.length !== initialCount) {
+      await saveRemoteTokens(filtered);
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: `Token serah terima mandiri untuk ${target} berhasil dibatalkan.`,
+    });
+  } catch (err) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Gagal membatalkan token remote handover.',
+        error: (err as Error).message,
+      },
+      { status: 500 }
+    );
+  }
+}

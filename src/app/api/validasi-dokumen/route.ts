@@ -209,6 +209,46 @@ async function clearPreDispatchForDoc(cleanDocNumber: string) {
       }
     }
   } catch {}
+
+  // Bersihkan juga token remote handover jika ada agar terestorasi penuh ke posisi awal
+  const REMOTE_LOCAL = path.join(process.cwd(), 'src', 'data', 'remote-handover-tokens.json');
+  const R2_REMOTE_KEY = 'ttb-metadata/remote-handover-tokens.json';
+  if (isR2Configured()) {
+    try {
+      const obj = await getObjectFromR2(R2_REMOTE_KEY);
+      if (obj && obj.body) {
+        const parsed = JSON.parse(Buffer.from(obj.body).toString('utf8'));
+        if (Array.isArray(parsed)) {
+          const filtered = parsed.filter(
+            (t: any) =>
+              t.cleanNoTtb !== cleanDocNumber &&
+              t.noTtb !== cleanDocNumber
+          );
+          if (filtered.length !== parsed.length) {
+            await uploadToR2({
+              key: R2_REMOTE_KEY,
+              body: Buffer.from(JSON.stringify(filtered, null, 2), 'utf8'),
+              contentType: 'application/json',
+            });
+          }
+        }
+      }
+    } catch {}
+  }
+  try {
+    const raw = await fs.readFile(REMOTE_LOCAL, 'utf8');
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      const filtered = parsed.filter(
+        (t: any) =>
+          t.cleanNoTtb !== cleanDocNumber &&
+          t.noTtb !== cleanDocNumber
+      );
+      if (filtered.length !== parsed.length) {
+        await fs.writeFile(REMOTE_LOCAL, JSON.stringify(filtered, null, 2), 'utf8');
+      }
+    }
+  } catch {}
 }
 
 // Sinkronisasikan berkas PDF yang baru di-stamp ke ttb-uploads-history (R2 & lokal)
