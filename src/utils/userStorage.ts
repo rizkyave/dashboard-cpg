@@ -379,7 +379,11 @@ export function updateUserAccount(
   saveStoredUsers(updatedList);
 
   const currentSession = getStoredSessionUser();
-  if (currentSession && currentSession.id === id) {
+  if (
+    currentSession &&
+    (currentSession.id === id ||
+      currentSession.username.toLowerCase() === existing.username.toLowerCase())
+  ) {
     const { password, ...newAuthUser } = updatedUser;
     setStoredSessionUser(newAuthUser);
   }

@@ -148,17 +148,20 @@ function checkUserTtbSlotAuthority(
       }
       // Hanya sah jika ditandatangani oleh penerima barang di kapal (crew armada kapal, user pemohon)
       if (
+        role === 'end_user' ||
         role === 'user' ||
         jabatan.includes('armada') ||
         jabatan.includes('kapal') ||
         jabatan.includes('crew') ||
+        jabatan.includes('penerima') ||
         jabatan.includes('kapten') ||
         jabatan.includes('nakhoda') ||
         jabatan.includes('masinis') ||
         jabatan.includes('chief') ||
-        dept.includes('armada')
+        dept.includes('armada') ||
+        dept.includes('penerima')
       ) {
-        return { allowed: true, reason: 'Wewenang Sah: Penerima / Kru Armada Kapal' };
+        return { allowed: true, reason: 'Wewenang Sah: Penerima / Kru Armada Kapal (End User)' };
       }
       return { allowed: false, reason: 'Hanya dapat divalidasi oleh Kru Penerima di Kapal / Armada' };
 

@@ -436,30 +436,30 @@ export default function ArmadaGanttSchedule({
 
       // Jika bulan yang dipilih sama dengan bulan saat ini, hitung persentase dinamis
       if (currentMonthNum === targetMonth) {
-        // Rumus: ((currentDate - timelineStartDate) / (timelineEndDate - timelineStartDate)) * 100
         const timelineStart = new Date(currentYear, targetMonth - 1, 1).getTime();
         const timelineEnd = new Date(currentYear, targetMonth - 1, daysInTargetMonth, 23, 59, 59).getTime();
         const percent = Math.max(0, Math.min(100, ((now.getTime() - timelineStart) / (timelineEnd - timelineStart)) * 100));
         return { todayPercent: percent, todayLabel: label, isCurrentMonthInView: true };
       } else {
+        // Jika sedang melihat bulan lampau/mendatang, jangan gambarkan garis hari ini di bulan yang salah
         return { todayPercent: null, todayLabel: label, isCurrentMonthInView: false };
       }
     } else {
-      // Mode Multi-Month ALL (Berdasarkan displayMonths)
-      const firstMonthKey = parseInt(displayMonths[0]?.key || '6', 10);
-      const lastMonthKey = parseInt(displayMonths[displayMonths.length - 1]?.key || '12', 10);
-      const totalMonths = displayMonths.length;
+      // Mode Multi-Month ALL (Berdasarkan displayMonths dinamis)
+      const numMonths = displayMonths.length;
+      if (numMonths === 0) return { todayPercent: null, todayLabel: label, isCurrentMonthInView: false };
 
-      if (currentMonthNum >= firstMonthKey && currentMonthNum <= lastMonthKey) {
-        const mIdx = displayMonths.findIndex((m) => m.key === currentMonthKey);
-        if (mIdx >= 0) {
-          const daysInMonth = new Date(currentYear, currentMonthNum, 0).getDate();
-          const dayFraction = (day - 1 + 0.5) / daysInMonth;
-          const percent = (mIdx / totalMonths) * 100 + (dayFraction / totalMonths) * 100;
-          return { todayPercent: percent, todayLabel: label, isCurrentMonthInView: true };
-        }
+      const monthWidth = 100 / numMonths;
+      const mIdx = displayMonths.findIndex((m) => parseInt(m.key, 10) === currentMonthNum);
+
+      if (mIdx !== -1) {
+        const daysInMonth = new Date(currentYear, currentMonthNum, 0).getDate();
+        const dayFraction = Math.max(0, Math.min(1, (day - 1 + 0.5) / daysInMonth));
+        const percent = mIdx * monthWidth + dayFraction * monthWidth;
+        return { todayPercent: percent, todayLabel: label, isCurrentMonthInView: true };
+      } else {
+        return { todayPercent: null, todayLabel: label, isCurrentMonthInView: false };
       }
-      return { todayPercent: null, todayLabel: label, isCurrentMonthInView: false };
     }
   }, [selectedPeriod, displayMonths]);
 
@@ -699,7 +699,9 @@ export default function ArmadaGanttSchedule({
                     const activeWeekIdx = currentDay <= 7 ? 0 : currentDay <= 14 ? 1 : currentDay <= 21 ? 2 : 3;
 
                     return WEEKS_PER_MONTH.map((w, wIdx) => {
-                      const isTodayCol = m.key === currentMonthKey && wIdx === activeWeekIdx;
+                      const isTodayCol =
+                        (selectedPeriod === currentMonthKey && wIdx === activeWeekIdx) ||
+                        (selectedPeriod === 'ALL' && m.key === currentMonthKey && wIdx === activeWeekIdx);
 
                       return (
                         <div

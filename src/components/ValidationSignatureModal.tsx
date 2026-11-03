@@ -95,7 +95,7 @@ export default function ValidationSignatureModal({
       setActiveSigningLine('purchasing');
     } else if (user?.role === 'staf_ttb') {
       setActiveSigningLine('logistik');
-    } else if (user?.role === 'staf_lapangan') {
+    } else if (user?.role === 'staf_lapangan' || user?.role === 'end_user') {
       setActiveSigningLine('lapangan');
     } else {
       // Default: Pilih lini pertama yang belum tervalidasi

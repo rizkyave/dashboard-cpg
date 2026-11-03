@@ -216,32 +216,37 @@ export function calculateDateRangePosition(
 
     return { left: clampedLeft, width: clampedWidth };
   } else {
-    // Mode Multi-Month ALL (5 Bulan: Jun=6, Jul=7, Agu=8, Sep=9, Okt=10)
+    // Mode Multi-Month ALL (Juni=6 s/d Desember=12, total 7 Bulan)
+    const startM = 6;
+    const endM = 12;
+    const totalMonths = endM - startM + 1; // 7
+    const monthSpanPct = 100 / totalMonths;
+
     const getPosPercent = (d: Date, isEnd: boolean = false): number => {
       let m = d.getMonth() + 1;
       let day = d.getDate();
 
-      if (m < 6) {
-        m = 6;
+      if (m < startM) {
+        m = startM;
         day = 1;
-      } else if (m > 10) {
-        m = 10;
+      } else if (m > endM) {
+        m = endM;
         day = 31;
       }
 
-      const mIdx = m - 6; // 0..4 (Jun..Okt)
+      const mIdx = m - startM;
       const daysInM = new Date(2026, m, 0).getDate();
       const dayOffset = isEnd ? day : day - 1;
       const frac = Math.max(0, Math.min(1, dayOffset / daysInM));
 
-      return mIdx * 20 + frac * 20;
+      return mIdx * monthSpanPct + frac * monthSpanPct;
     };
 
     const sPos = getPosPercent(sDate, false);
     const ePos = getPosPercent(eDate, true);
 
-    const left = Math.max(0, Math.min(96.5, sPos));
-    const rawWidth = Math.max(3.5, ePos - sPos);
+    const left = Math.max(0, Math.min(97.5, sPos));
+    const rawWidth = Math.max(2.5, ePos - sPos);
     const width = Math.min(100 - left, rawWidth);
 
     return { left, width };
@@ -926,27 +931,21 @@ export default function FleetGanttSchedule({
         const percent = Math.max(0, Math.min(100, ((now.getTime() - timelineStart) / (timelineEnd - timelineStart)) * 100));
         return { todayPercent: percent, todayLabel: label, isCurrentMonthInView: true };
       } else {
-        if (selectedPeriod === '10') {
-          const timelineStart = new Date(2026, 9, 1).getTime();
-          const timelineEnd = new Date(2026, 9, 31, 23, 59, 59).getTime();
-          const effectiveDate = (currentMonthNum === 10) ? now.getTime() : new Date(2026, 9, Math.min(day, 31)).getTime();
-          const percent = ((effectiveDate - timelineStart) / (timelineEnd - timelineStart)) * 100;
-          return { todayPercent: percent, todayLabel: label, isCurrentMonthInView: true };
-        }
         return { todayPercent: null, todayLabel: label, isCurrentMonthInView: false };
       }
     } else {
-      if (currentMonthNum >= 6 && currentMonthNum <= 10) {
-        const mIdx = currentMonthNum - 6;
+      const numMonths = displayMonths.length;
+      if (numMonths === 0) return { todayPercent: null, todayLabel: label, isCurrentMonthInView: false };
+      const monthWidth = 100 / numMonths;
+      const mIdx = displayMonths.findIndex((m) => parseInt(m.key, 10) === currentMonthNum);
+
+      if (mIdx !== -1) {
         const daysInMonth = new Date(currentYear, currentMonthNum, 0).getDate();
-        const dayFraction = (day - 1 + 0.5) / daysInMonth;
-        const percent = mIdx * 20 + dayFraction * 20;
+        const dayFraction = Math.max(0, Math.min(1, (day - 1 + 0.5) / daysInMonth));
+        const percent = mIdx * monthWidth + dayFraction * monthWidth;
         return { todayPercent: percent, todayLabel: label, isCurrentMonthInView: true };
       } else {
-        const daysInOct = 31;
-        const dayFraction = (Math.min(day, 31) - 1 + 0.5) / daysInOct;
-        const percent = 4 * 20 + dayFraction * 20;
-        return { todayPercent: percent, todayLabel: label, isCurrentMonthInView: true };
+        return { todayPercent: null, todayLabel: label, isCurrentMonthInView: false };
       }
     }
   }, [selectedPeriod]);
@@ -1125,9 +1124,11 @@ export default function FleetGanttSchedule({
 
                     return WEEKS_PER_MONTH.map((w, wIdx) => {
                       const absoluteCol = m.startCol + wIdx;
+                      const now = new Date();
+                      const curMonthKey = String(now.getMonth() + 1).padStart(2, '0');
                       const isTodayCol =
-                        (selectedPeriod === '10' && wIdx === activeWeekIdx) ||
-                        (selectedPeriod === 'ALL' && m.key === '10' && wIdx === activeWeekIdx);
+                        (selectedPeriod === curMonthKey && wIdx === activeWeekIdx) ||
+                        (selectedPeriod === 'ALL' && m.key === curMonthKey && wIdx === activeWeekIdx);
 
                       return (
                         <div

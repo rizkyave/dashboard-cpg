@@ -742,6 +742,26 @@ export default function DashboardPage() {
     }
   }, [user]);
 
+  // Real-time RBAC & Role Update Listener
+  useEffect(() => {
+    const handleRbacUpdate = () => {
+      if (user && !canAccessTab(user.role, activeTab)) {
+        const targetTab = getDefaultTabForRole(user.role);
+        setActiveTab(targetTab);
+        showToast(
+          `Hak akses peran ${getRoleDisplayName(user.role)} telah diperbarui. Dialihkan ke menu utama Anda.`,
+          'info'
+        );
+      }
+    };
+    window.addEventListener('cpg-rbac-updated', handleRbacUpdate);
+    window.addEventListener('cpg-user-updated', handleRbacUpdate);
+    return () => {
+      window.removeEventListener('cpg-rbac-updated', handleRbacUpdate);
+      window.removeEventListener('cpg-user-updated', handleRbacUpdate);
+    };
+  }, [user, activeTab]);
+
   // Filtered dataset
   const filteredProcurement = useMemo(() => {
     let list = [...procurementData];

@@ -285,10 +285,11 @@ export function calculateDateRangePosition(
 
     return { left: clampedLeft, width: clampedWidth };
   } else {
-    // Mode Multi-Month ALL (Dinamis Bulan 06 s/d 12: Juni..Desember 2026)
+    // Mode Multi-Month ALL (Juni=6 s/d Desember=12, total 7 Bulan)
     const startM = 6;
     const endM = 12;
-    const totalM = endM - startM + 1; // 7 bulan
+    const totalMonths = endM - startM + 1; // 7
+    const monthSpanPct = 100 / totalMonths;
     const getPosPercent = (d: Date, isEnd: boolean = false): number => {
       let m = d.getMonth() + 1;
       let day = d.getDate();
@@ -306,14 +307,14 @@ export function calculateDateRangePosition(
       const dayOffset = isEnd ? day : day - 1;
       const frac = Math.max(0, Math.min(1, dayOffset / daysInM));
 
-      return (mIdx / totalM) * 100 + (frac / totalM) * 100;
+      return mIdx * monthSpanPct + frac * monthSpanPct;
     };
 
     const sPos = getPosPercent(sDate, false);
     const ePos = getPosPercent(eDate, true);
 
-    const left = Math.max(0, Math.min(96.5, sPos));
-    const rawWidth = Math.max(3.5, ePos - sPos);
+    const left = Math.max(0, Math.min(97.5, sPos));
+    const rawWidth = Math.max(2.5, ePos - sPos);
     const width = Math.min(100 - left, rawWidth);
 
     return { left, width };
@@ -385,7 +386,6 @@ export function evaluateFleetItemStatus(
   const isFromPriorMonth =
     dStart.getFullYear() < referenceDate.getFullYear() ||
     (dStart.getFullYear() === referenceDate.getFullYear() && dStart.getMonth() < referenceDate.getMonth());
-
   // Cek relasi lintas modul dari docRelationResolver jika nomor dokumen tersedia
   const docRel = fpbNum ? findDocumentsByFpb(fpbNum) : null;
   const hasRelTtb = Boolean(docRel && docRel.ttbs && docRel.ttbs.length > 0);

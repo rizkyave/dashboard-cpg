@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Users,
   UserPlus,
@@ -74,6 +74,7 @@ import {
   getToneForAccessLevel,
   isAccessLevelAllowed,
   getStoredPermissionsMatrix,
+  syncPermissionsMatrixFromCloud,
   saveStoredPermissionsMatrix,
   resetStoredPermissionsMatrix,
   ModulePermissionItem,
@@ -241,6 +242,23 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
 
   // User role change confirmation modal state
   const [pendingUserRoleChange, setPendingUserRoleChange] = useState<{ user: AuthUser; nextRole: UserRole } | null>(null);
+
+  // Sinkronisasi matriks hak akses RBAC dari cloud server
+  useEffect(() => {
+    syncPermissionsMatrixFromCloud().then((fresh) => {
+      if (fresh && fresh.length > 0) {
+        setMatrixData(fresh);
+        setSavedMatrixData(fresh);
+      }
+    });
+    const handleRbacUpdate = () => {
+      const fresh = getStoredPermissionsMatrix();
+      setMatrixData(fresh);
+      setSavedMatrixData(fresh);
+    };
+    window.addEventListener('cpg-rbac-updated', handleRbacUpdate);
+    return () => window.removeEventListener('cpg-rbac-updated', handleRbacUpdate);
+  }, []);
 
   // Perubahan wewenang matriks yang belum disimpan
   const diffList = useMemo(() => {
@@ -1603,11 +1621,11 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
                             <Truck className="size-3" />
                             <span>Staf Serah Terima Lap.</span>
+                          </span>
                         ) : item.role === 'end_user' ? (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/20">
                             <PackageCheck className="size-3" />
                             <span>End User / Penerima</span>
-                          </span>
                           </span>
                         ) : item.role === 'visitor' ? (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
@@ -1890,29 +1908,32 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                     onChange={(e) => setQuickModule(e.target.value as any)}
                     className="w-full pl-3 pr-8 py-2 text-xs rounded-lg border border-border bg-background text-foreground font-medium focus:outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer"
                   >
-                    <option value="ALL">📦 Seluruh Modul (17 Fitur)</option>
-                    <optgroup label="Dashboards">
+                    <option value="ALL">📦 Seluruh Modul (20 Fitur Sistem)</option>
+                    <optgroup label="Dashboards (8 Modul)">
                       <option value="overview">Executive Overview</option>
-                      <option value="lead-time">Analisis Lead Time</option>
-                      <option value="realisasi-fpb">Realisasi Permintaan (FPB)</option>
-                      <option value="sla-pengiriman">Kinerja SLA Pengiriman</option>
-                      <option value="status-item">Monitoring Status Item</option>
-                      <option value="evaluasi-po">Evaluasi PO vs Realisasi</option>
-                      <option value="evaluasi-vendor">Kinerja Vendor</option>
-                      <option value="rekomendasi-sourcing">Rekomendasi Sourcing</option>
+                      <option value="review-fpb">Review &amp; Analisa FPB</option>
+                      <option value="pratender">Pratender Material Terbuka</option>
+                      <option value="monitoring-internal">Monitoring Berkas Internal</option>
+                      <option value="procurement">Procurement (FPB &amp; PO)</option>
+                      <option value="armada">Layanan Armada</option>
+                      <option value="upload-fstb">Upload FSTB Resmi</option>
+                      <option value="upload-ttb">Upload TTB Resmi</option>
                     </optgroup>
-                    <optgroup label="Modul Tambahan">
-                      <option value="validasi-fstb">Validasi &amp; TTD Dokumen FSTB</option>
-                      <option value="validasi-ttb">Validasi &amp; TTD Dokumen TTB</option>
-                      <option value="r2-sync">Sinkronisasi Cloud R2 Storage</option>
+                    <optgroup label="Modul Tambahan (7 Modul)">
+                      <option value="validasi-dokumen">Validasi &amp; TTD Dokumen (TTB / FSTB)</option>
                       <option value="serah-terima-lapangan">Serah Terima Fisik Lapangan</option>
-                      <option value="dokumen-lapangan">Dokumen Fisik Lapangan</option>
+                      <option value="galeri-ttb">Galeri &amp; Bukti TTB</option>
+                      <option value="inventory">Monitoring Inventory</option>
+                      <option value="stok-gudang">Stok Gudang (Accurate)</option>
+                      <option value="pos-kapal">Posisi Armada Kapal</option>
+                      <option value="crew-kapal">Daftar Kru &amp; Kontak Armada</option>
                     </optgroup>
-                    <optgroup label="Modul Khusus">
-                      <option value="live-tracking">Live Tracking Armada</option>
-                      <option value="audit-log">Audit Log &amp; Aktivitas</option>
-                      <option value="dokumen-fstb">Riwayat Dokumen FSTB</option>
-                      <option value="dokumen-ttb">Arsip Dokumen TTB</option>
+                    <optgroup label="Modul Khusus (5 Modul)">
+                      <option value="work-order">Work Order (SPK) Armada</option>
+                      <option value="list-sm">List Service Maintenance (SM)</option>
+                      <option value="sisa-layanan">Sisa Layanan FPB</option>
+                      <option value="analytics">Analisis &amp; Evaluasi Procurement</option>
+                      <option value="admin-settings">Admin Settings &amp; Hak Akses</option>
                     </optgroup>
                   </select>
                   <ChevronDown className="size-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground" />

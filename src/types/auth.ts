@@ -485,9 +485,52 @@ export function saveStoredPermissionsMatrix(matrix: ModulePermissionItem[]): voi
   try {
     localStorage.setItem(RBAC_MATRIX_STORAGE_KEY, JSON.stringify(matrix));
     window.dispatchEvent(new Event('cpg-rbac-updated'));
+
+    // Broadcast ke tab-tab lain yang sedang terbuka
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        const bc = new BroadcastChannel('cpg_auth_channel');
+        bc.postMessage({ type: 'RBAC_UPDATED', timestamp: Date.now() });
+        bc.close();
+      }
+    } catch {
+      // Non-fatal
+    }
+
+    // Simpan permanen ke server cloud
+    fetch('/api/rbac-matrix', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ matrix }),
+    }).catch((err) => {
+      console.warn('Gagal menyimpan RBAC Matrix ke server cloud:', err);
+    });
   } catch (err) {
     console.error('Gagal menyimpan RBAC Matrix ke localStorage:', err);
   }
+}
+
+/**
+ * Sinkronisasi matriks perizinan dari cloud server ke localStorage
+ */
+export async function syncPermissionsMatrixFromCloud(): Promise<ModulePermissionItem[]> {
+  if (typeof window === 'undefined') return MODULE_PERMISSIONS_MATRIX;
+  try {
+    const res = await fetch('/api/rbac-matrix?_t=' + Date.now(), {
+      cache: 'no-store',
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && Array.isArray(json.matrix) && json.matrix.length > 0) {
+        localStorage.setItem(RBAC_MATRIX_STORAGE_KEY, JSON.stringify(json.matrix));
+        window.dispatchEvent(new Event('cpg-rbac-updated'));
+        return json.matrix;
+      }
+    }
+  } catch (err) {
+    console.warn('Gagal sinkronisasi RBAC Matrix dari server:', err);
+  }
+  return getStoredPermissionsMatrix();
 }
 
 /**
@@ -499,6 +542,26 @@ export function resetStoredPermissionsMatrix(): void {
     localStorage.removeItem(RBAC_MATRIX_STORAGE_KEY);
     localStorage.removeItem('CPG_AUTH_RBAC_MATRIX');
     window.dispatchEvent(new Event('cpg-rbac-updated'));
+
+    // Broadcast ke tab-tab lain
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        const bc = new BroadcastChannel('cpg_auth_channel');
+        bc.postMessage({ type: 'RBAC_UPDATED', timestamp: Date.now() });
+        bc.close();
+      }
+    } catch {
+      // Non-fatal
+    }
+
+    // Reset di cloud server
+    fetch('/api/rbac-matrix', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'reset' }),
+    }).catch((err) => {
+      console.warn('Gagal reset RBAC Matrix di server cloud:', err);
+    });
   } catch (err) {
     console.error('Gagal reset RBAC Matrix di localStorage:', err);
   }

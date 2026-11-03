@@ -45,12 +45,15 @@ export default function DashboardContainer({
   const [isRemainderModalOpen, setIsRemainderModalOpen] = useState(false);
   const [presentationMode, setPresentationMode] = useState(false);
 
+  // Default bulan berjalan kalender aktif jika tidak dispesifikasikan (misal: '11' untuk November)
+  const defaultMonth = initialMonth || String(new Date().getMonth() + 1).padStart(2, '0');
+
   // ==========================================================================
   // 1. STATE MANAJEMEN & FILTER GLOBAL TERPUSAT (Single Source of Truth)
   // ==========================================================================
   const [filterState, setFilterState] = useState<GlobalFilterState>({
     tahun: initialYear,
-    bulan: initialMonth,
+    bulan: defaultMonth,
     entitas: 'ALL',
     selectedArmadaId: selectedArmadaProp && selectedArmadaProp !== 'ALL' ? selectedArmadaProp : null,
     statusFilter: 'ALL',

@@ -179,7 +179,7 @@ export default function MonthlyTrendChart({
             </h4>
             <p className="text-[11px] text-slate-400 truncate">
               {selectedArmadaName
-                ? `Fluktuasi pengajuan FPB armada ${selectedArmadaName} (Jun – Okt 2026).`
+                ? `Fluktuasi pengajuan FPB armada ${selectedArmadaName} (Jun – Des 2026).`
                 : 'Sinkron dengan total armada terpilih. Klik batang untuk filter bulan.'}
             </p>
           </div>
@@ -229,7 +229,7 @@ export default function MonthlyTrendChart({
 
           {!selectedArmadaName && activeMonth === 'ALL' && (
             <span className="hidden sm:inline px-1.5 py-0.5 rounded font-mono text-[10px] text-slate-400 bg-slate-800/60 border border-slate-700/60">
-              Jun – Okt 2026
+              Jun – Des 2026
             </span>
           )}
         </div>

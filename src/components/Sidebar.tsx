@@ -77,7 +77,11 @@ export default function Sidebar({
   useEffect(() => {
     const handleRbacUpdate = () => setRbacRevision((prev) => prev + 1);
     window.addEventListener('cpg-rbac-updated', handleRbacUpdate);
-    return () => window.removeEventListener('cpg-rbac-updated', handleRbacUpdate);
+    window.addEventListener('cpg-user-updated', handleRbacUpdate);
+    return () => {
+      window.removeEventListener('cpg-rbac-updated', handleRbacUpdate);
+      window.removeEventListener('cpg-user-updated', handleRbacUpdate);
+    };
   }, []);
 
   interface DashboardNavItem {
