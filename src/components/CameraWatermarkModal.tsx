@@ -497,8 +497,8 @@ export default function CameraWatermarkModal({
                     <div className="space-y-1 text-xs text-foreground font-mono">
                       <p>Lat: {geoInfo.latitude.toFixed(6)}</p>
                       <p>Lon: {geoInfo.longitude.toFixed(6)}</p>
-                      {geoInfo.cityName && (
-                        <p className="text-muted-foreground">📍 {geoInfo.cityName}</p>
+                      {(geoInfo.fullAddress || geoInfo.cityName) && (
+                        <p className="text-muted-foreground break-words leading-relaxed font-sans mt-1">📍 {geoInfo.fullAddress || geoInfo.cityName}</p>
                       )}
                     </div>
                   )}

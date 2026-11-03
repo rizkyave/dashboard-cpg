@@ -28,10 +28,16 @@ export interface WatermarkSettings {
   bgOpacity: number; // 0–100
 }
 
+export interface GeoResult {
+  cityName: string;
+  fullAddress: string;
+}
+
 export interface GeoInfo {
   latitude: number;
   longitude: number;
   cityName: string;
+  fullAddress?: string;
   error?: string;
 }
 
@@ -95,27 +101,47 @@ export function formatDateTimeID(date: Date): string {
   return `${day}, ${d} ${m} ${y}  ${hh}:${mm}:${ss}`;
 }
 
-async function reverseGeocode(lat: number, lon: number): Promise<string> {
+async function reverseGeocode(lat: number, lon: number): Promise<GeoResult> {
   try {
     const res = await fetch(
       `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=id`,
       { headers: { 'User-Agent': 'CPG-Dashboard/1.0' } }
     );
-    if (!res.ok) return '';
+    if (!res.ok) return { cityName: '', fullAddress: '' };
     const data = await res.json();
     const addr = data.address || {};
-    return (
+
+    const city =
       addr.city ||
       addr.town ||
       addr.village ||
       addr.county ||
       addr.state_district ||
       addr.state ||
-      ''
-    );
+      '';
+
+    const parts: string[] = [];
+    if (addr.road) parts.push(addr.road);
+    if (addr.house_number) parts.push(`No. ${addr.house_number}`);
+    if (addr.residential && addr.residential !== addr.road) parts.push(addr.residential);
+    if (addr.suburb && !parts.includes(addr.suburb)) parts.push(addr.suburb);
+    if (addr.village && !parts.includes(addr.village)) parts.push(addr.village);
+    if (addr.city_district && !parts.includes(addr.city_district)) parts.push(addr.city_district);
+    if (addr.city && !parts.includes(addr.city)) parts.push(addr.city);
+    if (addr.state && !parts.includes(addr.state)) parts.push(addr.state);
+    if (addr.postcode) parts.push(addr.postcode);
+    if (addr.country) parts.push(addr.country);
+
+    const full = parts.length >= 2 ? parts.join(', ') : (data.display_name || city);
+
+    return {
+      cityName: city,
+      fullAddress: full,
+    };
   } catch {
-    return '';
+    return { cityName: '', fullAddress: '' };
   }
+
 }
 
 // ─────────────────────────────────────────────
@@ -216,8 +242,8 @@ export function useCameraWatermark(
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const { latitude, longitude } = pos.coords;
-        const cityName = await reverseGeocode(latitude, longitude);
-        setGeoInfo({ latitude, longitude, cityName });
+        const geoRes = await reverseGeocode(latitude, longitude);
+        setGeoInfo({ latitude, longitude, cityName: geoRes.cityName, fullAddress: geoRes.fullAddress });
         setIsLoadingGeo(false);
       },
       (err) => {
@@ -319,8 +345,9 @@ export function useCameraWatermark(
       if (settings.showGpsCoords && geoInfo && geoInfo.latitude !== 0) {
         rawLines.push(`GPS: ${geoInfo.latitude.toFixed(5)}, ${geoInfo.longitude.toFixed(5)}`);
       }
-      if (settings.showCityName && geoInfo?.cityName) {
-        rawLines.push(`📍 ${geoInfo.cityName}`);
+      if (settings.showCityName && (geoInfo?.fullAddress || geoInfo?.cityName)) {
+        const addrText = geoInfo.fullAddress || geoInfo.cityName;
+        rawLines.push(`📍 ${addrText}`);
       }
       if (settings.customLabel) rawLines.push(settings.customLabel);
 
@@ -351,6 +378,35 @@ export function useCameraWatermark(
               } else {
                 if (cur) lines.push(cur);
                 // Jika chunk itu sendiri masih melebihi maxTextW, lakukan word wrap per kata
+                if (ctx.measureText(chunks[i]).width > maxTextW) {
+                  const words = chunks[i].split(' ');
+                  let sub = '';
+                  for (const word of words) {
+                    const testW = sub ? `${sub} ${word}` : word;
+                    if (ctx.measureText(testW).width <= maxTextW) {
+                      sub = testW;
+                    } else {
+                      if (sub) lines.push(sub);
+                      sub = word;
+                    }
+                  }
+                  if (sub) cur = sub;
+                } else {
+                  cur = chunks[i];
+                }
+              }
+            }
+            if (cur) lines.push(cur);
+          } else if (rawLine.includes(', ')) {
+            // Pemecahan pintar berdasarkan koma (sangat ideal untuk alamat detail panjang)
+            const chunks = rawLine.split(', ');
+            let cur = '';
+            for (let i = 0; i < chunks.length; i++) {
+              const test = cur ? `${cur}, ${chunks[i]}` : chunks[i];
+              if (ctx.measureText(test).width <= maxTextW) {
+                cur = test;
+              } else {
+                if (cur) lines.push(cur);
                 if (ctx.measureText(chunks[i]).width > maxTextW) {
                   const words = chunks[i].split(' ');
                   let sub = '';
