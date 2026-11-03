@@ -11,44 +11,46 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": true,
-        "level": "Full Access",
-        "badgeTone": "purple",
-        "notes": "Monitoring menyeluruh seluruh KPI procurement & logistik"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "supervisor": {
-        "allowed": true,
-        "level": "Full Access",
-        "badgeTone": "purple",
-        "notes": "Monitoring pipeline lead time, KPI & status pengadaan"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_purchasing": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Melihat ringkasan pipeline pengadaan"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_ttb": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "end_user": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Melihat status pengadaan umum & KPI"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "visitor": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       }
     }
   },
@@ -64,45 +66,46 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": true,
-        "level": "Full Access",
-        "badgeTone": "purple",
-        "notes": "Otorisasi & persetujuan tindak lanjut FPB ke PO atau stok"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "supervisor": {
-        "allowed": true,
-        "level": "Full Access",
-        "badgeTone": "purple",
-        "notes": "Review teknis, cek urgensi & disposisi ke staf purchasing"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_purchasing": {
-        "allowed": true,
-        "level": "Upload & Kelola",
-        "badgeTone": "emerald",
-        "notes": "Analisa item FPB, cek stok gudang & penugasan PIC PO"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_ttb": {
-        "allowed": true,
-        "level": "View & Verifikasi",
-        "badgeTone": "blue",
-        "notes": "Verifikasi stok gudang logistik terhadap item FPB"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "end_user": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Melihat status analisa & ketersediaan stok FPB yang diajukan"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose"
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       }
     }
   },
@@ -118,45 +121,46 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": true,
-        "level": "Full Access",
-        "badgeTone": "purple",
-        "notes": "Otorisasi & pembentukan paket tender material terbuka"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "supervisor": {
-        "allowed": true,
-        "level": "Full Access",
-        "badgeTone": "purple",
-        "notes": "Konsolidasi & evaluasi tender material terbuka"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_purchasing": {
-        "allowed": true,
-        "level": "Full Access",
-        "badgeTone": "purple",
-        "notes": "Kelola paket tender & dokumen RFQ vendor"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_ttb": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Pantau paket pengadaan terbuka logistik"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "end_user": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu komersial tender vendor disembunyikan"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose"
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       }
     }
   },
@@ -172,45 +176,46 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": true,
-        "level": "Full Access",
-        "badgeTone": "purple",
-        "notes": "Monitoring berkas internal procurement, alur PO & delivery time"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "supervisor": {
-        "allowed": true,
-        "level": "Full Access",
-        "badgeTone": "purple",
-        "notes": "Monitoring berkas internal, lead time delivery & penyerahan TTB"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_purchasing": {
-        "allowed": true,
-        "level": "Upload & Kelola",
-        "badgeTone": "emerald",
-        "notes": "Monitoring & tracking berkas internal pengadaan yang ditangani"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_ttb": {
-        "allowed": true,
-        "level": "View & Verifikasi",
-        "badgeTone": "blue",
-        "notes": "Verifikasi tanda terima berkas dari purchasing ke logistik TTB"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "end_user": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Alur internal purchasing disembunyikan"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose"
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       }
     }
   },
@@ -226,45 +231,46 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": true,
-        "level": "Full Access",
-        "badgeTone": "purple",
-        "notes": "Otorisasi FPB-PO, pemantauan SLA lead time & audit pengadaan"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "supervisor": {
-        "allowed": true,
-        "level": "Full Access",
-        "badgeTone": "purple",
-        "notes": "Verifikasi, approval dokumen PO/FPB, dan SLA lead time"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_purchasing": {
-        "allowed": true,
-        "level": "View & Verifikasi",
-        "badgeTone": "blue",
-        "notes": "Input & verifikasi dokumen PO/FPB"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_ttb": {
-        "allowed": true,
-        "level": "View & Verifikasi",
-        "badgeTone": "blue",
-        "notes": "View & verifikasi kecocokan dokumen PO/FPB"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "end_user": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Memantau progres pesanan PO & lead time pengadaan"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose"
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       }
     }
   },
@@ -280,45 +286,46 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Monitoring status layanan armada & FSTB"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "supervisor": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Monitoring status layanan armada & FSTB"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_ttb": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_lapangan": {
-        "allowed": true,
-        "level": "Input & Upload",
-        "badgeTone": "emerald",
-        "notes": "Input update operasional & servis armada"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "end_user": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Monitoring status layanan armada & FSTB"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose"
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       }
     }
   },
@@ -334,45 +341,46 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": true,
-        "level": "Upload & Kelola",
-        "badgeTone": "emerald",
-        "notes": "Upload & validasi berkas FSTB resmi"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "supervisor": {
-        "allowed": true,
-        "level": "Upload & Kelola",
-        "badgeTone": "emerald",
-        "notes": "Review & kelola berkas FSTB resmi"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_purchasing": {
-        "allowed": true,
-        "level": "Upload & Kelola",
-        "badgeTone": "emerald",
-        "notes": "Upload & kelola berkas FSTB resmi"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_ttb": {
-        "allowed": true,
-        "level": "Upload & Kelola",
-        "badgeTone": "emerald",
-        "notes": "Full access upload berkas FSTB ke cloud"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "end_user": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose"
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       }
     }
   },
@@ -388,45 +396,46 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": true,
-        "level": "Upload & Kelola",
-        "badgeTone": "emerald",
-        "notes": "Upload & review berkas TTB resmi"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "supervisor": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Review dokumen TTB resmi"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_ttb": {
-        "allowed": true,
-        "level": "Upload & Kelola",
-        "badgeTone": "emerald",
-        "notes": "Full access upload berkas ke cloud"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "end_user": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose"
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       }
     }
   },
@@ -442,45 +451,46 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": true,
-        "level": "Validasi & TTD",
-        "badgeTone": "emerald",
-        "notes": "Otorisasi & TTD digital Manager (Approved By FSTB & Lini Purchasing TTB)"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "supervisor": {
-        "allowed": true,
-        "level": "Validasi & TTD",
-        "badgeTone": "emerald",
-        "notes": "Validasi TTD Approved By FSTB & Lini Purchasing TTB"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_purchasing": {
-        "allowed": true,
-        "level": "Validasi & TTD",
-        "badgeTone": "emerald",
-        "notes": "Validasi TTD Delivered By FSTB & Lini Purchasing TTB"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_ttb": {
-        "allowed": true,
-        "level": "Validasi & TTD",
-        "badgeTone": "emerald",
-        "notes": "Validasi lini Logistik/Gudang"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "end_user": {
-        "allowed": true,
-        "level": "Validasi & TTD",
-        "badgeTone": "emerald",
-        "notes": "Otorisasi & TTD digital Received By (User/Penerima Barang)"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose"
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       }
     }
   },
@@ -496,45 +506,46 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Pemantauan bukti serah terima dermaga & armada"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "supervisor": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Monitoring penyerahan barang dermaga"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_ttb": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_lapangan": {
-        "allowed": true,
-        "level": "Full Access",
-        "badgeTone": "emerald",
-        "notes": "Input data fisik & upload bukti serah terima"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "end_user": {
-        "allowed": true,
-        "level": "Input & Upload",
-        "badgeTone": "emerald",
-        "notes": "Konfirmasi fisik penerimaan barang & upload bukti"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose"
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       }
     }
   },
@@ -550,44 +561,46 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Akses peninjauan katalog arsip foto TTB lapangan"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "supervisor": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Katalog arsip foto serah terima"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_purchasing": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Katalog arsip foto serah terima"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_ttb": {
-        "allowed": true,
-        "level": "Upload & Kelola",
-        "badgeTone": "emerald",
-        "notes": "Upload, view, dan kelola arsip foto TTB"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_lapangan": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "end_user": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Melihat arsip foto serah terima barang"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "visitor": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       }
     }
   },
@@ -603,45 +616,46 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Pengecekan fisik stok gudang & katalog Accurate"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "supervisor": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Pengecekan fisik stok gudang & katalog Accurate"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_purchasing": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Pengecekan stok persediaan"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_ttb": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Read-only untuk validasi fisik stok"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "end_user": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Pengecekan persediaan stok barang gudang"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose"
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       }
     }
   },
@@ -657,45 +671,46 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": true,
-        "level": "Full Access",
-        "badgeTone": "purple",
-        "notes": "Monitoring persediaan fisik & approval mutasi"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "supervisor": {
-        "allowed": true,
-        "level": "Full Access",
-        "badgeTone": "purple",
-        "notes": "Monitoring persediaan & mutasi barang Somber"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_purchasing": {
-        "allowed": true,
-        "level": "Input & Upload",
-        "badgeTone": "emerald",
-        "notes": "Input penerimaan PO supplier & cek stok"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_ttb": {
-        "allowed": true,
-        "level": "Full Access",
-        "badgeTone": "purple",
-        "notes": "Pengelolaan penuh stok fisik Pak Budi Somber"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_lapangan": {
-        "allowed": true,
-        "level": "Input & Upload",
-        "badgeTone": "emerald",
-        "notes": "Catat pengambilan keluar & bon barang"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "end_user": {
-        "allowed": true,
-        "level": "Input & Upload",
-        "badgeTone": "emerald",
-        "notes": "Catat pengambilan bon barang gudang armada"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose"
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       }
     }
   },
@@ -711,45 +726,46 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Pemantauan posisi harian armada & status laut"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "supervisor": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Monitoring posisi kapal operasional"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_ttb": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_lapangan": {
-        "allowed": true,
-        "level": "Update Status",
-        "badgeTone": "sky",
-        "notes": "Update status pekerjaan lapangan"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "end_user": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Pemantauan posisi harian armada"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose"
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       }
     }
   },
@@ -765,45 +781,46 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Akses data armada kapal & kontak operasional kru"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "supervisor": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Database armada & kontak nahkoda"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_ttb": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_lapangan": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Akses kontak nahkoda / kru"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "end_user": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Akses kontak armada & kru"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose"
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       }
     }
   },
@@ -819,45 +836,46 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Monitoring SPK & Work Order perawatan armada"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "supervisor": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Monitoring WO perbaikan armada"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_ttb": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_lapangan": {
-        "allowed": true,
-        "level": "Update Status",
-        "badgeTone": "sky",
-        "notes": "Update status pekerjaan lapangan"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "end_user": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Monitoring SPK & WO perawatan armada"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose"
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       }
     }
   },
@@ -873,45 +891,46 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Monitoring Service & Maintenance armada vendor"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "supervisor": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Monitoring Service & Maintenance armada"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_ttb": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_lapangan": {
-        "allowed": true,
-        "level": "Update Status",
-        "badgeTone": "sky",
-        "notes": "Pantau & update servis kapal"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "end_user": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Monitoring Service & Maintenance armada"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose"
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       }
     }
   },
@@ -927,44 +946,46 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": true,
-        "level": "Full Access",
-        "badgeTone": "purple",
-        "notes": "Rekonsiliasi & evaluasi barang sisa layanan"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "supervisor": {
-        "allowed": true,
-        "level": "Full Access",
-        "badgeTone": "purple",
-        "notes": "Laporan rekonsiliasi sisa layanan"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_purchasing": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Laporan sisa layanan pengadaan"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_ttb": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "end_user": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Laporan pemenuhan sisa layanan FPB armada"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose"
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       }
     }
   },
@@ -980,45 +1001,46 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": true,
-        "level": "Full Access",
-        "badgeTone": "purple",
-        "notes": "Analisis bottleneck SLA pengadaan & evaluasi vendor"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "supervisor": {
-        "allowed": true,
-        "level": "Full Access",
-        "badgeTone": "purple",
-        "notes": "Analisis bottleneck SLA & evaluasi vendor"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_ttb": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "end_user": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose"
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       }
     }
   },
@@ -1037,42 +1059,43 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu konfigurasi sistem khusus Administrator"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "supervisor": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu konfigurasi sistem khusus Administrator"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu konfigurasi sistem khusus Administrator"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_ttb": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "end_user": {
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose",
-        "notes": "Menu konfigurasi sistem khusus Administrator"
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose"
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
       }
     }
   }

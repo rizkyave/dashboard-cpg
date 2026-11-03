@@ -82,7 +82,7 @@ import { useAuth } from '@/context/AuthContext';
 import { canAccessTab, getRoleDisplayName, getDefaultTabForRole } from '@/types/auth';
 
 import ToastNotification from '@/components/ToastNotification';
-import { PanelLeftOpen, ChevronDown } from 'lucide-react';
+import { PanelLeftOpen, ChevronDown, Lock } from 'lucide-react';
 
 export default function DashboardPage() {
   const { user, isAuthenticated, isLoading: isAuthLoading, isAdmin, isVisitor } = useAuth();
@@ -1243,6 +1243,19 @@ export default function DashboardPage() {
             </div>
           )}
 
+          {/* Route Guard: Akses Terkunci Jika Modul Dilarang untuk Role Pengguna */}
+          {user && user.role !== 'admin' && !canAccessTab(user.role, activeTab) ? (
+            <div className="flex flex-col items-center justify-center p-12 text-center bg-card rounded-2xl border border-border shadow-xs my-10 mx-auto max-w-md">
+              <div className="p-4 rounded-full bg-rose-500/10 text-rose-500 mb-4 border border-rose-500/20">
+                <Lock className="size-8" />
+              </div>
+              <h3 className="text-base font-bold text-foreground mb-1.5">Akses Modul Dibatasi</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Wewenang untuk modul ini saat ini disetel ke <strong className="text-rose-600 dark:text-rose-400">Dilarang</strong> oleh Administrator. Hubungi Administrator sistem jika Anda memerlukan pembukaan akses ke fitur ini.
+              </p>
+            </div>
+          ) : (
+            <>
           {/* 4 Pillar Executive Metric Cards (procurement tabs only) */}
           {activeTab !== 'inventory' && activeTab !== 'review-fpb' && activeTab !== 'monitoring-internal' && activeTab !== 'pos-kapal' && activeTab !== 'crew-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'serah-terima-lapangan' && activeTab !== 'galeri-ttb' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'validasi-dokumen' && activeTab !== 'admin-settings' && !isKpiHidden && (!isVisitor || searchKeyword.trim() !== '') && (
             <div className="animate-in fade-in-50 duration-200">
@@ -1459,6 +1472,8 @@ export default function DashboardPage() {
           {/* Tab 6: Admin Settings - Manajemen Pengguna & Visitor */}
           {activeTab === 'admin-settings' && (
             <AdminSettingsTab showToast={showToast} />
+          )}
+            </>
           )}
         </main>
 

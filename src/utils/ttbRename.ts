@@ -131,19 +131,32 @@ export function formatTtbFilename(
   noTtb: string,
   originalFilename: string,
   index: number = 0,
-  totalFiles: number = 1
+  totalFiles: number = 1,
+  photoIndex?: number
 ): string {
   const cleanTtb = sanitizeTtbNumber(noTtb) || 'TTB-UNSPECIFIED';
   const ext = getCleanExtension(originalFilename);
+  const isPdf = ext.toLowerCase() === '.pdf';
 
-  // Jika hanya 1 file, format: [NO_TTB].[ext]
-  if (totalFiles <= 1) {
-    return `${cleanTtb}${ext}`;
+  // Berkas scan PDF dokumen resmi selalu [NO_TTB].pdf
+  if (isPdf) {
+    return `${cleanTtb}.pdf`;
+  }
+
+  // Jika photoIndex eksplisit diberikan (misal 1, 2, ... 10)
+  if (photoIndex !== undefined && photoIndex > 0) {
+    const suffix = String(photoIndex).padStart(2, '0');
+    return `${cleanTtb}_${suffix}${ext}`;
   }
 
   // Jika multiple files, format: [NO_TTB]_[index].[ext] (contoh: CPL-TTB-26-00449_01.jpg)
-  const suffix = String(index + 1).padStart(2, '0');
-  return `${cleanTtb}_${suffix}${ext}`;
+  if (totalFiles > 1) {
+    const suffix = String(index + 1).padStart(2, '0');
+    return `${cleanTtb}_${suffix}${ext}`;
+  }
+
+  // Jika hanya 1 file foto tunggal tanpa index: format [NO_TTB].[ext]
+  return `${cleanTtb}${ext}`;
 }
 
 /**

@@ -519,10 +519,29 @@ export default function UploadTtbTab({
     let totalSavedBytes = 0;
     let compressedCount = 0;
 
+    const MAX_PHOTOS_PER_TTB = 10;
+
     for (const rawFile of files) {
       const ext = rawFile.name.slice(rawFile.name.lastIndexOf('.')).toLowerCase();
       const isImage = /\.(jpe?g|png|webp|gif)$/i.test(ext);
       const isPdf = /\.pdf$/i.test(ext);
+
+      if (isImage) {
+        const detectedEarly = detectTtbAndArmada(rawFile.name, ttbSuggestions);
+        const ttbKey = sanitizeTtbNumber(detectedEarly.noTtb || batchNoTtb || '');
+        if (ttbKey) {
+          const currentPhotosForTtb =
+            queue.filter((q) => q.isImage && sanitizeTtbNumber(q.noTtb || batchNoTtb) === ttbKey).length +
+            newItems.filter((q) => q.isImage && sanitizeTtbNumber(q.noTtb || batchNoTtb) === ttbKey).length;
+          if (currentPhotosForTtb >= MAX_PHOTOS_PER_TTB) {
+            showToast?.(
+              `Batas maksimal ${MAX_PHOTOS_PER_TTB} foto bukti fisik untuk TTB "${detectedEarly.noTtb || ttbKey}" telah tercapai. Berkas "${rawFile.name}" diabaikan.`,
+              'warning'
+            );
+            continue;
+          }
+        }
+      }
 
       if (!isImage && !isPdf) {
         showToast?.(
@@ -701,6 +720,27 @@ export default function UploadTtbTab({
         if (item.noFpb) formData.append('noFpb', item.noFpb.trim());
         formData.append('receivedDate', batchReceivedDate);
         formData.append('keterangan', batchKeterangan.trim());
+
+        // Hitung urutan foto untuk nomor TTB ini (mendukung s/d 10 foto)
+        if (item.isImage) {
+          const histPhotosForTtb = history.filter((h) => {
+            const hClean = sanitizeTtbNumber(h.noTtb || h.cleanNoTtb || '');
+            const isImg = !h.renamedFileName.toLowerCase().endsWith('.pdf') && h.fileType !== 'application/pdf';
+            return hClean === cleanNoTtb && isImg;
+          });
+
+          const queuePhotosForTtb = targetQueue.filter((q) => {
+            const qClean = sanitizeTtbNumber(q.noTtb.trim() || batchNoTtb.trim());
+            return qClean === cleanNoTtb && q.isImage;
+          });
+
+          const queuePhotoIdx = queuePhotosForTtb.indexOf(item);
+          const photoIndex = Math.min(10, histPhotosForTtb.length + (queuePhotoIdx >= 0 ? queuePhotoIdx : 0) + 1);
+          const totalPhotos = Math.min(10, histPhotosForTtb.length + queuePhotosForTtb.length);
+
+          formData.append('photoIndex', String(photoIndex));
+          formData.append('totalPhotos', String(totalPhotos));
+        }
 
         let fileToUpload = item.file;
         if (enableAutoStamp && item.isImage) {
@@ -1084,7 +1124,11 @@ export default function UploadTtbTab({
               <div className="flex items-center justify-center gap-2 flex-wrap mb-2">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold font-mono border border-emerald-500/30">
                   <Sparkles className="size-3" />
-                  <span>Mendukung Banyak TTB &amp; Unggah Sekaligus</span>
+                  <span>Mendukung Banyak TTB Sekaligus</span>
+                </div>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-500/15 text-purple-700 dark:text-purple-300 text-[10px] font-bold border border-purple-500/30">
+                  <Camera className="size-3" />
+                  <span>Maks. 10 Foto Bukti Fisik per TTB</span>
                 </div>
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 text-[10px] font-bold border border-amber-500/30">
                   <AlertCircle className="size-3" />
@@ -1098,10 +1142,10 @@ export default function UploadTtbTab({
               </p>
 
               <p className="text-xs text-muted-foreground mt-2">
-                Bisa mengunggah <strong>banyak nomor TTB berbeda sekaligus</strong>. Sesuai SOP Logistik, pastikan setiap TTB menyertakan <strong>scan PDF &amp; foto fisik barang (.jpg)</strong> dengan nama yang sama.
+                Bisa mengunggah <strong>banyak nomor TTB berbeda sekaligus</strong>. Sesuai SOP Logistik, setiap TTB dapat menyertakan <strong>1 berkas scan PDF resmi &amp; hingga 10 foto fisik barang (.jpg/.png)</strong> untuk mendokumentasikan setiap item barang dalam TTB tersebut.
               </p>
               <p className="text-[11px] text-muted-foreground/80 font-mono mt-0.5">
-                Contoh: <strong>CPL-TTB-26-00449.pdf</strong> &amp; <strong>CPL-TTB-26-00449.jpg</strong>
+                Contoh: <strong>CPL-TTB-26-00449.pdf</strong> &amp; <strong>CPL-TTB-26-00449_01.jpg</strong>, <strong>CPL-TTB-26-00449_02.jpg</strong> (hingga 10 foto)
               </p>
             </div>
           </div>
@@ -1232,6 +1276,13 @@ export default function UploadTtbTab({
                   const pairGroup = queuePairAnalysis.itemGroupMap.get(item.id);
                   const isIncomplete = pairGroup && !pairGroup.isComplete;
 
+                  const targetCleanTtb = sanitizeTtbNumber(item.noTtb || batchNoTtb);
+                  const photosInQueueForTtb = queue.filter(
+                    (q) => q.isImage && sanitizeTtbNumber(q.noTtb || batchNoTtb) === targetCleanTtb
+                  );
+                  const photoIndexInQueue = item.isImage ? photosInQueueForTtb.indexOf(item) + 1 : 0;
+                  const totalPhotosInQueue = photosInQueueForTtb.length;
+
                   return (
                     <div
                       key={item.id}
@@ -1265,6 +1316,24 @@ export default function UploadTtbTab({
                           {isDup && (
                             <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/40 shrink-0">
                               Duplikat
+                            </span>
+                          )}
+                          {item.isImage && totalPhotosInQueue > 0 && (
+                            <span
+                              className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30 flex items-center gap-1 shrink-0"
+                              title={`Foto bukti fisik serah terima #${photoIndexInQueue} dari ${totalPhotosInQueue} untuk TTB ${targetCleanTtb || '-'}`}
+                            >
+                              <Camera className="size-2.5" />
+                              <span>Foto #{photoIndexInQueue} ({photoIndexInQueue}/{totalPhotosInQueue})</span>
+                            </span>
+                          )}
+                          {item.isPdf && (
+                            <span
+                              className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30 flex items-center gap-1 shrink-0"
+                              title="Dokumen scan TTB resmi bertandatangan"
+                            >
+                              <FileText className="size-2.5" />
+                              <span>Scan PDF Resmi</span>
                             </span>
                           )}
                         </div>

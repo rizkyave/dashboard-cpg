@@ -1567,6 +1567,120 @@ export default function AuditModal({
   const isFstbPartial = Boolean(fstbStage?.isPartial);
   const fstbStatusLabel = isFstbDone ? 'Lengkap' : isFstbPartial ? 'Parsial' : 'Pending';
 
+  // Penyelarasan otomatis (Auto-enrichment) data item Sisa Layanan dengan Dokumen Resmi & Status Tiket Live
+  const enrichedSisaItems = useMemo(() => {
+    return effectiveSisaItems.map((si) => {
+      const valQtyPo =
+        typeof si.jmlPo === 'number' && si.jmlPo > 0
+          ? si.jmlPo
+          : si.noPo
+          ? (si.jmlPo ?? 0)
+          : activePo
+          ? (typeof si.jmlFpb === 'number' ? si.jmlFpb : 1)
+          : '-';
+
+      const itemNoFstb =
+        si.noFstb && si.noFstb.trim() !== ''
+          ? si.noFstb.trim()
+          : effectiveNoFstb && !isFieldBelum(effectiveNoFstb)
+          ? effectiveNoFstb
+          : '';
+
+      const itemTglFstb =
+        si.tglFstb && si.tglFstb.trim() !== '' && si.tglFstb !== '-'
+          ? si.tglFstb.trim()
+          : itemNoFstb && displayTglFstb && displayTglFstb !== '-'
+          ? displayTglFstb
+          : '';
+
+      let valQtyFstb: number | string = '-';
+      if (typeof si.jmlFstb === 'number' && si.jmlFstb > 0) {
+        valQtyFstb = si.jmlFstb;
+      } else if (itemNoFstb) {
+        if (isFstbDone || fstbStatusLabel === 'Lengkap') {
+          valQtyFstb = typeof valQtyPo === 'number' && valQtyPo > 0 ? valQtyPo : (typeof si.jmlFpb === 'number' ? si.jmlFpb : 1);
+        } else if (typeof si.jmlFstb === 'number') {
+          valQtyFstb = si.jmlFstb;
+        } else {
+          valQtyFstb = typeof valQtyPo === 'number' ? valQtyPo : '-';
+        }
+      }
+
+      const itemNoTtb =
+        si.noTtb && si.noTtb.trim() !== ''
+          ? si.noTtb.trim()
+          : activeTtb && !isFieldBelum(activeTtb) && activeTtb !== '(kosong)'
+          ? (primaryTtb || activeTtb)
+          : '';
+
+      const itemTglTtb =
+        si.tglTtb && si.tglTtb.trim() !== '' && si.tglTtb !== '-'
+          ? si.tglTtb.trim()
+          : itemNoTtb && activeTglTtb && activeTglTtb !== '-'
+          ? activeTglTtb
+          : '';
+
+      let valQtyTtb: number | string = '-';
+      if (typeof si.jmlTtb === 'number' && si.jmlTtb > 0) {
+        valQtyTtb = si.jmlTtb;
+      } else if (itemNoTtb) {
+        if (isCard4Done || isPengantaranLogistikDone) {
+          valQtyTtb =
+            typeof valQtyFstb === 'number' && valQtyFstb > 0
+              ? valQtyFstb
+              : typeof valQtyPo === 'number' && valQtyPo > 0
+              ? valQtyPo
+              : (typeof si.jmlFpb === 'number' ? si.jmlFpb : 1);
+        } else if (typeof si.jmlTtb === 'number') {
+          valQtyTtb = si.jmlTtb;
+        } else {
+          valQtyTtb = typeof valQtyPo === 'number' ? valQtyPo : '-';
+        }
+      }
+
+      const rawStatusNorm = (si.status || '').toUpperCase().trim();
+      let effectiveStatus = rawStatusNorm || 'OPEN';
+
+      if (rawStatusNorm !== 'CLOSE') {
+        if ((isCard4Done || isPengantaranLogistikDone) && itemNoTtb && (itemNoFstb || isFstbDone)) {
+          effectiveStatus = 'CLOSE';
+        } else if (itemNoFstb && (!itemNoTtb || !isCard4Done)) {
+          effectiveStatus = 'BELUM TTB';
+        } else if (valQtyPo !== '-' && valQtyPo > 0 && !itemNoFstb) {
+          effectiveStatus = 'OPEN';
+        }
+      }
+
+      return {
+        ...si,
+        noFstb: itemNoFstb,
+        tglFstb: itemTglFstb,
+        jmlFstb: typeof valQtyFstb === 'number' ? valQtyFstb : si.jmlFstb,
+        noTtb: itemNoTtb,
+        tglTtb: itemTglTtb,
+        jmlTtb: typeof valQtyTtb === 'number' ? valQtyTtb : si.jmlTtb,
+        status: effectiveStatus,
+        isFstbSynced: Boolean(!si.noFstb && itemNoFstb),
+        isTtbSynced: Boolean(!si.noTtb && itemNoTtb),
+        valQtyPo,
+        valQtyFstb,
+        valQtyTtb,
+      };
+    });
+  }, [
+    effectiveSisaItems,
+    activePo,
+    effectiveNoFstb,
+    displayTglFstb,
+    isFstbDone,
+    fstbStatusLabel,
+    activeTtb,
+    primaryTtb,
+    activeTglTtb,
+    isCard4Done,
+    isPengantaranLogistikDone,
+  ]);
+
   // Otomatis sinkronkan metadata PDF (Requested By, Tanggal, Item) saat modal dibuka
   useEffect(() => {
     let isMounted = true;
@@ -3599,16 +3713,16 @@ export default function AuditModal({
           )}
 
           {/* Banner when data is loaded from Sisa Layanan 2026 Gabungan */}
-          {effectiveItemSource === 'SISA_LAYANAN' && effectiveSisaItems.length > 0 && (
+          {effectiveItemSource === 'SISA_LAYANAN' && enrichedSisaItems.length > 0 && (
             <div className="p-3 rounded-xl border border-indigo-500/30 bg-indigo-500/10 flex items-center justify-between flex-wrap gap-2 text-xs">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="size-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
                 <span className="text-foreground font-medium">
                   {sisaScopeFilter === 'FOREIGN'
-                    ? `Menampilkan barang terpaut di PO ${activePo} (${effectiveSisaItems.length} item) • Armada: ${effectiveSisaItems[0]?.departement || '-'}`
-                    : `Rincian barang berhasil disinkronkan dari database Sisa Layanan 2026 Gabungan (${effectiveSisaItems.length} item ditemukan)`}
-                  {sisaScopeFilter !== 'FOREIGN' && effectiveSisaItems[0]?.departement ? ` • Armada/Unit: ${effectiveSisaItems[0].departement}` : ''}
-                  {effectiveSisaItems[0]?.pt ? ` • PT: ${effectiveSisaItems[0].pt}` : ''}
+                    ? `Menampilkan barang terpaut di PO ${activePo} (${enrichedSisaItems.length} item) • Armada: ${enrichedSisaItems[0]?.departement || '-'}`
+                    : `Rincian barang berhasil disinkronkan dari database Sisa Layanan 2026 Gabungan (${enrichedSisaItems.length} item ditemukan)`}
+                  {sisaScopeFilter !== 'FOREIGN' && enrichedSisaItems[0]?.departement ? ` • Armada/Unit: ${enrichedSisaItems[0].departement}` : ''}
+                  {enrichedSisaItems[0]?.pt ? ` • PT: ${enrichedSisaItems[0].pt}` : ''}
                 </span>
               </div>
               <div className="flex items-center gap-1.5 flex-wrap">
@@ -3642,9 +3756,9 @@ export default function AuditModal({
                 <span className="text-[10px] font-mono text-indigo-700 dark:text-indigo-300 bg-indigo-500/20 px-2 py-0.5 rounded border border-indigo-500/30 font-medium">
                   Sisa Layanan 2026 Gabungan
                 </span>
-                {effectiveSisaItems.some((i) => (i.status || '').toUpperCase() === 'CLOSE') && (
+                {enrichedSisaItems.some((i) => (i.status || '').toUpperCase() === 'CLOSE') && (
                   <span className="text-[10px] font-mono text-emerald-700 dark:text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded border border-emerald-500/30 font-medium">
-                    {effectiveSisaItems.filter((i) => (i.status || '').toUpperCase() === 'CLOSE').length}/{effectiveSisaItems.length} Terpenuhi
+                    {enrichedSisaItems.filter((i) => (i.status || '').toUpperCase() === 'CLOSE').length}/{enrichedSisaItems.length} Terpenuhi
                   </span>
                 )}
               </div>

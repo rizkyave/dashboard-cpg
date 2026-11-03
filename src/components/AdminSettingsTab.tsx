@@ -48,6 +48,7 @@ import {
   SlidersHorizontal,
   Zap,
   RotateCcw,
+  Sparkles,
   MessageCircle,
   Save,
   ArrowRight,
@@ -235,6 +236,14 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
   const [isConfirmMatrixModalOpen, setIsConfirmMatrixModalOpen] = useState<boolean>(false);
   const [isSavingMatrix, setIsSavingMatrix] = useState<boolean>(false);
 
+  // User highlight spotlight in RBAC matrix table
+  const [highlightUser, setHighlightUser] = useState<string>('');
+  const highlightedRole = useMemo(() => {
+    if (!highlightUser) return null;
+    const found = users.find((u) => u.username === highlightUser || u.id === highlightUser);
+    return found?.role || null;
+  }, [highlightUser, users]);
+
   // Quick switch dropdown state
   const [quickRole, setQuickRole] = useState<'ALL' | 'manager' | 'supervisor' | 'staf_purchasing' | 'staf_ttb' | 'staf_lapangan' | 'end_user' | 'visitor'>('manager');
   const [quickModule, setQuickModule] = useState<'ALL' | TabType>('ALL');
@@ -391,6 +400,77 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
     }
   };
 
+  // Handler cepat: Buka 3 Menu Utama Staf Dokumen TTB (Nurul Hafifah)
+  const handleQuickSetupTtb3Menus = () => {
+    if (!isAdmin) {
+      showToast('Hanya Administrator yang berwenang mengubah matriks hak akses.', 'warning');
+      return;
+    }
+    const targetTabs = ['monitoring-internal', 'upload-ttb', 'validasi-dokumen'];
+    setMatrixData((prev) =>
+      prev.map((mod) => {
+        if (targetTabs.includes(mod.tabId)) {
+          return {
+            ...mod,
+            permissions: {
+              ...mod.permissions,
+              staf_ttb: {
+                allowed: true,
+                level: 'Full Access',
+                badgeTone: 'purple',
+                notes: 'Full Access khusus operasional Staf Dokumen TTB (Nurul Hafifah & Tim)',
+              },
+            },
+          };
+        }
+        return mod;
+      })
+    );
+    setHighlightUser('nurul.hafifah');
+    showToast(
+      '3 Menu Utama Staf TTB (Monitoring, Upload TTB, Validasi Dokumen) disiapkan ke Full Access! Klik tombol Save and Confirm untuk menetapkan.',
+      'info'
+    );
+  };
+
+  // Handler cepat: Kunci seluruh akses menjadi Dilarang (Kecuali Admin)
+  const handleLockAllToForbidden = () => {
+    if (!isAdmin) {
+      showToast('Hanya Administrator yang berwenang mengubah matriks hak akses.', 'warning');
+      return;
+    }
+    const nonAdminRoles: Array<keyof ModulePermissionItem['permissions']> = [
+      'manager',
+      'supervisor',
+      'staf_purchasing',
+      'staf_ttb',
+      'staf_lapangan',
+      'end_user',
+      'visitor',
+    ];
+    setMatrixData((prev) =>
+      prev.map((mod) => {
+        const updatedPerms = { ...mod.permissions };
+        for (const r of nonAdminRoles) {
+          updatedPerms[r] = {
+            allowed: false,
+            level: 'Dilarang',
+            badgeTone: 'rose',
+            notes: 'Akses dinonaktifkan (default: dilarang)',
+          };
+        }
+        return {
+          ...mod,
+          permissions: updatedPerms,
+        };
+      })
+    );
+    showToast(
+      '🔒 Seluruh akses wewenang role non-admin berhasil disetel ke Dilarang! Klik "Save and Confirm" untuk menetapkan.',
+      'warning'
+    );
+  };
+
   // Handler Save and Confirm matriks
   const handleConfirmSaveMatrix = () => {
     setIsSavingMatrix(true);
@@ -518,6 +598,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
       rose: 'bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/30',
     }[rule.badgeTone || 'slate'];
 
+    const isHighlighted = highlightedRole === roleKey;
     return (
       <div className="relative inline-flex items-center justify-center">
         <select
@@ -525,7 +606,11 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
           onChange={(e) => handleCellLevelChange(perm.tabId, roleKey, e.target.value as AccessLevel)}
           disabled={perm.tabId === 'admin-settings'}
           className={`inline-flex items-center gap-1 px-2 py-0.5 pr-5 rounded-md text-[10px] font-semibold border cursor-pointer appearance-none transition focus:outline-none focus:ring-2 focus:ring-primary/40 shadow-2xs ${
-            isModified ? 'ring-2 ring-amber-500/80 border-amber-500 font-bold bg-amber-500/15' : toneClasses
+            isModified
+              ? 'ring-2 ring-amber-500/80 border-amber-500 font-bold bg-amber-500/15'
+              : isHighlighted
+              ? 'ring-2 ring-blue-500 border-blue-500 font-bold bg-blue-500/15 text-blue-900 dark:text-blue-100'
+              : toneClasses
           }`}
           title={
             isModified
@@ -1885,12 +1970,12 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                     className="w-full pl-3 pr-8 py-2 text-xs rounded-lg border border-border bg-background text-foreground font-medium focus:outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer"
                   >
                     <option value="ALL">🌐 Semua Pemakai (Semua Role)</option>
+                    <option value="staf_ttb">📄 Staf Dokumen TTB (⭐ Nurul Hafifah, Davila, Idham)</option>
+                    <option value="staf_lapangan">🚚 Staf Serah Terima Lap. (Agussalim, Akbar, Bardi, Hamka)</option>
+                    <option value="staf_purchasing">🛒 Staf Purchasing (Pengadaan CPG)</option>
                     <option value="manager">👔 Manager Procurement</option>
                     <option value="supervisor">🎖️ Supervisor Procurement</option>
-                    <option value="staf_purchasing">🛒 Staf Purchasing</option>
-                    <option value="staf_ttb">📄 Staf Dokumen TTB</option>
-                    <option value="staf_lapangan">🚚 Staf Serah Terima Lap.</option>
-                    <option value="end_user">📦 End User (Penerima Barang)</option>
+                    <option value="end_user">📦 End User (Kru Armada Kapal)</option>
                     <option value="visitor">👁️ Visitor (Tamu)</option>
                   </select>
                   <ChevronDown className="size-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground" />
@@ -1969,35 +2054,159 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                 </div>
               </div>
 
-              {/* Action Button: Terapkan ke Matriks */}
-              <div>
+              {/* Action Buttons: Terapkan ke Matriks, Kunci Semua Dilarang & Shortcut 3 Menu TTB */}
+              <div className="flex flex-col sm:flex-row gap-1.5">
                 <button
                   type="button"
                   onClick={handleApplyQuickSwitch}
-                  className="w-full py-2 px-4 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs flex items-center justify-center gap-2 shadow-xs transition cursor-pointer"
+                  className="flex-1 py-2 px-2.5 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs flex items-center justify-center gap-1 shadow-xs transition cursor-pointer"
+                  title="Terapkan konfigurasi wewenang yang dipilih di dropdown ke matriks"
                 >
                   <Zap className="size-3.5 text-amber-300" />
-                  <span>Terapkan ke Matriks</span>
+                  <span>Terapkan</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleLockAllToForbidden}
+                  className="flex-1 py-2 px-2 rounded-lg border border-rose-500/40 bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-300 font-bold text-xs flex items-center justify-center gap-1 transition cursor-pointer"
+                  title="Set seluruh akses non-admin menjadi Dilarang secara serentak"
+                >
+                  <Lock className="size-3.5 text-rose-500" />
+                  <span>🔒 Set Dilarang</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleQuickSetupTtb3Menus}
+                  className="flex-1 py-2 px-2 rounded-lg border border-blue-500/40 bg-blue-500/10 hover:bg-blue-500/20 text-blue-700 dark:text-blue-300 font-bold text-xs flex items-center justify-center gap-1 transition cursor-pointer"
+                  title="Buka 3 menu utama untuk Staf Dokumen TTB: Monitoring Internal, Upload TTB, Validasi Dokumen"
+                >
+                  <Sparkles className="size-3.5 text-blue-500" />
+                  <span>⚡ 3 Menu TTB</span>
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-muted/40 border-b border-border text-muted-foreground text-[11px]">
+        {/* Interactive Account & Role Spotlight Bar */}
+        <div className="mb-3.5 p-3 rounded-xl border border-border/80 bg-muted/30 backdrop-blur-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 flex-1">
+            <span className="p-1.5 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 shrink-0">
+              <Search className="size-4" />
+            </span>
+            <div className="flex-1 max-w-md">
+              <div className="text-[11px] font-bold text-foreground mb-1 flex items-center gap-1.5">
+                <span>🔎 Sorot Kolom Role Akun Pemakai</span>
+                <span className="text-[10px] font-normal text-muted-foreground">(Pilih akun untuk melihat kolom wewenangnya)</span>
+              </div>
+              <div className="relative">
+                <select
+                  value={highlightUser}
+                  onChange={(e) => setHighlightUser(e.target.value)}
+                  className="w-full pl-3 pr-8 py-1.5 text-xs rounded-lg border border-border bg-background text-foreground font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer appearance-none shadow-2xs"
+                >
+                  <option value="">-- Pilih Akun Karyawan untuk Disorot di Tabel --</option>
+                  <option value="nurul.hafifah">⭐ NURUL HAFIFAH ALIM &rarr; Role: Staf Dokumen TTB (Kolom TTB)</option>
+                  <option value="davila.zalianti">DAVILA ZALIANTI PUTRI &rarr; Role: Staf Dokumen TTB (Kolom TTB)</option>
+                  <option value="idham.khalid">IDHAM KHALID &rarr; Role: Staf Dokumen TTB (Kolom TTB)</option>
+                  <option value="agussalim">AGUSSALIM &rarr; Role: Staf Serah Terima Lapangan</option>
+                  <option value="akbar.ramadhan">AKBAR RAMADHAN &rarr; Role: Staf Serah Terima Lapangan</option>
+                  <option value="bardi.suddin">BARDI SUDDIN &rarr; Role: Staf Serah Terima Lapangan</option>
+                  <option value="hamka.alka">HAMKA ALKA &rarr; Role: Staf Serah Terima Lapangan</option>
+                  <option value="zulfiansyah">ZULFIANSYAH &rarr; Role: Staf Serah Terima Lapangan</option>
+                  <option value="staf.purchasing">STAF PURCHASING &rarr; Role: Staf Purchasing</option>
+                  <option value="manager.procurement">MANAGER PROCUREMENT &rarr; Role: Manager</option>
+                  <option value="supervisor.procurement">SUPERVISOR PROCUREMENT &rarr; Role: Supervisor</option>
+                  <option value="hermansyah">HERMANSYAH &rarr; Role: Administrator</option>
+                </select>
+                <ChevronDown className="size-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground" />
+              </div>
+            </div>
+          </div>
+
+          {highlightUser && highlightedRole && (
+            <div className="flex items-center gap-2 bg-blue-500/15 border border-blue-500/40 px-3 py-1.5 rounded-lg text-blue-800 dark:text-blue-200 text-xs">
+              <Info className="size-4 text-blue-500 shrink-0" />
+              <div>
+                Akun <strong>{users.find((u) => u.username === highlightUser)?.name || highlightUser}</strong> bernaung di bawah role{' '}
+                <strong className="underline text-blue-600 dark:text-blue-400">
+                  {getRoleDisplayName(highlightedRole)}
+                </strong>
+                . Kolom wewenang di bawah telah disorot!
+              </div>
+              <button
+                type="button"
+                onClick={() => setHighlightUser('')}
+                className="ml-2 text-[10px] text-muted-foreground hover:text-foreground underline cursor-pointer"
+              >
+                Reset
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div className="overflow-x-auto rounded-xl border border-border">
+          <table className="w-full min-w-[1280px] text-left text-xs">
+            <thead className="bg-muted/60 border-b border-border text-muted-foreground text-[11px]">
               <tr>
-                <th className="py-2.5 px-3 min-w-[170px]">Modul / Fitur Sistem</th>
-                <th className="py-2.5 px-3 min-w-[240px]">Deskripsi Wewenang</th>
-                <th className="py-2.5 px-3 text-center w-32">👑 Admin</th>
-                <th className="py-2.5 px-3 text-center w-36">👔 Manager</th>
-                <th className="py-2.5 px-3 text-center w-36">🎖️ Supervisor</th>
-                <th className="py-2.5 px-3 text-center w-36">🛒 Staf Purchasing</th>
-                <th className="py-2.5 px-3 text-center w-36">📄 Staf Dokumen TTB</th>
-                <th className="py-2.5 px-3 text-center w-40">🚚 Staf Serah Terima Lap.</th>
-                <th className="py-2.5 px-3 text-center w-36">📦 End User</th>
-                <th className="py-2.5 px-3 text-center w-32">👁️ Visitor</th>
+                <th className="py-3 px-3 min-w-[170px]">Modul / Fitur Sistem</th>
+                <th className="py-3 px-3 min-w-[220px]">Deskripsi Wewenang</th>
+                <th className={`py-3 px-2 text-center w-36 ${highlightedRole === 'admin' ? 'bg-purple-500/20 ring-2 ring-purple-500 font-bold' : ''}`}>
+                  <div className="font-bold text-foreground">👑 Admin</div>
+                  <div className="text-[9px] text-muted-foreground font-normal mt-0.5">admin, hermansyah</div>
+                </th>
+                <th className={`py-3 px-2 text-center w-36 ${highlightedRole === 'manager' ? 'bg-indigo-500/20 ring-2 ring-indigo-500 font-bold' : ''}`}>
+                  <div className="font-bold text-foreground">👔 Manager</div>
+                  <div className="text-[9px] text-muted-foreground font-normal mt-0.5">manager.procurement</div>
+                </th>
+                <th className={`py-3 px-2 text-center w-36 ${highlightedRole === 'supervisor' ? 'bg-violet-500/20 ring-2 ring-violet-500 font-bold' : ''}`}>
+                  <div className="font-bold text-foreground">🎖️ Supervisor</div>
+                  <div className="text-[9px] text-muted-foreground font-normal mt-0.5">supervisor.procurement</div>
+                </th>
+                <th className={`py-3 px-2 text-center w-36 ${highlightedRole === 'staf_purchasing' ? 'bg-teal-500/20 ring-2 ring-teal-500 font-bold' : ''}`}>
+                  <div className="font-bold text-teal-600 dark:text-teal-400">🛒 Staf Purchasing</div>
+                  <div className="text-[9px] text-muted-foreground font-normal mt-0.5">staf.purchasing</div>
+                </th>
+                <th className={`py-3 px-2 text-center w-52 transition-all ${
+                  highlightedRole === 'staf_ttb'
+                    ? 'bg-blue-500/25 ring-2 ring-blue-500 text-blue-900 dark:text-blue-100'
+                    : 'bg-blue-500/10 text-blue-800 dark:text-blue-300'
+                }`}>
+                  <div className="flex flex-col items-center">
+                    <span className="font-extrabold flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400">
+                      📄 Staf Dokumen TTB
+                    </span>
+                    <span className="text-[9px] font-bold text-blue-700 dark:text-blue-300 bg-blue-500/20 px-2 py-0.5 rounded-full mt-0.5 whitespace-nowrap">
+                      ⭐ Nurul Hafifah, Davila, Idham
+                    </span>
+                  </div>
+                </th>
+                <th className={`py-3 px-2 text-center w-56 transition-all ${
+                  highlightedRole === 'staf_lapangan'
+                    ? 'bg-amber-500/25 ring-2 ring-amber-500 text-amber-900 dark:text-amber-100'
+                    : 'bg-amber-500/10 text-amber-800 dark:text-amber-300'
+                }`}>
+                  <div className="flex flex-col items-center">
+                    <span className="font-extrabold flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
+                      🚚 Staf Serah Terima Lap.
+                    </span>
+                    <span className="text-[9px] font-medium text-amber-700 dark:text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded-full mt-0.5 whitespace-nowrap">
+                      Agussalim, Akbar, Bardi, Hamka
+                    </span>
+                  </div>
+                </th>
+                <th className={`py-3 px-2 text-center w-40 ${highlightedRole === 'end_user' ? 'bg-rose-500/20 ring-2 ring-rose-500 font-bold' : ''}`}>
+                  <div className="flex flex-col items-center">
+                    <span className="font-bold text-foreground">📦 End User</span>
+                    <span className="text-[9px] text-muted-foreground font-normal mt-0.5">Kru Armada Kapal</span>
+                  </div>
+                </th>
+                <th className={`py-3 px-2 text-center w-32 ${highlightedRole === 'visitor' ? 'bg-slate-500/20 ring-2 ring-slate-500 font-bold' : ''}`}>
+                  <div className="flex flex-col items-center">
+                    <span className="font-bold text-foreground">👁️ Visitor</span>
+                    <span className="text-[9px] text-muted-foreground font-normal mt-0.5">Tamu / Read-Only</span>
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -2035,28 +2244,28 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                         <td className="py-2.5 px-3 text-[11px] text-muted-foreground">
                           {perm.description}
                         </td>
-                        <td className="py-2.5 px-3 text-center">
+                        <td className={`py-2.5 px-3 text-center transition-colors ${highlightedRole === 'admin' ? 'bg-purple-500/5' : ''}`}>
                           {renderPermissionCell(perm, 'admin')}
                         </td>
-                        <td className="py-2.5 px-3 text-center">
+                        <td className={`py-2.5 px-3 text-center transition-colors ${highlightedRole === 'manager' ? 'bg-indigo-500/5' : ''}`}>
                           {renderPermissionCell(perm, 'manager')}
                         </td>
-                        <td className="py-2.5 px-3 text-center">
+                        <td className={`py-2.5 px-3 text-center transition-colors ${highlightedRole === 'supervisor' ? 'bg-violet-500/5' : ''}`}>
                           {renderPermissionCell(perm, 'supervisor')}
                         </td>
-                        <td className="py-2.5 px-3 text-center">
+                        <td className={`py-2.5 px-3 text-center transition-colors ${highlightedRole === 'staf_purchasing' ? 'bg-teal-500/5' : ''}`}>
                           {renderPermissionCell(perm, 'staf_purchasing')}
                         </td>
-                        <td className="py-2.5 px-3 text-center">
+                        <td className={`py-2.5 px-3 text-center transition-colors ${highlightedRole === 'staf_ttb' ? 'bg-blue-500/10 ring-1 ring-blue-500/30' : ''}`}>
                           {renderPermissionCell(perm, 'staf_ttb')}
                         </td>
-                        <td className="py-2.5 px-3 text-center">
+                        <td className={`py-2.5 px-3 text-center transition-colors ${highlightedRole === 'staf_lapangan' ? 'bg-amber-500/10 ring-1 ring-amber-500/30' : ''}`}>
                           {renderPermissionCell(perm, 'staf_lapangan')}
                         </td>
-                        <td className="py-2.5 px-3 text-center">
+                        <td className={`py-2.5 px-3 text-center transition-colors ${highlightedRole === 'end_user' ? 'bg-rose-500/5' : ''}`}>
                           {renderPermissionCell(perm, 'end_user')}
                         </td>
-                        <td className="py-2.5 px-3 text-center">
+                        <td className={`py-2.5 px-3 text-center transition-colors ${highlightedRole === 'visitor' ? 'bg-slate-500/5' : ''}`}>
                           {renderPermissionCell(perm, 'visitor')}
                         </td>
                       </tr>

@@ -380,6 +380,10 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
       signatureDataUrl = getSignatureForUploader(uploaderUsername) || getSignatureForUploader(uploaderName) || '';
     }
     const stampDate = ((formData.get('stampDate') as string) || '').trim() || formatTtbStampDate(receivedDate);
+    const photoIndexRaw = formData.get('photoIndex');
+    const clientPhotoIndex = photoIndexRaw ? parseInt(photoIndexRaw as string, 10) : undefined;
+    const totalPhotosRaw = formData.get('totalPhotos');
+    const clientTotalPhotos = totalPhotosRaw ? parseInt(totalPhotosRaw as string, 10) : undefined;
 
     if (!noTtbRaw) {
       return NextResponse.json(
@@ -464,9 +468,45 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
     // Loop proses upload ke Cloudflare R2 & fallback lokal
     for (let i = 0; i < files.length; i++) {
       const f = files[i];
-      const renamedFileName = formatTtbFilename(cleanNoTtb, f.name, i, files.length);
+      const isPdf = f.name.toLowerCase().endsWith('.pdf') || f.type === 'application/pdf';
+
+      // Hitung foto yang sudah tersimpan untuk TTB ini di riwayat
+      const existingPhotosForTtb = currentHistory.filter((h) => {
+        const hClean = sanitizeTtbNumber(h.cleanNoTtb || h.noTtb || '');
+        const isImg = !h.renamedFileName.toLowerCase().endsWith('.pdf') && h.fileType !== 'application/pdf';
+        return hClean === cleanNoTtb && isImg;
+      });
+
+      // Proteksi: Maksimal 10 foto bukti serah terima per nomor TTB
+      if (!isPdf && existingPhotosForTtb.length >= 10 && !clientPhotoIndex) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: `Batas maksimal 10 foto bukti serah terima untuk TTB ${cleanNoTtb} telah tercapai.`,
+            storageProvider: isR2Active ? 'CLOUDFLARE_R2' : 'LOCAL',
+            uploadedFiles: [],
+            error: 'Batas maksimal 10 foto tercapai.',
+          },
+          { status: 400 }
+        );
+      }
+
+      // Tentukan nomor urut foto (1 s/d 10)
+      let effectivePhotoIndex: number | undefined = undefined;
+      if (!isPdf) {
+        if (clientPhotoIndex && !isNaN(clientPhotoIndex) && clientPhotoIndex > 0) {
+          effectivePhotoIndex = Math.min(10, clientPhotoIndex);
+        } else if (files.length > 1) {
+          effectivePhotoIndex = Math.min(10, i + 1);
+        } else if (existingPhotosForTtb.length > 0) {
+          effectivePhotoIndex = Math.min(10, existingPhotosForTtb.length + 1);
+        }
+      }
+
+      const renamedFileName = isPdf
+        ? `${cleanNoTtb}.pdf`
+        : formatTtbFilename(cleanNoTtb, f.name, i, clientTotalPhotos || files.length, effectivePhotoIndex);
       let buffer: Buffer = Buffer.from(await f.arrayBuffer());
-      const isPdf = renamedFileName.toLowerCase().endsWith('.pdf');
       const mimeType = getMimeType(renamedFileName, f.type);
       let isFileStamped = false;
 
@@ -561,12 +601,11 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
       newlyUploadedItems.push(record);
     }
 
-    // Masukkan ke riwayat paling atas atau update jika sudah pernah terdaftar (mencegah double posting)
+    // Masukkan ke riwayat: hanya perbarui jika nama berkas fisik sama persis (re-upload).
+    // Berkas PDF dan berbagai foto fisik (_01, _02, .. _10) untuk nomor TTB yang sama semuanya TERSIMPAN LENGKAP!
     for (const item of newlyUploadedItems) {
       const existingIdx = currentHistory.findIndex(
-        (h) =>
-          (h.cleanNoTtb && h.cleanNoTtb === item.cleanNoTtb) ||
-          (h.renamedFileName && h.renamedFileName.toLowerCase() === item.renamedFileName.toLowerCase())
+        (h) => h.renamedFileName && h.renamedFileName.toLowerCase() === item.renamedFileName.toLowerCase()
       );
       if (existingIdx !== -1) {
         currentHistory[existingIdx] = {

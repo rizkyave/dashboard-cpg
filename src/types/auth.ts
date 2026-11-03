@@ -1,3 +1,4 @@
+import rawRbacMatrix from '@/data/rbac-matrix.json';
 import { TabType } from './procurement';
 
 export type UserRole =
@@ -114,341 +115,9 @@ export interface ModulePermissionItem {
   };
 }
 
-export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = [
-  // ==========================================
-  // KATEGORI 1: DASHBOARDS
-  // ==========================================
-  {
-    tabId: 'overview',
-    category: 'Dashboards',
-    name: 'Overview',
-    description: 'Ringkasan visual KPI monitoring procurement, pipeline lead time, dan status pengadaan',
-    permissions: {
-      admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
-      manager: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Monitoring menyeluruh seluruh KPI procurement & logistik' },
-      supervisor: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Monitoring pipeline lead time, KPI & status pengadaan' },
-      staf_purchasing: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Melihat ringkasan pipeline pengadaan' },
-      staf_ttb: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
-      staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
-      end_user: {"allowed":true,"level":"Read-only","badgeTone":"slate","notes":"Melihat status pengadaan umum & KPI"},
-      visitor: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
-    },
-  },
-  {
-    tabId: 'review-fpb',
-    category: 'Dashboards',
-    name: 'Review & Analisa FPB',
-    description: 'Sinkronisasi e-FPB, review dan analisa item barang, cek ketersediaan stok gudang, dan deteksi duplikasi FPB armada',
-    permissions: {
-      admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
-      manager: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Otorisasi & persetujuan tindak lanjut FPB ke PO atau stok' },
-      supervisor: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Review teknis, cek urgensi & disposisi ke staf purchasing' },
-      staf_purchasing: { allowed: true, level: 'Upload & Kelola', badgeTone: 'emerald', notes: 'Analisa item FPB, cek stok gudang & penugasan PIC PO' },
-      staf_ttb: { allowed: true, level: 'View & Verifikasi', badgeTone: 'blue', notes: 'Verifikasi stok gudang logistik terhadap item FPB' },
-      staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
-      end_user: {"allowed":true,"level":"Read-only","badgeTone":"slate","notes":"Melihat status analisa & ketersediaan stok FPB yang diajukan"},
-      visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
-    },
-  },
-  {
-    tabId: 'pratender',
-    category: 'Dashboards',
-    name: 'Pratender Material',
-    description: 'Konsolidasi & agregasi kebutuhan material terbuka (open/unsupplied) lintas armada untuk paket tender pengadaan bersama',
-    permissions: {
-      admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
-      manager: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Otorisasi & pembentukan paket tender material terbuka' },
-      supervisor: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Konsolidasi & evaluasi tender material terbuka' },
-      staf_purchasing: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Kelola paket tender & dokumen RFQ vendor' },
-      staf_ttb: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Pantau paket pengadaan terbuka logistik' },
-      staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
-      end_user: {"allowed":false,"level":"Dilarang","badgeTone":"rose","notes":"Menu komersial tender vendor disembunyikan"},
-      visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
-    },
-  },
-  {
-    tabId: 'monitoring-internal',
-    category: 'Dashboards',
-    name: 'Monitoring Berkas Internal',
-    description: 'Monitoring berkas internal procurement, PIC purchasing, lead time delivery, dan serah terima dokumen fisik ke PIC TTB',
-    permissions: {
-      admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
-      manager: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Monitoring berkas internal procurement, alur PO & delivery time' },
-      supervisor: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Monitoring berkas internal, lead time delivery & penyerahan TTB' },
-      staf_purchasing: { allowed: true, level: 'Upload & Kelola', badgeTone: 'emerald', notes: 'Monitoring & tracking berkas internal pengadaan yang ditangani' },
-      staf_ttb: { allowed: true, level: 'View & Verifikasi', badgeTone: 'blue', notes: 'Verifikasi tanda terima berkas dari purchasing ke logistik TTB' },
-      staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
-      end_user: {"allowed":false,"level":"Dilarang","badgeTone":"rose","notes":"Alur internal purchasing disembunyikan"},
-      visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
-    },
-  },
-  {
-    tabId: 'procurement',
-    category: 'Dashboards',
-    name: 'Procurement',
-    description: 'Monitoring alur berkas FPB-PO, SLA lead time, verifikasi barang sisa layanan',
-    permissions: {
-      admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
-      manager: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Otorisasi FPB-PO, pemantauan SLA lead time & audit pengadaan' },
-      supervisor: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Verifikasi, approval dokumen PO/FPB, dan SLA lead time' },
-      staf_purchasing: { allowed: true, level: 'View & Verifikasi', badgeTone: 'blue', notes: 'Input & verifikasi dokumen PO/FPB' },
-      staf_ttb: { allowed: true, level: 'View & Verifikasi', badgeTone: 'blue', notes: 'View & verifikasi kecocokan dokumen PO/FPB' },
-      staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
-      end_user: {"allowed":true,"level":"Read-only","badgeTone":"slate","notes":"Memantau progres pesanan PO & lead time pengadaan"},
-      visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
-    },
-  },
-  {
-    tabId: 'armada',
-    category: 'Dashboards',
-    name: 'Layanan Armada',
-    description: 'Monitoring layanan armada kapal, status FSTB, dan log servis operasional',
-    permissions: {
-      admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
-      manager: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Monitoring status layanan armada & FSTB' },
-      supervisor: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Monitoring status layanan armada & FSTB' },
-      staf_purchasing: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
-      staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
-      staf_lapangan: { allowed: true, level: 'Input & Upload', badgeTone: 'emerald', notes: 'Input update operasional & servis armada' },
-      end_user: {"allowed":true,"level":"Read-only","badgeTone":"slate","notes":"Monitoring status layanan armada & FSTB"},
-      visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
-    },
-  },
-  {
-    tabId: 'upload-fstb',
-    category: 'Dashboards',
-    name: 'Upload FSTB',
-    description: 'Upload berkas FSTB resmi ke Cloudflare R2 / Drive dengan penamaan otomatis no. FSTB',
-    permissions: {
-      admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
-      manager: { allowed: true, level: 'Upload & Kelola', badgeTone: 'emerald', notes: 'Upload & validasi berkas FSTB resmi' },
-      supervisor: { allowed: true, level: 'Upload & Kelola', badgeTone: 'emerald', notes: 'Review & kelola berkas FSTB resmi' },
-      staf_purchasing: { allowed: true, level: 'Upload & Kelola', badgeTone: 'emerald', notes: 'Upload & kelola berkas FSTB resmi' },
-      staf_ttb: { allowed: true, level: 'Upload & Kelola', badgeTone: 'emerald', notes: 'Full access upload berkas FSTB ke cloud' },
-      staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
-      end_user: {"allowed":false,"level":"Dilarang","badgeTone":"rose","notes":"Menu disembunyikan"},
-      visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
-    },
-  },
-  {
-    tabId: 'upload-ttb',
-    category: 'Dashboards',
-    name: 'Upload TTB',
-    description: 'Upload berkas TTB resmi ke Cloudflare R2 / Drive dengan penamaan otomatis no. TTB',
-    permissions: {
-      admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
-      manager: { allowed: true, level: 'Upload & Kelola', badgeTone: 'emerald', notes: 'Upload & review berkas TTB resmi' },
-      supervisor: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Review dokumen TTB resmi' },
-      staf_purchasing: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
-      staf_ttb: { allowed: true, level: 'Upload & Kelola', badgeTone: 'emerald', notes: 'Full access upload berkas ke cloud' },
-      staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
-      end_user: {"allowed":false,"level":"Dilarang","badgeTone":"rose","notes":"Menu disembunyikan"},
-      visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
-    },
-  },
-  {
-    tabId: 'validasi-dokumen',
-    category: 'Dashboards',
-    name: 'Validasi FSTB & TTB',
-    description: 'Validasi tanda tangan digital multi-lini (Purchasing, Logistik, Lapangan) untuk berkas FSTB dan TTB sebelum dikirimkan ke armada',
-    permissions: {
-      admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
-      manager: { allowed: true, level: 'Validasi & TTD', badgeTone: 'emerald', notes: 'Otorisasi & TTD digital Manager (Approved By FSTB & Lini Purchasing TTB)' },
-      supervisor: { allowed: true, level: 'Validasi & TTD', badgeTone: 'emerald', notes: 'Validasi TTD Approved By FSTB & Lini Purchasing TTB' },
-      staf_purchasing: { allowed: true, level: 'Validasi & TTD', badgeTone: 'emerald', notes: 'Validasi TTD Delivered By FSTB & Lini Purchasing TTB' },
-      staf_ttb: { allowed: true, level: 'Validasi & TTD', badgeTone: 'emerald', notes: 'Validasi lini Logistik/Gudang' },
-      staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
-      end_user: {"allowed":true,"level":"Validasi & TTD","badgeTone":"emerald","notes":"Otorisasi & TTD digital Received By (User/Penerima Barang)"},
-      visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
-    },
-  },
-  {
-    tabId: 'serah-terima-lapangan',
-    category: 'Dashboards',
-    name: 'Serah Terima Lap.',
-    description: 'Portal input data serah terima barang di lapangan/dermaga berbasis referensi TTB',
-    permissions: {
-      admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
-      manager: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Pemantauan bukti serah terima dermaga & armada' },
-      supervisor: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Monitoring penyerahan barang dermaga' },
-      staf_purchasing: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
-      staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
-      staf_lapangan: { allowed: true, level: 'Full Access', badgeTone: 'emerald', notes: 'Input data fisik & upload bukti serah terima' },
-      end_user: {"allowed":true,"level":"Input & Upload","badgeTone":"emerald","notes":"Konfirmasi fisik penerimaan barang & upload bukti"},
-      visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
-    },
-  },
-  {
-    tabId: 'galeri-ttb',
-    category: 'Dashboards',
-    name: 'Galeri Foto TTB',
-    description: 'Katalog arsip foto serah terima TTB dari lapangan dan pencarian dokumen',
-    permissions: {
-      admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
-      manager: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Akses peninjauan katalog arsip foto TTB lapangan' },
-      supervisor: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Katalog arsip foto serah terima' },
-      staf_purchasing: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Katalog arsip foto serah terima' },
-      staf_ttb: { allowed: true, level: 'Upload & Kelola', badgeTone: 'emerald', notes: 'Upload, view, dan kelola arsip foto TTB' },
-      staf_lapangan: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
-      end_user: {"allowed":true,"level":"Read-only","badgeTone":"slate","notes":"Melihat arsip foto serah terima barang"},
-      visitor: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
-    },
-  },
+export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = rawRbacMatrix as unknown as ModulePermissionItem[];
 
-  // ==========================================
-  // KATEGORI 2: MODUL TAMBAHAN
-  // ==========================================
-  {
-    tabId: 'inventory',
-    category: 'Modul Tambahan',
-    name: 'Cek Persediaan',
-    description: 'Pengecekan fisik stok gudang dan katalog persediaan konsolidasi Accurate CPG',
-    permissions: {
-      admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
-      manager: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Pengecekan fisik stok gudang & katalog Accurate' },
-      supervisor: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Pengecekan fisik stok gudang & katalog Accurate' },
-      staf_purchasing: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Pengecekan stok persediaan' },
-      staf_ttb: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Read-only untuk validasi fisik stok' },
-      staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
-      end_user: {"allowed":true,"level":"Read-only","badgeTone":"slate","notes":"Pengecekan persediaan stok barang gudang"},
-      visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
-    },
-  },
-  {
-    tabId: 'stok-gudang',
-    category: 'Modul Tambahan',
-    name: 'Stok Gudang Pusat',
-    description: 'Penerimaan masuk PO & pengambilan barang keluar dari stok fisik Gudang Somber Pak Budi Agustiansyah',
-    permissions: {
-      admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
-      manager: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Monitoring persediaan fisik & approval mutasi' },
-      supervisor: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Monitoring persediaan & mutasi barang Somber' },
-      staf_purchasing: { allowed: true, level: 'Input & Upload', badgeTone: 'emerald', notes: 'Input penerimaan PO supplier & cek stok' },
-      staf_ttb: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Pengelolaan penuh stok fisik Pak Budi Somber' },
-      staf_lapangan: { allowed: true, level: 'Input & Upload', badgeTone: 'emerald', notes: 'Catat pengambilan keluar & bon barang' },
-      end_user: {"allowed":true,"level":"Input & Upload","badgeTone":"emerald","notes":"Catat pengambilan bon barang gudang armada"},
-      visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
-    },
-  },
-  {
-    tabId: 'pos-kapal',
-    category: 'Modul Tambahan',
-    name: 'Posisi Kapal',
-    description: 'Monitoring posisi koordinat harian kapal FMS dan status operasional laut',
-    permissions: {
-      admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
-      manager: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Pemantauan posisi harian armada & status laut' },
-      supervisor: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Monitoring posisi kapal operasional' },
-      staf_purchasing: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
-      staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
-      staf_lapangan: { allowed: true, level: 'Update Status', badgeTone: 'sky', notes: 'Update status pekerjaan lapangan' },
-      end_user: {"allowed":true,"level":"Read-only","badgeTone":"slate","notes":"Pemantauan posisi harian armada"},
-      visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
-    },
-  },
-  {
-    tabId: 'crew-kapal',
-    category: 'Modul Tambahan',
-    name: 'Crew & Armada',
-    description: 'Database 60 kapal & 633 kru kapal aktif CPG, kontak nahkoda, & alokasi armada',
-    permissions: {
-      admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
-      manager: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Akses data armada kapal & kontak operasional kru' },
-      supervisor: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Database armada & kontak nahkoda' },
-      staf_purchasing: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
-      staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
-      staf_lapangan: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Akses kontak nahkoda / kru' },
-      end_user: {"allowed":true,"level":"Read-only","badgeTone":"slate","notes":"Akses kontak armada & kru"},
-      visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
-    },
-  },
-  {
-    tabId: 'work-order',
-    category: 'Modul Tambahan',
-    name: 'List WO',
-    description: 'Monitoring surat perintah kerja (WO) lapangan & log tindak lanjut perbaikan',
-    permissions: {
-      admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
-      manager: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Monitoring SPK & Work Order perawatan armada' },
-      supervisor: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Monitoring WO perbaikan armada' },
-      staf_purchasing: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
-      staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
-      staf_lapangan: { allowed: true, level: 'Update Status', badgeTone: 'sky', notes: 'Update status pekerjaan lapangan' },
-      end_user: {"allowed":true,"level":"Read-only","badgeTone":"slate","notes":"Monitoring SPK & WO perawatan armada"},
-      visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
-    },
-  },
-  {
-    tabId: 'list-sm',
-    category: 'Modul Tambahan',
-    name: 'List SM',
-    description: 'Monitoring Service & Maintenance armada pada bengkel vendor rekanan',
-    permissions: {
-      admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
-      manager: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Monitoring Service & Maintenance armada vendor' },
-      supervisor: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Monitoring Service & Maintenance armada' },
-      staf_purchasing: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
-      staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
-      staf_lapangan: { allowed: true, level: 'Update Status', badgeTone: 'sky', notes: 'Pantau & update servis kapal' },
-      end_user: {"allowed":true,"level":"Read-only","badgeTone":"slate","notes":"Monitoring Service & Maintenance armada"},
-      visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
-    },
-  },
-  {
-    tabId: 'sisa-layanan',
-    category: 'Modul Tambahan',
-    name: 'Sisa Layanan',
-    description: 'Laporan rekonsiliasi sisa layanan gabungan FPB-PO-FSTB-TTB seluruh unit',
-    permissions: {
-      admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
-      manager: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Rekonsiliasi & evaluasi barang sisa layanan' },
-      supervisor: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Laporan rekonsiliasi sisa layanan' },
-      staf_purchasing: { allowed: true, level: 'Read-only', badgeTone: 'slate', notes: 'Laporan sisa layanan pengadaan' },
-      staf_ttb: { allowed: true, level: 'Read-only', badgeTone: 'slate' },
-      staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
-      end_user: {"allowed":true,"level":"Read-only","badgeTone":"slate","notes":"Laporan pemenuhan sisa layanan FPB armada"},
-      visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
-    },
-  },
-
-  // ==========================================
-  // KATEGORI 3: MODUL KHUSUS
-  // ==========================================
-  {
-    tabId: 'analytics',
-    category: 'Modul Khusus',
-    name: 'Analytics',
-    description: 'Analisis bottleneck SLA pengadaan, evaluasi vendor, dan performa PIC',
-    permissions: {
-      admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
-      manager: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Analisis bottleneck SLA pengadaan & evaluasi vendor' },
-      supervisor: { allowed: true, level: 'Full Access', badgeTone: 'purple', notes: 'Analisis bottleneck SLA & evaluasi vendor' },
-      staf_purchasing: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
-      staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
-      staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
-      end_user: {"allowed":false,"level":"Dilarang","badgeTone":"rose","notes":"Menu disembunyikan"},
-      visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
-    },
-  },
-  {
-    tabId: 'admin-settings',
-    category: 'Modul Khusus',
-    name: 'Admin Settings',
-    description: 'Manajemen hak akses RBAC, pembuatan user kredensial, dan konfigurasi sistem',
-    permissions: {
-      admin: { allowed: true, level: 'Full Access', badgeTone: 'purple' },
-      manager: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu konfigurasi sistem khusus Administrator' },
-      supervisor: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu konfigurasi sistem khusus Administrator' },
-      staf_purchasing: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu konfigurasi sistem khusus Administrator' },
-      staf_ttb: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
-      staf_lapangan: { allowed: false, level: 'Dilarang', badgeTone: 'rose', notes: 'Menu disembunyikan' },
-      end_user: {"allowed":false,"level":"Dilarang","badgeTone":"rose","notes":"Menu konfigurasi sistem khusus Administrator"},
-      visitor: { allowed: false, level: 'Dilarang', badgeTone: 'rose' },
-    },
-  },
-];
-
-export const RBAC_MATRIX_STORAGE_KEY = 'CPG_AUTH_RBAC_MATRIX_V5';
+export const RBAC_MATRIX_STORAGE_KEY = 'CPG_AUTH_RBAC_MATRIX_V6';
 
 /**
  * Membaca matriks perizinan dinamis dari localStorage (fallback ke default matrix)
@@ -463,6 +132,7 @@ export function getStoredPermissionsMatrix(): ModulePermissionItem[] {
     localStorage.removeItem('CPG_AUTH_RBAC_MATRIX_V2');
     localStorage.removeItem('CPG_AUTH_RBAC_MATRIX_V3');
     localStorage.removeItem('CPG_AUTH_RBAC_MATRIX_V4');
+    localStorage.removeItem('CPG_AUTH_RBAC_MATRIX_V5');
 
     const raw = localStorage.getItem(RBAC_MATRIX_STORAGE_KEY);
     if (raw) {
@@ -590,88 +260,7 @@ export function canAccessTab(role: UserRole | undefined, tab: TabType): boolean 
     }
   }
 
-  // 2. Fallback perizinan statis default yang ketat sesuai role
-  if (role === 'manager' || role === 'supervisor') {
-    return true;
-  }
-
-  if (role === 'staf_purchasing') {
-    const allowed: TabType[] = [
-      'overview',
-      'review-fpb',
-      'pratender',
-      'monitoring-internal',
-      'procurement',
-      'upload-fstb',
-      'validasi-dokumen',
-      'galeri-ttb',
-      'inventory',
-      'stok-gudang',
-      'sisa-layanan',
-    ];
-    return allowed.includes(tab);
-  }
-
-  if (role === 'staf_ttb') {
-    const allowed: TabType[] = [
-      'overview',
-      'review-fpb',
-      'pratender',
-      'monitoring-internal',
-      'procurement',
-      'upload-fstb',
-      'upload-ttb',
-      'validasi-dokumen',
-      'galeri-ttb',
-      'inventory',
-      'stok-gudang',
-      'sisa-layanan',
-    ];
-    return allowed.includes(tab);
-  }
-
-  if (role === 'staf_lapangan') {
-    const allowed: TabType[] = [
-      'serah-terima-lapangan',
-      'galeri-ttb',
-      'armada',
-      'pos-kapal',
-      'crew-kapal',
-      'work-order',
-      'list-sm',
-    'stok-gudang',
-    ];
-    return allowed.includes(tab);
-  }
-
-if (role === 'end_user') {
-    const allowed: TabType[] = [
-      'overview',
-      'review-fpb',
-      'procurement',
-      'armada',
-      'validasi-dokumen',
-      'serah-terima-lapangan',
-      'galeri-ttb',
-      'inventory',
-      'stok-gudang',
-      'pos-kapal',
-      'crew-kapal',
-      'work-order',
-      'list-sm',
-      'sisa-layanan',
-    ];
-    return allowed.includes(tab);
-  }
-
-  if (role === 'visitor') {
-    return tab === 'overview' || tab === 'galeri-ttb';
-  }
-
-  if (role === 'user') {
-    return true;
-  }
-
+  // 2. Default sistem saat ini: Seluruh akses dilarang untuk semua role (kecuali admin)
   return false;
 }
 
@@ -679,11 +268,38 @@ if (role === 'end_user') {
  * Helper RBAC: Menentukan tab default / landing page utama untuk tiap role pengguna
  */
 export function getDefaultTabForRole(role: UserRole | undefined): TabType {
-  if (role === 'staf_lapangan') return 'serah-terima-lapangan';
-  if (role === 'end_user') return 'serah-terima-lapangan';
-  if (role === 'staf_ttb') return 'upload-ttb';
-  if (role === 'staf_purchasing') return 'procurement';
-  return 'overview';
+  let preferred: TabType = 'overview';
+  if (role === 'staf_lapangan') preferred = 'serah-terima-lapangan';
+  else if (role === 'end_user') preferred = 'serah-terima-lapangan';
+  else if (role === 'staf_ttb') preferred = 'upload-ttb';
+  else if (role === 'staf_purchasing') preferred = 'procurement';
+
+  if (canAccessTab(role, preferred)) {
+    return preferred;
+  }
+
+  const candidates: TabType[] = [
+    'upload-ttb',
+    'monitoring-internal',
+    'validasi-dokumen',
+    'serah-terima-lapangan',
+    'galeri-ttb',
+    'procurement',
+    'overview',
+    'review-fpb',
+    'pratender',
+    'upload-fstb',
+    'inventory',
+    'stok-gudang',
+    'armada',
+    'pos-kapal',
+    'crew-kapal',
+    'work-order',
+    'list-sm',
+    'sisa-layanan',
+  ];
+  const firstAllowed = candidates.find((t) => canAccessTab(role, t));
+  return firstAllowed || preferred;
 }
 
 /**
