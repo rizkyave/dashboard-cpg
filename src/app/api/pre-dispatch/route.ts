@@ -170,3 +170,64 @@ export async function POST(req: NextRequest): Promise<NextResponse<PreDispatchRe
   }
 }
 
+// DELETE: Batalkan checklist pre-dispatch dan kembalikan status ke Siap Kirim
+export async function DELETE(req: NextRequest): Promise<NextResponse<PreDispatchResponse>> {
+  try {
+    const { searchParams } = new URL(req.url);
+    const paramKey =
+      searchParams.get('ttbId') ||
+      searchParams.get('cleanNoTtb') ||
+      searchParams.get('noTtb') ||
+      '';
+
+    let bodyTarget = '';
+    try {
+      const body = await req.json();
+      bodyTarget = body?.ttbId || body?.cleanNoTtb || body?.noTtb || '';
+    } catch {
+      // Body opsional jika query param sudah ada
+    }
+
+    const rawTarget = (paramKey || bodyTarget).trim();
+    if (!rawTarget) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Nomor atau ID TTB wajib disertakan untuk membatalkan pre-check.',
+        },
+        { status: 400 }
+      );
+    }
+
+    const cleanTarget = sanitizeTtbNumber(rawTarget).toLowerCase();
+    const records = await getPreDispatchRecords();
+    const initialCount = records.length;
+
+    const filtered = records.filter((r) => {
+      const c1 = sanitizeTtbNumber(r.cleanNoTtb || '').toLowerCase();
+      const c2 = sanitizeTtbNumber(r.ttbId || '').toLowerCase();
+      const c3 = sanitizeTtbNumber(r.noTtb || '').toLowerCase();
+      return c1 !== cleanTarget && c2 !== cleanTarget && c3 !== cleanTarget;
+    });
+
+    if (filtered.length !== initialCount) {
+      await savePreDispatchRecords(filtered);
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: `Pemeriksaan pra-keberangkatan (pre-check) untuk ${rawTarget} berhasil dibatalkan. Status dikembalikan ke Siap Kirim.`,
+      records: filtered,
+    });
+  } catch (err) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Gagal membatalkan pre-dispatch checklist.',
+        error: (err as Error).message,
+      },
+      { status: 500 }
+    );
+  }
+}
+

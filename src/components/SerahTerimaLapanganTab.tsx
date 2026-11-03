@@ -34,6 +34,7 @@ import {
   Filter,
   FileSignature,
   PenTool,
+  Loader2,
   RotateCcw,
   Upload,
   Lock,
@@ -234,6 +235,7 @@ export default function SerahTerimaLapanganTab({
   const [documentValidations, setDocumentValidations] = useState<DocumentValidationRecord[]>([]);
   const [preDispatchRecords, setPreDispatchRecords] = useState<Record<string, PreDispatchChecklistData>>({});
   const [pendingPreDispatchTtb, setPendingPreDispatchTtb] = useState<TtbReferenceOption | null>(null);
+  const [cancellingPreDispatchTtb, setCancellingPreDispatchTtb] = useState<string | null>(null);
   const [remoteTokens, setRemoteTokens] = useState<Record<string, RemoteHandoverTokenData>>({});
   const [pendingRemoteDispatchTtb, setPendingRemoteDispatchTtb] = useState<TtbReferenceOption | null>(null);
   const [isManualTtb, setIsManualTtb] = useState<boolean>(false);
@@ -1178,6 +1180,55 @@ export default function SerahTerimaLapanganTab({
     }
   };
 
+  // Batalkan pre-dispatch checklist keberangkatan (restore ke Siap Kirim)
+  const handleCancelPreDispatch = async (opt: TtbReferenceOption) => {
+    const ttbLabel = opt.noTtb || opt.cleanNoTtb;
+    const confirmed = window.confirm(
+      `Apakah Anda yakin ingin membatalkan pre-check keberangkatan untuk TTB "${ttbLabel}"?\n\nStatus akan dikembalikan ke posisi awal "Siap Kirim" (Administrasi Lengkap), dan tombol "Opsi Pengantaran" serta "Pilih TTB" akan dipulihkan kembali.`
+    );
+    if (!confirmed) return;
+
+    setCancellingPreDispatchTtb(opt.cleanNoTtb);
+    try {
+      const res = await fetch(
+        `/api/pre-dispatch?cleanNoTtb=${encodeURIComponent(opt.cleanNoTtb)}&ttbId=${encodeURIComponent(opt.cleanNoTtb)}`,
+        { method: 'DELETE' }
+      );
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || 'Gagal membatalkan pre-check.');
+      }
+
+      // Hapus dari state lokal preDispatchRecords
+      setPreDispatchRecords((prev) => {
+        const next = { ...prev };
+        delete next[opt.cleanNoTtb];
+        delete next[opt.noTtb];
+        delete next[opt.key];
+        return next;
+      });
+
+      // Jika TTB yang dibatalkan sedang aktif dipilih di formulir, bersihkan pemilihan
+      if (
+        selectedTtbRef &&
+        (selectedTtbRef.cleanNoTtb === opt.cleanNoTtb || selectedTtbRef.noTtb === opt.noTtb)
+      ) {
+        setSelectedTtbRef(null);
+        setIsSearchingTtb(true);
+      }
+
+      showToast?.(
+        `Pre-check keberangkatan TTB ${ttbLabel} berhasil dibatalkan. Status berhasil dikembalikan ke Siap Kirim.`,
+        'success'
+      );
+    } catch (err: any) {
+      console.error('Error cancelling pre-dispatch:', err);
+      showToast?.(err.message || 'Gagal membatalkan pre-check keberangkatan.', 'error');
+    } finally {
+      setCancellingPreDispatchTtb(null);
+    }
+  };
+
   // Submit Penyerahan Lapangan
   const handleSubmitDelivery = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1979,19 +2030,38 @@ export default function SerahTerimaLapanganTab({
                                           <span>Lihat Berkas</span>
                                         </button>
                                       ) : isDispatched ? (
-                                        <button
-                                          type="button"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            setSelectedTtbRef(opt);
-                                            setIsSearchingTtb(false);
-                                          }}
-                                          className="inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl bg-amber-600 hover:bg-amber-700 active:scale-95 text-white shadow-2xs transition-colors cursor-pointer"
-                                          title="Lanjutkan pengisian form serah terima & tanda tangan crew"
-                                        >
-                                          <span>Lanjut TTD</span>
-                                          <ChevronRight className="w-3.5 h-3.5" />
-                                        </button>
+                                        <div className="inline-flex items-center gap-2">
+                                          <button
+                                            type="button"
+                                            disabled={cancellingPreDispatchTtb === opt.cleanNoTtb}
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleCancelPreDispatch(opt);
+                                            }}
+                                            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl border border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/60 active:scale-95 shadow-2xs transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                            title="Batalkan pemeriksaan pra-keberangkatan (Pre-Check) dan kembalikan status ke Siap Kirim"
+                                          >
+                                            {cancellingPreDispatchTtb === opt.cleanNoTtb ? (
+                                              <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-600 dark:text-rose-400" />
+                                            ) : (
+                                              <RotateCcw className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+                                            )}
+                                            <span>Batal Pre Cek</span>
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              setSelectedTtbRef(opt);
+                                              setIsSearchingTtb(false);
+                                            }}
+                                            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl bg-amber-600 hover:bg-amber-700 active:scale-95 text-white shadow-2xs transition-colors cursor-pointer"
+                                            title="Lanjutkan pengisian form serah terima & tanda tangan crew"
+                                          >
+                                            <span>Lanjut TTD</span>
+                                            <ChevronRight className="w-3.5 h-3.5" />
+                                          </button>
+                                        </div>
                                       ) : isRemoteDispatched ? (
                                         <div className="inline-flex items-center gap-2">
                                           <button
