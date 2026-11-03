@@ -110,6 +110,21 @@ interface TtbReferenceOption {
 export type TtbDateRangeType = 'H-4' | 'H-7' | 'H-14' | 'H-30' | 'ALL' | 'CUSTOM';
 export type TtbStatusFilterType = 'ALL' | 'SIAP_KIRIM' | 'BELUM' | 'SUDAH';
 
+// Helper format tanggal rapi & estetik (Indonesia)
+const formatDisplayDateIndo = (formattedDdMmYy?: string): { day: string; monthStr: string; yearStr: string; full: string } | null => {
+  if (!formattedDdMmYy || formattedDdMmYy === '-' || formattedDdMmYy.trim() === '') return null;
+  const parts = formattedDdMmYy.split('/');
+  if (parts.length === 3) {
+    const day = parts[0].padStart(2, '0');
+    const monthNum = parseInt(parts[1], 10);
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    const monthStr = months[monthNum - 1] || parts[1];
+    const yearStr = parts[2].length === 2 ? `20${parts[2]}` : parts[2];
+    return { day, monthStr, yearStr, full: `${day} ${monthStr} ${yearStr}` };
+  }
+  return { day: '', monthStr: '', yearStr: '', full: formattedDdMmYy };
+};
+
 export default function SerahTerimaLapanganTab({
   procurementItems = [],
   armadaItems = [],
@@ -129,6 +144,7 @@ export default function SerahTerimaLapanganTab({
   const [isSearchingTtb, setIsSearchingTtb] = useState<boolean>(false);
   const [selectedTtbRef, setSelectedTtbRef] = useState<TtbReferenceOption | null>(null);
   const [ttbStatusFilter, setTtbStatusFilter] = useState<TtbStatusFilterType>('SIAP_KIRIM');
+  const [ttbSortOrder, setTtbSortOrder] = useState<'desc' | 'asc'>('desc');
   // Pilihan rentang waktu terbit TTB: default ALL agar seluruh data TTB siap kirim tampil
   const [ttbDateRange, setTtbDateRange] = useState<TtbDateRangeType>('ALL');
   const [customStartDate, setCustomStartDate] = useState<string>('');
@@ -838,8 +854,23 @@ export default function SerahTerimaLapanganTab({
       );
     }
 
+    // Urutkan berdasarkan tanggal TTB sesuai pilihan pengguna (ttbSortOrder)
+    result = [...result].sort((a, b) => {
+      if (ttbSortOrder === 'asc') {
+        if (a.tglTtbTimestamp !== b.tglTtbTimestamp) {
+          return a.tglTtbTimestamp - b.tglTtbTimestamp;
+        }
+        return a.noTtb.localeCompare(b.noTtb);
+      } else {
+        if (b.tglTtbTimestamp !== a.tglTtbTimestamp) {
+          return b.tglTtbTimestamp - a.tglTtbTimestamp;
+        }
+        return b.noTtb.localeCompare(a.noTtb);
+      }
+    });
+
     return result;
-  }, [dateFilteredCatalog, ttbStatusFilter, ttbSearchTerm]);
+  }, [dateFilteredCatalog, ttbStatusFilter, ttbSearchTerm, ttbSortOrder]);
 
   // Hitung apakah ada kecocokan di arsip luar rentang saat pencarian tidak menemukan hasil di rentang aktif
   const searchMatchesInGrandCatalog = useMemo(() => {
@@ -1678,24 +1709,71 @@ export default function SerahTerimaLapanganTab({
                         </button>
                       </div>
 
-                      <div className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1.5 font-mono">
-                        <Calendar className="size-4 text-indigo-500" />
-                        <span>Urutan: Tanggal TTB Terbaru ↓</span>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setTtbSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border bg-card hover:bg-muted text-xs font-bold text-foreground transition cursor-pointer shadow-2xs active:scale-95"
+                        title="Klik untuk mengubah urutan tanggal terbaru / terlama"
+                      >
+                        <Calendar className="size-3.5 text-indigo-500" />
+                        <span>Urutan: {ttbSortOrder === 'desc' ? 'Tanggal Terbaru ↓' : 'Tanggal Terlama ↑'}</span>
+                      </button>
                     </div>
 
-                    {/* List Kolom (Tabel Daftar TTB Terbit - Ramah Penglihatan / Font Besar) */}
-                    <div className="rounded-2xl border-2 border-border bg-card overflow-hidden shadow-sm">
-                      <div className="table-container max-h-[460px] overflow-y-auto overflow-x-auto">
+                    {/* List Kolom (Tabel Daftar TTB Terbit - Elegan, Rapi, Seimbang & Informatif) */}
+                    <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
+                      <div className="table-container max-h-[500px] overflow-y-auto overflow-x-auto">
                         <table className="w-full text-left text-sm border-collapse">
-                          <thead className="bg-muted/90 backdrop-blur sticky top-0 z-10 text-foreground font-black border-b-2 border-border uppercase text-sm sm:text-base tracking-wide">
+                          <thead className="bg-slate-100/95 dark:bg-slate-900/95 backdrop-blur-md sticky top-0 z-10 border-b border-border shadow-2xs">
                             <tr>
-                              <th className="py-4 px-4.5 whitespace-nowrap">Tgl Terbit TTB</th>
-                              <th className="py-4 px-4.5 whitespace-nowrap">Nomor TTB Resmi</th>
-                              <th className="py-4 px-4.5 whitespace-nowrap">Armada / Unit</th>
-                              <th className="py-4 px-4.5 whitespace-nowrap">Status Logistik</th>
-                              <th className="py-4 px-4.5 whitespace-nowrap">Status TTD Digital Armada</th>
-                              <th className="py-4 px-4.5 text-right whitespace-nowrap">Aksi</th>
+                              <th
+                                onClick={() => setTtbSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
+                                className="py-3.5 px-4 whitespace-nowrap text-xs font-bold text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground select-none transition group w-[160px] min-w-[160px]"
+                                title="Klik untuk mengubah urutan tanggal"
+                              >
+                                <div className="flex items-center gap-1.5">
+                                  <Calendar className="size-3.5 text-indigo-500" />
+                                  <span>Tgl Terbit TTB</span>
+                                  <span className="text-muted-foreground/70 group-hover:text-foreground text-[10px] font-mono">
+                                    {ttbSortOrder === 'desc' ? '↓' : '↑'}
+                                  </span>
+                                </div>
+                              </th>
+
+                              <th className="py-3.5 px-4 whitespace-nowrap text-xs font-bold text-muted-foreground uppercase tracking-wider w-[240px] min-w-[240px]">
+                                <div className="flex items-center gap-1.5">
+                                  <FileText className="size-3.5 text-indigo-500" />
+                                  <span>Nomor TTB Resmi</span>
+                                </div>
+                              </th>
+
+                              <th className="py-3.5 px-4 whitespace-nowrap text-xs font-bold text-muted-foreground uppercase tracking-wider w-[180px] min-w-[180px]">
+                                <div className="flex items-center gap-1.5">
+                                  <Ship className="size-3.5 text-indigo-500" />
+                                  <span>Armada / Unit</span>
+                                </div>
+                              </th>
+
+                              <th className="py-3.5 px-4 whitespace-nowrap text-xs font-bold text-muted-foreground uppercase tracking-wider w-[180px] min-w-[180px]">
+                                <div className="flex items-center gap-1.5">
+                                  <Truck className="size-3.5 text-indigo-500" />
+                                  <span>Status Logistik</span>
+                                </div>
+                              </th>
+
+                              <th className="py-3.5 px-4 whitespace-nowrap text-xs font-bold text-muted-foreground uppercase tracking-wider w-[210px] min-w-[210px]">
+                                <div className="flex items-center gap-1.5">
+                                  <CheckCircle2 className="size-3.5 text-indigo-500" />
+                                  <span>Status TTD Armada</span>
+                                </div>
+                              </th>
+
+                              <th className="py-3.5 px-4 text-center whitespace-nowrap text-xs font-bold text-muted-foreground uppercase tracking-wider w-[260px] min-w-[260px]">
+                                <div className="inline-flex items-center justify-center gap-1.5">
+                                  <Sparkles className="size-3.5 text-indigo-500" />
+                                  <span>Aksi Pengantaran</span>
+                                </div>
+                              </th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-border/80">
@@ -1788,53 +1866,95 @@ export default function SerahTerimaLapanganTab({
                                       : 'bg-muted/20 hover:bg-muted/30 cursor-not-allowed opacity-80'
                                   }`}
                                 >
-                                  {/* Tgl Terbit TTB */}
-                                  <td className="py-4 px-4.5 whitespace-nowrap font-mono align-middle">
-                                    {opt.tglTtbFormatted ? (
-                                      <div className="flex items-center gap-2 text-foreground font-bold text-sm sm:text-base">
-                                        <Calendar className="size-4.5 text-indigo-500 shrink-0" />
-                                        <span>{opt.tglTtbFormatted}</span>
-                                      </div>
-                                    ) : (
-                                      <span className="text-muted-foreground/60 italic text-xs sm:text-sm">
+                                  {/* Tgl Terbit TTB (Elegan, Font Bold Tabular-nums, Mini-Calendar Badge) */}
+                                  <td className="py-3 px-4 whitespace-nowrap align-middle">
+                                    {opt.tglTtbFormatted ? (() => {
+                                      const d = formatDisplayDateIndo(opt.tglTtbFormatted);
+                                      return (
+                                        <div className="flex items-center gap-2.5">
+                                          <div className="size-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/60 flex flex-col items-center justify-center text-indigo-700 dark:text-indigo-300 shrink-0 shadow-2xs">
+                                            <span className="text-[9px] font-black uppercase tracking-wider leading-none text-indigo-500">
+                                              {d?.monthStr || 'TGL'}
+                                            </span>
+                                            <span className="text-xs font-black tabular-nums leading-none mt-0.5 text-indigo-700 dark:text-indigo-300">
+                                              {d?.day || '--'}
+                                            </span>
+                                          </div>
+                                          <div className="flex flex-col">
+                                            <span className="font-sans font-bold text-xs sm:text-sm text-foreground tabular-nums leading-tight">
+                                              {d ? `${d.day} ${d.monthStr} ${d.yearStr}` : opt.tglTtbFormatted}
+                                            </span>
+                                            <span className="text-[10px] text-muted-foreground/75 font-mono">
+                                              {opt.tglTtbFormatted}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      );
+                                    })() : (
+                                      <span className="text-muted-foreground/60 italic text-xs">
                                         Belum Ada Tgl
                                       </span>
                                     )}
                                   </td>
 
-                                  {/* Nomor TTB Resmi */}
-                                  <td className="py-4 px-4.5 whitespace-nowrap font-mono font-black text-base sm:text-lg text-foreground group-hover:text-indigo-600 dark:group-hover:text-indigo-400 tracking-tight align-middle">
-                                    <div className="flex items-center gap-2.5">
-                                      <span>{opt.noTtb}</span>
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          navigator.clipboard.writeText(opt.noTtb);
-                                          if (showToast) showToast('No. TTB disalin!', 'info');
-                                        }}
-                                        className="p-1 rounded text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition"
-                                        title="Salin No TTB"
-                                      >
-                                        <Copy className="size-4" />
-                                      </button>
+                                  {/* Nomor TTB Resmi & Rincian Barang */}
+                                  <td className="py-3 px-4 whitespace-nowrap align-middle">
+                                    <div className="flex flex-col">
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-mono font-bold text-sm sm:text-base text-foreground group-hover:text-indigo-600 dark:group-hover:text-indigo-400 tracking-tight transition-colors">
+                                          {opt.noTtb}
+                                        </span>
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedTtbForModal(opt.noTtb);
+                                          }}
+                                          className="p-1 rounded-lg text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 transition cursor-pointer"
+                                          title="Pratinjau Berkas Dokumen TTB"
+                                        >
+                                          <Eye className="size-3.5" />
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            navigator.clipboard.writeText(opt.noTtb);
+                                            if (showToast) showToast('No. TTB disalin!', 'info');
+                                          }}
+                                          className="p-1 rounded text-muted-foreground hover:text-foreground opacity-60 hover:opacity-100 transition cursor-pointer"
+                                          title="Salin No TTB"
+                                        >
+                                          <Copy className="size-3.5" />
+                                        </button>
+                                      </div>
+                                      {opt.itemSummary && (
+                                        <span className="text-[11px] text-muted-foreground font-normal line-clamp-1 max-w-[240px] mt-0.5" title={opt.itemSummary}>
+                                          📦 {opt.itemSummary}
+                                        </span>
+                                      )}
+                                      {(opt.noPo || opt.noFpb) && (
+                                        <span className="text-[10px] text-muted-foreground/75 font-mono mt-0.5">
+                                          {opt.noPo ? `PO: ${opt.noPo}` : ''} {opt.noFpb ? `• FPB: ${opt.noFpb}` : ''}
+                                        </span>
+                                      )}
                                     </div>
                                   </td>
 
                                   {/* Armada / Unit */}
-                                  <td className="py-4 px-4.5 whitespace-nowrap align-middle">
-                                    <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-black bg-indigo-500/15 text-indigo-800 dark:text-indigo-200 border border-indigo-500/30 shadow-2xs">
-                                      <Ship className="size-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
-                                      <span className="truncate max-w-[200px]">{opt.armada}</span>
+                                  <td className="py-3 px-4 whitespace-nowrap align-middle">
+                                    <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold bg-indigo-500/10 text-indigo-800 dark:text-indigo-200 border border-indigo-500/25 shadow-2xs">
+                                      <Ship className="size-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                                      <span className="truncate max-w-[190px]">{opt.armada}</span>
                                     </span>
                                   </td>
 
                                   {/* Status Logistik */}
-                                  <td className="py-4 px-4.5 whitespace-nowrap align-middle">
+                                  <td className="py-3 px-4 whitespace-nowrap align-middle">
                                     {opt.isRecipientSigned ? (
                                       <div className="space-y-1">
-                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-black bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 shadow-2xs">
-                                          <CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 shadow-2xs">
+                                          <CheckCircle2 className="size-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                                           <span>Selesai</span>
                                         </span>
                                         <span
@@ -1846,8 +1966,8 @@ export default function SerahTerimaLapanganTab({
                                       </div>
                                     ) : isDispatched ? (
                                       <div className="space-y-1">
-                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-black bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 shadow-2xs">
-                                          <Truck className="size-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 shadow-2xs">
+                                          <Truck className="size-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
                                           <span>Dalam Pengantaran</span>
                                         </span>
                                         {dispatchData?.courierName && (
@@ -1858,8 +1978,8 @@ export default function SerahTerimaLapanganTab({
                                       </div>
                                     ) : opt.isManagerApproved ? (
                                       <div className="space-y-1">
-                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-black bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30 shadow-2xs">
-                                          <Truck className="size-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30 shadow-2xs">
+                                          <PackageCheck className="size-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
                                           <span>Siap Kirim</span>
                                         </span>
                                         <span
@@ -1871,9 +1991,9 @@ export default function SerahTerimaLapanganTab({
                                       </div>
                                     ) : (
                                       <div className="space-y-1">
-                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-black bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 shadow-2xs">
-                                          <Clock className="size-4 text-amber-600 dark:text-amber-400 shrink-0" />
-                                          <span>Menunggu TTD Manager</span>
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 shadow-2xs">
+                                          <Clock className="size-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                                          <span>Menunggu Manager</span>
                                         </span>
                                         <span className="block text-xs text-amber-700 dark:text-amber-400 font-bold font-mono">
                                           Belum Siap Serah Terima
@@ -1882,24 +2002,24 @@ export default function SerahTerimaLapanganTab({
                                     )}
                                   </td>
 
-                                  {/* Status TTD Digital Armada / Penerima Akhir */}
-                                  <td className="py-4 px-4.5 whitespace-nowrap align-middle">
+                                  {/* Status TTD Digital Armada */}
+                                  <td className="py-3 px-4 whitespace-nowrap align-middle">
                                     {opt.isRecipientSigned ? (
                                       <div className="space-y-1">
-                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-sm font-black bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 shadow-2xs">
-                                          <CheckCircle2 className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 shadow-2xs">
+                                          <CheckCircle2 className="size-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
                                           <span>Sudah Ditandatangani dan Diterima</span>
                                         </span>
                                         {opt.recipientName && (
-                                          <span className="block text-xs text-muted-foreground font-bold font-mono truncate max-w-[180px]">
+                                          <span className="block text-xs text-muted-foreground font-bold font-mono truncate max-w-[190px]">
                                             Oleh: {opt.recipientName}
                                           </span>
                                         )}
                                       </div>
                                     ) : isDispatched ? (
                                       <div className="space-y-1">
-                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-sm font-black bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 shadow-2xs">
-                                          <Clock className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 shadow-2xs">
+                                          <Clock className="size-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
                                           <span>Menuju Lokasi Armada</span>
                                         </span>
                                         <span className="block text-xs text-amber-700 dark:text-amber-400 font-bold font-mono">
@@ -1908,8 +2028,8 @@ export default function SerahTerimaLapanganTab({
                                       </div>
                                     ) : opt.isManagerApproved ? (
                                       <div className="space-y-1">
-                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-sm font-black bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30 shadow-2xs">
-                                          <Clock className="size-4 shrink-0 text-blue-600 dark:text-blue-400" />
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30 shadow-2xs">
+                                          <Clock className="size-3.5 shrink-0 text-blue-600 dark:text-blue-400" />
                                           <span>Siap Serah Terima</span>
                                         </span>
                                         <span className="block text-xs text-blue-700 dark:text-blue-300 font-bold font-mono">
@@ -1918,8 +2038,8 @@ export default function SerahTerimaLapanganTab({
                                       </div>
                                     ) : (
                                       <div className="space-y-1">
-                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-sm font-bold bg-muted text-muted-foreground border border-border">
-                                          <Lock className="size-4 shrink-0" />
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-muted text-muted-foreground border border-border">
+                                          <Lock className="size-3.5 shrink-0" />
                                           <span>Terkunci</span>
                                         </span>
                                         <span className="block text-xs text-muted-foreground/80 font-medium font-mono">
@@ -1929,9 +2049,9 @@ export default function SerahTerimaLapanganTab({
                                     )}
                                   </td>
 
-                                  {/* Aksi: Dinamis (Lihat Berkas jika sudah TTD, PILIH TTB / Pre-Check jika Siap Kirim, Terkunci jika belum Manager) */}
-                                  <td className="py-4 px-4.5 text-right whitespace-nowrap align-middle">
-                                    <div className="inline-flex items-center justify-end gap-2">
+                                  {/* Aksi Pengantaran: Centered under Header */}
+                                  <td className="py-3 px-4 text-center whitespace-nowrap align-middle w-[260px] min-w-[260px]">
+                                    <div className="inline-flex items-center justify-center gap-2">
                                       {opt.isRecipientSigned ? (
                                         <button
                                           type="button"
