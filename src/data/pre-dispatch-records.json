@@ -1,17 +1,17 @@
 [
   {
-    "ttbId": "CPL-TTB-26-07578",
-    "noTtb": "CPL-TTB-26-07578",
-    "armada": "SPOB ROYAL REY 3001",
-    "noFpb": "CPL-FPB-26-0003433",
-    "noPo": "CPL-PO-26-05790",
+    "ttbId": "CPL-TTB-26-07629",
+    "noTtb": "CPL-TTB-26-07629",
+    "armada": "SV TWINSISTER 307",
+    "noFpb": "CPL-FPB-26-0004990",
+    "noPo": "CPL-PO-26-05807",
     "itemSummary": "-",
     "itemsVerified": true,
     "packagingGood": true,
     "documentsReady": true,
-    "dispatchNotes": "Pengiriman Pihak Ketiga: Ekspedisi Lokal (test) | Resi: 123",
-    "dispatchedAt": "2026-11-03T11:36:36.017Z",
-    "courierName": "test"
+    "dispatchNotes": "Pengiriman Pihak Ketiga: Diantar Tim Logistik (Agus)",
+    "dispatchedAt": "2026-11-03T14:30:58.983Z",
+    "courierName": "Agus"
   },
   {
     "ttbId": "CPL-TTB-26-07618",
@@ -26,35 +26,6 @@
     "dispatchNotes": "Pengiriman Pihak Ketiga: Ekspedisi Lokal (TEST) | Resi: NN",
     "dispatchedAt": "2026-11-03T06:09:22.818Z",
     "courierName": "TEST"
-  },
-  {
-    "ttbId": "CPL-TTB-26-07629",
-    "cleanNoTtb": "CPL-TTB-26-07629",
-    "noTtb": "CPL-TTB-26-07629",
-    "armada": "SV TWINSISTER 307",
-    "noFpb": "CPL-FPB-26-0004990",
-    "noPo": "CPL-PO-26-05807",
-    "itemSummary": "-",
-    "itemsVerified": true,
-    "packagingGood": true,
-    "documentsReady": true,
-    "dispatchNotes": "",
-    "dispatchedAt": "2026-11-03T05:41:28.947Z",
-    "courierName": "AGUSSALIM (Tim Lapangan)"
-  },
-  {
-    "ttbId": "CPL-TTB-26-07570",
-    "noTtb": "CPL-TTB-26-07570",
-    "armada": "TB PMI ABADI",
-    "noFpb": "CPL-FPB-26-0004960",
-    "noPo": "CPL-PO-26-05770",
-    "itemSummary": "BY PASS PAK NILO",
-    "itemsVerified": true,
-    "packagingGood": true,
-    "documentsReady": true,
-    "dispatchNotes": "Pengiriman Pihak Ketiga: Ekspedisi Lokal (Travel Samarinda) | Resi: #123",
-    "dispatchedAt": "2026-10-31T01:47:09.194Z",
-    "courierName": "Travel Samarinda"
   },
   {
     "ttbId": "GAJ-TTB-26-01311",
@@ -85,20 +56,5 @@
     "dispatchNotes": "",
     "dispatchedAt": "2026-10-26T02:11:59.069Z",
     "courierName": "HADI SUNARYO (Tim Lapangan)"
-  },
-  {
-    "ttbId": "CPL-TTB-26-07465",
-    "cleanNoTtb": "CPL-TTB-26-07465",
-    "noTtb": "CPL-TTB-26-07465",
-    "armada": "TB KING STAR",
-    "noFpb": "CPL-FPB-26-0004837",
-    "noPo": "CPL-PO-26-05649",
-    "itemSummary": "-, GPS GP-39 (FURUNO) (1 UNT)",
-    "itemsVerified": true,
-    "packagingGood": true,
-    "documentsReady": true,
-    "dispatchNotes": "",
-    "dispatchedAt": "2026-10-24T19:05:42.867Z",
-    "courierName": "AGUSSALIM (Tim Lapangan)"
   }
 ]
