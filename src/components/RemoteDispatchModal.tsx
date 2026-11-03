@@ -175,7 +175,7 @@ export default function RemoteDispatchModal({
 Yth. *${recipientNameTarget.trim() || 'Nakhoda / Perwira Kapal'}*
 Armada: *${targetTtb.armada}*
 
-Berikut informasi pengiriman barang via ekspedisi / titipan pihak ketiga:
+Berikut informasi pengiriman barang:
 📄 *No. TTB:* ${targetTtb.noTtb}
 📦 *Rincian Barang:*
 ${targetTtb.itemSummary || '-'}
