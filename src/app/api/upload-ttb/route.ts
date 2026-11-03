@@ -269,16 +269,23 @@ export async function GET(req: NextRequest) {
       }
 
       if (updatedItem.r2Key && isR2Active) {
-        let baseFileUrl = getR2FileUrl(updatedItem.r2Key);
         const v = updatedItem.recipientStampedAt
           ? new Date(updatedItem.recipientStampedAt).getTime()
           : updatedItem.stampedAt
           ? new Date(updatedItem.stampedAt).getTime()
-          : '';
-        if (v) {
-          baseFileUrl += (baseFileUrl.includes('?') ? '&' : '?') + `v=${v}`;
+          : Date.now();
+        const isPdf =
+          updatedItem.renamedFileName?.toLowerCase().endsWith('.pdf') ||
+          updatedItem.fileType === 'application/pdf';
+        if (isPdf) {
+          updatedItem.fileUrl = `/api/r2-file?key=${encodeURIComponent(updatedItem.r2Key)}&v=${v}`;
+        } else {
+          let baseFileUrl = getR2FileUrl(updatedItem.r2Key);
+          if (v) {
+            baseFileUrl += (baseFileUrl.includes('?') ? '&' : '?') + `v=${v}`;
+          }
+          updatedItem.fileUrl = baseFileUrl;
         }
-        updatedItem.fileUrl = baseFileUrl;
       }
 
       // Auto-enrich data kosong (armada, noPo, noFpb, uploaderName) dari Monitoring Internal & relasi dokumen
@@ -758,6 +765,47 @@ export async function DELETE(req: NextRequest) {
         }
       } catch (valCleanErr) {
         console.warn('Gagal membersihkan data validasi saat TTB dihapus:', valCleanErr);
+      }
+
+      // 5. Bersihkan data pre-dispatch / serah terima lapangan agar status pengantaran lama tidak nyangkut jika di-upload ulang
+      try {
+        const prePath = path.join(process.cwd(), 'src', 'data', 'pre-dispatch-records.json');
+        let preRecords: any[] = [];
+        if (isR2Active) {
+          const r2Pre = await getObjectFromR2('ttb-metadata/pre-dispatch-records.json');
+          if (r2Pre && r2Pre.body) {
+            preRecords = JSON.parse(Buffer.from(r2Pre.body).toString('utf8'));
+          }
+        }
+        if (preRecords.length === 0) {
+          try {
+            const raw = await fs.readFile(prePath, 'utf8');
+            preRecords = JSON.parse(raw);
+          } catch {}
+        }
+        if (Array.isArray(preRecords) && preRecords.length > 0) {
+          const filtered = preRecords.filter(
+            (p: any) =>
+              p.cleanNoTtb?.toLowerCase() !== ttbNumberToClean.toLowerCase() &&
+              p.noTtb?.toLowerCase() !== ttbNumberToClean.toLowerCase() &&
+              p.ttbId?.toLowerCase() !== ttbNumberToClean.toLowerCase()
+          );
+          if (filtered.length !== preRecords.length) {
+            const preJson = JSON.stringify(filtered, null, 2);
+            try {
+              await fs.writeFile(prePath, preJson, 'utf8');
+            } catch {}
+            if (isR2Active) {
+              await uploadToR2({
+                key: 'ttb-metadata/pre-dispatch-records.json',
+                body: Buffer.from(preJson, 'utf8'),
+                contentType: 'application/json',
+              });
+            }
+          }
+        }
+      } catch (preErr) {
+        console.warn('Gagal membersihkan data pre-dispatch saat TTB dihapus:', preErr);
       }
     }
 

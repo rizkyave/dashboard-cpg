@@ -216,6 +216,13 @@ export default function TtbMediaModal({
   const selectedDoc = documents[selectedDocIdx] || documents[0];
   const selectedPhoto = photos[selectedPhotoIdx] || photos[0];
 
+  // URL pratinjau dokumen ter-cache-bust agar perubahan stempel/tanda tangan digital selalu termutakhir tanpa terhalang cache
+  const docPreviewUrl = useMemo(() => {
+    if (!selectedDoc) return '';
+    const key = selectedDoc.r2Key || `ttb-documents/${selectedDoc.renamedFileName}`;
+    return `/api/r2-file?key=${encodeURIComponent(key)}&t=${Date.now()}`;
+  }, [selectedDoc]);
+
   // Helper formatting metadata foto fisik serah terima
   const photoMeta = useMemo(() => {
     if (!selectedPhoto) return { dateStr: '-', timeStr: '', ext: 'JPG' };
@@ -597,7 +604,7 @@ export default function TtbMediaModal({
                           <ExternalLink className="size-3.5" />
                         </a>
                         <a
-                          href={selectedDoc?.fileUrl}
+                          href={docPreviewUrl || selectedDoc?.fileUrl}
                           download={selectedDoc?.renamedFileName}
                           className="h-8 px-3 rounded-lg bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-bold text-xs inline-flex items-center gap-1.5 transition active:scale-95 shadow-xs cursor-pointer"
                           title="Unduh berkas PDF resmi"
@@ -612,7 +619,7 @@ export default function TtbMediaModal({
                     <div className="flex-1 h-[400px] min-h-[400px] rounded-xl border border-border overflow-hidden bg-muted/40 dark:bg-black/40 flex flex-col items-center justify-center relative group">
                       {selectedDoc?.fileType === 'application/pdf' || selectedDoc?.renamedFileName?.toLowerCase().endsWith('.pdf') ? (
                         <iframe
-                          src={`${selectedDoc.fileUrl}#toolbar=0&navpanes=0`}
+                          src={`${docPreviewUrl || selectedDoc.fileUrl}#toolbar=0&navpanes=0`}
                           className="w-full h-full border-none"
                           title={selectedDoc.renamedFileName}
                         />
@@ -625,7 +632,7 @@ export default function TtbMediaModal({
                         />
                       )}
                       <a
-                        href={selectedDoc?.fileUrl}
+                        href={docPreviewUrl || selectedDoc?.fileUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="absolute top-2.5 right-2.5 size-8 rounded-lg bg-black/60 hover:bg-black/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition cursor-pointer"
@@ -837,7 +844,7 @@ export default function TtbMediaModal({
                 {selectedDoc && (
                   <div className="flex items-center gap-2">
                     <a
-                      href={selectedDoc.fileUrl}
+                      href={docPreviewUrl || selectedDoc.fileUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="h-8 px-3 rounded-lg border border-border bg-background hover:bg-muted text-foreground text-xs font-medium inline-flex items-center gap-1.5 transition"
@@ -846,7 +853,7 @@ export default function TtbMediaModal({
                       <span>Buka di Tab Baru</span>
                     </a>
                     <a
-                      href={selectedDoc.fileUrl}
+                      href={docPreviewUrl || selectedDoc.fileUrl}
                       download={selectedDoc.renamedFileName}
                       className="h-8 px-3.5 rounded-lg bg-cyan-500 hover:bg-cyan-600 text-slate-950 text-xs font-bold inline-flex items-center gap-1.5 transition shadow-xs"
                     >
@@ -877,7 +884,7 @@ export default function TtbMediaModal({
                   <div className="w-full h-[550px] rounded-xl border border-border overflow-hidden bg-black/5 dark:bg-black/30">
                     {selectedDoc?.fileType === 'application/pdf' || selectedDoc?.renamedFileName?.toLowerCase().endsWith('.pdf') ? (
                       <iframe
-                        src={`${selectedDoc.fileUrl}#toolbar=1`}
+                        src={`${docPreviewUrl || selectedDoc.fileUrl}#toolbar=1`}
                         className="w-full h-full border-none"
                         title={selectedDoc.renamedFileName}
                       />

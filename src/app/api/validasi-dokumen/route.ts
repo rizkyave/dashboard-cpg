@@ -164,6 +164,100 @@ async function saveValidations(records: DocumentValidationRecord[]) {
   }
 }
 
+// Bersihkan rekaman pre-dispatch agar dokumen yang di-reset/revalidasi tidak tertahan sebagai 'Dalam Pengantaran'
+async function clearPreDispatchForDoc(cleanDocNumber: string) {
+  if (!cleanDocNumber) return;
+  const PRE_DISPATCH_LOCAL = path.join(process.cwd(), 'src', 'data', 'pre-dispatch-records.json');
+  const R2_PRE_KEY = 'ttb-metadata/pre-dispatch-records.json';
+  if (isR2Configured()) {
+    try {
+      const obj = await getObjectFromR2(R2_PRE_KEY);
+      if (obj && obj.body) {
+        const parsed = JSON.parse(Buffer.from(obj.body).toString('utf8'));
+        if (Array.isArray(parsed)) {
+          const filtered = parsed.filter(
+            (p: any) =>
+              p.cleanNoTtb !== cleanDocNumber &&
+              p.noTtb !== cleanDocNumber &&
+              p.ttbId !== cleanDocNumber
+          );
+          if (filtered.length !== parsed.length) {
+            await uploadToR2({
+              key: R2_PRE_KEY,
+              body: Buffer.from(JSON.stringify(filtered, null, 2), 'utf8'),
+              contentType: 'application/json',
+            });
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Gagal membersihkan pre-dispatch di R2:', e);
+    }
+  }
+  try {
+    const raw = await fs.readFile(PRE_DISPATCH_LOCAL, 'utf8');
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      const filtered = parsed.filter(
+        (p: any) =>
+          p.cleanNoTtb !== cleanDocNumber &&
+          p.noTtb !== cleanDocNumber &&
+          p.ttbId !== cleanDocNumber
+      );
+      if (filtered.length !== parsed.length) {
+        await fs.writeFile(PRE_DISPATCH_LOCAL, JSON.stringify(filtered, null, 2), 'utf8');
+      }
+    }
+  } catch {}
+}
+
+// Sinkronisasikan berkas PDF yang baru di-stamp ke ttb-uploads-history (R2 & lokal)
+async function syncTtbHistoryStampedPdf(cleanNoTtb: string, r2Key: string, newFileSize: number, stampedAtIso: string) {
+  if (!cleanNoTtb) return;
+  const isR2 = isR2Configured();
+  let history: UploadedTtbItem[] = [];
+  if (isR2) {
+    try {
+      const r2Obj = await getObjectFromR2(R2_METADATA_TTB_KEY);
+      if (r2Obj && r2Obj.body) {
+        history = JSON.parse(Buffer.from(r2Obj.body).toString('utf8'));
+      }
+    } catch {}
+  }
+  if (!history || history.length === 0) {
+    try {
+      const raw = await fs.readFile(TTB_HISTORY_FILE_PATH, 'utf8');
+      history = JSON.parse(raw);
+    } catch {}
+  }
+  if (Array.isArray(history) && history.length > 0) {
+    let modified = false;
+    for (const item of history) {
+      if (item.cleanNoTtb === cleanNoTtb || item.noTtb === cleanNoTtb) {
+        item.fileSize = newFileSize;
+        item.stampedAt = stampedAtIso;
+        item.fileUrl = `/api/r2-file?key=${encodeURIComponent(r2Key)}&v=${Date.now()}`;
+        modified = true;
+      }
+    }
+    if (modified) {
+      const jsonStr = JSON.stringify(history, null, 2);
+      if (isR2) {
+        try {
+          await uploadToR2({
+            key: R2_METADATA_TTB_KEY,
+            body: Buffer.from(jsonStr, 'utf8'),
+            contentType: 'application/json',
+          });
+        } catch {}
+      }
+      try {
+        await fs.writeFile(TTB_HISTORY_FILE_PATH, jsonStr, 'utf8');
+      } catch {}
+    }
+  }
+}
+
 // Baca data berkas FSTB yang terunggah (Cloudflare R2 dengan fallback disk lokal)
 async function getFstbHistory(): Promise<UploadedFstbItem[]> {
   if (isR2Configured()) {
@@ -1016,6 +1110,7 @@ export async function POST(req: NextRequest) {
               } catch {}
 
               record.fileUrl = `/api/r2-file?key=${encodeURIComponent(r2Key)}&v=${Date.now()}`;
+              await syncTtbHistoryStampedPdf(record.cleanDocNumber, r2Key, pdfBuffer.length, nowIso);
             } catch (err) {
               console.warn('Gagal stamp PDF pada batch sign:', err);
             }
@@ -1309,6 +1404,7 @@ export async function POST(req: NextRequest) {
         if (record.recipientValidation) {
           record.recipientValidation.isSigned = false;
         }
+        await clearPreDispatchForDoc(record.cleanDocNumber || record.docNumber);
       } else if (record.docType === 'FSTB') {
         record.fstbSlots = {
           deliveredBy: { isValidated: false, notes: notes || 'Validasi di-reset.' },
@@ -1552,6 +1648,7 @@ export async function POST(req: NextRequest) {
           }
 
           record.fileUrl = `/api/r2-file?key=${encodeURIComponent(r2Key)}&v=${Date.now()}`;
+          await syncTtbHistoryStampedPdf(record.cleanDocNumber, r2Key, pdfBuffer.length, nowIso);
         }
 
         // Sinkronkan ke 2 Lini Departemen (Purchasing & Logistik):
@@ -1722,6 +1819,7 @@ export async function POST(req: NextRequest) {
           }
 
           record.fileUrl = `/api/r2-file?key=${encodeURIComponent(r2Key)}&v=${Date.now()}`;
+          await syncTtbHistoryStampedPdf(record.cleanDocNumber, r2Key, pdfBuffer.length, nowIso);
         }
 
         // Sinkronkan ke 3 Lini agregat:

@@ -1,5 +1,48 @@
 [
   {
+    "ttbId": "CPL-TTB-26-07578",
+    "noTtb": "CPL-TTB-26-07578",
+    "armada": "SPOB ROYAL REY 3001",
+    "noFpb": "CPL-FPB-26-0003433",
+    "noPo": "CPL-PO-26-05790",
+    "itemSummary": "-",
+    "itemsVerified": true,
+    "packagingGood": true,
+    "documentsReady": true,
+    "dispatchNotes": "Pengiriman Pihak Ketiga: Ekspedisi Lokal (test) | Resi: 123",
+    "dispatchedAt": "2026-11-03T11:36:36.017Z",
+    "courierName": "test"
+  },
+  {
+    "ttbId": "CPL-TTB-26-07618",
+    "noTtb": "CPL-TTB-26-07618",
+    "armada": "MT DEWA YANI",
+    "noFpb": "CPL-FPB-26-0004909",
+    "noPo": "CPL-PO-26-05725",
+    "itemSummary": "-",
+    "itemsVerified": true,
+    "packagingGood": true,
+    "documentsReady": true,
+    "dispatchNotes": "Pengiriman Pihak Ketiga: Ekspedisi Lokal (TEST) | Resi: NN",
+    "dispatchedAt": "2026-11-03T06:09:22.818Z",
+    "courierName": "TEST"
+  },
+  {
+    "ttbId": "CPL-TTB-26-07629",
+    "cleanNoTtb": "CPL-TTB-26-07629",
+    "noTtb": "CPL-TTB-26-07629",
+    "armada": "SV TWINSISTER 307",
+    "noFpb": "CPL-FPB-26-0004990",
+    "noPo": "CPL-PO-26-05807",
+    "itemSummary": "-",
+    "itemsVerified": true,
+    "packagingGood": true,
+    "documentsReady": true,
+    "dispatchNotes": "",
+    "dispatchedAt": "2026-11-03T05:41:28.947Z",
+    "courierName": "AGUSSALIM (Tim Lapangan)"
+  },
+  {
     "ttbId": "CPL-TTB-26-07570",
     "noTtb": "CPL-TTB-26-07570",
     "armada": "TB PMI ABADI",
@@ -42,21 +85,6 @@
     "dispatchNotes": "",
     "dispatchedAt": "2026-10-26T02:11:59.069Z",
     "courierName": "HADI SUNARYO (Tim Lapangan)"
-  },
-  {
-    "ttbId": "HL-TTB-26-02256",
-    "cleanNoTtb": "HL-TTB-26-02256",
-    "noTtb": "HL-TTB-26-02256",
-    "armada": "TK CPL 250",
-    "noFpb": "HL-FPB-26-0001434",
-    "noPo": "HL-PO-26-01693",
-    "itemSummary": "-, PLAT ALUMINIUM 0,6 MM X 1 MTR X 2 MTR (00) (1 LBR)",
-    "itemsVerified": true,
-    "packagingGood": true,
-    "documentsReady": true,
-    "dispatchNotes": "",
-    "dispatchedAt": "2026-10-24T20:17:16.127Z",
-    "courierName": "AGUSSALIM (Tim Lapangan)"
   },
   {
     "ttbId": "CPL-TTB-26-07465",

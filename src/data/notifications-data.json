@@ -1,5 +1,28 @@
 [
   {
+    "id": "notif-1793705796787-z25db",
+    "type": "TTB_DISPATCHED",
+    "title": "📦 TTB Dikirim via Pihak Ketiga / Remote",
+    "message": "Pengiriman TTB CPL-TTB-26-07578 ke SPOB ROYAL REY 3001 dititipkan via Ekspedisi Lokal (test). Tautan serah terima mandiri telah diterbitkan.",
+    "senderName": "Administrator CPG (Tim Lapangan)",
+    "senderUsername": "logistik",
+    "senderRole": "Staf Logistik",
+    "targetRole": "manager",
+    "linkTab": "serah-terima",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07578",
+      "armada": "SPOB ROYAL REY 3001",
+      "noPo": "CPL-PO-26-05790",
+      "noFpb": "CPL-FPB-26-0003433",
+      "shippingMethod": "Ekspedisi Lokal",
+      "carrierContact": "test",
+      "recipientName": "jjjjj",
+      "itemSummary": "-"
+    },
+    "createdAt": "2026-11-03T11:36:36.787Z",
+    "readBy": []
+  },
+  {
     "id": "notif-1793704970666-twrkd",
     "type": "TTB_VALIDATED",
     "title": "🛡️ TTB Divalidasi & Disahkan",

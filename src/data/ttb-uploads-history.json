@@ -175,9 +175,9 @@
     "keterangan": "",
     "originalFileName": "HL-TTB-26-02256 VI.pdf",
     "renamedFileName": "HL-TTB-26-02256.pdf",
-    "fileSize": 68955,
+    "fileSize": 1520110,
     "fileType": "application/pdf",
-    "fileUrl": "/api/r2-file?key=ttb-documents%2FHL-TTB-26-02256.pdf",
+    "fileUrl": "/api/r2-file?key=ttb-documents%2FHL-TTB-26-02256.pdf&v=1793710624255",
     "r2Key": "ttb-documents/HL-TTB-26-02256.pdf",
     "storageProvider": "CLOUDFLARE_R2",
     "uploadedAt": "2026-10-24T20:10:11.104Z",
@@ -188,7 +188,8 @@
     "uploaderJabatan": "Admin Logistik",
     "isAutoStamped": true,
     "uploaderUsername": "davila.zalianti",
-    "uploaderNik": "MP-DAO-0662"
+    "uploaderNik": "MP-DAO-0662",
+    "stampedAt": "2026-11-03T12:57:03.752Z"
   },
   {
     "id": "1792867680086-lnf71",
