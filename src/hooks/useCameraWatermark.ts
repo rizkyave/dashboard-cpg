@@ -185,6 +185,19 @@ export function useCameraWatermark(
   const [settings, setSettings] = useState<WatermarkSettings>(loadSettings);
   const [capturedPhotos, setCapturedPhotos] = useState<CapturedPhoto[]>([]);
 
+  // Preload logo resmi CPG 3D untuk watermark kamera TimeMark
+  const officialLogoRef = useRef<HTMLImageElement | null>(null);
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.src = '/images/logo/cpg_logo_official.png';
+      img.onload = () => {
+        officialLogoRef.current = img;
+      };
+    }
+  }, []);
+
   // ── Real-time clock ──────────────────────────
   useEffect(() => {
     intervalRef.current = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -241,53 +254,175 @@ export function useCameraWatermark(
       const fs = sizeMap[settings.fontSize];
       const lineH = fs * 1.45;
       const pad = fs * 0.85;
+      const margin = fs;
 
-      // Build lines
-      const lines: string[] = [];
-      if (settings.showDateTime) lines.push(formatDateTimeID(now));
+      // ── 1. Watermark Vertikal Kanan Atas: "TIMEMARK Official by logistik team" ──
+      ctx.save();
+      const vertFs = Math.max(10, Math.round(fs * 0.72));
+      ctx.font = `bold ${vertFs}px 'Inter', Arial, sans-serif`;
+      const vertText = 'TIMEMARK Official by logistik team';
+      const vertTextW = ctx.measureText(vertText).width;
+      const vertPadX = vertFs * 0.9;
+      const vertPadY = vertFs * 0.45;
+      const pillW = vertTextW + vertPadX * 2;
+      const pillH = vertFs + vertPadY * 2;
+
+      // Posisi vertikal di kanan atas membentang ke bawah
+      const centerX = w - margin - pillH / 2;
+      const centerY = margin + pillW / 2;
+
+      ctx.translate(centerX, centerY);
+      ctx.rotate(Math.PI / 2); // Putar 90 derajat searah jarum jam agar teks mengalir dari atas ke bawah
+
+      // Background pill semi-transparan
+      const vAlpha = transparent ? (settings.bgOpacity / 100) * 0.75 : settings.bgOpacity / 100;
+      ctx.fillStyle = `rgba(0,0,0,${Math.max(0.45, vAlpha * 0.85)})`;
+      const pillRadius = pillH / 2;
+      const rx = -pillW / 2;
+      const ry = -pillH / 2;
+      ctx.beginPath();
+      if (typeof (ctx as any).roundRect === 'function') {
+        (ctx as any).roundRect(rx, ry, pillW, pillH, pillRadius);
+      } else {
+        ctx.rect(rx, ry, pillW, pillH);
+      }
+      ctx.fill();
+
+      // Border halus pill
+      ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Teks Vertikal
+      ctx.shadowColor = 'rgba(0,0,0,0.9)';
+      ctx.shadowBlur = 3;
+      ctx.shadowOffsetX = 1;
+      ctx.shadowOffsetY = 1;
+      ctx.fillStyle = '#FFFFFF';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(vertText, 0, 0);
+      ctx.restore();
+
+      // ── 2. Watermark Kiri Bawah (Logo Resmi CPG + Informasi Detail dengan Auto Wrap) ──
+      const rawLines: string[] = [];
+      if (settings.showDateTime) rawLines.push(formatDateTimeID(now));
+
       if (settings.showUserName && (opts.userName || opts.userJabatan)) {
         const parts = [opts.userName, opts.userJabatan].filter(Boolean);
-        lines.push(parts.join(' • '));
+        rawLines.push(parts.join(' • '));
       }
       if (settings.showDocNumber && opts.docNumber) {
         const prefix = opts.docType ? `${opts.docType}: ` : '';
-        lines.push(`${prefix}${opts.docNumber}`);
+        rawLines.push(`${prefix}${opts.docNumber}`);
       }
       if (settings.showGpsCoords && geoInfo && geoInfo.latitude !== 0) {
-        lines.push(
-          `GPS: ${geoInfo.latitude.toFixed(5)}, ${geoInfo.longitude.toFixed(5)}`
-        );
+        rawLines.push(`GPS: ${geoInfo.latitude.toFixed(5)}, ${geoInfo.longitude.toFixed(5)}`);
       }
       if (settings.showCityName && geoInfo?.cityName) {
-        lines.push(`📍 ${geoInfo.cityName}`);
+        rawLines.push(`📍 ${geoInfo.cityName}`);
       }
-      if (settings.customLabel) lines.push(settings.customLabel);
+      if (settings.customLabel) rawLines.push(settings.customLabel);
 
-      if (lines.length === 0 && !settings.showLogo) return;
+      if (rawLines.length === 0 && !settings.showLogo) return;
 
       ctx.save();
-      ctx.font = `bold ${fs}px 'Inter', 'Helvetica Neue', Arial, sans-serif`;
 
-      // Measure widths
-      const logoText = 'CPG';
-      const logoFontSize = fs * 1.8;
-      ctx.font = `900 ${logoFontSize}px 'Inter', Arial, sans-serif`;
-      const logoW = settings.showLogo ? ctx.measureText(logoText).width : 0;
+      // Tentukan batas lebar maksimal kotak agar TIDAK TERPOTONG di layar portrait/vertikal
+      const maxBoxW = Math.max(220, Math.min(w - margin * 2, w * 0.94));
+      const maxTextW = maxBoxW - pad * 2;
 
+      // Word wrapping pintar: pecah teks yang terlalu panjang agar seluruh teks terlihat utuh
       ctx.font = `bold ${fs}px 'Inter', Arial, sans-serif`;
-      const maxLineW = Math.max(
-        ...lines.map((l) => ctx.measureText(l).width),
-        logoW
-      );
+      const lines: string[] = [];
 
-      const logoAreaH = settings.showLogo ? logoFontSize + pad * 0.5 : 0;
-      const separatorH = settings.showLogo && lines.length > 0 ? 1 + pad * 0.5 : 0;
+      for (const rawLine of rawLines) {
+        if (ctx.measureText(rawLine).width <= maxTextW) {
+          lines.push(rawLine);
+        } else {
+          // Jika ada pemisah bullet ' • ' (misal nama • jabatan • armada), pecah di bullet dulu
+          if (rawLine.includes(' • ')) {
+            const chunks = rawLine.split(' • ');
+            let cur = '';
+            for (let i = 0; i < chunks.length; i++) {
+              const test = cur ? `${cur} • ${chunks[i]}` : chunks[i];
+              if (ctx.measureText(test).width <= maxTextW) {
+                cur = test;
+              } else {
+                if (cur) lines.push(cur);
+                // Jika chunk itu sendiri masih melebihi maxTextW, lakukan word wrap per kata
+                if (ctx.measureText(chunks[i]).width > maxTextW) {
+                  const words = chunks[i].split(' ');
+                  let sub = '';
+                  for (const word of words) {
+                    const testW = sub ? `${sub} ${word}` : word;
+                    if (ctx.measureText(testW).width <= maxTextW) {
+                      sub = testW;
+                    } else {
+                      if (sub) lines.push(sub);
+                      sub = word;
+                    }
+                  }
+                  if (sub) cur = sub;
+                } else {
+                  cur = chunks[i];
+                }
+              }
+            }
+            if (cur) lines.push(cur);
+          } else {
+            // Word wrap standar berdasarkan spasi
+            const words = rawLine.split(' ');
+            let cur = '';
+            for (const word of words) {
+              const test = cur ? `${cur} ${word}` : word;
+              if (ctx.measureText(test).width <= maxTextW) {
+                cur = test;
+              } else {
+                if (cur) lines.push(cur);
+                cur = word;
+              }
+            }
+            if (cur) lines.push(cur);
+          }
+        }
+      }
+
+      // Hitung dimensi Logo Resmi CPG 3D
+      let logoAreaH = 0;
+      let logoRenderW = 0;
+      let logoRenderH = 0;
+      const logoImg = officialLogoRef.current;
+      const isLogoLoaded = Boolean(logoImg && logoImg.complete && logoImg.naturalWidth > 0);
+
+      if (settings.showLogo) {
+        if (isLogoLoaded && logoImg) {
+          logoRenderH = Math.round(fs * 2.6); // Proporsi pas, tajam & elegan
+          const aspect = logoImg.naturalWidth / logoImg.naturalHeight;
+          logoRenderW = Math.round(logoRenderH * aspect);
+          logoAreaH = logoRenderH + pad * 0.45;
+        } else {
+          // Fallback teks jika logo sedang dimuat
+          const logoFontSize = fs * 1.8;
+          ctx.font = `900 ${logoFontSize}px 'Inter', Arial, sans-serif`;
+          logoRenderW = ctx.measureText('CPG').width;
+          logoRenderH = logoFontSize;
+          logoAreaH = logoFontSize + pad * 0.45;
+        }
+      }
+
+      // Hitung dimensi kotak keseluruhan
+      ctx.font = `bold ${fs}px 'Inter', Arial, sans-serif`;
+      const calculatedMaxLineW = lines.length > 0
+        ? Math.max(...lines.map((l) => ctx.measureText(l).width), logoRenderW)
+        : logoRenderW;
+
+      const separatorH = settings.showLogo && lines.length > 0 ? 1 + pad * 0.45 : 0;
       const textAreaH = lines.length * lineH;
-      const boxW = maxLineW + pad * 2;
+      const boxW = Math.min(calculatedMaxLineW + pad * 2, maxBoxW);
       const boxH = logoAreaH + separatorH + textAreaH + pad * 2;
 
-      // Position
-      const margin = fs;
+      // Hitung posisi kotak
       let boxX = margin;
       let boxY = h - boxH - margin;
 
@@ -305,52 +440,75 @@ export function useCameraWatermark(
         boxY = h - boxH - margin;
       }
 
-      // Background rect
+      // Pastikan boxX dan boxY selalu aman di dalam frame canvas (tidak pernah terpotong)
+      boxX = Math.max(margin, Math.min(boxX, w - boxW - margin));
+      boxY = Math.max(margin, Math.min(boxY, h - boxH - margin));
+
+      // Latar belakang kotak rounded
       const alpha = transparent ? (settings.bgOpacity / 100) * 0.75 : settings.bgOpacity / 100;
       ctx.fillStyle = `rgba(0,0,0,${alpha})`;
       const radius = fs * 0.6;
       ctx.beginPath();
-      ctx.moveTo(boxX + radius, boxY);
-      ctx.lineTo(boxX + boxW - radius, boxY);
-      ctx.quadraticCurveTo(boxX + boxW, boxY, boxX + boxW, boxY + radius);
-      ctx.lineTo(boxX + boxW, boxY + boxH - radius);
-      ctx.quadraticCurveTo(boxX + boxW, boxY + boxH, boxX + boxW - radius, boxY + boxH);
-      ctx.lineTo(boxX + radius, boxY + boxH);
-      ctx.quadraticCurveTo(boxX, boxY + boxH, boxX, boxY + boxH - radius);
-      ctx.lineTo(boxX, boxY + radius);
-      ctx.quadraticCurveTo(boxX, boxY, boxX + radius, boxY);
+      if (typeof (ctx as any).roundRect === 'function') {
+        (ctx as any).roundRect(boxX, boxY, boxW, boxH, radius);
+      } else {
+        ctx.moveTo(boxX + radius, boxY);
+        ctx.lineTo(boxX + boxW - radius, boxY);
+        ctx.quadraticCurveTo(boxX + boxW, boxY, boxX + boxW, boxY + radius);
+        ctx.lineTo(boxX + boxW, boxY + boxH - radius);
+        ctx.quadraticCurveTo(boxX + boxW, boxY + boxH, boxX + boxW - radius, boxY + boxH);
+        ctx.lineTo(boxX + radius, boxY + boxH);
+        ctx.quadraticCurveTo(boxX, boxY + boxH, boxX, boxY + boxH - radius);
+        ctx.lineTo(boxX, boxY + radius);
+        ctx.quadraticCurveTo(boxX, boxY, boxX + radius, boxY);
+      }
       ctx.closePath();
       ctx.fill();
 
+      // Border halus kotak
+      ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
       let cursorY = boxY + pad;
 
-      // Logo
+      // Render Logo Resmi CPG 3D
       if (settings.showLogo) {
-        ctx.font = `900 ${logoFontSize}px 'Inter', Arial, sans-serif`;
-        ctx.shadowColor = 'rgba(0,0,0,0.8)';
-        ctx.shadowBlur = 4;
-        ctx.shadowOffsetX = 1;
-        ctx.shadowOffsetY = 1;
-        ctx.fillStyle = '#F59E0B'; // amber-500
-        ctx.fillText(logoText, boxX + pad, cursorY + logoFontSize * 0.85);
-        cursorY += logoFontSize + pad * 0.5;
+        if (isLogoLoaded && logoImg) {
+          ctx.shadowColor = 'rgba(0,0,0,0.85)';
+          ctx.shadowBlur = 6;
+          ctx.shadowOffsetX = 1;
+          ctx.shadowOffsetY = 2;
+          ctx.drawImage(logoImg, boxX + pad, cursorY, logoRenderW, logoRenderH);
+          cursorY += logoAreaH;
+        } else {
+          const logoFontSize = fs * 1.8;
+          ctx.font = `900 ${logoFontSize}px 'Inter', Arial, sans-serif`;
+          ctx.shadowColor = 'rgba(0,0,0,0.8)';
+          ctx.shadowBlur = 4;
+          ctx.shadowOffsetX = 1;
+          ctx.shadowOffsetY = 1;
+          ctx.fillStyle = '#F59E0B'; // amber-500
+          ctx.fillText('CPG', boxX + pad, cursorY + logoFontSize * 0.85);
+          cursorY += logoAreaH;
+        }
 
-        // Separator
+        // Garis pemisah
         if (lines.length > 0) {
           ctx.shadowBlur = 0;
-          ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+          ctx.strokeStyle = 'rgba(255,255,255,0.3)';
           ctx.lineWidth = 1;
           ctx.beginPath();
           ctx.moveTo(boxX + pad, cursorY);
           ctx.lineTo(boxX + boxW - pad, cursorY);
           ctx.stroke();
-          cursorY += 1 + pad * 0.5;
+          cursorY += 1 + pad * 0.45;
         }
       }
 
-      // Text lines
+      // Render Teks Baris Demi Baris
       ctx.font = `bold ${fs}px 'Inter', Arial, sans-serif`;
-      ctx.shadowColor = 'rgba(0,0,0,0.9)';
+      ctx.shadowColor = 'rgba(0,0,0,0.95)';
       ctx.shadowBlur = 3;
       ctx.shadowOffsetX = 1;
       ctx.shadowOffsetY = 1;
