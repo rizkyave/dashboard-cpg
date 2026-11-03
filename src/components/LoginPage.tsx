@@ -295,14 +295,13 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
           {/* Main Title & Hero Heading */}
           <div className="space-y-3">
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-[1.15]">
-              Integrated Marine Fleet &amp;{' '}
+              Sistem Logistik &amp;{' '}
               <span className="bg-gradient-to-r from-cyan-400 via-teal-300 to-blue-400 bg-clip-text text-transparent">
-                Procurement Hub
+                Pengadaan Armada
               </span>
             </h1>
             <p className="text-sm sm:text-base text-slate-400 leading-relaxed max-w-xl">
-              Pusat kendali terintegrasi operasional 60 armada kapal, gudang logistik, dan percepatan rantai pasok pengadaan 
-              (<span className="text-slate-200 font-medium">FPB &rarr; PO &rarr; FSTB &rarr; TTB</span>) lintas seluruh entitas grup.
+              Satu platform untuk memantau kebutuhan kapal, alur pengadaan barang, hingga serah terima di lapangan secara real-time.
             </p>
           </div>
 
