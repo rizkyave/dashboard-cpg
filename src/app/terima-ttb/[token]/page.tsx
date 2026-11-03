@@ -22,6 +22,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { RemoteHandoverTokenData, RemoteHandoverResponse } from '@/types/remoteHandover';
+import CameraWatermarkModal from '@/components/CameraWatermarkModal';
 
 /**
  * Kompresi gambar client-side menggunakan HTML5 Canvas
@@ -106,6 +107,13 @@ export default function RemoteHandoverPage() {
   const [completionNotes, setCompletionNotes] = useState<string>('');
   const [uploadedPhotos, setUploadedPhotos] = useState<{ file: File; preview: string }[]>([]);
   const [isCompressing, setIsCompressing] = useState<boolean>(false);
+  const [isCameraWatermarkOpen, setIsCameraWatermarkOpen] = useState<boolean>(false);
+  const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'info' | 'error' } | null>(null);
+
+  const showToast = (msg: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') => {
+    setToastMessage({ text: msg, type: type === 'warning' ? 'info' : type });
+    setTimeout(() => setToastMessage(null), 3500);
+  };
 
   // Signature Pad State
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -248,6 +256,30 @@ export default function RemoteHandoverPage() {
   };
 
   // 3. Penanganan Foto Bukti (Kamera Ponsel & Kompresi Otomatis)
+  const handleCameraWatermarkPhoto = async (dataUrl: string, filename: string) => {
+    try {
+      setIsCompressing(true);
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      const file = new File([blob], filename, {
+        type: 'image/jpeg',
+        lastModified: Date.now(),
+      });
+      const compressed = await compressImage(file);
+      const previewUrl = URL.createObjectURL(compressed);
+
+      setUploadedPhotos((prev) => {
+        if (prev.length >= 2) return prev;
+        return [...prev, { file: compressed, preview: previewUrl }];
+      });
+      showToast('Foto bukti ber-watermark berhasil ditambahkan!', 'success');
+    } catch (err) {
+      console.warn('Gagal memproses foto kamera watermark:', err);
+      showToast('Gagal memproses foto kamera watermark.', 'error');
+    } finally {
+      setIsCompressing(false);
+    }
+  };
   const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -637,29 +669,47 @@ export default function RemoteHandoverPage() {
                 </div>
               ))}
 
-              {/* Tombol Ambil Foto dari Kamera Ponsel */}
+              {/* Tombol Ambil Foto dengan Kamera Watermark CPG (Timemark) */}
               {uploadedPhotos.length < 2 && (
-                <button
-                  type="button"
-                  disabled={isCompressing}
-                  onClick={() => fileInputRef.current?.click()}
-                  className="aspect-4/3 rounded-xl border-2 border-dashed border-slate-700 hover:border-indigo-500 bg-slate-950/60 hover:bg-indigo-500/5 flex flex-col items-center justify-center p-3 text-center transition cursor-pointer active:scale-98"
-                >
+                <div className="aspect-4/3 rounded-xl border-2 border-dashed border-indigo-500/50 hover:border-indigo-400 bg-slate-950/60 hover:bg-indigo-500/5 flex flex-col items-center justify-center p-2.5 text-center transition group relative">
                   {isCompressing ? (
-                    <>
+                    <div className="flex flex-col items-center justify-center">
                       <Loader2 className="size-6 text-indigo-400 animate-spin mb-1" />
-                      <span className="text-[10px] text-slate-400">Mengompresi...</span>
-                    </>
+                      <span className="text-[10px] text-slate-400">Memproses foto...</span>
+                    </div>
                   ) : (
                     <>
-                      <div className="size-10 rounded-full bg-indigo-600/20 text-indigo-400 flex items-center justify-center mb-1.5">
-                        <Camera className="size-5" />
-                      </div>
-                      <span className="text-xs font-bold text-white">Buka Kamera</span>
-                      <span className="text-[9px] text-slate-500 mt-0.5">atau Pilih Galeri</span>
+                      <button
+                        type="button"
+                        onClick={() => setIsCameraWatermarkOpen(true)}
+                        className="w-full flex-1 flex flex-col items-center justify-center cursor-pointer active:scale-95 transition"
+                        title="Buka Kamera dengan Stempel Otomatis (GPS & Waktu)"
+                      >
+                        <div className="size-9 rounded-full bg-indigo-600/25 text-indigo-400 group-hover:bg-indigo-600/40 group-hover:text-indigo-300 flex items-center justify-center mb-1 transition shadow-xs">
+                          <Camera className="size-4.5" />
+                        </div>
+                        <span className="text-xs font-bold text-white flex items-center gap-1">
+                          Buka Kamera
+                        </span>
+                        <span className="text-[9px] text-amber-400 font-semibold mt-0.5">
+                          ⚡ Watermark CPG & GPS
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          fileInputRef.current?.click();
+                        }}
+                        className="text-[10px] text-slate-400 hover:text-slate-200 underline mt-1 py-0.5 cursor-pointer transition"
+                        title="Unggah berkas foto yang sudah ada dari galeri perangkat"
+                      >
+                        atau Pilih Galeri
+                      </button>
                     </>
                   )}
-                </button>
+                </div>
               )}
             </div>
 
@@ -759,6 +809,31 @@ export default function RemoteHandoverPage() {
         </form>
 
       </main>
+
+      {/* Floating Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-xl text-xs font-semibold shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-200 ${
+          toastMessage.type === 'success'
+            ? 'bg-emerald-600 text-white'
+            : toastMessage.type === 'error'
+            ? 'bg-rose-600 text-white'
+            : 'bg-slate-800 text-slate-100 border border-slate-700'
+        }">
+          {toastMessage.text}
+        </div>
+      )}
+
+      {/* Camera Watermark Modal ala Timemark */}
+      <CameraWatermarkModal
+        isOpen={isCameraWatermarkOpen}
+        onClose={() => setIsCameraWatermarkOpen(false)}
+        docNumber={tokenData?.noTtb || undefined}
+        docType="TTB"
+        userName={receiverName.trim() || 'Penerima Lapangan'}
+        userJabatan={receiverRole === 'Lainnya' ? (customRole.trim() || 'Penerima') : `${receiverRole}${tokenData?.armada ? ` • ${tokenData.armada}` : ''}`}
+        onPhotoCaptured={handleCameraWatermarkPhoto}
+        showToast={showToast}
+      />
 
     </div>
   );

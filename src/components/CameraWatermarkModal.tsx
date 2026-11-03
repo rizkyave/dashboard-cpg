@@ -33,6 +33,8 @@ export interface CameraWatermarkModalProps {
   onClose: () => void;
   docNumber?: string;
   docType?: 'TTB' | 'FSTB' | 'PO';
+  userName?: string;
+  userJabatan?: string;
   onPhotoCaptured?: (dataUrl: string, filename: string) => void;
   showToast?: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
 }
@@ -80,11 +82,17 @@ export default function CameraWatermarkModal({
   onClose,
   docNumber,
   docType,
+  userName,
+  userJabatan,
   onPhotoCaptured,
   showToast,
 }: CameraWatermarkModalProps) {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<ActiveTab>('camera');
+
+  // Gunakan prop userName/userJabatan jika disediakan, atau fallback ke user yang sedang login
+  const effectiveUserName = userName !== undefined ? userName : (user?.name ?? '');
+  const effectiveUserJabatan = userJabatan !== undefined ? userJabatan : (user?.jabatan ?? '');
 
   const {
     videoRef,
@@ -107,8 +115,8 @@ export default function CameraWatermarkModal({
     removePhoto,
     clearPhotos,
   } = useCameraWatermark({
-    userName: user?.name ?? '',
-    userJabatan: user?.jabatan ?? '',
+    userName: effectiveUserName,
+    userJabatan: effectiveUserJabatan,
     docNumber,
     docType,
   });
@@ -141,12 +149,11 @@ export default function CameraWatermarkModal({
     const photo = capturePhoto();
     if (photo) {
       showToast?.('📸 Foto berhasil diambil dengan watermark!', 'success');
-      onPhotoCaptured?.(photo.dataUrl, photo.filename);
       setActiveTab('gallery');
     } else {
       showToast?.('Gagal mengambil foto. Pastikan kamera aktif.', 'error');
     }
-  }, [capturePhoto, onPhotoCaptured, showToast]);
+  }, [capturePhoto, showToast]);
 
   const handleDownload = useCallback((photo: CapturedPhoto) => {
     const a = document.createElement('a');
@@ -574,24 +581,32 @@ export default function CameraWatermarkModal({
                           <div className="flex items-center gap-2 flex-wrap">
                             <button
                               type="button"
-                              onClick={() => handleDownload(photo)}
-                              className="h-7 px-3 rounded-lg bg-muted border border-border text-xs font-medium text-foreground hover:bg-card transition cursor-pointer inline-flex items-center gap-1.5"
+                              onClick={() => handleUseInForm(photo)}
+                              className="h-8 px-3.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition cursor-pointer inline-flex items-center gap-1.5 shadow-xs"
                             >
-                              <Download className="size-3" /> Download
+                              <CheckCircle2 className="size-3.5" /> Gunakan di Form
                             </button>
                             <button
                               type="button"
-                              onClick={() => handleUseInForm(photo)}
-                              className="h-7 px-3 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition cursor-pointer inline-flex items-center gap-1.5"
+                              onClick={() => setActiveTab('camera')}
+                              className="h-8 px-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-xs font-medium text-amber-500 hover:bg-amber-500/20 transition cursor-pointer inline-flex items-center gap-1.5"
                             >
-                              <CheckCircle2 className="size-3" /> Gunakan di Form
+                              <Camera className="size-3.5" /> Ambil Lagi
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDownload(photo)}
+                              className="h-8 px-3 rounded-lg bg-muted border border-border text-xs font-medium text-foreground hover:bg-card transition cursor-pointer inline-flex items-center gap-1.5"
+                            >
+                              <Download className="size-3.5" /> Unduh
                             </button>
                             <button
                               type="button"
                               onClick={() => removePhoto(photo.id)}
-                              className="h-7 px-3 rounded-lg border border-red-500/30 bg-red-500/5 text-xs font-medium text-red-500 hover:bg-red-500/10 transition cursor-pointer inline-flex items-center gap-1.5 ml-auto"
+                              className="h-8 px-2.5 rounded-lg border border-red-500/30 bg-red-500/5 text-xs font-medium text-red-500 hover:bg-red-500/10 transition cursor-pointer inline-flex items-center gap-1.5 ml-auto"
+                              title="Hapus foto ini"
                             >
-                              <Trash2 className="size-3" /> Hapus
+                              <Trash2 className="size-3.5" />
                             </button>
                           </div>
                         </div>

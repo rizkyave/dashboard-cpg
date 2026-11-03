@@ -1,5 +1,209 @@
 [
   {
+    "id": "notif-1793704970666-twrkd",
+    "type": "TTB_VALIDATED",
+    "title": "🛡️ TTB Divalidasi & Disahkan",
+    "message": "User Administrator CPG telah mengesahkan dokumen TTB CPL-TTB-26-07578 (SPOB ROYAL REY 3001). Berkas siap untuk proses serah terima di lapangan.",
+    "senderName": "Administrator CPG",
+    "senderUsername": "admin",
+    "senderRole": "Head of MIS & IT Systems",
+    "targetRole": "staf_lapangan",
+    "linkTab": "serah-terima",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07578",
+      "armada": "SPOB ROYAL REY 3001",
+      "noPo": "",
+      "noFpb": "CPL-FPB-26-0003433"
+    },
+    "createdAt": "2026-11-03T11:22:50.666Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1793704954144-5wk94",
+    "type": "TTB_VALIDATED",
+    "title": "🛡️ TTB Divalidasi & Disahkan",
+    "message": "User Administrator CPG telah mengesahkan dokumen TTB CPL-TTB-26-07564 (TB PMI ABADI). Berkas siap untuk proses serah terima di lapangan.",
+    "senderName": "Administrator CPG",
+    "senderUsername": "admin",
+    "senderRole": "Head of MIS & IT Systems",
+    "targetRole": "staf_lapangan",
+    "linkTab": "serah-terima",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07564",
+      "armada": "TB PMI ABADI",
+      "noPo": "",
+      "noFpb": "CPL-FPB-26-0004950"
+    },
+    "createdAt": "2026-11-03T11:22:34.144Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1793690515809-xayc3",
+    "type": "SERAH_TERIMA_COMPLETED",
+    "title": "✅ Serah Terima TTB Selesai (Remote / Pihak Ketiga)",
+    "message": "Penerima HERMANSYAH (Nakhoda) telah menandatangani & mengonfirmasi penerimaan TTB CPL-TTB-26-07618 di MT DEWA YANI.",
+    "senderName": "HERMANSYAH",
+    "senderUsername": "remote_receiver",
+    "senderRole": "Nakhoda",
+    "targetRole": "all",
+    "linkTab": "serah-terima",
+    "createdAt": "2026-11-03T07:21:45.615Z",
+    "readBy": [
+      "admin"
+    ],
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07618",
+      "armada": "MT DEWA YANI",
+      "noPo": "CPL-PO-26-05725",
+      "noFpb": "CPL-FPB-26-0004909",
+      "recipientName": "HERMANSYAH",
+      "recipientRole": "Nakhoda",
+      "shippingMethod": "Ekspedisi Lokal",
+      "carrierContact": "TEST",
+      "itemSummary": "-"
+    }
+  },
+  {
+    "id": "notif-1793689899255-5hi4n",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User IDHAM KHALID telah mengunggah 8 berkas TTB (CPL-TTB-26-07564, CPL-TTB-26-07564, CPL-TTB-26-07564 (+5 lainnya)). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "IDHAM KHALID",
+    "senderUsername": "idham.khalid",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07564, CPL-TTB-26-07564, CPL-TTB-26-07564 (+5 lainnya)",
+      "armada": "TB PMI ABADI",
+      "noPo": "CPL-PO-26-05757"
+    },
+    "createdAt": "2026-11-03T07:11:39.255Z",
+    "readBy": [
+      "idham.khalid",
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1793689097384-c4h77",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User IDHAM KHALID telah mengunggah 2 berkas TTB (CPL-TTB-26-07578, CPL-TTB-26-07578). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "IDHAM KHALID",
+    "senderUsername": "idham.khalid",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07578, CPL-TTB-26-07578",
+      "armada": "SPOB ROYAL REY 3001",
+      "noPo": "CPL-PO-26-05790"
+    },
+    "createdAt": "2026-11-03T06:58:17.384Z",
+    "readBy": [
+      "idham.khalid",
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1793686165495-bx8q0",
+    "type": "TTB_DISPATCHED",
+    "title": "📦 TTB Dikirim via Pihak Ketiga / Remote",
+    "message": "Pengiriman TTB CPL-TTB-26-07618 ke MT DEWA YANI dititipkan via Ekspedisi Lokal (TEST). Tautan serah terima mandiri telah diterbitkan.",
+    "senderName": "AGUSSALIM (Tim Lapangan)",
+    "senderUsername": "logistik",
+    "senderRole": "Staf Logistik",
+    "targetRole": "manager",
+    "linkTab": "serah-terima",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07618",
+      "armada": "MT DEWA YANI",
+      "noPo": "CPL-PO-26-05725",
+      "noFpb": "CPL-FPB-26-0004909",
+      "shippingMethod": "Ekspedisi Lokal",
+      "carrierContact": "TEST",
+      "recipientName": "HERMANSYAH",
+      "itemSummary": "-"
+    },
+    "createdAt": "2026-11-03T06:09:25.495Z",
+    "readBy": [
+      "idham.khalid",
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1793686154444-jf9hp",
+    "type": "TTB_DISPATCHED",
+    "title": "📦 TTB Dikirim via Pihak Ketiga / Remote",
+    "message": "Pengiriman TTB CPL-TTB-26-07618 ke MT DEWA YANI dititipkan via Ekspedisi Lokal (TEST). Tautan serah terima mandiri telah diterbitkan.",
+    "senderName": "AGUSSALIM (Tim Lapangan)",
+    "senderUsername": "logistik",
+    "senderRole": "Staf Logistik",
+    "targetRole": "manager",
+    "linkTab": "serah-terima",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07618",
+      "armada": "MT DEWA YANI",
+      "noPo": "CPL-PO-26-05725",
+      "noFpb": "CPL-FPB-26-0004909",
+      "shippingMethod": "Ekspedisi Lokal",
+      "carrierContact": "TEST",
+      "recipientName": "HERMANSYAH",
+      "itemSummary": "-"
+    },
+    "createdAt": "2026-11-03T06:09:14.444Z",
+    "readBy": [
+      "idham.khalid",
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1793684484396-64klt",
+    "type": "TTB_DISPATCHED",
+    "title": "🚚 Barang Berangkat / Dalam Pengantaran",
+    "message": "Petugas AGUSSALIM (Tim Lapangan) telah memverifikasi fisik barang dan memulai pengantaran TTB CPL-TTB-26-07629 ke SV TWINSISTER 307.",
+    "senderName": "AGUSSALIM (Tim Lapangan)",
+    "senderUsername": "agussalim_(tim_lapangan)",
+    "senderRole": "Staf Lapangan",
+    "targetRole": "manager",
+    "linkTab": "serah-terima",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07629",
+      "armada": "SV TWINSISTER 307",
+      "noPo": "CPL-PO-26-05807",
+      "noFpb": "CPL-FPB-26-0004990",
+      "courierName": "AGUSSALIM (Tim Lapangan)",
+      "itemSummary": "-",
+      "shippingMethod": "Kurir Lapangan Internal"
+    },
+    "createdAt": "2026-11-03T05:41:24.396Z",
+    "readBy": [
+      "idham.khalid",
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1793613837594-ifn9c",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User FIFI telah mengunggah 3 berkas TTB (CPL-TTB-26-07684, CPL-TTB-26-07684, CPL-TTB-26-07684). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "FIFI",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07684, CPL-TTB-26-07684, CPL-TTB-26-07684",
+      "armada": "-, MT DEWI SRI"
+    },
+    "createdAt": "2026-11-02T10:03:57.594Z",
+    "readBy": [
+      "bardi.suddin",
+      "idham.khalid",
+      "admin"
+    ]
+  },
+  {
     "id": "notif-1793411230962-a4syg",
     "type": "TTB_DISPATCHED",
     "title": "📦 TTB Dikirim via Pihak Ketiga / Remote",
@@ -21,7 +225,10 @@
     },
     "createdAt": "2026-10-31T01:47:10.962Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -45,7 +252,10 @@
     },
     "createdAt": "2026-10-30T09:49:22.429Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -69,7 +279,10 @@
     },
     "createdAt": "2026-10-30T09:49:17.323Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -93,7 +306,10 @@
     },
     "createdAt": "2026-10-30T09:49:11.863Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -117,7 +333,10 @@
     },
     "createdAt": "2026-10-30T09:49:07.088Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -141,7 +360,10 @@
     },
     "createdAt": "2026-10-30T09:49:02.676Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -165,7 +387,10 @@
     },
     "createdAt": "2026-10-30T09:48:56.733Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -189,7 +414,10 @@
     },
     "createdAt": "2026-10-30T09:48:51.582Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -213,7 +441,10 @@
     },
     "createdAt": "2026-10-30T09:43:30.024Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -234,7 +465,10 @@
     },
     "createdAt": "2026-10-30T07:41:04.355Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -258,7 +492,10 @@
     },
     "createdAt": "2026-10-30T07:38:07.261Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -279,7 +516,10 @@
     },
     "createdAt": "2026-10-30T07:34:29.118Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -298,7 +538,10 @@
     },
     "createdAt": "2026-10-30T07:28:03.119Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -319,7 +562,10 @@
     },
     "createdAt": "2026-10-30T07:27:14.630Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -339,7 +585,9 @@
     "createdAt": "2026-10-30T07:19:53.695Z",
     "readBy": [
       "hermansyahz",
-      "admin"
+      "admin",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -358,7 +606,10 @@
     },
     "createdAt": "2026-10-30T07:17:38.705Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -377,7 +628,10 @@
     },
     "createdAt": "2026-10-30T02:34:54.601Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -396,7 +650,10 @@
     },
     "createdAt": "2026-10-30T02:19:36.033Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -415,7 +672,10 @@
     },
     "createdAt": "2026-10-30T02:11:50.455Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -435,7 +695,9 @@
     "createdAt": "2026-10-29T16:23:12.099Z",
     "readBy": [
       "hermansyahz",
-      "admin"
+      "admin",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -456,7 +718,9 @@
     "createdAt": "2026-10-29T03:40:35.934Z",
     "readBy": [
       "admin",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -478,7 +742,9 @@
     "createdAt": "2026-10-29T03:06:12.623Z",
     "readBy": [
       "admin",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -499,7 +765,9 @@
     "createdAt": "2026-10-29T03:04:02.603Z",
     "readBy": [
       "admin",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -524,7 +792,9 @@
     "createdAt": "2026-10-27T02:46:17.253Z",
     "readBy": [
       "admin",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -549,7 +819,9 @@
     "createdAt": "2026-10-26T09:21:30.104Z",
     "readBy": [
       "admin",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -570,7 +842,9 @@
     "createdAt": "2026-10-26T08:44:53.820Z",
     "readBy": [
       "admin",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -591,7 +865,9 @@
     "createdAt": "2026-10-26T08:40:42.746Z",
     "readBy": [
       "admin",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -612,7 +888,9 @@
     "readBy": [
       "receiver",
       "admin",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -639,7 +917,9 @@
     "readBy": [
       "receiver",
       "admin",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -665,7 +945,9 @@
     "readBy": [
       "receiver",
       "admin",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -688,7 +970,9 @@
     "readBy": [
       "receiver",
       "admin",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -711,7 +995,9 @@
     "readBy": [
       "receiver",
       "admin",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -732,7 +1018,9 @@
     "readBy": [
       "receiver",
       "admin",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -756,7 +1044,9 @@
     "readBy": [
       "receiver",
       "admin",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -779,7 +1069,9 @@
     "readBy": [
       "hermansyahz",
       "receiver",
-      "admin"
+      "admin",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -802,7 +1094,9 @@
     "readBy": [
       "receiver",
       "admin",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -823,7 +1117,9 @@
     "readBy": [
       "receiver",
       "admin",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -847,7 +1143,9 @@
       "agussalim",
       "admin",
       "receiver",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -871,7 +1169,9 @@
       "agussalim",
       "admin",
       "receiver",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -895,7 +1195,9 @@
       "agussalim",
       "admin",
       "receiver",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -922,7 +1224,9 @@
       "agussalim",
       "admin",
       "receiver",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -946,7 +1250,9 @@
       "agussalim",
       "admin",
       "receiver",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -970,7 +1276,9 @@
       "agussalim",
       "admin",
       "receiver",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -994,7 +1302,9 @@
       "agussalim",
       "admin",
       "receiver",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -1021,7 +1331,9 @@
       "agussalim",
       "admin",
       "receiver",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -1046,7 +1358,9 @@
       "agussalim",
       "admin",
       "receiver",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -1071,7 +1385,9 @@
       "agussalim",
       "admin",
       "receiver",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -1096,7 +1412,9 @@
       "agussalim",
       "admin",
       "receiver",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -1124,7 +1442,9 @@
       "agussalim",
       "admin",
       "receiver",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -1149,7 +1469,9 @@
       "agussalim",
       "admin",
       "receiver",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -1174,7 +1496,9 @@
       "agussalim",
       "admin",
       "receiver",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -1199,7 +1523,9 @@
       "agussalim",
       "admin",
       "receiver",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -1228,7 +1554,8 @@
       "agussalim",
       "admin",
       "receiver",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin"
     ]
   },
   {
@@ -1253,7 +1580,9 @@
       "agussalim",
       "admin",
       "receiver",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -1278,7 +1607,9 @@
       "agussalim",
       "admin",
       "receiver",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -1307,7 +1638,9 @@
       "davila.zalianti",
       "agussalim",
       "receiver",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -1336,7 +1669,9 @@
       "davila.zalianti",
       "agussalim",
       "receiver",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   },
   {
@@ -1364,7 +1699,9 @@
       "davila.zalianti",
       "agussalim",
       "receiver",
-      "hermansyahz"
+      "hermansyahz",
+      "bardi.suddin",
+      "idham.khalid"
     ]
   }
 ]
