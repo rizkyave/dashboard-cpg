@@ -1866,15 +1866,15 @@ export default function SerahTerimaLapanganTab({
                                   <td className="py-4 px-4.5 whitespace-nowrap align-middle">
                                     {opt.isRecipientSigned ? (
                                       <div className="space-y-1">
-                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-black bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30 shadow-2xs">
-                                          <Truck className="size-4 text-blue-600 dark:text-blue-400 shrink-0" />
-                                          <span>Siap Kirim</span>
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-black bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 shadow-2xs">
+                                          <CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                          <span>Selesai</span>
                                         </span>
                                         <span
-                                          className="block text-xs text-muted-foreground font-semibold font-mono truncate max-w-[190px]"
-                                          title={opt.managerValidatorName ? `Disahkan Manager: ${opt.managerValidatorName}` : 'Administrasi Lengkap'}
+                                          className="block text-xs text-emerald-700/80 dark:text-emerald-400/80 font-bold font-mono truncate max-w-[190px]"
+                                          title={opt.recipientName ? `Diterima oleh: ${opt.recipientName}` : 'Barang Diterima End User'}
                                         >
-                                          Administrasi Lengkap
+                                          {opt.recipientName ? `Diterima: ${opt.recipientName}` : 'Diterima End User'}
                                         </span>
                                       </div>
                                     ) : isDispatched ? (
