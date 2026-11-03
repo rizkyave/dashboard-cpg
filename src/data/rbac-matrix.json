@@ -990,6 +990,61 @@
     }
   },
   {
+    "tabId": "notifikasi-pekerjaan",
+    "category": "Modul Tambahan",
+    "name": "Notifikasi & Log Kerja",
+    "description": "Pusat monitoring notifikasi pekerjaan, riwayat serah terima, dan log aktivitas lintas seksi unit kerja",
+    "permissions": {
+      "admin": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
+      },
+      "manager": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Akses membaca seluruh log pekerjaan lintas seksi"
+      },
+      "supervisor": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Akses membaca log pekerjaan tim logistik dan armada"
+      },
+      "staf_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Akses monitoring berkas FSTB dan PO"
+      },
+      "staf_ttb": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Akses monitoring pengesahan dan penerimaan TTB"
+      },
+      "staf_lapangan": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Akses notifikasi pengiriman dan serah terima kapal"
+      },
+      "end_user": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Akses monitoring serah terima unit/kapal"
+      },
+      "visitor": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Akses membaca notifikasi umum"
+      }
+    }
+  },
+  {
     "tabId": "analytics",
     "category": "Modul Khusus",
     "name": "Analytics",

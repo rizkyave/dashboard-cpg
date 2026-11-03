@@ -339,6 +339,19 @@ export default function NotificationBell({ onNavigateTab, showToast }: Notificat
           </div>
 
           {/* Footer Info */}
+          <div className="px-3 py-2 bg-primary/5 border-t border-border flex items-center justify-between text-xs">
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
+                if (onNavigateTab) onNavigateTab('notifikasi-pekerjaan');
+              }}
+              className="text-xs text-primary hover:underline font-bold flex items-center gap-1 cursor-pointer"
+            >
+              <span>Buka Modul Notifikasi & Log Lengkap</span>
+              <ExternalLink className="size-3" />
+            </button>
+          </div>
           <div className="p-2.5 bg-muted/40 border-t border-border text-center text-[10px] text-muted-foreground flex items-center justify-between px-3">
             <span>Role: {user?.jabatan || user?.role || 'User'}</span>
             <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">

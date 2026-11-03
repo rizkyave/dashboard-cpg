@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import {
+  BellRing,
   LayoutDashboard,
   ShoppingBag,
   Anchor,
@@ -72,6 +73,25 @@ export default function Sidebar({
   showToast,
 }: SidebarProps) {
   const { user, isAdmin, isVisitor, logout } = useAuth();
+  const [unreadNotifCount, setUnreadNotifCount] = useState<number>(0);
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchCount = async () => {
+      try {
+        const res = await fetch(`/api/notifications?username=${encodeURIComponent(user.username)}&role=${encodeURIComponent(user.role)}&_t=${Date.now()}`);
+        if (res.ok) {
+          const d = await res.json();
+          if (d.success && typeof d.unreadCount === 'number') {
+            setUnreadNotifCount(d.unreadCount);
+          }
+        }
+      } catch {}
+    };
+    fetchCount();
+    const timer = setInterval(fetchCount, 25000);
+    return () => clearInterval(timer);
+  }, [user]);
 
   const [, setRbacRevision] = useState<number>(0);
   useEffect(() => {
@@ -320,6 +340,36 @@ export default function Sidebar({
             Menu Utama
           </div>
           <nav className="space-y-0.5">
+              {/* Notifikasi & Log Kerja Lintas Seksi */}
+              {canAccessTab(user?.role, 'notifikasi-pekerjaan') && (
+                <button
+                  onClick={() => handleSelectTab('notifikasi-pekerjaan')}
+                  className={`w-full h-9 flex items-center justify-between px-3 rounded-lg text-xs font-medium transition touch-manipulation cursor-pointer ${
+                    activeTab === 'notifikasi-pekerjaan'
+                      ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-border'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  }`}
+                  title="Pusat Notifikasi & Log Aktivitas Pekerjaan Lintas Unit Kerja"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <BellRing
+                      className={`size-4 shrink-0 ${
+                        activeTab === 'notifikasi-pekerjaan' ? 'text-amber-500' : 'text-muted-foreground'
+                      }`}
+                    />
+                    <span className="truncate whitespace-nowrap">Notifikasi &amp; Log Kerja</span>
+                  </div>
+                  {unreadNotifCount > 0 ? (
+                    <span className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold leading-none whitespace-nowrap bg-rose-500 text-white shadow-xs animate-pulse">
+                      {unreadNotifCount > 99 ? '99+' : unreadNotifCount}
+                    </span>
+                  ) : (
+                    <span className="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold leading-none whitespace-nowrap bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                      Live
+                    </span>
+                  )}
+                </button>
+              )}
             {dashboards.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
@@ -356,7 +406,7 @@ export default function Sidebar({
         </div>
 
         {/* Modul Tambahan - Disaring Berdasarkan RBAC canAccessTab */}
-        {(['inventory', 'stok-gudang', 'pos-kapal', 'crew-kapal', 'work-order', 'list-sm', 'sisa-layanan'] as TabType[]).some(
+        {(['notifikasi-pekerjaan', 'inventory', 'stok-gudang', 'pos-kapal', 'crew-kapal', 'work-order', 'list-sm', 'sisa-layanan'] as TabType[]).some(
           (t) => canAccessTab(user?.role, t)
         ) && (
           <div className="space-y-1 pt-2 border-t border-border">

@@ -63,6 +63,7 @@ import InventoryTab from '@/components/InventoryTab';
 import WarehouseStockTab from '@/components/WarehouseStockTab';
 import TtbGalleryTab from '@/components/TtbGalleryTab';
 import AdminSettingsTab from '@/components/AdminSettingsTab';
+import NotificationCenterTab from '@/components/NotificationCenterTab';
 import SisaLayananTab from '@/components/SisaLayananTab';
 import UploadFstbTab from '@/components/UploadFstbTab';
 import UploadTtbTab from '@/components/UploadTtbTab';
@@ -1179,6 +1180,8 @@ export default function DashboardPage() {
                     ? 'Unggah Dokumen FSTB ke Penyimpanan Cloudflare'
                     : activeTab === 'upload-ttb'
                     ? 'Unggah Dokumen TTB ke Penyimpanan Cloudflare'
+                    : activeTab === 'notifikasi-pekerjaan'
+                    ? 'Pusat Notifikasi & Log Aktivitas Unit Kerja'
                     : activeTab === 'admin-settings'
                     ? 'Pengaturan Administrator & Pengguna'
                     : 'Analisis SLA & Waktu Tunggu'}
@@ -1218,6 +1221,8 @@ export default function DashboardPage() {
                     ? 'Unggah berkas Form Serah Terima Barang (FSTB) resmi ke Cloudflare R2 dengan sistem penamaan otomatis sesuai Nomor FSTB.'
                     : activeTab === 'upload-ttb'
                     ? 'Unggah foto fisik & dokumen scan tanda terima barang (TTB) ke Cloudflare R2 dengan sistem penamaan otomatis sesuai Nomor TTB resmi.'
+                    : activeTab === 'notifikasi-pekerjaan'
+                    ? 'Monitoring real-time alur pekerjaan lintas divisi: Pengadaan, Gudang, Logistik, Supervisor/Manager, dan Serah Terima Armada Kapal.'
                     : activeTab === 'admin-settings'
                     ? 'Kelola akun operasional staf purchasing (User) dan akun tamu/peninjau (Visitor). Tambahkan pengguna baru dan konfigurasi wewenang hak akses.'
                     : 'Distribusi waktu perputaran berkas fisik (lead time) dan beban kerja produktivitas staf PIC operasional.'}
@@ -1467,6 +1472,14 @@ export default function DashboardPage() {
           {/* Tab Modul Tambahan: Validasi Dokumen FSTB & TTB Multi-Lini */}
           {activeTab === 'validasi-dokumen' && (
             <ValidasiDokumenTab showToast={showToast} />
+          )}
+
+          {/* Tab Modul Tambahan: Pusat Notifikasi & Log Kerja Lintas Seksi */}
+          {activeTab === 'notifikasi-pekerjaan' && (
+            <NotificationCenterTab
+              onNavigateTab={(tab) => setActiveTab(tab as TabType)}
+              showToast={showToast}
+            />
           )}
 
           {/* Tab 6: Admin Settings - Manajemen Pengguna & Visitor */}

@@ -24,7 +24,8 @@ export type TabType =
   | 'upload-fstb'
   | 'upload-ttb'
   | 'validasi-dokumen'
-  | 'serah-terima-lapangan';
+  | 'serah-terima-lapangan'
+  | 'notifikasi-pekerjaan';
 
 export type StatusTone = 'emerald' | 'cyan' | 'purple' | 'amber' | 'rose';
 
