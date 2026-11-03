@@ -252,7 +252,7 @@ Terima kasih.`;
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             type: 'TTB_DISPATCHED',
-            title: '📦 TTB Dikirim via Pihak Ketiga / Remote',
+            title: '📦 TTB Dikirim',
             message: `Pengiriman TTB ${targetTtb.noTtb} ke ${targetTtb.armada || 'armada'} dititipkan via ${shippingMethod} (${carrierContact.trim() || 'Pembawa'}). Tautan serah terima mandiri telah diterbitkan.`,
             senderName: dispatchedBy || 'Petugas Disposisi',
             senderUsername: 'logistik',

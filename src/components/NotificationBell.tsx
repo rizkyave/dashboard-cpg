@@ -300,7 +300,7 @@ export default function NotificationBell({ onNavigateTab, showToast }: Notificat
                             isUnread ? 'text-foreground font-bold' : 'text-muted-foreground'
                           }`}
                         >
-                          {notif.title}
+                          {notif.title.replace(/\s*via Pihak Ketiga \/ Remote/gi, '').replace(/\s*\(Remote \/ Pihak Ketiga\)/gi, '')}
                         </h5>
                         {isUnread && (
                           <span className="size-2 rounded-full bg-primary shrink-0 mt-1" />

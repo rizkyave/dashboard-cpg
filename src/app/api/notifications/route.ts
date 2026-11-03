@@ -1,3 +1,11 @@
+function cleanNotificationTitle(title: string): string {
+  if (!title) return '';
+  return title
+    .replace(/\s*via Pihak Ketiga \/ Remote/gi, '')
+    .replace(/\s*\(Remote \/ Pihak Ketiga\)/gi, '')
+    .trim();
+}
+
 import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -25,7 +33,7 @@ async function getStoredNotifications(): Promise<AppNotification[]> {
       if (r2Obj && r2Obj.body) {
         const text = Buffer.from(r2Obj.body).toString('utf8');
         const parsed = JSON.parse(text);
-        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed)) return parsed.map((n: any) => ({ ...n, title: cleanNotificationTitle(n.title) }));
       }
     } catch (err) {
       console.warn('Gagal membaca notifikasi dari R2:', err);
@@ -34,7 +42,7 @@ async function getStoredNotifications(): Promise<AppNotification[]> {
 
   try {
     const raw = await fs.readFile(NOTIFICATIONS_FILE_PATH, 'utf8');
-    return JSON.parse(raw);
+    const items = JSON.parse(raw); return Array.isArray(items) ? items.map((n: any) => ({ ...n, title: cleanNotificationTitle(n.title) })) : [];
   } catch {
     return [];
   }
@@ -186,7 +194,7 @@ export async function POST(req: NextRequest) {
     const newNotification: AppNotification = {
       id: `notif-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
       type: type || 'FSTB_UPLOADED',
-      title: title || 'FSTB Baru Diunggah',
+      title: cleanNotificationTitle(title || 'FSTB Baru Diunggah'),
       message: message || `Berkas FSTB ${metadata.noFstb || ''} telah diunggah dan siap diproses ke TTB.`,
       senderName: senderName || 'User Pengunggah',
       senderUsername: senderUsername || 'user',

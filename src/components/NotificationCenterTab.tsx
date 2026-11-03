@@ -1026,7 +1026,7 @@ export default function NotificationCenterTab({
 
                       {/* Notification Title */}
                       <h3 className={`text-sm sm:text-base font-bold leading-snug ${typeStyle.titleColor}`}>
-                        {notif.title}
+                        {notif.title.replace(/\s*via Pihak Ketiga \/ Remote/gi, '').replace(/\s*\(Remote \/ Pihak Ketiga\)/gi, '')}
                       </h3>
 
                       {/* Notification Message */}
