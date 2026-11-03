@@ -875,6 +875,9 @@ export async function PUT(req: NextRequest): Promise<NextResponse<RemoteHandover
     tokenRecord.receiverPhotos = uploadedPhotoUrls;
     tokenRecord.geolocation = geolocation;
     tokenRecord.completionNotes = completionNotes;
+    if (stampedPdfUrl) {
+      tokenRecord.fileUrl = stampedPdfUrl;
+    }
 
     tokens[tokenIndex] = tokenRecord;
     await saveRemoteTokens(tokens);

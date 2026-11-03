@@ -20,6 +20,9 @@ import {
   PackageCheck,
   AlertTriangle,
   ExternalLink,
+  Eye,
+  Download,
+  X,
 } from 'lucide-react';
 import { RemoteHandoverTokenData, RemoteHandoverResponse } from '@/types/remoteHandover';
 import CameraWatermarkModal from '@/components/CameraWatermarkModal';
@@ -123,6 +126,7 @@ export default function RemoteHandoverPage() {
   // Submission State
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submitSuccess, setSubmitSuccess] = useState<boolean>(false);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState<boolean>(false);
   const [submitSuccessData, setSubmitSuccessData] = useState<RemoteHandoverTokenData | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -453,6 +457,14 @@ export default function RemoteHandoverPage() {
   // State: Sudah Digunakan / Selesai (Success Screen)
   if (tokenStatus === 'used' || submitSuccess) {
     const data = submitSuccessData || tokenData;
+    const ttbNumber = data?.cleanNoTtb || data?.noTtb || 'TTB';
+    const cleanTtbName = ttbNumber.replace(/\s+/g, '_');
+    const basePdfUrl = data?.fileUrl || `/api/r2-file?key=ttb-documents%2F${encodeURIComponent(cleanTtbName)}.pdf`;
+    const vParam = data?.usedAt ? new Date(data.usedAt).getTime() : Date.now();
+    const viewPdfUrl = basePdfUrl.includes('?') ? `${basePdfUrl}&v=${vParam}` : `${basePdfUrl}?v=${vParam}`;
+    const downloadPdfUrl = viewPdfUrl.includes('?') ? `${viewPdfUrl}&download=true` : `${viewPdfUrl}?download=true`;
+    const pdfDownloadName = `${cleanTtbName.replace(/[^a-zA-Z0-9_-]/g, '_')}_Bertandatangan.pdf`;
+
     return (
       <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-4">
         <div className="max-w-md w-full bg-slate-900 border border-emerald-500/40 rounded-3xl p-6 text-center space-y-5 shadow-2xl animate-in zoom-in-95 duration-200">
@@ -499,10 +511,124 @@ export default function RemoteHandoverPage() {
             </div>
           </div>
 
+          {/* Tombol Lihat & Unduh TTB Resmi Bertanda Tangan */}
+          <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-3 text-left">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                <FileText className="size-4 text-indigo-400" />
+                <span>Dokumen TTB Resmi</span>
+              </span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                <Check className="size-2.5" />
+                <span>Auto-Signed</span>
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2.5 pt-1">
+              <button
+                type="button"
+                onClick={() => setIsPreviewModalOpen(true)}
+                className="py-3 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-98 border border-slate-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md transition cursor-pointer group"
+                title="Lihat Pratinjau Dokumen TTB yang telah Ditandatangani"
+              >
+                <Eye className="size-4 text-indigo-400 group-hover:text-indigo-300 transition-colors" />
+                <span>Lihat TTB (PDF)</span>
+              </button>
+
+              <a
+                href={downloadPdfUrl}
+                download={pdfDownloadName}
+                className="py-3 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-98 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-indigo-600/30 transition cursor-pointer group"
+                title="Unduh Berkas TTB Resmi Berformat PDF"
+              >
+                <Download className="size-4 text-white group-hover:translate-y-0.5 transition-transform" />
+                <span>Unduh TTB</span>
+              </a>
+            </div>
+
+            <p className="text-[10px] text-slate-400 text-center leading-relaxed">
+              Dokumen telah distempel tanda tangan penerima di kolom <em>Received By (User)</em> dan terarsip di sistem logistik.
+            </p>
+          </div>
+
           <div className="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-[11px] text-indigo-300 text-center">
             Terima kasih atas konfirmasi Anda. Halaman ini dapat ditutup dengan aman.
           </div>
         </div>
+
+        {/* Modal Pratinjau Dokumen TTB Resmi */}
+        {isPreviewModalOpen && (
+          <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex flex-col items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
+            <div className="w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl flex flex-col h-[90vh] overflow-hidden">
+              {/* Header Modal */}
+              <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/90">
+                <div className="flex items-center gap-2.5">
+                  <div className="size-9 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+                    <FileText className="size-5" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                      <span>Dokumen TTB Bertanda Tangan</span>
+                      <span className="px-2 py-0.2 rounded-full text-[10px] font-mono bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                        Signed
+                      </span>
+                    </h3>
+                    <p className="text-xs font-mono text-slate-400">{data?.noTtb} • {data?.armada}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <a
+                    href={viewPdfUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs inline-flex items-center gap-1 transition"
+                    title="Buka Dokumen di Tab Baru"
+                  >
+                    <ExternalLink className="size-4" />
+                  </a>
+                  <a
+                    href={downloadPdfUrl}
+                    download={pdfDownloadName}
+                    className="p-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs inline-flex items-center gap-1 transition"
+                    title="Unduh Berkas PDF"
+                  >
+                    <Download className="size-4" />
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => setIsPreviewModalOpen(false)}
+                    className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition cursor-pointer"
+                    title="Tutup Pratinjau"
+                  >
+                    <X className="size-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* PDF Viewer Body */}
+              <div className="flex-1 bg-slate-950 p-2 relative">
+                <iframe
+                  src={viewPdfUrl}
+                  title="Pratinjau Dokumen TTB"
+                  className="w-full h-full rounded-2xl border border-slate-800 bg-white"
+                />
+              </div>
+
+              {/* Footer Modal */}
+              <div className="px-5 py-3 border-t border-slate-800 bg-slate-900/90 flex items-center justify-between text-xs text-slate-400">
+                <span>Penerima: <strong className="text-white">{data?.receiverName || '-'}</strong> ({data?.receiverRole || 'Nakhoda'})</span>
+                <button
+                  type="button"
+                  onClick={() => setIsPreviewModalOpen(false)}
+                  className="px-4 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold transition cursor-pointer"
+                >
+                  Tutup
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
