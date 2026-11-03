@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
@@ -57,6 +57,7 @@ import {
 import { optimizeAndScaleImage, formatByteSize } from '@/utils/imageCompressor';
 import { getSignatureForUploader } from '@/utils/uploaderSignatures';
 import CameraWatermarkModal from '@/components/CameraWatermarkModal';
+import TtbMediaModal from '@/components/TtbMediaModal';
 
 
 interface UploadTtbTabProps {
@@ -238,6 +239,7 @@ export default function UploadTtbTab({
   // Modal State
   const [activePreview, setActivePreview] = useState<UploadedTtbItem | null>(null);
   const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState<boolean>(false);
+  const [mediaModalTtb, setMediaModalTtb] = useState<string | null>(null);
   const [isIncompleteModalOpen, setIsIncompleteModalOpen] = useState<boolean>(false);
 
   const [isCameraModalOpen, setIsCameraModalOpen] = useState<boolean>(false);
@@ -427,7 +429,10 @@ export default function UploadTtbTab({
           (h) => h.renamedFileName.toLowerCase().endsWith('.pdf') || h.fileType === 'application/pdf'
         );
         const hasHistoryPhoto = histMatches.some(
-          (h) => !h.renamedFileName.toLowerCase().endsWith('.pdf') && h.fileType !== 'application/pdf'
+          (h) =>
+            (!h.renamedFileName.toLowerCase().endsWith('.pdf') && h.fileType !== 'application/pdf') ||
+            h.hasPhysicalPhotos ||
+            (h.physicalPhotosCount && h.physicalPhotosCount > 0)
         );
 
         groupsMap.set(key, {
@@ -1772,10 +1777,32 @@ export default function UploadTtbTab({
                     </td>
 
                     <td className="py-2.5 px-3">
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
-                        <CheckCircle2 className="size-3" />
-                        UPLOADED
-                      </span>
+                      <div className="flex flex-col gap-1">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 w-fit">
+                          <CheckCircle2 className="size-3" />
+                          UPLOADED
+                        </span>
+                        {item.isArmadaReceived || item.hasPhysicalPhotos ? (
+                          <button
+                            type="button"
+                            onClick={() => setMediaModalTtb(item.noTtb)}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-semibold bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30 w-fit hover:bg-blue-500/25 transition cursor-pointer text-left"
+                            title="Klik untuk verifikasi foto bukti fisik serah terima kapal"
+                          >
+                            <Camera className="size-2.5 text-blue-500 shrink-0" />
+                            <span>Diterima Kapal {item.physicalPhotosCount ? `(${item.physicalPhotosCount} Foto)` : '(Ada Foto)'}</span>
+                          </button>
+                        ) : item.isRecipientStamped ? (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30 w-fit">
+                            <FileSignature className="size-2.5 text-purple-500" />
+                            <span>TTD Kru Lengkap</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 w-fit">
+                            <span>Menunggu Kru</span>
+                          </span>
+                        )}
+                      </div>
                     </td>
 
                     <td className="py-2.5 px-3 text-right">
@@ -1787,6 +1814,22 @@ export default function UploadTtbTab({
                           title="Pratinjau Berkas"
                         >
                           <Eye className="size-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setMediaModalTtb(item.noTtb)}
+                          className={`p-1.5 rounded-lg border transition cursor-pointer ${
+                            item.hasPhysicalPhotos || item.isArmadaReceived
+                              ? 'border-blue-500/40 bg-blue-500/15 hover:bg-blue-500/25 text-blue-600 dark:text-blue-400 shadow-sm'
+                              : 'border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground'
+                          }`}
+                          title={
+                            item.hasPhysicalPhotos || item.isArmadaReceived
+                              ? `Buka Galeri Foto Fisik Kapal (${item.physicalPhotosCount || 1} Foto)`
+                              : 'Verifikasi Dokumen Scan & Foto Fisik TTB'
+                          }
+                        >
+                          <Camera className="size-3.5" />
                         </button>
 
                         <a
@@ -2297,6 +2340,14 @@ export default function UploadTtbTab({
           const file = new File([blob], filename, { type: 'image/jpeg' });
           await handleFilesAdded([file]);
         }}
+        showToast={showToast}
+      />
+      {/* Modal Verifikasi Dokumen & Galeri Foto Fisik Serah Terima */}
+      <TtbMediaModal
+        isOpen={!!mediaModalTtb}
+        onClose={() => setMediaModalTtb(null)}
+        noTtb={mediaModalTtb || ''}
+        initialTab="photos"
         showToast={showToast}
       />
     </div>

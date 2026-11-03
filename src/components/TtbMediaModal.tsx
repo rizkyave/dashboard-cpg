@@ -55,6 +55,7 @@ export interface TtbMediaModalProps {
   onClose: () => void;
   noFstb?: string;
   noTtb?: string;
+  initialTab?: ViewTab;
   fpb?: string;
   po?: string;
   item?: string;
@@ -77,6 +78,7 @@ export default function TtbMediaModal({
   onClose,
   noFstb,
   noTtb,
+  initialTab,
   fpb,
   po,
   item,
@@ -106,7 +108,13 @@ export default function TtbMediaModal({
     return (noTtb || '').trim();
   }, [parsedTtbs, activeTtbIndex, noTtb]);
 
-  const [activeTab, setActiveTab] = useState<ViewTab>('split');
+  const [activeTab, setActiveTab] = useState<ViewTab>(initialTab || 'split');
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
   const [copiedCode, setCopiedCode] = useState<boolean>(false);
   const [copiedTtb, setCopiedTtb] = useState<boolean>(false);
 

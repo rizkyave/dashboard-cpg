@@ -16,6 +16,69 @@ const MANIFEST_PATH = path.join(process.cwd(), 'src', 'data', 'ttb-photos-manife
 const R2_PHOTO_MANIFEST_KEY = 'ttb-metadata/photos-manifest.json';
 let manifest: Record<string, string> = { ...(rawManifest as Record<string, string>) };
 
+const R2_REMOTE_TOKENS_KEY = 'ttb-metadata/remote-handover-tokens.json';
+const LOCAL_REMOTE_TOKENS_PATH = path.join(process.cwd(), 'src', 'data', 'remote-handover-tokens.json');
+
+const R2_SERAH_TERIMA_HISTORY_KEY = 'ttb-metadata/serah-terima-history.json';
+const LOCAL_SERAH_TERIMA_PATH = path.join(process.cwd(), 'src', 'data', 'serah-terima-history.json');
+
+async function getRemoteTokens(): Promise<any[]> {
+  if (isR2Configured()) {
+    try {
+      const r2Obj = await getObjectFromR2(R2_REMOTE_TOKENS_KEY);
+      if (r2Obj?.body) {
+        const parsed = JSON.parse(Buffer.from(r2Obj.body).toString('utf8'));
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {}
+  }
+
+  try {
+    const raw = await fs.readFile(LOCAL_REMOTE_TOKENS_PATH, 'utf8');
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed;
+  } catch {}
+
+  return [];
+}
+
+async function getSerahTerimaHistory(): Promise<any[]> {
+  if (isR2Configured()) {
+    try {
+      const r2Obj = await getObjectFromR2(R2_SERAH_TERIMA_HISTORY_KEY);
+      if (r2Obj?.body) {
+        const parsed = JSON.parse(Buffer.from(r2Obj.body).toString('utf8'));
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {}
+  }
+
+  try {
+    const raw = await fs.readFile(LOCAL_SERAH_TERIMA_PATH, 'utf8');
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed;
+  } catch {}
+
+  return [];
+}
+
+function formatIsoToDisplay(isoStr?: string | null): string | null {
+  if (!isoStr) return null;
+  try {
+    const d = new Date(isoStr);
+    if (isNaN(d.getTime())) return null;
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    const hh = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    const ss = String(d.getSeconds()).padStart(2, '0');
+    return `${dd}/${mm}/${yyyy} ${hh}:${min}:${ss}`;
+  } catch {
+    return null;
+  }
+}
+
 async function getManifest(): Promise<Record<string, string>> {
   if (isR2Configured()) {
     try {
@@ -104,6 +167,9 @@ const listR2PhotoFiles = async (forceFresh = false): Promise<string[]> => {
  * Menentukan URL foto terbaik (Cloudflare R2 jika sudah ada, manifest URL jika ada, atau Proxy Stream)
  */
 function resolvePhotoUrl(filename: string, r2FileSet?: Set<string>): string {
+  if (filename.startsWith('http://') || filename.startsWith('https://') || filename.startsWith('/api/')) {
+    return filename;
+  }
   // 1. Jika berkas sudah terverifikasi ada di Cloudflare R2
   if (r2FileSet && r2FileSet.has(filename)) {
     return getR2FileUrl(`ttb-photos/${filename}`);
@@ -137,8 +203,13 @@ export async function GET(req: NextRequest) {
     }
     manifest = await getManifest();
 
-    // Kumpulkan daftar nama file: dari manifest, disk lokal, dan Cloudflare R2
-    const [localFiles, r2Files] = await Promise.all([listLocalFiles(), listR2PhotoFiles(forceFresh)]);
+    // Kumpulkan daftar nama file: dari manifest, disk lokal, Cloudflare R2, dan relasi metadata serah terima
+    const [localFiles, r2Files, remoteTokens, serahTerimaRecords] = await Promise.all([
+      listLocalFiles(),
+      listR2PhotoFiles(forceFresh),
+      getRemoteTokens(),
+      getSerahTerimaHistory(),
+    ]);
     const r2FileSet = new Set<string>(r2Files);
     const localFileSet = new Set<string>(localFiles);
 
@@ -152,22 +223,137 @@ export async function GET(req: NextRequest) {
       return false;
     });
 
-    // Mode 1: Pencarian spesifik nomor TTB (untuk popup/modal)
+    // Buat index mapping metadata foto remote kapal untuk auto-resolve informasi TTB & Armada
+    const remotePhotoMetadataMap = new Map<string, {
+      noTtb: string;
+      armada?: string;
+      receiverName?: string;
+      takenAt?: string | null;
+      deliveryMethod?: string;
+      photoUrl?: string;
+    }>();
+
+    for (const t of remoteTokens) {
+      if (Array.isArray(t.receiverPhotos)) {
+        for (const photoItem of t.receiverPhotos) {
+          const cleanPhotoName = photoItem.includes('/')
+            ? photoItem.split('/').pop()?.split('?')[0] || photoItem
+            : photoItem;
+          remotePhotoMetadataMap.set(cleanPhotoName, {
+            noTtb: t.noTtb || t.cleanNoTtb || t.ttbId,
+            armada: t.armada,
+            receiverName: t.receiverName || t.recipientNameTarget,
+            takenAt: formatIsoToDisplay(t.usedAt || t.dispatchedAt || t.createdAt),
+            deliveryMethod: t.shippingMethod,
+            photoUrl: photoItem,
+          });
+        }
+      }
+    }
+
+    for (const s of serahTerimaRecords) {
+      if (Array.isArray(s.photos)) {
+        for (const p of s.photos) {
+          const pUrl = typeof p === 'string' ? p : p.url;
+          const pName = typeof p === 'string' ? p : p.originalName || p.url;
+          const cleanPName = pName.includes('/') ? pName.split('/').pop()?.split('?')[0] || pName : pName;
+          if (!remotePhotoMetadataMap.has(cleanPName)) {
+            remotePhotoMetadataMap.set(cleanPName, {
+              noTtb: s.noTtb || s.cleanNoTtb,
+              armada: s.armada,
+              receiverName: s.penerima,
+              takenAt: formatIsoToDisplay(s.tanggalSerahTerima || s.createdAt),
+              deliveryMethod: s.deliveryMethod,
+              photoUrl: pUrl,
+            });
+          }
+        }
+      }
+    }
+
+    // Mode 1: Pencarian spesifik nomor TTB (untuk popup/modal verifikasi & validasi)
     if (noTtb) {
       const target = parseNoTtb(noTtb);
       if (target.numbers.length === 0) {
         return NextResponse.json({ ttb: noTtb, photos: [], error: 'Nomor TTB tidak valid' }, { status: 400 });
       }
 
-      const photos = files
-        .filter((f) => filenameMatchesTtb(f, target))
-        .map((name) => ({
-          name,
-          url: resolvePhotoUrl(name, r2FileSet),
-          takenAt: extractTakenAt(name),
-          ttbInfo: extractTtbFromFilename(name),
-        }))
-        .sort((a, b) => b.name.localeCompare(a.name));
+      const cleanTargetTtb = noTtb.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      const photoMap = new Map<string, any>();
+
+      // 1. Ambil foto yang cocok berdasarkan nama file (standar TimeMark)
+      for (const f of files) {
+        if (filenameMatchesTtb(f, target)) {
+          photoMap.set(f, {
+            name: f,
+            url: resolvePhotoUrl(f, r2FileSet),
+            takenAt: extractTakenAt(f),
+            ttbInfo: extractTtbFromFilename(f),
+            source: 'filename_match',
+          });
+        }
+      }
+
+      // 2. Ambil foto yang tercatat di Remote Handover Tokens (Tautan Mandiri Kapal / Kru)
+      for (const t of remoteTokens) {
+        const tClean = (t.cleanNoTtb || t.noTtb || t.ttbId || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+        const tRef = parseNoTtb(t.noTtb || t.cleanNoTtb);
+        const isMatched =
+          (cleanTargetTtb && tClean && (tClean.includes(cleanTargetTtb) || cleanTargetTtb.includes(tClean))) ||
+          (target.numbers.length > 0 && tRef.numbers.some((n: string) => target.numbers.includes(n)));
+
+        if (isMatched && Array.isArray(t.receiverPhotos)) {
+          for (const p of t.receiverPhotos) {
+            const pName = p.includes('/') ? p.split('/').pop()?.split('?')[0] || p : p;
+            const pUrl = resolvePhotoUrl(p, r2FileSet);
+            const takenTime = extractTakenAt(pName) || formatIsoToDisplay(t.usedAt || t.dispatchedAt || t.createdAt);
+
+            photoMap.set(pName, {
+              name: pName,
+              url: pUrl,
+              takenAt: takenTime,
+              ttbInfo: { prefix: target.prefix || tRef.prefix, numbers: target.numbers },
+              source: 'remote_handover',
+              receiverName: t.receiverName || t.recipientNameTarget,
+              armada: t.armada,
+              deliveryMethod: t.shippingMethod,
+            });
+          }
+        }
+      }
+
+      // 3. Ambil foto yang tercatat di Serah Terima Lapangan
+      for (const s of serahTerimaRecords) {
+        const sClean = (s.noTtb || s.cleanNoTtb || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+        const sRef = parseNoTtb(s.noTtb || s.cleanNoTtb);
+        const isMatched =
+          (cleanTargetTtb && sClean && (sClean.includes(cleanTargetTtb) || cleanTargetTtb.includes(sClean))) ||
+          (target.numbers.length > 0 && sRef.numbers.some((n: string) => target.numbers.includes(n)));
+
+        if (isMatched && Array.isArray(s.photos)) {
+          for (const sp of s.photos) {
+            const pUrlRaw = typeof sp === 'string' ? sp : sp.url;
+            const pName = typeof sp === 'string' ? sp : sp.originalName || sp.url;
+            const cleanPName = pName.includes('/') ? pName.split('/').pop()?.split('?')[0] || pName : pName;
+            const pUrl = resolvePhotoUrl(pUrlRaw || cleanPName, r2FileSet);
+            const takenTime = extractTakenAt(cleanPName) || formatIsoToDisplay(s.tanggalSerahTerima || s.createdAt);
+
+            if (!photoMap.has(cleanPName)) {
+              photoMap.set(cleanPName, {
+                name: cleanPName,
+                url: pUrl,
+                takenAt: takenTime,
+                ttbInfo: { prefix: target.prefix || sRef.prefix, numbers: target.numbers },
+                source: 'serah_terima_history',
+                receiverName: s.penerima,
+                armada: s.armada,
+              });
+            }
+          }
+        }
+      }
+
+      const photos = Array.from(photoMap.values()).sort((a, b) => b.name.localeCompare(a.name));
 
       return NextResponse.json({
         ttb: noTtb,
@@ -194,12 +380,21 @@ export async function GET(req: NextRequest) {
     const startIndex = (page - 1) * limit;
     const pagedFiles = matchedFiles.slice(startIndex, startIndex + limit);
 
-    const photos = pagedFiles.map((name) => ({
-      name,
-      url: resolvePhotoUrl(name, r2FileSet),
-      takenAt: extractTakenAt(name),
-      ttbInfo: extractTtbFromFilename(name),
-    }));
+    const photos = pagedFiles.map((name) => {
+      let ttbInfo = extractTtbFromFilename(name);
+      const meta = remotePhotoMetadataMap.get(name);
+      if ((!ttbInfo.numbers || ttbInfo.numbers.length === 0) && meta?.noTtb) {
+        ttbInfo = parseNoTtb(meta.noTtb);
+      }
+      return {
+        name,
+        url: resolvePhotoUrl(name, r2FileSet),
+        takenAt: extractTakenAt(name) || meta?.takenAt || null,
+        ttbInfo,
+        armada: meta?.armada,
+        receiverName: meta?.receiverName,
+      };
+    });
 
     return NextResponse.json({
       source: sourceName,

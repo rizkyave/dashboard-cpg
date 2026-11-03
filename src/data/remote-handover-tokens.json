@@ -1,5 +1,38 @@
 [
   {
+    "id": "1b34ef6e-bd23-466b-bab8-538a7375784f",
+    "token": "78d241d6a21ed485054ad215",
+    "ttbId": "CPL-TTB-26-07629",
+    "noTtb": "CPL-TTB-26-07629",
+    "cleanNoTtb": "CPL-TTB-26-07629",
+    "armada": "SV TWINSISTER 307",
+    "noFpb": "CPL-FPB-26-0004990",
+    "noPo": "CPL-PO-26-05807",
+    "itemSummary": "-",
+    "fileUrl": "/api/r2-file?key=ttb-documents%2FCPL-TTB-26-07629.pdf&v=1793345277644",
+    "shippingMethod": "Diantar Tim Logistik",
+    "carrierContact": "Agus",
+    "trackingNumber": "",
+    "recipientPhone": "628115409729",
+    "recipientNameTarget": "Anwar Rasyid (R. Nakhoda)",
+    "createdAt": "2026-11-03T14:30:58.983Z",
+    "expiresAt": "2026-11-10T14:30:58.983Z",
+    "isUsed": true,
+    "dispatchedBy": "AGUSSALIM (Tim Lapangan)",
+    "dispatchedAt": "2026-11-03T14:30:58.983Z",
+    "usedAt": "2026-11-03T14:34:04.000Z",
+    "receiverName": "Anwar Rasyid (R. Nakhoda)",
+    "receiverRole": "Nakhoda",
+    "receiverPhotos": [
+      "https://pub-9a40b24be68549b19c6eaec0f2542c0b.r2.dev/ttb-photos/ttb-remote-1793716472850-1.jpg"
+    ],
+    "geolocation": {
+      "latitude": -1.23307,
+      "longitude": 116.89664,
+      "accuracy": 15
+    }
+  },
+  {
     "id": "1f2f33e7-4cef-414e-9f49-a3cb79fc7661",
     "token": "aeac839fd728ca7372e48327",
     "ttbId": "CPL-TTB-26-07618",

@@ -651,8 +651,19 @@ export async function PUT(req: NextRequest): Promise<NextResponse<RemoteHandover
     const uploadedPhotoUrls: string[] = [];
     const newManifestEntries: Record<string, string> = {};
 
-    // 2. Simpan Bukti Foto ke Cloudflare R2 dan/atau disk lokal
-    for (const p of photoBuffers) {
+    // 2. Simpan Bukti Foto ke Cloudflare R2 dan/atau disk lokal dengan penamaan standar No TTB resmi
+    const ttbTag = (tokenRecord.cleanNoTtb || tokenRecord.noTtb || 'TTB').replace(/[^a-zA-Z0-9_-]/g, '_');
+    const armadaTag = tokenRecord.armada ? `${tokenRecord.armada.trim().replace(/[^a-zA-Z0-9_-]/g, '_')}_` : '';
+
+    for (let i = 0; i < photoBuffers.length; i++) {
+      const p = photoBuffers[i];
+      const ext = path.extname(p.fileName).toLowerCase() || '.jpg';
+      // Format nama file: [NO_TTB]_[ARMADA]_remote_[TIMESTAMP]_[INDEX].ext
+      const standardFileName = p.fileName.includes(ttbTag)
+        ? p.fileName
+        : `${ttbTag}_${armadaTag}remote_${Date.now()}_${i + 1}${ext}`;
+      p.fileName = standardFileName;
+
       const r2Key = `ttb-photos/${p.fileName}`;
       if (isR2Active) {
         try {
@@ -660,6 +671,13 @@ export async function PUT(req: NextRequest): Promise<NextResponse<RemoteHandover
             key: r2Key,
             body: p.buffer,
             contentType: p.mimeType,
+            metadata: {
+              noTtb: tokenRecord.noTtb,
+              cleanNoTtb: tokenRecord.cleanNoTtb,
+              armada: tokenRecord.armada || '',
+              receiverName,
+              receiverRole: receiverRole || '',
+            },
           });
           const publicUrl = getR2FileUrl(r2Key);
           uploadedPhotoUrls.push(publicUrl);
@@ -839,6 +857,11 @@ export async function PUT(req: NextRequest): Promise<NextResponse<RemoteHandover
       ttbHistory[matchedTtbIndex].recipientPhone = tokenRecord.recipientPhone;
       ttbHistory[matchedTtbIndex].recipientSignatureDataUrl = signatureDataUrl;
       ttbHistory[matchedTtbIndex].recipientStampedAt = nowIso;
+      ttbHistory[matchedTtbIndex].hasPhysicalPhotos = uploadedPhotoUrls.length > 0;
+      ttbHistory[matchedTtbIndex].physicalPhotosCount = uploadedPhotoUrls.length;
+      ttbHistory[matchedTtbIndex].isArmadaReceived = true;
+      ttbHistory[matchedTtbIndex].deliveryMethod = tokenRecord.shippingMethod;
+      ttbHistory[matchedTtbIndex].receiverRole = receiverRole;
       if (stampedPdfUrl) ttbHistory[matchedTtbIndex].fileUrl = stampedPdfUrl;
       await saveTtbUploadHistory(ttbHistory);
     }

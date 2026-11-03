@@ -28,6 +28,22 @@ export const extractTtbFromFilename = (filename: string): TtbRef => {
       numbers.add(n);
     }
   }
+  // Fallback: Dukung format file remote / serah terima mandiri seperti "CPL-TTB-26-07629_remote_..." atau "CPL_07629_..."
+  if (numbers.size === 0) {
+    const prefixMatch = base.match(/\b([A-Z]{2,4})[-_ ]/i);
+    if (prefixMatch && !prefix) {
+      prefix = prefixMatch[1].toUpperCase();
+    }
+    const generalDigits = base.match(/\b\d{4,6}\b/g) || [];
+    for (const d of generalDigits) {
+      // Abaikan tahun seperti 2025, 2026, 2027 jika ada angka lain
+      if (/^202[4-9]$/.test(d) && generalDigits.length > 1) continue;
+      const padded = d.length <= 5 ? d.padStart(5, '0') : d;
+      numbers.add(padded);
+      numbers.add(d);
+    }
+  }
+
   return { prefix, numbers: Array.from(numbers) };
 };
 

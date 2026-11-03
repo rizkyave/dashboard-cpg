@@ -189,7 +189,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Sinkronisasi status TTD penerima dengan riwayat serah terima lapangan
+    // Sinkronisasi status TTD penerima dengan riwayat serah terima lapangan dan tautan mandiri kapal
     let serahTerimaRecords: any[] = [];
     if (isR2Active) {
       try {
@@ -209,6 +209,24 @@ export async function GET(req: NextRequest) {
       } catch {
         // Ignore
       }
+    }
+
+    // Muat Remote Handover Tokens (Tautan Mandiri Kru Kapal)
+    let remoteTokens: any[] = [];
+    if (isR2Active) {
+      try {
+        const tokenObj = await getObjectFromR2('ttb-metadata/remote-handover-tokens.json');
+        if (tokenObj && tokenObj.body) {
+          const parsedTokens = JSON.parse(Buffer.from(tokenObj.body).toString('utf8'));
+          if (Array.isArray(parsedTokens)) remoteTokens = parsedTokens;
+        }
+      } catch {}
+    }
+    if (remoteTokens.length === 0) {
+      try {
+        const rawTokens = await fs.readFile(path.join(process.cwd(), 'src', 'data', 'remote-handover-tokens.json'), 'utf8');
+        remoteTokens = JSON.parse(rawTokens);
+      } catch {}
     }
 
     // Load dataset relasi & pengayaan metadata TTB dari Monitoring Internal dan arsip operasional
@@ -243,9 +261,39 @@ export async function GET(req: NextRequest) {
     const formattedHistory = history.map((item) => {
       let updatedItem = { ...item };
 
-      // Cek apakah ada bukti serah terima untuk TTB ini
+      // Cek apakah ada bukti serah terima untuk TTB ini (dari Serah Terima Lapangan & Tautan Mandiri Kapal)
       const cleanItemTtb = sanitizeTtbNumber(item.noTtb || item.cleanNoTtb || '');
       const itemComp = extractTtbComponents(cleanItemTtb);
+
+      const tokenMatch = remoteTokens.find((t) => {
+        const tClean = sanitizeTtbNumber(t.cleanNoTtb || t.noTtb || t.ttbId || '');
+        if (tClean === cleanItemTtb) return true;
+        const tComp = extractTtbComponents(tClean);
+        if (itemComp.prefix && tComp.prefix && itemComp.prefix !== tComp.prefix) {
+          return false;
+        }
+        return cleanItemTtb.length >= 4 && tClean.includes(cleanItemTtb);
+      });
+
+      if (tokenMatch) {
+        if (tokenMatch.receiverName) {
+          updatedItem.recipientName = tokenMatch.receiverName;
+          updatedItem.isRecipientStamped = true;
+          updatedItem.recipientSignatureDataUrl = tokenMatch.receiverSignatureDataUrl || updatedItem.recipientSignatureDataUrl;
+          updatedItem.recipientStampedAt = tokenMatch.usedAt || updatedItem.recipientStampedAt;
+          updatedItem.isArmadaReceived = true;
+          updatedItem.receiverRole = tokenMatch.receiverRole;
+        }
+        if (tokenMatch.shippingMethod) {
+          updatedItem.deliveryMethod = tokenMatch.shippingMethod;
+        }
+        if (Array.isArray(tokenMatch.receiverPhotos) && tokenMatch.receiverPhotos.length > 0) {
+          updatedItem.hasPhysicalPhotos = true;
+          updatedItem.physicalPhotosCount = (updatedItem.physicalPhotosCount || 0) + tokenMatch.receiverPhotos.length;
+          updatedItem.isArmadaReceived = true;
+        }
+      }
+
       const strMatch = serahTerimaRecords.find((s) => {
         const sClean = sanitizeTtbNumber(s.noTtb || s.cleanNoTtb || '');
         if (sClean === cleanItemTtb) return true;
@@ -262,9 +310,18 @@ export async function GET(req: NextRequest) {
           updatedItem.recipientName = strMatch.penerima;
           updatedItem.recipientSignatureDataUrl = strMatch.penerimaSignature;
           updatedItem.recipientStampedAt = strMatch.createdAt || strMatch.tanggalSerahTerima;
+          updatedItem.isArmadaReceived = true;
         }
         if (strMatch.kontakPenerima && !updatedItem.recipientPhone) {
           updatedItem.recipientPhone = strMatch.kontakPenerima;
+        }
+        if (strMatch.deliveryMethod && !updatedItem.deliveryMethod) {
+          updatedItem.deliveryMethod = strMatch.deliveryMethod;
+        }
+        if (Array.isArray(strMatch.photos) && strMatch.photos.length > 0) {
+          updatedItem.hasPhysicalPhotos = true;
+          updatedItem.physicalPhotosCount = (updatedItem.physicalPhotosCount || 0) + strMatch.photos.length;
+          updatedItem.isArmadaReceived = true;
         }
       }
 

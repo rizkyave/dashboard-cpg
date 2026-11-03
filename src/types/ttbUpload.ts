@@ -31,6 +31,13 @@ export interface UploadedTtbItem {
   recipientPhone?: string;
   recipientSignatureDataUrl?: string;
   recipientStampedAt?: string;
+  // Bukti Fisik Serah Terima Armada / Lapangan
+  hasPhysicalPhotos?: boolean;
+  physicalPhotosCount?: number;
+  physicalPhotos?: { name: string; url: string; takenAt?: string | null }[];
+  deliveryMethod?: string;
+  isArmadaReceived?: boolean;
+  receiverRole?: string;
   // Legacy fields untuk kompatibilitas data riwayat lama
   driveFolderUrl?: string;
   driveFileId?: string;

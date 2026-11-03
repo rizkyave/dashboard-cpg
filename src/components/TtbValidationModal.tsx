@@ -856,7 +856,7 @@ export default function TtbValidationModal({
                   }`}
                 >
                   <Camera className="size-3.5 text-purple-500" />
-                  <span>Foto Fisik (${photos.length})</span>
+                  <span>Foto Fisik ({photos.length})</span>
                 </button>
               </div>
 
