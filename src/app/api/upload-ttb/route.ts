@@ -720,6 +720,47 @@ export async function DELETE(req: NextRequest) {
       await saveHistory(history);
     }
 
+    // 4. Bersihkan / reset data validasi di document-validations.json & R2 agar jika diupload ulang, tanda tangan lama tidak nyangkut
+    const ttbNumberToClean = targetItem?.noTtb || targetItem?.cleanNoTtb || '';
+    if (ttbNumberToClean) {
+      try {
+        const valPath = path.join(process.cwd(), 'src', 'data', 'document-validations.json');
+        let valRecords: any[] = [];
+        if (isR2Active) {
+          const r2Val = await getObjectFromR2('validation-metadata/records.json');
+          if (r2Val && r2Val.body) {
+            valRecords = JSON.parse(Buffer.from(r2Val.body).toString('utf8'));
+          }
+        }
+        if (valRecords.length === 0) {
+          try {
+            const raw = await fs.readFile(valPath, 'utf8');
+            valRecords = JSON.parse(raw);
+          } catch {}
+        }
+
+        const matchIdx = valRecords.findIndex(
+          (vr: any) =>
+            (vr.docNumber && vr.docNumber.toLowerCase() === ttbNumberToClean.toLowerCase()) ||
+            (vr.cleanDocNumber && vr.cleanDocNumber.toLowerCase() === ttbNumberToClean.toLowerCase()) ||
+            (vr.docId && vr.docId.toLowerCase() === ttbNumberToClean.toLowerCase())
+        );
+
+        if (matchIdx !== -1) {
+          valRecords.splice(matchIdx, 1);
+          const updatedJson = JSON.stringify(valRecords, null, 2);
+          try {
+            await fs.writeFile(valPath, updatedJson, 'utf8');
+          } catch {}
+          if (isR2Active) {
+            await uploadToR2({ key: 'validation-metadata/records.json', body: Buffer.from(updatedJson, 'utf8'), contentType: 'application/json' });
+          }
+        }
+      } catch (valCleanErr) {
+        console.warn('Gagal membersihkan data validasi saat TTB dihapus:', valCleanErr);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       message: `Berkas ${targetItem?.renamedFileName || fileName || id} berhasil dihapus dari Cloudflare R2.`,

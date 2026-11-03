@@ -30,6 +30,7 @@ import {
   ChevronRight,
   Loader2,
   Image as ImageIcon,
+  RotateCcw,
 } from 'lucide-react';
 import {
   DocumentValidationRecord,
@@ -205,7 +206,7 @@ export default function TtbValidationModal({
   onValidationSuccess,
   showToast,
 }: TtbValidationModalProps) {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isSupervisor, isManager } = useAuth();
 
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [activeTabMobile, setActiveTabMobile] = useState<'checklist' | 'document'>('checklist');
@@ -519,13 +520,15 @@ export default function TtbValidationModal({
     }
   };
 
-  // Batalkan validasi pada slot tertentu (Admin Only)
+  // Batalkan validasi pada slot tertentu (Admin, Supervisor, Manager, atau Pemilik Wewenang)
   const handleRevokeSlot = async (slotKey: TtbSlotKey) => {
-    if (!isAdmin) {
-      if (showToast) showToast('Hanya administrator yang dapat membatalkan validasi.', 'warning');
+    const auth = checkUserTtbSlotAuthority(slotKey, user);
+    const canRevoke = isAdmin || isSupervisor || isManager || auth.allowed;
+    if (!canRevoke) {
+      if (showToast) showToast('Anda tidak memiliki wewenang untuk membatalkan pengesahan kolom ini.', 'warning');
       return;
     }
-    if (!confirm('Apakah Anda yakin ingin membatalkan pengesahan pada kolom ini?')) return;
+    if (!confirm('Apakah Anda yakin ingin membatalkan pengesahan pada kolom ini untuk melakukan tanda tangan ulang?')) return;
 
     try {
       setIsSubmitting(true);
@@ -552,6 +555,45 @@ export default function TtbValidationModal({
       onValidationSuccess(data.record);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Gagal membatalkan pengesahan.';
+      if (showToast) showToast(msg, 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Reset seluruh 4 kolom tanda tangan digital untuk revalidasi dokumen baru
+  const handleResetAllSlots = async () => {
+    const canReset = isAdmin || isSupervisor || isManager;
+    if (!canReset) {
+      if (showToast) showToast('Hanya Supervisor, Manager, atau Administrator yang dapat me-reset seluruh pengesahan.', 'warning');
+      return;
+    }
+    if (!confirm('⚠️ PERHATIAN REVALIDASI:\n\nApakah Anda yakin ingin ME-RESET SELURUH tanda tangan digital pada dokumen TTB ini?\nSemua kolom (1 s/d 4) akan dikosongkan agar seluruh tim dapat menandatangani ulang berkas revisi dari awal.')) return;
+
+    try {
+      setIsSubmitting(true);
+      const res = await fetch('/api/validasi-dokumen', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          validationId: record.id,
+          docId: record.docId,
+          docType: 'TTB',
+          action: 'reset_all',
+          notes: `Revalidasi berkas baru oleh ${user?.name || 'Pengguna'} (${user?.jabatan || user?.role || ''})`,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Gagal mereset pengesahan dokumen.');
+      }
+
+      if (showToast) showToast('Seluruh pengesahan TTB berhasil di-reset! Dokumen siap ditandatangani ulang.', 'success');
+      setPdfRefreshKey(Date.now());
+      onValidationSuccess(data.record);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Gagal mereset pengesahan dokumen.';
       if (showToast) showToast(msg, 'error');
     } finally {
       setIsSubmitting(false);
@@ -1084,21 +1126,33 @@ export default function TtbValidationModal({
                             </div>
                           )}
 
-                          {isAdmin && (
-                            <div className="pt-0.5 flex justify-end">
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleRevokeSlot(slot.key);
-                                }}
-                                disabled={isSubmitting}
-                                className="text-[10px] text-rose-600 dark:text-rose-400 underline font-semibold hover:text-rose-700 cursor-pointer"
-                              >
-                                Batalkan Pengesahan (Admin)
-                              </button>
-                            </div>
-                          )}
+                          {(() => {
+                            const slotAuth = checkUserTtbSlotAuthority(slot.key, user);
+                            const isMySlot = Boolean(
+                              (user?.name && currentSlotState?.validatorName && user.name.toLowerCase() === currentSlotState.validatorName.toLowerCase()) ||
+                              slotAuth.allowed
+                            );
+                            const canRevokeSlot = isAdmin || isSupervisor || isManager || isMySlot;
+                            if (!canRevokeSlot) return null;
+
+                            return (
+                              <div className="pt-0.5 flex justify-end">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRevokeSlot(slot.key);
+                                  }}
+                                  disabled={isSubmitting}
+                                  className="text-[10px] text-rose-600 dark:text-rose-400 underline font-semibold hover:text-rose-700 cursor-pointer inline-flex items-center gap-1"
+                                  title="Batalkan pengesahan kolom ini untuk melakukan tanda tangan ulang"
+                                >
+                                  <RotateCcw className="size-2.5" />
+                                  <span>Batalkan &amp; TTD Ulang</span>
+                                </button>
+                              </div>
+                            );
+                          })()}
                         </div>
                       ) : (
                         <div className="mt-3 pt-2.5 border-t border-border/60">
@@ -1202,7 +1256,20 @@ export default function TtbValidationModal({
                 )}
               </div>
 
-              <div className="flex items-center gap-2 w-full sm:w-auto">
+              <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
+                {(isAdmin || isSupervisor || isManager) && (record.completedLinesCount > 0 || Object.values(record.ttbSlots || {}).some((s) => s.isValidated)) && (
+                  <button
+                    type="button"
+                    onClick={handleResetAllSlots}
+                    disabled={isSubmitting}
+                    className="px-3.5 py-2 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 transition cursor-pointer inline-flex items-center gap-1.5 active:scale-95"
+                    title="Kosongkan seluruh 4 kolom tanda tangan digital jika berkas TTB direvisi / di-upload ulang"
+                  >
+                    <RotateCcw className="size-3.5" />
+                    <span>Reset Semua TTD (Revalidasi)</span>
+                  </button>
+                )}
+
                 <button
                   type="button"
                   onClick={onClose}

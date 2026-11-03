@@ -1294,8 +1294,34 @@ export async function POST(req: NextRequest) {
 
     const nowIso = new Date().toISOString();
 
-    if (action === 'revoke') {
-      // Pembatalan validasi (Admin only / koreksi)
+    if (action === 'reset_all' || action === 'revoke_all') {
+      // Reset total seluruh pengesahan untuk revalidasi dokumen baru
+      if (record.docType === 'TTB') {
+        record.ttbSlots = {
+          deliveredBy: { isValidated: false, notes: notes ? `Reset revalidasi: ${notes}` : 'Validasi di-reset untuk revalidasi berkas baru.' },
+          approvedBy: { isValidated: false, notes: notes ? `Reset revalidasi: ${notes}` : 'Validasi di-reset untuk revalidasi berkas baru.' },
+          acknowledgedBy: { isValidated: false, notes: notes ? `Reset revalidasi: ${notes}` : 'Validasi di-reset untuk revalidasi berkas baru.' },
+          receivedBy: { isValidated: false, notes: notes ? `Reset revalidasi: ${notes}` : 'Validasi di-reset untuk revalidasi berkas baru.' },
+        };
+        record.purchasingValidation = { isValidated: false, notes: 'Validasi di-reset untuk revalidasi' };
+        record.logistikValidation = { isValidated: false, notes: 'Validasi di-reset untuk revalidasi' };
+        record.lapanganValidation = { isValidated: false, notes: 'Validasi di-reset untuk revalidasi' };
+        if (record.recipientValidation) {
+          record.recipientValidation.isSigned = false;
+        }
+      } else if (record.docType === 'FSTB') {
+        record.fstbSlots = {
+          deliveredBy: { isValidated: false, notes: notes || 'Validasi di-reset.' },
+          receivedBy: { isValidated: false, notes: notes || 'Validasi di-reset.' },
+          approvedBy: { isValidated: false, notes: notes || 'Validasi di-reset.' },
+          acknowledgedBy: { isValidated: false, notes: notes || 'Validasi di-reset.' },
+        };
+        record.purchasingValidation = { isValidated: false, notes: 'Validasi di-reset' };
+        record.logistikValidation = { isValidated: false, notes: 'Validasi di-reset' };
+        record.lapanganValidation = { isValidated: false, notes: 'Validasi di-reset' };
+      }
+    } else if (action === 'revoke') {
+      // Pembatalan validasi (Admin / Supervisor / Koreksi)
       if (record.docType === 'FSTB' && (slotKey || (slotKeys && slotKeys.length > 0))) {
         const revSlots: FstbSlotKey[] = slotKeys && Array.isArray(slotKeys) ? slotKeys : slotKey ? [slotKey] : [];
         record.fstbSlots = record.fstbSlots || {};
@@ -1733,7 +1759,9 @@ export async function POST(req: NextRequest) {
       {
         success: true,
         message:
-          action === 'revoke'
+          action === 'reset_all' || action === 'revoke_all'
+            ? `Seluruh pengesahan dokumen TTB berhasil di-reset untuk revalidasi berkas baru.`
+            : action === 'revoke'
             ? `Validasi berkas berhasil dibatalkan.`
             : `Validasi dan pembubuhan cap digital resmi berhasil disahkan.`,
         record,
