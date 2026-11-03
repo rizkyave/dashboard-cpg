@@ -18,6 +18,37 @@ const LOCAL_RBAC_FILE_PATH = path.join(process.cwd(), 'src', 'data', 'rbac-matri
 /**
  * Baca matriks perizinan RBAC dari Cloudflare R2 atau disk lokal
  */
+
+/**
+ * Memastikan semua modul sistem terbaru (termasuk Notifikasi & Log Kerja)
+ * selalu ada dan tidak hilang jika data yang tersimpan di R2/lokal berasal dari versi lama.
+ */
+function ensureAllModulesPresent(stored: ModulePermissionItem[]): ModulePermissionItem[] {
+  if (!Array.isArray(stored) || stored.length === 0) {
+    return MODULE_PERMISSIONS_MATRIX;
+  }
+  const storedMap = new Map<string, ModulePermissionItem>();
+  stored.forEach((item) => storedMap.set(item.tabId, item));
+
+  let hasNew = false;
+  const merged = MODULE_PERMISSIONS_MATRIX.map((sysItem) => {
+    const existing = storedMap.get(sysItem.tabId);
+    if (existing) {
+      return {
+        ...sysItem,
+        ...existing,
+        name: sysItem.name,
+        category: sysItem.category,
+        description: sysItem.description,
+      };
+    }
+    hasNew = true;
+    return sysItem;
+  });
+
+  return merged;
+}
+
 async function getStoredRbacMatrix(): Promise<ModulePermissionItem[]> {
   // 1. Coba baca dari Cloudflare R2 jika terkonfigurasi
   if (isR2Configured()) {
@@ -27,7 +58,11 @@ async function getStoredRbacMatrix(): Promise<ModulePermissionItem[]> {
         const text = Buffer.from(r2Obj.body).toString('utf8');
         const parsed = JSON.parse(text);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
+          const merged = ensureAllModulesPresent(parsed);
+          if (merged.length !== parsed.length) {
+            saveStoredRbacMatrix(merged).catch(() => {});
+          }
+          return merged;
         }
       }
     } catch (err) {
@@ -40,7 +75,7 @@ async function getStoredRbacMatrix(): Promise<ModulePermissionItem[]> {
     const raw = await fs.readFile(LOCAL_RBAC_FILE_PATH, 'utf8');
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length > 0) {
-      return parsed;
+      return ensureAllModulesPresent(parsed);
     }
   } catch {
     // Non-fatal
@@ -132,7 +167,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    await saveStoredRbacMatrix(matrix);
+    const finalizedMatrix = ensureAllModulesPresent(matrix);
+    await saveStoredRbacMatrix(finalizedMatrix);
 
     return NextResponse.json({
       success: true,

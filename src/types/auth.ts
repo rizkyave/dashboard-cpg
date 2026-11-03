@@ -117,7 +117,7 @@ export interface ModulePermissionItem {
 
 export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = rawRbacMatrix as unknown as ModulePermissionItem[];
 
-export const RBAC_MATRIX_STORAGE_KEY = 'CPG_AUTH_RBAC_MATRIX_V7';
+export const RBAC_MATRIX_STORAGE_KEY = 'CPG_AUTH_RBAC_MATRIX_V8';
 
 /**
  * Membaca matriks perizinan dinamis dari localStorage (fallback ke default matrix)
@@ -134,6 +134,7 @@ export function getStoredPermissionsMatrix(): ModulePermissionItem[] {
     localStorage.removeItem('CPG_AUTH_RBAC_MATRIX_V4');
     localStorage.removeItem('CPG_AUTH_RBAC_MATRIX_V5');
     localStorage.removeItem('CPG_AUTH_RBAC_MATRIX_V6');
+    localStorage.removeItem('CPG_AUTH_RBAC_MATRIX_V7');
 
     const raw = localStorage.getItem(RBAC_MATRIX_STORAGE_KEY);
     if (raw) {

@@ -1993,8 +1993,8 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                     onChange={(e) => setQuickModule(e.target.value as any)}
                     className="w-full pl-3 pr-8 py-2 text-xs rounded-lg border border-border bg-background text-foreground font-medium focus:outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer"
                   >
-                    <option value="ALL">📦 Seluruh Modul (20 Fitur Sistem)</option>
-                    <optgroup label="Dashboards (8 Modul)">
+                    <option value="ALL">📦 Seluruh Modul (21 Fitur Sistem)</option>
+                    <optgroup label="Dashboards (11 Modul)">
                       <option value="overview">Executive Overview</option>
                       <option value="review-fpb">Review &amp; Analisa FPB</option>
                       <option value="pratender">Pratender Material Terbuka</option>
@@ -2003,20 +2003,21 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                       <option value="armada">Layanan Armada</option>
                       <option value="upload-fstb">Upload FSTB Resmi</option>
                       <option value="upload-ttb">Upload TTB Resmi</option>
-                    </optgroup>
-                    <optgroup label="Modul Tambahan (7 Modul)">
                       <option value="validasi-dokumen">Validasi &amp; TTD Dokumen (TTB / FSTB)</option>
                       <option value="serah-terima-lapangan">Serah Terima Fisik Lapangan</option>
                       <option value="galeri-ttb">Galeri &amp; Bukti TTB</option>
+                    </optgroup>
+                    <optgroup label="Modul Tambahan (8 Modul)">
                       <option value="inventory">Monitoring Inventory</option>
                       <option value="stok-gudang">Stok Gudang (Accurate)</option>
                       <option value="pos-kapal">Posisi Armada Kapal</option>
                       <option value="crew-kapal">Daftar Kru &amp; Kontak Armada</option>
-                    </optgroup>
-                    <optgroup label="Modul Khusus (5 Modul)">
                       <option value="work-order">Work Order (SPK) Armada</option>
                       <option value="list-sm">List Service Maintenance (SM)</option>
                       <option value="sisa-layanan">Sisa Layanan FPB</option>
+                      <option value="notifikasi-pekerjaan">🔔 Notifikasi &amp; Log Kerja</option>
+                    </optgroup>
+                    <optgroup label="Modul Khusus (2 Modul)">
                       <option value="analytics">Analisis &amp; Evaluasi Procurement</option>
                       <option value="admin-settings">Admin Settings &amp; Hak Akses</option>
                     </optgroup>
