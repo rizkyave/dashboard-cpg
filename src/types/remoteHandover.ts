@@ -1,6 +1,8 @@
 export type ShippingMethod =
   | 'Travel / Mobil Titipan'
+  | 'Titip Armada'
   | 'Kapal Perintis / Kapal Lain'
+  | 'Diantar Tim Logistik'
   | 'Ekspedisi Lokal';
 
 export interface RemoteHandoverTokenData {

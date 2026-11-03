@@ -8,6 +8,7 @@ import {
   Phone,
   User,
   FileText,
+  Eye,
   Copy,
   Check,
   ExternalLink,
@@ -26,6 +27,7 @@ import {
   RemoteHandoverTokenData,
   RemoteHandoverResponse,
 } from '@/types/remoteHandover';
+import TtbMediaModal from './TtbMediaModal';
 
 export interface RemoteDispatchModalProps {
   isOpen: boolean;
@@ -63,6 +65,7 @@ export default function RemoteDispatchModal({
   const [shareUrl, setShareUrl] = useState<string>('');
   const [isCopied, setIsCopied] = useState<boolean>(false);
   const [isLoadingExisting, setIsLoadingExisting] = useState<boolean>(false);
+  const [showTtbDetailModal, setShowTtbDetailModal] = useState<boolean>(false);
 
   // Cek apakah TTB ini sudah memiliki token remote aktif sebelumnya
   useEffect(() => {
@@ -264,7 +267,7 @@ Terima kasih.`;
                 </span>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Kirim barang via kapal perintis, travel, atau ekspedisi tanpa kehadiran kurir internal.
+                Kirim barang via titip armada, travel, atau diantar tim logistik tanpa kehadiran kurir internal.
               </p>
             </div>
           </div>
@@ -284,9 +287,19 @@ Terima kasih.`;
           {/* Ringkasan Dokumen TTB */}
           <div className="p-3.5 rounded-xl bg-muted/50 border border-border space-y-2">
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <span className="text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border border-indigo-500/30 px-2 py-0.5 rounded-md">
-                {targetTtb.noTtb}
-              </span>
+              <button
+                type="button"
+                onClick={() => setShowTtbDetailModal(true)}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/30 hover:border-indigo-500/50 transition cursor-pointer shadow-2xs group active:scale-95"
+                title="Klik untuk membuka & melihat rincian dokumen TTB lengkap"
+              >
+                <FileText className="size-3.5 text-indigo-600 dark:text-indigo-400" />
+                <span>{targetTtb.noTtb}</span>
+                <span className="inline-flex items-center gap-1 text-[10px] font-sans font-bold px-1.5 py-0.5 rounded bg-indigo-600 text-white group-hover:bg-indigo-700 transition ml-0.5">
+                  <Eye className="size-2.5" />
+                  <span>Lihat TTB</span>
+                </span>
+              </button>
               <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
                 <Ship className="size-3.5 text-blue-500" />
                 <span>{targetTtb.armada}</span>
@@ -379,11 +392,14 @@ Terima kasih.`;
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {[
                   { id: 'Travel / Mobil Titipan', label: 'Travel / Mobil', icon: Car },
-                  { id: 'Kapal Perintis / Kapal Lain', label: 'Kapal Perintis', icon: Ship },
-                  { id: 'Ekspedisi Lokal', label: 'Ekspedisi Lokal', icon: Truck },
+                  { id: 'Titip Armada', label: 'Titip Armada', icon: Ship },
+                  { id: 'Diantar Tim Logistik', label: 'Diantar Tim Logistik', icon: Truck },
                 ].map((item) => {
                   const Icon = item.icon;
-                  const isSelected = shippingMethod === item.id;
+                  const isSelected =
+                    shippingMethod === item.id ||
+                    (item.id === 'Titip Armada' && shippingMethod === 'Kapal Perintis / Kapal Lain') ||
+                    (item.id === 'Diantar Tim Logistik' && shippingMethod === 'Ekspedisi Lokal');
                   return (
                     <button
                       key={item.id}
@@ -516,6 +532,19 @@ Terima kasih.`;
         </div>
 
       </div>
+
+      {/* Modal Detail & Pratinjau TTB */}
+      {showTtbDetailModal && (
+        <TtbMediaModal
+          isOpen={showTtbDetailModal}
+          onClose={() => setShowTtbDetailModal(false)}
+          noTtb={targetTtb.noTtb}
+          fpb={targetTtb.noFpb}
+          po={targetTtb.noPo}
+          armada={targetTtb.armada}
+          showToast={showToast}
+        />
+      )}
     </div>
   );
 }
