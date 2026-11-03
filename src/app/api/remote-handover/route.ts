@@ -887,7 +887,7 @@ export async function PUT(req: NextRequest): Promise<NextResponse<RemoteHandover
       const notifItem: AppNotification = {
         id: `notif-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
         type: 'SERAH_TERIMA_COMPLETED',
-        title: '✅ Serah Terima TTB Selesai (Remote / Pihak Ketiga)',
+        title: '✅ Serah Terima TTB Selesai',
         message: `Penerima ${receiverName || 'Kru Kapal'} (${receiverRole || 'Penerima'}) telah menandatangani & mengonfirmasi penerimaan TTB ${tokenRecord.noTtb} di ${tokenRecord.armada || 'armada/kapal'}.`,
         senderName: receiverName || 'Penerima Kapal',
         senderUsername: 'remote_receiver',
