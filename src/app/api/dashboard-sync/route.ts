@@ -22,10 +22,30 @@ interface DashboardMeta {
   updatedBy?: string;
 }
 
+const R2_PUBLIC_BASE =
+  process.env.CLOUDFLARE_R2_PUBLIC_URL?.replace(/\/+$/, '') ||
+  'https://pub-9a40b24be68549b19c6eaec0f2542c0b.r2.dev';
+
 /**
  * Baca dataset Procurement dari Cloudflare R2
  */
 async function getStoredProcurementFromR2(): Promise<ProcurementItem[] | null> {
+  // Prioritas 1: Ambil langsung dari Public CDN R2 (Sangat cepat, 0ms CPU limit)
+  if (R2_PUBLIC_BASE) {
+    try {
+      const res = await fetch(`${R2_PUBLIC_BASE}/${R2_PROCUREMENT_KEY}`, { cache: 'no-store' });
+      if (res.ok) {
+        const parsed = await res.json();
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (err) {
+      console.warn('Gagal fetch procurement-data.json via R2 public CDN:', err);
+    }
+  }
+
+  // Prioritas 2: Fallback ke S3 SDK jika public CDN tidak tersedia
   if (!isR2Configured()) return null;
   try {
     const obj = await getObjectFromR2(R2_PROCUREMENT_KEY);
@@ -37,7 +57,7 @@ async function getStoredProcurementFromR2(): Promise<ProcurementItem[] | null> {
       }
     }
   } catch (err) {
-    console.warn('Gagal membaca procurement-data.json dari Cloudflare R2:', err);
+    console.warn('Gagal membaca procurement-data.json dari Cloudflare R2 via SDK:', err);
   }
   return null;
 }
@@ -46,6 +66,22 @@ async function getStoredProcurementFromR2(): Promise<ProcurementItem[] | null> {
  * Baca dataset Armada dari Cloudflare R2
  */
 async function getStoredArmadaFromR2(): Promise<ArmadaItem[] | null> {
+  // Prioritas 1: Ambil langsung dari Public CDN R2 (Sangat cepat, 0ms CPU limit)
+  if (R2_PUBLIC_BASE) {
+    try {
+      const res = await fetch(`${R2_PUBLIC_BASE}/${R2_ARMADA_KEY}`, { cache: 'no-store' });
+      if (res.ok) {
+        const parsed = await res.json();
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (err) {
+      console.warn('Gagal fetch armada-data.json via R2 public CDN:', err);
+    }
+  }
+
+  // Prioritas 2: Fallback ke S3 SDK
   if (!isR2Configured()) return null;
   try {
     const obj = await getObjectFromR2(R2_ARMADA_KEY);
@@ -57,7 +93,7 @@ async function getStoredArmadaFromR2(): Promise<ArmadaItem[] | null> {
       }
     }
   } catch (err) {
-    console.warn('Gagal membaca armada-data.json dari Cloudflare R2:', err);
+    console.warn('Gagal membaca armada-data.json dari Cloudflare R2 via SDK:', err);
   }
   return null;
 }
@@ -112,31 +148,13 @@ export async function GET() {
     let procurement = await getStoredProcurementFromR2();
     let armada = await getStoredArmadaFromR2();
 
-    // Jika di R2 belum ada data (booting perdana), inisialisasi dari INITIAL_DATA dan seed ke R2
+    // Inisialisasi fallback aman jika data masih kosong
     if (!procurement || procurement.length === 0) {
       procurement = INITIAL_PROCUREMENT_DATA;
-      if (isR2Configured()) {
-        try {
-          await uploadToR2({
-            key: R2_PROCUREMENT_KEY,
-            body: Buffer.from(JSON.stringify(procurement), 'utf8'),
-            contentType: 'application/json',
-          });
-        } catch {}
-      }
     }
 
     if (!armada || armada.length === 0) {
       armada = INITIAL_ARMADA_DATA;
-      if (isR2Configured()) {
-        try {
-          await uploadToR2({
-            key: R2_ARMADA_KEY,
-            body: Buffer.from(JSON.stringify(armada), 'utf8'),
-            contentType: 'application/json',
-          });
-        } catch {}
-      }
     }
 
     let meta: DashboardMeta | null = null;

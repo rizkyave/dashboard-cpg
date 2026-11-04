@@ -589,39 +589,72 @@ export default function DashboardPage() {
         }
 
         // Sinkronisasi data Procurement & Armada terbaru dari Cloudflare R2 secara background
-        fetch('/api/dashboard-sync')
-          .then((r) => r.json())
-          .then((res) => {
-            if (res.success && Array.isArray(res.procurement) && res.procurement.length > 0) {
-              const cloudProc = res.procurement.map(sanitizeProcItem);
-              const cloudArm = (res.armada || []).map(sanitizeArmItem);
-              const enriched = enrichProcurementAndArmada(cloudProc, cloudArm, activeWoItems);
+        const applySyncedData = (proc: ProcurementItem[], arm: ArmadaItem[]) => {
+          if (!Array.isArray(proc) || proc.length === 0) return;
+          const cloudProc = proc.map(sanitizeProcItem);
+          const cloudArm = (arm || []).map(sanitizeArmItem);
+          const enriched = enrichProcurementAndArmada(cloudProc, cloudArm, activeWoItems);
 
-              enriched.procurement.sort((a, b) => {
-                const timeA = extractDateInfo(a.date).timestamp || 0;
-                const timeB = extractDateInfo(b.date).timestamp || 0;
-                if (timeA !== timeB) return timeB - timeA;
-                const numA = (a.fpb || a.po || '').trim();
-                const numB = (b.fpb || b.po || '').trim();
-                return numB.localeCompare(numA, undefined, { numeric: true, sensitivity: 'base' });
-              });
+          enriched.procurement.sort((a, b) => {
+            const timeA = extractDateInfo(a.date).timestamp || 0;
+            const timeB = extractDateInfo(b.date).timestamp || 0;
+            if (timeA !== timeB) return timeB - timeA;
+            const numA = (a.fpb || a.po || '').trim();
+            const numB = (b.fpb || b.po || '').trim();
+            return numB.localeCompare(numA, undefined, { numeric: true, sensitivity: 'base' });
+          });
 
-              enriched.armada.sort((a, b) => {
-                const timeA = extractDateInfo(a.tglPo || a.tglFpb).timestamp || 0;
-                const timeB = extractDateInfo(b.tglPo || b.tglFpb).timestamp || 0;
-                if (timeA !== timeB) return timeB - timeA;
-                const numA = (a.fpb || a.noPo || a.noFstb || '').trim();
-                const numB = (b.fpb || b.noPo || b.noFstb || '').trim();
-                return numB.localeCompare(numA, undefined, { numeric: true, sensitivity: 'base' });
-              });
+          enriched.armada.sort((a, b) => {
+            const timeA = extractDateInfo(a.tglPo || a.tglFpb).timestamp || 0;
+            const timeB = extractDateInfo(b.tglPo || b.tglFpb).timestamp || 0;
+            if (timeA !== timeB) return timeB - timeA;
+            const numA = (a.fpb || a.noPo || a.noFstb || '').trim();
+            const numB = (b.fpb || b.noPo || b.noFstb || '').trim();
+            return numB.localeCompare(numA, undefined, { numeric: true, sensitivity: 'base' });
+          });
 
-              setProcurementData(enriched.procurement);
-              setArmadaData(enriched.armada);
-              saveStoredProcurement(enriched.procurement);
-              saveStoredArmada(enriched.armada);
+          setProcurementData(enriched.procurement);
+          setArmadaData(enriched.armada);
+          saveStoredProcurement(enriched.procurement);
+          saveStoredArmada(enriched.armada);
+        };
+
+        const R2_PUBLIC_URL = 'https://pub-9a40b24be68549b19c6eaec0f2542c0b.r2.dev';
+
+        // 1. Coba fetch langsung dari CDN R2 Publik (Super cepat & bebas limit Worker)
+        fetch(`${R2_PUBLIC_URL}/dashboard-metadata/procurement-data.json`)
+          .then((r) => (r.ok ? r.json() : null))
+          .then((procData) => {
+            if (Array.isArray(procData) && procData.length > 0) {
+              fetch(`${R2_PUBLIC_URL}/dashboard-metadata/armada-data.json`)
+                .then((r) => (r.ok ? r.json() : []))
+                .catch(() => [])
+                .then((armData) => {
+                  applySyncedData(procData, armData || []);
+                });
+            } else {
+              // Fallback ke API internal jika R2 CDN tidak merespon
+              fetch('/api/dashboard-sync')
+                .then((r) => r.json())
+                .then((res) => {
+                  if (res.success && Array.isArray(res.procurement) && res.procurement.length > 0) {
+                    applySyncedData(res.procurement, res.armada || []);
+                  }
+                })
+                .catch((e) => console.warn('Auto-fetch dashboard-sync fallback error:', e));
             }
           })
-          .catch((e) => console.warn('Auto-fetch dashboard-sync cloud background:', e));
+          .catch(() => {
+            // Fallback ke API internal
+            fetch('/api/dashboard-sync')
+              .then((r) => r.json())
+              .then((res) => {
+                if (res.success && Array.isArray(res.procurement) && res.procurement.length > 0) {
+                  applySyncedData(res.procurement, res.armada || []);
+                }
+              })
+              .catch((e) => console.warn('Auto-fetch dashboard-sync fallback error:', e));
+          });
 
         if (activeWoItems.length === 0) {
           // Sync Work Order on initial load in background if not yet cached
