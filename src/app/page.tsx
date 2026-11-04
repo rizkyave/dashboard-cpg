@@ -57,6 +57,7 @@ import {
 } from '@/utils/smStorage';
 import AnalyticsTab from '@/components/AnalyticsTab';
 import ReviewFpbTab from '@/components/ReviewFpbTab';
+import PurchasePlanningTab from '@/components/PurchasePlanningTab';
 import PratenderTab from '@/components/PratenderTab';
 import MonitoringInternalTab from '@/components/MonitoringInternalTab';
 import InventoryTab from '@/components/InventoryTab';
@@ -1321,6 +1322,14 @@ export default function DashboardPage() {
           {/* Tab Review & Analisa FPB (e-FPB Server Sync & Review Tool) */}
           {activeTab === 'review-fpb' && (
             <ReviewFpbTab showToast={showToast} />
+          )}
+
+          {/* Tab Perencanaan Pengadaan (Purchase Planning & Demand Forecast) */}
+          {activeTab === 'purchase-planning' && (
+            <PurchasePlanningTab
+              onNavigateTab={(tab) => setActiveTab(tab as TabType)}
+              showToast={showToast}
+            />
           )}
 
           {/* Tab Pratender Material (Konsolidasi Kebutuhan Terbuka & RFQ Vendor) */}

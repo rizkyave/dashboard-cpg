@@ -109,6 +109,61 @@
     }
   },
   {
+    "tabId": "purchase-planning",
+    "category": "Dashboards",
+    "name": "Perencanaan Pengadaan",
+    "description": "Perencanaan pengadaan barang berbasis net demand, peramalan konsumsi armada, evaluasi stok, dan estimasi anggaran",
+    "permissions": {
+      "admin": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
+      },
+      "manager": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Akses analisa peramalan dan persetujuan alokasi anggaran belanja"
+      },
+      "supervisor": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Akses evaluasi pengadaan berkala dan rekomendasi reorder"
+      },
+      "staf_purchasing": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Akses penyusunan paket pengadaan dan estimasi harga tender"
+      },
+      "staf_ttb": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Akses monitoring perencanaan barang masuk"
+      },
+      "staf_lapangan": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
+      },
+      "end_user": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Akses dinonaktifkan (default: dilarang)"
+      },
+      "visitor": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Akses membaca ringkasan estimasi"
+      }
+    }
+  },
+  {
     "tabId": "pratender",
     "category": "Dashboards",
     "name": "Pratender Material",

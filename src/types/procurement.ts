@@ -7,6 +7,7 @@ export type LapseFilterType = 'ALL' | 'NORMAL' | 'WARNING' | 'CRITICAL';
 export type TabType =
   | 'overview'
   | 'review-fpb'
+  | 'purchase-planning'
   | 'pratender'
   | 'monitoring-internal'
   | 'procurement'

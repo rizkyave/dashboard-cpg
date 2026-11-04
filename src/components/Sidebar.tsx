@@ -28,6 +28,7 @@ import {
   PackageCheck,
   FileSignature,
   ClipboardCheck,
+  TrendingUp,
 } from 'lucide-react';
 
 import * as XLSX from 'xlsx';
@@ -127,6 +128,13 @@ export default function Sidebar({
       icon: ClipboardCheck,
       badge: 'E-FPB',
       title: 'Sinkronisasi e-FPB, Review Ketersediaan Stok Gudang & Analisa Duplikasi Permintaan Armada',
+    },
+    {
+      id: 'purchase-planning' as TabType,
+      label: 'Perencanaan Pengadaan',
+      icon: TrendingUp,
+      badge: 'Forecast',
+      title: 'Perencanaan Pengadaan Strategis, Peramalan Kebutuhan Bersih (Net Demand) & Estimasi Anggaran Pengadaan',
     },
     {
       id: 'pratender' as TabType,
