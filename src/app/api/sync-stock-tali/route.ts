@@ -9,6 +9,7 @@ import {
   computeSummary,
 } from '@/utils/stockTaliParser';
 import { isR2Configured, getObjectFromR2, uploadToR2 } from '@/utils/r2Client';
+import { lookupStockTaliReference, searchSisaLayananForPicker } from '@/utils/stockTaliLookup';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -194,6 +195,31 @@ async function forwardToGoogleAppsScript(webhookUrl: string, payload: any) {
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
+    const action = searchParams.get('action');
+
+    // 1. Auto-lookup data referensi dari TTB atau FPB via Sisa Layanan & Dokumen CPG
+    if (action === 'lookup') {
+      const query = searchParams.get('query') || searchParams.get('ttb') || searchParams.get('fpb') || '';
+      const pt = searchParams.get('pt') || '';
+      const result = await lookupStockTaliReference(query, pt);
+      return NextResponse.json({
+        success: true,
+        ...result,
+      });
+    }
+
+    // 2. Pencarian cepat Sisa Layanan untuk modal picker dialog
+    if (action === 'search_sisa') {
+      const query = searchParams.get('q') || searchParams.get('query') || '';
+      const pt = searchParams.get('pt') || '';
+      const limit = Number(searchParams.get('limit') || 25);
+      const result = await searchSisaLayananForPicker(query, pt, limit);
+      return NextResponse.json({
+        success: true,
+        ...result,
+      });
+    }
+
     const getScript = searchParams.get('script') === 'true';
     const forceFresh = searchParams.get('fresh') === 'true';
 

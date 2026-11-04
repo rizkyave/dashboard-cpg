@@ -191,6 +191,16 @@ export default function StockTaliSubTab({ showToast, onCountChange }: StockTaliS
   const [modalActiveTab, setModalActiveTab] = useState<'IDENTITAS' | 'TTB' | 'LAPANGAN' | 'PCH'>('IDENTITAS');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
+  // Auto-lookup & Sisa Layanan reference state
+  const [isSisaPickerOpen, setIsSisaPickerOpen] = useState<boolean>(false);
+  const [sisaSearchQuery, setSisaSearchQuery] = useState<string>('');
+  const [sisaPtFilter, setSisaPtFilter] = useState<string>('ALL');
+  const [sisaSearchResults, setSisaSearchResults] = useState<any[]>([]);
+  const [isLoadingSisa, setIsLoadingSisa] = useState<boolean>(false);
+  const [autoLookupLoading, setAutoLookupLoading] = useState<boolean>(false);
+  const [autoLookupMatch, setAutoLookupMatch] = useState<any | null>(null);
+  const [lookupBannerDismissed, setLookupBannerDismissed] = useState<boolean>(false);
+
   // Webhook settings state
   const [webhookUrl, setWebhookUrl] = useState<string>('');
   const [isWebhookConfigured, setIsWebhookConfigured] = useState<boolean>(false);
@@ -284,6 +294,126 @@ export default function StockTaliSubTab({ showToast, onCountChange }: StockTaliS
     setTimeout(() => setCopiedKey(null), 1500);
   };
 
+  // Helper terapkan data hasil lookup ke form mutasi
+  const applyLookupMatch = (matchData: any, announceToast = true) => {
+    if (!matchData) return;
+    setFormData((prev) => ({
+      ...prev,
+      pt: matchData.pt || prev.pt || 'CPL',
+      deptArmada: matchData.deptArmada || prev.deptArmada || '',
+      noFpb: matchData.noFpb || prev.noFpb || '',
+      ttb: matchData.cleanTtb || matchData.ttb || prev.ttb || '',
+      keterangan: matchData.namaBarang
+        ? (prev.keterangan && prev.keterangan !== 'STOCK GAJ TALI'
+            ? prev.keterangan
+            : `STOCK GAJ TALI / ${matchData.namaBarang}`)
+        : (matchData.keterangan || prev.keterangan || 'STOCK GAJ TALI'),
+    }));
+    if (announceToast) {
+      showToast?.(
+        `✓ Referensi Sisa Layanan terpasang: FPB ${matchData.noFpb} • ${matchData.deptArmada} (${matchData.pt || 'CPL'})`,
+        'success'
+      );
+    }
+  };
+
+  // Debounced auto-lookup saat pengguna mengetik TTB atau No FPB
+  useEffect(() => {
+    if (!isAddModalOpen && !isEditModalOpen) return;
+    const ttb = (formData.ttb || '').trim();
+    const fpb = (formData.noFpb || '').trim();
+
+    // Prioritaskan nomor TTB jika >= 3 karakter, atau nomor FPB jika >= 4 karakter
+    const query = ttb.length >= 3 ? ttb : (fpb.length >= 4 ? fpb : '');
+    if (!query) {
+      setAutoLookupMatch(null);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setAutoLookupLoading(true);
+      try {
+        const pt = formData.pt && formData.pt !== 'CPL' ? formData.pt : '';
+        const res = await safeFetchJson(
+          `/api/sync-stock-tali?action=lookup&query=${encodeURIComponent(query)}&pt=${encodeURIComponent(pt)}`
+        );
+        if (res?.success && res?.found && res?.data) {
+          setAutoLookupMatch(res.data);
+          setLookupBannerDismissed(false);
+
+          // Otomatis isi field yang masih kosong
+          setFormData((prev) => {
+            const next = { ...prev };
+            let hasChanged = false;
+
+            if (!next.noFpb && res.data.noFpb) {
+              next.noFpb = res.data.noFpb;
+              hasChanged = true;
+            }
+            if (!next.deptArmada && res.data.deptArmada) {
+              next.deptArmada = res.data.deptArmada;
+              hasChanged = true;
+            }
+            if ((!next.pt || next.pt === 'CPL') && res.data.pt) {
+              next.pt = res.data.pt;
+              hasChanged = true;
+            }
+            if (
+              res.data.namaBarang &&
+              (!next.keterangan || next.keterangan === 'STOCK GAJ TALI')
+            ) {
+              next.keterangan = `STOCK GAJ TALI / ${res.data.namaBarang}`;
+              hasChanged = true;
+            }
+            if (!next.ttb && res.data.cleanTtb) {
+              next.ttb = res.data.cleanTtb;
+              hasChanged = true;
+            }
+
+            return hasChanged ? next : prev;
+          });
+        } else {
+          setAutoLookupMatch(null);
+        }
+      } catch (err) {
+        console.warn('Auto-lookup error:', err);
+        setAutoLookupMatch(null);
+      } finally {
+        setAutoLookupLoading(false);
+      }
+    }, 380);
+
+    return () => clearTimeout(timer);
+  }, [formData.ttb, formData.noFpb, isAddModalOpen, isEditModalOpen, formData.pt]);
+
+  // Pencarian interaktif untuk modal 'Ambil dari Sisa Layanan'
+  useEffect(() => {
+    if (!isSisaPickerOpen) return;
+    let isCancelled = false;
+
+    async function fetchSisa() {
+      setIsLoadingSisa(true);
+      try {
+        const q = encodeURIComponent(sisaSearchQuery.trim());
+        const pt = encodeURIComponent(sisaPtFilter);
+        const res = await safeFetchJson(`/api/sync-stock-tali?action=search_sisa&q=${q}&pt=${pt}&limit=35`);
+        if (!isCancelled && res?.success && Array.isArray(res.items)) {
+          setSisaSearchResults(res.items);
+        }
+      } catch (e) {
+        console.warn('Gagal memuat item picker Sisa Layanan:', e);
+      } finally {
+        if (!isCancelled) setIsLoadingSisa(false);
+      }
+    }
+
+    const timer = setTimeout(fetchSisa, 220);
+    return () => {
+      isCancelled = true;
+      clearTimeout(timer);
+    };
+  }, [isSisaPickerOpen, sisaSearchQuery, sisaPtFilter]);
+
   // ========================================================
   // Action Handlers: Tambah, Edit, dan Auto-Save Google Sheets
   // ========================================================
@@ -300,6 +430,8 @@ export default function StockTaliSubTab({ showToast, onCountChange }: StockTaliS
       tglKeTimLapangan: getTodayIndo(),
     });
     setEditingItem(null);
+    setAutoLookupMatch(null);
+    setLookupBannerDismissed(false);
     setModalActiveTab('IDENTITAS');
     setIsAddModalOpen(true);
   };
@@ -326,6 +458,8 @@ export default function StockTaliSubTab({ showToast, onCountChange }: StockTaliS
       keteranganPch: item.keteranganPch || '',
       lapseDay3: item.lapseDay3 || '',
     });
+    setAutoLookupMatch(null);
+    setLookupBannerDismissed(false);
     setModalActiveTab('IDENTITAS');
     setIsEditModalOpen(true);
   };
@@ -1727,16 +1861,30 @@ export default function StockTaliSubTab({ showToast, onCountChange }: StockTaliS
                   </p>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsAddModalOpen(false);
-                  setIsEditModalOpen(false);
-                }}
-                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition cursor-pointer"
-              >
-                <X className="size-4" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSisaSearchQuery(formData.ttb || formData.noFpb || formData.deptArmada || '');
+                    setSisaPtFilter(formData.pt || 'ALL');
+                    setIsSisaPickerOpen(true);
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-semibold shadow-xs transition cursor-pointer"
+                >
+                  <Sparkles className="size-3.5" />
+                  <span>Ambil dari Sisa Layanan</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsAddModalOpen(false);
+                    setIsEditModalOpen(false);
+                  }}
+                  className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition cursor-pointer"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
             </div>
 
             {/* Modal Step Navigation Tabs */}
@@ -1793,6 +1941,62 @@ export default function StockTaliSubTab({ showToast, onCountChange }: StockTaliS
 
             {/* Modal Body Form */}
             <form onSubmit={handleFormSubmit} className="flex-1 overflow-y-auto p-5 space-y-4">
+              {/* Notifikasi Banner Sukses Auto-Lookup Referensi */}
+              {autoLookupMatch && !lookupBannerDismissed && (
+                <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300 flex items-start justify-between gap-3 animate-in fade-in slide-in-from-top-1">
+                  <div className="flex items-start gap-2.5">
+                    <CheckCircle2 className="size-4 text-emerald-500 shrink-0 mt-0.5" />
+                    <div className="text-xs">
+                      <div className="font-bold flex items-center gap-2 flex-wrap">
+                        <span>Referensi Sisa Layanan Terdeteksi!</span>
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">
+                          {autoLookupMatch.source === 'sisa_layanan' ? '✓ Basis Data Sisa Layanan' : '✓ Relasi Dokumen CPG'}
+                        </span>
+                      </div>
+                      <div className="mt-1 text-muted-foreground flex flex-wrap gap-x-3 gap-y-1">
+                        <span>
+                          <strong>No. FPB:</strong>{' '}
+                          <span className="font-mono text-foreground font-bold">
+                            {autoLookupMatch.noFpb}
+                          </span>{' '}
+                          ({autoLookupMatch.fullFpb || '-'})
+                        </span>
+                        <span>
+                          <strong>PT:</strong>{' '}
+                          <span className="font-semibold text-foreground">{autoLookupMatch.pt}</span>
+                        </span>
+                        <span>
+                          <strong>Armada:</strong>{' '}
+                          <span className="font-semibold text-foreground">{autoLookupMatch.deptArmada}</span>
+                        </span>
+                        {autoLookupMatch.namaBarang && (
+                          <span className="w-full mt-0.5">
+                            <strong>Barang:</strong>{' '}
+                            <span className="italic text-foreground">{autoLookupMatch.namaBarang}</span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => applyLookupMatch(autoLookupMatch)}
+                      className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold transition cursor-pointer shadow-xs"
+                    >
+                      Terapkan ke Form
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setLookupBannerDismissed(true)}
+                      className="p-1 rounded-lg text-muted-foreground hover:text-foreground transition cursor-pointer"
+                      title="Tutup banner"
+                    >
+                      <X className="size-3.5" />
+                    </button>
+                  </div>
+                </div>
+              )}
               {/* TAB 1: IDENTITAS */}
               {modalActiveTab === 'IDENTITAS' && (
                 <div className="space-y-4 animate-in fade-in-50 duration-150">
@@ -1854,16 +2058,39 @@ export default function StockTaliSubTab({ showToast, onCountChange }: StockTaliS
 
                     {/* No FPB */}
                     <div>
-                      <label className="block text-xs font-semibold text-foreground mb-1">
-                        No. FPB (Jika ada):
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.noFpb || ''}
-                        onChange={(e) => setFormData({ ...formData, noFpb: e.target.value })}
-                        placeholder="Contoh: 003374 (Kosongkan bila mutasi langsung)"
-                        className="w-full px-3 py-2 text-xs rounded-xl border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 font-mono"
-                      />
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-xs font-semibold text-foreground">
+                          No. FPB (Otomatis dari Sisa Layanan):
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSisaSearchQuery(formData.deptArmada || formData.ttb || '');
+                            setSisaPtFilter(formData.pt || 'ALL');
+                            setIsSisaPickerOpen(true);
+                          }}
+                          className="text-[10px] text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 cursor-pointer font-medium"
+                        >
+                          <Search className="size-2.5" /> Cari Sisa Layanan
+                        </button>
+                      </div>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={formData.noFpb || ''}
+                          onChange={(e) => setFormData({ ...formData, noFpb: e.target.value })}
+                          placeholder="Contoh: 003374 atau CPL-FPB-26-0003374"
+                          className="w-full px-3 py-2 text-xs rounded-xl border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 font-mono font-semibold"
+                        />
+                        {autoLookupLoading && (
+                          <div className="absolute right-2.5 top-2.5 text-muted-foreground animate-spin">
+                            <RefreshCw className="size-3.5" />
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground mt-1">
+                        ✓ Otomatis terisi saat Anda mengetik No. TTB di Tab Logistik atau memilih dari Sisa Layanan.
+                      </p>
                     </div>
 
                     {/* Keterangan Stok Barang */}
@@ -1889,17 +2116,40 @@ export default function StockTaliSubTab({ showToast, onCountChange }: StockTaliS
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {/* No TTB */}
                     <div>
-                      <label className="block text-xs font-semibold text-foreground mb-1">
-                        Nomor Dokumen TTB Resmi: <span className="text-rose-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={formData.ttb || ''}
-                        onChange={(e) => setFormData({ ...formData, ttb: e.target.value.toUpperCase() })}
-                        placeholder="Contoh: 06078 atau D0/26/00254"
-                        className="w-full px-3 py-2 text-xs rounded-xl border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 font-mono font-bold"
-                      />
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-xs font-semibold text-foreground">
+                          Nomor Dokumen TTB Resmi: <span className="text-rose-500">*</span>
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSisaSearchQuery(formData.ttb || formData.deptArmada || '');
+                            setSisaPtFilter(formData.pt || 'ALL');
+                            setIsSisaPickerOpen(true);
+                          }}
+                          className="text-[10px] text-purple-600 dark:text-purple-400 hover:underline flex items-center gap-1 cursor-pointer font-medium"
+                        >
+                          <Sparkles className="size-3" /> Ambil dari Sisa Layanan
+                        </button>
+                      </div>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          required
+                          value={formData.ttb || ''}
+                          onChange={(e) => setFormData({ ...formData, ttb: e.target.value.toUpperCase() })}
+                          placeholder="Contoh: 06078 atau CPL-TTB-26-06078"
+                          className="w-full px-3 py-2 text-xs rounded-xl border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 font-mono font-bold"
+                        />
+                        {autoLookupLoading && (
+                          <div className="absolute right-2.5 top-2.5 text-muted-foreground animate-spin">
+                            <RefreshCw className="size-3.5" />
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground mt-1">
+                        💡 Ketik 4-5 digit angka (cth: <strong>06078</strong>) &rarr; No FPB, PT, dan Armada kapal terisi otomatis!
+                      </p>
                     </div>
 
                     {/* PIC TTB */}
