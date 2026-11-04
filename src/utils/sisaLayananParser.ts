@@ -3,6 +3,36 @@ import { SisaLayananItem, SisaLayananSummary, SisaGoodsSummary } from '@/types/s
 import { normalizeFpbKey } from '@/utils/dataMerger';
 import { formatDateDdMmYy } from '@/utils/formatDate';
 
+/**
+ * Mengecek apakah item merupakan barang trading yang harus disortir/dihilangkan.
+ * Berdasarkan standar operasional: barang trading (kode TRD seperti TRD BBM, TRD-BIO, TRD-MFO, dsb)
+ * bukan merupakan ranah tim logistik operasional armada kapal sehingga otomatis disaring keluar.
+ */
+export function isTradingItem(
+  kodeBarang?: string | null,
+  kategori?: string | null,
+  fpbNoBarang?: string | null
+): boolean {
+  const kode = String(kodeBarang || '').trim().toUpperCase();
+  if (kode.startsWith('TRD')) return true;
+
+  const kat = String(kategori || '').trim().toUpperCase();
+  if (kat === 'TRADING' || kat.startsWith('TRD')) return true;
+
+  const key = String(fpbNoBarang || '').trim().toUpperCase();
+  if (
+    key.includes('TRD BBM') ||
+    key.includes('TRD-BIO') ||
+    key.includes('TRD-MFO') ||
+    key.includes('TRD001') ||
+    key.includes('TRD-')
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
 export function calculateSisaLayananSummary(items: SisaLayananItem[]): SisaLayananSummary {
   const byPt: Record<string, { total: number; close: number; open: number; kurang: number; belumTtb: number }> = {};
   const byStatus: Record<string, number> = {
@@ -139,6 +169,9 @@ export function parseSisaLayananWorkbook(workbook: XLSX.WorkBook): {
     if (!noFpb && !namaBarang) continue;
 
     const fpbNoBarang = String(r['FPB+NO BARANG'] || '').trim();
+
+    // Otomatis hilangkan barang trading (kode TRD) - bukan ranah tim operasional armada
+    if (isTradingItem(kodeBarang, r['KATEGORI'], fpbNoBarang)) continue;
     const poNoBarang = String(r['PO+NO BARANG'] || '').trim();
     const rawTglFpb = r['TGL FPB'] ?? r['TANGGAL FPB'] ?? '';
     const formattedTglFpb = formatDateDdMmYy(rawTglFpb);
@@ -299,6 +332,8 @@ export function buildSisaLayananFpbMap(items: SisaLayananItem[]): Map<string, Si
 
   for (const it of items) {
     if (!it.noFpb && !it.fpbNoBarang) continue;
+    // Otomatis lewati barang trading
+    if (isTradingItem(it.kodeBarang, it.kategori, it.fpbNoBarang)) continue;
     let fpbIdentifier = (it.noFpb || '').trim();
     if (!fpbIdentifier && it.fpbNoBarang) {
       fpbIdentifier = it.fpbNoBarang.replace(/-\d+$/, '').trim();

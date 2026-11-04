@@ -42,6 +42,7 @@ import {
 } from 'lucide-react';
 import { SisaLayananItem } from '@/types/sisaLayanan';
 import { formatDateDdMmYy, extractDateInfo } from '@/utils/formatDate';
+import { isTradingItem } from '@/utils/sisaLayananParser';
 
 interface SisaLayananSlaSubTabProps {
   items: SisaLayananItem[];
@@ -131,18 +132,23 @@ export default function SisaLayananSlaSubTab({
   const [sortField, setSortField] = useState<'tglFpb' | 'leadTime' | 'aging' | 'noFpb' | 'departement'>('tglFpb');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
-  // Kategori unik dari data
+  // Otomatis saring keluar barang trading (kode TRD) agar data murni operasional armada kapal
+  const operationalItems = useMemo(() => {
+    return items.filter((it) => !isTradingItem(it.kodeBarang, it.kategori, it.fpbNoBarang));
+  }, [items]);
+
+  // Kategori unik dari data operasional
   const categoryOptions = useMemo(() => {
     const set = new Set<string>();
-    items.forEach((it) => {
+    operationalItems.forEach((it) => {
       if (it.kategori && it.kategori !== '-') set.add(it.kategori.trim());
     });
     return Array.from(set).sort();
-  }, [items]);
+  }, [operationalItems]);
 
   // Ekstraksi data metrik SLA per item
   const enrichedItems = useMemo(() => {
-    return items.map((it) => {
+    return operationalItems.map((it) => {
       const ltPurchasing = calcDaysDiff(it.tglFpb, it.tglPo);
       const ltVendor = calcDaysDiff(it.tglPo, it.tglFstb);
       const ltLogistik = calcDaysDiff(it.tglFstb, it.tglTtb);
@@ -865,8 +871,13 @@ Demikian memo rekomendasi ini disusun sebagai acuan keputusan manajerial dan rap
                 Analisis SLA &amp; Lead Time Sisa Layanan (Database Gabungan)
               </h2>
               <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20 font-mono">
-                {items.length.toLocaleString('id-ID')} Total Permintaan
+                {operationalItems.length.toLocaleString('id-ID')} Total Permintaan
               </span>
+              {items.length > operationalItems.length && (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                  ✓ {(items.length - operationalItems.length).toLocaleString('id-ID')} Barang Trading (TRD) Disaring Keluar
+                </span>
+              )}
             </div>
             <p className="text-xs text-muted-foreground mt-1 max-w-3xl leading-relaxed">
               Pelacakan Service Level Agreement (SLA) berdasarkan 4 milestone resmi: <strong>Tgl FPB</strong> (Permintaan Kapal) ➔ <strong>Tgl PO</strong> (Purchasing) ➔ <strong>Tgl FSTB</strong> (Kedatangan Gudang) ➔ <strong>Tgl TTB</strong> (Serah Terima Kapal), analisis umur tunggu (aging), grafik interaktif, dan rekomendasi program efisiensi pengadaan jangka panjang.
@@ -1863,7 +1874,7 @@ Demikian memo rekomendasi ini disusun sebagai acuan keputusan manajerial dan rap
 
           <span className="text-muted-foreground font-mono">
             Menampilkan <strong>{filteredItems.length.toLocaleString('id-ID')}</strong> dari{' '}
-            <strong>{items.length.toLocaleString('id-ID')}</strong> item
+            <strong>{operationalItems.length.toLocaleString('id-ID')}</strong> item operasional
           </span>
         </div>
 

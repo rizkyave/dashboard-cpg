@@ -1,4 +1,5 @@
 import { SisaLayananItem, SisaLayananSummary } from '@/types/sisaLayanan';
+import { isTradingItem } from '@/utils/sisaLayananParser';
 
 const DB_NAME = 'cpg_dashboard_data_db';
 const DB_VERSION = 1;
@@ -70,10 +71,12 @@ export async function loadStoredSisaLayanan(): Promise<{
   items: SisaLayananItem[];
   summary: SisaLayananSummary | null;
 } | null> {
-  const items = await idbGet<SisaLayananItem[]>('sisa_layanan_data');
+  const rawItems = await idbGet<SisaLayananItem[]>('sisa_layanan_data');
   const summary = await idbGet<SisaLayananSummary>('sisa_layanan_summary');
 
-  if (items && Array.isArray(items) && items.length > 0) {
+  if (rawItems && Array.isArray(rawItems) && rawItems.length > 0) {
+    // Otomatis bersihkan semua barang trading (kode TRD) saat dimuat ke dashboard
+    const items = rawItems.filter((it) => !isTradingItem(it.kodeBarang, it.kategori, it.fpbNoBarang));
     return { items, summary: summary || null };
   }
   return null;

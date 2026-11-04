@@ -35,7 +35,7 @@ import {
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { SisaLayananItem, SisaLayananSummary } from '@/types/sisaLayanan';
-import { parseSisaLayananWorkbook, calculateSisaLayananSummary } from '@/utils/sisaLayananParser';
+import { parseSisaLayananWorkbook, calculateSisaLayananSummary, isTradingItem } from '@/utils/sisaLayananParser';
 import { formatDateDdMmYy } from '@/utils/formatDate';
 import TtbMediaModal from './TtbMediaModal';
 
@@ -177,7 +177,8 @@ export default function SisaLayananTab({
 
   // Filtered & Sorted items
   const filteredItems = useMemo(() => {
-    let result = items;
+    // Otomatis singkirkan semua barang trading (kode TRD) - bukan ranah tim operasional armada
+    let result = items.filter((it) => !isTradingItem(it.kodeBarang, it.kategori, it.fpbNoBarang));
 
     // Status filter
     if (statusFilter !== 'ALL') {
