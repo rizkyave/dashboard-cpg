@@ -173,10 +173,34 @@ export async function getObjectFromR2(key: string): Promise<{
   eTag?: string;
   lastModified?: Date;
 } | null> {
+  const config = getR2Config();
+  const cleanKey = key.replace(/^\/+/, '');
+
+  // Prioritas 1: Jika publicUrl aktif, ambil via HTTP fetch standar (Bekerja sempurna di Cloudflare Worker tanpa limit CPU)
+  const publicBase = config.publicUrl || process.env.CLOUDFLARE_R2_PUBLIC_URL || 'https://pub-9a40b24be68549b19c6eaec0f2542c0b.r2.dev';
+  if (publicBase) {
+    try {
+      const publicRes = await fetch(`${publicBase.replace(/\/+$/, '')}/${encodeURI(cleanKey)}`, { cache: 'no-store' });
+      if (publicRes.ok) {
+        const ab = await publicRes.arrayBuffer();
+        return {
+          body: new Uint8Array(ab),
+          contentType: publicRes.headers.get('content-type') || 'application/octet-stream',
+          contentLength: ab.byteLength,
+          eTag: publicRes.headers.get('etag') || undefined,
+          lastModified: publicRes.headers.get('last-modified') ? new Date(publicRes.headers.get('last-modified')!) : undefined,
+        };
+      } else if (publicRes.status === 404) {
+        return null;
+      }
+    } catch (publicErr) {
+      console.warn(`Gagal fetch R2 via publicUrl (${cleanKey}), mencoba S3 client:`, publicErr);
+    }
+  }
+
+  // Prioritas 2: Fallback ke S3 SDK jika belum ada publicUrl
   try {
-    const config = getR2Config();
     const client = getR2Client();
-    const cleanKey = key.replace(/^\/+/, '');
 
     const command = new GetObjectCommand({
       Bucket: config.bucketName,
