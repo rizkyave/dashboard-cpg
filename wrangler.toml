@@ -7,3 +7,11 @@ compatibility_flags = ["nodejs_compat"]
 directory = ".open-next/assets"
 binding = "ASSETS"
 
+[vars]
+CLOUDFLARE_R2_ACCOUNT_ID = "1164fbfe900a7173f85acd083511fc09"
+CLOUDFLARE_R2_ACCESS_KEY_ID = "dc705658f38420b0f41790495e6c4e58"
+CLOUDFLARE_R2_SECRET_ACCESS_KEY = "63955875b6d48fb46280139856f2c5c5a975091e6851738335563c38fa74de23"
+CLOUDFLARE_R2_BUCKET_NAME = "cpg-storage"
+CLOUDFLARE_R2_PUBLIC_URL = "https://pub-9a40b24be68549b19c6eaec0f2542c0b.r2.dev"
+
+
