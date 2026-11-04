@@ -62,6 +62,7 @@ import TopFleetPieInfographic from './TopFleetPieInfographic';
 import { DashboardContainer as FleetInteractiveDashboard } from './fleet-dashboard';
 import WorkflowTrafficLight from './WorkflowTrafficLight';
 import DailyAnalyticsReport from './DailyAnalyticsReport';
+import SisaLayananSlaSubTab from './SisaLayananSlaSubTab';
 import { evaluateFiveDivisionWorkflow, evaluateArmadaFulfillment } from '@/utils/statusWorkflow';
 
 const MONTH_OPTIONS: Array<{ value: string; label: string }> = [
@@ -99,6 +100,7 @@ type SubTabType =
   | 'personnel'
   | 'ranking'
   | 'pipeline'
+  | 'sisa-layanan'
   | 'recommendations'
   | 'swot'
   | 'charts';
@@ -2082,6 +2084,22 @@ export default function AnalyticsTab({
               }`}
             >
               🏆 Ranking Leaderboard
+            </button>
+            <button
+              onClick={() => setActiveSubTab('sisa-layanan')}
+              className={`px-3 py-1.5 rounded-md font-medium transition-colors flex items-center gap-1.5 ${
+                activeSubTab === 'sisa-layanan'
+                  ? 'bg-card text-foreground shadow-xs font-semibold border border-purple-500/80 dark:border-purple-600'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Clock className="w-3.5 h-3.5 text-purple-500 shrink-0" />
+              <span>⏱️ SLA Sisa Layanan</span>
+              {effectiveSisaItems.length > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 font-mono font-bold">
+                  {effectiveSisaItems.length.toLocaleString('id-ID')}
+                </span>
+              )}
             </button>
             <button
               onClick={() => setActiveSubTab('pipeline')}
@@ -4615,6 +4633,15 @@ export default function AnalyticsTab({
             </div>
           </div>
         </div>
+      )}
+
+      {/* SUB-TAB: ANALISIS SLA SISA LAYANAN GABUNGAN */}
+      {activeSubTab === 'sisa-layanan' && (
+        <SisaLayananSlaSubTab
+          items={effectiveSisaItems}
+          onOpenAudit={onOpenAudit}
+          showToast={showToast}
+        />
       )}
 
       {/* SUB-TAB 4: PIPELINE STAGES & BOTTLENECK ANALYSIS */}
