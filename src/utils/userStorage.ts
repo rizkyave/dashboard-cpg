@@ -145,145 +145,35 @@ export function authenticate(usernameInput: string, passwordInput: string): { su
   const nikTrimmed = nikDigits.replace(/^0+/, '');
 
   const isMatch = (() => {
-    // 1. Password exact match dari database / localStorage
-    if (found.password && found.password === cleanPassword) return true;
+    // 1. Jika akun telah memiliki kata sandi resmi yang terdaftar di database / localStorage:
+    // WAJIB cocok persis (Exact Match). Tidak boleh ada bypass master password ('123', 'admin', dll)!
+    if (found.password && found.password.trim() !== '') {
+      return found.password === cleanPassword;
+    }
 
-    // 2. Master company password yang berlaku untuk SEMUA akun di sistem CPG
-    if (
-      cleanPassword === 'cpg123' ||
-      cleanPassword === 'cpg' ||
-      cleanPassword === '123' ||
-      cleanPassword === 'admin' ||
-      cleanPassword === 'admin123'
-    ) {
+    // 2. Fallback HANYA untuk akun awal yang belum pernah diset kata sandinya:
+    if (cleanPassword === 'cpg123' || cleanPassword === (uName + '123')) {
       return true;
-    }
-
-    // 3. Password berbasis Username (misal: "zulfiansyah" atau "zulfiansyah123")
-    if (cleanPassword === uName || cleanPassword === `${uName}123`) {
-      return true;
-    }
-
-    // 4. Password berbasis NIK (misal: "0367", "367", atau NIK lengkap "MP-DAO-0367")
-    if (
-      (found.nik && cleanPassword.toLowerCase() === found.nik.toLowerCase()) ||
-      (nikDigits && cleanPassword === nikDigits) ||
-      (nikTrimmed && cleanPassword === nikTrimmed)
-    ) {
-      return true;
-    }
-
-    // 5. Password alias khusus Tim Serah Terima Lapangan
-    if (role === 'staf_lapangan') {
-      if (
-        cleanPassword === 'lapangan' ||
-        cleanPassword === 'lapangan123' ||
-        cleanPassword === 'staff123' ||
-        cleanPassword === 'user123' ||
-        cleanPassword === 'lap'
-      ) {
-        return true;
-      }
-    }
-
-        // Password alias khusus End User / Penerima Barang
-    if (role === 'end_user') {
-      if (
-        cleanPassword === 'enduser' ||
-        cleanPassword === 'enduser123' ||
-        cleanPassword === 'penerima' ||
-        cleanPassword === 'penerima123' ||
-        cleanPassword === 'kapal' ||
-        cleanPassword === 'kapal123' ||
-        cleanPassword === 'user123' ||
-        cleanPassword === 'staff123'
-      ) {
-        return true;
-      }
-    }
-
-// 6. Password alias khusus Tim TTB Logistik
-    if (role === 'staf_ttb') {
-      if (
-        cleanPassword === 'ttb' ||
-        cleanPassword === 'ttb123' ||
-        cleanPassword === 'staff123' ||
-        cleanPassword === 'user123' ||
-        cleanPassword === 'logistik' ||
-        cleanPassword === 'logistik123'
-      ) {
-        return true;
-      }
-    }
-
-    // 7. Password alias Manajemen & Pengadaan
-    if (role === 'staf_purchasing' || role === 'supervisor' || role === 'manager' || role === 'admin') {
-      if (
-        cleanPassword === 'purchasing' ||
-        cleanPassword === 'purchasing123' ||
-        cleanPassword === 'manager' ||
-        cleanPassword === 'manager123' ||
-        cleanPassword === 'supervisor' ||
-        cleanPassword === 'spv123'
-      ) {
-        return true;
-      }
-    }
-
-    // 8. Password alias Staff Operasional
-    if (role === 'user') {
-      if (
-        cleanPassword === 'staff' ||
-        cleanPassword === 'staff123' ||
-        cleanPassword === 'user123' ||
-        cleanPassword === 'gudang123'
-      ) {
-        return true;
-      }
-    }
-
-    // 9. Password alias Tamu / Auditor
-    if (role === 'visitor') {
-      if (
-        cleanPassword === 'visitor' ||
-        cleanPassword === 'visitor123' ||
-        cleanPassword === 'guest' ||
-        cleanPassword === 'guest123' ||
-        cleanPassword === '0123'
-      ) {
-        return true;
-      }
     }
 
     return false;
   })();
 
   if (!isMatch) {
-    const hint =
-      role === 'staf_lapangan'
-        ? 'Petunjuk: Password default Staf Lapangan adalah "cpg123", "123", "cpg", atau "lapangan123".'
-        : role === 'staf_ttb'
-        ? 'Petunjuk: Password default Staf TTB adalah "cpg123", "123", atau "ttb123".'
-        : role === 'end_user'
-        ? 'Petunjuk: Password default End User adalah "cpg123", "123", atau "enduser123".'
-        : role === 'admin' || role === 'manager' || role === 'supervisor' || role === 'staf_purchasing'
-        ? 'Petunjuk: Password default adalah "admin" atau "cpg123".'
-        : 'Petunjuk: Password default adalah "cpg123" atau "123".';
-
     return {
       success: false,
-      message: `Password salah. ${hint}`,
+      message: 'Kata sandi salah. Silakan masukkan kata sandi yang sesuai dengan akun Anda.',
     };
   }
 
   const now = new Date().toISOString();
-  // Jika cocok dengan password alias, selaraskan password ke yang dimasukkan user
+  // Catat waktu login terakhir tanpa pernah menimpa atau mengubah kata sandi resmi pengguna
   const updatedUsers = users.map((u) =>
-    u.id === found.id ? { ...u, password: cleanPassword, lastLogin: now } : u
+    u.id === found.id ? { ...u, lastLogin: now } : u
   );
   saveStoredUsers(updatedUsers);
 
-  const { password, ...authUser } = { ...found, password: cleanPassword, lastLogin: now };
+  const { password, ...authUser } = { ...found, lastLogin: now };
   setStoredSessionUser(authUser);
 
   return { success: true, user: authUser };
