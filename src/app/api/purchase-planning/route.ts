@@ -1,6 +1,8 @@
-import { NextResponse } from 'next/server';
-import { promises as fs } from 'fs';
+import { NextRequest, NextResponse } from 'next/server';
+import fs from 'fs';
 import path from 'path';
+import * as XLSX from 'xlsx';
+import { parsePurchasePlanningWorkbook } from '@/utils/purchasePlanningParser';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -31,7 +33,9 @@ export interface PurchasePlanningItem {
 
 export interface PurchasePlanningResponse {
   success: boolean;
+  message?: string;
   timestamp: string;
+  sourceFile?: string;
   summary: {
     totalItems: number;
     criticalCount: number;
@@ -45,7 +49,10 @@ export interface PurchasePlanningResponse {
   items: PurchasePlanningItem[];
 }
 
-// Master baseline data item maritim & industri perkapalan CPG
+const STORAGE_FILE_PATH = path.join(process.cwd(), 'src', 'data', 'purchase-planning-data.json');
+const DESKTOP_CANDIDATE_PATH = 'C:\\Users\\Hermansyah\\OneDrive\\Desktop\\PURCHASE_PLANNING_BATCH_001_CPG.xlsx';
+
+// Master baseline data item maritim & industri perkapalan CPG (Fallback jika data belum diimpor)
 const MASTER_PLANNING_ITEMS: PurchasePlanningItem[] = [
   {
     id: 'plan-001',
@@ -68,7 +75,7 @@ const MASTER_PLANNING_ITEMS: PurchasePlanningItem[] = [
     reorderPoint: 3,
     monthlyConsumption: 2,
     suggestedVendor: 'PT. Samudra Tali Indo / CV. Bahari Mandiri',
-    fpbRefs: ['CPL-FPB-26-0004837', 'HL-FPB-26-0001434', 'CPL-FPB-26-0004960', 'SP-FPB-26-0000547'],
+    fpbRefs: ['CPL-FPB-26-0003374', 'HL-FPB-26-0001123', 'MIL-FPB-26-0000032', 'GAJ-FPB-26-0000873'],
   },
   {
     id: 'plan-002',
@@ -77,21 +84,21 @@ const MASTER_PLANNING_ITEMS: PurchasePlanningItem[] = [
     category: 'Pelumas & Marine Oils',
     unit: 'DRM',
     currentStock: 3,
-    openFpbCount: 5,
-    requestingVessels: ['SV TWINSISTER 307', 'MT DEWA YANI', 'TB KING STAR', 'SPOB ROYAL REY 3001', 'UB CMPL 01'],
+    openFpbCount: 6,
+    requestingVessels: ['MT BLUE PETROL', 'MT DOMINO', 'MT BARONGKO', 'MT HL 5001', 'TB CMPL 01'],
     totalRequestedQty: 12,
     recommendedOrderQty: 16,
     avgUnitPrice: 8750000,
     totalEstimatedCost: 140000000,
     urgency: 'CRITICAL',
-    urgencyReason: 'Stok menipis drastis, 3 armada mendekati jadwal overhoul/penggantian oli mesin utama.',
+    urgencyReason: 'Konsumsi rutin mesin induk 5 armada kapal. Stok gudang Somber kritis di bawah batas aman.',
     leadTimeDays: 5,
     potentialBulkDiscount: 10.0,
     potentialSavingsAmount: 14000000,
-    reorderPoint: 6,
-    monthlyConsumption: 5,
-    suggestedVendor: 'PT. Pertamina Lubricants / Agen Resmi Somber',
-    fpbRefs: ['CPL-FPB-26-0004990', 'CPL-FPB-26-0004202', 'CPL-FPB-26-0004837', 'CPL-FPB-26-0003433'],
+    reorderPoint: 8,
+    monthlyConsumption: 6,
+    suggestedVendor: 'PT. Pertamina Lubricants / Agen Resmi',
+    fpbRefs: ['CPL-FPB-26-0004102', 'CPL-FPB-26-0004215', 'HL-FPB-26-0001890'],
   },
   {
     id: 'plan-003',
@@ -101,20 +108,20 @@ const MASTER_PLANNING_ITEMS: PurchasePlanningItem[] = [
     unit: 'SET',
     currentStock: 4,
     openFpbCount: 3,
-    requestingVessels: ['TB KING STAR', 'TB PMI ABADI', 'MT KING OCEAN'],
+    requestingVessels: ['TB CINDARA 2107', 'TB EQUATOR 02', 'TB MUARA MEGA'],
     totalRequestedQty: 6,
     recommendedOrderQty: 10,
     avgUnitPrice: 3200000,
     totalEstimatedCost: 32000000,
     urgency: 'REORDER',
-    urgencyReason: 'Stok mendekati batas aman, perputaran cepat setiap running 500 jam mesin.',
-    leadTimeDays: 7,
-    potentialBulkDiscount: 6.0,
-    potentialSavingsAmount: 1920000,
+    urgencyReason: 'Jadwal running hours 2.000 jam armada tiba bulan ini. Reorder point telah terlampaui.',
+    leadTimeDays: 14,
+    potentialBulkDiscount: 7.0,
+    potentialSavingsAmount: 2240000,
     reorderPoint: 6,
-    monthlyConsumption: 3,
-    suggestedVendor: 'PT. Yanmar Marine Diesel Indonesia / PT. Triguna',
-    fpbRefs: ['CPL-FPB-26-0004837', 'CPL-FPB-26-0004960', 'CPL-FPB-26-0004301'],
+    monthlyConsumption: 4,
+    suggestedVendor: 'PT. Yanmar Marine Engines Indonesia',
+    fpbRefs: ['CPL-FPB-26-0002988', 'MO-FPB-26-0001552'],
   },
   {
     id: 'plan-004',
@@ -123,21 +130,21 @@ const MASTER_PLANNING_ITEMS: PurchasePlanningItem[] = [
     category: 'Safety & K3 Maritim',
     unit: 'TBG',
     currentStock: 2,
-    openFpbCount: 3,
-    requestingVessels: ['TK CPL 250', 'SV TWINSISTER 305', 'SITE MMP PULAU BALANG'],
+    openFpbCount: 5,
+    requestingVessels: ['SPOB ROYAL REY 350', 'SV TWINSISTER 305', 'OB CINDARA 1100'],
     totalRequestedQty: 8,
     recommendedOrderQty: 12,
     avgUnitPrice: 685000,
     totalEstimatedCost: 8220000,
     urgency: 'REORDER',
-    urgencyReason: 'Masa kadaluarsa apar 2 kapal mendekati batas inspeksi syahbandar.',
-    leadTimeDays: 4,
+    urgencyReason: 'Inspeksi tahunan Marine Surveyor Syahbandar. Kadaluarsa tabung APAR di 3 kapal.',
+    leadTimeDays: 7,
     potentialBulkDiscount: 12.0,
     potentialSavingsAmount: 986400,
     reorderPoint: 5,
-    monthlyConsumption: 4,
-    suggestedVendor: 'PT. Pelayaran Global Nusantara Supply / CV. Cipta Marine',
-    fpbRefs: ['HL-FPB-26-0001434', 'CPL-FPB-26-0003595', 'CPL-FPB-26-0005182'],
+    monthlyConsumption: 3,
+    suggestedVendor: 'CV. Proteksi Bahari Balikpapan',
+    fpbRefs: ['CPL-FPB-26-0004501', 'HL-FPB-26-0002011'],
   },
   {
     id: 'plan-005',
@@ -147,178 +154,169 @@ const MASTER_PLANNING_ITEMS: PurchasePlanningItem[] = [
     unit: 'PIL',
     currentStock: 5,
     openFpbCount: 2,
-    requestingVessels: ['TK CPL 250', 'TK COASWAY 1803'],
+    requestingVessels: ['TK WINBUILD 141', 'TB MAPAN 1405'],
     totalRequestedQty: 10,
     recommendedOrderQty: 15,
     avgUnitPrice: 2450000,
     totalEstimatedCost: 36750000,
     urgency: 'PLANNED',
-    urgencyReason: 'Persiapan pemeliharaan rutin lambung dan dek tongkang saat sandar di galangan.',
-    leadTimeDays: 6,
-    potentialBulkDiscount: 7.5,
-    potentialSavingsAmount: 2756250,
-    reorderPoint: 8,
-    monthlyConsumption: 3,
-    suggestedVendor: 'PT. International Paint / Jotun Marine Balikpapan',
-    fpbRefs: ['HL-FPB-26-0001434', 'SP-FPB-26-0000634'],
-  },
-  {
-    id: 'plan-006',
-    itemCode: 'ELEC-BAT-N200-24V',
-    itemName: 'BATTERY / AKI GS PREMIUM N200 12V 200AH (HEAVY DUTY STARTING)',
-    category: 'Elektrikal & Navigasi',
-    unit: 'UNT',
-    currentStock: 0,
-    openFpbCount: 3,
-    requestingVessels: ['SV TWINSISTER 307', 'TB KING STAR', 'UB CMPL 01'],
-    totalRequestedQty: 6,
-    recommendedOrderQty: 8,
-    avgUnitPrice: 3850000,
-    totalEstimatedCost: 30800000,
-    urgency: 'CRITICAL',
-    urgencyReason: 'Stok gudang KOSONG (0 unit), aki darurat generator bantu kapal melemah.',
-    leadTimeDays: 3,
-    potentialBulkDiscount: 5.0,
-    potentialSavingsAmount: 1540000,
-    reorderPoint: 4,
-    monthlyConsumption: 2,
-    suggestedVendor: 'Toko Aki Laut Mandiri / Distributor GS Astra Balikpapan',
-    fpbRefs: ['CPL-FPB-26-0004990', 'CPL-FPB-26-0004837', 'CPL-FPB-26-0004312'],
-  },
-  {
-    id: 'plan-007',
-    itemCode: 'ZINC-ANODE-S-5KG',
-    itemName: 'ZINC ANODE SLAB TYPE 5 KG (PROTEKSI KOROSI LAMBUNG KAPAL)',
-    category: 'Cat Marine & Deck Protection',
-    unit: 'BH',
-    currentStock: 14,
-    openFpbCount: 2,
-    requestingVessels: ['SPOB ROYAL REY 5001', 'MT BARONGKO'],
-    totalRequestedQty: 40,
-    recommendedOrderQty: 50,
-    avgUnitPrice: 395000,
-    totalEstimatedCost: 19750000,
-    urgency: 'PLANNED',
-    urgencyReason: 'Jadwal penggantian anoda lambung kuartal depan saat sandar dermaga.',
-    leadTimeDays: 14,
-    potentialBulkDiscount: 12.5,
-    potentialSavingsAmount: 2468750,
-    reorderPoint: 20,
-    monthlyConsumption: 10,
-    suggestedVendor: 'CV. Karya Logam Mandiri Surabaya',
-    fpbRefs: ['CPL-FPB-26-0003587', 'CPL-FPB-26-0003453'],
-  },
-  {
-    id: 'plan-008',
-    itemCode: 'NAV-GPS-ANT-FURUNO',
-    itemName: 'ANTENA GPS GP-39 FURUNO + COAXIAL CABLE 15 MTR',
-    category: 'Elektrikal & Navigasi',
-    unit: 'SET',
-    currentStock: 1,
-    openFpbCount: 1,
-    requestingVessels: ['TB KING STAR'],
-    totalRequestedQty: 1,
-    recommendedOrderQty: 2,
-    avgUnitPrice: 4200000,
-    totalEstimatedCost: 8400000,
-    urgency: 'REORDER',
-    urgencyReason: 'Unit cadangan navigasi vital armada pelayaran jarak jauh.',
-    leadTimeDays: 8,
-    potentialBulkDiscount: 5.0,
-    potentialSavingsAmount: 420000,
-    reorderPoint: 2,
-    monthlyConsumption: 1,
-    suggestedVendor: 'PT. Furuno Maritim Indonesia / CV. Radar Bahari',
-    fpbRefs: ['CPL-FPB-26-0004837'],
-  },
-  {
-    id: 'plan-009',
-    itemCode: 'PUMP-IMPEL-JABSCO',
-    itemName: 'IMPELLER NEOPRENE COOLING PUMP JABSCO (DIAMETER 95 MM)',
-    category: 'Suku Cadang Mesin',
-    unit: 'PCS',
-    currentStock: 2,
-    openFpbCount: 3,
-    requestingVessels: ['SV TWINSISTER 305', 'SV TWINSISTER 307', 'SPEED BOAT 04'],
-    totalRequestedQty: 6,
-    recommendedOrderQty: 10,
-    avgUnitPrice: 1850000,
-    totalEstimatedCost: 18500000,
-    urgency: 'REORDER',
-    urgencyReason: 'Komponen pompa pendingin air laut yang aus berkala tiap 6 bulan.',
+    urgencyReason: 'Persiapan pemeliharaan rutin geladak & lambung kapal saat jeda operasi.',
     leadTimeDays: 5,
-    potentialBulkDiscount: 8.0,
-    potentialSavingsAmount: 1480000,
-    reorderPoint: 4,
-    monthlyConsumption: 2,
-    suggestedVendor: 'PT. Samudra Marine Teknik Balikpapan',
-    fpbRefs: ['CPL-FPB-26-0003595', 'CPL-FPB-26-0004990', 'SP-FPB-26-0000599'],
-  },
-  {
-    id: 'plan-010',
-    itemCode: 'RIG-SHACKLE-G209-25T',
-    itemName: 'SHACKLE BOW SCREW PIN CROSBY G-209 KAPASITAS 25 TON',
-    category: 'Mooring & Deck Equipment',
-    unit: 'PCS',
-    currentStock: 3,
-    openFpbCount: 2,
-    requestingVessels: ['TK CPL 250', 'TK COASWAY 1803'],
-    totalRequestedQty: 8,
-    recommendedOrderQty: 12,
-    avgUnitPrice: 1950000,
-    totalEstimatedCost: 23400000,
-    urgency: 'PLANNED',
-    urgencyReason: 'Perlengkapan rigging penarikan tongkang batubara.',
-    leadTimeDays: 7,
-    potentialBulkDiscount: 10.0,
-    potentialSavingsAmount: 2340000,
-    reorderPoint: 5,
-    monthlyConsumption: 3,
-    suggestedVendor: 'PT. Crosby Rigging Supply / PT. Sinar Baru',
-    fpbRefs: ['HL-FPB-26-0001434', 'SP-FPB-26-0000641'],
+    potentialBulkDiscount: 6.5,
+    potentialSavingsAmount: 2388750,
+    reorderPoint: 8,
+    monthlyConsumption: 5,
+    suggestedVendor: 'PT. Chugoku Paints Indonesia / Jotun',
+    fpbRefs: ['CPL-FPB-26-0003889'],
   },
 ];
 
+function buildResponseFromItems(items: PurchasePlanningItem[], sourceFile?: string): PurchasePlanningResponse {
+  const criticalCount = items.filter((i) => i.urgency === 'CRITICAL').length;
+  const reorderCount = items.filter((i) => i.urgency === 'REORDER').length;
+  const plannedCount = items.filter((i) => i.urgency === 'PLANNED').length;
+
+  const totalEstimatedBudget = items.reduce((sum, i) => sum + i.totalEstimatedCost, 0);
+  const totalPotentialSavings = items.reduce((sum, i) => sum + i.potentialSavingsAmount, 0);
+
+  const vesselsSet = new Set<string>();
+  items.forEach((i) => i.requestingVessels.forEach((v) => vesselsSet.add(v)));
+
+  const categories = Array.from(new Set(items.map((i) => i.category))).sort();
+
+  return {
+    success: true,
+    timestamp: new Date().toISOString(),
+    sourceFile,
+    summary: {
+      totalItems: items.length,
+      criticalCount,
+      reorderCount,
+      plannedCount,
+      totalEstimatedBudget,
+      totalPotentialSavings,
+      activeVesselsCount: vesselsSet.size,
+    },
+    categories,
+    items,
+  };
+}
+
 export async function GET() {
   try {
-    const items = [...MASTER_PLANNING_ITEMS];
+    // 1. Cek apakah ada file data JSON tersimpan di src/data/purchase-planning-data.json
+    if (fs.existsSync(STORAGE_FILE_PATH)) {
+      try {
+        const fileContent = fs.readFileSync(STORAGE_FILE_PATH, 'utf-8');
+        const parsed: PurchasePlanningResponse = JSON.parse(fileContent);
+        if (parsed && parsed.items && parsed.items.length > 0) {
+          return NextResponse.json(parsed, {
+            headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' },
+          });
+        }
+      } catch (err) {
+        console.warn('Gagal membaca purchase-planning-data.json, mencoba kandidat lain:', err);
+      }
+    }
 
-    const criticalCount = items.filter((i) => i.urgency === 'CRITICAL').length;
-    const reorderCount = items.filter((i) => i.urgency === 'REORDER').length;
-    const plannedCount = items.filter((i) => i.urgency === 'PLANNED').length;
+    // 2. Jika belum ada di src/data, cek apakah ada file Desktop PURCHASE_PLANNING_BATCH_001_CPG.xlsx
+    if (fs.existsSync(DESKTOP_CANDIDATE_PATH)) {
+      try {
+        const buffer = fs.readFileSync(DESKTOP_CANDIDATE_PATH);
+        const workbook = XLSX.read(buffer, { type: 'buffer' });
+        const parsedResponse = parsePurchasePlanningWorkbook(workbook);
+        parsedResponse.sourceFile = 'PURCHASE_PLANNING_BATCH_001_CPG.xlsx (Desktop)';
 
-    const totalEstimatedBudget = items.reduce((sum, i) => sum + i.totalEstimatedCost, 0);
-    const totalPotentialSavings = items.reduce((sum, i) => sum + i.potentialSavingsAmount, 0);
+        // Simpan ke disk agar persisten
+        fs.writeFileSync(STORAGE_FILE_PATH, JSON.stringify(parsedResponse, null, 2), 'utf-8');
 
-    const vesselsSet = new Set<string>();
-    items.forEach((i) => i.requestingVessels.forEach((v) => vesselsSet.add(v)));
+        return NextResponse.json(parsedResponse, {
+          headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' },
+        });
+      } catch (err) {
+        console.warn('Gagal membaca file desktop otomatis:', err);
+      }
+    }
 
-    const categories = Array.from(new Set(items.map((i) => i.category))).sort();
-
-    const responseData: PurchasePlanningResponse = {
-      success: true,
-      timestamp: new Date().toISOString(),
-      summary: {
-        totalItems: items.length,
-        criticalCount,
-        reorderCount,
-        plannedCount,
-        totalEstimatedBudget,
-        totalPotentialSavings,
-        activeVesselsCount: vesselsSet.size,
-      },
-      categories,
-      items,
-    };
-
+    // 3. Fallback ke baseline master data
+    const responseData = buildResponseFromItems(MASTER_PLANNING_ITEMS, 'Master Baseline CPG');
     return NextResponse.json(responseData, {
-      headers: {
-        'Cache-Control': 'no-store, no-cache, must-revalidate',
-      },
+      headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' },
     });
   } catch (error: any) {
     return NextResponse.json(
       { success: false, message: error?.message || 'Gagal memproses data perencanaan pengadaan' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const action = searchParams.get('action');
+
+    // 1. Aksi: Reset data ke master baseline
+    if (action === 'reset') {
+      if (fs.existsSync(STORAGE_FILE_PATH)) {
+        try {
+          fs.unlinkSync(STORAGE_FILE_PATH);
+        } catch {}
+      }
+      const responseData = buildResponseFromItems(MASTER_PLANNING_ITEMS, 'Master Baseline CPG');
+      return NextResponse.json(responseData);
+    }
+
+    // 2. Aksi: Muat langsung dari Desktop pengguna (PURCHASE_PLANNING_BATCH_001_CPG.xlsx)
+    if (action === 'load-desktop') {
+      if (!fs.existsSync(DESKTOP_CANDIDATE_PATH)) {
+        return NextResponse.json(
+          { success: false, message: `File tidak ditemukan di ${DESKTOP_CANDIDATE_PATH}` },
+          { status: 404 }
+        );
+      }
+
+      const buffer = fs.readFileSync(DESKTOP_CANDIDATE_PATH);
+      const workbook = XLSX.read(buffer, { type: 'buffer' });
+      const parsedResponse = parsePurchasePlanningWorkbook(workbook);
+      parsedResponse.sourceFile = 'PURCHASE_PLANNING_BATCH_001_CPG.xlsx (Desktop)';
+
+      fs.writeFileSync(STORAGE_FILE_PATH, JSON.stringify(parsedResponse, null, 2), 'utf-8');
+      return NextResponse.json(parsedResponse);
+    }
+
+    // 3. Aksi: Upload file Excel multipart/form-data
+    const contentType = req.headers.get('content-type') || '';
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await req.formData();
+      const file = formData.get('file') as File | null;
+      if (!file) {
+        return NextResponse.json({ success: false, message: 'File tidak ditemukan dalam permintaan.' }, { status: 400 });
+      }
+
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const workbook = XLSX.read(buffer, { type: 'buffer' });
+      const parsedResponse = parsePurchasePlanningWorkbook(workbook);
+      parsedResponse.sourceFile = file.name;
+
+      fs.writeFileSync(STORAGE_FILE_PATH, JSON.stringify(parsedResponse, null, 2), 'utf-8');
+      return NextResponse.json(parsedResponse);
+    }
+
+    // 4. Aksi: Simpan JSON langsung
+    const body = await req.json();
+    if (body && Array.isArray(body.items)) {
+      const responseData = buildResponseFromItems(body.items, body.sourceFile || 'Custom Data');
+      fs.writeFileSync(STORAGE_FILE_PATH, JSON.stringify(responseData, null, 2), 'utf-8');
+      return NextResponse.json(responseData);
+    }
+
+    return NextResponse.json({ success: false, message: 'Format data tidak didukung.' }, { status: 400 });
+  } catch (error: any) {
+    console.error('Error in /api/purchase-planning POST:', error);
+    return NextResponse.json(
+      { success: false, message: error?.message || 'Gagal menyimpan data perencanaan pengadaan' },
       { status: 500 }
     );
   }

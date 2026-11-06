@@ -41,6 +41,8 @@ export default function PurchasePlanningTab({
   const [data, setData] = useState<PurchasePlanningResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
 
   // Filter States
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -73,6 +75,67 @@ export default function PurchasePlanningTab({
       }
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  // 2. Upload file Excel / CSV dari dialog file browser
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    showToast?.(`Membaca dan memproses file ${file.name}...`, 'info');
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/purchase-planning', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const json: PurchasePlanningResponse = await res.json();
+      if (res.ok && json.success) {
+        setData(json);
+        showToast?.(
+          `✓ Berhasil mengimpor ${json.items.length.toLocaleString('id-ID')} item dari ${file.name}!`,
+          'success'
+        );
+      } else {
+        showToast?.(json.message || 'Gagal memproses file Excel.', 'error');
+      }
+    } catch (err: any) {
+      showToast?.(err?.message || 'Terjadi kesalahan saat mengunggah file.', 'error');
+    } finally {
+      setIsUploading(false);
+      if (e.target) e.target.value = '';
+    }
+  };
+
+  // 3. Muat langsung dari file Desktop (PURCHASE_PLANNING_BATCH_001_CPG.xlsx)
+  const handleLoadDesktop = async () => {
+    setIsRefreshing(true);
+    showToast?.('Membaca berkas PURCHASE_PLANNING_BATCH_001_CPG.xlsx dari Desktop...', 'info');
+
+    try {
+      const res = await fetch('/api/purchase-planning?action=load-desktop', {
+        method: 'POST',
+      });
+      const json: PurchasePlanningResponse = await res.json();
+      if (res.ok && json.success) {
+        setData(json);
+        showToast?.(
+          `✓ Berhasil memuat ${json.items.length.toLocaleString('id-ID')} item rencana pembelian dari Desktop!`,
+          'success'
+        );
+      } else {
+        showToast?.(json.message || 'Gagal memuat file dari Desktop.', 'error');
+      }
+    } catch (err: any) {
+      showToast?.(err?.message || 'Gagal membaca berkas di Desktop.', 'error');
+    } finally {
       setIsRefreshing(false);
     }
   };
@@ -204,10 +267,47 @@ export default function PurchasePlanningTab({
         </div>
 
         <div className="flex items-center gap-2 flex-wrap shrink-0">
+          {/* Input File Tersembunyi untuk Upload Excel */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xlsx,.xls,.csv"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
+
+          {/* Tombol Muat dari Desktop */}
+          <button
+            type="button"
+            onClick={handleLoadDesktop}
+            disabled={isRefreshing || isUploading}
+            className="h-9 px-3 rounded-xl border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 dark:text-purple-300 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-2xs disabled:opacity-60"
+            title="Muat langsung dari berkas PURCHASE_PLANNING_BATCH_001_CPG.xlsx di Desktop"
+          >
+            <Sparkles className="size-3.5 text-purple-600 dark:text-purple-400" />
+            <span>Muat dari Desktop</span>
+          </button>
+
+          {/* Tombol Import Excel Accurate / Batch */}
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading || isRefreshing}
+            className="h-9 px-3 rounded-xl border border-blue-500/30 bg-blue-500/10 hover:bg-blue-500/20 text-blue-700 dark:text-blue-300 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-2xs disabled:opacity-60"
+            title="Import berkas Excel dari Accurate atau Purchase Planning Batch"
+          >
+            {isUploading ? (
+              <Loader2 className="size-3.5 animate-spin text-blue-500" />
+            ) : (
+              <FileSpreadsheet className="size-3.5 text-blue-500" />
+            )}
+            <span>Import Excel Accurate</span>
+          </button>
+
           <button
             type="button"
             onClick={() => fetchData(true)}
-            disabled={isRefreshing}
+            disabled={isRefreshing || isUploading}
             className="h-9 px-3 rounded-xl border border-border bg-background hover:bg-muted text-foreground text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 shadow-2xs disabled:opacity-60"
             title="Segarkan data analisis pengadaan"
           >
@@ -238,6 +338,38 @@ export default function PurchasePlanningTab({
           )}
         </div>
       </div>
+
+      {/* ── BANNER SUMBER DATA AKTIF ── */}
+      {data?.sourceFile && (
+        <div className="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-gradient-to-r from-blue-500/10 via-card to-card border border-blue-500/30 text-xs text-muted-foreground flex-wrap shadow-xs">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <span className="flex h-2 w-2 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="font-semibold text-foreground flex items-center gap-1.5">
+              <span>Sumber Data:</span>
+              <span className="px-2 py-0.5 rounded-md bg-blue-500/15 text-blue-700 dark:text-blue-300 font-mono text-[11px] font-bold border border-blue-500/30">
+                {data.sourceFile}
+              </span>
+            </span>
+            <span>&bull;</span>
+            <span>
+              <strong className="text-foreground">{data.summary.totalItems.toLocaleString('id-ID')}</strong> Item Terkonsolidasi
+            </span>
+            <span>&bull;</span>
+            <span>
+              <strong className="text-foreground">{data.summary.activeVesselsCount}</strong> Armada / Unit Peminta
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 text-[11px]">
+            <span className="text-muted-foreground font-mono">
+              Terakhir Dimuat: {new Date(data.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* ── 4 KPI METRICS CARDS ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
