@@ -116,6 +116,8 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
 
   // Rotasi Latar Belakang Armada Sinematik (Berganti acak saat login & bergilir halus)
   const [bgIndex, setBgIndex] = useState<number>(0);
+  // Kontrol Kecerahan Latar Gambar (Vivid = 90% terang jelas, Balanced = 70%, Dim = 40%)
+  const [bgClarity, setBgClarity] = useState<'vivid' | 'balanced' | 'dim'>('vivid');
 
   useEffect(() => {
     // Acak gambar armada saat halaman dibuka
@@ -321,21 +323,43 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
           <div
             key={item.id}
             className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-              idx === bgIndex ? 'opacity-35 scale-100' : 'opacity-0 scale-105 pointer-events-none'
+              idx === bgIndex
+                ? bgClarity === 'vivid'
+                  ? 'opacity-90 scale-100'
+                  : bgClarity === 'balanced'
+                  ? 'opacity-70 scale-100'
+                  : 'opacity-40 scale-100'
+                : 'opacity-0 scale-105 pointer-events-none'
             } transition-all duration-[1200ms]`}
           >
             <img
               src={item.image}
               alt={item.title}
-              className="w-full h-full object-cover object-center filter saturate-[1.15] contrast-[1.1]"
+              className="w-full h-full object-cover object-center filter saturate-[1.22] contrast-[1.08] brightness-[1.06]"
             />
           </div>
         ))}
 
-        {/* Cinematic Vignette & Ambient Gradient Overlays for crystal-clear readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-slate-950/60" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(14,165,233,0.18),rgba(2,6,23,0.85))]" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a18_1px,transparent_1px),linear-gradient(to_bottom,#0f172a18_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
+        {/* Cinematic Vignette & Ambient Gradient Overlays - Optimized for high photo clarity */}
+        <div
+          className={`absolute inset-0 transition-opacity duration-700 ${
+            bgClarity === 'vivid'
+              ? 'bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-slate-950/25'
+              : bgClarity === 'balanced'
+              ? 'bg-gradient-to-t from-slate-950/90 via-slate-950/45 to-slate-950/40'
+              : 'bg-gradient-to-t from-slate-950 via-slate-950/80 to-slate-950/60'
+          }`}
+        />
+        <div
+          className={`absolute inset-0 transition-opacity duration-700 ${
+            bgClarity === 'vivid'
+              ? 'bg-[radial-gradient(ellipse_90%_90%_at_50%_35%,transparent_40%,rgba(2,6,23,0.55)_100%)]'
+              : bgClarity === 'balanced'
+              ? 'bg-[radial-gradient(ellipse_85%_85%_at_50%_25%,transparent_25%,rgba(2,6,23,0.7)_100%)]'
+              : 'bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(14,165,233,0.18),rgba(2,6,23,0.85))]'
+          }`}
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a10_1px,transparent_1px),linear-gradient(to_bottom,#0f172a10_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none opacity-40" />
       </div>
 
       {/* Luminous Ambient Orbs */}
@@ -378,15 +402,15 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
             )}
           </div>
 
-          {/* Main Title & Hero Heading */}
-          <div className="space-y-3">
+          {/* Main Title & Hero Heading with enhanced contrast & readability */}
+          <div className="space-y-3 drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-[1.15]">
               Sistem Logistik &amp;{' '}
-              <span className="bg-gradient-to-r from-cyan-400 via-teal-300 to-blue-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-cyan-300 via-teal-200 to-blue-300 bg-clip-text text-transparent">
                 Pengadaan Armada
               </span>
             </h1>
-            <p className="text-sm sm:text-base text-slate-400 leading-relaxed max-w-xl">
+            <p className="text-sm sm:text-base text-slate-100 font-medium leading-relaxed max-w-xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
               Satu platform untuk memantau kebutuhan kapal, alur pengadaan barang, hingga serah terima di lapangan secara real-time.
             </p>
           </div>
@@ -692,6 +716,20 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
             />
           ))}
         </div>
+
+        {/* Dynamic Background Clarity Switcher */}
+        <button
+          type="button"
+          onClick={() => setBgClarity((prev) => (prev === 'vivid' ? 'balanced' : prev === 'balanced' ? 'dim' : 'vivid'))}
+          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-slate-900/85 hover:bg-slate-900 border border-slate-700/60 text-slate-300 hover:text-white backdrop-blur-xl transition text-[11px] font-mono shadow-xl cursor-pointer active:scale-95"
+          title="Klik untuk mengubah tingkat kejernihan foto background"
+        >
+          <Sparkles className="size-3 text-amber-400 shrink-0" />
+          <span className="hidden md:inline text-slate-400">Kejernihan:</span>
+          <span className="font-bold text-amber-300">
+            {bgClarity === 'vivid' ? 'Sangat Jelas (90%)' : bgClarity === 'balanced' ? 'Sedang (70%)' : 'Redup (40%)'}
+          </span>
+        </button>
       </div>
 
       {/* Help Modal */}
