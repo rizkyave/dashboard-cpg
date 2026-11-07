@@ -91,6 +91,12 @@ export interface PratenderOpenItem {
   isPackaged?: boolean;
   packageId?: string;
   packageNumber?: string;
+  currentStock?: number;
+  avgUnitPrice?: number;
+  totalEstimatedCost?: number;
+  urgency?: 'CRITICAL' | 'REORDER' | 'PLANNED';
+  source?: 'PLANNING' | 'SISA_LAYANAN';
+  urgencyReason?: string;
 }
 
 export interface PratenderPackageItem {

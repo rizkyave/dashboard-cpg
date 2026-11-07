@@ -35,6 +35,10 @@ import {
   SlidersHorizontal,
   RotateCcw,
   Check,
+  Boxes,
+  Flame,
+  ShieldAlert,
+  ArrowRight,
 } from 'lucide-react';
 import CommercialBidTabulationModal from './CommercialBidTabulationModal';
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
@@ -46,6 +50,7 @@ import {
   PratenderRequestRef,
   PratenderStatus,
 } from '@/types/pratender';
+import { PurchasePlanningItem, PurchasePlanningResponse } from '@/app/api/purchase-planning/route';
 import { useAuth } from '@/context/AuthContext';
 
 interface PratenderTabProps {
@@ -253,6 +258,25 @@ export default function PratenderTab({
     }
   }, [sisaLayananItems]);
 
+  // Sumber Data Pratender: 'PLANNING' (Perencanaan Pengadaan) atau 'SISA_LAYANAN' (Sisa Layanan Mentah)
+  const [dataSourceType, setDataSourceType] = useState<'PLANNING' | 'SISA_LAYANAN'>('PLANNING');
+  const [planningItems, setPlanningItems] = useState<PurchasePlanningItem[]>([]);
+  const [isLoadingPlanning, setIsLoadingPlanning] = useState<boolean>(false);
+  const [urgencyFilter, setUrgencyFilter] = useState<'ALL' | 'CRITICAL' | 'REORDER' | 'PLANNED'>('ALL');
+
+  useEffect(() => {
+    setIsLoadingPlanning(true);
+    fetch('/api/purchase-planning')
+      .then((res) => res.json())
+      .then((data: PurchasePlanningResponse) => {
+        if (data && data.success && Array.isArray(data.items)) {
+          setPlanningItems(data.items);
+        }
+      })
+      .catch((err) => console.warn('Gagal memuat purchase planning untuk pratender:', err))
+      .finally(() => setIsLoadingPlanning(false));
+  }, []);
+
   const [activeSubTab, setActiveSubTab] = useState<'pool' | 'packages'>('pool');
   const [statusFilter, setStatusFilter] = useState<'ALL_UNSUPPLIED' | 'OPEN_ONLY' | 'KURANG_ONLY'>('ALL_UNSUPPLIED');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
@@ -358,19 +382,58 @@ export default function PratenderTab({
     fetchPackages();
   }, []);
 
-  // 1. AGREGASI DATA DARI SISA LAYANAN (SUMBER DATA UTAMA MATERIAL BELUM TERSUPLAI)
-  const openItemsPool = useMemo(() => {
-    const map = new Map<string, PratenderOpenItem>();
-
-    // Mapping paket yang sudah dibuat agar item ditandai jika sudah pernah masuk paket
-    const packagedItemIds = new Map<string, { pkgId: string; pkgNumber: string }>();
+  // 1. Packaged Item IDs Lookup (agar item yang sudah masuk paket memiliki badge & nomor paket)
+  const packagedItemIds = useMemo(() => {
+    const map = new Map<string, { pkgId: string; pkgNumber: string }>();
     packages.forEach((pkg) => {
       if (pkg.status !== 'CANCELLED') {
         pkg.items.forEach((pItem) => {
-          packagedItemIds.set(pItem.itemId, { pkgId: pkg.id, pkgNumber: pkg.packageNumber });
+          map.set(pItem.itemId, { pkgId: pkg.id, pkgNumber: pkg.packageNumber });
         });
       }
     });
+    return map;
+  }, [packages]);
+
+  // 2. POOL PERENCANAAN PENGADAAN (NET DEMAND KONSOLIDASI, POTONG STOK & BEBAS TRADING)
+  const planningPool = useMemo(() => {
+    return planningItems.map((pi) => {
+      const matchPkg = packagedItemIds.get(pi.id);
+      const requests: PratenderRequestRef[] = (pi.fpbRefs || []).map((fpb) => ({
+        fpb,
+        armada: (pi.requestingVessels || []).join(', '),
+        qtyRequested: pi.totalRequestedQty,
+        qtyFulfilled: 0,
+        qtyRemaining: pi.recommendedOrderQty,
+        status: 'READY_PO',
+      }));
+
+      return {
+        id: pi.id,
+        cleanName: pi.itemName,
+        category: pi.category || classifyMaritimeItem(pi.itemName),
+        satuan: pi.unit,
+        totalQtyRemaining: pi.recommendedOrderQty,
+        totalQtyRequested: pi.totalRequestedQty,
+        vesselCount: (pi.requestingVessels || []).length,
+        vessels: pi.requestingVessels || [],
+        requests,
+        isPackaged: !!matchPkg,
+        packageId: matchPkg?.pkgId,
+        packageNumber: matchPkg?.pkgNumber,
+        currentStock: pi.currentStock,
+        avgUnitPrice: pi.avgUnitPrice,
+        totalEstimatedCost: pi.totalEstimatedCost,
+        urgency: pi.urgency,
+        source: 'PLANNING' as const,
+        urgencyReason: pi.urgencyReason,
+      };
+    });
+  }, [planningItems, packagedItemIds]);
+
+  // 3. POOL SISA LAYANAN MENTAH (GROSS DEMAND DARI BACKLOG FPB)
+  const rawSisaPool = useMemo(() => {
+    const map = new Map<string, PratenderOpenItem>();
 
     sisaItems.forEach((it) => {
       const rawStatus = (it.status || '').trim().toUpperCase();
@@ -394,8 +457,6 @@ export default function PratenderTab({
       const selisih = it.selisih !== undefined && it.selisih !== null ? Number(it.selisih) : Math.max(0, jmlFpb - jmlPo);
 
       // Kuantitas yang belum terpenuhi:
-      // Jika OPEN: jmlFpb (belum ada PO)
-      // Jika KURANG: selisih sisa yang belum dikirim
       const unsuppliedQty = isOpen ? (jmlFpb || 1) : (selisih > 0 ? selisih : Math.max(1, jmlFpb - jmlFstb));
 
       const category = classifyMaritimeItem(cleanName, it.kategori || '');
@@ -425,6 +486,7 @@ export default function PratenderTab({
           vesselCount: 1,
           vessels: [vessel],
           requests: [reqRef],
+          source: 'SISA_LAYANAN' as const,
         });
       } else {
         const existing = map.get(normKey)!;
@@ -450,7 +512,15 @@ export default function PratenderTab({
 
     // Urutkan: item yang diminta oleh banyak kapal terlebih dahulu, lalu kuantitas terbesar
     return result.sort((a, b) => b.vesselCount - a.vesselCount || b.totalQtyRemaining - a.totalQtyRemaining);
-  }, [sisaItems, packages]);
+  }, [sisaItems, packagedItemIds]);
+
+  // POOL AKTIF BERDASARKAN PILIHAN SUMBER DATA
+  const openItemsPool = useMemo(() => {
+    if (dataSourceType === 'PLANNING' && planningPool.length > 0) {
+      return planningPool;
+    }
+    return rawSisaPool;
+  }, [dataSourceType, planningPool, rawSisaPool]);
 
   // Daftar Kategori Maritim Unik
   const availableCategories = useMemo(() => {
@@ -478,13 +548,18 @@ export default function PratenderTab({
   // Filter Pool Item Terbuka Sesuai Kontrol Pengguna
   const filteredOpenItems = useMemo(() => {
     return openItemsPool.filter((it) => {
-      // Filter Status Sisa Layanan
-      if (statusFilter === 'OPEN_ONLY') {
-        const hasOpen = it.requests.some((r) => r.status === 'OPEN');
-        if (!hasOpen) return false;
-      } else if (statusFilter === 'KURANG_ONLY') {
-        const hasKurang = it.requests.some((r) => r.status === 'KURANG');
-        if (!hasKurang) return false;
+      if (dataSourceType === 'SISA_LAYANAN') {
+        if (statusFilter === 'OPEN_ONLY') {
+          const hasOpen = it.requests.some((r) => r.status === 'OPEN');
+          if (!hasOpen) return false;
+        } else if (statusFilter === 'KURANG_ONLY') {
+          const hasKurang = it.requests.some((r) => r.status === 'KURANG');
+          if (!hasKurang) return false;
+        }
+      } else {
+        if (urgencyFilter !== 'ALL' && it.urgency !== urgencyFilter) {
+          return false;
+        }
       }
 
       if (selectedCategory !== 'ALL' && it.category !== selectedCategory) return false;
@@ -502,7 +577,7 @@ export default function PratenderTab({
       }
       return true;
     });
-  }, [openItemsPool, statusFilter, selectedCategory, selectedVessel, selectedPt, filterMultiVesselOnly, searchQuery]);
+  }, [openItemsPool, dataSourceType, statusFilter, urgencyFilter, selectedCategory, selectedVessel, selectedPt, filterMultiVesselOnly, searchQuery]);
 
   // KPI Metrics Summary
   const kpiMetrics = useMemo(() => {
@@ -510,15 +585,33 @@ export default function PratenderTab({
     const totalQty = openItemsPool.reduce((acc, curr) => acc + curr.totalQtyRemaining, 0);
     const multiVesselItems = openItemsPool.filter((it) => it.vesselCount >= 2).length;
     const activePackages = packages.filter((p) => p.status !== 'CANCELLED' && p.status !== 'COMPLETED').length;
-    return { totalItems, totalQty, multiVesselItems, activePackages };
+    const totalEstCost = openItemsPool.reduce((acc, curr) => acc + (curr.totalEstimatedCost || (curr.totalQtyRemaining * (curr.avgUnitPrice || 0))), 0);
+    return { totalItems, totalQty, multiVesselItems, activePackages, totalEstCost };
   }, [openItemsPool, packages]);
 
-  // Toggle selection item
+  // Toggle selection item (Persatuan Item)
   const handleToggleSelect = (itemId: string) => {
     setSelectedItemIds((prev) => {
       const next = new Set(prev);
       if (next.has(itemId)) next.delete(itemId);
       else next.add(itemId);
+      return next;
+    });
+  };
+
+  // Toggle selection per Kategori
+  const handleSelectCategoryItems = (cat: string) => {
+    const itemsInCat = filteredOpenItems.filter((i) => i.category === cat);
+    setSelectedItemIds((prev) => {
+      const next = new Set(prev);
+      const allSelected = itemsInCat.length > 0 && itemsInCat.every((i) => next.has(i.id));
+      itemsInCat.forEach((i) => {
+        if (allSelected) {
+          next.delete(i.id);
+        } else {
+          next.add(i.id);
+        }
+      });
       return next;
     });
   };
@@ -531,6 +624,17 @@ export default function PratenderTab({
     }
   };
 
+  // Total estimasi biaya dari item yang sedang dipilih
+  const selectedCostEstimate = useMemo(() => {
+    return Array.from(selectedItemIds).reduce((acc, id) => {
+      const found = openItemsPool.find((i) => i.id === id);
+      if (!found) return acc;
+      const price = found.avgUnitPrice || 0;
+      const qty = customQuantities[id] !== undefined ? customQuantities[id] : found.totalQtyRemaining;
+      return acc + (qty * price);
+    }, 0);
+  }, [selectedItemIds, openItemsPool, customQuantities]);
+
   // Buka Modal Buat Paket Pratender dari Item Terpilih
   const handleOpenCreateModal = () => {
     if (selectedItemIds.size === 0) {
@@ -541,9 +645,13 @@ export default function PratenderTab({
     const selectedItems = openItemsPool.filter((i) => selectedItemIds.has(i.id));
     const catFreq: Record<string, number> = {};
     const initialQtys: Record<string, number> = {};
+    let initialEstCost = 0;
     selectedItems.forEach((i) => {
       catFreq[i.category] = (catFreq[i.category] || 0) + 1;
       initialQtys[i.id] = i.totalQtyRemaining;
+      if (i.avgUnitPrice && i.avgUnitPrice > 0) {
+        initialEstCost += i.totalQtyRemaining * i.avgUnitPrice;
+      }
     });
     setCustomQuantities(initialQtys);
 
@@ -554,7 +662,7 @@ export default function PratenderTab({
     setPkgTitle(`Paket Pengadaan ${domCat} Armada Q4 20${dateStr}`);
     setPkgNotes('Spesifikasi asli (OEM) bergaransi resmi, sertifikat asal barang (COO) terlampir.');
     setPkgClosingDate(new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10));
-    setPkgEstimatedBudget('');
+    setPkgEstimatedBudget(initialEstCost > 0 ? String(initialEstCost) : '');
 
     setIsCreateModalOpen(true);
   };
@@ -575,11 +683,15 @@ export default function PratenderTab({
       const randomSeq = String(Math.floor(1000 + Math.random() * 9000));
       const packageNumber = `CPG-TDR-${dateStr}-${randomSeq}`;
 
+      let calculatedBudget = 0;
       const packageItems: PratenderPackageItem[] = selectedItems.map((item) => {
         const adjustedQty =
           customQuantities[item.id] !== undefined && customQuantities[item.id] > 0
             ? customQuantities[item.id]
             : item.totalQtyRemaining;
+        const targetPrice = item.avgUnitPrice || 0;
+        const targetTotalPrice = targetPrice > 0 ? adjustedQty * targetPrice : 0;
+        calculatedBudget += targetTotalPrice;
         return {
           itemId: item.id,
           itemName: item.cleanName,
@@ -587,10 +699,16 @@ export default function PratenderTab({
           satuan: item.satuan,
           totalQty: adjustedQty,
           originalQty: item.totalQtyRemaining,
+          targetPrice: targetPrice > 0 ? targetPrice : undefined,
+          targetTotalPrice: targetTotalPrice > 0 ? targetTotalPrice : undefined,
           vessels: item.vessels,
           requestFpbs: item.requests.map((r) => r.fpb),
         };
       });
+
+      const finalEstimatedBudget = pkgEstimatedBudget
+        ? Number(pkgEstimatedBudget)
+        : (calculatedBudget > 0 ? calculatedBudget : undefined);
 
       const newPkg: PratenderPackage = {
         id: `pkg-${Date.now()}`,
@@ -603,7 +721,8 @@ export default function PratenderTab({
         targetClosingDate: pkgClosingDate || undefined,
         description: pkgNotes.trim() || undefined,
         items: packageItems,
-        totalEstimatedBudget: pkgEstimatedBudget ? Number(pkgEstimatedBudget) : undefined,
+        totalEstimatedBudget: finalEstimatedBudget,
+        ownerEstimateHps: finalEstimatedBudget,
       };
 
       const res = await fetch('/api/pratender', {
@@ -787,50 +906,98 @@ export default function PratenderTab({
                 <h2 className="text-lg sm:text-xl font-extrabold text-foreground tracking-tight">
                   Pratender Material &amp; Konsolidasi Pengadaan
                 </h2>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
-                  Data Sisa Layanan Aktif
-                </span>
+                {dataSourceType === 'PLANNING' ? (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/10 text-purple-600 border border-purple-500/20 flex items-center gap-1">
+                    <Sparkles className="size-3 text-purple-500" />
+                    <span>Referensi: Perencanaan Pengadaan (Net Demand Bersih)</span>
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 border border-amber-500/20">
+                    Referensi: Sisa Layanan Mentah (OPEN/KURANG)
+                  </span>
+                )}
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Mengambil data material bersumber langsung dari database <strong>Sisa Layanan (Status OPEN &amp; KURANG)</strong> lintas seluruh armada kapal untuk pembentukan paket tender massal (bulk purchasing).
+                {dataSourceType === 'PLANNING'
+                  ? 'Mengambil data kebutuhan bersih terkonsolidasi dari Perencanaan Pengadaan (bebas barang trading & sudah potong stok Somber) untuk pembentukan paket tender atau PO massal.'
+                  : 'Mengambil data material bersumber langsung dari database Sisa Layanan lintas armada kapal untuk pemetaan backlog mentah.'}
               </p>
             </div>
           </div>
         </div>
 
-        {/* Sub-tab Navigation Pills */}
-        <div className="flex items-center gap-1.5 p-1 bg-muted rounded-xl self-start md:self-auto border border-border">
-          <button
-            type="button"
-            onClick={() => setActiveSubTab('pool')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
-              activeSubTab === 'pool'
-                ? 'bg-card text-foreground shadow-xs'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <Package className="size-3.5 text-indigo-500" />
-            <span>Pool Material Terbuka</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-primary/10 text-primary font-mono">
-              {openItemsPool.length}
-            </span>
-          </button>
+        {/* Source Selector & Sub-tab Navigation */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          {/* Toggle Sumber Referensi Data */}
+          <div className="flex items-center gap-1 p-1 bg-muted/80 rounded-xl border border-border">
+            <button
+              type="button"
+              onClick={() => {
+                setDataSourceType('PLANNING');
+                setSelectedItemIds(new Set());
+              }}
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                dataSourceType === 'PLANNING'
+                  ? 'bg-card text-purple-700 dark:text-purple-300 shadow-xs border border-purple-500/20'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+              title="Gunakan item dari hasil konsolidasi Perencanaan Pengadaan (bersih & bebas trading)"
+            >
+              <Sparkles className="size-3 text-purple-500" />
+              <span>Perencanaan Pengadaan</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setDataSourceType('SISA_LAYANAN');
+                setSelectedItemIds(new Set());
+              }}
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                dataSourceType === 'SISA_LAYANAN'
+                  ? 'bg-card text-amber-700 dark:text-amber-300 shadow-xs border border-amber-500/20'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+              title="Gunakan item dari database sisa layanan kotor"
+            >
+              <FileText className="size-3 text-amber-500" />
+              <span>Sisa Layanan</span>
+            </button>
+          </div>
 
-          <button
-            type="button"
-            onClick={() => setActiveSubTab('packages')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
-              activeSubTab === 'packages'
-                ? 'bg-card text-foreground shadow-xs'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <Award className="size-3.5 text-purple-500" />
-            <span>Daftar Paket Tender</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-purple-500/10 text-purple-600 font-mono">
-              {packages.length}
-            </span>
-          </button>
+          {/* Sub-tab Navigation Pills */}
+          <div className="flex items-center gap-1.5 p-1 bg-muted rounded-xl border border-border">
+            <button
+              type="button"
+              onClick={() => setActiveSubTab('pool')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                activeSubTab === 'pool'
+                  ? 'bg-card text-foreground shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Package className="size-3.5 text-indigo-500" />
+              <span>Pool Material</span>
+              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-primary/10 text-primary font-mono">
+                {openItemsPool.length}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveSubTab('packages')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                activeSubTab === 'packages'
+                  ? 'bg-card text-foreground shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Award className="size-3.5 text-purple-500" />
+              <span>Paket Tender</span>
+              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-purple-500/10 text-purple-600 font-mono">
+                {packages.length}
+              </span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -838,39 +1005,57 @@ export default function PratenderTab({
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <div className="bg-card border border-border rounded-2xl p-4 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-muted-foreground text-xs">
-            <span>Material Belum Suplai</span>
-            <Package className="size-4 text-amber-500" />
+            <span>{dataSourceType === 'PLANNING' ? 'Material Rencana Pengadaan' : 'Material Belum Suplai'}</span>
+            <Package className="size-4 text-purple-500" />
           </div>
           <div className="text-2xl font-black text-foreground font-mono">
-            {isLoadingSisa ? (
+            {isLoadingPlanning || isLoadingSisa ? (
               <span className="text-sm font-normal text-muted-foreground">Memuat...</span>
             ) : (
               kpiMetrics.totalItems.toLocaleString('id-ID')
             )}
           </div>
-          <p className="text-[11px] text-muted-foreground">Item unik dari Sisa Layanan (OPEN/KURANG)</p>
+          <p className="text-[11px] text-muted-foreground">
+            {dataSourceType === 'PLANNING' ? 'Item unik bersih (bebas barang trading TRD)' : 'Item unik dari Sisa Layanan (OPEN/KURANG)'}
+          </p>
         </div>
 
         <div className="bg-card border border-border rounded-2xl p-4 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-muted-foreground text-xs">
-            <span>Akumulasi Kuantitas Sisa</span>
+            <span>{dataSourceType === 'PLANNING' ? 'Net Demand Rekomendasi Beli' : 'Akumulasi Kuantitas Sisa'}</span>
             <TrendingUp className="size-4 text-emerald-500" />
           </div>
           <div className="text-2xl font-black text-foreground font-mono">
             {kpiMetrics.totalQty.toLocaleString('id-ID')}
           </div>
-          <p className="text-[11px] text-muted-foreground">Total unit/meter/drum gabungan belum PO</p>
+          <p className="text-[11px] text-muted-foreground">
+            {dataSourceType === 'PLANNING' ? 'Kebutuhan bersih setelah dipotong stok gudang Somber' : 'Total unit/meter/drum gabungan belum PO'}
+          </p>
         </div>
 
         <div className="bg-card border border-border rounded-2xl p-4 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-muted-foreground text-xs">
-            <span>Kebutuhan Multi-Kapal</span>
-            <Ship className="size-4 text-sky-500" />
+            <span>{dataSourceType === 'PLANNING' ? 'Estimasi Anggaran HPS' : 'Kebutuhan Multi-Kapal'}</span>
+            {dataSourceType === 'PLANNING' ? (
+              <Sparkles className="size-4 text-amber-500" />
+            ) : (
+              <Ship className="size-4 text-sky-500" />
+            )}
           </div>
-          <div className="text-2xl font-black text-foreground font-mono text-sky-600 dark:text-sky-400">
-            {kpiMetrics.multiVesselItems.toLocaleString('id-ID')}
+          <div className="text-2xl font-black text-foreground font-mono text-foreground">
+            {dataSourceType === 'PLANNING' ? (
+              <span className="text-base sm:text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                Rp {kpiMetrics.totalEstCost.toLocaleString('id-ID')}
+              </span>
+            ) : (
+              <span className="text-sky-600 dark:text-sky-400">
+                {kpiMetrics.multiVesselItems.toLocaleString('id-ID')}
+              </span>
+            )}
           </div>
-          <p className="text-[11px] text-muted-foreground">Diminta oleh &ge; 2 kapal (Target Tender Utama)</p>
+          <p className="text-[11px] text-muted-foreground">
+            {dataSourceType === 'PLANNING' ? 'Pagu HPS berdasarkan histori harga perolehan' : 'Diminta oleh ≥ 2 kapal (Target Tender Utama)'}
+          </p>
         </div>
 
         <div className="bg-card border border-border rounded-2xl p-4 shadow-2xs space-y-1">
@@ -881,11 +1066,11 @@ export default function PratenderTab({
           <div className="text-2xl font-black text-foreground font-mono text-purple-600 dark:text-purple-400">
             {kpiMetrics.activePackages}
           </div>
-          <p className="text-[11px] text-muted-foreground">Dalam proses RFQ &amp; evaluasi vendor</p>
+          <p className="text-[11px] text-muted-foreground">Dalam proses RFQ &amp; evaluasi vendor CBT</p>
         </div>
       </div>
 
-      {/* VIEW 1: POOL MATERIAL TERBUKA (KONSOLIDASI ITEM SISA LAYANAN) */}
+      {/* VIEW 1: POOL MATERIAL TERBUKA (KONSOLIDASI ITEM) */}
       {activeSubTab === 'pool' && (
         <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden space-y-4">
           {/* Filter Bar */}
@@ -903,24 +1088,37 @@ export default function PratenderTab({
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                {/* Filter Status Sisa Layanan */}
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value as any)}
-                  className="h-9 px-3 rounded-xl border border-border bg-background text-xs font-bold text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
-                >
-                  <option value="ALL_UNSUPPLIED">Semua Belum Tersuplai (OPEN + KURANG)</option>
-                  <option value="OPEN_ONLY">Hanya Status OPEN (Belum Pernah PO)</option>
-                  <option value="KURANG_ONLY">Hanya Status KURANG (Selisih Parsial)</option>
-                </select>
+                {/* Filter Sesuai Sumber Data */}
+                {dataSourceType === 'PLANNING' ? (
+                  <select
+                    value={urgencyFilter}
+                    onChange={(e) => setUrgencyFilter(e.target.value as any)}
+                    className="h-9 px-3 rounded-xl border border-border bg-background text-xs font-bold text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
+                  >
+                    <option value="ALL">Semua Prioritas Urgensi</option>
+                    <option value="CRITICAL">🔴 Critical (Stok Kritis / Mendesak)</option>
+                    <option value="REORDER">🟠 Reorder (Mencapai Titik Pesan)</option>
+                    <option value="PLANNED">🔵 Planned (Pengadaan Terencana)</option>
+                  </select>
+                ) : (
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value as any)}
+                    className="h-9 px-3 rounded-xl border border-border bg-background text-xs font-bold text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
+                  >
+                    <option value="ALL_UNSUPPLIED">Semua Belum Tersuplai (OPEN + KURANG)</option>
+                    <option value="OPEN_ONLY">Hanya Status OPEN (Belum Pernah PO)</option>
+                    <option value="KURANG_ONLY">Hanya Status KURANG (Selisih Parsial)</option>
+                  </select>
+                )}
 
-                {/* Filter Kategori */}
+                {/* Filter Kategori Dropdown */}
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                   className="h-9 px-3 rounded-xl border border-border bg-background text-xs font-medium focus:ring-1 focus:ring-primary focus:outline-none"
                 >
-                  <option value="ALL">Semua Kategori Maritim ({availableCategories.length})</option>
+                  <option value="ALL">Semua Kategori ({availableCategories.length})</option>
                   {availableCategories.map((c) => (
                     <option key={c} value={c}>
                       {c}
@@ -955,13 +1153,75 @@ export default function PratenderTab({
               </div>
             </div>
 
+            {/* Quick Sort & Select Per Kategori Chips */}
+            <div className="space-y-1.5 pt-1 border-t border-border/60">
+              <div className="flex items-center justify-between text-[11px] text-muted-foreground font-medium">
+                <span>Filter &amp; Seleksi Cepat per Kategori:</span>
+                <span className="text-[10px] italic">Klik nama kategori untuk memfilter, klik tombol [+] untuk memilih seluruh item kategori</span>
+              </div>
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategory('ALL')}
+                  className={`px-3 py-1 rounded-lg font-bold text-xs whitespace-nowrap cursor-pointer transition ${
+                    selectedCategory === 'ALL'
+                      ? 'bg-purple-600 text-white shadow-xs'
+                      : 'bg-muted/80 text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Semua ({openItemsPool.length})
+                </button>
+                {availableCategories.map((cat) => {
+                  const count = openItemsPool.filter((i) => i.category === cat).length;
+                  const isCatActive = selectedCategory === cat;
+                  const itemsInCat = filteredOpenItems.filter((i) => i.category === cat);
+                  const isAllCatSelected = itemsInCat.length > 0 && itemsInCat.every((i) => selectedItemIds.has(i.id));
+                  return (
+                    <div key={cat} className="inline-flex items-center rounded-lg shadow-2xs">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCategory(cat)}
+                        className={`px-2.5 py-1 rounded-l-lg font-semibold text-xs whitespace-nowrap cursor-pointer transition border border-r-0 ${
+                          isCatActive
+                            ? 'bg-purple-600 text-white border-purple-600'
+                            : 'bg-background border-border text-foreground hover:bg-muted'
+                        }`}
+                      >
+                        <span>{cat}</span>
+                        <span className="ml-1 opacity-70 font-mono text-[10px]">({count})</span>
+                      </button>
+                      <button
+                        type="button"
+                        title={`Pilih / batalkan seluruh item dalam kategori ${cat}`}
+                        onClick={() => handleSelectCategoryItems(cat)}
+                        className={`px-2 py-1 rounded-r-lg text-xs font-black border cursor-pointer transition ${
+                          isAllCatSelected
+                            ? 'bg-purple-700 text-white border-purple-700'
+                            : isCatActive
+                            ? 'bg-purple-500/20 text-white border-purple-600'
+                            : 'bg-muted border-border text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        {isAllCatSelected ? '✓' : '+'}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Selection Status Banner */}
             {selectedItemIds.size > 0 && (
               <div className="p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-between gap-3 animate-in fade-in duration-150">
                 <div className="flex items-center gap-2 text-xs text-purple-700 dark:text-purple-300 font-medium">
                   <CheckSquare className="size-4" />
                   <span>
-                    <strong>{selectedItemIds.size} material</strong> terpilih untuk tender gabungan
+                    <strong>{selectedItemIds.size} material</strong> terpilih untuk tender / siap PO
+                    {selectedCostEstimate > 0 && (
+                      <span className="ml-2 font-mono font-bold text-foreground">
+                        (Est. Rp {selectedCostEstimate.toLocaleString('id-ID')})
+                      </span>
+                    )}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -989,40 +1249,66 @@ export default function PratenderTab({
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-muted/70 text-muted-foreground uppercase text-[10px] tracking-wider border-b border-border">
-                <tr>
-                  <th className="py-2.5 px-3 w-10 text-center">
-                    <button
-                      type="button"
-                      onClick={handleSelectAllVisible}
-                      className="cursor-pointer"
-                      title="Pilih Semua"
-                    >
-                      {selectedItemIds.size === filteredOpenItems.length && filteredOpenItems.length > 0 ? (
-                        <CheckSquare className="size-4 text-purple-600" />
-                      ) : (
-                        <Square className="size-4 text-muted-foreground" />
-                      )}
-                    </button>
-                  </th>
-                  <th className="py-2.5 px-3">Nama Material &amp; Spesifikasi Suku Cadang</th>
-                  <th className="py-2.5 px-3">Kategori Maritim</th>
-                  <th className="py-2.5 px-3 text-right">Kuantitas Belum Terpenuhi</th>
-                  <th className="py-2.5 px-3">Kapal Peminta (Armada)</th>
-                  <th className="py-2.5 px-3">Status Sisa Layanan</th>
-                  <th className="py-2.5 px-3 text-center">Audit FPB</th>
-                </tr>
+                {dataSourceType === 'PLANNING' ? (
+                  <tr>
+                    <th className="py-2.5 px-3 w-10 text-center">
+                      <button
+                        type="button"
+                        onClick={handleSelectAllVisible}
+                        className="cursor-pointer"
+                        title="Pilih Semua Item Terlihat"
+                      >
+                        {selectedItemIds.size === filteredOpenItems.length && filteredOpenItems.length > 0 ? (
+                          <CheckSquare className="size-4 text-purple-600" />
+                        ) : (
+                          <Square className="size-4 text-muted-foreground" />
+                        )}
+                      </button>
+                    </th>
+                    <th className="py-2.5 px-3">Nama Material &amp; Spesifikasi Suku Cadang</th>
+                    <th className="py-2.5 px-3">Kategori</th>
+                    <th className="py-2.5 px-3 text-center">Stok Somber</th>
+                    <th className="py-2.5 px-3 text-right">Net Demand (Rekomendasi Beli)</th>
+                    <th className="py-2.5 px-3 text-right">Estimasi Pagu HPS</th>
+                    <th className="py-2.5 px-3">Kapal Peminta</th>
+                    <th className="py-2.5 px-3 text-center">Prioritas &amp; Status</th>
+                  </tr>
+                ) : (
+                  <tr>
+                    <th className="py-2.5 px-3 w-10 text-center">
+                      <button
+                        type="button"
+                        onClick={handleSelectAllVisible}
+                        className="cursor-pointer"
+                        title="Pilih Semua"
+                      >
+                        {selectedItemIds.size === filteredOpenItems.length && filteredOpenItems.length > 0 ? (
+                          <CheckSquare className="size-4 text-purple-600" />
+                        ) : (
+                          <Square className="size-4 text-muted-foreground" />
+                        )}
+                      </button>
+                    </th>
+                    <th className="py-2.5 px-3">Nama Material &amp; Spesifikasi Suku Cadang</th>
+                    <th className="py-2.5 px-3">Kategori Maritim</th>
+                    <th className="py-2.5 px-3 text-right">Kuantitas Belum Terpenuhi</th>
+                    <th className="py-2.5 px-3">Kapal Peminta (Armada)</th>
+                    <th className="py-2.5 px-3">Status Sisa Layanan</th>
+                    <th className="py-2.5 px-3 text-center">Audit FPB</th>
+                  </tr>
+                )}
               </thead>
               <tbody className="divide-y divide-border/60">
-                {isLoadingSisa ? (
+                {isLoadingPlanning || isLoadingSisa ? (
                   <tr>
-                    <td colSpan={7} className="py-12 text-center text-muted-foreground">
+                    <td colSpan={8} className="py-12 text-center text-muted-foreground">
                       <RefreshCw className="size-6 animate-spin mx-auto mb-2 text-primary" />
-                      <p className="text-xs font-semibold">Memuat database Sisa Layanan gabungan...</p>
+                      <p className="text-xs font-semibold">Memuat database material terkonsolidasi...</p>
                     </td>
                   </tr>
                 ) : filteredOpenItems.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-12 text-center text-muted-foreground">
+                    <td colSpan={8} className="py-12 text-center text-muted-foreground">
                       <Sparkles className="size-8 mx-auto mb-2 opacity-30 text-emerald-500" />
                       <p className="text-sm font-semibold text-foreground">Tidak Ada Kebutuhan Terbuka yang Cocok</p>
                       <p className="text-xs mt-1">
@@ -1033,6 +1319,143 @@ export default function PratenderTab({
                 ) : (
                   filteredOpenItems.slice(0, 100).map((item) => {
                     const isSelected = selectedItemIds.has(item.id);
+
+                    if (dataSourceType === 'PLANNING') {
+                      return (
+                        <tr
+                          key={item.id}
+                          className={`hover:bg-muted/40 transition ${
+                            isSelected ? 'bg-purple-500/[0.06]' : ''
+                          }`}
+                        >
+                          {/* Checkbox Persatuan Item */}
+                          <td className="py-3 px-3 text-center">
+                            <button
+                              type="button"
+                              onClick={() => handleToggleSelect(item.id)}
+                              className="cursor-pointer"
+                            >
+                              {isSelected ? (
+                                <CheckSquare className="size-4 text-purple-600 dark:text-purple-400" />
+                              ) : (
+                                <Square className="size-4 text-muted-foreground" />
+                              )}
+                            </button>
+                          </td>
+
+                          {/* Nama Barang & Kode */}
+                          <td className="py-3 px-3 max-w-xs sm:max-w-md">
+                            <div className="font-bold text-foreground text-xs leading-snug">{item.cleanName}</div>
+                            <div className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-1.5 flex-wrap">
+                              <span className="font-mono text-purple-600 dark:text-purple-400 font-semibold">
+                                {item.id}
+                              </span>
+                              <span>&bull;</span>
+                              <span className="text-slate-500">
+                                Total Diminta: {item.totalQtyRequested.toLocaleString('id-ID')} {item.satuan}
+                              </span>
+                              {item.requests.length > 0 && (
+                                <>
+                                  <span>&bull;</span>
+                                  <span className="truncate max-w-[200px]">
+                                    {item.requests.slice(0, 2).map((r) => r.fpb).join(', ')}
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* Kategori */}
+                          <td className="py-3 px-3 whitespace-nowrap">
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20">
+                              {item.category}
+                            </span>
+                          </td>
+
+                          {/* Stok Gudang Somber */}
+                          <td className="py-3 px-3 text-center whitespace-nowrap">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                                (item.currentStock || 0) === 0
+                                  ? 'bg-rose-500/10 text-rose-600 border border-rose-500/20'
+                                  : 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+                              }`}
+                            >
+                              {(item.currentStock || 0).toLocaleString('id-ID')} {item.satuan}
+                            </span>
+                          </td>
+
+                          {/* Net Demand Rekomendasi Beli */}
+                          <td className="py-3 px-3 text-right whitespace-nowrap">
+                            <div className="font-black text-foreground font-mono text-sm">
+                              {item.totalQtyRemaining.toLocaleString('id-ID')}
+                            </div>
+                            <span className="text-[10px] text-muted-foreground uppercase">{item.satuan}</span>
+                          </td>
+
+                          {/* Estimasi Biaya HPS */}
+                          <td className="py-3 px-3 text-right whitespace-nowrap">
+                            <div className="font-bold text-foreground font-mono text-xs">
+                              Rp {(item.totalEstimatedCost || (item.totalQtyRemaining * (item.avgUnitPrice || 0))).toLocaleString('id-ID')}
+                            </div>
+                            {item.avgUnitPrice && item.avgUnitPrice > 0 && (
+                              <div className="text-[10px] text-muted-foreground font-mono">
+                                @ Rp {item.avgUnitPrice.toLocaleString('id-ID')}
+                              </div>
+                            )}
+                          </td>
+
+                          {/* Kapal Peminta */}
+                          <td className="py-3 px-3">
+                            <div className="flex flex-wrap gap-1 max-w-xs">
+                              {item.vessels.slice(0, 2).map((v) => (
+                                <span
+                                  key={v}
+                                  className="px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 truncate max-w-[120px]"
+                                >
+                                  {v}
+                                </span>
+                              ))}
+                              {item.vessels.length > 2 && (
+                                <span className="px-1 py-0.5 rounded text-[9px] font-bold bg-sky-500/10 text-sky-600 border border-sky-500/20">
+                                  +{item.vessels.length - 2} kapal
+                                </span>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* Prioritas & Status */}
+                          <td className="py-3 px-3 text-center whitespace-nowrap">
+                            <div className="flex flex-col items-center gap-1">
+                              {item.urgency === 'CRITICAL' && (
+                                <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-rose-500/10 text-rose-600 border border-rose-500/20 flex items-center gap-1">
+                                  <Flame className="size-2.5" />
+                                  <span>CRITICAL</span>
+                                </span>
+                              )}
+                              {item.urgency === 'REORDER' && (
+                                <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/10 text-amber-600 border border-amber-500/20">
+                                  REORDER
+                                </span>
+                              )}
+                              {item.urgency === 'PLANNED' && (
+                                <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-sky-500/10 text-sky-600 border border-sky-500/20">
+                                  PLANNED
+                                </span>
+                              )}
+                              {item.isPackaged && (
+                                <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                                  <CheckCircle2 className="size-2.5" />
+                                  <span>{item.packageNumber}</span>
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    }
+
+                    // TAMPILAN SISA LAYANAN MENTAH
                     const hasOpen = item.requests.some((r) => r.status === 'OPEN');
                     const hasKurang = item.requests.some((r) => r.status === 'KURANG');
 
@@ -1159,6 +1582,46 @@ export default function PratenderTab({
               Menampilkan 100 item teratas dari total <strong>{filteredOpenItems.length.toLocaleString('id-ID')} material terbuka</strong>. Gunakan filter pencarian atau kategori untuk mempersempit.
             </div>
           )}
+        </div>
+      )}
+
+      {/* Floating Selection Action Bar (Muncul saat ada item terpilih persatuan / per kategori) */}
+      {selectedItemIds.size > 0 && activeSubTab === 'pool' && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-foreground text-background px-4 sm:px-6 py-3 rounded-2xl shadow-2xl border border-background/20 flex items-center gap-4 sm:gap-6 backdrop-blur-md animate-in slide-in-from-bottom-5 duration-200">
+          <div className="flex items-center gap-2">
+            <CheckSquare className="size-5 text-purple-400" />
+            <div>
+              <div className="text-xs sm:text-sm font-bold flex items-center gap-2">
+                <span>{selectedItemIds.size} Material Terpilih</span>
+                {selectedCostEstimate > 0 && (
+                  <span className="px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 font-mono text-xs">
+                    Est. Rp {selectedCostEstimate.toLocaleString('id-ID')}
+                  </span>
+                )}
+              </div>
+              <p className="text-[10px] text-background/70">
+                Item konfirmasi siap dibentuk menjadi paket tender / PO
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setSelectedItemIds(new Set())}
+              className="px-3 py-1.5 rounded-xl text-xs font-semibold text-background/80 hover:text-background hover:bg-background/10 transition cursor-pointer"
+            >
+              Batal
+            </button>
+            <button
+              type="button"
+              onClick={handleOpenCreateModal}
+              className="px-4 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer transition shadow-md"
+            >
+              <Plus className="size-4" />
+              <span>Bentuk Paket Pratender</span>
+            </button>
+          </div>
         </div>
       )}
 
