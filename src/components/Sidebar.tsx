@@ -29,6 +29,7 @@ import {
   FileSignature,
   ClipboardCheck,
   TrendingUp,
+  Search,
 } from 'lucide-react';
 
 import * as XLSX from 'xlsx';
@@ -117,10 +118,10 @@ export default function Sidebar({
   const allDashboards: DashboardNavItem[] = [
     {
       id: 'overview' as TabType,
-      label: 'Ringkasan',
-      icon: LayoutDashboard,
-      badge: isVisitor ? 'Tamu' : 'Utama',
-      title: 'Ringkasan Monitoring Pengadaan (Terintegrasi Database Barang Sisa Layanan 2026)',
+      label: 'Pencarian Cepat',
+      icon: Search,
+      badge: isVisitor ? 'Tamu' : 'Cari',
+      title: 'Pencarian Cepat Dokumen, Multi-FPB, PO, Material & Pelacakan Berkas Pengadaan',
     },
     {
       id: 'review-fpb' as TabType,

@@ -57,7 +57,7 @@
     "entity": "MIL",
     "armada": "TB MUARA MEGA",
     "date": "06/11/26",
-    "purpose": "Kebutuhan Operasional TB MUARA MEGA",
+    "purpose": "A/N ABD.RAHMAN (MASINIS III)",
     "efpbStatus": "Approved",
     "isReceivedLogistik": false,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/logistik_Approved_rev_sign_MIL-FPB-26-0000070.pdf",
@@ -65,7 +65,68 @@
     "urgency": "NORMAL",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "UNI04304001-ZZZ",
+        "itemName": "BAJU COVERALL PT. MIL (XL) ORANGE (00)",
+        "qty": 2,
+        "unit": "PCS",
+        "description": "A/N ABD.RAHMAN (MASINIS III)",
+        "priority": "P3",
+        "stockAvailable": 26,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[UNI00104003-ZZZ] BAJU COVERALL PT. CPL (S) ORANGE (00) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (26 PCS). Disarankan penuhi dari stok gudang."
+      },
+      {
+        "no": 2,
+        "itemCode": "SFT00401004-ZZZ",
+        "itemName": "HELM SAFETY PUTIH (00)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "A/N ABD.RAHMAN (MASINIS III)",
+        "priority": "P3",
+        "stockAvailable": 13,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[SFT00401004-ZZZ] HELM SAFETY PUTIH (00) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (13 PCS). Disarankan penuhi dari stok gudang."
+      },
+      {
+        "no": 3,
+        "itemCode": "SFT00401006-ZZZ",
+        "itemName": "HELM SAFETY TALI PENGAMAN (00)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "A/N ABD.RAHMAN (MASINIS III)",
+        "priority": "P3",
+        "stockAvailable": 13,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[SFT00401006-ZZZ] HELM SAFETY TALI PENGAMAN (00) (MO)",
+        "inventoryEntity": "MO",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (13 PCS). Disarankan penuhi dari stok gudang."
+      },
+      {
+        "no": 4,
+        "itemCode": "UNI02303001-ZZZ",
+        "itemName": "SEPATU SAFETY NO. 07 (00)",
+        "qty": 1,
+        "unit": "PSG",
+        "description": "A/N ABD.RAHMAN (MASINIS III)",
+        "priority": "P3",
+        "stockAvailable": 24,
+        "stockStatus": "IN_STOCK",
+        "matchedInventoryItem": "[UNIF-UNI023] UNIFORM - SEPATU SAFETY (MO)",
+        "inventoryEntity": "MO",
+        "decision": "STOCK",
+        "notes": "Stok gudang mencukupi (24 PSG). Disarankan penuhi dari stok gudang."
+      }
+    ],
     "attachments": [
       {
         "id": "efpb-att-MIL-FPB-26-0000070-2",
@@ -84,12 +145,13 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-06T23:52:50.406Z",
+    "updatedAt": "2026-11-07T00:22:56.424Z",
     "createdAt": "2026-11-06T23:52:50.406Z",
     "priorityLevel": "P3",
     "slaTargetDate": "06/12/26",
     "slaDaysRemaining": 29,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "requestedBy": "RIFKI RAMADHAN"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001154",

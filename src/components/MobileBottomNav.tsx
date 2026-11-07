@@ -10,6 +10,7 @@ import {
   Boxes,
   Menu,
   Images,
+  Search,
 } from 'lucide-react';
 
 import { TabType } from '@/types/procurement';
@@ -42,8 +43,8 @@ export default function MobileBottomNav({
     ? [
         {
           id: 'overview',
-          label: 'Ringkasan',
-          icon: LayoutDashboard,
+          label: 'Cari Cepat',
+          icon: Search,
         },
         {
           id: 'galeri-ttb',
@@ -54,8 +55,8 @@ export default function MobileBottomNav({
     : [
         {
           id: 'overview',
-          label: 'Ringkasan',
-          icon: LayoutDashboard,
+          label: 'Cari Cepat',
+          icon: Search,
         },
     {
       id: 'procurement',

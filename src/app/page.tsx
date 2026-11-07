@@ -1183,7 +1183,7 @@ export default function DashboardPage() {
               <div className="space-y-1">
                 <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-foreground">
                   {activeTab === 'overview'
-                    ? 'Monitoring Logistik'
+                    ? 'Pencarian Cepat Dokumen'
                     : activeTab === 'review-fpb'
                     ? 'Review & Analisa FPB'
                     : activeTab === 'pratender'
@@ -1224,7 +1224,7 @@ export default function DashboardPage() {
                   {isVisitor && activeTab === 'overview'
                     ? 'Mode Peninjauan Tamu: Silakan masukkan No. FPB, Nama Kapal, atau No. PO pada kolom pencarian di bawah untuk menampilkan data.'
                     : activeTab === 'overview'
-                    ? 'Pemantauan terpadu alur pengadaan barang, perputaran berkas fisik divisi, distribusi logistik armada kapal, dan status stok persediaan.'
+                    ? 'Pencarian cepat multi-FPB, nomor PO, nama kapal, material sisa layanan, dan pelacakan alur berkas divisi.'
                     : activeTab === 'review-fpb'
                     ? 'Sinkronisasi berkas pengajuan e-FPB, analisa ketersediaan stok gudang konsolidasi, deteksi pengajuan berulang armada kapal, dan otorisasi tindak lanjut PO / Logistik.'
                     : activeTab === 'pratender'
