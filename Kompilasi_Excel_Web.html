@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CPG Excel Compiler - Multi-Perusahaan</title>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: #f1f5f9; color: #0f172a; padding: 24px; display: flex; justify-content: center; }
+    .container { width: 100%; max-width: 760px; background: #ffffff; border-radius: 16px; box-shadow: 0 4px 20px -2px rgba(0,0,0,0.08); overflow: hidden; border: 1px solid #e2e8f0; }
+    .header { background: #1e293b; color: #ffffff; padding: 24px; }
+    .header h1 { font-size: 20px; font-weight: 700; margin-bottom: 6px; display: flex; items-center; gap: 8px; }
+    .header p { font-size: 13px; color: #94a3b8; }
+    .content { padding: 24px; }
+    .drop-zone { border: 2px dashed #94a3b8; border-radius: 12px; padding: 32px 16px; text-align: center; background: #f8fafc; cursor: pointer; transition: all 0.2s; }
+    .drop-zone:hover, .drop-zone.dragover { border-color: #0284c7; background: #f0f9ff; }
+    .drop-icon { font-size: 36px; margin-bottom: 8px; }
+    .drop-text { font-size: 14px; font-weight: 600; color: #334155; }
+    .drop-subtext { font-size: 12px; color: #64748b; margin-top: 4px; }
+    .file-input { display: none; }
+    .file-list { margin-top: 16px; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; display: none; }
+    .file-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid #f1f5f9; font-size: 13px; background: #ffffff; }
+    .file-item:last-child { border-bottom: none; }
+    .file-name { font-weight: 500; color: #1e293b; display: flex; align-items: center; gap: 6px; }
+    .file-company { font-size: 11px; background: #e0f2fe; color: #0284c7; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+    .file-size { font-size: 12px; color: #64748b; }
+    .btn-remove { color: #ef4444; cursor: pointer; border: none; background: none; font-weight: bold; margin-left: 10px; }
+    .options-box { margin-top: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; }
+    .options-box h3 { font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 10px; }
+    .option-item { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 13px; color: #334155; }
+    .option-item:last-child { margin-bottom: 0; }
+    .btn-compile { width: 100%; margin-top: 20px; background: #059669; color: #ffffff; border: none; border-radius: 10px; padding: 14px; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-compile:hover { background: #047857; }
+    .btn-compile:disabled { background: #94a3b8; cursor: not-allowed; }
+    .status-msg { margin-top: 14px; font-size: 13px; font-weight: 500; text-align: center; }
+    .status-msg.success { color: #059669; }
+    .status-msg.error { color: #dc2626; }
+    .status-msg.info { color: #0284c7; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📊 CPG Excel Compiler</h1>
+      <p>Gabungkan file Excel dari berbagai perusahaan menjadi 1 Workbook (Master Gabungan & Sheet Perusahaan)</p>
+    </div>
+
+    <div class="content">
+      <div class="drop-zone" id="dropZone">
+        <div class="drop-icon">📁</div>
+        <div class="drop-text">Klik di sini atau Tarik & Letakkan file Excel Anda</div>
+        <div class="drop-subtext">Mendukung banyak file sekaligus (.xlsx, .xls)</div>
+        <input type="file" id="fileInput" class="file-input" multiple accept=".xlsx, .xls">
+      </div>
+
+      <div class="file-list" id="fileList"></div>
+
+      <div class="options-box">
+        <h3>Pengaturan Kompilasi:</h3>
+        <label class="option-item">
+          <input type="checkbox" id="chkMaster" checked>
+          <span>Buat Sheet <b>"Master Gabungan"</b> (semua baris ditumpuk + kolom penanda Perusahaan)</span>
+        </label>
+        <label class="option-item">
+          <input type="checkbox" id="chkSeparate" checked>
+          <span>Pertahankan <b>Sheet terpisah per Perusahaan</b> di Workbook yang sama</span>
+        </label>
+      </div>
+
+      <button class="btn-compile" id="btnCompile" disabled>
+        <span>🚀 Kompilasikan & Unduh Excel</span>
+      </button>
+
+      <div class="status-msg" id="statusMsg"></div>
+    </div>
+  </div>
+
+  <script>
+    let files = [];
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const fileList = document.getElementById('fileList');
+    const btnCompile = document.getElementById('btnCompile');
+    const statusMsg = document.getElementById('statusMsg');
+    const chkMaster = document.getElementById('chkMaster');
+    const chkSeparate = document.getElementById('chkSeparate');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      handleFiles(e.dataTransfer.files);
+    });
+    fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+    function cleanCompanyLabel(filename) {
+      let name = filename.replace(/\.(xlsx|xls)$/i, '').replace(/_/g, ' ');
+      const m = name.match(/(PT\s+[A-Za-z\s]+|CPL|PPI|HL|GAJ|MIL|SP|SSK|MO)/i);
+      return m ? m[0].trim().toUpperCase() : name;
+    }
+
+    function cleanSheetTitle(filename) {
+      let name = filename.replace(/\.(xlsx|xls)$/i, '').replace(/^(Daftar_Barang_|Monitoring_|Data_)/i, '').replace(/_/g, ' ').trim();
+      return name.substring(0, 31);
+    }
+
+    function handleFiles(newFiles) {
+      for (const f of newFiles) {
+        if (!files.some(existing => existing.name === f.name)) {
+          files.push(f);
+        }
+      }
+      renderFileList();
+    }
+
+    function removeFile(index) {
+      files.splice(index, 1);
+      renderFileList();
+    }
+
+    function renderFileList() {
+      if (files.length === 0) {
+        fileList.style.display = 'none';
+        btnCompile.disabled = true;
+        statusMsg.innerText = '';
+        return;
+      }
+      fileList.style.display = 'block';
+      btnCompile.disabled = false;
+      fileList.innerHTML = files.map((f, i) => {
+        const kb = (f.size / 1024).toFixed(1);
+        const comp = cleanCompanyLabel(f.name);
+        return `
+          <div class="file-item">
+            <div class="file-name">
+              <span>📄 ${f.name}</span>
+              <span class="file-company">${comp}</span>
+            </div>
+            <div style="display: flex; align-items: center;">
+              <span class="file-size">${kb} KB</span>
+              <button class="btn-remove" onclick="removeFile(${i})">✕</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+      statusMsg.className = 'status-msg info';
+      statusMsg.innerText = `${files.length} file dipilih. Siap dikompilasikan.`;
+    }
+
+    btnCompile.addEventListener('click', async () => {
+      if (files.length === 0) return;
+      btnCompile.disabled = true;
+      statusMsg.className = 'status-msg info';
+      statusMsg.innerText = 'Sedang membaca dan mengompilasi seluruh file...';
+
+      try {
+        const outWb = XLSX.utils.book_new();
+        const masterRows = [];
+        let masterHeaders = [];
+        const usedSheetNames = new Set();
+
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          const compLabel = cleanCompanyLabel(file.name);
+          const buffer = await file.arrayBuffer();
+          const srcWb = XLSX.read(new Uint8Array(buffer), { type: 'array' });
+
+          for (const sheetName of srcWb.SheetNames) {
+            const ws = srcWb.Sheets[sheetName];
+            const json = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+            if (json.length === 0) continue;
+
+            // Cari header baris yang tepat
+            let headerIdx = 0;
+            let maxCols = 0;
+            for (let r = 0; r < Math.min(json.length, 12); r++) {
+              const filled = json[r].filter(c => c !== null && String(c).trim() !== '').length;
+              if (filled > maxCols) {
+                maxCols = filled;
+                headerIdx = r;
+              }
+            }
+
+            const headers = json[headerIdx].map((h, colI) => String(h || `Kolom_${colI+1}`).trim());
+            if (masterHeaders.length === 0) {
+              masterHeaders = ['PERUSAHAAN / SUMBER', ...headers.filter(h => h)];
+            }
+
+            // Kumpulkan baris master
+            if (chkMaster.checked) {
+              for (let r = headerIdx + 1; r < json.length; r++) {
+                const row = json[r];
+                if (row.some(c => c !== null && String(c).trim() !== '')) {
+                  masterRows.push([compLabel, ...row]);
+                }
+              }
+            }
+
+            // Buat sheet per perusahaan
+            if (chkSeparate.checked) {
+              let sheetTitle = cleanSheetTitle(file.name);
+              let counter = 2;
+              while (usedSheetNames.has(sheetTitle.toUpperCase())) {
+                sheetTitle = `${cleanSheetTitle(file.name).substring(0, 27)}_${counter}`;
+                counter++;
+              }
+              usedSheetNames.add(sheetTitle.toUpperCase());
+
+              const cleanData = json.slice(headerIdx);
+              const companyWs = XLSX.utils.aoa_to_sheet(cleanData);
+              XLSX.utils.book_append_sheet(outWb, companyWs, sheetTitle);
+            }
+          }
+        }
+
+        // Tambahkan Master Gabungan di Sheet pertama jika dipilih
+        if (chkMaster.checked && masterRows.length > 0) {
+          const masterAoa = [masterHeaders, ...masterRows];
+          const masterWs = XLSX.utils.aoa_to_sheet(masterAoa);
+          XLSX.utils.book_append_sheet(outWb, masterWs, 'Master Gabungan');
+          // Geser ke posisi pertama
+          const idx = outWb.SheetNames.indexOf('Master Gabungan');
+          if (idx > 0) {
+            outWb.SheetNames.splice(idx, 1);
+            outWb.SheetNames.unshift('Master Gabungan');
+          }
+        }
+
+        // Unduh hasil
+        XLSX.writeFile(outWb, 'Hasil_Kompilasi_Semua_Perusahaan.xlsx');
+
+        statusMsg.className = 'status-msg success';
+        statusMsg.innerText = `✅ Sukses! ${files.length} file berhasil dikompilasi (${masterRows.length.toLocaleString('id-ID')} baris data). File otomatis terunduh.`;
+      } catch (err) {
+        console.error(err);
+        statusMsg.className = 'status-msg error';
+        statusMsg.innerText = `❌ Terjadi kesalahan: ${err.message}`;
+      } finally {
+        btnCompile.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,5 +1,662 @@
 [
   {
+    "id": "notif-1794008367211-soa2u",
+    "type": "TTB_VALIDATED",
+    "title": "🛡️ Batch TTB Divalidasi & Disahkan",
+    "message": "User Hermansyah telah mengesahkan 31 berkas TTB (CPL-TTB-26-07793, CPL-TTB-26-07791, CPL-TTB-26-07760 (+28 lainnya)) secara massal. Berkas siap diproses ke tahap berikutnya.",
+    "senderName": "Hermansyah",
+    "senderUsername": "hermansyahz",
+    "senderRole": "Logistik Supervisor",
+    "targetRole": "staf_lapangan",
+    "linkTab": "serah-terima",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07793, CPL-TTB-26-07791, CPL-TTB-26-07760 (+28 lainnya)",
+      "armada": "SPOB OCEAN MANDAR, UB CMPL 01"
+    },
+    "createdAt": "2026-11-06T23:39:27.211Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1793958060434-o675o",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User FIFI telah mengunggah 2 berkas TTB (CPL-TTB-26-07793, CPL-TTB-26-07793). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "FIFI",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07793, CPL-TTB-26-07793",
+      "armada": "SPOB OCEAN MANDAR",
+      "noPo": "CPL-PO-26-05942"
+    },
+    "createdAt": "2026-11-06T09:41:00.434Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1793957654913-xcn8d",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User FIFI telah mengunggah 2 berkas TTB (CPL-TTB-26-07791, CPL-TTB-26-07791). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "FIFI",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07791, CPL-TTB-26-07791",
+      "armada": "UB CMPL 01"
+    },
+    "createdAt": "2026-11-06T09:34:14.913Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1793957566516-v2v1o",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User FIFI telah mengunggah 2 berkas TTB (CPL-TTB-26-07760, CPL-TTB-26-07760). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "FIFI",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07760, CPL-TTB-26-07760",
+      "armada": "MT BARONGKO",
+      "noPo": "CPL-PO-26-05967"
+    },
+    "createdAt": "2026-11-06T09:32:46.516Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1793957530688-061yh",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User FIFI telah mengunggah 2 berkas TTB (CPL-TTB-26-07744, CPL-TTB-26-07744). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "FIFI",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07744, CPL-TTB-26-07744",
+      "armada": "UB CMPL 01",
+      "noPo": "CPL-PO-26-05915"
+    },
+    "createdAt": "2026-11-06T09:32:10.688Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1793957238041-aeysv",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User FIFI telah mengunggah 2 berkas TTB (CPL-TTB-26-07736, CPL-TTB-26-07736). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "FIFI",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07736, CPL-TTB-26-07736",
+      "armada": "MT DEWI SRI",
+      "noPo": "CPL-PO-26-05886"
+    },
+    "createdAt": "2026-11-06T09:27:18.041Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1793957207218-8i1mo",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User FIFI telah mengunggah 3 berkas TTB (CPL-TTB-26-07735, CPL-TTB-26-07735, CPL-TTB-26-07735). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "FIFI",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07735, CPL-TTB-26-07735, CPL-TTB-26-07735",
+      "armada": "SPOB OCEAN MANDAR",
+      "noPo": "CPL-PO-26-05918"
+    },
+    "createdAt": "2026-11-06T09:26:47.218Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1793957132963-r5f5s",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User FIFI telah mengunggah 2 berkas TTB (CPL-TTB-26-07734, CPL-TTB-26-07734). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "FIFI",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07734, CPL-TTB-26-07734",
+      "armada": "MT BARONGKO",
+      "noPo": "CPL-PO-26-05949"
+    },
+    "createdAt": "2026-11-06T09:25:32.963Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1793957056408-mr5ag",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User FIFI telah mengunggah 3 berkas TTB (CPL-TTB-26-07715, CPL-TTB-26-07715, CPL-TTB-26-07715). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "FIFI",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07715, CPL-TTB-26-07715, CPL-TTB-26-07715",
+      "armada": "MT BARONGKO",
+      "noPo": "CPL-PO-26-05933"
+    },
+    "createdAt": "2026-11-06T09:24:16.408Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1793956999678-jlspz",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User FIFI telah mengunggah 2 berkas TTB (CPL-TTB-26-07714, CPL-TTB-26-07714). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "FIFI",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07714, CPL-TTB-26-07714",
+      "armada": "MT DEWI SRI",
+      "noPo": "CPL-PO-26-05905"
+    },
+    "createdAt": "2026-11-06T09:23:19.678Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1793956956056-izjl2",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User FIFI telah mengunggah 2 berkas TTB (CPL-TTB-26-07711, CPL-TTB-26-07711). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "FIFI",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07711, CPL-TTB-26-07711",
+      "armada": "MT DEWI SRI",
+      "noPo": "CPL-PO-26-05925"
+    },
+    "createdAt": "2026-11-06T09:22:36.056Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1793956885708-culxu",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User FIFI telah mengunggah 2 berkas TTB (CPL-TTB-26-07701, CPL-TTB-26-07701). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "FIFI",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07701, CPL-TTB-26-07701",
+      "armada": "TB EQUATOR 02",
+      "noPo": "CPL-PO-26-05903"
+    },
+    "createdAt": "2026-11-06T09:21:25.708Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1793956857122-18mx9",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User FIFI telah mengunggah 2 berkas TTB (CPL-TTB-26-07700, CPL-TTB-26-07700). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "FIFI",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07700, CPL-TTB-26-07700",
+      "armada": "SPOB OCEAN MANDAR",
+      "noPo": "CPL-PO-26-05922"
+    },
+    "createdAt": "2026-11-06T09:20:57.122Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1793955908388-zicip",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User FIFI telah mengunggah 2 berkas TTB (HL-TTB-26-02341, HL-TTB-26-02341). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "FIFI",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "HL-TTB-26-02341, HL-TTB-26-02341",
+      "armada": "HOPPER BARGE CAKRA 8"
+    },
+    "createdAt": "2026-11-06T09:05:08.388Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1793955652776-38zkj",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User FIFI telah mengunggah 2 berkas TTB (GAJ-TTB-26-01395, GAJ-TTB-26-01395). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "FIFI",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "GAJ-TTB-26-01395, GAJ-TTB-26-01395",
+      "armada": "OFFICE GAJ",
+      "noPo": "GAJ-PO-26-01274"
+    },
+    "createdAt": "2026-11-06T09:00:52.776Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1793955605766-h73nx",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User FIFI telah mengunggah 2 berkas TTB (GAJ-TTB-26-01396, GAJ-TTB-26-01396). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "FIFI",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "GAJ-TTB-26-01396, GAJ-TTB-26-01396",
+      "armada": "OFFICE GAJ",
+      "noPo": "GAJ-PO-26-01298"
+    },
+    "createdAt": "2026-11-06T09:00:05.766Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1793955412690-m2wqx",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User FIFI telah mengunggah 2 berkas TTB (GAJ-TTB-26-01397, GAJ-TTB-26-01397). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "FIFI",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "GAJ-TTB-26-01397, GAJ-TTB-26-01397",
+      "armada": "MUSHOLLA GAJ",
+      "noPo": "GAJ-PO-26-01297"
+    },
+    "createdAt": "2026-11-06T08:56:52.691Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1793955344202-rhvy0",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User FIFI telah mengunggah 2 berkas TTB (GAJ-TTB-26-01398, GAJ-TTB-26-01398). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "FIFI",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "GAJ-TTB-26-01398, GAJ-TTB-26-01398",
+      "armada": "OFFICE GAJ",
+      "noPo": "GAJ-PO-26-01295"
+    },
+    "createdAt": "2026-11-06T08:55:44.202Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1793955288614-21jez",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User FIFI telah mengunggah 2 berkas TTB (GAJ-TTB-26-01399, GAJ-TTB-26-01399). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "FIFI",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "GAJ-TTB-26-01399, GAJ-TTB-26-01399",
+      "armada": "OFFICE GAJ",
+      "noPo": "GAJ-PO-26-01231"
+    },
+    "createdAt": "2026-11-06T08:54:48.614Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1793955192876-775kp",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User FIFI telah mengunggah 4 berkas TTB (GAJ-TTB-26-01400, GAJ-TTB-26-01400, GAJ-TTB-26-01400 (+1 lainnya)). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "FIFI",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "GAJ-TTB-26-01400, GAJ-TTB-26-01400, GAJ-TTB-26-01400 (+1 lainnya)",
+      "armada": "OFFICE GAJ",
+      "noPo": "GAJ-PO-26-01282"
+    },
+    "createdAt": "2026-11-06T08:53:12.876Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1793954529052-ojdpb",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User IDHAM KHALID telah mengunggah 2 berkas TTB (CPL-TTB-26-07796, CPL-TTB-26-07796). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "IDHAM KHALID",
+    "senderUsername": "idham.khalid",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07796, CPL-TTB-26-07796",
+      "armada": "HEAD OFFICE",
+      "noPo": "CPL-PO-26-05955"
+    },
+    "createdAt": "2026-11-06T08:42:09.052Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1793954477660-8acql",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User IDHAM KHALID telah mengunggah 2 berkas TTB (CPL-TTB-26-07797, CPL-TTB-26-07797). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "IDHAM KHALID",
+    "senderUsername": "idham.khalid",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07797, CPL-TTB-26-07797",
+      "armada": "-"
+    },
+    "createdAt": "2026-11-06T08:41:17.660Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1793930868816-trlwd",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User IDHAM KHALID telah mengunggah 2 berkas TTB (MO-TTB-26-03694, MO-TTB-26-03694). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "IDHAM KHALID",
+    "senderUsername": "idham.khalid",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "MO-TTB-26-03694, MO-TTB-26-03694",
+      "armada": "TK MO 27",
+      "noPo": "MO-PO-26-02107"
+    },
+    "createdAt": "2026-11-06T02:07:48.816Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1793864506071-5sequ",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User IDHAM KHALID telah mengunggah 2 berkas TTB (CPL-TTB-26-07789, CPL-TTB-26-07789). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "IDHAM KHALID",
+    "senderUsername": "idham.khalid",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07789, CPL-TTB-26-07789",
+      "armada": "TK HL 270",
+      "noPo": "CPL-PO-26-05964"
+    },
+    "createdAt": "2026-11-05T07:41:46.071Z",
+    "readBy": [
+      "hermansyahz"
+    ]
+  },
+  {
+    "id": "notif-1793861243591-k75do",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User IDHAM KHALID telah mengunggah 2 berkas TTB (CPL-TTB-26-07780, CPL-TTB-26-07780). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "IDHAM KHALID",
+    "senderUsername": "idham.khalid",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07780, CPL-TTB-26-07780",
+      "armada": "-"
+    },
+    "createdAt": "2026-11-05T06:47:23.591Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1793861230318-5vxjq",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User IDHAM KHALID telah mengunggah 2 berkas TTB (CPL-TTB-26-07781, CPL-TTB-26-07781). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "IDHAM KHALID",
+    "senderUsername": "idham.khalid",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07781, CPL-TTB-26-07781",
+      "armada": "-"
+    },
+    "createdAt": "2026-11-05T06:47:10.318Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1793861216238-gs3nx",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User IDHAM KHALID telah mengunggah 2 berkas TTB (CPL-TTB-26-07782, CPL-TTB-26-07782). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "IDHAM KHALID",
+    "senderUsername": "idham.khalid",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07782, CPL-TTB-26-07782",
+      "armada": "-"
+    },
+    "createdAt": "2026-11-05T06:46:56.238Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1793861195796-530kj",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User IDHAM KHALID telah mengunggah 2 berkas TTB (CPL-TTB-26-07783, CPL-TTB-26-07783). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "IDHAM KHALID",
+    "senderUsername": "idham.khalid",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07783, CPL-TTB-26-07783",
+      "armada": "-"
+    },
+    "createdAt": "2026-11-05T06:46:35.796Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1793861103501-4z7ly",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User IDHAM KHALID telah mengunggah 2 berkas TTB (CPL-TTB-26-07784, CPL-TTB-26-07784). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "IDHAM KHALID",
+    "senderUsername": "idham.khalid",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07784, CPL-TTB-26-07784",
+      "armada": "-"
+    },
+    "createdAt": "2026-11-05T06:45:03.501Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1793861084917-k3chd",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User IDHAM KHALID telah mengunggah 2 berkas TTB (CPL-TTB-26-07785, CPL-TTB-26-07785). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "IDHAM KHALID",
+    "senderUsername": "idham.khalid",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07785, CPL-TTB-26-07785",
+      "armada": "HRD",
+      "noPo": "CPL-PO-26-05975"
+    },
+    "createdAt": "2026-11-05T06:44:44.917Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1793861068383-1yjez",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User IDHAM KHALID telah mengunggah 2 berkas TTB (CPL-TTB-26-07786, CPL-TTB-26-07786). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "IDHAM KHALID",
+    "senderUsername": "idham.khalid",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07786, CPL-TTB-26-07786",
+      "armada": "HRD",
+      "noPo": "CPL-PO-26-05972"
+    },
+    "createdAt": "2026-11-05T06:44:28.383Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1793861041523-73qrf",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User IDHAM KHALID telah mengunggah 2 berkas TTB (CPL-TTB-26-07787, CPL-TTB-26-07787). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "IDHAM KHALID",
+    "senderUsername": "idham.khalid",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07787, CPL-TTB-26-07787",
+      "armada": "HRD",
+      "noPo": "CPL-PO-26-05971"
+    },
+    "createdAt": "2026-11-05T06:44:01.523Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1793851604877-kn49g",
+    "type": "TTB_VALIDATED",
+    "title": "🛡️ Batch TTB Divalidasi & Disahkan",
+    "message": "User Hermansyah telah mengesahkan 12 berkas TTB (MO-TTB-26-03690, GAJ-TTB-26-01392, CPL-TTB-26-07738 (+9 lainnya)) secara massal. Berkas siap diproses ke tahap berikutnya.",
+    "senderName": "Hermansyah",
+    "senderUsername": "hermansyahz",
+    "senderRole": "Logistik Supervisor",
+    "targetRole": "staf_lapangan",
+    "linkTab": "serah-terima",
+    "metadata": {
+      "noTtb": "MO-TTB-26-03690, GAJ-TTB-26-01392, CPL-TTB-26-07738 (+9 lainnya)",
+      "armada": "SPOB FERY 471, SPOB OCEAN MAJENE"
+    },
+    "createdAt": "2026-11-05T04:06:44.877Z",
+    "readBy": [
+      "hermansyahz",
+      "nurul.hafifah",
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1793851583390-c9v24",
+    "type": "TTB_VALIDATED",
+    "title": "🛡️ TTB Divalidasi & Disahkan",
+    "message": "User Hermansyah telah mengesahkan dokumen TTB HL-TTB-26-02340 (SPOB ROYAL REY 300). Berkas siap untuk proses serah terima di lapangan.",
+    "senderName": "Hermansyah",
+    "senderUsername": "hermansyahz",
+    "senderRole": "Logistik Supervisor",
+    "targetRole": "staf_lapangan",
+    "linkTab": "serah-terima",
+    "metadata": {
+      "noTtb": "HL-TTB-26-02340",
+      "armada": "SPOB ROYAL REY 300",
+      "noPo": "",
+      "noFpb": "HL-FPB-26-0001554"
+    },
+    "createdAt": "2026-11-05T04:06:23.390Z",
+    "readBy": [
+      "hermansyahz",
+      "nurul.hafifah",
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1793850276025-s05ge",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User IDHAM KHALID telah mengunggah 2 berkas TTB (MO-TTB-26-03690, MO-TTB-26-03690). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "IDHAM KHALID",
+    "senderUsername": "idham.khalid",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "MO-TTB-26-03690, MO-TTB-26-03690",
+      "armada": "SPOB FERY 471",
+      "noPo": "MO-PO-26-02098"
+    },
+    "createdAt": "2026-11-05T03:44:36.025Z",
+    "readBy": [
+      "hermansyahz",
+      "nurul.hafifah",
+      "admin"
+    ]
+  },
+  {
+    "id": "notif-1793850167351-xi59j",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User IDHAM KHALID telah mengunggah 2 berkas TTB (HL-TTB-26-02340, HL-TTB-26-02340). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "IDHAM KHALID",
+    "senderUsername": "idham.khalid",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "HL-TTB-26-02340, HL-TTB-26-02340",
+      "armada": "SPOB ROYAL REY 300",
+      "noPo": "HL-PO-26-01794"
+    },
+    "createdAt": "2026-11-05T03:42:47.351Z",
+    "readBy": [
+      "hermansyahz",
+      "nurul.hafifah",
+      "admin"
+    ]
+  },
+  {
     "id": "notif-1793792554111-2i5to",
     "type": "SERAH_TERIMA_COMPLETED",
     "title": "✅ Serah Terima TTB Selesai",
@@ -11,7 +668,9 @@
     "linkTab": "serah-terima",
     "createdAt": "2026-11-04T11:42:31.128Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ],
     "metadata": {
       "noTtb": "CPL-TTB-26-07646",
@@ -47,7 +706,9 @@
     },
     "createdAt": "2026-11-04T11:41:38.065Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -68,7 +729,9 @@
     },
     "createdAt": "2026-11-04T11:39:53.395Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -84,7 +747,9 @@
     "metadata": {},
     "createdAt": "2026-11-04T11:03:13.244Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -103,7 +768,9 @@
     },
     "createdAt": "2026-11-04T03:49:37.360Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -122,7 +789,9 @@
     },
     "createdAt": "2026-11-04T02:35:07.423Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -141,7 +810,9 @@
     },
     "createdAt": "2026-11-04T02:11:08.216Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -162,7 +833,9 @@
     },
     "createdAt": "2026-11-04T00:03:40.326Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -178,7 +851,9 @@
     "createdAt": "2026-11-03T17:27:27.951Z",
     "readBy": [
       "agussalim",
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ],
     "metadata": {
       "noTtb": "CPL-TTB-26-05310",
@@ -214,7 +889,9 @@
     },
     "createdAt": "2026-11-03T17:26:33.569Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -235,7 +912,9 @@
     },
     "createdAt": "2026-11-03T17:25:09.605Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -254,7 +933,9 @@
     },
     "createdAt": "2026-11-03T17:24:21.913Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -275,7 +956,8 @@
     "createdAt": "2026-11-03T17:20:01.973Z",
     "readBy": [
       "admin",
-      "hermansyahz"
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -290,7 +972,9 @@
     "linkTab": "serah-terima",
     "createdAt": "2026-11-03T16:55:49.549Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ],
     "metadata": {
       "noTtb": "CPL-TTB-26-07578",
@@ -326,7 +1010,9 @@
     },
     "createdAt": "2026-11-03T16:54:18.860Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -351,7 +1037,9 @@
     },
     "createdAt": "2026-11-03T16:53:57.346Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -376,7 +1064,9 @@
     },
     "createdAt": "2026-11-03T16:52:51.864Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -392,7 +1082,9 @@
     "metadata": {},
     "createdAt": "2026-11-03T16:43:03.873Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -407,7 +1099,9 @@
     "linkTab": "serah-terima",
     "createdAt": "2026-11-03T16:20:32.553Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ],
     "metadata": {
       "noTtb": "CPL-TTB-26-07570",
@@ -443,7 +1137,9 @@
     },
     "createdAt": "2026-11-03T16:19:26.294Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -458,7 +1154,9 @@
     "linkTab": "serah-terima",
     "createdAt": "2026-11-03T15:54:45.543Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ],
     "metadata": {
       "noTtb": "HL-TTB-26-02256",
@@ -494,7 +1192,9 @@
     },
     "createdAt": "2026-11-03T15:53:53.101Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -519,7 +1219,9 @@
     },
     "createdAt": "2026-11-03T15:47:53.997Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -534,7 +1236,9 @@
     "linkTab": "serah-terima",
     "createdAt": "2026-11-03T15:25:15.431Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ],
     "metadata": {
       "noTtb": "CPL-TTB-26-07465",
@@ -570,7 +1274,9 @@
     },
     "createdAt": "2026-11-03T15:23:14.418Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -585,7 +1291,9 @@
     "linkTab": "serah-terima",
     "createdAt": "2026-11-03T14:34:33.149Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ],
     "metadata": {
       "noTtb": "CPL-TTB-26-07629",
@@ -621,7 +1329,9 @@
     },
     "createdAt": "2026-11-03T14:32:54.831Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -646,7 +1356,9 @@
     },
     "createdAt": "2026-11-03T14:31:00.108Z",
     "readBy": [
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -668,7 +1380,9 @@
     "createdAt": "2026-11-03T12:41:31.715Z",
     "readBy": [
       "agussalim",
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -690,7 +1404,9 @@
     "createdAt": "2026-11-03T12:39:50.577Z",
     "readBy": [
       "agussalim",
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -712,7 +1428,9 @@
     "createdAt": "2026-11-03T12:39:14.456Z",
     "readBy": [
       "agussalim",
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -733,7 +1451,9 @@
     "createdAt": "2026-11-03T12:26:22.101Z",
     "readBy": [
       "agussalim",
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -759,7 +1479,9 @@
     "createdAt": "2026-11-03T11:36:36.787Z",
     "readBy": [
       "agussalim",
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -781,7 +1503,9 @@
     "createdAt": "2026-11-03T11:22:50.666Z",
     "readBy": [
       "agussalim",
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -803,7 +1527,9 @@
     "createdAt": "2026-11-03T11:22:34.144Z",
     "readBy": [
       "agussalim",
-      "admin"
+      "admin",
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -819,7 +1545,9 @@
     "createdAt": "2026-11-03T07:21:45.615Z",
     "readBy": [
       "admin",
-      "agussalim"
+      "agussalim",
+      "hermansyahz",
+      "nurul.hafifah"
     ],
     "metadata": {
       "noTtb": "CPL-TTB-26-07618",
@@ -852,7 +1580,9 @@
     "readBy": [
       "idham.khalid",
       "admin",
-      "agussalim"
+      "agussalim",
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -874,7 +1604,9 @@
     "readBy": [
       "idham.khalid",
       "admin",
-      "agussalim"
+      "agussalim",
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -901,7 +1633,9 @@
     "readBy": [
       "idham.khalid",
       "admin",
-      "agussalim"
+      "agussalim",
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -928,7 +1662,9 @@
     "readBy": [
       "idham.khalid",
       "admin",
-      "agussalim"
+      "agussalim",
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -954,7 +1690,9 @@
     "readBy": [
       "idham.khalid",
       "admin",
-      "agussalim"
+      "agussalim",
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -976,7 +1714,9 @@
       "bardi.suddin",
       "idham.khalid",
       "admin",
-      "agussalim"
+      "agussalim",
+      "hermansyahz",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1005,7 +1745,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1033,7 +1774,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1061,7 +1803,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1089,7 +1832,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1117,7 +1861,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1145,7 +1890,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1173,7 +1919,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1201,7 +1948,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1229,7 +1977,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1254,7 +2003,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1282,7 +2032,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1307,7 +2058,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1330,7 +2082,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1355,7 +2108,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1378,7 +2132,8 @@
       "admin",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1401,7 +2156,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1424,7 +2180,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1447,7 +2204,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1470,7 +2228,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1493,7 +2252,8 @@
       "admin",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1517,7 +2277,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1542,7 +2303,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1566,7 +2328,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1594,7 +2357,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1622,7 +2386,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1646,7 +2411,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1670,7 +2436,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1694,7 +2461,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1724,7 +2492,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1753,7 +2522,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1779,7 +2549,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1805,7 +2576,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1829,7 +2601,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1856,7 +2629,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1882,7 +2656,8 @@
       "admin",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1908,7 +2683,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1932,7 +2708,8 @@
       "hermansyahz",
       "bardi.suddin",
       "idham.khalid",
-      "agussalim"
+      "agussalim",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1958,7 +2735,8 @@
       "receiver",
       "hermansyahz",
       "bardi.suddin",
-      "idham.khalid"
+      "idham.khalid",
+      "nurul.hafifah"
     ]
   },
   {
@@ -1984,7 +2762,8 @@
       "receiver",
       "hermansyahz",
       "bardi.suddin",
-      "idham.khalid"
+      "idham.khalid",
+      "nurul.hafifah"
     ]
   },
   {
@@ -2010,7 +2789,8 @@
       "receiver",
       "hermansyahz",
       "bardi.suddin",
-      "idham.khalid"
+      "idham.khalid",
+      "nurul.hafifah"
     ]
   },
   {
@@ -2039,7 +2819,8 @@
       "receiver",
       "hermansyahz",
       "bardi.suddin",
-      "idham.khalid"
+      "idham.khalid",
+      "nurul.hafifah"
     ]
   },
   {
@@ -2065,7 +2846,8 @@
       "receiver",
       "hermansyahz",
       "bardi.suddin",
-      "idham.khalid"
+      "idham.khalid",
+      "nurul.hafifah"
     ]
   },
   {
@@ -2091,7 +2873,8 @@
       "receiver",
       "hermansyahz",
       "bardi.suddin",
-      "idham.khalid"
+      "idham.khalid",
+      "nurul.hafifah"
     ]
   },
   {
@@ -2117,7 +2900,8 @@
       "receiver",
       "hermansyahz",
       "bardi.suddin",
-      "idham.khalid"
+      "idham.khalid",
+      "nurul.hafifah"
     ]
   },
   {
@@ -2146,7 +2930,8 @@
       "receiver",
       "hermansyahz",
       "bardi.suddin",
-      "idham.khalid"
+      "idham.khalid",
+      "nurul.hafifah"
     ]
   },
   {
@@ -2173,7 +2958,8 @@
       "receiver",
       "hermansyahz",
       "bardi.suddin",
-      "idham.khalid"
+      "idham.khalid",
+      "nurul.hafifah"
     ]
   },
   {
@@ -2200,7 +2986,8 @@
       "receiver",
       "hermansyahz",
       "bardi.suddin",
-      "idham.khalid"
+      "idham.khalid",
+      "nurul.hafifah"
     ]
   },
   {
@@ -2227,7 +3014,8 @@
       "receiver",
       "hermansyahz",
       "bardi.suddin",
-      "idham.khalid"
+      "idham.khalid",
+      "nurul.hafifah"
     ]
   },
   {
@@ -2257,7 +3045,8 @@
       "receiver",
       "hermansyahz",
       "bardi.suddin",
-      "idham.khalid"
+      "idham.khalid",
+      "nurul.hafifah"
     ]
   },
   {
@@ -2284,7 +3073,8 @@
       "receiver",
       "hermansyahz",
       "bardi.suddin",
-      "idham.khalid"
+      "idham.khalid",
+      "nurul.hafifah"
     ]
   },
   {
@@ -2311,7 +3101,8 @@
       "receiver",
       "hermansyahz",
       "bardi.suddin",
-      "idham.khalid"
+      "idham.khalid",
+      "nurul.hafifah"
     ]
   },
   {
@@ -2338,7 +3129,8 @@
       "receiver",
       "hermansyahz",
       "bardi.suddin",
-      "idham.khalid"
+      "idham.khalid",
+      "nurul.hafifah"
     ]
   },
   {
@@ -2368,7 +3160,8 @@
       "admin",
       "receiver",
       "hermansyahz",
-      "bardi.suddin"
+      "bardi.suddin",
+      "nurul.hafifah"
     ]
   },
   {
@@ -2395,7 +3188,8 @@
       "receiver",
       "hermansyahz",
       "bardi.suddin",
-      "idham.khalid"
+      "idham.khalid",
+      "nurul.hafifah"
     ]
   },
   {
@@ -2422,7 +3216,8 @@
       "receiver",
       "hermansyahz",
       "bardi.suddin",
-      "idham.khalid"
+      "idham.khalid",
+      "nurul.hafifah"
     ]
   },
   {
@@ -2453,7 +3248,8 @@
       "receiver",
       "hermansyahz",
       "bardi.suddin",
-      "idham.khalid"
+      "idham.khalid",
+      "nurul.hafifah"
     ]
   },
   {
@@ -2484,7 +3280,8 @@
       "receiver",
       "hermansyahz",
       "bardi.suddin",
-      "idham.khalid"
+      "idham.khalid",
+      "nurul.hafifah"
     ]
   },
   {
@@ -2514,7 +3311,8 @@
       "receiver",
       "hermansyahz",
       "bardi.suddin",
-      "idham.khalid"
+      "idham.khalid",
+      "nurul.hafifah"
     ]
   }
 ]
