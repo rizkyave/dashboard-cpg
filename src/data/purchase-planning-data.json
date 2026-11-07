@@ -1,0 +1,4077 @@
+{
+  "success": true,
+  "timestamp": "2026-11-06T23:56:58.928Z",
+  "summary": {
+    "totalItems": 149,
+    "criticalCount": 70,
+    "reorderCount": 79,
+    "plannedCount": 0,
+    "totalEstimatedBudget": 6015545000,
+    "totalPotentialSavings": 856426225,
+    "activeVesselsCount": 32
+  },
+  "categories": [
+    "CONSTRUCTION",
+    "CONSUMABLE",
+    "Construction",
+    "Consumable",
+    "Electrical",
+    "GENERAL",
+    "General",
+    "Jasa",
+    "MECHANICAL",
+    "Mechanical"
+  ],
+  "items": [
+    {
+      "id": "plan-001",
+      "itemCode": "UNI01901001-ZZZ",
+      "itemName": "FULL BODY HARNEST (SAFETY BELT) (00)",
+      "category": "General",
+      "unit": "UNT",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "SITE GROGOT KIDECO"
+      ],
+      "totalRequestedQty": 2,
+      "recommendedOrderQty": 2,
+      "avgUnitPrice": 750000,
+      "totalEstimatedCost": 1500000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (2 UNT). (U/ SAFETY DI KETINGGIAN)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 45000,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005145"
+      ]
+    },
+    {
+      "id": "plan-002",
+      "itemCode": "RLA00802001-OMR",
+      "itemName": "RELAY MK2P 24V (OMRON)",
+      "category": "Electrical",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "TRUCK TANKI KT 8507 ZU"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 185000,
+      "totalEstimatedCost": 185000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (1 PCS). (U/ PEMASANGAN BARU SWITCH SOS)",
+      "leadTimeDays": 10,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 5550,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005162"
+      ]
+    },
+    {
+      "id": "plan-003",
+      "itemCode": "CAI00601005-ZZZ",
+      "itemName": "DETERJEN (00)",
+      "category": "Consumable",
+      "unit": "BKS",
+      "currentStock": 0,
+      "openFpbCount": 3,
+      "requestingVessels": [
+        "SITE GROGOT KIDECO",
+        "TB EQUATOR 15",
+        "SPOB ROYAL REY"
+      ],
+      "totalRequestedQty": 96,
+      "recommendedOrderQty": 96,
+      "avgUnitPrice": 45000,
+      "totalEstimatedCost": 4320000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 3 unit. Stok gudang 0 BKS. (U/ SARANA KERJA | U/ SARANA KERJA CLEANING TANK)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 15,
+      "potentialSavingsAmount": 648000,
+      "reorderPoint": 29,
+      "monthlyConsumption": 48,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0004383",
+        "MO-FPB-26-0001956",
+        "CPL-FPB-26-0005165"
+      ]
+    },
+    {
+      "id": "plan-004",
+      "itemCode": "SKA00501001-ZZZ",
+      "itemName": "CUP BRUSH 3\" KEPANG (00)",
+      "category": "GENERAL",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "TB EQUATOR 15"
+      ],
+      "totalRequestedQty": 5,
+      "recommendedOrderQty": 5,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 750000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PCS. (U/ SARANA KERJA)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 5,
+      "potentialSavingsAmount": 37500,
+      "reorderPoint": 2,
+      "monthlyConsumption": 3,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "MO-FPB-26-0001956"
+      ]
+    },
+    {
+      "id": "plan-005",
+      "itemCode": "SKA00401001-ZZZ",
+      "itemName": "CUP BRUSH 3\" SERABUT (00)",
+      "category": "GENERAL",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "TB EQUATOR 15"
+      ],
+      "totalRequestedQty": 5,
+      "recommendedOrderQty": 5,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 750000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PCS. (U/ SARANA KERJA)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 5,
+      "potentialSavingsAmount": 37500,
+      "reorderPoint": 2,
+      "monthlyConsumption": 3,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "MO-FPB-26-0001956"
+      ]
+    },
+    {
+      "id": "plan-006",
+      "itemCode": "KUA00108001-ZZZ",
+      "itemName": "KUAS/BULU ROLL REFILL (00)",
+      "category": "GENERAL",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "TB EQUATOR 15"
+      ],
+      "totalRequestedQty": 30,
+      "recommendedOrderQty": 30,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 4500000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PCS. (U/ SARANA KERJA)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 12,
+      "potentialSavingsAmount": 540000,
+      "reorderPoint": 9,
+      "monthlyConsumption": 15,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "MO-FPB-26-0001956"
+      ]
+    },
+    {
+      "id": "plan-007",
+      "itemCode": "KAI00801001-ZZZ",
+      "itemName": "KAIN MAJUN (00)",
+      "category": "CONSUMABLE",
+      "unit": "KG",
+      "currentStock": 0,
+      "openFpbCount": 2,
+      "requestingVessels": [
+        "TB EQUATOR 15",
+        "SPOB ROYAL REY"
+      ],
+      "totalRequestedQty": 250,
+      "recommendedOrderQty": 250,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 21250000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 2 unit. Stok gudang 0 KG. (U/ SARANA KERJA | U/ SARANA KERJA CLEANING TANK)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 15,
+      "potentialSavingsAmount": 3187500,
+      "reorderPoint": 75,
+      "monthlyConsumption": 125,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "MO-FPB-26-0001956",
+        "CPL-FPB-26-0005165"
+      ]
+    },
+    {
+      "id": "plan-008",
+      "itemCode": "LEM01702001-ZZZ",
+      "itemName": "LAKBAN KERTAS 2\" (00)",
+      "category": "CONSUMABLE",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "TB EQUATOR 15"
+      ],
+      "totalRequestedQty": 15,
+      "recommendedOrderQty": 15,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 1275000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PCS. (U/ SARANA KERJA)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 8.5,
+      "potentialSavingsAmount": 108375,
+      "reorderPoint": 5,
+      "monthlyConsumption": 8,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "MO-FPB-26-0001956"
+      ]
+    },
+    {
+      "id": "plan-009",
+      "itemCode": "GUR00801001-MAI",
+      "itemName": "MESIN GURINDA 4\" (MAKITA)",
+      "category": "GENERAL",
+      "unit": "UNT",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "TB EQUATOR 15"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 1850000,
+      "totalEstimatedCost": 1850000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (1 UNT). (U/ ALAT KERJA (PENAMBAHAN))",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 55500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "MO-FPB-26-0001956"
+      ]
+    },
+    {
+      "id": "plan-010",
+      "itemCode": "KUA00301001-FIA",
+      "itemName": "STICK KUAS ROLL (FIA)",
+      "category": "GENERAL",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "TB EQUATOR 15"
+      ],
+      "totalRequestedQty": 6,
+      "recommendedOrderQty": 6,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 900000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PCS. (U/ SARANA KERJA)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 5,
+      "potentialSavingsAmount": 45000,
+      "reorderPoint": 2,
+      "monthlyConsumption": 3,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "MO-FPB-26-0001956"
+      ]
+    },
+    {
+      "id": "plan-011",
+      "itemCode": "CAT01101001-INC",
+      "itemName": "CAT INTERLAC 665 WHITE (CLB 000) (INTERNATIONAL CAT)",
+      "category": "CONSUMABLE",
+      "unit": "LTR",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "TB EQUATOR 15"
+      ],
+      "totalRequestedQty": 15,
+      "recommendedOrderQty": 15,
+      "avgUnitPrice": 2450000,
+      "totalEstimatedCost": 36750000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 LTR. (U/ DINDING)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 8.5,
+      "potentialSavingsAmount": 3123750,
+      "reorderPoint": 5,
+      "monthlyConsumption": 8,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "MO-FPB-26-0001955"
+      ]
+    },
+    {
+      "id": "plan-012",
+      "itemCode": "THI00301001-INC",
+      "itemName": "THINNER GTA 004 (INTERNATIONAL CAT)",
+      "category": "CONSUMABLE",
+      "unit": "LTR",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "TB EQUATOR 15"
+      ],
+      "totalRequestedQty": 25,
+      "recommendedOrderQty": 25,
+      "avgUnitPrice": 2450000,
+      "totalEstimatedCost": 61250000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 LTR. (U/ CAMPURAN CAT)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 12,
+      "potentialSavingsAmount": 7350000,
+      "reorderPoint": 8,
+      "monthlyConsumption": 13,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "MO-FPB-26-0001955"
+      ]
+    },
+    {
+      "id": "plan-013",
+      "itemCode": "CAT01101003-INC",
+      "itemName": "CAT INTERLAC 665 YELLOW (CLB 134) (INTERNATIONAL CAT)",
+      "category": "CONSUMABLE",
+      "unit": "LTR",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "TB EQUATOR 15"
+      ],
+      "totalRequestedQty": 15,
+      "recommendedOrderQty": 15,
+      "avgUnitPrice": 2450000,
+      "totalEstimatedCost": 36750000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 LTR. (U/ ANTI SLIP)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 8.5,
+      "potentialSavingsAmount": 3123750,
+      "reorderPoint": 5,
+      "monthlyConsumption": 8,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "MO-FPB-26-0001955"
+      ]
+    },
+    {
+      "id": "plan-014",
+      "itemCode": "CAT01101002-INC",
+      "itemName": "CAT INTERLAC 665 BLACK (CLY 999/A) (INTERNATIONAL CAT)",
+      "category": "CONSUMABLE",
+      "unit": "LTR",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "TB EQUATOR 15"
+      ],
+      "totalRequestedQty": 15,
+      "recommendedOrderQty": 15,
+      "avgUnitPrice": 2450000,
+      "totalEstimatedCost": 36750000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 LTR. (U/ WALKWAY)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 8.5,
+      "potentialSavingsAmount": 3123750,
+      "reorderPoint": 5,
+      "monthlyConsumption": 8,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "MO-FPB-26-0001955"
+      ]
+    },
+    {
+      "id": "plan-015",
+      "itemCode": "CAT01101005-INC",
+      "itemName": "CAT INTERLAC 665 FLAME RED (CLF 287) (INTERNATIONAL CAT)",
+      "category": "CONSUMABLE",
+      "unit": "LTR",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "TB EQUATOR 15"
+      ],
+      "totalRequestedQty": 20,
+      "recommendedOrderQty": 20,
+      "avgUnitPrice": 2450000,
+      "totalEstimatedCost": 49000000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 LTR. (U/ MAINDECK)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 12,
+      "potentialSavingsAmount": 5880000,
+      "reorderPoint": 6,
+      "monthlyConsumption": 10,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "MO-FPB-26-0001955"
+      ]
+    },
+    {
+      "id": "plan-016",
+      "itemCode": "CAT04301002-INC",
+      "itemName": "CAT INTERPRIME 312 RED OXIDE (CPA 312) (INTERNATIONAL CAT)",
+      "category": "CONSUMABLE",
+      "unit": "LTR",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "TB EQUATOR 15"
+      ],
+      "totalRequestedQty": 20,
+      "recommendedOrderQty": 20,
+      "avgUnitPrice": 2450000,
+      "totalEstimatedCost": 49000000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 LTR. (U/ CAT DASAR)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 12,
+      "potentialSavingsAmount": 5880000,
+      "reorderPoint": 6,
+      "monthlyConsumption": 10,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "MO-FPB-26-0001955"
+      ]
+    },
+    {
+      "id": "plan-017",
+      "itemCode": "KRE00701001-ZZZ",
+      "itemName": "KARET KEDAP 4 X 2 CM (00)",
+      "category": "Construction",
+      "unit": "MTR",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "SPOB SEA LION"
+      ],
+      "totalRequestedQty": 6,
+      "recommendedOrderQty": 6,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 900000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 MTR. (U/ WATERTIGHT DOOR (INTERNAL INSPECTION))",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 5,
+      "potentialSavingsAmount": 45000,
+      "reorderPoint": 2,
+      "monthlyConsumption": 3,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "HL-FPB-26-0001538"
+      ]
+    },
+    {
+      "id": "plan-018",
+      "itemCode": "BNC00101003-BUS",
+      "itemName": "BINOCULAR 10 X 70 (BUSHNELL)",
+      "category": "General",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "SPOB OCEAN MAJENE"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 150000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (1 PCS). (U/ PERGANTIAN YANG RUSAK (INTERNAL INSPECTION))",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 4500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "HL-FPB-26-0001530"
+      ]
+    },
+    {
+      "id": "plan-019",
+      "itemCode": "CAI02001003-YUR",
+      "itemName": "SABUN PENCUCI TANGAN REFILL (YURI)",
+      "category": "Consumable",
+      "unit": "BKS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "DEPT OPERATION"
+      ],
+      "totalRequestedQty": 4,
+      "recommendedOrderQty": 4,
+      "avgUnitPrice": 45000,
+      "totalEstimatedCost": 180000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (4 BKS). (U/ CONSUMABLE NOVEMBER 2026)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 5400,
+      "reorderPoint": 2,
+      "monthlyConsumption": 2,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005023"
+      ]
+    },
+    {
+      "id": "plan-020",
+      "itemCode": "CAI01401004-WIP",
+      "itemName": "PEMBERSIH LANTAI 800 ML (WIPOL)",
+      "category": "Consumable",
+      "unit": "BTL",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "DEPT OPERATION"
+      ],
+      "totalRequestedQty": 2,
+      "recommendedOrderQty": 2,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 170000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (2 BTL). (U/ CONSUMABLE NOVEMBER 2026)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 5100,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005023"
+      ]
+    },
+    {
+      "id": "plan-021",
+      "itemCode": "PGH00303001-GLM",
+      "itemName": "PENGHARUM RUANGAN OTOMATIS REFILL (GLADE MATIC)",
+      "category": "Consumable",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "DEPT OPERATION"
+      ],
+      "totalRequestedQty": 2,
+      "recommendedOrderQty": 2,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 170000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (2 PCS). (U/ CONSUMABLE NOVEMBER 2026 (PEONY & WILL BERRIES))",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 5100,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005023"
+      ]
+    },
+    {
+      "id": "plan-022",
+      "itemCode": "TIS00301001-NIC",
+      "itemName": "TISSUE MAKAN FACIAL REFILL 900 GR (NICE TISSUE)",
+      "category": "Consumable",
+      "unit": "BKS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "DEPT OPERATION"
+      ],
+      "totalRequestedQty": 10,
+      "recommendedOrderQty": 10,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 850000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 BKS. (U/ CONSUMABLE NOVEMBER 2026)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 8.5,
+      "potentialSavingsAmount": 72250,
+      "reorderPoint": 3,
+      "monthlyConsumption": 5,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005023"
+      ]
+    },
+    {
+      "id": "plan-023",
+      "itemCode": "CAI01401002-SPL",
+      "itemName": "PEMBERSIH LANTAI 770 ML (SUPER PELL)",
+      "category": "General",
+      "unit": "BKS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "DEPT OPERATION"
+      ],
+      "totalRequestedQty": 2,
+      "recommendedOrderQty": 2,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 300000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (2 BKS). (U/ CONSUMABLE NOVEMBER 2026)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 9000,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005023"
+      ]
+    },
+    {
+      "id": "plan-024",
+      "itemCode": "CAI00501001-SUN",
+      "itemName": "SABUN CUCI PIRING 650 ML (REFILL) (SUNLIGHT)",
+      "category": "Consumable",
+      "unit": "BKS",
+      "currentStock": 0,
+      "openFpbCount": 2,
+      "requestingVessels": [
+        "DEPT OPERATION",
+        "SPOB ROYAL REY"
+      ],
+      "totalRequestedQty": 74,
+      "recommendedOrderQty": 74,
+      "avgUnitPrice": 45000,
+      "totalEstimatedCost": 3330000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 2 unit. Stok gudang 0 BKS. (U/ CONSUMABLE NOVEMBER 2026 | U/ SARANA KERJA CLEANING TANK)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 15,
+      "potentialSavingsAmount": 499500,
+      "reorderPoint": 23,
+      "monthlyConsumption": 37,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005023",
+        "CPL-FPB-26-0005165"
+      ]
+    },
+    {
+      "id": "plan-025",
+      "itemCode": "MID00202001-KAA",
+      "itemName": "KOPI BUBUK 380 GRAM (KAPAL API)",
+      "category": "Consumable",
+      "unit": "BKS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "DEPT OPERATION"
+      ],
+      "totalRequestedQty": 3,
+      "recommendedOrderQty": 3,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 255000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (3 BKS). (U/ SEMBAKO NOVEMBER 2026)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 7650,
+      "reorderPoint": 1,
+      "monthlyConsumption": 2,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005055"
+      ]
+    },
+    {
+      "id": "plan-026",
+      "itemCode": "FOO00201001-ZZZ",
+      "itemName": "GULA PASIR 1 KG (00)",
+      "category": "Consumable",
+      "unit": "BKS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "DEPT OPERATION"
+      ],
+      "totalRequestedQty": 2,
+      "recommendedOrderQty": 2,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 170000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (2 BKS). (U/ SEMBAKO NOVEMBER 2026)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 5100,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005055"
+      ]
+    },
+    {
+      "id": "plan-027",
+      "itemCode": "MID00205003-GOO",
+      "itemName": "KOPI SACHET CAPPUCCINO (GOOD DAY)",
+      "category": "Consumable",
+      "unit": "RTG",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "DEPT OPERATION"
+      ],
+      "totalRequestedQty": 2,
+      "recommendedOrderQty": 2,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 170000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (2 RTG). (U/ SEMBAKO NOVEMBER 2026)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 5100,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005055"
+      ]
+    },
+    {
+      "id": "plan-028",
+      "itemCode": "BTR00201001-ALK",
+      "itemName": "BATERAI AA 1,5V (ALKALINE)",
+      "category": "Electrical",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "DEPT OPERATION"
+      ],
+      "totalRequestedQty": 6,
+      "recommendedOrderQty": 6,
+      "avgUnitPrice": 350000,
+      "totalEstimatedCost": 2100000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PCS. (U/ ATK NOVEMBER 2026)",
+      "leadTimeDays": 10,
+      "potentialBulkDiscount": 5,
+      "potentialSavingsAmount": 105000,
+      "reorderPoint": 2,
+      "monthlyConsumption": 3,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005020"
+      ]
+    },
+    {
+      "id": "plan-029",
+      "itemCode": "ATK02003001-JOY",
+      "itemName": "PAPER CLIP WARNA (JOYKO)",
+      "category": "Consumable",
+      "unit": "KTK",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "DEPT OPERATION"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 85000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (1 KTK). (U/ ATK NOVEMBER 2026)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 2550,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005020"
+      ]
+    },
+    {
+      "id": "plan-030",
+      "itemCode": "PAP00304001-SID",
+      "itemName": "KERTAS HVS A4 70 GSM (SINAR DUNIA)",
+      "category": "Consumable",
+      "unit": "RIM",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "DEPT OPERATION"
+      ],
+      "totalRequestedQty": 10,
+      "recommendedOrderQty": 10,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 850000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 RIM. (U/ ATK NOVEMBER 2026)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 8.5,
+      "potentialSavingsAmount": 72250,
+      "reorderPoint": 3,
+      "monthlyConsumption": 5,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005020"
+      ]
+    },
+    {
+      "id": "plan-031",
+      "itemCode": "PRI01001002-EPS",
+      "itemName": "TINTA PRINTER 003 CYAN (EPSON)",
+      "category": "Consumable",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "DEPT OPERATION"
+      ],
+      "totalRequestedQty": 4,
+      "recommendedOrderQty": 4,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 340000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (4 PCS). (U/ ATK NOVEMBER 2026)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 10200,
+      "reorderPoint": 2,
+      "monthlyConsumption": 2,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005020"
+      ]
+    },
+    {
+      "id": "plan-032",
+      "itemCode": "PRI01001001-EPS",
+      "itemName": "TINTA PRINTER 003 BLACK (EPSON)",
+      "category": "Consumable",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "DEPT OPERATION"
+      ],
+      "totalRequestedQty": 4,
+      "recommendedOrderQty": 4,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 340000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (4 PCS). (U/ ATK NOVEMBER 2026)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 10200,
+      "reorderPoint": 2,
+      "monthlyConsumption": 2,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005020"
+      ]
+    },
+    {
+      "id": "plan-033",
+      "itemCode": "PRI01001004-EPS",
+      "itemName": "TINTA PRINTER 003 YELLOW (EPSON)",
+      "category": "Consumable",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "DEPT OPERATION"
+      ],
+      "totalRequestedQty": 4,
+      "recommendedOrderQty": 4,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 340000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (4 PCS). (U/ ATK NOVEMBER 2026)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 10200,
+      "reorderPoint": 2,
+      "monthlyConsumption": 2,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005020"
+      ]
+    },
+    {
+      "id": "plan-034",
+      "itemCode": "PRI01006001-EPS",
+      "itemName": "TINTA PRINTER T6642 CYAN (EPSON)",
+      "category": "Consumable",
+      "unit": "BTL",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "DEPT OPERATION"
+      ],
+      "totalRequestedQty": 4,
+      "recommendedOrderQty": 4,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 340000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (4 BTL). (U/ ATK NOVEMBER 2026)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 10200,
+      "reorderPoint": 2,
+      "monthlyConsumption": 2,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005020"
+      ]
+    },
+    {
+      "id": "plan-035",
+      "itemCode": "PRI01001003-EPS",
+      "itemName": "TINTA PRINTER 003 MAGENTA (EPSON)",
+      "category": "Consumable",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "DEPT OPERATION"
+      ],
+      "totalRequestedQty": 4,
+      "recommendedOrderQty": 4,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 340000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (4 PCS). (U/ ATK NOVEMBER 2026)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 10200,
+      "reorderPoint": 2,
+      "monthlyConsumption": 2,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005020"
+      ]
+    },
+    {
+      "id": "plan-036",
+      "itemCode": "PRI01008001-EPS",
+      "itemName": "TINTA PRINTER T6644 YELLOW (EPSON)",
+      "category": "Consumable",
+      "unit": "BTL",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "DEPT OPERATION"
+      ],
+      "totalRequestedQty": 4,
+      "recommendedOrderQty": 4,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 340000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (4 BTL). (U/ ATK NOVEMBER 2026)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 10200,
+      "reorderPoint": 2,
+      "monthlyConsumption": 2,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005020"
+      ]
+    },
+    {
+      "id": "plan-037",
+      "itemCode": "PRI01007001-EPS",
+      "itemName": "TINTA PRINTER T6643 MAGENTA (EPSON)",
+      "category": "Consumable",
+      "unit": "BTL",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "DEPT OPERATION"
+      ],
+      "totalRequestedQty": 4,
+      "recommendedOrderQty": 4,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 340000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (4 BTL). (U/ ATK NOVEMBER 2026)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 10200,
+      "reorderPoint": 2,
+      "monthlyConsumption": 2,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005020"
+      ]
+    },
+    {
+      "id": "plan-038",
+      "itemCode": "ATK00701003-BNT",
+      "itemName": "BOX FILE BIRU (BANTEX)",
+      "category": "Consumable",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "DEPT OPERATION"
+      ],
+      "totalRequestedQty": 10,
+      "recommendedOrderQty": 10,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 850000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PCS. (U/ ATK NOVEMBER 2026)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 8.5,
+      "potentialSavingsAmount": 72250,
+      "reorderPoint": 3,
+      "monthlyConsumption": 5,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005020"
+      ]
+    },
+    {
+      "id": "plan-039",
+      "itemCode": "TAL00501001-ZZZ",
+      "itemName": "TALI PP 2 1/2\" (00)",
+      "category": "CONSUMABLE",
+      "unit": "MTR",
+      "currentStock": 0,
+      "openFpbCount": 2,
+      "requestingVessels": [
+        "SPOB FERY 471",
+        "DEPT PROCUREMENT"
+      ],
+      "totalRequestedQty": 340,
+      "recommendedOrderQty": 340,
+      "avgUnitPrice": 12500000,
+      "totalEstimatedCost": 4250000000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 2 unit. Stok gudang 0 MTR. (U/ TALI TAMBAT (FINDING PSA) | U/ STOCK GUDANG)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 15,
+      "potentialSavingsAmount": 637500000,
+      "reorderPoint": 102,
+      "monthlyConsumption": 170,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "MO-FPB-26-0001924",
+        "CPL-FPB-26-0004583"
+      ]
+    },
+    {
+      "id": "plan-040",
+      "itemCode": "JAS00102006-JSA",
+      "itemName": "JASA KALIBRASI HYDROMETER DENSITY (0,800 - 0,850) (JASA)",
+      "category": "Jasa",
+      "unit": "UNT",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "TK COASTWAY 20102"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 150000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (1 UNT). (U/ SERTIFIKASI DAN KALIBRASI ULANG)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 4500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "HL-FPB-26-0001555"
+      ]
+    },
+    {
+      "id": "plan-041",
+      "itemCode": "BUK00201008-ZZZ",
+      "itemName": "BUKU DAFTAR/LIST PASANG SURUT KEPULAUAN INDONESIA EDISI 2027 (00)",
+      "category": "General",
+      "unit": "SET",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "DEPT OPERATION"
+      ],
+      "totalRequestedQty": 5,
+      "recommendedOrderQty": 5,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 750000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 SET. (U/ OPERASIONAL KAPAL)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 5,
+      "potentialSavingsAmount": 37500,
+      "reorderPoint": 2,
+      "monthlyConsumption": 3,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0004993"
+      ]
+    },
+    {
+      "id": "plan-042",
+      "itemCode": "PET00304020-ZZZ",
+      "itemName": "PETA LAUT NO. 301-400 ( NO. 362) (00)",
+      "category": "General",
+      "unit": "LBR",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "SPOB ROYAL REY"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 150000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (1 LBR). (U/ OPERASIONAL KAPAL)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 4500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005150"
+      ]
+    },
+    {
+      "id": "plan-043",
+      "itemCode": "SKA00902001-ZZZ",
+      "itemName": "SIKAT LANTAI + GAGANG (00)",
+      "category": "General",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "SPOB ROYAL REY"
+      ],
+      "totalRequestedQty": 10,
+      "recommendedOrderQty": 10,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 1500000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PCS. (U/ SARANA KERJA CLEANING TANK)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 8.5,
+      "potentialSavingsAmount": 127500,
+      "reorderPoint": 3,
+      "monthlyConsumption": 5,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005165"
+      ]
+    },
+    {
+      "id": "plan-044",
+      "itemCode": "HOU00701001-ZZZ",
+      "itemName": "SLABER KARET (00)",
+      "category": "General",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "SPOB ROYAL REY"
+      ],
+      "totalRequestedQty": 11,
+      "recommendedOrderQty": 11,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 1650000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PCS. (U/ SARANA KERJA CLEANING TANK)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 8.5,
+      "potentialSavingsAmount": 140250,
+      "reorderPoint": 4,
+      "monthlyConsumption": 6,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005165"
+      ]
+    },
+    {
+      "id": "plan-045",
+      "itemCode": "SAT00101001-ZZZ",
+      "itemName": "SARUNG TANGAN BIASA (00)",
+      "category": "Consumable",
+      "unit": "PSG",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "SPOB ROYAL REY"
+      ],
+      "totalRequestedQty": 60,
+      "recommendedOrderQty": 60,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 5100000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PSG. (U/ SARANA KERJA CLEANING TANK)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 15,
+      "potentialSavingsAmount": 765000,
+      "reorderPoint": 18,
+      "monthlyConsumption": 30,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005165"
+      ]
+    },
+    {
+      "id": "plan-046",
+      "itemCode": "HOU01301001-HID",
+      "itemName": "PEL LANTAI (HIDOSHI)",
+      "category": "General",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "SPOB ROYAL REY"
+      ],
+      "totalRequestedQty": 10,
+      "recommendedOrderQty": 10,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 1500000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PCS. (U/ SARANA KERJA CLEANING TANK)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 8.5,
+      "potentialSavingsAmount": 127500,
+      "reorderPoint": 3,
+      "monthlyConsumption": 5,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005165"
+      ]
+    },
+    {
+      "id": "plan-047",
+      "itemCode": "EMB00601001-ZZZ",
+      "itemName": "EMBER KARET 10 LITER (00)",
+      "category": "General",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "SPOB ROYAL REY"
+      ],
+      "totalRequestedQty": 6,
+      "recommendedOrderQty": 6,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 900000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PCS. (U/ SARANA KERJA CLEANING TANK)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 5,
+      "potentialSavingsAmount": 45000,
+      "reorderPoint": 2,
+      "monthlyConsumption": 3,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005165"
+      ]
+    },
+    {
+      "id": "plan-048",
+      "itemCode": "SDN00401001-RIT",
+      "itemName": "SOUNDINGAN MINYAK (SS) 10 METER BANDUL PANJANG (RITCHER)",
+      "category": "Consumable",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 2,
+      "requestingVessels": [
+        "TK COASWAY 1803",
+        "SPOB SEA LION"
+      ],
+      "totalRequestedQty": 2,
+      "recommendedOrderQty": 2,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 170000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 2 armada/unit. Stok gudang tidak mencukupi permintaan (2 PCS). (U/ PERGANTIAN YANG RUSAK)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 5100,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "SP-FPB-26-0000940",
+        "HL-FPB-26-0001454"
+      ]
+    },
+    {
+      "id": "plan-049",
+      "itemCode": "RAI00102004-UTC",
+      "itemName": "REGULATOR WINDOW RH Q80700-9Z00B CWE 280 (UD TRUCK)",
+      "category": "MECHANICAL",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "TRUCK TANKI KT 8026 YA"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 1250000,
+      "totalEstimatedCost": 1250000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (1 PCS). (U/ PERGANTIAN YANG RUSAK (KACA RH) (26- 01097))",
+      "leadTimeDays": 14,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 37500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "MO-FPB-26-0001945"
+      ]
+    },
+    {
+      "id": "plan-050",
+      "itemCode": "DOO00603010-UTC",
+      "itemName": "HANDLE PINTU 80730-9Z00A CWE 280 (UD TRUCK)",
+      "category": "CONSTRUCTION",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "TRUCK TANKI KT 8026 YA"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 150000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (1 PCS). (U/ PERGANTIAN YANG RUSAK (KACA RH) (26- 01097))",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 4500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "MO-FPB-26-0001945"
+      ]
+    },
+    {
+      "id": "plan-051",
+      "itemCode": "CAI02301001-UTC",
+      "itemName": "ADBLUE 10 LITER (UD TRUCK)",
+      "category": "CONSUMABLE",
+      "unit": "JRG",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "SITE PAGATAN"
+      ],
+      "totalRequestedQty": 30,
+      "recommendedOrderQty": 30,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 2550000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 JRG. (U/ SARANA KERJA (26 - 01078))",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 12,
+      "potentialSavingsAmount": 306000,
+      "reorderPoint": 9,
+      "monthlyConsumption": 15,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "MO-FPB-26-0001922"
+      ]
+    },
+    {
+      "id": "plan-052",
+      "itemCode": "PIP01204002-ZZZ",
+      "itemName": "PIPA SGP 2 1/2\" (2,8 MM) X 6 MTR (00)",
+      "category": "CONSTRUCTION",
+      "unit": "BTG",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "SITE PAGATAN"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 150000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (1 BTG). (U/ SARANA KERJA KNALPOT (26 - 01078))",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 4500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "MO-FPB-26-0001922"
+      ]
+    },
+    {
+      "id": "plan-053",
+      "itemCode": "SAL08003001-UTC",
+      "itemName": "SEAL RING 48149-Z9016 CWA 260X (UD TRUCK)",
+      "category": "MECHANICAL",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "TRUCK TANKI KT 8406 LA"
+      ],
+      "totalRequestedQty": 3,
+      "recommendedOrderQty": 3,
+      "avgUnitPrice": 1250000,
+      "totalEstimatedCost": 3750000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (3 PCS). (U/ STEERING (26- 00930))",
+      "leadTimeDays": 14,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 112500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 2,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "MO-FPB-26-0001948"
+      ]
+    },
+    {
+      "id": "plan-054",
+      "itemCode": "ORN00144002-UTC",
+      "itemName": "ORING 48074-Z9406 CWA 260X (UD TRUCK)",
+      "category": "MECHANICAL",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "TRUCK TANKI KT 8406 LA"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 1250000,
+      "totalEstimatedCost": 1250000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (1 PCS). (U/ STEERING (26- 00930))",
+      "leadTimeDays": 14,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 37500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "MO-FPB-26-0001948"
+      ]
+    },
+    {
+      "id": "plan-055",
+      "itemCode": "ORN00144004-UTC",
+      "itemName": "ORING 48074-Z9408 CWA 260X (UD TRUCK)",
+      "category": "MECHANICAL",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "TRUCK TANKI KT 8406 LA"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 1250000,
+      "totalEstimatedCost": 1250000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (1 PCS). (U/ STEERING (26- 00930))",
+      "leadTimeDays": 14,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 37500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "MO-FPB-26-0001948"
+      ]
+    },
+    {
+      "id": "plan-056",
+      "itemCode": "COV00503001-UTC",
+      "itemName": "DUST COVER 48111-Z9007 CWA 260X (UD TRUCK)",
+      "category": "MECHANICAL",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "TRUCK TANKI KT 8406 LA"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 1250000,
+      "totalEstimatedCost": 1250000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (1 PCS). (U/ STEERING (26- 00930))",
+      "leadTimeDays": 14,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 37500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "MO-FPB-26-0001948"
+      ]
+    },
+    {
+      "id": "plan-057",
+      "itemCode": "CMS00104004-UTC",
+      "itemName": "CAMSHAFT 44077-9Z01D CWE 280 (UD TRUCK)",
+      "category": "MECHANICAL",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "TRUCK TANKI KT 8257 YA"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 1250000,
+      "totalEstimatedCost": 1250000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (1 PCS). (BELUM PERNAH)",
+      "leadTimeDays": 14,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 37500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "MO-FPB-26-0001958"
+      ]
+    },
+    {
+      "id": "plan-058",
+      "itemCode": "CMS00102001-UTC",
+      "itemName": "CAMSHAFT 44077-9Z01E CWE 280 (UD TRUCK)",
+      "category": "MECHANICAL",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "TRUCK TANKI KT 8257 YA"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 1250000,
+      "totalEstimatedCost": 1250000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (1 PCS). (BELUM PERNAH)",
+      "leadTimeDays": 14,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 37500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "MO-FPB-26-0001958"
+      ]
+    },
+    {
+      "id": "plan-059",
+      "itemCode": "RPR01001002-UTC",
+      "itemName": "REPAIR KIT 44342-9Z00A CWE 280 (UD TRUCK)",
+      "category": "MECHANICAL",
+      "unit": "SET",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "TRUCK TANKI KT 8257 YA"
+      ],
+      "totalRequestedQty": 4,
+      "recommendedOrderQty": 4,
+      "avgUnitPrice": 1250000,
+      "totalEstimatedCost": 5000000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (4 SET). (02/09/2024)",
+      "leadTimeDays": 14,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 150000,
+      "reorderPoint": 2,
+      "monthlyConsumption": 2,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "MO-FPB-26-0001958"
+      ]
+    },
+    {
+      "id": "plan-060",
+      "itemCode": "SFT00401004-ZZZ",
+      "itemName": "HELM SAFETY PUTIH (00)",
+      "category": "General",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 3,
+      "requestingVessels": [
+        "TB MAPAN 1405",
+        "TB EQUATOR 15",
+        "DEPT PROCUREMENT"
+      ],
+      "totalRequestedQty": 14,
+      "recommendedOrderQty": 14,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 1190000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 3 unit. Stok gudang 0 PCS. (A/N JUMAIL SATTA (MASINIS II) | A/N RONI SANTURI (KOKI) | U/)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 8.5,
+      "potentialSavingsAmount": 101150,
+      "reorderPoint": 5,
+      "monthlyConsumption": 7,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005171",
+        "MO-FPB-26-0001961",
+        "CPL-FPB-26-0005028"
+      ]
+    },
+    {
+      "id": "plan-061",
+      "itemCode": "UNI02301001-ZZZ",
+      "itemName": "SEPATU SAFETY NO. 05 (00)",
+      "category": "General",
+      "unit": "PSG",
+      "currentStock": 0,
+      "openFpbCount": 2,
+      "requestingVessels": [
+        "TB MAPAN 1405",
+        "TB EQUATOR 15"
+      ],
+      "totalRequestedQty": 2,
+      "recommendedOrderQty": 2,
+      "avgUnitPrice": 350000,
+      "totalEstimatedCost": 700000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 2 armada/unit. Stok gudang tidak mencukupi permintaan (2 PSG). (A/N JUMAIL SATTA (MASINIS II) | A/N RONI SANTURI (KOKI))",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 21000,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005171",
+        "MO-FPB-26-0001961"
+      ]
+    },
+    {
+      "id": "plan-062",
+      "itemCode": "SFT00401006-ZZZ",
+      "itemName": "HELM SAFETY TALI PENGAMAN (00)",
+      "category": "Consumable",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 3,
+      "requestingVessels": [
+        "TB MAPAN 1405",
+        "TB EQUATOR 15",
+        "DEPT PROCUREMENT"
+      ],
+      "totalRequestedQty": 14,
+      "recommendedOrderQty": 14,
+      "avgUnitPrice": 12500000,
+      "totalEstimatedCost": 175000000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 3 unit. Stok gudang 0 PCS. (A/N JUMAIL SATTA (MASINIS II) | A/N RONI SANTURI (KOKI) | U/)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 8.5,
+      "potentialSavingsAmount": 14875000,
+      "reorderPoint": 5,
+      "monthlyConsumption": 7,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005171",
+        "MO-FPB-26-0001961",
+        "CPL-FPB-26-0005028"
+      ]
+    },
+    {
+      "id": "plan-063",
+      "itemCode": "UNI00103003-ZZZ",
+      "itemName": "BAJU COVERALL PT. CPL (ALL SIZE) ORANGE (00)",
+      "category": "General",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 2,
+      "requestingVessels": [
+        "TB MAPAN 1405",
+        "TB EQUATOR 15"
+      ],
+      "totalRequestedQty": 4,
+      "recommendedOrderQty": 4,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 600000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 2 armada/unit. Stok gudang tidak mencukupi permintaan (4 PCS). (A/N JUMAIL SATTA (MASINIS II) | A/N RONI SANTURI (KOKI))",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 18000,
+      "reorderPoint": 2,
+      "monthlyConsumption": 2,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005171",
+        "MO-FPB-26-0001961"
+      ]
+    },
+    {
+      "id": "plan-064",
+      "itemCode": "UNI01701001-DUP",
+      "itemName": "BAJU CHEMICAL TYVEK (DUPONT)",
+      "category": "General",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "SPOB ROYAL REY"
+      ],
+      "totalRequestedQty": 24,
+      "recommendedOrderQty": 24,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 3600000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PCS. (U/ SARANA CLEANING TANK)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 12,
+      "potentialSavingsAmount": 432000,
+      "reorderPoint": 8,
+      "monthlyConsumption": 12,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005163"
+      ]
+    },
+    {
+      "id": "plan-065",
+      "itemCode": "SFT00501004-ZZZ",
+      "itemName": "KACA MATA SAFETY GURINDA (00)",
+      "category": "General",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "SPOB ROYAL REY"
+      ],
+      "totalRequestedQty": 16,
+      "recommendedOrderQty": 16,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 2400000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PCS. (U/ SARANA CLEANING TANK)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 8.5,
+      "potentialSavingsAmount": 204000,
+      "reorderPoint": 5,
+      "monthlyConsumption": 8,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005163"
+      ]
+    },
+    {
+      "id": "plan-066",
+      "itemCode": "UNI02201001-LPD",
+      "itemName": "SEPATU KARET NO. 42 (LEOPARD)",
+      "category": "General",
+      "unit": "PSG",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "SPOB ROYAL REY"
+      ],
+      "totalRequestedQty": 8,
+      "recommendedOrderQty": 8,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 1200000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PSG. (U/ SARANA CLEANING TANK)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 5,
+      "potentialSavingsAmount": 60000,
+      "reorderPoint": 3,
+      "monthlyConsumption": 4,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005163"
+      ]
+    },
+    {
+      "id": "plan-067",
+      "itemCode": "SAT00201001-NIT",
+      "itemName": "SARUNG TANGAN KARET (NITRILE)",
+      "category": "Consumable",
+      "unit": "PSG",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "SPOB ROYAL REY"
+      ],
+      "totalRequestedQty": 24,
+      "recommendedOrderQty": 24,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 2040000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PSG. (U/ SARANA CLEANING TANK)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 12,
+      "potentialSavingsAmount": 244800,
+      "reorderPoint": 8,
+      "monthlyConsumption": 12,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005163"
+      ]
+    },
+    {
+      "id": "plan-068",
+      "itemCode": "UNI02204001-LPD",
+      "itemName": "SEPATU KARET NO. 45 (LEOPARD)",
+      "category": "General",
+      "unit": "PSG",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "SPOB ROYAL REY"
+      ],
+      "totalRequestedQty": 8,
+      "recommendedOrderQty": 8,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 1200000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PSG. (U/ SARANA CLEANING TANK)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 5,
+      "potentialSavingsAmount": 60000,
+      "reorderPoint": 3,
+      "monthlyConsumption": 4,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005163"
+      ]
+    },
+    {
+      "id": "plan-069",
+      "itemCode": "OLI02202001-PTM",
+      "itemName": "OLI MEDITRAN SAE 40 (PERTAMINA)",
+      "category": "Consumable",
+      "unit": "LTR",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "DEPT PROCUREMENT"
+      ],
+      "totalRequestedQty": 6270,
+      "recommendedOrderQty": 6270,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 940500000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 LTR. (U/ STOCK GUDANG)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 15,
+      "potentialSavingsAmount": 141075000,
+      "reorderPoint": 1881,
+      "monthlyConsumption": 3135,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005119"
+      ]
+    },
+    {
+      "id": "plan-070",
+      "itemCode": "CAI02201001-ZZZ",
+      "itemName": "URETHANE SEAL COAT RED (00)",
+      "category": "Consumable",
+      "unit": "KLG",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "DEPT PROCUREMENT"
+      ],
+      "totalRequestedQty": 12,
+      "recommendedOrderQty": 12,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 1020000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 KLG. (U/ STOCK GUDANG)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 8.5,
+      "potentialSavingsAmount": 86700,
+      "reorderPoint": 4,
+      "monthlyConsumption": 6,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0004578"
+      ]
+    },
+    {
+      "id": "plan-071",
+      "itemCode": "UNI00102004-ZZZ",
+      "itemName": "BAJU COVERALL PT. CPL (XL) ORANGE (00)",
+      "category": "General",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "DEPT PROCUREMENT"
+      ],
+      "totalRequestedQty": 50,
+      "recommendedOrderQty": 50,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 7500000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PCS. (U/ STOCK GUDANG)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 15,
+      "potentialSavingsAmount": 1125000,
+      "reorderPoint": 15,
+      "monthlyConsumption": 25,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0004881"
+      ]
+    },
+    {
+      "id": "plan-072",
+      "itemCode": "UNI02302001-ZZZ",
+      "itemName": "SEPATU SAFETY NO. 06 (00)",
+      "category": "General",
+      "unit": "PSG",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "DEPT PROCUREMENT"
+      ],
+      "totalRequestedQty": 6,
+      "recommendedOrderQty": 6,
+      "avgUnitPrice": 350000,
+      "totalEstimatedCost": 2100000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PSG. (U/ STOCK GUDANG)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 5,
+      "potentialSavingsAmount": 105000,
+      "reorderPoint": 2,
+      "monthlyConsumption": 3,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005120"
+      ]
+    },
+    {
+      "id": "plan-073",
+      "itemCode": "UNI02303001-ZZZ",
+      "itemName": "SEPATU SAFETY NO. 07 (00)",
+      "category": "General",
+      "unit": "PSG",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "DEPT PROCUREMENT"
+      ],
+      "totalRequestedQty": 7,
+      "recommendedOrderQty": 7,
+      "avgUnitPrice": 350000,
+      "totalEstimatedCost": 2450000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PSG. (U/ STOCK GUDANG)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 5,
+      "potentialSavingsAmount": 122500,
+      "reorderPoint": 3,
+      "monthlyConsumption": 4,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005120"
+      ]
+    },
+    {
+      "id": "plan-074",
+      "itemCode": "UNI02304001-ZZZ",
+      "itemName": "SEPATU SAFETY NO. 08 (00)",
+      "category": "General",
+      "unit": "PSG",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "DEPT PROCUREMENT"
+      ],
+      "totalRequestedQty": 6,
+      "recommendedOrderQty": 6,
+      "avgUnitPrice": 350000,
+      "totalEstimatedCost": 2100000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PSG. (U/ STOCK GUDANG)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 5,
+      "potentialSavingsAmount": 105000,
+      "reorderPoint": 2,
+      "monthlyConsumption": 3,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005120"
+      ]
+    },
+    {
+      "id": "plan-075",
+      "itemCode": "UNI02305001-ZZZ",
+      "itemName": "SEPATU SAFETY NO. 09 (00)",
+      "category": "General",
+      "unit": "PSG",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "DEPT PROCUREMENT"
+      ],
+      "totalRequestedQty": 4,
+      "recommendedOrderQty": 4,
+      "avgUnitPrice": 350000,
+      "totalEstimatedCost": 1400000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (4 PSG). (U/ STOCK GUDANG)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 42000,
+      "reorderPoint": 2,
+      "monthlyConsumption": 2,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005120"
+      ]
+    },
+    {
+      "id": "plan-076",
+      "itemCode": "WTC00202001-SHP",
+      "itemName": "WATER COOLANT RADIATOR 20 LITER (SHIPCOOL)",
+      "category": "Consumable",
+      "unit": "PIL",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "DEPT PROCUREMENT"
+      ],
+      "totalRequestedQty": 7,
+      "recommendedOrderQty": 7,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 595000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PIL. (U/ STOCK GUDANG)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 5,
+      "potentialSavingsAmount": 29750,
+      "reorderPoint": 3,
+      "monthlyConsumption": 4,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005161"
+      ]
+    },
+    {
+      "id": "plan-077",
+      "itemCode": "BLF01001004-ZZZ",
+      "itemName": "BLANGKO INVOICE PT. CPL A4 90 GSM (00)",
+      "category": "Consumable",
+      "unit": "RIM",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "DEPARTEMEN FINANCE"
+      ],
+      "totalRequestedQty": 2,
+      "recommendedOrderQty": 2,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 170000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (2 RIM). (U/ MBA NOVITA)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 5100,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005143"
+      ]
+    },
+    {
+      "id": "plan-078",
+      "itemCode": "BLF02301002-ZZZ",
+      "itemName": "BLANGKO TRANSFER RECEIPT PT. CPL (A4 4PLY + PORPORASI) (00)",
+      "category": "Consumable",
+      "unit": "BK",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "DEPARTEMEN FINANCE"
+      ],
+      "totalRequestedQty": 40,
+      "recommendedOrderQty": 40,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 3400000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 BK. (U/ MBA NOVITA (DARI NOMOR 6.251 - 7.250))",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 12,
+      "potentialSavingsAmount": 408000,
+      "reorderPoint": 12,
+      "monthlyConsumption": 20,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005143"
+      ]
+    },
+    {
+      "id": "plan-079",
+      "itemCode": "LPG00101003-PTM",
+      "itemName": "GAS LPG 50 KG (REFILL) (PERTAMINA)",
+      "category": "Consumable",
+      "unit": "TBG",
+      "currentStock": 0,
+      "openFpbCount": 2,
+      "requestingVessels": [
+        "MT DEWA YANI",
+        "PSV BRITOIL JUSTICE"
+      ],
+      "totalRequestedQty": 6,
+      "recommendedOrderQty": 6,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 510000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 2 unit. Stok gudang 0 TBG. (U/ SARANA KERJA | U/ PENGELASAN SHIPNAME DAN PIPA BT)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 5,
+      "potentialSavingsAmount": 25500,
+      "reorderPoint": 2,
+      "monthlyConsumption": 3,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005110",
+        "CPL-FPB-26-0005113"
+      ]
+    },
+    {
+      "id": "plan-080",
+      "itemCode": "GAS00501001-ZZZ",
+      "itemName": "OXYGEN (O2) LIQUID 175 KG (REFILL) (00)",
+      "category": "Consumable",
+      "unit": "TBG",
+      "currentStock": 0,
+      "openFpbCount": 2,
+      "requestingVessels": [
+        "MT DEWA YANI",
+        "PSV BRITOIL JUSTICE"
+      ],
+      "totalRequestedQty": 5,
+      "recommendedOrderQty": 5,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 425000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 2 unit. Stok gudang 0 TBG. (U/ SARANA KERJA | U/ PENGELASAN SHIPNAME DAN PIPA BT)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 5,
+      "potentialSavingsAmount": 21250,
+      "reorderPoint": 2,
+      "monthlyConsumption": 3,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005110",
+        "CPL-FPB-26-0005113"
+      ]
+    },
+    {
+      "id": "plan-081",
+      "itemCode": "LEM02804001-THR",
+      "itemName": "LEM SILICON (SEALANT) 75 GRAM ABU-ABU (THREEBOND)",
+      "category": "Consumable",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "TB MAPAN 1405"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 85000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (1 PCS). (U/ AE KIRI)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 2550,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005178"
+      ]
+    },
+    {
+      "id": "plan-082",
+      "itemCode": "PMM02301001-YAN",
+      "itemName": "CASE WATER PUMP 123900-42070 4TNV106T (YANMAR)",
+      "category": "Mechanical",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "TB MAPAN 1405"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 1250000,
+      "totalEstimatedCost": 1250000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (1 PCS). (U/ AE KIRI)",
+      "leadTimeDays": 14,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 37500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005178"
+      ]
+    },
+    {
+      "id": "plan-083",
+      "itemCode": "NZZ00201018-YAN",
+      "itemName": "NOZZLE 123900-39650 4TNV106T (YANMAR)",
+      "category": "Mechanical",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "TB MAPAN 1405"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 1250000,
+      "totalEstimatedCost": 1250000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (1 PCS). (U/ AE KIRI)",
+      "leadTimeDays": 14,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 37500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005178"
+      ]
+    },
+    {
+      "id": "plan-084",
+      "itemCode": "PRI00701001-SAY",
+      "itemName": "NAVTEX SNX-300 + PRINTER (SAMYUNG)",
+      "category": "Electrical",
+      "unit": "SET",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "MT DEWA YANI"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 350000,
+      "totalEstimatedCost": 350000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (1 SET). (U/ PERGANTIAN YG RUSAK)",
+      "leadTimeDays": 10,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 10500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005037"
+      ]
+    },
+    {
+      "id": "plan-085",
+      "itemCode": "B/N01008004-ZZZ",
+      "itemName": "B/N (SS) 8 MM X 40 MM (00)",
+      "category": "Construction",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "MT DEWA YANI"
+      ],
+      "totalRequestedQty": 40,
+      "recommendedOrderQty": 40,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 6000000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PCS. (U/ PERGANTIAN PIPA KABEL NAVIGASI)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 12,
+      "potentialSavingsAmount": 720000,
+      "reorderPoint": 12,
+      "monthlyConsumption": 20,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005037"
+      ]
+    },
+    {
+      "id": "plan-086",
+      "itemCode": "PIP01108002-ZZZ",
+      "itemName": "PIPA SEAMLESS 2\" SCH 80 (00)",
+      "category": "Construction",
+      "unit": "BTG",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "MT DEWA YANI"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 150000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (1 BTG). (U/ PERGANTIAN PIPA KABEL NAVIGASI)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 4500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005037"
+      ]
+    },
+    {
+      "id": "plan-087",
+      "itemCode": "PIP01101002-ZZZ",
+      "itemName": "PIPA SEAMLESS 1 1/2\" SCH 80 (00)",
+      "category": "Construction",
+      "unit": "BTG",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "MT DEWA YANI"
+      ],
+      "totalRequestedQty": 3,
+      "recommendedOrderQty": 3,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 450000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (3 BTG). (U/ PERGANTIAN PIPA KABEL NAVIGASI)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 13500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 2,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005037"
+      ]
+    },
+    {
+      "id": "plan-088",
+      "itemCode": "RIN01706001-ZZZ",
+      "itemName": "RING PLAT (SS) 8 MM (00)",
+      "category": "Construction",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "MT DEWA YANI"
+      ],
+      "totalRequestedQty": 40,
+      "recommendedOrderQty": 40,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 6000000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PCS. (U/ PERGANTIAN PIPA KABEL NAVIGASI)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 12,
+      "potentialSavingsAmount": 720000,
+      "reorderPoint": 12,
+      "monthlyConsumption": 20,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005037"
+      ]
+    },
+    {
+      "id": "plan-089",
+      "itemCode": "RDI00601001-SAY",
+      "itemName": "RADIO SSB SRG-3150DN (SAMYUNG)",
+      "category": "Electrical",
+      "unit": "UNT",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "MT DEWA YANI"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 350000,
+      "totalEstimatedCost": 350000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (1 UNT). (U/ PENGADAAN BARU)",
+      "leadTimeDays": 10,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 10500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005037"
+      ]
+    },
+    {
+      "id": "plan-090",
+      "itemCode": "ELB00105003-ZZZ",
+      "itemName": "ELBOW 2\" 45° SCH 80 (00)",
+      "category": "Construction",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "MT DEWA YANI"
+      ],
+      "totalRequestedQty": 6,
+      "recommendedOrderQty": 6,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 900000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PCS. (U/ PERGANTIAN PIPA KABEL NAVIGASI)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 5,
+      "potentialSavingsAmount": 45000,
+      "reorderPoint": 2,
+      "monthlyConsumption": 3,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005037"
+      ]
+    },
+    {
+      "id": "plan-091",
+      "itemCode": "SAL00201007-HTC",
+      "itemName": "SEAL 4718579 ZX48U (HITACHI)",
+      "category": "Mechanical",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "EXCA MINI HITACHI 48U ZAXIS"
+      ],
+      "totalRequestedQty": 4,
+      "recommendedOrderQty": 4,
+      "avgUnitPrice": 1250000,
+      "totalEstimatedCost": 5000000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (4 PCS). (U/ PENGGANTIAN PART YANG RUSAK)",
+      "leadTimeDays": 14,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 150000,
+      "reorderPoint": 2,
+      "monthlyConsumption": 2,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0001127"
+      ]
+    },
+    {
+      "id": "plan-092",
+      "itemCode": "SAL01201008-HTC",
+      "itemName": "SEAL DUST/DEBU 4718580 ZX48U (HITACHI)",
+      "category": "Mechanical",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "EXCA MINI HITACHI 48U ZAXIS"
+      ],
+      "totalRequestedQty": 4,
+      "recommendedOrderQty": 4,
+      "avgUnitPrice": 1250000,
+      "totalEstimatedCost": 5000000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (4 PCS). (U/ PENGGANTIAN PART YANG RUSAK)",
+      "leadTimeDays": 14,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 150000,
+      "reorderPoint": 2,
+      "monthlyConsumption": 2,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0001127"
+      ]
+    },
+    {
+      "id": "plan-093",
+      "itemCode": "OLI02019001-ZZZ",
+      "itemName": "OLI KOMPRESOR MOBIL RARUS 424 ISO VG 32 (00)",
+      "category": "Consumable",
+      "unit": "LTR",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "AIR COMPRESSOR AIRMAN PDS 3905"
+      ],
+      "totalRequestedQty": 60,
+      "recommendedOrderQty": 60,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 9000000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 LTR. (U/ SERVICE BERKALA)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 15,
+      "potentialSavingsAmount": 1350000,
+      "reorderPoint": 18,
+      "monthlyConsumption": 30,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0001017"
+      ]
+    },
+    {
+      "id": "plan-094",
+      "itemCode": "PIP01108001-ZZZ",
+      "itemName": "PIPA SEAMLESS 2\" SCH 40 (00)",
+      "category": "Construction",
+      "unit": "BTG",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "TK CPL 235"
+      ],
+      "totalRequestedQty": 2,
+      "recommendedOrderQty": 2,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 300000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (2 BTG). (U/ RAILING MAIN DECK)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 9000,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "HL-FPB-26-0001551"
+      ]
+    },
+    {
+      "id": "plan-095",
+      "itemCode": "KLE00401008-ZZZ",
+      "itemName": "CLAMP PLAT 74-79 (00)",
+      "category": "Construction",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "TK CPL 235"
+      ],
+      "totalRequestedQty": 4,
+      "recommendedOrderQty": 4,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 600000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (4 PCS). (U/ COOLING FIFI ENGINE)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 18000,
+      "reorderPoint": 2,
+      "monthlyConsumption": 2,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "HL-FPB-26-0001551"
+      ]
+    },
+    {
+      "id": "plan-096",
+      "itemCode": "ELB00101002-ZZZ",
+      "itemName": "ELBOW 1 1/2\" SCH 80 (00)",
+      "category": "Construction",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "TK CPL 235"
+      ],
+      "totalRequestedQty": 6,
+      "recommendedOrderQty": 6,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 900000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PCS. (U/ COOLING FIFI ENGINE)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 5,
+      "potentialSavingsAmount": 45000,
+      "reorderPoint": 2,
+      "monthlyConsumption": 3,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "HL-FPB-26-0001551"
+      ]
+    },
+    {
+      "id": "plan-097",
+      "itemCode": "RDT00501007-ZZZ",
+      "itemName": "HOSE RADIATOR Ø 2 1/2\" (MODEL \"L\") (00)",
+      "category": "Mechanical",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "TK CPL 235"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 1250000,
+      "totalEstimatedCost": 1250000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (1 PCS). (U/ COOLING FIFI ENGINE)",
+      "leadTimeDays": 14,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 37500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "HL-FPB-26-0001551"
+      ]
+    },
+    {
+      "id": "plan-098",
+      "itemCode": "BES00712002-ZZZ",
+      "itemName": "BESI SIKU 60 X 60 X 6 X 6.000 MM (00)",
+      "category": "Construction",
+      "unit": "BTG",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "AHTS AMBER"
+      ],
+      "totalRequestedQty": 3,
+      "recommendedOrderQty": 3,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 450000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (3 BTG). (U/ LANTAI ENGINE ROOM)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 13500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 2,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005164"
+      ]
+    },
+    {
+      "id": "plan-099",
+      "itemCode": "PLA00603001-ZZZ",
+      "itemName": "PLAT BORDES 5 MM X 4 FT X 8 FT (00)",
+      "category": "Construction",
+      "unit": "LBR",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "AHTS AMBER"
+      ],
+      "totalRequestedQty": 7,
+      "recommendedOrderQty": 7,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 1050000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 LBR. (U/ LANTAI ENGINE ROOM)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 5,
+      "potentialSavingsAmount": 52500,
+      "reorderPoint": 3,
+      "monthlyConsumption": 4,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005164"
+      ]
+    },
+    {
+      "id": "plan-100",
+      "itemCode": "ADA00104010-HTC",
+      "itemName": "ADAPTER 4245518 ZX48U (HITACHI)",
+      "category": "Mechanical",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "EXCA MINI HITACHI 48U ZAXIS"
+      ],
+      "totalRequestedQty": 4,
+      "recommendedOrderQty": 4,
+      "avgUnitPrice": 1250000,
+      "totalEstimatedCost": 5000000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (4 PCS). (U/ UNDERCARRIAGE)",
+      "leadTimeDays": 14,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 150000,
+      "reorderPoint": 2,
+      "monthlyConsumption": 2,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0001132"
+      ]
+    },
+    {
+      "id": "plan-101",
+      "itemCode": "SAL01201017-HTC",
+      "itemName": "SEAL DUST/DEBU 4279531 ZX48U (HITACHI)",
+      "category": "Mechanical",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "EXCA MINI HITACHI 48U ZAXIS"
+      ],
+      "totalRequestedQty": 5,
+      "recommendedOrderQty": 5,
+      "avgUnitPrice": 1250000,
+      "totalEstimatedCost": 6250000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PCS. (U/ UNDERCARRIAGE)",
+      "leadTimeDays": 14,
+      "potentialBulkDiscount": 5,
+      "potentialSavingsAmount": 312500,
+      "reorderPoint": 2,
+      "monthlyConsumption": 3,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0001132"
+      ]
+    },
+    {
+      "id": "plan-102",
+      "itemCode": "SHI00301010-HTC",
+      "itemName": "SHIM 4354256 ZX48U (HITACHI)",
+      "category": "Mechanical",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "EXCA MINI HITACHI 48U ZAXIS"
+      ],
+      "totalRequestedQty": 4,
+      "recommendedOrderQty": 4,
+      "avgUnitPrice": 1250000,
+      "totalEstimatedCost": 5000000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (4 PCS). (U/ UNDERCARRIAGE)",
+      "leadTimeDays": 14,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 150000,
+      "reorderPoint": 2,
+      "monthlyConsumption": 2,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0001132"
+      ]
+    },
+    {
+      "id": "plan-103",
+      "itemCode": "FIT00901002-HTC",
+      "itemName": "FITTING GREASE J75481 ZX48U (HITACHI)",
+      "category": "Mechanical",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "EXCA MINI HITACHI 48U ZAXIS"
+      ],
+      "totalRequestedQty": 6,
+      "recommendedOrderQty": 6,
+      "avgUnitPrice": 1250000,
+      "totalEstimatedCost": 7500000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PCS. (U/ UNDERCARRIAGE)",
+      "leadTimeDays": 14,
+      "potentialBulkDiscount": 5,
+      "potentialSavingsAmount": 375000,
+      "reorderPoint": 2,
+      "monthlyConsumption": 3,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0001132"
+      ]
+    },
+    {
+      "id": "plan-104",
+      "itemCode": "PIN00208002-HTC",
+      "itemName": "PIN 4141001 ZX48U (HITACHI)",
+      "category": "Mechanical",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "EXCA MINI HITACHI 48U ZAXIS"
+      ],
+      "totalRequestedQty": 4,
+      "recommendedOrderQty": 4,
+      "avgUnitPrice": 1250000,
+      "totalEstimatedCost": 5000000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (4 PCS). (U/ UNDERCARRIAGE)",
+      "leadTimeDays": 14,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 150000,
+      "reorderPoint": 2,
+      "monthlyConsumption": 2,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0001132"
+      ]
+    },
+    {
+      "id": "plan-105",
+      "itemCode": "PIN00208005-HTC",
+      "itemName": "PIN YD00000316 ZX48U (HITACHI)",
+      "category": "Mechanical",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "EXCA MINI HITACHI 48U ZAXIS"
+      ],
+      "totalRequestedQty": 4,
+      "recommendedOrderQty": 4,
+      "avgUnitPrice": 1250000,
+      "totalEstimatedCost": 5000000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (4 PCS). (U/ UNDERCARRIAGE)",
+      "leadTimeDays": 14,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 150000,
+      "reorderPoint": 2,
+      "monthlyConsumption": 2,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0001132"
+      ]
+    },
+    {
+      "id": "plan-106",
+      "itemCode": "PIN00208004-HTC",
+      "itemName": "PIN YD00000317 ZX48U (HITACHI)",
+      "category": "Mechanical",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "EXCA MINI HITACHI 48U ZAXIS"
+      ],
+      "totalRequestedQty": 6,
+      "recommendedOrderQty": 6,
+      "avgUnitPrice": 1250000,
+      "totalEstimatedCost": 7500000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PCS. (U/ UNDERCARRIAGE)",
+      "leadTimeDays": 14,
+      "potentialBulkDiscount": 5,
+      "potentialSavingsAmount": 375000,
+      "reorderPoint": 2,
+      "monthlyConsumption": 3,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0001132"
+      ]
+    },
+    {
+      "id": "plan-107",
+      "itemCode": "PIN00208003-HTC",
+      "itemName": "PIN YD00000318 ZX48U (HITACHI)",
+      "category": "Mechanical",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "EXCA MINI HITACHI 48U ZAXIS"
+      ],
+      "totalRequestedQty": 4,
+      "recommendedOrderQty": 4,
+      "avgUnitPrice": 1250000,
+      "totalEstimatedCost": 5000000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (4 PCS). (U/ UNDERCARRIAGE)",
+      "leadTimeDays": 14,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 150000,
+      "reorderPoint": 2,
+      "monthlyConsumption": 2,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0001132"
+      ]
+    },
+    {
+      "id": "plan-108",
+      "itemCode": "PIN03601001-HTC",
+      "itemName": "PIN LOCK 4339868 ZX48U (HITACHI)",
+      "category": "Mechanical",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "EXCA MINI HITACHI 48U ZAXIS"
+      ],
+      "totalRequestedQty": 4,
+      "recommendedOrderQty": 4,
+      "avgUnitPrice": 1250000,
+      "totalEstimatedCost": 5000000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (4 PCS). (U/ UNDERCARRIAGE)",
+      "leadTimeDays": 14,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 150000,
+      "reorderPoint": 2,
+      "monthlyConsumption": 2,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0001132"
+      ]
+    },
+    {
+      "id": "plan-109",
+      "itemCode": "PIN03501001-HTC",
+      "itemName": "PIN STOPPER 4633538 ZX48U (HITACHI)",
+      "category": "Mechanical",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "EXCA MINI HITACHI 48U ZAXIS"
+      ],
+      "totalRequestedQty": 2,
+      "recommendedOrderQty": 2,
+      "avgUnitPrice": 1250000,
+      "totalEstimatedCost": 2500000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (2 PCS). (U/ UNDERCARRIAGE)",
+      "leadTimeDays": 14,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 75000,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0001132"
+      ]
+    },
+    {
+      "id": "plan-110",
+      "itemCode": "RIN00108002-HTC",
+      "itemName": "RING YD00000337 ZX48U (HITACHI)",
+      "category": "Mechanical",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "EXCA MINI HITACHI 48U ZAXIS"
+      ],
+      "totalRequestedQty": 2,
+      "recommendedOrderQty": 2,
+      "avgUnitPrice": 1250000,
+      "totalEstimatedCost": 2500000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (2 PCS). (U/ UNDERCARRIAGE)",
+      "leadTimeDays": 14,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 75000,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0001132"
+      ]
+    },
+    {
+      "id": "plan-111",
+      "itemCode": "PLE00609001-HTC",
+      "itemName": "PLATE THRUST 4377449 ZX48U (HITACHI)",
+      "category": "Mechanical",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "EXCA MINI HITACHI 48U ZAXIS"
+      ],
+      "totalRequestedQty": 10,
+      "recommendedOrderQty": 10,
+      "avgUnitPrice": 1250000,
+      "totalEstimatedCost": 12500000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PCS. (U/ UNDERCARRIAGE)",
+      "leadTimeDays": 14,
+      "potentialBulkDiscount": 8.5,
+      "potentialSavingsAmount": 1062500,
+      "reorderPoint": 3,
+      "monthlyConsumption": 5,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0001132"
+      ]
+    },
+    {
+      "id": "plan-112",
+      "itemCode": "BUH01923001-HTC",
+      "itemName": "BOSS 4352089 ZX48U (HITACHI)",
+      "category": "Mechanical",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "EXCA MINI HITACHI 48U ZAXIS"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 1250000,
+      "totalEstimatedCost": 1250000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (1 PCS). (U/ UNDERCARRIAGE)",
+      "leadTimeDays": 14,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 37500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0001132"
+      ]
+    },
+    {
+      "id": "plan-113",
+      "itemCode": "EMB00702001-HTC",
+      "itemName": "TOOTH BUCKET 4339865 ZX48U (HITACHI)",
+      "category": "Mechanical",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "EXCA MINI HITACHI 48U ZAXIS"
+      ],
+      "totalRequestedQty": 4,
+      "recommendedOrderQty": 4,
+      "avgUnitPrice": 1250000,
+      "totalEstimatedCost": 5000000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (4 PCS). (U/ UNDERCARRIAGE)",
+      "leadTimeDays": 14,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 150000,
+      "reorderPoint": 2,
+      "monthlyConsumption": 2,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0001132"
+      ]
+    },
+    {
+      "id": "plan-114",
+      "itemCode": "ORN00179085-HTC",
+      "itemName": "ORING 4291436 ZX48U (HITACHI)",
+      "category": "Mechanical",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "EXCA MINI HITACHI 48U ZAXIS"
+      ],
+      "totalRequestedQty": 6,
+      "recommendedOrderQty": 6,
+      "avgUnitPrice": 1250000,
+      "totalEstimatedCost": 7500000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PCS. (U/ UNDERCARRIAGE)",
+      "leadTimeDays": 14,
+      "potentialBulkDiscount": 5,
+      "potentialSavingsAmount": 375000,
+      "reorderPoint": 2,
+      "monthlyConsumption": 3,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0001132"
+      ]
+    },
+    {
+      "id": "plan-115",
+      "itemCode": "BUH01908015-HTC",
+      "itemName": "BUSHING 4340369 ZX48U (HITACHI)",
+      "category": "Mechanical",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "EXCA MINI HITACHI 48U ZAXIS"
+      ],
+      "totalRequestedQty": 6,
+      "recommendedOrderQty": 6,
+      "avgUnitPrice": 1250000,
+      "totalEstimatedCost": 7500000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PCS. (U/ UNDERCARRIAGE)",
+      "leadTimeDays": 14,
+      "potentialBulkDiscount": 5,
+      "potentialSavingsAmount": 375000,
+      "reorderPoint": 2,
+      "monthlyConsumption": 3,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0001132"
+      ]
+    },
+    {
+      "id": "plan-116",
+      "itemCode": "MUR02954001-HTC",
+      "itemName": "MUR J950016 ZX48U (HITACHI)",
+      "category": "Mechanical",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "EXCA MINI HITACHI 48U ZAXIS"
+      ],
+      "totalRequestedQty": 2,
+      "recommendedOrderQty": 2,
+      "avgUnitPrice": 1250000,
+      "totalEstimatedCost": 2500000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (2 PCS). (U/ UNDERCARRIAGE)",
+      "leadTimeDays": 14,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 75000,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0001132"
+      ]
+    },
+    {
+      "id": "plan-117",
+      "itemCode": "KRE03401001-HTC",
+      "itemName": "RUBBER LOCK 4339867 ZX48U (HITACHI)",
+      "category": "Mechanical",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "EXCA MINI HITACHI 48U ZAXIS"
+      ],
+      "totalRequestedQty": 4,
+      "recommendedOrderQty": 4,
+      "avgUnitPrice": 1250000,
+      "totalEstimatedCost": 5000000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (4 PCS). (U/ UNDERCARRIAGE)",
+      "leadTimeDays": 14,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 150000,
+      "reorderPoint": 2,
+      "monthlyConsumption": 2,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0001132"
+      ]
+    },
+    {
+      "id": "plan-118",
+      "itemCode": "B/N01005001-ZZZ",
+      "itemName": "B/N (SS) 5/8\" X 2 1/2\" (00)",
+      "category": "Construction",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 2,
+      "requestingVessels": [
+        "PSV BRITOIL JUSTICE",
+        "SPOB FERY 471"
+      ],
+      "totalRequestedQty": 46,
+      "recommendedOrderQty": 46,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 6900000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 2 unit. Stok gudang 0 PCS. (U/ PERGANTIAN PIPA BT | U/ PERBAIKKAN MANHOLE)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 12,
+      "potentialSavingsAmount": 828000,
+      "reorderPoint": 14,
+      "monthlyConsumption": 23,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005113",
+        "MO-FPB-26-0001950"
+      ]
+    },
+    {
+      "id": "plan-119",
+      "itemCode": "ELB00108002-ZZZ",
+      "itemName": "ELBOW 4\" SCH 80 (00)",
+      "category": "Construction",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "PSV BRITOIL JUSTICE"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 150000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (1 PCS). (U/ PERGANTIAN PIPA BT)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 4500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005113"
+      ]
+    },
+    {
+      "id": "plan-120",
+      "itemCode": "ELB00109001-ZZZ",
+      "itemName": "ELBOW 45° 4\" SCH 80 (00)",
+      "category": "Construction",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "PSV BRITOIL JUSTICE"
+      ],
+      "totalRequestedQty": 2,
+      "recommendedOrderQty": 2,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 300000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (2 PCS). (U/ PERGANTIAN PIPA BT)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 9000,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005113"
+      ]
+    },
+    {
+      "id": "plan-121",
+      "itemCode": "PLA00401001-ZZZ",
+      "itemName": "PLAT BESI NON CLASS 10 MM X 6 FT X 20 FT (00)",
+      "category": "Construction",
+      "unit": "LBR",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "AHTS AMBER"
+      ],
+      "totalRequestedQty": 6,
+      "recommendedOrderQty": 6,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 900000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 LBR. (U/ PLAT FORCASTLE DECK)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 5,
+      "potentialSavingsAmount": 45000,
+      "reorderPoint": 2,
+      "monthlyConsumption": 3,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005114"
+      ]
+    },
+    {
+      "id": "plan-122",
+      "itemCode": "WTR00601002-WEI",
+      "itemName": "INTERCOOLER 612600120029 WD618C (WEICHAI)",
+      "category": "Mechanical",
+      "unit": "UNT",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "MT KING OCEAN"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 1250000,
+      "totalEstimatedCost": 1250000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (1 UNT). (U/ AE 2)",
+      "leadTimeDays": 14,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 37500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005115"
+      ]
+    },
+    {
+      "id": "plan-123",
+      "itemCode": "SIH00401002-QLI",
+      "itemName": "HORN SOUNDER C/W WARNING LIGHT 24V RED (Q-LIGHT)",
+      "category": "Electrical",
+      "unit": "SET",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "SPOB ROYAL REY 3001"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 350000,
+      "totalEstimatedCost": 350000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (1 SET). (U/ HLA 95% TANGKI CARGO)",
+      "leadTimeDays": 10,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 10500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005116"
+      ]
+    },
+    {
+      "id": "plan-124",
+      "itemCode": "ACC00101016-GS1",
+      "itemName": "ACCU 12V - 45 AH (GS)",
+      "category": "Electrical",
+      "unit": "UNT",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "SV TWINSISTER 307"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 1850000,
+      "totalEstimatedCost": 1850000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (1 UNT). (U/ GENERATOR EMERGENCY PORTABLE)",
+      "leadTimeDays": 10,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 55500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005189"
+      ]
+    },
+    {
+      "id": "plan-125",
+      "itemCode": "FLT00615006-SAF",
+      "itemName": "FILTER FO FS-1002 (SAKURA FILTER)",
+      "category": "Consumable",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "SV TWINSISTER 307"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 650000,
+      "totalEstimatedCost": 650000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (1 PCS). (U/ GENERATOR EMERGENCY PORTABLE)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 19500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005189"
+      ]
+    },
+    {
+      "id": "plan-126",
+      "itemCode": "RDC00101002-ZZZ",
+      "itemName": "REDUCER 2 1/2\" X 2\" SCH 80 (00)",
+      "category": "Construction",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "HEAD OFFICE"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 150000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (1 PCS). (U/ PIPA DISCHARGE HYDRANT DEPOT)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 4500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005158"
+      ]
+    },
+    {
+      "id": "plan-127",
+      "itemCode": "PIP01107001-ZZZ",
+      "itemName": "PIPA SEAMLESS 2 1/2\" SCH 80 (00)",
+      "category": "Construction",
+      "unit": "BTG",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "HEAD OFFICE"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 150000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (1 BTG). (U/ PIPA HISAPAN HYDRANT DEPOT)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 4500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005158"
+      ]
+    },
+    {
+      "id": "plan-128",
+      "itemCode": "RDC00103006-ZZZ",
+      "itemName": "REDUCER 3\" X 2\" SCH 80 (00)",
+      "category": "Construction",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "HEAD OFFICE"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 150000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (1 PCS). (U/ PIPA DISCHARGE HYDRANT DEPOT)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 4500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005158"
+      ]
+    },
+    {
+      "id": "plan-129",
+      "itemCode": "ELB00114001-ZZZ",
+      "itemName": "ELBOW 2 1/2\" SCH 80 (00)",
+      "category": "Construction",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "HEAD OFFICE"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 150000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (1 PCS). (U/ PIPA HISAPAN HYDRANT DEPOT)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 4500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005158"
+      ]
+    },
+    {
+      "id": "plan-130",
+      "itemCode": "PHL00101007-NIP",
+      "itemName": "PYLOX PUTIH (NIPPON PAINT)",
+      "category": "Consumable",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "OFFICE GAJ"
+      ],
+      "totalRequestedQty": 10,
+      "recommendedOrderQty": 10,
+      "avgUnitPrice": 2450000,
+      "totalEstimatedCost": 24500000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PCS. (U/SARANA KERJA)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 8.5,
+      "potentialSavingsAmount": 2082500,
+      "reorderPoint": 3,
+      "monthlyConsumption": 5,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0001098"
+      ]
+    },
+    {
+      "id": "plan-131",
+      "itemCode": "PAS00301001-CHE",
+      "itemName": "PASTA GRINDING (CHEMICO)",
+      "category": "Consumable",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "OFFICE GAJ"
+      ],
+      "totalRequestedQty": 20,
+      "recommendedOrderQty": 20,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 1700000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PCS. (U/ SARANA KERJA KONSTRUKSI)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 12,
+      "potentialSavingsAmount": 204000,
+      "reorderPoint": 6,
+      "monthlyConsumption": 10,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0000712"
+      ]
+    },
+    {
+      "id": "plan-132",
+      "itemCode": "CAI02501001-ZZZ",
+      "itemName": "TAPMATIC (CUTTING FLUID) 500 ML (00)",
+      "category": "Consumable",
+      "unit": "KLG",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "OFFICE GAJ"
+      ],
+      "totalRequestedQty": 10,
+      "recommendedOrderQty": 10,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 850000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 KLG. (U/ SARANA KERJA BUBUT)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 8.5,
+      "potentialSavingsAmount": 72250,
+      "reorderPoint": 3,
+      "monthlyConsumption": 5,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0000712"
+      ]
+    },
+    {
+      "id": "plan-133",
+      "itemCode": "GUR00202001-BBU",
+      "itemName": "MATA GURINDA 5\" NO. 80 (B BULLS)",
+      "category": "General",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "OFFICE GAJ"
+      ],
+      "totalRequestedQty": 24,
+      "recommendedOrderQty": 24,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 3600000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PCS. (U/ SARANA KERJA KONSTRUKSI)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 12,
+      "potentialSavingsAmount": 432000,
+      "reorderPoint": 8,
+      "monthlyConsumption": 12,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0001062"
+      ]
+    },
+    {
+      "id": "plan-134",
+      "itemCode": "KPU00201002-ZZZ",
+      "itemName": "KAPUR TULIS BESI @ 12 PCS (00)",
+      "category": "Consumable",
+      "unit": "KTK",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "OFFICE GAJ"
+      ],
+      "totalRequestedQty": 5,
+      "recommendedOrderQty": 5,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 425000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 KTK. (U/ SARANA KERJA)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 5,
+      "potentialSavingsAmount": 21250,
+      "reorderPoint": 2,
+      "monthlyConsumption": 3,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0001062"
+      ]
+    },
+    {
+      "id": "plan-135",
+      "itemCode": "KAP01301001-ZZZ",
+      "itemName": "PLASTIK BLOWER 0,5 MM @ 50 MTR (00)",
+      "category": "Consumable",
+      "unit": "ROL",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "OFFICE GAJ"
+      ],
+      "totalRequestedQty": 5,
+      "recommendedOrderQty": 5,
+      "avgUnitPrice": 85000,
+      "totalEstimatedCost": 425000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 ROL. (U/ SARANA KERJA DALAM TANGKI)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 5,
+      "potentialSavingsAmount": 21250,
+      "reorderPoint": 2,
+      "monthlyConsumption": 3,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0001062"
+      ]
+    },
+    {
+      "id": "plan-136",
+      "itemCode": "LAS00401002-ZZZ",
+      "itemName": "KACA LAS BENING (00)",
+      "category": "Construction",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "OFFICE GAJ"
+      ],
+      "totalRequestedQty": 50,
+      "recommendedOrderQty": 50,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 7500000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PCS. (U/ SARANA KERJA KONSTRUKSI)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 15,
+      "potentialSavingsAmount": 1125000,
+      "reorderPoint": 15,
+      "monthlyConsumption": 25,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0001062"
+      ]
+    },
+    {
+      "id": "plan-137",
+      "itemCode": "A2T07201002-ZZZ",
+      "itemName": "KACA BLASTING BENING 3 MM X 13 CM X 18 CM (00)",
+      "category": "Construction",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "OFFICE GAJ"
+      ],
+      "totalRequestedQty": 50,
+      "recommendedOrderQty": 50,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 7500000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PCS. (U/ SARANA KERJA BLASTING)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 15,
+      "potentialSavingsAmount": 1125000,
+      "reorderPoint": 15,
+      "monthlyConsumption": 25,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0001062"
+      ]
+    },
+    {
+      "id": "plan-138",
+      "itemCode": "OLI02203001-PTM",
+      "itemName": "OLI MEDITRAN SX15W-40 (PERTAMINA)",
+      "category": "Consumable",
+      "unit": "LTR",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "OFFICE GAJ"
+      ],
+      "totalRequestedQty": 209,
+      "recommendedOrderQty": 209,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 31350000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 LTR. (U/SERVICE BERKALA)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 15,
+      "potentialSavingsAmount": 4702500,
+      "reorderPoint": 63,
+      "monthlyConsumption": 105,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0001107"
+      ]
+    },
+    {
+      "id": "plan-139",
+      "itemCode": "COR00102001-LKS",
+      "itemName": "CORONG 30 CM (LUCKY STAR)",
+      "category": "General",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "OFFICE GAJ"
+      ],
+      "totalRequestedQty": 2,
+      "recommendedOrderQty": 2,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 300000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (2 PCS). (U/SARANA KERJA (TAKARAN BBM & OLI))",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 9000,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0001125"
+      ]
+    },
+    {
+      "id": "plan-140",
+      "itemCode": "OLI01602001-PTM",
+      "itemName": "OLI RORED HD-A SAE 90 (PERTAMINA)",
+      "category": "Consumable",
+      "unit": "LTR",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "OFFICE GAJ"
+      ],
+      "totalRequestedQty": 209,
+      "recommendedOrderQty": 209,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 31350000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 LTR. (U/SERVICE BERKALA)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 15,
+      "potentialSavingsAmount": 4702500,
+      "reorderPoint": 63,
+      "monthlyConsumption": 105,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0001125"
+      ]
+    },
+    {
+      "id": "plan-141",
+      "itemCode": "OLI02901002-JUM",
+      "itemName": "OLI POWER STEERING FLUID ATF (JUMBO)",
+      "category": "Consumable",
+      "unit": "LTR",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "OFFICE GAJ"
+      ],
+      "totalRequestedQty": 5,
+      "recommendedOrderQty": 5,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 750000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 LTR. (U/SARANA KERJA)",
+      "leadTimeDays": 4,
+      "potentialBulkDiscount": 5,
+      "potentialSavingsAmount": 37500,
+      "reorderPoint": 2,
+      "monthlyConsumption": 3,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0001125"
+      ]
+    },
+    {
+      "id": "plan-142",
+      "itemCode": "AKU02301001-WOD",
+      "itemName": "METERAN 5 METER (WOOD)",
+      "category": "General",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "OFFICE GAJ"
+      ],
+      "totalRequestedQty": 10,
+      "recommendedOrderQty": 10,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 1500000,
+      "urgency": "CRITICAL",
+      "urgencyReason": "Prioritas Darurat P1 dari 1 unit. Stok gudang 0 PCS. (U/ SARANA KERJA)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 8.5,
+      "potentialSavingsAmount": 127500,
+      "reorderPoint": 3,
+      "monthlyConsumption": 5,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "GAJ-FPB-26-0001029"
+      ]
+    },
+    {
+      "id": "plan-143",
+      "itemCode": "MOB00101001-GBR",
+      "itemName": "MAN OVER BOAT (MOB) (GOOD BROTHER)",
+      "category": "General",
+      "unit": "UNT",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "SPOB CINTIANA PRATAMA"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 150000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (1 UNT). (U/ PENGGANTIAN YANG RUSAK (SEBELAH KIRI ANJUNGAN))",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 4500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "HL-FPB-26-0001568"
+      ]
+    },
+    {
+      "id": "plan-144",
+      "itemCode": "SFT00601003-HPR",
+      "itemName": "LIFE BUOY (RING BUOY) 2,5 KG (HYPRO)",
+      "category": "General",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "UB CMPL 01"
+      ],
+      "totalRequestedQty": 3,
+      "recommendedOrderQty": 3,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 450000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (3 PCS). (U/ SEBELAH KANAN & KIRI ANJUNGAN | U/ ANJUNGAN BELAKANG KANA)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 13500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 2,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005151"
+      ]
+    },
+    {
+      "id": "plan-145",
+      "itemCode": "PRE00101010-WPR",
+      "itemName": "OIL PRESSURE GAUGE 10 KG/BAR 3/8\" NPT (WIPRO)",
+      "category": "General",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "TK COASTWAY 20100"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 150000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (1 PCS). (U/ MANFOLD CARGO, FINDING PSA)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 4500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "HL-FPB-26-0001557"
+      ]
+    },
+    {
+      "id": "plan-146",
+      "itemCode": "PAC01206001-ZZZ",
+      "itemName": "PACKING KARET 5 MM (00)",
+      "category": "GENERAL",
+      "unit": "MTR",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "SPOB FERY 471"
+      ],
+      "totalRequestedQty": 3,
+      "recommendedOrderQty": 3,
+      "avgUnitPrice": 250000,
+      "totalEstimatedCost": 750000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (3 MTR). (U/ PERBAIKKAN MANHOLE)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 22500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 2,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "MO-FPB-26-0001950"
+      ]
+    },
+    {
+      "id": "plan-147",
+      "itemCode": "LEM00601001-FBD",
+      "itemName": "FN TAPE (ANTI SPLASHING TAPE) (FLASHBAND)",
+      "category": "General",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "UB CMPL 01"
+      ],
+      "totalRequestedQty": 3,
+      "recommendedOrderQty": 3,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 450000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 1 armada/unit. Stok gudang tidak mencukupi permintaan (3 PCS). (U/ PIPA INJECTOR ME, FINDING PSA)",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 13500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 2,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": [
+        "CPL-FPB-26-0005142"
+      ]
+    },
+    {
+      "id": "plan-148",
+      "itemCode": "ITEM-ACKNOWLEDG",
+      "itemName": "Acknowledge",
+      "category": "General",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "Armada / Unit CPG"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 150000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 0 armada/unit. Stok gudang tidak mencukupi permintaan (1 PCS).",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 4500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": []
+    },
+    {
+      "id": "plan-149",
+      "itemCode": "ITEM-HERMANSYAH",
+      "itemName": "HERMANSYAH",
+      "category": "General",
+      "unit": "PCS",
+      "currentStock": 0,
+      "openFpbCount": 1,
+      "requestingVessels": [
+        "Armada / Unit CPG"
+      ],
+      "totalRequestedQty": 1,
+      "recommendedOrderQty": 1,
+      "avgUnitPrice": 150000,
+      "totalEstimatedCost": 150000,
+      "urgency": "REORDER",
+      "urgencyReason": "Kebutuhan operasional 0 armada/unit. Stok gudang tidak mencukupi permintaan (1 PCS).",
+      "leadTimeDays": 7,
+      "potentialBulkDiscount": 3,
+      "potentialSavingsAmount": 4500,
+      "reorderPoint": 1,
+      "monthlyConsumption": 1,
+      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
+      "fpbRefs": []
+    }
+  ],
+  "sourceFile": "PURCHASE_PLANNING_BATCH_001_CPG.xlsx (Desktop)"
+}

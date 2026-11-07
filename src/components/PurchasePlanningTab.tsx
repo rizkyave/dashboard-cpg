@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   TrendingUp,
   AlertTriangle,
@@ -25,9 +25,19 @@ import {
   Loader2,
   Calendar,
   Building2,
+  Check,
+  Copy,
+  Plus,
+  Send,
+  ListFilter,
+  Tag,
+  ArrowUpDown,
+  CheckSquare,
+  Square,
 } from 'lucide-react';
 import { TabType } from '@/types/procurement';
 import { PurchasePlanningItem, PurchasePlanningResponse } from '@/app/api/purchase-planning/route';
+import { PratenderPackage, PratenderPackageItem } from '@/types/pratender';
 
 interface PurchasePlanningTabProps {
   onNavigateTab?: (tab: TabType) => void;
@@ -42,16 +52,31 @@ export default function PurchasePlanningTab({
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [isUploading, setIsUploading] = useState<boolean>(false);
-  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Filter States
+  // Filter & Sort States
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [selectedUrgency, setSelectedUrgency] = useState<string>('ALL');
   const [selectedVessel, setSelectedVessel] = useState<string>('ALL');
+  const [sortBy, setSortBy] = useState<'urgency' | 'category' | 'cost' | 'name' | 'reorderQty'>('urgency');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  // Multi-Selection State (Item konfirmasi siap PO / Pratender)
+  const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
 
   // Selected item modal detail
   const [selectedItemDetail, setSelectedItemDetail] = useState<PurchasePlanningItem | null>(null);
+
+  // Modal Bentuk Paket Pratender
+  const [isCreatePratenderModalOpen, setIsCreatePratenderModalOpen] = useState<boolean>(false);
+  const [pkgTitle, setPkgTitle] = useState<string>('');
+  const [pkgCategory, setPkgCategory] = useState<string>('General');
+  const [pkgClosingDate, setPkgClosingDate] = useState<string>('');
+  const [pkgNotes, setPkgNotes] = useState<string>('');
+  const [pkgVendor, setPkgVendor] = useState<string>('');
+  const [customItemQtys, setCustomItemQtys] = useState<Record<string, number>>({});
+  const [isSubmittingPkg, setIsSubmittingPkg] = useState<boolean>(false);
 
   // 1. Fetch data dari API
   const fetchData = async (isManual = false) => {
@@ -99,6 +124,7 @@ export default function PurchasePlanningTab({
       const json: PurchasePlanningResponse = await res.json();
       if (res.ok && json.success) {
         setData(json);
+        setSelectedItemIds(new Set());
         showToast?.(
           `✓ Berhasil mengimpor ${json.items.length.toLocaleString('id-ID')} item dari ${file.name}!`,
           'success'
@@ -126,6 +152,7 @@ export default function PurchasePlanningTab({
       const json: PurchasePlanningResponse = await res.json();
       if (res.ok && json.success) {
         setData(json);
+        setSelectedItemIds(new Set());
         showToast?.(
           `✓ Berhasil memuat ${json.items.length.toLocaleString('id-ID')} item rencana pembelian dari Desktop!`,
           'success'
@@ -161,10 +188,11 @@ export default function PurchasePlanningTab({
     return Array.from(setV).sort();
   }, [data]);
 
-  // Filtered Items
+  // Filter & Sort Items
   const filteredItems = useMemo(() => {
     if (!data?.items) return [];
-    return data.items.filter((item) => {
+
+    let result = data.items.filter((item) => {
       // Filter Category
       if (selectedCategory !== 'ALL' && item.category !== selectedCategory) return false;
 
@@ -187,7 +215,223 @@ export default function PurchasePlanningTab({
 
       return true;
     });
-  }, [data, selectedCategory, selectedUrgency, selectedVessel, searchQuery]);
+
+    // Sorting
+    result.sort((a, b) => {
+      let valA: any = 0;
+      let valB: any = 0;
+
+      if (sortBy === 'urgency') {
+        const weight: Record<string, number> = { CRITICAL: 3, REORDER: 2, PLANNED: 1 };
+        valA = weight[a.urgency] || 0;
+        valB = weight[b.urgency] || 0;
+      } else if (sortBy === 'category') {
+        valA = a.category;
+        valB = b.category;
+      } else if (sortBy === 'cost') {
+        valA = a.totalEstimatedCost;
+        valB = b.totalEstimatedCost;
+      } else if (sortBy === 'name') {
+        valA = a.itemName;
+        valB = b.itemName;
+      } else if (sortBy === 'reorderQty') {
+        valA = a.recommendedOrderQty;
+        valB = b.recommendedOrderQty;
+      }
+
+      if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+      if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return result;
+  }, [data, selectedCategory, selectedUrgency, selectedVessel, searchQuery, sortBy, sortOrder]);
+
+  // Checkbox Selection Logic
+  const isAllFilteredSelected = useMemo(() => {
+    if (filteredItems.length === 0) return false;
+    return filteredItems.every((it) => selectedItemIds.has(it.id));
+  }, [filteredItems, selectedItemIds]);
+
+  const handleToggleSelectItem = (id: string) => {
+    setSelectedItemIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleToggleSelectAll = () => {
+    setSelectedItemIds((prev) => {
+      const next = new Set(prev);
+      if (isAllFilteredSelected) {
+        filteredItems.forEach((it) => next.delete(it.id));
+      } else {
+        filteredItems.forEach((it) => next.add(it.id));
+      }
+      return next;
+    });
+  };
+
+  // Pilih semua item dalam kategori tertentu (Per Kategori)
+  const handleSelectByCategory = (catName: string) => {
+    if (!data?.items) return;
+    const catItems = data.items.filter((it) => it.category === catName);
+    setSelectedItemIds((prev) => {
+      const next = new Set(prev);
+      const isAllCatSelected = catItems.every((it) => next.has(it.id));
+      if (isAllCatSelected) {
+        catItems.forEach((it) => next.delete(it.id));
+        showToast?.(`Batal memilih kategori "${catName}".`, 'info');
+      } else {
+        catItems.forEach((it) => next.add(it.id));
+        showToast?.(`✓ ${catItems.length} item kategori "${catName}" berhasil dipilih!`, 'success');
+      }
+      return next;
+    });
+  };
+
+  // Item terpilih dalam array
+  const selectedItemsList = useMemo(() => {
+    if (!data?.items) return [];
+    return data.items.filter((it) => selectedItemIds.has(it.id));
+  }, [data, selectedItemIds]);
+
+  const selectedTotalCost = useMemo(() => {
+    return selectedItemsList.reduce((sum, it) => sum + it.totalEstimatedCost, 0);
+  }, [selectedItemsList]);
+
+  // Buka Modal Pembuatan Paket Pratender
+  const handleOpenCreatePratenderModal = () => {
+    if (selectedItemsList.length === 0) {
+      showToast?.('Pilih setidaknya 1 item yang konfirm untuk dibentuk menjadi paket pratender.', 'warning');
+      return;
+    }
+
+    // Tentukan kategori dominan dari item terpilih
+    const catCount: Record<string, number> = {};
+    const initQtys: Record<string, number> = {};
+    selectedItemsList.forEach((it) => {
+      catCount[it.category] = (catCount[it.category] || 0) + 1;
+      initQtys[it.id] = it.recommendedOrderQty;
+    });
+
+    const dominantCategory = Object.entries(catCount).sort((a, b) => b[1] - a[1])[0]?.[0] || 'General';
+    setPkgCategory(dominantCategory);
+
+    const yearStr = new Date().getFullYear().toString().slice(-2);
+    setPkgTitle(`Paket Pengadaan ${dominantCategory} Armada Q4 20${yearStr}`);
+    setPkgClosingDate(new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10));
+    setPkgNotes('Spesifikasi asli bergaransi resmi, pengiriman langsung ke Gudang Somber / Galangan CPG.');
+    setPkgVendor(selectedItemsList[0]?.suggestedVendor || '');
+    setCustomItemQtys(initQtys);
+
+    setIsCreatePratenderModalOpen(true);
+  };
+
+  // Simpan Paket Pratender Baru ke API
+  const handleConfirmCreatePratenderPackage = async () => {
+    if (!pkgTitle.trim()) {
+      showToast?.('Judul paket tender wajib diisi.', 'warning');
+      return;
+    }
+
+    if (selectedItemsList.length === 0) return;
+
+    setIsSubmittingPkg(true);
+    try {
+      const yearStr = new Date().getFullYear().toString().slice(-2);
+      const randomSeq = String(Math.floor(1000 + Math.random() * 9000));
+      const packageNumber = `CPG-TDR-${yearStr}-${randomSeq}`;
+
+      let calculatedBudget = 0;
+      const packageItems: PratenderPackageItem[] = selectedItemsList.map((item) => {
+        const qty = customItemQtys[item.id] !== undefined ? customItemQtys[item.id] : item.recommendedOrderQty;
+        const targetTotalPrice = qty * item.avgUnitPrice;
+        calculatedBudget += targetTotalPrice;
+
+        return {
+          itemId: item.itemCode || item.id,
+          itemName: item.itemName,
+          category: item.category,
+          satuan: item.unit,
+          totalQty: qty,
+          originalQty: item.totalRequestedQty,
+          targetPrice: item.avgUnitPrice,
+          targetTotalPrice,
+          notes: item.urgencyReason || undefined,
+          vessels: item.requestingVessels,
+          requestFpbs: item.fpbRefs,
+        };
+      });
+
+      const newPkg: PratenderPackage = {
+        id: `pkg-${Date.now()}`,
+        packageNumber,
+        title: pkgTitle.trim(),
+        category: pkgCategory,
+        status: 'DRAFT',
+        createdAt: new Date().toISOString(),
+        createdBy: 'Staf Purchasing & PPIC',
+        targetClosingDate: pkgClosingDate || undefined,
+        description: pkgNotes.trim() || undefined,
+        items: packageItems,
+        totalEstimatedBudget: calculatedBudget,
+        invitedVendors: pkgVendor ? [pkgVendor] : undefined,
+      };
+
+      const res = await fetch('/api/pratender', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'SAVE_PACKAGE',
+          package: newPkg,
+        }),
+      });
+
+      const json = await res.json();
+      if (res.ok && json.success) {
+        showToast?.(`✓ Paket Pratender "${packageNumber}" berhasil dibentuk dan disimpan!`, 'success');
+        setIsCreatePratenderModalOpen(false);
+        setSelectedItemIds(new Set());
+
+        if (onNavigateTab) {
+          onNavigateTab('pratender');
+        }
+      } else {
+        throw new Error(json.error || 'Gagal menyimpan paket pratender.');
+      }
+    } catch (err: any) {
+      showToast?.(err?.message || 'Terjadi kesalahan saat menyimpan paket.', 'error');
+    } finally {
+      setIsSubmittingPkg(false);
+    }
+  };
+
+  // Salin Rangkuman Item Konfirmasi Siap PO
+  const handleCopyPoSummary = async () => {
+    if (selectedItemsList.length === 0) return;
+
+    const lines = [
+      `DAFTAR ITEM KONFIRMASI SIAP PO (PURCHASE PLANNING CPG)`,
+      `Tanggal: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`,
+      `Total Item Terkonfirmasi: ${selectedItemsList.length} item`,
+      `Total Estimasi Anggaran: ${formatRupiah(selectedTotalCost)}`,
+      `============================================================`,
+      ...selectedItemsList.map(
+        (it, idx) =>
+          `${idx + 1}. [${it.itemCode}] ${it.itemName}\n   - Kategori: ${it.category}\n   - Qty Beli: ${it.recommendedOrderQty} ${it.unit}\n   - Est. Biaya: ${formatRupiah(it.totalEstimatedCost)} (@${formatRupiah(it.avgUnitPrice)})\n   - Peminta: ${it.requestingVessels.join(', ')}\n   - Ref FPB: ${it.fpbRefs.join(', ')}\n   - Catatan: ${it.urgencyReason}`
+      ),
+    ];
+
+    try {
+      await navigator.clipboard.writeText(lines.join('\n\n'));
+      showToast?.(`✓ Rincian ${selectedItemsList.length} item siap PO berhasil disalin ke clipboard!`, 'success');
+    } catch {
+      showToast?.('Gagal menyalin rincian PO.', 'error');
+    }
+  };
 
   // Ekspor CSV
   const handleExportCsv = () => {
@@ -244,9 +488,9 @@ export default function PurchasePlanningTab({
   };
 
   return (
-    <div className="space-y-5 animate-in fade-in duration-200">
-      {/* ── HEADER MODUL ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card border border-border p-5 rounded-3xl shadow-xs">
+    <div className="space-y-6 animate-in fade-in-50 duration-200">
+      {/* ── HEADER UTAMA ── */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-3xl bg-card border border-border shadow-xs">
         <div className="space-y-1">
           <div className="flex items-center gap-2.5 flex-wrap">
             <div className="size-10 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
@@ -260,7 +504,7 @@ export default function PurchasePlanningTab({
                 </span>
               </h1>
               <p className="text-xs text-muted-foreground">
-                Kalkulasi otomatis kebutuhan armada lintas kapal, evaluasi stok gudang, dan optimasi diskon volume tender.
+                Kalkulasi otomatis kebutuhan armada lintas kapal, evaluasi stok gudang, dan pembentukan paket Pratender per satuan item atau per kategori.
               </p>
             </div>
           </div>
@@ -333,7 +577,7 @@ export default function PurchasePlanningTab({
               title="Buka modul Pratender Material untuk membuat paket tender bersama"
             >
               <Layers className="size-3.5" />
-              <span>Paket Pratender</span>
+              <span>Menu Pratender</span>
             </button>
           )}
         </div>
@@ -446,6 +690,80 @@ export default function PurchasePlanningTab({
         </div>
       </div>
 
+      {/* ── PILIHAN PER KATEGORI (CATEGORY QUICK SELECTOR BAR) ── */}
+      {data?.categories && data.categories.length > 0 && (
+        <div className="p-4 bg-card border border-border rounded-2xl shadow-xs space-y-2.5">
+          <div className="flex items-center justify-between flex-wrap gap-2 text-xs">
+            <div className="flex items-center gap-1.5 font-bold text-foreground">
+              <Tag className="size-3.5 text-purple-500" />
+              <span>Sortir &amp; Pilih Cepat per Kategori Material:</span>
+            </div>
+            <span className="text-[11px] text-muted-foreground">
+              Klik kategori untuk memfilter, atau gunakan tombol centang untuk memilih satu kategori sekaligus.
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => setSelectedCategory('ALL')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+                selectedCategory === 'ALL'
+                  ? 'bg-primary text-primary-foreground shadow-2xs'
+                  : 'bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground border border-border'
+              }`}
+            >
+              <span>Semua Kategori</span>
+              <span className="font-mono text-[10px] opacity-80 font-bold">({data.items.length})</span>
+            </button>
+
+            {data.categories.map((cat) => {
+              const countInCat = data.items.filter((i) => i.category === cat).length;
+              const isSelectedCat = selectedCategory === cat;
+              const catItems = data.items.filter((i) => i.category === cat);
+              const isAllCatChecked = catItems.length > 0 && catItems.every((it) => selectedItemIds.has(it.id));
+
+              return (
+                <div
+                  key={cat}
+                  className={`inline-flex items-center rounded-xl border text-xs overflow-hidden transition ${
+                    isSelectedCat
+                      ? 'border-primary bg-primary/10 text-primary font-bold ring-1 ring-primary/30'
+                      : 'border-border bg-card text-muted-foreground hover:border-primary/40'
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCategory(isSelectedCat ? 'ALL' : cat)}
+                    className="px-2.5 py-1.5 hover:text-foreground cursor-pointer flex items-center gap-1"
+                    title={`Filter tabel ke kategori ${cat}`}
+                  >
+                    <span>{cat}</span>
+                    <span className="font-mono text-[10px] bg-muted/60 px-1.5 py-0.2 rounded font-bold text-foreground">
+                      {countInCat}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSelectByCategory(cat);
+                    }}
+                    className={`px-2 py-1.5 border-l border-border/80 hover:bg-primary/20 cursor-pointer transition flex items-center justify-center ${
+                      isAllCatChecked ? 'bg-primary text-primary-foreground font-bold' : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    title={isAllCatChecked ? `Batal pilih semua item ${cat}` : `Centang semua ${countInCat} item kategori ${cat}`}
+                  >
+                    {isAllCatChecked ? <Check className="size-3" /> : <Plus className="size-3" />}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* ── FILTER & SEARCH BAR ── */}
       <div className="p-4 bg-card border border-border rounded-2xl shadow-xs space-y-3">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
@@ -472,20 +790,6 @@ export default function PurchasePlanningTab({
 
           {/* Select Filter Group */}
           <div className="flex items-center gap-2 flex-wrap">
-            {/* Filter Kategori Material */}
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="text-xs px-2.5 py-1.5 rounded-xl bg-background border border-border text-foreground font-medium cursor-pointer shadow-2xs focus:outline-hidden focus:ring-1 focus:ring-primary"
-            >
-              <option value="ALL">Semua Kategori ({data?.categories.length || 0})</option>
-              {data?.categories.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-
             {/* Filter Tingkat Urgensi */}
             <div className="inline-flex rounded-xl p-0.5 bg-muted border border-border text-xs">
               <button
@@ -539,9 +843,9 @@ export default function PurchasePlanningTab({
               <select
                 value={selectedVessel}
                 onChange={(e) => setSelectedVessel(e.target.value)}
-                className="text-xs px-2.5 py-1.5 rounded-xl bg-background border border-border text-foreground font-medium cursor-pointer shadow-2xs focus:outline-hidden focus:ring-1 focus:ring-primary"
+                className="text-xs px-2.5 py-1.5 rounded-xl bg-background border border-border text-foreground font-medium cursor-pointer shadow-2xs focus:outline-hidden focus:ring-1 focus:ring-primary max-w-[160px]"
               >
-                <option value="ALL">Semua Armada ({uniqueVessels.length} Kapal)</option>
+                <option value="ALL">Semua Unit ({uniqueVessels.length})</option>
                 {uniqueVessels.map((v) => (
                   <option key={v} value={v}>
                     🚢 {v}
@@ -549,52 +853,159 @@ export default function PurchasePlanningTab({
                 ))}
               </select>
             )}
+
+            {/* Sort Dropdown */}
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="text-xs px-2.5 py-1.5 rounded-xl bg-background border border-border text-foreground font-medium cursor-pointer shadow-2xs focus:outline-hidden focus:ring-1 focus:ring-primary"
+            >
+              <option value="urgency">Urut: Tingkat Urgensi</option>
+              <option value="category">Urut: Kategori Material</option>
+              <option value="cost">Urut: Estimasi Biaya</option>
+              <option value="reorderQty">Urut: Kuantitas Rekomendasi</option>
+              <option value="name">Urut: Nama Barang</option>
+            </select>
+
+            <button
+              type="button"
+              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+              className="p-2 rounded-xl border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition cursor-pointer"
+              title={sortOrder === 'asc' ? 'Urutan Naik (A-Z)' : 'Urutan Turun (Z-A)'}
+            >
+              <ArrowUpDown className="size-3.5" />
+            </button>
           </div>
         </div>
       </div>
 
+      {/* ── FLOATING SELECTION ACTION BAR (PILIHAN PERSATUAN ITEM & PER KATEGORI) ── */}
+      {selectedItemIds.size > 0 && (
+        <div className="sticky bottom-4 z-30 p-4 rounded-2xl bg-card/95 backdrop-blur-md border-2 border-primary/50 shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-3 animate-in slide-in-from-bottom-4 duration-200">
+          <div className="flex items-center gap-3">
+            <div className="size-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shrink-0 font-mono font-bold text-sm shadow-sm">
+              {selectedItemIds.size}
+            </div>
+            <div>
+              <div className="text-xs font-bold text-foreground flex items-center gap-2 flex-wrap">
+                <span>{selectedItemIds.size} Item Terkonfirmasi Dipilih untuk PO / Pratender</span>
+                <span className="text-primary font-mono text-sm font-black">
+                  {formatRupiah(selectedTotalCost)}
+                </span>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                Item-item ini siap dibentuk langsung menjadi paket Pratender tender bersama atau diteruskan ke penerbitan PO.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap shrink-0">
+            {/* Tombol Bentuk Paket Pratender */}
+            <button
+              type="button"
+              onClick={handleOpenCreatePratenderModal}
+              className="px-4 py-2 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-md active:scale-98"
+              title="Bentuk paket pratender resmi dari item terpilih"
+            >
+              <Package className="size-4" />
+              <span>Bentuk Paket Pratender ({selectedItemIds.size})</span>
+            </button>
+
+            {/* Tombol Salin Ringkasan PO */}
+            <button
+              type="button"
+              onClick={handleCopyPoSummary}
+              className="px-3.5 py-2 rounded-xl border border-border bg-background hover:bg-muted text-foreground text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
+              title="Salin rincian item siap PO ke clipboard untuk pengadaan"
+            >
+              <Copy className="size-3.5 text-blue-500" />
+              <span>Salin Daftar Siap PO</span>
+            </button>
+
+            {/* Tombol Batal */}
+            <button
+              type="button"
+              onClick={() => setSelectedItemIds(new Set())}
+              className="px-3 py-2 rounded-xl border border-border bg-background hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 text-xs font-semibold transition cursor-pointer flex items-center gap-1"
+              title="Batalkan semua pilihan item"
+            >
+              <X className="size-3.5" />
+              <span>Batal</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ── SMART REORDER MATRIX TABLE ── */}
       <div className="bg-card border border-border rounded-3xl shadow-xs overflow-hidden">
         <div className="px-5 py-3.5 bg-muted/40 border-b border-border flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs font-bold text-foreground">
               Tabel Matriks Rekomendasi Pengadaan ({filteredItems.length} Item)
             </span>
             <span className="text-[10px] text-muted-foreground">
-              &bull; Perhitungan Net Demand Terintegrasi
+              &bull; Centang item untuk konfirmasi PO &amp; Pratender
             </span>
           </div>
 
-          <span className="text-[11px] text-muted-foreground font-mono">
-            {filteredItems.length} dari {data?.items.length || 0} item ditampilkan
-          </span>
+          <div className="flex items-center gap-3 text-xs">
+            <button
+              type="button"
+              onClick={handleToggleSelectAll}
+              className="text-xs font-semibold text-primary hover:underline flex items-center gap-1 cursor-pointer"
+            >
+              {isAllFilteredSelected ? (
+                <>
+                  <CheckSquare className="size-3.5" />
+                  <span>Batal Pilih Semua</span>
+                </>
+              ) : (
+                <>
+                  <Square className="size-3.5" />
+                  <span>Pilih Semua yang Tampil ({filteredItems.length})</span>
+                </>
+              )}
+            </button>
+            <span className="text-muted-foreground font-mono text-[11px]">
+              {selectedItemIds.size} terpilih
+            </span>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-muted/60 text-muted-foreground text-[11px] border-b border-border">
               <tr>
-                <th className="py-3 px-4 font-semibold min-w-[200px]">Item &amp; Kode Barang</th>
+                <th className="py-3 px-3 w-10 text-center">
+                  <input
+                    type="checkbox"
+                    checked={isAllFilteredSelected}
+                    onChange={handleToggleSelectAll}
+                    className="size-4 rounded border-border text-primary cursor-pointer accent-primary"
+                    title={isAllFilteredSelected ? 'Batal pilih semua' : 'Pilih semua item yang tampil'}
+                  />
+                </th>
+                <th className="py-3 px-3 font-semibold min-w-[200px]">Item &amp; Kode Barang</th>
                 <th className="py-3 px-3 font-semibold min-w-[130px]">Kategori</th>
                 <th className="py-3 px-3 font-semibold text-center min-w-[140px]">Stok vs Kebutuhan</th>
                 <th className="py-3 px-3 font-semibold text-center min-w-[110px]">Rekomendasi Beli</th>
-                <th className="py-3 px-3 font-semibold min-w-[160px]">Armada yang Meminta</th>
+                <th className="py-3 px-3 font-semibold min-w-[160px]">Unit / Armada Peminta</th>
                 <th className="py-3 px-3 font-semibold text-right min-w-[130px]">Estimasi Biaya</th>
                 <th className="py-3 px-3 font-semibold text-center min-w-[100px]">Urgensi</th>
-                <th className="py-3 px-4 font-semibold text-center min-w-[80px]">Aksi</th>
+                <th className="py-3 px-3 font-semibold text-center min-w-[70px]">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {isLoading ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-muted-foreground space-y-2">
+                  <td colSpan={9} className="py-12 text-center text-muted-foreground space-y-2">
                     <Loader2 className="size-6 animate-spin text-primary mx-auto" />
                     <p className="text-xs font-medium">Menganalisis data kebutuhan pengadaan...</p>
                   </td>
                 </tr>
               ) : filteredItems.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-muted-foreground space-y-2">
+                  <td colSpan={9} className="py-12 text-center text-muted-foreground space-y-2">
                     <Package className="size-8 text-muted-foreground/40 mx-auto" />
                     <p className="text-xs font-semibold text-foreground">Tidak ada item pengadaan yang sesuai</p>
                     <p className="text-[11px] text-muted-foreground">Coba ubah kriteria filter atau pencarian Anda.</p>
@@ -604,15 +1015,30 @@ export default function PurchasePlanningTab({
                 filteredItems.map((item) => {
                   const isCritical = item.urgency === 'CRITICAL';
                   const isReorder = item.urgency === 'REORDER';
+                  const isChecked = selectedItemIds.has(item.id);
 
                   return (
                     <tr
                       key={item.id}
-                      className="hover:bg-muted/30 transition cursor-pointer"
-                      onClick={() => setSelectedItemDetail(item)}
+                      className={`transition cursor-pointer ${
+                        isChecked
+                          ? 'bg-primary/5 hover:bg-primary/10'
+                          : 'hover:bg-muted/30'
+                      }`}
+                      onClick={() => handleToggleSelectItem(item.id)}
                     >
+                      {/* Checkbox Persatuan Item */}
+                      <td className="py-3 px-3 text-center" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => handleToggleSelectItem(item.id)}
+                          className="size-4 rounded border-border text-primary cursor-pointer accent-primary"
+                        />
+                      </td>
+
                       {/* 1. Item Name & Code */}
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-3">
                         <div className="font-bold text-foreground text-xs leading-snug">
                           {item.itemName}
                         </div>
@@ -660,7 +1086,7 @@ export default function PurchasePlanningTab({
                         </span>
                       </td>
 
-                      {/* 5. Requesting Vessels */}
+                      {/* 5. Requesting Vessels / Unit */}
                       <td className="py-3 px-3">
                         <div className="flex items-center gap-1 flex-wrap max-w-xs">
                           {item.requestingVessels.slice(0, 2).map((v) => (
@@ -674,7 +1100,7 @@ export default function PurchasePlanningTab({
                           ))}
                           {item.requestingVessels.length > 2 && (
                             <span className="text-[10px] text-muted-foreground font-semibold">
-                              +{item.requestingVessels.length - 2} Kapal
+                              +{item.requestingVessels.length - 2} Unit
                             </span>
                           )}
                         </div>
@@ -708,7 +1134,7 @@ export default function PurchasePlanningTab({
                       </td>
 
                       {/* 8. Action Button */}
-                      <td className="py-3 px-4 text-center" onClick={(e) => e.stopPropagation()}>
+                      <td className="py-3 px-3 text-center" onClick={(e) => e.stopPropagation()}>
                         <button
                           type="button"
                           onClick={() => setSelectedItemDetail(item)}
@@ -727,144 +1153,344 @@ export default function PurchasePlanningTab({
         </div>
       </div>
 
-      {/* ── MODAL RINCIAN DETAIL ANALISIS PENGADAAN ── */}
-      {selectedItemDetail && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 animate-in fade-in duration-150">
-          <div className="bg-card border border-border rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
+      {/* ── MODAL: BENTUK PAKET PRATENDER DARI ITEM TERPILIH ── */}
+      {isCreatePratenderModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xs">
+          <div className="bg-card border border-border rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
             {/* Modal Header */}
-            <div className="px-6 py-4 bg-muted/60 border-b border-border flex items-center justify-between gap-3 shrink-0">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="size-9 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
-                  <TrendingUp className="size-4.5" />
+            <div className="p-5 border-b border-border bg-gradient-to-r from-purple-500/10 via-card to-card flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30">
+                  <Package className="size-5" />
                 </div>
-                <div className="min-w-0">
-                  <h3 className="text-sm font-bold text-foreground truncate">
-                    Detail Perencanaan: {selectedItemDetail.itemName}
+                <div>
+                  <h3 className="text-sm font-bold text-foreground">
+                    Bentuk Paket Pratender Baru ({selectedItemsList.length} Item Terpilih)
                   </h3>
-                  <p className="text-[11px] text-muted-foreground font-mono">
-                    Part Code: {selectedItemDetail.itemCode} &bull; {selectedItemDetail.category}
+                  <p className="text-xs text-muted-foreground">
+                    Paket ini akan diterbitkan ke modul Pratender Material untuk proses Request for Quotation (RFQ) ke vendor.
                   </p>
                 </div>
               </div>
 
               <button
                 type="button"
-                onClick={() => setSelectedItemDetail(null)}
-                className="size-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted flex items-center justify-center transition cursor-pointer"
+                onClick={() => setIsCreatePratenderModalOpen(false)}
+                className="p-1 rounded-lg text-muted-foreground hover:text-foreground transition cursor-pointer"
               >
                 <X className="size-5" />
               </button>
             </div>
 
-            {/* Modal Content */}
-            <div className="p-6 space-y-4 overflow-y-auto min-h-0 text-xs">
-              {/* Alasan Urgensi Callout */}
-              <div
-                className={`p-3.5 rounded-2xl border ${
-                  selectedItemDetail.urgency === 'CRITICAL'
-                    ? 'bg-rose-500/10 border-rose-500/30 text-rose-800 dark:text-rose-300'
-                    : selectedItemDetail.urgency === 'REORDER'
-                    ? 'bg-amber-500/10 border-amber-500/30 text-amber-800 dark:text-amber-300'
-                    : 'bg-blue-500/10 border-blue-500/30 text-blue-800 dark:text-blue-300'
-                }`}
-              >
-                <div className="flex items-start gap-2">
-                  <AlertTriangle className="size-4 shrink-0 mt-0.5" />
-                  <div>
-                    <span className="font-bold">Analisis Urgensi: </span>
-                    <span>{selectedItemDetail.urgencyReason}</span>
-                  </div>
+            {/* Modal Body */}
+            <div className="p-5 overflow-y-auto space-y-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                {/* Judul Paket */}
+                <div className="sm:col-span-2 space-y-1">
+                  <label className="font-semibold text-foreground">Judul Paket Pengadaan / Tender *</label>
+                  <input
+                    type="text"
+                    value={pkgTitle}
+                    onChange={(e) => setPkgTitle(e.target.value)}
+                    placeholder="Contoh: Paket Pengadaan Mooring Rope Q4 2026 Armada"
+                    className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground text-xs font-medium focus:ring-1 focus:ring-primary focus:outline-hidden"
+                  />
+                </div>
+
+                {/* Kategori Paket */}
+                <div className="space-y-1">
+                  <label className="font-semibold text-foreground">Kategori Material *</label>
+                  <select
+                    value={pkgCategory}
+                    onChange={(e) => setPkgCategory(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground text-xs font-medium focus:ring-1 focus:ring-primary focus:outline-hidden cursor-pointer"
+                  >
+                    {data?.categories.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                    <option value="Konsolidasi Lintas Kategori">Konsolidasi Lintas Kategori</option>
+                  </select>
+                </div>
+
+                {/* Target Closing RFQ */}
+                <div className="space-y-1">
+                  <label className="font-semibold text-foreground">Batas Waktu Penawaran (Closing Date)</label>
+                  <input
+                    type="date"
+                    value={pkgClosingDate}
+                    onChange={(e) => setPkgClosingDate(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground text-xs font-medium focus:ring-1 focus:ring-primary focus:outline-hidden"
+                  />
+                </div>
+
+                {/* Rekomendasi Vendor */}
+                <div className="sm:col-span-2 space-y-1">
+                  <label className="font-semibold text-foreground">Rekomendasi Vendor / Rekanan Utama</label>
+                  <input
+                    type="text"
+                    value={pkgVendor}
+                    onChange={(e) => setPkgVendor(e.target.value)}
+                    placeholder="Contoh: PT. Samudra Tali Indo / Distributor Resmi"
+                    className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground text-xs font-medium focus:ring-1 focus:ring-primary focus:outline-hidden"
+                  />
+                </div>
+
+                {/* Catatan / Keterangan */}
+                <div className="sm:col-span-2 space-y-1">
+                  <label className="font-semibold text-foreground">Catatan Spesifikasi Pengadaan</label>
+                  <textarea
+                    rows={2}
+                    value={pkgNotes}
+                    onChange={(e) => setPkgNotes(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground text-xs font-medium focus:ring-1 focus:ring-primary focus:outline-hidden resize-none"
+                  />
                 </div>
               </div>
 
-              {/* Grid Metrik Angka */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center">
-                <div className="p-3 rounded-xl bg-muted/50 border border-border">
-                  <span className="text-[10px] text-muted-foreground">Stok Somber</span>
-                  <div className="text-base font-bold text-foreground mt-0.5">
+              {/* Tabel Item yang Masuk Paket */}
+              <div className="space-y-2 pt-2 border-t border-border">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-foreground">Rincian Item yang Masuk dalam Paket:</span>
+                  <span className="font-mono text-primary font-bold">
+                    Est. Total Anggaran: {formatRupiah(selectedTotalCost)}
+                  </span>
+                </div>
+
+                <div className="border border-border rounded-xl overflow-hidden max-h-48 overflow-y-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-muted/60 text-muted-foreground text-[10px] border-b border-border">
+                      <tr>
+                        <th className="py-2 px-3">Nama Barang</th>
+                        <th className="py-2 px-2 text-center">Satuan</th>
+                        <th className="py-2 px-2 text-center">Qty Beli</th>
+                        <th className="py-2 px-3 text-right">Harga Satuan</th>
+                        <th className="py-2 px-3 text-right">Total Est.</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {selectedItemsList.map((item) => {
+                        const currentQty =
+                          customItemQtys[item.id] !== undefined
+                            ? customItemQtys[item.id]
+                            : item.recommendedOrderQty;
+                        const subtotal = currentQty * item.avgUnitPrice;
+
+                        return (
+                          <tr key={item.id} className="hover:bg-muted/20">
+                            <td className="py-2 px-3">
+                              <div className="font-semibold text-foreground">{item.itemName}</div>
+                              <div className="text-[10px] text-muted-foreground font-mono">{item.itemCode}</div>
+                            </td>
+                            <td className="py-2 px-2 text-center text-muted-foreground">{item.unit}</td>
+                            <td className="py-2 px-2 text-center">
+                              <input
+                                type="number"
+                                min={1}
+                                value={currentQty}
+                                onChange={(e) => {
+                                  const val = Math.max(1, parseInt(e.target.value, 10) || 1);
+                                  setCustomItemQtys((prev) => ({ ...prev, [item.id]: val }));
+                                }}
+                                className="w-16 px-1.5 py-1 rounded-md border border-border text-center font-mono font-bold text-xs"
+                              />
+                            </td>
+                            <td className="py-2 px-3 text-right font-mono text-muted-foreground">
+                              {formatRupiah(item.avgUnitPrice)}
+                            </td>
+                            <td className="py-2 px-3 text-right font-mono font-bold text-foreground">
+                              {formatRupiah(subtotal)}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-border bg-muted/40 flex items-center justify-between gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsCreatePratenderModalOpen(false)}
+                disabled={isSubmittingPkg}
+                className="px-4 py-2 rounded-xl border border-border bg-background hover:bg-muted text-foreground text-xs font-semibold cursor-pointer transition"
+              >
+                Batal
+              </button>
+
+              <button
+                type="button"
+                onClick={handleConfirmCreatePratenderPackage}
+                disabled={isSubmittingPkg || !pkgTitle.trim()}
+                className="px-5 py-2 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold flex items-center gap-1.5 cursor-pointer transition shadow-md disabled:opacity-60"
+              >
+                {isSubmittingPkg ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    <span>Menerbitkan Paket...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="size-4" />
+                    <span>Terbitkan Paket Pratender</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL DETAIL ITEM TUNGGAL ── */}
+      {selectedItemDetail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xs">
+          <div className="bg-card border border-border rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+            {/* Modal Header */}
+            <div className="p-6 border-b border-border flex items-start justify-between gap-4 shrink-0">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-mono text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground font-bold">
+                    {selectedItemDetail.itemCode}
+                  </span>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 font-semibold border border-indigo-500/20">
+                    {selectedItemDetail.category}
+                  </span>
+                </div>
+                <h3 className="text-base font-bold text-foreground">
+                  {selectedItemDetail.itemName}
+                </h3>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setSelectedItemDetail(null)}
+                className="p-1 rounded-lg text-muted-foreground hover:text-foreground transition cursor-pointer"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto space-y-5 text-xs">
+              {/* Urgency Alert Box */}
+              <div
+                className={`p-4 rounded-2xl border flex items-start gap-3 ${
+                  selectedItemDetail.urgency === 'CRITICAL'
+                    ? 'bg-rose-500/10 border-rose-500/30 text-rose-800 dark:text-rose-200'
+                    : selectedItemDetail.urgency === 'REORDER'
+                    ? 'bg-amber-500/10 border-amber-500/30 text-amber-800 dark:text-amber-200'
+                    : 'bg-blue-500/10 border-blue-500/30 text-blue-800 dark:text-blue-200'
+                }`}
+              >
+                <div className="shrink-0 mt-0.5">
+                  {selectedItemDetail.urgency === 'CRITICAL' ? (
+                    <AlertTriangle className="size-4 text-rose-500" />
+                  ) : selectedItemDetail.urgency === 'REORDER' ? (
+                    <Clock className="size-4 text-amber-500" />
+                  ) : (
+                    <Info className="size-4 text-blue-500" />
+                  )}
+                </div>
+                <div>
+                  <div className="font-bold">
+                    Status: {selectedItemDetail.urgency === 'CRITICAL' ? 'Prioritas Kritis (Mendesak)' : selectedItemDetail.urgency === 'REORDER' ? 'Perlu Dipesan Ulang (ROP)' : 'Pengadaan Terencana'}
+                  </div>
+                  <p className="mt-1 leading-relaxed opacity-90">{selectedItemDetail.urgencyReason}</p>
+                </div>
+              </div>
+
+              {/* 4 Cards Ringkasan Kuantitas */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                <div className="p-3 rounded-xl bg-muted/30 border border-border text-center">
+                  <div className="text-[10px] text-muted-foreground font-semibold">Stok Saat Ini</div>
+                  <div className="text-lg font-black text-foreground mt-0.5 font-mono">
                     {selectedItemDetail.currentStock} {selectedItemDetail.unit}
                   </div>
                 </div>
-                <div className="p-3 rounded-xl bg-muted/50 border border-border">
-                  <span className="text-[10px] text-muted-foreground">Total Butuh</span>
-                  <div className="text-base font-bold text-indigo-600 dark:text-indigo-400 mt-0.5">
+
+                <div className="p-3 rounded-xl bg-muted/30 border border-border text-center">
+                  <div className="text-[10px] text-muted-foreground font-semibold">Total Diminta</div>
+                  <div className="text-lg font-black text-indigo-600 dark:text-indigo-400 mt-0.5 font-mono">
                     {selectedItemDetail.totalRequestedQty} {selectedItemDetail.unit}
                   </div>
                 </div>
-                <div className="p-3 rounded-xl bg-muted/50 border border-border">
-                  <span className="text-[10px] text-muted-foreground">Rekomendasi Beli</span>
-                  <div className="text-base font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
+
+                <div className="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/30 text-center">
+                  <div className="text-[10px] text-indigo-700 dark:text-indigo-300 font-bold">Rekomendasi Beli</div>
+                  <div className="text-lg font-black text-indigo-700 dark:text-indigo-300 mt-0.5 font-mono">
                     +{selectedItemDetail.recommendedOrderQty} {selectedItemDetail.unit}
                   </div>
                 </div>
-                <div className="p-3 rounded-xl bg-muted/50 border border-border">
-                  <span className="text-[10px] text-muted-foreground">Estimasi Lead Time</span>
-                  <div className="text-base font-bold text-foreground mt-0.5">
+
+                <div className="p-3 rounded-xl bg-muted/30 border border-border text-center">
+                  <div className="text-[10px] text-muted-foreground font-semibold">Lead Time</div>
+                  <div className="text-lg font-black text-foreground mt-0.5 font-mono">
                     ~{selectedItemDetail.leadTimeDays} Hari
                   </div>
                 </div>
               </div>
 
-              {/* Biaya & Potensi Hemat */}
-              <div className="p-3.5 rounded-2xl bg-muted/40 border border-border flex items-center justify-between flex-wrap gap-3">
-                <div>
-                  <span className="text-[10px] text-muted-foreground">Estimasi Total Biaya</span>
-                  <div className="text-base font-black text-foreground">
-                    {formatRupiah(selectedItemDetail.totalEstimatedCost)}
+              {/* Estimasi Keuangan & Diskon Bulk */}
+              <div className="p-4 rounded-2xl bg-muted/20 border border-border space-y-2.5">
+                <div className="font-bold text-foreground">Analisis Biaya &amp; Efisiensi Pengadaan Kolektif:</div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                  <div>
+                    <span className="text-muted-foreground">Harga Satuan Wajar:</span>
+                    <div className="font-mono font-bold text-foreground">{formatRupiah(selectedItemDetail.avgUnitPrice)}</div>
                   </div>
-                  <span className="text-[10px] text-muted-foreground">
-                    @{formatRupiah(selectedItemDetail.avgUnitPrice)} per {selectedItemDetail.unit}
-                  </span>
-                </div>
-
-                <div className="text-right">
-                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">
-                    Potensi Hemat Skala Bulk ({selectedItemDetail.potentialBulkDiscount}%)
-                  </span>
-                  <div className="text-base font-black text-emerald-600 dark:text-emerald-400">
-                    {formatRupiah(selectedItemDetail.potentialSavingsAmount)}
+                  <div>
+                    <span className="text-muted-foreground">Total Anggaran Dibutuhkan:</span>
+                    <div className="font-mono font-bold text-foreground">{formatRupiah(selectedItemDetail.totalEstimatedCost)}</div>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Estimasi Diskon Borongan:</span>
+                    <div className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                      {selectedItemDetail.potentialBulkDiscount}% ({formatRupiah(selectedItemDetail.potentialSavingsAmount)})
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Daftar Armada yang Membutuhkan */}
-              <div className="space-y-1.5">
-                <span className="font-bold text-foreground flex items-center gap-1.5">
-                  <Ship className="size-3.5 text-blue-500" />
-                  <span>Armada Kapal yang Mengajukan ({selectedItemDetail.requestingVessels.length} Kapal):</span>
-                </span>
-                <div className="flex items-center gap-1.5 flex-wrap">
+              {/* Armada & Nomor FPB Peminta */}
+              <div className="space-y-2">
+                <div className="font-bold text-foreground">Armada / Unit Peminta ({selectedItemDetail.requestingVessels.length} Unit):</div>
+                <div className="flex flex-wrap gap-1.5">
                   {selectedItemDetail.requestingVessels.map((v) => (
                     <span
                       key={v}
-                      className="px-2.5 py-1 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-700 dark:text-blue-300 font-semibold"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-700 dark:text-blue-300 font-semibold"
                     >
-                      🚢 {v}
+                      <Ship className="size-3" />
+                      <span>{v}</span>
                     </span>
                   ))}
                 </div>
               </div>
 
-              {/* Referensi FPB */}
-              <div className="space-y-1.5">
-                <span className="font-bold text-foreground">Nomor FPB Pemohon:</span>
-                <div className="flex items-center gap-1.5 flex-wrap font-mono text-[11px]">
+              {/* Referensi Nomor FPB */}
+              <div className="space-y-2">
+                <div className="font-bold text-foreground">Referensi Nomor FPB Terbuka ({selectedItemDetail.fpbRefs.length} FPB):</div>
+                <div className="flex flex-wrap gap-1.5">
                   {selectedItemDetail.fpbRefs.map((f) => (
-                    <span key={f} className="px-2 py-0.5 rounded bg-muted border border-border text-foreground">
+                    <span
+                      key={f}
+                      className="font-mono text-[11px] px-2 py-0.5 rounded bg-muted border border-border text-foreground font-semibold"
+                    >
                       {f}
                     </span>
                   ))}
                 </div>
               </div>
 
-              {/* Rekomendasi Vendor */}
+              {/* Vendor Rekomendasi */}
               {selectedItemDetail.suggestedVendor && (
-                <div className="p-3 rounded-xl bg-card border border-border flex items-center gap-2">
-                  <Building2 className="size-4 text-muted-foreground shrink-0" />
-                  <div>
-                    <span className="text-[10px] text-muted-foreground">Rekomendasi Rekanan / Vendor Terdaftar:</span>
-                    <p className="font-bold text-foreground text-xs">{selectedItemDetail.suggestedVendor}</p>
-                  </div>
+                <div className="p-3 rounded-xl bg-card border border-border space-y-1">
+                  <div className="text-[10px] text-muted-foreground font-semibold">Vendor / Distributor Rekomendasi:</div>
+                  <div className="font-bold text-foreground">{selectedItemDetail.suggestedVendor}</div>
                 </div>
               )}
             </div>
@@ -879,19 +1505,47 @@ export default function PurchasePlanningTab({
                 Tutup
               </button>
 
-              {onNavigateTab && (
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => {
+                    handleToggleSelectItem(selectedItemDetail.id);
                     setSelectedItemDetail(null);
-                    onNavigateTab('pratender');
+                    showToast?.(`Item "${selectedItemDetail.itemName}" telah ditandai untuk paket PO/Pratender.`, 'success');
                   }}
-                  className="px-4 py-1.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold flex items-center gap-1.5 cursor-pointer transition shadow-xs"
+                  className={`px-3 py-1.5 rounded-xl border font-bold flex items-center gap-1 cursor-pointer transition ${
+                    selectedItemIds.has(selectedItemDetail.id)
+                      ? 'border-rose-500/40 bg-rose-500/10 text-rose-600'
+                      : 'border-primary/40 bg-primary/10 text-primary'
+                  }`}
                 >
-                  <span>Proses ke Pratender</span>
-                  <ArrowRight className="size-3.5" />
+                  {selectedItemIds.has(selectedItemDetail.id) ? (
+                    <>
+                      <X className="size-3.5" />
+                      <span>Batal Centang</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="size-3.5" />
+                      <span>Centang Item Ini</span>
+                    </>
+                  )}
                 </button>
-              )}
+
+                {onNavigateTab && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedItemDetail(null);
+                      onNavigateTab('pratender');
+                    }}
+                    className="px-4 py-1.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold flex items-center gap-1.5 cursor-pointer transition shadow-xs"
+                  >
+                    <span>Buka Pratender</span>
+                    <ArrowRight className="size-3.5" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
