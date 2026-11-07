@@ -1288,12 +1288,15 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
                 onChange={(e) => setSelectedPtBudi(e.target.value)}
                 className="h-8 px-2.5 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
               >
-                <option value="ALL">Semua PT / Entitas</option>
-                <option value="CPL">CPL (Cindara)</option>
+                <option value="ALL">Semua PT / Entitas (8)</option>
+                <option value="CPL">CPL (Cindara Pratama Lines)</option>
+                <option value="PPI">PPI (Petro Perkasa Indonesia)</option>
                 <option value="HL">HL (Hana Lines)</option>
-                <option value="MO">MO (Mandar)</option>
-                <option value="GAJ">GAJ (Galangan)</option>
-                <option value="MIL">MIL (Mapan)</option>
+                <option value="GAJ">GAJ (Galangan Aliran Jaya)</option>
+                <option value="MIL">MIL (Mapan Indonesia Lines)</option>
+                <option value="SP">SP (Sinar Pasifik)</option>
+                <option value="SSK">SSK (Sinar Surya Konstruksi)</option>
+                <option value="MO">MO (Mandar Ocean)</option>
               </select>
 
               <select
@@ -2074,11 +2077,14 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
                   className="w-full h-9 px-3 rounded-lg border border-border bg-background text-xs font-medium focus:outline-none focus:ring-1 focus:ring-emerald-500"
                 >
                   <option value="HOLDING">HOLDING (CPG)</option>
-                  <option value="CPL">CPL (Cindara)</option>
+                  <option value="CPL">CPL (Cindara Pratama Lines)</option>
+                  <option value="PPI">PPI (Petro Perkasa Indonesia)</option>
                   <option value="HL">HL (Hana Lines)</option>
+                  <option value="GAJ">GAJ (Galangan Aliran Jaya)</option>
+                  <option value="MIL">MIL (Mapan Indonesia Lines)</option>
+                  <option value="SP">SP (Sinar Pasifik)</option>
+                  <option value="SSK">SSK (Sinar Surya Konstruksi)</option>
                   <option value="MO">MO (Mandar Ocean)</option>
-                  <option value="GAJ">GAJ (Galangan)</option>
-                  <option value="MIL">MIL (Mapan)</option>
                 </select>
               </div>
             </div>
@@ -2304,12 +2310,15 @@ export default function WarehouseStockTab({ showToast }: WarehouseStockTabProps)
                   onChange={(e) => setOutboundForm({ ...outboundForm, entitas: e.target.value as any })}
                   className="w-full h-9 px-3 rounded-lg border border-border bg-background text-xs font-medium focus:outline-none focus:ring-1 focus:ring-amber-500"
                 >
-                  <option value="CPL">CPL (Cindara)</option>
-                  <option value="HL">HL (Hana Lines)</option>
-                  <option value="MO">MO (Mandar Ocean)</option>
-                  <option value="GAJ">GAJ (Galangan)</option>
-                  <option value="MIL">MIL (Mapan)</option>
                   <option value="HOLDING">HOLDING (CPG)</option>
+                  <option value="CPL">CPL (Cindara Pratama Lines)</option>
+                  <option value="PPI">PPI (Petro Perkasa Indonesia)</option>
+                  <option value="HL">HL (Hana Lines)</option>
+                  <option value="GAJ">GAJ (Galangan Aliran Jaya)</option>
+                  <option value="MIL">MIL (Mapan Indonesia Lines)</option>
+                  <option value="SP">SP (Sinar Pasifik)</option>
+                  <option value="SSK">SSK (Sinar Surya Konstruksi)</option>
+                  <option value="MO">MO (Mandar Ocean)</option>
                 </select>
               </div>
             </div>

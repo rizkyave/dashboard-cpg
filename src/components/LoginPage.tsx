@@ -83,10 +83,13 @@ const SAVED_USERNAME_KEY = 'CPG_AUTH_SAVED_USERNAME_V2';
 
 const ENTITIES = [
   { code: 'CPL', name: 'PT Cindara Pratama Lines', color: 'from-emerald-500/20 to-teal-500/20 text-emerald-400 border-emerald-500/30' },
-  { code: 'GAJ', name: 'PT Galangan Aliran Jaya', color: 'from-blue-500/20 to-cyan-500/20 text-cyan-400 border-cyan-500/30' },
-  { code: 'MO', name: 'PT Mandar Ocean', color: 'from-indigo-500/20 to-blue-500/20 text-blue-400 border-blue-500/30' },
-  { code: 'SP', name: 'PT Sinar Pasifik', color: 'from-amber-500/20 to-orange-500/20 text-amber-400 border-amber-500/30' },
+  { code: 'PPI', name: 'PT Petro Perkasa Indonesia', color: 'from-rose-500/20 to-red-500/20 text-rose-400 border-rose-500/30' },
   { code: 'HL', name: 'PT Hana Lines', color: 'from-purple-500/20 to-pink-500/20 text-purple-400 border-purple-500/30' },
+  { code: 'GAJ', name: 'PT Galangan Aliran Jaya', color: 'from-blue-500/20 to-cyan-500/20 text-cyan-400 border-cyan-500/30' },
+  { code: 'MIL', name: 'PT Mapan Indonesia Lines', color: 'from-teal-500/20 to-emerald-500/20 text-teal-400 border-teal-500/30' },
+  { code: 'SP', name: 'PT Sinar Pasifik', color: 'from-amber-500/20 to-orange-500/20 text-amber-400 border-amber-500/30' },
+  { code: 'SSK', name: 'PT Sinar Surya Konstruksi', color: 'from-orange-500/20 to-yellow-500/20 text-orange-400 border-orange-500/30' },
+  { code: 'MO', name: 'PT Mandar Ocean', color: 'from-indigo-500/20 to-blue-500/20 text-blue-400 border-blue-500/30' },
 ];
 
 export default function LoginPage({ onSuccess }: LoginPageProps) {

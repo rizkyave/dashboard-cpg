@@ -93,6 +93,7 @@ export default function NewRecordModal({
               <option value="MIL">MIL - PT Mapan Indonesia Lines</option>
               <option value="SP">SP - PT Sinar Pasifik</option>
               <option value="SSK">SSK - PT Sinar Surya Konstruksi</option>
+              <option value="MO">MO - PT Mandar Ocean</option>
             </select>
           </div>
 

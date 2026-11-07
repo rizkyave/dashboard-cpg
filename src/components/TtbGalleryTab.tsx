@@ -335,11 +335,15 @@ export default function TtbGalleryTab({ showToast }: TtbGalleryTabProps) {
               onChange={(e) => setSelectedPrefix(e.target.value)}
               className="flex-1 h-9 px-2.5 rounded-lg border border-border bg-background text-xs font-mono text-foreground focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
             >
-              <option value="ALL">Semua Perusahaan</option>
-              <option value="CPL">CPL (Cindara Pratama)</option>
-              <option value="GAJ">GAJ (Gunung Arjuna)</option>
-              <option value="MO">MO (Mandar Ocean)</option>
+              <option value="ALL">Semua Perusahaan (8)</option>
+              <option value="CPL">CPL (Cindara Pratama Lines)</option>
+              <option value="PPI">PPI (Petro Perkasa Indonesia)</option>
               <option value="HL">HL (Hana Lines)</option>
+              <option value="GAJ">GAJ (Galangan Aliran Jaya)</option>
+              <option value="MIL">MIL (Mapan Indonesia Lines)</option>
+              <option value="SP">SP (Sinar Pasifik)</option>
+              <option value="SSK">SSK (Sinar Surya Konstruksi)</option>
+              <option value="MO">MO (Mandar Ocean)</option>
             </select>
           </div>
         </div>
@@ -585,10 +589,13 @@ export default function TtbGalleryTab({ showToast }: TtbGalleryTabProps) {
                     className="col-span-4 h-9 px-2 rounded-lg border border-border bg-background text-xs font-mono font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                   >
                     <option value="CPL">CPL</option>
-                    <option value="GAJ">GAJ</option>
-                    <option value="MO">MO</option>
-                    <option value="HL">HL</option>
                     <option value="PPI">PPI</option>
+                    <option value="HL">HL</option>
+                    <option value="GAJ">GAJ</option>
+                    <option value="MIL">MIL</option>
+                    <option value="SP">SP</option>
+                    <option value="SSK">SSK</option>
+                    <option value="MO">MO</option>
                   </select>
                   <div className="col-span-8 relative">
                     <input

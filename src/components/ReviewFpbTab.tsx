@@ -86,12 +86,15 @@ interface ReviewFpbTabProps {
 }
 
 const ENTITY_OPTIONS = [
-  { code: 'ALL', label: 'Semua Entitas' },
+  { code: 'ALL', label: 'Semua Entitas (8)' },
   { code: 'CPL', label: 'CPL (Cindara Pratama Lines)' },
-  { code: 'MO', label: 'MO (Mandar Ocean)' },
-  { code: 'GAJ', label: 'GAJ (Galangan Aliran Jaya)' },
+  { code: 'PPI', label: 'PPI (Petro Perkasa Indonesia)' },
   { code: 'HL', label: 'HL (Hana Lines)' },
+  { code: 'GAJ', label: 'GAJ (Galangan Aliran Jaya)' },
+  { code: 'MIL', label: 'MIL (Mapan Indonesia Lines)' },
   { code: 'SP', label: 'SP (Sinar Pasifik)' },
+  { code: 'SSK', label: 'SSK (Sinar Surya Konstruksi)' },
+  { code: 'MO', label: 'MO (Mandar Ocean)' },
 ];
 
 const PURCHASING_PICS = [
