@@ -38,6 +38,7 @@ import {
 import { TabType } from '@/types/procurement';
 import { PurchasePlanningItem, PurchasePlanningResponse } from '@/app/api/purchase-planning/route';
 import { PratenderPackage, PratenderPackageItem } from '@/types/pratender';
+import ConfidentialMaskedValue from './ConfidentialMaskedValue';
 
 interface PurchasePlanningTabProps {
   onNavigateTab?: (tab: TabType) => void;
@@ -663,7 +664,10 @@ export default function PurchasePlanningTab({
           </div>
           <div className="mt-2.5">
             <div className="text-xl sm:text-2xl font-black text-indigo-600 dark:text-indigo-400">
-              {formatRupiah(data?.summary.totalEstimatedBudget || 0)}
+              <ConfidentialMaskedValue
+                value={data?.summary.totalEstimatedBudget || 0}
+                showToast={showToast}
+              />
             </div>
             <p className="text-[11px] text-muted-foreground mt-0.5">
               Estimasi total belanja {data?.summary.totalItems || 0} item pengadaan
@@ -681,7 +685,10 @@ export default function PurchasePlanningTab({
           </div>
           <div className="mt-2.5">
             <div className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">
-              {formatRupiah(data?.summary.totalPotentialSavings || 0)}
+              <ConfidentialMaskedValue
+                value={data?.summary.totalPotentialSavings || 0}
+                showToast={showToast}
+              />
             </div>
             <p className="text-[11px] text-muted-foreground mt-0.5">
               Efisiensi konsolidasi lintas {data?.summary.activeVesselsCount || 0} armada
@@ -890,7 +897,10 @@ export default function PurchasePlanningTab({
               <div className="text-xs font-bold text-foreground flex items-center gap-2 flex-wrap">
                 <span>{selectedItemIds.size} Item Terkonfirmasi Dipilih untuk PO / Pratender</span>
                 <span className="text-primary font-mono text-sm font-black">
-                  {formatRupiah(selectedTotalCost)}
+                  <ConfidentialMaskedValue
+                    value={selectedTotalCost}
+                    showToast={showToast}
+                  />
                 </span>
               </div>
               <p className="text-[11px] text-muted-foreground">
@@ -1109,10 +1119,18 @@ export default function PurchasePlanningTab({
                       {/* 6. Estimated Cost */}
                       <td className="py-3 px-3 text-right">
                         <div className="font-mono font-bold text-xs text-foreground">
-                          {formatRupiah(item.totalEstimatedCost)}
+                          <ConfidentialMaskedValue
+                            value={item.totalEstimatedCost}
+                            showToast={showToast}
+                          />
                         </div>
                         <div className="text-[10px] text-muted-foreground">
-                          @{formatRupiah(item.avgUnitPrice)}
+                          <ConfidentialMaskedValue
+                            value={item.avgUnitPrice}
+                            prefix="@ "
+                            showLockToggle={false}
+                            showToast={showToast}
+                          />
                         </div>
                       </td>
 

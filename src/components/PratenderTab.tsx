@@ -52,6 +52,7 @@ import {
 } from '@/types/pratender';
 import { PurchasePlanningItem, PurchasePlanningResponse } from '@/app/api/purchase-planning/route';
 import { useAuth } from '@/context/AuthContext';
+import ConfidentialMaskedValue from './ConfidentialMaskedValue';
 
 interface PratenderTabProps {
   procurementItems?: ProcurementItem[];
@@ -1044,9 +1045,11 @@ export default function PratenderTab({
           </div>
           <div className="text-2xl font-black text-foreground font-mono text-foreground">
             {dataSourceType === 'PLANNING' ? (
-              <span className="text-base sm:text-lg font-bold text-emerald-600 dark:text-emerald-400">
-                Rp {kpiMetrics.totalEstCost.toLocaleString('id-ID')}
-              </span>
+              <ConfidentialMaskedValue
+                value={kpiMetrics.totalEstCost}
+                showToast={showToast}
+                className="text-base sm:text-lg font-bold text-emerald-600 dark:text-emerald-400"
+              />
             ) : (
               <span className="text-sky-600 dark:text-sky-400">
                 {kpiMetrics.multiVesselItems.toLocaleString('id-ID')}
@@ -1218,8 +1221,14 @@ export default function PratenderTab({
                   <span>
                     <strong>{selectedItemIds.size} material</strong> terpilih untuk tender / siap PO
                     {selectedCostEstimate > 0 && (
-                      <span className="ml-2 font-mono font-bold text-foreground">
-                        (Est. Rp {selectedCostEstimate.toLocaleString('id-ID')})
+                      <span className="ml-2">
+                        <ConfidentialMaskedValue
+                          value={selectedCostEstimate}
+                          prefix="(Est. "
+                          suffix=")"
+                          showToast={showToast}
+                          className="font-mono font-bold text-foreground text-xs"
+                        />
                       </span>
                     )}
                   </span>
@@ -1396,11 +1405,19 @@ export default function PratenderTab({
                           {/* Estimasi Biaya HPS */}
                           <td className="py-3 px-3 text-right whitespace-nowrap">
                             <div className="font-bold text-foreground font-mono text-xs">
-                              Rp {(item.totalEstimatedCost || (item.totalQtyRemaining * (item.avgUnitPrice || 0))).toLocaleString('id-ID')}
+                              <ConfidentialMaskedValue
+                                value={item.totalEstimatedCost || (item.totalQtyRemaining * (item.avgUnitPrice || 0))}
+                                showToast={showToast}
+                              />
                             </div>
                             {item.avgUnitPrice && item.avgUnitPrice > 0 && (
                               <div className="text-[10px] text-muted-foreground font-mono">
-                                @ Rp {item.avgUnitPrice.toLocaleString('id-ID')}
+                                <ConfidentialMaskedValue
+                                  value={item.avgUnitPrice}
+                                  prefix="@ "
+                                  showLockToggle={false}
+                                  showToast={showToast}
+                                />
                               </div>
                             )}
                           </td>
@@ -1595,7 +1612,12 @@ export default function PratenderTab({
                 <span>{selectedItemIds.size} Material Terpilih</span>
                 {selectedCostEstimate > 0 && (
                   <span className="px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 font-mono text-xs">
-                    Est. Rp {selectedCostEstimate.toLocaleString('id-ID')}
+                    <ConfidentialMaskedValue
+                      value={selectedCostEstimate}
+                      prefix="Est. "
+                      theme="dark"
+                      showToast={showToast}
+                    />
                   </span>
                 )}
               </div>

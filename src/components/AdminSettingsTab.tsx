@@ -59,6 +59,7 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import ImageOptimizationCard from './ImageOptimizationCard';
 import SystemReleaseLogsCard from './SystemReleaseLogsCard';
+import ConfidentialUnlockModal from './ConfidentialUnlockModal';
 import { SYSTEM_CURRENT_VERSION } from '@/data/system-changelog';
 import { TabType } from '@/types/procurement';
 import {
@@ -96,6 +97,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isConfidentialModalOpen, setIsConfidentialModalOpen] = useState(false);
 
   // Digital Signature Modal State (Admin Only)
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
@@ -2450,6 +2452,39 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
       {/* Kartu Pengaturan Optimasi & Auto-Scaling Penyimpanan Foto */}
       <ImageOptimizationCard isAdmin={isAdmin} showToast={showToast} />
 
+      {/* Kartu Pengaturan Keamanan Nilai Finansial (Confidential PIN & Hak Akses) */}
+      <div className="bg-card border border-border rounded-2xl p-5 sm:p-6 shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="size-11 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+              <ShieldAlert className="size-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-bold text-foreground">
+                  Keamanan &amp; Sensor Nilai Finansial (Confidential)
+                </h3>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 border border-amber-500/20">
+                  Proteksi Anggaran Aktif
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Mengaburkan seluruh estimasi nominal rupiah pada kotak hitam pratender &amp; perencanaan pengadaan. Nilai hanya dapat dibuka dengan password atau oleh pengguna yang ditentukan admin.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setIsConfidentialModalOpen(true)}
+            className="px-4 py-2 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold flex items-center gap-1.5 cursor-pointer transition shadow-sm self-start sm:self-auto"
+          >
+            <Lock className="size-3.5" />
+            <span>Kelola Password &amp; Izin Akses</span>
+          </button>
+        </div>
+      </div>
+
       {/* Log Riwayat Versi & Pembaruan Sistem (Changelog - Khusus Administrator) */}
       <div id="system-release-logs-section">
         <SystemReleaseLogsCard isAdmin={isAdmin} showToast={showToast} />
@@ -3837,6 +3872,14 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
       )}
 
       {/* ============================================================== */}
+      {/* MODAL PENGATURAN PASSWORD & AKSES CONFIDENTIAL */}
+      <ConfidentialUnlockModal
+        isOpen={isConfidentialModalOpen}
+        onClose={() => setIsConfidentialModalOpen(false)}
+        initialMode="config"
+        showToast={showToast}
+      />
+
       {/* MODAL: SAVE AND CONFIRM PENGALIHAN ROLE PENGGUNA               */}
       {/* ============================================================== */}
       {pendingUserRoleChange && (
