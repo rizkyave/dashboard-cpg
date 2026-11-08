@@ -6,6 +6,7 @@ export type LapseFilterType = 'ALL' | 'NORMAL' | 'WARNING' | 'CRITICAL';
 
 export type TabType =
   | 'overview'
+  | 'ringkasan-berkas'
   | 'review-fpb'
   | 'purchase-planning'
   | 'pratender'

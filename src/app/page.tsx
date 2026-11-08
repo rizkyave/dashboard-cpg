@@ -79,6 +79,7 @@ import {
 } from '@/utils/sisaLayananStorage';
 import AuditModal from '@/components/AuditModal';
 import NewRecordModal from '@/components/NewRecordModal';
+import RingkasanBerkasTab from '@/components/RingkasanBerkasTab';
 import LoginPage from '@/components/LoginPage';
 import { useAuth } from '@/context/AuthContext';
 import { canAccessTab, getRoleDisplayName, getDefaultTabForRole } from '@/types/auth';
@@ -1184,6 +1185,8 @@ export default function DashboardPage() {
                 <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-foreground">
                   {activeTab === 'overview'
                     ? 'Pencarian Cepat Dokumen'
+                    : activeTab === 'ringkasan-berkas'
+                    ? 'Ringkasan Berkas Lengkap (FPB, FSTB, TTB, Foto)'
                     : activeTab === 'review-fpb'
                     ? 'Review & Analisa FPB'
                     : activeTab === 'pratender'
@@ -1225,6 +1228,8 @@ export default function DashboardPage() {
                     ? 'Mode Peninjauan Tamu: Silakan masukkan No. FPB, Nama Kapal, atau No. PO pada kolom pencarian di bawah untuk menampilkan data.'
                     : activeTab === 'overview'
                     ? 'Pencarian cepat multi-FPB, nomor PO, nama kapal, material sisa layanan, dan pelacakan alur berkas divisi.'
+                    : activeTab === 'ringkasan-berkas'
+                    ? 'Monitoring kelengkapan berkas administrasi dalam 1 kolom terpadu dan kompilasi 1-klik menjadi dokumen arsip tunggal PDF.'
                     : activeTab === 'review-fpb'
                     ? 'Sinkronisasi berkas pengajuan e-FPB, analisa ketersediaan stok gudang konsolidasi, deteksi pengajuan berulang armada kapal, dan otorisasi tindak lanjut PO / Logistik.'
                     : activeTab === 'pratender'
@@ -1264,7 +1269,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Tombol Sembunyikan Ringkasan Metrik KPI */}
-              {activeTab !== 'inventory' && activeTab !== 'stok-gudang' && activeTab !== 'review-fpb' && activeTab !== 'monitoring-internal' && activeTab !== 'pos-kapal' && activeTab !== 'crew-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'admin-settings' && (!isVisitor || searchKeyword.trim() !== '') && (
+              {activeTab !== 'inventory' && activeTab !== 'stok-gudang' && activeTab !== 'ringkasan-berkas' && activeTab !== 'review-fpb' && activeTab !== 'monitoring-internal' && activeTab !== 'pos-kapal' && activeTab !== 'crew-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'admin-settings' && (!isVisitor || searchKeyword.trim() !== '') && (
                 <button
                   type="button"
                   onClick={toggleKpiHidden}
@@ -1296,7 +1301,7 @@ export default function DashboardPage() {
           ) : (
             <>
           {/* 4 Pillar Executive Metric Cards (procurement tabs only) */}
-          {activeTab !== 'inventory' && activeTab !== 'review-fpb' && activeTab !== 'monitoring-internal' && activeTab !== 'pos-kapal' && activeTab !== 'crew-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'serah-terima-lapangan' && activeTab !== 'galeri-ttb' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'validasi-dokumen' && activeTab !== 'admin-settings' && !isKpiHidden && (!isVisitor || searchKeyword.trim() !== '') && (
+          {activeTab !== 'inventory' && activeTab !== 'ringkasan-berkas' && activeTab !== 'review-fpb' && activeTab !== 'monitoring-internal' && activeTab !== 'pos-kapal' && activeTab !== 'crew-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'serah-terima-lapangan' && activeTab !== 'galeri-ttb' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'validasi-dokumen' && activeTab !== 'admin-settings' && !isKpiHidden && (!isVisitor || searchKeyword.trim() !== '') && (
             <div className="animate-in fade-in-50 duration-200">
               <KpiCards
                 procurementList={filteredProcurement}
@@ -1315,6 +1320,16 @@ export default function DashboardPage() {
               onOpenAudit={handleOpenAudit}
               onTriggerAiAudit={triggerAiBottleneckAudit}
               sisaLayananItems={sisaLayananItems}
+              showToast={showToast}
+            />
+          )}
+
+          {/* Tab Ringkasan Berkas Lengkap & Kompilasi Dossier PDF */}
+          {activeTab === 'ringkasan-berkas' && (
+            <RingkasanBerkasTab
+              procurementData={procurementData}
+              armadaData={armadaData}
+              onOpenAuditModal={handleOpenAudit}
               showToast={showToast}
             />
           )}

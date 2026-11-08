@@ -30,6 +30,7 @@ import {
   ClipboardCheck,
   TrendingUp,
   Search,
+  FileStack,
 } from 'lucide-react';
 
 import * as XLSX from 'xlsx';
@@ -122,6 +123,13 @@ export default function Sidebar({
       icon: Search,
       badge: isVisitor ? 'Tamu' : 'Cari',
       title: 'Pencarian Cepat Dokumen, Multi-FPB, PO, Material & Pelacakan Berkas Pengadaan',
+    },
+    {
+      id: 'ringkasan-berkas' as TabType,
+      label: 'Ringkasan Berkas',
+      icon: FileStack,
+      badge: 'Dossier',
+      title: 'Ringkasan Berkas Selesai Administrasi (FPB, FSTB, TTB, Foto) & Kompilasi 1-Klik File PDF',
     },
     {
       id: 'review-fpb' as TabType,

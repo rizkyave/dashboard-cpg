@@ -1998,6 +1998,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                     <option value="ALL">📦 Seluruh Modul (22 Fitur Sistem)</option>
                     <optgroup label="Dashboards (12 Modul)">
                       <option value="overview">Executive Overview</option>
+                      <option value="ringkasan-berkas">Ringkasan Berkas Lengkap (Dossier)</option>
                       <option value="review-fpb">Review &amp; Analisa FPB</option>
                       <option value="purchase-planning">📊 Perencanaan Pengadaan</option>
                       <option value="pratender">Pratender Material Terbuka</option>

@@ -59,7 +59,7 @@
     "date": "06/11/26",
     "purpose": "A/N ABD.RAHMAN (MASINIS III)",
     "efpbStatus": "Approved",
-    "isReceivedLogistik": false,
+    "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/MIL-FPB-26-0000070.pdf",
     "reviewStatus": "PENDING_REVIEW",
     "urgency": "NORMAL",
@@ -145,13 +145,16 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-07T00:22:56.424Z",
+    "updatedAt": "2026-11-07T04:57:25.701Z",
     "createdAt": "2026-11-06T23:52:50.406Z",
     "priorityLevel": "P3",
     "slaTargetDate": "06/12/26",
     "slaDaysRemaining": 29,
     "slaStatus": "ON_TRACK",
-    "requestedBy": "RIFKI RAMADHAN"
+    "requestedBy": "RIFKI RAMADHAN",
+    "pchLogistik": "Received_Logistic",
+    "reviewedBy": "Administrator CPG",
+    "reviewedAt": "2026-11-07T04:57:25.701Z"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001154",

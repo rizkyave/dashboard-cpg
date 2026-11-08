@@ -289,6 +289,7 @@ export function getDefaultTabForRole(role: UserRole | undefined): TabType {
     'galeri-ttb',
     'procurement',
     'overview',
+    'ringkasan-berkas',
     'review-fpb',
     'pratender',
     'upload-fstb',

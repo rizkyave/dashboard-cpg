@@ -853,6 +853,19 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const isRaw =
+      searchParams.get('raw') === 'true' ||
+      searchParams.get('download') === 'true';
+    if (isRaw) {
+      return new NextResponse(new Uint8Array(resolved.buffer), {
+        headers: {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': `inline; filename="${encodeURIComponent(cleanDoc)}.pdf"`,
+          'Cache-Control': 'public, max-age=86400',
+        },
+      });
+    }
+
     const parsedData = extractPdfData(
       resolved.buffer,
       cleanDoc,
