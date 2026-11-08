@@ -27,7 +27,7 @@ import {
   MapPin,
 } from 'lucide-react';
 import staticSchedulesData from '@/data/static-delivery-schedules.json';
-import { ProcurementItem, ArmadaItem, EntityCode } from '@/types/procurement';
+import { ProcurementItem, ArmadaItem, EntityCode, KapalPosisiItem } from '@/types/procurement';
 import { ENTITIES } from '@/data/initialData';
 import {
   DossierBundleItem,
@@ -37,6 +37,7 @@ import {
 interface RingkasanBerkasTabProps {
   procurementData?: ProcurementItem[];
   armadaData?: ArmadaItem[];
+  kapalPosisiItems?: KapalPosisiItem[];
   onOpenAuditModal?: (fpb: string, po?: string) => void;
   showToast?: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
 }
@@ -44,6 +45,7 @@ interface RingkasanBerkasTabProps {
 export default function RingkasanBerkasTab({
   procurementData = [],
   armadaData = [],
+  kapalPosisiItems = [],
   onOpenAuditModal,
   showToast,
 }: RingkasanBerkasTabProps) {
@@ -80,9 +82,11 @@ export default function RingkasanBerkasTab({
   } | null>(null);
   const [activePhotoIdx, setActivePhotoIdx] = useState(0);
 
-  // Map posisi terakhir armada kapal (Master 66 armada dari jadwal & FMS)
+  // Map posisi terakhir armada kapal (Dinamis Realtime dari Menu Posisi Kapal + Fallback Master)
   const vesselPositionMap = useMemo(() => {
     const map = new Map<string, string>();
+
+    // 1. Fallback master rute jadwal tetap
     for (const item of staticSchedulesData as any[]) {
       if (!item.shipName || !item.defaultPosition) continue;
       const raw = String(item.shipName).trim().toLowerCase();
@@ -93,8 +97,23 @@ export default function RingkasanBerkasTab({
       map.set(raw, pos);
       map.set(clean, pos);
     }
+
+    // 2. Data realtime dinamis dari Menu Posisi Kapal (FMS Daily Report)
+    if (kapalPosisiItems && kapalPosisiItems.length > 0) {
+      for (const k of kapalPosisiItems) {
+        if (!k.namaKapal || !k.posisi) continue;
+        const raw = String(k.namaKapal).trim().toLowerCase();
+        const clean = raw
+          .replace(/^(spob|tb|tk|ob|mt|sv|lct|ub|sp|crane barge|crew boat)\s+/i, '')
+          .trim();
+        const pos = String(k.posisi).trim();
+        map.set(raw, pos);
+        map.set(clean, pos);
+      }
+    }
+
     return map;
-  }, []);
+  }, [kapalPosisiItems]);
 
   const getVesselPosition = (name: string) => {
     if (!name || /office\s*gaj/i.test(name)) return null;

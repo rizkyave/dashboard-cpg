@@ -1330,6 +1330,7 @@ export default function DashboardPage() {
             <RingkasanBerkasTab
               procurementData={procurementData}
               armadaData={armadaData}
+              kapalPosisiItems={kapalPosisiItems}
               onOpenAuditModal={handleOpenAudit}
               showToast={showToast}
             />
