@@ -182,24 +182,10 @@ export default function Sidebar({
     },
     {
       id: 'upload-ttb' as TabType,
-      label: 'Unggah TTB',
-      icon: UploadCloud,
-      badge: 'R2',
-      title: 'Unggah Dokumen TTB ke Cloudflare R2 dengan Format Otomatis Sesuai No. TTB',
-    },
-    {
-      id: 'validasi-dokumen' as TabType,
-      label: 'Validasi FSTB & TTB',
-      icon: FileSignature,
-      badge: 'Multi-Lini',
-      title: 'Validasi Tanda Tangan Digital Multi-Lini (Purchasing, Logistik, Lapangan) Dokumen FSTB & TTB',
-    },
-    {
-      id: 'serah-terima-lapangan' as TabType,
-      label: 'Serah Terima Lap.',
+      label: 'Daftar TTB & Kirim WA',
       icon: Truck,
-      badge: 'Tim Lap',
-      title: 'Portal Tim Lapangan: Upload Bukti Foto Penyerahan Barang Berdasarkan Referensi TTB Resmi',
+      badge: 'Serah Terima',
+      title: 'Pusat Serah Terima TTB: Pengantaran Barang via Notifikasi WhatsApp ke End User & Unggah Berkas Resmi',
     },
     {
       id: 'galeri-ttb' as TabType,

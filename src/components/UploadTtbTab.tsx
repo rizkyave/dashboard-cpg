@@ -37,11 +37,17 @@ import {
   ShieldAlert,
   Camera,
   Bell,
+  MessageCircle,
+  Send,
+  Share2,
+  Clock,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
 import { SisaLayananItem } from '@/types/sisaLayanan';
 import { UploadedTtbItem, UploadTtbResponse } from '@/types/ttbUpload';
+import { RemoteHandoverTokenData } from '@/types/remoteHandover';
+import RemoteDispatchModal from '@/components/RemoteDispatchModal';
 import { enrichTtbRecords } from '@/utils/ttbEnricher';
 import {
   sanitizeTtbNumber,
@@ -243,6 +249,9 @@ export default function UploadTtbTab({
   const [mediaModalTtb, setMediaModalTtb] = useState<string | null>(null);
   const [selectedMediaItem, setSelectedMediaItem] = useState<UploadedTtbItem | null>(null);
   const [isIncompleteModalOpen, setIsIncompleteModalOpen] = useState<boolean>(false);
+  const [pendingDispatchItem, setPendingDispatchItem] = useState<UploadedTtbItem | null>(null);
+  const [statusFilterTab, setStatusFilterTab] = useState<'ALL' | 'READY_WA' | 'PENDING_CREW' | 'COMPLETED'>('ALL');
+  const [remoteTokens, setRemoteTokens] = useState<Record<string, RemoteHandoverTokenData>>({});
 
   const [isCameraModalOpen, setIsCameraModalOpen] = useState<boolean>(false);
 
@@ -337,8 +346,30 @@ export default function UploadTtbTab({
     }
   };
 
+  // Fetch token serah terima mandiri WhatsApp
+  const fetchRemoteTokens = async () => {
+    try {
+      const res = await fetch(`/api/remote-handover?_t=${Date.now()}`);
+      if (res.ok) {
+        const d = await res.json();
+        if (Array.isArray(d.tokens)) {
+          const map: Record<string, RemoteHandoverTokenData> = {};
+          d.tokens.forEach((t: RemoteHandoverTokenData) => {
+            if (t.cleanNoTtb) map[t.cleanNoTtb.toUpperCase().trim()] = t;
+            if (t.noTtb) map[t.noTtb.toUpperCase().trim()] = t;
+            if (t.ttbId) map[t.ttbId.toUpperCase().trim()] = t;
+          });
+          setRemoteTokens(map);
+        }
+      }
+    } catch (err) {
+      console.warn('Gagal memuat status remote handover:', err);
+    }
+  };
+
   useEffect(() => {
     fetchHistory();
+    fetchRemoteTokens();
   }, []);
 
   // Uji koneksi ke Cloudflare R2 Storage
@@ -941,11 +972,62 @@ export default function UploadTtbTab({
     });
   }, [history, procurementItems, armadaItems, sisaLayananItems]);
 
-  // Filter riwayat berdasarkan pencarian
+  // Statistik ringkas alur pengantaran via WA
+  const dispatchStats = useMemo(() => {
+    let readyCount = 0;
+    let pendingCrewCount = 0;
+    let completedCount = 0;
+
+    for (const h of enrichedHistory) {
+      const key = (h.cleanNoTtb || h.noTtb || '').toUpperCase().trim();
+      const token = remoteTokens[key];
+      const isReceived = h.hasPhysicalPhotos || h.isArmadaReceived || token?.isUsed;
+      const isWaiting = !isReceived && Boolean(token && !token.isUsed);
+
+      if (isReceived) completedCount++;
+      else if (isWaiting) pendingCrewCount++;
+      else readyCount++;
+    }
+
+    return {
+      total: enrichedHistory.length,
+      readyCount,
+      pendingCrewCount,
+      completedCount,
+    };
+  }, [enrichedHistory, remoteTokens]);
+
+  // Filter riwayat berdasarkan pencarian & status pengantaran WA
   const filteredHistory = useMemo(() => {
-    if (!searchHistory.trim()) return enrichedHistory;
+    let list = enrichedHistory;
+
+    // Filter status tab
+    if (statusFilterTab === 'READY_WA') {
+      list = list.filter((h) => {
+        const key = (h.cleanNoTtb || h.noTtb || '').toUpperCase().trim();
+        const token = remoteTokens[key];
+        const isReceived = h.hasPhysicalPhotos || h.isArmadaReceived || token?.isUsed;
+        const isWaiting = !isReceived && Boolean(token && !token.isUsed);
+        return !isReceived && !isWaiting;
+      });
+    } else if (statusFilterTab === 'PENDING_CREW') {
+      list = list.filter((h) => {
+        const key = (h.cleanNoTtb || h.noTtb || '').toUpperCase().trim();
+        const token = remoteTokens[key];
+        const isReceived = h.hasPhysicalPhotos || h.isArmadaReceived || token?.isUsed;
+        return !isReceived && Boolean(token && !token.isUsed);
+      });
+    } else if (statusFilterTab === 'COMPLETED') {
+      list = list.filter((h) => {
+        const key = (h.cleanNoTtb || h.noTtb || '').toUpperCase().trim();
+        const token = remoteTokens[key];
+        return h.hasPhysicalPhotos || h.isArmadaReceived || token?.isUsed;
+      });
+    }
+
+    if (!searchHistory.trim()) return list;
     const q = searchHistory.toLowerCase().trim();
-    return enrichedHistory.filter(
+    return list.filter(
       (h) =>
         h.noTtb?.toLowerCase().includes(q) ||
         h.cleanNoTtb?.toLowerCase().includes(q) ||
@@ -955,7 +1037,7 @@ export default function UploadTtbTab({
         h.renamedFileName?.toLowerCase().includes(q) ||
         h.uploaderName?.toLowerCase().includes(q)
     );
-  }, [enrichedHistory, searchHistory]);
+  }, [enrichedHistory, searchHistory, statusFilterTab, remoteTokens]);
 
   // Pagination state untuk riwayat tabel (10 data per halaman)
   const [historyPage, setHistoryPage] = useState<number>(1);
@@ -1619,7 +1701,10 @@ export default function UploadTtbTab({
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={fetchHistory}
+                onClick={() => {
+                  fetchHistory();
+                  fetchRemoteTokens();
+                }}
                 disabled={isLoadingHistory}
                 className="h-8 px-2.5 rounded-lg border border-border bg-card hover:bg-muted text-foreground text-xs font-medium flex items-center gap-1.5 transition cursor-pointer disabled:opacity-50"
                 title="Sinkronkan Ulang Riwayat dengan Monitoring Internal"
@@ -1629,17 +1714,83 @@ export default function UploadTtbTab({
               </button>
 
               <div className="relative w-full sm:w-64">
-            <Search className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="text"
-              value={searchHistory}
-              onChange={(e) => setSearchHistory(e.target.value)}
-              placeholder="Cari nomor TTB, armada, PO..."
-              className="w-full h-8 pl-8 pr-3 text-xs rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:ring-1 focus:ring-primary focus:outline-none"
-            />
+                <Search className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  type="text"
+                  value={searchHistory}
+                  onChange={(e) => setSearchHistory(e.target.value)}
+                  placeholder="Cari nomor TTB, armada, PO..."
+                  className="w-full h-8 pl-8 pr-3 text-xs rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:ring-1 focus:ring-primary focus:outline-none"
+                />
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Filter Tab Status Pengantaran & Serah Terima WA */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+          <button
+            type="button"
+            onClick={() => setStatusFilterTab('ALL')}
+            className={`h-8 px-3 rounded-lg font-semibold transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
+              statusFilterTab === 'ALL'
+                ? 'bg-primary text-primary-foreground shadow-xs'
+                : 'bg-muted/60 text-muted-foreground hover:text-foreground hover:bg-muted border border-border/60'
+            }`}
+          >
+            <span>Semua TTB</span>
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-background/30 font-mono">
+              {dispatchStats.total}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setStatusFilterTab('READY_WA')}
+            className={`h-8 px-3 rounded-lg font-semibold transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
+              statusFilterTab === 'READY_WA'
+                ? 'bg-amber-500 text-slate-950 shadow-xs'
+                : 'bg-muted/60 text-muted-foreground hover:text-foreground hover:bg-muted border border-border/60'
+            }`}
+          >
+            <Send className="size-3.5" />
+            <span>Siap Antar (Belum WA)</span>
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-background/30 font-mono">
+              {dispatchStats.readyCount}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setStatusFilterTab('PENDING_CREW')}
+            className={`h-8 px-3 rounded-lg font-semibold transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
+              statusFilterTab === 'PENDING_CREW'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'bg-muted/60 text-muted-foreground hover:text-foreground hover:bg-muted border border-border/60'
+            }`}
+          >
+            <Clock className="size-3.5" />
+            <span>Link WA Terkirim (Menunggu Kru)</span>
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-background/30 font-mono">
+              {dispatchStats.pendingCrewCount}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setStatusFilterTab('COMPLETED')}
+            className={`h-8 px-3 rounded-lg font-semibold transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
+              statusFilterTab === 'COMPLETED'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'bg-muted/60 text-muted-foreground hover:text-foreground hover:bg-muted border border-border/60'
+            }`}
+          >
+            <CheckCircle2 className="size-3.5" />
+            <span>Selesai Diterima (Ada Foto & TTD)</span>
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-background/30 font-mono">
+              {dispatchStats.completedCount}
+            </span>
+          </button>
         </div>
 
         {/* Tabel Data Riwayat */}
@@ -1792,40 +1943,68 @@ export default function UploadTtbTab({
                     </td>
 
                     <td className="py-2.5 px-3">
-                      <div className="flex flex-col gap-1">
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 w-fit">
-                          <CheckCircle2 className="size-3" />
-                          UPLOADED
-                        </span>
-                        {item.isArmadaReceived || item.hasPhysicalPhotos ? (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const cleanNo = (item.cleanNoTtb || item.noTtb || '').trim();
-                              setSelectedMediaItem(item);
-                              setMediaModalTtb(cleanNo);
-                            }}
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-semibold bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30 w-fit hover:bg-blue-500/25 transition cursor-pointer text-left"
-                            title="Klik untuk verifikasi foto bukti fisik serah terima kapal"
-                          >
-                            <Camera className="size-2.5 text-blue-500 shrink-0" />
-                            <span>Diterima Kapal {item.physicalPhotosCount ? `(${item.physicalPhotosCount} Foto)` : '(Ada Foto)'}</span>
-                          </button>
-                        ) : item.isRecipientStamped ? (
-                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30 w-fit">
-                            <FileSignature className="size-2.5 text-purple-500" />
-                            <span>TTD Kru Lengkap</span>
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 w-fit">
-                            <span>Menunggu Kru</span>
-                          </span>
-                        )}
-                      </div>
+                      {(() => {
+                        const cleanTtbKey = (item.cleanNoTtb || item.noTtb || '').toUpperCase().trim();
+                        const activeToken = remoteTokens[cleanTtbKey];
+                        const isReceived = item.hasPhysicalPhotos || item.isArmadaReceived || activeToken?.isUsed;
+                        const isWaitingCrew = !isReceived && Boolean(activeToken && !activeToken.isUsed);
+
+                        return (
+                          <div className="flex flex-col gap-1">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 w-fit">
+                              <CheckCircle2 className="size-3" />
+                              UPLOADED
+                            </span>
+                            {isReceived ? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const cleanNo = (item.cleanNoTtb || item.noTtb || '').trim();
+                                  setSelectedMediaItem(item);
+                                  setMediaModalTtb(cleanNo);
+                                }}
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 w-fit hover:bg-emerald-500/25 transition cursor-pointer text-left"
+                                title="Barang telah diterima di kapal. Klik untuk melihat galeri foto & tanda tangan basah."
+                              >
+                                <CheckCircle2 className="size-2.5 text-emerald-500 shrink-0" />
+                                <span>Diterima Kapal {item.physicalPhotosCount ? `(${item.physicalPhotosCount} Foto)` : ''}</span>
+                              </button>
+                            ) : isWaitingCrew ? (
+                              <button
+                                type="button"
+                                onClick={() => setPendingDispatchItem(item)}
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-semibold bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30 w-fit hover:bg-blue-500/25 transition cursor-pointer text-left"
+                                title="Tautan WA sudah diterbitkan. Klik untuk melihat pesan atau mengirim ulang."
+                              >
+                                <Clock className="size-2.5 text-blue-500 shrink-0 animate-pulse" />
+                                <span>Menunggu Kru</span>
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => setPendingDispatchItem(item)}
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 w-fit hover:bg-amber-500/25 transition cursor-pointer text-left"
+                                title="Klik untuk menerbitkan tautan serah terima dan kirim pesan WhatsApp ke penerima."
+                              >
+                                <Send className="size-2.5 text-amber-500 shrink-0" />
+                                <span>Siap Antar (WA)</span>
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </td>
 
                     <td className="py-2.5 px-3 text-right">
                       <div className="inline-flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => setPendingDispatchItem(item)}
+                          className="p-1.5 rounded-lg border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 transition cursor-pointer shadow-2xs"
+                          title="Kirim Notifikasi WA & Tautan Mandiri Serah Terima ke Penerima"
+                        >
+                          <MessageCircle className="size-3.5" />
+                        </button>
                         <button
                           type="button"
                           onClick={() => setActivePreview(item)}
@@ -2381,6 +2560,29 @@ export default function UploadTtbTab({
         initialTab="photos"
         showToast={showToast}
       />
+
+      {/* Modal Disposisi Pengiriman & Kirim WA Mandiri */}
+      {pendingDispatchItem && (
+        <RemoteDispatchModal
+          isOpen={!!pendingDispatchItem}
+          onClose={() => setPendingDispatchItem(null)}
+          targetTtb={{
+            noTtb: pendingDispatchItem.noTtb,
+            cleanNoTtb: pendingDispatchItem.cleanNoTtb || pendingDispatchItem.noTtb,
+            armada: pendingDispatchItem.armada || '-',
+            noFpb: pendingDispatchItem.noFpb,
+            noPo: pendingDispatchItem.noPo,
+            itemSummary: pendingDispatchItem.keterangan || 'Barang Serah Terima Operasional Kapal',
+            fileUrl: pendingDispatchItem.fileUrl,
+          }}
+          dispatchedBy={user?.name || user?.username || 'Tim Logistik CPG'}
+          onSuccess={() => {
+            fetchRemoteTokens();
+            fetchHistory();
+          }}
+          showToast={showToast}
+        />
+      )}
     </div>
   );
 }
