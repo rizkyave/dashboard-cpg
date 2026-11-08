@@ -12,6 +12,10 @@ export interface DossierBundleItem {
   tglFpb?: string;
   tglPo?: string;
   picPch?: string;
+  picTtb?: string;
+  picFstb?: string;
+  picLap?: string;
+  picAktif?: string;
   noFstb?: string;
   tglFstb?: string;
   noTtb?: string;

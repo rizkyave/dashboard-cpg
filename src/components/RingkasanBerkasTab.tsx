@@ -22,6 +22,8 @@ import {
   Ship,
   Sparkles,
   X,
+  MessageCircle,
+  Copy,
 } from 'lucide-react';
 import { ProcurementItem, ArmadaItem, EntityCode } from '@/types/procurement';
 import { ENTITIES } from '@/data/initialData';
@@ -338,7 +340,11 @@ export default function RingkasanBerkasTab({
         unit: (row as any).unit || (row as any).satuan || 'Pcs',
         tglFpb: ('tgl' in row ? (row as any).tgl : (row as any).tglFpb) || undefined,
         tglPo: ('tglPo' in row ? (row as any).tglPo : undefined),
-        picPch: ('picPch' in row ? row.picPch : undefined),
+        picPch: ('picPch' in row ? row.picPch : undefined) || rowAny.picPch,
+        picTtb: rowAny.picTtb || rowAny.picLogistik,
+        picFstb: rowAny.picFstb,
+        picLap: rowAny.picLap,
+        picAktif: rowAny.picAktif,
         noFstb: noFstb || undefined,
         tglFstb: ('tglFstb' in row ? (row as any).tglFstb : undefined),
         noTtb: noTtb || undefined,
@@ -403,6 +409,122 @@ export default function RingkasanBerkasTab({
         isAvailable,
         item,
       });
+    }
+  };
+
+  // State copy feedback WA
+  const [isCopiedWa, setIsCopiedWa] = useState(false);
+
+  // Helper mendapatkan nama dan peran PIC yang bersangkutan
+  const getPicForDoc = (item: DossierBundleItem, docType: 'FPB' | 'FSTB' | 'TTB' | 'FOTO') => {
+    if (docType === 'FSTB') {
+      const name = item.picPch || item.picFstb || 'Tim Purchasing';
+      return { name, role: 'PIC Purchasing / FSTB' };
+    }
+    if (docType === 'TTB') {
+      const name = item.picTtb || 'Tim Logistik TTB';
+      return { name, role: 'PIC Logistik TTB' };
+    }
+    if (docType === 'FOTO') {
+      const name = item.picLap || item.picTtb || 'Tim Logistik Lapangan';
+      return { name, role: 'PIC Lapangan' };
+    }
+    return { name: item.picPch || 'Pemohon FPB', role: 'PIC Pemohon / Purchasing' };
+  };
+
+  // Helper membuat template pesan WhatsApp
+  const generateWaReminderMessage = (item: DossierBundleItem, docType: 'FPB' | 'FSTB' | 'TTB' | 'FOTO') => {
+    const picInfo = getPicForDoc(item, docType);
+    if (docType === 'FSTB') {
+      return `🔔 *PERINGATAN PERCEPATAN DOKUMEN FSTB (SOFTCOPY PDF)* 📦
+Halo Rekan *${picInfo.name}*,
+
+Mohon bantuan & tindak lanjut segera untuk mengunggah berkas softcopy PDF *FSTB* resmi pada pengadaan berikut:
+
+📄 *No. FSTB:* ${item.noFstb || 'Belum Terbit'}
+📁 *No. FPB:* ${item.fpb}
+📋 *No. PO:* ${item.po || '-'}
+🚢 *Armada / Unit:* ${item.armada}
+🏢 *Entitas:* ${item.entity || 'CPG'}
+
+Berkas PDF FSTB diperlukan untuk kelengkapan administrasi dossier pencairan & audit keuangan CPG.
+Mohon berkas dapat segera diunggah ke CPG Procurement Dashboard. Terima kasih! 🙏
+
+_CPG Procurement & Fleet Monitoring System_`;
+    }
+
+    if (docType === 'TTB') {
+      return `📦 *PERINGATAN PERCEPATAN DOKUMEN TTB (SOFTCOPY PDF)* 📑
+Halo Rekan *${picInfo.name}*,
+
+Mohon bantuan & tindak lanjut segera untuk mengunggah berkas softcopy scan *TTB* yang telah ditandatangani untuk pengadaan berikut:
+
+📄 *No. TTB:* ${item.noTtb || 'Belum Terbit'}
+📁 *No. FPB:* ${item.fpb}
+📋 *No. PO:* ${item.po || '-'}
+🚢 *Armada / Unit:* ${item.armada}
+🏢 *Entitas:* ${item.entity || 'CPG'}
+
+Dokumen fisik bertanda tangan diperlukan untuk kompilasi akhir berkas administrasi dossier (Kelengkapan 4/4).
+Mohon berkas dapat segera diunggah ke CPG Procurement Dashboard. Terima kasih! 🙏
+
+_CPG Procurement & Fleet Monitoring System_`;
+    }
+
+    if (docType === 'FOTO') {
+      return `📸 *PERMINTAAN DOKUMENTASI FOTO SERAH TERIMA* ⚓
+Halo Rekan *${picInfo.name}*,
+
+Mohon bantuan untuk mengunggah foto bukti fisik serah terima barang di kapal/armada:
+
+🚢 *Armada / Unit:* ${item.armada}
+📄 *No. TTB:* ${item.noTtb || '-'}
+📁 *No. FPB:* ${item.fpb}
+📋 *No. PO:* ${item.po || '-'}
+
+Foto fisik diperlukan untuk verifikasi kelengkapan berkas dossier CPG. Terima kasih! 🙏
+
+_CPG Procurement & Fleet Monitoring System_`;
+    }
+
+    return `📋 *PERINGATAN KELENGKAPAN BERKAS e-FPB* 📄
+Halo Rekan *${picInfo.name}*,
+
+Mohon bantuan untuk mengunggah / menyelesaikan softcopy PDF dokumen resmi *FPB* berikut:
+
+📁 *No. FPB:* ${item.fpb}
+📋 *No. PO:* ${item.po || '-'}
+🚢 *Armada / Unit:* ${item.armada}
+🏢 *Entitas:* ${item.entity || 'CPG'}
+
+Terima kasih atas kerja samanya! 🙏
+
+_CPG Procurement & Fleet Monitoring System_`;
+  };
+
+  // Handler kirim WhatsApp langsung
+  const handleSendWaToPic = (item: DossierBundleItem, docType: 'FPB' | 'FSTB' | 'TTB' | 'FOTO') => {
+    const text = generateWaReminderMessage(item, docType);
+    const picInfo = getPicForDoc(item, docType);
+    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+    if (showToast) {
+      showToast(`Membuka WhatsApp untuk menghubungi ${picInfo.name} (${picInfo.role})`, 'info');
+    }
+  };
+
+  // Handler copy pesan WA
+  const handleCopyWaMessage = async (item: DossierBundleItem, docType: 'FPB' | 'FSTB' | 'TTB' | 'FOTO') => {
+    const text = generateWaReminderMessage(item, docType);
+    try {
+      await navigator.clipboard.writeText(text);
+      setIsCopiedWa(true);
+      setTimeout(() => setIsCopiedWa(false), 2500);
+      if (showToast) {
+        showToast('Template pesan WhatsApp berhasil disalin ke clipboard!', 'success');
+      }
+    } catch (err) {
+      console.error('Gagal menyalin teks WA:', err);
     }
   };
 
@@ -1139,18 +1261,51 @@ export default function RingkasanBerkasTab({
                     )}
                   </div>
                 ) : (
-                  <div className="py-16 text-center space-y-3">
+                  <div className="py-12 text-center space-y-4 max-w-md mx-auto">
                     <div className="size-16 mx-auto rounded-full bg-muted flex items-center justify-center text-muted-foreground">
                       <Camera className="size-8" />
                     </div>
-                    <h4 className="font-bold text-foreground text-sm">
-                      Belum Ada Foto Dokumentasi Fisik
-                    </h4>
-                    <p className="text-xs text-muted-foreground max-w-md mx-auto">
-                      Belum ditemukan foto bukti fisik serah terima barang untuk armada{' '}
-                      <strong>{previewDoc.item.armada}</strong> atau TTB{' '}
-                      <strong>{previewDoc.item.noTtb || '-'}</strong> di Cloudflare R2.
-                    </p>
+                    <div>
+                      <h4 className="font-bold text-foreground text-sm">
+                        Belum Ada Foto Dokumentasi Fisik
+                      </h4>
+                      <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                        Belum ditemukan foto bukti fisik serah terima barang untuk armada{' '}
+                        <strong>{previewDoc.item.armada}</strong> atau TTB{' '}
+                        <strong>{previewDoc.item.noTtb || '-'}</strong> di Cloudflare R2.
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => handleSendWaToPic(previewDoc.item, 'FOTO')}
+                        className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-2 transition shadow-xs active:scale-95 cursor-pointer"
+                        title="Kirim pesan permintaan foto serah terima via WhatsApp ke PIC Lapangan"
+                      >
+                        <MessageCircle className="size-4 shrink-0" />
+                        <span>Kirim WA ke PIC Lapangan</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleCopyWaMessage(previewDoc.item, 'FOTO')}
+                        className="px-3 py-2 rounded-lg border border-border bg-background hover:bg-muted text-xs font-semibold text-foreground flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
+                        title="Salin template pesan WhatsApp"
+                      >
+                        {isCopiedWa ? (
+                          <>
+                            <Check className="size-3.5 text-emerald-600" />
+                            <span className="text-emerald-600">Tersalin</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="size-3.5 text-muted-foreground" />
+                            <span>Salin Pesan WA</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 )
               )}
@@ -1211,20 +1366,56 @@ export default function RingkasanBerkasTab({
                         </span>
                       </div>
                     )}
-                    <div className="flex justify-between">
+                    <div className="flex justify-between border-b border-border pb-1.5">
                       <span className="text-muted-foreground">Armada Peminta</span>
                       <span className="font-bold text-foreground">{previewDoc.item.armada}</span>
                     </div>
+                    {/* Baris PIC Penanggung Jawab */}
+                    {(() => {
+                      const picInfo = getPicForDoc(previewDoc.item, previewDoc.type);
+                      return (
+                        <div className="flex justify-between items-center pt-0.5">
+                          <span className="text-muted-foreground">PIC Penanggung Jawab</span>
+                          <span className="font-bold text-emerald-600 dark:text-emerald-400 font-mono">
+                            {picInfo.name} <span className="text-[10px] text-muted-foreground font-normal">({picInfo.role})</span>
+                          </span>
+                        </div>
+                      );
+                    })()}
                   </div>
 
-                  <div className="flex items-center justify-center gap-2 pt-2">
+                  <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+                    {/* Tombol Kirim WA ke PIC */}
                     <button
                       type="button"
-                      onClick={() => setPreviewDoc(null)}
-                      className="px-4 py-2 rounded-lg border border-border bg-background hover:bg-muted text-xs font-semibold text-foreground transition"
+                      onClick={() => handleSendWaToPic(previewDoc.item, previewDoc.type)}
+                      className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-2 transition shadow-xs active:scale-95 cursor-pointer"
+                      title="Kirim pesan peringatan percepatan dokumen via WhatsApp"
                     >
-                      Tutup
+                      <MessageCircle className="size-4 shrink-0" />
+                      <span>Kirim WA ke PIC</span>
                     </button>
+
+                    {/* Tombol Salin Format Pesan WA */}
+                    <button
+                      type="button"
+                      onClick={() => handleCopyWaMessage(previewDoc.item, previewDoc.type)}
+                      className="px-3 py-2 rounded-lg border border-border bg-background hover:bg-muted text-xs font-semibold text-foreground flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
+                      title="Salin template pesan WhatsApp ke clipboard"
+                    >
+                      {isCopiedWa ? (
+                        <>
+                          <Check className="size-3.5 text-emerald-600" />
+                          <span className="text-emerald-600">Tersalin</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="size-3.5 text-muted-foreground" />
+                          <span>Salin Pesan WA</span>
+                        </>
+                      )}
+                    </button>
+
                     {onOpenAuditModal && (
                       <button
                         type="button"
@@ -1239,6 +1430,14 @@ export default function RingkasanBerkasTab({
                         Buka Audit Pengadaan
                       </button>
                     )}
+
+                    <button
+                      type="button"
+                      onClick={() => setPreviewDoc(null)}
+                      className="px-4 py-2 rounded-lg border border-border bg-background hover:bg-muted text-xs font-semibold text-foreground transition"
+                    >
+                      Tutup
+                    </button>
                   </div>
                 </div>
               )}
