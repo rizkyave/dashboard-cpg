@@ -29,6 +29,7 @@ export interface PurchasePlanningItem {
   monthlyConsumption: number;
   suggestedVendor?: string;
   fpbRefs: string[];
+  batchNo?: string;
 }
 
 export interface PurchasePlanningResponse {

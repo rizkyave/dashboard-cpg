@@ -48,7 +48,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005145"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-002",
@@ -75,7 +76,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005162"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-003",
@@ -106,7 +108,8 @@
         "CPL-FPB-26-0004383",
         "MO-FPB-26-0001956",
         "CPL-FPB-26-0005165"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-004",
@@ -133,7 +136,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "MO-FPB-26-0001956"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-005",
@@ -160,7 +164,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "MO-FPB-26-0001956"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-006",
@@ -187,7 +192,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "MO-FPB-26-0001956"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-007",
@@ -216,7 +222,8 @@
       "fpbRefs": [
         "MO-FPB-26-0001956",
         "CPL-FPB-26-0005165"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-008",
@@ -243,7 +250,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "MO-FPB-26-0001956"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-009",
@@ -270,7 +278,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "MO-FPB-26-0001956"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-010",
@@ -297,7 +306,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "MO-FPB-26-0001956"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-011",
@@ -324,7 +334,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "MO-FPB-26-0001955"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-012",
@@ -351,7 +362,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "MO-FPB-26-0001955"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-013",
@@ -378,7 +390,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "MO-FPB-26-0001955"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-014",
@@ -405,7 +418,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "MO-FPB-26-0001955"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-015",
@@ -432,7 +446,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "MO-FPB-26-0001955"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-016",
@@ -459,7 +474,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "MO-FPB-26-0001955"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-017",
@@ -486,7 +502,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "HL-FPB-26-0001538"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-018",
@@ -513,7 +530,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "HL-FPB-26-0001530"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-019",
@@ -540,7 +558,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005023"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-020",
@@ -567,7 +586,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005023"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-021",
@@ -594,7 +614,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005023"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-022",
@@ -621,7 +642,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005023"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-023",
@@ -648,7 +670,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005023"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-024",
@@ -677,7 +700,8 @@
       "fpbRefs": [
         "CPL-FPB-26-0005023",
         "CPL-FPB-26-0005165"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-025",
@@ -704,7 +728,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005055"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-026",
@@ -731,7 +756,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005055"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-027",
@@ -758,7 +784,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005055"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-028",
@@ -785,7 +812,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005020"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-029",
@@ -812,7 +840,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005020"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-030",
@@ -839,7 +868,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005020"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-031",
@@ -866,7 +896,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005020"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-032",
@@ -893,7 +924,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005020"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-033",
@@ -920,7 +952,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005020"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-034",
@@ -947,7 +980,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005020"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-035",
@@ -974,7 +1008,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005020"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-036",
@@ -1001,7 +1036,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005020"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-037",
@@ -1028,7 +1064,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005020"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-038",
@@ -1055,7 +1092,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005020"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-039",
@@ -1084,7 +1122,8 @@
       "fpbRefs": [
         "MO-FPB-26-0001924",
         "CPL-FPB-26-0004583"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-040",
@@ -1111,7 +1150,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "HL-FPB-26-0001555"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-041",
@@ -1138,7 +1178,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0004993"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-042",
@@ -1165,7 +1206,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005150"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-043",
@@ -1192,7 +1234,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005165"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-044",
@@ -1219,7 +1262,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005165"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-045",
@@ -1246,7 +1290,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005165"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-046",
@@ -1273,7 +1318,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005165"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-047",
@@ -1300,7 +1346,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005165"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-048",
@@ -1329,7 +1376,8 @@
       "fpbRefs": [
         "SP-FPB-26-0000940",
         "HL-FPB-26-0001454"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-049",
@@ -1356,7 +1404,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "MO-FPB-26-0001945"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-050",
@@ -1383,7 +1432,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "MO-FPB-26-0001945"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-051",
@@ -1410,7 +1460,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "MO-FPB-26-0001922"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-052",
@@ -1437,7 +1488,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "MO-FPB-26-0001922"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-053",
@@ -1464,7 +1516,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "MO-FPB-26-0001948"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-054",
@@ -1491,7 +1544,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "MO-FPB-26-0001948"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-055",
@@ -1518,7 +1572,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "MO-FPB-26-0001948"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-056",
@@ -1545,7 +1600,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "MO-FPB-26-0001948"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-057",
@@ -1572,7 +1628,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "MO-FPB-26-0001958"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-058",
@@ -1599,7 +1656,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "MO-FPB-26-0001958"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-059",
@@ -1626,7 +1684,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "MO-FPB-26-0001958"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-060",
@@ -1657,7 +1716,8 @@
         "CPL-FPB-26-0005171",
         "MO-FPB-26-0001961",
         "CPL-FPB-26-0005028"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-061",
@@ -1686,7 +1746,8 @@
       "fpbRefs": [
         "CPL-FPB-26-0005171",
         "MO-FPB-26-0001961"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-062",
@@ -1717,7 +1778,8 @@
         "CPL-FPB-26-0005171",
         "MO-FPB-26-0001961",
         "CPL-FPB-26-0005028"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-063",
@@ -1746,7 +1808,8 @@
       "fpbRefs": [
         "CPL-FPB-26-0005171",
         "MO-FPB-26-0001961"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-064",
@@ -1773,7 +1836,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005163"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-065",
@@ -1800,7 +1864,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005163"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-066",
@@ -1827,7 +1892,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005163"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-067",
@@ -1854,7 +1920,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005163"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-068",
@@ -1881,7 +1948,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005163"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-069",
@@ -1908,7 +1976,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005119"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-070",
@@ -1935,7 +2004,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0004578"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-071",
@@ -1962,7 +2032,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0004881"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-072",
@@ -1989,7 +2060,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005120"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-073",
@@ -2016,7 +2088,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005120"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-074",
@@ -2043,7 +2116,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005120"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-075",
@@ -2070,7 +2144,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005120"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-076",
@@ -2097,7 +2172,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005161"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-077",
@@ -2124,7 +2200,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005143"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-078",
@@ -2151,7 +2228,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005143"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-079",
@@ -2180,7 +2258,8 @@
       "fpbRefs": [
         "CPL-FPB-26-0005110",
         "CPL-FPB-26-0005113"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-080",
@@ -2209,7 +2288,8 @@
       "fpbRefs": [
         "CPL-FPB-26-0005110",
         "CPL-FPB-26-0005113"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-081",
@@ -2236,7 +2316,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005178"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-082",
@@ -2263,7 +2344,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005178"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-083",
@@ -2290,7 +2372,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005178"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-084",
@@ -2317,7 +2400,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005037"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-085",
@@ -2344,7 +2428,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005037"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-086",
@@ -2371,7 +2456,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005037"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-087",
@@ -2398,7 +2484,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005037"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-088",
@@ -2425,7 +2512,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005037"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-089",
@@ -2452,7 +2540,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005037"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-090",
@@ -2479,7 +2568,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005037"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-091",
@@ -2506,7 +2596,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0001127"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-092",
@@ -2533,7 +2624,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0001127"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-093",
@@ -2560,7 +2652,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0001017"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-094",
@@ -2587,7 +2680,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "HL-FPB-26-0001551"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-095",
@@ -2614,7 +2708,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "HL-FPB-26-0001551"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-096",
@@ -2641,7 +2736,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "HL-FPB-26-0001551"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-097",
@@ -2668,7 +2764,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "HL-FPB-26-0001551"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-098",
@@ -2695,7 +2792,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005164"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-099",
@@ -2722,7 +2820,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005164"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-100",
@@ -2749,7 +2848,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0001132"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-101",
@@ -2776,7 +2876,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0001132"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-102",
@@ -2803,7 +2904,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0001132"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-103",
@@ -2830,7 +2932,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0001132"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-104",
@@ -2857,7 +2960,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0001132"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-105",
@@ -2884,7 +2988,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0001132"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-106",
@@ -2911,7 +3016,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0001132"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-107",
@@ -2938,7 +3044,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0001132"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-108",
@@ -2965,7 +3072,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0001132"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-109",
@@ -2992,7 +3100,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0001132"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-110",
@@ -3019,7 +3128,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0001132"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-111",
@@ -3046,7 +3156,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0001132"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-112",
@@ -3073,7 +3184,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0001132"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-113",
@@ -3100,7 +3212,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0001132"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-114",
@@ -3127,7 +3240,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0001132"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-115",
@@ -3154,7 +3268,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0001132"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-116",
@@ -3181,7 +3296,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0001132"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-117",
@@ -3208,7 +3324,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0001132"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-118",
@@ -3237,7 +3354,8 @@
       "fpbRefs": [
         "CPL-FPB-26-0005113",
         "MO-FPB-26-0001950"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-119",
@@ -3264,7 +3382,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005113"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-120",
@@ -3291,7 +3410,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005113"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-121",
@@ -3318,7 +3438,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005114"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-122",
@@ -3345,7 +3466,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005115"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-123",
@@ -3372,7 +3494,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005116"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-124",
@@ -3399,7 +3522,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005189"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-125",
@@ -3426,7 +3550,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005189"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-126",
@@ -3453,7 +3578,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005158"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-127",
@@ -3480,7 +3606,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005158"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-128",
@@ -3507,7 +3634,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005158"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-129",
@@ -3534,7 +3662,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005158"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-130",
@@ -3561,7 +3690,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0001098"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-131",
@@ -3588,7 +3718,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0000712"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-132",
@@ -3615,7 +3746,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0000712"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-133",
@@ -3642,7 +3774,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0001062"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-134",
@@ -3669,7 +3802,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0001062"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-135",
@@ -3696,7 +3830,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0001062"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-136",
@@ -3723,7 +3858,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0001062"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-137",
@@ -3750,7 +3886,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0001062"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-138",
@@ -3777,7 +3914,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0001107"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-139",
@@ -3804,7 +3942,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0001125"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-140",
@@ -3831,7 +3970,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0001125"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-141",
@@ -3858,7 +3998,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0001125"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-142",
@@ -3885,7 +4026,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "GAJ-FPB-26-0001029"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-143",
@@ -3912,7 +4054,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "HL-FPB-26-0001568"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-144",
@@ -3939,7 +4082,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005151"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-145",
@@ -3966,7 +4110,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "HL-FPB-26-0001557"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-146",
@@ -3993,7 +4138,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "MO-FPB-26-0001950"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-147",
@@ -4020,7 +4166,8 @@
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
       "fpbRefs": [
         "CPL-FPB-26-0005142"
-      ]
+      ],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-148",
@@ -4045,7 +4192,8 @@
       "reorderPoint": 1,
       "monthlyConsumption": 1,
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
-      "fpbRefs": []
+      "fpbRefs": [],
+      "batchNo": "CPL-PP-2026-001"
     },
     {
       "id": "plan-149",
@@ -4070,7 +4218,8 @@
       "reorderPoint": 1,
       "monthlyConsumption": 1,
       "suggestedVendor": "Distributor Resmi / Rekanan CPG",
-      "fpbRefs": []
+      "fpbRefs": [],
+      "batchNo": "CPL-PP-2026-001"
     }
   ],
   "sourceFile": "PURCHASE_PLANNING_BATCH_001_CPG.xlsx (Desktop)"

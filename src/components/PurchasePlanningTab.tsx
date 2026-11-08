@@ -211,7 +211,8 @@ export default function PurchasePlanningTab({
         const matchVendor = item.suggestedVendor?.toLowerCase().includes(q) || false;
         const matchVessel = item.requestingVessels.some((v) => v.toLowerCase().includes(q));
         const matchFpb = item.fpbRefs.some((f) => f.toLowerCase().includes(q));
-        if (!matchName && !matchCode && !matchVendor && !matchVessel && !matchFpb) return false;
+        const matchBatch = item.batchNo?.toLowerCase().includes(q) || false;
+        if (!matchName && !matchCode && !matchVendor && !matchVessel && !matchFpb && !matchBatch) return false;
       }
 
       return true;
@@ -443,6 +444,7 @@ export default function PurchasePlanningTab({
 
     const headers = [
       'Kode Barang',
+      'Batch ID',
       'Nama Barang',
       'Kategori',
       'Satuan',
@@ -461,6 +463,7 @@ export default function PurchasePlanningTab({
 
     const rows = filteredItems.map((i) => [
       `"${i.itemCode}"`,
+      `"${i.batchNo || 'CPL-PP-2026-001'}"`,
       `"${i.itemName}"`,
       `"${i.category}"`,
       `"${i.unit}"`,
@@ -1060,6 +1063,14 @@ export default function PurchasePlanningTab({
                             Lead Time: ~{item.leadTimeDays} Hari
                           </span>
                         </div>
+                        {/* Batch Number di bawah kode barang */}
+                        <div className="flex items-center gap-1.5 mt-1.5">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-mono text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 font-medium">
+                            <Layers className="size-2.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                            <span className="text-[9px] uppercase font-bold tracking-wider text-emerald-600 dark:text-emerald-400">Batch:</span>
+                            <span className="font-semibold">{item.batchNo || 'CPL-PP-2026-001'}</span>
+                          </span>
+                        </div>
                       </td>
 
                       {/* 2. Category */}
@@ -1299,7 +1310,10 @@ export default function PurchasePlanningTab({
                           <tr key={item.id} className="hover:bg-muted/20">
                             <td className="py-2 px-3">
                               <div className="font-semibold text-foreground">{item.itemName}</div>
-                              <div className="text-[10px] text-muted-foreground font-mono">{item.itemCode}</div>
+                              <div className="text-[10px] text-muted-foreground font-mono flex items-center gap-1.5 mt-0.5">
+                                <span>{item.itemCode}</span>
+                                <span className="text-emerald-600 dark:text-emerald-400 font-semibold">• Batch: {item.batchNo || 'CPL-PP-2026-001'}</span>
+                              </div>
                             </td>
                             <td className="py-2 px-2 text-center text-muted-foreground">{item.unit}</td>
                             <td className="py-2 px-2 text-center">
@@ -1376,6 +1390,10 @@ export default function PurchasePlanningTab({
                   </span>
                   <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 font-semibold border border-indigo-500/20">
                     {selectedItemDetail.category}
+                  </span>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold border border-emerald-500/20 flex items-center gap-1">
+                    <Layers className="size-3" />
+                    <span>Batch: {selectedItemDetail.batchNo || 'CPL-PP-2026-001'}</span>
                   </span>
                 </div>
                 <h3 className="text-base font-bold text-foreground">

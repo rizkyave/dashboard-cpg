@@ -121,7 +121,7 @@ export function parsePurchasePlanningWorkbook(workbook: XLSX.WorkBook): Purchase
   const cFpb = colIndex(['NO. FPB', 'NO FPB', 'FPB', 'REFERENSI NO. FPB']);
   const cPrio = colIndex(['PRIORITAS', 'PRIORITY', 'TINGKAT URGENSI']);
   const cKet = colIndex(['KETERANGAN', 'CATATAN', 'NOTES']);
-  const cBatch = colIndex(['BATCH ID', 'BATCH']);
+  const cBatch = colIndex(['BATCH ID', 'BATCH', 'BATCH NO', 'BATCH NUMBER', 'NO. BATCH', 'NO BATCH', 'ID BATCH']);
   const cPemohon = colIndex(['PEMOHON', 'REQUESTER']);
   const cStock = colIndex(['BARANG STOCK LOGISTIK', 'STOK GUDANG', 'CURRENT STOCK', 'STOK', 'STOK GUDANG SOMBER']);
   const cPrice = colIndex(['HARGA SATUAN', 'ESTIMASI HARGA', 'HARGA', 'PRICE', 'UNIT PRICE']);
@@ -163,7 +163,7 @@ export function parsePurchasePlanningWorkbook(workbook: XLSX.WorkBook): Purchase
     const fpb = cFpb !== -1 && row[cFpb] ? String(row[cFpb]).trim() : '';
     const prio = cPrio !== -1 && row[cPrio] ? String(row[cPrio]).trim().toUpperCase() : 'P3';
     const ket = cKet !== -1 && row[cKet] ? String(row[cKet]).trim() : '';
-    const batchId = cBatch !== -1 && row[cBatch] ? String(row[cBatch]).trim() : 'BATCH-001';
+    const batchId = cBatch !== -1 && row[cBatch] ? String(row[cBatch]).trim() : 'CPL-PP-2026-001';
     const pemohon = cPemohon !== -1 && row[cPemohon] ? String(row[cPemohon]).trim() : '';
     const stock = cStock !== -1 && row[cStock] !== '' && !isNaN(Number(row[cStock])) ? Number(row[cStock]) : 0;
     const price = cPrice !== -1 && row[cPrice] !== '' && !isNaN(Number(row[cPrice])) ? Number(row[cPrice]) : 0;
@@ -181,7 +181,7 @@ export function parsePurchasePlanningWorkbook(workbook: XLSX.WorkBook): Purchase
         fpbRefs: new Set<string>(),
         priorities: new Set<string>(),
         keteranganList: new Set<string>(),
-        batchId: batchId || 'BATCH-001',
+        batchId: batchId || 'CPL-PP-2026-001',
         pemohon: pemohon || '',
         unitPriceFromExcel: price,
         vendorFromExcel: vendor,
@@ -261,6 +261,7 @@ export function parsePurchasePlanningWorkbook(workbook: XLSX.WorkBook): Purchase
       monthlyConsumption: Math.max(1, Math.ceil(c.totalRequestedQty * 0.5)),
       suggestedVendor: c.vendorFromExcel || (c.category.includes('Pelumas') ? 'PT. Pertamina Lubricants' : 'Distributor Resmi / Rekanan CPG'),
       fpbRefs: fpbs,
+      batchNo: c.batchId || 'CPL-PP-2026-001',
     };
   });
 
