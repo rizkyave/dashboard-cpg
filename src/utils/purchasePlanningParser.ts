@@ -144,16 +144,61 @@ export function parsePurchasePlanningWorkbook(workbook: XLSX.WorkBook): Purchase
     vendorFromExcel: string;
   }>();
 
+  const APPROVAL_KEYWORDS = [
+    '##AKHIR DATA',
+    'AKHIR DATA',
+    'END OF DATA',
+  ];
+
+  const APPROVAL_BLACKLIST = new Set([
+    'ACKNOWLEDGE',
+    'REVIEWER',
+    'REVIEWER I',
+    'REVIEWER II',
+    'HERMANSYAH',
+    'MELINDA',
+    'NOORHASANAH',
+    'NOOR HASANAH',
+    'MENGETAHUI',
+    'DISETUJUI',
+    'DIBUAT OLEH',
+    'TANDA TANGAN',
+    'APPROVER',
+  ]);
+
   for (let r = headerIdx + 1; r < rawData.length; r++) {
     const row = rawData[r];
     if (!row || row.length === 0) continue;
+
+    const rowStr = row.map((cell) => String(cell || '').trim()).join(' ').toUpperCase();
+
+    // 1. Jika mencapai penanda akhir data tabel, hentikan iterasi (blok tanda tangan / footer ada di bawahnya)
+    if (APPROVAL_KEYWORDS.some((kw) => rowStr.includes(kw))) {
+      break;
+    }
+
+    // 2. Abaikan baris validasi tanda tangan / reviewer
+    if (
+      rowStr.includes('REVIEWER I') ||
+      rowStr.includes('REVIEWER II') ||
+      rowStr.includes('ACKNOWLEDGE') ||
+      rowStr.includes('TANDA TANGAN')
+    ) {
+      continue;
+    }
 
     const rawName = cName !== -1 ? String(row[cName] || '').trim() : '';
     const rawCode = cCode !== -1 ? String(row[cCode] || '').trim() : '';
     if (!rawName && !rawCode) continue;
 
-    // Abaikan baris heading atau header berulang
-    if (rawName.toUpperCase().includes('NAMA BARANG') || rawCode.toUpperCase().includes('KODE BARANG')) continue;
+    // 3. Abaikan baris heading atau nama reviewer / pejabat persetujuan
+    const normName = rawName.toUpperCase().trim();
+    const normCode = rawCode.toUpperCase().trim();
+    if (normName.includes('NAMA BARANG') || normCode.includes('KODE BARANG')) continue;
+    if (APPROVAL_BLACKLIST.has(normName) || APPROVAL_BLACKLIST.has(normCode)) continue;
+
+    // 4. Validasi baris item fisik (harus ada kode barang, nomor FPB, atau satuan/qty yang jelas)
+    if (!rawCode && !row[cFpb] && !row[cUnit]) continue;
 
     const key = rawCode || rawName;
     const qty = Math.max(0, Number(row[cQty]) || 0);

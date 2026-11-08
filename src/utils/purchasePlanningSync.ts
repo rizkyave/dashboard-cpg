@@ -255,6 +255,18 @@ export function performHybridSync(options?: {
       const codeKey = poItem.itemCode ? poItem.itemCode.trim().toUpperCase() : '';
       const nameKey = poItem.itemName ? poItem.itemName.trim().toUpperCase() : '';
 
+      // Abaikan jika item berupa nama pejabat persetujuan / kata kunci approval
+      if (
+        nameKey.includes('ACKNOWLEDGE') ||
+        nameKey.includes('REVIEWER') ||
+        nameKey === 'HERMANSYAH' ||
+        nameKey === 'MELINDA' ||
+        nameKey === 'NOORHASANAH' ||
+        nameKey === 'NOOR HASANAH'
+      ) {
+        continue;
+      }
+
       const matchedExisting = (codeKey ? existingByCode.get(codeKey) : null) || (nameKey ? existingByName.get(nameKey) : null);
       const reqQty = Math.max(1, Number(poItem.qty) || 1);
 
