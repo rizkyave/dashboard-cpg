@@ -1180,7 +1180,7 @@ export default function DashboardPage() {
 
         <main className="flex-1 min-w-0 p-3.5 sm:p-5 lg:p-8 space-y-4 sm:space-y-6 max-w-[1800px] w-full mx-auto pb-24 lg:pb-8">
           {/* Page Header in clean Studio Admin typography */}
-          {activeTab !== 'serah-terima-lapangan' && activeTab !== 'validasi-dokumen' && (
+          {activeTab !== 'serah-terima-lapangan' && activeTab !== 'validasi-dokumen' && activeTab !== 'jadwal-pengantaran' && (
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="space-y-1">
                 <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-foreground">
@@ -1302,7 +1302,7 @@ export default function DashboardPage() {
           ) : (
             <>
           {/* 4 Pillar Executive Metric Cards (procurement tabs only) */}
-          {activeTab !== 'inventory' && activeTab !== 'ringkasan-berkas' && activeTab !== 'review-fpb' && activeTab !== 'monitoring-internal' && activeTab !== 'pos-kapal' && activeTab !== 'crew-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'serah-terima-lapangan' && activeTab !== 'galeri-ttb' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'validasi-dokumen' && activeTab !== 'admin-settings' && !isKpiHidden && (!isVisitor || searchKeyword.trim() !== '') && (
+          {activeTab !== 'inventory' && activeTab !== 'ringkasan-berkas' && activeTab !== 'review-fpb' && activeTab !== 'monitoring-internal' && activeTab !== 'pos-kapal' && activeTab !== 'crew-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'serah-terima-lapangan' && activeTab !== 'galeri-ttb' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'validasi-dokumen' && activeTab !== 'admin-settings' && activeTab !== 'jadwal-pengantaran' && !isKpiHidden && (!isVisitor || searchKeyword.trim() !== '') && (
             <div className="animate-in fade-in-50 duration-200">
               <KpiCards
                 procurementList={filteredProcurement}
@@ -1523,6 +1523,15 @@ export default function DashboardPage() {
               procurementItems={procurementData}
               armadaItems={armadaData}
               sisaLayananItems={sisaLayananItems}
+              showToast={showToast}
+            />
+          )}
+
+          {/* Tab Modul Baru: Jadwal Pengantaran 5 Hari Kerja (Senin - Jumat) Berbasis Posisi Kapal & AI */}
+          {activeTab === 'jadwal-pengantaran' && (
+            <JadwalPengantaranTab
+              kapalPosisiItems={kapalPosisiItems}
+              procurementData={procurementData}
               showToast={showToast}
             />
           )}
