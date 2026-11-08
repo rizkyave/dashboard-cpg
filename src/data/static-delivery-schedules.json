@@ -235,7 +235,7 @@
   },
   {
     "id": "static-office-gaj-selasa",
-    "shipName": "OFFICE GAJ (Kantor Pusat CPG)",
+    "shipName": "OFFICE GAJ",
     "isOfficeDestination": true,
     "scheduledDay": "SELASA",
     "timeSlot": "PAGI (08:30 - 11:30)",
@@ -739,7 +739,7 @@
   },
   {
     "id": "static-office-gaj-kamis",
-    "shipName": "OFFICE GAJ (Kantor Pusat CPG)",
+    "shipName": "OFFICE GAJ",
     "isOfficeDestination": true,
     "scheduledDay": "KAMIS",
     "timeSlot": "PAGI (08:30 - 11:30)",

@@ -1346,92 +1346,25 @@ _Pusat Logistik & Serah Terima CPG_`;
                       </span>
                     </div>
 
-                    {/* Daftar Kartu Pengantaran Statis */}
-                    <div className="p-3 space-y-3 flex-1 overflow-y-auto">
-                      {dayItems.map((item) => (
+                    {/* Daftar Kartu Pengantaran Statis - Bersih: Cukup Nama Kapal Saja Tanpa Emblem */}
+                    <div className="p-2 space-y-1.5 flex-1 overflow-y-auto">
+                      {dayItems.map((item, idx) => (
                         <div
                           key={item.id}
-                          className={`rounded-xl p-3 border shadow-2xs transition-all duration-200 ${
+                          className={`px-3 py-2 rounded-lg border text-xs transition-all duration-150 flex items-center justify-between gap-2 ${
                             item.isOfficeDestination
-                              ? 'bg-gradient-to-br from-emerald-500/10 via-background to-emerald-500/5 border-emerald-500/40 ring-1 ring-emerald-500/20'
-                              : 'bg-background border-border hover:border-sky-500/50'
+                              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-200 font-bold shadow-2xs'
+                              : 'bg-background border-border hover:border-emerald-500/40 text-foreground hover:bg-muted/40 shadow-2xs'
                           }`}
+                          title={item.shipName}
                         >
-                          {/* Top Badges */}
-                          <div className="flex items-center justify-between gap-1 mb-2">
-                            {item.isOfficeDestination ? (
-                              <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-md bg-emerald-600 text-white flex items-center gap-1 shadow-2xs">
-                                <Building2 className="size-3" />
-                                KANTOR PUSAT GAJ
-                              </span>
-                            ) : (
-                              <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-sm bg-muted text-foreground border border-border">
-                                {item.shipType.split(' ')[0]}
-                              </span>
-                            )}
-
-                            <span className="text-[9px] font-semibold text-muted-foreground flex items-center gap-1">
-                              <Clock className="size-2.5" />
-                              {item.timeSlot?.split(' ')[0]}
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-[10px] font-mono text-muted-foreground w-4 text-right shrink-0">
+                              {idx + 1}.
                             </span>
-                          </div>
-
-                          {/* Nama Kapal atau Kantor */}
-                          <div className="mb-2">
-                            <h3
-                              className={`text-xs font-bold truncate ${
-                                item.isOfficeDestination
-                                  ? 'text-emerald-700 dark:text-emerald-300 text-sm'
-                                  : 'text-foreground'
-                              }`}
-                              title={item.shipName}
-                            >
+                            <span className={`truncate ${item.isOfficeDestination ? 'font-bold' : 'font-medium'}`}>
                               {item.shipName}
-                            </h3>
-                            <div className="flex items-center gap-1 text-[11px] text-muted-foreground mt-0.5">
-                              <MapPin
-                                className={`size-3 shrink-0 ${
-                                  item.isOfficeDestination ? 'text-emerald-600' : 'text-rose-500'
-                                }`}
-                              />
-                              <span className="truncate" title={item.defaultPosition}>
-                                {item.defaultPosition}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Note & Informasi */}
-                          <div className="bg-muted/40 rounded-lg p-2 mb-2 text-[10px] space-y-1">
-                            <div className="text-muted-foreground line-clamp-2">
-                              {item.priorityNote || 'Jadwal rutin mingguan teratur'}
-                            </div>
-                            <div className="text-[9px] text-muted-foreground pt-1 border-t border-border/50 flex items-center justify-between">
-                              <span>Transport: {item.transportMethod?.split(' ')[0]}</span>
-                              <span className="font-semibold">{item.clusterArea?.replace('_', ' ')}</span>
-                            </div>
-                          </div>
-
-                          {/* Petugas Kurir & Aksi WA */}
-                          <div className="pt-2 border-t border-border/70 flex items-center justify-between gap-1">
-                            <div className="min-w-0">
-                              <div className="text-[9px] text-muted-foreground">Kurir Tetap:</div>
-                              <div className="text-[11px] font-bold text-foreground truncate" title={item.assignedCourier.name}>
-                                {item.assignedCourier.name}
-                              </div>
-                            </div>
-
-                            <button
-                              onClick={() => handleSendStaticWa(item)}
-                              className={`p-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 cursor-pointer transition ${
-                                item.isOfficeDestination
-                                  ? 'bg-emerald-600 text-white hover:bg-emerald-500 shadow-2xs'
-                                  : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20'
-                              }`}
-                              title={`Kirim WA Penugasan ke ${item.assignedCourier.name}`}
-                            >
-                              <Send className="size-3" />
-                              <span className="text-[10px]">WA</span>
-                            </button>
+                            </span>
                           </div>
                         </div>
                       ))}
