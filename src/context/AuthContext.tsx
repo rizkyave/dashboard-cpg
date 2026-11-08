@@ -225,6 +225,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const res = authenticate(username, password);
       if (res.success && res.user) {
         setUser(res.user);
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem('cpg_last_active_time', String(Date.now()));
+          } catch {}
+        }
         loadUsersFromStorage();
         return { success: true, user: res.user };
       }
@@ -234,10 +239,89 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setStoredSessionUser(null);
     setUser(null);
-  };
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('cpg_last_active_time');
+      } catch {}
+    }
+  }, []);
+
+  // --------------------------------------------------------------------------
+  // AUTO-LOGOUT KETIDAKAKTIFAN (INACTIVITY / IDLE TIMEOUT 15 MENIT)
+  // Aturan SOP Keamanan:
+  // 1. User non-admin (Logistik, Purchasing, Kru, Lapangan, Manager, dll):
+  //    Otomatis keluar (logout) secara senyap tanpa notifikasi popup jika
+  //    tidak ada aktivitas (mouse, keyboard, scroll, touch, click) selama 15 menit.
+  // 2. Role Admin ('admin'):
+  //    Dikecualikan dari auto-logout (sesi tidak kedaluwarsa demi kelancaran monitoring).
+  // 3. Sinkronisasi multi-tab: Aktivitas pada tab manapun mereset timer semua tab.
+  // --------------------------------------------------------------------------
+  useEffect(() => {
+    // Jika tidak ada user login atau user adalah role 'admin', timer tidak aktif
+    if (!user || user.role === 'admin') return;
+
+    const INACTIVITY_TIMEOUT_MS = 15 * 60 * 1000; // 15 Menit
+
+    const updateLastActive = () => {
+      try {
+        localStorage.setItem('cpg_last_active_time', String(Date.now()));
+      } catch {}
+    };
+
+    // Set waktu awal jika belum ada
+    if (!localStorage.getItem('cpg_last_active_time')) {
+      updateLastActive();
+    }
+
+    // Throttle event listener aktivitas agar tidak membebani browser
+    let lastThrottledTime = Date.now();
+    const handleUserInteraction = () => {
+      const now = Date.now();
+      if (now - lastThrottledTime > 5000) {
+        lastThrottledTime = now;
+        updateLastActive();
+      }
+    };
+
+    const interactionEvents: (keyof WindowEventMap)[] = [
+      'mousedown',
+      'mousemove',
+      'keydown',
+      'scroll',
+      'touchstart',
+      'wheel',
+      'click',
+    ];
+
+    interactionEvents.forEach((evt) => {
+      window.addEventListener(evt, handleUserInteraction, { passive: true });
+    });
+
+    // Pengecekan idle berkala setiap 10 detik
+    const idleIntervalId = setInterval(() => {
+      const currentSession = getStoredSessionUser();
+      if (!currentSession || currentSession.role === 'admin') return;
+
+      const storedTime = localStorage.getItem('cpg_last_active_time');
+      const lastActive = storedTime ? parseInt(storedTime, 10) : Date.now();
+      const elapsed = Date.now() - lastActive;
+
+      if (elapsed >= INACTIVITY_TIMEOUT_MS) {
+        // Logout otomatis secara diam-diam (silent redirect ke halaman login)
+        logout();
+      }
+    }, 10000);
+
+    return () => {
+      interactionEvents.forEach((evt) => {
+        window.removeEventListener(evt, handleUserInteraction);
+      });
+      clearInterval(idleIntervalId);
+    };
+  }, [user, logout]);
 
   const createUser = async (data: {
     username: string;
