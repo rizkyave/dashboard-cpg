@@ -2001,9 +2001,9 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                       <option value="review-fpb">Review &amp; Analisa FPB</option>
                       <option value="purchase-planning">📊 Perencanaan Pengadaan</option>
                       <option value="pratender">Pratender Material Terbuka</option>
-                      <option value="monitoring-internal">Monitoring Berkas Internal</option>
                       <option value="procurement">Procurement (FPB &amp; PO)</option>
                       <option value="armada">Layanan Armada</option>
+                      <option value="monitoring-internal">Monitoring Berkas Internal</option>
                       <option value="upload-fstb">Upload FSTB Resmi</option>
                       <option value="upload-ttb">Upload TTB Resmi</option>
                       <option value="validasi-dokumen">Validasi &amp; TTD Dokumen (TTB / FSTB)</option>

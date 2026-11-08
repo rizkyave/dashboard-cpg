@@ -145,13 +145,6 @@ export default function Sidebar({
       title: 'Konsolidasi & Agregasi Kebutuhan Material Terbuka (Open/Unsupplied) Lintas Armada untuk Paket Tender Bersama',
     },
     {
-      id: 'monitoring-internal' as TabType,
-      label: 'Monitoring Internal',
-      icon: FileSpreadsheet,
-      badge: 'Sheet',
-      title: 'Monitoring Berkas Internal Pengadaan (Selesai Purchasing, Waktu Kirim & Serah Terima PIC TTB)',
-    },
-    {
       id: 'procurement' as TabType,
       label: 'Pengadaan',
       icon: ShoppingBag,
@@ -164,6 +157,13 @@ export default function Sidebar({
       icon: Anchor,
       badge: 'FSTB',
       title: 'Monitoring Layanan Armada & FSTB (Hover FPB / Item untuk Nama Barang Sisa Layanan)',
+    },
+    {
+      id: 'monitoring-internal' as TabType,
+      label: 'Monitoring Internal',
+      icon: FileSpreadsheet,
+      badge: 'Sheet',
+      title: 'Monitoring Berkas Internal Pengadaan (Selesai Purchasing, Waktu Kirim & Serah Terima PIC TTB)',
     },
     {
       id: 'upload-fstb' as TabType,
