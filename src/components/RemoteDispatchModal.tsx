@@ -60,6 +60,22 @@ export interface RemoteDispatchModalProps {
   showToast?: (message: string, type?: 'success' | 'error' | 'info' | 'warning') => void;
 }
 
+interface DeliveryPersonnel {
+  id?: string | number;
+  nama: string;
+  nik?: string;
+  noHp?: string;
+  jabatan?: string;
+}
+
+const DEFAULT_DELIVERY_TEAM: DeliveryPersonnel[] = [
+  { id: 'del-1', nama: 'AGUSSALIM', nik: 'MP-DAO-0871', noHp: '+62 859-5448-7599', jabatan: 'Staff Operasional' },
+  { id: 'del-2', nama: 'BARDI', nik: 'MP-DAO-0274', noHp: '+62 813-4718-0635', jabatan: 'Staff Operasional' },
+  { id: 'del-3', nama: 'HAMKA ALKA', nik: 'CPL-DAO-0031', noHp: '+62 813-5016-0353', jabatan: 'Staff Operasional' },
+  { id: 'del-4', nama: 'ZULFIANSYAH', nik: 'MP-DAO-0367', noHp: '+62 813-4632-0456', jabatan: 'Staff Operasional' },
+  { id: 'del-5', nama: 'AKBAR RAMADHAN', nik: 'MP-DAO-0512', noHp: '+62 813-5151-0415', jabatan: 'Staff Operasional' },
+];
+
 export default function RemoteDispatchModal({
   isOpen,
   onClose,
@@ -70,6 +86,7 @@ export default function RemoteDispatchModal({
 }: RemoteDispatchModalProps) {
   const [shippingMethod, setShippingMethod] = useState<ShippingMethod>('Diantar Tim Logistik');
   const [carrierContact, setCarrierContact] = useState<string>('');
+  const [selectedCourierOption, setSelectedCourierOption] = useState<string>('');
   const [trackingNumber, setTrackingNumber] = useState<string>('');
   const [recipientPhone, setRecipientPhone] = useState<string>('');
   const [recipientNameTarget, setRecipientNameTarget] = useState<string>('');
@@ -91,11 +108,68 @@ export default function RemoteDispatchModal({
   }>({ crewList: [] });
   const [selectedCrewId, setSelectedCrewId] = useState<string>('');
 
-  // Kru yang sedang dipilih
+  // Kru kapal yang sedang dipilih
   const selectedCrew = useMemo(() => {
     if (!selectedCrewId) return null;
     return crewInfo.crewList.find((c) => String(c.id) === selectedCrewId) || null;
   }, [selectedCrewId, crewInfo.crewList]);
+
+  // Tim delivery logistik internal (diambil dari database kru kapal Kantor / Departemen: LOGISTIK TIM DELIVERY)
+  const deliveryTeamList = useMemo<DeliveryPersonnel[]>(() => {
+    try {
+      const stored = loadCrewData();
+      const fromMaster = (stored.masterCrew || [])
+        .filter((c) => {
+          const ship = (c.namaKapal || '').toUpperCase();
+          const dept = (c.departemen || '').toUpperCase();
+          return (
+            ship.includes('LOGISTIK') ||
+            ship.includes('DELIVERY') ||
+            dept.includes('LOGISTIK') ||
+            dept.includes('DELIVERY')
+          );
+        })
+        .map((c) => ({
+          id: c.id,
+          nama: c.namaPersonel,
+          nik: c.nik,
+          noHp: c.noHp,
+          jabatan: c.jabatan || 'Staff Operasional',
+        }));
+
+      if (fromMaster.length > 0) {
+        const map = new Map<string, DeliveryPersonnel>();
+        DEFAULT_DELIVERY_TEAM.forEach((m) => map.set(m.nama.toUpperCase().trim(), m));
+        fromMaster.forEach((m) => map.set(m.nama.toUpperCase().trim(), m));
+        return Array.from(map.values());
+      }
+    } catch {}
+    return DEFAULT_DELIVERY_TEAM;
+  }, [isOpen]);
+
+  const selectedCourier = useMemo(() => {
+    return (
+      deliveryTeamList.find(
+        (d) => d.nama.toUpperCase().trim() === carrierContact.toUpperCase().trim()
+      ) || null
+    );
+  }, [deliveryTeamList, carrierContact]);
+
+  // Sinkronkan selectedCourierOption saat carrierContact berubah
+  useEffect(() => {
+    if (!carrierContact) {
+      setSelectedCourierOption('');
+    } else {
+      const match = deliveryTeamList.find(
+        (d) => d.nama.toUpperCase().trim() === carrierContact.toUpperCase().trim()
+      );
+      if (match) {
+        setSelectedCourierOption(match.nama);
+      } else {
+        setSelectedCourierOption('MANUAL');
+      }
+    }
+  }, [carrierContact, deliveryTeamList]);
 
   // Muat kru kapal dan nomor telepon kapal secara otomatis saat modal terbuka
   useEffect(() => {
@@ -573,32 +647,117 @@ Terima kasih.`;
               </div>
             </div>
 
-            {/* Nama Kurir / Petugas Pengantar (Satu Kolom Memanjang Penuh) */}
+            {/* Nama Kurir / Petugas Pengantar (Dropdown Otomatis dari LOGISTIK TIM DELIVERY) */}
             <div>
-              <label className="block text-xs font-semibold text-foreground mb-1.5">
-                Nama Kurir / Petugas Pengantar <span className="text-rose-500">*</span>
-              </label>
-              <div className="relative">
-                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
-                  <User className="size-4" />
-                </div>
-                <input
-                  type="text"
-                  required
-                  value={carrierContact}
-                  onChange={(e) => setCarrierContact(e.target.value)}
-                  placeholder={
-                    shippingMethod === 'Diantar Tim Logistik'
-                      ? 'Cth: Agus Salim (Tim Logistik Lapangan)'
-                      : shippingMethod === 'Titip Armada'
-                      ? 'Cth: Capt. Ridwan (TB King Star) / Kru Pembawa'
-                      : 'Cth: Travel Barokah - Bpk. Anto'
-                  }
-                  className="w-full text-xs sm:text-sm pl-10 pr-3.5 py-2.5 rounded-xl bg-background border border-border text-foreground placeholder:text-muted-foreground/60 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-hidden transition shadow-2xs"
-                />
+              <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
+                <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                  <User className="size-3.5 text-indigo-600 dark:text-indigo-400" />
+                  <span>Nama Kurir / Petugas Pengantar</span>
+                  <span className="text-rose-500">*</span>
+                </label>
+                {shippingMethod === 'Diantar Tim Logistik' && (
+                  <span className="text-[10px] font-semibold text-indigo-700 dark:text-indigo-300 bg-indigo-500/15 px-2 py-0.5 rounded-full border border-indigo-500/25">
+                    Logistik Tim Delivery ({deliveryTeamList.length} Personel)
+                  </span>
+                )}
               </div>
+
+              {shippingMethod === 'Diantar Tim Logistik' ? (
+                <div className="space-y-2">
+                  <div className="relative">
+                    <select
+                      value={selectedCourierOption}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setSelectedCourierOption(val);
+                        if (val === 'MANUAL') {
+                          setCarrierContact('');
+                        } else if (val) {
+                          setCarrierContact(val);
+                        }
+                      }}
+                      className="w-full text-xs sm:text-sm pl-3.5 pr-8 py-2.5 rounded-xl bg-background border border-border text-foreground font-medium focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-hidden transition shadow-2xs cursor-pointer"
+                    >
+                      <option value="">-- Pilih Petugas Logistik Pengantar --</option>
+                      {deliveryTeamList.map((courier, idx) => (
+                        <option key={idx} value={courier.nama}>
+                          {courier.nama} ({courier.nik || 'Logistik'}) - {courier.noHp || courier.jabatan}
+                        </option>
+                      ))}
+                      <option value="MANUAL">✏️ Input Manual / Petugas Lainnya...</option>
+                    </select>
+                  </div>
+
+                  {/* Input manual jika dipilih atau jika nama tidak ada di list */}
+                  {(selectedCourierOption === 'MANUAL' || (!selectedCourier && carrierContact)) && (
+                    <div className="relative animate-in fade-in">
+                      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
+                        <User className="size-4" />
+                      </div>
+                      <input
+                        type="text"
+                        required
+                        value={carrierContact}
+                        onChange={(e) => {
+                          setCarrierContact(e.target.value);
+                          setSelectedCourierOption('MANUAL');
+                        }}
+                        placeholder="Ketik nama petugas pengantar..."
+                        className="w-full text-xs sm:text-sm pl-10 pr-3.5 py-2.5 rounded-xl bg-background border border-border text-foreground placeholder:text-muted-foreground/60 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-hidden transition shadow-2xs"
+                        autoFocus
+                      />
+                    </div>
+                  )}
+
+                  {/* Info Ringkas Personel Logistik Terpilih */}
+                  {selectedCourier && selectedCourierOption !== 'MANUAL' && (
+                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/25 text-xs text-indigo-900 dark:text-indigo-200 animate-in fade-in">
+                      <div className="flex items-center gap-2">
+                        <UserCheck className="size-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                        <div>
+                          <strong className="text-foreground">{selectedCourier.nama}</strong>{' '}
+                          <span className="text-muted-foreground">({selectedCourier.nik}) - {selectedCourier.jabatan}</span>
+                        </div>
+                      </div>
+                      {selectedCourier.noHp && (
+                        <a
+                          href={`https://wa.me/${selectedCourier.noHp.replace(/\D/g, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-mono text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
+                          title="Hubungi Petugas Pengantar"
+                        >
+                          <Phone className="size-3" />
+                          <span>{selectedCourier.noHp}</span>
+                        </a>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Untuk metode lain (Titip Armada / Travel): input fleksibel dengan placeholder sesuai metode */
+                <div className="relative">
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
+                    <User className="size-4" />
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    value={carrierContact}
+                    onChange={(e) => setCarrierContact(e.target.value)}
+                    placeholder={
+                      shippingMethod === 'Titip Armada'
+                        ? 'Cth: Capt. Ridwan (TB King Star) / Kru Pembawa'
+                        : 'Cth: Travel Barokah - Bpk. Anto'
+                    }
+                    className="w-full text-xs sm:text-sm pl-10 pr-3.5 py-2.5 rounded-xl bg-background border border-border text-foreground placeholder:text-muted-foreground/60 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-hidden transition shadow-2xs"
+                  />
+                </div>
+              )}
               <p className="text-[10px] text-muted-foreground mt-1">
-                Nama petugas logistik internal atau pihak perantara yang membawa dan mengantar barang ke kapal.
+                {shippingMethod === 'Diantar Tim Logistik'
+                  ? 'Pilih petugas dari departemen Logistik Tim Delivery yang membawa dan menyerahkan barang.'
+                  : 'Nama petugas atau pihak perantara yang membawa dan mengantar barang ke kapal.'}
               </p>
             </div>
 

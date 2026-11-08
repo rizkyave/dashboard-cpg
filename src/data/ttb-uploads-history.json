@@ -37,26 +37,6 @@
     "receiverRole": "Nakhoda"
   },
   {
-    "id": "r2-CPL-TTB-26-07793CPL-TTB-26-07791CPL-TTB-26-0776028lainnya-1481088",
-    "noTtb": "CPL-TTB-26-07793CPL-TTB-26-07791CPL-TTB-26-0776028lainnya",
-    "cleanNoTtb": "CPL-TTB-26-07793CPL-TTB-26-07791CPL-TTB-26-0776028lainnya",
-    "armada": "-",
-    "receivedDate": "2026-11-06",
-    "keterangan": "",
-    "originalFileName": "CPL-TTB-26-07793CPL-TTB-26-07791CPL-TTB-26-0776028lainnya.pdf",
-    "renamedFileName": "CPL-TTB-26-07793CPL-TTB-26-07791CPL-TTB-26-0776028lainnya.pdf",
-    "fileSize": 1492767,
-    "fileType": "application/pdf",
-    "fileUrl": "/api/r2-file?key=ttb-documents%2FCPL-TTB-26-07793CPL-TTB-26-07791CPL-TTB-26-0776028lainnya.pdf&v=1794139599422",
-    "r2Key": "ttb-documents/CPL-TTB-26-07793CPL-TTB-26-07791CPL-TTB-26-0776028lainnya.pdf",
-    "storageProvider": "CLOUDFLARE_R2",
-    "uploadedAt": "2026-11-06T23:55:13.915Z",
-    "status": "STORED_IN_CLOUDFLARE_R2",
-    "uploaderName": "STAF LOGISTIK CPG",
-    "isAutoStamped": true,
-    "stampedAt": "2026-11-08T12:06:39.422Z"
-  },
-  {
     "id": "1793958059448-bgy41",
     "noTtb": "CPL-TTB-26-07793",
     "cleanNoTtb": "CPL-TTB-26-07793",
