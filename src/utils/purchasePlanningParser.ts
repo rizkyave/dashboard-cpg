@@ -4,7 +4,7 @@ import { PurchasePlanningItem, PurchasePlanningResponse } from '@/app/api/purcha
 /**
  * Estimasi harga satuan wajar berbasis kategori & nama barang jika di file tidak ada kolom harga
  */
-function estimateUnitPrice(name: string, category: string): number {
+export function estimateUnitPrice(name: string, category: string): number {
   const n = name.toUpperCase();
   const c = category.toUpperCase();
 
@@ -39,7 +39,7 @@ function estimateUnitPrice(name: string, category: string): number {
 /**
  * Estimasi lead time pengadaan (hari) berbasis kategori
  */
-function estimateLeadTime(category: string): number {
+export function estimateLeadTime(category: string): number {
   const c = category.toUpperCase();
   if (c.includes('SUKU CADANG') || c.includes('MECHANICAL') || c.includes('MESIN')) return 14;
   if (c.includes('ELECTRICAL')) return 10;
@@ -52,7 +52,7 @@ function estimateLeadTime(category: string): number {
 /**
  * Estimasi persentase diskon pembelian borongan (bulk tender)
  */
-function estimateBulkDiscount(qty: number): number {
+export function estimateBulkDiscount(qty: number): number {
   if (qty >= 50) return 15.0;
   if (qty >= 20) return 12.0;
   if (qty >= 10) return 8.5;

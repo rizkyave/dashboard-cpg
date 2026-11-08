@@ -860,15 +860,31 @@
     "entity": "CPL",
     "armada": "DEPT IT",
     "date": "06/11/26",
-    "purpose": "Kebutuhan Operasional DEPT IT",
+    "purpose": "U/ RUANGAN IT",
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0005187.pdf",
     "reviewStatus": "PENDING_REVIEW",
-    "urgency": "NORMAL",
+    "urgency": "URGENT",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "KPS00408001-ZZZ",
+        "itemName": "KAPASITOR 30 UF (00)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/ RUANGAN IT",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[KPST-KPS001] KAPASITOR - KAPASITOR (CAPACITOR) FAN UF (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
     "attachments": [
       {
         "id": "efpb-att-CPL-FPB-26-0005187-2",
@@ -887,12 +903,13 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-06T23:52:50.406Z",
+    "updatedAt": "2026-11-08T16:38:48.969Z",
     "createdAt": "2026-11-06T23:52:50.406Z",
-    "priorityLevel": "P3",
-    "slaTargetDate": "06/12/26",
-    "slaDaysRemaining": 27,
-    "slaStatus": "ON_TRACK"
+    "priorityLevel": "P1",
+    "slaTargetDate": "08/11/26",
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE",
+    "requestedBy": "SALMAN"
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001578",
@@ -957,7 +974,15 @@
       }
     ],
     "attachments": [],
-    "duplicateAlerts": [],
+    "duplicateAlerts": [
+      {
+        "fpbNo": "GAJ-FPB-26-0001157",
+        "date": "06/11/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Keperluan mirip: \"penggantian rusak\" pada 06/11/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (0 hari selisih)"
+      }
+    ],
     "relatedDocs": {
       "poNos": [],
       "fstbNos": [],
@@ -1480,28 +1505,111 @@
     "entity": "GAJ",
     "armada": "OFFICE GAJ",
     "date": "06/11/26",
-    "purpose": "Kebutuhan Operasional OFFICE GAJ",
+    "purpose": "U/SARANA KEBERSIHAN LANTAI 2 LOGISTIK • U/ PENGGANTIAN SELANG IBC YANG RUSAK",
     "efpbStatus": "Approved",
     "isReceivedLogistik": true,
     "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_GAJ-FPB-26-0001157.pdf",
     "reviewStatus": "PENDING_REVIEW",
-    "urgency": "NORMAL",
+    "urgency": "URGENT",
     "picPurchasing": "-",
     "reviewNotes": "",
-    "items": [],
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "HOU01301001-HID",
+        "itemName": "PEL LANTAI (HIDOSHI)",
+        "qty": 1,
+        "unit": "PCS",
+        "description": "U/SARANA KEBERSIHAN LANTAI 2 LOGISTIK",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[HOUK-HOU013] HOUSE KEEPING - PEL LANTAI (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 2,
+        "itemCode": "CAI01401006-SOK",
+        "itemName": "PEMBERSIH LANTAI REFILL 770 ML (SOKLIN)",
+        "qty": 2,
+        "unit": "BKS",
+        "description": "U/SARANA KEBERSIHAN LANTAI 2 LOGISTIK",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[CAIR-CAI014] CAIRAN - PEMBERSIH LANTAI (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      },
+      {
+        "no": 3,
+        "itemCode": "SEH01402001-ZZZ",
+        "itemName": "SELANG KAWAT 1\" (00)",
+        "qty": 10,
+        "unit": "MTR",
+        "description": "U/ PENGGANTIAN SELANG IBC YANG RUSAK",
+        "priority": "P3",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[SEHO-SEH014] SELANG (HOSE) - SELANG KAWAT (MO)",
+        "inventoryEntity": "MO",
+        "decision": "PO",
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+      }
+    ],
     "attachments": [],
-    "duplicateAlerts": [],
+    "duplicateAlerts": [
+      {
+        "fpbNo": "GAJ-FPB-26-0001155",
+        "date": "06/11/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Keperluan mirip: \"penggantian rusak\" pada 06/11/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (0 hari selisih)"
+      },
+      {
+        "fpbNo": "GAJ-FPB-26-0001080",
+        "date": "27/10/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Keperluan mirip: \"sarana lantai\" pada 27/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (10 hari selisih)"
+      },
+      {
+        "fpbNo": "GAJ-FPB-26-0001083",
+        "date": "27/10/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Keperluan mirip: \"sarana lantai\" pada 27/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (10 hari selisih)"
+      },
+      {
+        "fpbNo": "GAJ-FPB-26-0001088",
+        "date": "24/10/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Keperluan mirip: \"lantai logistik\" pada 24/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (13 hari selisih)"
+      },
+      {
+        "fpbNo": "GAJ-FPB-26-0001089",
+        "date": "26/10/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Keperluan mirip: \"lantai logistik\" pada 26/10/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (11 hari selisih)"
+      }
+    ],
     "relatedDocs": {
       "poNos": [],
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-08T15:58:25.529Z",
+    "updatedAt": "2026-11-08T16:45:57.279Z",
     "createdAt": "2026-11-06T23:52:50.406Z",
-    "priorityLevel": "P3",
-    "slaTargetDate": "06/12/26",
-    "slaDaysRemaining": 27,
-    "slaStatus": "ON_TRACK"
+    "priorityLevel": "P1",
+    "slaTargetDate": "08/11/26",
+    "slaDaysRemaining": -1,
+    "slaStatus": "OVERDUE",
+    "requestedBy": "Ardiyan Fauzi"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001158",
@@ -1881,7 +1989,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T06:13:02.803Z",
+    "updatedAt": "2026-11-08T16:47:28.245Z",
     "createdAt": "2026-11-04T06:08:44.948Z",
     "priorityLevel": "P3",
     "slaTargetDate": "03/12/26",
@@ -9081,6 +9189,13 @@
     "attachments": [],
     "duplicateAlerts": [
       {
+        "fpbNo": "GAJ-FPB-26-0001157",
+        "date": "06/11/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Keperluan mirip: \"sarana sarana\" pada 06/11/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (9 hari selisih)"
+      },
+      {
         "fpbNo": "GAJ-FPB-26-0001140",
         "date": "02/11/26",
         "armada": "OFFICE GAJ",
@@ -9297,6 +9412,13 @@
     ],
     "attachments": [],
     "duplicateAlerts": [
+      {
+        "fpbNo": "GAJ-FPB-26-0001157",
+        "date": "06/11/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Keperluan mirip: \"lantai sarana\" pada 06/11/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (10 hari selisih)"
+      },
       {
         "fpbNo": "GAJ-FPB-26-0001129",
         "date": "29/10/26",
@@ -10287,6 +10409,13 @@
     ],
     "attachments": [],
     "duplicateAlerts": [
+      {
+        "fpbNo": "GAJ-FPB-26-0001157",
+        "date": "06/11/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Keperluan mirip: \"lantai sarana\" pada 06/11/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (10 hari selisih)"
+      },
       {
         "fpbNo": "GAJ-FPB-26-0001080",
         "date": "27/10/26",
@@ -12321,6 +12450,13 @@
     "attachments": [],
     "duplicateAlerts": [
       {
+        "fpbNo": "GAJ-FPB-26-0001157",
+        "date": "06/11/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Keperluan mirip: \"lantai logistik lantai logistik\" pada 06/11/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (13 hari selisih)"
+      },
+      {
         "fpbNo": "GAJ-FPB-26-0001133",
         "date": "30/10/26",
         "armada": "OFFICE GAJ",
@@ -12742,6 +12878,13 @@
     ],
     "attachments": [],
     "duplicateAlerts": [
+      {
+        "fpbNo": "GAJ-FPB-26-0001157",
+        "date": "06/11/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Keperluan mirip: \"lantai logistik\" pada 06/11/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (11 hari selisih)"
+      },
       {
         "fpbNo": "GAJ-FPB-26-0001088",
         "date": "24/10/26",
@@ -13767,6 +13910,13 @@
       }
     ],
     "duplicateAlerts": [
+      {
+        "fpbNo": "GAJ-FPB-26-0001157",
+        "date": "06/11/26",
+        "armada": "OFFICE GAJ",
+        "matchedItem": "Keperluan mirip: \"sarana sarana sarana\" pada 06/11/26",
+        "similarityNotes": "Pengajuan serupa dari armada OFFICE GAJ (11 hari selisih)"
+      },
       {
         "fpbNo": "GAJ-FPB-26-0001140",
         "date": "02/11/26",

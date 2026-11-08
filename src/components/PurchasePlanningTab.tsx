@@ -60,8 +60,12 @@ export default function PurchasePlanningTab({
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [selectedUrgency, setSelectedUrgency] = useState<string>('ALL');
   const [selectedVessel, setSelectedVessel] = useState<string>('ALL');
+  const [selectedDataSource, setSelectedDataSource] = useState<'ALL' | 'DESKTOP_EXCEL' | 'EFPB_LIVE' | 'HYBRID_CONSOLIDATED'>('ALL');
   const [sortBy, setSortBy] = useState<'urgency' | 'category' | 'cost' | 'name' | 'reorderQty'>('urgency');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  // Hybrid Sync State
+  const [isSyncingHybrid, setIsSyncingHybrid] = useState<boolean>(false);
 
   // Multi-Selection State (Item konfirmasi siap PO / Pratender)
   const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
@@ -168,6 +172,38 @@ export default function PurchasePlanningTab({
     }
   };
 
+  // 4. Sinkronisasi Hybrid: Menggabungkan Excel Desktop + e-FPB Disetujui Logistik
+  const handleSyncHybrid = async (reloadDesktop = false) => {
+    setIsSyncingHybrid(true);
+    showToast?.(
+      reloadDesktop
+        ? 'Membaca ulang Excel Desktop & menyinkronkan dengan e-FPB disetujui...'
+        : 'Menyinkronkan item e-FPB yang telah disetujui Logistik ke rencana pengadaan...',
+      'info'
+    );
+
+    try {
+      const res = await fetch(`/api/purchase-planning?action=sync-hybrid&reloadDesktop=${reloadDesktop}`, {
+        method: 'POST',
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setData(json.data);
+        setSelectedItemIds(new Set());
+        showToast?.(
+          `✓ ${json.message || 'Sinkronisasi berhasil!'}`,
+          'success'
+        );
+      } else {
+        showToast?.(json.message || 'Gagal menyinkronkan data.', 'error');
+      }
+    } catch (err: any) {
+      showToast?.(err?.message || 'Terjadi kesalahan saat sinkronisasi hybrid.', 'error');
+    } finally {
+      setIsSyncingHybrid(false);
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -202,6 +238,12 @@ export default function PurchasePlanningTab({
 
       // Filter Vessel
       if (selectedVessel !== 'ALL' && !item.requestingVessels.includes(selectedVessel)) return false;
+
+      // Filter Sumber Data (Hybrid, e-FPB, Desktop)
+      if (selectedDataSource !== 'ALL') {
+        const itemSource = item.dataSource || 'DESKTOP_EXCEL';
+        if (itemSource !== selectedDataSource) return false;
+      }
 
       // Filter Search
       if (searchQuery.trim()) {
@@ -587,35 +629,101 @@ export default function PurchasePlanningTab({
         </div>
       </div>
 
-      {/* ── BANNER SUMBER DATA AKTIF ── */}
-      {data?.sourceFile && (
-        <div className="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-gradient-to-r from-blue-500/10 via-card to-card border border-blue-500/30 text-xs text-muted-foreground flex-wrap shadow-xs">
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <span className="flex h-2 w-2 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <span className="font-semibold text-foreground flex items-center gap-1.5">
-              <span>Sumber Data:</span>
-              <span className="px-2 py-0.5 rounded-md bg-blue-500/15 text-blue-700 dark:text-blue-300 font-mono text-[11px] font-bold border border-blue-500/30">
-                {data.sourceFile}
+      {/* ── BANNER SINKRONISASI HYBRID (DESKTOP + LIVE e-FPB) ── */}
+      {data && (
+        <div className="space-y-2.5">
+          {/* Bar Kontrol & Status Sinkronisasi */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 p-4 rounded-3xl bg-gradient-to-r from-indigo-500/10 via-card to-card border border-indigo-500/30 text-xs shadow-xs">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="flex h-2.5 w-2.5 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
               </span>
-            </span>
-            <span>&bull;</span>
-            <span>
-              <strong className="text-foreground">{data.summary.totalItems.toLocaleString('id-ID')}</strong> Item Terkonsolidasi
-            </span>
-            <span>&bull;</span>
-            <span>
-              <strong className="text-foreground">{data.summary.activeVesselsCount}</strong> Armada / Unit Peminta
-            </span>
+
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-bold text-foreground">Sinkronisasi Hybrid:</span>
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-blue-500/15 text-blue-700 dark:text-blue-300 font-mono text-[11px] font-bold border border-blue-500/30" title="File Excel Master Desktop">
+                  <FileSpreadsheet className="size-3 text-blue-500" />
+                  <span>{data.syncStats?.desktopFileName || 'PURCHASE_PLANNING_BATCH_001_CPG.xlsx'}</span>
+                </span>
+                <span className="text-muted-foreground">+</span>
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-purple-500/15 text-purple-700 dark:text-purple-300 font-mono text-[11px] font-bold border border-purple-500/30" title="Data persetujuan e-FPB dari modul Review Logistik">
+                  <Sparkles className="size-3 text-purple-500" />
+                  <span>e-FPB Live Sync</span>
+                </span>
+              </div>
+
+              <div className="hidden sm:flex items-center gap-2 text-muted-foreground text-[11px] border-l border-border pl-3">
+                <span>
+                  📁 <strong className="text-foreground">{data.syncStats?.desktopCount ?? data.summary.totalItems}</strong> Desktop
+                </span>
+                <span>&bull;</span>
+                <span>
+                  🌐 <strong className="text-foreground">{data.syncStats?.efpbCount ?? 0}</strong> e-FPB Baru
+                </span>
+                <span>&bull;</span>
+                <span>
+                  🔄 <strong className="text-foreground">{data.syncStats?.hybridCount ?? 0}</strong> Terkonsolidasi
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap shrink-0">
+              {/* Tombol Tarik & Sinkronkan e-FPB */}
+              <button
+                type="button"
+                onClick={() => handleSyncHybrid(false)}
+                disabled={isSyncingHybrid || isRefreshing}
+                className="h-8 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs disabled:opacity-60"
+                title="Tarik data item e-FPB yang telah disetujui Logistik (keputusan PO) dan gabungkan ke rencana pembelian"
+              >
+                {isSyncingHybrid ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <RefreshCw className="size-3.5" />
+                )}
+                <span>Tarik e-FPB Disetujui</span>
+                {data.syncStats && data.syncStats.pendingPoItemsCount > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full bg-amber-400 text-amber-950 text-[10px] font-black">
+                    +{data.syncStats.pendingPoItemsCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Tombol Muat Ulang Excel Desktop & Merge */}
+              <button
+                type="button"
+                onClick={() => handleSyncHybrid(true)}
+                disabled={isSyncingHybrid || isRefreshing}
+                className="h-8 px-3 rounded-xl border border-blue-500/30 bg-blue-500/10 hover:bg-blue-500/20 text-blue-700 dark:text-blue-300 font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs disabled:opacity-60"
+                title="Baca ulang file Excel di Desktop jika ada perubahan manual, lalu otomatis gabungkan kembali dengan e-FPB disetujui"
+              >
+                <Sparkles className="size-3.5 text-blue-500" />
+                <span>Muat Ulang Excel &amp; Gabung</span>
+              </button>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 text-[11px]">
-            <span className="text-muted-foreground font-mono">
-              Terakhir Dimuat: {new Date(data.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-            </span>
-          </div>
+          {/* Notifikasi Alert jika ada e-FPB baru yang siap disinkronkan */}
+          {data.syncStats && data.syncStats.pendingPoItemsCount > 0 && (
+            <div className="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs shadow-xs flex-wrap">
+              <div className="flex items-center gap-2.5">
+                <span className="size-2 rounded-full bg-amber-500 animate-pulse shrink-0"></span>
+                <span>
+                  Terdapat <strong>{data.syncStats.pendingPoItemsCount} item barang</strong> dari <strong>{data.syncStats.pendingApprovedFpbsCount} berkas e-FPB</strong> yang telah disetujui Tim Logistik (keputusan Beli Baru/PO) dan siap ditarik ke dalam perencanaan pembelian.
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleSyncHybrid(false)}
+                disabled={isSyncingHybrid}
+                className="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shrink-0 shadow-2xs disabled:opacity-60"
+              >
+                {isSyncingHybrid ? <Loader2 className="size-3.5 animate-spin" /> : <RefreshCw className="size-3.5" />}
+                <span>Sinkronkan Sekarang</span>
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -864,6 +972,18 @@ export default function PurchasePlanningTab({
               </select>
             )}
 
+            {/* Filter Sumber Data */}
+            <select
+              value={selectedDataSource}
+              onChange={(e) => setSelectedDataSource(e.target.value as any)}
+              className="text-xs px-2.5 py-1.5 rounded-xl bg-background border border-border text-foreground font-medium cursor-pointer shadow-2xs focus:outline-hidden focus:ring-1 focus:ring-primary"
+            >
+              <option value="ALL">Semua Jalur Sumber</option>
+              <option value="DESKTOP_EXCEL">📁 Excel Desktop</option>
+              <option value="EFPB_LIVE">🌐 e-FPB Disetujui</option>
+              <option value="HYBRID_CONSOLIDATED">🔄 Konsolidasi Hybrid</option>
+            </select>
+
             {/* Sort Dropdown */}
             <select
               value={sortBy}
@@ -1063,13 +1183,31 @@ export default function PurchasePlanningTab({
                             Lead Time: ~{item.leadTimeDays} Hari
                           </span>
                         </div>
-                        {/* Batch Number di bawah kode barang */}
-                        <div className="flex items-center gap-1.5 mt-1.5">
+                        {/* Batch Number & Sumber Data di bawah kode barang */}
+                        <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
                           <span className="inline-flex items-center gap-1 text-[10px] font-mono text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 font-medium">
                             <Layers className="size-2.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                             <span className="text-[9px] uppercase font-bold tracking-wider text-emerald-600 dark:text-emerald-400">Batch:</span>
                             <span className="font-semibold">{item.batchNo || 'CPL-PP-2026-001'}</span>
                           </span>
+
+                          {/* Badge Sumber Data */}
+                          {item.dataSource === 'EFPB_LIVE' ? (
+                            <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-purple-700 dark:text-purple-300 bg-purple-500/10 border border-purple-500/20 px-1.5 py-0.5 rounded" title="Item ditarik dari e-FPB yang telah disetujui Logistik">
+                              <Sparkles className="size-2.5 text-purple-500" />
+                              <span>e-FPB Live</span>
+                            </span>
+                          ) : item.dataSource === 'HYBRID_CONSOLIDATED' ? (
+                            <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-teal-700 dark:text-teal-300 bg-teal-500/10 border border-teal-500/20 px-1.5 py-0.5 rounded" title="Konsolidasi gabungan Excel Desktop + Kebutuhan baru dari e-FPB disetujui">
+                              <RefreshCw className="size-2.5 text-teal-500" />
+                              <span>Konsolidasi Hybrid</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-[9px] font-medium text-muted-foreground bg-muted/60 border border-border px-1.5 py-0.5 rounded" title="Berasal dari berkas Excel Desktop">
+                              <FileSpreadsheet className="size-2.5 text-muted-foreground" />
+                              <span>Excel Desktop</span>
+                            </span>
+                          )}
                         </div>
                       </td>
 
@@ -1395,6 +1533,22 @@ export default function PurchasePlanningTab({
                     <Layers className="size-3" />
                     <span>Batch: {selectedItemDetail.batchNo || 'CPL-PP-2026-001'}</span>
                   </span>
+                  {selectedItemDetail.dataSource === 'EFPB_LIVE' ? (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-700 dark:text-purple-300 font-semibold border border-purple-500/20 flex items-center gap-1">
+                      <Sparkles className="size-3" />
+                      <span>Sumber: e-FPB Disetujui</span>
+                    </span>
+                  ) : selectedItemDetail.dataSource === 'HYBRID_CONSOLIDATED' ? (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-700 dark:text-teal-300 font-semibold border border-teal-500/20 flex items-center gap-1">
+                      <RefreshCw className="size-3" />
+                      <span>Sumber: Konsolidasi Hybrid</span>
+                    </span>
+                  ) : (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-semibold border border-border flex items-center gap-1">
+                      <FileSpreadsheet className="size-3" />
+                      <span>Sumber: Excel Desktop</span>
+                    </span>
+                  )}
                 </div>
                 <h3 className="text-base font-bold text-foreground">
                   {selectedItemDetail.itemName}

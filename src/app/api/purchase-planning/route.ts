@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import * as XLSX from 'xlsx';
 import { parsePurchasePlanningWorkbook } from '@/utils/purchasePlanningParser';
+import { getSyncStats, performHybridSync } from '@/utils/purchasePlanningSync';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -30,6 +31,20 @@ export interface PurchasePlanningItem {
   suggestedVendor?: string;
   fpbRefs: string[];
   batchNo?: string;
+  dataSource?: 'DESKTOP_EXCEL' | 'EFPB_LIVE' | 'HYBRID_CONSOLIDATED';
+  syncedAt?: string;
+}
+
+export interface PurchasePlanningSyncStats {
+  desktopCount: number;
+  efpbCount: number;
+  hybridCount: number;
+  pendingApprovedFpbsCount: number;
+  pendingPoItemsCount: number;
+  lastSyncedAt?: string;
+  desktopFileAvailable: boolean;
+  desktopFileName?: string;
+  desktopLastModified?: string;
 }
 
 export interface PurchasePlanningResponse {
@@ -48,6 +63,7 @@ export interface PurchasePlanningResponse {
   };
   categories: string[];
   items: PurchasePlanningItem[];
+  syncStats?: PurchasePlanningSyncStats;
 }
 
 const STORAGE_FILE_PATH = path.join(process.cwd(), 'src', 'data', 'purchase-planning-data.json');
@@ -211,6 +227,7 @@ export async function GET() {
         const fileContent = fs.readFileSync(STORAGE_FILE_PATH, 'utf-8');
         const parsed: PurchasePlanningResponse = JSON.parse(fileContent);
         if (parsed && parsed.items && parsed.items.length > 0) {
+          parsed.syncStats = getSyncStats(parsed);
           return NextResponse.json(parsed, {
             headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' },
           });
@@ -256,6 +273,28 @@ export async function POST(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const action = searchParams.get('action');
+
+    // 0. Aksi: Cek status sinkronisasi e-FPB & Desktop
+    if (action === 'sync-status') {
+      const stats = getSyncStats();
+      return NextResponse.json({ success: true, stats });
+    }
+
+    // 0b. Aksi: Sinkronisasi Hybrid (e-FPB Disetujui + Auto-Merge Desktop)
+    if (action === 'sync-hybrid') {
+      const reloadDesktop = searchParams.get('reloadDesktop') === 'true';
+      const batchNo = searchParams.get('batchNo') || 'CPL-PP-2026-001';
+
+      const result = performHybridSync({ reloadDesktop, defaultBatchNo: batchNo });
+      return NextResponse.json({
+        success: true,
+        message: `Sinkronisasi berhasil! ${result.mergedCount} item digabungkan, ${result.newCount} item baru ditambahkan dari e-FPB disetujui.`,
+        data: result.response,
+        mergedCount: result.mergedCount,
+        newCount: result.newCount,
+        totalSyncedPoItems: result.totalSyncedPoItems,
+      });
+    }
 
     // 1. Aksi: Reset data ke master baseline
     if (action === 'reset') {
