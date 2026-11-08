@@ -21,6 +21,9 @@ export interface DossierBundleItem {
   hasFstbDoc: boolean;
   hasTtbDoc: boolean;
   hasPhotos: boolean;
+  hasFpbPdf?: boolean;
+  hasFstbPdf?: boolean;
+  hasTtbPdf?: boolean;
   // Resolved URLs
   fpbPdfUrl?: string;
   fstbPdfUrl?: string;

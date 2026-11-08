@@ -21,6 +21,7 @@ import {
   Loader2,
   Ship,
   Sparkles,
+  X,
 } from 'lucide-react';
 import { ProcurementItem, ArmadaItem, EntityCode } from '@/types/procurement';
 import { ENTITIES } from '@/data/initialData';
@@ -58,6 +59,18 @@ export default function RingkasanBerkasTab({
   const [photoMap, setPhotoMap] = useState<Record<string, string[]>>({});
   const [efpbMap, setEfpbMap] = useState<Record<string, string>>({});
   const [fpbArmadaMap, setFpbArmadaMap] = useState<Record<string, string>>({});
+
+  // Document & Photo Preview Modal State
+  const [previewDoc, setPreviewDoc] = useState<{
+    type: 'FPB' | 'FSTB' | 'TTB' | 'FOTO';
+    title: string;
+    docNo?: string;
+    url?: string;
+    photoUrls?: string[];
+    isAvailable: boolean;
+    item: DossierBundleItem;
+  } | null>(null);
+  const [activePhotoIdx, setActivePhotoIdx] = useState(0);
 
   // Fetch softcopy manifests from APIs
   const fetchManifests = async () => {
@@ -191,17 +204,24 @@ export default function RingkasanBerkasTab({
         setEfpbMap(map);
       }
 
-      // 5. Process Review FPB for detailed armada mapping
+      // 5. Process Review FPB for detailed armada mapping & pdfUrl
       if (reviewFpbRes.status === 'fulfilled' && Array.isArray(reviewFpbRes.value?.data)) {
-        const map: Record<string, string> = {};
+        const armadaMap: Record<string, string> = {};
+        const pdfMap: Record<string, string> = {};
         for (const item of reviewFpbRes.value.data) {
           const fpb = (item.fpbNo || '').trim().toLowerCase();
           const armada = (item.armada || '').trim();
           if (fpb && armada) {
-            map[fpb] = armada;
+            armadaMap[fpb] = armada;
+          }
+          if (fpb && item.pdfUrl) {
+            pdfMap[fpb] = item.pdfUrl;
           }
         }
-        setFpbArmadaMap(map);
+        setFpbArmadaMap(armadaMap);
+        if (Object.keys(pdfMap).length > 0) {
+          setEfpbMap((prev) => ({ ...pdfMap, ...prev }));
+        }
       }
     } catch (err) {
       console.error('Error fetching manifests in RingkasanBerkasTab:', err);
@@ -244,6 +264,7 @@ export default function RingkasanBerkasTab({
       const explicitFstb = String(rowAny.noFstb || rowAny.fstb || '').trim();
       const fstbLookup = fstbMap[normFpb] || (normPo ? fstbMap[normPo] : undefined) || (explicitFstb ? fstbMap[explicitFstb.toLowerCase()] : undefined);
       const hasFstbDoc = Boolean(fstbLookup?.fileUrl || explicitFstb);
+      const hasFstbPdf = Boolean(fstbLookup?.fileUrl);
       const noFstb = fstbLookup?.noFstb || explicitFstb || '';
       const fstbPdfUrl = fstbLookup?.fileUrl || (noFstb ? `/api/upload-fstb/file?name=${encodeURIComponent(noFstb)}.pdf` : undefined);
 
@@ -251,6 +272,7 @@ export default function RingkasanBerkasTab({
       const explicitTtb = String(rowAny.noTtb || rowAny.ttb || '').trim();
       const ttbLookup = ttbMap[normFpb] || (normPo ? ttbMap[normPo] : undefined) || (explicitTtb ? ttbMap[explicitTtb.toLowerCase()] : undefined);
       const hasTtbDoc = Boolean(ttbLookup?.fileUrl || explicitTtb);
+      const hasTtbPdf = Boolean(ttbLookup?.fileUrl);
       const noTtb = ttbLookup?.noTtb || explicitTtb || '';
       const ttbPdfUrl = ttbLookup?.fileUrl || (noTtb ? `/api/upload-ttb/file?name=${encodeURIComponent(noTtb)}.pdf` : undefined);
 
@@ -299,7 +321,8 @@ export default function RingkasanBerkasTab({
       const hasPhotos = photoLookup.length > 0;
 
       // Check FPB PDF
-      const efpbUrl = efpbMap[normFpb] || `/api/parse-fpb-pdf?fpb=${encodeURIComponent(fpb)}&raw=true`;
+      const hasFpbPdf = Boolean(efpbMap[normFpb] || (rowAny.pdfUrl && String(rowAny.pdfUrl).includes('.pdf')));
+      const efpbUrl = efpbMap[normFpb] || (rowAny.pdfUrl ? rowAny.pdfUrl : `/api/parse-fpb-pdf?fpb=${encodeURIComponent(fpb)}&raw=true`);
       const hasFpbDoc = Boolean(fpb);
 
       const entity = String(rowAny.entity || rowAny.perusahaan || 'CPL');
@@ -324,6 +347,9 @@ export default function RingkasanBerkasTab({
         hasFstbDoc,
         hasTtbDoc,
         hasPhotos,
+        hasFpbPdf,
+        hasFstbPdf,
+        hasTtbPdf,
         fpbPdfUrl: efpbUrl,
         fstbPdfUrl,
         ttbPdfUrl,
@@ -333,6 +359,52 @@ export default function RingkasanBerkasTab({
 
     return Array.from(dedupeMap.values());
   }, [procurementData, armadaData, fstbMap, ttbMap, photoMap, efpbMap, fpbArmadaMap]);
+
+  // Handler to open single document / photo preview modal
+  const handleOpenDocPreview = (item: DossierBundleItem, docType: 'FPB' | 'FSTB' | 'TTB' | 'FOTO') => {
+    setActivePhotoIdx(0);
+    if (docType === 'FPB') {
+      const isAvailable = Boolean(item.hasFpbPdf || efpbMap[item.fpb.toLowerCase()] || item.fpbPdfUrl);
+      setPreviewDoc({
+        type: 'FPB',
+        title: `Dokumen e-FPB: ${item.fpb}`,
+        docNo: item.fpb,
+        url: item.fpbPdfUrl,
+        isAvailable,
+        item,
+      });
+    } else if (docType === 'FSTB') {
+      const isAvailable = Boolean(item.hasFstbPdf && item.fstbPdfUrl);
+      setPreviewDoc({
+        type: 'FSTB',
+        title: item.noFstb ? `Dokumen FSTB: ${item.noFstb}` : `Dokumen FSTB (${item.fpb})`,
+        docNo: item.noFstb || item.fpb,
+        url: isAvailable ? item.fstbPdfUrl : undefined,
+        isAvailable,
+        item,
+      });
+    } else if (docType === 'TTB') {
+      const isAvailable = Boolean(item.hasTtbPdf && item.ttbPdfUrl);
+      setPreviewDoc({
+        type: 'TTB',
+        title: item.noTtb ? `Dokumen TTB: ${item.noTtb}` : `Dokumen TTB (${item.fpb})`,
+        docNo: item.noTtb || item.fpb,
+        url: isAvailable ? item.ttbPdfUrl : undefined,
+        isAvailable,
+        item,
+      });
+    } else if (docType === 'FOTO') {
+      const isAvailable = Boolean(item.hasPhotos && item.photoUrls && item.photoUrls.length > 0);
+      setPreviewDoc({
+        type: 'FOTO',
+        title: `Foto Dokumentasi Fisik Serah Terima (${item.noTtb || item.armada})`,
+        docNo: item.noTtb,
+        photoUrls: item.photoUrls || [],
+        isAvailable,
+        item,
+      });
+    }
+  };
 
   // Filter Logic
   const filteredItems = useMemo(() => {
@@ -711,80 +783,139 @@ export default function RingkasanBerkasTab({
                       {/* 1 KOLOM KELENGKAPAN ADMINISTRASI TERPADU */}
                       <td className="py-3 px-3.5 bg-emerald-500/5 border-x border-emerald-500/20">
                         <div className="space-y-1.5">
-                          {/* 4 Pilar Badges */}
+                          {/* 4 Pilar Tombol Ikon Interaktif */}
                           <div className="grid grid-cols-2 gap-1.5 font-mono text-[10.5px]">
-                            {/* 1. FPB */}
-                            <div
-                              className={`px-2 py-1 rounded flex items-center justify-between border ${
-                                item.hasFpbDoc
-                                  ? 'bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-500/30 font-semibold'
-                                  : 'bg-muted text-muted-foreground/70 border-border'
+                            {/* 1. Tombol FPB */}
+                            <button
+                              type="button"
+                              onClick={() => handleOpenDocPreview(item, 'FPB')}
+                              className={`px-2 py-1.5 rounded-md flex items-center justify-between border transition active:scale-95 text-left cursor-pointer ${
+                                item.hasFpbPdf
+                                  ? 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-800 dark:text-emerald-300 border-emerald-500/35 hover:border-emerald-500/60 font-semibold shadow-xs'
+                                  : 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/25 hover:border-amber-500/40'
                               }`}
-                              title={item.hasFpbDoc ? 'Dokumen e-FPB resmi tersedia' : 'Dokumen FPB belum ada'}
+                              title={
+                                item.hasFpbPdf
+                                  ? `Dokumen e-FPB resmi tersedia (Klik untuk melihat)`
+                                  : `Softcopy PDF e-FPB belum diunggah (Klik untuk rincian)`
+                              }
                             >
-                              <span className="flex items-center gap-1">
-                                <FileText className="size-3 shrink-0" />
+                              <span className="flex items-center gap-1.5">
+                                <FileText className={`size-3.5 shrink-0 ${item.hasFpbPdf ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`} />
                                 <span>FPB</span>
                               </span>
-                              <span>{item.hasFpbDoc ? '✓' : '-'}</span>
-                            </div>
+                              <span className="flex items-center gap-1 text-[10px]">
+                                {item.hasFpbPdf ? (
+                                  <>
+                                    <Eye className="size-2.5 opacity-60" />
+                                    <span className="font-bold">✓</span>
+                                  </>
+                                ) : (
+                                  <span className="text-[9px] font-medium opacity-90">Draft</span>
+                                )}
+                              </span>
+                            </button>
 
-                            {/* 2. FSTB */}
-                            <div
-                              className={`px-2 py-1 rounded flex items-center justify-between border ${
-                                item.hasFstbDoc
-                                  ? 'bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-500/30 font-semibold'
-                                  : 'bg-muted text-muted-foreground/70 border-border'
+                            {/* 2. Tombol FSTB */}
+                            <button
+                              type="button"
+                              onClick={() => handleOpenDocPreview(item, 'FSTB')}
+                              className={`px-2 py-1.5 rounded-md flex items-center justify-between border transition active:scale-95 text-left cursor-pointer ${
+                                item.hasFstbPdf
+                                  ? 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-800 dark:text-emerald-300 border-emerald-500/35 hover:border-emerald-500/60 font-semibold shadow-xs'
+                                  : item.noFstb
+                                  ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/25 hover:border-amber-500/40'
+                                  : 'bg-muted/70 hover:bg-muted text-muted-foreground/70 border-border hover:border-muted-foreground/30'
                               }`}
-                              title={item.hasFstbDoc ? `FSTB Resmi: ${item.noFstb || 'Tersedia'}` : 'FSTB belum ada'}
+                              title={
+                                item.hasFstbPdf
+                                  ? `FSTB Resmi: ${item.noFstb || 'Tersedia'} (Klik untuk melihat PDF)`
+                                  : item.noFstb
+                                  ? `FSTB ${item.noFstb}: Softcopy PDF belum diunggah (Klik untuk info)`
+                                  : `FSTB belum ada`
+                              }
                             >
-                              <span className="flex items-center gap-1">
-                                <Boxes className="size-3 shrink-0" />
+                              <span className="flex items-center gap-1.5">
+                                <Boxes className={`size-3.5 shrink-0 ${item.hasFstbPdf ? 'text-teal-600 dark:text-teal-400' : item.noFstb ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground/50'}`} />
                                 <span>FSTB</span>
                               </span>
-                              <span>{item.hasFstbDoc ? '✓' : '-'}</span>
-                            </div>
+                              <span className="flex items-center gap-1 text-[10px]">
+                                {item.hasFstbPdf ? (
+                                  <>
+                                    <Eye className="size-2.5 opacity-60" />
+                                    <span className="font-bold">✓</span>
+                                  </>
+                                ) : (
+                                  <span className="text-[9px] font-medium opacity-90">{item.noFstb ? 'Belum PDF' : '-'}</span>
+                                )}
+                              </span>
+                            </button>
 
-                            {/* 3. TTB */}
-                            <div
-                              className={`px-2 py-1 rounded flex items-center justify-between border ${
-                                item.hasTtbDoc
-                                  ? 'bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-500/30 font-semibold'
-                                  : 'bg-muted text-muted-foreground/70 border-border'
+                            {/* 3. Tombol TTB */}
+                            <button
+                              type="button"
+                              onClick={() => handleOpenDocPreview(item, 'TTB')}
+                              className={`px-2 py-1.5 rounded-md flex items-center justify-between border transition active:scale-95 text-left cursor-pointer ${
+                                item.hasTtbPdf
+                                  ? 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-800 dark:text-emerald-300 border-emerald-500/35 hover:border-emerald-500/60 font-semibold shadow-xs'
+                                  : item.noTtb
+                                  ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/25 hover:border-amber-500/40'
+                                  : 'bg-muted/70 hover:bg-muted text-muted-foreground/70 border-border hover:border-muted-foreground/30'
                               }`}
-                              title={item.hasTtbDoc ? `TTB Resmi: ${item.noTtb || 'Tersedia'}` : 'TTB belum ada'}
+                              title={
+                                item.hasTtbPdf
+                                  ? `TTB Resmi: ${item.noTtb || 'Tersedia'} (Klik untuk melihat PDF)`
+                                  : item.noTtb
+                                  ? `TTB ${item.noTtb}: Softcopy PDF belum diunggah (Klik untuk info)`
+                                  : `TTB belum ada`
+                              }
                             >
-                              <span className="flex items-center gap-1">
-                                <ClipboardCheck className="size-3 shrink-0" />
+                              <span className="flex items-center gap-1.5">
+                                <ClipboardCheck className={`size-3.5 shrink-0 ${item.hasTtbPdf ? 'text-indigo-600 dark:text-indigo-400' : item.noTtb ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground/50'}`} />
                                 <span>TTB</span>
                               </span>
-                              <span>{item.hasTtbDoc ? '✓' : '-'}</span>
-                            </div>
+                              <span className="flex items-center gap-1 text-[10px]">
+                                {item.hasTtbPdf ? (
+                                  <>
+                                    <Eye className="size-2.5 opacity-60" />
+                                    <span className="font-bold">✓</span>
+                                  </>
+                                ) : (
+                                  <span className="text-[9px] font-medium opacity-90">{item.noTtb ? 'Belum PDF' : '-'}</span>
+                                )}
+                              </span>
+                            </button>
 
-                            {/* 4. FOTO */}
-                            <div
-                              onClick={() => {
-                                if (item.hasPhotos && item.photoUrls && item.photoUrls.length > 0) {
-                                  window.open(item.photoUrls[0], '_blank');
-                                }
-                              }}
-                              className={`px-2 py-1 rounded flex items-center justify-between border ${
+                            {/* 4. Tombol FOTO */}
+                            <button
+                              type="button"
+                              onClick={() => handleOpenDocPreview(item, 'FOTO')}
+                              className={`px-2 py-1.5 rounded-md flex items-center justify-between border transition active:scale-95 text-left cursor-pointer ${
                                 item.hasPhotos
-                                  ? 'bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-500/30 font-semibold cursor-pointer hover:bg-emerald-500/20 transition'
-                                  : 'bg-muted text-muted-foreground/70 border-border'
+                                  ? 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-800 dark:text-emerald-300 border-emerald-500/35 hover:border-emerald-500/60 font-semibold shadow-xs'
+                                  : 'bg-muted/70 hover:bg-muted text-muted-foreground/70 border-border hover:border-muted-foreground/30'
                               }`}
                               title={
                                 item.hasPhotos
-                                  ? `${item.photoUrls?.length || 1} Foto Bukti Fisik Lapangan (Klik untuk membuka foto)`
-                                  : 'Foto belum ada'
+                                  ? `${item.photoUrls?.length || 1} Foto bukti fisik serah terima lapangan (Klik untuk melihat)`
+                                  : `Foto fisik serah terima belum diunggah`
                               }
                             >
-                              <span className="flex items-center gap-1">
-                                <Camera className="size-3 shrink-0" />
+                              <span className="flex items-center gap-1.5">
+                                <Camera className={`size-3.5 shrink-0 ${item.hasPhotos ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground/50'}`} />
                                 <span>FOTO</span>
                               </span>
-                              <span>{item.hasPhotos ? `${item.photoUrls?.length || 1}✓` : '-'}</span>
-                            </div>
+                              <span className="flex items-center gap-1 text-[10px]">
+                                {item.hasPhotos ? (
+                                  <>
+                                    <Eye className="size-2.5 opacity-60" />
+                                    <span className="font-bold">{item.photoUrls?.length || 1}✓</span>
+                                  </>
+                                ) : (
+                                  <span className="text-[9px] font-medium opacity-90">-</span>
+                                )}
+                              </span>
+                            </button>
                           </div>
 
                           {/* Status Ringkasan Baris */}
@@ -861,6 +992,260 @@ export default function RingkasanBerkasTab({
           </span>
         </div>
       </div>
+
+      {/* Modal Pratinjau Dokumen & Galeri Foto */}
+      {previewDoc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-card border border-border w-full max-w-4xl max-h-[92vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+            {/* Header Modal */}
+            <div className="p-4 border-b border-border flex items-center justify-between bg-muted/40 shrink-0">
+              <div className="flex items-center gap-3">
+                <div
+                  className={`p-2 rounded-lg ${
+                    previewDoc.isAvailable
+                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                      : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
+                  }`}
+                >
+                  {previewDoc.type === 'FPB' && <FileText className="size-5" />}
+                  {previewDoc.type === 'FSTB' && <Boxes className="size-5" />}
+                  {previewDoc.type === 'TTB' && <ClipboardCheck className="size-5" />}
+                  {previewDoc.type === 'FOTO' && <Camera className="size-5" />}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-sm text-foreground">
+                      {previewDoc.title}
+                    </h3>
+                    <span
+                      className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${
+                        previewDoc.isAvailable
+                          ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20'
+                          : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
+                      }`}
+                    >
+                      {previewDoc.isAvailable ? 'Tersedia' : 'Softcopy Belum Ada'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground flex items-center gap-2 mt-0.5 font-mono">
+                    <span>
+                      Armada: <strong>{previewDoc.item.armada}</strong>
+                    </span>
+                    <span>&bull;</span>
+                    <span>
+                      Entitas: <strong>{previewDoc.item.entity || 'CPG'}</strong>
+                    </span>
+                    {previewDoc.item.po && (
+                      <>
+                        <span>&bull;</span>
+                        <span>
+                          PO: <strong>{previewDoc.item.po}</strong>
+                        </span>
+                      </>
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2">
+                {previewDoc.url && (
+                  <>
+                    <a
+                      href={previewDoc.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-2.5 py-1.5 rounded-lg border border-border bg-background hover:bg-muted text-xs font-semibold flex items-center gap-1.5 text-foreground transition"
+                      title="Buka dokumen di tab baru browser"
+                    >
+                      <ExternalLink className="size-3.5" />
+                      <span>Tab Baru</span>
+                    </a>
+                    <a
+                      href={previewDoc.url}
+                      download
+                      className="px-2.5 py-1.5 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold flex items-center gap-1.5 transition shadow-xs"
+                      title="Download berkas PDF"
+                    >
+                      <Download className="size-3.5" />
+                      <span>Unduh</span>
+                    </a>
+                  </>
+                )}
+                {previewDoc.type === 'FOTO' &&
+                  previewDoc.photoUrls &&
+                  previewDoc.photoUrls.length > 0 && (
+                    <a
+                      href={previewDoc.photoUrls[activePhotoIdx]}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-2.5 py-1.5 rounded-lg border border-border bg-background hover:bg-muted text-xs font-semibold flex items-center gap-1.5 text-foreground transition"
+                      title="Buka foto resolusi penuh di tab baru"
+                    >
+                      <ExternalLink className="size-3.5" />
+                      <span>Buka Foto Asli</span>
+                    </a>
+                  )}
+                <button
+                  type="button"
+                  onClick={() => setPreviewDoc(null)}
+                  className="size-8 rounded-lg border border-border hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition ml-1"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Content Body Modal */}
+            <div className="flex-1 overflow-y-auto p-4 bg-muted/10">
+              {/* KASUS 1: GALERI FOTO */}
+              {previewDoc.type === 'FOTO' && (
+                previewDoc.photoUrls && previewDoc.photoUrls.length > 0 ? (
+                  <div className="space-y-4">
+                    {/* Foto Utama */}
+                    <div className="relative w-full h-[55vh] rounded-xl overflow-hidden bg-black/90 flex items-center justify-center border border-border shadow-inner">
+                      <img
+                        src={previewDoc.photoUrls[activePhotoIdx]}
+                        alt={`Foto serah terima ${activePhotoIdx + 1}`}
+                        className="max-h-full max-w-full object-contain"
+                      />
+                      <div className="absolute top-3 left-3 bg-black/75 backdrop-blur-xs text-white px-3 py-1 rounded-full text-xs font-mono font-semibold">
+                        Foto {activePhotoIdx + 1} dari {previewDoc.photoUrls.length}
+                      </div>
+                    </div>
+
+                    {/* Thumbnail Selector jika foto > 1 */}
+                    {previewDoc.photoUrls.length > 1 && (
+                      <div className="flex items-center gap-2 overflow-x-auto pb-2">
+                        {previewDoc.photoUrls.map((pUrl, pIdx) => (
+                          <button
+                            key={pIdx}
+                            type="button"
+                            onClick={() => setActivePhotoIdx(pIdx)}
+                            className={`size-16 rounded-lg overflow-hidden border-2 shrink-0 transition ${
+                              activePhotoIdx === pIdx
+                                ? 'border-primary ring-2 ring-primary/20 scale-105'
+                                : 'border-border opacity-70 hover:opacity-100'
+                            }`}
+                          >
+                            <img
+                              src={pUrl}
+                              alt={`Thumbnail ${pIdx + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="py-16 text-center space-y-3">
+                    <div className="size-16 mx-auto rounded-full bg-muted flex items-center justify-center text-muted-foreground">
+                      <Camera className="size-8" />
+                    </div>
+                    <h4 className="font-bold text-foreground text-sm">
+                      Belum Ada Foto Dokumentasi Fisik
+                    </h4>
+                    <p className="text-xs text-muted-foreground max-w-md mx-auto">
+                      Belum ditemukan foto bukti fisik serah terima barang untuk armada{' '}
+                      <strong>{previewDoc.item.armada}</strong> atau TTB{' '}
+                      <strong>{previewDoc.item.noTtb || '-'}</strong> di Cloudflare R2.
+                    </p>
+                  </div>
+                )
+              )}
+
+              {/* KASUS 2: DOKUMEN PDF TERSEDIA */}
+              {previewDoc.type !== 'FOTO' && previewDoc.isAvailable && previewDoc.url && (
+                <div className="w-full h-[65vh] rounded-xl overflow-hidden border border-border bg-white shadow-inner flex flex-col">
+                  <iframe
+                    src={previewDoc.url}
+                    className="w-full h-full"
+                    title={previewDoc.title}
+                  />
+                </div>
+              )}
+
+              {/* KASUS 3: DOKUMEN PDF BELUM TERSEDIA (EMPTY/PENDING STATE) */}
+              {previewDoc.type !== 'FOTO' && (!previewDoc.isAvailable || !previewDoc.url) && (
+                <div className="py-12 px-4 max-w-lg mx-auto text-center space-y-4">
+                  <div className="size-16 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400">
+                    <AlertCircle className="size-8" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-base text-foreground">
+                      Softcopy PDF {previewDoc.type} Belum Tersedia
+                    </h4>
+                    <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+                      Dokumen scan PDF untuk berkas <strong>{previewDoc.title}</strong> belum diunggah ke server penyimpanan Cloudflare R2.
+                    </p>
+                  </div>
+
+                  {/* Ringkasan Data Tiket */}
+                  <div className="p-3.5 rounded-xl border border-border bg-card text-left space-y-2 text-xs font-mono">
+                    <div className="flex justify-between border-b border-border pb-1.5">
+                      <span className="text-muted-foreground">Nomor FPB</span>
+                      <span className="font-bold text-foreground">{previewDoc.item.fpb}</span>
+                    </div>
+                    {previewDoc.item.po && (
+                      <div className="flex justify-between border-b border-border pb-1.5">
+                        <span className="text-muted-foreground">Nomor PO</span>
+                        <span className="font-semibold text-blue-600 dark:text-blue-400">
+                          {previewDoc.item.po}
+                        </span>
+                      </div>
+                    )}
+                    {previewDoc.item.noFstb && (
+                      <div className="flex justify-between border-b border-border pb-1.5">
+                        <span className="text-muted-foreground">Nomor FSTB</span>
+                        <span className="font-semibold text-teal-600 dark:text-teal-400">
+                          {previewDoc.item.noFstb}
+                        </span>
+                      </div>
+                    )}
+                    {previewDoc.item.noTtb && (
+                      <div className="flex justify-between border-b border-border pb-1.5">
+                        <span className="text-muted-foreground">Nomor TTB</span>
+                        <span className="font-semibold text-indigo-600 dark:text-indigo-400">
+                          {previewDoc.item.noTtb}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Armada Peminta</span>
+                      <span className="font-bold text-foreground">{previewDoc.item.armada}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-center gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setPreviewDoc(null)}
+                      className="px-4 py-2 rounded-lg border border-border bg-background hover:bg-muted text-xs font-semibold text-foreground transition"
+                    >
+                      Tutup
+                    </button>
+                    {onOpenAuditModal && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const fpb = previewDoc.item.fpb;
+                          const po = previewDoc.item.po;
+                          setPreviewDoc(null);
+                          onOpenAuditModal(fpb, po);
+                        }}
+                        className="px-4 py-2 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold transition shadow-xs"
+                      >
+                        Buka Audit Pengadaan
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
