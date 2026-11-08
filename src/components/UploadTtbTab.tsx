@@ -47,6 +47,7 @@ import { ProcurementItem, ArmadaItem } from '@/types/procurement';
 import { SisaLayananItem } from '@/types/sisaLayanan';
 import { UploadedTtbItem, UploadTtbResponse } from '@/types/ttbUpload';
 import { RemoteHandoverTokenData } from '@/types/remoteHandover';
+import { DocumentValidationRecord } from '@/types/documentValidation';
 import RemoteDispatchModal from '@/components/RemoteDispatchModal';
 import { enrichTtbRecords } from '@/utils/ttbEnricher';
 import {
@@ -250,8 +251,9 @@ export default function UploadTtbTab({
   const [selectedMediaItem, setSelectedMediaItem] = useState<UploadedTtbItem | null>(null);
   const [isIncompleteModalOpen, setIsIncompleteModalOpen] = useState<boolean>(false);
   const [pendingDispatchItem, setPendingDispatchItem] = useState<UploadedTtbItem | null>(null);
-  const [statusFilterTab, setStatusFilterTab] = useState<'ALL' | 'READY_WA' | 'PENDING_CREW' | 'COMPLETED'>('ALL');
+  const [statusFilterTab, setStatusFilterTab] = useState<'ALL' | 'UNVALIDATED' | 'READY_WA' | 'PENDING_CREW' | 'COMPLETED'>('ALL');
   const [remoteTokens, setRemoteTokens] = useState<Record<string, RemoteHandoverTokenData>>({});
+  const [validationsMap, setValidationsMap] = useState<Record<string, DocumentValidationRecord>>({});
 
   const [isCameraModalOpen, setIsCameraModalOpen] = useState<boolean>(false);
 
@@ -367,9 +369,30 @@ export default function UploadTtbTab({
     }
   };
 
+  // Fetch status pengesahan & validasi dokumen dari Manajer Procurement & Lini Logistik
+  const fetchValidations = async () => {
+    try {
+      const res = await fetch(`/api/validasi-dokumen?type=TTB&_t=${Date.now()}`);
+      if (res.ok) {
+        const d = await res.json();
+        if (Array.isArray(d.records)) {
+          const map: Record<string, DocumentValidationRecord> = {};
+          d.records.forEach((rec: DocumentValidationRecord) => {
+            const key = (rec.cleanDocNumber || rec.docNumber || '').toUpperCase().trim();
+            if (key) map[key] = rec;
+          });
+          setValidationsMap(map);
+        }
+      }
+    } catch (err) {
+      console.warn('Gagal memuat data validasi dokumen TTB:', err);
+    }
+  };
+
   useEffect(() => {
     fetchHistory();
     fetchRemoteTokens();
+    fetchValidations();
   }, []);
 
   // Uji koneksi ke Cloudflare R2 Storage
@@ -972,8 +995,9 @@ export default function UploadTtbTab({
     });
   }, [history, procurementItems, armadaItems, sisaLayananItems]);
 
-  // Statistik ringkas alur pengantaran via WA
+  // Statistik ringkas alur pengantaran via WA & Validasi SOP
   const dispatchStats = useMemo(() => {
+    let unvalidatedCount = 0;
     let readyCount = 0;
     let pendingCrewCount = 0;
     let completedCount = 0;
@@ -984,31 +1008,56 @@ export default function UploadTtbTab({
       const isReceived = h.hasPhysicalPhotos || h.isArmadaReceived || token?.isUsed;
       const isWaiting = !isReceived && Boolean(token && !token.isUsed);
 
-      if (isReceived) completedCount++;
-      else if (isWaiting) pendingCrewCount++;
-      else readyCount++;
+      const valRecord = validationsMap[key];
+      const managerApproved = Boolean(valRecord?.ttbSlots?.acknowledgedBy?.isValidated);
+      const isLegallyReady = valRecord?.isReadyForDispatch || managerApproved;
+
+      if (isReceived) {
+        completedCount++;
+      } else if (isWaiting) {
+        pendingCrewCount++;
+      } else if (!isLegallyReady) {
+        unvalidatedCount++;
+      } else {
+        readyCount++;
+      }
     }
 
     return {
       total: enrichedHistory.length,
+      unvalidatedCount,
       readyCount,
       pendingCrewCount,
       completedCount,
     };
-  }, [enrichedHistory, remoteTokens]);
+  }, [enrichedHistory, remoteTokens, validationsMap]);
 
   // Filter riwayat berdasarkan pencarian & status pengantaran WA
   const filteredHistory = useMemo(() => {
     let list = enrichedHistory;
 
     // Filter status tab
-    if (statusFilterTab === 'READY_WA') {
+    if (statusFilterTab === 'UNVALIDATED') {
       list = list.filter((h) => {
         const key = (h.cleanNoTtb || h.noTtb || '').toUpperCase().trim();
         const token = remoteTokens[key];
         const isReceived = h.hasPhysicalPhotos || h.isArmadaReceived || token?.isUsed;
         const isWaiting = !isReceived && Boolean(token && !token.isUsed);
-        return !isReceived && !isWaiting;
+        const valRecord = validationsMap[key];
+        const managerApproved = Boolean(valRecord?.ttbSlots?.acknowledgedBy?.isValidated);
+        const isLegallyReady = valRecord?.isReadyForDispatch || managerApproved;
+        return !isReceived && !isWaiting && !isLegallyReady;
+      });
+    } else if (statusFilterTab === 'READY_WA') {
+      list = list.filter((h) => {
+        const key = (h.cleanNoTtb || h.noTtb || '').toUpperCase().trim();
+        const token = remoteTokens[key];
+        const isReceived = h.hasPhysicalPhotos || h.isArmadaReceived || token?.isUsed;
+        const isWaiting = !isReceived && Boolean(token && !token.isUsed);
+        const valRecord = validationsMap[key];
+        const managerApproved = Boolean(valRecord?.ttbSlots?.acknowledgedBy?.isValidated);
+        const isLegallyReady = valRecord?.isReadyForDispatch || managerApproved;
+        return !isReceived && !isWaiting && isLegallyReady;
       });
     } else if (statusFilterTab === 'PENDING_CREW') {
       list = list.filter((h) => {
@@ -1037,7 +1086,7 @@ export default function UploadTtbTab({
         h.renamedFileName?.toLowerCase().includes(q) ||
         h.uploaderName?.toLowerCase().includes(q)
     );
-  }, [enrichedHistory, searchHistory, statusFilterTab, remoteTokens]);
+  }, [enrichedHistory, searchHistory, statusFilterTab, remoteTokens, validationsMap]);
 
   // Pagination state untuk riwayat tabel (10 data per halaman)
   const [historyPage, setHistoryPage] = useState<number>(1);
@@ -1746,15 +1795,33 @@ export default function UploadTtbTab({
 
           <button
             type="button"
-            onClick={() => setStatusFilterTab('READY_WA')}
+            onClick={() => setStatusFilterTab('UNVALIDATED')}
             className={`h-8 px-3 rounded-lg font-semibold transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
-              statusFilterTab === 'READY_WA'
+              statusFilterTab === 'UNVALIDATED'
                 ? 'bg-amber-500 text-slate-950 shadow-xs'
                 : 'bg-muted/60 text-muted-foreground hover:text-foreground hover:bg-muted border border-border/60'
             }`}
+            title="Dokumen TTB yang belum disahkan oleh Manajer Procurement / Lini Logistik"
+          >
+            <AlertTriangle className="size-3.5" />
+            <span>Belum Divalidasi Manajer</span>
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-background/30 font-mono">
+              {dispatchStats.unvalidatedCount}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setStatusFilterTab('READY_WA')}
+            className={`h-8 px-3 rounded-lg font-semibold transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
+              statusFilterTab === 'READY_WA'
+                ? 'bg-cyan-600 text-white shadow-xs'
+                : 'bg-muted/60 text-muted-foreground hover:text-foreground hover:bg-muted border border-border/60'
+            }`}
+            title="Dokumen TTB yang telah sah divalidasi Manajer dan siap diterbitkan link WA"
           >
             <Send className="size-3.5" />
-            <span>Siap Antar (Belum WA)</span>
+            <span>Sah &bull; Siap Antar (WA)</span>
             <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-background/30 font-mono">
               {dispatchStats.readyCount}
             </span>
@@ -1949,6 +2016,17 @@ export default function UploadTtbTab({
                         const isReceived = item.hasPhysicalPhotos || item.isArmadaReceived || activeToken?.isUsed;
                         const isWaitingCrew = !isReceived && Boolean(activeToken && !activeToken.isUsed);
 
+                        // Cek status validasi dari Manajer Procurement & Lini Logistik
+                        const valRecord = validationsMap[cleanTtbKey];
+                        const managerApproved = Boolean(valRecord?.ttbSlots?.acknowledgedBy?.isValidated);
+                        const isLegallyReady = valRecord?.isReadyForDispatch || managerApproved;
+                        const validCount = valRecord?.completedLinesCount || (
+                          (valRecord?.ttbSlots?.deliveredBy?.isValidated ? 1 : 0) +
+                          (valRecord?.ttbSlots?.approvedBy?.isValidated ? 1 : 0) +
+                          (valRecord?.ttbSlots?.acknowledgedBy?.isValidated ? 1 : 0) +
+                          (valRecord?.ttbSlots?.receivedBy?.isValidated ? 1 : 0)
+                        );
+
                         return (
                           <div className="flex flex-col gap-1">
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 w-fit">
@@ -1979,15 +2057,23 @@ export default function UploadTtbTab({
                                 <Clock className="size-2.5 text-blue-500 shrink-0 animate-pulse" />
                                 <span>Menunggu Kru</span>
                               </button>
+                            ) : !isLegallyReady ? (
+                              <div
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 w-fit text-left cursor-help"
+                                title={`SOP: TTB ini belum disahkan oleh Manajer Procurement & Lini Logistik (${validCount}/3 internal sah). Wajib divalidasi di menu 'Validasi FSTB & TTB' sebelum sah untuk diantar.`}
+                              >
+                                <AlertTriangle className="size-2.5 text-amber-500 shrink-0" />
+                                <span>Perlu Validasi Manajer ({validCount}/3)</span>
+                              </div>
                             ) : (
                               <button
                                 type="button"
                                 onClick={() => setPendingDispatchItem(item)}
-                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 w-fit hover:bg-amber-500/25 transition cursor-pointer text-left"
-                                title="Klik untuk menerbitkan tautan serah terima dan kirim pesan WhatsApp ke penerima."
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-semibold bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30 w-fit hover:bg-cyan-500/25 transition cursor-pointer text-left"
+                                title="Disahkan Manajer & Siap Antar. Klik untuk menerbitkan tautan dan kirim pesan WhatsApp ke penerima."
                               >
-                                <Send className="size-2.5 text-amber-500 shrink-0" />
-                                <span>Siap Antar (WA)</span>
+                                <Send className="size-2.5 text-cyan-500 shrink-0" />
+                                <span>Sah &bull; Siap Antar (WA)</span>
                               </button>
                             )}
                           </div>
@@ -1999,8 +2085,32 @@ export default function UploadTtbTab({
                       <div className="inline-flex items-center gap-1">
                         <button
                           type="button"
-                          onClick={() => setPendingDispatchItem(item)}
-                          className="p-1.5 rounded-lg border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 transition cursor-pointer shadow-2xs"
+                          onClick={() => {
+                            const cleanTtbKey = (item.cleanNoTtb || item.noTtb || '').toUpperCase().trim();
+                            const valRecord = validationsMap[cleanTtbKey];
+                            const managerApproved = Boolean(valRecord?.ttbSlots?.acknowledgedBy?.isValidated);
+                            const isLegallyReady = valRecord?.isReadyForDispatch || managerApproved;
+
+                            if (!isLegallyReady && !isAdmin) {
+                              showToast?.(
+                                `PERINGATAN SOP: Dokumen TTB ${item.cleanNoTtb || item.noTtb} belum divalidasi oleh Manajer Procurement / Lini Logistik. Harap selesaikan validasi di menu 'Validasi FSTB & TTB' sebelum melakukan pengantaran lapangan.`,
+                                'warning'
+                              );
+                              return;
+                            }
+                            setPendingDispatchItem(item);
+                          }}
+                          className={`p-1.5 rounded-lg border transition cursor-pointer shadow-2xs ${
+                            (() => {
+                              const cleanTtbKey = (item.cleanNoTtb || item.noTtb || '').toUpperCase().trim();
+                              const valRecord = validationsMap[cleanTtbKey];
+                              const managerApproved = Boolean(valRecord?.ttbSlots?.acknowledgedBy?.isValidated);
+                              const isLegallyReady = valRecord?.isReadyForDispatch || managerApproved;
+                              return isLegallyReady
+                                ? 'border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                                : 'border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400';
+                            })()
+                          }`}
                           title="Kirim Notifikasi WA & Tautan Mandiri Serah Terima ke Penerima"
                         >
                           <MessageCircle className="size-3.5" />
@@ -2574,10 +2684,16 @@ export default function UploadTtbTab({
             noPo: pendingDispatchItem.noPo,
             itemSummary: pendingDispatchItem.keterangan || 'Barang Serah Terima Operasional Kapal',
             fileUrl: pendingDispatchItem.fileUrl,
+            isManagerApproved: Boolean(
+              validationsMap[(pendingDispatchItem.cleanNoTtb || pendingDispatchItem.noTtb || '').toUpperCase().trim()]?.ttbSlots?.acknowledgedBy?.isValidated ||
+              validationsMap[(pendingDispatchItem.cleanNoTtb || pendingDispatchItem.noTtb || '').toUpperCase().trim()]?.isReadyForDispatch
+            ),
+            validationCount: validationsMap[(pendingDispatchItem.cleanNoTtb || pendingDispatchItem.noTtb || '').toUpperCase().trim()]?.completedLinesCount ?? 0,
           }}
           dispatchedBy={user?.name || user?.username || 'Tim Logistik CPG'}
           onSuccess={() => {
             fetchRemoteTokens();
+            fetchValidations();
             fetchHistory();
           }}
           showToast={showToast}

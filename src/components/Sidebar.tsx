@@ -181,6 +181,13 @@ export default function Sidebar({
       title: 'Unggah Dokumen FSTB ke Cloudflare R2 dengan Format Otomatis Sesuai No. FSTB',
     },
     {
+      id: 'validasi-dokumen' as TabType,
+      label: 'Validasi FSTB & TTB',
+      icon: FileSignature,
+      badge: 'Multi-Lini',
+      title: 'Validasi Tanda Tangan Digital Multi-Lini (Purchasing, Logistik, Manajer Procurement) Dokumen FSTB & TTB',
+    },
+    {
       id: 'upload-ttb' as TabType,
       label: 'Daftar TTB & Kirim WA',
       icon: Truck,

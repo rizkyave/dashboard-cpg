@@ -29,6 +29,7 @@ import {
   PhoneCall,
   Clock,
   RotateCcw,
+  AlertTriangle,
 } from 'lucide-react';
 import {
   ShippingMethod,
@@ -51,6 +52,8 @@ export interface RemoteDispatchModalProps {
     noPo?: string;
     itemSummary: string;
     fileUrl?: string;
+    isManagerApproved?: boolean;
+    validationCount?: number;
   };
   dispatchedBy: string;
   onSuccess?: (data: RemoteHandoverTokenData) => void;
@@ -354,6 +357,24 @@ Terima kasih.`;
 
         {/* Content Body - Bersih & Lega tanpa Overlap */}
         <div className="p-5 overflow-y-auto space-y-4 text-xs sm:text-sm">
+          
+          {/* Banner Peringatan SOP jika Belum Divalidasi Manajer */}
+          {targetTtb.isManagerApproved === false && (
+            <div className="p-3.5 rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-900 dark:text-amber-200 text-xs flex items-start gap-2.5 shadow-2xs animate-in fade-in">
+              <AlertTriangle className="size-4.5 text-amber-500 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="font-bold flex items-center gap-1.5">
+                  <span>Perhatian SOP: Belum Disahkan Manajer Procurement</span>
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500/20 text-amber-700 dark:text-amber-300 font-mono">
+                    {targetTtb.validationCount ?? 0}/3 Sah
+                  </span>
+                </p>
+                <p className="text-[11px] leading-relaxed text-amber-800 dark:text-amber-300">
+                  Secara ketentuan SOP pengadaan CPG, berkas TTB ini <strong>belum memiliki kekuatan sah pengantaran</strong> karena belum ditandatangani oleh Manajer Procurement &amp; Lini Logistik di menu <strong>Validasi FSTB &amp; TTB</strong>.
+                </p>
+              </div>
+            </div>
+          )}
           
           {/* Card Ringkasan Dokumen TTB - Kartu Logistik Modern */}
           <div className="p-4 rounded-2xl bg-gradient-to-br from-muted/60 via-muted/30 to-background border border-border/80 shadow-xs space-y-3">
