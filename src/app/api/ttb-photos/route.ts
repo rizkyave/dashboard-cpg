@@ -191,7 +191,11 @@ export async function GET(req: NextRequest) {
   const noTtb = searchParams.get('ttb') || '';
   const query = (searchParams.get('q') || '').trim().toLowerCase();
   const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
-  const limit = Math.min(120, Math.max(12, parseInt(searchParams.get('limit') || '36', 10)));
+  const isAll = searchParams.get('all') === 'true';
+  const limitParam = parseInt(searchParams.get('limit') || '36', 10);
+  const limit = isAll
+    ? Math.min(2000, Math.max(12, limitParam || 2000))
+    : Math.min(2000, Math.max(12, limitParam));
 
   const sourceName = isR2Configured() ? 'r2' : 'local';
 
@@ -386,12 +390,36 @@ export async function GET(req: NextRequest) {
       if ((!ttbInfo.numbers || ttbInfo.numbers.length === 0) && meta?.noTtb) {
         ttbInfo = parseNoTtb(meta.noTtb);
       }
+
+      // Format canonical TTB number jika ada di nama file atau meta
+      let noTtb = meta?.noTtb || '';
+      if (!noTtb) {
+        const directMatch = name.match(/([A-Z]{2,4})[-_\s]*TTB[-_\s]*(\d{2})?[-_\s]*(\d{4,6})/i);
+        if (directMatch) {
+          const pfx = directMatch[1].toUpperCase();
+          const yr = directMatch[2] || '26';
+          const num = directMatch[3];
+          noTtb = `${pfx}-TTB-${yr}-${num.padStart(5, '0')}`;
+        } else if (ttbInfo.prefix && ttbInfo.numbers.length > 0) {
+          noTtb = `${ttbInfo.prefix}-TTB-26-${ttbInfo.numbers[0].padStart(5, '0')}`;
+        }
+      }
+
+      let armada = meta?.armada || '';
+      if (!armada) {
+        const armadaPrefixMatch = name.match(/^(?:TB|MT|SPOB|TK|BG|OB|KM|SV|OFFICE)\s+[^_.\-]+/i);
+        if (armadaPrefixMatch) {
+          armada = armadaPrefixMatch[0].trim();
+        }
+      }
+
       return {
         name,
         url: resolvePhotoUrl(name, r2FileSet),
         takenAt: extractTakenAt(name) || meta?.takenAt || null,
         ttbInfo,
-        armada: meta?.armada,
+        noTtb: noTtb || undefined,
+        armada: armada || undefined,
         receiverName: meta?.receiverName,
       };
     });

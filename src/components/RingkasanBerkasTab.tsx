@@ -65,7 +65,7 @@ export default function RingkasanBerkasTab({
       const [fstbRes, ttbRes, photosRes, efpbRes] = await Promise.allSettled([
         fetch(`/api/upload-fstb?_t=${Date.now()}`).then((r) => r.json()),
         fetch(`/api/upload-ttb?_t=${Date.now()}`).then((r) => r.json()),
-        fetch(`/api/ttb-photos?_t=${Date.now()}`).then((r) => r.json()),
+        fetch(`/api/ttb-photos?all=true&limit=2000&_t=${Date.now()}`).then((r) => r.json()),
         fetch(`/api/sync-efpb-files?_t=${Date.now()}`).then((r) => r.json()),
       ]);
 
@@ -99,18 +99,77 @@ export default function RingkasanBerkasTab({
         setTtbMap(map);
       }
 
-      // 3. Process TTB Photos
+      // 3. Process TTB Photos (Mendukung Multi-Key: nomor TTB lengkap, nomor urut digit, armada, dll.)
       if (photosRes.status === 'fulfilled' && Array.isArray(photosRes.value?.photos)) {
         const map: Record<string, string[]> = {};
+
+        const addKey = (k?: string | null, url?: string) => {
+          if (!k || !url) return;
+          const clean = k.trim().toLowerCase();
+          if (!clean) return;
+          if (!map[clean]) map[clean] = [];
+          if (!map[clean].includes(url)) map[clean].push(url);
+        };
+
         for (const photo of photosRes.value.photos) {
-          const ttb = (photo.noTtb || '').trim().toLowerCase();
-          const armada = (photo.armada || '').trim().toLowerCase();
           const url = photo.url || `/api/ttb-photos/file?name=${encodeURIComponent(photo.name)}`;
-          if (ttb) {
-            map[ttb] = map[ttb] ? [...map[ttb], url] : [url];
+          const photoName = String(photo.name || '').trim();
+
+          // 1. Dari property noTtb
+          if (photo.noTtb) {
+            addKey(photo.noTtb, url);
+            addKey(photo.noTtb.replace(/[^a-zA-Z0-9]/g, ''), url);
           }
-          if (armada) {
-            map[armada] = map[armada] ? [...map[armada], url] : [url];
+
+          // 2. Dari armada
+          if (photo.armada) {
+            addKey(photo.armada, url);
+          }
+
+          // 3. Dari ttbInfo (prefix + numbers)
+          if (photo.ttbInfo) {
+            const pfx = (photo.ttbInfo.prefix || '').toLowerCase();
+            for (const num of photo.ttbInfo.numbers || []) {
+              addKey(num, url);
+              addKey(String(parseInt(num, 10)), url);
+              if (pfx) {
+                addKey(`${pfx}-ttb-${num}`, url);
+                addKey(`${pfx}-ttb-26-${num}`, url);
+                addKey(`${pfx}-${num}`, url);
+                addKey(`${pfx}ttb${num}`, url);
+                addKey(`${pfx}${num}`, url);
+              }
+            }
+          }
+
+          // 4. Ekstraksi langsung dari nama file (pola standar TimeMark / WhatsApp / R2)
+          // Contoh: "OFFICE GAJ GAJ-TTB-26-01274 2026-10-25 at 01.46.11.jpg"
+          const ttbRegex = /([a-zA-Z]{2,4})[-_\s]*(?:TTB)?[-_\s]*(\d{2})?[-_\s]*(\d{4,6})/gi;
+          for (const m of Array.from(photoName.matchAll(ttbRegex))) {
+            const pfx = m[1].toLowerCase();
+            const yr = m[2];
+            const num = m[3];
+            addKey(m[0].replace(/\s+/g, '-'), url);
+            addKey(num, url);
+            addKey(`${pfx}-${num}`, url);
+            addKey(`${pfx}-ttb-${num}`, url);
+            if (yr) addKey(`${pfx}-ttb-${yr}-${num}`, url);
+            addKey(`${pfx}ttb${num}`, url);
+            addKey(`${pfx}${num}`, url);
+          }
+
+          // Ekstraksi nomor 4-6 digit mandiri dari nama berkas
+          const digitMatches = photoName.match(/\b\d{4,6}\b/g) || [];
+          for (const d of digitMatches) {
+            if (/^202[4-9]$/.test(d)) continue; // Abaikan tahun
+            addKey(d, url);
+            addKey(d.padStart(5, '0'), url);
+          }
+
+          // Ekstraksi nama armada dari awalan nama berkas (jika ada)
+          const armadaPrefixMatch = photoName.match(/^(?:TB|MT|SPOB|TK|BG|OB|KM|SV|OFFICE)\s+[^_.\-]+/i);
+          if (armadaPrefixMatch) {
+            addKey(armadaPrefixMatch[0].trim(), url);
           }
         }
         setPhotoMap(map);
@@ -176,8 +235,33 @@ export default function RingkasanBerkasTab({
       const noTtb = ttbLookup?.noTtb || explicitTtb || '';
       const ttbPdfUrl = ttbLookup?.fileUrl || (noTtb ? `/api/upload-ttb/file?name=${encodeURIComponent(noTtb)}.pdf` : undefined);
 
-      // Check Photos
-      const photoLookup = (noTtb ? photoMap[noTtb.toLowerCase()] : undefined) || photoMap[normArmada] || [];
+      // Check Photos (Mencocokkan noTtb, nomor digit TTB, atau nama armada)
+      let photoLookup: string[] = [];
+      if (noTtb) {
+        const cleanTtb = noTtb.toLowerCase();
+        photoLookup = photoMap[cleanTtb] || photoMap[cleanTtb.replace(/[^a-z0-9]/g, '')] || [];
+
+        if (photoLookup.length === 0) {
+          // Cari berdasarkan 4-6 digit angka dari nomor TTB
+          const digits = cleanTtb.match(/\b\d{4,6}\b/g) || [];
+          for (const d of digits) {
+            if (photoMap[d]?.length) {
+              photoLookup = photoMap[d];
+              break;
+            }
+            const padded = d.padStart(5, '0');
+            if (photoMap[padded]?.length) {
+              photoLookup = photoMap[padded];
+              break;
+            }
+          }
+        }
+      }
+
+      if (photoLookup.length === 0 && normArmada) {
+        photoLookup = photoMap[normArmada] || [];
+      }
+
       const hasPhotos = photoLookup.length > 0;
 
       // Check FPB PDF
@@ -615,12 +699,21 @@ export default function RingkasanBerkasTab({
 
                             {/* 4. FOTO */}
                             <div
+                              onClick={() => {
+                                if (item.hasPhotos && item.photoUrls && item.photoUrls.length > 0) {
+                                  window.open(item.photoUrls[0], '_blank');
+                                }
+                              }}
                               className={`px-2 py-1 rounded flex items-center justify-between border ${
                                 item.hasPhotos
-                                  ? 'bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-500/30 font-semibold'
+                                  ? 'bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-500/30 font-semibold cursor-pointer hover:bg-emerald-500/20 transition'
                                   : 'bg-muted text-muted-foreground/70 border-border'
                               }`}
-                              title={item.hasPhotos ? `${item.photoUrls?.length || 1} Foto Bukti Fisik Lapangan` : 'Foto belum ada'}
+                              title={
+                                item.hasPhotos
+                                  ? `${item.photoUrls?.length || 1} Foto Bukti Fisik Lapangan (Klik untuk membuka foto)`
+                                  : 'Foto belum ada'
+                              }
                             >
                               <span className="flex items-center gap-1">
                                 <Camera className="size-3 shrink-0" />
