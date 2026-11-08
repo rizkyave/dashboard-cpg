@@ -360,7 +360,7 @@
     "updatedAt": "2026-11-08T15:22:21.547Z"
   },
   {
-    "id": "ai-sched-1794152994756-0",
+    "id": "ai-sched-1794163206929-0",
     "shipName": "CINDARA 2107",
     "cleanShipName": "CINDARA 2107",
     "callSign": "YDB 6752",
@@ -386,11 +386,11 @@
     "aiClusteringReason": "Prioritas Kapal Standby (SB) / SLA Mendesak segera sailing",
     "priorityScore": 95,
     "scheduledBy": "AI Delivery Assistant (Administrator CPG)",
-    "createdAt": "2026-11-08T15:49:54.756Z",
-    "updatedAt": "2026-11-08T15:49:54.756Z"
+    "createdAt": "2026-11-08T18:40:06.929Z",
+    "updatedAt": "2026-11-08T18:40:06.929Z"
   },
   {
-    "id": "ai-sched-1794152994756-1",
+    "id": "ai-sched-1794163206929-1",
     "shipName": "DOMINO",
     "cleanShipName": "DOMINO",
     "callSign": "YDXP2",
@@ -416,11 +416,11 @@
     "aiClusteringReason": "Kluster Pelabuhan Semayang & Melawai Anchorage Point",
     "priorityScore": 78,
     "scheduledBy": "AI Delivery Assistant (Administrator CPG)",
-    "createdAt": "2026-11-08T15:49:54.756Z",
-    "updatedAt": "2026-11-08T15:49:54.756Z"
+    "createdAt": "2026-11-08T18:40:06.929Z",
+    "updatedAt": "2026-11-08T18:40:06.929Z"
   },
   {
-    "id": "ai-sched-1794152994756-2",
+    "id": "ai-sched-1794163206929-2",
     "shipName": "HL 5001",
     "cleanShipName": "HL 5001",
     "callSign": "YDCC4",
@@ -446,11 +446,11 @@
     "aiClusteringReason": "Kluster Konsolidasi Pengiriman Luar Kota Muara Jawa & Samarinda",
     "priorityScore": 78,
     "scheduledBy": "AI Delivery Assistant (Administrator CPG)",
-    "createdAt": "2026-11-08T15:49:54.756Z",
-    "updatedAt": "2026-11-08T15:49:54.756Z"
+    "createdAt": "2026-11-08T18:40:06.929Z",
+    "updatedAt": "2026-11-08T18:40:06.929Z"
   },
   {
-    "id": "ai-sched-1794152994756-3",
+    "id": "ai-sched-1794163206929-3",
     "shipName": "ROYAL REY",
     "cleanShipName": "ROYAL REY",
     "callSign": "YCBE2",
@@ -476,11 +476,11 @@
     "aiClusteringReason": "Prioritas Kapal Standby (SB) / SLA Mendesak segera sailing",
     "priorityScore": 95,
     "scheduledBy": "AI Delivery Assistant (Administrator CPG)",
-    "createdAt": "2026-11-08T15:49:54.756Z",
-    "updatedAt": "2026-11-08T15:49:54.756Z"
+    "createdAt": "2026-11-08T18:40:06.929Z",
+    "updatedAt": "2026-11-08T18:40:06.929Z"
   },
   {
-    "id": "ai-sched-1794152994756-4",
+    "id": "ai-sched-1794163206929-4",
     "shipName": "ROYAL REY 300",
     "cleanShipName": "ROYAL REY 300",
     "callSign": "YDUK2",
@@ -506,11 +506,11 @@
     "aiClusteringReason": "Kluster Pelabuhan Semayang & Melawai Anchorage Point",
     "priorityScore": 78,
     "scheduledBy": "AI Delivery Assistant (Administrator CPG)",
-    "createdAt": "2026-11-08T15:49:54.756Z",
-    "updatedAt": "2026-11-08T15:49:54.756Z"
+    "createdAt": "2026-11-08T18:40:06.929Z",
+    "updatedAt": "2026-11-08T18:40:06.929Z"
   },
   {
-    "id": "ai-sched-1794152994756-5",
+    "id": "ai-sched-1794163206929-5",
     "shipName": "ROYAL REY 3001",
     "cleanShipName": "ROYAL REY 3001",
     "callSign": "YDGD4",
@@ -536,11 +536,11 @@
     "aiClusteringReason": "Prioritas Kapal Standby (SB) / SLA Mendesak segera sailing",
     "priorityScore": 95,
     "scheduledBy": "AI Delivery Assistant (Administrator CPG)",
-    "createdAt": "2026-11-08T15:49:54.756Z",
-    "updatedAt": "2026-11-08T15:49:54.756Z"
+    "createdAt": "2026-11-08T18:40:06.929Z",
+    "updatedAt": "2026-11-08T18:40:06.929Z"
   },
   {
-    "id": "ai-sched-1794152994756-6",
+    "id": "ai-sched-1794163206929-6",
     "shipName": "ROYAL REY 3002",
     "cleanShipName": "ROYAL REY 3002",
     "callSign": "YDJH4",
@@ -566,11 +566,11 @@
     "aiClusteringReason": "Kluster Konsolidasi Pengiriman Luar Kota Muara Jawa & Samarinda",
     "priorityScore": 78,
     "scheduledBy": "AI Delivery Assistant (Administrator CPG)",
-    "createdAt": "2026-11-08T15:49:54.756Z",
-    "updatedAt": "2026-11-08T15:49:54.756Z"
+    "createdAt": "2026-11-08T18:40:06.929Z",
+    "updatedAt": "2026-11-08T18:40:06.929Z"
   },
   {
-    "id": "ai-sched-1794152994756-7",
+    "id": "ai-sched-1794163206929-7",
     "shipName": "ROYAL REY 350",
     "cleanShipName": "ROYAL REY 350",
     "callSign": "YDOF2",
@@ -596,11 +596,11 @@
     "aiClusteringReason": "Pengantaran Suku Cadang Docking / Maintenance Akhir Pekan",
     "priorityScore": 78,
     "scheduledBy": "AI Delivery Assistant (Administrator CPG)",
-    "createdAt": "2026-11-08T15:49:54.756Z",
-    "updatedAt": "2026-11-08T15:49:54.756Z"
+    "createdAt": "2026-11-08T18:40:06.929Z",
+    "updatedAt": "2026-11-08T18:40:06.929Z"
   },
   {
-    "id": "ai-sched-1794152994756-8",
+    "id": "ai-sched-1794163206929-8",
     "shipName": "ROYAL REY 5001",
     "cleanShipName": "ROYAL REY 5001",
     "callSign": "YDZY3",
@@ -626,7 +626,7 @@
     "aiClusteringReason": "Kluster Pelabuhan Semayang & Melawai Anchorage Point",
     "priorityScore": 78,
     "scheduledBy": "AI Delivery Assistant (Administrator CPG)",
-    "createdAt": "2026-11-08T15:49:54.756Z",
-    "updatedAt": "2026-11-08T15:49:54.756Z"
+    "createdAt": "2026-11-08T18:40:06.929Z",
+    "updatedAt": "2026-11-08T18:40:06.929Z"
   }
 ]
