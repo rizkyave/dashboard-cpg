@@ -50,6 +50,10 @@ export default function RingkasanBerkasTab({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEntity, setSelectedEntity] = useState<string>('ALL');
 
+  // Pagination States (Memastikan tab Semua Data & Belum Lengkap termuat mulus)
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(50);
+
   // Loading States
   const [isLoadingApi, setIsLoadingApi] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
@@ -560,6 +564,13 @@ _CPG Procurement & Fleet Monitoring System_`;
     });
   }, [dossierItems, activeFilterTab, selectedEntity, searchQuery]);
 
+  // Pagination calculation
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
+  const paginatedItems = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredItems.slice(start, start + pageSize);
+  }, [filteredItems, currentPage, pageSize]);
+
   // Metrics KPI
   const metrics = useMemo(() => {
     let totalComplete = 0;
@@ -710,36 +721,75 @@ _CPG Procurement & Fleet Monitoring System_`;
       {/* Filter Tabs & Search Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-3 rounded-xl bg-card border border-border shadow-xs">
         {/* Left: Filter Tabs */}
-        <div className="flex items-center gap-1.5 bg-muted/60 p-1 rounded-lg border border-border/80 self-start md:self-auto">
+        <div className="flex items-center gap-1.5 bg-muted/60 p-1 rounded-xl border border-border/80 self-start md:self-auto flex-wrap">
           <button
-            onClick={() => setActiveFilterTab('COMPLETE')}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition cursor-pointer ${
+            type="button"
+            onClick={() => {
+              setActiveFilterTab('COMPLETE');
+              setCurrentPage(1);
+            }}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
               activeFilterTab === 'COMPLETE'
                 ? 'bg-emerald-600 text-white shadow-xs'
-                : 'text-muted-foreground hover:text-foreground'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
             }`}
           >
-            Lengkap Selesai ({metrics.totalComplete})
+            <span>Lengkap Selesai</span>
+            <span
+              className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+                activeFilterTab === 'COMPLETE'
+                  ? 'bg-white/20 text-white'
+                  : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
+              }`}
+            >
+              {metrics.totalComplete}
+            </span>
           </button>
           <button
-            onClick={() => setActiveFilterTab('ALL')}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition cursor-pointer ${
+            type="button"
+            onClick={() => {
+              setActiveFilterTab('ALL');
+              setCurrentPage(1);
+            }}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
               activeFilterTab === 'ALL'
-                ? 'bg-foreground text-background shadow-xs'
-                : 'text-muted-foreground hover:text-foreground'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
             }`}
           >
-            Semua Data ({metrics.totalItems})
+            <span>Semua Data</span>
+            <span
+              className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+                activeFilterTab === 'ALL'
+                  ? 'bg-white/20 text-white'
+                  : 'bg-muted text-muted-foreground'
+              }`}
+            >
+              {metrics.totalItems}
+            </span>
           </button>
           <button
-            onClick={() => setActiveFilterTab('INCOMPLETE')}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition cursor-pointer ${
+            type="button"
+            onClick={() => {
+              setActiveFilterTab('INCOMPLETE');
+              setCurrentPage(1);
+            }}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
               activeFilterTab === 'INCOMPLETE'
                 ? 'bg-amber-600 text-white shadow-xs'
-                : 'text-muted-foreground hover:text-foreground'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
             }`}
           >
-            Belum Lengkap ({metrics.totalItems - metrics.totalComplete})
+            <span>Belum Lengkap</span>
+            <span
+              className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+                activeFilterTab === 'INCOMPLETE'
+                  ? 'bg-white/20 text-white'
+                  : 'bg-amber-500/15 text-amber-700 dark:text-amber-400'
+              }`}
+            >
+              {metrics.totalItems - metrics.totalComplete}
+            </span>
           </button>
         </div>
 
@@ -748,7 +798,10 @@ _CPG Procurement & Fleet Monitoring System_`;
           {/* Entity Filter */}
           <select
             value={selectedEntity}
-            onChange={(e) => setSelectedEntity(e.target.value)}
+            onChange={(e) => {
+              setSelectedEntity(e.target.value);
+              setCurrentPage(1);
+            }}
             className="h-9 px-2.5 rounded-lg border border-border bg-background text-xs font-mono font-medium text-foreground focus:ring-1 focus:ring-primary cursor-pointer shrink-0"
             title="Filter Entitas Perusahaan CPG"
           >
@@ -765,7 +818,10 @@ _CPG Procurement & Fleet Monitoring System_`;
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
               placeholder="Cari FPB, PO, FSTB, TTB, barang, kapal..."
               className="w-full h-9 pl-8 pr-3 rounded-lg border border-border bg-background text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary font-medium"
             />
@@ -816,7 +872,8 @@ _CPG Procurement & Fleet Monitoring System_`;
                   </td>
                 </tr>
               ) : (
-                filteredItems.map((item, idx) => {
+                paginatedItems.map((item, idx) => {
+                  const itemIndex = (currentPage - 1) * pageSize + idx + 1;
                   const isComplete =
                     item.hasFpbDoc && item.hasFstbDoc && item.hasTtbDoc && item.hasPhotos;
 
@@ -829,7 +886,7 @@ _CPG Procurement & Fleet Monitoring System_`;
                     >
                       {/* No */}
                       <td className="py-3 px-3.5 text-center font-mono text-muted-foreground">
-                        {idx + 1}
+                        {itemIndex}
                       </td>
 
                       {/* Armada & Entitas */}
@@ -1104,14 +1161,84 @@ _CPG Procurement & Fleet Monitoring System_`;
           </table>
         </div>
 
-        {/* Footer info bar */}
-        <div className="p-3 border-t border-border bg-muted/30 flex flex-col sm:flex-row items-center justify-between text-xs text-muted-foreground gap-2 font-mono">
-          <span>
-            Menampilkan <strong>{filteredItems.length}</strong> tiket berkas pengadaan
-          </span>
-          <span className="text-[11px]">
-            Format berkas: <strong>PDF A4 Standar (Cover Resmi + FPB + FSTB + TTB + Foto Fisik)</strong>
-          </span>
+        {/* Footer info bar & Pagination Controls */}
+        <div className="p-3 border-t border-border bg-muted/30 flex flex-col md:flex-row items-center justify-between text-xs text-muted-foreground gap-3 font-mono">
+          <div className="flex items-center gap-2">
+            <span>
+              Menampilkan{' '}
+              <strong className="text-foreground">
+                {filteredItems.length === 0 ? 0 : (currentPage - 1) * pageSize + 1} -{' '}
+                {Math.min(currentPage * pageSize, filteredItems.length)}
+              </strong>{' '}
+              dari <strong className="text-foreground">{filteredItems.length.toLocaleString('id-ID')}</strong> tiket (
+              <span className="font-semibold text-foreground">
+                {activeFilterTab === 'COMPLETE'
+                  ? 'Lengkap Selesai'
+                  : activeFilterTab === 'INCOMPLETE'
+                  ? 'Belum Lengkap'
+                  : 'Semua Data'}
+              </span>
+              )
+            </span>
+          </div>
+
+          {/* Pagination Navigation */}
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1.5 flex-wrap justify-center">
+              <button
+                type="button"
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                className="px-2 py-1 rounded-md border border-border bg-card hover:bg-muted disabled:opacity-30 transition cursor-pointer text-xs"
+                title="Halaman Pertama"
+              >
+                &laquo;
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-2.5 py-1 rounded-md border border-border bg-card hover:bg-muted disabled:opacity-30 transition cursor-pointer text-xs"
+                title="Halaman Sebelumnya"
+              >
+                &lsaquo; Prev
+              </button>
+              <span className="px-2 text-foreground font-semibold text-xs">
+                Hal {currentPage} / {totalPages}
+              </span>
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="px-2.5 py-1 rounded-md border border-border bg-card hover:bg-muted disabled:opacity-30 transition cursor-pointer text-xs"
+                title="Halaman Berikutnya"
+              >
+                Next &rsaquo;
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+                className="px-2 py-1 rounded-md border border-border bg-card hover:bg-muted disabled:opacity-30 transition cursor-pointer text-xs"
+                title="Halaman Terakhir"
+              >
+                &raquo;
+              </button>
+
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="ml-2 h-7 px-2 rounded-md border border-border bg-card text-[11px] text-foreground focus:outline-none cursor-pointer"
+              >
+                <option value={25}>25 / hal</option>
+                <option value={50}>50 / hal</option>
+                <option value={100}>100 / hal</option>
+              </select>
+            </div>
+          )}
         </div>
       </div>
 
@@ -1350,22 +1477,30 @@ _CPG Procurement & Fleet Monitoring System_`;
                         </span>
                       </div>
                     )}
-                    {previewDoc.item.noFstb && (
-                      <div className="flex justify-between border-b border-border pb-1.5">
-                        <span className="text-muted-foreground">Nomor FSTB</span>
+                    <div className="flex justify-between border-b border-border pb-1.5">
+                      <span className="text-muted-foreground">Nomor FSTB</span>
+                      {previewDoc.item.noFstb ? (
                         <span className="font-semibold text-teal-600 dark:text-teal-400">
                           {previewDoc.item.noFstb}
                         </span>
-                      </div>
-                    )}
-                    {previewDoc.item.noTtb && (
-                      <div className="flex justify-between border-b border-border pb-1.5">
-                        <span className="text-muted-foreground">Nomor TTB</span>
+                      ) : (
+                        <span className="text-amber-600 dark:text-amber-400 font-semibold italic text-[11px]">
+                          Belum Diterbitkan (Menunggu Tindak Lanjut)
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex justify-between border-b border-border pb-1.5">
+                      <span className="text-muted-foreground">Nomor TTB</span>
+                      {previewDoc.item.noTtb ? (
                         <span className="font-semibold text-indigo-600 dark:text-indigo-400">
                           {previewDoc.item.noTtb}
                         </span>
-                      </div>
-                    )}
+                      ) : (
+                        <span className="text-amber-600 dark:text-amber-400 font-semibold italic text-[11px]">
+                          Belum Diterbitkan (Menunggu Tindak Lanjut)
+                        </span>
+                      )}
+                    </div>
                     <div className="flex justify-between border-b border-border pb-1.5">
                       <span className="text-muted-foreground">Armada Peminta</span>
                       <span className="font-bold text-foreground">{previewDoc.item.armada}</span>
