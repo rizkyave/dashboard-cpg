@@ -970,8 +970,8 @@ export default function AuditModal({
     return count;
   }, [hasFpbSoftcopy, hasPoSoftcopy, softcopySummary.fstbCount, softcopySummary.ttbDocCount, softcopySummary.ttbPhotoCount]);
 
-  // PIC Purchasing (Kotak 2) & FSTB (Kotak 3): dikerjakan oleh orang yang sama (staf Purchasing / Pembuat PO)
-  const activePicPch =
+  // PIC Purchasing (Kotak 2): murni staf Purchasing / Pembuat PO (tidak boleh diisi oleh koordinator validasi FPB)
+  const rawCandidatePicPch =
     (hasValue(itemS1?.picPch) ? itemS1!.picPch.trim() : '') ||
     itemsS2.find((i) => hasValue(i.picPch))?.picPch?.trim() ||
     (normPo
@@ -982,9 +982,10 @@ export default function AuditModal({
       ? procurementList.find((i) => normalizeFpbKey(i.fpb) === normFpb && hasValue(i.picPch))?.picPch?.trim() ||
         armadaList.find((i) => normalizeFpbKey(i.fpb) === normFpb && hasValue(i.picPch))?.picPch?.trim()
       : '') ||
-    (hasValue((itemS1 as any)?.picFstb) ? String((itemS1 as any).picFstb).trim() : '') ||
-    (isValidPicName(pdfData?.receivedBy) ? pdfData?.receivedBy?.trim() : '') ||
     '';
+
+  // Cegah kebocoran nama koordinator validasi FPB (Noor Hasanah / Melinda) ke Kotak 2 (Purchasing)
+  const activePicPch = /noor|hasanah|melinda/i.test(rawCandidatePicPch) ? '' : rawCandidatePicPch;
 
   // Logika Kotak 2 (Purchasing): jika PIC dan No. PO belum terisi, Tgl PO otomatis kosong (-)
   const hasPicPch = Boolean(
@@ -1255,19 +1256,16 @@ export default function AuditModal({
     '-';
   const displayTglFpb = pdfData?.requestedDate || itemS1?.tglCheckFpb || itemsS2[0]?.tglCheckFpb || itemS1?.tglFpb || '-';
 
-  // PIC Kotak 2 (Purchasing / PO) dan Kotak 3 (FSTB) dikerjakan oleh orang yang sama (staf Purchasing / Pembuat PO)
+  // PIC Kotak 3 (FSTB / Serah Terima Barang): staf FSTB / Purchasing pembuat PO (tidak boleh diisi oleh koordinator validasi FPB)
   const rawExplicitPicFstb =
     (isValidPicName((itemS1 as any)?.picFstb) ? String((itemS1 as any).picFstb).trim() : '') ||
     (isValidPicName((itemsS2[0] as any)?.picFstb) ? String((itemsS2[0] as any).picFstb).trim() : '');
 
   const effectivePicFstb = useMemo(() => {
-    return (
-      rawExplicitPicFstb ||
-      activePicPch ||
-      (isValidPicName(pdfData?.receivedBy) ? pdfData?.receivedBy?.trim() : '') ||
-      ''
-    );
-  }, [rawExplicitPicFstb, activePicPch, pdfData?.receivedBy]);
+    const fstbClean = rawExplicitPicFstb && !/noor|hasanah|melinda/i.test(rawExplicitPicFstb) ? rawExplicitPicFstb : '';
+    const pchClean = activePicPch && activePicPch.toLowerCase() !== 'purchasing' && !/noor|hasanah|melinda/i.test(activePicPch) ? activePicPch : '';
+    return fstbClean || pchClean || '';
+  }, [rawExplicitPicFstb, activePicPch]);
 
   // Menentukan sumber verifikasi data FPB Check (Bu Noor atau Bu Melinda)
   const fpbCheckInfo = useMemo(() => {
