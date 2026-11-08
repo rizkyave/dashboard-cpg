@@ -2104,10 +2104,10 @@ export default function UploadTtbTab({
                 ? 'bg-amber-500 text-slate-950 shadow-xs'
                 : 'bg-muted/60 text-muted-foreground hover:text-foreground hover:bg-muted border border-border/60'
             }`}
-            title="Dokumen TTB yang belum disahkan oleh Manajer Procurement / Lini Logistik"
+            title="Dokumen TTB yang belum lengkap divalidasi oleh Manajer Procurement / Lini Logistik"
           >
             <AlertTriangle className="size-3.5" />
-            <span>Belum Divalidasi Manajer</span>
+            <span>Belum Lengkap Validasi</span>
             <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-background/30 font-mono">
               {dispatchStats.unvalidatedCount}
             </span>
