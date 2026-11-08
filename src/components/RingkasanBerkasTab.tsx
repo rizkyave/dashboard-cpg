@@ -24,7 +24,9 @@ import {
   X,
   MessageCircle,
   Copy,
+  MapPin,
 } from 'lucide-react';
+import staticSchedulesData from '@/data/static-delivery-schedules.json';
 import { ProcurementItem, ArmadaItem, EntityCode } from '@/types/procurement';
 import { ENTITIES } from '@/data/initialData';
 import {
@@ -77,6 +79,40 @@ export default function RingkasanBerkasTab({
     item: DossierBundleItem;
   } | null>(null);
   const [activePhotoIdx, setActivePhotoIdx] = useState(0);
+
+  // Map posisi terakhir armada kapal (Master 66 armada dari jadwal & FMS)
+  const vesselPositionMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const item of staticSchedulesData as any[]) {
+      if (!item.shipName || !item.defaultPosition) continue;
+      const raw = String(item.shipName).trim().toLowerCase();
+      const clean = raw
+        .replace(/^(spob|tb|tk|ob|mt|sv|lct|ub|sp|crane barge|crew boat)\s+/i, '')
+        .trim();
+      const pos = String(item.defaultPosition).trim();
+      map.set(raw, pos);
+      map.set(clean, pos);
+    }
+    return map;
+  }, []);
+
+  const getVesselPosition = (name: string) => {
+    if (!name || /office\s*gaj/i.test(name)) return null;
+    const raw = name.trim().toLowerCase();
+    const clean = raw
+      .replace(/^(spob|tb|tk|ob|mt|sv|lct|ub|sp|crane barge|crew boat)\s+/i, '')
+      .trim();
+
+    if (vesselPositionMap.has(raw)) return vesselPositionMap.get(raw);
+    if (vesselPositionMap.has(clean)) return vesselPositionMap.get(clean);
+
+    for (const [key, val] of Array.from(vesselPositionMap.entries())) {
+      if (key.length >= 4 && (clean.includes(key) || key.includes(clean))) {
+        return val;
+      }
+    }
+    return null;
+  };
 
   // Fetch softcopy manifests from APIs
   const fetchManifests = async () => {
@@ -895,6 +931,22 @@ _CPG Procurement & Fleet Monitoring System_`;
                           <Ship className="size-3 text-cyan-600 dark:text-cyan-400 shrink-0" />
                           <span className="truncate">{item.armada}</span>
                         </div>
+
+                        {/* Posisi Terakhir Kapal (kecuali Office GAJ) */}
+                        {(() => {
+                          const vPos = getVesselPosition(item.armada);
+                          if (!vPos) return null;
+                          return (
+                            <div
+                              className="flex items-center gap-1 mt-0.5 text-[10px] text-muted-foreground font-mono"
+                              title={`Posisi Terakhir: ${vPos}`}
+                            >
+                              <MapPin className="size-2.5 text-rose-500 shrink-0" />
+                              <span className="truncate max-w-[200px]">{vPos}</span>
+                            </div>
+                          );
+                        })()}
+
                         <div className="mt-1 flex items-center gap-1.5">
                           <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-muted text-muted-foreground border border-border">
                             {item.entity || 'CPG'}

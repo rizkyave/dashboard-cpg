@@ -275,6 +275,45 @@ export default function JadwalPengantaranTab({
     return { total, ships, gaj, courierCount };
   }, [staticSchedules]);
 
+  // Map posisi terakhir kapal dari daily report / kapalPosisiItems
+  const shipPositionMap = useMemo(() => {
+    const map = new Map<string, string>();
+    if (!kapalPosisiItems || kapalPosisiItems.length === 0) return map;
+
+    for (const k of kapalPosisiItems) {
+      if (!k.namaKapal || !k.posisi) continue;
+      const rawName = k.namaKapal.trim().toLowerCase();
+      const cleanName = rawName
+        .replace(/^(spob|tb|tk|ob|mt|sv|lct|ub|sp|crane barge|crew boat)\s+/i, '')
+        .trim();
+      const pos = k.posisi.trim();
+
+      map.set(rawName, pos);
+      map.set(cleanName, pos);
+    }
+    return map;
+  }, [kapalPosisiItems]);
+
+  // Helper untuk mendapatkan posisi terakhir kapal
+  const getShipLatestPosition = (shipName: string, defaultPos: string) => {
+    const raw = shipName.trim().toLowerCase();
+    const clean = raw
+      .replace(/^(spob|tb|tk|ob|mt|sv|lct|ub|sp|crane barge|crew boat)\s+/i, '')
+      .trim();
+
+    if (shipPositionMap.has(raw)) return shipPositionMap.get(raw)!;
+    if (shipPositionMap.has(clean)) return shipPositionMap.get(clean)!;
+
+    // Fuzzy partial match
+    for (const [key, val] of Array.from(shipPositionMap.entries())) {
+      if (key.length >= 4 && (clean.includes(key) || key.includes(clean))) {
+        return val;
+      }
+    }
+
+    return defaultPos;
+  };
+
   // Helper Simpan atau Update Item Dinamis ke API
   const handleSaveItem = async (item: DeliveryScheduleItem) => {
     setIsSaving(true);
@@ -1337,32 +1376,53 @@ _Pusat Logistik & Serah Terima CPG_`;
                       </span>
                     </div>
 
-                    {/* Daftar Kartu Pengantaran Statis - Bersih: Cukup Nama Kapal Saja Tanpa Emblem */}
+                    {/* Daftar Kartu Pengantaran Statis - Nama Kapal + Posisi Terakhir (Kecuali Office GAJ) */}
                     <div className="p-2 space-y-1.5 flex-1 overflow-y-auto">
                       {dayItems.map((item, idx) => {
                         const cleanDisplayName = item.shipName
                           .replace(/\s*\([^)]*Kantor Pusat[^)]*\)/gi, '')
                           .trim();
 
+                        const isOfficeGaj = item.isOfficeDestination || /office\s*gaj/i.test(cleanDisplayName);
+                        const shipPosition = !isOfficeGaj
+                          ? getShipLatestPosition(cleanDisplayName, item.defaultPosition)
+                          : null;
+
                         return (
                           <div
                             key={item.id}
-                            className={`px-3 py-2 rounded-lg border text-xs transition-all duration-150 flex items-center justify-between gap-2 ${
-                              item.isOfficeDestination
+                            className={`px-3 py-2 rounded-lg border text-xs transition-all duration-150 flex items-start justify-between gap-2 ${
+                              isOfficeGaj
                                 ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-200 font-bold shadow-2xs'
                                 : 'bg-background border-border hover:border-emerald-500/40 text-foreground hover:bg-muted/40 shadow-2xs'
                             }`}
                             title={cleanDisplayName}
                           >
-                            <div className="flex items-center gap-2 min-w-0">
-                              <span className="text-[10px] font-mono text-muted-foreground w-4 text-right shrink-0">
+                            <div className="flex items-start gap-2 min-w-0 flex-1">
+                              <span className="text-[10px] font-mono text-muted-foreground w-4 text-right shrink-0 mt-0.5">
                                 {idx + 1}.
                               </span>
-                              <span
-                                className={`truncate ${item.isOfficeDestination ? 'font-bold text-emerald-700 dark:text-emerald-300' : 'font-medium'}`}
-                              >
-                                {cleanDisplayName}
-                              </span>
+                              <div className="min-w-0 flex-1">
+                                <span
+                                  className={`truncate block ${
+                                    isOfficeGaj
+                                      ? 'font-bold text-emerald-700 dark:text-emerald-300'
+                                      : 'font-semibold text-foreground'
+                                  }`}
+                                >
+                                  {cleanDisplayName}
+                                </span>
+
+                                {!isOfficeGaj && shipPosition && (
+                                  <div
+                                    className="flex items-center gap-1 mt-0.5 text-[10px] text-muted-foreground font-mono"
+                                    title={`Posisi Terakhir: ${shipPosition}`}
+                                  >
+                                    <MapPin className="size-2.5 text-rose-500 shrink-0" />
+                                    <span className="truncate">{shipPosition}</span>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
                         );
