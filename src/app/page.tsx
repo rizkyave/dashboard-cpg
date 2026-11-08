@@ -100,6 +100,7 @@ export default function DashboardPage() {
   const [selectedEntity, setSelectedEntity] = useState<EntityCode>('ALL');
   const [selectedLapse, setSelectedLapse] = useState<LapseFilterType>('ALL');
   const [searchKeyword, setSearchKeyword] = useState<string>('');
+  const [reviewFpbInitialSearch, setReviewFpbInitialSearch] = useState<string>('');
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
   const [isKpiHidden, setIsKpiHidden] = useState<boolean>(() => {
@@ -1322,6 +1323,12 @@ export default function DashboardPage() {
               onTriggerAiAudit={triggerAiBottleneckAudit}
               sisaLayananItems={sisaLayananItems}
               showToast={showToast}
+              onNavigateTab={(tab, targetFpb) => {
+                if (targetFpb) {
+                  setReviewFpbInitialSearch(targetFpb);
+                }
+                setActiveTab(tab as TabType);
+              }}
             />
           )}
 
@@ -1338,7 +1345,10 @@ export default function DashboardPage() {
 
           {/* Tab Review & Analisa FPB (e-FPB Server Sync & Review Tool) */}
           {activeTab === 'review-fpb' && (
-            <ReviewFpbTab showToast={showToast} />
+            <ReviewFpbTab
+              showToast={showToast}
+              initialSearch={reviewFpbInitialSearch}
+            />
           )}
 
           {/* Tab Perencanaan Pengadaan (Purchase Planning & Demand Forecast) */}

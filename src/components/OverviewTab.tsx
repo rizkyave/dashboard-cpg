@@ -45,6 +45,7 @@ import { loadStoredSisaLayanan } from '@/utils/sisaLayananStorage';
 import TtbMediaModal from './TtbMediaModal';
 import { formatDateDdMmYyDash } from '@/utils/formatDate';
 import { openTimemarkWithFstb } from '@/utils/timemark';
+import { FpbReviewRecord } from '@/types/fpbReview';
 
 interface OverviewTabProps {
   items: ProcurementItem[];
@@ -55,6 +56,7 @@ interface OverviewTabProps {
   onTriggerAiAudit?: () => void;
   sisaLayananItems?: SisaLayananItem[];
   showToast?: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
+  onNavigateTab?: (tab: string, targetFpb?: string) => void;
 }
 
 interface RecentSearchItem {
@@ -74,6 +76,7 @@ export default function OverviewTab({
   onOpenAudit,
   sisaLayananItems = [],
   showToast,
+  onNavigateTab,
 }: OverviewTabProps) {
   const { isVisitor } = useAuth();
 
@@ -83,6 +86,32 @@ export default function OverviewTab({
   // Input states
   const [universalQuery, setUniversalQuery] = useState<string>(searchKeyword || '');
   const [multiFpbText, setMultiFpbText] = useState<string>('');
+
+  // Sinkronisasi data pengajuan e-FPB dari server e-FPB kapal
+  const [efpbReviews, setEfpbReviews] = useState<FpbReviewRecord[]>([]);
+  const [isLoadingEfpb, setIsLoadingEfpb] = useState<boolean>(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    setIsLoadingEfpb(true);
+    fetch('/api/review-fpb')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((res) => {
+        if (isMounted && res && res.success && Array.isArray(res.data)) {
+          setEfpbReviews(res.data);
+        }
+      })
+      .catch((err) => {
+        console.warn('Gagal memuat e-fpb untuk pencarian cepat:', err);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoadingEfpb(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Filter parameter
   const [searchScope, setSearchScope] = useState<'ALL' | 'FPB' | 'PO' | 'VESSEL' | 'ITEM' | 'DOC'>('ALL');
@@ -348,6 +377,46 @@ export default function OverviewTab({
       notFoundTokens,
     };
   }, [searchMode, parsedMultiFpbTokens, filteredResults]);
+
+  // Pencarian Terintegrasi ke Antrean Server e-FPB Kapal (Review & Analisa)
+  const matchedEfpb = useMemo(() => {
+    if (!hasActiveQuery || efpbReviews.length === 0) return [];
+
+    if (searchMode === 'universal') {
+      const q = universalQuery.trim().toLowerCase();
+      if (!q) return [];
+      return efpbReviews.filter((rec) => {
+        const fpb = (rec.fpbNo || '').toLowerCase();
+        const orig = (rec.originalFpb || '').toLowerCase();
+        const armada = (rec.armada || '').toLowerCase();
+        const entity = (rec.entity || '').toLowerCase();
+        const purpose = (rec.purpose || '').toLowerCase();
+        const itemsMatch = (rec.items || []).some(
+          (it) => it.itemName?.toLowerCase().includes(q) || it.itemCode?.toLowerCase().includes(q)
+        );
+
+        if (searchScope === 'FPB') return fpb.includes(q) || orig.includes(q);
+        if (searchScope === 'VESSEL') return armada.includes(q);
+        if (searchScope === 'ITEM') return itemsMatch;
+        if (searchScope === 'PO' || searchScope === 'DOC') return false;
+
+        return (
+          fpb.includes(q) ||
+          orig.includes(q) ||
+          armada.includes(q) ||
+          entity.includes(q) ||
+          purpose.includes(q) ||
+          itemsMatch
+        );
+      });
+    } else {
+      // Multi-FPB Mode
+      return efpbReviews.filter((rec) => {
+        const fpbUpper = (rec.fpbNo || '').toUpperCase();
+        return parsedMultiFpbTokens.some((token) => fpbUpper.includes(token));
+      });
+    }
+  }, [hasActiveQuery, searchMode, universalQuery, searchScope, parsedMultiFpbTokens, efpbReviews]);
 
   // Handler eksekusi search universal
   const handleUniversalSubmit = (e?: React.FormEvent) => {
@@ -822,6 +891,12 @@ export default function OverviewTab({
                 <span className="px-2 py-0.5 rounded-full font-bold bg-amber-500/10 text-amber-600 border border-amber-500/20">
                   {searchStats.noPo} Belum Terbit PO
                 </span>
+                {matchedEfpb.length > 0 && (
+                  <span className="px-2 py-0.5 rounded-full font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 flex items-center gap-1">
+                    <Sparkles className="size-3" />
+                    <span>{matchedEfpb.length} di Antrean e-FPB</span>
+                  </span>
+                )}
               </div>
             </div>
 
@@ -913,24 +988,152 @@ export default function OverviewTab({
             </div>
           )}
 
-          {/* TABEL / KARTU HASIL PENCARIAN */}
-          {filteredResults.length === 0 ? (
-            <div className="bg-card border border-border rounded-3xl p-12 text-center text-muted-foreground space-y-3">
-              <AlertCircle className="size-12 mx-auto text-amber-500/50" />
-              <div className="space-y-1">
-                <h3 className="text-base font-bold text-foreground">Dokumen Tidak Ditemukan</h3>
-                <p className="text-xs max-w-md mx-auto">
-                  Tidak ada dokumen yang cocok dengan kueri pencarian Anda. Pastikan ejaan nomor FPB/PO sudah benar, atau coba gunakan sebagian digit saja (misal: 4 digit terakhir).
-                </p>
+          {/* KARTU PENCARIAN E-FPB (Jika ditemukan berkas pengajuan di server e-FPB) */}
+          {matchedEfpb.length > 0 && (
+            <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-background border border-indigo-500/30 shadow-xs space-y-3">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <span className="p-1.5 rounded-xl bg-indigo-500/20 text-indigo-600 dark:text-indigo-400">
+                    <Sparkles className="size-4" />
+                  </span>
+                  <div>
+                    <h4 className="text-xs sm:text-sm font-extrabold text-foreground flex items-center gap-2 flex-wrap">
+                      <span>Ditemukan di Server e-FPB ({matchedEfpb.length} Berkas)</span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-700 dark:text-amber-300">
+                        Tahap Review &amp; Analisa (Belum Terbit PO)
+                      </span>
+                    </h4>
+                    <p className="text-[11px] text-muted-foreground">
+                      Pengajuan ini masuk langsung dari armada kapal dan sedang dianalisis ketersediaan stok gudang / disposisi purchasing sebelum diterbitkan PO.
+                    </p>
+                  </div>
+                </div>
               </div>
-              <button
-                type="button"
-                onClick={handleResetSearch}
-                className="px-4 py-2 rounded-xl bg-muted hover:bg-muted/80 text-foreground text-xs font-bold cursor-pointer transition"
-              >
-                Kembali ke Pencarian Baru
-              </button>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {matchedEfpb.map((rec) => (
+                  <div
+                    key={rec.id || rec.fpbNo}
+                    className="p-3.5 rounded-2xl bg-card border border-border/80 shadow-2xs space-y-2.5 hover:border-indigo-500/40 transition"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-muted text-muted-foreground">
+                            {rec.entity || 'CPG'}
+                          </span>
+                          <span className="font-mono font-extrabold text-xs text-foreground">
+                            {rec.fpbNo}
+                          </span>
+                          {rec.urgency === 'URGENT' && (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-500/15 text-rose-600 dark:text-rose-400">
+                              URGENT
+                            </span>
+                          )}
+                          {rec.priorityLevel && (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400">
+                              {rec.priorityLevel}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1 font-semibold text-foreground">
+                            <Ship className="size-3.5 text-sky-600" />
+                            {rec.armada || 'Armada Kapal'}
+                          </span>
+                          <span>&bull;</span>
+                          <span>Tgl: {rec.date || '-'}</span>
+                        </div>
+                      </div>
+
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 shrink-0">
+                        {rec.reviewStatus === 'APPROVED_PO'
+                          ? 'Disetujui PO'
+                          : rec.reviewStatus === 'FULFILL_STOCK'
+                          ? 'Penuhi Stok'
+                          : rec.reviewStatus === 'REJECTED'
+                          ? 'Ditolak'
+                          : 'Menunggu Analisa'}
+                      </span>
+                    </div>
+
+                    <div className="text-xs text-muted-foreground bg-muted/40 p-2.5 rounded-xl space-y-1">
+                      <p className="line-clamp-2">
+                        <strong className="text-foreground">Keperluan:</strong> {rec.purpose || '-'}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground flex items-center gap-2">
+                        <span>📦 {rec.items?.length || 0} Item Material</span>
+                        <span>&bull;</span>
+                        <span className="text-amber-600 dark:text-amber-400 font-semibold font-mono">
+                          PO: Belum ada
+                        </span>
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2 pt-1 flex-wrap">
+                      <span className="text-[11px] text-muted-foreground">
+                        Status Logistik: <strong>{rec.isReceivedLogistik ? 'Diterima' : 'Menunggu'}</strong>
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        {rec.pdfUrl && (
+                          <a
+                            href={`/api/review-fpb/pdf?fpbNo=${encodeURIComponent(rec.fpbNo)}&type=raw`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-2.5 py-1 rounded-lg border border-border text-[11px] font-bold text-foreground hover:bg-muted transition flex items-center gap-1"
+                            title="Buka Softcopy PDF e-FPB"
+                          >
+                            <FileText className="size-3 text-rose-500" />
+                            <span>PDF</span>
+                          </a>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => onNavigateTab?.('review-fpb', rec.fpbNo)}
+                          className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold transition flex items-center gap-1 cursor-pointer shadow-2xs"
+                          title="Buka dokumen ini di menu Review & Analisa FPB"
+                        >
+                          <span>Buka di Review FPB</span>
+                          <ChevronRight className="size-3" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
+          )}
+
+          {/* TABEL / KARTU HASIL PENCARIAN PENGADAAN */}
+          {filteredResults.length === 0 ? (
+            matchedEfpb.length > 0 ? (
+              <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs flex items-start gap-3">
+                <AlertTriangle className="size-5 text-amber-500 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="font-bold text-sm">Dokumen Terdaftar di Antrean e-FPB Kapal (Belum Terbit PO)</p>
+                  <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
+                    Nomor berkas yang Anda cari berhasil ditemukan pada antrean <strong>Review &amp; Analisa e-FPB</strong> di atas. Berkas ini belum muncul di {totalAllItems.toLocaleString('id-ID')} rekapitulasi database pengadaan karena berstatus pengajuan baru armada dan belum diproses menjadi dokumen Purchase Order (PO).
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-card border border-border rounded-3xl p-12 text-center text-muted-foreground space-y-3">
+                <AlertCircle className="size-12 mx-auto text-amber-500/50" />
+                <div className="space-y-1">
+                  <h3 className="text-base font-bold text-foreground">Dokumen Tidak Ditemukan</h3>
+                  <p className="text-xs max-w-md mx-auto">
+                    Tidak ada dokumen yang cocok dengan kueri pencarian Anda di database pengadaan maupun pengajuan e-FPB kapal. Pastikan ejaan nomor FPB/PO sudah benar, atau coba gunakan sebagian digit saja (misal: 4 digit terakhir).
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleResetSearch}
+                  className="px-4 py-2 rounded-xl bg-muted hover:bg-muted/80 text-foreground text-xs font-bold cursor-pointer transition"
+                >
+                  Kembali ke Pencarian Baru
+                </button>
+              </div>
+            )
           ) : viewMode === 'table' ? (
             /* TAMPILAN TABEL DETAIL */
             <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">

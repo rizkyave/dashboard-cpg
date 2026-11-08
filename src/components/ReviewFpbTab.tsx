@@ -83,6 +83,7 @@ const getWaUrl = (phone: string, text: string) => {
 
 interface ReviewFpbTabProps {
   showToast?: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
+  initialSearch?: string;
 }
 
 const ENTITY_OPTIONS = [
@@ -107,7 +108,7 @@ const PURCHASING_PICS = [
   'Tim Purchasing Balikpapan',
 ];
 
-export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
+export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabProps) {
   const { user } = useAuth();
 
   // Data states
@@ -131,7 +132,13 @@ export default function ReviewFpbTab({ showToast }: ReviewFpbTabProps) {
   const [syncMode, setSyncMode] = useState<'quick' | 'full'>('quick');
 
   // Filter states
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState<string>(initialSearch || '');
+
+  useEffect(() => {
+    if (initialSearch !== undefined) {
+      setSearchQuery(initialSearch);
+    }
+  }, [initialSearch]);
   const [selectedEntity, setSelectedEntity] = useState<string>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
   const [selectedUrgency, setSelectedUrgency] = useState<string>('ALL');
