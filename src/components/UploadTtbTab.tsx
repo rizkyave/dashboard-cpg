@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import {
   UploadCloud,
   FolderUp,
@@ -41,13 +41,18 @@ import {
   Send,
   Share2,
   Clock,
+  Lock,
+  Unlock,
+  BellRing,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
 import { SisaLayananItem } from '@/types/sisaLayanan';
 import { UploadedTtbItem, UploadTtbResponse } from '@/types/ttbUpload';
+import { UploadedFstbItem } from '@/types/fstbUpload';
 import { RemoteHandoverTokenData } from '@/types/remoteHandover';
 import { DocumentValidationRecord } from '@/types/documentValidation';
+import { resolveDocRelation } from '@/utils/docRelationResolver';
 import RemoteDispatchModal from '@/components/RemoteDispatchModal';
 import { enrichTtbRecords } from '@/utils/ttbEnricher';
 import {
@@ -255,6 +260,22 @@ export default function UploadTtbTab({
   const [remoteTokens, setRemoteTokens] = useState<Record<string, RemoteHandoverTokenData>>({});
   const [validationsMap, setValidationsMap] = useState<Record<string, DocumentValidationRecord>>({});
 
+  // SOP Control: Wajib FSTB Terunggah Sebelum Terbit TTB (Hanya dapat diubah Admin)
+  const [sopRequireFstb, setSopRequireFstb] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('cpg_sop_require_fstb');
+      return saved !== 'false'; // Default TRUE (SOP Ketat Aktif)
+    }
+    return true;
+  });
+  const [uploadedFstbs, setUploadedFstbs] = useState<UploadedFstbItem[]>([]);
+  const [isMissingFstbModalOpen, setIsMissingFstbModalOpen] = useState<boolean>(false);
+  const [missingFstbQueueItems, setMissingFstbQueueItems] = useState<{
+    item: QueuedFile;
+    fstbInfo: { hasFstb: boolean; expectedFstb: string; noFpb: string; noPo: string; armada?: string };
+  }[]>([]);
+  const [isNotifyingFstb, setIsNotifyingFstb] = useState<boolean>(false);
+
   const [isCameraModalOpen, setIsCameraModalOpen] = useState<boolean>(false);
 
   // Floating Reminder State (Dismissible Reminder Terbang SOP Logistik)
@@ -389,11 +410,161 @@ export default function UploadTtbTab({
     }
   };
 
+  // Fetch riwayat FSTB yang telah terunggah di Cloudflare R2
+  const fetchUploadedFstbs = async () => {
+    try {
+      const res = await fetch(`/api/upload-fstb?_t=${Date.now()}`);
+      if (res.ok) {
+        const d = await res.json();
+        if (Array.isArray(d.history)) {
+          setUploadedFstbs(d.history);
+        }
+      }
+    } catch (err) {
+      console.warn('Gagal memuat data riwayat FSTB:', err);
+    }
+  };
+
   useEffect(() => {
     fetchHistory();
     fetchRemoteTokens();
     fetchValidations();
+    fetchUploadedFstbs();
   }, []);
+
+  // Helper memverifikasi keberadaan FSTB untuk nomor TTB tertentu
+  const checkFstbPrerequisite = useCallback((rawTtb: string, noFpb?: string, noPo?: string) => {
+    const cleanTtb = sanitizeTtbNumber(rawTtb);
+    if (!cleanTtb) return { hasFstb: true, expectedFstb: '', noFpb: '', noPo: '' };
+
+    // 1. Cek relasi dari docRelationResolver
+    const relation = resolveDocRelation('TTB', cleanTtb, noFpb, noPo);
+    const resolvedFpb = noFpb || relation.fpbNumber || '';
+    const resolvedPo = noPo || relation.poNumber || '';
+    const candidateFstbs = relation.relatedFstbs || [];
+
+    // Kumpulan nomor FSTB yang valid di Cloudflare R2
+    const uploadedFstbKeys = new Set(
+      uploadedFstbs.map((f) => (f.cleanNoFstb || f.noFstb || '').toUpperCase().trim()).filter(Boolean)
+    );
+
+    // Kumpulan nomor FPB & PO yang FSTB-nya sudah terunggah di R2
+    const uploadedFpbSet = new Set(
+      uploadedFstbs.map((f) => (f.noFpb || '').toUpperCase().trim()).filter(Boolean)
+    );
+    const uploadedPoSet = new Set(
+      uploadedFstbs.map((f) => (f.doNo || '').toUpperCase().trim()).filter(Boolean)
+    );
+
+    // Cek apakah ada FSTB kandidat yang sudah terunggah di R2
+    const foundFstb = candidateFstbs.find((fstb) => uploadedFstbKeys.has(fstb.toUpperCase().trim()));
+    if (foundFstb) {
+      return { hasFstb: true, expectedFstb: foundFstb, noFpb: resolvedFpb, noPo: resolvedPo, armada: relation.armada };
+    }
+
+    // Cek apakah FPB yang sama sudah memiliki berkas FSTB di R2
+    if (resolvedFpb && uploadedFpbSet.has(resolvedFpb.toUpperCase().trim())) {
+      const matchByFpb = uploadedFstbs.find((f) => (f.noFpb || '').toUpperCase().trim() === resolvedFpb.toUpperCase().trim());
+      return { hasFstb: true, expectedFstb: matchByFpb?.cleanNoFstb || matchByFpb?.noFstb || '', noFpb: resolvedFpb, noPo: resolvedPo, armada: relation.armada };
+    }
+
+    // Cek apakah PO yang sama sudah memiliki berkas FSTB di R2
+    if (resolvedPo && uploadedPoSet.has(resolvedPo.toUpperCase().trim())) {
+      const matchByPo = uploadedFstbs.find((f) => (f.doNo || '').toUpperCase().trim() === resolvedPo.toUpperCase().trim());
+      return { hasFstb: true, expectedFstb: matchByPo?.cleanNoFstb || matchByPo?.noFstb || '', noFpb: resolvedFpb, noPo: resolvedPo, armada: relation.armada };
+    }
+
+    // Cek dari dataset procurementItems
+    const procMatch = (procurementItems || []).find((p) => {
+      const pTtb = (p.noTtb || (p as any).ttb || '').replace(/\D/g, '');
+      const tDigits = cleanTtb.replace(/\D/g, '');
+      return pTtb && tDigits && (pTtb === tDigits || pTtb.endsWith(tDigits) || tDigits.endsWith(pTtb));
+    });
+    const procFstb = procMatch?.noFstb || (procMatch as any)?.fstb;
+    if (procFstb) {
+      const fstbClean = procFstb.toUpperCase().trim();
+      const armadaName = procMatch?.deptArmada || (procMatch as any)?.kapal || relation.armada;
+      const poName = procMatch?.po || procMatch?.noPo || resolvedPo;
+      if (uploadedFstbKeys.has(fstbClean)) {
+        return { hasFstb: true, expectedFstb: procFstb, noFpb: procMatch?.fpb || resolvedFpb, noPo: poName, armada: armadaName };
+      }
+      return { hasFstb: false, expectedFstb: procFstb, noFpb: procMatch?.fpb || resolvedFpb, noPo: poName, armada: armadaName };
+    }
+
+    // Jika kandidat FSTB ada tapi belum terunggah di R2
+    if (candidateFstbs.length > 0) {
+      return { hasFstb: false, expectedFstb: candidateFstbs[0], noFpb: resolvedFpb, noPo: resolvedPo, armada: relation.armada };
+    }
+
+    return { hasFstb: false, expectedFstb: '', noFpb: resolvedFpb, noPo: resolvedPo, armada: relation.armada };
+  }, [uploadedFstbs, procurementItems]);
+
+  // Handler toggle pengendalian SOP FSTB oleh Administrator
+  const handleToggleSopRequireFstb = () => {
+    if (!isAdmin) {
+      showToast?.('Akses Ditolak: Hanya Administrator yang berwenang mengubah pengendalian SOP FSTB.', 'error');
+      return;
+    }
+    const newVal = !sopRequireFstb;
+    setSopRequireFstb(newVal);
+    try {
+      localStorage.setItem('cpg_sop_require_fstb', String(newVal));
+    } catch {}
+    if (newVal) {
+      showToast?.('SOP KETAT DIAKTIFKAN: TTB wajib memiliki berkas FSTB yang telah terunggah.', 'info');
+    } else {
+      showToast?.('PERINGATAN: Mode Bypass SOP Aktif. TTB dapat diunggah tanpa berkas FSTB.', 'warning');
+    }
+  };
+
+  // Handler kirim notifikasi urgensi ke Tim FSTB
+  const handleNotifyFstbTeam = async (
+    itemsToNotify: {
+      item: QueuedFile;
+      fstbInfo: { hasFstb: boolean; expectedFstb: string; noFpb: string; noPo: string; armada?: string };
+    }[]
+  ) => {
+    setIsNotifyingFstb(true);
+    try {
+      const ttbList = itemsToNotify.map((x) => x.item.noTtb || x.item.file.name).join(', ');
+      const fpbList = Array.from(new Set(itemsToNotify.map((x) => x.fstbInfo.noFpb).filter(Boolean))).join(', ');
+      const poList = Array.from(new Set(itemsToNotify.map((x) => x.fstbInfo.noPo).filter(Boolean))).join(', ');
+      const armadaList = Array.from(new Set(itemsToNotify.map((x) => x.fstbInfo.armada).filter(Boolean))).join(', ');
+
+      const res = await fetch('/api/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'FSTB_URGENT_REQUEST',
+          title: '🚨 Peringatan SOP: Unggah Berkas FSTB Diperlukan Segera',
+          message: `Penerbitan TTB (${ttbList}) untuk armada ${armadaList || 'kapal'} tertahan oleh SOP karena berkas FSTB terkait belum diunggah ke Cloudflare R2 (Ref FPB: ${fpbList || '-'}, PO: ${poList || '-'}). Mohon Tim FSTB segera mengunggah berkas tersebut di menu Unggah FSTB.`,
+          senderName: user?.name || user?.username || 'Tim Logistik CPG',
+          senderUsername: user?.username || 'logistik',
+          senderRole: user?.role || 'logistik',
+          targetRole: 'staf_purchasing',
+          linkTab: 'upload-fstb',
+          metadata: {
+            noTtb: ttbList,
+            noFpb: fpbList,
+            noPo: poList,
+            armada: armadaList,
+            urgency: 'HIGH',
+            sopBlocked: true,
+          },
+        }),
+      });
+
+      if (res.ok) {
+        showToast?.(`Notifikasi urgensi berhasil dikirim ke Tim FSTB untuk ${itemsToNotify.length} berkas!`, 'success');
+      } else {
+        throw new Error('Gagal mengirimkan notifikasi ke Tim FSTB.');
+      }
+    } catch (err: any) {
+      showToast?.(err.message || 'Gagal mengirimkan notifikasi ke Tim FSTB.', 'error');
+    } finally {
+      setIsNotifyingFstb(false);
+    }
+  };
 
   // Uji koneksi ke Cloudflare R2 Storage
   const handleTestStorageConnection = async () => {
@@ -920,11 +1091,33 @@ export default function UploadTtbTab({
     }
   };
 
-  // Submit Handler dengan proteksi duplikat & validasi kelengkapan berkas berpasangan
+  // Submit Handler dengan proteksi duplikat, pengendalian SOP FSTB & validasi kelengkapan berkas berpasangan
   const handleExecuteUpload = async () => {
     if (queue.length === 0) {
       showToast?.('Pilih setidaknya 1 berkas TTB untuk diunggah.', 'warning');
       return;
+    }
+
+    // 1. PENGENDALIAN SOP: Verifikasi prasyarat berkas FSTB wajib terunggah jika toggle switch aktif
+    if (sopRequireFstb) {
+      const blocked: {
+        item: QueuedFile;
+        fstbInfo: { hasFstb: boolean; expectedFstb: string; noFpb: string; noPo: string; armada?: string };
+      }[] = [];
+
+      for (const item of queue) {
+        const rawTtb = item.noTtb.trim() || batchNoTtb.trim();
+        const fstbStatus = checkFstbPrerequisite(rawTtb, item.noFpb, item.doNo);
+        if (!fstbStatus.hasFstb) {
+          blocked.push({ item, fstbInfo: fstbStatus });
+        }
+      }
+
+      if (blocked.length > 0) {
+        setMissingFstbQueueItems(blocked);
+        setIsMissingFstbModalOpen(true);
+        return;
+      }
     }
 
     if (hasDuplicateInQueue) {
@@ -1214,6 +1407,75 @@ export default function UploadTtbTab({
               {stats.r2Count.toLocaleString('id-ID')}
             </p>
           </div>
+        </div>
+      </div>
+
+      {/* Kartu Pengendalian SOP: FSTB Prerequisite Gate (Admin Toggle Switch) */}
+      <div className={`p-4 rounded-2xl border transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs ${
+        sopRequireFstb
+          ? 'bg-gradient-to-r from-emerald-500/10 via-cyan-500/5 to-transparent border-emerald-500/30'
+          : 'bg-gradient-to-r from-amber-500/15 via-rose-500/10 to-transparent border-amber-500/40'
+      }`}>
+        <div className="flex items-start gap-3.5">
+          <div className={`size-11 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${
+            sopRequireFstb
+              ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+              : 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30'
+          }`}>
+            {sopRequireFstb ? <ShieldCheck className="size-6" /> : <ShieldAlert className="size-6" />}
+          </div>
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-sm font-bold text-foreground">
+                Pengendalian SOP: Wajib FSTB Sebelum Terbit TTB
+              </h3>
+              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono border ${
+                sopRequireFstb
+                  ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
+                  : 'bg-amber-500/20 text-amber-800 dark:text-amber-200 border-amber-500/40'
+              }`}>
+                {sopRequireFstb ? 'SOP KETAT: ON (Wajib FSTB)' : 'BYPASS MODE: OFF (Diabaikan)'}
+              </span>
+              {isAdmin && (
+                <span className="text-[10px] bg-primary/10 text-primary font-bold px-2 py-0.5 rounded-full border border-primary/20">
+                  Khusus Admin
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              {sopRequireFstb
+                ? 'Aturan SOP Aktif: Dokumen TTB tidak dapat diunggah/diterbitkan jika berkas FSTB pasangannya belum terdaftar di Cloudflare R2.'
+                : 'Bypass Aktif: Tim Logistik diizinkan menerbitkan TTB secara darurat meskipun dokumen FSTB belum diunggah.'}
+            </p>
+          </div>
+        </div>
+
+        {/* Toggle Switch Controller */}
+        <div className="flex items-center gap-3 shrink-0 self-end md:self-center">
+          {isAdmin ? (
+            <button
+              type="button"
+              onClick={handleToggleSopRequireFstb}
+              className={`relative inline-flex h-8 w-16 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+                sopRequireFstb ? 'bg-emerald-600' : 'bg-slate-400 dark:bg-slate-700'
+              }`}
+              title={sopRequireFstb ? 'Klik untuk mengaktifkan Bypass Mode (OFF)' : 'Klik untuk mengaktifkan Pengendalian SOP Ketat (ON)'}
+            >
+              <span className="sr-only">Toggle SOP FSTB</span>
+              <span
+                className={`pointer-events-none inline-block size-7 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out flex items-center justify-center ${
+                  sopRequireFstb ? 'translate-x-8 text-emerald-600' : 'translate-x-0 text-slate-500'
+                }`}
+              >
+                {sopRequireFstb ? <Lock className="size-3.5" /> : <Unlock className="size-3.5" />}
+              </span>
+            </button>
+          ) : (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-background/80 border border-border text-xs text-muted-foreground">
+              <Lock className="size-3.5 text-muted-foreground" />
+              <span>Dikelola Admin</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -1564,6 +1826,47 @@ export default function UploadTtbTab({
                           </span>
                         </div>
                       )}
+
+                      {/* Status Verifikasi Berkas FSTB Pasangan (SOP Prerequisite) */}
+                      {(() => {
+                        const rawTtb = item.noTtb.trim() || batchNoTtb.trim();
+                        if (!rawTtb) return null;
+                        const fstbCheck = checkFstbPrerequisite(rawTtb, item.noFpb, item.doNo);
+                        return (
+                          <div className="pt-2 border-t border-border/40 flex items-center justify-between gap-2 flex-wrap text-[10px]">
+                            {fstbCheck.hasFstb ? (
+                              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold border border-emerald-500/25">
+                                <ShieldCheck className="size-3 text-emerald-500 shrink-0" />
+                                <span>FSTB Terverifikasi di R2 {fstbCheck.expectedFstb ? `(${fstbCheck.expectedFstb})` : ''}</span>
+                              </span>
+                            ) : (
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md font-semibold border ${
+                                  sopRequireFstb
+                                    ? 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30'
+                                    : 'bg-amber-500/15 text-amber-800 dark:text-amber-200 border-amber-500/30'
+                                }`}>
+                                  <ShieldAlert className="size-3 shrink-0" />
+                                  <span>FSTB Belum Terunggah {fstbCheck.expectedFstb ? `(${fstbCheck.expectedFstb})` : ''}</span>
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleNotifyFstbTeam([{ item, fstbInfo: fstbCheck }])}
+                                  disabled={isNotifyingFstb}
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/10 hover:bg-primary/20 text-primary font-bold text-[9px] border border-primary/20 transition cursor-pointer"
+                                  title="Kirim notifikasi urgensi ke Tim FSTB / Purchasing"
+                                >
+                                  <BellRing className="size-2.5" />
+                                  <span>Panggil Tim FSTB</span>
+                                </button>
+                              </div>
+                            )}
+                            <span className="text-muted-foreground font-mono">
+                              {fstbCheck.noFpb ? `FPB: ${fstbCheck.noFpb}` : fstbCheck.noPo ? `PO: ${fstbCheck.noPo}` : ''}
+                            </span>
+                          </div>
+                        );
+                      })()}
                     </div>
                   );
                 })}
@@ -2285,6 +2588,119 @@ export default function UploadTtbTab({
                   className="max-w-full max-h-[650px] object-contain rounded-lg shadow-lg"
                 />
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Peringatan SOP: FSTB Belum Terunggah */}
+      {isMissingFstbModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in-50 duration-200">
+          <div className="bg-card border border-border rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+            <div className="p-5 border-b border-border bg-gradient-to-r from-rose-500/15 via-amber-500/10 to-transparent flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="size-10 rounded-xl bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 flex items-center justify-center shrink-0">
+                  <ShieldAlert className="size-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-foreground text-sm flex items-center gap-2">
+                    <span>SOP Tertahan: Berkas FSTB Belum Terunggah</span>
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    Pengendalian SOP Aktif: TTB wajib memiliki berkas FSTB di Cloudflare R2
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsMissingFstbModalOpen(false)}
+                className="size-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted flex items-center justify-center transition cursor-pointer"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            <div className="p-5 overflow-y-auto space-y-3.5 text-xs">
+              <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-900 dark:text-rose-200 leading-relaxed text-[11px]">
+                Sesuai aturan SOP operasional logistik, berkas TTB <strong>tidak dapat diterbitkan / diunggah</strong> ke Cloudflare R2 sebelum dokumen <strong>FSTB (Formulir Serah Terima Barang)</strong> terkait telah diunggah oleh Tim Purchasing / FSTB.
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-[11px] font-bold text-foreground uppercase tracking-wider">
+                  Daftar Berkas TTB yang Tertahan ({missingFstbQueueItems.length}):
+                </p>
+                <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                  {missingFstbQueueItems.map(({ item, fstbInfo }, idx) => (
+                    <div
+                      key={item.id}
+                      className="p-2.5 rounded-lg border border-rose-500/30 bg-rose-500/5 text-xs flex items-center justify-between gap-2"
+                    >
+                      <div className="min-w-0">
+                        <p className="font-semibold text-foreground truncate">
+                          {idx + 1}. {item.noTtb || item.file.name}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground font-mono mt-0.5">
+                          {fstbInfo.expectedFstb ? (
+                            <span>Target FSTB: <strong className="text-rose-600 dark:text-rose-400">{fstbInfo.expectedFstb}</strong> • </span>
+                          ) : null}
+                          {fstbInfo.noFpb ? `FPB: ${fstbInfo.noFpb} • ` : ''}
+                          {fstbInfo.armada ? `Armada: ${fstbInfo.armada}` : ''}
+                        </p>
+                      </div>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-700 dark:text-rose-300 shrink-0">
+                        Belum Diunggah
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-border bg-muted/30 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={async () => {
+                  await handleNotifyFstbTeam(missingFstbQueueItems);
+                }}
+                disabled={isNotifyingFstb}
+                className="px-4 py-2 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs shadow-xs transition cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <BellRing className={`size-3.5 ${isNotifyingFstb ? 'animate-spin' : ''}`} />
+                <span>{isNotifyingFstb ? 'Mengirim Notifikasi...' : 'Kirim Notifikasi ke Tim FSTB'}</span>
+              </button>
+
+              <div className="flex items-center gap-2">
+                {isAdmin ? (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setIsMissingFstbModalOpen(false);
+                      showToast?.('Mode Bypass Admin: Mengunggah TTB tanpa FSTB...', 'warning');
+                      if (hasDuplicateInQueue) {
+                        setIsDuplicateModalOpen(true);
+                        return;
+                      }
+                      if (hasIncompleteInQueue) {
+                        setIsIncompleteModalOpen(true);
+                        return;
+                      }
+                      await processUploadForQueue(queue);
+                    }}
+                    className="px-3.5 py-2 rounded-xl border border-amber-500/50 bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-200 text-xs font-bold transition cursor-pointer"
+                    title="Bypass SOP sementara (Khusus Hak Akses Admin)"
+                  >
+                    Bypass &amp; Tetap Unggah
+                  </button>
+                ) : null}
+
+                <button
+                  type="button"
+                  onClick={() => setIsMissingFstbModalOpen(false)}
+                  className="px-4 py-2 rounded-xl border border-border bg-background hover:bg-muted text-xs font-semibold text-foreground transition cursor-pointer"
+                >
+                  Tutup
+                </button>
+              </div>
             </div>
           </div>
         </div>
