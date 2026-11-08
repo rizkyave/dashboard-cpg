@@ -434,7 +434,9 @@ export default function MonitoringInternalTab({
     return (initialStockTaliData.items?.length) || 58;
   });
 
-  const [columnSection, setColumnSection] = useState<'ALL' | 'PCH' | 'LOG' | 'ADM'>('ALL');
+  const [columnSection, setColumnSection] = useState<'ALL' | 'PCH' | 'LOG' | 'ADM'>('LOG');
+  // Mode Khusus Tim Logistik: Eliminir kolom Purchasing dan ADM PCH & Keuangan secara default
+  const [showAllColsAdmin, setShowAllColsAdmin] = useState<boolean>(false);
 
   // Filter states
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -1548,9 +1550,11 @@ export default function MonitoringInternalTab({
   };
 
   // Condition checks for visible column groups based on columnSection
-  const showPurchasingCols = columnSection === 'ALL' || columnSection === 'PCH';
-  const showLogistikCols = columnSection === 'ALL' || columnSection === 'LOG';
-  const showAdmKeuCols = columnSection === 'ALL' || columnSection === 'ADM';
+  // Mode Khusus Tim Logistik: Secara default kolom Purchasing dan ADM PCH & Keuangan dieliminir.
+  // Seluruh data di Google Sheets tetap aman dan utuh 100%.
+  const showPurchasingCols = Boolean(isAdmin && showAllColsAdmin && (columnSection === 'ALL' || columnSection === 'PCH'));
+  const showLogistikCols = true;
+  const showAdmKeuCols = Boolean(isAdmin && showAllColsAdmin && (columnSection === 'ALL' || columnSection === 'ADM'));
 
   return (
     <div className="space-y-6 animate-in fade-in-50 duration-200">
@@ -1621,13 +1625,13 @@ export default function MonitoringInternalTab({
                   <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   Live 2-Way Sync (Input &amp; Auto-Save)
                 </span>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30">
-                  <Sparkles className="size-3 text-amber-600 dark:text-amber-400" />
-                  Kolom Purchasing Interaktif
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30">
+                  <Boxes className="size-3 text-emerald-600 dark:text-emerald-400" />
+                  Khusus Alur Logistik & Lapangan
                 </span>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Input langsung, edit data, ubah SLA di tempat, dan 1-klik serah terima ke TTB dengan auto-save real-time.
+                Pusat monitoring berkas terpadu khusus pengantaran, serah terima TTB, dan operasional logistik lapangan CPG.
               </p>
             </div>
           </div>
@@ -1708,7 +1712,8 @@ export default function MonitoringInternalTab({
       {/* ======================================================== */}
       {/* 2. Top Summary KPI Cards (Alur 4 Seksi)                    */}
       {/* ======================================================== */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className={`grid gap-3 ${showAllColsAdmin ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-6" : "grid-cols-2 sm:grid-cols-4"}`}>
+
         {/* Total Berkas */}
         <div
           onClick={() => {
@@ -1730,6 +1735,7 @@ export default function MonitoringInternalTab({
         </div>
 
         {/* PO Terbit */}
+        {showAllColsAdmin && (
         <div
           onClick={() => {
             setColumnSection('PCH');
@@ -1745,6 +1751,8 @@ export default function MonitoringInternalTab({
           </div>
           <div className="text-[10px] text-amber-600/80 dark:text-amber-400/80 mt-0.5">Done by Purchasing</div>
         </div>
+
+        )}
 
         {/* Delivery Cepat (1-3 Hari) */}
         <div
@@ -1799,6 +1807,7 @@ export default function MonitoringInternalTab({
         </div>
 
         {/* SPP Selesai */}
+        {showAllColsAdmin && (
         <div
           onClick={() => {
             setColumnSection('ADM');
@@ -1814,6 +1823,7 @@ export default function MonitoringInternalTab({
           </div>
           <div className="text-[10px] text-purple-600/80 dark:text-purple-400/80 mt-0.5">Done by ADM &amp; Keu</div>
         </div>
+        )}
       </div>
 
       {/* ======================================================== */}
@@ -1822,56 +1832,81 @@ export default function MonitoringInternalTab({
       <div className="p-4 rounded-xl border border-border bg-card space-y-3">
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
           {/* Section View Switcher */}
-          <div className="flex items-center p-1 rounded-lg bg-muted border border-border text-xs">
-            <button
-              type="button"
-              onClick={() => setColumnSection('ALL')}
-              className={`px-3 py-1.5 rounded-md font-semibold transition cursor-pointer ${
-                columnSection === 'ALL'
-                  ? 'bg-background text-foreground shadow-xs'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Semua Kolom (40 Kolom)
-            </button>
-            <button
-              type="button"
-              onClick={() => setColumnSection('PCH')}
-              className={`px-3 py-1.5 rounded-md font-semibold transition cursor-pointer flex items-center gap-1.5 ${
-                columnSection === 'PCH'
-                  ? 'bg-amber-500/20 text-amber-800 dark:text-amber-300 shadow-xs'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <span className="size-2 rounded-full bg-amber-500" />
-              Purchasing
-            </button>
-            <button
-              type="button"
-              onClick={() => setColumnSection('LOG')}
-              className={`px-3 py-1.5 rounded-md font-semibold transition cursor-pointer flex items-center gap-1.5 ${
-                columnSection === 'LOG'
-                  ? 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 shadow-xs'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <span className="size-2 rounded-full bg-emerald-500" />
-              Logistik &amp; Lapangan
-            </button>
-            <button
-              type="button"
-              onClick={() => setColumnSection('ADM')}
-              className={`px-3 py-1.5 rounded-md font-semibold transition cursor-pointer flex items-center gap-1.5 ${
-                columnSection === 'ADM'
-                  ? 'bg-purple-500/20 text-purple-800 dark:text-purple-300 shadow-xs'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <span className="size-2 rounded-full bg-purple-500" />
-              ADM PCH &amp; Keuangan
-            </button>
-          </div>
-
+          {showAllColsAdmin ? (
+            <div className="flex items-center p-1 rounded-lg bg-muted border border-border text-xs flex-wrap gap-1">
+              <button
+                type="button"
+                onClick={() => setColumnSection('ALL')}
+                className={`px-3 py-1.5 rounded-md font-semibold transition cursor-pointer ${
+                  columnSection === 'ALL'
+                    ? 'bg-background text-foreground shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Semua Kolom
+              </button>
+              <button
+                type="button"
+                onClick={() => setColumnSection('PCH')}
+                className={`px-3 py-1.5 rounded-md font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+                  columnSection === 'PCH'
+                    ? 'bg-amber-500/20 text-amber-800 dark:text-amber-300 shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <span className="size-2 rounded-full bg-amber-500" />
+                Purchasing
+              </button>
+              <button
+                type="button"
+                onClick={() => setColumnSection('LOG')}
+                className={`px-3 py-1.5 rounded-md font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+                  columnSection === 'LOG'
+                    ? 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <span className="size-2 rounded-full bg-emerald-500" />
+                Logistik &amp; Lapangan
+              </button>
+              <button
+                type="button"
+                onClick={() => setColumnSection('ADM')}
+                className={`px-3 py-1.5 rounded-md font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+                  columnSection === 'ADM'
+                    ? 'bg-purple-500/20 text-purple-800 dark:text-purple-300 shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <span className="size-2 rounded-full bg-purple-500" />
+                ADM PCH &amp; Keuangan
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowAllColsAdmin(false)}
+                className="ml-2 px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition cursor-pointer"
+              >
+                Kembali ke Fokus Logistik
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-xs font-bold text-emerald-800 dark:text-emerald-200 shadow-xs">
+                <Boxes className="size-4 text-emerald-600 dark:text-emerald-400" />
+                <span>Zona Kerja: Logistik &amp; Tim Lapangan</span>
+              </div>
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllColsAdmin(true)}
+                  className="px-2.5 py-1.5 rounded-lg border border-border bg-background hover:bg-muted text-[11px] font-semibold text-muted-foreground hover:text-foreground transition cursor-pointer"
+                  title="Lihat seluruh 40 kolom termasuk Purchasing & Keuangan (Khusus Hak Akses Admin)"
+                >
+                  Audit 40 Kolom (Admin)
+                </button>
+              )}
+            </div>
+          )}
           {/* Search Box */}
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -2255,7 +2290,7 @@ export default function MonitoringInternalTab({
             <tbody className="divide-y divide-border">
               {paginatedData.length === 0 ? (
                 <tr>
-                  <td colSpan={32} className="py-12 text-center text-muted-foreground">
+                  <td colSpan={showPurchasingCols || showAdmKeuCols ? 32 : 14} className="py-12 text-center text-muted-foreground">
                     Tidak ada berkas yang cocok dengan filter yang dipilih.
                   </td>
                 </tr>
