@@ -84,10 +84,10 @@
         "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_ttb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Dikonfigurasi manual oleh Admin: Full Access"
       },
       "staf_lapangan": {
         "allowed": false,
@@ -139,9 +139,9 @@
       },
       "staf_ttb": {
         "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Akses monitoring perencanaan barang masuk"
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Dikonfigurasi manual oleh Admin: Full Access"
       },
       "staf_lapangan": {
         "allowed": false,
@@ -473,6 +473,60 @@
         "level": "Dilarang",
         "badgeTone": "rose",
         "notes": "Dikonfigurasi manual oleh Admin: Dilarang"
+      },
+      "end_user": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Menu disembunyikan"
+      },
+      "visitor": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
+      }
+    }
+  },
+  {
+    "tabId": "jadwal-pengantaran",
+    "category": "Dashboards",
+    "name": "Jadwal Pengantaran",
+    "description": "Perencanaan jadwal pengantaran barang armada 5 hari kerja (Senin-Jumat) berbasis clustering AI & posisi kapal",
+    "permissions": {
+      "admin": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
+      },
+      "manager": {
+        "allowed": true,
+        "level": "View & Verifikasi",
+        "badgeTone": "emerald",
+        "notes": "Monitoring dan verifikasi jadwal pengantaran"
+      },
+      "supervisor": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Kelola jadwal dan penugasan kurir"
+      },
+      "staf_purchasing": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Menu disembunyikan"
+      },
+      "staf_ttb": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Sinkronisasi TTB & alokasi jadwal kirim"
+      },
+      "staf_lapangan": {
+        "allowed": true,
+        "level": "Update Status",
+        "badgeTone": "cyan",
+        "notes": "Melihat jadwal harian & update status pengantaran"
       },
       "end_user": {
         "allowed": false,

@@ -282,6 +282,7 @@ export function getDefaultTabForRole(role: UserRole | undefined): TabType {
   }
 
   const candidates: TabType[] = [
+    'jadwal-pengantaran',
     'upload-ttb',
     'monitoring-internal',
     'validasi-dokumen',

@@ -68,6 +68,7 @@ import NotificationCenterTab from '@/components/NotificationCenterTab';
 import SisaLayananTab from '@/components/SisaLayananTab';
 import UploadFstbTab from '@/components/UploadFstbTab';
 import UploadTtbTab from '@/components/UploadTtbTab';
+import JadwalPengantaranTab from '@/components/JadwalPengantaranTab';
 import ValidasiDokumenTab from '@/components/ValidasiDokumenTab';
 import SerahTerimaLapanganTab from '@/components/SerahTerimaLapanganTab';
 import CrewKapalTab from '@/components/CrewKapalTab';

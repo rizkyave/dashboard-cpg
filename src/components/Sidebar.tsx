@@ -31,6 +31,7 @@ import {
   TrendingUp,
   Search,
   FileStack,
+  CalendarDays,
 } from 'lucide-react';
 
 import * as XLSX from 'xlsx';
@@ -193,6 +194,13 @@ export default function Sidebar({
       icon: Truck,
       badge: 'Serah Terima',
       title: 'Pusat Serah Terima TTB: Pengantaran Barang via Notifikasi WhatsApp ke End User & Unggah Berkas Resmi',
+    },
+    {
+      id: 'jadwal-pengantaran' as TabType,
+      label: 'Jadwal Pengantaran',
+      icon: CalendarDays,
+      badge: '5 Hari AI',
+      title: 'Perencanaan Jadwal Pengantaran Barang ke Kapal 5 Hari Kerja (Senin - Jumat) Berbasis Posisi Kapal & AI',
     },
     {
       id: 'galeri-ttb' as TabType,
