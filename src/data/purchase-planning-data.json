@@ -1,6 +1,6 @@
 {
   "success": true,
-  "timestamp": "2026-11-08T16:56:43.919Z",
+  "timestamp": "2026-11-08T17:06:33.303Z",
   "summary": {
     "totalItems": 400,
     "criticalCount": 245,
@@ -12011,7 +12011,7 @@
     "hybridCount": 40,
     "pendingApprovedFpbsCount": 0,
     "pendingPoItemsCount": 0,
-    "lastSyncedAt": "2026-11-08T16:56:43.919Z",
+    "lastSyncedAt": "2026-11-08T17:06:33.303Z",
     "desktopFileAvailable": true,
     "desktopFileName": "PURCHASE_PLANNING_BATCH_001_CPG.xlsx",
     "desktopLastModified": "2026-11-06T23:47:17.000Z"

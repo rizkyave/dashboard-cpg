@@ -53,48 +53,54 @@ export default function RingkasanBerkasTab({
   const [downloadStep, setDownloadStep] = useState<string>('');
 
   // Storage Maps for uploaded docs & photos
-  const [fstbMap, setFstbMap] = useState<Record<string, { noFstb: string; fileUrl: string }>>({});
-  const [ttbMap, setTtbMap] = useState<Record<string, { noTtb: string; fileUrl: string }>>({});
+  const [fstbMap, setFstbMap] = useState<Record<string, { noFstb: string; fileUrl: string; armada?: string }>>({});
+  const [ttbMap, setTtbMap] = useState<Record<string, { noTtb: string; fileUrl: string; armada?: string }>>({});
   const [photoMap, setPhotoMap] = useState<Record<string, string[]>>({});
   const [efpbMap, setEfpbMap] = useState<Record<string, string>>({});
+  const [fpbArmadaMap, setFpbArmadaMap] = useState<Record<string, string>>({});
 
   // Fetch softcopy manifests from APIs
   const fetchManifests = async () => {
     setIsLoadingApi(true);
     try {
-      const [fstbRes, ttbRes, photosRes, efpbRes] = await Promise.allSettled([
+      const [fstbRes, ttbRes, photosRes, efpbRes, reviewFpbRes] = await Promise.allSettled([
         fetch(`/api/upload-fstb?_t=${Date.now()}`).then((r) => r.json()),
         fetch(`/api/upload-ttb?_t=${Date.now()}`).then((r) => r.json()),
         fetch(`/api/ttb-photos?all=true&limit=2000&_t=${Date.now()}`).then((r) => r.json()),
         fetch(`/api/sync-efpb-files?_t=${Date.now()}`).then((r) => r.json()),
+        fetch(`/api/review-fpb?_t=${Date.now()}`).then((r) => r.json()),
       ]);
 
       // 1. Process FSTB docs
       if (fstbRes.status === 'fulfilled' && Array.isArray(fstbRes.value?.items)) {
-        const map: Record<string, { noFstb: string; fileUrl: string }> = {};
+        const map: Record<string, { noFstb: string; fileUrl: string; armada?: string }> = {};
         for (const item of fstbRes.value.items) {
           const no = (item.noFstb || item.originalFileName || '').trim().toLowerCase();
           const fpb = (item.noFpb || '').trim().toLowerCase();
           const po = (item.noPo || '').trim().toLowerCase();
+          const armada = (item.armada || item.dept || item.namaKapal || '').trim();
           const url = item.fileUrl || `/api/upload-fstb/file?name=${encodeURIComponent(item.renamedFileName)}`;
-          if (no) map[no] = { noFstb: item.noFstb || item.originalFileName, fileUrl: url };
-          if (fpb) map[fpb] = { noFstb: item.noFstb || item.originalFileName, fileUrl: url };
-          if (po) map[po] = { noFstb: item.noFstb || item.originalFileName, fileUrl: url };
+          const entry = { noFstb: item.noFstb || item.originalFileName, fileUrl: url, armada };
+          if (no) map[no] = entry;
+          if (fpb) map[fpb] = entry;
+          if (po) map[po] = entry;
         }
         setFstbMap(map);
       }
 
       // 2. Process TTB docs
       if (ttbRes.status === 'fulfilled' && Array.isArray(ttbRes.value?.items)) {
-        const map: Record<string, { noTtb: string; fileUrl: string }> = {};
+        const map: Record<string, { noTtb: string; fileUrl: string; armada?: string }> = {};
         for (const item of ttbRes.value.items) {
           const no = (item.noTtb || item.originalFileName || '').trim().toLowerCase();
           const fpb = (item.noFpb || '').trim().toLowerCase();
           const po = (item.noPo || '').trim().toLowerCase();
+          const armada = (item.armada || item.dept || item.namaKapal || '').trim();
           const url = item.fileUrl || `/api/upload-ttb/file?name=${encodeURIComponent(item.renamedFileName)}`;
-          if (no) map[no] = { noTtb: item.noTtb || item.originalFileName, fileUrl: url };
-          if (fpb) map[fpb] = { noTtb: item.noTtb || item.originalFileName, fileUrl: url };
-          if (po) map[po] = { noTtb: item.noTtb || item.originalFileName, fileUrl: url };
+          const entry = { noTtb: item.noTtb || item.originalFileName, fileUrl: url, armada };
+          if (no) map[no] = entry;
+          if (fpb) map[fpb] = entry;
+          if (po) map[po] = entry;
         }
         setTtbMap(map);
       }
@@ -184,6 +190,19 @@ export default function RingkasanBerkasTab({
         }
         setEfpbMap(map);
       }
+
+      // 5. Process Review FPB for detailed armada mapping
+      if (reviewFpbRes.status === 'fulfilled' && Array.isArray(reviewFpbRes.value?.data)) {
+        const map: Record<string, string> = {};
+        for (const item of reviewFpbRes.value.data) {
+          const fpb = (item.fpbNo || '').trim().toLowerCase();
+          const armada = (item.armada || '').trim();
+          if (fpb && armada) {
+            map[fpb] = armada;
+          }
+        }
+        setFpbArmadaMap(map);
+      }
     } catch (err) {
       console.error('Error fetching manifests in RingkasanBerkasTab:', err);
     } finally {
@@ -235,6 +254,19 @@ export default function RingkasanBerkasTab({
       const noTtb = ttbLookup?.noTtb || explicitTtb || '';
       const ttbPdfUrl = ttbLookup?.fileUrl || (noTtb ? `/api/upload-ttb/file?name=${encodeURIComponent(noTtb)}.pdf` : undefined);
 
+      // Resolusi nama armada secara detail (jika bernilai generik seperti 'Armada CPG' atau kosong)
+      const rawArmada = String(rowAny.namaKapal || rowAny.armada || rowAny.kapal || rowAny.dept || '').trim();
+      let resolvedArmada = rawArmada;
+      const isGenericArmada = !resolvedArmada || /^(armada\s*cpg|cpg|holding|kantor\s*pusat)$/i.test(resolvedArmada);
+      if (isGenericArmada) {
+        resolvedArmada =
+          ttbLookup?.armada ||
+          fstbLookup?.armada ||
+          fpbArmadaMap[normFpb] ||
+          (normPo ? fpbArmadaMap[normPo] : '') ||
+          (rawArmada || 'Armada CPG');
+      }
+
       // Check Photos (Mencocokkan noTtb, nomor digit TTB, atau nama armada)
       let photoLookup: string[] = [];
       if (noTtb) {
@@ -258,7 +290,9 @@ export default function RingkasanBerkasTab({
         }
       }
 
-      if (photoLookup.length === 0 && normArmada) {
+      if (photoLookup.length === 0 && resolvedArmada && !/^(armada\s*cpg|cpg)$/i.test(resolvedArmada)) {
+        photoLookup = photoMap[resolvedArmada.toLowerCase()] || [];
+      } else if (photoLookup.length === 0 && normArmada) {
         photoLookup = photoMap[normArmada] || [];
       }
 
@@ -275,7 +309,7 @@ export default function RingkasanBerkasTab({
         fpb,
         po: po || undefined,
         entity,
-        armada,
+        armada: resolvedArmada,
         item: itemDesc,
         qty: (row as any).qty || (row as any).jumlah || 1,
         unit: (row as any).unit || (row as any).satuan || 'Pcs',
@@ -298,7 +332,7 @@ export default function RingkasanBerkasTab({
     }
 
     return Array.from(dedupeMap.values());
-  }, [procurementData, armadaData, fstbMap, ttbMap, photoMap, efpbMap]);
+  }, [procurementData, armadaData, fstbMap, ttbMap, photoMap, efpbMap, fpbArmadaMap]);
 
   // Filter Logic
   const filteredItems = useMemo(() => {
@@ -561,7 +595,7 @@ export default function RingkasanBerkasTab({
               <tr className="border-b border-border bg-muted/50 text-muted-foreground font-semibold">
                 <th className="py-3 px-3.5 w-12 text-center">No</th>
                 <th className="py-3 px-3.5 min-w-[180px]">Armada &amp; Entitas</th>
-                <th className="py-3 px-3.5 min-w-[220px]">Identitas Pengadaan (FPB / PO / Item)</th>
+                <th className="py-3 px-3.5 min-w-[240px]">Identitas Pengadaan (FPB &bull; PO &bull; FSTB &bull; TTB)</th>
                 {/* 1 KOLOM KELENGKAPAN ADMINISTRASI: FPB, FSTB, TTB, FOTO */}
                 <th className="py-3 px-3.5 min-w-[260px] bg-emerald-500/5 border-x border-emerald-500/20">
                   <div className="flex items-center gap-1.5 text-emerald-800 dark:text-emerald-300 font-bold">
@@ -622,26 +656,56 @@ export default function RingkasanBerkasTab({
                         </div>
                       </td>
 
-                      {/* Identitas Pengadaan */}
+                      {/* Identitas Pengadaan (FPB, PO, FSTB, TTB) */}
                       <td className="py-3 px-3.5">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="font-mono font-bold text-foreground">
-                            {item.fpb}
-                          </span>
-                          {item.po && (
-                            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20">
-                              PO: {item.po}
+                        <div className="space-y-1.5">
+                          {/* Baris 1: FPB & PO */}
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-mono font-bold text-foreground">
+                              {item.fpb}
                             </span>
-                          )}
-                        </div>
-                        <div className="text-[11px] text-muted-foreground mt-1 line-clamp-2" title={item.item}>
-                          {item.item}
-                        </div>
-                        {item.picPch && (
-                          <div className="text-[10px] text-slate-500 mt-0.5 font-mono">
-                            PIC PCH: {item.picPch}
+                            {item.po ? (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20">
+                                PO: {item.po}
+                              </span>
+                            ) : (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-muted text-muted-foreground border border-border">
+                                PO: -
+                              </span>
+                            )}
                           </div>
-                        )}
+
+                          {/* Baris 2: FSTB & TTB */}
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {item.noFstb ? (
+                              <span
+                                className="inline-flex items-center gap-1 font-mono text-[10px] px-1.5 py-0.5 rounded bg-teal-500/10 text-teal-700 dark:text-teal-300 border border-teal-500/20 font-semibold"
+                                title={`No. FSTB: ${item.noFstb}`}
+                              >
+                                <Boxes className="size-2.5 text-teal-600 dark:text-teal-400 shrink-0" />
+                                <span>FSTB: {item.noFstb}</span>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 font-mono text-[10px] px-1.5 py-0.5 rounded bg-muted/60 text-muted-foreground/70 border border-border">
+                                <span>FSTB: -</span>
+                              </span>
+                            )}
+
+                            {item.noTtb ? (
+                              <span
+                                className="inline-flex items-center gap-1 font-mono text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20 font-semibold"
+                                title={`No. TTB: ${item.noTtb}`}
+                              >
+                                <ClipboardCheck className="size-2.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                                <span>TTB: {item.noTtb}</span>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 font-mono text-[10px] px-1.5 py-0.5 rounded bg-muted/60 text-muted-foreground/70 border border-border">
+                                <span>TTB: -</span>
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </td>
 
                       {/* 1 KOLOM KELENGKAPAN ADMINISTRASI TERPADU */}
