@@ -57,6 +57,17 @@ export const parseNoTtb = (noTtb?: string | null): TtbRef => {
   const prefix = prefixMatch ? prefixMatch[1] : null;
 
   const numbersSet = new Set<string>();
+
+  // Ekstraksi nomor urut 5 digit dari pola standar dokumen resmi
+  const standardDocMatches = Array.from(clean.matchAll(/(?:[A-Z]{2,4})-(?:TTB|PO|FSTB)-[\d]{2}-([\d]{5})/gi));
+  for (const sdm of standardDocMatches) {
+    if (sdm[1]) {
+      const padded = sdm[1].length <= 5 ? sdm[1].padStart(5, '0') : sdm[1];
+      numbersSet.add(padded);
+      numbersSet.add(sdm[1]);
+    }
+  }
+
   const matches = clean.match(/\b\d{4,6}\b/g) || [];
   for (const m of matches) {
     const padded = m.length <= 5 ? m.padStart(5, '0') : m;

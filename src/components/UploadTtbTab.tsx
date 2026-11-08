@@ -58,6 +58,7 @@ import { optimizeAndScaleImage, formatByteSize } from '@/utils/imageCompressor';
 import { getSignatureForUploader } from '@/utils/uploaderSignatures';
 import CameraWatermarkModal from '@/components/CameraWatermarkModal';
 import TtbMediaModal from '@/components/TtbMediaModal';
+import { parseTtbList } from '@/utils/timemark';
 
 
 interface UploadTtbTabProps {
@@ -240,6 +241,7 @@ export default function UploadTtbTab({
   const [activePreview, setActivePreview] = useState<UploadedTtbItem | null>(null);
   const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState<boolean>(false);
   const [mediaModalTtb, setMediaModalTtb] = useState<string | null>(null);
+  const [selectedMediaItem, setSelectedMediaItem] = useState<UploadedTtbItem | null>(null);
   const [isIncompleteModalOpen, setIsIncompleteModalOpen] = useState<boolean>(false);
 
   const [isCameraModalOpen, setIsCameraModalOpen] = useState<boolean>(false);
@@ -1673,7 +1675,20 @@ export default function UploadTtbTab({
                   <tr key={item.id} className="hover:bg-muted/30 transition">
                     <td className="py-2.5 px-3 font-mono font-bold text-foreground">
                       <div className="flex items-center gap-1.5">
-                        <span>{item.noTtb}</span>
+                        {(() => {
+                          const parsed = parseTtbList(item.noTtb);
+                          if (parsed.length > 1) {
+                            const shown = parsed.slice(0, 3).join(', ');
+                            const remaining = parsed.length - 3;
+                            return (
+                              <span title={item.noTtb} className="truncate max-w-[280px] inline-block font-mono">
+                                {shown}
+                                {remaining > 0 ? ` (+${remaining} lainnya)` : ''}
+                              </span>
+                            );
+                          }
+                          return <span>{item.noTtb}</span>;
+                        })()}
                         <button
                           type="button"
                           onClick={() => handleCopy(item.noTtb, item.id)}
@@ -1785,7 +1800,11 @@ export default function UploadTtbTab({
                         {item.isArmadaReceived || item.hasPhysicalPhotos ? (
                           <button
                             type="button"
-                            onClick={() => setMediaModalTtb(item.noTtb)}
+                            onClick={() => {
+                              const cleanNo = (item.cleanNoTtb || item.noTtb || '').trim();
+                              setSelectedMediaItem(item);
+                              setMediaModalTtb(cleanNo);
+                            }}
                             className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-semibold bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30 w-fit hover:bg-blue-500/25 transition cursor-pointer text-left"
                             title="Klik untuk verifikasi foto bukti fisik serah terima kapal"
                           >
@@ -1817,7 +1836,11 @@ export default function UploadTtbTab({
                         </button>
                         <button
                           type="button"
-                          onClick={() => setMediaModalTtb(item.noTtb)}
+                          onClick={() => {
+                            const cleanNo = (item.cleanNoTtb || item.noTtb || '').trim();
+                            setSelectedMediaItem(item);
+                            setMediaModalTtb(cleanNo);
+                          }}
                           className={`p-1.5 rounded-lg border transition cursor-pointer ${
                             item.hasPhysicalPhotos || item.isArmadaReceived
                               ? 'border-blue-500/40 bg-blue-500/15 hover:bg-blue-500/25 text-blue-600 dark:text-blue-400 shadow-sm'
@@ -2345,8 +2368,16 @@ export default function UploadTtbTab({
       {/* Modal Verifikasi Dokumen & Galeri Foto Fisik Serah Terima */}
       <TtbMediaModal
         isOpen={!!mediaModalTtb}
-        onClose={() => setMediaModalTtb(null)}
+        onClose={() => {
+          setMediaModalTtb(null);
+          setSelectedMediaItem(null);
+        }}
         noTtb={mediaModalTtb || ''}
+        noFstb={selectedMediaItem?.noFstb}
+        fpb={selectedMediaItem?.noFpb}
+        po={selectedMediaItem?.noPo}
+        armada={selectedMediaItem?.armada}
+        item={selectedMediaItem?.keterangan}
         initialTab="photos"
         showToast={showToast}
       />

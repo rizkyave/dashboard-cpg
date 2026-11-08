@@ -5,6 +5,7 @@ export interface UploadedTtbItem {
   armada: string;
   noFpb?: string;
   noPo?: string;
+  noFstb?: string;
   receivedDate: string;
   keterangan?: string;
   originalFileName: string;

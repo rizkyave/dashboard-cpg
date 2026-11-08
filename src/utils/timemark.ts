@@ -43,7 +43,14 @@ export const parseTtbList = (rawTtb?: string | null): string[] => {
     return [];
   }
 
-  // Split by koma, slash, titik koma, spasi/newline
+  // 1. Ekstraksi langsung jika terdapat beberapa format dokumen lengkap yang tergabung tanpa pemisah
+  // Contoh: "CPL-TTB-26-07793CPL-TTB-26-07791CPL-TTB-26-0776028lainnya"
+  const explicitMatches = clean.match(/(?:[A-Za-z0-9]+)-(?:TTB|PO|FSTB)-[\d]{2}-[\d]{5}/gi);
+  if (explicitMatches && explicitMatches.length > 1) {
+    return Array.from(new Set(explicitMatches.map((m) => m.toUpperCase())));
+  }
+
+  // 2. Split by koma, slash, titik koma, spasi/newline
   const parts = clean.split(/[,;/]+/).map((p) => p.trim()).filter(Boolean);
   if (parts.length === 0) return [];
 
@@ -57,7 +64,9 @@ export const parseTtbList = (rawTtb?: string | null): string[] => {
       part.match(/^([A-Za-z0-9]+-[A-Za-z0-9]+-)(.*)$/i);
     if (matchPrefix) {
       currentPrefix = matchPrefix[1];
-      results.push(part.toUpperCase());
+      // Bersihkan suffix seperti "28lainnya" jika ada di ujung
+      const cleanPart = part.replace(/\d+lainnya$/i, '').trim();
+      results.push((cleanPart || part).toUpperCase());
     } else if (/^\d+$/.test(part) && currentPrefix) {
       // Hanya angka lanjutan (misal '06714'), warisi prefix sebelumnya
       results.push(`${currentPrefix}${part}`.toUpperCase());

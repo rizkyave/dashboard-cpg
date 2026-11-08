@@ -73,7 +73,71 @@ export interface TtbMediaModalProps {
 
 type ViewTab = 'split' | 'docs' | 'photos' | 'info';
 
-export default function TtbMediaModal({
+class TtbModalErrorBoundary extends React.Component<
+  { children: React.ReactNode; onClose: () => void },
+  { hasError: boolean; error: Error | null }
+> {
+  constructor(props: { children: React.ReactNode; onClose: () => void }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.error('TtbMediaModal caught runtime error:', error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-2xl w-full max-w-md p-6 shadow-2xl text-center space-y-4">
+            <div className="size-12 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 mx-auto flex items-center justify-center">
+              <Info className="size-6" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-bold text-foreground">Kendala Tampilan Media</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Terjadi kendala saat membaca pratinjau media untuk nomor TTB ini. Dokumen dan foto tetap aman di Cloudflare R2 storage.
+              </p>
+            </div>
+            <div className="flex items-center justify-center gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => this.setState({ hasError: false, error: null })}
+                className="h-8 px-3 rounded-lg bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-semibold text-xs transition cursor-pointer"
+              >
+                Coba Lagi
+              </button>
+              <button
+                type="button"
+                onClick={this.props.onClose}
+                className="h-8 px-4 rounded-lg border border-border hover:bg-muted text-foreground font-semibold text-xs transition cursor-pointer"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+export default function TtbMediaModal(props: TtbMediaModalProps) {
+  if (!props.isOpen) return null;
+  return (
+    <TtbModalErrorBoundary onClose={props.onClose}>
+      <TtbMediaModalInner {...props} />
+    </TtbModalErrorBoundary>
+  );
+}
+
+function TtbMediaModalInner({
   isOpen,
   onClose,
   noFstb,
@@ -170,12 +234,12 @@ export default function TtbMediaModal({
       .then((r) => r.json())
       .then((data) => {
         if (cancelled) return;
-        if (data.items) {
-          setDocuments(data.items);
-        } else {
-          setDocuments([]);
-        }
-        if (data.error) setDocsError(data.error);
+        const rawItems = Array.isArray(data?.items) ? data.items : [];
+        const validDocs = rawItems.filter(
+          (d: any) => d && (d.fileUrl || d.renamedFileName || d.originalFileName)
+        );
+        setDocuments(validDocs);
+        if (data?.error && validDocs.length === 0) setDocsError(data.error);
       })
       .catch(() => {
         if (!cancelled) setDocsError('Gagal memuat dokumen scan TTB dari Cloudflare R2.');
@@ -204,8 +268,20 @@ export default function TtbMediaModal({
       .then((r) => r.json())
       .then((data) => {
         if (cancelled) return;
-        setPhotos(data.photos || []);
-        if (data.error) setPhotosError(data.error);
+        const rawPhotos = Array.isArray(data?.photos) ? data.photos : [];
+        const validPhotos: PhotoItem[] = rawPhotos
+          .filter((p: any) => p && (p.url || p.name))
+          .map((p: any) => {
+            const name = String(p.name || (p.url ? p.url.split('/').pop()?.split('?')[0] : '') || 'Foto-Fisik.jpg');
+            return {
+              name,
+              url: String(p.url || ''),
+              takenAt: p.takenAt || null,
+              ttbInfo: p.ttbInfo,
+            };
+          });
+        setPhotos(validPhotos);
+        if (data?.error && validPhotos.length === 0) setPhotosError(data.error);
       })
       .catch(() => {
         if (!cancelled) setPhotosError('Gagal memuat galeri foto TTB dari Cloudflare R2.');
@@ -227,19 +303,20 @@ export default function TtbMediaModal({
   // URL pratinjau dokumen ter-cache-bust agar perubahan stempel/tanda tangan digital selalu termutakhir tanpa terhalang cache
   const docPreviewUrl = useMemo(() => {
     if (!selectedDoc) return '';
-    const key = selectedDoc.r2Key || `ttb-documents/${selectedDoc.renamedFileName}`;
+    const key = selectedDoc.r2Key || `ttb-documents/${selectedDoc.renamedFileName || selectedDoc.originalFileName || 'document.pdf'}`;
     return `/api/r2-file?key=${encodeURIComponent(key)}&t=${Date.now()}`;
   }, [selectedDoc]);
 
   // Helper formatting metadata foto fisik serah terima
   const photoMeta = useMemo(() => {
-    if (!selectedPhoto) return { dateStr: '-', timeStr: '', ext: 'JPG' };
-    const ext = (selectedPhoto.name.split('.').pop() || 'JPG').toUpperCase();
+    if (!selectedPhoto || !selectedPhoto.name) return { dateStr: '-', timeStr: '', ext: 'JPG' };
+    const nameStr = String(selectedPhoto.name || '');
+    const ext = (nameStr.split('.').pop() || 'JPG').toUpperCase();
     if (selectedPhoto.takenAt) {
-      return { dateStr: selectedPhoto.takenAt, timeStr: '', ext };
+      return { dateStr: String(selectedPhoto.takenAt), timeStr: '', ext };
     }
     // Ekstraksi tanggal & jam dari format filename TimeMark jika tersedia
-    const match = selectedPhoto.name.match(/(\d{4}-\d{2}-\d{2})(?:\s+at\s+(\d{2})[.\:](\d{2})(?:[.\:](\d{2}))?)?/i);
+    const match = nameStr.match(/(\d{4}-\d{2}-\d{2})(?:\s+at\s+(\d{2})[.\:](\d{2})(?:[.\:](\d{2}))?)?/i);
     if (match) {
       const d = match[1];
       const time = match[2] && match[3] ? `${match[2]}:${match[3]} WITA` : '';
@@ -251,7 +328,8 @@ export default function TtbMediaModal({
   // Helper formatting metadata dokumen PDF resmi
   const docMeta = useMemo(() => {
     if (!selectedDoc) return { dateStr: '-', timeStr: '', sizeStr: '-', ext: 'PDF' };
-    const ext = (selectedDoc.renamedFileName.split('.').pop() || 'PDF').toUpperCase();
+    const fileName = String(selectedDoc.renamedFileName || selectedDoc.originalFileName || '');
+    const ext = (fileName.split('.').pop() || 'PDF').toUpperCase();
     const sizeStr = formatFileSize(selectedDoc.fileSize || 0);
     let dateStr = selectedDoc.receivedDate || '-';
     let timeStr = '';
@@ -625,17 +703,18 @@ export default function TtbMediaModal({
 
                     {/* 2. Area Pratinjau Dokumen (Sejajar Tinggi Penuh dengan Foto Kanan) */}
                     <div className="flex-1 h-[400px] min-h-[400px] rounded-xl border border-border overflow-hidden bg-muted/40 dark:bg-black/40 flex flex-col items-center justify-center relative group">
-                      {selectedDoc?.fileType === 'application/pdf' || selectedDoc?.renamedFileName?.toLowerCase().endsWith('.pdf') ? (
+                      {selectedDoc?.fileType === 'application/pdf' ||
+                      String(selectedDoc?.renamedFileName || selectedDoc?.originalFileName || '').toLowerCase().endsWith('.pdf') ? (
                         <iframe
-                          src={`${docPreviewUrl || selectedDoc.fileUrl}#toolbar=0&navpanes=0`}
+                          src={`${docPreviewUrl || selectedDoc?.fileUrl}#toolbar=0&navpanes=0`}
                           className="w-full h-full border-none"
-                          title={selectedDoc.renamedFileName}
+                          title={selectedDoc?.renamedFileName || 'Dokumen TTB'}
                         />
                       ) : (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={selectedDoc?.fileUrl}
-                          alt={selectedDoc?.renamedFileName}
+                          alt={selectedDoc?.renamedFileName || 'Dokumen'}
                           className="w-full h-full object-contain"
                         />
                       )}
@@ -655,7 +734,7 @@ export default function TtbMediaModal({
                       <div className="flex gap-2 overflow-x-auto pb-1 pt-0.5">
                         {documents.map((doc, idx) => (
                           <button
-                            key={doc.id || doc.renamedFileName}
+                            key={doc.id || doc.renamedFileName || doc.fileUrl || idx}
                             type="button"
                             onClick={() => setSelectedDocIdx(idx)}
                             className={`shrink-0 px-2.5 py-1.5 rounded-lg border text-left transition text-xs font-mono max-w-[180px] truncate cursor-pointer ${
@@ -664,7 +743,7 @@ export default function TtbMediaModal({
                                 : 'bg-background hover:bg-muted border-border text-muted-foreground'
                             }`}
                           >
-                            <span className="block truncate">{doc.renamedFileName}</span>
+                            <span className="block truncate">{doc.renamedFileName || doc.originalFileName || `Dokumen ${idx + 1}`}</span>
                           </button>
                         ))}
                       </div>
@@ -811,7 +890,7 @@ export default function TtbMediaModal({
                       <div className="flex gap-2 overflow-x-auto pb-1 pt-0.5">
                         {photos.map((p, idx) => (
                           <button
-                            key={p.name}
+                            key={`${p.name || p.url || idx}-${idx}`}
                             type="button"
                             onClick={() => setSelectedPhotoIdx(idx)}
                             className={`shrink-0 size-14 rounded-lg overflow-hidden border-2 transition cursor-pointer ${
@@ -819,10 +898,10 @@ export default function TtbMediaModal({
                                 ? 'border-purple-500 ring-2 ring-purple-500/20'
                                 : 'border-transparent opacity-70 hover:opacity-100'
                             }`}
-                            title={p.takenAt || p.name}
+                            title={p.takenAt || p.name || `Foto ${idx + 1}`}
                           >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={p.url} alt={p.name} loading="lazy" className="size-full object-cover" />
+                            <img src={p.url} alt={p.name || 'Foto'} loading="lazy" className="size-full object-cover" />
                           </button>
                         ))}
                       </div>
@@ -890,17 +969,18 @@ export default function TtbMediaModal({
               ) : (
                 <div className="space-y-4">
                   <div className="w-full h-[550px] rounded-xl border border-border overflow-hidden bg-black/5 dark:bg-black/30">
-                    {selectedDoc?.fileType === 'application/pdf' || selectedDoc?.renamedFileName?.toLowerCase().endsWith('.pdf') ? (
+                    {selectedDoc?.fileType === 'application/pdf' ||
+                    String(selectedDoc?.renamedFileName || selectedDoc?.originalFileName || '').toLowerCase().endsWith('.pdf') ? (
                       <iframe
-                        src={`${docPreviewUrl || selectedDoc.fileUrl}#toolbar=1`}
+                        src={`${docPreviewUrl || selectedDoc?.fileUrl}#toolbar=1`}
                         className="w-full h-full border-none"
-                        title={selectedDoc.renamedFileName}
+                        title={selectedDoc?.renamedFileName || 'Dokumen TTB'}
                       />
                     ) : (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={selectedDoc?.fileUrl}
-                        alt={selectedDoc?.renamedFileName}
+                        alt={selectedDoc?.renamedFileName || 'Dokumen'}
                         className="w-full h-full object-contain"
                       />
                     )}
@@ -997,7 +1077,7 @@ export default function TtbMediaModal({
                     <div className="flex gap-2.5 overflow-x-auto pb-2">
                       {photos.map((p, idx) => (
                         <button
-                          key={p.name}
+                          key={`${p.name || p.url || idx}-${idx}`}
                           type="button"
                           onClick={() => setSelectedPhotoIdx(idx)}
                           className={`shrink-0 size-20 rounded-lg overflow-hidden border-2 transition cursor-pointer ${
@@ -1007,7 +1087,7 @@ export default function TtbMediaModal({
                           }`}
                         >
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={p.url} alt={p.name} loading="lazy" className="size-full object-cover" />
+                          <img src={p.url} alt={p.name || 'Foto'} loading="lazy" className="size-full object-cover" />
                         </button>
                       ))}
                     </div>
