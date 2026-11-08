@@ -989,7 +989,7 @@ _Pusat Logistik & Serah Terima CPG_`;
                           <div className="mb-2">
                             <div className="flex items-center justify-between">
                               <h3 className="text-xs font-bold text-foreground truncate" title={item.shipName}>
-                                {item.shipName}
+                                {item.shipName.replace(/\s*\([^)]*Kantor Pusat[^)]*\)/gi, '').trim()}
                               </h3>
                               <span className="text-[10px] font-mono px-1 rounded-xs bg-muted text-muted-foreground border border-border/80">
                                 {item.shipStatus}
@@ -1323,23 +1323,14 @@ _Pusat Logistik & Serah Terima CPG_`;
                     className="bg-card border border-border rounded-2xl flex flex-col min-h-[580px] shadow-2xs overflow-hidden transition-all duration-200"
                   >
                     {/* Header Hari */}
-                    <div className="p-3.5 bg-muted/40 border-b border-border flex items-center justify-between">
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-xs font-bold text-foreground">{day}</span>
-                          {hasGajOnDay && (
-                            <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
-                              + GAJ
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-[10px] text-muted-foreground mt-0.5">
-                          {day === 'SENIN' && '⚓ Somber & Balikpapan Barat'}
-                          {day === 'SELASA' && '⚓ Kariangau KM 13 + 🏢 GAJ'}
-                          {day === 'RABU' && '🚢 Semayang & Melawai'}
-                          {day === 'KAMIS' && '🚚 Muara Jawa & Sanga-sanga + 🏢 GAJ'}
-                          {day === 'JUMAT' && '🔧 Docking Teluk Bpp & Akhir Pekan'}
-                        </div>
+                    <div className="p-3 bg-muted/40 border-b border-border flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-bold text-foreground">{day}</span>
+                        {hasGajOnDay && (
+                          <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                            + GAJ
+                          </span>
+                        )}
                       </div>
                       <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-background border border-border text-foreground">
                         {dayItems.length}
@@ -1348,26 +1339,34 @@ _Pusat Logistik & Serah Terima CPG_`;
 
                     {/* Daftar Kartu Pengantaran Statis - Bersih: Cukup Nama Kapal Saja Tanpa Emblem */}
                     <div className="p-2 space-y-1.5 flex-1 overflow-y-auto">
-                      {dayItems.map((item, idx) => (
-                        <div
-                          key={item.id}
-                          className={`px-3 py-2 rounded-lg border text-xs transition-all duration-150 flex items-center justify-between gap-2 ${
-                            item.isOfficeDestination
-                              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-200 font-bold shadow-2xs'
-                              : 'bg-background border-border hover:border-emerald-500/40 text-foreground hover:bg-muted/40 shadow-2xs'
-                          }`}
-                          title={item.shipName}
-                        >
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span className="text-[10px] font-mono text-muted-foreground w-4 text-right shrink-0">
-                              {idx + 1}.
-                            </span>
-                            <span className={`truncate ${item.isOfficeDestination ? 'font-bold' : 'font-medium'}`}>
-                              {item.shipName}
-                            </span>
+                      {dayItems.map((item, idx) => {
+                        const cleanDisplayName = item.shipName
+                          .replace(/\s*\([^)]*Kantor Pusat[^)]*\)/gi, '')
+                          .trim();
+
+                        return (
+                          <div
+                            key={item.id}
+                            className={`px-3 py-2 rounded-lg border text-xs transition-all duration-150 flex items-center justify-between gap-2 ${
+                              item.isOfficeDestination
+                                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-200 font-bold shadow-2xs'
+                                : 'bg-background border-border hover:border-emerald-500/40 text-foreground hover:bg-muted/40 shadow-2xs'
+                            }`}
+                            title={cleanDisplayName}
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="text-[10px] font-mono text-muted-foreground w-4 text-right shrink-0">
+                                {idx + 1}.
+                              </span>
+                              <span
+                                className={`truncate ${item.isOfficeDestination ? 'font-bold text-emerald-700 dark:text-emerald-300' : 'font-medium'}`}
+                              >
+                                {cleanDisplayName}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 );
@@ -1444,7 +1443,7 @@ _Pusat Logistik & Serah Terima CPG_`;
                                 item.isOfficeDestination ? 'text-emerald-700 dark:text-emerald-300' : 'text-foreground'
                               }`}
                             >
-                              {item.shipName}
+                              {item.shipName.replace(/\s*\([^)]*Kantor Pusat[^)]*\)/gi, '').trim()}
                             </span>
                             {item.isOfficeDestination && (
                               <span className="text-[9px] font-extrabold px-1.5 py-0.2 rounded-sm bg-emerald-600 text-white">
