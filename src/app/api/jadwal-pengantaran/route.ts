@@ -12,7 +12,9 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const LOCAL_STORAGE_PATH = path.join(process.cwd(), 'src', 'data', 'delivery-schedules.json');
+const STATIC_STORAGE_PATH = path.join(process.cwd(), 'src', 'data', 'static-delivery-schedules.json');
 const R2_METADATA_SCHEDULE_KEY = 'dashboard-metadata/delivery-schedules.json';
+const R2_METADATA_STATIC_KEY = 'dashboard-metadata/static-delivery-schedules.json';
 
 // Master data 5 Personel Aktif Logistik Tim Delivery
 const MASTER_COURIERS = [
@@ -108,6 +110,34 @@ async function persistSchedules(items: DeliveryScheduleItem[]): Promise<boolean>
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
+    const mode = searchParams.get('mode'); // 'static' | 'dynamic'
+
+    // Mode Jadwal Statis (66 Kapal + OFFICE GAJ)
+    if (mode === 'static') {
+      try {
+        const raw = await fs.readFile(STATIC_STORAGE_PATH, 'utf8');
+        const parsed = JSON.parse(raw);
+        return NextResponse.json({
+          success: true,
+          mode: 'static',
+          timestamp: new Date().toISOString(),
+          couriers: MASTER_COURIERS,
+          totalCount: parsed.length,
+          shipCount: parsed.filter((x: any) => !x.isOfficeDestination).length,
+          officeCount: parsed.filter((x: any) => x.isOfficeDestination).length,
+          items: parsed,
+        });
+      } catch (err: any) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: 'Gagal memuat jadwal statis: ' + err.message,
+          },
+          { status: 500 }
+        );
+      }
+    }
+
     const week = searchParams.get('week'); // W1 atau W2
 
     let schedules = await loadSchedules();
@@ -137,6 +167,21 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+
+    // Mode Simpan Jadwal Statis (66 Kapal & GAJ)
+    if (body.mode === 'static' || body.action === 'save_static') {
+      const items = body.items;
+      if (Array.isArray(items)) {
+        await fs.writeFile(STATIC_STORAGE_PATH, JSON.stringify(items, null, 2), 'utf8');
+        return NextResponse.json({
+          success: true,
+          message: 'Jadwal statis 66 armada & OFFICE GAJ berhasil diperbarui.',
+          items,
+          totalCount: items.length,
+        });
+      }
+    }
+
     const current = await loadSchedules();
 
     // Mode 1: Bulk replace / AI auto-schedule save

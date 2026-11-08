@@ -77,3 +77,17 @@ export interface ScheduleSummaryMetrics {
   byCourier: Record<string, number>;
   byCluster: Record<string, number>;
 }
+
+export interface StaticScheduleItem {
+  id: string;
+  shipName: string;
+  isOfficeDestination?: boolean;
+  scheduledDay: ScheduleDay;
+  timeSlot: 'PAGI (08:30 - 11:30)' | 'SIANG (13:30 - 16:00)';
+  defaultPosition: string;
+  clusterArea: 'SOMBER_KARIANGAU' | 'SEMAYANG_BALIKPAPAN' | 'MUARA_JAWA_SAMARINDA' | 'OFFICE_GAJ' | 'LAINNYA';
+  shipType: string;
+  assignedCourier: CourierPerson;
+  transportMethod: string;
+  priorityNote?: string;
+}

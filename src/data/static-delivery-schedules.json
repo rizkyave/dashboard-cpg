@@ -1,0 +1,1226 @@
+[
+  {
+    "id": "static-ship-1",
+    "shipName": "SPOB CINTIANA PRATAMA",
+    "isOfficeDestination": false,
+    "scheduledDay": "SENIN",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Dermaga Somber & Teluk Balikpapan Utara",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "SPOB (Self-Propelled Oil Barge)",
+    "assignedCourier": {
+      "name": "AGUSSALIM",
+      "nik": "MP-DAO-0871",
+      "phone": "+62 859-5448-7599",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster SENIN"
+  },
+  {
+    "id": "static-ship-2",
+    "shipName": "SPOB CINDARA",
+    "isOfficeDestination": false,
+    "scheduledDay": "SENIN",
+    "timeSlot": "SIANG (13:30 - 16:00)",
+    "defaultPosition": "Dermaga Somber & Teluk Balikpapan Utara",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "SPOB (Self-Propelled Oil Barge)",
+    "assignedCourier": {
+      "name": "BARDI",
+      "nik": "MP-DAO-0274",
+      "phone": "+62 813-4718-0635",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster SENIN"
+  },
+  {
+    "id": "static-ship-3",
+    "shipName": "SPOB MUARA MAS JAYA",
+    "isOfficeDestination": false,
+    "scheduledDay": "SENIN",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Dermaga Somber & Teluk Balikpapan Utara",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "SPOB (Self-Propelled Oil Barge)",
+    "assignedCourier": {
+      "name": "HAMKA ALKA",
+      "nik": "CPL-DAO-0031",
+      "phone": "+62 813-5016-0353",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster SENIN"
+  },
+  {
+    "id": "static-ship-4",
+    "shipName": "SPOB SEA LION",
+    "isOfficeDestination": false,
+    "scheduledDay": "SENIN",
+    "timeSlot": "SIANG (13:30 - 16:00)",
+    "defaultPosition": "Dermaga Somber & Teluk Balikpapan Utara",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "SPOB (Self-Propelled Oil Barge)",
+    "assignedCourier": {
+      "name": "ZULFIANSYAH",
+      "nik": "MP-DAO-0367",
+      "phone": "+62 813-4632-0456",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster SENIN"
+  },
+  {
+    "id": "static-ship-5",
+    "shipName": "SPOB OCEAN MANDAR",
+    "isOfficeDestination": false,
+    "scheduledDay": "SENIN",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Dermaga Somber & Teluk Balikpapan Utara",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "SPOB (Self-Propelled Oil Barge)",
+    "assignedCourier": {
+      "name": "AKBAR RAMADHAN",
+      "nik": "MP-DAO-0512",
+      "phone": "+62 813-5151-0415",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster SENIN"
+  },
+  {
+    "id": "static-ship-6",
+    "shipName": "TB MUARA MEGA",
+    "isOfficeDestination": false,
+    "scheduledDay": "SENIN",
+    "timeSlot": "SIANG (13:30 - 16:00)",
+    "defaultPosition": "Dermaga Somber & Teluk Balikpapan Utara",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "Tug Boat (Kapal Tunda)",
+    "assignedCourier": {
+      "name": "AGUSSALIM",
+      "nik": "MP-DAO-0871",
+      "phone": "+62 859-5448-7599",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster SENIN"
+  },
+  {
+    "id": "static-ship-7",
+    "shipName": "TB EQUATOR 15",
+    "isOfficeDestination": false,
+    "scheduledDay": "SENIN",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Dermaga Somber & Teluk Balikpapan Utara",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "Tug Boat (Kapal Tunda)",
+    "assignedCourier": {
+      "name": "BARDI",
+      "nik": "MP-DAO-0274",
+      "phone": "+62 813-4718-0635",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster SENIN"
+  },
+  {
+    "id": "static-ship-8",
+    "shipName": "TB EQUATOR 02",
+    "isOfficeDestination": false,
+    "scheduledDay": "SENIN",
+    "timeSlot": "SIANG (13:30 - 16:00)",
+    "defaultPosition": "Dermaga Somber & Teluk Balikpapan Utara",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "Tug Boat (Kapal Tunda)",
+    "assignedCourier": {
+      "name": "HAMKA ALKA",
+      "nik": "CPL-DAO-0031",
+      "phone": "+62 813-5016-0353",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster SENIN"
+  },
+  {
+    "id": "static-ship-9",
+    "shipName": "TB EQUATOR 07",
+    "isOfficeDestination": false,
+    "scheduledDay": "SENIN",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Dermaga Somber & Teluk Balikpapan Utara",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "Tug Boat (Kapal Tunda)",
+    "assignedCourier": {
+      "name": "ZULFIANSYAH",
+      "nik": "MP-DAO-0367",
+      "phone": "+62 813-4632-0456",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster SENIN"
+  },
+  {
+    "id": "static-ship-10",
+    "shipName": "TB CPL 88 / GAJ 02",
+    "isOfficeDestination": false,
+    "scheduledDay": "SENIN",
+    "timeSlot": "SIANG (13:30 - 16:00)",
+    "defaultPosition": "Dermaga Somber & Teluk Balikpapan Utara",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "Tug Boat (Kapal Tunda)",
+    "assignedCourier": {
+      "name": "AKBAR RAMADHAN",
+      "nik": "MP-DAO-0512",
+      "phone": "+62 813-5151-0415",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster SENIN"
+  },
+  {
+    "id": "static-ship-11",
+    "shipName": "TB KING BORNEO",
+    "isOfficeDestination": false,
+    "scheduledDay": "SENIN",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Dermaga Somber & Teluk Balikpapan Utara",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "Tug Boat (Kapal Tunda)",
+    "assignedCourier": {
+      "name": "AGUSSALIM",
+      "nik": "MP-DAO-0871",
+      "phone": "+62 859-5448-7599",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster SENIN"
+  },
+  {
+    "id": "static-ship-12",
+    "shipName": "TB CMPL 01",
+    "isOfficeDestination": false,
+    "scheduledDay": "SENIN",
+    "timeSlot": "SIANG (13:30 - 16:00)",
+    "defaultPosition": "Dermaga Somber & Teluk Balikpapan Utara",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "Tug Boat (Kapal Tunda)",
+    "assignedCourier": {
+      "name": "BARDI",
+      "nik": "MP-DAO-0274",
+      "phone": "+62 813-4718-0635",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster SENIN"
+  },
+  {
+    "id": "static-ship-13",
+    "shipName": "SV TWIN SISTER 306",
+    "isOfficeDestination": false,
+    "scheduledDay": "SENIN",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Dermaga Somber & Teluk Balikpapan Utara",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "Supply Vessel",
+    "assignedCourier": {
+      "name": "HAMKA ALKA",
+      "nik": "CPL-DAO-0031",
+      "phone": "+62 813-5016-0353",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster SENIN"
+  },
+  {
+    "id": "static-office-gaj-selasa",
+    "shipName": "OFFICE GAJ (Kantor Pusat CPG)",
+    "isOfficeDestination": true,
+    "scheduledDay": "SELASA",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Jl. Jenderal Sudirman No. 45 / Kantor Pusat GAJ Balikpapan",
+    "clusterArea": "OFFICE_GAJ",
+    "shipType": "Kantor / Departemen Pusat",
+    "assignedCourier": {
+      "name": "AGUSSALIM",
+      "nik": "MP-DAO-0871",
+      "phone": "+62 859-5448-7599",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Mobil Operasional)",
+    "priorityNote": "Jadwal Rutin Wajib: Serah terima dokumen TTB fisik, FPB asli, & logistik kantor (2x seminggu)"
+  },
+  {
+    "id": "static-ship-14",
+    "shipName": "SV TWIN SISTER 305",
+    "isOfficeDestination": false,
+    "scheduledDay": "SELASA",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Pelabuhan Kariangau KM 13 & Somber Baru",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "Supply Vessel",
+    "assignedCourier": {
+      "name": "ZULFIANSYAH",
+      "nik": "MP-DAO-0367",
+      "phone": "+62 813-4632-0456",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster SELASA"
+  },
+  {
+    "id": "static-ship-15",
+    "shipName": "OB Putra Pasifik 02",
+    "isOfficeDestination": false,
+    "scheduledDay": "SELASA",
+    "timeSlot": "SIANG (13:30 - 16:00)",
+    "defaultPosition": "Pelabuhan Kariangau KM 13 & Somber Baru",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "Tongkang / Oil Barge",
+    "assignedCourier": {
+      "name": "AKBAR RAMADHAN",
+      "nik": "MP-DAO-0512",
+      "phone": "+62 813-5151-0415",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster SELASA"
+  },
+  {
+    "id": "static-ship-16",
+    "shipName": "OB COASTWAY 1803 C",
+    "isOfficeDestination": false,
+    "scheduledDay": "SELASA",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Pelabuhan Kariangau KM 13 & Somber Baru",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "Tongkang / Oil Barge",
+    "assignedCourier": {
+      "name": "AGUSSALIM",
+      "nik": "MP-DAO-0871",
+      "phone": "+62 859-5448-7599",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster SELASA"
+  },
+  {
+    "id": "static-ship-17",
+    "shipName": "OB COASTWAY 20102",
+    "isOfficeDestination": false,
+    "scheduledDay": "SELASA",
+    "timeSlot": "SIANG (13:30 - 16:00)",
+    "defaultPosition": "Pelabuhan Kariangau KM 13 & Somber Baru",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "Tongkang / Oil Barge",
+    "assignedCourier": {
+      "name": "BARDI",
+      "nik": "MP-DAO-0274",
+      "phone": "+62 813-4718-0635",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster SELASA"
+  },
+  {
+    "id": "static-ship-18",
+    "shipName": "OB CINDARA 1100",
+    "isOfficeDestination": false,
+    "scheduledDay": "SELASA",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Pelabuhan Kariangau KM 13 & Somber Baru",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "Tongkang / Oil Barge",
+    "assignedCourier": {
+      "name": "HAMKA ALKA",
+      "nik": "CPL-DAO-0031",
+      "phone": "+62 813-5016-0353",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster SELASA"
+  },
+  {
+    "id": "static-ship-19",
+    "shipName": "OB WAY 23",
+    "isOfficeDestination": false,
+    "scheduledDay": "SELASA",
+    "timeSlot": "SIANG (13:30 - 16:00)",
+    "defaultPosition": "Pelabuhan Kariangau KM 13 & Somber Baru",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "Tongkang / Oil Barge",
+    "assignedCourier": {
+      "name": "ZULFIANSYAH",
+      "nik": "MP-DAO-0367",
+      "phone": "+62 813-4632-0456",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster SELASA"
+  },
+  {
+    "id": "static-ship-20",
+    "shipName": "TK CPL 235",
+    "isOfficeDestination": false,
+    "scheduledDay": "SELASA",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Pelabuhan Kariangau KM 13 & Somber Baru",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "Tongkang / Oil Barge",
+    "assignedCourier": {
+      "name": "AKBAR RAMADHAN",
+      "nik": "MP-DAO-0512",
+      "phone": "+62 813-5151-0415",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster SELASA"
+  },
+  {
+    "id": "static-ship-21",
+    "shipName": "TK CPL 250",
+    "isOfficeDestination": false,
+    "scheduledDay": "SELASA",
+    "timeSlot": "SIANG (13:30 - 16:00)",
+    "defaultPosition": "Pelabuhan Kariangau KM 13 & Somber Baru",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "Tongkang / Oil Barge",
+    "assignedCourier": {
+      "name": "AGUSSALIM",
+      "nik": "MP-DAO-0871",
+      "phone": "+62 859-5448-7599",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster SELASA"
+  },
+  {
+    "id": "static-ship-22",
+    "shipName": "SPOB Putra Pasifik 01",
+    "isOfficeDestination": false,
+    "scheduledDay": "SELASA",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Pelabuhan Kariangau KM 13 & Somber Baru",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "SPOB (Self-Propelled Oil Barge)",
+    "assignedCourier": {
+      "name": "BARDI",
+      "nik": "MP-DAO-0274",
+      "phone": "+62 813-4718-0635",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster SELASA"
+  },
+  {
+    "id": "static-ship-23",
+    "shipName": "SPOB AJ PUTRA",
+    "isOfficeDestination": false,
+    "scheduledDay": "SELASA",
+    "timeSlot": "SIANG (13:30 - 16:00)",
+    "defaultPosition": "Pelabuhan Kariangau KM 13 & Somber Baru",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "SPOB (Self-Propelled Oil Barge)",
+    "assignedCourier": {
+      "name": "HAMKA ALKA",
+      "nik": "CPL-DAO-0031",
+      "phone": "+62 813-5016-0353",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster SELASA"
+  },
+  {
+    "id": "static-ship-24",
+    "shipName": "TK HL 270",
+    "isOfficeDestination": false,
+    "scheduledDay": "SELASA",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Pelabuhan Kariangau KM 13 & Somber Baru",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "Tongkang / Oil Barge",
+    "assignedCourier": {
+      "name": "ZULFIANSYAH",
+      "nik": "MP-DAO-0367",
+      "phone": "+62 813-4632-0456",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster SELASA"
+  },
+  {
+    "id": "static-ship-25",
+    "shipName": "TB KING STAR",
+    "isOfficeDestination": false,
+    "scheduledDay": "SELASA",
+    "timeSlot": "SIANG (13:30 - 16:00)",
+    "defaultPosition": "Pelabuhan Kariangau KM 13 & Somber Baru",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "Tug Boat (Kapal Tunda)",
+    "assignedCourier": {
+      "name": "AKBAR RAMADHAN",
+      "nik": "MP-DAO-0512",
+      "phone": "+62 813-5151-0415",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster SELASA"
+  },
+  {
+    "id": "static-ship-26",
+    "shipName": "SPOB OCEAN MAMUJU",
+    "isOfficeDestination": false,
+    "scheduledDay": "SELASA",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Pelabuhan Kariangau KM 13 & Somber Baru",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "SPOB (Self-Propelled Oil Barge)",
+    "assignedCourier": {
+      "name": "AGUSSALIM",
+      "nik": "MP-DAO-0871",
+      "phone": "+62 859-5448-7599",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster SELASA"
+  },
+  {
+    "id": "static-ship-27",
+    "shipName": "SV TWIN SISTER 307",
+    "isOfficeDestination": false,
+    "scheduledDay": "RABU",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Pelabuhan Semayang & Melawai Anchorage",
+    "clusterArea": "SEMAYANG_BALIKPAPAN",
+    "shipType": "Supply Vessel",
+    "assignedCourier": {
+      "name": "BARDI",
+      "nik": "MP-DAO-0274",
+      "phone": "+62 813-4718-0635",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster RABU"
+  },
+  {
+    "id": "static-ship-28",
+    "shipName": "SPOB OCEAN MAJENE",
+    "isOfficeDestination": false,
+    "scheduledDay": "RABU",
+    "timeSlot": "SIANG (13:30 - 16:00)",
+    "defaultPosition": "Pelabuhan Semayang & Melawai Anchorage",
+    "clusterArea": "SEMAYANG_BALIKPAPAN",
+    "shipType": "SPOB (Self-Propelled Oil Barge)",
+    "assignedCourier": {
+      "name": "HAMKA ALKA",
+      "nik": "CPL-DAO-0031",
+      "phone": "+62 813-5016-0353",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster RABU"
+  },
+  {
+    "id": "static-ship-29",
+    "shipName": "TK OCEAN BRAVE 23536",
+    "isOfficeDestination": false,
+    "scheduledDay": "RABU",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Pelabuhan Semayang & Melawai Anchorage",
+    "clusterArea": "SEMAYANG_BALIKPAPAN",
+    "shipType": "Tongkang / Oil Barge",
+    "assignedCourier": {
+      "name": "ZULFIANSYAH",
+      "nik": "MP-DAO-0367",
+      "phone": "+62 813-4632-0456",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster RABU"
+  },
+  {
+    "id": "static-ship-30",
+    "shipName": "SPOB KING OCEAN",
+    "isOfficeDestination": false,
+    "scheduledDay": "RABU",
+    "timeSlot": "SIANG (13:30 - 16:00)",
+    "defaultPosition": "Pelabuhan Semayang & Melawai Anchorage",
+    "clusterArea": "SEMAYANG_BALIKPAPAN",
+    "shipType": "SPOB (Self-Propelled Oil Barge)",
+    "assignedCourier": {
+      "name": "AKBAR RAMADHAN",
+      "nik": "MP-DAO-0512",
+      "phone": "+62 813-5151-0415",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster RABU"
+  },
+  {
+    "id": "static-ship-31",
+    "shipName": "TK MAPAN 27027",
+    "isOfficeDestination": false,
+    "scheduledDay": "RABU",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Pelabuhan Semayang & Melawai Anchorage",
+    "clusterArea": "SEMAYANG_BALIKPAPAN",
+    "shipType": "Tongkang / Oil Barge",
+    "assignedCourier": {
+      "name": "AGUSSALIM",
+      "nik": "MP-DAO-0871",
+      "phone": "+62 859-5448-7599",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster RABU"
+  },
+  {
+    "id": "static-ship-32",
+    "shipName": "TB MAPAN 1405",
+    "isOfficeDestination": false,
+    "scheduledDay": "RABU",
+    "timeSlot": "SIANG (13:30 - 16:00)",
+    "defaultPosition": "Pelabuhan Semayang & Melawai Anchorage",
+    "clusterArea": "SEMAYANG_BALIKPAPAN",
+    "shipType": "Tug Boat (Kapal Tunda)",
+    "assignedCourier": {
+      "name": "BARDI",
+      "nik": "MP-DAO-0274",
+      "phone": "+62 813-4718-0635",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster RABU"
+  },
+  {
+    "id": "static-ship-33",
+    "shipName": "LCT ANTASENA BUMI SURYA",
+    "isOfficeDestination": false,
+    "scheduledDay": "RABU",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Pelabuhan Semayang & Melawai Anchorage",
+    "clusterArea": "SEMAYANG_BALIKPAPAN",
+    "shipType": "Landing Craft Tank",
+    "assignedCourier": {
+      "name": "HAMKA ALKA",
+      "nik": "CPL-DAO-0031",
+      "phone": "+62 813-5016-0353",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster RABU"
+  },
+  {
+    "id": "static-ship-34",
+    "shipName": "TK MAPAN 200",
+    "isOfficeDestination": false,
+    "scheduledDay": "RABU",
+    "timeSlot": "SIANG (13:30 - 16:00)",
+    "defaultPosition": "Pelabuhan Semayang & Melawai Anchorage",
+    "clusterArea": "SEMAYANG_BALIKPAPAN",
+    "shipType": "Tongkang / Oil Barge",
+    "assignedCourier": {
+      "name": "ZULFIANSYAH",
+      "nik": "MP-DAO-0367",
+      "phone": "+62 813-4632-0456",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster RABU"
+  },
+  {
+    "id": "static-ship-35",
+    "shipName": "TB CINDARA 3112",
+    "isOfficeDestination": false,
+    "scheduledDay": "RABU",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Pelabuhan Semayang & Melawai Anchorage",
+    "clusterArea": "SEMAYANG_BALIKPAPAN",
+    "shipType": "Tug Boat (Kapal Tunda)",
+    "assignedCourier": {
+      "name": "AKBAR RAMADHAN",
+      "nik": "MP-DAO-0512",
+      "phone": "+62 813-5151-0415",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster RABU"
+  },
+  {
+    "id": "static-ship-36",
+    "shipName": "TK COASTWAY 20100",
+    "isOfficeDestination": false,
+    "scheduledDay": "RABU",
+    "timeSlot": "SIANG (13:30 - 16:00)",
+    "defaultPosition": "Pelabuhan Semayang & Melawai Anchorage",
+    "clusterArea": "SEMAYANG_BALIKPAPAN",
+    "shipType": "Tongkang / Oil Barge",
+    "assignedCourier": {
+      "name": "AGUSSALIM",
+      "nik": "MP-DAO-0871",
+      "phone": "+62 859-5448-7599",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster RABU"
+  },
+  {
+    "id": "static-ship-37",
+    "shipName": "SPOB OCEAN POLMAN",
+    "isOfficeDestination": false,
+    "scheduledDay": "RABU",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Pelabuhan Semayang & Melawai Anchorage",
+    "clusterArea": "SEMAYANG_BALIKPAPAN",
+    "shipType": "SPOB (Self-Propelled Oil Barge)",
+    "assignedCourier": {
+      "name": "BARDI",
+      "nik": "MP-DAO-0274",
+      "phone": "+62 813-4718-0635",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster RABU"
+  },
+  {
+    "id": "static-ship-38",
+    "shipName": "SPOB FERY 471",
+    "isOfficeDestination": false,
+    "scheduledDay": "RABU",
+    "timeSlot": "SIANG (13:30 - 16:00)",
+    "defaultPosition": "Pelabuhan Semayang & Melawai Anchorage",
+    "clusterArea": "SEMAYANG_BALIKPAPAN",
+    "shipType": "SPOB (Self-Propelled Oil Barge)",
+    "assignedCourier": {
+      "name": "HAMKA ALKA",
+      "nik": "CPL-DAO-0031",
+      "phone": "+62 813-5016-0353",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster RABU"
+  },
+  {
+    "id": "static-ship-39",
+    "shipName": "TB CINDARA 2107",
+    "isOfficeDestination": false,
+    "scheduledDay": "RABU",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Pelabuhan Semayang & Melawai Anchorage",
+    "clusterArea": "SEMAYANG_BALIKPAPAN",
+    "shipType": "Tug Boat (Kapal Tunda)",
+    "assignedCourier": {
+      "name": "ZULFIANSYAH",
+      "nik": "MP-DAO-0367",
+      "phone": "+62 813-4632-0456",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster RABU"
+  },
+  {
+    "id": "static-ship-40",
+    "shipName": "TK WINBUILD 141",
+    "isOfficeDestination": false,
+    "scheduledDay": "RABU",
+    "timeSlot": "SIANG (13:30 - 16:00)",
+    "defaultPosition": "Pelabuhan Semayang & Melawai Anchorage",
+    "clusterArea": "SEMAYANG_BALIKPAPAN",
+    "shipType": "Tongkang / Oil Barge",
+    "assignedCourier": {
+      "name": "AKBAR RAMADHAN",
+      "nik": "MP-DAO-0512",
+      "phone": "+62 813-5151-0415",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster RABU"
+  },
+  {
+    "id": "static-office-gaj-kamis",
+    "shipName": "OFFICE GAJ (Kantor Pusat CPG)",
+    "isOfficeDestination": true,
+    "scheduledDay": "KAMIS",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Jl. Jenderal Sudirman No. 45 / Kantor Pusat GAJ Balikpapan",
+    "clusterArea": "OFFICE_GAJ",
+    "shipType": "Kantor / Departemen Pusat",
+    "assignedCourier": {
+      "name": "BARDI",
+      "nik": "MP-DAO-0274",
+      "phone": "+62 813-4718-0635",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Mobil Operasional)",
+    "priorityNote": "Jadwal Rutin Wajib: Serah terima dokumen TTB fisik, FPB asli, & logistik kantor (2x seminggu)"
+  },
+  {
+    "id": "static-ship-41",
+    "shipName": "SPOB ROYAL REY",
+    "isOfficeDestination": false,
+    "scheduledDay": "KAMIS",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Jetty Muara Jawa & Perairan Sanga-sanga",
+    "clusterArea": "MUARA_JAWA_SAMARINDA",
+    "shipType": "SPOB (Self-Propelled Oil Barge)",
+    "assignedCourier": {
+      "name": "AGUSSALIM",
+      "nik": "MP-DAO-0871",
+      "phone": "+62 859-5448-7599",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Travel / Mobil Logistik",
+    "priorityNote": "Rute tetap mingguan kluster KAMIS"
+  },
+  {
+    "id": "static-ship-42",
+    "shipName": "CREW BOAT MAHLIA",
+    "isOfficeDestination": false,
+    "scheduledDay": "KAMIS",
+    "timeSlot": "SIANG (13:30 - 16:00)",
+    "defaultPosition": "Jetty Muara Jawa & Perairan Sanga-sanga",
+    "clusterArea": "MUARA_JAWA_SAMARINDA",
+    "shipType": "Crew Boat",
+    "assignedCourier": {
+      "name": "BARDI",
+      "nik": "MP-DAO-0274",
+      "phone": "+62 813-4718-0635",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Travel / Mobil Logistik",
+    "priorityNote": "Rute tetap mingguan kluster KAMIS"
+  },
+  {
+    "id": "static-ship-43",
+    "shipName": "SPOB PERKASA INDONESIA",
+    "isOfficeDestination": false,
+    "scheduledDay": "KAMIS",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Jetty Muara Jawa & Perairan Sanga-sanga",
+    "clusterArea": "MUARA_JAWA_SAMARINDA",
+    "shipType": "SPOB (Self-Propelled Oil Barge)",
+    "assignedCourier": {
+      "name": "HAMKA ALKA",
+      "nik": "CPL-DAO-0031",
+      "phone": "+62 813-5016-0353",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Travel / Mobil Logistik",
+    "priorityNote": "Rute tetap mingguan kluster KAMIS"
+  },
+  {
+    "id": "static-ship-44",
+    "shipName": "TK CPL 400",
+    "isOfficeDestination": false,
+    "scheduledDay": "KAMIS",
+    "timeSlot": "SIANG (13:30 - 16:00)",
+    "defaultPosition": "Jetty Muara Jawa & Perairan Sanga-sanga",
+    "clusterArea": "MUARA_JAWA_SAMARINDA",
+    "shipType": "Tongkang / Oil Barge",
+    "assignedCourier": {
+      "name": "ZULFIANSYAH",
+      "nik": "MP-DAO-0367",
+      "phone": "+62 813-4632-0456",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Travel / Mobil Logistik",
+    "priorityNote": "Rute tetap mingguan kluster KAMIS"
+  },
+  {
+    "id": "static-ship-45",
+    "shipName": "SPOB ROYAL REY 300",
+    "isOfficeDestination": false,
+    "scheduledDay": "KAMIS",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Jetty Muara Jawa & Perairan Sanga-sanga",
+    "clusterArea": "MUARA_JAWA_SAMARINDA",
+    "shipType": "SPOB (Self-Propelled Oil Barge)",
+    "assignedCourier": {
+      "name": "AKBAR RAMADHAN",
+      "nik": "MP-DAO-0512",
+      "phone": "+62 813-5151-0415",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Travel / Mobil Logistik",
+    "priorityNote": "Rute tetap mingguan kluster KAMIS"
+  },
+  {
+    "id": "static-ship-46",
+    "shipName": "TB PMI ABADI",
+    "isOfficeDestination": false,
+    "scheduledDay": "KAMIS",
+    "timeSlot": "SIANG (13:30 - 16:00)",
+    "defaultPosition": "Jetty Muara Jawa & Perairan Sanga-sanga",
+    "clusterArea": "MUARA_JAWA_SAMARINDA",
+    "shipType": "Tug Boat (Kapal Tunda)",
+    "assignedCourier": {
+      "name": "AGUSSALIM",
+      "nik": "MP-DAO-0871",
+      "phone": "+62 859-5448-7599",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Travel / Mobil Logistik",
+    "priorityNote": "Rute tetap mingguan kluster KAMIS"
+  },
+  {
+    "id": "static-ship-47",
+    "shipName": "SP HOPPER BARGE CAKRA VII",
+    "isOfficeDestination": false,
+    "scheduledDay": "KAMIS",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Jetty Muara Jawa & Perairan Sanga-sanga",
+    "clusterArea": "MUARA_JAWA_SAMARINDA",
+    "shipType": "Barge Khusus",
+    "assignedCourier": {
+      "name": "BARDI",
+      "nik": "MP-DAO-0274",
+      "phone": "+62 813-4718-0635",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Travel / Mobil Logistik",
+    "priorityNote": "Rute tetap mingguan kluster KAMIS"
+  },
+  {
+    "id": "static-ship-48",
+    "shipName": "SP HOPPER BARGE CAKRA VIII",
+    "isOfficeDestination": false,
+    "scheduledDay": "KAMIS",
+    "timeSlot": "SIANG (13:30 - 16:00)",
+    "defaultPosition": "Jetty Muara Jawa & Perairan Sanga-sanga",
+    "clusterArea": "MUARA_JAWA_SAMARINDA",
+    "shipType": "Barge Khusus",
+    "assignedCourier": {
+      "name": "HAMKA ALKA",
+      "nik": "CPL-DAO-0031",
+      "phone": "+62 813-5016-0353",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Travel / Mobil Logistik",
+    "priorityNote": "Rute tetap mingguan kluster KAMIS"
+  },
+  {
+    "id": "static-ship-49",
+    "shipName": "CRANE BARGE CAKRA  X",
+    "isOfficeDestination": false,
+    "scheduledDay": "KAMIS",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Jetty Muara Jawa & Perairan Sanga-sanga",
+    "clusterArea": "MUARA_JAWA_SAMARINDA",
+    "shipType": "Barge Khusus",
+    "assignedCourier": {
+      "name": "ZULFIANSYAH",
+      "nik": "MP-DAO-0367",
+      "phone": "+62 813-4632-0456",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Travel / Mobil Logistik",
+    "priorityNote": "Rute tetap mingguan kluster KAMIS"
+  },
+  {
+    "id": "static-ship-50",
+    "shipName": "SPOB ROYAL REY 350",
+    "isOfficeDestination": false,
+    "scheduledDay": "KAMIS",
+    "timeSlot": "SIANG (13:30 - 16:00)",
+    "defaultPosition": "Jetty Muara Jawa & Perairan Sanga-sanga",
+    "clusterArea": "MUARA_JAWA_SAMARINDA",
+    "shipType": "SPOB (Self-Propelled Oil Barge)",
+    "assignedCourier": {
+      "name": "AKBAR RAMADHAN",
+      "nik": "MP-DAO-0512",
+      "phone": "+62 813-5151-0415",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Travel / Mobil Logistik",
+    "priorityNote": "Rute tetap mingguan kluster KAMIS"
+  },
+  {
+    "id": "static-ship-51",
+    "shipName": "MT DOMINO",
+    "isOfficeDestination": false,
+    "scheduledDay": "KAMIS",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Jetty Muara Jawa & Perairan Sanga-sanga",
+    "clusterArea": "MUARA_JAWA_SAMARINDA",
+    "shipType": "Motor Tanker",
+    "assignedCourier": {
+      "name": "AGUSSALIM",
+      "nik": "MP-DAO-0871",
+      "phone": "+62 859-5448-7599",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Travel / Mobil Logistik",
+    "priorityNote": "Rute tetap mingguan kluster KAMIS"
+  },
+  {
+    "id": "static-ship-52",
+    "shipName": "CREW BOAT CITRA INDAH 99",
+    "isOfficeDestination": false,
+    "scheduledDay": "KAMIS",
+    "timeSlot": "SIANG (13:30 - 16:00)",
+    "defaultPosition": "Jetty Muara Jawa & Perairan Sanga-sanga",
+    "clusterArea": "MUARA_JAWA_SAMARINDA",
+    "shipType": "Crew Boat",
+    "assignedCourier": {
+      "name": "BARDI",
+      "nik": "MP-DAO-0274",
+      "phone": "+62 813-4718-0635",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Travel / Mobil Logistik",
+    "priorityNote": "Rute tetap mingguan kluster KAMIS"
+  },
+  {
+    "id": "static-ship-53",
+    "shipName": "MT BLUE PETROL",
+    "isOfficeDestination": false,
+    "scheduledDay": "KAMIS",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Jetty Muara Jawa & Perairan Sanga-sanga",
+    "clusterArea": "MUARA_JAWA_SAMARINDA",
+    "shipType": "Motor Tanker",
+    "assignedCourier": {
+      "name": "HAMKA ALKA",
+      "nik": "CPL-DAO-0031",
+      "phone": "+62 813-5016-0353",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Travel / Mobil Logistik",
+    "priorityNote": "Rute tetap mingguan kluster KAMIS"
+  },
+  {
+    "id": "static-ship-54",
+    "shipName": "MT BARONGKO ( EKS FALCON 18)",
+    "isOfficeDestination": false,
+    "scheduledDay": "JUMAT",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Galangan Docking Teluk Balikpapan & Kampung Baru",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "Motor Tanker",
+    "assignedCourier": {
+      "name": "ZULFIANSYAH",
+      "nik": "MP-DAO-0367",
+      "phone": "+62 813-4632-0456",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster JUMAT"
+  },
+  {
+    "id": "static-ship-55",
+    "shipName": "MT DEWAYANI",
+    "isOfficeDestination": false,
+    "scheduledDay": "JUMAT",
+    "timeSlot": "SIANG (13:30 - 16:00)",
+    "defaultPosition": "Galangan Docking Teluk Balikpapan & Kampung Baru",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "Motor Tanker",
+    "assignedCourier": {
+      "name": "AKBAR RAMADHAN",
+      "nik": "MP-DAO-0512",
+      "phone": "+62 813-5151-0415",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster JUMAT"
+  },
+  {
+    "id": "static-ship-56",
+    "shipName": "MT DEWI SRI",
+    "isOfficeDestination": false,
+    "scheduledDay": "JUMAT",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Galangan Docking Teluk Balikpapan & Kampung Baru",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "Motor Tanker",
+    "assignedCourier": {
+      "name": "AGUSSALIM",
+      "nik": "MP-DAO-0871",
+      "phone": "+62 859-5448-7599",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster JUMAT"
+  },
+  {
+    "id": "static-ship-57",
+    "shipName": "SPOB ROYAL REY 5001",
+    "isOfficeDestination": false,
+    "scheduledDay": "JUMAT",
+    "timeSlot": "SIANG (13:30 - 16:00)",
+    "defaultPosition": "Galangan Docking Teluk Balikpapan & Kampung Baru",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "SPOB (Self-Propelled Oil Barge)",
+    "assignedCourier": {
+      "name": "BARDI",
+      "nik": "MP-DAO-0274",
+      "phone": "+62 813-4718-0635",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster JUMAT"
+  },
+  {
+    "id": "static-ship-58",
+    "shipName": "SPOB HL 5001",
+    "isOfficeDestination": false,
+    "scheduledDay": "JUMAT",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Galangan Docking Teluk Balikpapan & Kampung Baru",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "SPOB (Self-Propelled Oil Barge)",
+    "assignedCourier": {
+      "name": "HAMKA ALKA",
+      "nik": "CPL-DAO-0031",
+      "phone": "+62 813-5016-0353",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster JUMAT"
+  },
+  {
+    "id": "static-ship-59",
+    "shipName": "SPOB RR 3001",
+    "isOfficeDestination": false,
+    "scheduledDay": "JUMAT",
+    "timeSlot": "SIANG (13:30 - 16:00)",
+    "defaultPosition": "Galangan Docking Teluk Balikpapan & Kampung Baru",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "SPOB (Self-Propelled Oil Barge)",
+    "assignedCourier": {
+      "name": "ZULFIANSYAH",
+      "nik": "MP-DAO-0367",
+      "phone": "+62 813-4632-0456",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster JUMAT"
+  },
+  {
+    "id": "static-ship-60",
+    "shipName": "RR 3002",
+    "isOfficeDestination": false,
+    "scheduledDay": "JUMAT",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Galangan Docking Teluk Balikpapan & Kampung Baru",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "Armada Maritim",
+    "assignedCourier": {
+      "name": "AKBAR RAMADHAN",
+      "nik": "MP-DAO-0512",
+      "phone": "+62 813-5151-0415",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster JUMAT"
+  },
+  {
+    "id": "static-ship-61",
+    "shipName": "UB CMPL 01",
+    "isOfficeDestination": false,
+    "scheduledDay": "JUMAT",
+    "timeSlot": "SIANG (13:30 - 16:00)",
+    "defaultPosition": "Galangan Docking Teluk Balikpapan & Kampung Baru",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "Armada Maritim",
+    "assignedCourier": {
+      "name": "AGUSSALIM",
+      "nik": "MP-DAO-0871",
+      "phone": "+62 859-5448-7599",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster JUMAT"
+  },
+  {
+    "id": "static-ship-62",
+    "shipName": "MT KING OCEAN",
+    "isOfficeDestination": false,
+    "scheduledDay": "JUMAT",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Galangan Docking Teluk Balikpapan & Kampung Baru",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "Motor Tanker",
+    "assignedCourier": {
+      "name": "BARDI",
+      "nik": "MP-DAO-0274",
+      "phone": "+62 813-4718-0635",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster JUMAT"
+  },
+  {
+    "id": "static-ship-63",
+    "shipName": "TB GAJ 02",
+    "isOfficeDestination": false,
+    "scheduledDay": "JUMAT",
+    "timeSlot": "SIANG (13:30 - 16:00)",
+    "defaultPosition": "Galangan Docking Teluk Balikpapan & Kampung Baru",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "Tug Boat (Kapal Tunda)",
+    "assignedCourier": {
+      "name": "HAMKA ALKA",
+      "nik": "CPL-DAO-0031",
+      "phone": "+62 813-5016-0353",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster JUMAT"
+  },
+  {
+    "id": "static-ship-64",
+    "shipName": "TK MO 27",
+    "isOfficeDestination": false,
+    "scheduledDay": "JUMAT",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Galangan Docking Teluk Balikpapan & Kampung Baru",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "Tongkang / Oil Barge",
+    "assignedCourier": {
+      "name": "ZULFIANSYAH",
+      "nik": "MP-DAO-0367",
+      "phone": "+62 813-4632-0456",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster JUMAT"
+  },
+  {
+    "id": "static-ship-65",
+    "shipName": "SPOB ROYAL REY 3001",
+    "isOfficeDestination": false,
+    "scheduledDay": "JUMAT",
+    "timeSlot": "SIANG (13:30 - 16:00)",
+    "defaultPosition": "Galangan Docking Teluk Balikpapan & Kampung Baru",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "SPOB (Self-Propelled Oil Barge)",
+    "assignedCourier": {
+      "name": "AKBAR RAMADHAN",
+      "nik": "MP-DAO-0512",
+      "phone": "+62 813-5151-0415",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster JUMAT"
+  },
+  {
+    "id": "static-ship-66",
+    "shipName": "TB CPL 88",
+    "isOfficeDestination": false,
+    "scheduledDay": "JUMAT",
+    "timeSlot": "PAGI (08:30 - 11:30)",
+    "defaultPosition": "Galangan Docking Teluk Balikpapan & Kampung Baru",
+    "clusterArea": "SOMBER_KARIANGAU",
+    "shipType": "Tug Boat (Kapal Tunda)",
+    "assignedCourier": {
+      "name": "AGUSSALIM",
+      "nik": "MP-DAO-0871",
+      "phone": "+62 859-5448-7599",
+      "jabatan": "Staff Operasional / Delivery Lapangan"
+    },
+    "transportMethod": "Diantar Tim Logistik (Pick Up / Motor)",
+    "priorityNote": "Rute tetap mingguan kluster JUMAT"
+  }
+]
