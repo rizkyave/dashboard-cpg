@@ -25,17 +25,17 @@ export function getR2Config(): R2Config {
   const accountId =
     process.env.CLOUDFLARE_R2_ACCOUNT_ID ||
     process.env.R2_ACCOUNT_ID ||
-    '';
+    '1164fbfe900a7173f85acd083511fc09';
 
   const accessKeyId =
     process.env.CLOUDFLARE_R2_ACCESS_KEY_ID ||
     process.env.R2_ACCESS_KEY_ID ||
-    '';
+    'dc705658f38420b0f41790495e6c4e58';
 
   const secretAccessKey =
     process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY ||
     process.env.R2_SECRET_ACCESS_KEY ||
-    '';
+    '63955875b6d48fb46280139856f2c5c5a975091e6851738335563c38fa74de23';
 
   const bucketName =
     process.env.CLOUDFLARE_R2_BUCKET_NAME ||
@@ -45,7 +45,7 @@ export function getR2Config(): R2Config {
   const publicUrl =
     process.env.CLOUDFLARE_R2_PUBLIC_URL ||
     process.env.R2_PUBLIC_URL ||
-    '';
+    'https://pub-9a40b24be68549b19c6eaec0f2542c0b.r2.dev';
 
   const endpoint = accountId
     ? `https://${accountId}.r2.cloudflarestorage.com`

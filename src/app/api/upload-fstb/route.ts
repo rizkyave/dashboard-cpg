@@ -201,6 +201,7 @@ export async function GET(req: NextRequest) {
         bucketName: config.bucketName,
         total: filtered.length,
         items: filtered,
+        history: filtered,
       });
     }
 
@@ -211,6 +212,7 @@ export async function GET(req: NextRequest) {
       bucketName: config.bucketName,
       total: history.length,
       items: history,
+      history,
     });
   } catch (error) {
     console.error('Gagal mengambil history FSTB:', error);

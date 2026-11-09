@@ -25,6 +25,54 @@ const ALLOWED_EXT = /\.(jpe?g|png|webp|gif|pdf)$/i;
 const HISTORY_FILE_PATH = path.join(process.cwd(), 'src', 'data', 'ttb-uploads-history.json');
 const MANIFEST_PATH = path.join(process.cwd(), 'src', 'data', 'ttb-photos-manifest.json');
 const R2_METADATA_HISTORY_KEY = 'ttb-metadata/history.json';
+const R2_SETTINGS_KEY = 'settings/system-settings.json';
+const LOCAL_SETTINGS_PATH = path.join(process.cwd(), 'src', 'data', 'system-settings.json');
+
+// Baca pengaturan sistem SOP (Cloudflare R2 dengan fallback disk lokal)
+async function getSystemSettings(): Promise<{ sopRequireFstb: boolean }> {
+  if (isR2Configured()) {
+    try {
+      const r2Obj = await getObjectFromR2(R2_SETTINGS_KEY);
+      if (r2Obj && r2Obj.body) {
+        const text = Buffer.from(r2Obj.body).toString('utf8');
+        const parsed = JSON.parse(text);
+        if (typeof parsed?.sopRequireFstb === 'boolean') {
+          return { sopRequireFstb: parsed.sopRequireFstb };
+        }
+      }
+    } catch {}
+  }
+  try {
+    const raw = await fs.readFile(LOCAL_SETTINGS_PATH, 'utf8');
+    const parsed = JSON.parse(raw);
+    if (typeof parsed?.sopRequireFstb === 'boolean') {
+      return { sopRequireFstb: parsed.sopRequireFstb };
+    }
+  } catch {}
+  return { sopRequireFstb: true };
+}
+
+// Simpan pengaturan sistem SOP ke Cloudflare R2 dan disk lokal
+async function saveSystemSettings(settings: { sopRequireFstb: boolean; updatedBy?: string }) {
+  const payload = {
+    ...settings,
+    updatedAt: new Date().toISOString(),
+  };
+  const jsonStr = JSON.stringify(payload, null, 2);
+  if (isR2Configured()) {
+    try {
+      await uploadToR2({
+        key: R2_SETTINGS_KEY,
+        body: Buffer.from(jsonStr, 'utf8'),
+        contentType: 'application/json',
+      });
+    } catch {}
+  }
+  try {
+    await fs.mkdir(path.dirname(LOCAL_SETTINGS_PATH), { recursive: true });
+    await fs.writeFile(LOCAL_SETTINGS_PATH, jsonStr, 'utf8');
+  } catch {}
+}
 
 // Helper penentuan MIME Type
 function getMimeType(fileName: string, fallbackType?: string): string {
@@ -405,6 +453,8 @@ export async function GET(req: NextRequest) {
       });
     }
 
+    const systemSettings = await getSystemSettings();
+
     return NextResponse.json({
       success: true,
       storageProvider: isR2Active ? 'CLOUDFLARE_R2' : 'LOCAL',
@@ -413,6 +463,7 @@ export async function GET(req: NextRequest) {
       items: finalItems,
       total: finalItems.length,
       allTotal: formattedHistory.length,
+      sopRequireFstb: systemSettings.sopRequireFstb,
     });
   } catch (err) {
     return NextResponse.json(
@@ -430,6 +481,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
     const armada = ((formData.get('armada') as string) || '').trim();
     const noFpb = ((formData.get('noFpb') as string) || '').trim();
     const noPo = ((formData.get('noPo') as string) || '').trim();
+    const noFstb = ((formData.get('noFstb') as string) || '').trim();
     const receivedDate = ((formData.get('receivedDate') as string) || '').trim();
     const keterangan = ((formData.get('keterangan') as string) || '').trim();
     const uploaderName = ((formData.get('uploaderName') as string) || '').trim();
@@ -641,6 +693,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
         armada: armada || '-',
         noFpb: noFpb || undefined,
         noPo: noPo || undefined,
+        noFstb: noFstb || undefined,
         receivedDate: receivedDate || new Date().toISOString().slice(0, 10),
         keterangan: keterangan || '',
         originalFileName: f.name,
@@ -917,5 +970,28 @@ export async function DELETE(req: NextRequest) {
       { success: false, error: (err as Error).message },
       { status: 500 }
     );
+  }
+}
+
+// PATCH: Perbarui pengaturan global SOP TTB oleh Administrator (tersimpan di Cloudflare R2)
+export async function PATCH(req: NextRequest) {
+  try {
+    const body = await req.json();
+    if (body.action === 'setSopRequireFstb' && typeof body.value === 'boolean') {
+      await saveSystemSettings({
+        sopRequireFstb: body.value,
+        updatedBy: body.updatedBy || 'admin',
+      });
+      return NextResponse.json({
+        success: true,
+        sopRequireFstb: body.value,
+        message: body.value
+          ? 'SOP Ketat diaktifkan: Dokumen TTB wajib memiliki FSTB di R2.'
+          : 'Mode Bypass diaktifkan: Dokumen TTB dapat diunggah tanpa berkas FSTB.',
+      });
+    }
+    return NextResponse.json({ success: false, error: 'Aksi tidak valid.' }, { status: 400 });
+  } catch (err) {
+    return NextResponse.json({ success: false, error: (err as Error).message }, { status: 500 });
   }
 }

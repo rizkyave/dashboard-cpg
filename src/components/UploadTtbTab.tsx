@@ -90,6 +90,7 @@ interface QueuedFile {
   armada: string;
   doNo: string;
   noFpb: string;
+  noFstb?: string;
   isAutoMatched: boolean;
   originalSize?: number;
   compressedSize?: number;
@@ -102,22 +103,24 @@ interface TtbSuggestion {
   armada: string;
   noFpb?: string;
   doNo?: string;
+  noFstb?: string;
   description?: string;
 }
 
 /**
- * Mendeteksi Nomor TTB, Armada, dan No. FPB/PO secara cerdas dan presisi dari nama berkas dan dataset.
+ * Mendeteksi Nomor TTB, Armada, dan No. FPB/PO/FSTB secara cerdas dan presisi dari nama berkas dan dataset.
  */
 function detectTtbAndArmada(
   fileName: string,
   suggestions: TtbSuggestion[] = []
-): { noTtb: string; armada: string; doNo: string; noFpb: string; isAutoMatched: boolean } {
+): { noTtb: string; armada: string; doNo: string; noFpb: string; noFstb?: string; isAutoMatched: boolean } {
   const components = extractTtbComponents(fileName);
 
   let finalNoTtb = components.canonicalTtb || '';
   let matchedArmada = '';
   let matchedDoNo = '';
   let matchedNoFpb = '';
+  let matchedNoFstb = '';
 
   const filePrefix = components.prefix;
   const targetNumber = components.number || components.rawNumber;
@@ -139,6 +142,7 @@ function detectTtbAndArmada(
         matchedArmada = exactMatch.armada || '';
         matchedDoNo = exactMatch.doNo || '';
         matchedNoFpb = exactMatch.noFpb || '';
+        matchedNoFstb = exactMatch.noFstb || '';
       }
     } else {
       const lowerFileName = fileName.toLowerCase();
@@ -156,6 +160,7 @@ function detectTtbAndArmada(
         matchedArmada = best.armada || '';
         matchedDoNo = best.doNo || '';
         matchedNoFpb = best.noFpb || '';
+        matchedNoFstb = best.noFstb || '';
       }
     }
   }
@@ -181,6 +186,7 @@ function detectTtbAndArmada(
     armada: matchedArmada,
     doNo: matchedDoNo,
     noFpb: matchedNoFpb,
+    noFstb: matchedNoFstb,
     isAutoMatched: Boolean(finalNoTtb),
   };
 }
@@ -293,6 +299,26 @@ export default function UploadTtbTab({
   // Cloudflare Storage Connection Test State
   const [isTestingStorage, setIsTestingStorage] = useState<boolean>(false);
 
+  // Cadangan data pengadaan jika props awal dari halaman utama belum selesai termuat
+  const [internalProcurement, setInternalProcurement] = useState<ProcurementItem[]>([]);
+  const effectiveProcurement = useMemo(() => {
+    return procurementItems && procurementItems.length > 0 ? procurementItems : internalProcurement;
+  }, [procurementItems, internalProcurement]);
+
+  // Auto-fetch data pengadaan terbaru dari /api/dashboard-sync jika prop kosong
+  useEffect(() => {
+    if (!procurementItems || procurementItems.length === 0) {
+      fetch('/api/dashboard-sync')
+        .then((r) => r.json())
+        .then((res) => {
+          if (res.success && Array.isArray(res.procurement) && res.procurement.length > 0) {
+            setInternalProcurement(res.procurement);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [procurementItems]);
+
   // Buat database saran nomor TTB dari dataset pengadaan & sisa layanan
   const ttbSuggestions = useMemo<TtbSuggestion[]>(() => {
     const map = new Map<string, TtbSuggestion>();
@@ -308,6 +334,7 @@ export default function UploadTtbTab({
             armada: item.departement || item.pt || '',
             noFpb: item.noFpb || '',
             doNo: item.noPo || '',
+            noFstb: item.noFstb || '',
             description: item.namaBarang || '',
           });
         }
@@ -315,18 +342,25 @@ export default function UploadTtbTab({
     }
 
     // 2. Dari Procurement
-    for (const item of procurementItems) {
+    for (const item of effectiveProcurement) {
       const rawTtb = (item.noTtb || '').trim();
       if (rawTtb && rawTtb !== '-' && rawTtb.length >= 3) {
         const key = rawTtb.toUpperCase();
-        if (!map.has(key)) {
+        const existing = map.get(key);
+        if (!existing) {
           map.set(key, {
             noTtb: rawTtb,
             armada: item.deptArmada || item.peruntukan || '',
             noFpb: item.fpb || '',
             doNo: item.po || '',
+            noFstb: item.noFstb || '',
             description: item.item || '',
           });
+        } else {
+          if (!existing.noFstb && item.noFstb) existing.noFstb = item.noFstb;
+          if (!existing.armada && item.deptArmada) existing.armada = item.deptArmada;
+          if (!existing.doNo && item.po) existing.doNo = item.po;
+          if (!existing.noFpb && item.fpb) existing.noFpb = item.fpb;
         }
       }
     }
@@ -336,20 +370,101 @@ export default function UploadTtbTab({
       const rawTtb = (item.noTtb || '').trim();
       if (rawTtb && rawTtb !== '-' && rawTtb.length >= 3) {
         const key = rawTtb.toUpperCase();
-        if (!map.has(key)) {
+        const existing = map.get(key);
+        if (!existing) {
           map.set(key, {
             noTtb: rawTtb,
             armada: item.armada || '',
             noFpb: item.fpb || '',
             doNo: item.noPo || '',
+            noFstb: item.noFstb || '',
             description: item.item || '',
           });
+        } else {
+          if (!existing.noFstb && item.noFstb) existing.noFstb = item.noFstb;
+          if (!existing.armada && item.armada) existing.armada = item.armada;
+        }
+      }
+    }
+
+    // 4. Dari Uploaded FSTB
+    for (const item of uploadedFstbs) {
+      const rawFstb = (item.cleanNoFstb || item.noFstb || '').trim();
+      const rawPo = (item.doNo || '').trim();
+      const rawFpb = (item.noFpb || '').trim();
+      if (rawFstb) {
+        const procByFstb = effectiveProcurement.find((p) => (p.noFstb || '').trim().toUpperCase() === rawFstb.toUpperCase());
+        if (procByFstb && procByFstb.noTtb) {
+          const key = procByFstb.noTtb.trim().toUpperCase();
+          const existing = map.get(key);
+          if (existing) {
+            existing.noFstb = rawFstb;
+            if (item.armada && item.armada !== '-') existing.armada = item.armada;
+          } else {
+            map.set(key, {
+              noTtb: procByFstb.noTtb.trim(),
+              armada: item.armada && item.armada !== '-' ? item.armada : procByFstb.deptArmada || '',
+              noFpb: rawFpb || procByFstb.fpb || '',
+              doNo: rawPo || procByFstb.po || '',
+              noFstb: rawFstb,
+              description: procByFstb.item || '',
+            });
+          }
         }
       }
     }
 
     return Array.from(map.values());
-  }, [procurementItems, armadaItems, sisaLayananItems]);
+  }, [effectiveProcurement, armadaItems, sisaLayananItems, uploadedFstbs]);
+
+  // Kumpulan saran nomor FSTB untuk autocomplete pilihan manual jika relasi baru belum tercatat
+  const fstbSuggestionsList = useMemo(() => {
+    const list: { noFstb: string; armada?: string; doNo?: string; isUploaded?: boolean }[] = [];
+    const seen = new Set<string>();
+
+    for (const f of uploadedFstbs) {
+      const num = (f.cleanNoFstb || f.noFstb || '').trim();
+      if (num && !seen.has(num.toUpperCase())) {
+        seen.add(num.toUpperCase());
+        list.push({
+          noFstb: num,
+          armada: f.armada !== '-' ? f.armada : undefined,
+          doNo: f.doNo,
+          isUploaded: true,
+        });
+      }
+    }
+
+    Object.values(validationsMap).forEach((rec) => {
+      if (rec.docType === 'FSTB' || rec.id?.startsWith('val-fstb-') || (rec.cleanDocNumber || rec.docNumber || '').includes('FSTB')) {
+        const num = (rec.cleanDocNumber || rec.docNumber || '').trim();
+        if (num && !seen.has(num.toUpperCase())) {
+          seen.add(num.toUpperCase());
+          list.push({
+            noFstb: num,
+            armada: rec.armada,
+            doNo: rec.poNumber,
+            isUploaded: true,
+          });
+        }
+      }
+    });
+
+    for (const p of effectiveProcurement) {
+      const num = (p.noFstb || '').trim();
+      if (num && !seen.has(num.toUpperCase())) {
+        seen.add(num.toUpperCase());
+        list.push({
+          noFstb: num,
+          armada: p.deptArmada,
+          doNo: p.po,
+          isUploaded: false,
+        });
+      }
+    }
+
+    return list;
+  }, [uploadedFstbs, validationsMap, effectiveProcurement]);
 
   // Fetch riwayat upload dari Cloudflare R2
   const fetchHistory = async () => {
@@ -360,6 +475,12 @@ export default function UploadTtbTab({
         const data = await res.json();
         if (data.items) {
           setHistory(data.items);
+        }
+        if (typeof data.sopRequireFstb === 'boolean') {
+          setSopRequireFstb(data.sopRequireFstb);
+          try {
+            localStorage.setItem('cpg_sop_require_fstb', String(data.sopRequireFstb));
+          } catch {}
         }
       }
     } catch (err) {
@@ -390,10 +511,10 @@ export default function UploadTtbTab({
     }
   };
 
-  // Fetch status pengesahan & validasi dokumen dari Manajer Procurement & Lini Logistik
+  // Fetch status pengesahan & validasi dokumen dari Manajer Procurement & Lini Logistik (Semua tipe dokumen)
   const fetchValidations = async () => {
     try {
-      const res = await fetch(`/api/validasi-dokumen?type=TTB&_t=${Date.now()}`);
+      const res = await fetch(`/api/validasi-dokumen?_t=${Date.now()}`);
       if (res.ok) {
         const d = await res.json();
         if (Array.isArray(d.records)) {
@@ -406,7 +527,7 @@ export default function UploadTtbTab({
         }
       }
     } catch (err) {
-      console.warn('Gagal memuat data validasi dokumen TTB:', err);
+      console.warn('Gagal memuat data validasi dokumen:', err);
     }
   };
 
@@ -416,8 +537,9 @@ export default function UploadTtbTab({
       const res = await fetch(`/api/upload-fstb?_t=${Date.now()}`);
       if (res.ok) {
         const d = await res.json();
-        if (Array.isArray(d.history)) {
-          setUploadedFstbs(d.history);
+        const fstbList = Array.isArray(d.items) ? d.items : Array.isArray(d.history) ? d.history : [];
+        if (fstbList.length > 0) {
+          setUploadedFstbs(fstbList);
         }
       }
     } catch (err) {
@@ -433,51 +555,93 @@ export default function UploadTtbTab({
   }, []);
 
   // Helper memverifikasi keberadaan FSTB untuk nomor TTB tertentu
-  const checkFstbPrerequisite = useCallback((rawTtb: string, noFpb?: string, noPo?: string) => {
+  const checkFstbPrerequisite = useCallback((rawTtb: string, noFpb?: string, noPo?: string, explicitFstb?: string) => {
     const cleanTtb = sanitizeTtbNumber(rawTtb);
-    if (!cleanTtb) return { hasFstb: true, expectedFstb: '', noFpb: '', noPo: '' };
+    if (!cleanTtb) return { hasFstb: true, expectedFstb: '', noFpb: '', noPo: '', armada: '' };
 
-    // 1. Cek relasi dari docRelationResolver
+    // Kumpulan nomor FSTB yang terverifikasi ada di Cloudflare R2 (dari upload & validasi)
+    const uploadedFstbKeys = new Set(
+      uploadedFstbs.map((f) => (f.cleanNoFstb || f.noFstb || '').toUpperCase().trim()).filter(Boolean)
+    );
+
+    // Tambahkan juga dari records validasi yang bertipe FSTB
+    Object.values(validationsMap).forEach((rec) => {
+      if (rec.docType === 'FSTB' || rec.id?.startsWith('val-fstb-') || (rec.cleanDocNumber || rec.docNumber || '').includes('FSTB')) {
+        const k1 = (rec.cleanDocNumber || '').toUpperCase().trim();
+        const k2 = (rec.docNumber || '').toUpperCase().trim();
+        if (k1) uploadedFstbKeys.add(k1);
+        if (k2) uploadedFstbKeys.add(k2);
+      }
+    });
+
+    const isFstbPresentInSystem = (fstbCandidate: string): boolean => {
+      if (!fstbCandidate) return false;
+      const cleanCand = fstbCandidate.toUpperCase().trim();
+      if (uploadedFstbKeys.has(cleanCand)) return true;
+      const candDigits = cleanCand.replace(/\D/g, '');
+      if (candDigits.length >= 4) {
+        for (const key of Array.from(uploadedFstbKeys)) {
+          const kDigits = key.replace(/\D/g, '');
+          if (kDigits === candDigits || (kDigits.length >= 4 && (kDigits.endsWith(candDigits) || candDigits.endsWith(kDigits)))) {
+            return true;
+          }
+        }
+      }
+      return false;
+    };
+
+    // 0. Cek jika pengguna memasukkan / memilih No. FSTB secara eksplisit pada antrean
+    if (explicitFstb && explicitFstb.trim()) {
+      const cleanExp = explicitFstb.toUpperCase().trim();
+      const isPresent = isFstbPresentInSystem(cleanExp);
+      const fstbObj = uploadedFstbs.find((f) => (f.cleanNoFstb || f.noFstb || '').toUpperCase().trim() === cleanExp);
+      const procObj = effectiveProcurement.find((p) => (p.noFstb || '').toUpperCase().trim() === cleanExp);
+      const sisaObj = sisaLayananItems.find((s) => (s.noFstb || '').toUpperCase().trim() === cleanExp);
+      const matchedArmada = fstbObj?.armada && fstbObj.armada !== '-' ? fstbObj.armada : (procObj?.deptArmada || sisaObj?.departement || '');
+      const matchedPo = fstbObj?.doNo || procObj?.po || sisaObj?.noPo || noPo || '';
+      const matchedFpb = fstbObj?.noFpb || procObj?.fpb || sisaObj?.noFpb || noFpb || '';
+
+      if (isPresent) {
+        return { hasFstb: true, expectedFstb: cleanExp, noFpb: matchedFpb, noPo: matchedPo, armada: matchedArmada };
+      }
+      return { hasFstb: false, expectedFstb: cleanExp, noFpb: matchedFpb, noPo: matchedPo, armada: matchedArmada };
+    }
+
+    // 1. Cek relasi dari database saran TTB (ttbSuggestions yang sudah di-enrich)
+    const tDigits = cleanTtb.replace(/\D/g, '');
+    const suggMatch = ttbSuggestions.find((s) => {
+      if (s.noTtb.toUpperCase() === cleanTtb.toUpperCase()) return true;
+      const sDig = s.noTtb.replace(/\D/g, '');
+      return sDig && tDigits && (sDig === tDigits || sDig.endsWith(tDigits) || tDigits.endsWith(sDig));
+    });
+
+    if (suggMatch && suggMatch.noFstb) {
+      const sFstb = suggMatch.noFstb.toUpperCase().trim();
+      if (isFstbPresentInSystem(sFstb)) {
+        return {
+          hasFstb: true,
+          expectedFstb: suggMatch.noFstb,
+          noFpb: suggMatch.noFpb || noFpb || '',
+          noPo: suggMatch.doNo || noPo || '',
+          armada: suggMatch.armada || '',
+        };
+      }
+    }
+
+    // 2. Cek relasi dari docRelationResolver
     const relation = resolveDocRelation('TTB', cleanTtb, noFpb, noPo);
     const resolvedFpb = noFpb || relation.fpbNumber || '';
     const resolvedPo = noPo || relation.poNumber || '';
     const candidateFstbs = relation.relatedFstbs || [];
 
-    // Kumpulan nomor FSTB yang valid di Cloudflare R2
-    const uploadedFstbKeys = new Set(
-      uploadedFstbs.map((f) => (f.cleanNoFstb || f.noFstb || '').toUpperCase().trim()).filter(Boolean)
-    );
-
-    // Kumpulan nomor FPB & PO yang FSTB-nya sudah terunggah di R2
-    const uploadedFpbSet = new Set(
-      uploadedFstbs.map((f) => (f.noFpb || '').toUpperCase().trim()).filter(Boolean)
-    );
-    const uploadedPoSet = new Set(
-      uploadedFstbs.map((f) => (f.doNo || '').toUpperCase().trim()).filter(Boolean)
-    );
-
-    // Cek apakah ada FSTB kandidat yang sudah terunggah di R2
-    const foundFstb = candidateFstbs.find((fstb) => uploadedFstbKeys.has(fstb.toUpperCase().trim()));
+    const foundFstb = candidateFstbs.find((fstb) => isFstbPresentInSystem(fstb));
     if (foundFstb) {
       return { hasFstb: true, expectedFstb: foundFstb, noFpb: resolvedFpb, noPo: resolvedPo, armada: relation.armada };
     }
 
-    // Cek apakah FPB yang sama sudah memiliki berkas FSTB di R2
-    if (resolvedFpb && uploadedFpbSet.has(resolvedFpb.toUpperCase().trim())) {
-      const matchByFpb = uploadedFstbs.find((f) => (f.noFpb || '').toUpperCase().trim() === resolvedFpb.toUpperCase().trim());
-      return { hasFstb: true, expectedFstb: matchByFpb?.cleanNoFstb || matchByFpb?.noFstb || '', noFpb: resolvedFpb, noPo: resolvedPo, armada: relation.armada };
-    }
-
-    // Cek apakah PO yang sama sudah memiliki berkas FSTB di R2
-    if (resolvedPo && uploadedPoSet.has(resolvedPo.toUpperCase().trim())) {
-      const matchByPo = uploadedFstbs.find((f) => (f.doNo || '').toUpperCase().trim() === resolvedPo.toUpperCase().trim());
-      return { hasFstb: true, expectedFstb: matchByPo?.cleanNoFstb || matchByPo?.noFstb || '', noFpb: resolvedFpb, noPo: resolvedPo, armada: relation.armada };
-    }
-
-    // Cek dari dataset procurementItems
-    const procMatch = (procurementItems || []).find((p) => {
+    // 3. Cek dari dataset procurementItems
+    const procMatch = (effectiveProcurement || []).find((p) => {
       const pTtb = (p.noTtb || (p as any).ttb || '').replace(/\D/g, '');
-      const tDigits = cleanTtb.replace(/\D/g, '');
       return pTtb && tDigits && (pTtb === tDigits || pTtb.endsWith(tDigits) || tDigits.endsWith(pTtb));
     });
     const procFstb = procMatch?.noFstb || (procMatch as any)?.fstb;
@@ -485,22 +649,84 @@ export default function UploadTtbTab({
       const fstbClean = procFstb.toUpperCase().trim();
       const armadaName = procMatch?.deptArmada || (procMatch as any)?.kapal || relation.armada;
       const poName = procMatch?.po || procMatch?.noPo || resolvedPo;
-      if (uploadedFstbKeys.has(fstbClean)) {
-        return { hasFstb: true, expectedFstb: procFstb, noFpb: procMatch?.fpb || resolvedFpb, noPo: poName, armada: armadaName };
+      const fpbName = procMatch?.fpb || resolvedFpb;
+      if (isFstbPresentInSystem(fstbClean)) {
+        return { hasFstb: true, expectedFstb: procFstb, noFpb: fpbName, noPo: poName, armada: armadaName };
       }
-      return { hasFstb: false, expectedFstb: procFstb, noFpb: procMatch?.fpb || resolvedFpb, noPo: poName, armada: armadaName };
+      return { hasFstb: false, expectedFstb: procFstb, noFpb: fpbName, noPo: poName, armada: armadaName };
     }
 
-    // Jika kandidat FSTB ada tapi belum terunggah di R2
+    // 4. Cek dari sisaLayananItems
+    const sisaMatch = (sisaLayananItems || []).find((s) => {
+      const sTtb = (s.noTtb || '').replace(/\D/g, '');
+      return sTtb && tDigits && (sTtb === tDigits || sTtb.endsWith(tDigits) || tDigits.endsWith(sTtb));
+    });
+    const sisaFstb = sisaMatch?.noFstb;
+    if (sisaFstb) {
+      const fstbClean = sisaFstb.toUpperCase().trim();
+      const armadaName = sisaMatch?.departement || sisaMatch?.pt || relation.armada;
+      const poName = sisaMatch?.noPo || resolvedPo;
+      const fpbName = sisaMatch?.noFpb || resolvedFpb;
+      if (isFstbPresentInSystem(fstbClean)) {
+        return { hasFstb: true, expectedFstb: sisaFstb, noFpb: fpbName, noPo: poName, armada: armadaName };
+      }
+      return { hasFstb: false, expectedFstb: sisaFstb, noFpb: fpbName, noPo: poName, armada: armadaName };
+    }
+
+    // 5. Cek apakah PO yang sama sudah memiliki berkas FSTB di R2
+    if (resolvedPo) {
+      const matchByPo = uploadedFstbs.find((f) => (f.doNo || '').toUpperCase().trim() === resolvedPo.toUpperCase().trim());
+      if (matchByPo) {
+        return { hasFstb: true, expectedFstb: matchByPo.cleanNoFstb || matchByPo.noFstb || '', noFpb: resolvedFpb, noPo: resolvedPo, armada: matchByPo.armada || relation.armada };
+      }
+    }
+
+    // 6. Cek apakah FPB yang sama sudah memiliki berkas FSTB di R2
+    if (resolvedFpb) {
+      const matchByFpb = uploadedFstbs.find((f) => (f.noFpb || '').toUpperCase().trim() === resolvedFpb.toUpperCase().trim());
+      if (matchByFpb) {
+        return { hasFstb: true, expectedFstb: matchByFpb.cleanNoFstb || matchByFpb.noFstb || '', noFpb: resolvedFpb, noPo: resolvedPo, armada: matchByFpb.armada || relation.armada };
+      }
+    }
+
+    // 7. Cek pencocokan digit langsung FSTB (misal CPL-TTB-26-06669 <-> CPL-FSTB-26-06669)
+    if (tDigits.length >= 4) {
+      for (const fstbKey of Array.from(uploadedFstbKeys)) {
+        const fDig = fstbKey.replace(/\D/g, '');
+        if (fDig && (fDig === tDigits || fDig.endsWith(tDigits) || tDigits.endsWith(fDig))) {
+          const matchFstb = uploadedFstbs.find((f) => (f.cleanNoFstb || f.noFstb || '').toUpperCase().trim() === fstbKey);
+          return {
+            hasFstb: true,
+            expectedFstb: fstbKey,
+            noFpb: matchFstb?.noFpb || resolvedFpb,
+            noPo: matchFstb?.doNo || resolvedPo,
+            armada: matchFstb?.armada || relation.armada,
+          };
+        }
+      }
+    }
+
+    // 8. Jika ada saran FSTB tapi belum terunggah di R2
+    if (suggMatch?.noFstb) {
+      return {
+        hasFstb: false,
+        expectedFstb: suggMatch.noFstb,
+        noFpb: suggMatch.noFpb || resolvedFpb,
+        noPo: suggMatch.doNo || resolvedPo,
+        armada: suggMatch.armada || relation.armada,
+      };
+    }
+
+    // 9. Jika kandidat FSTB ada tapi belum terunggah di R2
     if (candidateFstbs.length > 0) {
       return { hasFstb: false, expectedFstb: candidateFstbs[0], noFpb: resolvedFpb, noPo: resolvedPo, armada: relation.armada };
     }
 
     return { hasFstb: false, expectedFstb: '', noFpb: resolvedFpb, noPo: resolvedPo, armada: relation.armada };
-  }, [uploadedFstbs, procurementItems]);
+  }, [uploadedFstbs, effectiveProcurement, sisaLayananItems, armadaItems, ttbSuggestions, validationsMap]);
 
-  // Handler toggle pengendalian SOP FSTB oleh Administrator
-  const handleToggleSopRequireFstb = () => {
+  // Handler toggle pengendalian SOP FSTB oleh Administrator (Sinkron ke Server & Cloudflare R2)
+  const handleToggleSopRequireFstb = async () => {
     if (!isAdmin) {
       showToast?.('Akses Ditolak: Hanya Administrator yang berwenang mengubah pengendalian SOP FSTB.', 'error');
       return;
@@ -509,11 +735,22 @@ export default function UploadTtbTab({
     setSopRequireFstb(newVal);
     try {
       localStorage.setItem('cpg_sop_require_fstb', String(newVal));
-    } catch {}
+      await fetch('/api/upload-ttb', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'setSopRequireFstb',
+          value: newVal,
+          updatedBy: user?.username || user?.name || 'admin',
+        }),
+      });
+    } catch (syncErr) {
+      console.warn('Gagal sinkronisasi pengaturan SOP ke server:', syncErr);
+    }
     if (newVal) {
       showToast?.('SOP KETAT DIAKTIFKAN: TTB wajib memiliki berkas FSTB yang telah terunggah.', 'info');
     } else {
-      showToast?.('PERINGATAN: Mode Bypass SOP Aktif. TTB dapat diunggah tanpa berkas FSTB.', 'warning');
+      showToast?.('PERINGATAN: Mode Bypass SOP Aktif. Seluruh pengguna dapat mengunggah TTB tanpa FSTB.', 'warning');
     }
   };
 
@@ -823,6 +1060,7 @@ export default function UploadTtbTab({
         armada: detected.armada || batchArmada || '',
         doNo: detected.doNo || batchDoNo || '',
         noFpb: detected.noFpb || '',
+        noFstb: detected.noFstb || '',
         isAutoMatched: detected.isAutoMatched,
         originalSize,
         compressedSize,
@@ -867,19 +1105,35 @@ export default function UploadTtbTab({
             const inputComp = extractTtbComponents(value);
             const inputPrefix = inputComp.prefix;
 
-            if (cleanDigits.length >= 3 && !updated.armada) {
+            if (cleanDigits.length >= 3) {
               const found = ttbSuggestions.find((s) => {
                 if (inputPrefix) {
                   const sComp = extractTtbComponents(s.noTtb);
-                  if (sComp.prefix !== inputPrefix) return false;
+                  if (sComp.prefix && sComp.prefix !== inputPrefix) return false;
                 }
                 const sDigits = s.noTtb.replace(/\D/g, '');
                 return sDigits.endsWith(cleanDigits);
               });
               if (found) {
-                if (found.armada) updated.armada = found.armada;
+                if (found.armada && (!updated.armada || updated.armada === batchArmada)) updated.armada = found.armada;
                 if (found.doNo && !updated.doNo) updated.doNo = found.doNo;
                 if (found.noFpb && !updated.noFpb) updated.noFpb = found.noFpb;
+                if (found.noFstb && !updated.noFstb) updated.noFstb = found.noFstb;
+              }
+            }
+          } else if (field === 'noFstb' && typeof value === 'string') {
+            const cleanDigits = value.replace(/\D/g, '');
+            if (cleanDigits.length >= 3) {
+              const matchFstb = uploadedFstbs.find((f) => {
+                const fDig = (f.cleanNoFstb || f.noFstb || '').replace(/\D/g, '');
+                return fDig && (fDig === cleanDigits || fDig.endsWith(cleanDigits));
+              });
+              if (matchFstb) {
+                if (matchFstb.armada && matchFstb.armada !== '-' && (!updated.armada || updated.armada === batchArmada)) {
+                  updated.armada = matchFstb.armada;
+                }
+                if (matchFstb.doNo && !updated.doNo) updated.doNo = matchFstb.doNo;
+                if (matchFstb.noFpb && !updated.noFpb) updated.noFpb = matchFstb.noFpb;
               }
             }
           }
@@ -954,6 +1208,7 @@ export default function UploadTtbTab({
         formData.append('armada', item.armada.trim() || batchArmada.trim());
         formData.append('noPo', item.doNo.trim() || batchDoNo.trim());
         if (item.noFpb) formData.append('noFpb', item.noFpb.trim());
+        if (item.noFstb) formData.append('noFstb', item.noFstb.trim());
         formData.append('receivedDate', batchReceivedDate);
         formData.append('keterangan', batchKeterangan.trim());
 
@@ -1107,7 +1362,7 @@ export default function UploadTtbTab({
 
       for (const item of queue) {
         const rawTtb = item.noTtb.trim() || batchNoTtb.trim();
-        const fstbStatus = checkFstbPrerequisite(rawTtb, item.noFpb, item.doNo);
+        const fstbStatus = checkFstbPrerequisite(rawTtb, item.noFpb, item.doNo, item.noFstb);
         if (!fstbStatus.hasFstb) {
           blocked.push({ item, fstbInfo: fstbStatus });
         }
@@ -1434,7 +1689,7 @@ export default function UploadTtbTab({
                   ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
                   : 'bg-amber-500/20 text-amber-800 dark:text-amber-200 border-amber-500/40'
               }`}>
-                {sopRequireFstb ? 'SOP KETAT: ON (Wajib FSTB)' : 'BYPASS MODE: OFF (Diabaikan)'}
+                {sopRequireFstb ? '🛡️ SOP KETAT: AKTIF (Wajib FSTB)' : '⚠️ MODE BYPASS: AKTIF (SOP FSTB Diabaikan)'}
               </span>
               {isAdmin && (
                 <span className="text-[10px] bg-primary/10 text-primary font-bold px-2 py-0.5 rounded-full border border-primary/20">
@@ -1444,8 +1699,8 @@ export default function UploadTtbTab({
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">
               {sopRequireFstb
-                ? 'Aturan SOP Aktif: Dokumen TTB tidak dapat diunggah/diterbitkan jika berkas FSTB pasangannya belum terdaftar di Cloudflare R2.'
-                : 'Bypass Aktif: Tim Logistik diizinkan menerbitkan TTB secara darurat meskipun dokumen FSTB belum diunggah.'}
+                ? 'Aturan SOP Ketat Aktif: Berkas TTB hanya dapat diunggah jika dokumen FSTB terkait telah terdaftar di Cloudflare R2.'
+                : 'Mode Bypass Darurat Aktif: Seluruh pengguna diizinkan mengunggah berkas TTB secara langsung tanpa kewajiban berkas FSTB.'}
             </p>
           </div>
         </div>
@@ -1457,9 +1712,9 @@ export default function UploadTtbTab({
               type="button"
               onClick={handleToggleSopRequireFstb}
               className={`relative inline-flex h-8 w-16 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                sopRequireFstb ? 'bg-emerald-600' : 'bg-slate-400 dark:bg-slate-700'
+                sopRequireFstb ? 'bg-emerald-600' : 'bg-amber-500'
               }`}
-              title={sopRequireFstb ? 'Klik untuk mengaktifkan Bypass Mode (OFF)' : 'Klik untuk mengaktifkan Pengendalian SOP Ketat (ON)'}
+              title={sopRequireFstb ? 'Klik untuk mengaktifkan Mode Bypass (Izinkan Upload tanpa FSTB)' : 'Klik untuk mengaktifkan SOP Ketat (Wajib Berkas FSTB)'}
             >
               <span className="sr-only">Toggle SOP FSTB</span>
               <span
@@ -1491,6 +1746,14 @@ export default function UploadTtbTab({
       <datalist id="armada-batch-datalist">
         {Array.from(new Set(ttbSuggestions.map((s) => s.armada).filter(Boolean))).map((arm, idx) => (
           <option key={idx} value={arm} />
+        ))}
+      </datalist>
+
+      <datalist id="fstb-reference-datalist">
+        {fstbSuggestionsList.slice(0, 150).map((fstb, idx) => (
+          <option key={idx} value={fstb.noFstb}>
+            {fstb.armada ? `${fstb.armada} • ${fstb.doNo || ''} ${fstb.isUploaded ? '✓ Di R2' : ''}` : fstb.doNo || ''}
+          </option>
         ))}
       </datalist>
 
@@ -1763,7 +2026,7 @@ export default function UploadTtbTab({
                         </button>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-border/50">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 border-t border-border/50">
                         <div>
                           <label className="text-[10px] text-muted-foreground font-semibold block mb-0.5">
                             Nomor TTB Berkas Ini:
@@ -1776,6 +2039,22 @@ export default function UploadTtbTab({
                               handleUpdateQueueItem(item.id, 'noTtb', e.target.value)
                             }
                             placeholder="CPL-TTB-26-00449"
+                            className="w-full h-7 px-2 text-xs rounded-lg border border-border bg-card text-foreground font-mono focus:ring-1 focus:ring-primary focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-muted-foreground font-semibold block mb-0.5 flex items-center justify-between">
+                            <span>No. FSTB Terkait (SOP):</span>
+                            {item.noFstb && <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-mono font-bold">✓ Terhubung</span>}
+                          </label>
+                          <input
+                            type="text"
+                            list="fstb-reference-datalist"
+                            value={item.noFstb || ''}
+                            onChange={(e) =>
+                              handleUpdateQueueItem(item.id, 'noFstb', e.target.value)
+                            }
+                            placeholder="Cth: CPL-FSTB-26-06669"
                             className="w-full h-7 px-2 text-xs rounded-lg border border-border bg-card text-foreground font-mono focus:ring-1 focus:ring-primary focus:outline-none"
                           />
                         </div>
@@ -1831,7 +2110,7 @@ export default function UploadTtbTab({
                       {(() => {
                         const rawTtb = item.noTtb.trim() || batchNoTtb.trim();
                         if (!rawTtb) return null;
-                        const fstbCheck = checkFstbPrerequisite(rawTtb, item.noFpb, item.doNo);
+                        const fstbCheck = checkFstbPrerequisite(rawTtb, item.noFpb, item.doNo, item.noFstb);
                         return (
                           <div className="pt-2 border-t border-border/40 flex items-center justify-between gap-2 flex-wrap text-[10px]">
                             {fstbCheck.hasFstb ? (
