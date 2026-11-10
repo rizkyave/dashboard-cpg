@@ -2419,7 +2419,7 @@ export default function UploadTtbTab({
             }`}
           >
             <Clock className="size-3.5" />
-            <span>Link WA Terkirim (Menunggu Kru)</span>
+            <span>Link WA Terkirim (I/P Received)</span>
             <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-background/30 font-mono">
               {dispatchStats.pendingCrewCount}
             </span>
@@ -2637,7 +2637,7 @@ export default function UploadTtbTab({
                                 title="Tautan WA sudah diterbitkan. Klik untuk melihat pesan atau mengirim ulang."
                               >
                                 <Clock className="size-2.5 text-blue-500 shrink-0 animate-pulse" />
-                                <span>Menunggu Kru</span>
+                                <span>I/P Received</span>
                               </button>
                             ) : !isLegallyReady ? (
                               <div

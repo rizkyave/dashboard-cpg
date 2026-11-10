@@ -20,7 +20,9 @@
       "itemSummary": "Barang Serah Terima Operasional Kapal"
     },
     "createdAt": "2026-11-10T14:44:27.081Z",
-    "readBy": []
+    "readBy": [
+      "admin"
+    ]
   },
   {
     "id": "notif-1794300165766-7soc4",
@@ -43,7 +45,9 @@
       "itemSummary": "Barang Serah Terima Operasional Kapal"
     },
     "createdAt": "2026-11-10T08:42:45.766Z",
-    "readBy": []
+    "readBy": [
+      "admin"
+    ]
   },
   {
     "id": "notif-1794299888038-i1efo",
@@ -66,7 +70,9 @@
       "itemSummary": "Barang Serah Terima Operasional Kapal"
     },
     "createdAt": "2026-11-10T08:38:08.038Z",
-    "readBy": []
+    "readBy": [
+      "admin"
+    ]
   },
   {
     "id": "notif-1794299815617-idx8j",
@@ -89,7 +95,9 @@
       "itemSummary": "Barang Serah Terima Operasional Kapal"
     },
     "createdAt": "2026-11-10T08:36:55.617Z",
-    "readBy": []
+    "readBy": [
+      "admin"
+    ]
   },
   {
     "id": "notif-1794299332185-vnhq8",
@@ -112,7 +120,9 @@
       "itemSummary": "Barang Serah Terima Operasional Kapal"
     },
     "createdAt": "2026-11-10T08:28:52.185Z",
-    "readBy": []
+    "readBy": [
+      "admin"
+    ]
   },
   {
     "id": "notif-1794298508540-r3l7o",
@@ -135,7 +145,9 @@
       "itemSummary": "Barang Serah Terima Operasional Kapal"
     },
     "createdAt": "2026-11-10T08:15:08.540Z",
-    "readBy": []
+    "readBy": [
+      "admin"
+    ]
   },
   {
     "id": "notif-1794297966686-5bjfn",
@@ -158,7 +170,9 @@
       "itemSummary": "Barang Serah Terima Operasional Kapal"
     },
     "createdAt": "2026-11-10T08:06:06.686Z",
-    "readBy": []
+    "readBy": [
+      "admin"
+    ]
   },
   {
     "id": "notif-1794289727312-sr3ld",
@@ -172,7 +186,8 @@
     "linkTab": "serah-terima",
     "createdAt": "2026-11-10T05:48:39.786Z",
     "readBy": [
-      "tri.widiyanto"
+      "tri.widiyanto",
+      "admin"
     ],
     "metadata": {
       "noTtb": "CPL-TTB-26-07810",
@@ -205,7 +220,8 @@
     },
     "createdAt": "2026-11-10T05:48:12.174Z",
     "readBy": [
-      "tri.widiyanto"
+      "tri.widiyanto",
+      "admin"
     ]
   },
   {
@@ -226,7 +242,8 @@
     },
     "createdAt": "2026-11-10T05:46:30.488Z",
     "readBy": [
-      "tri.widiyanto"
+      "tri.widiyanto",
+      "admin"
     ]
   },
   {
@@ -246,7 +263,8 @@
     },
     "createdAt": "2026-11-10T05:44:34.180Z",
     "readBy": [
-      "tri.widiyanto"
+      "tri.widiyanto",
+      "admin"
     ]
   },
   {
@@ -271,7 +289,8 @@
     },
     "createdAt": "2026-11-10T05:36:32.783Z",
     "readBy": [
-      "tri.widiyanto"
+      "tri.widiyanto",
+      "admin"
     ]
   },
   {
@@ -290,7 +309,8 @@
     },
     "createdAt": "2026-11-09T09:03:30.901Z",
     "readBy": [
-      "tri.widiyanto"
+      "tri.widiyanto",
+      "admin"
     ]
   },
   {
@@ -311,7 +331,8 @@
     },
     "createdAt": "2026-11-09T09:02:18.301Z",
     "readBy": [
-      "tri.widiyanto"
+      "tri.widiyanto",
+      "admin"
     ]
   },
   {
@@ -332,7 +353,8 @@
     },
     "createdAt": "2026-11-09T09:00:43.900Z",
     "readBy": [
-      "tri.widiyanto"
+      "tri.widiyanto",
+      "admin"
     ]
   },
   {
@@ -351,7 +373,8 @@
     },
     "createdAt": "2026-11-09T08:44:51.869Z",
     "readBy": [
-      "tri.widiyanto"
+      "tri.widiyanto",
+      "admin"
     ]
   },
   {
@@ -371,7 +394,8 @@
     },
     "createdAt": "2026-11-09T08:18:34.031Z",
     "readBy": [
-      "tri.widiyanto"
+      "tri.widiyanto",
+      "admin"
     ]
   },
   {
@@ -391,7 +415,8 @@
     },
     "createdAt": "2026-11-09T08:08:12.576Z",
     "readBy": [
-      "tri.widiyanto"
+      "tri.widiyanto",
+      "admin"
     ]
   },
   {
@@ -411,7 +436,8 @@
     },
     "createdAt": "2026-11-09T08:07:18.385Z",
     "readBy": [
-      "tri.widiyanto"
+      "tri.widiyanto",
+      "admin"
     ]
   },
   {
@@ -431,7 +457,8 @@
     },
     "createdAt": "2026-11-09T08:06:06.189Z",
     "readBy": [
-      "tri.widiyanto"
+      "tri.widiyanto",
+      "admin"
     ]
   },
   {
@@ -450,7 +477,8 @@
     },
     "createdAt": "2026-11-09T07:40:32.253Z",
     "readBy": [
-      "tri.widiyanto"
+      "tri.widiyanto",
+      "admin"
     ]
   },
   {
@@ -471,7 +499,8 @@
     },
     "createdAt": "2026-11-09T05:54:06.459Z",
     "readBy": [
-      "tri.widiyanto"
+      "tri.widiyanto",
+      "admin"
     ]
   },
   {
@@ -492,7 +521,8 @@
     },
     "createdAt": "2026-11-09T05:52:59.781Z",
     "readBy": [
-      "tri.widiyanto"
+      "tri.widiyanto",
+      "admin"
     ]
   },
   {
@@ -515,7 +545,8 @@
     },
     "createdAt": "2026-11-09T05:42:48.128Z",
     "readBy": [
-      "tri.widiyanto"
+      "tri.widiyanto",
+      "admin"
     ]
   },
   {
@@ -536,7 +567,8 @@
     },
     "createdAt": "2026-11-09T03:26:31.012Z",
     "readBy": [
-      "tri.widiyanto"
+      "tri.widiyanto",
+      "admin"
     ]
   },
   {
@@ -557,7 +589,8 @@
     },
     "createdAt": "2026-11-09T02:59:25.112Z",
     "readBy": [
-      "tri.widiyanto"
+      "tri.widiyanto",
+      "admin"
     ]
   },
   {
@@ -578,7 +611,8 @@
     },
     "createdAt": "2026-11-09T02:57:51.464Z",
     "readBy": [
-      "tri.widiyanto"
+      "tri.widiyanto",
+      "admin"
     ]
   },
   {
@@ -599,7 +633,8 @@
     },
     "createdAt": "2026-11-09T02:54:43.250Z",
     "readBy": [
-      "tri.widiyanto"
+      "tri.widiyanto",
+      "admin"
     ]
   },
   {
@@ -620,7 +655,8 @@
     },
     "createdAt": "2026-11-09T02:54:17.508Z",
     "readBy": [
-      "tri.widiyanto"
+      "tri.widiyanto",
+      "admin"
     ]
   },
   {
@@ -641,7 +677,8 @@
     },
     "createdAt": "2026-11-09T02:53:46.226Z",
     "readBy": [
-      "tri.widiyanto"
+      "tri.widiyanto",
+      "admin"
     ]
   },
   {
@@ -660,7 +697,8 @@
     },
     "createdAt": "2026-11-09T02:53:12.661Z",
     "readBy": [
-      "tri.widiyanto"
+      "tri.widiyanto",
+      "admin"
     ]
   },
   {
@@ -679,7 +717,8 @@
     },
     "createdAt": "2026-11-09T02:52:12.459Z",
     "readBy": [
-      "tri.widiyanto"
+      "tri.widiyanto",
+      "admin"
     ]
   },
   {
@@ -700,7 +739,8 @@
     },
     "createdAt": "2026-11-09T02:51:09.284Z",
     "readBy": [
-      "tri.widiyanto"
+      "tri.widiyanto",
+      "admin"
     ]
   },
   {
@@ -722,7 +762,8 @@
     },
     "createdAt": "2026-11-09T02:42:16.337Z",
     "readBy": [
-      "tri.widiyanto"
+      "tri.widiyanto",
+      "admin"
     ]
   },
   {
@@ -744,7 +785,8 @@
     },
     "createdAt": "2026-11-09T02:42:13.304Z",
     "readBy": [
-      "tri.widiyanto"
+      "tri.widiyanto",
+      "admin"
     ]
   },
   {
@@ -766,7 +808,8 @@
     },
     "createdAt": "2026-11-09T02:42:10.185Z",
     "readBy": [
-      "tri.widiyanto"
+      "tri.widiyanto",
+      "admin"
     ]
   },
   {
@@ -788,7 +831,8 @@
     },
     "createdAt": "2026-11-09T02:42:07.164Z",
     "readBy": [
-      "tri.widiyanto"
+      "tri.widiyanto",
+      "admin"
     ]
   },
   {
@@ -811,7 +855,8 @@
     },
     "createdAt": "2026-11-09T02:27:35.834Z",
     "readBy": [
-      "tri.widiyanto"
+      "tri.widiyanto",
+      "admin"
     ]
   },
   {
@@ -834,7 +879,8 @@
     },
     "createdAt": "2026-11-09T02:27:04.841Z",
     "readBy": [
-      "tri.widiyanto"
+      "tri.widiyanto",
+      "admin"
     ]
   },
   {
@@ -859,7 +905,8 @@
     },
     "createdAt": "2026-11-09T00:09:28.344Z",
     "readBy": [
-      "tri.widiyanto"
+      "tri.widiyanto",
+      "admin"
     ]
   },
   {
