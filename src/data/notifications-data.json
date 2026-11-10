@@ -1,5 +1,868 @@
 [
   {
+    "id": "notif-1794321867081-ea7kz",
+    "type": "TTB_DISPATCHED",
+    "title": "📦 TTB Dikirim",
+    "message": "Pengiriman TTB GAJ-TTB-26-01396 ke OFFICE GAJ dititipkan via Diantar Tim Logistik (AGUSSALIM). Tautan serah terima mandiri telah diterbitkan.",
+    "senderName": "Administrator CPG",
+    "senderUsername": "logistik",
+    "senderRole": "Staf Logistik",
+    "targetRole": "manager",
+    "linkTab": "serah-terima",
+    "metadata": {
+      "noTtb": "GAJ-TTB-26-01396",
+      "armada": "OFFICE GAJ",
+      "noPo": "GAJ-PO-26-01298",
+      "noFpb": "GAJ-FPB-26-0001116",
+      "shippingMethod": "Diantar Tim Logistik",
+      "carrierContact": "AGUSSALIM",
+      "recipientName": "ARDYAN FAUZI (Staff Operasional)",
+      "itemSummary": "Barang Serah Terima Operasional Kapal"
+    },
+    "createdAt": "2026-11-10T14:44:27.081Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1794300165766-7soc4",
+    "type": "TTB_DISPATCHED",
+    "title": "📦 TTB Dikirim",
+    "message": "Pengiriman TTB GAJ-TTB-26-01404 ke OFFICE GAJ dititipkan via Diantar Tim Logistik (AGUSSALIM). Tautan serah terima mandiri telah diterbitkan.",
+    "senderName": "NURUL HAFIFAH ALIM",
+    "senderUsername": "logistik",
+    "senderRole": "Staf Logistik",
+    "targetRole": "manager",
+    "linkTab": "serah-terima",
+    "metadata": {
+      "noTtb": "GAJ-TTB-26-01404",
+      "armada": "OFFICE GAJ",
+      "noPo": "GAJ-PO-26-01204",
+      "noFpb": "GAJ-FPB-26-0001063",
+      "shippingMethod": "Diantar Tim Logistik",
+      "carrierContact": "AGUSSALIM",
+      "recipientName": "PAMUGAR A.J",
+      "itemSummary": "Barang Serah Terima Operasional Kapal"
+    },
+    "createdAt": "2026-11-10T08:42:45.766Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1794299888038-i1efo",
+    "type": "TTB_DISPATCHED",
+    "title": "📦 TTB Dikirim",
+    "message": "Pengiriman TTB GAJ-TTB-26-01406 ke COMPACTOR ASC 100 dititipkan via Diantar Tim Logistik (RENALDI). Tautan serah terima mandiri telah diterbitkan.",
+    "senderName": "Administrator CPG",
+    "senderUsername": "logistik",
+    "senderRole": "Staf Logistik",
+    "targetRole": "manager",
+    "linkTab": "serah-terima",
+    "metadata": {
+      "noTtb": "GAJ-TTB-26-01406",
+      "armada": "COMPACTOR ASC 100",
+      "noPo": "GAJ-PO-26-01183",
+      "noFpb": "GAJ-FPB-26-0001076",
+      "shippingMethod": "Diantar Tim Logistik",
+      "carrierContact": "RENALDI",
+      "recipientName": "IMRAN",
+      "itemSummary": "Barang Serah Terima Operasional Kapal"
+    },
+    "createdAt": "2026-11-10T08:38:08.038Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1794299815617-idx8j",
+    "type": "TTB_DISPATCHED",
+    "title": "📦 TTB Dikirim",
+    "message": "Pengiriman TTB GAJ-TTB-26-01406 ke COMPACTOR ASC 100 dititipkan via Diantar Tim Logistik (RENALDI). Tautan serah terima mandiri telah diterbitkan.",
+    "senderName": "Administrator CPG",
+    "senderUsername": "logistik",
+    "senderRole": "Staf Logistik",
+    "targetRole": "manager",
+    "linkTab": "serah-terima",
+    "metadata": {
+      "noTtb": "GAJ-TTB-26-01406",
+      "armada": "COMPACTOR ASC 100",
+      "noPo": "GAJ-PO-26-01183",
+      "noFpb": "GAJ-FPB-26-0001076",
+      "shippingMethod": "Diantar Tim Logistik",
+      "carrierContact": "RENALDI",
+      "recipientName": "MULYADI",
+      "itemSummary": "Barang Serah Terima Operasional Kapal"
+    },
+    "createdAt": "2026-11-10T08:36:55.617Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1794299332185-vnhq8",
+    "type": "TTB_DISPATCHED",
+    "title": "📦 TTB Dikirim",
+    "message": "Pengiriman TTB GAJ-TTB-26-01406 ke COMPACTOR ASC 100 dititipkan via Diantar Tim Logistik (RENALDI). Tautan serah terima mandiri telah diterbitkan.",
+    "senderName": "Administrator CPG",
+    "senderUsername": "logistik",
+    "senderRole": "Staf Logistik",
+    "targetRole": "manager",
+    "linkTab": "serah-terima",
+    "metadata": {
+      "noTtb": "GAJ-TTB-26-01406",
+      "armada": "COMPACTOR ASC 100",
+      "noPo": "GAJ-PO-26-01183",
+      "noFpb": "GAJ-FPB-26-0001076",
+      "shippingMethod": "Diantar Tim Logistik",
+      "carrierContact": "RENALDI",
+      "recipientName": "MULYADI",
+      "itemSummary": "Barang Serah Terima Operasional Kapal"
+    },
+    "createdAt": "2026-11-10T08:28:52.185Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1794298508540-r3l7o",
+    "type": "TTB_DISPATCHED",
+    "title": "📦 TTB Dikirim",
+    "message": "Pengiriman TTB GAJ-TTB-26-01406 ke COMPACTOR ASC 100 dititipkan via Diantar Tim Logistik (RENALDI). Tautan serah terima mandiri telah diterbitkan.",
+    "senderName": "NURUL HAFIFAH ALIM",
+    "senderUsername": "logistik",
+    "senderRole": "Staf Logistik",
+    "targetRole": "manager",
+    "linkTab": "serah-terima",
+    "metadata": {
+      "noTtb": "GAJ-TTB-26-01406",
+      "armada": "COMPACTOR ASC 100",
+      "noPo": "GAJ-PO-26-01183",
+      "noFpb": "GAJ-FPB-26-0001076",
+      "shippingMethod": "Diantar Tim Logistik",
+      "carrierContact": "RENALDI",
+      "recipientName": "MULYADI",
+      "itemSummary": "Barang Serah Terima Operasional Kapal"
+    },
+    "createdAt": "2026-11-10T08:15:08.540Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1794297966686-5bjfn",
+    "type": "TTB_DISPATCHED",
+    "title": "📦 TTB Dikirim",
+    "message": "Pengiriman TTB GAJ-TTB-26-01406 ke COMPACTOR ASC 100 dititipkan via Diantar Tim Logistik (RENALDI). Tautan serah terima mandiri telah diterbitkan.",
+    "senderName": "NURUL HAFIFAH ALIM",
+    "senderUsername": "logistik",
+    "senderRole": "Staf Logistik",
+    "targetRole": "manager",
+    "linkTab": "serah-terima",
+    "metadata": {
+      "noTtb": "GAJ-TTB-26-01406",
+      "armada": "COMPACTOR ASC 100",
+      "noPo": "GAJ-PO-26-01183",
+      "noFpb": "GAJ-FPB-26-0001076",
+      "shippingMethod": "Diantar Tim Logistik",
+      "carrierContact": "RENALDI",
+      "recipientName": "MULYADI",
+      "itemSummary": "Barang Serah Terima Operasional Kapal"
+    },
+    "createdAt": "2026-11-10T08:06:06.686Z",
+    "readBy": []
+  },
+  {
+    "id": "notif-1794289727312-sr3ld",
+    "type": "SERAH_TERIMA_COMPLETED",
+    "title": "✅ Serah Terima TTB Selesai",
+    "message": "Penerima Hermani (Nakhoda) telah menandatangani & mengonfirmasi penerimaan TTB CPL-TTB-26-07810 di SV TWINSISTER 305.",
+    "senderName": "Hermani",
+    "senderUsername": "remote_receiver",
+    "senderRole": "Nakhoda",
+    "targetRole": "all",
+    "linkTab": "serah-terima",
+    "createdAt": "2026-11-10T05:48:39.786Z",
+    "readBy": [
+      "tri.widiyanto"
+    ],
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07810",
+      "armada": "SV TWINSISTER 305",
+      "noPo": "CPL-PO-26-05957",
+      "noFpb": "CPL-FPB-26-0005148",
+      "recipientName": "Hermani",
+      "recipientRole": "Nakhoda",
+      "shippingMethod": "Diantar Tim Logistik",
+      "carrierContact": "ZULFIANSYAH",
+      "itemSummary": "Barang Serah Terima Operasional Kapal",
+      "notes": "Barang di Terima dengan baik"
+    }
+  },
+  {
+    "id": "notif-1794289692174-i55r0",
+    "type": "TTB_VALIDATED",
+    "title": "🛡️ TTB Divalidasi & Disahkan",
+    "message": "User HADI SUNARYO telah mengesahkan dokumen TTB CPL-TTB-26-06278 (MT BLUE PETROL). Berkas siap untuk proses serah terima di lapangan.",
+    "senderName": "HADI SUNARYO",
+    "senderUsername": "hadi.sunaryo",
+    "senderRole": "Manager Procurement",
+    "targetRole": "staf_lapangan",
+    "linkTab": "serah-terima",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-06278",
+      "armada": "MT BLUE PETROL",
+      "noPo": "CPL-PO-26-04924",
+      "noFpb": "CPL-FPB-26-0004034"
+    },
+    "createdAt": "2026-11-10T05:48:12.174Z",
+    "readBy": [
+      "tri.widiyanto"
+    ]
+  },
+  {
+    "id": "notif-1794289590488-1dsb1",
+    "type": "TTB_VALIDATED",
+    "title": "🛡️ TTB Divalidasi & Disahkan",
+    "message": "User Hermansyah telah mengesahkan dokumen TTB CPL-TTB-26-06278 (MT BLUE PETROL). Berkas siap untuk proses serah terima di lapangan.",
+    "senderName": "Hermansyah",
+    "senderUsername": "hermansyahz",
+    "senderRole": "Logistik Supervisor",
+    "targetRole": "staf_lapangan",
+    "linkTab": "serah-terima",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-06278",
+      "armada": "MT BLUE PETROL",
+      "noPo": "CPL-PO-26-04924",
+      "noFpb": "CPL-FPB-26-0004034"
+    },
+    "createdAt": "2026-11-10T05:46:30.488Z",
+    "readBy": [
+      "tri.widiyanto"
+    ]
+  },
+  {
+    "id": "notif-1794289474180-4z4c4",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User FIFI telah mengunggah 2 berkas TTB (CPL-TTB-26-06278, CPL-TTB-26-06278). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "FIFI",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-06278, CPL-TTB-26-06278",
+      "armada": "MT BLUE PETROL",
+      "noPo": "CPL-PO-26-04924"
+    },
+    "createdAt": "2026-11-10T05:44:34.180Z",
+    "readBy": [
+      "tri.widiyanto"
+    ]
+  },
+  {
+    "id": "notif-1794288992783-hxft1",
+    "type": "TTB_DISPATCHED",
+    "title": "📦 TTB Dikirim",
+    "message": "Pengiriman TTB CPL-TTB-26-07810 ke SV TWINSISTER 305 dititipkan via Diantar Tim Logistik (ZULFIANSYAH). Tautan serah terima mandiri telah diterbitkan.",
+    "senderName": "NURUL HAFIFAH ALIM",
+    "senderUsername": "logistik",
+    "senderRole": "Staf Logistik",
+    "targetRole": "manager",
+    "linkTab": "serah-terima",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07810",
+      "armada": "SV TWINSISTER 305",
+      "noPo": "CPL-PO-26-05957",
+      "noFpb": "CPL-FPB-26-0005148",
+      "shippingMethod": "Diantar Tim Logistik",
+      "carrierContact": "ZULFIANSYAH",
+      "recipientName": "Hermani (Nakhoda)",
+      "itemSummary": "Barang Serah Terima Operasional Kapal"
+    },
+    "createdAt": "2026-11-10T05:36:32.783Z",
+    "readBy": [
+      "tri.widiyanto"
+    ]
+  },
+  {
+    "id": "notif-1794215010901-62isv",
+    "type": "TTB_VALIDATED",
+    "title": "🛡️ Batch TTB Divalidasi & Disahkan",
+    "message": "User HADI SUNARYO telah mengesahkan 2 berkas TTB (GAJ-TTB-26-01404, GAJ-TTB-26-01406) secara massal. Berkas siap diproses ke tahap berikutnya.",
+    "senderName": "HADI SUNARYO",
+    "senderUsername": "hadi.sunaryo",
+    "senderRole": "Manager Procurement",
+    "targetRole": "staf_lapangan",
+    "linkTab": "serah-terima",
+    "metadata": {
+      "noTtb": "GAJ-TTB-26-01404, GAJ-TTB-26-01406",
+      "armada": "OFFICE GAJ, COMPACTOR ASC 100"
+    },
+    "createdAt": "2026-11-09T09:03:30.901Z",
+    "readBy": [
+      "tri.widiyanto"
+    ]
+  },
+  {
+    "id": "notif-1794214938301-4yrpq",
+    "type": "TTB_VALIDATED",
+    "title": "🛡️ TTB Divalidasi & Disahkan",
+    "message": "User HADI SUNARYO telah mengesahkan dokumen TTB CPL-TTB-26-07810 (SV TWINSISTER 305). Berkas siap untuk proses serah terima di lapangan.",
+    "senderName": "HADI SUNARYO",
+    "senderUsername": "hadi.sunaryo",
+    "senderRole": "Manager Procurement",
+    "targetRole": "staf_lapangan",
+    "linkTab": "serah-terima",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07810",
+      "armada": "SV TWINSISTER 305",
+      "noPo": "",
+      "noFpb": "CPL-FPB-26-0005148"
+    },
+    "createdAt": "2026-11-09T09:02:18.301Z",
+    "readBy": [
+      "tri.widiyanto"
+    ]
+  },
+  {
+    "id": "notif-1794214843900-nf1jd",
+    "type": "TTB_VALIDATED",
+    "title": "🛡️ TTB Divalidasi & Disahkan",
+    "message": "User HADI SUNARYO telah mengesahkan dokumen TTB GAJ-TTB-26-01405 (OFFICE GAJ). Berkas siap untuk proses serah terima di lapangan.",
+    "senderName": "HADI SUNARYO",
+    "senderUsername": "hadi.sunaryo",
+    "senderRole": "Manager Procurement",
+    "targetRole": "staf_lapangan",
+    "linkTab": "serah-terima",
+    "metadata": {
+      "noTtb": "GAJ-TTB-26-01405",
+      "armada": "OFFICE GAJ",
+      "noPo": "",
+      "noFpb": "GAJ-FPB-26-0001114"
+    },
+    "createdAt": "2026-11-09T09:00:43.900Z",
+    "readBy": [
+      "tri.widiyanto"
+    ]
+  },
+  {
+    "id": "notif-1794213891869-7bqvj",
+    "type": "TTB_VALIDATED",
+    "title": "🛡️ Batch TTB Divalidasi & Disahkan",
+    "message": "User Hermansyah telah mengesahkan 7 berkas TTB (GAJ-TTB-26-01406, GAJ-TTB-26-01405, GAJ-TTB-26-01404 (+4 lainnya)) secara massal. Berkas siap diproses ke tahap berikutnya.",
+    "senderName": "Hermansyah",
+    "senderUsername": "hermansyahz",
+    "senderRole": "Logistik Supervisor",
+    "targetRole": "staf_lapangan",
+    "linkTab": "serah-terima",
+    "metadata": {
+      "noTtb": "GAJ-TTB-26-01406, GAJ-TTB-26-01405, GAJ-TTB-26-01404 (+4 lainnya)",
+      "armada": "COMPACTOR ASC 100, OFFICE GAJ"
+    },
+    "createdAt": "2026-11-09T08:44:51.869Z",
+    "readBy": [
+      "tri.widiyanto"
+    ]
+  },
+  {
+    "id": "notif-1794212314031-jqzxq",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User FIFI telah mengunggah 2 berkas TTB (GAJ-TTB-26-01406, GAJ-TTB-26-01406). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "FIFI",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "GAJ-TTB-26-01406, GAJ-TTB-26-01406",
+      "armada": "COMPACTOR ASC 100",
+      "noPo": "GAJ-PO-26-01183"
+    },
+    "createdAt": "2026-11-09T08:18:34.031Z",
+    "readBy": [
+      "tri.widiyanto"
+    ]
+  },
+  {
+    "id": "notif-1794211692576-mc7el",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User FIFI telah mengunggah 2 berkas TTB (GAJ-TTB-26-01405, GAJ-TTB-26-01405). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "FIFI",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "GAJ-TTB-26-01405, GAJ-TTB-26-01405",
+      "armada": "OFFICE GAJ",
+      "noPo": "GAJ-PO-26-01273"
+    },
+    "createdAt": "2026-11-09T08:08:12.576Z",
+    "readBy": [
+      "tri.widiyanto"
+    ]
+  },
+  {
+    "id": "notif-1794211638385-3077o",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User FIFI telah mengunggah 2 berkas TTB (GAJ-TTB-26-01404, GAJ-TTB-26-01404). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "FIFI",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "GAJ-TTB-26-01404, GAJ-TTB-26-01404",
+      "armada": "OFFICE GAJ",
+      "noPo": "GAJ-PO-26-01204"
+    },
+    "createdAt": "2026-11-09T08:07:18.385Z",
+    "readBy": [
+      "tri.widiyanto"
+    ]
+  },
+  {
+    "id": "notif-1794211566189-mxsii",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User FIFI telah mengunggah 2 berkas TTB (CPL-TTB-26-07810, CPL-TTB-26-07810). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "FIFI",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07810, CPL-TTB-26-07810",
+      "armada": "SV TWINSISTER 305",
+      "noPo": "CPL-PO-26-05957"
+    },
+    "createdAt": "2026-11-09T08:06:06.189Z",
+    "readBy": [
+      "tri.widiyanto"
+    ]
+  },
+  {
+    "id": "notif-1794210032253-hdy1x",
+    "type": "TTB_UPLOADED",
+    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
+    "message": "User FIFI telah mengunggah 2 berkas TTB (CPL-TTB-26-07810, CPL-TTB-26-07810). Mohon diproses untuk pengesahan & validasi digital.",
+    "senderName": "FIFI",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "staf_ttb",
+    "targetRole": "manager",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07810, CPL-TTB-26-07810",
+      "armada": "-"
+    },
+    "createdAt": "2026-11-09T07:40:32.253Z",
+    "readBy": [
+      "tri.widiyanto"
+    ]
+  },
+  {
+    "id": "notif-1794203646459-bjlhu",
+    "type": "FSTB_VALIDATED",
+    "title": "✍️ FSTB Divalidasi & Ditandatangani",
+    "message": "User NURUL HAFIFAH ALIM telah mengesahkan FSTB GAJ-FSTB-26-01353 (OFFICE GAJ). Berkas siap dilanjutkan ke proses TTB.",
+    "senderName": "NURUL HAFIFAH ALIM",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "staf_ttb",
+    "targetRole": "staf_ttb",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noFstb": "GAJ-FSTB-26-01353",
+      "armada": "OFFICE GAJ",
+      "noPo": "",
+      "noFpb": ""
+    },
+    "createdAt": "2026-11-09T05:54:06.459Z",
+    "readBy": [
+      "tri.widiyanto"
+    ]
+  },
+  {
+    "id": "notif-1794203579781-99ann",
+    "type": "FSTB_VALIDATED",
+    "title": "✍️ FSTB Divalidasi & Ditandatangani",
+    "message": "User NURUL HAFIFAH ALIM telah mengesahkan FSTB GAJ-FSTB-26-01351 (COMPACTOR ASC 100). Berkas siap dilanjutkan ke proses TTB.",
+    "senderName": "NURUL HAFIFAH ALIM",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "staf_ttb",
+    "targetRole": "staf_ttb",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noFstb": "GAJ-FSTB-26-01351",
+      "armada": "COMPACTOR ASC 100",
+      "noPo": "",
+      "noFpb": ""
+    },
+    "createdAt": "2026-11-09T05:52:59.781Z",
+    "readBy": [
+      "tri.widiyanto"
+    ]
+  },
+  {
+    "id": "notif-1794202968128-1bu4z",
+    "type": "FSTB_URGENT_REQUEST",
+    "title": "🚨 Peringatan SOP: Unggah Berkas FSTB Diperlukan Segera",
+    "message": "Penerbitan TTB (CPL-TTB-26-07811, CPL-TTB-26-07811) untuk armada SPOB ROYAL REY 3001 tertahan oleh SOP karena berkas FSTB terkait belum diunggah ke Cloudflare R2 (Ref FPB: CPL-FPB-26-0005116, PO: CPL-PO-26-05946). Mohon Tim FSTB segera mengunggah berkas tersebut di menu Unggah FSTB.",
+    "senderName": "IDHAM KHALID",
+    "senderUsername": "idham.khalid",
+    "senderRole": "staf_ttb",
+    "targetRole": "staf_purchasing",
+    "linkTab": "upload-fstb",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07811, CPL-TTB-26-07811",
+      "noFpb": "CPL-FPB-26-0005116",
+      "noPo": "CPL-PO-26-05946",
+      "armada": "SPOB ROYAL REY 3001",
+      "urgency": "HIGH",
+      "sopBlocked": true
+    },
+    "createdAt": "2026-11-09T05:42:48.128Z",
+    "readBy": [
+      "tri.widiyanto"
+    ]
+  },
+  {
+    "id": "notif-1794194791012-s9in9",
+    "type": "FSTB_VALIDATED",
+    "title": "✍️ FSTB Divalidasi & Ditandatangani",
+    "message": "User NURUL HAFIFAH ALIM telah mengesahkan FSTB GAJ-FSTB-26-01352 (OFFICE GAJ). Berkas siap dilanjutkan ke proses TTB.",
+    "senderName": "NURUL HAFIFAH ALIM",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "staf_ttb",
+    "targetRole": "staf_ttb",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noFstb": "GAJ-FSTB-26-01352",
+      "armada": "OFFICE GAJ",
+      "noPo": "",
+      "noFpb": ""
+    },
+    "createdAt": "2026-11-09T03:26:31.012Z",
+    "readBy": [
+      "tri.widiyanto"
+    ]
+  },
+  {
+    "id": "notif-1794193165112-y9dmf",
+    "type": "FSTB_VALIDATED",
+    "title": "✍️ FSTB Divalidasi & Ditandatangani",
+    "message": "User Hermansyah telah mengesahkan FSTB CPL-FSTB-26-06669 (SV TWINSISTER 305). Berkas siap dilanjutkan ke proses TTB.",
+    "senderName": "Hermansyah",
+    "senderUsername": "hermansyahz",
+    "senderRole": "supervisor",
+    "targetRole": "staf_ttb",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noFstb": "CPL-FSTB-26-06669",
+      "armada": "SV TWINSISTER 305",
+      "noPo": "",
+      "noFpb": ""
+    },
+    "createdAt": "2026-11-09T02:59:25.112Z",
+    "readBy": [
+      "tri.widiyanto"
+    ]
+  },
+  {
+    "id": "notif-1794193071464-xyp3m",
+    "type": "FSTB_VALIDATED",
+    "title": "✍️ FSTB Divalidasi & Ditandatangani",
+    "message": "User NURUL HAFIFAH ALIM telah mengesahkan FSTB CPL-FSTB-26-06669 (SV TWINSISTER 305). Berkas siap dilanjutkan ke proses TTB.",
+    "senderName": "NURUL HAFIFAH ALIM",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "staf_ttb",
+    "targetRole": "staf_ttb",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noFstb": "CPL-FSTB-26-06669",
+      "armada": "SV TWINSISTER 305",
+      "noPo": "",
+      "noFpb": ""
+    },
+    "createdAt": "2026-11-09T02:57:51.464Z",
+    "readBy": [
+      "tri.widiyanto"
+    ]
+  },
+  {
+    "id": "notif-1794192883250-x8avu",
+    "type": "FSTB_VALIDATED",
+    "title": "✍️ FSTB Divalidasi & Ditandatangani",
+    "message": "User RAHMAHWATI telah mengesahkan FSTB CPL-FSTB-26-06669 (SV TWINSISTER 305). Berkas siap dilanjutkan ke proses TTB.",
+    "senderName": "RAHMAHWATI",
+    "senderUsername": "rahmahwati",
+    "senderRole": "supervisor",
+    "targetRole": "staf_ttb",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noFstb": "CPL-FSTB-26-06669",
+      "armada": "SV TWINSISTER 305",
+      "noPo": "",
+      "noFpb": ""
+    },
+    "createdAt": "2026-11-09T02:54:43.250Z",
+    "readBy": [
+      "tri.widiyanto"
+    ]
+  },
+  {
+    "id": "notif-1794192857508-9ysgq",
+    "type": "FSTB_VALIDATED",
+    "title": "✍️ FSTB Divalidasi & Ditandatangani",
+    "message": "User RAHMAHWATI telah mengesahkan FSTB GAJ-FSTB-26-01351 (COMPACTOR ASC 100). Berkas siap dilanjutkan ke proses TTB.",
+    "senderName": "RAHMAHWATI",
+    "senderUsername": "rahmahwati",
+    "senderRole": "supervisor",
+    "targetRole": "staf_ttb",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noFstb": "GAJ-FSTB-26-01351",
+      "armada": "COMPACTOR ASC 100",
+      "noPo": "",
+      "noFpb": ""
+    },
+    "createdAt": "2026-11-09T02:54:17.508Z",
+    "readBy": [
+      "tri.widiyanto"
+    ]
+  },
+  {
+    "id": "notif-1794192826226-wx9mh",
+    "type": "FSTB_VALIDATED",
+    "title": "✍️ FSTB Divalidasi & Ditandatangani",
+    "message": "User RAHMAHWATI telah mengesahkan FSTB GAJ-FSTB-26-01352 (OFFICE GAJ). Berkas siap dilanjutkan ke proses TTB.",
+    "senderName": "RAHMAHWATI",
+    "senderUsername": "rahmahwati",
+    "senderRole": "supervisor",
+    "targetRole": "staf_ttb",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noFstb": "GAJ-FSTB-26-01352",
+      "armada": "OFFICE GAJ",
+      "noPo": "",
+      "noFpb": ""
+    },
+    "createdAt": "2026-11-09T02:53:46.226Z",
+    "readBy": [
+      "tri.widiyanto"
+    ]
+  },
+  {
+    "id": "notif-1794192792661-nfaqx",
+    "type": "FSTB_VALIDATED",
+    "title": "✍️ Batch FSTB Divalidasi & Ditandatangani",
+    "message": "User RAHMAHWATI telah mengesahkan 3 berkas FSTB (GAJ-FSTB-26-01352, GAJ-FSTB-26-01351, CPL-FSTB-26-06669) secara massal. Berkas siap diproses ke tahap berikutnya.",
+    "senderName": "RAHMAHWATI",
+    "senderUsername": "rahmahwati",
+    "senderRole": "Spv Purchasing",
+    "targetRole": "staf_ttb",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noFstb": "GAJ-FSTB-26-01352, GAJ-FSTB-26-01351, CPL-FSTB-26-06669",
+      "armada": "OFFICE GAJ, COMPACTOR ASC 100"
+    },
+    "createdAt": "2026-11-09T02:53:12.661Z",
+    "readBy": [
+      "tri.widiyanto"
+    ]
+  },
+  {
+    "id": "notif-1794192732459-55r3h",
+    "type": "FSTB_VALIDATED",
+    "title": "✍️ Batch FSTB Divalidasi & Ditandatangani",
+    "message": "User RAHMAHWATI telah mengesahkan 3 berkas FSTB (GAJ-FSTB-26-01352, GAJ-FSTB-26-01351, CPL-FSTB-26-06669) secara massal. Berkas siap diproses ke tahap berikutnya.",
+    "senderName": "RAHMAHWATI",
+    "senderUsername": "rahmahwati",
+    "senderRole": "Spv Purchasing",
+    "targetRole": "staf_ttb",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noFstb": "GAJ-FSTB-26-01352, GAJ-FSTB-26-01351, CPL-FSTB-26-06669",
+      "armada": "OFFICE GAJ, COMPACTOR ASC 100"
+    },
+    "createdAt": "2026-11-09T02:52:12.459Z",
+    "readBy": [
+      "tri.widiyanto"
+    ]
+  },
+  {
+    "id": "notif-1794192669284-pja5t",
+    "type": "FSTB_VALIDATED",
+    "title": "✍️ FSTB Divalidasi & Ditandatangani",
+    "message": "User RAHMAHWATI telah mengesahkan FSTB GAJ-FSTB-26-01353 (OFFICE GAJ). Berkas siap dilanjutkan ke proses TTB.",
+    "senderName": "RAHMAHWATI",
+    "senderUsername": "rahmahwati",
+    "senderRole": "supervisor",
+    "targetRole": "staf_ttb",
+    "linkTab": "validasi-dokumen",
+    "metadata": {
+      "noFstb": "GAJ-FSTB-26-01353",
+      "armada": "OFFICE GAJ",
+      "noPo": "",
+      "noFpb": ""
+    },
+    "createdAt": "2026-11-09T02:51:09.284Z",
+    "readBy": [
+      "tri.widiyanto"
+    ]
+  },
+  {
+    "id": "notif-1794192136337-ipbv1",
+    "type": "FSTB_UPLOADED",
+    "title": "📦 Dokumen FSTB Baru Siap Diproses TTB",
+    "message": "User TRI WIDIYANTO telah mengunggah 1 berkas FSTB GAJ-FSTB-26-01353 (OFFICE GAJ). Mohon diproses untuk persiapan penerimaan & TTB.",
+    "senderName": "TRI WIDIYANTO",
+    "senderUsername": "tri.widiyanto",
+    "senderRole": "staf_purchasing",
+    "targetRole": "staf_ttb",
+    "linkTab": "monitoring-internal",
+    "metadata": {
+      "noFstb": "GAJ-FSTB-26-01353",
+      "armada": "OFFICE GAJ",
+      "fileCount": 1,
+      "renamedFileName": "GAJ-FSTB-26-01353.pdf",
+      "fileUrl": "https://pub-9a40b24be68549b19c6eaec0f2542c0b.r2.dev/fstb-documents/GAJ-FSTB-26-01353.pdf"
+    },
+    "createdAt": "2026-11-09T02:42:16.337Z",
+    "readBy": [
+      "tri.widiyanto"
+    ]
+  },
+  {
+    "id": "notif-1794192133304-10ab1",
+    "type": "FSTB_UPLOADED",
+    "title": "📦 Dokumen FSTB Baru Siap Diproses TTB",
+    "message": "User TRI WIDIYANTO telah mengunggah 1 berkas FSTB GAJ-FSTB-26-01352 (OFFICE GAJ). Mohon diproses untuk persiapan penerimaan & TTB.",
+    "senderName": "TRI WIDIYANTO",
+    "senderUsername": "tri.widiyanto",
+    "senderRole": "staf_purchasing",
+    "targetRole": "staf_ttb",
+    "linkTab": "monitoring-internal",
+    "metadata": {
+      "noFstb": "GAJ-FSTB-26-01352",
+      "armada": "OFFICE GAJ",
+      "fileCount": 1,
+      "renamedFileName": "GAJ-FSTB-26-01352.pdf",
+      "fileUrl": "https://pub-9a40b24be68549b19c6eaec0f2542c0b.r2.dev/fstb-documents/GAJ-FSTB-26-01352.pdf"
+    },
+    "createdAt": "2026-11-09T02:42:13.304Z",
+    "readBy": [
+      "tri.widiyanto"
+    ]
+  },
+  {
+    "id": "notif-1794192130185-avdxg",
+    "type": "FSTB_UPLOADED",
+    "title": "📦 Dokumen FSTB Baru Siap Diproses TTB",
+    "message": "User TRI WIDIYANTO telah mengunggah 1 berkas FSTB GAJ-FSTB-26-01351 (COMPACTOR ASC 100). Mohon diproses untuk persiapan penerimaan & TTB.",
+    "senderName": "TRI WIDIYANTO",
+    "senderUsername": "tri.widiyanto",
+    "senderRole": "staf_purchasing",
+    "targetRole": "staf_ttb",
+    "linkTab": "monitoring-internal",
+    "metadata": {
+      "noFstb": "GAJ-FSTB-26-01351",
+      "armada": "COMPACTOR ASC 100",
+      "fileCount": 1,
+      "renamedFileName": "GAJ-FSTB-26-01351.pdf",
+      "fileUrl": "https://pub-9a40b24be68549b19c6eaec0f2542c0b.r2.dev/fstb-documents/GAJ-FSTB-26-01351.pdf"
+    },
+    "createdAt": "2026-11-09T02:42:10.185Z",
+    "readBy": [
+      "tri.widiyanto"
+    ]
+  },
+  {
+    "id": "notif-1794192127164-ev3vw",
+    "type": "FSTB_UPLOADED",
+    "title": "📦 Dokumen FSTB Baru Siap Diproses TTB",
+    "message": "User TRI WIDIYANTO telah mengunggah 1 berkas FSTB CPL-FSTB-26-06669 (SV TWINSISTER 305). Mohon diproses untuk persiapan penerimaan & TTB.",
+    "senderName": "TRI WIDIYANTO",
+    "senderUsername": "tri.widiyanto",
+    "senderRole": "staf_purchasing",
+    "targetRole": "staf_ttb",
+    "linkTab": "monitoring-internal",
+    "metadata": {
+      "noFstb": "CPL-FSTB-26-06669",
+      "armada": "SV TWINSISTER 305",
+      "fileCount": 1,
+      "renamedFileName": "CPL-FSTB-26-06669.pdf",
+      "fileUrl": "https://pub-9a40b24be68549b19c6eaec0f2542c0b.r2.dev/fstb-documents/CPL-FSTB-26-06669.pdf"
+    },
+    "createdAt": "2026-11-09T02:42:07.164Z",
+    "readBy": [
+      "tri.widiyanto"
+    ]
+  },
+  {
+    "id": "notif-1794191255834-a3hs2",
+    "type": "FSTB_URGENT_REQUEST",
+    "title": "🚨 Peringatan SOP: Unggah Berkas FSTB Diperlukan Segera",
+    "message": "Penerbitan TTB (CPL-TTB-26-07810, CPL-TTB-26-07810) untuk armada kapal tertahan oleh SOP karena berkas FSTB terkait belum diunggah ke Cloudflare R2 (Ref FPB: -, PO: -). Mohon Tim FSTB segera mengunggah berkas tersebut di menu Unggah FSTB.",
+    "senderName": "NURUL HAFIFAH ALIM",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "staf_ttb",
+    "targetRole": "staf_purchasing",
+    "linkTab": "upload-fstb",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07810, CPL-TTB-26-07810",
+      "noFpb": "",
+      "noPo": "",
+      "armada": "",
+      "urgency": "HIGH",
+      "sopBlocked": true
+    },
+    "createdAt": "2026-11-09T02:27:35.834Z",
+    "readBy": [
+      "tri.widiyanto"
+    ]
+  },
+  {
+    "id": "notif-1794191224841-2pbex",
+    "type": "FSTB_URGENT_REQUEST",
+    "title": "🚨 Peringatan SOP: Unggah Berkas FSTB Diperlukan Segera",
+    "message": "Penerbitan TTB (CPL-TTB-26-07810, CPL-TTB-26-07810) untuk armada kapal tertahan oleh SOP karena berkas FSTB terkait belum diunggah ke Cloudflare R2 (Ref FPB: -, PO: -). Mohon Tim FSTB segera mengunggah berkas tersebut di menu Unggah FSTB.",
+    "senderName": "NURUL HAFIFAH ALIM",
+    "senderUsername": "nurul.hafifah",
+    "senderRole": "staf_ttb",
+    "targetRole": "staf_purchasing",
+    "linkTab": "upload-fstb",
+    "metadata": {
+      "noTtb": "CPL-TTB-26-07810, CPL-TTB-26-07810",
+      "noFpb": "",
+      "noPo": "",
+      "armada": "",
+      "urgency": "HIGH",
+      "sopBlocked": true
+    },
+    "createdAt": "2026-11-09T02:27:04.841Z",
+    "readBy": [
+      "tri.widiyanto"
+    ]
+  },
+  {
+    "id": "notif-1794182968344-wms7l",
+    "type": "TTB_DISPATCHED",
+    "title": "📦 TTB Dikirim",
+    "message": "Pengiriman TTB GAJ-TTB-26-01396 ke OFFICE GAJ dititipkan via Diantar Tim Logistik (AGUSSALIM). Tautan serah terima mandiri telah diterbitkan.",
+    "senderName": "NURUL HAFIFAH ALIM",
+    "senderUsername": "logistik",
+    "senderRole": "Staf Logistik",
+    "targetRole": "manager",
+    "linkTab": "serah-terima",
+    "metadata": {
+      "noTtb": "GAJ-TTB-26-01396",
+      "armada": "OFFICE GAJ",
+      "noPo": "GAJ-PO-26-01298",
+      "noFpb": "GAJ-FPB-26-0001116",
+      "shippingMethod": "Diantar Tim Logistik",
+      "carrierContact": "AGUSSALIM",
+      "recipientName": "ARDY",
+      "itemSummary": "Barang Serah Terima Operasional Kapal"
+    },
+    "createdAt": "2026-11-09T00:09:28.344Z",
+    "readBy": [
+      "tri.widiyanto"
+    ]
+  },
+  {
     "id": "notif-1794139603665-k41x1",
     "type": "TTB_VALIDATED",
     "title": "🛡️ TTB Divalidasi & Disahkan",
@@ -17,7 +880,8 @@
     },
     "createdAt": "2026-11-08T12:06:43.665Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -32,7 +896,8 @@
     "linkTab": "serah-terima",
     "createdAt": "2026-11-08T12:04:19.699Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ],
     "metadata": {
       "noTtb": "CPL-TTB-26-05800",
@@ -68,7 +933,8 @@
     },
     "createdAt": "2026-11-08T12:03:01.524Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -93,7 +959,8 @@
     },
     "createdAt": "2026-11-08T12:00:08.874Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -112,7 +979,8 @@
     },
     "createdAt": "2026-11-08T11:55:49.671Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -131,7 +999,8 @@
     },
     "createdAt": "2026-11-08T11:55:04.668Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -151,7 +1020,8 @@
     },
     "createdAt": "2026-11-08T11:53:53.227Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -172,7 +1042,8 @@
     },
     "createdAt": "2026-11-08T11:52:43.056Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -187,7 +1058,8 @@
     "linkTab": "serah-terima",
     "createdAt": "2026-11-07T08:55:38.419Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ],
     "metadata": {
       "noTtb": "CPL-TTB-26-07760",
@@ -223,7 +1095,8 @@
     },
     "createdAt": "2026-11-07T08:51:01.460Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -244,7 +1117,8 @@
     },
     "createdAt": "2026-11-07T08:48:41.024Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -259,7 +1133,8 @@
     "linkTab": "serah-terima",
     "createdAt": "2026-11-07T08:44:17.335Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ],
     "metadata": {
       "noTtb": "GAJ-TTB-26-01398",
@@ -295,7 +1170,8 @@
     },
     "createdAt": "2026-11-07T08:40:31.826Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -314,7 +1190,8 @@
     },
     "createdAt": "2026-11-07T08:37:08.006Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -329,7 +1206,8 @@
     "linkTab": "serah-terima",
     "createdAt": "2026-11-07T06:49:48.843Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ],
     "metadata": {
       "noTtb": "CPL-TTB-26-07789",
@@ -366,7 +1244,8 @@
     },
     "createdAt": "2026-11-07T06:47:14.107Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -387,7 +1266,8 @@
     },
     "createdAt": "2026-11-07T06:29:10.792Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -406,7 +1286,8 @@
     },
     "createdAt": "2026-11-06T23:39:27.211Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -426,7 +1307,8 @@
     },
     "createdAt": "2026-11-06T09:41:00.434Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -445,7 +1327,8 @@
     },
     "createdAt": "2026-11-06T09:34:14.913Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -465,7 +1348,8 @@
     },
     "createdAt": "2026-11-06T09:32:46.516Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -485,7 +1369,8 @@
     },
     "createdAt": "2026-11-06T09:32:10.688Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -505,7 +1390,8 @@
     },
     "createdAt": "2026-11-06T09:27:18.041Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -525,7 +1411,8 @@
     },
     "createdAt": "2026-11-06T09:26:47.218Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -545,7 +1432,8 @@
     },
     "createdAt": "2026-11-06T09:25:32.963Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -565,7 +1453,8 @@
     },
     "createdAt": "2026-11-06T09:24:16.408Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -585,7 +1474,8 @@
     },
     "createdAt": "2026-11-06T09:23:19.678Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -605,7 +1495,8 @@
     },
     "createdAt": "2026-11-06T09:22:36.056Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -625,7 +1516,8 @@
     },
     "createdAt": "2026-11-06T09:21:25.708Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -645,7 +1537,8 @@
     },
     "createdAt": "2026-11-06T09:20:57.122Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -664,7 +1557,8 @@
     },
     "createdAt": "2026-11-06T09:05:08.388Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -684,7 +1578,8 @@
     },
     "createdAt": "2026-11-06T09:00:52.776Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -704,7 +1599,8 @@
     },
     "createdAt": "2026-11-06T09:00:05.766Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -724,7 +1620,8 @@
     },
     "createdAt": "2026-11-06T08:56:52.691Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -744,7 +1641,8 @@
     },
     "createdAt": "2026-11-06T08:55:44.202Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -764,7 +1662,8 @@
     },
     "createdAt": "2026-11-06T08:54:48.614Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -784,7 +1683,8 @@
     },
     "createdAt": "2026-11-06T08:53:12.876Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -804,7 +1704,8 @@
     },
     "createdAt": "2026-11-06T08:42:09.052Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -823,7 +1724,8 @@
     },
     "createdAt": "2026-11-06T08:41:17.660Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -843,7 +1745,8 @@
     },
     "createdAt": "2026-11-06T02:07:48.816Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -864,7 +1767,8 @@
     "createdAt": "2026-11-05T07:41:46.071Z",
     "readBy": [
       "hermansyahz",
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -883,7 +1787,8 @@
     },
     "createdAt": "2026-11-05T06:47:23.591Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -902,7 +1807,8 @@
     },
     "createdAt": "2026-11-05T06:47:10.318Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -921,7 +1827,8 @@
     },
     "createdAt": "2026-11-05T06:46:56.238Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -940,7 +1847,8 @@
     },
     "createdAt": "2026-11-05T06:46:35.796Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -959,7 +1867,8 @@
     },
     "createdAt": "2026-11-05T06:45:03.501Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -979,7 +1888,8 @@
     },
     "createdAt": "2026-11-05T06:44:44.917Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -999,7 +1909,8 @@
     },
     "createdAt": "2026-11-05T06:44:28.383Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -1019,7 +1930,8 @@
     },
     "createdAt": "2026-11-05T06:44:01.523Z",
     "readBy": [
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -1040,7 +1952,8 @@
     "readBy": [
       "hermansyahz",
       "nurul.hafifah",
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -1063,7 +1976,8 @@
     "readBy": [
       "hermansyahz",
       "nurul.hafifah",
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -1085,7 +1999,8 @@
     "readBy": [
       "hermansyahz",
       "nurul.hafifah",
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -1107,7 +2022,8 @@
     "readBy": [
       "hermansyahz",
       "nurul.hafifah",
-      "admin"
+      "admin",
+      "tri.widiyanto"
     ]
   },
   {
@@ -1124,7 +2040,8 @@
     "readBy": [
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ],
     "metadata": {
       "noTtb": "CPL-TTB-26-07646",
@@ -1162,7 +2079,8 @@
     "readBy": [
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -1185,7 +2103,8 @@
     "readBy": [
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -1203,7 +2122,8 @@
     "readBy": [
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -1224,7 +2144,8 @@
     "readBy": [
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -1245,7 +2166,8 @@
     "readBy": [
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -1266,7 +2188,8 @@
     "readBy": [
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -1289,7 +2212,8 @@
     "readBy": [
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -1307,7 +2231,8 @@
       "agussalim",
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ],
     "metadata": {
       "noTtb": "CPL-TTB-26-05310",
@@ -1345,7 +2270,8 @@
     "readBy": [
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -1368,7 +2294,8 @@
     "readBy": [
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -1389,7 +2316,8 @@
     "readBy": [
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -1411,7 +2339,8 @@
     "readBy": [
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -1428,7 +2357,8 @@
     "readBy": [
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ],
     "metadata": {
       "noTtb": "CPL-TTB-26-07578",
@@ -1466,7 +2396,8 @@
     "readBy": [
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -1493,7 +2424,8 @@
     "readBy": [
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -1520,7 +2452,8 @@
     "readBy": [
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -1538,7 +2471,8 @@
     "readBy": [
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -1555,7 +2489,8 @@
     "readBy": [
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ],
     "metadata": {
       "noTtb": "CPL-TTB-26-07570",
@@ -1593,7 +2528,8 @@
     "readBy": [
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -1610,7 +2546,8 @@
     "readBy": [
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ],
     "metadata": {
       "noTtb": "HL-TTB-26-02256",
@@ -1648,7 +2585,8 @@
     "readBy": [
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -1675,7 +2613,8 @@
     "readBy": [
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -1692,7 +2631,8 @@
     "readBy": [
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ],
     "metadata": {
       "noTtb": "CPL-TTB-26-07465",
@@ -1730,7 +2670,8 @@
     "readBy": [
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -1747,7 +2688,8 @@
     "readBy": [
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ],
     "metadata": {
       "noTtb": "CPL-TTB-26-07629",
@@ -1785,7 +2727,8 @@
     "readBy": [
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -1812,7 +2755,8 @@
     "readBy": [
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -1836,7 +2780,8 @@
       "agussalim",
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -1860,7 +2805,8 @@
       "agussalim",
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -1884,7 +2830,8 @@
       "agussalim",
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -1907,7 +2854,8 @@
       "agussalim",
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -1935,7 +2883,8 @@
       "agussalim",
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -1959,7 +2908,8 @@
       "agussalim",
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -1983,7 +2933,8 @@
       "agussalim",
       "admin",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -2001,7 +2952,8 @@
       "admin",
       "agussalim",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ],
     "metadata": {
       "noTtb": "CPL-TTB-26-07618",
@@ -2036,7 +2988,8 @@
       "admin",
       "agussalim",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -2060,7 +3013,8 @@
       "admin",
       "agussalim",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -2089,7 +3043,8 @@
       "admin",
       "agussalim",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -2118,7 +3073,8 @@
       "admin",
       "agussalim",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -2146,7 +3102,8 @@
       "admin",
       "agussalim",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -2170,7 +3127,8 @@
       "admin",
       "agussalim",
       "hermansyahz",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -2200,7 +3158,8 @@
       "bardi.suddin",
       "idham.khalid",
       "agussalim",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -2229,7 +3188,8 @@
       "bardi.suddin",
       "idham.khalid",
       "agussalim",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -2258,7 +3218,8 @@
       "bardi.suddin",
       "idham.khalid",
       "agussalim",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -2287,7 +3248,8 @@
       "bardi.suddin",
       "idham.khalid",
       "agussalim",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -2316,7 +3278,8 @@
       "bardi.suddin",
       "idham.khalid",
       "agussalim",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -2345,7 +3308,8 @@
       "bardi.suddin",
       "idham.khalid",
       "agussalim",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -2374,7 +3338,8 @@
       "bardi.suddin",
       "idham.khalid",
       "agussalim",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -2403,7 +3368,8 @@
       "bardi.suddin",
       "idham.khalid",
       "agussalim",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -2432,7 +3398,8 @@
       "bardi.suddin",
       "idham.khalid",
       "agussalim",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -2458,7 +3425,8 @@
       "bardi.suddin",
       "idham.khalid",
       "agussalim",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -2487,7 +3455,8 @@
       "bardi.suddin",
       "idham.khalid",
       "agussalim",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -2513,7 +3482,8 @@
       "bardi.suddin",
       "idham.khalid",
       "agussalim",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -2537,7 +3507,8 @@
       "bardi.suddin",
       "idham.khalid",
       "agussalim",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -2563,7 +3534,8 @@
       "bardi.suddin",
       "idham.khalid",
       "agussalim",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   },
   {
@@ -2587,1091 +3559,8 @@
       "bardi.suddin",
       "idham.khalid",
       "agussalim",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1793344658705-92w5e",
-    "type": "TTB_UPLOADED",
-    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
-    "message": "User DAVILA telah mengunggah 1 berkas TTB (CPL-TTB-26-07629). Mohon diproses untuk pengesahan & validasi digital.",
-    "senderName": "DAVILA",
-    "senderUsername": "davila.zalianti",
-    "senderRole": "staf_ttb",
-    "targetRole": "manager",
-    "linkTab": "validasi-dokumen",
-    "metadata": {
-      "noTtb": "CPL-TTB-26-07629",
-      "armada": "-"
-    },
-    "createdAt": "2026-10-30T07:17:38.705Z",
-    "readBy": [
-      "admin",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "agussalim",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1793327694601-akyhh",
-    "type": "TTB_UPLOADED",
-    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
-    "message": "User IDHAM KHALID telah mengunggah 1 berkas TTB (CPL-TTB-26-07646). Mohon diproses untuk pengesahan & validasi digital.",
-    "senderName": "IDHAM KHALID",
-    "senderUsername": "idham.khalid",
-    "senderRole": "staf_ttb",
-    "targetRole": "manager",
-    "linkTab": "validasi-dokumen",
-    "metadata": {
-      "noTtb": "CPL-TTB-26-07646",
-      "armada": "HEAD OFFICE"
-    },
-    "createdAt": "2026-10-30T02:34:54.601Z",
-    "readBy": [
-      "admin",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "agussalim",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1793326776033-nvzem",
-    "type": "TTB_UPLOADED",
-    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
-    "message": "User DAVILA ZALIANTI PUTRI telah mengunggah 1 berkas TTB (CPL-TTB-26-07629). Mohon diproses untuk pengesahan & validasi digital.",
-    "senderName": "DAVILA ZALIANTI PUTRI",
-    "senderUsername": "davila.zalianti",
-    "senderRole": "staf_ttb",
-    "targetRole": "manager",
-    "linkTab": "validasi-dokumen",
-    "metadata": {
-      "noTtb": "CPL-TTB-26-07629",
-      "armada": "SV TWINSISTER 307"
-    },
-    "createdAt": "2026-10-30T02:19:36.033Z",
-    "readBy": [
-      "admin",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "agussalim",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1793326310455-a0vs6",
-    "type": "TTB_UPLOADED",
-    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
-    "message": "User DAVILA ZALIANTI PUTRI telah mengunggah 1 berkas TTB (CPL-TTB-26-07629). Mohon diproses untuk pengesahan & validasi digital.",
-    "senderName": "DAVILA ZALIANTI PUTRI",
-    "senderUsername": "davila.zalianti",
-    "senderRole": "staf_ttb",
-    "targetRole": "manager",
-    "linkTab": "validasi-dokumen",
-    "metadata": {
-      "noTtb": "CPL-TTB-26-07629",
-      "armada": "SV TWINSISTER 307"
-    },
-    "createdAt": "2026-10-30T02:11:50.455Z",
-    "readBy": [
-      "admin",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "agussalim",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1793290992099-85ar1",
-    "type": "TTB_VALIDATED",
-    "title": "🛡️ Batch TTB Divalidasi & Disahkan",
-    "message": "User Hermansyah telah mengesahkan 2 berkas TTB (CPL-TTB-26-07618, CPL-TTB-26-07570) secara massal. Berkas siap diproses ke tahap berikutnya.",
-    "senderName": "Hermansyah",
-    "senderUsername": "hermansyahz",
-    "senderRole": "Logistik Supervisor",
-    "targetRole": "staf_lapangan",
-    "linkTab": "serah-terima",
-    "metadata": {
-      "noTtb": "CPL-TTB-26-07618, CPL-TTB-26-07570",
-      "armada": "MT DEWA YANI, TB PMI ABADI"
-    },
-    "createdAt": "2026-10-29T16:23:12.099Z",
-    "readBy": [
-      "hermansyahz",
-      "admin",
-      "bardi.suddin",
-      "idham.khalid",
-      "agussalim",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1793245235934-32j1z",
-    "type": "TTB_UPLOADED",
-    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
-    "message": "User Administrator CPG telah mengunggah 2 berkas TTB (GAJ-TTB-26-01311-1, GAJ-TTB-26-01311-2). Mohon diproses untuk pengesahan & validasi digital.",
-    "senderName": "Administrator CPG",
-    "senderUsername": "admin",
-    "senderRole": "admin",
-    "targetRole": "manager",
-    "linkTab": "validasi-dokumen",
-    "metadata": {
-      "noTtb": "GAJ-TTB-26-01311-1, GAJ-TTB-26-01311-2",
-      "armada": "OFFICE GAJ",
-      "noPo": "GAJ-PO-26-01209"
-    },
-    "createdAt": "2026-10-29T03:40:35.934Z",
-    "readBy": [
-      "admin",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "agussalim",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1793243172623-pmw1u",
-    "type": "TTB_VALIDATED",
-    "title": "🛡️ TTB Divalidasi & Disahkan",
-    "message": "User NURUL HAFIFAH ALIM telah mengesahkan dokumen TTB CPL-TTB-26-07618 (MT DEWA YANI). Berkas siap untuk proses serah terima di lapangan.",
-    "senderName": "NURUL HAFIFAH ALIM",
-    "senderUsername": "nurul.hafifah",
-    "senderRole": "Admin Logistik",
-    "targetRole": "staf_lapangan",
-    "linkTab": "serah-terima",
-    "metadata": {
-      "noTtb": "CPL-TTB-26-07618",
-      "armada": "MT DEWA YANI",
-      "noPo": "",
-      "noFpb": ""
-    },
-    "createdAt": "2026-10-29T03:06:12.623Z",
-    "readBy": [
-      "admin",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "agussalim",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1793243042603-0y6vy",
-    "type": "TTB_UPLOADED",
-    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
-    "message": "User NURUL HAFIFAH ALIM telah mengunggah 2 berkas TTB (CPL-TTB-26-07618, CPL-TTB-26-07618). Mohon diproses untuk pengesahan & validasi digital.",
-    "senderName": "NURUL HAFIFAH ALIM",
-    "senderUsername": "nurul.hafifah",
-    "senderRole": "staf_ttb",
-    "targetRole": "manager",
-    "linkTab": "validasi-dokumen",
-    "metadata": {
-      "noTtb": "CPL-TTB-26-07618, CPL-TTB-26-07618",
-      "armada": "MT DEWA YANI",
-      "noPo": "CPL-PO-26-05725"
-    },
-    "createdAt": "2026-10-29T03:04:02.603Z",
-    "readBy": [
-      "admin",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "agussalim",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1793069177253-ntc8p",
-    "type": "SERAH_TERIMA_COMPLETED",
-    "title": "✅ Serah Terima TTB Selesai (4/4)",
-    "message": "Barang TTB CPL-TTB-26-07542 telah diterima oleh ANWAR RASYID di -. Dokumentasi dan tanda tangan penerima berhasil terekam.",
-    "senderName": "Kapal umum (Tim Lapangan)",
-    "senderUsername": "receiver",
-    "senderRole": "Staf Lapangan",
-    "targetRole": "manager",
-    "linkTab": "serah-terima",
-    "metadata": {
-      "noTtb": "CPL-TTB-26-07542",
-      "armada": "-",
-      "noPo": "",
-      "noFpb": "",
-      "recipientName": "ANWAR RASYID",
-      "courierName": "Kapal umum (Tim Lapangan)",
-      "itemSummary": "CPL-TTB-26-07542.pdf"
-    },
-    "createdAt": "2026-10-27T02:46:17.253Z",
-    "readBy": [
-      "admin",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "agussalim",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1793006490104-cprxm",
-    "type": "FSTB_UPLOADED",
-    "title": "📦 Dokumen FSTB Baru Siap Diproses TTB",
-    "message": "User TRI WIDIYANTO telah mengunggah 1 berkas FSTB CPL-FSTB-26-06449 (SPOB ROYAL REY 3001). Mohon diproses untuk persiapan penerimaan & TTB.",
-    "senderName": "TRI WIDIYANTO",
-    "senderUsername": "tri.widiyanto",
-    "senderRole": "staf_purchasing",
-    "targetRole": "staf_ttb",
-    "linkTab": "monitoring-internal",
-    "metadata": {
-      "noFstb": "CPL-FSTB-26-06449",
-      "armada": "SPOB ROYAL REY 3001",
-      "noPo": "CPL-PO-26-05686",
-      "noFpb": "CPL-FPB-26-0004782",
-      "fileCount": 1,
-      "renamedFileName": "CPL-FSTB-26-06449.pdf",
-      "fileUrl": "/api/r2-file?key=fstb-documents%2FCPL-FSTB-26-06449.pdf"
-    },
-    "createdAt": "2026-10-26T09:21:30.104Z",
-    "readBy": [
-      "admin",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "agussalim",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1793004293820-r6qve",
-    "type": "TTB_UPLOADED",
-    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
-    "message": "User IDHAM KHALID telah mengunggah 1 berkas TTB (CPL-TTB-26-07570-I). Mohon diproses untuk pengesahan & validasi digital.",
-    "senderName": "IDHAM KHALID",
-    "senderUsername": "idham.khalid",
-    "senderRole": "staf_ttb",
-    "targetRole": "manager",
-    "linkTab": "validasi-dokumen",
-    "metadata": {
-      "noTtb": "CPL-TTB-26-07570-I",
-      "armada": "TB PMI ABADI",
-      "noPo": "CPL-PO-26-05770"
-    },
-    "createdAt": "2026-10-26T08:44:53.820Z",
-    "readBy": [
-      "admin",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "agussalim",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1793004042746-ih3bx",
-    "type": "TTB_UPLOADED",
-    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
-    "message": "User IDHAM KHALID telah mengunggah 1 berkas TTB (CPL-TTB-26-07570). Mohon diproses untuk pengesahan & validasi digital.",
-    "senderName": "IDHAM KHALID",
-    "senderUsername": "idham.khalid",
-    "senderRole": "staf_ttb",
-    "targetRole": "manager",
-    "linkTab": "validasi-dokumen",
-    "metadata": {
-      "noTtb": "CPL-TTB-26-07570",
-      "armada": "TB PMI ABADI",
-      "noPo": "CPL-PO-26-05770"
-    },
-    "createdAt": "2026-10-26T08:40:42.746Z",
-    "readBy": [
-      "admin",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "agussalim",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1793000743248-t28k6",
-    "type": "TTB_UPLOADED",
-    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
-    "message": "User NURUL HAFIFAH ALIM telah mengunggah 1 berkas TTB (GAJ-TTB-26-01311-I). Mohon diproses untuk pengesahan & validasi digital.",
-    "senderName": "NURUL HAFIFAH ALIM",
-    "senderUsername": "nurul.hafifah",
-    "senderRole": "staf_ttb",
-    "targetRole": "manager",
-    "linkTab": "validasi-dokumen",
-    "metadata": {
-      "noTtb": "GAJ-TTB-26-01311-I",
-      "armada": "OFFICE GAJ"
-    },
-    "createdAt": "2026-10-26T07:45:43.248Z",
-    "readBy": [
-      "receiver",
-      "admin",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "agussalim",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1793000043456-w7ndw",
-    "type": "SERAH_TERIMA_COMPLETED",
-    "title": "✅ Serah Terima TTB Selesai (4/4)",
-    "message": "Barang TTB GAJ-TTB-26-01311 telah diterima oleh DHONI di -. Dokumentasi dan tanda tangan penerima berhasil terekam.",
-    "senderName": "Kapal umum (Tim Lapangan)",
-    "senderUsername": "receiver",
-    "senderRole": "Staf Lapangan",
-    "targetRole": "manager",
-    "linkTab": "serah-terima",
-    "metadata": {
-      "noTtb": "GAJ-TTB-26-01311",
-      "armada": "-",
-      "noPo": "",
-      "noFpb": "",
-      "recipientName": "DHONI",
-      "courierName": "Kapal umum (Tim Lapangan)",
-      "itemSummary": "GAJ-TTB-26-01311.pdf",
-      "notes": "DITERIMA DENGAN BAIK,SESUAI FPB"
-    },
-    "createdAt": "2026-10-26T07:34:03.456Z",
-    "readBy": [
-      "receiver",
-      "admin",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "agussalim",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1792999370336-6irv2",
-    "type": "TTB_DISPATCHED",
-    "title": "🚚 Barang Berangkat / Dalam Pengantaran",
-    "message": "Petugas AGUSSALIM (Tim Lapangan) telah memverifikasi fisik barang dan memulai pengantaran TTB GAJ-TTB-26-01311 ke OFFICE GAJ.",
-    "senderName": "AGUSSALIM (Tim Lapangan)",
-    "senderUsername": "agussalim_(tim_lapangan)",
-    "senderRole": "Staf Lapangan",
-    "targetRole": "manager",
-    "linkTab": "serah-terima",
-    "metadata": {
-      "noTtb": "GAJ-TTB-26-01311",
-      "armada": "OFFICE GAJ",
-      "noPo": "GAJ-PO-26-01209",
-      "noFpb": "GAJ-FPB-26-0000952",
-      "courierName": "AGUSSALIM (Tim Lapangan)",
-      "itemSummary": "SARUNG TANGAN LAS (00) (10 PSG)",
-      "shippingMethod": "Kurir Lapangan Internal"
-    },
-    "createdAt": "2026-10-26T07:22:50.336Z",
-    "readBy": [
-      "receiver",
-      "admin",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "agussalim",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1792999104182-zj9f0",
-    "type": "TTB_VALIDATED",
-    "title": "🛡️ TTB Divalidasi & Disahkan",
-    "message": "User HADI SUNARYO telah mengesahkan dokumen TTB GAJ-TTB-26-01311 (-). Berkas siap untuk proses serah terima di lapangan.",
-    "senderName": "HADI SUNARYO",
-    "senderUsername": "hadi.sunaryo",
-    "senderRole": "Manager Procurement",
-    "targetRole": "staf_lapangan",
-    "linkTab": "serah-terima",
-    "metadata": {
-      "noTtb": "GAJ-TTB-26-01311",
-      "armada": "-",
-      "noPo": "",
-      "noFpb": ""
-    },
-    "createdAt": "2026-10-26T07:18:24.182Z",
-    "readBy": [
-      "receiver",
-      "admin",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "agussalim",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1792999061510-1zfif",
-    "type": "TTB_VALIDATED",
-    "title": "🛡️ TTB Divalidasi & Disahkan",
-    "message": "User Hermansyah telah mengesahkan dokumen TTB GAJ-TTB-26-01311 (-). Berkas siap untuk proses serah terima di lapangan.",
-    "senderName": "Hermansyah",
-    "senderUsername": "hermansyahz",
-    "senderRole": "Logistik Supervisor",
-    "targetRole": "staf_lapangan",
-    "linkTab": "serah-terima",
-    "metadata": {
-      "noTtb": "GAJ-TTB-26-01311",
-      "armada": "-",
-      "noPo": "",
-      "noFpb": ""
-    },
-    "createdAt": "2026-10-26T07:17:41.510Z",
-    "readBy": [
-      "receiver",
-      "admin",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "agussalim",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1792998485037-f0lg9",
-    "type": "TTB_UPLOADED",
-    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
-    "message": "User NURUL HAFIFAH ALIM telah mengunggah 2 berkas TTB (GAJ-TTB-26-01311, GAJ-TTB-26-01311). Mohon diproses untuk pengesahan & validasi digital.",
-    "senderName": "NURUL HAFIFAH ALIM",
-    "senderUsername": "nurul.hafifah",
-    "senderRole": "staf_ttb",
-    "targetRole": "manager",
-    "linkTab": "validasi-dokumen",
-    "metadata": {
-      "noTtb": "GAJ-TTB-26-01311, GAJ-TTB-26-01311",
-      "armada": "-"
-    },
-    "createdAt": "2026-10-26T07:08:05.037Z",
-    "readBy": [
-      "receiver",
-      "admin",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "agussalim",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1792980717766-ohd5x",
-    "type": "TTB_DISPATCHED",
-    "title": "🚚 Barang Berangkat / Dalam Pengantaran",
-    "message": "Petugas HADI SUNARYO (Tim Lapangan) telah memverifikasi fisik barang dan memulai pengantaran TTB CPL-TTB-26-07542 ke -.",
-    "senderName": "HADI SUNARYO (Tim Lapangan)",
-    "senderUsername": "hadi_sunaryo_(tim_lapangan)",
-    "senderRole": "Staf Lapangan",
-    "targetRole": "manager",
-    "linkTab": "serah-terima",
-    "metadata": {
-      "noTtb": "CPL-TTB-26-07542",
-      "armada": "-",
-      "courierName": "HADI SUNARYO (Tim Lapangan)",
-      "itemSummary": "CPL-TTB-26-07542.pdf",
-      "shippingMethod": "Kurir Lapangan Internal"
-    },
-    "createdAt": "2026-10-26T02:11:57.766Z",
-    "readBy": [
-      "receiver",
-      "admin",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "agussalim",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1792980437843-l45qj",
-    "type": "TTB_VALIDATED",
-    "title": "🛡️ TTB Divalidasi & Disahkan",
-    "message": "User HADI SUNARYO telah mengesahkan dokumen TTB CPL-TTB-26-07542 (-). Berkas siap untuk proses serah terima di lapangan.",
-    "senderName": "HADI SUNARYO",
-    "senderUsername": "hadi.sunaryo",
-    "senderRole": "Manager Procurement",
-    "targetRole": "staf_lapangan",
-    "linkTab": "serah-terima",
-    "metadata": {
-      "noTtb": "CPL-TTB-26-07542",
-      "armada": "-",
-      "noPo": "",
-      "noFpb": ""
-    },
-    "createdAt": "2026-10-26T02:07:17.843Z",
-    "readBy": [
-      "hermansyahz",
-      "receiver",
-      "admin",
-      "bardi.suddin",
-      "idham.khalid",
-      "agussalim",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1792980272488-ni8cn",
-    "type": "TTB_VALIDATED",
-    "title": "🛡️ TTB Divalidasi & Disahkan",
-    "message": "User Hermansyah telah mengesahkan dokumen TTB CPL-TTB-26-07542 (-). Berkas siap untuk proses serah terima di lapangan.",
-    "senderName": "Hermansyah",
-    "senderUsername": "hermansyahz",
-    "senderRole": "Logistik Supervisor",
-    "targetRole": "staf_lapangan",
-    "linkTab": "serah-terima",
-    "metadata": {
-      "noTtb": "CPL-TTB-26-07542",
-      "armada": "-",
-      "noPo": "",
-      "noFpb": ""
-    },
-    "createdAt": "2026-10-26T02:04:32.488Z",
-    "readBy": [
-      "receiver",
-      "admin",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "agussalim",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1792979679802-xi2uy",
-    "type": "TTB_UPLOADED",
-    "title": "📦 Dokumen TTB Baru Siap Divalidasi",
-    "message": "User NURUL HAFIFAH ALIM telah mengunggah 2 berkas TTB (CPL-TTB-26-07542, CPL-TTB-26-07542). Mohon diproses untuk pengesahan & validasi digital.",
-    "senderName": "NURUL HAFIFAH ALIM",
-    "senderUsername": "nurul.hafifah",
-    "senderRole": "staf_ttb",
-    "targetRole": "manager",
-    "linkTab": "validasi-dokumen",
-    "metadata": {
-      "noTtb": "CPL-TTB-26-07542, CPL-TTB-26-07542",
-      "armada": "-"
-    },
-    "createdAt": "2026-10-26T01:54:39.802Z",
-    "readBy": [
-      "receiver",
-      "admin",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "agussalim",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1792872527820-gh2y4",
-    "type": "FSTB_VALIDATED",
-    "title": "✍️ FSTB Divalidasi & Ditandatangani",
-    "message": "User RAHMAHWATI telah mengesahkan FSTB HL-FSTB-26-01913 (TK CPL 250). Berkas siap dilanjutkan ke proses TTB.",
-    "senderName": "RAHMAHWATI",
-    "senderUsername": "rahmahwati",
-    "senderRole": "supervisor",
-    "targetRole": "staf_ttb",
-    "linkTab": "validasi-dokumen",
-    "metadata": {
-      "noFstb": "HL-FSTB-26-01913",
-      "armada": "TK CPL 250",
-      "noPo": "HL-PO-26-01693",
-      "noFpb": "HL-FPB-26-0001434"
-    },
-    "createdAt": "2026-10-24T20:08:47.820Z",
-    "readBy": [
-      "agussalim",
-      "admin",
-      "receiver",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1792872507016-drapu",
-    "type": "FSTB_VALIDATED",
-    "title": "✍️ FSTB Divalidasi & Ditandatangani",
-    "message": "User Hermansyah telah mengesahkan FSTB HL-FSTB-26-01913 (TK CPL 250). Berkas siap dilanjutkan ke proses TTB.",
-    "senderName": "Hermansyah",
-    "senderUsername": "hermansyahz",
-    "senderRole": "supervisor",
-    "targetRole": "staf_ttb",
-    "linkTab": "validasi-dokumen",
-    "metadata": {
-      "noFstb": "HL-FSTB-26-01913",
-      "armada": "TK CPL 250",
-      "noPo": "HL-PO-26-01693",
-      "noFpb": "HL-FPB-26-0001434"
-    },
-    "createdAt": "2026-10-24T20:08:27.016Z",
-    "readBy": [
-      "agussalim",
-      "admin",
-      "receiver",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1792872461587-tklrz",
-    "type": "FSTB_VALIDATED",
-    "title": "✍️ FSTB Divalidasi & Ditandatangani",
-    "message": "User DAVILA ZALIANTI PUTRI telah mengesahkan FSTB HL-FSTB-26-01913 (TK CPL 250). Berkas siap dilanjutkan ke proses TTB.",
-    "senderName": "DAVILA ZALIANTI PUTRI",
-    "senderUsername": "davila.zalianti",
-    "senderRole": "staf_ttb",
-    "targetRole": "staf_ttb",
-    "linkTab": "validasi-dokumen",
-    "metadata": {
-      "noFstb": "HL-FSTB-26-01913",
-      "armada": "TK CPL 250",
-      "noPo": "HL-PO-26-01693",
-      "noFpb": "HL-FPB-26-0001434"
-    },
-    "createdAt": "2026-10-24T20:07:41.587Z",
-    "readBy": [
-      "agussalim",
-      "admin",
-      "receiver",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1792872423929-adbi1",
-    "type": "FSTB_UPLOADED",
-    "title": "📦 Dokumen FSTB Baru Siap Diproses TTB",
-    "message": "User PUTRI RIYANI telah mengunggah 1 berkas FSTB HL-FSTB-26-01913 (TK CPL 250). Mohon diproses untuk persiapan penerimaan & TTB.",
-    "senderName": "PUTRI RIYANI",
-    "senderUsername": "putri.riyani",
-    "senderRole": "staf_purchasing",
-    "targetRole": "staf_ttb",
-    "linkTab": "monitoring-internal",
-    "metadata": {
-      "noFstb": "HL-FSTB-26-01913",
-      "armada": "TK CPL 250",
-      "noPo": "HL-PO-26-01693",
-      "noFpb": "HL-FPB-26-0001434",
-      "fileCount": 1,
-      "renamedFileName": "HL-FSTB-26-01913.pdf",
-      "fileUrl": "/api/r2-file?key=fstb-documents%2FHL-FSTB-26-01913.pdf"
-    },
-    "createdAt": "2026-10-24T20:07:03.929Z",
-    "readBy": [
-      "agussalim",
-      "admin",
-      "receiver",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1792867627861-gpz5u",
-    "type": "FSTB_VALIDATED",
-    "title": "✍️ FSTB Divalidasi & Ditandatangani",
-    "message": "User Hermansyah telah mengesahkan FSTB CPL-FSTB-26-06345 (TB KING STAR). Berkas siap dilanjutkan ke proses TTB.",
-    "senderName": "Hermansyah",
-    "senderUsername": "hermansyahz",
-    "senderRole": "supervisor",
-    "targetRole": "staf_ttb",
-    "linkTab": "validasi-dokumen",
-    "metadata": {
-      "noFstb": "CPL-FSTB-26-06345",
-      "armada": "TB KING STAR",
-      "noPo": "CPL-PO-26-05649",
-      "noFpb": "CPL-FPB-26-0004837"
-    },
-    "createdAt": "2026-10-24T18:47:07.861Z",
-    "readBy": [
-      "agussalim",
-      "admin",
-      "receiver",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1792867610517-zi9iv",
-    "type": "FSTB_VALIDATED",
-    "title": "✍️ FSTB Divalidasi & Ditandatangani",
-    "message": "User RAHMAHWATI telah mengesahkan FSTB CPL-FSTB-26-06345 (TB KING STAR). Berkas siap dilanjutkan ke proses TTB.",
-    "senderName": "RAHMAHWATI",
-    "senderUsername": "rahmahwati",
-    "senderRole": "supervisor",
-    "targetRole": "staf_ttb",
-    "linkTab": "validasi-dokumen",
-    "metadata": {
-      "noFstb": "CPL-FSTB-26-06345",
-      "armada": "TB KING STAR",
-      "noPo": "CPL-PO-26-05649",
-      "noFpb": "CPL-FPB-26-0004837"
-    },
-    "createdAt": "2026-10-24T18:46:50.517Z",
-    "readBy": [
-      "agussalim",
-      "admin",
-      "receiver",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1792867596209-qv8g1",
-    "type": "FSTB_VALIDATED",
-    "title": "✍️ FSTB Divalidasi & Ditandatangani",
-    "message": "User DAVILA ZALIANTI PUTRI telah mengesahkan FSTB CPL-FSTB-26-06345 (TB KING STAR). Berkas siap dilanjutkan ke proses TTB.",
-    "senderName": "DAVILA ZALIANTI PUTRI",
-    "senderUsername": "davila.zalianti",
-    "senderRole": "staf_ttb",
-    "targetRole": "staf_ttb",
-    "linkTab": "validasi-dokumen",
-    "metadata": {
-      "noFstb": "CPL-FSTB-26-06345",
-      "armada": "TB KING STAR",
-      "noPo": "CPL-PO-26-05649",
-      "noFpb": "CPL-FPB-26-0004837"
-    },
-    "createdAt": "2026-10-24T18:46:36.209Z",
-    "readBy": [
-      "agussalim",
-      "admin",
-      "receiver",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1792867554480-p77b0",
-    "type": "FSTB_UPLOADED",
-    "title": "📦 Dokumen FSTB Baru Siap Diproses TTB",
-    "message": "User TRI WIDIYANTO telah mengunggah 1 berkas FSTB CPL-FSTB-26-06345 (TB KING STAR). Mohon diproses untuk persiapan penerimaan & TTB.",
-    "senderName": "TRI WIDIYANTO",
-    "senderUsername": "tri.widiyanto",
-    "senderRole": "staf_purchasing",
-    "targetRole": "staf_ttb",
-    "linkTab": "monitoring-internal",
-    "metadata": {
-      "noFstb": "CPL-FSTB-26-06345",
-      "armada": "TB KING STAR",
-      "noPo": "CPL-PO-26-05649",
-      "noFpb": "CPL-FPB-26-0004837",
-      "fileCount": 1,
-      "renamedFileName": "CPL-FSTB-26-06345.pdf",
-      "fileUrl": "/api/r2-file?key=fstb-documents%2FCPL-FSTB-26-06345.pdf"
-    },
-    "createdAt": "2026-10-24T18:45:54.480Z",
-    "readBy": [
-      "agussalim",
-      "admin",
-      "receiver",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1792863496105-dkvig",
-    "type": "FSTB_VALIDATED",
-    "title": "✍️ FSTB Divalidasi & Ditandatangani",
-    "message": "User Hermansyah telah mengesahkan FSTB GAJ-FSTB-26-01224 (OFFICE GAJ). Berkas siap dilanjutkan ke proses TTB.",
-    "senderName": "Hermansyah",
-    "senderUsername": "hermansyahz",
-    "senderRole": "supervisor",
-    "targetRole": "staf_ttb",
-    "linkTab": "validasi-dokumen",
-    "metadata": {
-      "noFstb": "GAJ-FSTB-26-01224",
-      "armada": "OFFICE GAJ",
-      "noPo": "GAJ-PO-26-01165",
-      "noFpb": "GAJ-FPB-26-0001020"
-    },
-    "createdAt": "2026-10-24T17:38:16.105Z",
-    "readBy": [
-      "davila.zalianti",
-      "agussalim",
-      "admin",
-      "receiver",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1792863452489-cgdpb",
-    "type": "FSTB_VALIDATED",
-    "title": "✍️ FSTB Divalidasi & Ditandatangani",
-    "message": "User RAHMAHWATI telah mengesahkan FSTB GAJ-FSTB-26-01224 (OFFICE GAJ). Berkas siap dilanjutkan ke proses TTB.",
-    "senderName": "RAHMAHWATI",
-    "senderUsername": "rahmahwati",
-    "senderRole": "supervisor",
-    "targetRole": "staf_ttb",
-    "linkTab": "validasi-dokumen",
-    "metadata": {
-      "noFstb": "GAJ-FSTB-26-01224",
-      "armada": "OFFICE GAJ",
-      "noPo": "GAJ-PO-26-01165",
-      "noFpb": "GAJ-FPB-26-0001020"
-    },
-    "createdAt": "2026-10-24T17:37:32.489Z",
-    "readBy": [
-      "davila.zalianti",
-      "agussalim",
-      "admin",
-      "receiver",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1792863381597-budvs",
-    "type": "FSTB_VALIDATED",
-    "title": "✍️ FSTB Divalidasi & Ditandatangani",
-    "message": "User DAVILA ZALIANTI PUTRI telah mengesahkan FSTB GAJ-FSTB-26-01224 (OFFICE GAJ). Berkas siap dilanjutkan ke proses TTB.",
-    "senderName": "DAVILA ZALIANTI PUTRI",
-    "senderUsername": "davila.zalianti",
-    "senderRole": "staf_ttb",
-    "targetRole": "staf_ttb",
-    "linkTab": "validasi-dokumen",
-    "metadata": {
-      "noFstb": "GAJ-FSTB-26-01224",
-      "armada": "OFFICE GAJ",
-      "noPo": "GAJ-PO-26-01165",
-      "noFpb": "GAJ-FPB-26-0001020"
-    },
-    "createdAt": "2026-10-24T17:36:21.597Z",
-    "readBy": [
-      "davila.zalianti",
-      "agussalim",
-      "admin",
-      "receiver",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1792863264449-5ta9u",
-    "type": "FSTB_UPLOADED",
-    "title": "📦 Dokumen FSTB Baru Siap Diproses TTB",
-    "message": "User ELSA MARDHIYAH DEKA PUTRI telah mengunggah 1 berkas FSTB GAJ-FSTB-26-01224 (OFFICE GAJ). Mohon diproses untuk persiapan penerimaan & TTB.",
-    "senderName": "ELSA MARDHIYAH DEKA PUTRI",
-    "senderUsername": "elsa.mardhiyah",
-    "senderRole": "staf_purchasing",
-    "targetRole": "staf_ttb",
-    "linkTab": "monitoring-internal",
-    "metadata": {
-      "noFstb": "GAJ-FSTB-26-01224",
-      "armada": "OFFICE GAJ",
-      "noPo": "GAJ-PO-26-01165",
-      "noFpb": "GAJ-FPB-26-0001020",
-      "fileCount": 1,
-      "renamedFileName": "GAJ-FSTB-26-01224.pdf",
-      "fileUrl": "/api/r2-file?key=fstb-documents%2FGAJ-FSTB-26-01224.pdf"
-    },
-    "createdAt": "2026-10-24T17:34:24.449Z",
-    "readBy": [
-      "davila.zalianti",
-      "agussalim",
-      "admin",
-      "receiver",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1792859223261-l6eyy",
-    "type": "FSTB_VALIDATED",
-    "title": "✍️ FSTB Divalidasi & Ditandatangani",
-    "message": "User Hermansyah telah mengesahkan FSTB MIL-FSTB-26-00064 (MT DOMINO). Berkas siap dilanjutkan ke proses TTB.",
-    "senderName": "Hermansyah",
-    "senderUsername": "hermansyahz",
-    "senderRole": "supervisor",
-    "targetRole": "staf_ttb",
-    "linkTab": "validasi-dokumen",
-    "metadata": {
-      "noFstb": "MIL-FSTB-26-00064",
-      "armada": "MT DOMINO",
-      "noPo": "MIL-PO-26-00063",
-      "noFpb": "MIL-FPB-26-00000060"
-    },
-    "createdAt": "2026-10-24T16:27:03.261Z",
-    "readBy": [
-      "davila.zalianti",
-      "agussalim",
-      "admin",
-      "receiver",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1792859172040-jx5ob",
-    "type": "FSTB_VALIDATED",
-    "title": "✍️ FSTB Divalidasi & Ditandatangani",
-    "message": "User RAHMAHWATI telah mengesahkan FSTB MIL-FSTB-26-00064 (MT DOMINO). Berkas siap dilanjutkan ke proses TTB.",
-    "senderName": "RAHMAHWATI",
-    "senderUsername": "rahmahwati",
-    "senderRole": "supervisor",
-    "targetRole": "staf_ttb",
-    "linkTab": "validasi-dokumen",
-    "metadata": {
-      "noFstb": "MIL-FSTB-26-00064",
-      "armada": "MT DOMINO",
-      "noPo": "MIL-PO-26-00063",
-      "noFpb": "MIL-FPB-26-00000060"
-    },
-    "createdAt": "2026-10-24T16:26:12.040Z",
-    "readBy": [
-      "davila.zalianti",
-      "agussalim",
-      "admin",
-      "receiver",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1792859109995-9ya8f",
-    "type": "FSTB_VALIDATED",
-    "title": "✍️ FSTB Divalidasi & Ditandatangani",
-    "message": "User IDHAM KHALID telah mengesahkan FSTB MIL-FSTB-26-00064 (MT DOMINO). Berkas siap dilanjutkan ke proses TTB.",
-    "senderName": "IDHAM KHALID",
-    "senderUsername": "idham.khalid",
-    "senderRole": "staf_ttb",
-    "targetRole": "staf_ttb",
-    "linkTab": "validasi-dokumen",
-    "metadata": {
-      "noFstb": "MIL-FSTB-26-00064",
-      "armada": "MT DOMINO",
-      "noPo": "MIL-PO-26-00063",
-      "noFpb": "MIL-FPB-26-00000060"
-    },
-    "createdAt": "2026-10-24T16:25:09.995Z",
-    "readBy": [
-      "davila.zalianti",
-      "agussalim",
-      "admin",
-      "receiver",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1792859020874-9s3oc",
-    "type": "FSTB_UPLOADED",
-    "title": "📦 Dokumen FSTB Baru Siap Diproses TTB",
-    "message": "User NURHAYATI telah mengunggah 1 berkas FSTB MIL-FSTB-26-00064 (MT DOMINO). Mohon diproses untuk persiapan penerimaan & TTB.",
-    "senderName": "NURHAYATI",
-    "senderUsername": "nurhayati",
-    "senderRole": "staf_purchasing",
-    "targetRole": "staf_ttb",
-    "linkTab": "monitoring-internal",
-    "metadata": {
-      "noFstb": "MIL-FSTB-26-00064",
-      "armada": "MT DOMINO",
-      "noPo": "MIL-PO-26-00063",
-      "noFpb": "MIL-FPB-26-00000060",
-      "fileCount": 1,
-      "renamedFileName": "MIL-FSTB-26-00064.pdf",
-      "fileUrl": "/api/r2-file?key=fstb-documents%2FMIL-FSTB-26-00064.pdf"
-    },
-    "createdAt": "2026-10-24T16:23:40.874Z",
-    "readBy": [
-      "idham.khalid",
-      "davila.zalianti",
-      "agussalim",
-      "admin",
-      "receiver",
-      "hermansyahz",
-      "bardi.suddin",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1792855659914-lh6nh",
-    "type": "FSTB_VALIDATED",
-    "title": "✍️ FSTB Divalidasi & Ditandatangani",
-    "message": "User IDHAM KHALID telah mengesahkan FSTB HL-FSTB-26-01833 (MT HL 5001). Berkas siap dilanjutkan ke proses TTB.",
-    "senderName": "IDHAM KHALID",
-    "senderUsername": "idham.khalid",
-    "senderRole": "staf_ttb",
-    "targetRole": "staf_ttb",
-    "linkTab": "validasi-dokumen",
-    "metadata": {
-      "noFstb": "HL-FSTB-26-01833",
-      "armada": "MT HL 5001",
-      "noPo": "HL-PO-26-01672",
-      "noFpb": "HL-FPB-26-0001417"
-    },
-    "createdAt": "2026-10-24T15:27:39.914Z",
-    "readBy": [
-      "davila.zalianti",
-      "agussalim",
-      "admin",
-      "receiver",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "nurul.hafifah"
-    ]
-  },
-  {
-    "id": "notif-1792855609122-qxf24",
-    "type": "FSTB_VALIDATED",
-    "title": "✍️ FSTB Divalidasi & Ditandatangani",
-    "message": "User IDHAM KHALID telah mengesahkan FSTB GAJ-FSTB-26-01223 (WORKSHOP 01 GAJ). Berkas siap dilanjutkan ke proses TTB.",
-    "senderName": "IDHAM KHALID",
-    "senderUsername": "idham.khalid",
-    "senderRole": "staf_ttb",
-    "targetRole": "staf_ttb",
-    "linkTab": "validasi-dokumen",
-    "metadata": {
-      "noFstb": "GAJ-FSTB-26-01223",
-      "armada": "WORKSHOP 01 GAJ",
-      "noPo": "GAJ-PO-26-01167",
-      "noFpb": "GAJ-FPB-26-0001060"
-    },
-    "createdAt": "2026-10-24T15:26:49.122Z",
-    "readBy": [
-      "davila.zalianti",
-      "agussalim",
-      "admin",
-      "receiver",
-      "hermansyahz",
-      "bardi.suddin",
-      "idham.khalid",
-      "nurul.hafifah"
+      "nurul.hafifah",
+      "tri.widiyanto"
     ]
   }
 ]

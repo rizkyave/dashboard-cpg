@@ -1,5 +1,61 @@
 [
   {
+    "ttbId": "GAJ-TTB-26-01404",
+    "noTtb": "GAJ-TTB-26-01404",
+    "armada": "OFFICE GAJ",
+    "noFpb": "GAJ-FPB-26-0001063",
+    "noPo": "GAJ-PO-26-01204",
+    "itemSummary": "Barang Serah Terima Operasional Kapal",
+    "itemsVerified": true,
+    "packagingGood": true,
+    "documentsReady": true,
+    "dispatchNotes": "Pengiriman Pihak Ketiga: Diantar Tim Logistik (AGUSSALIM)",
+    "dispatchedAt": "2026-11-10T08:42:44.903Z",
+    "courierName": "AGUSSALIM"
+  },
+  {
+    "ttbId": "GAJ-TTB-26-01406",
+    "noTtb": "GAJ-TTB-26-01406",
+    "armada": "COMPACTOR ASC 100",
+    "noFpb": "GAJ-FPB-26-0001076",
+    "noPo": "GAJ-PO-26-01183",
+    "itemSummary": "Barang Serah Terima Operasional Kapal",
+    "itemsVerified": true,
+    "packagingGood": true,
+    "documentsReady": true,
+    "dispatchNotes": "Pengiriman Pihak Ketiga: Diantar Tim Logistik (RENALDI)",
+    "dispatchedAt": "2026-11-10T08:38:07.017Z",
+    "courierName": "RENALDI"
+  },
+  {
+    "ttbId": "CPL-TTB-26-07810",
+    "noTtb": "CPL-TTB-26-07810",
+    "armada": "SV TWINSISTER 305",
+    "noFpb": "CPL-FPB-26-0005148",
+    "noPo": "CPL-PO-26-05957",
+    "itemSummary": "Barang Serah Terima Operasional Kapal",
+    "itemsVerified": true,
+    "packagingGood": true,
+    "documentsReady": true,
+    "dispatchNotes": "Pengiriman Pihak Ketiga: Diantar Tim Logistik (ZULFIANSYAH)",
+    "dispatchedAt": "2026-11-10T05:36:31.907Z",
+    "courierName": "ZULFIANSYAH"
+  },
+  {
+    "ttbId": "GAJ-TTB-26-01396",
+    "noTtb": "GAJ-TTB-26-01396",
+    "armada": "OFFICE GAJ",
+    "noFpb": "GAJ-FPB-26-0001116",
+    "noPo": "GAJ-PO-26-01298",
+    "itemSummary": "Barang Serah Terima Operasional Kapal",
+    "itemsVerified": true,
+    "packagingGood": true,
+    "documentsReady": true,
+    "dispatchNotes": "Pengiriman Pihak Ketiga: Diantar Tim Logistik (AGUSSALIM)",
+    "dispatchedAt": "2026-11-10T14:44:24.973Z",
+    "courierName": "AGUSSALIM"
+  },
+  {
     "ttbId": "CPL-TTB-26-05800",
     "noTtb": "CPL-TTB-26-05800",
     "armada": "TB MAPAN 1405",
@@ -9,9 +65,9 @@
     "itemsVerified": true,
     "packagingGood": true,
     "documentsReady": true,
-    "dispatchNotes": "Pengiriman Pihak Ketiga: Diantar Tim Logistik (agus)",
-    "dispatchedAt": "2026-11-08T12:00:07.551Z",
-    "courierName": "agus"
+    "dispatchNotes": "Pengiriman Pihak Ketiga: Diantar Tim Logistik (hamka)",
+    "dispatchedAt": "2026-11-08T12:03:00.630Z",
+    "courierName": "hamka"
   },
   {
     "ttbId": "CPL-TTB-26-07760",
