@@ -403,10 +403,10 @@
         "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Dikonfigurasi manual oleh Admin: Full Access"
       },
       "staf_ttb": {
         "allowed": false,
@@ -565,10 +565,10 @@
         "notes": "Dikonfigurasi manual oleh Admin: Full Access"
       },
       "staf_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Dikonfigurasi manual oleh Admin: Full Access"
       },
       "staf_ttb": {
         "allowed": true,
@@ -679,10 +679,10 @@
         "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_ttb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
+        "allowed": true,
+        "level": "Upload & Kelola",
+        "badgeTone": "emerald",
+        "notes": "Dikonfigurasi manual oleh Admin: Upload & Kelola"
       },
       "staf_lapangan": {
         "allowed": false,

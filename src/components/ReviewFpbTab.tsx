@@ -51,7 +51,12 @@ import {
   Phone,
   User,
   Copy,
+  Plus,
+  FileSpreadsheet,
+  ShieldCheck,
+  Upload,
 } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import {
   formatFpbApprovalWaMessage,
   generateFpbApprovalWaLink,
@@ -252,6 +257,281 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
     fetchReviews();
   }, []);
 
+  // Refs untuk upload file mandiri
+  const excelInputRef = React.useRef<HTMLInputElement>(null);
+  const pdfInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Modal Input Manual Mandiri
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
+  const [newFpbNo, setNewFpbNo] = useState<string>('');
+  const [newEntity, setNewEntity] = useState<string>('CPL');
+  const [newArmada, setNewArmada] = useState<string>('');
+  const [newDate, setNewDate] = useState<string>(() => {
+    const d = new Date();
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yy = String(d.getFullYear()).slice(-2);
+    return `${dd}/${mm}/${yy}`;
+  });
+  const [newPurpose, setNewPurpose] = useState<string>('');
+  const [newPriority, setNewPriority] = useState<FpbPriorityLevel>('P2');
+  const [newUrgency, setNewUrgency] = useState<FpbUrgency>('NORMAL');
+  const [newItems, setNewItems] = useState<Array<{ itemName: string; qty: number; unit: string; description: string }>>([
+    { itemName: '', qty: 1, unit: 'PCS', description: '' },
+  ]);
+
+  // Import Excel/CSV Mandiri
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        setIsSyncing(true);
+        const data = evt.target?.result;
+        const workbook = XLSX.read(data, { type: 'binary' });
+        const firstSheet = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[firstSheet];
+        const rows: any[] = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+
+        if (rows.length === 0) {
+          showToast?.('File Excel/CSV kosong.', 'warning');
+          return;
+        }
+
+        const importedRecords: FpbReviewRecord[] = [];
+        for (const r of rows) {
+          const fpbRaw = r['No FPB'] || r['NO FPB'] || r['No. FPB'] || r['fpb'] || r['FPB'] || r['NO FPB ACCURATE'] || r['Nomor FPB'] || '';
+          if (!fpbRaw || String(fpbRaw).trim().length < 5) continue;
+
+          const fpbNo = String(fpbRaw).trim().replace(/\/LOG\/FPB\//i, '-FPB-');
+          const armada = r['Armada'] || r['ARMADA'] || r['DEPT/ARMADA/PROJECT'] || r['Kapal'] || r['Dept'] || 'Armada Kapal';
+          const entity = r['Entity'] || r['ENTITY'] || r['COMPANY'] || r['Perusahaan'] || (fpbNo.split('-')[0] || 'CPL');
+          const date = r['Tanggal'] || r['TGL'] || r['Date'] || r['Created at'] || '';
+          const purpose = r['Peruntukan'] || r['KETERANGAN'] || r['Keperluan'] || '';
+          const statusLogistik = String(r['PCH / LOGISTIK'] || r['Status Logistik'] || '').toLowerCase();
+          const isReceived = statusLogistik.includes('received') || statusLogistik.includes('diterima');
+
+          importedRecords.push({
+            id: `fpb-rev-${fpbNo}`,
+            fpbNo,
+            originalFpb: String(fpbRaw).trim(),
+            entity: String(entity).toUpperCase().slice(0, 5),
+            armada: String(armada),
+            date: String(date) || new Date().toLocaleDateString('id-ID'),
+            purpose: String(purpose),
+            efpbStatus: 'Approved',
+            isReceivedLogistik: isReceived,
+            pdfUrl: `/api/review-fpb/pdf?fpbNo=${encodeURIComponent(fpbNo)}&type=signed`,
+            reviewStatus: 'PENDING_REVIEW',
+            urgency: 'NORMAL',
+            priorityLevel: 'P3',
+            picPurchasing: '-',
+            reviewNotes: 'Diimpor dari file Excel/CSV mandiri',
+            items: [],
+            duplicateAlerts: [],
+            relatedDocs: { poNos: [], fstbNos: [], ttbNos: [] },
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          });
+        }
+
+        if (importedRecords.length === 0) {
+          showToast?.('Tidak ditemukan kolom nomor FPB yang valid pada file.', 'warning');
+          return;
+        }
+
+        const res = await fetch('/api/review-fpb', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'import_records',
+            records: importedRecords,
+          }),
+        });
+
+        const json = await res.json();
+        if (json.success) {
+          showToast?.(json.message || `Berhasil mengimpor ${importedRecords.length} berkas FPB!`, 'success');
+          fetchReviews();
+        } else {
+          showToast?.(json.message || 'Gagal mengimpor file', 'error');
+        }
+      } catch (err: any) {
+        console.error('Error importing file:', err);
+        showToast?.('Gagal memproses file Excel/CSV: ' + err.message, 'error');
+      } finally {
+        setIsSyncing(false);
+        if (e.target) e.target.value = '';
+      }
+    };
+    reader.readAsBinaryString(file);
+  };
+
+  // Upload PDF FPB Mandiri & Ekstrak Item
+  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsSyncing(true);
+      showToast?.(`Membaca dan mengekstrak isi berkas PDF ${file.name}...`, 'info');
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/parse-fpb-pdf', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const json = await res.json();
+      if (json.success && json.data) {
+        const pd = json.data;
+        const cleanNo = (pd.fpbNo || file.name.replace(/\.pdf$/i, '')).trim();
+
+        const newRecord: FpbReviewRecord = {
+          id: `fpb-rev-${cleanNo}`,
+          fpbNo: cleanNo,
+          originalFpb: cleanNo,
+          entity: cleanNo.split('-')[0] || 'CPL',
+          armada: pd.userArmada || 'Armada Kapal',
+          date: pd.fpbDate || new Date().toLocaleDateString('id-ID'),
+          purpose: pd.tujuanPeruntukan || 'Pengadaan suku cadang/kebutuhan armada',
+          efpbStatus: 'Approved',
+          isReceivedLogistik: Boolean(pd.isLogistikApproved),
+          pdfUrl: `/api/review-fpb/pdf?fpbNo=${encodeURIComponent(cleanNo)}&type=signed`,
+          reviewStatus: 'PENDING_REVIEW',
+          urgency: 'NORMAL',
+          priorityLevel: 'P2',
+          picPurchasing: '-',
+          reviewNotes: 'Diekstrak dari unggahan file PDF fisik mandiri',
+          items: pd.items.map((it: any, i: number) => ({
+            no: it.no || i + 1,
+            itemCode: it.itemCode || '-',
+            itemName: it.itemName || `Barang ${i + 1}`,
+            qty: Number(it.qty) || 1,
+            unit: it.unit || 'PCS',
+            description: it.description || '',
+            priority: it.priority || 'P2',
+            stockAvailable: 0,
+            stockStatus: 'OUT_OF_STOCK',
+            decision: 'PO',
+            notes: 'Menunggu review tim purchasing',
+          })),
+          duplicateAlerts: [],
+          relatedDocs: { poNos: [], fstbNos: [], ttbNos: [] },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+
+        const saveRes = await fetch('/api/review-fpb', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'import_records',
+            records: [newRecord],
+          }),
+        });
+
+        const saveJson = await saveRes.json();
+        if (saveJson.success) {
+          showToast?.(`Berhasil mencatat berkas FPB ${cleanNo} dengan ${pd.items?.length || 0} item material dari PDF!`, 'success');
+          fetchReviews();
+        }
+      } else {
+        showToast?.(json.message || 'Gagal mengekstrak teks dari PDF', 'warning');
+      }
+    } catch (err: any) {
+      console.error('Error uploading PDF FPB:', err);
+      showToast?.('Gagal mengunggah file PDF: ' + err.message, 'error');
+    } finally {
+      setIsSyncing(false);
+      if (e.target) e.target.value = '';
+    }
+  };
+
+  // Simpan FPB Baru Manual
+  const handleCreateFpb = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newFpbNo.trim()) {
+      showToast?.('Nomor FPB wajib diisi.', 'warning');
+      return;
+    }
+
+    try {
+      setIsSyncing(true);
+      const cleanNo = newFpbNo.trim();
+      const nowIso = new Date().toISOString();
+
+      const items: FpbItemReview[] = newItems
+        .filter((it) => it.itemName.trim() !== '')
+        .map((it, idx) => ({
+          no: idx + 1,
+          itemCode: '-',
+          itemName: it.itemName.trim(),
+          qty: Number(it.qty) || 1,
+          unit: it.unit || 'PCS',
+          description: it.description || '',
+          priority: newPriority,
+          stockAvailable: 0,
+          stockStatus: 'OUT_OF_STOCK',
+          decision: 'PO',
+          notes: 'Dibuat secara mandiri',
+        }));
+
+      const newRecord: FpbReviewRecord = {
+        id: `fpb-rev-${cleanNo}`,
+        fpbNo: cleanNo,
+        originalFpb: cleanNo,
+        entity: newEntity,
+        armada: newArmada.trim() || 'Armada Kapal',
+        date: newDate.trim() || new Date().toLocaleDateString('id-ID'),
+        purpose: newPurpose.trim() || 'Kebutuhan Operasional Armada',
+        efpbStatus: 'Approved',
+        isReceivedLogistik: true,
+        pdfUrl: `/api/review-fpb/pdf?fpbNo=${encodeURIComponent(cleanNo)}&type=signed`,
+        reviewStatus: 'PENDING_REVIEW',
+        urgency: newUrgency,
+        priorityLevel: newPriority,
+        picPurchasing: '-',
+        reviewNotes: 'Catatan pengajuan mandiri',
+        items,
+        duplicateAlerts: [],
+        relatedDocs: { poNos: [], fstbNos: [], ttbNos: [] },
+        createdAt: nowIso,
+        updatedAt: nowIso,
+      };
+
+      const res = await fetch('/api/review-fpb', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'import_records',
+          records: [newRecord],
+        }),
+      });
+
+      const json = await res.json();
+      if (json.success) {
+        showToast?.(`Berkas FPB ${cleanNo} berhasil dicatat secara mandiri!`, 'success');
+        setIsCreateModalOpen(false);
+        setNewFpbNo('');
+        setNewArmada('');
+        setNewPurpose('');
+        setNewItems([{ itemName: '', qty: 1, unit: 'PCS', description: '' }]);
+        fetchReviews();
+      } else {
+        showToast?.(json.message || 'Gagal menyimpan FPB baru', 'error');
+      }
+    } catch (err: any) {
+      showToast?.('Gagal menyimpan FPB: ' + err.message, 'error');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   // E-FPB Credentials & Sync Modal State
   const [isSyncModalOpen, setIsSyncModalOpen] = useState<boolean>(false);
   const [efpbUsername, setEfpbUsername] = useState<string>('Hermansyah');
@@ -260,60 +540,10 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
   const [efpbAuthMethod, setEfpbAuthMethod] = useState<'cookie' | 'account'>('cookie');
   const [authErrorMsg, setAuthErrorMsg] = useState<string | null>(null);
 
-  // Load saved credentials from localStorage on client
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const u = localStorage.getItem('EFPB_USERNAME');
-      const p = localStorage.getItem('EFPB_PASSWORD');
-      const s = localStorage.getItem('EFPB_SESSION_ID');
-      if (u) setEfpbUsername(u);
-      if (p) setEfpbPassword(p);
-      if (s) setEfpbSessionId(s);
-    }
-  }, []);
-
-  // Handle Sync with E-FPB
+  // Handle Sync dengan data lokal/R2 mandiri
   const handleSyncEfpb = async (mode: 'quick' | 'full', customSessionId?: string) => {
-    setIsSyncing(true);
-    setSyncMode(mode);
-    setAuthErrorMsg(null);
-    try {
-      const sess = customSessionId !== undefined ? customSessionId : efpbSessionId;
-      const res = await fetch('/api/review-fpb', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'sync_efpb',
-          mode,
-          username: efpbUsername,
-          password: efpbPassword,
-          sessionId: sess,
-        }),
-      });
-      const json = await res.json();
-      if (json.success) {
-        showToast?.(json.message, 'success');
-        if (Array.isArray(json.data)) {
-          setReviews(json.data);
-          if (json.metrics) setMetrics(json.metrics);
-        } else {
-          fetchReviews();
-        }
-        setIsSyncModalOpen(false);
-      } else {
-        const msg = json.message || 'Gagal sinkronisasi dengan server e-FPB';
-        setAuthErrorMsg(msg);
-        showToast?.(msg, 'warning');
-        if (json.requiresAuth || msg.includes('terkunci') || msg.includes('login') || msg.includes('401')) {
-          setIsSyncModalOpen(true);
-        }
-      }
-    } catch (err: any) {
-      console.error('Error syncing e-FPB:', err);
-      showToast?.('Gagal melakukan sinkronisasi dengan server e-FPB', 'error');
-    } finally {
-      setIsSyncing(false);
-    }
+    fetchReviews();
+    showToast?.('Data pengajuan FPB berhasil diperbarui dari database mandiri.', 'success');
   };
 
   // Open Review Detail Modal
@@ -1135,7 +1365,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
   return (
     <div className="space-y-6 animate-in fade-in-50 duration-200">
       {/* ======================================================== */}
-      {/* 1. Header & Actions Hub                                   */}
+      {/* 1. Header & Actions Hub (Mode Mandiri)                    */}
       {/* ======================================================== */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-2xl bg-card border border-border shadow-xs">
         <div>
@@ -1144,77 +1374,96 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
               <ClipboardCheck className="size-6" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h2 className="text-xl font-bold tracking-tight text-foreground">
-                  Review & Analisa FPB
+                  Review &amp; Analisa FPB
                 </h2>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                  e-FPB Server Connected
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                  <ShieldCheck className="size-3.5" />
+                  <span>Mode Mandiri &bull; Bebas IT</span>
                 </span>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Sinkronisasi berkas e-FPB, analisa ketersediaan stok gudang master persediaan, deteksi duplikasi permintaan armada, dan disposisi tindak lanjut PO / Logistik.
+                Pusat review FPB armada, analisa ketersediaan stok gudang master persediaan, deteksi duplikasi, dan disposisi logistik mandiri tanpa ketergantungan server IT.
               </p>
             </div>
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2.5">
+        {/* Hidden File Inputs untuk Import Mandiri */}
+        <input
+          type="file"
+          ref={excelInputRef}
+          onChange={handleFileUpload}
+          accept=".xlsx,.xls,.csv"
+          className="hidden"
+        />
+        <input
+          type="file"
+          ref={pdfInputRef}
+          onChange={handlePdfUpload}
+          accept=".pdf"
+          className="hidden"
+        />
+
+        {/* Action Buttons Mandiri */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Refresh Data Internal */}
           <button
             type="button"
             onClick={fetchReviews}
             disabled={isLoading || isSyncing}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border border-border bg-background hover:bg-muted text-foreground transition shadow-xs cursor-pointer disabled:opacity-50"
-            title="Refresh data dari database Cloudflare R2"
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-xl border border-border bg-background hover:bg-muted text-foreground transition shadow-2xs cursor-pointer disabled:opacity-50"
+            title="Refresh data dari database lokal & Cloudflare R2"
           >
             <RefreshCw className={`size-3.5 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
           </button>
 
+          {/* Export Data ke CSV */}
           <button
             type="button"
             onClick={handleExportCsv}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border border-border bg-background hover:bg-muted text-foreground transition shadow-xs cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-xl border border-border bg-background hover:bg-muted text-foreground transition shadow-2xs cursor-pointer"
             title="Ekspor daftar review ke CSV"
           >
             <Download className="size-3.5 text-muted-foreground" />
             Export CSV
           </button>
 
-          {/* Sync e-FPB Quick Button */}
+          {/* Import File Excel / CSV Hasil Download e-FPB */}
           <button
             type="button"
-            onClick={() => handleSyncEfpb('quick')}
+            onClick={() => excelInputRef.current?.click()}
             disabled={isSyncing}
-            className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition shadow-xs cursor-pointer disabled:opacity-50"
-            title="Tarik 20 berkas FPB terbaru dari server e-FPB FilesList"
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20 transition shadow-2xs cursor-pointer disabled:opacity-50"
+            title="Unggah file ekspor Excel/CSV dari e-FPB atau Accurate secara mandiri"
           >
-            <CloudDownload className={`size-4 ${isSyncing && syncMode === 'quick' ? 'animate-bounce' : ''}`} />
-            <span>{isSyncing && syncMode === 'quick' ? 'Menyinkronkan...' : 'Sync E-FPB (20 Terbaru)'}</span>
+            <FileSpreadsheet className="size-4 text-emerald-600 dark:text-emerald-400" />
+            <span>Import Excel / CSV</span>
           </button>
 
-          {/* Sync e-FPB Full Button */}
+          {/* Upload File PDF FPB Fisik & Ekstrak Item */}
           <button
             type="button"
-            onClick={() => handleSyncEfpb('full')}
+            onClick={() => pdfInputRef.current?.click()}
             disabled={isSyncing}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border border-primary/30 text-primary hover:bg-primary/10 transition shadow-xs cursor-pointer disabled:opacity-50"
-            title="Tarik seluruh riwayat FPB dari semua halaman e-FPB FilesList"
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl border border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300 hover:bg-sky-500/20 transition shadow-2xs cursor-pointer disabled:opacity-50"
+            title="Unggah berkas PDF FPB kapal untuk diekstrak itemnya secara mandiri"
           >
-            <Layers className="size-3.5" />
-            Full Sync All
+            <Upload className="size-4 text-sky-600 dark:text-sky-400" />
+            <span>Upload PDF FPB</span>
           </button>
 
-          {/* Settings & Credentials Modal Button */}
+          {/* Tombol Input Manual Mandiri */}
           <button
             type="button"
-            onClick={() => setIsSyncModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border border-border bg-background hover:bg-muted text-foreground transition shadow-xs cursor-pointer"
-            title="Konfigurasi Login & Session Cookie (PHPSESSID) e-FPB"
+            onClick={() => setIsCreateModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition shadow-xs cursor-pointer"
+            title="Catat pengajuan FPB baru secara manual (misal permintaan mendadak dari kapal via WhatsApp)"
           >
-            <KeyRound className="size-3.5 text-muted-foreground" />
-            <span>Kredensial</span>
+            <Plus className="size-4" />
+            <span>Catat FPB Baru</span>
           </button>
         </div>
       </div>
@@ -3168,208 +3417,264 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
       )}
 
       {/* ======================================================== */}
-      {/* 6. Modal Konfigurasi / Login Server E-FPB               */}
+      {/* 6. Modal Input FPB Baru Secara Mandiri                  */}
       {/* ======================================================== */}
-      {isSyncModalOpen && (
+      {isCreateModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in-50">
-          <div className="relative w-full max-w-lg rounded-2xl bg-card border border-border shadow-2xl overflow-hidden animate-in zoom-in-95">
+          <div className="relative w-full max-w-2xl max-h-[90vh] rounded-2xl bg-card border border-border shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95">
             {/* Modal Header */}
             <div className="flex items-center justify-between p-4 border-b border-border bg-muted/40">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 rounded-xl bg-primary/10 text-primary">
-                  <KeyRound className="size-5" />
+                  <Plus className="size-5" />
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-foreground">
-                    Sinkronisasi & Kredensial e-FPB
+                    Catat Pengajuan FPB Baru (Mode Mandiri)
                   </h3>
                   <p className="text-[11px] text-muted-foreground">
-                    e-fpb.cindaragroup.com/FilesList
+                    Input pengajuan kebutuhan armada kapal langsung ke database internal tanpa tergantung web e-FPB.
                   </p>
                 </div>
               </div>
               <button
                 type="button"
-                onClick={() => setIsSyncModalOpen(false)}
-                className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition cursor-pointer"
+                onClick={() => setIsCreateModalOpen(false)}
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition cursor-pointer"
               >
                 <X className="size-4" />
               </button>
             </div>
 
-            {/* Error / Locked Warning Banner */}
-            {authErrorMsg && (
-              <div className="p-3 mx-4 mt-4 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-start gap-2.5">
-                <ShieldAlert className="size-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
-                <div className="text-xs text-rose-900 dark:text-rose-200">
-                  <div className="font-semibold">Pesan dari Server e-FPB:</div>
-                  <div className="mt-0.5">{authErrorMsg}</div>
+            {/* Modal Form Body */}
+            <form onSubmit={handleCreateFpb} className="overflow-y-auto p-5 space-y-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Nomor FPB */}
+                <div className="space-y-1">
+                  <label className="font-bold text-foreground flex items-center gap-1">
+                    <span>Nomor FPB</span>
+                    <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={newFpbNo}
+                    onChange={(e) => setNewFpbNo(e.target.value.toUpperCase())}
+                    placeholder="Contoh: MIL-FPB-26-0000072"
+                    className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground font-mono focus:outline-hidden focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+
+                {/* Entitas Perusahaan */}
+                <div className="space-y-1">
+                  <label className="font-bold text-foreground">Entitas PT</label>
+                  <select
+                    value={newEntity}
+                    onChange={(e) => setNewEntity(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary cursor-pointer"
+                  >
+                    {ENTITY_OPTIONS.filter((o) => o.code !== 'ALL').map((opt) => (
+                      <option key={opt.code} value={opt.code}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Armada / Kapal */}
+                <div className="space-y-1">
+                  <label className="font-bold text-foreground">Armada Kapal / Dept</label>
+                  <input
+                    type="text"
+                    required
+                    value={newArmada}
+                    onChange={(e) => setNewArmada(e.target.value)}
+                    placeholder="Contoh: TB MUARA MEGA"
+                    className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+
+                {/* Tanggal FPB */}
+                <div className="space-y-1">
+                  <label className="font-bold text-foreground">Tanggal Pengajuan</label>
+                  <input
+                    type="text"
+                    value={newDate}
+                    onChange={(e) => setNewDate(e.target.value)}
+                    placeholder="DD/MM/YY"
+                    className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground font-mono focus:outline-hidden focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+
+                {/* Skala Prioritas */}
+                <div className="space-y-1">
+                  <label className="font-bold text-foreground">Skala Prioritas &amp; SLA</label>
+                  <select
+                    value={newPriority}
+                    onChange={(e) => setNewPriority(e.target.value as FpbPriorityLevel)}
+                    className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary cursor-pointer"
+                  >
+                    <option value="P1">P1 - Utama (1-2 Hari) Kritis / Breakdown</option>
+                    <option value="P2">P2 - Menengah (3-14 Hari) Pemeliharaan</option>
+                    <option value="P3">P3 - Rutin (14-30 Hari) Buffer Stok</option>
+                  </select>
+                </div>
+
+                {/* Urgensi */}
+                <div className="space-y-1">
+                  <label className="font-bold text-foreground">Tingkat Urgensi</label>
+                  <select
+                    value={newUrgency}
+                    onChange={(e) => setNewUrgency(e.target.value as FpbUrgency)}
+                    className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary cursor-pointer"
+                  >
+                    <option value="NORMAL">Normal</option>
+                    <option value="URGENT">URGENT</option>
+                    <option value="EMERGENCY">EMERGENCY (Kapal Tidak Bisa Operasi)</option>
+                  </select>
                 </div>
               </div>
-            )}
 
-            {/* Modal Body */}
-            <div className="p-4 space-y-4">
-              {/* Tab Selector: Cookie vs Account */}
-              <div className="flex items-center p-1 rounded-lg bg-muted border border-border">
-                <button
-                  type="button"
-                  onClick={() => setEfpbAuthMethod('cookie')}
-                  className={`flex-1 py-1.5 px-3 text-xs font-semibold rounded-md transition flex items-center justify-center gap-1.5 cursor-pointer ${
-                    efpbAuthMethod === 'cookie'
-                      ? 'bg-card text-foreground shadow-xs'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  <Cookie className="size-3.5 text-amber-500" />
-                  <span>Session Cookie (PHPSESSID)</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEfpbAuthMethod('account')}
-                  className={`flex-1 py-1.5 px-3 text-xs font-semibold rounded-md transition flex items-center justify-center gap-1.5 cursor-pointer ${
-                    efpbAuthMethod === 'account'
-                      ? 'bg-card text-foreground shadow-xs'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  <Lock className="size-3.5" />
-                  <span>Username & Password</span>
-                </button>
+              {/* Peruntukan / Keperluan */}
+              <div className="space-y-1">
+                <label className="font-bold text-foreground">Peruntukan / Keperluan Operasional</label>
+                <textarea
+                  rows={2}
+                  value={newPurpose}
+                  onChange={(e) => setNewPurpose(e.target.value)}
+                  placeholder="Contoh: Kebutuhan suku cadang perbaikan mesin bantu (AE Kanan) & consumable bulanan kapal"
+                  className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary"
+                />
               </div>
 
-              {/* METHOD 1: Cookie (Recommended during lockout) */}
-              {efpbAuthMethod === 'cookie' ? (
-                <div className="space-y-3">
-                  <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs text-amber-900 dark:text-amber-200 space-y-1">
-                    <p className="font-semibold flex items-center gap-1">
-                      💡 Solusi Cepat / Bypass Limit Akun 20 Menit:
-                    </p>
-                    <p className="text-[11px] text-amber-800 dark:text-amber-300">
-                      Jika Anda sedang membuka website e-FPB di browser Anda:
-                    </p>
-                    <ol className="text-[11px] list-decimal list-inside space-y-0.5 text-amber-800 dark:text-amber-300">
-                      <li>Buka tab browser yang membuka <strong>e-fpb.cindaragroup.com</strong></li>
-                      <li>Tekan <strong>F12</strong> &rarr; tab <strong>Application</strong> &rarr; <strong>Cookies</strong></li>
-                      <li>Copy nilai cookie <strong>PHPSESSID</strong> dan tempel di bawah:</li>
-                    </ol>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-foreground mb-1">
-                      Nilai Cookie PHPSESSID:
-                    </label>
-                    <input
-                      type="text"
-                      value={efpbSessionId}
-                      onChange={(e) => {
-                        const val = e.target.value.trim();
-                        setEfpbSessionId(val);
-                        if (typeof window !== 'undefined') {
-                          localStorage.setItem('EFPB_SESSION_ID', val);
-                        }
-                      }}
-                      placeholder="Contoh: ogbrngqaj76poogae69oju40db"
-                      className="w-full py-2 px-3 text-xs font-mono rounded-lg border border-border bg-background text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20"
-                    />
-                  </div>
-                </div>
-              ) : (
-                /* METHOD 2: Username & Password */
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-foreground mb-1">
-                      Username e-FPB:
-                    </label>
-                    <input
-                      type="text"
-                      value={efpbUsername}
-                      onChange={(e) => {
-                        setEfpbUsername(e.target.value);
-                        if (typeof window !== 'undefined') {
-                          localStorage.setItem('EFPB_USERNAME', e.target.value);
-                        }
-                      }}
-                      placeholder="Username..."
-                      className="w-full py-2 px-3 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-foreground mb-1">
-                      Password e-FPB:
-                    </label>
-                    <input
-                      type="password"
-                      value={efpbPassword}
-                      onChange={(e) => {
-                        setEfpbPassword(e.target.value);
-                        if (typeof window !== 'undefined') {
-                          localStorage.setItem('EFPB_PASSWORD', e.target.value);
-                        }
-                      }}
-                      placeholder="Password..."
-                      className="w-full py-2 px-3 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Mode Selection */}
-              <div>
-                <label className="block text-xs font-semibold text-foreground mb-1.5">
-                  Mode Pengambilan Data:
-                </label>
-                <div className="grid grid-cols-2 gap-2">
+              {/* Daftar Barang Material */}
+              <div className="space-y-2 pt-2 border-t border-border">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-foreground flex items-center gap-1.5">
+                    <Boxes className="size-4 text-primary" />
+                    <span>Rincian Item Barang ({newItems.length} Barang)</span>
+                  </span>
                   <button
                     type="button"
-                    onClick={() => setSyncMode('quick')}
-                    className={`p-2.5 rounded-lg border text-left transition cursor-pointer ${
-                      syncMode === 'quick'
-                        ? 'border-primary bg-primary/10 text-primary'
-                        : 'border-border bg-background text-muted-foreground hover:text-foreground'
-                    }`}
+                    onClick={() =>
+                      setNewItems([
+                        ...newItems,
+                        { itemName: '', qty: 1, unit: 'PCS', description: '' },
+                      ])
+                    }
+                    className="px-2.5 py-1 rounded-lg border border-primary/30 text-primary hover:bg-primary/10 font-bold transition flex items-center gap-1 cursor-pointer"
                   >
-                    <div className="text-xs font-bold">Quick Sync (20 FPB)</div>
-                    <div className="text-[10px] mt-0.5 opacity-80">Hanya berkas terbaru</div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setSyncMode('full')}
-                    className={`p-2.5 rounded-lg border text-left transition cursor-pointer ${
-                      syncMode === 'full'
-                        ? 'border-primary bg-primary/10 text-primary'
-                        : 'border-border bg-background text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    <div className="text-xs font-bold">Full Sync (Semua)</div>
-                    <div className="text-[10px] mt-0.5 opacity-80">Menyeluruh seluruh arsip</div>
+                    <Plus className="size-3.5" />
+                    <span>Tambah Baris</span>
                   </button>
                 </div>
+
+                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                  {newItems.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="p-2.5 rounded-xl border border-border bg-muted/20 grid grid-cols-12 gap-2 items-center"
+                    >
+                      <div className="col-span-5">
+                        <input
+                          type="text"
+                          required
+                          value={item.itemName}
+                          onChange={(e) => {
+                            const updated = [...newItems];
+                            updated[idx].itemName = e.target.value;
+                            setNewItems(updated);
+                          }}
+                          placeholder={`Nama barang #${idx + 1}`}
+                          className="w-full px-2.5 py-1.5 rounded-lg border border-border bg-background text-foreground"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <input
+                          type="number"
+                          min={1}
+                          value={item.qty}
+                          onChange={(e) => {
+                            const updated = [...newItems];
+                            updated[idx].qty = Number(e.target.value) || 1;
+                            setNewItems(updated);
+                          }}
+                          placeholder="Qty"
+                          className="w-full px-2 py-1.5 rounded-lg border border-border bg-background text-foreground font-mono text-center"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <input
+                          type="text"
+                          value={item.unit}
+                          onChange={(e) => {
+                            const updated = [...newItems];
+                            updated[idx].unit = e.target.value.toUpperCase();
+                            setNewItems(updated);
+                          }}
+                          placeholder="Satuan"
+                          className="w-full px-2 py-1.5 rounded-lg border border-border bg-background text-foreground font-mono text-center"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <input
+                          type="text"
+                          value={item.description}
+                          onChange={(e) => {
+                            const updated = [...newItems];
+                            updated[idx].description = e.target.value;
+                            setNewItems(updated);
+                          }}
+                          placeholder="Keterangan"
+                          className="w-full px-2 py-1.5 rounded-lg border border-border bg-background text-foreground"
+                        />
+                      </div>
+                      <div className="col-span-1 flex justify-center">
+                        {newItems.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => setNewItems(newItems.filter((_, i) => i !== idx))}
+                            className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-500/10 transition cursor-pointer"
+                            title="Hapus baris"
+                          >
+                            <Trash2 className="size-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Modal Footer */}
-            <div className="flex items-center justify-end gap-2.5 p-4 border-t border-border bg-muted/40">
-              <button
-                type="button"
-                onClick={() => setIsSyncModalOpen(false)}
-                className="px-3.5 py-1.5 text-xs font-medium rounded-lg border border-border bg-background hover:bg-muted transition text-foreground cursor-pointer"
-              >
-                Tutup
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleSyncEfpb(syncMode)}
-                disabled={isSyncing}
-                className="inline-flex items-center gap-2 px-4 py-1.5 text-xs font-bold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition shadow-xs cursor-pointer disabled:opacity-50"
-              >
-                <CloudDownload className={`size-3.5 ${isSyncing ? 'animate-bounce' : ''}`} />
-                <span>{isSyncing ? 'Menghubungkan...' : 'Mulai Sinkronisasi'}</span>
-              </button>
-            </div>
+              {/* Modal Footer */}
+              <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-border">
+                <button
+                  type="button"
+                  onClick={() => setIsCreateModalOpen(false)}
+                  disabled={isSyncing}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-muted hover:bg-muted/80 text-foreground transition cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSyncing}
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  {isSyncing ? (
+                    <>
+                      <Loader2 className="size-3.5 animate-spin" />
+                      <span>Menyimpan...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="size-3.5" />
+                      <span>Simpan FPB Baru</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

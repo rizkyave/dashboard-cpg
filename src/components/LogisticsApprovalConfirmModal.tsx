@@ -172,66 +172,17 @@ export default function LogisticsApprovalConfirmModal({
             </div>
           </div>
 
-          {/* SINKRONISASI TOMBOL e-FPB */}
-          <div className="p-3.5 rounded-xl border border-border bg-muted/30 space-y-2.5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Zap className="size-4 text-amber-500 shrink-0" />
-                <span className="font-bold text-xs text-foreground">
-                  Aksi Tombol Received_Logistic di e-FPB
-                </span>
-              </div>
-              <a
-                href={directEfpbUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline font-semibold"
-                title="Buka baris dokumen ini di web e-FPB FilesList"
-              >
-                <span>Buka di e-FPB</span>
-                <ExternalLink className="size-3" />
-              </a>
+          {/* PENGESAHAN MANDIRI */}
+          <div className="p-3.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 space-y-1.5">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="size-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <span className="font-bold text-xs text-foreground">
+                Pengesahan Mandiri (Database Dashboard &amp; Cloud R2)
+              </span>
             </div>
-
             <p className="text-[11px] text-muted-foreground leading-relaxed">
-              Saat disetujui, sistem akan otomatis mengirimkan sinyal persetujuan untuk menekan tombol <strong>Received_Logistic</strong> pada baris FPB ini di web e-FPB, membubuhkan tanda tangan staf secara sah, dan mengubah status di dashboard menjadi <strong>Siap Pengadaan</strong>.
+              Pengesahan status <strong>Received_Logistic</strong> akan dicatat langsung di database internal dashboard dan Cloudflare R2 secara mandiri, mengesahkan berkas untuk siap diproses tim purchasing tanpa menyentuh server IT eksternal.
             </p>
-
-            <div className="pt-2 border-t border-border/60 flex items-center justify-between text-[11px]">
-              <div className="flex items-center gap-1.5">
-                <span
-                  className={`size-2 rounded-full ${
-                    hasActiveSession ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
-                  }`}
-                />
-                <span className="text-muted-foreground">
-                  {hasActiveSession ? 'Sesi e-FPB aktif terhubung' : 'Sesi e-FPB (Opsional / Standby)'}
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowSessionInput(!showSessionInput)}
-                className="text-primary hover:underline font-medium text-[11px] cursor-pointer"
-              >
-                {showSessionInput ? 'Sembunyikan Cookie' : 'Atur Cookie PHPSESSID'}
-              </button>
-            </div>
-
-            {showSessionInput && (
-              <div className="pt-2 space-y-1.5 animate-in fade-in duration-150">
-                <label className="text-[10px] text-muted-foreground font-semibold flex items-center gap-1">
-                  <KeyRound className="size-3" />
-                  <span>Cookie PHPSESSID Browser e-FPB (dari browser):</span>
-                </label>
-                <input
-                  type="text"
-                  value={customSessionId}
-                  onChange={(e) => setCustomSessionId(e.target.value)}
-                  placeholder="Contoh: us04j0rcujqntjltp9qf9n4j39"
-                  className="w-full px-3 py-1.5 rounded-lg border border-border bg-background text-foreground font-mono text-[11px] focus:outline-hidden focus:ring-1 focus:ring-primary"
-                />
-              </div>
-            )}
           </div>
         </div>
 

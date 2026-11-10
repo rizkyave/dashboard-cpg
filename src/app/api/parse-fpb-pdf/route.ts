@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import zlib from 'zlib';
+import fs from 'fs';
+import path from 'path';
 import { formatDateDdMmYy } from '@/utils/formatDate';
 import { cleanSingleDescription, deduplicateDescriptions } from '@/utils/descriptionCleaner';
+import { isR2Configured, getObjectFromR2, uploadToR2 } from '@/utils/r2Client';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -637,182 +640,56 @@ function extractPdfData(
 }
 
 /**
- * Mencari URL PDF asli di e-FPB FilesList via internal authentication search.
- * Berguna saat dokumen memiliki nama khusus atau revisi yang tidak tertebak.
+ * PDF Resolver Mode Mandiri:
+ * Membaca dari Cloudflare R2 atau folder lokal dashboard internal.
+ * TIDAK PERNAH menghubungi e-fpb.cindaragroup.com demi keamanan sistem.
  */
-async function searchFilesListForPdfUrl(cleanDoc: string): Promise<string | null> {
-  const username = 'Hermansyah';
-  const password = 'Biocpl24!@#';
-
-  try {
-    // 1. Dapatkan CSRF & Session Cookie
-    const loginRes = await fetch('https://e-fpb.cindaragroup.com/login', {
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      },
-      cache: 'no-store',
-    });
-    const initCookies = (loginRes.headers as any).getSetCookie
-      ? (loginRes.headers as any).getSetCookie()
-      : [loginRes.headers.get('set-cookie') || ''];
-    const cookieHeader = initCookies.map((c: string) => c.split(';')[0]).join('; ');
-
-    const html = await loginRes.text();
-    const csrfName = html.split('name="csrf_name" value="')[1]?.split('"')[0] || '';
-    const csrfVal = html.split('name="csrf_value" value="')[1]?.split('"')[0] || '';
-
-    const fd = new FormData();
-    if (csrfName) fd.append('csrf_name', csrfName);
-    if (csrfVal) fd.append('csrf_value', csrfVal);
-    if (csrfName && csrfVal) fd.append(csrfName, csrfVal);
-    fd.append('username', username);
-    fd.append('password', password);
-
-    // 2. Lakukan login POST
-    const authRes = await fetch('https://e-fpb.cindaragroup.com/login', {
-      method: 'POST',
-      headers: {
-        Cookie: cookieHeader,
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      },
-      body: fd,
-      redirect: 'manual',
-      cache: 'no-store',
-    });
-    const authCookies = (authRes.headers as any).getSetCookie
-      ? (authRes.headers as any).getSetCookie()
-      : [authRes.headers.get('set-cookie') || ''];
-    const fullCookie = [...initCookies, ...authCookies].map((c: string) => c.split(';')[0]).join('; ');
-
-    // 3. Cari di FilesList dengan query search nomor FPB
-    const searchUrl = `https://e-fpb.cindaragroup.com/FilesList?cmd=search&search=${encodeURIComponent(
-      cleanDoc
-    )}`;
-    const searchRes = await fetch(searchUrl, {
-      headers: {
-        Cookie: fullCookie,
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      },
-      cache: 'no-store',
-    });
-    if (!searchRes.ok) return null;
-
-    const searchHtml = await searchRes.text();
-    const pdfMatches = searchHtml.match(/files\/[^\s"'\\]+\.pdf/gi) || [];
-    if (pdfMatches.length === 0) return null;
-
-    // Filter PDF yang berkaitan dengan nomor FPB
-    const cleanDocRaw = cleanDoc.replace(/[^A-Za-z0-9]/g, '').toLowerCase();
-    const matchedPdf =
-      pdfMatches.find((p) =>
-        p.replace(/[^A-Za-z0-9]/g, '').toLowerCase().includes(cleanDocRaw)
-      ) || pdfMatches[0];
-
-    if (matchedPdf) {
-      const rawPath = matchedPdf.replace(/^\/+/, '');
-      return `https://e-fpb.cindaragroup.com/${rawPath}`;
-    }
-  } catch (err) {
-    console.warn('[searchFilesListForPdfUrl] Error searching FilesList:', err);
-  }
-
-  return null;
-}
-
-/**
- * Mencari berkas PDF e-FPB dengan strategi bertingkat:
- * 1. Probing pola variasi revisi (_rev_rev_rev..._) secara paralel (cepat ~200-500ms, tanpa auth)
- * 2. Fallback pencarian di e-FPB FilesList via internal authentication search jika pola standar 404
- */
-async function resolveEfpbPdf(
+async function resolveLocalOrR2Pdf(
   cleanDoc: string
 ): Promise<{ buffer: Buffer; url: string; isLogistik: boolean } | null> {
   const normalizedDoc = cleanDoc.replace(/\/LOG\/FPB\//i, '-FPB-').trim();
-  const enc = encodeURIComponent(normalizedDoc);
+  const LOCAL_PDF_DIR = path.join(process.cwd(), 'public', 'uploads', 'fpb');
 
-  // 1. Probing pola revisi e-FPB
-  const prefixes = [
-    { prefix: 'logistik_Approved_', isLogistik: true },
-    { prefix: 'Approved_', isLogistik: false },
-  ];
-
-  const candidateUrls: Array<{ url: string; isLogistik: boolean }> = [];
-  // Cek dari revisi tertinggi (terbaru) ke terendah
-  for (const { prefix, isLogistik } of prefixes) {
-    for (let r = 8; r >= 0; r--) {
-      const revStr = r === 0 ? '' : Array(r).fill('rev').join('_') + '_';
-      candidateUrls.push({
-        url: `https://e-fpb.cindaragroup.com/files/${prefix}${revStr}sign_${enc}.pdf`,
-        isLogistik,
-      });
-    }
-  }
-
-  try {
-    const probeResults = await Promise.all(
-      candidateUrls.map(async (c) => {
-        try {
-          const res = await fetch(c.url, {
-            method: 'HEAD',
-            headers: {
-              'User-Agent':
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            },
-            cache: 'no-store',
-          });
-          return { ...c, ok: res.ok && res.status === 200 };
-        } catch {
-          return { ...c, ok: false };
+  // 1. Cek Cloudflare R2
+  if (isR2Configured()) {
+    const r2Keys = [
+      `fpb-signed/${normalizedDoc}.pdf`,
+      `fpb-raw/${normalizedDoc}.pdf`,
+      `fpb-pdfs/${normalizedDoc}.pdf`,
+      `dashboard-metadata/fpb-pdfs/${normalizedDoc}.pdf`,
+    ];
+    for (const key of r2Keys) {
+      try {
+        const obj = await getObjectFromR2(key);
+        if (obj && obj.body) {
+          return {
+            buffer: Buffer.from(obj.body),
+            url: `/api/review-fpb/pdf?fpbNo=${encodeURIComponent(normalizedDoc)}&type=signed`,
+            isLogistik: key.includes('signed'),
+          };
         }
-      })
-    );
-
-    const matched = probeResults.find((r) => r.ok);
-    if (matched) {
-      console.log(`[parse-fpb-pdf] Berhasil menemukan PDF revisi: ${matched.url}`);
-      const getRes = await fetch(matched.url, {
-        headers: {
-          'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        },
-        cache: 'no-store',
-      });
-      if (getRes.ok) {
-        const ab = await getRes.arrayBuffer();
-        return { buffer: Buffer.from(ab), url: matched.url, isLogistik: matched.isLogistik };
+      } catch {
+        // Continue
       }
     }
-  } catch (probeErr) {
-    console.warn('[parse-fpb-pdf] Gagal saat probing variasi revisi:', probeErr);
   }
 
-  // 2. Fallback: Cari langsung ke e-FPB FilesList via Search Keyword (mengambil data dari FilesList)
-  try {
-    console.log(`[parse-fpb-pdf] Mencari dokumen ${normalizedDoc} di e-FPB FilesList...`);
-    const filesListUrl = await searchFilesListForPdfUrl(normalizedDoc);
-    if (filesListUrl) {
-      console.log(`[parse-fpb-pdf] Ditemukan PDF dari FilesList: ${filesListUrl}`);
-      const getRes = await fetch(filesListUrl, {
-        headers: {
-          'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        },
-        cache: 'no-store',
-      });
-      if (getRes.ok) {
-        const ab = await getRes.arrayBuffer();
+  // 2. Cek penyimpanan lokal
+  if (fs.existsSync(LOCAL_PDF_DIR)) {
+    const candidateFiles = [
+      path.join(LOCAL_PDF_DIR, `${normalizedDoc}.pdf`),
+      path.join(LOCAL_PDF_DIR, `Approved_rev_sign_${normalizedDoc}.pdf`),
+      path.join(LOCAL_PDF_DIR, `logistik_Approved_rev_sign_${normalizedDoc}.pdf`),
+    ];
+    for (const p of candidateFiles) {
+      if (fs.existsSync(p)) {
         return {
-          buffer: Buffer.from(ab),
-          url: filesListUrl,
-          isLogistik: filesListUrl.includes('logistik_'),
+          buffer: fs.readFileSync(p),
+          url: `/api/review-fpb/pdf?fpbNo=${encodeURIComponent(normalizedDoc)}&type=signed`,
+          isLogistik: p.includes('logistik_'),
         };
       }
     }
-  } catch (searchErr) {
-    console.warn('[parse-fpb-pdf] Gagal mencari di FilesList:', searchErr);
   }
 
   return null;
@@ -836,18 +713,15 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const resolved = await resolveEfpbPdf(cleanDoc);
+    const resolved = await resolveLocalOrR2Pdf(cleanDoc);
 
     if (!resolved) {
-      const fallbackUrl = `https://e-fpb.cindaragroup.com/files/Approved_rev_sign_${encodeURIComponent(
-        cleanDoc
-      )}.pdf`;
       return NextResponse.json(
         {
           success: false,
           status: 404,
-          message: `Dokumen PDF untuk ${cleanDoc} tidak ditemukan di server e-FPB (404 Not Found). Silakan cek apakah berkas sudah diupload di e-fpb.cindaragroup.com/FilesList.`,
-          pdfUrl: fallbackUrl,
+          message: `Dokumen PDF untuk ${cleanDoc} belum diunggah ke storage internal dashboard. Silakan unggah file PDF melalui tombol Upload PDF FPB.`,
+          isOfflineMode: true,
         },
         { status: 404 }
       );
@@ -878,12 +752,69 @@ export async function GET(request: NextRequest) {
       data: parsedData,
     });
   } catch (error: any) {
-    console.error('Error fetching or parsing FPB PDF:', error);
+    console.error('Error parsing FPB PDF:', error);
     return NextResponse.json(
       {
         success: false,
-        message: error.message || 'Gagal membaca isi berkas PDF e-FPB.',
+        message: error.message || 'Gagal membaca isi berkas PDF lokal.',
       },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * POST handler untuk upload file PDF FPB secara langsung (Drag & Drop / File Picker)
+ * Mengekstrak item secara lokal tanpa menghubungi server eksternal IT.
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const formData = await request.formData();
+    const file = formData.get('file') as File | null;
+    const fpbNoHint = (formData.get('fpbNo') as string) || '';
+
+    if (!file) {
+      return NextResponse.json(
+        { success: false, message: 'File PDF wajib diunggah.' },
+        { status: 400 }
+      );
+    }
+
+    const ab = await file.arrayBuffer();
+    const buffer = Buffer.from(ab);
+    const filename = file.name || `${fpbNoHint || 'FPB'}.pdf`;
+
+    // Ekstrak teks & item
+    const parsedData = extractPdfData(
+      buffer,
+      fpbNoHint || filename.replace(/\.pdf$/i, ''),
+      `/api/review-fpb/pdf?fpbNo=${encodeURIComponent(fpbNoHint || filename)}`,
+      true
+    );
+
+    // Simpan ke R2 / folder lokal jika ada nomor FPB
+    const cleanFpb = parsedData.fpbNo || fpbNoHint;
+    if (cleanFpb && isR2Configured()) {
+      try {
+        await uploadToR2({
+          key: `fpb-pdfs/${cleanFpb}.pdf`,
+          body: buffer,
+          contentType: 'application/pdf',
+        });
+      } catch (r2Err) {
+        console.warn('Gagal upload parsed PDF ke R2:', r2Err);
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: `Berhasil mengekstrak ${parsedData.items.length} item material dari file PDF secara mandiri!`,
+      data: parsedData,
+    });
+  } catch (err: any) {
+    console.error('Error in POST /api/parse-fpb-pdf:', err);
+    return NextResponse.json(
+      { success: false, message: err.message || 'Gagal memproses file PDF yang diunggah.' },
       { status: 500 }
     );
   }

@@ -921,7 +921,7 @@ export async function POST(req: NextRequest) {
           purpose: body.purpose || '',
           efpbStatus: body.efpbStatus || 'Approved',
           isReceivedLogistik: body.isReceivedLogistik ?? true,
-          pdfUrl: body.pdfUrl || `https://e-fpb.cindaragroup.com/files/Approved_rev_sign_${encodeURIComponent(fpbNo)}.pdf`,
+          pdfUrl: body.pdfUrl || `/api/review-fpb/pdf?fpbNo=${encodeURIComponent(fpbNo)}&type=signed`,
           reviewStatus: reviewStatus || 'PENDING_REVIEW',
           urgency: urgency || 'NORMAL',
           picPurchasing: picPurchasing || '-',
@@ -1064,119 +1064,52 @@ export async function POST(req: NextRequest) {
     }
 
     // ----------------------------------------------------
-    // Action 2: Sync from E-FPB FilesList
+    // Action 2: Import Records secara Mandiri (Excel/CSV/JSON)
     // ----------------------------------------------------
-    if (action === 'sync_efpb') {
-      const mode = body.mode || 'quick'; // 'quick' (20) or 'full' (all pages)
-      const username = body.username || 'Hermansyah';
-      const password = body.password || 'Biocpl24!@#';
-      const sessionId = body.sessionId || '';
+    if (action === 'sync_efpb' || action === 'import_records') {
+      const importedRecords: FpbReviewRecord[] = Array.isArray(body.records) ? body.records : [];
 
-      // Call internal sync-efpb-files API
-      const syncUrl = new URL(
-        `/api/sync-efpb-files?mode=${encodeURIComponent(mode)}&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&sessionId=${encodeURIComponent(sessionId)}`,
-        req.url
-      );
-
-      const syncRes = await fetch(syncUrl.toString(), { cache: 'no-store' });
-      const syncData = await syncRes.json().catch(() => ({}));
-
-      if (!syncRes.ok || !syncData.success) {
-        return NextResponse.json(
-          {
-            success: false,
-            requiresAuth: syncRes.status === 401 || syncData.requiresAuth,
-            message: syncData.message || `Gagal mengambil berkas e-FPB (HTTP ${syncRes.status}).`,
-          },
-          { status: syncRes.status || 502 }
-        );
-      }
-
-      if (!Array.isArray(syncData.procurement)) {
-        return NextResponse.json(
-          { success: false, message: syncData.message || 'Data e-FPB tidak valid.' },
-          { status: 400 }
-        );
+      if (importedRecords.length === 0) {
+        return NextResponse.json({
+          success: true,
+          mode: 'standalone',
+          message: 'Mode Mandiri: Menggunakan data lokal/R2 dashboard internal tanpa menghubungi server IT.',
+          addedCount: 0,
+          updatedCount: 0,
+          total: records.length,
+        });
       }
 
       let addedCount = 0;
       let updatedCount = 0;
       const nowIso = new Date().toISOString();
 
-      // Merge new FPB entries without overwriting existing review decisions
-      for (const efpb of syncData.procurement) {
-        if (!efpb.fpb || efpb.fpb === '-') continue;
-
-        const cleanNo = efpb.fpb.trim();
+      for (const efpb of importedRecords) {
+        if (!efpb.fpbNo || efpb.fpbNo === '-') continue;
+        const cleanNo = efpb.fpbNo.trim();
         const existingIdx = records.findIndex(
           (r) => r.fpbNo.toLowerCase() === cleanNo.toLowerCase()
         );
 
         if (existingIdx >= 0) {
-          // Preserve existing review status, pic, notes, items, but update with latest metadata
-          const existing = records[existingIdx];
-          const newAtts = ((efpb as any).attachments && (efpb as any).attachments.length > 0)
-            ? (efpb as any).attachments
-            : [];
-          const mergedAtts = [...(existing.attachments || [])];
-          for (const att of newAtts) {
-            if (!mergedAtts.some((a: any) => a.url === att.url || a.name === att.name)) {
-              mergedAtts.push(att);
-            }
-          }
-
           records[existingIdx] = {
-            ...existing,
-            armada: efpb.deptArmada || existing.armada,
-            purpose: efpb.peruntukan || existing.purpose,
-            isReceivedLogistik: efpb.statusBadge?.includes('TERDAFTAR') || existing.isReceivedLogistik,
-            isRevised: efpb.isRevised !== undefined ? efpb.isRevised : existing.isRevised,
-            revisionCount: efpb.revisionCount !== undefined ? efpb.revisionCount : existing.revisionCount,
-            revisionNote: efpb.revisionNote !== undefined ? efpb.revisionNote : existing.revisionNote,
-            pdfUrl: (efpb.pdfUrl && !efpb.pdfUrl.includes('Approved_rev_sign_')) ? efpb.pdfUrl : existing.pdfUrl,
-            attachments: mergedAtts,
+            ...records[existingIdx],
+            ...efpb,
             updatedAt: nowIso,
           };
           updatedCount++;
         } else {
-          // Add newly discovered FPB
-          const rel = findDocumentsByFpb(cleanNo);
           records.unshift({
-            id: `fpb-rev-${cleanNo}`,
-            fpbNo: cleanNo,
-            originalFpb: cleanNo.replace(/-FPB-/i, '/LOG/FPB/'),
-            entity: efpb.entity || 'CPL',
-            armada: efpb.deptArmada || 'Armada Kapal',
-            date: efpb.date || formatDateDdMmYy(nowIso),
-            purpose: efpb.peruntukan || 'Pengadaan Kebutuhan Operasional Kapal',
-            efpbStatus: 'Approved',
-            isReceivedLogistik: Boolean(efpb.statusBadge?.includes('TERDAFTAR')),
-            pdfUrl: efpb.pdfUrl || `https://e-fpb.cindaragroup.com/files/${encodeURIComponent(cleanNo)}.pdf`,
-            reviewStatus: 'PENDING_REVIEW',
-            urgency: 'NORMAL',
-            picPurchasing: '-',
-            reviewNotes: '',
-            isRevised: efpb.isRevised,
-            revisionCount: efpb.revisionCount,
-            revisionNote: efpb.revisionNote,
-            items: [],
-            attachments: (efpb as any).attachments || [],
-            duplicateAlerts: [],
-            relatedDocs: {
-              poNos: rel?.pos || [],
-              fstbNos: rel?.fstbs || [],
-              ttbNos: rel?.ttbs || [],
-            },
+            ...efpb,
+            id: efpb.id || `fpb-rev-${cleanNo}`,
+            reviewStatus: efpb.reviewStatus || 'PENDING_REVIEW',
+            urgency: efpb.urgency || 'NORMAL',
+            createdAt: efpb.createdAt || nowIso,
             updatedAt: nowIso,
-            createdAt: nowIso,
           });
           addedCount++;
         }
       }
-
-      // Deduplikasi ketat: pastikan satu nomor FPB hanya memiliki satu rekaman dengan revisi terbaru
-      const { records: dedupedAfterSync } = deduplicateReviews(records);
-      records = dedupedAfterSync;
 
       const { records: tkbRecords } = ensureTkbNumbers(records);
       records = tkbRecords;
@@ -1186,12 +1119,11 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message: `Sinkronisasi e-FPB berhasil! Ditambahkan: ${addedCount} FPB baru, Diperbarui: ${updatedCount} FPB.`,
+        mode: 'standalone',
+        message: `Berhasil mengimpor data pengajuan secara mandiri: ${addedCount} baru, ${updatedCount} diperbarui!`,
         addedCount,
         updatedCount,
         total: records.length,
-        metrics: calculateMetrics(records),
-        data: records,
       });
     }
 
@@ -1383,7 +1315,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ----------------------------------------------------
-    // Action 5b: Verifikasi Pengesahan Dokumen di Real Server e-FPB
+    // Action 5b: Verifikasi Pengesahan Dokumen (Mode Mandiri)
     // ----------------------------------------------------
     if (action === 'verify_efpb' || action === 'check_efpb_status') {
       const { fpbNo } = body;
@@ -1392,51 +1324,22 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: false, message: 'FPB tidak ditemukan.' }, { status: 404 });
       }
 
-      const cleanFpb = records[targetIdx].fpbNo;
-      const signedUrl = `https://e-fpb.cindaragroup.com/files/logistik_Approved_rev_sign_${encodeURIComponent(cleanFpb)}.pdf`;
-
-      try {
-        const headRes = await fetch(signedUrl, { method: 'HEAD', cache: 'no-store' });
-        if (headRes.ok) {
-          records[targetIdx] = {
-            ...records[targetIdx],
-            isReceivedLogistik: true,
-            pchLogistik: 'Received_Logistic',
-            pdfUrl: signedUrl,
-            updatedAt: new Date().toISOString(),
-          };
-          await saveReviews(records);
-
-          return NextResponse.json({
-            success: true,
-            isSignedOnEfpb: true,
-            message: `Dokumen ${cleanFpb} telah sah ditandatangani di e-FPB dan siap untuk pengadaan!`,
-            record: records[targetIdx],
-          });
-        } else {
-          // Dokumen belum ditekan Received_Logistic di e-FPB
-          return NextResponse.json({
-            success: false,
-            isSignedOnEfpb: false,
-            message: `Tombol Received_Logistic untuk ${cleanFpb} belum ditekan di e-FPB. Silakan klik tombol 'Sahkan di e-FPB' terlebih dahulu.`,
-            record: records[targetIdx],
-          });
-        }
-      } catch (err: any) {
-        return NextResponse.json({
-          success: false,
-          isSignedOnEfpb: false,
-          message: `Gagal memeriksa status e-FPB: ${err.message}`,
-          record: records[targetIdx],
-        });
-      }
+      return NextResponse.json({
+        success: true,
+        mode: 'standalone',
+        isSignedOnEfpb: Boolean(records[targetIdx].isReceivedLogistik),
+        message: records[targetIdx].isReceivedLogistik
+          ? `Dokumen ${records[targetIdx].fpbNo} telah disahkan logistik di sistem internal dashboard.`
+          : `Dokumen ${records[targetIdx].fpbNo} belum disahkan logistik.`,
+        record: records[targetIdx],
+      });
     }
 
     // ----------------------------------------------------
-    // Action 6: Direct Logistics Approval (Received_Logistic)
+    // Action 6: Direct Logistics Approval (Received_Logistic - Mode Mandiri)
     // ----------------------------------------------------
     if (action === 'approve_logistic' || action === 'toggle_logistic') {
-      const { fpbNo, isReceived, approvedBy, sessionId } = body;
+      const { fpbNo, isReceived, approvedBy } = body;
       const targetIdx = records.findIndex((r) => r.fpbNo.toLowerCase() === (fpbNo || '').toLowerCase());
       if (targetIdx === -1) {
         return NextResponse.json({ success: false, message: 'FPB tidak ditemukan.' }, { status: 404 });
@@ -1448,49 +1351,11 @@ export async function POST(req: NextRequest) {
       const cleanFpb = currentRec.fpbNo;
       const effectiveSigner = approvedBy || currentRec.reviewedBy || 'NOOR HASANAH';
 
-      let activePdfUrl = `/api/review-fpb/pdf?fpbNo=${encodeURIComponent(cleanFpb)}&type=raw`;
-      let efpbTriggerResult: any = null;
-
-      if (newStatus) {
-        activePdfUrl = `/api/review-fpb/pdf?fpbNo=${encodeURIComponent(cleanFpb)}&type=signed`;
-
-        // 1. Trigger aksi tombol Received_Logistic otomatis ke server e-FPB
-        try {
-          efpbTriggerResult = await triggerEfpbReceivedLogistic({
-            fpbNo: cleanFpb,
-            sessionId,
-            signerName: effectiveSigner,
-          });
-        } catch (efpbErr) {
-          console.warn(`[review-fpb] Gagal trigger aksi Received_Logistic ke e-FPB untuk ${cleanFpb}:`, efpbErr);
-        }
-
-        // 2. Generate stamped PDF dan simpan ke Cloudflare R2
-        try {
-          const rawUrl = `https://e-fpb.cindaragroup.com/files/Approved_rev_sign_${encodeURIComponent(cleanFpb)}.pdf`;
-          const baseRes = await fetch(rawUrl, { cache: 'no-store' });
-          if (baseRes.ok) {
-            const baseBuf = Buffer.from(await baseRes.arrayBuffer());
-            const stampedBuf = await stampFpbPdf({
-              pdfBuffer: baseBuf,
-              signerName: effectiveSigner,
-              signDate: formatToStampDate(nowIso),
-              receivedAt: formatToStampTimestamp(nowIso),
-            });
-            if (isR2Configured()) {
-              await uploadToR2({ key: `fpb-signed/${cleanFpb}.pdf`, body: stampedBuf, contentType: 'application/pdf' });
-            }
-          }
-        } catch (stampErr) {
-          console.warn(`[review-fpb] Gagal pre-stamping PDF untuk ${cleanFpb}:`, stampErr);
-        }
-      }
-
       records[targetIdx] = {
         ...currentRec,
         isReceivedLogistik: newStatus,
         pchLogistik: newStatus ? 'Received_Logistic' : '-',
-        pdfUrl: activePdfUrl,
+        pdfUrl: `/api/review-fpb/pdf?fpbNo=${encodeURIComponent(cleanFpb)}&type=signed`,
         reviewedBy: effectiveSigner,
         reviewedAt: nowIso,
         updatedAt: nowIso,
@@ -1498,17 +1363,13 @@ export async function POST(req: NextRequest) {
 
       await saveReviews(records);
 
-      const triggerMsg = efpbTriggerResult?.triggeredOnEfpb
-        ? ' Aksi tombol Received_Logistic di e-FPB berhasil ditekan otomatis.'
-        : '';
-
       return NextResponse.json({
         success: true,
+        mode: 'standalone',
         message: newStatus
-          ? `Dokumen ${currentRec.fpbNo} berhasil disetujui & ditandatangani oleh ${effectiveSigner}.${triggerMsg} Status sah Siap Pengadaan!`
+          ? `Dokumen ${currentRec.fpbNo} berhasil disetujui & ditandatangani oleh ${effectiveSigner} (Mode Mandiri). Status sah Siap Pengadaan!`
           : `Persetujuan pengadaan untuk ${currentRec.fpbNo} dibatalkan.`,
         record: records[targetIdx],
-        efpbTriggerResult,
       });
     }
 
