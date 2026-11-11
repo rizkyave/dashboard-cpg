@@ -166,9 +166,12 @@ export async function compileDossierToPdf(
     color: rgb(0.2, 0.85, 0.95),
   });
 
-  // Badge Status Berkas
+  // Badge Status Berkas (hanya lengkap jika seluruh 4 softcopy tersedia)
   const is100PercentComplete =
-    bundle.hasFpbDoc && bundle.hasFstbDoc && bundle.hasTtbDoc && bundle.hasPhotos;
+    Boolean(bundle.hasFpbPdf ?? bundle.hasFpbDoc) &&
+    Boolean(bundle.hasFstbPdf ?? bundle.hasFstbDoc) &&
+    Boolean(bundle.hasTtbPdf ?? bundle.hasTtbDoc) &&
+    bundle.hasPhotos;
 
   const statusBoxColor = is100PercentComplete
     ? rgb(0.08, 0.55, 0.35)
@@ -560,10 +563,10 @@ export async function compileDossierToPdf(
 
   // Gambar tabel 4 pilar pada coverPage berdasarkan hasil lampiran aktual
   const missingDocs: string[] = [];
-  if (bundle.hasFpbDoc && fpbPagesAdded === 0) missingDocs.push('FPB');
-  if (bundle.hasFstbDoc && fstbPagesAdded === 0) missingDocs.push('FSTB');
-  if (bundle.hasTtbDoc && ttbPagesAdded === 0) missingDocs.push('TTB');
-  if (bundle.hasPhotos && photosAdded === 0) missingDocs.push('FOTO');
+  if (fpbPagesAdded === 0) missingDocs.push('FPB');
+  if (fstbPagesAdded === 0) missingDocs.push('FSTB');
+  if (ttbPagesAdded === 0) missingDocs.push('TTB');
+  if (photosAdded === 0) missingDocs.push('FOTO');
 
   coverPage.drawRectangle({
     x: 35,

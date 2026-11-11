@@ -615,11 +615,18 @@ _CPG Procurement & Fleet Monitoring System_`;
     }
   };
 
-  // Filter Logic
+  // Helper kelengkapan ketat: HANYA dianggap selesai jika ke-4 softcopy (FPB PDF, FSTB PDF, TTB PDF, FOTO) sudah hijau/tersedia
+  const isSoftcopyComplete = (item: DossierBundleItem) =>
+    Boolean(item.hasFpbPdf && item.hasFstbPdf && item.hasTtbPdf && item.hasPhotos);
+
+  const countSoftcopyReady = (item: DossierBundleItem) =>
+    [item.hasFpbPdf, item.hasFstbPdf, item.hasTtbPdf, item.hasPhotos].filter(Boolean).length;
+
+  // Filter & Sort Logic
   const filteredItems = useMemo(() => {
-    return dossierItems.filter((item) => {
-      // 1. Filter Tab (COMPLETE = 4/4, INCOMPLETE = <4, ALL = All)
-      const isComplete = item.hasFpbDoc && item.hasFstbDoc && item.hasTtbDoc && item.hasPhotos;
+    const filtered = dossierItems.filter((item) => {
+      // 1. Filter Tab (COMPLETE = semua 4 softcopy hijau, INCOMPLETE = belum hijau semua, ALL = Semua Data)
+      const isComplete = isSoftcopyComplete(item);
       if (activeFilterTab === 'COMPLETE' && !isComplete) return false;
       if (activeFilterTab === 'INCOMPLETE' && isComplete) return false;
 
@@ -645,6 +652,9 @@ _CPG Procurement & Fleet Monitoring System_`;
 
       return true;
     });
+
+    // Urutkan berdasarkan kelengkapan softcopy tertinggi (4/4 -> 3/4 -> 2/4 -> 1/4 -> 0/4)
+    return filtered.sort((a, b) => countSoftcopyReady(b) - countSoftcopyReady(a));
   }, [dossierItems, activeFilterTab, selectedEntity, searchQuery]);
 
   // Pagination calculation
@@ -662,11 +672,11 @@ _CPG Procurement & Fleet Monitoring System_`;
     let missingPhotos = 0;
 
     for (const item of dossierItems) {
-      if (item.hasFpbDoc && item.hasFstbDoc && item.hasTtbDoc && item.hasPhotos) {
+      if (isSoftcopyComplete(item)) {
         totalComplete++;
       }
-      if (!item.hasFstbDoc) missingFstb++;
-      if (!item.hasTtbDoc) missingTtb++;
+      if (!item.hasFstbPdf) missingFstb++;
+      if (!item.hasTtbPdf) missingTtb++;
       if (!item.hasPhotos) missingPhotos++;
     }
 
@@ -1119,11 +1129,11 @@ _CPG Procurement & Fleet Monitoring System_`;
           </div>
         </div>
 
-        {/* Card 2: Menunggu FSTB */}
+        {/* Card 2: Menunggu PDF FSTB */}
         <div className="p-3.5 sm:p-4 rounded-xl bg-card border border-border shadow-xs">
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider font-mono">
-              Belum Ada FSTB
+              Belum Ada PDF FSTB
             </span>
             <Boxes className="size-4 text-amber-500" />
           </div>
@@ -1131,15 +1141,15 @@ _CPG Procurement & Fleet Monitoring System_`;
             {metrics.missingFstb.toLocaleString('id-ID')}
           </div>
           <div className="text-[11px] text-amber-600 dark:text-amber-400 mt-1 font-medium">
-            Menunggu serah terima barang
+            Menunggu softcopy PDF FSTB
           </div>
         </div>
 
-        {/* Card 3: Menunggu TTB */}
+        {/* Card 3: Menunggu PDF TTB */}
         <div className="p-3.5 sm:p-4 rounded-xl bg-card border border-border shadow-xs">
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider font-mono">
-              Belum Ada TTB
+              Belum Ada PDF TTB
             </span>
             <ClipboardCheck className="size-4 text-blue-500" />
           </div>
@@ -1147,7 +1157,7 @@ _CPG Procurement & Fleet Monitoring System_`;
             {metrics.missingTtb.toLocaleString('id-ID')}
           </div>
           <div className="text-[11px] text-blue-600 dark:text-blue-400 mt-1 font-medium">
-            Menunggu tanda terima logistik
+            Menunggu softcopy PDF TTB
           </div>
         </div>
 
@@ -1324,8 +1334,8 @@ _CPG Procurement & Fleet Monitoring System_`;
               ) : (
                 paginatedItems.map((item, idx) => {
                   const itemIndex = (currentPage - 1) * pageSize + idx + 1;
-                  const isComplete =
-                    item.hasFpbDoc && item.hasFstbDoc && item.hasTtbDoc && item.hasPhotos;
+                  const isComplete = isSoftcopyComplete(item);
+                  const readyCount = countSoftcopyReady(item);
 
                   const isDownloadingThis = downloadingId === item.id;
 
@@ -1575,7 +1585,7 @@ _CPG Procurement & Fleet Monitoring System_`;
                             ) : (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold font-mono bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
                                 <Clock className="size-3 text-amber-500" />
-                                BELUM LENGKAP ({[item.hasFpbDoc, item.hasFstbDoc, item.hasTtbDoc, item.hasPhotos].filter(Boolean).length}/4)
+                                BELUM LENGKAP ({readyCount}/4)
                               </span>
                             )}
                           </div>
