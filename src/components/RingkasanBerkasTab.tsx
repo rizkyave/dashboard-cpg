@@ -25,6 +25,7 @@ import {
   MessageCircle,
   Copy,
   MapPin,
+  Upload,
 } from 'lucide-react';
 import staticSchedulesData from '@/data/static-delivery-schedules.json';
 import { ProcurementItem, ArmadaItem, EntityCode, KapalPosisiItem } from '@/types/procurement';
@@ -68,7 +69,9 @@ export default function RingkasanBerkasTab({
   const [ttbMap, setTtbMap] = useState<Record<string, { noTtb: string; fileUrl: string; armada?: string }>>({});
   const [photoMap, setPhotoMap] = useState<Record<string, string[]>>({});
   const [efpbMap, setEfpbMap] = useState<Record<string, string>>({});
+  const [externalEfpbMap, setExternalEfpbMap] = useState<Record<string, string>>({});
   const [fpbArmadaMap, setFpbArmadaMap] = useState<Record<string, string>>({});
+  const [isUploadingFpb, setIsUploadingFpb] = useState(false);
 
   // Document & Photo Preview Modal State
   const [previewDoc, setPreviewDoc] = useState<{
@@ -255,20 +258,19 @@ export default function RingkasanBerkasTab({
         setPhotoMap(map);
       }
 
-      // 4. Process e-FPB files
+      // 4. Process e-FPB files (Verified R2 / local internal PDFs)
+      const verifiedEfpbMap: Record<string, string> = {};
       if (efpbRes.status === 'fulfilled' && Array.isArray(efpbRes.value?.files)) {
-        const map: Record<string, string> = {};
         for (const f of efpbRes.value.files) {
           const key = (f.fpbNumber || f.filename || '').trim().toLowerCase();
-          if (key) map[key] = f.url || '';
+          if (key && f.url) verifiedEfpbMap[key] = f.url;
         }
-        setEfpbMap(map);
       }
 
       // 5. Process Review FPB for detailed armada mapping & pdfUrl
+      const extMap: Record<string, string> = {};
       if (reviewFpbRes.status === 'fulfilled' && Array.isArray(reviewFpbRes.value?.data)) {
         const armadaMap: Record<string, string> = {};
-        const pdfMap: Record<string, string> = {};
         for (const item of reviewFpbRes.value.data) {
           const fpb = (item.fpbNo || '').trim().toLowerCase();
           const armada = (item.armada || '').trim();
@@ -276,14 +278,20 @@ export default function RingkasanBerkasTab({
             armadaMap[fpb] = armada;
           }
           if (fpb && item.pdfUrl) {
-            pdfMap[fpb] = item.pdfUrl;
+            const pdfUrlStr = String(item.pdfUrl).trim();
+            if (pdfUrlStr.startsWith('/api/') || pdfUrlStr.includes('.r2.dev')) {
+              if (!verifiedEfpbMap[fpb]) {
+                verifiedEfpbMap[fpb] = pdfUrlStr;
+              }
+            } else if (/^https?:\/\//i.test(pdfUrlStr)) {
+              extMap[fpb] = pdfUrlStr;
+            }
           }
         }
         setFpbArmadaMap(armadaMap);
-        if (Object.keys(pdfMap).length > 0) {
-          setEfpbMap((prev) => ({ ...pdfMap, ...prev }));
-        }
       }
+      setEfpbMap(verifiedEfpbMap);
+      setExternalEfpbMap(extMap);
     } catch (err) {
       console.error('Error fetching manifests in RingkasanBerkasTab:', err);
     } finally {
@@ -381,9 +389,15 @@ export default function RingkasanBerkasTab({
 
       const hasPhotos = photoLookup.length > 0;
 
-      // Check FPB PDF
-      const hasFpbPdf = Boolean(efpbMap[normFpb] || (rowAny.pdfUrl && String(rowAny.pdfUrl).includes('.pdf')));
-      const efpbUrl = efpbMap[normFpb] || (rowAny.pdfUrl ? rowAny.pdfUrl : `/api/parse-fpb-pdf?fpb=${encodeURIComponent(fpb)}&raw=true`);
+      // Check FPB PDF (hanya anggap tersedia jika ada di R2 / internal /api/review-fpb/pdf)
+      const rowPdfStr = rowAny.pdfUrl ? String(rowAny.pdfUrl).trim() : '';
+      const internalRowPdf =
+        rowPdfStr.startsWith('/api/') || rowPdfStr.includes('.r2.dev') ? rowPdfStr : '';
+      const verifiedEfpbUrl = efpbMap[normFpb] || internalRowPdf;
+      const hasFpbPdf = Boolean(verifiedEfpbUrl);
+      const efpbUrl =
+        verifiedEfpbUrl ||
+        `/api/review-fpb/pdf?fpbNo=${encodeURIComponent(fpb)}&type=signed`;
       const hasFpbDoc = Boolean(fpb);
 
       const entity = String(rowAny.entity || rowAny.perusahaan || 'CPL');
@@ -429,12 +443,12 @@ export default function RingkasanBerkasTab({
   const handleOpenDocPreview = (item: DossierBundleItem, docType: 'FPB' | 'FSTB' | 'TTB' | 'FOTO') => {
     setActivePhotoIdx(0);
     if (docType === 'FPB') {
-      const isAvailable = Boolean(item.hasFpbPdf || efpbMap[item.fpb.toLowerCase()] || item.fpbPdfUrl);
+      const isAvailable = Boolean(item.hasFpbPdf && item.fpbPdfUrl);
       setPreviewDoc({
         type: 'FPB',
         title: `Dokumen e-FPB: ${item.fpb}`,
         docNo: item.fpb,
-        url: item.fpbPdfUrl,
+        url: isAvailable ? item.fpbPdfUrl : undefined,
         isAvailable,
         item,
       });
@@ -660,10 +674,17 @@ _CPG Procurement & Fleet Monitoring System_`;
       const res = await downloadDossierPdf(item, (step) => {
         setDownloadStep(step);
       });
-      showToast?.(
-        `Sukses mengunduh ${res.fileName} (${res.totalPages} halaman)!`,
-        'success'
-      );
+      if (res.missingDocs && res.missingDocs.length > 0) {
+        showToast?.(
+          `Unduhan selesai (${res.totalPages} halaman), namun berkas ${res.missingDocs.join(', ')} belum tersedia di storage R2. Silakan klik tombol dokumen terkait untuk mengunggah PDF-nya.`,
+          'warning'
+        );
+      } else {
+        showToast?.(
+          `Sukses mengunduh ${res.fileName} (${res.totalPages} halaman)!`,
+          'success'
+        );
+      }
     } catch (err: any) {
       console.error('Kompilasi error:', err);
       showToast?.(
@@ -673,6 +694,41 @@ _CPG Procurement & Fleet Monitoring System_`;
     } finally {
       setDownloadingId(null);
       setDownloadStep('');
+    }
+  };
+
+  // Upload langsung file PDF e-FPB ke R2 dari modal pratinjau Ringkasan Berkas
+  const handleUploadFpbPdf = async (fpbNo: string, file: File) => {
+    if (!fpbNo || !file) return;
+    setIsUploadingFpb(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('fpbNo', fpbNo);
+
+      const res = await fetch('/api/parse-fpb-pdf', {
+        method: 'POST',
+        body: formData,
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.message || 'Gagal mengunggah file PDF FPB.');
+      }
+
+      const uploadedUrl = `/api/review-fpb/pdf?fpbNo=${encodeURIComponent(fpbNo)}&type=signed&_v=${Date.now()}`;
+      setEfpbMap((prev) => ({ ...prev, [fpbNo.toLowerCase()]: uploadedUrl }));
+      setPreviewDoc((prev) =>
+        prev && prev.type === 'FPB' && prev.item.fpb.toLowerCase() === fpbNo.toLowerCase()
+          ? { ...prev, isAvailable: true, url: uploadedUrl }
+          : prev
+      );
+      showToast?.(`Berhasil mengunggah PDF FPB ${fpbNo} ke Cloudflare R2!`, 'success');
+      fetchManifests();
+    } catch (err: any) {
+      console.error('Upload FPB PDF error:', err);
+      showToast?.(err?.message || 'Gagal mengunggah berkas PDF FPB.', 'error');
+    } finally {
+      setIsUploadingFpb(false);
     }
   };
 
@@ -1591,6 +1647,50 @@ _CPG Procurement & Fleet Monitoring System_`;
                   </div>
 
                   <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+                    {/* Tombol Upload PDF FPB langsung ke R2 */}
+                    {previewDoc.type === 'FPB' && (
+                      <>
+                        <label
+                          className={`px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-2 transition shadow-xs active:scale-95 cursor-pointer ${
+                            isUploadingFpb ? 'opacity-60 pointer-events-none' : ''
+                          }`}
+                          title="Unggah file PDF FPB ke storage internal Cloudflare R2 agar ikut terkompilasi dalam PDF lengkap"
+                        >
+                          {isUploadingFpb ? (
+                            <Loader2 className="size-4 animate-spin shrink-0" />
+                          ) : (
+                            <Upload className="size-4 shrink-0" />
+                          )}
+                          <span>{isUploadingFpb ? 'Mengunggah...' : 'Upload PDF FPB'}</span>
+                          <input
+                            type="file"
+                            accept="application/pdf,.pdf"
+                            className="hidden"
+                            disabled={isUploadingFpb}
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                handleUploadFpbPdf(previewDoc.item.fpb, file);
+                              }
+                              e.target.value = '';
+                            }}
+                          />
+                        </label>
+                        {externalEfpbMap[previewDoc.item.fpb.toLowerCase()] && (
+                          <a
+                            href={externalEfpbMap[previewDoc.item.fpb.toLowerCase()]}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-2 rounded-lg border border-border bg-background hover:bg-muted text-xs font-semibold text-foreground flex items-center gap-1.5 transition"
+                            title="Buka link dokumen asli di server e-FPB (tab baru) untuk diunduh lalu diunggah ke R2"
+                          >
+                            <ExternalLink className="size-3.5 text-muted-foreground" />
+                            <span>Buka di e-FPB</span>
+                          </a>
+                        )}
+                      </>
+                    )}
+
                     {/* Tombol Kirim WA ke PIC */}
                     <button
                       type="button"

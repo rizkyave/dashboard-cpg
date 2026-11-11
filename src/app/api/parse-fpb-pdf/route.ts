@@ -783,26 +783,57 @@ export async function POST(request: NextRequest) {
     const ab = await file.arrayBuffer();
     const buffer = Buffer.from(ab);
     const filename = file.name || `${fpbNoHint || 'FPB'}.pdf`;
+    const normalizedHint = fpbNoHint
+      .replace(/\/LOG\/FPB\//i, '-FPB-')
+      .replace(/\.pdf$/i, '')
+      .replace(/^(?:logistik_)?Approved_rev_sign_/i, '')
+      .trim();
 
     // Ekstrak teks & item
     const parsedData = extractPdfData(
       buffer,
-      fpbNoHint || filename.replace(/\.pdf$/i, ''),
-      `/api/review-fpb/pdf?fpbNo=${encodeURIComponent(fpbNoHint || filename)}`,
+      normalizedHint || filename.replace(/\.pdf$/i, ''),
+      `/api/review-fpb/pdf?fpbNo=${encodeURIComponent(normalizedHint || filename)}&type=signed`,
       true
     );
 
-    // Simpan ke R2 / folder lokal jika ada nomor FPB
-    const cleanFpb = parsedData.fpbNo || fpbNoHint;
-    if (cleanFpb && isR2Configured()) {
-      try {
-        await uploadToR2({
-          key: `fpb-pdfs/${cleanFpb}.pdf`,
-          body: buffer,
-          contentType: 'application/pdf',
-        });
-      } catch (r2Err) {
-        console.warn('Gagal upload parsed PDF ke R2:', r2Err);
+    const extractedFpb = (parsedData.fpbNo || '')
+      .replace(/\/LOG\/FPB\//i, '-FPB-')
+      .replace(/\.pdf$/i, '')
+      .replace(/^(?:logistik_)?Approved_rev_sign_/i, '')
+      .trim();
+
+    // Gunakan fpbNoHint jika diberikan secara eksplisit (mis. upload langsung untuk tiket FPB tertentu)
+    const cleanFpb = normalizedHint || extractedFpb;
+    if (cleanFpb) {
+      parsedData.fpbNo = cleanFpb;
+      parsedData.pdfUrl = `/api/review-fpb/pdf?fpbNo=${encodeURIComponent(cleanFpb)}&type=signed`;
+    }
+
+    // Simpan ke R2 (dan fallback lokal jika R2 tidak dikonfigurasi)
+    if (cleanFpb) {
+      let savedToR2 = false;
+      if (isR2Configured()) {
+        try {
+          await uploadToR2({
+            key: `fpb-pdfs/${cleanFpb}.pdf`,
+            body: buffer,
+            contentType: 'application/pdf',
+          });
+          savedToR2 = true;
+        } catch (r2Err) {
+          console.warn('Gagal upload parsed PDF ke R2:', r2Err);
+        }
+      }
+
+      if (!savedToR2) {
+        try {
+          const localDir = path.join(process.cwd(), 'public', 'uploads', 'fpb');
+          if (!fs.existsSync(localDir)) fs.mkdirSync(localDir, { recursive: true });
+          fs.writeFileSync(path.join(localDir, `${cleanFpb}.pdf`), buffer);
+        } catch (fsErr) {
+          console.warn('Gagal menyimpan PDF FPB secara lokal:', fsErr);
+        }
       }
     }
 

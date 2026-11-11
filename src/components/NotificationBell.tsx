@@ -157,16 +157,17 @@ export default function NotificationBell({ onNavigateTab, showToast }: Notificat
           setIsOpen(!isOpen);
           if (!isOpen) fetchNotifications();
         }}
-        className={`relative p-2 rounded-lg border transition cursor-pointer flex items-center justify-center ${
+        className={`relative inline-flex items-center justify-center size-8 rounded-lg border transition active:scale-95 cursor-pointer ${
           isOpen
             ? 'bg-primary/10 border-primary text-primary'
             : 'bg-background hover:bg-muted border-border text-muted-foreground hover:text-foreground'
         }`}
         title="Notifikasi Pekerjaan"
+        aria-label="Notifikasi Pekerjaan"
       >
-        <Bell className="size-4.5" />
+        <Bell className="size-4" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-5 h-5 px-1 text-[10px] font-bold text-white bg-rose-500 rounded-full shadow-sm animate-pulse">
+          <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-4 h-4 px-1 text-[9px] leading-none font-bold text-white bg-rose-500 rounded-full shadow-sm animate-pulse">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}

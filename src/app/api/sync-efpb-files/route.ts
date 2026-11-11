@@ -2,18 +2,28 @@ import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 import { FpbReviewRecord } from '@/types/fpbReview';
+import { isR2Configured, listR2Objects } from '@/utils/r2Client';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const runtime = 'nodejs';
 
 const LOCAL_REVIEWS_PATH = path.join(process.cwd(), 'src', 'data', 'fpb-reviews.json');
+const LOCAL_PDF_DIR = path.join(process.cwd(), 'public', 'uploads', 'fpb');
+
+function extractFpbNumberFromFilename(filename: string): string {
+  return filename
+    .replace(/\.pdf$/i, '')
+    .replace(/^(?:logistik_)?Approved_rev_sign_/i, '')
+    .trim();
+}
 
 /**
  * Endpoint Sinkronisasi e-FPB Mode Mandiri
  * Semua pemanggilan otomatis ke server eksternal IT (e-fpb.cindaragroup.com) dinonaktifkan
  * untuk mencegah alarm firewall dan pemblokiran dari tim IT.
- * Endpoint ini sekarang berfungsi untuk menerima data import file Excel/CSV/JSON secara mandiri.
+ * Endpoint ini sekarang berfungsi untuk membaca daftar PDF FPB di R2/lokal
+ * serta menerima data import file Excel/CSV/JSON secara mandiri.
  */
 export async function GET(req: NextRequest) {
   try {
@@ -22,12 +32,61 @@ export async function GET(req: NextRequest) {
       records = JSON.parse(fs.readFileSync(LOCAL_REVIEWS_PATH, 'utf-8'));
     }
 
+    const fileMap = new Map<
+      string,
+      { fpbNumber: string; filename: string; url: string; source: 'r2' | 'local' }
+    >();
+
+    // 1. Pindai berkas PDF FPB yang tersimpan di Cloudflare R2
+    if (isR2Configured()) {
+      const prefixes = ['fpb-signed/', 'fpb-pdfs/', 'fpb-raw/', 'dashboard-metadata/fpb-pdfs/'];
+      const results = await Promise.all(prefixes.map((pfx) => listR2Objects(pfx, 1000)));
+      for (const objs of results) {
+        for (const obj of objs) {
+          if (!/\.pdf$/i.test(obj.name)) continue;
+          const fpbNumber = extractFpbNumberFromFilename(obj.name);
+          if (!fpbNumber) continue;
+          const normKey = fpbNumber.toLowerCase();
+          if (!fileMap.has(normKey)) {
+            fileMap.set(normKey, {
+              fpbNumber,
+              filename: obj.name,
+              url: `/api/review-fpb/pdf?fpbNo=${encodeURIComponent(fpbNumber)}&type=signed`,
+              source: 'r2',
+            });
+          }
+        }
+      }
+    }
+
+    // 2. Pindai berkas PDF FPB di folder lokal (jika ada)
+    if (fs.existsSync(LOCAL_PDF_DIR)) {
+      for (const name of fs.readdirSync(LOCAL_PDF_DIR)) {
+        if (!/\.pdf$/i.test(name)) continue;
+        const fpbNumber = extractFpbNumberFromFilename(name);
+        if (!fpbNumber) continue;
+        const normKey = fpbNumber.toLowerCase();
+        if (!fileMap.has(normKey)) {
+          fileMap.set(normKey, {
+            fpbNumber,
+            filename: name,
+            url: `/api/review-fpb/pdf?fpbNo=${encodeURIComponent(fpbNumber)}&type=signed`,
+            source: 'local',
+          });
+        }
+      }
+    }
+
+    const files = Array.from(fileMap.values());
+
     return NextResponse.json({
       success: true,
       mode: 'standalone',
       message: 'Mode Mandiri Aktif. Sinkronisasi otomatis ke server IT telah dinonaktifkan demi keamanan.',
       totalRecords: records.length,
       records,
+      totalFiles: files.length,
+      files,
     });
   } catch (error: any) {
     return NextResponse.json(

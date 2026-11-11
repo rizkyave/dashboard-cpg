@@ -81,12 +81,29 @@ function isPngBuffer(bytes: Uint8Array): boolean {
 }
 
 /**
+ * Mengambil array buffer PDF pertama yang valid dari daftar URL kandidat
+ */
+async function fetchFirstValidPdf(urls: string[]): Promise<Uint8Array | null> {
+  const seen = new Set<string>();
+  for (const url of urls) {
+    const clean = (url || '').trim();
+    if (!clean || seen.has(clean)) continue;
+    seen.add(clean);
+    const bytes = await fetchBinary(clean);
+    if (bytes && isPdfBuffer(bytes)) {
+      return bytes;
+    }
+  }
+  return null;
+}
+
+/**
  * Kompilasi seluruh dokumen pengadaan (FPB + FSTB + TTB + FOTO) menjadi 1 file PDF utuh
  */
 export async function compileDossierToPdf(
   bundle: DossierBundleItem,
   onProgress?: (step: string) => void
-): Promise<{ blob: Blob; fileName: string; totalPages: number }> {
+): Promise<{ blob: Blob; fileName: string; totalPages: number; missingDocs: string[] }> {
   onProgress?.('Menginisialisasi dokumen bundel dossier...');
 
   const mergedPdf = await PDFDocument.create();
@@ -244,122 +261,6 @@ export async function compileDossierToPdf(
 
   curY -= 15;
   const tableHeaderY = curY;
-  coverPage.drawRectangle({
-    x: 35,
-    y: tableHeaderY - 20,
-    width: pW - 70,
-    height: 20,
-    color: rgb(0.9, 0.93, 0.98),
-  });
-
-  coverPage.drawText('PILAR DOKUMEN', {
-    x: 45,
-    y: tableHeaderY - 14,
-    size: 8,
-    font: fontBold,
-    color: rgb(0.2, 0.3, 0.45),
-  });
-
-  coverPage.drawText('REFERENSI BERKAS', {
-    x: 180,
-    y: tableHeaderY - 14,
-    size: 8,
-    font: fontBold,
-    color: rgb(0.2, 0.3, 0.45),
-  });
-
-  coverPage.drawText('STATUS SOFTCOPY', {
-    x: 340,
-    y: tableHeaderY - 14,
-    size: 8,
-    font: fontBold,
-    color: rgb(0.2, 0.3, 0.45),
-  });
-
-  coverPage.drawText('LAMPIRAN', {
-    x: 470,
-    y: tableHeaderY - 14,
-    size: 8,
-    font: fontBold,
-    color: rgb(0.2, 0.3, 0.45),
-  });
-
-  const pilarRows = [
-    {
-      pilar: '1. FPB (Permohonan)',
-      ref: bundle.fpb,
-      ok: bundle.hasFpbDoc,
-      note: bundle.hasFpbDoc ? 'e-FPB PDF Resmi' : 'Belum Ada',
-    },
-    {
-      pilar: '2. FSTB (Serah Terima Brg)',
-      ref: bundle.noFstb ? `FSTB No. ${bundle.noFstb}` : `PO ${bundle.po || '-'}`,
-      ok: bundle.hasFstbDoc,
-      note: bundle.hasFstbDoc ? 'Scan / PDF Resmi R2' : 'Menunggu Upload',
-    },
-    {
-      pilar: '3. TTB (Tanda Terima Brg)',
-      ref: bundle.noTtb ? `TTB No. ${bundle.noTtb}` : 'TTB Lapangan',
-      ok: bundle.hasTtbDoc,
-      note: bundle.hasTtbDoc ? 'Scan / Dokumen R2' : 'Menunggu Upload',
-    },
-    {
-      pilar: '4. FOTO (Serah Terima Lap)',
-      ref: `Armada ${bundle.armada}`,
-      ok: bundle.hasPhotos,
-      note: bundle.hasPhotos
-        ? `${bundle.photoUrls?.length || 1} Foto Terlampir`
-        : 'Belum Ada Foto',
-    },
-  ];
-
-  let pY = tableHeaderY - 20;
-  pilarRows.forEach((r, idx) => {
-    pY -= 22;
-    coverPage.drawRectangle({
-      x: 35,
-      y: pY,
-      width: pW - 70,
-      height: 22,
-      borderColor: rgb(0.88, 0.9, 0.94),
-      borderWidth: 0.5,
-      color: idx % 2 === 0 ? rgb(1, 1, 1) : rgb(0.98, 0.99, 1),
-    });
-
-    coverPage.drawText(r.pilar, {
-      x: 45,
-      y: pY + 6,
-      size: 8,
-      font: fontBold,
-      color: rgb(0.15, 0.2, 0.3),
-    });
-
-    coverPage.drawText(r.ref || '-', {
-      x: 180,
-      y: pY + 6,
-      size: 7.5,
-      font: fontRegular,
-      color: rgb(0.2, 0.25, 0.35),
-    });
-
-    // Badge OK / Menunggu
-    const statusColor = r.ok ? rgb(0.08, 0.55, 0.35) : rgb(0.75, 0.35, 0.1);
-    coverPage.drawText(r.ok ? 'TERSEDIA' : 'BELUM LENGKAP', {
-      x: 340,
-      y: pY + 6,
-      size: 7.5,
-      font: fontBold,
-      color: statusColor,
-    });
-
-    coverPage.drawText(r.note, {
-      x: 470,
-      y: pY + 6,
-      size: 7.5,
-      font: fontRegular,
-      color: rgb(0.3, 0.35, 0.45),
-    });
-  });
 
   // Catatan Digital Signature & Tanggal Kompilasi
   const now = new Date();
@@ -407,21 +308,39 @@ export async function compileDossierToPdf(
     }
   );
 
+  let fpbPagesAdded = 0;
+  let fstbPagesAdded = 0;
+  let ttbPagesAdded = 0;
+  let photosAdded = 0;
+
   // -------------------------------------------------------------
   // 2. BAGIAN FPB: Lampirkan Halaman Dokumen PDF e-FPB
   // -------------------------------------------------------------
-  if (bundle.hasFpbDoc) {
+  if (bundle.hasFpbDoc && bundle.fpb) {
     onProgress?.('Mengambil & menggabungkan dokumen e-FPB...');
-    const fpbUrl =
-      bundle.fpbPdfUrl ||
-      `/api/parse-fpb-pdf?fpb=${encodeURIComponent(bundle.fpb)}&raw=true`;
+    const isInternalOrR2 = (u?: string) =>
+      Boolean(u && (u.startsWith('/') || u.includes('.r2.dev')));
 
-    const fpbBytes = await fetchBinary(fpbUrl);
-    if (fpbBytes && isPdfBuffer(fpbBytes)) {
+    const fpbCandidates: string[] = [];
+    if (isInternalOrR2(bundle.fpbPdfUrl)) {
+      fpbCandidates.push(bundle.fpbPdfUrl!);
+    }
+    fpbCandidates.push(
+      `/api/review-fpb/pdf?fpbNo=${encodeURIComponent(bundle.fpb)}&type=signed`,
+      `/api/review-fpb/pdf?fpbNo=${encodeURIComponent(bundle.fpb)}&type=raw`,
+      `/api/parse-fpb-pdf?fpb=${encodeURIComponent(bundle.fpb)}&raw=true`
+    );
+    if (bundle.fpbPdfUrl && !isInternalOrR2(bundle.fpbPdfUrl)) {
+      fpbCandidates.push(bundle.fpbPdfUrl);
+    }
+
+    const fpbBytes = await fetchFirstValidPdf(fpbCandidates);
+    if (fpbBytes) {
       try {
         const fpbDoc = await PDFDocument.load(fpbBytes, { ignoreEncryption: true });
         const copiedPages = await mergedPdf.copyPages(fpbDoc, fpbDoc.getPageIndices());
         copiedPages.forEach((p) => mergedPdf.addPage(p));
+        fpbPagesAdded = copiedPages.length;
       } catch (err) {
         console.warn('Gagal memproses halaman PDF FPB:', err);
       }
@@ -443,6 +362,7 @@ export async function compileDossierToPdf(
             fstbDoc.getPageIndices()
           );
           copiedPages.forEach((p) => mergedPdf.addPage(p));
+          fstbPagesAdded = copiedPages.length;
         } catch (err) {
           console.warn('Gagal memproses halaman PDF FSTB:', err);
         }
@@ -477,6 +397,7 @@ export async function compileDossierToPdf(
             width: dW,
             height: dH,
           });
+          fstbPagesAdded = 1;
         } catch (err) {
           console.warn('Gagal menyematkan gambar FSTB:', err);
         }
@@ -499,6 +420,7 @@ export async function compileDossierToPdf(
             ttbDoc.getPageIndices()
           );
           copiedPages.forEach((p) => mergedPdf.addPage(p));
+          ttbPagesAdded = copiedPages.length;
         } catch (err) {
           console.warn('Gagal memproses halaman PDF TTB:', err);
         }
@@ -532,6 +454,7 @@ export async function compileDossierToPdf(
             width: dW,
             height: dH,
           });
+          ttbPagesAdded = 1;
         } catch (err) {
           console.warn('Gagal menyematkan gambar TTB:', err);
         }
@@ -627,12 +550,147 @@ export async function compileDossierToPdf(
               color: rgb(0.45, 0.5, 0.6),
             }
           );
+          photosAdded += 1;
         } catch (err) {
           console.warn(`Gagal menyematkan foto ${pIdx + 1}:`, err);
         }
       }
     }
   }
+
+  // Gambar tabel 4 pilar pada coverPage berdasarkan hasil lampiran aktual
+  const missingDocs: string[] = [];
+  if (bundle.hasFpbDoc && fpbPagesAdded === 0) missingDocs.push('FPB');
+  if (bundle.hasFstbDoc && fstbPagesAdded === 0) missingDocs.push('FSTB');
+  if (bundle.hasTtbDoc && ttbPagesAdded === 0) missingDocs.push('TTB');
+  if (bundle.hasPhotos && photosAdded === 0) missingDocs.push('FOTO');
+
+  coverPage.drawRectangle({
+    x: 35,
+    y: tableHeaderY - 20,
+    width: pW - 70,
+    height: 20,
+    color: rgb(0.9, 0.93, 0.98),
+  });
+
+  coverPage.drawText('PILAR DOKUMEN', {
+    x: 45,
+    y: tableHeaderY - 14,
+    size: 8,
+    font: fontBold,
+    color: rgb(0.2, 0.3, 0.45),
+  });
+
+  coverPage.drawText('REFERENSI BERKAS', {
+    x: 180,
+    y: tableHeaderY - 14,
+    size: 8,
+    font: fontBold,
+    color: rgb(0.2, 0.3, 0.45),
+  });
+
+  coverPage.drawText('STATUS SOFTCOPY', {
+    x: 340,
+    y: tableHeaderY - 14,
+    size: 8,
+    font: fontBold,
+    color: rgb(0.2, 0.3, 0.45),
+  });
+
+  coverPage.drawText('LAMPIRAN', {
+    x: 470,
+    y: tableHeaderY - 14,
+    size: 8,
+    font: fontBold,
+    color: rgb(0.2, 0.3, 0.45),
+  });
+
+  const pilarRows = [
+    {
+      pilar: '1. FPB (Permohonan)',
+      ref: bundle.fpb,
+      ok: fpbPagesAdded > 0,
+      note:
+        fpbPagesAdded > 0
+          ? `e-FPB PDF (${fpbPagesAdded} hal)`
+          : 'Belum Diupload ke R2',
+    },
+    {
+      pilar: '2. FSTB (Serah Terima Brg)',
+      ref: bundle.noFstb ? `FSTB No. ${bundle.noFstb}` : `PO ${bundle.po || '-'}`,
+      ok: fstbPagesAdded > 0,
+      note:
+        fstbPagesAdded > 0
+          ? `PDF / Scan R2 (${fstbPagesAdded} hal)`
+          : bundle.hasFstbDoc
+          ? 'Softcopy PDF Belum Ada'
+          : 'Menunggu Upload',
+    },
+    {
+      pilar: '3. TTB (Tanda Terima Brg)',
+      ref: bundle.noTtb ? `TTB No. ${bundle.noTtb}` : 'TTB Lapangan',
+      ok: ttbPagesAdded > 0,
+      note:
+        ttbPagesAdded > 0
+          ? `PDF / Scan R2 (${ttbPagesAdded} hal)`
+          : bundle.hasTtbDoc
+          ? 'Softcopy PDF Belum Ada'
+          : 'Menunggu Upload',
+    },
+    {
+      pilar: '4. FOTO (Serah Terima Lap)',
+      ref: `Armada ${bundle.armada}`,
+      ok: photosAdded > 0,
+      note: photosAdded > 0 ? `${photosAdded} Foto Terlampir` : 'Belum Ada Foto',
+    },
+  ];
+
+  let pY = tableHeaderY - 20;
+  pilarRows.forEach((r, idx) => {
+    pY -= 22;
+    coverPage.drawRectangle({
+      x: 35,
+      y: pY,
+      width: pW - 70,
+      height: 22,
+      borderColor: rgb(0.88, 0.9, 0.94),
+      borderWidth: 0.5,
+      color: idx % 2 === 0 ? rgb(1, 1, 1) : rgb(0.98, 0.99, 1),
+    });
+
+    coverPage.drawText(r.pilar, {
+      x: 45,
+      y: pY + 6,
+      size: 8,
+      font: fontBold,
+      color: rgb(0.15, 0.2, 0.3),
+    });
+
+    coverPage.drawText(r.ref || '-', {
+      x: 180,
+      y: pY + 6,
+      size: 7.5,
+      font: fontRegular,
+      color: rgb(0.2, 0.25, 0.35),
+    });
+
+    const statusColor = r.ok ? rgb(0.08, 0.55, 0.35) : rgb(0.75, 0.35, 0.1);
+    coverPage.drawText(r.ok ? 'TERSEDIA' : 'BELUM TERLAMPIR', {
+      x: 340,
+      y: pY + 6,
+      size: 7.5,
+      font: fontBold,
+      color: statusColor,
+    });
+
+    coverPage.drawText(r.note, {
+      x: 470,
+      y: pY + 6,
+      size: 7.5,
+      font: fontRegular,
+      color: rgb(0.3, 0.35, 0.45),
+    });
+  });
 
   onProgress?.('Menyimpan bundel file PDF final...');
   const pdfBytes = await mergedPdf.save();
@@ -642,6 +700,7 @@ export async function compileDossierToPdf(
     blob: new Blob([pdfBytes as any], { type: 'application/pdf' }),
     fileName,
     totalPages: mergedPdf.getPageCount(),
+    missingDocs,
   };
 }
 
@@ -651,7 +710,7 @@ export async function compileDossierToPdf(
 export async function downloadDossierPdf(
   bundle: DossierBundleItem,
   onProgress?: (step: string) => void
-): Promise<{ success: boolean; fileName: string; totalPages: number }> {
+): Promise<{ success: boolean; fileName: string; totalPages: number; missingDocs: string[] }> {
   try {
     const result = await compileDossierToPdf(bundle, onProgress);
     const url = URL.createObjectURL(result.blob);
@@ -663,7 +722,12 @@ export async function downloadDossierPdf(
     document.body.removeChild(link);
 
     setTimeout(() => URL.revokeObjectURL(url), 20000);
-    return { success: true, fileName: result.fileName, totalPages: result.totalPages };
+    return {
+      success: true,
+      fileName: result.fileName,
+      totalPages: result.totalPages,
+      missingDocs: result.missingDocs,
+    };
   } catch (err: any) {
     console.error('Gagal mengunduh berkas dossier PDF:', err);
     throw err;

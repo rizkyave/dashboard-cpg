@@ -36,15 +36,19 @@ async function resolveLocalOrR2Pdf(
   cleanFpb: string,
   type: string = 'signed'
 ): Promise<{ buffer: Buffer; filename: string } | null> {
-  const enc = encodeURIComponent(cleanFpb);
+  const normalizedFpb = cleanFpb.replace(/\/LOG\/FPB\//i, '-FPB-').trim();
 
   // 1. Cek Cloudflare R2
   if (isR2Configured()) {
     const r2Keys = [
-      type === 'signed' ? `fpb-signed/${cleanFpb}.pdf` : null,
-      `fpb-raw/${cleanFpb}.pdf`,
-      `fpb-pdfs/${cleanFpb}.pdf`,
-      `dashboard-metadata/fpb-pdfs/${cleanFpb}.pdf`,
+      type === 'signed' ? `fpb-signed/${normalizedFpb}.pdf` : null,
+      `fpb-raw/${normalizedFpb}.pdf`,
+      `fpb-pdfs/${normalizedFpb}.pdf`,
+      `dashboard-metadata/fpb-pdfs/${normalizedFpb}.pdf`,
+      `fpb-signed/logistik_Approved_rev_sign_${normalizedFpb}.pdf`,
+      `fpb-signed/Approved_rev_sign_${normalizedFpb}.pdf`,
+      `fpb-pdfs/logistik_Approved_rev_sign_${normalizedFpb}.pdf`,
+      `fpb-pdfs/Approved_rev_sign_${normalizedFpb}.pdf`,
     ].filter(Boolean) as string[];
 
     for (const key of r2Keys) {
@@ -53,7 +57,7 @@ async function resolveLocalOrR2Pdf(
         if (obj && obj.body) {
           return {
             buffer: Buffer.from(obj.body),
-            filename: `${cleanFpb}.pdf`,
+            filename: `${normalizedFpb}.pdf`,
           };
         }
       } catch {
@@ -65,15 +69,15 @@ async function resolveLocalOrR2Pdf(
   // 2. Cek penyimpanan file lokal
   if (fs.existsSync(LOCAL_PDF_DIR)) {
     const candidateFiles = [
-      path.join(LOCAL_PDF_DIR, `${cleanFpb}.pdf`),
-      path.join(LOCAL_PDF_DIR, `Approved_rev_sign_${cleanFpb}.pdf`),
-      path.join(LOCAL_PDF_DIR, `logistik_Approved_rev_sign_${cleanFpb}.pdf`),
+      path.join(LOCAL_PDF_DIR, `${normalizedFpb}.pdf`),
+      path.join(LOCAL_PDF_DIR, `Approved_rev_sign_${normalizedFpb}.pdf`),
+      path.join(LOCAL_PDF_DIR, `logistik_Approved_rev_sign_${normalizedFpb}.pdf`),
     ];
     for (const p of candidateFiles) {
       if (fs.existsSync(p)) {
         return {
           buffer: fs.readFileSync(p),
-          filename: `${cleanFpb}.pdf`,
+          filename: `${normalizedFpb}.pdf`,
         };
       }
     }
@@ -93,7 +97,7 @@ export async function GET(request: NextRequest) {
     }
 
     const cleanFpb = fpbNo;
-    const reviewRecord = await getReviewRecord(cleanFpb);
+    await getReviewRecord(cleanFpb);
 
     // Ambil PDF dari R2 / Local
     const foundPdf = await resolveLocalOrR2Pdf(cleanFpb, type);
@@ -102,8 +106,8 @@ export async function GET(request: NextRequest) {
       return new NextResponse(new Uint8Array(foundPdf.buffer), {
         headers: {
           'Content-Type': 'application/pdf',
-          'Content-Disposition': `inline; filename="${type === 'signed' ? 'logistik_' : ''}${cleanFpb}.pdf"`,
-          'Cache-Control': 'public, max-age=86400',
+          'Content-Disposition': `inline; filename="${type === 'signed' ? 'logistik_' : ''}${foundPdf.filename}"`,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
         },
       });
     }
