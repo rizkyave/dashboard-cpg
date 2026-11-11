@@ -72,6 +72,8 @@ export default function RingkasanBerkasTab({
   const [externalEfpbMap, setExternalEfpbMap] = useState<Record<string, string>>({});
   const [fpbArmadaMap, setFpbArmadaMap] = useState<Record<string, string>>({});
   const [isUploadingFpb, setIsUploadingFpb] = useState(false);
+  const [isUploadingDoc, setIsUploadingDoc] = useState<'FPB' | 'FSTB' | 'TTB' | 'FOTO' | null>(null);
+  const [manualDocNo, setManualDocNo] = useState<string>('');
 
   // Document & Photo Preview Modal State
   const [previewDoc, setPreviewDoc] = useState<{
@@ -153,12 +155,14 @@ export default function RingkasanBerkasTab({
         const map: Record<string, { noFstb: string; fileUrl: string; armada?: string }> = {};
         for (const item of fstbRes.value.items) {
           const no = (item.noFstb || item.originalFileName || '').trim().toLowerCase();
+          const cleanNo = (item.cleanNoFstb || '').trim().toLowerCase();
           const fpb = (item.noFpb || '').trim().toLowerCase();
-          const po = (item.noPo || '').trim().toLowerCase();
+          const po = (item.noPo || item.doNo || '').trim().toLowerCase();
           const armada = (item.armada || item.dept || item.namaKapal || '').trim();
           const url = item.fileUrl || `/api/upload-fstb/file?name=${encodeURIComponent(item.renamedFileName)}`;
-          const entry = { noFstb: item.noFstb || item.originalFileName, fileUrl: url, armada };
+          const entry = { noFstb: item.noFstb || item.cleanNoFstb || item.originalFileName, fileUrl: url, armada };
           if (no) map[no] = entry;
+          if (cleanNo) map[cleanNo] = entry;
           if (fpb) map[fpb] = entry;
           if (po) map[po] = entry;
         }
@@ -170,12 +174,14 @@ export default function RingkasanBerkasTab({
         const map: Record<string, { noTtb: string; fileUrl: string; armada?: string }> = {};
         for (const item of ttbRes.value.items) {
           const no = (item.noTtb || item.originalFileName || '').trim().toLowerCase();
+          const cleanNo = (item.cleanNoTtb || '').trim().toLowerCase();
           const fpb = (item.noFpb || '').trim().toLowerCase();
           const po = (item.noPo || '').trim().toLowerCase();
           const armada = (item.armada || item.dept || item.namaKapal || '').trim();
           const url = item.fileUrl || `/api/upload-ttb/file?name=${encodeURIComponent(item.renamedFileName)}`;
-          const entry = { noTtb: item.noTtb || item.originalFileName, fileUrl: url, armada };
+          const entry = { noTtb: item.noTtb || item.cleanNoTtb || item.originalFileName, fileUrl: url, armada };
           if (no) map[no] = entry;
+          if (cleanNo) map[cleanNo] = entry;
           if (fpb) map[fpb] = entry;
           if (po) map[po] = entry;
         }
@@ -442,6 +448,14 @@ export default function RingkasanBerkasTab({
   // Handler to open single document / photo preview modal
   const handleOpenDocPreview = (item: DossierBundleItem, docType: 'FPB' | 'FSTB' | 'TTB' | 'FOTO') => {
     setActivePhotoIdx(0);
+    if (docType === 'FSTB') {
+      setManualDocNo(item.noFstb || '');
+    } else if (docType === 'TTB' || docType === 'FOTO') {
+      setManualDocNo(item.noTtb || '');
+    } else {
+      setManualDocNo(item.fpb || '');
+    }
+
     if (docType === 'FPB') {
       const isAvailable = Boolean(item.hasFpbPdf && item.fpbPdfUrl);
       setPreviewDoc({
@@ -701,6 +715,7 @@ _CPG Procurement & Fleet Monitoring System_`;
   const handleUploadFpbPdf = async (fpbNo: string, file: File) => {
     if (!fpbNo || !file) return;
     setIsUploadingFpb(true);
+    setIsUploadingDoc('FPB');
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -729,6 +744,245 @@ _CPG Procurement & Fleet Monitoring System_`;
       showToast?.(err?.message || 'Gagal mengunggah berkas PDF FPB.', 'error');
     } finally {
       setIsUploadingFpb(false);
+      setIsUploadingDoc(null);
+    }
+  };
+
+  // Upload langsung file PDF FSTB ke Cloudflare R2 dari modal pratinjau
+  const handleUploadFstbPdf = async (item: DossierBundleItem, file: File) => {
+    const targetFstb = (manualDocNo || item.noFstb || '').trim();
+    if (!targetFstb) {
+      showToast?.('Silakan isi Nomor FSTB terlebih dahulu sebelum mengunggah PDF FSTB.', 'warning');
+      return;
+    }
+    if (!file) return;
+
+    setIsUploadingDoc('FSTB');
+    try {
+      const formData = new FormData();
+      formData.append('files', file);
+      formData.append('noFstb', targetFstb);
+      formData.append('armada', item.armada || '');
+      formData.append('doNo', item.po || '');
+      formData.append('noFpb', item.fpb || '');
+      formData.append('keterangan', 'Upload cepat dari Ringkasan Berkas');
+
+      const res = await fetch('/api/upload-fstb', {
+        method: 'POST',
+        body: formData,
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || json.message || 'Gagal mengunggah file PDF FSTB.');
+      }
+
+      const uploadedItem = json.uploadedFiles?.[0];
+      const baseUrl =
+        uploadedItem?.fileUrl ||
+        `/api/upload-fstb/file?name=${encodeURIComponent(uploadedItem?.renamedFileName || `${targetFstb}.pdf`)}`;
+      const uploadedUrl = `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}_v=${Date.now()}`;
+      const entry = { noFstb: targetFstb, fileUrl: uploadedUrl, armada: item.armada };
+
+      setFstbMap((prev) => ({
+        ...prev,
+        [targetFstb.toLowerCase()]: entry,
+        ...(item.fpb ? { [item.fpb.toLowerCase()]: entry } : {}),
+        ...(item.po ? { [item.po.toLowerCase()]: entry } : {}),
+      }));
+
+      setPreviewDoc((prev) =>
+        prev && prev.type === 'FSTB'
+          ? {
+              ...prev,
+              title: `Dokumen FSTB: ${targetFstb}`,
+              docNo: targetFstb,
+              isAvailable: true,
+              url: uploadedUrl,
+              item: {
+                ...prev.item,
+                noFstb: targetFstb,
+                hasFstbDoc: true,
+                hasFstbPdf: true,
+                fstbPdfUrl: uploadedUrl,
+              },
+            }
+          : prev
+      );
+      showToast?.(`Berhasil mengunggah PDF FSTB ${targetFstb} ke Cloudflare R2!`, 'success');
+      fetchManifests();
+    } catch (err: any) {
+      console.error('Upload FSTB PDF error:', err);
+      showToast?.(err?.message || 'Gagal mengunggah berkas PDF FSTB.', 'error');
+    } finally {
+      setIsUploadingDoc(null);
+    }
+  };
+
+  // Upload langsung file PDF TTB ke Cloudflare R2 dari modal pratinjau
+  const handleUploadTtbPdf = async (item: DossierBundleItem, file: File) => {
+    const targetTtb = (manualDocNo || item.noTtb || '').trim();
+    if (!targetTtb) {
+      showToast?.('Silakan isi Nomor TTB terlebih dahulu sebelum mengunggah PDF TTB.', 'warning');
+      return;
+    }
+    if (!file) return;
+
+    setIsUploadingDoc('TTB');
+    try {
+      const formData = new FormData();
+      formData.append('files', file);
+      formData.append('noTtb', targetTtb);
+      formData.append('armada', item.armada || '');
+      formData.append('noFpb', item.fpb || '');
+      formData.append('noPo', item.po || '');
+      formData.append('noFstb', item.noFstb || '');
+      formData.append('autoStamp', 'false');
+      formData.append('keterangan', 'Upload cepat dari Ringkasan Berkas');
+
+      const res = await fetch('/api/upload-ttb', {
+        method: 'POST',
+        body: formData,
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || json.message || 'Gagal mengunggah file PDF TTB.');
+      }
+
+      const uploadedItem = json.uploadedFiles?.[0];
+      const baseUrl =
+        uploadedItem?.fileUrl ||
+        `/api/upload-ttb/file?name=${encodeURIComponent(uploadedItem?.renamedFileName || `${targetTtb}.pdf`)}`;
+      const uploadedUrl = `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}_v=${Date.now()}`;
+      const entry = { noTtb: targetTtb, fileUrl: uploadedUrl, armada: item.armada };
+
+      setTtbMap((prev) => ({
+        ...prev,
+        [targetTtb.toLowerCase()]: entry,
+        ...(item.fpb ? { [item.fpb.toLowerCase()]: entry } : {}),
+        ...(item.po ? { [item.po.toLowerCase()]: entry } : {}),
+      }));
+
+      setPreviewDoc((prev) =>
+        prev && prev.type === 'TTB'
+          ? {
+              ...prev,
+              title: `Dokumen TTB: ${targetTtb}`,
+              docNo: targetTtb,
+              isAvailable: true,
+              url: uploadedUrl,
+              item: {
+                ...prev.item,
+                noTtb: targetTtb,
+                hasTtbDoc: true,
+                hasTtbPdf: true,
+                ttbPdfUrl: uploadedUrl,
+              },
+            }
+          : prev
+      );
+      showToast?.(`Berhasil mengunggah PDF TTB ${targetTtb} ke Cloudflare R2!`, 'success');
+      fetchManifests();
+    } catch (err: any) {
+      console.error('Upload TTB PDF error:', err);
+      showToast?.(err?.message || 'Gagal mengunggah berkas PDF TTB.', 'error');
+    } finally {
+      setIsUploadingDoc(null);
+    }
+  };
+
+  // Upload langsung foto bukti fisik serah terima ke Cloudflare R2 dari modal pratinjau
+  const handleUploadPhotos = async (item: DossierBundleItem, files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const imageFiles = Array.from(files).filter((f) => /\.(jpe?g|png|webp|gif)$/i.test(f.name));
+    if (imageFiles.length === 0) {
+      showToast?.('Pilih minimal 1 file gambar (JPG, PNG, WEBP, atau GIF).', 'warning');
+      return;
+    }
+
+    const targetTtb = (manualDocNo || item.noTtb || '').trim();
+    if (!targetTtb) {
+      showToast?.('Silakan isi Nomor TTB terlebih dahulu sebelum mengunggah foto serah terima.', 'warning');
+      return;
+    }
+
+    setIsUploadingDoc('FOTO');
+    const addedUrls: string[] = [];
+    let failCount = 0;
+
+    try {
+      for (const file of imageFiles) {
+        try {
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('noTtb', targetTtb);
+          formData.append('armada', item.armada || '');
+
+          const res = await fetch('/api/ttb-photos', {
+            method: 'POST',
+            body: formData,
+          });
+          const json = await res.json();
+          if (res.ok && json.success && json.photo?.url) {
+            addedUrls.push(json.photo.url);
+          } else {
+            failCount++;
+          }
+        } catch {
+          failCount++;
+        }
+      }
+
+      if (addedUrls.length > 0) {
+        const cleanKey = targetTtb.toLowerCase();
+        const strippedKey = targetTtb.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+        const armadaKey = (item.armada || '').trim().toLowerCase();
+
+        setPhotoMap((prev) => {
+          const next = { ...prev };
+          for (const k of [cleanKey, strippedKey, armadaKey].filter(Boolean)) {
+            const existing = next[k] || [];
+            next[k] = Array.from(new Set([...existing, ...addedUrls]));
+          }
+          return next;
+        });
+
+        const prevLen = previewDoc?.photoUrls?.length || 0;
+        setPreviewDoc((prev) =>
+          prev && prev.type === 'FOTO'
+            ? {
+                ...prev,
+                title: `Foto Dokumentasi Fisik Serah Terima (${targetTtb})`,
+                docNo: targetTtb,
+                isAvailable: true,
+                photoUrls: Array.from(new Set([...(prev.photoUrls || []), ...addedUrls])),
+                item: {
+                  ...prev.item,
+                  noTtb: targetTtb,
+                  hasPhotos: true,
+                  photoUrls: Array.from(new Set([...(prev.item.photoUrls || []), ...addedUrls])),
+                },
+              }
+            : prev
+        );
+        setActivePhotoIdx(prevLen);
+        fetchManifests();
+      }
+
+      if (addedUrls.length > 0 && failCount === 0) {
+        showToast?.(
+          `Berhasil mengunggah ${addedUrls.length} foto serah terima untuk ${targetTtb} ke Cloudflare R2!`,
+          'success'
+        );
+      } else if (addedUrls.length > 0) {
+        showToast?.(
+          `${addedUrls.length} foto berhasil diunggah ke R2, ${failCount} foto gagal.`,
+          'warning'
+        );
+      } else {
+        showToast?.('Gagal mengunggah foto serah terima ke Cloudflare R2.', 'error');
+      }
+    } finally {
+      setIsUploadingDoc(null);
     }
   };
 
@@ -1284,16 +1538,18 @@ _CPG Procurement & Fleet Monitoring System_`;
                               className={`px-2 py-1.5 rounded-md flex items-center justify-between border transition active:scale-95 text-left cursor-pointer ${
                                 item.hasPhotos
                                   ? 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-800 dark:text-emerald-300 border-emerald-500/35 hover:border-emerald-500/60 font-semibold shadow-xs'
+                                  : item.noTtb
+                                  ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/25 hover:border-amber-500/40'
                                   : 'bg-muted/70 hover:bg-muted text-muted-foreground/70 border-border hover:border-muted-foreground/30'
                               }`}
                               title={
                                 item.hasPhotos
-                                  ? `${item.photoUrls?.length || 1} Foto bukti fisik serah terima lapangan (Klik untuk melihat)`
-                                  : `Foto fisik serah terima belum diunggah`
+                                  ? `${item.photoUrls?.length || 1} Foto bukti fisik serah terima lapangan (Klik untuk melihat / tambah foto)`
+                                  : `Foto fisik serah terima belum diunggah (Klik untuk info & upload)`
                               }
                             >
                               <span className="flex items-center gap-1.5">
-                                <Camera className={`size-3.5 shrink-0 ${item.hasPhotos ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground/50'}`} />
+                                <Camera className={`size-3.5 shrink-0 ${item.hasPhotos ? 'text-emerald-600 dark:text-emerald-400' : item.noTtb ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground/50'}`} />
                                 <span>FOTO</span>
                               </span>
                               <span className="flex items-center gap-1 text-[10px]">
@@ -1303,7 +1559,7 @@ _CPG Procurement & Fleet Monitoring System_`;
                                     <span className="font-bold">{item.photoUrls?.length || 1}✓</span>
                                   </>
                                 ) : (
-                                  <span className="text-[9px] font-medium opacity-90">-</span>
+                                  <span className="text-[9px] font-medium opacity-90">{item.noTtb ? 'Belum Foto' : '-'}</span>
                                 )}
                               </span>
                             </button>
@@ -1509,7 +1765,37 @@ _CPG Procurement & Fleet Monitoring System_`;
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                {previewDoc.isAvailable && previewDoc.type !== 'FOTO' && (
+                  <label
+                    className={`px-2.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-xs cursor-pointer ${
+                      isUploadingDoc === previewDoc.type ? 'opacity-60 pointer-events-none' : ''
+                    }`}
+                    title={`Unggah ulang / ganti PDF ${previewDoc.type} ke Cloudflare R2`}
+                  >
+                    {isUploadingDoc === previewDoc.type ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : (
+                      <Upload className="size-3.5" />
+                    )}
+                    <span>{isUploadingDoc === previewDoc.type ? 'Mengunggah...' : `Ganti PDF ${previewDoc.type}`}</span>
+                    <input
+                      type="file"
+                      accept="application/pdf,.pdf"
+                      className="hidden"
+                      disabled={isUploadingDoc === previewDoc.type}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          if (previewDoc.type === 'FPB') handleUploadFpbPdf(previewDoc.item.fpb, file);
+                          else if (previewDoc.type === 'FSTB') handleUploadFstbPdf(previewDoc.item, file);
+                          else if (previewDoc.type === 'TTB') handleUploadTtbPdf(previewDoc.item, file);
+                        }
+                        e.target.value = '';
+                      }}
+                    />
+                  </label>
+                )}
                 {previewDoc.url && (
                   <>
                     <a
@@ -1536,16 +1822,44 @@ _CPG Procurement & Fleet Monitoring System_`;
                 {previewDoc.type === 'FOTO' &&
                   previewDoc.photoUrls &&
                   previewDoc.photoUrls.length > 0 && (
-                    <a
-                      href={previewDoc.photoUrls[activePhotoIdx]}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-2.5 py-1.5 rounded-lg border border-border bg-background hover:bg-muted text-xs font-semibold flex items-center gap-1.5 text-foreground transition"
-                      title="Buka foto resolusi penuh di tab baru"
-                    >
-                      <ExternalLink className="size-3.5" />
-                      <span>Buka Foto Asli</span>
-                    </a>
+                    <>
+                      <label
+                        className={`px-2.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-xs cursor-pointer ${
+                          isUploadingDoc === 'FOTO' ? 'opacity-60 pointer-events-none' : ''
+                        }`}
+                        title="Tambah foto bukti fisik serah terima ke Cloudflare R2"
+                      >
+                        {isUploadingDoc === 'FOTO' ? (
+                          <Loader2 className="size-3.5 animate-spin" />
+                        ) : (
+                          <Upload className="size-3.5" />
+                        )}
+                        <span>{isUploadingDoc === 'FOTO' ? 'Mengunggah...' : 'Tambah Foto'}</span>
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp"
+                          className="hidden"
+                          disabled={isUploadingDoc === 'FOTO'}
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files.length > 0) {
+                              handleUploadPhotos(previewDoc.item, e.target.files);
+                            }
+                            e.target.value = '';
+                          }}
+                        />
+                      </label>
+                      <a
+                        href={previewDoc.photoUrls[activePhotoIdx]}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-2.5 py-1.5 rounded-lg border border-border bg-background hover:bg-muted text-xs font-semibold flex items-center gap-1.5 text-foreground transition"
+                        title="Buka foto resolusi penuh di tab baru"
+                      >
+                        <ExternalLink className="size-3.5" />
+                        <span>Buka Foto Asli</span>
+                      </a>
+                    </>
                   )}
                 <button
                   type="button"
@@ -1559,9 +1873,10 @@ _CPG Procurement & Fleet Monitoring System_`;
 
             {/* Content Body Modal */}
             <div className="flex-1 overflow-y-auto p-4 bg-muted/10">
-              {/* KASUS 1: GALERI FOTO */}
-              {previewDoc.type === 'FOTO' && (
-                previewDoc.photoUrls && previewDoc.photoUrls.length > 0 ? (
+              {/* KASUS 1: GALERI FOTO TERSEDIA */}
+              {previewDoc.type === 'FOTO' &&
+                previewDoc.photoUrls &&
+                previewDoc.photoUrls.length > 0 && (
                   <div className="space-y-4">
                     {/* Foto Utama */}
                     <div className="relative w-full h-[55vh] rounded-xl overflow-hidden bg-black/90 flex items-center justify-center border border-border shadow-inner">
@@ -1599,55 +1914,7 @@ _CPG Procurement & Fleet Monitoring System_`;
                       </div>
                     )}
                   </div>
-                ) : (
-                  <div className="py-12 text-center space-y-4 max-w-md mx-auto">
-                    <div className="size-16 mx-auto rounded-full bg-muted flex items-center justify-center text-muted-foreground">
-                      <Camera className="size-8" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-foreground text-sm">
-                        Belum Ada Foto Dokumentasi Fisik
-                      </h4>
-                      <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                        Belum ditemukan foto bukti fisik serah terima barang untuk armada{' '}
-                        <strong>{previewDoc.item.armada}</strong> atau TTB{' '}
-                        <strong>{previewDoc.item.noTtb || '-'}</strong> di Cloudflare R2.
-                      </p>
-                    </div>
-
-                    <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
-                      <button
-                        type="button"
-                        onClick={() => handleSendWaToPic(previewDoc.item, 'FOTO')}
-                        className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-2 transition shadow-xs active:scale-95 cursor-pointer"
-                        title="Kirim pesan permintaan foto serah terima via WhatsApp ke PIC Lapangan"
-                      >
-                        <MessageCircle className="size-4 shrink-0" />
-                        <span>Kirim WA ke PIC Lapangan</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => handleCopyWaMessage(previewDoc.item, 'FOTO')}
-                        className="px-3 py-2 rounded-lg border border-border bg-background hover:bg-muted text-xs font-semibold text-foreground flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
-                        title="Salin template pesan WhatsApp"
-                      >
-                        {isCopiedWa ? (
-                          <>
-                            <Check className="size-3.5 text-emerald-600" />
-                            <span className="text-emerald-600">Tersalin</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="size-3.5 text-muted-foreground" />
-                            <span>Salin Pesan WA</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                )
-              )}
+                )}
 
               {/* KASUS 2: DOKUMEN PDF TERSEDIA */}
               {previewDoc.type !== 'FOTO' && previewDoc.isAvailable && previewDoc.url && (
@@ -1660,18 +1927,35 @@ _CPG Procurement & Fleet Monitoring System_`;
                 </div>
               )}
 
-              {/* KASUS 3: DOKUMEN PDF BELUM TERSEDIA (EMPTY/PENDING STATE) */}
-              {previewDoc.type !== 'FOTO' && (!previewDoc.isAvailable || !previewDoc.url) && (
-                <div className="py-12 px-4 max-w-lg mx-auto text-center space-y-4">
+              {/* KASUS 3: SOFTCOPY PDF / FOTO BELUM TERSEDIA (POLA SERAGAM SEMUA PILAR) */}
+              {((previewDoc.type === 'FOTO' &&
+                (!previewDoc.photoUrls || previewDoc.photoUrls.length === 0)) ||
+                (previewDoc.type !== 'FOTO' && (!previewDoc.isAvailable || !previewDoc.url))) && (
+                <div className="py-10 px-4 max-w-lg mx-auto text-center space-y-4">
                   <div className="size-16 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400">
-                    <AlertCircle className="size-8" />
+                    {previewDoc.type === 'FOTO' ? (
+                      <Camera className="size-8" />
+                    ) : (
+                      <AlertCircle className="size-8" />
+                    )}
                   </div>
                   <div>
                     <h4 className="font-bold text-base text-foreground">
-                      Softcopy PDF {previewDoc.type} Belum Tersedia
+                      {previewDoc.type === 'FOTO'
+                        ? 'Foto Dokumentasi Fisik Belum Tersedia'
+                        : `Softcopy PDF ${previewDoc.type} Belum Tersedia`}
                     </h4>
                     <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
-                      Dokumen scan PDF untuk berkas <strong>{previewDoc.title}</strong> belum diunggah ke server penyimpanan Cloudflare R2.
+                      {previewDoc.type === 'FOTO' ? (
+                        <>
+                          Foto bukti fisik serah terima untuk berkas{' '}
+                          <strong>{previewDoc.title}</strong> belum diunggah ke server penyimpanan Cloudflare R2.
+                        </>
+                      ) : (
+                        <>
+                          Dokumen scan PDF untuk berkas <strong>{previewDoc.title}</strong> belum diunggah ke server penyimpanan Cloudflare R2.
+                        </>
+                      )}
                     </p>
                   </div>
 
@@ -1689,24 +1973,40 @@ _CPG Procurement & Fleet Monitoring System_`;
                         </span>
                       </div>
                     )}
-                    <div className="flex justify-between border-b border-border pb-1.5">
-                      <span className="text-muted-foreground">Nomor FSTB</span>
+                    <div className="flex justify-between items-center gap-3 border-b border-border pb-1.5">
+                      <span className="text-muted-foreground shrink-0">Nomor FSTB</span>
                       {previewDoc.item.noFstb ? (
                         <span className="font-semibold text-teal-600 dark:text-teal-400">
                           {previewDoc.item.noFstb}
                         </span>
+                      ) : previewDoc.type === 'FSTB' ? (
+                        <input
+                          type="text"
+                          value={manualDocNo}
+                          onChange={(e) => setManualDocNo(e.target.value)}
+                          placeholder="Masukkan No. FSTB..."
+                          className="w-48 px-2 py-1 rounded border border-amber-500/40 bg-background text-right text-xs font-semibold text-foreground focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        />
                       ) : (
                         <span className="text-amber-600 dark:text-amber-400 font-semibold italic text-[11px]">
                           Belum Diterbitkan (Menunggu Tindak Lanjut)
                         </span>
                       )}
                     </div>
-                    <div className="flex justify-between border-b border-border pb-1.5">
-                      <span className="text-muted-foreground">Nomor TTB</span>
+                    <div className="flex justify-between items-center gap-3 border-b border-border pb-1.5">
+                      <span className="text-muted-foreground shrink-0">Nomor TTB</span>
                       {previewDoc.item.noTtb ? (
                         <span className="font-semibold text-indigo-600 dark:text-indigo-400">
                           {previewDoc.item.noTtb}
                         </span>
+                      ) : previewDoc.type === 'TTB' || previewDoc.type === 'FOTO' ? (
+                        <input
+                          type="text"
+                          value={manualDocNo}
+                          onChange={(e) => setManualDocNo(e.target.value)}
+                          placeholder="Masukkan No. TTB..."
+                          className="w-48 px-2 py-1 rounded border border-amber-500/40 bg-background text-right text-xs font-semibold text-foreground focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        />
                       ) : (
                         <span className="text-amber-600 dark:text-amber-400 font-semibold italic text-[11px]">
                           Belum Diterbitkan (Menunggu Tindak Lanjut)
@@ -1732,26 +2032,26 @@ _CPG Procurement & Fleet Monitoring System_`;
                   </div>
 
                   <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
-                    {/* Tombol Upload PDF FPB langsung ke R2 */}
+                    {/* Jalan Pintas Upload Langsung ke Cloudflare R2 sesuai tipe berkas */}
                     {previewDoc.type === 'FPB' && (
                       <>
                         <label
                           className={`px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-2 transition shadow-xs active:scale-95 cursor-pointer ${
-                            isUploadingFpb ? 'opacity-60 pointer-events-none' : ''
+                            isUploadingFpb || isUploadingDoc === 'FPB' ? 'opacity-60 pointer-events-none' : ''
                           }`}
                           title="Unggah file PDF FPB ke storage internal Cloudflare R2 agar ikut terkompilasi dalam PDF lengkap"
                         >
-                          {isUploadingFpb ? (
+                          {isUploadingFpb || isUploadingDoc === 'FPB' ? (
                             <Loader2 className="size-4 animate-spin shrink-0" />
                           ) : (
                             <Upload className="size-4 shrink-0" />
                           )}
-                          <span>{isUploadingFpb ? 'Mengunggah...' : 'Upload PDF FPB'}</span>
+                          <span>{isUploadingFpb || isUploadingDoc === 'FPB' ? 'Mengunggah...' : 'Upload PDF FPB'}</span>
                           <input
                             type="file"
                             accept="application/pdf,.pdf"
                             className="hidden"
-                            disabled={isUploadingFpb}
+                            disabled={isUploadingFpb || isUploadingDoc === 'FPB'}
                             onChange={(e) => {
                               const file = e.target.files?.[0];
                               if (file) {
@@ -1774,6 +2074,93 @@ _CPG Procurement & Fleet Monitoring System_`;
                           </a>
                         )}
                       </>
+                    )}
+
+                    {previewDoc.type === 'FSTB' && (
+                      <label
+                        className={`px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-2 transition shadow-xs active:scale-95 cursor-pointer ${
+                          isUploadingDoc === 'FSTB' ? 'opacity-60 pointer-events-none' : ''
+                        }`}
+                        title="Unggah file PDF FSTB langsung ke Cloudflare R2 agar ikut terkompilasi dalam PDF lengkap"
+                      >
+                        {isUploadingDoc === 'FSTB' ? (
+                          <Loader2 className="size-4 animate-spin shrink-0" />
+                        ) : (
+                          <Upload className="size-4 shrink-0" />
+                        )}
+                        <span>{isUploadingDoc === 'FSTB' ? 'Mengunggah...' : 'Upload PDF FSTB'}</span>
+                        <input
+                          type="file"
+                          accept="application/pdf,.pdf"
+                          className="hidden"
+                          disabled={isUploadingDoc === 'FSTB'}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              handleUploadFstbPdf(previewDoc.item, file);
+                            }
+                            e.target.value = '';
+                          }}
+                        />
+                      </label>
+                    )}
+
+                    {previewDoc.type === 'TTB' && (
+                      <label
+                        className={`px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-2 transition shadow-xs active:scale-95 cursor-pointer ${
+                          isUploadingDoc === 'TTB' ? 'opacity-60 pointer-events-none' : ''
+                        }`}
+                        title="Unggah file PDF TTB langsung ke Cloudflare R2 agar ikut terkompilasi dalam PDF lengkap"
+                      >
+                        {isUploadingDoc === 'TTB' ? (
+                          <Loader2 className="size-4 animate-spin shrink-0" />
+                        ) : (
+                          <Upload className="size-4 shrink-0" />
+                        )}
+                        <span>{isUploadingDoc === 'TTB' ? 'Mengunggah...' : 'Upload PDF TTB'}</span>
+                        <input
+                          type="file"
+                          accept="application/pdf,.pdf"
+                          className="hidden"
+                          disabled={isUploadingDoc === 'TTB'}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              handleUploadTtbPdf(previewDoc.item, file);
+                            }
+                            e.target.value = '';
+                          }}
+                        />
+                      </label>
+                    )}
+
+                    {previewDoc.type === 'FOTO' && (
+                      <label
+                        className={`px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-2 transition shadow-xs active:scale-95 cursor-pointer ${
+                          isUploadingDoc === 'FOTO' ? 'opacity-60 pointer-events-none' : ''
+                        }`}
+                        title="Unggah satu atau beberapa foto bukti serah terima langsung ke Cloudflare R2"
+                      >
+                        {isUploadingDoc === 'FOTO' ? (
+                          <Loader2 className="size-4 animate-spin shrink-0" />
+                        ) : (
+                          <Upload className="size-4 shrink-0" />
+                        )}
+                        <span>{isUploadingDoc === 'FOTO' ? 'Mengunggah...' : 'Upload Foto Serah Terima'}</span>
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp"
+                          className="hidden"
+                          disabled={isUploadingDoc === 'FOTO'}
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files.length > 0) {
+                              handleUploadPhotos(previewDoc.item, e.target.files);
+                            }
+                            e.target.value = '';
+                          }}
+                        />
+                      </label>
                     )}
 
                     {/* Tombol Kirim WA ke PIC */}
