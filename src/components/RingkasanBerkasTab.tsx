@@ -732,6 +732,64 @@ _CPG Procurement & Fleet Monitoring System_`;
     }
   };
 
+  const [bulkUploadProgress, setBulkUploadProgress] = useState<string>('');
+
+  // Upload massal banyak file PDF FPB dari penyimpanan lokal/internal ke Cloudflare R2
+  const handleBulkUploadFpbPdfs = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const pdfFiles = Array.from(files).filter((f) => /\.pdf$/i.test(f.name));
+    if (pdfFiles.length === 0) {
+      showToast?.('Pilih minimal 1 file berformat .pdf.', 'warning');
+      return;
+    }
+
+    setIsUploadingFpb(true);
+    let successCount = 0;
+    let failCount = 0;
+
+    try {
+      for (let i = 0; i < pdfFiles.length; i++) {
+        const file = pdfFiles[i];
+        setBulkUploadProgress(`Mengunggah ${i + 1}/${pdfFiles.length}...`);
+        try {
+          const formData = new FormData();
+          formData.append('file', file);
+          const res = await fetch('/api/parse-fpb-pdf', {
+            method: 'POST',
+            body: formData,
+          });
+          const json = await res.json();
+          if (res.ok && json.success && json.data?.fpbNo) {
+            successCount++;
+          } else {
+            failCount++;
+          }
+        } catch {
+          failCount++;
+        }
+      }
+
+      if (successCount > 0) {
+        await fetchManifests();
+      }
+
+      if (failCount === 0) {
+        showToast?.(
+          `Berhasil mengunggah ${successCount} file PDF FPB ke Cloudflare R2! Siap diakses dari Vercel, Railway, dan semua domain.`,
+          'success'
+        );
+      } else {
+        showToast?.(
+          `Upload massal selesai: ${successCount} berhasil ke Cloudflare R2, ${failCount} gagal.`,
+          'warning'
+        );
+      }
+    } finally {
+      setIsUploadingFpb(false);
+      setBulkUploadProgress('');
+    }
+  };
+
   return (
     <div className="space-y-4 md:space-y-6 animate-in fade-in-50 duration-300 pb-16">
       {/* Header Banner */}
@@ -750,15 +808,42 @@ _CPG Procurement & Fleet Monitoring System_`;
           </p>
         </div>
 
-        <button
-          onClick={fetchManifests}
-          disabled={isLoadingApi}
-          className="self-start md:self-auto inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-muted hover:bg-muted/80 text-foreground text-xs font-semibold border border-border transition shadow-xs active:scale-95 disabled:opacity-50 cursor-pointer"
-          title="Segarkan data softcopy dari Cloudflare R2 & Server e-FPB"
-        >
-          <RefreshCw className={`size-3.5 ${isLoadingApi ? 'animate-spin text-primary' : 'text-muted-foreground'}`} />
-          <span>{isLoadingApi ? 'Menyinkronkan...' : 'Refresh Berkas'}</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
+          <label
+            className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition shadow-xs active:scale-95 cursor-pointer ${
+              isUploadingFpb ? 'opacity-60 pointer-events-none' : ''
+            }`}
+            title="Unggah satu atau banyak file PDF FPB dari komputer/storage lokal ke Cloudflare R2 agar bisa diakses semua user di Vercel, Railway, dll."
+          >
+            {isUploadingFpb ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <Upload className="size-3.5" />
+            )}
+            <span>{bulkUploadProgress || 'Upload PDF FPB → R2'}</span>
+            <input
+              type="file"
+              accept="application/pdf,.pdf"
+              multiple
+              className="hidden"
+              disabled={isUploadingFpb}
+              onChange={(e) => {
+                handleBulkUploadFpbPdfs(e.target.files);
+                e.target.value = '';
+              }}
+            />
+          </label>
+
+          <button
+            onClick={fetchManifests}
+            disabled={isLoadingApi}
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-muted hover:bg-muted/80 text-foreground text-xs font-semibold border border-border transition shadow-xs active:scale-95 disabled:opacity-50 cursor-pointer"
+            title="Segarkan data softcopy dari Cloudflare R2"
+          >
+            <RefreshCw className={`size-3.5 ${isLoadingApi ? 'animate-spin text-primary' : 'text-muted-foreground'}`} />
+            <span>{isLoadingApi ? 'Menyinkronkan...' : 'Refresh Berkas'}</span>
+          </button>
+        </div>
       </div>
 
       {/* KPI 4 Cards */}

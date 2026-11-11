@@ -66,7 +66,7 @@ async function resolveLocalOrR2Pdf(
     }
   }
 
-  // 2. Cek penyimpanan file lokal
+  // 2. Cek penyimpanan file lokal, lalu otomatis migrasi ke R2 agar bisa diakses dari Vercel/Railway
   if (fs.existsSync(LOCAL_PDF_DIR)) {
     const candidateFiles = [
       path.join(LOCAL_PDF_DIR, `${normalizedFpb}.pdf`),
@@ -75,8 +75,16 @@ async function resolveLocalOrR2Pdf(
     ];
     for (const p of candidateFiles) {
       if (fs.existsSync(p)) {
+        const buffer = fs.readFileSync(p);
+        if (isR2Configured()) {
+          uploadToR2({
+            key: `fpb-pdfs/${normalizedFpb}.pdf`,
+            body: buffer,
+            contentType: 'application/pdf',
+          }).catch((e) => console.warn('[review-fpb/pdf] Gagal auto-migrasi ke R2:', e));
+        }
         return {
-          buffer: fs.readFileSync(p),
+          buffer,
           filename: `${normalizedFpb}.pdf`,
         };
       }
@@ -108,6 +116,7 @@ export async function GET(request: NextRequest) {
           'Content-Type': 'application/pdf',
           'Content-Disposition': `inline; filename="${type === 'signed' ? 'logistik_' : ''}${foundPdf.filename}"`,
           'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Access-Control-Allow-Origin': '*',
         },
       });
     }

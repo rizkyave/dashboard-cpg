@@ -3,6 +3,7 @@ import {
   PutObjectCommand,
   GetObjectCommand,
   ListObjectsV2Command,
+  ListObjectsV2CommandOutput,
   DeleteObjectCommand,
   HeadObjectCommand,
 } from '@aws-sdk/client-s3';
@@ -261,27 +262,48 @@ export async function listR2Objects(
   try {
     const config = getR2Config();
     const client = getR2Client();
+    const cleanPrefix = prefix ? prefix.replace(/^\/+/, '') : undefined;
 
-    const command = new ListObjectsV2Command({
-      Bucket: config.bucketName,
-      Prefix: prefix ? prefix.replace(/^\/+/, '') : undefined,
-      MaxKeys: limit,
-    });
+    const allItems: Array<{
+      key: string;
+      name: string;
+      size: number;
+      lastModified?: Date;
+      url: string;
+    }> = [];
+    let continuationToken: string | undefined = undefined;
 
-    const res = await client.send(command);
-    if (!res.Contents) return [];
+    do {
+      const remaining = limit - allItems.length;
+      if (remaining <= 0) break;
 
-    return res.Contents.filter((it) => Boolean(it.Key)).map((it) => {
-      const key = it.Key!;
-      const name = key.includes('/') ? key.split('/').pop() || key : key;
-      return {
-        key,
-        name,
-        size: it.Size || 0,
-        lastModified: it.LastModified,
-        url: getR2FileUrl(key),
-      };
-    });
+      const command: ListObjectsV2Command = new ListObjectsV2Command({
+        Bucket: config.bucketName,
+        Prefix: cleanPrefix,
+        MaxKeys: Math.min(1000, remaining),
+        ContinuationToken: continuationToken,
+      });
+
+      const res: ListObjectsV2CommandOutput = await client.send(command);
+      if (res.Contents) {
+        for (const it of res.Contents) {
+          if (!it.Key) continue;
+          const key = it.Key;
+          const name = key.includes('/') ? key.split('/').pop() || key : key;
+          allItems.push({
+            key,
+            name,
+            size: it.Size || 0,
+            lastModified: it.LastModified,
+            url: getR2FileUrl(key),
+          });
+        }
+      }
+
+      continuationToken = res.IsTruncated ? res.NextContinuationToken : undefined;
+    } while (continuationToken);
+
+    return allItems;
   } catch (err) {
     console.warn('Gagal membaca objek Cloudflare R2:', err);
     return [];

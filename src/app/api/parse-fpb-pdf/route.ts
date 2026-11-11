@@ -657,6 +657,10 @@ async function resolveLocalOrR2Pdf(
       `fpb-raw/${normalizedDoc}.pdf`,
       `fpb-pdfs/${normalizedDoc}.pdf`,
       `dashboard-metadata/fpb-pdfs/${normalizedDoc}.pdf`,
+      `fpb-signed/logistik_Approved_rev_sign_${normalizedDoc}.pdf`,
+      `fpb-signed/Approved_rev_sign_${normalizedDoc}.pdf`,
+      `fpb-pdfs/logistik_Approved_rev_sign_${normalizedDoc}.pdf`,
+      `fpb-pdfs/Approved_rev_sign_${normalizedDoc}.pdf`,
     ];
     for (const key of r2Keys) {
       try {
@@ -674,7 +678,7 @@ async function resolveLocalOrR2Pdf(
     }
   }
 
-  // 2. Cek penyimpanan lokal
+  // 2. Cek penyimpanan lokal, lalu otomatis migrasi ke Cloudflare R2
   if (fs.existsSync(LOCAL_PDF_DIR)) {
     const candidateFiles = [
       path.join(LOCAL_PDF_DIR, `${normalizedDoc}.pdf`),
@@ -683,8 +687,16 @@ async function resolveLocalOrR2Pdf(
     ];
     for (const p of candidateFiles) {
       if (fs.existsSync(p)) {
+        const buffer = fs.readFileSync(p);
+        if (isR2Configured()) {
+          uploadToR2({
+            key: `fpb-pdfs/${normalizedDoc}.pdf`,
+            body: buffer,
+            contentType: 'application/pdf',
+          }).catch((e) => console.warn('[parse-fpb-pdf] Gagal auto-migrasi ke R2:', e));
+        }
         return {
-          buffer: fs.readFileSync(p),
+          buffer,
           url: `/api/review-fpb/pdf?fpbNo=${encodeURIComponent(normalizedDoc)}&type=signed`,
           isLogistik: p.includes('logistik_'),
         };
@@ -783,36 +795,41 @@ export async function POST(request: NextRequest) {
     const ab = await file.arrayBuffer();
     const buffer = Buffer.from(ab);
     const filename = file.name || `${fpbNoHint || 'FPB'}.pdf`;
-    const normalizedHint = fpbNoHint
-      .replace(/\/LOG\/FPB\//i, '-FPB-')
-      .replace(/\.pdf$/i, '')
-      .replace(/^(?:logistik_)?Approved_rev_sign_/i, '')
-      .trim();
+
+    const extractNormalizedFpb = (rawStr: string): string => {
+      const cleaned = (rawStr || '')
+        .replace(/\/LOG\/FPB\//i, '-FPB-')
+        .replace(/\.pdf$/i, '')
+        .replace(/^(?:logistik_)?Approved_rev_sign_/i, '')
+        .trim();
+      const m = cleaned.match(/([A-Z0-9]+[-_](?:LOG[-_])?FPB[-_]\d{2}[-_]\d+)/i);
+      if (m) return m[1].replace(/_/g, '-').replace(/-LOG-FPB-/i, '-FPB-').toUpperCase();
+      return cleaned;
+    };
+
+    const normalizedHint = extractNormalizedFpb(fpbNoHint);
+    const filenameFallback = extractNormalizedFpb(filename);
 
     // Ekstrak teks & item
     const parsedData = extractPdfData(
       buffer,
-      normalizedHint || filename.replace(/\.pdf$/i, ''),
-      `/api/review-fpb/pdf?fpbNo=${encodeURIComponent(normalizedHint || filename)}&type=signed`,
+      normalizedHint || filenameFallback,
+      `/api/review-fpb/pdf?fpbNo=${encodeURIComponent(normalizedHint || filenameFallback)}&type=signed`,
       true
     );
 
-    const extractedFpb = (parsedData.fpbNo || '')
-      .replace(/\/LOG\/FPB\//i, '-FPB-')
-      .replace(/\.pdf$/i, '')
-      .replace(/^(?:logistik_)?Approved_rev_sign_/i, '')
-      .trim();
+    const extractedFpb = extractNormalizedFpb(parsedData.fpbNo || '');
 
-    // Gunakan fpbNoHint jika diberikan secara eksplisit (mis. upload langsung untuk tiket FPB tertentu)
-    const cleanFpb = normalizedHint || extractedFpb;
+    // Gunakan fpbNoHint jika diberikan secara eksplisit, atau hasil ekstraksi PDF / nama file
+    const cleanFpb = normalizedHint || extractedFpb || filenameFallback;
     if (cleanFpb) {
       parsedData.fpbNo = cleanFpb;
       parsedData.pdfUrl = `/api/review-fpb/pdf?fpbNo=${encodeURIComponent(cleanFpb)}&type=signed`;
     }
 
-    // Simpan ke R2 (dan fallback lokal jika R2 tidak dikonfigurasi)
+    // Simpan ke Cloudflare R2 sebagai sumber utama lintas domain (Vercel/Railway/lokal)
+    let savedToR2 = false;
     if (cleanFpb) {
-      let savedToR2 = false;
       if (isR2Configured()) {
         try {
           await uploadToR2({
@@ -821,6 +838,32 @@ export async function POST(request: NextRequest) {
             contentType: 'application/pdf',
           });
           savedToR2 = true;
+
+          // Sinkronkan pdfUrl di metadata review Cloudflare R2 agar langsung terbaca di semua domain
+          try {
+            const R2_REVIEWS_KEY = 'fpb-metadata/reviews.json';
+            const revObj = await getObjectFromR2(R2_REVIEWS_KEY);
+            if (revObj?.body) {
+              const reviews = JSON.parse(Buffer.from(revObj.body).toString('utf-8'));
+              if (Array.isArray(reviews)) {
+                const idx = reviews.findIndex(
+                  (r: any) => String(r.fpbNo || '').toLowerCase() === cleanFpb.toLowerCase()
+                );
+                if (idx >= 0) {
+                  reviews[idx].pdfUrl = parsedData.pdfUrl;
+                  reviews[idx].updatedAt = new Date().toISOString();
+                  await uploadToR2({
+                    key: R2_REVIEWS_KEY,
+                    body: Buffer.from(JSON.stringify(reviews, null, 2), 'utf-8'),
+                    contentType: 'application/json',
+                    cacheControl: 'no-cache, no-store, must-revalidate',
+                  });
+                }
+              }
+            }
+          } catch (metaErr) {
+            console.warn('Gagal update metadata reviews.json di R2:', metaErr);
+          }
         } catch (r2Err) {
           console.warn('Gagal upload parsed PDF ke R2:', r2Err);
         }
@@ -839,7 +882,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: `Berhasil mengekstrak ${parsedData.items.length} item material dari file PDF secara mandiri!`,
+      savedToR2,
+      message: savedToR2
+        ? `PDF FPB ${cleanFpb} berhasil disimpan ke Cloudflare R2 (${parsedData.items.length} item terekstrak) & siap digunakan di semua domain!`
+        : `Berhasil mengekstrak ${parsedData.items.length} item material dari file PDF secara mandiri!`,
       data: parsedData,
     });
   } catch (err: any) {
