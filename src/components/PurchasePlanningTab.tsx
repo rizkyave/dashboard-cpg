@@ -1167,101 +1167,100 @@ export default function PurchasePlanningTab({
         </div>
       </div>
 
-      {/* ── BANNER SINKRONISASI HYBRID (DESKTOP + LIVE e-FPB) ── */}
+      {/* ── BANNER RINGKASAN MULTI-BATCH & INTEGRASI AKTIF ── */}
       {data && (
-        <div className="space-y-2.5">
-          {/* Bar Kontrol & Status Sinkronisasi */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 p-4 rounded-3xl bg-gradient-to-r from-indigo-500/10 via-card to-card border border-indigo-500/30 text-xs shadow-xs">
-            <div className="flex items-center gap-3 flex-wrap">
-              <span className="flex h-2.5 w-2.5 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-              </span>
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 p-4 rounded-3xl bg-gradient-to-r from-emerald-500/10 via-card to-sky-500/[0.06] border border-emerald-500/25 text-xs shadow-xs">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <span className="flex h-2.5 w-2.5 relative shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+            </span>
 
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-bold text-foreground">Sinkronisasi Hybrid:</span>
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-blue-500/15 text-blue-700 dark:text-blue-300 font-mono text-[11px] font-bold border border-blue-500/30" title="File Excel Master Desktop">
-                  <FileSpreadsheet className="size-3 text-blue-500" />
-                  <span>{data.syncStats?.desktopFileName || 'PURCHASE_PLANNING_BATCH_001_CPG.xlsx'}</span>
-                </span>
-                <span className="text-muted-foreground">+</span>
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-purple-500/15 text-purple-700 dark:text-purple-300 font-mono text-[11px] font-bold border border-purple-500/30" title="Data persetujuan e-FPB dari modul Review Logistik">
-                  <Sparkles className="size-3 text-purple-500" />
-                  <span>e-FPB Live Sync</span>
-                </span>
-              </div>
+            <span className="font-bold text-foreground">Batch Aktif:</span>
 
-              <div className="hidden sm:flex items-center gap-2 text-muted-foreground text-[11px] border-l border-border pl-3">
-                <span>
-                  📁 <strong className="text-foreground">{data.syncStats?.desktopCount ?? data.summary.totalItems}</strong> Desktop
-                </span>
-                <span>&bull;</span>
-                <span>
-                  🌐 <strong className="text-foreground">{data.syncStats?.efpbCount ?? 0}</strong> e-FPB Baru
-                </span>
-                <span>&bull;</span>
-                <span>
-                  🔄 <strong className="text-foreground">{data.syncStats?.hybridCount ?? 0}</strong> Terkonsolidasi
-                </span>
-              </div>
-            </div>
+            {/* Clickable Batch Pills */}
+            <button
+              type="button"
+              onClick={() => setSelectedBatch('ALL')}
+              className={`px-2.5 py-1 rounded-lg font-mono text-[11px] font-bold border transition cursor-pointer ${
+                selectedBatch === 'ALL'
+                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
+                  : 'bg-background/80 text-muted-foreground border-border hover:text-foreground'
+              }`}
+            >
+              Semua ({data.items.length})
+            </button>
 
-            <div className="flex items-center gap-2 flex-wrap shrink-0">
-              {/* Tombol Tarik & Sinkronkan e-FPB */}
-              <button
-                type="button"
-                onClick={() => handleSyncHybrid(false)}
-                disabled={isSyncingHybrid || isRefreshing}
-                className="h-8 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs disabled:opacity-60"
-                title="Tarik data item e-FPB yang telah disetujui Logistik (keputusan PO) dan gabungkan ke rencana pembelian"
-              >
-                {isSyncingHybrid ? (
-                  <Loader2 className="size-3.5 animate-spin" />
-                ) : (
-                  <RefreshCw className="size-3.5" />
-                )}
-                <span>Tarik e-FPB Disetujui</span>
-                {data.syncStats && data.syncStats.pendingPoItemsCount > 0 && (
-                  <span className="px-1.5 py-0.2 rounded-full bg-amber-400 text-amber-950 text-[10px] font-black">
-                    +{data.syncStats.pendingPoItemsCount}
+            {uniqueBatches.map((b) => {
+              const isAct = selectedBatch === b.batchNo;
+              return (
+                <button
+                  key={b.batchNo}
+                  type="button"
+                  onClick={() => setSelectedBatch(isAct ? 'ALL' : b.batchNo)}
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-mono text-[11px] font-bold border transition cursor-pointer ${
+                    isAct
+                      ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
+                      : 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/30 hover:bg-blue-500/20'
+                  }`}
+                  title={`Klik untuk memfilter ${b.batchNo}`}
+                >
+                  <Layers className="size-3 shrink-0" />
+                  <span>{b.batchNo}</span>
+                  <span className="opacity-80">({b.count})</span>
+                </button>
+              );
+            })}
+
+            {/* Ringkasan Status Integrasi Pratender & Anomali */}
+            {(() => {
+              const tenderedCount = data.items.filter((it) => Boolean(getPratenderStatusForItem(it))).length;
+              const untenderedCount = data.items.length - tenderedCount;
+              return (
+                <div className="hidden sm:flex items-center gap-2 text-muted-foreground text-[11px] border-l border-border pl-3">
+                  <span>
+                    🟣 <strong className="text-foreground">{tenderedCount}</strong> Sudah Pratender
                   </span>
-                )}
-              </button>
-
-              {/* Tombol Muat Ulang Excel Desktop & Merge */}
-              <button
-                type="button"
-                onClick={() => handleSyncHybrid(true)}
-                disabled={isSyncingHybrid || isRefreshing}
-                className="h-8 px-3 rounded-xl border border-blue-500/30 bg-blue-500/10 hover:bg-blue-500/20 text-blue-700 dark:text-blue-300 font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs disabled:opacity-60"
-                title="Baca ulang file Excel di Desktop jika ada perubahan manual, lalu otomatis gabungkan kembali dengan e-FPB disetujui"
-              >
-                <Sparkles className="size-3.5 text-blue-500" />
-                <span>Muat Ulang Excel &amp; Gabung</span>
-              </button>
-            </div>
+                  <span>&bull;</span>
+                  <span>
+                    🟢 <strong className="text-foreground">{untenderedCount}</strong> Siap Tender
+                  </span>
+                  {priceAnomalyMap.size > 0 && (
+                    <>
+                      <span>&bull;</span>
+                      <span className="text-rose-600 dark:text-rose-400 font-semibold">
+                        ⚠️ {priceAnomalyMap.size} Anomali Harga
+                      </span>
+                    </>
+                  )}
+                </div>
+              );
+            })()}
           </div>
 
-          {/* Notifikasi Alert jika ada e-FPB baru yang siap disinkronkan */}
-          {data.syncStats && data.syncStats.pendingPoItemsCount > 0 && (
-            <div className="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs shadow-xs flex-wrap">
-              <div className="flex items-center gap-2.5">
-                <span className="size-2 rounded-full bg-amber-500 animate-pulse shrink-0"></span>
-                <span>
-                  Terdapat <strong>{data.syncStats.pendingPoItemsCount} item barang</strong> dari <strong>{data.syncStats.pendingApprovedFpbsCount} berkas e-FPB</strong> yang telah disetujui Tim Logistik (keputusan Beli Baru/PO) dan siap ditarik ke dalam perencanaan pembelian.
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => handleSyncHybrid(false)}
-                disabled={isSyncingHybrid}
-                className="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shrink-0 shadow-2xs disabled:opacity-60"
-              >
-                {isSyncingHybrid ? <Loader2 className="size-3.5 animate-spin" /> : <RefreshCw className="size-3.5" />}
-                <span>Sinkronkan Sekarang</span>
-              </button>
-            </div>
-          )}
+          <div className="flex items-center gap-2 flex-wrap shrink-0">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading || isRefreshing}
+              className="h-8 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs disabled:opacity-60"
+              title="Upload berkas Excel Batch baru (Append / Smart Merge / Replace)"
+            >
+              {isUploading ? <Loader2 className="size-3.5 animate-spin" /> : <Plus className="size-3.5" />}
+              <span>Upload Batch Baru</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => fetchData(true)}
+              disabled={isRefreshing || isUploading}
+              className="h-8 px-3 rounded-xl border border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/20 text-sky-700 dark:text-sky-300 font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs disabled:opacity-60"
+              title="Segarkan integrasi Planning, Pratender & Titik Kirim Armada"
+            >
+              <RefreshCw className={`size-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span>Segarkan Integrasi</span>
+            </button>
+          </div>
         </div>
       )}
 
