@@ -188,25 +188,46 @@ const MASTER_PLANNING_ITEMS: PurchasePlanningItem[] = [
   },
 ];
 
-function buildResponseFromItems(items: PurchasePlanningItem[], sourceFile?: string): PurchasePlanningResponse {
-  const criticalCount = items.filter((i) => i.urgency === 'CRITICAL').length;
-  const reorderCount = items.filter((i) => i.urgency === 'REORDER').length;
-  const plannedCount = items.filter((i) => i.urgency === 'PLANNED').length;
+function normalizeCategoryName(raw?: string): string {
+  const cleaned = (raw || 'General').trim().replace(/\s+/g, ' ');
+  if (!cleaned) return 'General';
+  const keepUpper = new Set(['K3', 'ATK', 'IT', 'PPE', 'APD', 'AC', 'GPS']);
+  return cleaned
+    .split(' ')
+    .map((word) => {
+      const up = word.toUpperCase();
+      if (keepUpper.has(up)) return up;
+      if (word === '&' || word === '/' || word === '-') return word;
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join(' ');
+}
 
-  const totalEstimatedBudget = items.reduce((sum, i) => sum + i.totalEstimatedCost, 0);
-  const totalPotentialSavings = items.reduce((sum, i) => sum + i.potentialSavingsAmount, 0);
+function buildResponseFromItems(items: PurchasePlanningItem[], sourceFile?: string): PurchasePlanningResponse {
+  const normalizedItems = items.map((i) => ({
+    ...i,
+    category: normalizeCategoryName(i.category),
+  }));
+  const criticalCount = normalizedItems.filter((i) => i.urgency === 'CRITICAL').length;
+  const reorderCount = normalizedItems.filter((i) => i.urgency === 'REORDER').length;
+  const plannedCount = normalizedItems.filter((i) => i.urgency === 'PLANNED').length;
+
+  const totalEstimatedBudget = normalizedItems.reduce((sum, i) => sum + i.totalEstimatedCost, 0);
+  const totalPotentialSavings = normalizedItems.reduce((sum, i) => sum + i.potentialSavingsAmount, 0);
 
   const vesselsSet = new Set<string>();
-  items.forEach((i) => i.requestingVessels.forEach((v) => vesselsSet.add(v)));
+  normalizedItems.forEach((i) => i.requestingVessels.forEach((v) => vesselsSet.add(v)));
 
-  const categories = Array.from(new Set(items.map((i) => i.category))).sort();
+  const categories = Array.from(new Set(normalizedItems.map((i) => i.category))).sort((a, b) =>
+    a.localeCompare(b, 'id-ID')
+  );
 
   return {
     success: true,
     timestamp: new Date().toISOString(),
     sourceFile,
     summary: {
-      totalItems: items.length,
+      totalItems: normalizedItems.length,
       criticalCount,
       reorderCount,
       plannedCount,
@@ -215,7 +236,7 @@ function buildResponseFromItems(items: PurchasePlanningItem[], sourceFile?: stri
       activeVesselsCount: vesselsSet.size,
     },
     categories,
-    items,
+    items: normalizedItems,
   };
 }
 
@@ -227,6 +248,13 @@ export async function GET() {
         const fileContent = fs.readFileSync(STORAGE_FILE_PATH, 'utf-8');
         const parsed: PurchasePlanningResponse = JSON.parse(fileContent);
         if (parsed && parsed.items && parsed.items.length > 0) {
+          parsed.items = parsed.items.map((it) => ({
+            ...it,
+            category: normalizeCategoryName(it.category),
+          }));
+          parsed.categories = Array.from(new Set(parsed.items.map((it) => it.category))).sort((a, b) =>
+            a.localeCompare(b, 'id-ID')
+          );
           parsed.syncStats = getSyncStats(parsed);
           return NextResponse.json(parsed, {
             headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' },

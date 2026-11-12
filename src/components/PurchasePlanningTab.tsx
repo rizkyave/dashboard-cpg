@@ -318,6 +318,30 @@ export default function PurchasePlanningTab({
     }).format(val);
   };
 
+  // Normalisasi nama kategori agar tidak terpisah karena huruf kapital/kecil (mis. CONSTRUCTION vs Construction)
+  const normalizeCategory = (raw?: string): string => {
+    const cleaned = (raw || 'General').trim().replace(/\s+/g, ' ');
+    if (!cleaned) return 'General';
+    const keepUpper = new Set(['K3', 'ATK', 'IT', 'PPE', 'APD', 'AC', 'GPS']);
+    return cleaned
+      .split(' ')
+      .map((word) => {
+        const up = word.toUpperCase();
+        if (keepUpper.has(up)) return up;
+        if (word === '&' || word === '/' || word === '-') return word;
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      })
+      .join(' ');
+  };
+
+  // Daftar kategori unik yang sudah dinormalisasi
+  const normalizedCategories = useMemo(() => {
+    if (!data?.items) return [];
+    const setC = new Set<string>();
+    data.items.forEach((i) => setC.add(normalizeCategory(i.category)));
+    return Array.from(setC).sort((a, b) => a.localeCompare(b, 'id-ID'));
+  }, [data]);
+
   // Daftar armada unik
   const uniqueVessels = useMemo(() => {
     if (!data?.items) return [];
@@ -463,8 +487,8 @@ export default function PurchasePlanningTab({
         if (!itemBatches.includes(selectedBatch)) return false;
       }
 
-      // Filter Category
-      if (selectedCategory !== 'ALL' && item.category !== selectedCategory) return false;
+      // Filter Category (Case-insensitive normalized)
+      if (selectedCategory !== 'ALL' && normalizeCategory(item.category) !== selectedCategory) return false;
 
       // Filter Urgency
       if (selectedUrgency !== 'ALL' && item.urgency !== selectedUrgency) return false;
@@ -533,11 +557,12 @@ export default function PurchasePlanningTab({
     // 1. Ringkasan Anggaran per Kategori
     const catMap = new Map<string, { category: string; count: number; budget: number; critical: number }>();
     items.forEach((it) => {
-      const cur = catMap.get(it.category) || { category: it.category, count: 0, budget: 0, critical: 0 };
+      const catNorm = normalizeCategory(it.category);
+      const cur = catMap.get(catNorm) || { category: catNorm, count: 0, budget: 0, critical: 0 };
       cur.count += 1;
       cur.budget += it.totalEstimatedCost || 0;
       if (it.urgency === 'CRITICAL') cur.critical += 1;
-      catMap.set(it.category, cur);
+      catMap.set(catNorm, cur);
     });
     const byCategory = Array.from(catMap.values()).sort((a, b) => b.budget - a.budget);
 
@@ -639,7 +664,7 @@ export default function PurchasePlanningTab({
     items.forEach((it) => {
       const gKey =
         autoGroupBy === 'category'
-          ? it.category || 'General'
+          ? normalizeCategory(it.category)
           : it.suggestedVendor || 'Vendor Umum / Multi-Supplier';
       const cur = groupMap.get(gKey) || {
         groupName: gKey,
@@ -699,7 +724,7 @@ export default function PurchasePlanningTab({
   // Pilih semua item dalam kategori tertentu (Per Kategori)
   const handleSelectByCategory = (catName: string) => {
     if (!data?.items) return;
-    const catItems = data.items.filter((it) => it.category === catName);
+    const catItems = data.items.filter((it) => normalizeCategory(it.category) === catName);
     setSelectedItemIds((prev) => {
       const next = new Set(prev);
       const isAllCatSelected = catItems.every((it) => next.has(it.id));
@@ -1742,7 +1767,7 @@ export default function PurchasePlanningTab({
       )}
 
       {/* ── PILIHAN PER KATEGORI (CATEGORY QUICK SELECTOR BAR) ── */}
-      {data?.categories && data.categories.length > 0 && (
+      {normalizedCategories.length > 0 && data && (
         <div className="p-4 bg-card border border-border rounded-2xl shadow-xs space-y-2.5">
           <div className="flex items-center justify-between flex-wrap gap-2 text-xs">
             <div className="flex items-center gap-1.5 font-bold text-foreground">
@@ -1768,10 +1793,10 @@ export default function PurchasePlanningTab({
               <span className="font-mono text-[10px] opacity-80 font-bold">({data.items.length})</span>
             </button>
 
-            {data.categories.map((cat) => {
-              const countInCat = data.items.filter((i) => i.category === cat).length;
+            {normalizedCategories.map((cat) => {
+              const catItems = data.items.filter((i) => normalizeCategory(i.category) === cat);
+              const countInCat = catItems.length;
               const isSelectedCat = selectedCategory === cat;
-              const catItems = data.items.filter((i) => i.category === cat);
               const isAllCatChecked = catItems.length > 0 && catItems.every((it) => selectedItemIds.has(it.id));
 
               return (
@@ -2520,7 +2545,7 @@ export default function PurchasePlanningTab({
                     onChange={(e) => setPkgCategory(e.target.value)}
                     className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground text-xs font-medium focus:ring-1 focus:ring-primary focus:outline-hidden cursor-pointer"
                   >
-                    {data?.categories.map((c) => (
+                    {normalizedCategories.map((c) => (
                       <option key={c} value={c}>
                         {c}
                       </option>
