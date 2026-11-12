@@ -51,6 +51,7 @@ import { SisaLayananItem } from '@/types/sisaLayanan';
 import { UploadedTtbItem, UploadTtbResponse } from '@/types/ttbUpload';
 import { UploadedFstbItem } from '@/types/fstbUpload';
 import { RemoteHandoverTokenData } from '@/types/remoteHandover';
+import { TtbInspectionRecord } from '@/app/api/ttb-inspection/route';
 import { DocumentValidationRecord } from '@/types/documentValidation';
 import { resolveDocRelation } from '@/utils/docRelationResolver';
 import RemoteDispatchModal from '@/components/RemoteDispatchModal';
@@ -262,8 +263,12 @@ export default function UploadTtbTab({
   const [selectedMediaItem, setSelectedMediaItem] = useState<UploadedTtbItem | null>(null);
   const [isIncompleteModalOpen, setIsIncompleteModalOpen] = useState<boolean>(false);
   const [pendingDispatchItem, setPendingDispatchItem] = useState<UploadedTtbItem | null>(null);
-  const [statusFilterTab, setStatusFilterTab] = useState<'ALL' | 'UNVALIDATED' | 'READY_WA' | 'PENDING_CREW' | 'COMPLETED'>('ALL');
+  const isTtbFieldRole = user?.role === 'staf_ttb' || user?.role === 'end_user';
+  const [statusFilterTab, setStatusFilterTab] = useState<'ALL' | 'TUGAS_HARIAN' | 'UNVALIDATED' | 'READY_WA' | 'PENDING_CREW' | 'COMPLETED'>(
+    isTtbFieldRole ? 'TUGAS_HARIAN' : 'ALL'
+  );
   const [remoteTokens, setRemoteTokens] = useState<Record<string, RemoteHandoverTokenData>>({});
+  const [inspectionsMap, setInspectionsMap] = useState<Record<string, TtbInspectionRecord>>({});
   const [validationsMap, setValidationsMap] = useState<Record<string, DocumentValidationRecord>>({});
 
   // SOP Control: Wajib FSTB Terunggah Sebelum Terbit TTB (Hanya dapat diubah Admin)
@@ -490,12 +495,15 @@ export default function UploadTtbTab({
     }
   };
 
-  // Fetch token serah terima mandiri WhatsApp
+  // Fetch token serah terima mandiri WhatsApp & hasil inspeksi Tim TTB
   const fetchRemoteTokens = async () => {
     try {
-      const res = await fetch(`/api/remote-handover?_t=${Date.now()}`);
-      if (res.ok) {
-        const d = await res.json();
+      const [remRes, inspRes] = await Promise.allSettled([
+        fetch(`/api/remote-handover?_t=${Date.now()}`),
+        fetch(`/api/ttb-inspection?_t=${Date.now()}`),
+      ]);
+      if (remRes.status === 'fulfilled' && remRes.value.ok) {
+        const d = await remRes.value.json();
         if (Array.isArray(d.tokens)) {
           const map: Record<string, RemoteHandoverTokenData> = {};
           d.tokens.forEach((t: RemoteHandoverTokenData) => {
@@ -504,6 +512,17 @@ export default function UploadTtbTab({
             if (t.ttbId) map[t.ttbId.toUpperCase().trim()] = t;
           });
           setRemoteTokens(map);
+        }
+      }
+      if (inspRes.status === 'fulfilled' && inspRes.value.ok) {
+        const iJson = await inspRes.value.json();
+        if (Array.isArray(iJson.records)) {
+          const iMap: Record<string, TtbInspectionRecord> = {};
+          iJson.records.forEach((rec: TtbInspectionRecord) => {
+            const k = (rec.noTtb || '').toUpperCase().trim();
+            if (k && !iMap[k]) iMap[k] = rec;
+          });
+          setInspectionsMap(iMap);
         }
       }
     } catch (err) {
@@ -1485,7 +1504,16 @@ export default function UploadTtbTab({
     let list = enrichedHistory;
 
     // Filter status tab
-    if (statusFilterTab === 'UNVALIDATED') {
+    if (statusFilterTab === 'TUGAS_HARIAN') {
+      list = list.filter((h) => {
+        const key = (h.cleanNoTtb || h.noTtb || '').toUpperCase().trim();
+        const token = remoteTokens[key];
+        const isReceived = h.hasPhysicalPhotos || h.isArmadaReceived || token?.isUsed;
+        const insp = inspectionsMap[key];
+        // Tugas harian staf TTB / end_user: belum selesai diterima ATAU ada temuan sebagian/rusak
+        return !isReceived || (insp && insp.conditionStatus !== 'LENGKAP_BAIK');
+      });
+    } else if (statusFilterTab === 'UNVALIDATED') {
       list = list.filter((h) => {
         const key = (h.cleanNoTtb || h.noTtb || '').toUpperCase().trim();
         const token = remoteTokens[key];
@@ -1534,7 +1562,7 @@ export default function UploadTtbTab({
         h.renamedFileName?.toLowerCase().includes(q) ||
         h.uploaderName?.toLowerCase().includes(q)
     );
-  }, [enrichedHistory, searchHistory, statusFilterTab, remoteTokens, validationsMap]);
+  }, [enrichedHistory, searchHistory, statusFilterTab, remoteTokens, validationsMap, inspectionsMap]);
 
   // Pagination state untuk riwayat tabel (10 data per halaman)
   const [historyPage, setHistoryPage] = useState<number>(1);
@@ -2362,6 +2390,20 @@ export default function UploadTtbTab({
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
           <button
             type="button"
+            onClick={() => setStatusFilterTab('TUGAS_HARIAN')}
+            className={`h-8 px-3 rounded-lg font-semibold transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
+              statusFilterTab === 'TUGAS_HARIAN'
+                ? 'bg-indigo-600 text-white shadow-xs'
+                : 'bg-muted/60 text-muted-foreground hover:text-foreground hover:bg-muted border border-border/60'
+            }`}
+            title="Tugas harian Staf TTB & End User (belum diterima/dicek atau ada selisih kondisi)"
+          >
+            <Clock className="size-3.5" />
+            <span>Tugas Harian TTB</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => setStatusFilterTab('ALL')}
             className={`h-8 px-3 rounded-lg font-semibold transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
               statusFilterTab === 'ALL'
@@ -2629,6 +2671,30 @@ export default function UploadTtbTab({
                               <CheckCircle2 className="size-3" />
                               UPLOADED
                             </span>
+                            {(() => {
+                              const insp = inspectionsMap[cleanTtbKey];
+                              if (!insp) return null;
+                              const badgeStyle =
+                                insp.conditionStatus === 'LENGKAP_BAIK'
+                                  ? 'bg-teal-500/15 text-teal-700 dark:text-teal-300 border-teal-500/30'
+                                  : insp.conditionStatus === 'SEBAGIAN_KURANG'
+                                  ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30'
+                                  : 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30';
+                              const label =
+                                insp.conditionStatus === 'LENGKAP_BAIK'
+                                  ? 'Dicek Lengkap'
+                                  : insp.conditionStatus === 'SEBAGIAN_KURANG'
+                                  ? 'Sebagian / Kurang'
+                                  : 'Rusak / Cacat';
+                              return (
+                                <span
+                                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border w-fit ${badgeStyle}`}
+                                  title={`Dicek oleh ${insp.checkerName}${insp.conditionNotes ? ` — ${insp.conditionNotes}` : ''}${insp.otpCode ? ` • OTP: ${insp.otpCode}` : ''}`}
+                                >
+                                  <span>{label}</span>
+                                </span>
+                              );
+                            })()}
                             {isReceived ? (
                               <button
                                 type="button"

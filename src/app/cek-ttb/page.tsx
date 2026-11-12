@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
   Camera,
@@ -15,6 +15,10 @@ import {
   AlertCircle,
   ImagePlus,
   RotateCcw,
+  PenTool,
+  ShieldCheck,
+  ClipboardCheck,
+  KeyRound,
 } from 'lucide-react';
 import CameraWatermarkModal from '@/components/CameraWatermarkModal';
 
@@ -23,6 +27,8 @@ interface TtbOption {
   armada: string;
   photoCount?: number;
 }
+
+type ConditionStatus = 'LENGKAP_BAIK' | 'SEBAGIAN_KURANG' | 'RUSAK_CACAT';
 
 async function compressImage(file: File): Promise<File> {
   return new Promise((resolve) => {
@@ -102,6 +108,21 @@ function CekTtbContent() {
   const [isLoadingList, setIsLoadingList] = useState<boolean>(true);
   const [ttbSearch, setTtbSearch] = useState<string>('');
 
+  // Konfirmasi Kondisi & Checklist Serah Terima
+  const [conditionStatus, setConditionStatus] = useState<ConditionStatus>('LENGKAP_BAIK');
+  const [conditionNotes, setConditionNotes] = useState<string>('');
+  const [checklist, setChecklist] = useState({
+    fisikDanQty: true,
+    kemasanDanLabel: true,
+    dokumenLengkap: true,
+  });
+  const [otpCode, setOtpCode] = useState<string>('');
+
+  // Signature Canvas State
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [isDrawing, setIsDrawing] = useState<boolean>(false);
+  const [hasSignature, setHasSignature] = useState<boolean>(false);
+
   const [capturedPhotos, setCapturedPhotos] = useState<{ file: File; previewUrl: string }[]>([]);
   const [isCameraOpen, setIsCameraOpen] = useState<boolean>(false);
   const [isUploading, setIsUploading] = useState<boolean>(false);
@@ -109,6 +130,7 @@ function CekTtbContent() {
   const [uploadedResult, setUploadedResult] = useState<{
     message: string;
     files: string[];
+    conditionLabel: string;
   } | null>(null);
 
   useEffect(() => {
@@ -147,7 +169,6 @@ function CekTtbContent() {
           }
         }
       } catch {
-        // Non-fatal: petugas tetap bisa mengetik No. TTB manual
       } finally {
         if (active) setIsLoadingList(false);
       }
@@ -161,11 +182,7 @@ function CekTtbContent() {
     const q = ttbSearch.trim().toLowerCase();
     if (!q) return ttbOptions.slice(0, 25);
     return ttbOptions
-      .filter(
-        (o) =>
-          o.noTtb.toLowerCase().includes(q) ||
-          o.armada.toLowerCase().includes(q)
-      )
+      .filter((o) => o.noTtb.toLowerCase().includes(q) || o.armada.toLowerCase().includes(q))
       .slice(0, 25);
   }, [ttbOptions, ttbSearch]);
 
@@ -173,6 +190,64 @@ function CekTtbContent() {
     setNoTtb(opt.noTtb);
     if (opt.armada && opt.armada !== '-') setArmada(opt.armada);
     setTtbSearch('');
+  };
+
+  // Signature Pad Handlers
+  const getCanvasPoint = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    if ('touches' in e && e.touches.length > 0) {
+      return {
+        x: (e.touches[0].clientX - rect.left) * scaleX,
+        y: (e.touches[0].clientY - rect.top) * scaleY,
+      };
+    }
+    const me = e as React.MouseEvent<HTMLCanvasElement>;
+    return {
+      x: (me.clientX - rect.left) * scaleX,
+      y: (me.clientY - rect.top) * scaleY,
+    };
+  };
+
+  const startDraw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    if (!canvas || !ctx) return;
+    const { x, y } = getCanvasPoint(e);
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    setIsDrawing(true);
+    setHasSignature(true);
+  };
+
+  const drawMove = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    if (!isDrawing) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    if (!canvas || !ctx) return;
+    const { x, y } = getCanvasPoint(e);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+  };
+
+  const stopDraw = () => {
+    setIsDrawing(false);
+  };
+
+  const clearSignature = () => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    if (canvas && ctx) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    setHasSignature(false);
   };
 
   const handleCameraCaptured = (dataUrl: string, filename: string) => {
@@ -218,6 +293,10 @@ function CekTtbContent() {
       setErrorMsg('Nama petugas penerima TTB wajib diisi.');
       return;
     }
+    if (conditionStatus !== 'LENGKAP_BAIK' && !conditionNotes.trim()) {
+      setErrorMsg('Mohon isi catatan selisih qty atau keterangan kerusakan barang.');
+      return;
+    }
     if (capturedPhotos.length === 0) {
       setErrorMsg('Ambil minimal 1 foto pengecekan barang terlebih dahulu.');
       return;
@@ -229,6 +308,7 @@ function CekTtbContent() {
 
     setIsUploading(true);
     try {
+      // 1. Upload foto ber-watermark dengan penomoran otomatis TTB
       const formData = new FormData();
       formData.append('noTtb', cleanTtb);
       formData.append('armada', armada.trim() || '-');
@@ -244,18 +324,50 @@ function CekTtbContent() {
       });
       const json = await res.json();
 
-      if (res.ok && json.success) {
-        const names = Array.isArray(json.uploadedFiles)
-          ? json.uploadedFiles.map((u: any) => u.renamedFileName || u.fileName || String(u))
-          : [];
-        setUploadedResult({
-          message: json.message || `Foto pengecekan TTB ${cleanTtb} berhasil disimpan!`,
-          files: names,
-        });
-        setCapturedPhotos([]);
-      } else {
+      if (!res.ok || !json.success) {
         setErrorMsg(json.message || json.error || 'Gagal mengunggah foto pengecekan TTB.');
+        setIsUploading(false);
+        return;
       }
+
+      const names: string[] = Array.isArray(json.uploadedFiles)
+        ? json.uploadedFiles.map((u: any) => u.renamedFileName || u.fileName || String(u))
+        : [];
+
+      // 2. Simpan hasil konfirmasi kondisi, checklist, TTD/OTP + kirim notifikasi otomatis
+      const signatureDataUrl = hasSignature && canvasRef.current ? canvasRef.current.toDataURL('image/png') : undefined;
+      await fetch('/api/ttb-inspection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          noTtb: cleanTtb,
+          armada: armada.trim() || '-',
+          checkerName: checkerName.trim(),
+          conditionStatus,
+          conditionNotes: conditionNotes.trim() || undefined,
+          checklist,
+          otpCode: otpCode.trim() || undefined,
+          signatureDataUrl,
+          photoFiles: names,
+        }),
+      });
+
+      const condLabel =
+        conditionStatus === 'LENGKAP_BAIK'
+          ? 'Lengkap & Baik'
+          : conditionStatus === 'SEBAGIAN_KURANG'
+          ? 'Sebagian / Kurang Qty'
+          : 'Rusak / Cacat';
+
+      setUploadedResult({
+        message: json.message || `Foto & konfirmasi pengecekan TTB ${cleanTtb} berhasil disimpan!`,
+        files: names,
+        conditionLabel: condLabel,
+      });
+      setCapturedPhotos([]);
+      clearSignature();
+      setConditionNotes('');
+      setOtpCode('');
     } catch (err: any) {
       setErrorMsg(err?.message || 'Terjadi kesalahan jaringan saat mengunggah foto.');
     } finally {
@@ -269,12 +381,16 @@ function CekTtbContent() {
       setNoTtb('');
       setArmada('');
     }
+    setConditionStatus('LENGKAP_BAIK');
+    setConditionNotes('');
+    setOtpCode('');
     setCapturedPhotos([]);
+    clearSignature();
     setErrorMsg('');
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center p-4 pb-10">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center p-4 pb-12">
       <div className="w-full max-w-md space-y-4">
         {/* Header Mobile */}
         <div className="p-4 rounded-2xl bg-gradient-to-br from-sky-500/20 via-slate-900 to-emerald-500/10 border border-sky-500/30 shadow-lg">
@@ -287,10 +403,10 @@ function CekTtbContent() {
                 CPG Mobile Field Capture
               </div>
               <h1 className="text-base font-bold text-white leading-tight">
-                Cek &amp; Foto Tim TTB Penerima Barang
+                Konfirmasi &amp; Foto Tim TTB Penerima Barang
               </h1>
               <p className="text-[11px] text-slate-400 mt-0.5">
-                Penomoran file otomatis sesuai Nomor TTB &amp; watermark GPS.
+                Cek kondisi, checklist gudang, TTD/OTP &amp; penomoran foto TTB otomatis.
               </p>
             </div>
           </div>
@@ -300,8 +416,11 @@ function CekTtbContent() {
           <div className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 space-y-4 text-center">
             <CheckCircle2 className="size-12 text-emerald-400 mx-auto" />
             <div className="space-y-1">
-              <h2 className="text-base font-bold text-white">Foto Pengecekan Tersimpan!</h2>
+              <h2 className="text-base font-bold text-white">Pengecekan &amp; Notifikasi Terkirim!</h2>
               <p className="text-xs text-slate-300">{uploadedResult.message}</p>
+              <div className="inline-block mt-1 px-2.5 py-0.5 rounded-full bg-slate-900 border border-emerald-500/30 text-[11px] font-bold text-emerald-300">
+                Status Kondisi: {uploadedResult.conditionLabel}
+              </div>
             </div>
             {uploadedResult.files.length > 0 && (
               <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-left space-y-1">
@@ -321,7 +440,7 @@ function CekTtbContent() {
               className="w-full h-11 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm flex items-center justify-center gap-2 cursor-pointer transition"
             >
               <RotateCcw className="size-4" />
-              <span>Foto / Cek TTB Lainnya</span>
+              <span>Cek TTB Lainnya</span>
             </button>
           </div>
         ) : (
@@ -341,7 +460,6 @@ function CekTtbContent() {
                   className="w-full h-11 px-3 rounded-xl bg-slate-950 border border-slate-700 text-sm font-mono font-bold text-white focus:outline-hidden focus:ring-2 focus:ring-sky-500"
                 />
 
-                {/* Quick Search dari Daftar TTB Server */}
                 {!initialNoTtb && ttbOptions.length > 0 && (
                   <div className="space-y-1.5 pt-1">
                     <div className="relative">
@@ -413,7 +531,94 @@ function CekTtbContent() {
               </div>
             </div>
 
-            {/* Step 2: Capture Foto Pola End User (CameraWatermarkModal) */}
+            {/* Step 2: Checklist Serah Terima & Kondisi Barang */}
+            <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+              <div className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                <ClipboardCheck className="size-4 text-teal-400" />
+                <span>Checklist Serah Terima Gudang → Tim TTB</span>
+              </div>
+
+              <div className="space-y-2 text-xs">
+                <label className="flex items-center gap-2.5 p-2 rounded-xl bg-slate-950/70 border border-slate-800 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={checklist.fisikDanQty}
+                    onChange={(e) => setChecklist((p) => ({ ...p, fisikDanQty: e.target.checked }))}
+                    className="size-4 accent-teal-500 rounded"
+                  />
+                  <span>Fisik &amp; kuantitas barang sudah dihitung</span>
+                </label>
+                <label className="flex items-center gap-2.5 p-2 rounded-xl bg-slate-950/70 border border-slate-800 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={checklist.kemasanDanLabel}
+                    onChange={(e) => setChecklist((p) => ({ ...p, kemasanDanLabel: e.target.checked }))}
+                    className="size-4 accent-teal-500 rounded"
+                  />
+                  <span>Kemasan aman &amp; label tujuan armada sesuai</span>
+                </label>
+                <label className="flex items-center gap-2.5 p-2 rounded-xl bg-slate-950/70 border border-slate-800 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={checklist.dokumenLengkap}
+                    onChange={(e) => setChecklist((p) => ({ ...p, dokumenLengkap: e.target.checked }))}
+                    className="size-4 accent-teal-500 rounded"
+                  />
+                  <span>Dokumen TTB / surat jalan lengkap</span>
+                </label>
+              </div>
+
+              <div className="pt-1 space-y-2">
+                <label className="text-xs font-bold text-slate-200 block">Status Kondisi &amp; Kelengkapan Qty</label>
+                <div className="grid grid-cols-3 gap-1.5 text-[11px]">
+                  <button
+                    type="button"
+                    onClick={() => setConditionStatus('LENGKAP_BAIK')}
+                    className={`py-2 px-2 rounded-xl border font-bold cursor-pointer transition ${
+                      conditionStatus === 'LENGKAP_BAIK'
+                        ? 'bg-emerald-600 text-white border-emerald-500'
+                        : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'
+                    }`}
+                  >
+                    ✅ Lengkap
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConditionStatus('SEBAGIAN_KURANG')}
+                    className={`py-2 px-2 rounded-xl border font-bold cursor-pointer transition ${
+                      conditionStatus === 'SEBAGIAN_KURANG'
+                        ? 'bg-amber-600 text-white border-amber-500'
+                        : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'
+                    }`}
+                  >
+                    ⚠️ Sebagian
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConditionStatus('RUSAK_CACAT')}
+                    className={`py-2 px-2 rounded-xl border font-bold cursor-pointer transition ${
+                      conditionStatus === 'RUSAK_CACAT'
+                        ? 'bg-rose-600 text-white border-rose-500'
+                        : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'
+                    }`}
+                  >
+                    ❌ Rusak
+                  </button>
+                </div>
+
+                {conditionStatus !== 'LENGKAP_BAIK' && (
+                  <textarea
+                    rows={2}
+                    value={conditionNotes}
+                    onChange={(e) => setConditionNotes(e.target.value)}
+                    placeholder="Wajib jelaskan item yang kurang qty atau mengalami kerusakan..."
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-amber-500/40 text-xs text-white focus:outline-hidden focus:ring-2 focus:ring-amber-500"
+                  />
+                )}
+              </div>
+            </div>
+
+            {/* Step 3: Capture Foto Pola End User (CameraWatermarkModal) */}
             <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-200">
@@ -477,6 +682,55 @@ function CekTtbContent() {
               )}
             </div>
 
+            {/* Step 4: Tanda Tangan Digital & PIN/OTP Serah Terima */}
+            <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                  <PenTool className="size-3.5 text-sky-400" />
+                  <span>Tanda Tangan Digital Pemeriksa</span>
+                </span>
+                {hasSignature && (
+                  <button
+                    type="button"
+                    onClick={clearSignature}
+                    className="text-[11px] text-rose-400 hover:underline cursor-pointer"
+                  >
+                    Hapus TTD
+                  </button>
+                )}
+              </div>
+
+              <canvas
+                ref={canvasRef}
+                width={380}
+                height={120}
+                onMouseDown={startDraw}
+                onMouseMove={drawMove}
+                onMouseUp={stopDraw}
+                onMouseLeave={stopDraw}
+                onTouchStart={startDraw}
+                onTouchMove={drawMove}
+                onTouchEnd={stopDraw}
+                className="w-full h-28 rounded-xl bg-slate-950 border border-dashed border-slate-700 touch-none cursor-crosshair"
+              />
+
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-slate-300 flex items-center gap-1.5">
+                  <KeyRound className="size-3.5 text-amber-400" />
+                  <span>PIN / OTP Serah Terima Gudang (Opsional)</span>
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={8}
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                  placeholder="Contoh: 4821"
+                  className="w-full h-9 px-3 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono tracking-widest text-white focus:outline-hidden focus:ring-1 focus:ring-amber-500"
+                />
+              </div>
+            </div>
+
             {errorMsg && (
               <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/40 text-rose-200 text-xs flex items-start gap-2">
                 <AlertCircle className="size-4 text-rose-400 shrink-0 mt-0.5" />
@@ -492,12 +746,12 @@ function CekTtbContent() {
               {isUploading ? (
                 <>
                   <Loader2 className="size-4 animate-spin" />
-                  <span>Mengunggah &amp; Penomoran Otomatis...</span>
+                  <span>Mengunggah Foto &amp; Kirim Notifikasi...</span>
                 </>
               ) : (
                 <>
-                  <Upload className="size-4" />
-                  <span>Upload Foto Pengecekan TTB</span>
+                  <ShieldCheck className="size-4" />
+                  <span>Konfirmasi Pengecekan &amp; Upload Foto</span>
                 </>
               )}
             </button>
