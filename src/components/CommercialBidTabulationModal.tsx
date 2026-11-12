@@ -509,7 +509,7 @@ PT. Cipta Sarana Transindo - CPG Group
               }`}
             >
               <Scale className="size-3.5" />
-              <span>2. Evaluasi 2 Sampul</span>
+              <span>2. Evaluasi 2 Kategori</span>
             </button>
 
             <button
@@ -1038,27 +1038,27 @@ PT. Cipta Sarana Transindo - CPG Group
           )}
 
           {/* ============================================================== */}
-          {/* TAB 2: EVALUASI 2 SAMPUL (ADMINISTRASI, TEKNIS, KOMERSIAL)     */}
+          {/* TAB 2: EVALUASI 2 KATEGORI (ADMINISTRASI, TEKNIS, KOMERSIAL)   */}
           {/* ============================================================== */}
           {activeTab === 'scoring' && (
             <div className="space-y-4">
               <div>
                 <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
                   <Scale className="size-4 text-purple-600" />
-                  <span>Sistem Evaluasi 2 Sampul (Standar PTK / SAP)</span>
+                  <span>Sistem Evaluasi 2 Kategori (Standar PTK / SAP)</span>
                 </h3>
                 <p className="text-xs text-muted-foreground">
-                  Pemeriksaan kualifikasi teknis/maritim (Sampul 1) sebelum pembukaan harga komersial (Sampul 2).
+                  Pemeriksaan kualifikasi teknis/maritim (Kategori 1) sebelum pembukaan harga komersial (Kategori 2).
                 </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Sampul 1 Teknis */}
+                {/* Kategori 1 Teknis */}
                 <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
                   <div className="flex items-center gap-2 border-b border-border pb-2">
                     <ShieldCheck className="size-4 text-sky-600" />
                     <h4 className="text-xs font-bold text-foreground uppercase">
-                      Sampul 1: Evaluasi Administrasi &amp; Teknis
+                      Kategori 1: Evaluasi Administrasi &amp; Teknis
                     </h4>
                   </div>
                   <ul className="text-xs space-y-2 text-muted-foreground">
@@ -1077,12 +1077,12 @@ PT. Cipta Sarana Transindo - CPG Group
                   </ul>
                 </div>
 
-                {/* Sampul 2 Komersial */}
+                {/* Kategori 2 Komersial */}
                 <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
                   <div className="flex items-center gap-2 border-b border-border pb-2">
                     <DollarSign className="size-4 text-emerald-600" />
                     <h4 className="text-xs font-bold text-foreground uppercase">
-                      Sampul 2: Evaluasi Komersial &amp; Finansial
+                      Kategori 2: Evaluasi Komersial &amp; Finansial
                     </h4>
                   </div>
                   <ul className="text-xs space-y-2 text-muted-foreground">
@@ -1109,7 +1109,7 @@ PT. Cipta Sarana Transindo - CPG Group
                     <tr>
                       <th className="py-2.5 px-4">Peringkat</th>
                       <th className="py-2.5 px-4">Nama Rekanan</th>
-                      <th className="py-2.5 px-3">Status Sampul 1</th>
+                      <th className="py-2.5 px-3">Status Kategori 1</th>
                       <th className="py-2.5 px-3">Termin Pembayaran</th>
                       <th className="py-2.5 px-3 text-right">Nilai Penawaran</th>
                       <th className="py-2.5 px-4 text-center">Status Rekomendasi</th>
