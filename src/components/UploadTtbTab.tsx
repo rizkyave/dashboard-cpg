@@ -2440,6 +2440,20 @@ export default function UploadTtbTab({
               {dispatchStats.completedCount}
             </span>
           </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              const url = `${window.location.origin}/cek-ttb`;
+              navigator.clipboard?.writeText(url);
+              showToast?.(`✓ Link HP Tim TTB disalin: ${url}`, 'success');
+            }}
+            className="ml-auto h-8 px-3 rounded-lg border border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/20 text-sky-700 dark:text-sky-300 font-bold transition cursor-pointer flex items-center gap-1.5 shrink-0"
+            title="Salin link mobile (/cek-ttb) untuk Tim TTB Penerima Barang di HP personal"
+          >
+            <Camera className="size-3.5 text-sky-500" />
+            <span>Link HP Tim TTB</span>
+          </button>
         </div>
 
         {/* Tabel Data Riwayat */}
@@ -2696,6 +2710,19 @@ export default function UploadTtbTab({
                           title="Kirim Notifikasi WA & Tautan Mandiri Serah Terima ke Penerima"
                         >
                           <MessageCircle className="size-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const ttbNum = (item.noTtb || item.cleanNoTtb || '').trim();
+                            const url = `${window.location.origin}/cek-ttb?noTtb=${encodeURIComponent(ttbNum)}&armada=${encodeURIComponent(item.armada || '')}`;
+                            navigator.clipboard?.writeText(url);
+                            showToast?.(`✓ Link Cek HP Tim TTB untuk ${ttbNum} disalin!`, 'success');
+                          }}
+                          className="p-1.5 rounded-lg border border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/20 text-sky-600 dark:text-sky-400 transition cursor-pointer"
+                          title="Salin Link Cek Foto Tim TTB (HP Personal) untuk TTB ini"
+                        >
+                          <Camera className="size-3.5" />
                         </button>
                         <button
                           type="button"
