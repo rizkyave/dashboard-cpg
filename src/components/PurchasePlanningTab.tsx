@@ -34,8 +34,12 @@ import {
   ArrowUpDown,
   CheckSquare,
   Square,
+  LayoutGrid,
+  Table as TableIcon,
+  SlidersHorizontal,
 } from 'lucide-react';
-import { TabType } from '@/types/procurement';
+import * as XLSX from 'xlsx';
+import { TabType, KapalPosisiItem } from '@/types/procurement';
 import { PurchasePlanningItem, PurchasePlanningResponse } from '@/app/api/purchase-planning/route';
 import { PratenderPackage, PratenderPackageItem } from '@/types/pratender';
 import ConfidentialMaskedValue from './ConfidentialMaskedValue';
@@ -72,6 +76,21 @@ export default function PurchasePlanningTab({
   const [uploadBatchNo, setUploadBatchNo] = useState<string>('');
   const [isDeletingBatch, setIsDeletingBatch] = useState<string | null>(null);
 
+  // View Mode, Analytics, Forecasting & Auto-Group States
+  const [viewMode, setViewMode] = useState<'table' | 'card'>('table');
+  const [showAnalyticsPanel, setShowAnalyticsPanel] = useState<boolean>(false);
+  const [analyticsSubTab, setAnalyticsSubTab] = useState<'budget' | 'duplicates' | 'whatif' | 'autogroup'>('budget');
+  const [safetyBufferPct, setSafetyBufferPct] = useState<number>(20);
+  const [targetCoverDays, setTargetCoverDays] = useState<number>(30);
+  const [autoGroupBy, setAutoGroupBy] = useState<'category' | 'vendor'>('category');
+
+  // Integrasi Pratender (Anti-Dobel), Titik Kirim Armada & Optimizer Pagu
+  const [pratenderPackages, setPratenderPackages] = useState<PratenderPackage[]>([]);
+  const [vesselPositions, setVesselPositions] = useState<KapalPosisiItem[]>([]);
+  const [onlyUntendered, setOnlyUntendered] = useState<boolean>(false);
+  const [budgetCapMillions, setBudgetCapMillions] = useState<number>(250);
+  const [skipTenderedInOptimizer, setSkipTenderedInOptimizer] = useState<boolean>(true);
+
   // Hybrid Sync State
   const [isSyncingHybrid, setIsSyncingHybrid] = useState<boolean>(false);
 
@@ -97,14 +116,31 @@ export default function PurchasePlanningTab({
     else setIsLoading(true);
 
     try {
-      const res = await fetch(`/api/purchase-planning?_t=${Date.now()}`);
-      if (res.ok) {
-        const json: PurchasePlanningResponse = await res.json();
+      const ts = Date.now();
+      const [planRes, pratenderRes, posRes] = await Promise.allSettled([
+        fetch(`/api/purchase-planning?_t=${ts}`),
+        fetch(`/api/pratender?_t=${ts}`),
+        fetch(`/api/posisi-kapal?_t=${ts}`),
+      ]);
+
+      if (planRes.status === 'fulfilled' && planRes.value.ok) {
+        const json: PurchasePlanningResponse = await planRes.value.json();
         if (json.success) {
           setData(json);
           if (isManual) {
             showToast?.('Data perencanaan pengadaan berhasil diperbarui.', 'success');
           }
+        }
+      }
+      if (pratenderRes.status === 'fulfilled' && pratenderRes.value.ok) {
+        const pJson = await pratenderRes.value.json();
+        const pkgs = Array.isArray(pJson.packages) ? pJson.packages : Array.isArray(pJson.data) ? pJson.data : [];
+        setPratenderPackages(pkgs);
+      }
+      if (posRes.status === 'fulfilled' && posRes.value.ok) {
+        const kJson = await posRes.value.json();
+        if (Array.isArray(kJson.items)) {
+          setVesselPositions(kJson.items);
         }
       }
     } catch {
@@ -310,11 +346,115 @@ export default function PurchasePlanningTab({
     return Array.from(batchMap.values()).sort((a, b) => a.batchNo.localeCompare(b.batchNo));
   }, [data]);
 
+  // 1. Peta Status Pratender (Anti-Dobel Beli)
+  const pratenderMatchMap = useMemo(() => {
+    const byId = new Map<string, { packageNumber: string; status: string }>();
+    const byName = new Map<string, { packageNumber: string; status: string }>();
+    pratenderPackages
+      .filter((pkg) => pkg.status !== 'CANCELLED')
+      .forEach((pkg) => {
+        (pkg.items || []).forEach((it) => {
+          const info = { packageNumber: pkg.packageNumber, status: pkg.status };
+          if (it.itemId) byId.set(it.itemId, info);
+          if (it.itemName) byName.set(it.itemName.trim().toUpperCase(), info);
+        });
+      });
+    return { byId, byName };
+  }, [pratenderPackages]);
+
+  const getPratenderStatusForItem = (item: PurchasePlanningItem) => {
+    return (
+      pratenderMatchMap.byId.get(item.id) ||
+      pratenderMatchMap.byName.get((item.itemName || '').trim().toUpperCase()) ||
+      null
+    );
+  };
+
+  // 2. Peta Hub Pengiriman & Lead Time dari Titik Kirim Armada
+  const vesselHubMap = useMemo(() => {
+    const map = new Map<string, { posisi: string; hubLabel: string; extraLeadDays: number }>();
+    const classifyHub = (pos: string): { hubLabel: string; extraLeadDays: number } => {
+      const p = (pos || '').toLowerCase();
+      if (p.includes('balikpapan') || p.includes('semayang') || p.includes('gaj') || p.includes('somber') || p.includes('kariangau')) {
+        return { hubLabel: 'Balikpapan Hub', extraLeadDays: 1 };
+      }
+      if (p.includes('samarinda') || p.includes('muara jawa') || p.includes('mahakam') || p.includes('bontang')) {
+        return { hubLabel: 'Samarinda Hub', extraLeadDays: 2 };
+      }
+      if (p.includes('berau') || p.includes('tarakan') || p.includes('nunukan') || p.includes('kaltara')) {
+        return { hubLabel: 'Kaltara Hub', extraLeadDays: 4 };
+      }
+      if (p.includes('banjarmasin') || p.includes('kotabaru') || p.includes('batulicin') || p.includes('kalsel')) {
+        return { hubLabel: 'Kalsel Hub', extraLeadDays: 4 };
+      }
+      if (p.includes('surabaya') || p.includes('gresik') || p.includes('jakarta') || p.includes('jawa')) {
+        return { hubLabel: 'Jawa Hub', extraLeadDays: 6 };
+      }
+      if (p.includes('batam') || p.includes('riau') || p.includes('sumatra')) {
+        return { hubLabel: 'Batam Hub', extraLeadDays: 7 };
+      }
+      if (p.includes('makassar') || p.includes('morowali') || p.includes('sulawesi')) {
+        return { hubLabel: 'Sulawesi Hub', extraLeadDays: 6 };
+      }
+      return { hubLabel: 'Offshore / Lain', extraLeadDays: 5 };
+    };
+    vesselPositions.forEach((vp) => {
+      const key = (vp.namaKapal || '').trim().toUpperCase();
+      if (!key) return;
+      const hub = classifyHub(vp.posisi);
+      map.set(key, { posisi: vp.posisi, ...hub });
+    });
+    return map;
+  }, [vesselPositions]);
+
+  const getDeliveryHubForItem = (item: PurchasePlanningItem) => {
+    for (const v of item.requestingVessels || []) {
+      const cleanV = v.trim().toUpperCase();
+      if (vesselHubMap.has(cleanV)) return vesselHubMap.get(cleanV)!;
+      // Pencocokan parsial jika format nama kapal berbeda tipis
+      for (const [k, info] of Array.from(vesselHubMap.entries())) {
+        if (k.includes(cleanV) || cleanV.includes(k)) return info;
+      }
+    }
+    return null;
+  };
+
+  // 3. Deteksi Anomali Kenaikan Harga (>15% dibanding harga terendah antar batch)
+  const priceAnomalyMap = useMemo(() => {
+    const minPriceByKey = new Map<string, number>();
+    const getKey = (it: PurchasePlanningItem) => {
+      const code = (it.itemCode || '').trim().toUpperCase();
+      if (code && code !== '-' && code !== 'N/A') return `CODE:${code}`;
+      return `NAME:${(it.itemName || '').trim().toUpperCase()}`;
+    };
+    (data?.items || []).forEach((it) => {
+      if (!it.avgUnitPrice || it.avgUnitPrice <= 0) return;
+      const k = getKey(it);
+      const cur = minPriceByKey.get(k);
+      if (cur === undefined || it.avgUnitPrice < cur) {
+        minPriceByKey.set(k, it.avgUnitPrice);
+      }
+    });
+    const anomalies = new Map<string, { pctIncrease: number; minPrice: number }>();
+    (data?.items || []).forEach((it) => {
+      if (!it.avgUnitPrice || it.avgUnitPrice <= 0) return;
+      const minP = minPriceByKey.get(getKey(it));
+      if (minP && it.avgUnitPrice > minP * 1.15) {
+        const pctIncrease = Math.round(((it.avgUnitPrice - minP) / minP) * 100);
+        anomalies.set(it.id, { pctIncrease, minPrice: minP });
+      }
+    });
+    return anomalies;
+  }, [data]);
+
   // Filter & Sort Items
   const filteredItems = useMemo(() => {
     if (!data?.items) return [];
 
     let result = data.items.filter((item) => {
+      // Filter Anti-Dobel (Belum Masuk Pratender)
+      if (onlyUntendered && getPratenderStatusForItem(item)) return false;
+
       // Filter Batch
       if (selectedBatch !== 'ALL') {
         const itemBatches = (item.batchNo || 'CPL-PP-2026-001')
@@ -382,7 +522,152 @@ export default function PurchasePlanningTab({
     });
 
     return result;
-  }, [data, selectedCategory, selectedUrgency, selectedVessel, searchQuery, sortBy, sortOrder]);
+  }, [data, selectedBatch, selectedCategory, selectedUrgency, selectedVessel, selectedDataSource, onlyUntendered, pratenderMatchMap, searchQuery, sortBy, sortOrder]);
+
+  // ── ANALITIK ANGGARAN, MATRIX URGENSI, DETEKSI DUPLIKAT, SIMULASI & AUTO-GROUPING ──
+  const analyticsData = useMemo(() => {
+    const items = filteredItems;
+    const totalBudget = items.reduce((s, i) => s + (i.totalEstimatedCost || 0), 0);
+    const totalSavings = items.reduce((s, i) => s + (i.potentialSavingsAmount || 0), 0);
+
+    // 1. Ringkasan Anggaran per Kategori
+    const catMap = new Map<string, { category: string; count: number; budget: number; critical: number }>();
+    items.forEach((it) => {
+      const cur = catMap.get(it.category) || { category: it.category, count: 0, budget: 0, critical: 0 };
+      cur.count += 1;
+      cur.budget += it.totalEstimatedCost || 0;
+      if (it.urgency === 'CRITICAL') cur.critical += 1;
+      catMap.set(it.category, cur);
+    });
+    const byCategory = Array.from(catMap.values()).sort((a, b) => b.budget - a.budget);
+
+    // 2. Ringkasan Anggaran per Kapal (estimasi proporsional berdasarkan jumlah kapal peminta)
+    const vesselMap = new Map<string, { vessel: string; itemCount: number; estBudget: number }>();
+    items.forEach((it) => {
+      const vessels = it.requestingVessels.length > 0 ? it.requestingVessels : ['Stok Gudang / Umum'];
+      const share = (it.totalEstimatedCost || 0) / vessels.length;
+      vessels.forEach((v) => {
+        const cur = vesselMap.get(v) || { vessel: v, itemCount: 0, estBudget: 0 };
+        cur.itemCount += 1;
+        cur.estBudget += share;
+        vesselMap.set(v, cur);
+      });
+    });
+    const byVessel = Array.from(vesselMap.values()).sort((a, b) => b.estBudget - a.estBudget).slice(0, 6);
+
+    // 3. Matrix Urgensi vs Nilai Biaya
+    const urgencyMatrix = (['CRITICAL', 'REORDER', 'PLANNED'] as const).map((tier) => {
+      const tierItems = items.filter((i) => i.urgency === tier);
+      const budget = tierItems.reduce((s, i) => s + (i.totalEstimatedCost || 0), 0);
+      const savings = tierItems.reduce((s, i) => s + (i.potentialSavingsAmount || 0), 0);
+      return {
+        tier,
+        count: tierItems.length,
+        budget,
+        savings,
+        pctBudget: totalBudget > 0 ? (budget / totalBudget) * 100 : 0,
+      };
+    });
+
+    // 4. Deteksi Item Duplikat / Mirip (lintas batch atau penamaan mirip)
+    const normalizeTokens = (name: string) =>
+      name
+        .toUpperCase()
+        .replace(/[^A-Z0-9\s]/g, ' ')
+        .split(/\s+/)
+        .filter((w) => w.length >= 3);
+
+    const dupGroups: { key: string; label: string; items: PurchasePlanningItem[]; combinedQty: number; combinedBudget: number }[] = [];
+    const visited = new Set<string>();
+    for (let i = 0; i < items.length; i++) {
+      const a = items[i];
+      if (visited.has(a.id)) continue;
+      const tokA = normalizeTokens(a.itemName);
+      if (tokA.length < 2) continue;
+      const setA = new Set(tokA);
+      const group = [a];
+      for (let j = i + 1; j < items.length; j++) {
+        const b = items[j];
+        if (visited.has(b.id)) continue;
+        const tokB = normalizeTokens(b.itemName);
+        if (tokB.length < 2) continue;
+        const inter = tokB.filter((t) => setA.has(t)).length;
+        const union = new Set([...tokA, ...tokB]).size;
+        const similarity = union > 0 ? inter / union : 0;
+        const sameCode =
+          a.itemCode &&
+          b.itemCode &&
+          a.itemCode !== '-' &&
+          a.itemCode.trim().toUpperCase() === b.itemCode.trim().toUpperCase();
+        if (sameCode || similarity >= 0.65) {
+          group.push(b);
+          visited.add(b.id);
+        }
+      }
+      if (group.length > 1) {
+        visited.add(a.id);
+        dupGroups.push({
+          key: a.id,
+          label: a.itemName,
+          items: group,
+          combinedQty: group.reduce((s, x) => s + x.recommendedOrderQty, 0),
+          combinedBudget: group.reduce((s, x) => s + x.totalEstimatedCost, 0),
+        });
+      }
+    }
+
+    // 5. Simulasi What-If Safety Stock & Cover Days
+    const simItems = items.map((it) => {
+      const dailyUse = Math.max(0.05, (it.monthlyConsumption || 1) / 30);
+      const leadDemand = dailyUse * (it.leadTimeDays || 7);
+      const safetyStock = Math.ceil(leadDemand * (safetyBufferPct / 100) + dailyUse * 5);
+      const targetDemand = Math.ceil(dailyUse * targetCoverDays + safetyStock);
+      const netNeeded = Math.max(0, targetDemand - (it.currentStock || 0));
+      const simOrderQty = Math.max(it.totalRequestedQty || 0, netNeeded);
+      const simCost = simOrderQty * (it.avgUnitPrice || 0);
+      return {
+        item: it,
+        safetyStock,
+        simOrderQty,
+        simCost,
+      };
+    });
+    const simTotalBudget = simItems.reduce((s, x) => s + x.simCost, 0);
+
+    // 6. Auto-Grouping Paket Pratender (berdasarkan Kategori atau Vendor)
+    const groupMap = new Map<string, { groupName: string; items: PurchasePlanningItem[]; totalBudget: number; totalSavings: number; criticalCount: number }>();
+    items.forEach((it) => {
+      const gKey =
+        autoGroupBy === 'category'
+          ? it.category || 'General'
+          : it.suggestedVendor || 'Vendor Umum / Multi-Supplier';
+      const cur = groupMap.get(gKey) || {
+        groupName: gKey,
+        items: [],
+        totalBudget: 0,
+        totalSavings: 0,
+        criticalCount: 0,
+      };
+      cur.items.push(it);
+      cur.totalBudget += it.totalEstimatedCost || 0;
+      cur.totalSavings += it.potentialSavingsAmount || 0;
+      if (it.urgency === 'CRITICAL') cur.criticalCount += 1;
+      groupMap.set(gKey, cur);
+    });
+    const autoGroups = Array.from(groupMap.values()).sort((a, b) => b.totalBudget - a.totalBudget);
+
+    return {
+      totalBudget,
+      totalSavings,
+      byCategory,
+      byVessel,
+      urgencyMatrix,
+      dupGroups,
+      simTotalBudget,
+      simDeltaBudget: simTotalBudget - totalBudget,
+      autoGroups,
+    };
+  }, [filteredItems, safetyBufferPct, targetCoverDays, autoGroupBy]);
 
   // Checkbox Selection Logic
   const isAllFilteredSelected = useMemo(() => {
@@ -570,6 +855,131 @@ export default function PurchasePlanningTab({
     }
   };
 
+  // Optimizer Pagu Anggaran (Auto-Select item prioritas di bawah batas pagu)
+  const handleOptimizeBudgetCap = () => {
+    const capRupiah = Math.max(0, budgetCapMillions) * 1_000_000;
+    if (capRupiah <= 0) {
+      showToast?.('Masukkan batas pagu anggaran (dalam Juta Rp) lebih dari 0.', 'warning');
+      return;
+    }
+
+    const urgencyWeight: Record<string, number> = { CRITICAL: 3, REORDER: 2, PLANNED: 1 };
+    const candidates = filteredItems
+      .filter((it) => !skipTenderedInOptimizer || !getPratenderStatusForItem(it))
+      .slice()
+      .sort((a, b) => {
+        const uw = (urgencyWeight[b.urgency] || 0) - (urgencyWeight[a.urgency] || 0);
+        if (uw !== 0) return uw;
+        const bw = (b.potentialBulkDiscount || 0) - (a.potentialBulkDiscount || 0);
+        if (bw !== 0) return bw;
+        return (a.totalEstimatedCost || 0) - (b.totalEstimatedCost || 0);
+      });
+
+    const chosen = new Set<string>();
+    let runningCost = 0;
+    for (const it of candidates) {
+      const cost = it.totalEstimatedCost || 0;
+      if (cost <= 0) continue;
+      if (runningCost + cost <= capRupiah) {
+        chosen.add(it.id);
+        runningCost += cost;
+      }
+    }
+
+    setSelectedItemIds(chosen);
+    showToast?.(
+      `✓ Optimizer Pagu: ${chosen.size} item prioritas terpilih (Total ${formatRupiah(runningCost)} dari pagu ${formatRupiah(capRupiah)}).`,
+      chosen.size > 0 ? 'success' : 'warning'
+    );
+  };
+
+  // Ekspor Excel Multi-Sheet (.xlsx) Siap Approval Finance
+  const handleExportExcelMultiSheet = () => {
+    if (!filteredItems || filteredItems.length === 0) {
+      showToast?.('Tidak ada data yang dapat diekspor ke Excel.', 'warning');
+      return;
+    }
+
+    const wb = XLSX.utils.book_new();
+
+    // Sheet 1: Ringkasan Batch & Kategori
+    const summaryRows: any[] = [
+      { Bagian: 'RINGKASAN PER BATCH', Nama: 'Batch / Grup', Jumlah_Item: 'Jumlah Item', Total_Anggaran_Rp: 'Total Anggaran (Rp)' },
+      ...uniqueBatches.map((b) => ({
+        Bagian: 'BATCH',
+        Nama: b.batchNo,
+        Jumlah_Item: b.count,
+        Total_Anggaran_Rp: b.budget,
+      })),
+      { Bagian: '', Nama: '', Jumlah_Item: '', Total_Anggaran_Rp: '' },
+      { Bagian: 'RINGKASAN PER KATEGORI', Nama: 'Kategori Material', Jumlah_Item: 'Jumlah Item (Kritis)', Total_Anggaran_Rp: 'Total Anggaran (Rp)' },
+      ...analyticsData.byCategory.map((c) => ({
+        Bagian: 'KATEGORI',
+        Nama: c.category,
+        Jumlah_Item: `${c.count} (${c.critical} kritis)`,
+        Total_Anggaran_Rp: c.budget,
+      })),
+    ];
+    const wsSummary = XLSX.utils.json_to_sheet(summaryRows);
+    XLSX.utils.book_append_sheet(wb, wsSummary, 'Ringkasan Batch & Kategori');
+
+    // Sheet 2: Daftar Belanja Siap Order
+    const itemRows = filteredItems.map((i, idx) => {
+      const pratender = getPratenderStatusForItem(i);
+      const hub = getDeliveryHubForItem(i);
+      const anomaly = priceAnomalyMap.get(i.id);
+      return {
+        No: idx + 1,
+        Batch: i.batchNo || 'CPL-PP-2026-001',
+        Kode_Barang: i.itemCode || '-',
+        Nama_Barang: i.itemName,
+        Kategori: i.category,
+        Satuan: i.unit,
+        Stok_Gudang: i.currentStock,
+        Kebutuhan_Armada: i.totalRequestedQty,
+        Rekomendasi_Beli: i.recommendedOrderQty,
+        Harga_Satuan_Rp: i.avgUnitPrice,
+        Total_Biaya_Rp: i.totalEstimatedCost,
+        Urgensi: i.urgency,
+        Status_Pratender: pratender ? `${pratender.packageNumber} (${pratender.status})` : 'Belum Tender',
+        Hub_Pengiriman: hub ? `${hub.hubLabel} (+${hub.extraLeadDays}h)` : '-',
+        Anomali_Harga: anomaly ? `+${anomaly.pctIncrease}% vs Batch Lain` : 'Normal',
+        Armada_Peminta: i.requestingVessels.join(', '),
+        Ref_FPB: i.fpbRefs.join(', '),
+        Rekomendasi_Vendor: i.suggestedVendor || '-',
+      };
+    });
+    const wsItems = XLSX.utils.json_to_sheet(itemRows);
+    XLSX.utils.book_append_sheet(wb, wsItems, 'Daftar Belanja Siap Order');
+
+    // Sheet 3: Alokasi per Kapal
+    const vesselMap = new Map<string, { Kapal: string; Hub_Terakhir: string; Jumlah_Item: number; Estimasi_Anggaran_Rp: number }>();
+    filteredItems.forEach((it) => {
+      const vessels = it.requestingVessels.length > 0 ? it.requestingVessels : ['Gudang / Umum'];
+      const share = (it.totalEstimatedCost || 0) / vessels.length;
+      vessels.forEach((v) => {
+        const hubInfo = vesselHubMap.get(v.trim().toUpperCase());
+        const cur = vesselMap.get(v) || {
+          Kapal: v,
+          Hub_Terakhir: hubInfo ? `${hubInfo.hubLabel} (${hubInfo.posisi})` : '-',
+          Jumlah_Item: 0,
+          Estimasi_Anggaran_Rp: 0,
+        };
+        cur.Jumlah_Item += 1;
+        cur.Estimasi_Anggaran_Rp += Math.round(share);
+        vesselMap.set(v, cur);
+      });
+    });
+    const wsVessels = XLSX.utils.json_to_sheet(
+      Array.from(vesselMap.values()).sort((a, b) => b.Estimasi_Anggaran_Rp - a.Estimasi_Anggaran_Rp)
+    );
+    XLSX.utils.book_append_sheet(wb, wsVessels, 'Alokasi per Kapal');
+
+    const dateStr = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(wb, `CPG_Purchase_Planning_Approval_${dateStr}.xlsx`);
+    showToast?.(`✓ File Excel Multi-Sheet (3 sheet) berhasil diunduh.`, 'success');
+  };
+
   // Ekspor CSV
   const handleExportCsv = () => {
     if (!filteredItems || filteredItems.length === 0) {
@@ -700,9 +1110,19 @@ export default function PurchasePlanningTab({
 
           <button
             type="button"
+            onClick={handleExportExcelMultiSheet}
+            className="h-9 px-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
+            title="Unduh Excel Multi-Sheet (.xlsx) siap approval Finance"
+          >
+            <FileSpreadsheet className="size-3.5 text-emerald-500" />
+            <span>Ekspor Excel (.xlsx)</span>
+          </button>
+
+          <button
+            type="button"
             onClick={handleExportCsv}
             className="h-9 px-3 rounded-xl border border-border bg-background hover:bg-muted text-foreground text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
-            title="Unduh format tabel Excel / CSV"
+            title="Unduh format tabel CSV"
           >
             <Download className="size-3.5 text-emerald-500" />
             <span>Ekspor CSV</span>
@@ -900,6 +1320,426 @@ export default function PurchasePlanningTab({
           </div>
         </div>
       </div>
+
+      {/* ── PANEL ANALITIK ANGGARAN, DETEKSI DUPLIKAT, SIMULASI & AUTO-GROUPING ── */}
+      {data && data.items.length > 0 && (
+        <div className="rounded-2xl bg-card border border-border shadow-xs overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setShowAnalyticsPanel((prev) => !prev)}
+            className="w-full px-4 py-3 flex items-center justify-between gap-3 bg-gradient-to-r from-indigo-500/[0.06] via-card to-emerald-500/[0.05] hover:bg-muted/30 transition cursor-pointer text-left"
+          >
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <span className="p-1.5 rounded-lg bg-indigo-500/15 text-indigo-600 dark:text-indigo-400">
+                <SlidersHorizontal className="size-3.5" />
+              </span>
+              <span className="text-xs font-bold text-foreground">
+                Analitik Anggaran, Simulasi Safety Stock, Radar Duplikat &amp; Auto-Group Pratender
+              </span>
+              {analyticsData.dupGroups.length > 0 && (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                  {analyticsData.dupGroups.length} Kemungkinan Duplikat
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-muted-foreground shrink-0">
+              <span>{showAnalyticsPanel ? 'Sembunyikan' : 'Buka Panel'}</span>
+              <ChevronDown className={`size-4 transition-transform ${showAnalyticsPanel ? 'rotate-180' : ''}`} />
+            </div>
+          </button>
+
+          {showAnalyticsPanel && (
+            <div className="p-4 border-t border-border space-y-4">
+              {/* Sub-Tab Selector */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => setAnalyticsSubTab('budget')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                    analyticsSubTab === 'budget'
+                      ? 'bg-primary text-primary-foreground shadow-2xs'
+                      : 'bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground border border-border'
+                  }`}
+                >
+                  📊 Grafik Anggaran &amp; Matrix Urgensi
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAnalyticsSubTab('whatif')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                    analyticsSubTab === 'whatif'
+                      ? 'bg-indigo-600 text-white shadow-2xs'
+                      : 'bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground border border-border'
+                  }`}
+                >
+                  🎛️ Simulasi Safety Stock &amp; What-If
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAnalyticsSubTab('duplicates')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+                    analyticsSubTab === 'duplicates'
+                      ? 'bg-amber-600 text-white shadow-2xs'
+                      : 'bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground border border-border'
+                  }`}
+                >
+                  <span>🔍 Radar Duplikat / Mirip</span>
+                  <span className="px-1.5 py-0.2 rounded-full bg-black/15 text-[10px] font-mono">
+                    {analyticsData.dupGroups.length}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAnalyticsSubTab('autogroup')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                    analyticsSubTab === 'autogroup'
+                      ? 'bg-emerald-600 text-white shadow-2xs'
+                      : 'bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground border border-border'
+                  }`}
+                >
+                  📦 Auto-Group Paket Pratender
+                </button>
+              </div>
+
+              {/* Sub-Tab 1: Budget per Kategori, Kapal & Matrix Urgensi */}
+              {analyticsSubTab === 'budget' && (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  {/* Anggaran per Kategori */}
+                  <div className="p-3.5 rounded-xl bg-muted/20 border border-border space-y-2.5">
+                    <div className="text-xs font-bold text-foreground flex items-center justify-between">
+                      <span>Anggaran per Kategori</span>
+                      <span className="text-[10px] text-muted-foreground font-mono">
+                        {analyticsData.byCategory.length} kategori
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      {analyticsData.byCategory.slice(0, 6).map((c) => {
+                        const pct = analyticsData.totalBudget > 0 ? (c.budget / analyticsData.totalBudget) * 100 : 0;
+                        return (
+                          <div key={c.category} className="space-y-1">
+                            <div className="flex items-center justify-between text-[11px]">
+                              <span className="font-medium text-foreground truncate max-w-[160px]" title={c.category}>
+                                {c.category} ({c.count})
+                              </span>
+                              <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400">
+                                <ConfidentialMaskedValue value={c.budget} showToast={showToast} />
+                              </span>
+                            </div>
+                            <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                              <div
+                                className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-sky-500"
+                                style={{ width: `${Math.max(4, Math.min(100, pct))}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Top 6 Kapal Peminta */}
+                  <div className="p-3.5 rounded-xl bg-muted/20 border border-border space-y-2.5">
+                    <div className="text-xs font-bold text-foreground flex items-center justify-between">
+                      <span>Top Alokasi Anggaran per Armada</span>
+                      <span className="text-[10px] text-muted-foreground font-mono">Top 6</span>
+                    </div>
+                    <div className="space-y-2">
+                      {analyticsData.byVessel.map((v) => {
+                        const maxV = analyticsData.byVessel[0]?.estBudget || 1;
+                        const pct = (v.estBudget / maxV) * 100;
+                        return (
+                          <div key={v.vessel} className="space-y-1">
+                            <div className="flex items-center justify-between text-[11px]">
+                              <span className="font-medium text-foreground truncate max-w-[160px]">
+                                🚢 {v.vessel} ({v.itemCount})
+                              </span>
+                              <span className="font-mono font-bold text-teal-600 dark:text-teal-400">
+                                <ConfidentialMaskedValue value={Math.round(v.estBudget)} showToast={showToast} />
+                              </span>
+                            </div>
+                            <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                              <div
+                                className="h-full rounded-full bg-gradient-to-r from-teal-500 to-emerald-500"
+                                style={{ width: `${Math.max(4, Math.min(100, pct))}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Matrix Urgensi vs Nilai Biaya */}
+                  <div className="p-3.5 rounded-xl bg-muted/20 border border-border space-y-2.5">
+                    <div className="text-xs font-bold text-foreground">Matrix Urgensi vs Nilai Biaya</div>
+                    <div className="space-y-2">
+                      {analyticsData.urgencyMatrix.map((m) => {
+                        const styleMap = {
+                          CRITICAL: 'border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300',
+                          REORDER: 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300',
+                          PLANNED: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
+                        }[m.tier];
+                        const labelMap = {
+                          CRITICAL: '🚨 Kritis (Prioritas 1)',
+                          REORDER: '⚠️ Reorder (Prioritas 2)',
+                          PLANNED: '📅 Terencana (Prioritas 3)',
+                        }[m.tier];
+                        return (
+                          <div
+                            key={m.tier}
+                            onClick={() => setSelectedUrgency(selectedUrgency === m.tier ? 'ALL' : m.tier)}
+                            className={`p-2.5 rounded-xl border cursor-pointer transition hover:opacity-90 ${styleMap}`}
+                          >
+                            <div className="flex items-center justify-between text-[11px] font-bold">
+                              <span>{labelMap}</span>
+                              <span className="font-mono">{m.count} item ({m.pctBudget.toFixed(0)}%)</span>
+                            </div>
+                            <div className="mt-1 flex items-center justify-between text-xs font-mono font-black">
+                              <ConfidentialMaskedValue value={m.budget} showToast={showToast} />
+                              <span className="text-[10px] font-normal opacity-80">
+                                Hemat: <ConfidentialMaskedValue value={m.savings} showToast={showToast} />
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Sub-Tab 2: Simulasi Safety Stock & What-If Anggaran */}
+              {analyticsSubTab === 'whatif' && (
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                  <div className="md:col-span-7 space-y-3 p-3.5 rounded-xl bg-muted/20 border border-border">
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-bold text-foreground">Buffer Safety Stock (% di atas Lead Time Demand)</span>
+                        <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400">{safetyBufferPct}%</span>
+                      </div>
+                      <input
+                        type="range"
+                        min={0}
+                        max={60}
+                        step={5}
+                        value={safetyBufferPct}
+                        onChange={(e) => setSafetyBufferPct(Number(e.target.value))}
+                        className="w-full accent-indigo-600 cursor-pointer"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-bold text-foreground">Target Hari Ketahanan Stok (Cover Days)</span>
+                        <span className="font-mono font-bold text-teal-600 dark:text-teal-400">{targetCoverDays} Hari</span>
+                      </div>
+                      <input
+                        type="range"
+                        min={15}
+                        max={90}
+                        step={5}
+                        value={targetCoverDays}
+                        onChange={(e) => setTargetCoverDays(Number(e.target.value))}
+                        className="w-full accent-teal-600 cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                  <div className="md:col-span-5 p-3.5 rounded-xl bg-indigo-500/10 border border-indigo-500/30 space-y-2 text-xs">
+                    <div className="font-bold text-indigo-700 dark:text-indigo-300">
+                      Hasil Simulasi Anggaran ({filteredItems.length} item)
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Anggaran Dasar Saat Ini:</span>
+                      <span className="font-mono font-bold">
+                        <ConfidentialMaskedValue value={analyticsData.totalBudget} showToast={showToast} />
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Proyeksi Simulasi ({targetCoverDays}d / +{safetyBufferPct}%):</span>
+                      <span className="font-mono font-black text-indigo-600 dark:text-indigo-400 text-sm">
+                        <ConfidentialMaskedValue value={analyticsData.simTotalBudget} showToast={showToast} />
+                      </span>
+                    </div>
+                    <div className="pt-1 border-t border-indigo-500/20 flex items-center justify-between">
+                      <span className="text-muted-foreground">Selisih Proyeksi:</span>
+                      <span className={`font-mono font-bold ${analyticsData.simDeltaBudget > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
+                        {analyticsData.simDeltaBudget >= 0 ? '+' : ''}
+                        <ConfidentialMaskedValue value={analyticsData.simDeltaBudget} showToast={showToast} />
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Optimizer Pagu Anggaran (Budget Cap Auto-Select) */}
+                  <div className="md:col-span-12 p-3.5 rounded-xl bg-emerald-500/5 border border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="space-y-0.5">
+                      <div className="text-xs font-bold text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
+                        <span>🎯 Optimizer Pagu Anggaran (Auto-Select Prioritas)</span>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">
+                        Masukkan batas pagu dana (Juta Rp), sistem otomatis mencentang item paling kritis &amp; hemat bulk di bawah pagu.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <label className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={skipTenderedInOptimizer}
+                          onChange={(e) => setSkipTenderedInOptimizer(e.target.checked)}
+                          className="size-3.5 accent-emerald-600 rounded"
+                        />
+                        <span>Lewati yg sudah Pratender</span>
+                      </label>
+                      <div className="inline-flex items-center rounded-xl border border-border bg-background px-2.5 py-1 text-xs">
+                        <span className="text-muted-foreground mr-1 font-mono">Rp</span>
+                        <input
+                          type="number"
+                          min={1}
+                          value={budgetCapMillions}
+                          onChange={(e) => setBudgetCapMillions(Number(e.target.value) || 0)}
+                          className="w-16 bg-transparent font-mono font-bold text-foreground focus:outline-hidden text-right"
+                        />
+                        <span className="text-muted-foreground ml-1 font-mono">Juta</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleOptimizeBudgetCap}
+                        className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold cursor-pointer transition shadow-2xs"
+                      >
+                        Auto-Pilih Sesuai Pagu
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Sub-Tab 3: Radar Deteksi Item Duplikat / Mirip & Anomali Harga */}
+              {analyticsSubTab === 'duplicates' && (
+                <div className="space-y-3">
+                  {priceAnomalyMap.size > 0 && (
+                    <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-between gap-2 text-xs">
+                      <div className="flex items-center gap-2 text-rose-700 dark:text-rose-300 font-semibold">
+                        <AlertTriangle className="size-4 shrink-0" />
+                        <span>
+                          Terdeteksi <strong>{priceAnomalyMap.size} item</strong> dengan kenaikan harga satuan &gt;15% dibanding batch/entri termurah. Cek lencana <span className="font-mono">Harga +X%</span> di daftar item.
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  {analyticsData.dupGroups.length === 0 ? (
+                    <div className="p-6 text-center text-xs text-muted-foreground bg-muted/20 rounded-xl border border-border">
+                      Tidak ditemukan item duplikat atau mirip pada filter aktif saat ini.
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[260px] overflow-y-auto pr-1">
+                      {analyticsData.dupGroups.map((grp) => (
+                        <div key={grp.key} className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/30 space-y-2 text-xs">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="font-bold text-foreground line-clamp-1" title={grp.label}>
+                              {grp.label}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedItemIds((prev) => {
+                                  const next = new Set(prev);
+                                  grp.items.forEach((x) => next.add(x.id));
+                                  return next;
+                                });
+                                showToast?.(`${grp.items.length} item grup duplikat dicentang untuk konsolidasi.`, 'info');
+                              }}
+                              className="px-2 py-0.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-bold shrink-0 cursor-pointer"
+                            >
+                              Pilih Grup ({grp.items.length})
+                            </button>
+                          </div>
+                          <div className="space-y-1">
+                            {grp.items.map((it) => (
+                              <div key={it.id} className="flex items-center justify-between text-[11px] text-muted-foreground">
+                                <span className="truncate max-w-[210px]">
+                                  • [{it.batchNo || 'Batch 1'}] {it.itemName}
+                                </span>
+                                <span className="font-mono font-semibold text-foreground shrink-0">
+                                  {it.recommendedOrderQty} {it.unit}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Sub-Tab 4: Auto-Grouping Paket Pratender */}
+              {analyticsSubTab === 'autogroup' && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between flex-wrap gap-2 text-xs">
+                    <span className="text-muted-foreground">
+                      Kelompokkan otomatis item terfilter menjadi paket siap tender:
+                    </span>
+                    <div className="inline-flex rounded-xl border border-border bg-muted/40 p-0.5">
+                      <button
+                        type="button"
+                        onClick={() => setAutoGroupBy('category')}
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold cursor-pointer ${
+                          autoGroupBy === 'category' ? 'bg-card text-foreground shadow-2xs' : 'text-muted-foreground'
+                        }`}
+                      >
+                        Per Kategori
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setAutoGroupBy('vendor')}
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold cursor-pointer ${
+                          autoGroupBy === 'vendor' ? 'bg-card text-foreground shadow-2xs' : 'text-muted-foreground'
+                        }`}
+                      >
+                        Per Rekomendasi Vendor
+                      </button>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 max-h-[260px] overflow-y-auto pr-1">
+                    {analyticsData.autoGroups.map((g) => (
+                      <div key={g.groupName} className="p-3 rounded-xl bg-muted/20 border border-border flex flex-col justify-between gap-2 text-xs">
+                        <div>
+                          <div className="font-bold text-foreground truncate" title={g.groupName}>
+                            {g.groupName}
+                          </div>
+                          <div className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-2">
+                            <span>{g.items.length} item</span>
+                            {g.criticalCount > 0 && (
+                              <span className="text-rose-600 dark:text-rose-400 font-bold">
+                                • {g.criticalCount} kritis
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between pt-2 border-t border-border/60">
+                          <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400">
+                            <ConfidentialMaskedValue value={g.totalBudget} showToast={showToast} />
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedItemIds(new Set(g.items.map((x) => x.id)));
+                              setPkgTitle(`Paket Pengadaan ${g.groupName} (${new Date().toLocaleDateString('id-ID', { month: 'short', year: 'numeric' })})`);
+                              setPkgCategory(g.items[0]?.category || 'General');
+                              setIsCreatePratenderModalOpen(true);
+                            }}
+                            className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold cursor-pointer transition"
+                          >
+                            Bentuk Paket
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── PILIHAN PER KATEGORI (CATEGORY QUICK SELECTOR BAR) ── */}
       {data?.categories && data.categories.length > 0 && (
@@ -1136,6 +1976,51 @@ export default function PurchasePlanningTab({
             >
               <ArrowUpDown className="size-3.5" />
             </button>
+
+            {/* Filter Anti-Dobel (Belum Masuk Pratender) */}
+            <button
+              type="button"
+              onClick={() => setOnlyUntendered((prev) => !prev)}
+              className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold border transition cursor-pointer flex items-center gap-1.5 ${
+                onlyUntendered
+                  ? 'bg-purple-600 text-white border-purple-600 shadow-2xs'
+                  : 'bg-background border-border text-muted-foreground hover:text-foreground'
+              }`}
+              title="Sembunyikan item yang sudah masuk ke paket Pratender"
+            >
+              <Layers className="size-3.5" />
+              <span>Belum Pratender</span>
+            </button>
+
+            {/* Toggle Tabel / Kartu */}
+            <div className="inline-flex items-center p-0.5 rounded-xl border border-border bg-muted/40">
+              <button
+                type="button"
+                onClick={() => setViewMode('table')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1 ${
+                  viewMode === 'table'
+                    ? 'bg-card text-foreground shadow-2xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title="Tampilan Tabel"
+              >
+                <TableIcon className="size-3.5" />
+                <span className="hidden sm:inline">Tabel</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('card')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1 ${
+                  viewMode === 'card'
+                    ? 'bg-card text-foreground shadow-2xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title="Tampilan Kartu Ringkas"
+              >
+                <LayoutGrid className="size-3.5" />
+                <span className="hidden sm:inline">Kartu</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -1236,7 +2121,93 @@ export default function PurchasePlanningTab({
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className={viewMode === 'table' ? 'overflow-x-auto' : 'p-4'}>
+          {viewMode === 'card' ? (
+            filteredItems.length === 0 ? (
+              <div className="p-10 text-center text-xs text-muted-foreground">
+                Tidak ada item perencanaan yang sesuai dengan filter saat ini.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
+                {filteredItems.map((item) => {
+                  const isChecked = selectedItemIds.has(item.id);
+                  const badgeCls =
+                    item.urgency === 'CRITICAL'
+                      ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30'
+                      : item.urgency === 'REORDER'
+                      ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                      : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30';
+                  return (
+                    <div
+                      key={item.id}
+                      onClick={() => setSelectedItemDetail(item)}
+                      className={`p-4 rounded-2xl border transition cursor-pointer flex flex-col justify-between gap-3 hover:shadow-md ${
+                        isChecked
+                          ? 'bg-primary/[0.04] border-primary/50 ring-1 ring-primary/30'
+                          : 'bg-background/60 border-border hover:border-primary/40'
+                      }`}
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-start gap-2 min-w-0">
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onClick={(e) => e.stopPropagation()}
+                              onChange={() => handleToggleSelectItem(item.id)}
+                              className="mt-0.5 size-4 rounded border-border text-primary cursor-pointer accent-primary shrink-0"
+                            />
+                            <div className="min-w-0">
+                              <div className="font-bold text-xs text-foreground line-clamp-2">
+                                {item.itemName}
+                              </div>
+                              <div className="text-[10px] font-mono text-muted-foreground mt-0.5 flex items-center gap-1.5 flex-wrap">
+                                <span>{item.itemCode || '-'}</span>
+                                <span>&bull;</span>
+                                <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                                  {item.batchNo || 'CPL-PP-2026-001'}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border shrink-0 ${badgeCls}`}>
+                            {item.urgency}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 flex-wrap text-[10px]">
+                          <span className="px-2 py-0.5 rounded-md bg-muted text-muted-foreground font-medium">
+                            {item.category}
+                          </span>
+                          <span className="px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-600 dark:text-sky-400 font-mono font-semibold">
+                            Lead {item.leadTimeDays}h
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="pt-2.5 border-t border-border/70 flex items-center justify-between gap-2 text-xs">
+                        <div>
+                          <div className="text-[10px] text-muted-foreground">Rekomendasi Beli</div>
+                          <div className="font-mono font-black text-foreground">
+                            {item.recommendedOrderQty.toLocaleString('id-ID')} {item.unit}
+                            <span className="text-[10px] font-normal text-muted-foreground ml-1">
+                              (Stok: {item.currentStock})
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-[10px] text-muted-foreground">Est. Biaya</div>
+                          <div className="font-mono font-black text-indigo-600 dark:text-indigo-400">
+                            <ConfidentialMaskedValue value={item.totalEstimatedCost} showToast={showToast} />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )
+          ) : (
           <table className="w-full text-left text-xs">
             <thead className="bg-muted/60 text-muted-foreground text-[11px] border-b border-border">
               <tr>
@@ -1339,6 +2310,51 @@ export default function PurchasePlanningTab({
                               <span>Excel Desktop</span>
                             </span>
                           )}
+
+                          {/* Badge Status Pratender (Anti-Dobel) */}
+                          {(() => {
+                            const pt = getPratenderStatusForItem(item);
+                            if (!pt) return null;
+                            return (
+                              <span
+                                className="inline-flex items-center gap-1 text-[9px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-500/15 border border-indigo-500/30 px-1.5 py-0.5 rounded font-mono"
+                                title={`Sudah masuk paket Pratender ${pt.packageNumber} (${pt.status})`}
+                              >
+                                <CheckCircle2 className="size-2.5 text-indigo-500" />
+                                <span>{pt.packageNumber}</span>
+                              </span>
+                            );
+                          })()}
+
+                          {/* Badge Hub Pengiriman dari Titik Kirim Armada */}
+                          {(() => {
+                            const hub = getDeliveryHubForItem(item);
+                            if (!hub) return null;
+                            return (
+                              <span
+                                className="inline-flex items-center gap-1 text-[9px] font-semibold text-sky-700 dark:text-sky-300 bg-sky-500/10 border border-sky-500/25 px-1.5 py-0.5 rounded"
+                                title={`Posisi armada peminta: ${hub.posisi} (Estimasi pengiriman hub +${hub.extraLeadDays} hari)`}
+                              >
+                                <Ship className="size-2.5 text-sky-500" />
+                                <span>{hub.hubLabel} (+{hub.extraLeadDays}h)</span>
+                              </span>
+                            );
+                          })()}
+
+                          {/* Badge Anomali Kenaikan Harga */}
+                          {(() => {
+                            const anom = priceAnomalyMap.get(item.id);
+                            if (!anom) return null;
+                            return (
+                              <span
+                                className="inline-flex items-center gap-1 text-[9px] font-bold text-rose-700 dark:text-rose-300 bg-rose-500/15 border border-rose-500/30 px-1.5 py-0.5 rounded font-mono"
+                                title={`Harga lebih tinggi +${anom.pctIncrease}% dibanding harga terendah antar batch (${formatRupiah(anom.minPrice)})`}
+                              >
+                                <AlertTriangle className="size-2.5 text-rose-500" />
+                                <span>Harga +{anom.pctIncrease}%</span>
+                              </span>
+                            );
+                          })()}
                         </div>
                       </td>
 
@@ -1448,6 +2464,7 @@ export default function PurchasePlanningTab({
               )}
             </tbody>
           </table>
+          )}
         </div>
       </div>
 
