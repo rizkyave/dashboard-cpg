@@ -417,17 +417,29 @@ export default function RingkasanBerkasTab({
         item: itemDesc,
         qty: (row as any).qty || (row as any).jumlah || 1,
         unit: (row as any).unit || (row as any).satuan || 'Pcs',
-        tglFpb: ('tgl' in row ? (row as any).tgl : (row as any).tglFpb) || undefined,
-        tglPo: ('tglPo' in row ? (row as any).tglPo : undefined),
+        tglFpb:
+          [rowAny.tglFpb, rowAny.date, rowAny.tgl, rowAny.tanggal, rowAny.tglMasuk, rowAny.tglCheckFpb]
+            .map((v) => (v ? String(v).trim() : ''))
+            .find((v) => v && v !== '-') || undefined,
+        tglPo:
+          [rowAny.tglPo]
+            .map((v) => (v ? String(v).trim() : ''))
+            .find((v) => v && v !== '-') || undefined,
         picPch: ('picPch' in row ? row.picPch : undefined) || rowAny.picPch,
         picTtb: rowAny.picTtb || rowAny.picLogistik,
         picFstb: rowAny.picFstb,
         picLap: rowAny.picLap,
         picAktif: rowAny.picAktif,
         noFstb: noFstb || undefined,
-        tglFstb: ('tglFstb' in row ? (row as any).tglFstb : undefined),
+        tglFstb:
+          [rowAny.tglFstb, rowAny.tglInputFstb]
+            .map((v) => (v ? String(v).trim() : ''))
+            .find((v) => v && v !== '-') || undefined,
         noTtb: noTtb || undefined,
-        tglTtb: ('tglTtb' in row ? (row as any).tglTtb : undefined),
+        tglTtb:
+          [rowAny.tglTtb, rowAny.tglInputTtb]
+            .map((v) => (v ? String(v).trim() : ''))
+            .find((v) => v && v !== '-') || undefined,
         hasFpbDoc,
         hasFstbDoc,
         hasTtbDoc,

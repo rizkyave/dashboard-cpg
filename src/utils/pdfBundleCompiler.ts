@@ -200,9 +200,9 @@ export async function compileDossierToPdf(
   let curY = pH - 140;
   coverPage.drawRectangle({
     x: 35,
-    y: curY - 145,
+    y: curY - 125,
     width: pW - 70,
-    height: 145,
+    height: 125,
     borderColor: rgb(0.8, 0.84, 0.9),
     borderWidth: 1,
     color: rgb(0.97, 0.98, 1.0),
@@ -244,16 +244,14 @@ export async function compileDossierToPdf(
   drawMetaRow('Tanggal FPB', bundle.tglFpb || '-', curY - 58);
   drawMetaRow('Armada / Unit', bundle.armada, curY - 76);
   drawMetaRow('Entitas Usaha', bundle.entity || 'CPG Group', curY - 94);
-  drawMetaRow('PIC Purchasing', bundle.picPch || 'Staf Purchasing', curY - 112);
 
   drawMetaRow('No. PO', bundle.po || 'Belum Terbit', curY - 40, true);
   drawMetaRow('Tanggal PO', bundle.tglPo || '-', curY - 58, true);
   drawMetaRow('No. FSTB', bundle.noFstb || 'Tersedia', curY - 76, true);
   drawMetaRow('No. TTB', bundle.noTtb || 'Tersedia', curY - 94, true);
-  drawMetaRow('Item Pengadaan', (bundle.item || '-').slice(0, 30), curY - 112, true);
 
   // Tabel Daftar 4 Pilar Kelengkapan Berkas Administrasi
-  curY -= 170;
+  curY -= 150;
   coverPage.drawText('VERIFIKASI 4 PILAR BERKAS FISIK & ELEKTRONIK', {
     x: 35,
     y: curY,
