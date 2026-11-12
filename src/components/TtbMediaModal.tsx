@@ -101,7 +101,7 @@ class TtbModalErrorBoundary extends React.Component<
             <div className="space-y-1">
               <h3 className="font-bold text-foreground">Kendala Tampilan Media</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Terjadi kendala saat membaca pratinjau media untuk nomor TTB ini. Dokumen dan foto tetap aman di Cloudflare R2 storage.
+                Terjadi kendala saat membaca pratinjau media untuk nomor TTB ini. Dokumen dan foto tetap aman di Cloud Storage storage.
               </p>
             </div>
             <div className="flex items-center justify-center gap-2 pt-2">
@@ -187,13 +187,13 @@ function TtbMediaModalInner({
   const [portalUrl, setPortalUrlState] = useState<string>(DEFAULT_TIMEMARK_PORTAL_URL);
   const [customInputUrl, setCustomInputUrl] = useState<string>('');
 
-  // Dokumen TTB (PDF/Berkas) dari Cloudflare R2
+  // Dokumen TTB (PDF/Berkas) dari Cloud Storage
   const [documents, setDocuments] = useState<UploadedTtbItem[]>([]);
   const [docsLoading, setDocsLoading] = useState<boolean>(false);
   const [docsError, setDocsError] = useState<string>('');
   const [selectedDocIdx, setSelectedDocIdx] = useState<number>(0);
 
-  // Foto Fisik Serah Terima Lapangan dari Cloudflare R2
+  // Foto Fisik Serah Terima Lapangan dari Cloud Storage
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [photosLoading, setPhotosLoading] = useState<boolean>(false);
   const [photosError, setPhotosError] = useState<string>('');
@@ -219,7 +219,7 @@ function TtbMediaModalInner({
     }
   }, [isOpen]);
 
-  // Fetch Dokumen Scan PDF dari Cloudflare R2 saat TTB berubah
+  // Fetch Dokumen Scan PDF dari Cloud Storage saat TTB berubah
   useEffect(() => {
     if (!isOpen || !activeTtb) {
       setDocuments([]);
@@ -242,7 +242,7 @@ function TtbMediaModalInner({
         if (data?.error && validDocs.length === 0) setDocsError(data.error);
       })
       .catch(() => {
-        if (!cancelled) setDocsError('Gagal memuat dokumen scan TTB dari Cloudflare R2.');
+        if (!cancelled) setDocsError('Gagal memuat dokumen scan TTB dari Cloud Storage.');
       })
       .finally(() => {
         if (!cancelled) setDocsLoading(false);
@@ -253,7 +253,7 @@ function TtbMediaModalInner({
     };
   }, [isOpen, activeTtb]);
 
-  // Fetch Foto Lapangan dari Cloudflare R2 saat TTB berubah
+  // Fetch Foto Lapangan dari Cloud Storage saat TTB berubah
   useEffect(() => {
     if (!isOpen || !activeTtb) {
       setPhotos([]);
@@ -284,7 +284,7 @@ function TtbMediaModalInner({
         if (data?.error && validPhotos.length === 0) setPhotosError(data.error);
       })
       .catch(() => {
-        if (!cancelled) setPhotosError('Gagal memuat galeri foto TTB dari Cloudflare R2.');
+        if (!cancelled) setPhotosError('Gagal memuat galeri foto TTB dari Cloud Storage.');
       })
       .finally(() => {
         if (!cancelled) setPhotosLoading(false);
@@ -432,7 +432,7 @@ function TtbMediaModalInner({
                     Verifikasi Dokumen & Galeri Foto TTB
                   </h3>
                   <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30 font-bold">
-                    Cloudflare R2 Storage
+                    Cloud Storage
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap mt-0.5">
@@ -590,7 +590,7 @@ function TtbMediaModalInner({
                     <div>
                       <h4 className="text-xs font-bold text-foreground">Dokumen Scan Resmi TTB</h4>
                       <p className="text-[10px] text-muted-foreground">
-                        Berkas bertandatangan &amp; cap (Cloudflare R2)
+                        Berkas bertandatangan &amp; cap (Cloud Storage)
                       </p>
                     </div>
                   </div>
@@ -605,7 +605,7 @@ function TtbMediaModalInner({
                 {docsLoading ? (
                   <div className="flex-1 flex flex-col items-center justify-center gap-2 text-muted-foreground text-xs min-h-[360px]">
                     <Loader2 className="size-7 animate-spin text-cyan-500" />
-                    <span>Mencari dokumen TTB di Cloudflare R2...</span>
+                    <span>Mencari dokumen TTB di Cloud Storage...</span>
                   </div>
                 ) : documents.length === 0 ? (
                   <div className="flex-1 flex flex-col items-center justify-center gap-2.5 text-muted-foreground text-xs text-center px-4 py-8 min-h-[360px]">
@@ -617,7 +617,7 @@ function TtbMediaModalInner({
                         Belum ada berkas scan resmi untuk TTB ini
                       </p>
                       <p className="text-[11px] text-muted-foreground leading-relaxed">
-                        Dokumen scan tanda tangan basah / PDF resmi dari gudang logistik belum diunggah ke Cloudflare R2 storage.
+                        Dokumen scan tanda tangan basah / PDF resmi dari gudang logistik belum diunggah ke Cloud Storage storage.
                       </p>
                     </div>
                     {onNavigateToUpload && (
@@ -763,7 +763,7 @@ function TtbMediaModalInner({
                     <div>
                       <h4 className="text-xs font-bold text-foreground">Galeri Foto Fisik Serah Terima</h4>
                       <p className="text-[10px] text-muted-foreground">
-                        Dokumentasi barang riil di lapangan (Cloudflare R2)
+                        Dokumentasi barang riil di lapangan (Cloud Storage)
                       </p>
                     </div>
                   </div>
@@ -778,7 +778,7 @@ function TtbMediaModalInner({
                 {photosLoading ? (
                   <div className="flex-1 flex flex-col items-center justify-center gap-2 text-muted-foreground text-xs min-h-[360px]">
                     <Loader2 className="size-7 animate-spin text-purple-500" />
-                    <span>Mencari foto serah terima di Cloudflare R2...</span>
+                    <span>Mencari foto serah terima di Cloud Storage...</span>
                   </div>
                 ) : photos.length === 0 ? (
                   <div className="flex-1 flex flex-col items-center justify-center gap-2.5 text-muted-foreground text-xs text-center px-4 py-8 min-h-[360px]">
@@ -790,7 +790,7 @@ function TtbMediaModalInner({
                         Belum ada foto serah terima fisik untuk TTB ini
                       </p>
                       <p className="text-[11px] text-muted-foreground leading-relaxed">
-                        Foto barang belum terindeks di Cloudflare R2 atau nomor TTB belum diinput oleh staf logistik.
+                        Foto barang belum terindeks di Cloud Storage atau nomor TTB belum diinput oleh staf logistik.
                       </p>
                     </div>
                     {shortCode && (
@@ -830,7 +830,7 @@ function TtbMediaModalInner({
                           </span>
                           <span>&bull;</span>
                           <span>
-                            Penyimpanan: <strong className="text-foreground font-semibold">Cloudflare R2</strong>
+                            Penyimpanan: <strong className="text-foreground font-semibold">Cloud Storage</strong>
                           </span>
                           {selectedPhoto?.ttbInfo?.numbers?.length ? (
                             <>
@@ -954,7 +954,7 @@ function TtbMediaModalInner({
               {docsLoading ? (
                 <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
                   <Loader2 className="size-8 animate-spin text-cyan-500" />
-                  <span className="text-sm">Memuat dokumen dari Cloudflare R2...</span>
+                  <span className="text-sm">Memuat dokumen dari Cloud Storage...</span>
                 </div>
               ) : documents.length === 0 ? (
                 <div className="py-16 text-center space-y-3">
@@ -963,7 +963,7 @@ function TtbMediaModalInner({
                     Belum ada berkas scan resmi untuk TTB &quot;{activeTtb}&quot;
                   </p>
                   <p className="text-xs text-muted-foreground max-w-md mx-auto">
-                    Dokumen PDF bertandatangan basah belum diunggah ke storage Cloudflare R2.
+                    Dokumen PDF bertandatangan basah belum diunggah ke storage Cloud Storage.
                   </p>
                 </div>
               ) : (
@@ -1032,7 +1032,7 @@ function TtbMediaModalInner({
               {photosLoading ? (
                 <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
                   <Loader2 className="size-8 animate-spin text-purple-500" />
-                  <span className="text-sm">Memuat galeri foto dari Cloudflare R2...</span>
+                  <span className="text-sm">Memuat galeri foto dari Cloud Storage...</span>
                 </div>
               ) : photos.length === 0 ? (
                 <div className="py-16 text-center space-y-3">
@@ -1278,7 +1278,7 @@ function TtbMediaModalInner({
         <div className="p-3.5 sm:p-4 border-t border-border bg-muted/40 shrink-0 flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span className="size-2 rounded-full bg-emerald-500"></span>
-            <span>Terhubung ke Cloudflare R2 Storage (Bucket cpg-storage)</span>
+            <span>Terhubung ke Cloud Storage (Bucket cpg-storage)</span>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">

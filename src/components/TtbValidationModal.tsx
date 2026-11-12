@@ -269,7 +269,7 @@ export default function TtbValidationModal({
     };
   }, [record?.fileUrl, pdfRefreshKey]);
 
-  // Fetch Foto Lapangan Real-time dari Cloudflare R2
+  // Fetch Foto Lapangan Real-time dari Cloud Storage
   useEffect(() => {
     if (!isOpen || !record?.docNumber) {
       setPhotos([]);
@@ -1402,7 +1402,7 @@ export default function TtbValidationModal({
                   <span className="text-[10px] text-muted-foreground block truncate">
                     {photos[selectedPhotoIdx]?.takenAt
                       ? `Waktu Foto: ${photos[selectedPhotoIdx].takenAt}`
-                      : 'Dokumentasi Fisik TimeMark Lapangan • Cloudflare R2'}
+                      : 'Dokumentasi Fisik TimeMark Lapangan • Cloud Storage'}
                   </span>
                 </div>
               </div>

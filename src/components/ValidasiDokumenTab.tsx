@@ -130,7 +130,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
       if (data.metrics) setMetrics(data.metrics);
 
       if (isManualRefresh && showToast) {
-        showToast('Data validasi berhasil diperbarui dari Cloudflare R2!', 'info');
+        showToast('Data validasi berhasil diperbarui dari Cloud Storage!', 'info');
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Terjadi kegagalan saat memuat data.';
@@ -142,7 +142,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
     }
   };
 
-  // Sinkronisasi cerdas dengan Cloudflare R2 dan direktori lokal
+  // Sinkronisasi cerdas dengan Cloud Storage dan direktori lokal
   const handleSyncR2 = async () => {
     try {
       setIsSyncingR2(true);
@@ -153,7 +153,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Gagal melakukan sinkronisasi dengan Cloudflare R2.');
+        throw new Error(data.error || 'Gagal melakukan sinkronisasi dengan Cloud Storage.');
       }
 
       setRecords(data.records || []);
@@ -484,7 +484,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
               onClick={handleSyncR2}
               disabled={isSyncingR2 || isRefreshing}
               className="h-9 px-3.5 rounded-xl border border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/20 text-xs font-semibold text-sky-700 dark:text-sky-300 inline-flex items-center gap-2 shadow-xs transition active:scale-95 disabled:opacity-50 cursor-pointer"
-              title="Sinkronkan database dengan Cloudflare R2 dan direktori lokal"
+              title="Sinkronkan database dengan Cloud Storage dan direktori lokal"
             >
               <CloudDownload className={`size-3.5 ${isSyncingR2 ? 'animate-bounce text-sky-500' : ''}`} />
               <span>{isSyncingR2 ? 'Menyinkronkan R2...' : 'Sinkronkan R2'}</span>
@@ -786,7 +786,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                   <td colSpan={10} className="py-12 text-center text-muted-foreground">
                     <span className="inline-flex items-center gap-2">
                       <RefreshCw className="size-4 animate-spin text-primary" />
-                      Memuat data berkas validasi dari Cloudflare R2...
+                      Memuat data berkas validasi dari Cloud Storage...
                     </span>
                   </td>
                 </tr>

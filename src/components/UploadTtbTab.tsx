@@ -301,7 +301,7 @@ export default function UploadTtbTab({
     } catch {}
   }, []);
 
-  // Cloudflare Storage Connection Test State
+  // Cloud Storage Connection Test State
   const [isTestingStorage, setIsTestingStorage] = useState<boolean>(false);
 
   // Cadangan data pengadaan jika props awal dari halaman utama belum selesai termuat
@@ -471,7 +471,7 @@ export default function UploadTtbTab({
     return list;
   }, [uploadedFstbs, validationsMap, effectiveProcurement]);
 
-  // Fetch riwayat upload dari Cloudflare R2
+  // Fetch riwayat upload dari Cloud Storage
   const fetchHistory = async () => {
     setIsLoadingHistory(true);
     try {
@@ -550,7 +550,7 @@ export default function UploadTtbTab({
     }
   };
 
-  // Fetch riwayat FSTB yang telah terunggah di Cloudflare R2
+  // Fetch riwayat FSTB yang telah terunggah di Cloud Storage
   const fetchUploadedFstbs = async () => {
     try {
       const res = await fetch(`/api/upload-fstb?_t=${Date.now()}`);
@@ -578,7 +578,7 @@ export default function UploadTtbTab({
     const cleanTtb = sanitizeTtbNumber(rawTtb);
     if (!cleanTtb) return { hasFstb: true, expectedFstb: '', noFpb: '', noPo: '', armada: '' };
 
-    // Kumpulan nomor FSTB yang terverifikasi ada di Cloudflare R2 (dari upload & validasi)
+    // Kumpulan nomor FSTB yang terverifikasi ada di Cloud Storage (dari upload & validasi)
     const uploadedFstbKeys = new Set(
       uploadedFstbs.map((f) => (f.cleanNoFstb || f.noFstb || '').toUpperCase().trim()).filter(Boolean)
     );
@@ -744,7 +744,7 @@ export default function UploadTtbTab({
     return { hasFstb: false, expectedFstb: '', noFpb: resolvedFpb, noPo: resolvedPo, armada: relation.armada };
   }, [uploadedFstbs, effectiveProcurement, sisaLayananItems, armadaItems, ttbSuggestions, validationsMap]);
 
-  // Handler toggle pengendalian SOP FSTB oleh Administrator (Sinkron ke Server & Cloudflare R2)
+  // Handler toggle pengendalian SOP FSTB oleh Administrator (Sinkron ke Server & Cloud Storage)
   const handleToggleSopRequireFstb = async () => {
     if (!isAdmin) {
       showToast?.('Akses Ditolak: Hanya Administrator yang berwenang mengubah pengendalian SOP FSTB.', 'error');
@@ -793,7 +793,7 @@ export default function UploadTtbTab({
         body: JSON.stringify({
           type: 'FSTB_URGENT_REQUEST',
           title: '🚨 Peringatan SOP: Unggah Berkas FSTB Diperlukan Segera',
-          message: `Penerbitan TTB (${ttbList}) untuk armada ${armadaList || 'kapal'} tertahan oleh SOP karena berkas FSTB terkait belum diunggah ke Cloudflare R2 (Ref FPB: ${fpbList || '-'}, PO: ${poList || '-'}). Mohon Tim FSTB segera mengunggah berkas tersebut di menu Unggah FSTB.`,
+          message: `Penerbitan TTB (${ttbList}) untuk armada ${armadaList || 'kapal'} tertahan oleh SOP karena berkas FSTB terkait belum diunggah ke Cloud Storage (Ref FPB: ${fpbList || '-'}, PO: ${poList || '-'}). Mohon Tim FSTB segera mengunggah berkas tersebut di menu Unggah FSTB.`,
           senderName: user?.name || user?.username || 'Tim Logistik CPG',
           senderUsername: user?.username || 'logistik',
           senderRole: user?.role || 'logistik',
@@ -822,7 +822,7 @@ export default function UploadTtbTab({
     }
   };
 
-  // Uji koneksi ke Cloudflare R2 Storage
+  // Uji koneksi ke Cloud Storage
   const handleTestStorageConnection = async () => {
     setIsTestingStorage(true);
     try {
@@ -830,11 +830,11 @@ export default function UploadTtbTab({
       const data = await res.json();
       if (res.ok && data.success) {
         showToast?.(
-          `Cloudflare Storage (${data.bucket || 'R2'}) terhubung! Latensi: ${data.latencyMs || 0}ms`,
+          `Cloud Storage (${data.bucket || 'R2'}) terhubung! Latensi: ${data.latencyMs || 0}ms`,
           'success'
         );
       } else {
-        showToast?.(data.error || 'Gagal terhubung ke Cloudflare R2.', 'error');
+        showToast?.(data.error || 'Gagal terhubung ke Cloud Storage.', 'error');
       }
     } catch (err) {
       showToast?.((err as Error).message || 'Gagal menguji koneksi.', 'error');
@@ -903,7 +903,7 @@ export default function UploadTtbTab({
       const key = cleanKey.toUpperCase();
 
       if (!groupsMap.has(key)) {
-        // Cek apakah di riwayat Cloudflare R2 sudah ada pasangannya
+        // Cek apakah di riwayat Cloud Storage sudah ada pasangannya
         const histMatches = history.filter((h) => {
           const cleanH = sanitizeTtbNumber(h.noTtb || h.cleanNoTtb || '');
           return cleanH && cleanH.toUpperCase() === key;
@@ -1202,7 +1202,7 @@ export default function UploadTtbTab({
     }
   };
 
-  // Proses Upload Antrean ke Cloudflare R2
+  // Proses Upload Antrean ke Cloud Storage
   const processUploadForQueue = async (targetQueue: QueuedFile[]) => {
     if (targetQueue.length === 0) return;
 
@@ -1301,7 +1301,7 @@ export default function UploadTtbTab({
 
       if (newlyUploaded.length > 0) {
         showToast?.(
-          `Sukses! ${newlyUploaded.length} berkas TTB berhasil diarsipkan ke Cloudflare R2.`,
+          `Sukses! ${newlyUploaded.length} berkas TTB berhasil diarsipkan ke Cloud Storage.`,
           'success'
         );
 
@@ -1425,7 +1425,7 @@ export default function UploadTtbTab({
       showToast?.('Akses ditolak: Hanya Administrator yang berwenang menghapus berkas TTB.', 'error');
       return;
     }
-    if (!window.confirm(`Hapus berkas TTB "${item.renamedFileName}" dari penyimpanan Cloudflare R2?`)) {
+    if (!window.confirm(`Hapus berkas TTB "${item.renamedFileName}" dari penyimpanan Cloud?`)) {
       return;
     }
     setDeletingId(item.id);
@@ -1613,14 +1613,14 @@ export default function UploadTtbTab({
                   Unggah Dokumen TTB
                 </h2>
                 <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/30">
-                  Cloudflare R2
+                  Cloud Storage
                 </span>
                 <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border">
                   CPL-PRC-SOP-004-F02
                 </span>
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Pengarsipan berkas Tanda Terima Barang (TTB) resmi ke Cloudflare R2 dengan sistem penamaan otomatis sesuai Nomor TTB.
+                Pengarsipan berkas Tanda Terima Barang (TTB) resmi ke Cloud Storage dengan sistem penamaan otomatis sesuai Nomor TTB.
               </p>
             </div>
           </div>
@@ -1631,7 +1631,7 @@ export default function UploadTtbTab({
               onClick={handleTestStorageConnection}
               disabled={isTestingStorage}
               className="h-9 px-3.5 rounded-xl border border-border bg-background hover:bg-muted text-xs font-semibold text-foreground inline-flex items-center gap-2 transition active:scale-95 cursor-pointer"
-              title="Uji koneksi langsung ke bucket Cloudflare R2 Storage"
+              title="Uji koneksi langsung ke bucket Cloud Storage"
             >
               <Database className={`size-3.5 text-orange-500 ${isTestingStorage ? 'animate-pulse' : ''}`} />
               <span>{isTestingStorage ? 'Menguji...' : 'Uji Koneksi Penyimpanan'}</span>
@@ -1684,7 +1684,7 @@ export default function UploadTtbTab({
           <div className="bg-background/80 border border-border rounded-xl p-3">
             <span className="text-[11px] text-muted-foreground font-medium flex items-center gap-1.5 flex-wrap">
               <Database className="size-3.5 text-emerald-500" />
-              <span>Cloudflare R2</span>
+              <span>Cloud Storage</span>
             </span>
             <p className="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-1">
               {stats.r2Count.toLocaleString('id-ID')}
@@ -1727,7 +1727,7 @@ export default function UploadTtbTab({
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">
               {sopRequireFstb
-                ? 'Aturan SOP Ketat Aktif: Berkas TTB hanya dapat diunggah jika dokumen FSTB terkait telah terdaftar di Cloudflare R2.'
+                ? 'Aturan SOP Ketat Aktif: Berkas TTB hanya dapat diunggah jika dokumen FSTB terkait telah terdaftar di Cloud Storage.'
                 : 'Mode Bypass Darurat Aktif: Seluruh pengguna diizinkan mengunggah berkas TTB secara langsung tanpa kewajiban berkas FSTB.'}
             </p>
           </div>
@@ -1957,7 +1957,7 @@ export default function UploadTtbTab({
                         </span>
                       </div>
                       <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
-                        Nomor berkas TTB ini telah terdaftar di riwayat Cloudflare R2 sebelumnya. Untuk menghindari data ganda, disarankan melewati (skip) atau menghapus berkas baru ini.
+                        Nomor berkas TTB ini telah terdaftar di riwayat Cloud Storage sebelumnya. Untuk menghindari data ganda, disarankan melewati (skip) atau menghapus berkas baru ini.
                       </p>
                     </div>
                   </div>
@@ -2315,7 +2315,7 @@ export default function UploadTtbTab({
               {isUploading ? (
                 <div className="flex items-center gap-2">
                   <RefreshCw className="size-4 animate-spin text-white" />
-                  <span>Mengunggah ke Cloudflare R2 ({uploadProgress}%)...</span>
+                  <span>Mengunggah ke Cloud Storage ({uploadProgress}%)...</span>
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
@@ -2325,7 +2325,7 @@ export default function UploadTtbTab({
                       ? distinctTtbCount > 1
                         ? `Unggah ${queue.length} Berkas (${distinctTtbCount} No. TTB)`
                         : `Unggah ${queue.length} Berkas TTB`
-                      : 'ke Cloudflare R2'}
+                      : 'ke Cloud Storage'}
                   </span>
                 </div>
               )}
@@ -2346,7 +2346,7 @@ export default function UploadTtbTab({
                 Riwayat Pengarsipan Berkas TTB
               </h3>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Daftar berkas yang tersimpan aman di Cloudflare R2 Storage
+                Daftar berkas yang tersimpan aman di Cloud Storage
               </p>
             </div>
           </div>
@@ -2834,7 +2834,7 @@ export default function UploadTtbTab({
                             onClick={() => handleDeleteHistoryItem(item)}
                             disabled={deletingId === item.id}
                             className="p-1.5 rounded-lg border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 transition cursor-pointer"
-                            title="Hapus Berkas dari Cloudflare R2 (Khusus Admin)"
+                            title="Hapus Berkas dari Cloud Storage (Khusus Admin)"
                           >
                             {deletingId === item.id ? (
                               <RefreshCw className="size-3.5 animate-spin text-red-600" />
@@ -2979,7 +2979,7 @@ export default function UploadTtbTab({
                     <span>SOP Tertahan: Berkas FSTB Belum Terunggah</span>
                   </h3>
                   <p className="text-[11px] text-muted-foreground mt-0.5">
-                    Pengendalian SOP Aktif: TTB wajib memiliki berkas FSTB di Cloudflare R2
+                    Pengendalian SOP Aktif: TTB wajib memiliki berkas FSTB di Cloud Storage
                   </p>
                 </div>
               </div>
@@ -2994,7 +2994,7 @@ export default function UploadTtbTab({
 
             <div className="p-5 overflow-y-auto space-y-3.5 text-xs">
               <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-900 dark:text-rose-200 leading-relaxed text-[11px]">
-                Sesuai aturan SOP operasional logistik, berkas TTB <strong>tidak dapat diterbitkan / diunggah</strong> ke Cloudflare R2 sebelum dokumen <strong>FSTB (Formulir Serah Terima Barang)</strong> terkait telah diunggah oleh Tim Purchasing / FSTB.
+                Sesuai aturan SOP operasional logistik, berkas TTB <strong>tidak dapat diterbitkan / diunggah</strong> ke Cloud Storage sebelum dokumen <strong>FSTB (Formulir Serah Terima Barang)</strong> terkait telah diunggah oleh Tim Purchasing / FSTB.
               </div>
 
               <div className="space-y-2">
@@ -3092,7 +3092,7 @@ export default function UploadTtbTab({
                     <span>Peringatan Dokumen TTB Terindikasi Duplikat</span>
                   </h3>
                   <p className="text-[11px] text-muted-foreground mt-0.5">
-                    Cegah double posting / upload ganda dokumen TTB ke Cloudflare R2
+                    Cegah double posting / upload ganda dokumen TTB ke Cloud Storage
                   </p>
                 </div>
               </div>
@@ -3107,7 +3107,7 @@ export default function UploadTtbTab({
 
             <div className="p-5 overflow-y-auto space-y-3.5 text-xs">
               <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 leading-relaxed text-[11px]">
-                Sistem mendeteksi <strong>{duplicateQueueItems.length} berkas</strong> dalam antrean sudah pernah diarsipkan di Cloudflare R2 sebelumnya.
+                Sistem mendeteksi <strong>{duplicateQueueItems.length} berkas</strong> dalam antrean sudah pernah diarsipkan di Cloud Storage sebelumnya.
                 Untuk menjaga keakuratan pengarsipan, disarankan untuk <strong>Melewati (Skip)</strong> berkas duplikat tersebut.
               </div>
 

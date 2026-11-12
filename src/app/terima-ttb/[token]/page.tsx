@@ -429,7 +429,7 @@ export default function RemoteHandoverPage() {
         <Loader2 className="size-10 text-indigo-400 animate-spin" />
         <div>
           <h2 className="text-base font-bold">Memuat Dokumen Serah Terima...</h2>
-          <p className="text-xs text-slate-400 mt-1">Menghubungkan ke server Cloudflare R2...</p>
+          <p className="text-xs text-slate-400 mt-1">Menghubungkan ke server Cloud Storage...</p>
         </div>
       </div>
     );
@@ -506,7 +506,7 @@ export default function RemoteHandoverPage() {
               Serah Terima Berhasil Disahkan!
             </h2>
             <p className="text-xs text-slate-400 mt-1">
-              Tanda terima dan dokumentasi fisik barang telah tersimpan aman di Cloudflare R2 &amp; terarsip resmi di sistem logistik.
+              Tanda terima dan dokumentasi fisik barang telah tersimpan aman di Cloud Storage &amp; terarsip resmi di sistem logistik.
             </p>
           </div>
 

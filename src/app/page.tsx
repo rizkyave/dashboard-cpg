@@ -269,7 +269,7 @@ export default function DashboardPage() {
     setSmSummary(summary);
     saveStoredServiceMaintenance(merged, summary);
 
-    // Sync ke Cloudflare R2
+    // Sync ke Cloud Storage
     fetch('/api/sync-sm', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -281,7 +281,7 @@ export default function DashboardPage() {
     setSmVendors(configs);
     saveStoredSmVendors(configs);
 
-    // Sync ke Cloudflare R2
+    // Sync ke Cloud Storage
     fetch('/api/sync-sm', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -325,7 +325,7 @@ export default function DashboardPage() {
     setSisaLayananSummary(summary);
     saveStoredSisaLayanan(newItems, summary);
 
-    // Sync ke Cloudflare R2
+    // Sync ke Cloud Storage
     fetch('/api/sisa-layanan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -592,7 +592,7 @@ export default function DashboardPage() {
             .catch((e) => console.warn('Auto-fetch posisi kapal background:', e));
         }
 
-        // Sinkronisasi data Procurement & Armada terbaru dari Cloudflare R2 secara background
+        // Sinkronisasi data Procurement & Armada terbaru dari Cloud Storage secara background
         const applySyncedData = (proc: ProcurementItem[], arm: ArmadaItem[]) => {
           if (!Array.isArray(proc) || proc.length === 0) return;
           const cloudProc = proc.map(sanitizeProcItem);
@@ -690,7 +690,7 @@ export default function DashboardPage() {
           setSmItems(savedSm.items);
           if (savedSm.summary) setSmSummary(savedSm.summary);
         } else {
-          // Auto-fetch SM dari Cloudflare R2
+          // Auto-fetch SM dari Cloud Storage
           fetch('/api/sync-sm')
             .then((r) => r.json())
             .then((res) => {
@@ -946,7 +946,7 @@ export default function DashboardPage() {
     if (summary) setInventorySummary(summary);
     saveStoredInventory(items, summary || null);
 
-    // Sync ke Cloudflare R2
+    // Sync ke Cloud Storage
     fetch('/api/inventory', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -955,7 +955,7 @@ export default function DashboardPage() {
   };
 
   const handleScopedReset = async (scope: ResetScope) => {
-    // Reset di Cloudflare R2
+    // Reset di Cloud Storage
     fetch('/api/dashboard-sync', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1026,7 +1026,7 @@ export default function DashboardPage() {
       saveStoredArmada(enriched.armada);
     }
 
-    // Simpan ke Cloudflare R2 untuk sinkronisasi antar-perangkat secara instan
+    // Simpan ke Cloud Storage untuk sinkronisasi antar-perangkat secara instan
     syncDashboardDataToCloud(enriched.procurement, enriched.armada);
   };
 
@@ -1216,9 +1216,9 @@ export default function DashboardPage() {
                     : activeTab === 'sisa-layanan'
                     ? 'Laporan Sisa Layanan Permintaan (Gabungan)'
                     : activeTab === 'upload-fstb'
-                    ? 'Unggah Dokumen FSTB ke Penyimpanan Cloudflare'
+                    ? 'Unggah Dokumen FSTB ke Penyimpanan Cloud'
                     : activeTab === 'upload-ttb'
-                    ? 'Unggah Dokumen TTB ke Penyimpanan Cloudflare'
+                    ? 'Unggah Dokumen TTB ke Penyimpanan Cloud'
                     : activeTab === 'notifikasi-pekerjaan'
                     ? 'Pusat Notifikasi & Log Aktivitas Unit Kerja'
                     : activeTab === 'admin-settings'
@@ -1243,7 +1243,7 @@ export default function DashboardPage() {
                     : activeTab === 'armada'
                     ? 'Rekonsiliasi FPB–FSTB & Distribusi Logistik'
                     : activeTab === 'galeri-ttb'
-                    ? 'Galeri foto penerimaan dan serah terima dokumen fisik TTB terintegrasi Cloudflare R2 Storage.'
+                    ? 'Galeri foto penerimaan dan serah terima dokumen fisik TTB terintegrasi Cloud Storage.'
                     : activeTab === 'pos-kapal'
                     ? 'Laporan posisi, rute, aktivitas, status armada dan pekerjaan pemeliharaan kapal.'
                     : activeTab === 'crew-kapal'
@@ -1259,9 +1259,9 @@ export default function DashboardPage() {
                     : activeTab === 'sisa-layanan'
                     ? 'Monitoring pemenuhan pengajuan barang (FPB, PO, FSTB, TTB) gabungan seluruh unit armada kapal & divisi PT Cindara Pratama Group.'
                     : activeTab === 'upload-fstb'
-                    ? 'Unggah berkas Form Serah Terima Barang (FSTB) resmi ke Cloudflare R2 dengan sistem penamaan otomatis sesuai Nomor FSTB.'
+                    ? 'Unggah berkas Form Serah Terima Barang (FSTB) resmi ke Cloud Storage dengan sistem penamaan otomatis sesuai Nomor FSTB.'
                     : activeTab === 'upload-ttb'
-                    ? 'Unggah foto fisik & dokumen scan tanda terima barang (TTB) ke Cloudflare R2 dengan sistem penamaan otomatis sesuai Nomor TTB resmi.'
+                    ? 'Unggah foto fisik & dokumen scan tanda terima barang (TTB) ke Cloud Storage dengan sistem penamaan otomatis sesuai Nomor TTB resmi.'
                     : activeTab === 'notifikasi-pekerjaan'
                     ? 'Monitoring real-time alur pekerjaan lintas divisi: Pengadaan, Gudang, Logistik, Supervisor/Manager, dan Serah Terima Armada Kapal.'
                     : activeTab === 'admin-settings'
@@ -1452,7 +1452,7 @@ export default function DashboardPage() {
             />
           )}
 
-          {/* Tab Galeri Seluruh Foto TTB (Cloudflare R2 / Server) */}
+          {/* Tab Galeri Seluruh Foto TTB (Cloud Storage / Server) */}
           {activeTab === 'galeri-ttb' && (
             <TtbGalleryTab showToast={showToast} />
           )}
@@ -1518,7 +1518,7 @@ export default function DashboardPage() {
             />
           )}
 
-          {/* Tab Modul Tambahan: Upload Data FSTB (Auto-Rename & Cloudflare Storage) */}
+          {/* Tab Modul Tambahan: Upload Data FSTB (Auto-Rename & Cloud Storage) */}
           {activeTab === 'upload-fstb' && (
             <UploadFstbTab
               procurementItems={procurementData}
@@ -1528,7 +1528,7 @@ export default function DashboardPage() {
             />
           )}
 
-          {/* Tab Modul Tambahan: Upload Data TTB (Auto-Rename & Cloudflare Storage) */}
+          {/* Tab Modul Tambahan: Upload Data TTB (Auto-Rename & Cloud Storage) */}
           {activeTab === 'upload-ttb' && (
             <UploadTtbTab
               procurementItems={procurementData}

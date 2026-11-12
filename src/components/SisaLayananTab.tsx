@@ -1529,7 +1529,7 @@ export default function SisaLayananTab({
                 <div className="text-emerald-950 dark:text-emerald-200">
                   <span className="font-semibold block">Jadwal Vercel Cron Otomatis:</span>
                   <span>
-                    Dijalankan otomatis setiap hari pada pukul <strong className="font-bold underline">23:50 WITA</strong> (15:50 UTC). Data yang diunduh langsung tersimpan permanen di Cloudflare R2 untuk seluruh tim.
+                    Dijalankan otomatis setiap hari pada pukul <strong className="font-bold underline">23:50 WITA</strong> (15:50 UTC). Data yang diunduh langsung tersimpan permanen di Cloud Storage untuk seluruh tim.
                   </span>
                 </div>
               </div>

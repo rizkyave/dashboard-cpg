@@ -927,7 +927,7 @@ export default function NotificationCenterTab({
           <div className="p-12 text-center bg-card border border-border rounded-2xl space-y-3 shadow-xs">
             <Loader2 className="size-8 text-primary animate-spin mx-auto" />
             <p className="text-xs font-semibold text-foreground">Memuat Notifikasi Pekerjaan...</p>
-            <p className="text-[11px] text-muted-foreground">Mengambil riwayat log kerja dari Cloudflare R2</p>
+            <p className="text-[11px] text-muted-foreground">Mengambil riwayat log kerja dari Cloud Storage</p>
           </div>
         ) : filteredNotifications.length === 0 ? (
           <div className="p-12 text-center bg-card border border-border rounded-2xl space-y-3 shadow-xs">
@@ -1287,7 +1287,7 @@ export default function NotificationCenterTab({
                 <div className="p-8 text-center text-white space-y-3">
                   <Loader2 className="size-8 animate-spin text-teal-400 mx-auto" />
                   <p className="text-xs font-semibold">Mengambil Bukti Lampiran Foto...</p>
-                  <p className="text-[11px] text-slate-400">Sinkronisasi Cloudflare R2 &amp; Riwayat Serah Terima</p>
+                  <p className="text-[11px] text-slate-400">Sinkronisasi Cloud Storage &amp; Riwayat Serah Terima</p>
                 </div>
               ) : photoModal.error || filteredModalPhotos.length === 0 ? (
                 <div className="p-8 text-center text-white space-y-3 max-w-md">
@@ -1456,7 +1456,7 @@ export default function NotificationCenterTab({
                     {previewDoc.title}
                   </h3>
                   <p className="text-[11px] text-muted-foreground">
-                    Pratinjau Dokumen Resmi Terverifikasi (Cloudflare R2 Storage)
+                    Pratinjau Dokumen Resmi Terverifikasi (Cloud Storage)
                   </p>
                 </div>
               </div>
@@ -1509,7 +1509,7 @@ export default function NotificationCenterTab({
                   </div>
                   <h4 className="text-sm font-bold">{previewDoc.error}</h4>
                   <p className="text-xs text-slate-400 max-w-md">
-                    Dokumen scan PDF untuk {previewDoc.noDoc} belum diunggah atau tautan penyimpanan Cloudflare R2 sedang diperbarui.
+                    Dokumen scan PDF untuk {previewDoc.noDoc} belum diunggah atau tautan penyimpanan Cloud sedang diperbarui.
                   </p>
                 </div>
               ) : previewDoc.fileUrl ? (

@@ -179,7 +179,7 @@ export default function Sidebar({
       label: 'Unggah FSTB',
       icon: PackageCheck,
       badge: 'R2',
-      title: 'Unggah Dokumen FSTB ke Cloudflare R2 dengan Format Otomatis Sesuai No. FSTB',
+      title: 'Unggah Dokumen FSTB ke Cloud Storage dengan Format Otomatis Sesuai No. FSTB',
     },
     {
       id: 'validasi-dokumen' as TabType,

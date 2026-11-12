@@ -891,7 +891,7 @@ export default function AuditModal({
     operationalOverride?.attachments?.find((a) => a.name.toLowerCase().includes('po') || a.name.toLowerCase().includes('wo'))?.url ||
     null;
 
-  // Fetch softcopy status FSTB & TTB dari API Cloudflare R2
+  // Fetch softcopy status FSTB & TTB dari API Cloud Storage
   useEffect(() => {
     let isCancelled = false;
 
@@ -2965,7 +2965,7 @@ export default function AuditModal({
                       type="button"
                       onClick={() => setShowFstbModal(true)}
                       className="inline-flex items-center justify-between w-full px-2 py-1 rounded-md text-[9.5px] font-mono font-medium bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-500/25 transition group cursor-pointer shadow-2xs"
-                      title={`Softcopy FSTB Tersedia (${softcopySummary.fstbCount} berkas di Cloudflare R2): Klik untuk pratinjau / unduh`}
+                      title={`Softcopy FSTB Tersedia (${softcopySummary.fstbCount} berkas di Cloud Storage): Klik untuk pratinjau / unduh`}
                     >
                       <span className="flex items-center gap-1 min-w-0 truncate">
                         <CheckCircle2 className="size-2.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
@@ -2978,7 +2978,7 @@ export default function AuditModal({
                       type="button"
                       onClick={() => setShowFstbModal(true)}
                       className="inline-flex items-center justify-between w-full px-2 py-1 rounded-md text-[9.5px] font-mono text-amber-700 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 transition cursor-pointer"
-                      title={`FSTB ${effectiveNoFstb} tercatat secara fisik, namun berkas softcopy scan belum diunggah ke Cloudflare R2. Klik untuk unggah berkas.`}
+                      title={`FSTB ${effectiveNoFstb} tercatat secara fisik, namun berkas softcopy scan belum diunggah ke Cloud Storage. Klik untuk unggah berkas.`}
                     >
                       <span className="flex items-center gap-1 min-w-0 truncate">
                         <Clock className="size-2.5 text-amber-500 shrink-0" />
@@ -4316,7 +4316,7 @@ export default function AuditModal({
         />
       )}
 
-      {/* Pop-up Box: Pratinjau Dokumen FSTB Resmi dari Cloudflare R2 */}
+      {/* Pop-up Box: Pratinjau Dokumen FSTB Resmi dari Cloud Storage */}
       {showFstbModal && (
         <FstbMediaModal
           isOpen={showFstbModal}

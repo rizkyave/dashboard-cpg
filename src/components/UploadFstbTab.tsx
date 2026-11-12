@@ -640,7 +640,7 @@ export default function UploadFstbTab({
 
       setUploadProgress(100);
       showToast?.(
-        `Sukses! ${totalSuccess} berkas FSTB berhasil diarsipkan ke Cloudflare R2.`,
+        `Sukses! ${totalSuccess} berkas FSTB berhasil diarsipkan ke Cloud Storage.`,
         'success'
       );
 
@@ -691,7 +691,7 @@ export default function UploadFstbTab({
     }
   };
 
-  // Proses Upload ke Cloudflare R2 dengan proteksi duplikat
+  // Proses Upload ke Cloud Storage dengan proteksi duplikat
   const handleExecuteUpload = async () => {
     if (queue.length === 0) {
       showToast?.('Pilih setidaknya 1 berkas FSTB untuk diunggah.', 'warning');
@@ -725,7 +725,7 @@ export default function UploadFstbTab({
       showToast?.('Akses ditolak: Hanya Administrator yang berwenang menghapus berkas FSTB.', 'error');
       return;
     }
-    if (!window.confirm(`Hapus berkas FSTB "${item.renamedFileName}" dari penyimpanan Cloudflare R2?`)) {
+    if (!window.confirm(`Hapus berkas FSTB "${item.renamedFileName}" dari penyimpanan Cloud?`)) {
       return;
     }
     setDeletingId(item.id);
@@ -809,14 +809,14 @@ export default function UploadFstbTab({
                   Unggah Dokumen FSTB
                 </h2>
                 <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/30">
-                  Cloudflare R2
+                  Cloud Storage
                 </span>
                 <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border">
                   CPL-PRC-SOP-001-F03
                 </span>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Pengarsipan berkas Form Serah Terima Barang (FSTB) resmi ke Cloudflare R2 dengan sistem penamaan otomatis sesuai Nomor FSTB.
+                Pengarsipan berkas Form Serah Terima Barang (FSTB) resmi ke Cloud Storage dengan sistem penamaan otomatis sesuai Nomor FSTB.
               </p>
             </div>
           </div>
@@ -866,7 +866,7 @@ export default function UploadFstbTab({
           <div className="bg-background/80 border border-border rounded-xl p-3">
             <span className="text-[11px] text-muted-foreground font-medium flex items-center gap-1.5">
               <Database className="size-3.5 text-emerald-500" />
-              Cloudflare R2
+              Cloud Storage
             </span>
             <p className="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-1">
               {stats.r2Count.toLocaleString('id-ID')}
@@ -954,7 +954,7 @@ export default function UploadFstbTab({
                         </span>
                       </div>
                       <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
-                        Nomor berkas FSTB ini telah terdaftar di riwayat Cloudflare R2 sebelumnya. Untuk menghindari data ganda, disarankan melewati (skip) atau menghapus berkas baru ini.
+                        Nomor berkas FSTB ini telah terdaftar di riwayat Cloud Storage sebelumnya. Untuk menghindari data ganda, disarankan melewati (skip) atau menghapus berkas baru ini.
                       </p>
                     </div>
                   </div>
@@ -1230,7 +1230,7 @@ export default function UploadFstbTab({
               {isUploading ? (
                 <div className="flex items-center gap-2">
                   <RefreshCw className="size-4 animate-spin text-white" />
-                  <span>Mengunggah ke Cloudflare R2 ({uploadProgress}%)...</span>
+                  <span>Mengunggah ke Cloud Storage ({uploadProgress}%)...</span>
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
@@ -1240,7 +1240,7 @@ export default function UploadFstbTab({
                       ? distinctFstbCount > 1
                         ? `Unggah ${queue.length} Berkas (${distinctFstbCount} No. FSTB)`
                         : `Unggah ${queue.length} Berkas FSTB`
-                      : 'ke Cloudflare R2'}
+                      : 'ke Cloud Storage'}
                   </span>
                 </div>
               )}
@@ -1261,7 +1261,7 @@ export default function UploadFstbTab({
                 Riwayat Pengarsipan Berkas FSTB
               </h3>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Daftar berkas yang tersimpan aman di Cloudflare R2 Storage
+                Daftar berkas yang tersimpan aman di Cloud Storage
               </p>
             </div>
           </div>
@@ -1410,7 +1410,7 @@ export default function UploadFstbTab({
                             onClick={() => handleDeleteHistoryItem(item)}
                             disabled={deletingId === item.id}
                             className="p-1.5 rounded-lg border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 transition cursor-pointer"
-                            title="Hapus Berkas dari Cloudflare R2 (Khusus Admin)"
+                            title="Hapus Berkas dari Cloud Storage (Khusus Admin)"
                           >
                             <Trash2 className="size-3.5" />
                           </button>
@@ -1573,7 +1573,7 @@ export default function UploadFstbTab({
             <div className="p-5 overflow-y-auto space-y-4 text-xs">
               <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-800 dark:text-amber-200 leading-relaxed">
                 <strong className="font-semibold block mb-1">Rekomendasi Pencegahan Double Posting:</strong>
-                Sistem mendeteksi <strong>{duplicateQueueItems.length} berkas</strong> dalam antrean sudah pernah diarsipkan di Cloudflare R2.
+                Sistem mendeteksi <strong>{duplicateQueueItems.length} berkas</strong> dalam antrean sudah pernah diarsipkan di Cloud Storage.
                 Untuk menjaga integritas data riwayat, Anda disarankan untuk <strong>Melewati (Skip)</strong> data duplikat atau <strong>Hapus Berkas Baru</strong>.
               </div>
 

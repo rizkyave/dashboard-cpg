@@ -304,7 +304,7 @@ export default function FstbMediaModal({
             <div className="flex-1 flex flex-col items-center justify-center p-12 space-y-3 min-h-[350px]">
               <RefreshCw className="size-8 text-teal-600 animate-spin" />
               <p className="text-sm font-medium text-foreground">
-                Memuat dokumen scan FSTB dari Cloudflare R2...
+                Memuat dokumen scan FSTB dari Cloud Storage...
               </p>
               <p className="text-xs text-muted-foreground font-mono">
                 Mencari berkas terkait {cleanFstb || cleanPo || 'FSTB'}
@@ -462,7 +462,7 @@ export default function FstbMediaModal({
                     </span>
                     <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
                       <CheckCircle2 className="size-3" />
-                      <span>Cloudflare R2 Bucket</span>
+                      <span>Server Cloud Storage</span>
                     </div>
                     <div className="text-[10px] text-muted-foreground font-mono truncate">
                       {activeDoc.renamedFileName}

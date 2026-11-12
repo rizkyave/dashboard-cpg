@@ -633,7 +633,7 @@ export default function SerahTerimaLapanganTab({
       map.set(key, { ...val });
     });
 
-    // Perkaya metadata dari berkas Uploaded TTB (Cloudflare R2)
+    // Perkaya metadata dari berkas Uploaded TTB (Cloud Storage)
     uploadedTtbs.forEach((u) => {
       const matched = findMatchingValidatedTtb(u.cleanNoTtb || u.noTtb);
       if (!matched) return; // DILARANG: Belum tervalidasi oleh Staf Logistik!
@@ -1231,7 +1231,7 @@ export default function SerahTerimaLapanganTab({
     }
 
     setIsSubmitting(true);
-    setUploadProgressMsg('Menyiapkan dan mengunggah foto ke Cloudflare R2...');
+    setUploadProgressMsg('Menyiapkan dan mengunggah foto ke Cloud Storage...');
 
     try {
       const formData = new FormData();
@@ -1270,7 +1270,7 @@ export default function SerahTerimaLapanganTab({
       }
 
       showToast?.(
-        data.message || `Bukti serah terima TTB ${targetNoTtb} berhasil disimpan ke Cloudflare R2!`,
+        data.message || `Bukti serah terima TTB ${targetNoTtb} berhasil disimpan ke Cloud Storage!`,
         'success'
       );
 
@@ -1349,7 +1349,7 @@ export default function SerahTerimaLapanganTab({
         }
         setConfirmDeleteRecord(null);
         showToast?.(
-          `Rekaman serah terima ${record.noTtb} berhasil dihapus & tersinkronisasi ke Cloudflare R2.`,
+          `Rekaman serah terima ${record.noTtb} berhasil dihapus & tersinkronisasi ke Cloud Storage.`,
           'success'
         );
         await fetchHistory();
@@ -1480,7 +1480,7 @@ export default function SerahTerimaLapanganTab({
             <div className="bg-slate-800/90 backdrop-blur-md border border-slate-700 rounded-2xl px-4 py-2.5 text-center min-w-[140px] shadow-sm">
               <div className="text-xs text-slate-300 font-bold flex items-center justify-center gap-1.5">
                 <CloudFlareIcon className="size-3.5 text-amber-400" />
-                <span>Cloudflare R2</span>
+                <span>Cloud Storage</span>
               </div>
               <div className="text-xs sm:text-sm font-bold text-emerald-400 flex items-center justify-center gap-1.5 mt-1">
                 <span className="size-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -2785,7 +2785,7 @@ export default function SerahTerimaLapanganTab({
                   <h2 className="text-base sm:text-lg lg:text-xl font-black text-foreground flex items-center gap-2.5 flex-wrap">
                     <span>Unggah Bukti Foto Penyerahan Barang</span>
                     <span className="text-xs font-mono px-3 py-0.5 rounded-xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-bold">
-                      Cloudflare R2
+                      Cloud Storage
                     </span>
                   </h2>
                   <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
@@ -2931,7 +2931,7 @@ export default function SerahTerimaLapanganTab({
                 <div className="p-3.5 rounded-2xl bg-muted/50 border border-border text-xs text-muted-foreground flex items-center gap-2.5">
                   <ShieldCheck className="size-4 text-emerald-500 shrink-0" />
                   <div className="truncate">
-                    <span>Format nama file otomatis Cloudflare R2: </span>
+                    <span>Format nama file otomatis Cloud Storage: </span>
                     <strong className="font-mono text-foreground font-black">
                       {previewSampleFilename}
                     </strong>
@@ -3006,7 +3006,7 @@ export default function SerahTerimaLapanganTab({
                       Semua Prosedur Terpenuhi (Prosedur 1, 2, &amp; 3 Lengkap)!
                     </span>
                     <span className="text-xs text-muted-foreground block font-normal">
-                      Data TTB, identitas penerima, tanda tangan digital, &amp; foto bukti siap dikirim ke Cloudflare R2.
+                      Data TTB, identitas penerima, tanda tangan digital, &amp; foto bukti siap dikirim ke Cloud Storage.
                     </span>
                   </div>
                 </div>
@@ -3036,7 +3036,7 @@ export default function SerahTerimaLapanganTab({
                 title={
                   !isFormReadyToSubmit
                     ? 'Tombol terkunci. Wajib melengkapi data Prosedur 2 (Penerima & TTD) dan Prosedur 3 (Minimal 1 Foto Bukti) untuk mengaktifkan'
-                    : 'Semua prosedur lengkap. Klik untuk mengirim dan mengarsipkan bukti serah terima lapangan ke Cloudflare R2'
+                    : 'Semua prosedur lengkap. Klik untuk mengirim dan mengarsipkan bukti serah terima lapangan ke Cloud Storage'
                 }
               >
                 {isSubmitting ? (
@@ -3139,7 +3139,7 @@ export default function SerahTerimaLapanganTab({
           {isLoadingHistory ? (
             <div className="p-12 text-center text-xs text-muted-foreground flex flex-col items-center gap-2">
               <RefreshCw className="size-6 animate-spin text-cyan-500" />
-              <span>Memuat riwayat serah terima dari Cloudflare R2...</span>
+              <span>Memuat riwayat serah terima dari Cloud Storage...</span>
             </div>
           ) : filteredHistory.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -3297,7 +3297,7 @@ export default function SerahTerimaLapanganTab({
                         <div className="text-[10px] font-semibold text-muted-foreground flex items-center justify-between">
                           <span>Bukti Foto ({rec.photos.length}):</span>
                           <span className="text-[9px] font-mono text-emerald-600 dark:text-emerald-400">
-                            Cloudflare R2 Synced
+                            Cloud Storage Synced
                           </span>
                         </div>
                         <div className="flex items-center gap-2 overflow-x-auto pb-1">
@@ -3365,7 +3365,7 @@ export default function SerahTerimaLapanganTab({
                               handleDeleteRecord(rec);
                             }}
                             className="p-1.5 rounded-lg text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition cursor-pointer"
-                            title="Hapus rekaman serah terima ini & sinkronkan ke Cloudflare R2 (Khusus Admin)"
+                            title="Hapus rekaman serah terima ini & sinkronkan ke Cloud Storage (Khusus Admin)"
                           >
                             {isDeleting ? (
                               <RefreshCw className="size-3.5 animate-spin text-rose-500" />
@@ -3517,7 +3517,7 @@ export default function SerahTerimaLapanganTab({
         />
       )}
 
-      {/* Modal Konfirmasi Hapus Rekaman & Sinkronisasi Cloudflare R2 */}
+      {/* Modal Konfirmasi Hapus Rekaman & Sinkronisasi Cloud Storage */}
       {confirmDeleteRecord && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-150">
           <div className="bg-card border border-border rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4 animate-in zoom-in-95 duration-150">
@@ -3527,7 +3527,7 @@ export default function SerahTerimaLapanganTab({
               </div>
               <div>
                 <h3 className="text-base font-bold text-foreground">Hapus Bukti Serah Terima Lapangan</h3>
-                <p className="text-xs text-muted-foreground">Sinkronisasi Cloudflare R2 &amp; Sistem Validasi</p>
+                <p className="text-xs text-muted-foreground">Sinkronisasi Cloud Storage &amp; Sistem Validasi</p>
               </div>
             </div>
 
@@ -3547,14 +3547,14 @@ export default function SerahTerimaLapanganTab({
               {confirmDeleteRecord.photos && confirmDeleteRecord.photos.length > 0 && (
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Bukti Foto:</span>
-                  <span className="text-rose-500 font-medium">{confirmDeleteRecord.photos.length} berkas di Cloudflare R2</span>
+                  <span className="text-rose-500 font-medium">{confirmDeleteRecord.photos.length} berkas di Cloud Storage</span>
                 </div>
               )}
             </div>
 
             <p className="text-xs text-muted-foreground leading-relaxed">
               Apakah Anda yakin ingin menghapus bukti serah terima ini? Tindakan ini akan:
-              <br />• Menghapus seluruh foto bukti pengiriman dari <strong>Cloudflare R2</strong>.
+              <br />• Menghapus seluruh foto bukti pengiriman dari <strong>Cloud Storage</strong>.
               <br />• Mereset status tanda tangan penerima pada sistem validasi digital agar dapat diinput ulang.
             </p>
 

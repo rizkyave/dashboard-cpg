@@ -747,7 +747,7 @@ _CPG Procurement & Fleet Monitoring System_`;
           ? { ...prev, isAvailable: true, url: uploadedUrl }
           : prev
       );
-      showToast?.(`Berhasil mengunggah PDF FPB ${fpbNo} ke Cloudflare R2!`, 'success');
+      showToast?.(`Berhasil mengunggah PDF FPB ${fpbNo} ke Cloud Storage!`, 'success');
       fetchManifests();
     } catch (err: any) {
       console.error('Upload FPB PDF error:', err);
@@ -758,7 +758,7 @@ _CPG Procurement & Fleet Monitoring System_`;
     }
   };
 
-  // Upload langsung file PDF FSTB ke Cloudflare R2 dari modal pratinjau
+  // Upload langsung file PDF FSTB ke Cloud Storage dari modal pratinjau
   const handleUploadFstbPdf = async (item: DossierBundleItem, file: File) => {
     const targetFstb = (manualDocNo || item.noFstb || '').trim();
     if (!targetFstb) {
@@ -818,7 +818,7 @@ _CPG Procurement & Fleet Monitoring System_`;
             }
           : prev
       );
-      showToast?.(`Berhasil mengunggah PDF FSTB ${targetFstb} ke Cloudflare R2!`, 'success');
+      showToast?.(`Berhasil mengunggah PDF FSTB ${targetFstb} ke Cloud Storage!`, 'success');
       fetchManifests();
     } catch (err: any) {
       console.error('Upload FSTB PDF error:', err);
@@ -828,7 +828,7 @@ _CPG Procurement & Fleet Monitoring System_`;
     }
   };
 
-  // Upload langsung file PDF TTB ke Cloudflare R2 dari modal pratinjau
+  // Upload langsung file PDF TTB ke Cloud Storage dari modal pratinjau
   const handleUploadTtbPdf = async (item: DossierBundleItem, file: File) => {
     const targetTtb = (manualDocNo || item.noTtb || '').trim();
     if (!targetTtb) {
@@ -890,7 +890,7 @@ _CPG Procurement & Fleet Monitoring System_`;
             }
           : prev
       );
-      showToast?.(`Berhasil mengunggah PDF TTB ${targetTtb} ke Cloudflare R2!`, 'success');
+      showToast?.(`Berhasil mengunggah PDF TTB ${targetTtb} ke Cloud Storage!`, 'success');
       fetchManifests();
     } catch (err: any) {
       console.error('Upload TTB PDF error:', err);
@@ -900,7 +900,7 @@ _CPG Procurement & Fleet Monitoring System_`;
     }
   };
 
-  // Upload langsung foto bukti fisik serah terima ke Cloudflare R2 dari modal pratinjau
+  // Upload langsung foto bukti fisik serah terima ke Cloud Storage dari modal pratinjau
   const handleUploadPhotos = async (item: DossierBundleItem, files: FileList | null) => {
     if (!files || files.length === 0) return;
     const imageFiles = Array.from(files).filter((f) => /\.(jpe?g|png|webp|gif)$/i.test(f.name));
@@ -980,7 +980,7 @@ _CPG Procurement & Fleet Monitoring System_`;
 
       if (addedUrls.length > 0 && failCount === 0) {
         showToast?.(
-          `Berhasil mengunggah ${addedUrls.length} foto serah terima untuk ${targetTtb} ke Cloudflare R2!`,
+          `Berhasil mengunggah ${addedUrls.length} foto serah terima untuk ${targetTtb} ke Cloud Storage!`,
           'success'
         );
       } else if (addedUrls.length > 0) {
@@ -989,7 +989,7 @@ _CPG Procurement & Fleet Monitoring System_`;
           'warning'
         );
       } else {
-        showToast?.('Gagal mengunggah foto serah terima ke Cloudflare R2.', 'error');
+        showToast?.('Gagal mengunggah foto serah terima ke Cloud Storage.', 'error');
       }
     } finally {
       setIsUploadingDoc(null);
@@ -998,7 +998,7 @@ _CPG Procurement & Fleet Monitoring System_`;
 
   const [bulkUploadProgress, setBulkUploadProgress] = useState<string>('');
 
-  // Upload massal banyak file PDF FPB dari penyimpanan lokal/internal ke Cloudflare R2
+  // Upload massal banyak file PDF FPB dari penyimpanan lokal/internal ke Cloud Storage
   const handleBulkUploadFpbPdfs = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     const pdfFiles = Array.from(files).filter((f) => /\.pdf$/i.test(f.name));
@@ -1039,12 +1039,12 @@ _CPG Procurement & Fleet Monitoring System_`;
 
       if (failCount === 0) {
         showToast?.(
-          `Berhasil mengunggah ${successCount} file PDF FPB ke Cloudflare R2! Siap diakses dari Vercel, Railway, dan semua domain.`,
+          `Berhasil mengunggah ${successCount} file PDF FPB ke Cloud Storage! Siap diakses dari Vercel, Railway, dan semua domain.`,
           'success'
         );
       } else {
         showToast?.(
-          `Upload massal selesai: ${successCount} berhasil ke Cloudflare R2, ${failCount} gagal.`,
+          `Upload massal selesai: ${successCount} berhasil ke Cloud Storage, ${failCount} gagal.`,
           'warning'
         );
       }
@@ -1077,7 +1077,7 @@ _CPG Procurement & Fleet Monitoring System_`;
             className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition shadow-xs active:scale-95 cursor-pointer ${
               isUploadingFpb ? 'opacity-60 pointer-events-none' : ''
             }`}
-            title="Unggah satu atau banyak file PDF FPB dari komputer/storage lokal ke Cloudflare R2 agar bisa diakses semua user di Vercel, Railway, dll."
+            title="Unggah satu atau banyak file PDF FPB dari komputer/storage lokal ke Cloud Storage agar bisa diakses semua user di Vercel, Railway, dll."
           >
             {isUploadingFpb ? (
               <Loader2 className="size-3.5 animate-spin" />
@@ -1102,7 +1102,7 @@ _CPG Procurement & Fleet Monitoring System_`;
             onClick={fetchManifests}
             disabled={isLoadingApi}
             className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-muted hover:bg-muted/80 text-foreground text-xs font-semibold border border-border transition shadow-xs active:scale-95 disabled:opacity-50 cursor-pointer"
-            title="Segarkan data softcopy dari Cloudflare R2"
+            title="Segarkan data softcopy dari Cloud Storage"
           >
             <RefreshCw className={`size-3.5 ${isLoadingApi ? 'animate-spin text-primary' : 'text-muted-foreground'}`} />
             <span>{isLoadingApi ? 'Menyinkronkan...' : 'Refresh Berkas'}</span>
@@ -1781,7 +1781,7 @@ _CPG Procurement & Fleet Monitoring System_`;
                     className={`px-2.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-xs cursor-pointer ${
                       isUploadingDoc === previewDoc.type ? 'opacity-60 pointer-events-none' : ''
                     }`}
-                    title={`Unggah ulang / ganti PDF ${previewDoc.type} ke Cloudflare R2`}
+                    title={`Unggah ulang / ganti PDF ${previewDoc.type} ke Cloud Storage`}
                   >
                     {isUploadingDoc === previewDoc.type ? (
                       <Loader2 className="size-3.5 animate-spin" />
@@ -1837,7 +1837,7 @@ _CPG Procurement & Fleet Monitoring System_`;
                         className={`px-2.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-xs cursor-pointer ${
                           isUploadingDoc === 'FOTO' ? 'opacity-60 pointer-events-none' : ''
                         }`}
-                        title="Tambah foto bukti fisik serah terima ke Cloudflare R2"
+                        title="Tambah foto bukti fisik serah terima ke Cloud Storage"
                       >
                         {isUploadingDoc === 'FOTO' ? (
                           <Loader2 className="size-3.5 animate-spin" />
@@ -1959,11 +1959,11 @@ _CPG Procurement & Fleet Monitoring System_`;
                       {previewDoc.type === 'FOTO' ? (
                         <>
                           Foto bukti fisik serah terima untuk berkas{' '}
-                          <strong>{previewDoc.title}</strong> belum diunggah ke server penyimpanan Cloudflare R2.
+                          <strong>{previewDoc.title}</strong> belum diunggah ke server penyimpanan Cloud.
                         </>
                       ) : (
                         <>
-                          Dokumen scan PDF untuk berkas <strong>{previewDoc.title}</strong> belum diunggah ke server penyimpanan Cloudflare R2.
+                          Dokumen scan PDF untuk berkas <strong>{previewDoc.title}</strong> belum diunggah ke server penyimpanan Cloud.
                         </>
                       )}
                     </p>
@@ -2042,14 +2042,14 @@ _CPG Procurement & Fleet Monitoring System_`;
                   </div>
 
                   <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
-                    {/* Jalan Pintas Upload Langsung ke Cloudflare R2 sesuai tipe berkas */}
+                    {/* Jalan Pintas Upload Langsung ke Cloud Storage sesuai tipe berkas */}
                     {previewDoc.type === 'FPB' && (
                       <>
                         <label
                           className={`px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-2 transition shadow-xs active:scale-95 cursor-pointer ${
                             isUploadingFpb || isUploadingDoc === 'FPB' ? 'opacity-60 pointer-events-none' : ''
                           }`}
-                          title="Unggah file PDF FPB ke storage internal Cloudflare R2 agar ikut terkompilasi dalam PDF lengkap"
+                          title="Unggah file PDF FPB ke storage internal Cloud Storage agar ikut terkompilasi dalam PDF lengkap"
                         >
                           {isUploadingFpb || isUploadingDoc === 'FPB' ? (
                             <Loader2 className="size-4 animate-spin shrink-0" />
@@ -2091,7 +2091,7 @@ _CPG Procurement & Fleet Monitoring System_`;
                         className={`px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-2 transition shadow-xs active:scale-95 cursor-pointer ${
                           isUploadingDoc === 'FSTB' ? 'opacity-60 pointer-events-none' : ''
                         }`}
-                        title="Unggah file PDF FSTB langsung ke Cloudflare R2 agar ikut terkompilasi dalam PDF lengkap"
+                        title="Unggah file PDF FSTB langsung ke Cloud Storage agar ikut terkompilasi dalam PDF lengkap"
                       >
                         {isUploadingDoc === 'FSTB' ? (
                           <Loader2 className="size-4 animate-spin shrink-0" />
@@ -2120,7 +2120,7 @@ _CPG Procurement & Fleet Monitoring System_`;
                         className={`px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-2 transition shadow-xs active:scale-95 cursor-pointer ${
                           isUploadingDoc === 'TTB' ? 'opacity-60 pointer-events-none' : ''
                         }`}
-                        title="Unggah file PDF TTB langsung ke Cloudflare R2 agar ikut terkompilasi dalam PDF lengkap"
+                        title="Unggah file PDF TTB langsung ke Cloud Storage agar ikut terkompilasi dalam PDF lengkap"
                       >
                         {isUploadingDoc === 'TTB' ? (
                           <Loader2 className="size-4 animate-spin shrink-0" />
@@ -2149,7 +2149,7 @@ _CPG Procurement & Fleet Monitoring System_`;
                         className={`px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-2 transition shadow-xs active:scale-95 cursor-pointer ${
                           isUploadingDoc === 'FOTO' ? 'opacity-60 pointer-events-none' : ''
                         }`}
-                        title="Unggah satu atau beberapa foto bukti serah terima langsung ke Cloudflare R2"
+                        title="Unggah satu atau beberapa foto bukti serah terima langsung ke Cloud Storage"
                       >
                         {isUploadingDoc === 'FOTO' ? (
                           <Loader2 className="size-4 animate-spin shrink-0" />

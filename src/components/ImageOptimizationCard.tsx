@@ -51,7 +51,7 @@ export default function ImageOptimizationCard({ isAdmin, showToast }: ImageOptim
               </span>
             </h3>
             <p className="text-[11px] text-muted-foreground">
-              Otomatis mengecilkan resolusi dan mengompres ukuran foto kamera HP saat diunggah pada modul FSTB dan TTB sebelum dikirim ke Cloudflare R2 / Server, sehingga menghemat ruang penyimpanan dan mempercepat loading.
+              Otomatis mengecilkan resolusi dan mengompres ukuran foto kamera HP saat diunggah pada modul FSTB dan TTB sebelum dikirim ke Cloud Storage / Server, sehingga menghemat ruang penyimpanan dan mempercepat loading.
             </p>
           </div>
         </div>

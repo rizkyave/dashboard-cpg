@@ -189,7 +189,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        showToast?.('Konfigurasi WhatsApp Gateway berhasil disimpan ke Cloudflare R2!', 'success');
+        showToast?.('Konfigurasi WhatsApp Gateway berhasil disimpan ke Cloud Storage!', 'success');
       } else {
         throw new Error(data.message || 'Gagal menyimpan konfigurasi WA.');
       }
@@ -1489,12 +1489,12 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
             <button
               type="button"
               onClick={async () => {
-                showToast('Menyinkronkan data pengguna dari Cloudflare R2...', 'info');
+                showToast('Menyinkronkan data pengguna dari Cloud Storage...', 'info');
                 await refreshUsers();
-                showToast('Data pengguna berhasil disegarkan dari Cloudflare R2.', 'success');
+                showToast('Data pengguna berhasil disegarkan dari Cloud Storage.', 'success');
               }}
               className="h-8 px-2.5 rounded-lg border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground text-xs font-medium flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95"
-              title="Segarkan data pengguna langsung dari database Cloudflare R2 (bypass cache)"
+              title="Segarkan data pengguna langsung dari database Cloud (bypass cache)"
             >
               <RefreshCw className="size-3.5 text-primary" />
               <span className="hidden sm:inline">Segarkan Cloud</span>

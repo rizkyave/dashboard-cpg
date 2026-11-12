@@ -268,7 +268,7 @@ export default function TtbGalleryTab({ showToast }: TtbGalleryTabProps) {
                     ? 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/30'
                     : 'bg-muted text-muted-foreground border-border'
                 }`}>
-                  {source === 'r2' ? 'Cloudflare R2' : 'Server'}
+                  {source === 'r2' ? 'Cloud Storage' : 'Server'}
                 </span>
               </div>
               <p className="text-xs text-muted-foreground">

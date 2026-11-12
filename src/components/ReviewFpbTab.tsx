@@ -633,7 +633,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
         );
         setSelectedAttachmentFile(null);
         setAttachmentCaption('');
-        showToast?.(data.message || 'Lampiran berhasil diunggah ke Cloudflare R2!', 'success');
+        showToast?.(data.message || 'Lampiran berhasil diunggah ke Cloud Storage!', 'success');
       } else {
         showToast?.(data.message || 'Gagal mengunggah lampiran', 'error');
       }
@@ -1001,7 +1001,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
     showToast?.('Semua item diatur untuk Beli Baru (PO Purchasing).', 'info');
   };
 
-  // Save Review Decision to Cloudflare R2
+  // Save Review Decision to Cloud Storage
   const handleSaveDecision = async () => {
     if (!selectedRecord) return;
     setIsSavingDecision(true);
@@ -1031,7 +1031,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
 
       const json = await res.json();
       if (json.success) {
-        showToast?.(json.message || 'Keputusan review berhasil disimpan ke Cloudflare R2!', 'success');
+        showToast?.(json.message || 'Keputusan review berhasil disimpan ke Cloud Storage!', 'success');
         // Sinkronkan kontak ke database Awak & Armada jika ada nomor
         if (formRequesterPhone && formRequestedBy) {
           syncCrewContact(formRequestedBy, formRequesterPhone, selectedRecord.armada);
@@ -1414,7 +1414,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
             onClick={fetchReviews}
             disabled={isLoading || isSyncing}
             className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-xl border border-border bg-background hover:bg-muted text-foreground transition shadow-2xs cursor-pointer disabled:opacity-50"
-            title="Refresh data dari database lokal & Cloudflare R2"
+            title="Refresh data dari database lokal & Cloud Storage"
           >
             <RefreshCw className={`size-3.5 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
@@ -1813,7 +1813,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
           <div className="p-12 text-center">
             <RefreshCw className="size-8 animate-spin mx-auto text-primary mb-3" />
             <p className="text-sm font-medium text-foreground">Memuat antrean analisa & review FPB...</p>
-            <p className="text-xs text-muted-foreground mt-1">Mengambil data dari Cloudflare R2 dan sinkronisasi status</p>
+            <p className="text-xs text-muted-foreground mt-1">Mengambil data dari Cloud Storage dan sinkronisasi status</p>
           </div>
         ) : filteredReviews.length === 0 ? (
           <div className="p-12 text-center space-y-3">
@@ -2757,7 +2757,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
                         <UploadCloud className="size-4 text-primary" />
-                        Unggah Foto / Berkas Lampiran Tambahan (Disimpan ke Cloudflare R2)
+                        Unggah Foto / Berkas Lampiran Tambahan (Disimpan ke Cloud Storage)
                       </span>
                       {selectedAttachmentFile && (
                         <button
@@ -2822,7 +2822,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                         Belum ada berkas lampiran tambahan untuk FPB ini.
                       </p>
                       <p className="text-[11px] text-muted-foreground max-w-md mx-auto">
-                        Dokumen permohonan FPB resmi dari user pemohon dapat diperiksa pada tab <strong>&quot;Pratinjau Dokumen PDF Resmi&quot;</strong>. Jika Anda menerima foto kondisi fisik/bukti kerusakan tambahan (misal dari WhatsApp atau laporan tim lapangan), Anda dapat mengunggahnya melalui form di atas untuk disimpan permanen di Cloudflare R2.
+                        Dokumen permohonan FPB resmi dari user pemohon dapat diperiksa pada tab <strong>&quot;Pratinjau Dokumen PDF Resmi&quot;</strong>. Jika Anda menerima foto kondisi fisik/bukti kerusakan tambahan (misal dari WhatsApp atau laporan tim lapangan), Anda dapat mengunggahnya melalui form di atas untuk disimpan permanen di Cloud Storage.
                       </p>
                     </div>
                   ) : (

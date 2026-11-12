@@ -181,7 +181,7 @@ export default function LogisticsApprovalConfirmModal({
               </span>
             </div>
             <p className="text-[11px] text-muted-foreground leading-relaxed">
-              Pengesahan status <strong>Received_Logistic</strong> akan dicatat langsung di database dashboard dan Cloudflare R2 untuk mengesahkan berkas agar siap diproses oleh tim purchasing.
+              Pengesahan status <strong>Received_Logistic</strong> akan dicatat langsung di database dashboard dan Cloud Storage untuk mengesahkan berkas agar siap diproses oleh tim purchasing.
             </p>
           </div>
         </div>
