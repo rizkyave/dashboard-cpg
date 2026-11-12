@@ -707,8 +707,9 @@ export default function PratenderTab({
         };
       });
 
-      const finalEstimatedBudget = pkgEstimatedBudget
-        ? Number(pkgEstimatedBudget)
+      const cleanedBudgetDigits = pkgEstimatedBudget.replace(/\D/g, '');
+      const finalEstimatedBudget = cleanedBudgetDigits
+        ? Number(cleanedBudgetDigits)
         : (calculatedBudget > 0 ? calculatedBudget : undefined);
 
       const newPkg: PratenderPackage = {
@@ -1855,13 +1856,22 @@ export default function PratenderTab({
 
               <div>
                 <label className="font-semibold text-foreground block mb-1">Estimasi Total Anggaran / HPS (Opsional)</label>
-                <input
-                  type="number"
-                  value={pkgEstimatedBudget}
-                  onChange={(e) => setPkgEstimatedBudget(e.target.value)}
-                  placeholder="Contoh: 150000000"
-                  className="w-full h-9 px-3 rounded-xl border border-border bg-background text-foreground text-xs focus:ring-1 focus:ring-primary focus:outline-none"
-                />
+                <div className="relative flex items-center">
+                  <span className="absolute left-3 text-xs font-mono font-bold text-muted-foreground select-none pointer-events-none">
+                    Rp
+                  </span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={pkgEstimatedBudget ? Number(pkgEstimatedBudget.replace(/\D/g, '')).toLocaleString('id-ID') : ''}
+                    onChange={(e) => {
+                      const rawDigits = e.target.value.replace(/\D/g, '');
+                      setPkgEstimatedBudget(rawDigits);
+                    }}
+                    placeholder="Contoh: 150.000.000"
+                    className="w-full h-9 pl-9 pr-3 rounded-xl border border-border bg-background text-foreground text-xs font-mono font-semibold focus:ring-1 focus:ring-primary focus:outline-none"
+                  />
+                </div>
               </div>
 
               <div>
