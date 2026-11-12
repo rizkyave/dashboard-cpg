@@ -60,9 +60,17 @@ export default function PurchasePlanningTab({
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [selectedUrgency, setSelectedUrgency] = useState<string>('ALL');
   const [selectedVessel, setSelectedVessel] = useState<string>('ALL');
+  const [selectedBatch, setSelectedBatch] = useState<string>('ALL');
   const [selectedDataSource, setSelectedDataSource] = useState<'ALL' | 'DESKTOP_EXCEL' | 'EFPB_LIVE' | 'HYBRID_CONSOLIDATED'>('ALL');
   const [sortBy, setSortBy] = useState<'urgency' | 'category' | 'cost' | 'name' | 'reorderQty'>('urgency');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  // Multi-Batch Upload Modal State
+  const [isUploadBatchModalOpen, setIsUploadBatchModalOpen] = useState<boolean>(false);
+  const [pendingUploadFile, setPendingUploadFile] = useState<File | null>(null);
+  const [uploadMode, setUploadMode] = useState<'append' | 'merge' | 'replace'>('append');
+  const [uploadBatchNo, setUploadBatchNo] = useState<string>('');
+  const [isDeletingBatch, setIsDeletingBatch] = useState<string | null>(null);
 
   // Hybrid Sync State
   const [isSyncingHybrid, setIsSyncingHybrid] = useState<boolean>(false);
@@ -109,17 +117,44 @@ export default function PurchasePlanningTab({
     }
   };
 
-  // 2. Upload file Excel / CSV dari dialog file browser
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // 2. Pilih file Excel / CSV -> Buka Modal Opsi Multi-Batch
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Hitung saran nomor batch berikutnya (mis. CPL-PP-2026-002)
+    let maxSeq = data?.items && data.items.length > 0 ? 1 : 0;
+    (data?.items || []).forEach((it) => {
+      const matches = (it.batchNo || '').match(/CPL-PP-\d{4}-(\d+)/gi) || [];
+      matches.forEach((m) => {
+        const num = parseInt(m.split('-').pop() || '0', 10);
+        if (num > maxSeq) maxSeq = num;
+      });
+    });
+    const nextBatch = `CPL-PP-${new Date().getFullYear()}-${String(maxSeq + 1).padStart(3, '0')}`;
+
+    setPendingUploadFile(file);
+    setUploadBatchNo(nextBatch);
+    setUploadMode(data?.items && data.items.length > 0 ? 'append' : 'replace');
+    setIsUploadBatchModalOpen(true);
+
+    if (e.target) e.target.value = '';
+  };
+
+  const handleConfirmBatchUpload = async () => {
+    if (!pendingUploadFile) return;
+
     setIsUploading(true);
-    showToast?.(`Membaca dan memproses file ${file.name}...`, 'info');
+    setIsUploadBatchModalOpen(false);
+    showToast?.(`Memproses ${pendingUploadFile.name} (${uploadBatchNo || 'Batch Baru'})...`, 'info');
 
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', pendingUploadFile);
+      formData.append('uploadMode', uploadMode);
+      if (uploadBatchNo.trim()) {
+        formData.append('batchNo', uploadBatchNo.trim());
+      }
 
       const res = await fetch('/api/purchase-planning', {
         method: 'POST',
@@ -130,8 +165,13 @@ export default function PurchasePlanningTab({
       if (res.ok && json.success) {
         setData(json);
         setSelectedItemIds(new Set());
+        if (uploadMode === 'append' && uploadBatchNo.trim()) {
+          setSelectedBatch(uploadBatchNo.trim());
+        } else {
+          setSelectedBatch('ALL');
+        }
         showToast?.(
-          `✓ Berhasil mengimpor ${json.items.length.toLocaleString('id-ID')} item dari ${file.name}!`,
+          json.message || `✓ Berhasil mengimpor ${json.items.length.toLocaleString('id-ID')} item dari ${pendingUploadFile.name}!`,
           'success'
         );
       } else {
@@ -141,7 +181,32 @@ export default function PurchasePlanningTab({
       showToast?.(err?.message || 'Terjadi kesalahan saat mengunggah file.', 'error');
     } finally {
       setIsUploading(false);
-      if (e.target) e.target.value = '';
+      setPendingUploadFile(null);
+    }
+  };
+
+  const handleDeleteBatch = async (batchNoToDelete: string) => {
+    setIsDeletingBatch(batchNoToDelete);
+    try {
+      const res = await fetch(
+        `/api/purchase-planning?action=delete-batch&batchNo=${encodeURIComponent(batchNoToDelete)}`,
+        { method: 'POST' }
+      );
+      const json: PurchasePlanningResponse = await res.json();
+      if (res.ok && json.success) {
+        setData(json);
+        if (selectedBatch === batchNoToDelete) {
+          setSelectedBatch('ALL');
+        }
+        setSelectedItemIds(new Set());
+        showToast?.(json.message || `Batch ${batchNoToDelete} dihapus.`, 'info');
+      } else {
+        showToast?.(json.message || 'Gagal menghapus batch.', 'error');
+      }
+    } catch (err: any) {
+      showToast?.(err?.message || 'Terjadi kesalahan saat menghapus batch.', 'error');
+    } finally {
+      setIsDeletingBatch(null);
     }
   };
 
@@ -225,11 +290,39 @@ export default function PurchasePlanningTab({
     return Array.from(setV).sort();
   }, [data]);
 
+  // Daftar batch unik beserta ringkasan item & estimasi biaya
+  const uniqueBatches = useMemo(() => {
+    if (!data?.items) return [];
+    const batchMap = new Map<string, { batchNo: string; count: number; budget: number }>();
+    data.items.forEach((it) => {
+      const rawBatch = it.batchNo || 'CPL-PP-2026-001';
+      const tokens = rawBatch
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      tokens.forEach((b) => {
+        const cur = batchMap.get(b) || { batchNo: b, count: 0, budget: 0 };
+        cur.count += 1;
+        cur.budget += it.totalEstimatedCost || 0;
+        batchMap.set(b, cur);
+      });
+    });
+    return Array.from(batchMap.values()).sort((a, b) => a.batchNo.localeCompare(b.batchNo));
+  }, [data]);
+
   // Filter & Sort Items
   const filteredItems = useMemo(() => {
     if (!data?.items) return [];
 
     let result = data.items.filter((item) => {
+      // Filter Batch
+      if (selectedBatch !== 'ALL') {
+        const itemBatches = (item.batchNo || 'CPL-PP-2026-001')
+          .split(',')
+          .map((s) => s.trim());
+        if (!itemBatches.includes(selectedBatch)) return false;
+      }
+
       // Filter Category
       if (selectedCategory !== 'ALL' && item.category !== selectedCategory) return false;
 
@@ -970,6 +1063,44 @@ export default function PurchasePlanningTab({
                   </option>
                 ))}
               </select>
+            )}
+
+            {/* Filter Batch */}
+            {uniqueBatches.length > 0 && (
+              <div className="inline-flex items-center gap-1">
+                <select
+                  value={selectedBatch}
+                  onChange={(e) => setSelectedBatch(e.target.value)}
+                  className="text-xs px-2.5 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 font-semibold cursor-pointer shadow-2xs focus:outline-hidden focus:ring-1 focus:ring-emerald-500 max-w-[190px]"
+                  title="Filter item berdasarkan Batch Upload"
+                >
+                  <option value="ALL">Semua Batch ({uniqueBatches.length})</option>
+                  {uniqueBatches.map((b) => (
+                    <option key={b.batchNo} value={b.batchNo}>
+                      📦 {b.batchNo} ({b.count})
+                    </option>
+                  ))}
+                </select>
+                {selectedBatch !== 'ALL' && uniqueBatches.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (window.confirm(`Hapus semua item di ${selectedBatch}? Batch lain tidak akan terpengaruh.`)) {
+                        handleDeleteBatch(selectedBatch);
+                      }
+                    }}
+                    disabled={isDeletingBatch === selectedBatch}
+                    className="p-1.5 rounded-lg border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 transition cursor-pointer disabled:opacity-50"
+                    title={`Hapus batch ${selectedBatch}`}
+                  >
+                    {isDeletingBatch === selectedBatch ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : (
+                      <X className="size-3.5" />
+                    )}
+                  </button>
+                )}
+              </div>
             )}
 
             {/* Filter Sumber Data */}
@@ -1736,6 +1867,168 @@ export default function PurchasePlanningTab({
                   </button>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════
+          MODAL KONFIRMASI UPLOAD MULTI-BATCH (APPEND / MERGE / REPLACE)
+          ═══════════════════════════════════════════════════════════ */}
+      {isUploadBatchModalOpen && pendingUploadFile && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-150"
+          onClick={() => {
+            setIsUploadBatchModalOpen(false);
+            setPendingUploadFile(null);
+          }}
+        >
+          <div
+            className="w-full max-w-lg rounded-2xl bg-card border border-border shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-4 sm:p-5 border-b border-border bg-gradient-to-r from-blue-500/10 via-card to-emerald-500/10 flex items-start justify-between gap-3">
+              <div className="space-y-1">
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-500/15 text-blue-600 dark:text-blue-400 text-[10px] font-bold uppercase tracking-wider">
+                  <FileSpreadsheet className="size-3" /> Upload Multi-Batch Excel
+                </span>
+                <h3 className="text-base font-bold text-foreground truncate max-w-[380px]">
+                  {pendingUploadFile.name}
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Pilih cara menggabungkan berkas baru dengan data Batch yang sudah ada ({data?.items.length || 0} item saat ini).
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsUploadBatchModalOpen(false);
+                  setPendingUploadFile(null);
+                }}
+                className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition cursor-pointer"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            <div className="p-4 sm:p-5 space-y-4">
+              {/* Input Nomor Batch */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-foreground flex items-center justify-between">
+                  <span>Label / Nomor Batch</span>
+                  <span className="text-[10px] font-normal text-muted-foreground font-mono">
+                    Contoh: CPL-PP-2026-002
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  value={uploadBatchNo}
+                  onChange={(e) => setUploadBatchNo(e.target.value)}
+                  placeholder="CPL-PP-2026-002"
+                  className="w-full px-3 py-2 rounded-xl bg-background border border-border text-sm font-mono font-semibold text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/50"
+                />
+              </div>
+
+              {/* Pilihan Mode Upload */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-foreground">Mode Pemrosesan Batch</label>
+
+                <button
+                  type="button"
+                  onClick={() => setUploadMode('append')}
+                  className={`w-full text-left p-3 rounded-xl border transition cursor-pointer flex items-start gap-3 ${
+                    uploadMode === 'append'
+                      ? 'bg-emerald-500/10 border-emerald-500/50 ring-1 ring-emerald-500/40'
+                      : 'bg-background border-border hover:bg-muted/40'
+                  }`}
+                >
+                  <div className={`mt-0.5 size-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                    uploadMode === 'append' ? 'border-emerald-500' : 'border-muted-foreground/40'
+                  }`}>
+                    {uploadMode === 'append' && <div className="size-2 rounded-full bg-emerald-500" />}
+                  </div>
+                  <div className="space-y-0.5">
+                    <div className="text-xs font-bold text-foreground flex items-center gap-2">
+                      <span>Tambah sebagai Batch Baru (Append)</span>
+                      <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[9px] uppercase">
+                        Direkomendasikan
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      Batch I tetap tersimpan utuh. Seluruh item dari file ini masuk sebagai batch baru sehingga bisa difilter terpisah.
+                    </p>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setUploadMode('merge')}
+                  className={`w-full text-left p-3 rounded-xl border transition cursor-pointer flex items-start gap-3 ${
+                    uploadMode === 'merge'
+                      ? 'bg-sky-500/10 border-sky-500/50 ring-1 ring-sky-500/40'
+                      : 'bg-background border-border hover:bg-muted/40'
+                  }`}
+                >
+                  <div className={`mt-0.5 size-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                    uploadMode === 'merge' ? 'border-sky-500' : 'border-muted-foreground/40'
+                  }`}>
+                    {uploadMode === 'merge' && <div className="size-2 rounded-full bg-sky-500" />}
+                  </div>
+                  <div className="space-y-0.5">
+                    <div className="text-xs font-bold text-foreground">
+                      Konsolidasi Item Sama (Smart Merge)
+                    </div>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      Jika kode/nama barang sama dengan Batch sebelumnya, kuantitas & anggaran digabung otomatis untuk negosiasi grosir.
+                    </p>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setUploadMode('replace')}
+                  className={`w-full text-left p-3 rounded-xl border transition cursor-pointer flex items-start gap-3 ${
+                    uploadMode === 'replace'
+                      ? 'bg-rose-500/10 border-rose-500/50 ring-1 ring-rose-500/40'
+                      : 'bg-background border-border hover:bg-muted/40'
+                  }`}
+                >
+                  <div className={`mt-0.5 size-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                    uploadMode === 'replace' ? 'border-rose-500' : 'border-muted-foreground/40'
+                  }`}>
+                    {uploadMode === 'replace' && <div className="size-2 rounded-full bg-rose-500" />}
+                  </div>
+                  <div className="space-y-0.5">
+                    <div className="text-xs font-bold text-foreground">
+                      Ganti Total (Replace Semua Data Lama)
+                    </div>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      Menghapus seluruh data Batch sebelumnya dan menggantinya hanya dengan isi file ini.
+                    </p>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-border bg-muted/30 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsUploadBatchModalOpen(false);
+                  setPendingUploadFile(null);
+                }}
+                className="px-4 py-2 rounded-xl border border-border bg-background hover:bg-muted text-xs font-semibold text-foreground cursor-pointer transition"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmBatchUpload}
+                className="px-4 py-2 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold flex items-center gap-1.5 cursor-pointer transition shadow-sm"
+              >
+                <Check className="size-3.5" />
+                <span>Proses Upload Batch</span>
+              </button>
             </div>
           </div>
         </div>

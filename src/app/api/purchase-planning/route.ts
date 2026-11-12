@@ -325,7 +325,31 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(parsedResponse);
     }
 
-    // 3. Aksi: Upload file Excel multipart/form-data
+    // 2b. Aksi: Hapus Batch Tertentu (tanpa menghapus batch lain)
+    if (action === 'delete-batch') {
+      const targetBatch = searchParams.get('batchNo');
+      if (!targetBatch) {
+        return NextResponse.json({ success: false, message: 'Parameter batchNo wajib diisi.' }, { status: 400 });
+      }
+      let existingItems: PurchasePlanningItem[] = [];
+      if (fs.existsSync(STORAGE_FILE_PATH)) {
+        try {
+          const parsed: PurchasePlanningResponse = JSON.parse(fs.readFileSync(STORAGE_FILE_PATH, 'utf-8'));
+          existingItems = parsed.items || [];
+        } catch {}
+      }
+      const remaining = existingItems.filter((it) => {
+        const b = it.batchNo || 'CPL-PP-2026-001';
+        return b !== targetBatch;
+      });
+      const responseData = buildResponseFromItems(remaining, `Batch ${targetBatch} dihapus`);
+      responseData.syncStats = getSyncStats(responseData);
+      responseData.message = `Batch ${targetBatch} berhasil dihapus. Tersisa ${remaining.length} item.`;
+      fs.writeFileSync(STORAGE_FILE_PATH, JSON.stringify(responseData, null, 2), 'utf-8');
+      return NextResponse.json(responseData);
+    }
+
+    // 3. Aksi: Upload file Excel multipart/form-data (Mendukung Multi-Batch: append | merge | replace)
     const contentType = req.headers.get('content-type') || '';
     if (contentType.includes('multipart/form-data')) {
       const formData = await req.formData();
@@ -334,14 +358,141 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: false, message: 'File tidak ditemukan dalam permintaan.' }, { status: 400 });
       }
 
+      const uploadMode = ((formData.get('uploadMode') as string) || 'append') as 'append' | 'merge' | 'replace';
+      const customBatchNo = ((formData.get('batchNo') as string) || '').trim();
+
+      // Baca data batch yang sudah tersimpan sebelumnya
+      let existingItems: PurchasePlanningItem[] = [];
+      if (fs.existsSync(STORAGE_FILE_PATH)) {
+        try {
+          const parsedExisting: PurchasePlanningResponse = JSON.parse(fs.readFileSync(STORAGE_FILE_PATH, 'utf-8'));
+          existingItems = (parsedExisting.items || []).map((it) => ({
+            ...it,
+            batchNo: it.batchNo || 'CPL-PP-2026-001',
+          }));
+        } catch {}
+      }
+
+      // Tentukan nomor batch otomatis jika tidak diisi manual (CPL-PP-2026-002, dst.)
+      let assignedBatchNo = customBatchNo;
+      if (!assignedBatchNo) {
+        let maxSeq = existingItems.length > 0 ? 1 : 0;
+        existingItems.forEach((it) => {
+          const matches = (it.batchNo || '').match(/CPL-PP-\d{4}-(\d+)/gi) || [];
+          matches.forEach((m) => {
+            const num = parseInt(m.split('-').pop() || '0', 10);
+            if (num > maxSeq) maxSeq = num;
+          });
+        });
+        const year = new Date().getFullYear();
+        assignedBatchNo = `CPL-PP-${year}-${String(maxSeq + 1).padStart(3, '0')}`;
+      }
+
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
       const workbook = XLSX.read(buffer, { type: 'buffer' });
       const parsedResponse = parsePurchasePlanningWorkbook(workbook);
-      parsedResponse.sourceFile = file.name;
 
-      fs.writeFileSync(STORAGE_FILE_PATH, JSON.stringify(parsedResponse, null, 2), 'utf-8');
-      return NextResponse.json(parsedResponse);
+      const nowIso = new Date().toISOString();
+      const taggedNewItems: PurchasePlanningItem[] = parsedResponse.items.map((it, idx) => ({
+        ...it,
+        id: `${assignedBatchNo}__${it.id || idx + 1}`,
+        batchNo: assignedBatchNo,
+        dataSource: 'DESKTOP_EXCEL',
+        syncedAt: nowIso,
+      }));
+
+      let finalItems: PurchasePlanningItem[] = [];
+      let mergedCount = 0;
+      let appendedCount = 0;
+
+      if (uploadMode === 'replace' || existingItems.length === 0) {
+        finalItems = taggedNewItems;
+        appendedCount = taggedNewItems.length;
+      } else if (uploadMode === 'append') {
+        const existingIds = new Set(existingItems.map((i) => i.id));
+        const safeNew = taggedNewItems.map((it, idx) => ({
+          ...it,
+          id: existingIds.has(it.id) ? `${it.id}_${Date.now()}_${idx}` : it.id,
+        }));
+        finalItems = [...existingItems, ...safeNew];
+        appendedCount = safeNew.length;
+      } else {
+        // Smart Merge: konsolidasikan item dengan kode/nama sama, tambahkan sisanya
+        const urgencyWeight: Record<string, number> = { CRITICAL: 3, REORDER: 2, PLANNED: 1 };
+        const byWeightUrgency = (u1: PurchasePlanningItem['urgency'], u2: PurchasePlanningItem['urgency']) =>
+          (urgencyWeight[u1] || 0) >= (urgencyWeight[u2] || 0) ? u1 : u2;
+
+        const working = existingItems.map((it) => ({ ...it }));
+        const findMatchIndex = (target: PurchasePlanningItem) => {
+          const code = (target.itemCode || '').trim().toUpperCase();
+          const name = (target.itemName || '').trim().toUpperCase();
+          return working.findIndex((ex) => {
+            const exCode = (ex.itemCode || '').trim().toUpperCase();
+            const exName = (ex.itemName || '').trim().toUpperCase();
+            if (code && exCode && code === exCode && code !== '-' && code !== 'N/A') return true;
+            return name && exName && name === exName;
+          });
+        };
+
+        taggedNewItems.forEach((newIt, idx) => {
+          const matchIdx = findMatchIndex(newIt);
+          if (matchIdx >= 0) {
+            const ex = working[matchIdx];
+            const combinedRequested = (ex.totalRequestedQty || 0) + (newIt.totalRequestedQty || 0);
+            const combinedOrder = (ex.recommendedOrderQty || 0) + (newIt.recommendedOrderQty || 0);
+            const unitPrice = ex.avgUnitPrice > 0 ? ex.avgUnitPrice : newIt.avgUnitPrice;
+            const combinedCost = combinedOrder * unitPrice;
+            const discountPct = Math.max(ex.potentialBulkDiscount || 0, newIt.potentialBulkDiscount || 0);
+            const batchSet = new Set(
+              `${ex.batchNo || 'CPL-PP-2026-001'},${assignedBatchNo}`
+                .split(',')
+                .map((s) => s.trim())
+                .filter(Boolean)
+            );
+            working[matchIdx] = {
+              ...ex,
+              openFpbCount: (ex.openFpbCount || 0) + (newIt.openFpbCount || 0),
+              requestingVessels: Array.from(new Set([...(ex.requestingVessels || []), ...(newIt.requestingVessels || [])])),
+              fpbRefs: Array.from(new Set([...(ex.fpbRefs || []), ...(newIt.fpbRefs || [])])),
+              totalRequestedQty: combinedRequested,
+              recommendedOrderQty: combinedOrder,
+              avgUnitPrice: unitPrice,
+              totalEstimatedCost: combinedCost,
+              potentialBulkDiscount: discountPct,
+              potentialSavingsAmount: Math.round((combinedCost * discountPct) / 100),
+              urgency: byWeightUrgency(ex.urgency, newIt.urgency),
+              batchNo: Array.from(batchSet).join(', '),
+              dataSource: 'HYBRID_CONSOLIDATED',
+              syncedAt: nowIso,
+            };
+            mergedCount++;
+          } else {
+            working.push({
+              ...newIt,
+              id: `${newIt.id}_${Date.now()}_${idx}`,
+            });
+            appendedCount++;
+          }
+        });
+        finalItems = working;
+      }
+
+      const sourceLabel =
+        uploadMode === 'replace'
+          ? file.name
+          : `${file.name} (${assignedBatchNo})`;
+      const responseData = buildResponseFromItems(finalItems, sourceLabel);
+      responseData.syncStats = getSyncStats(responseData);
+      responseData.message =
+        uploadMode === 'replace'
+          ? `Data diganti total dengan ${file.name} (${assignedBatchNo}: ${taggedNewItems.length} item).`
+          : uploadMode === 'merge'
+          ? `Batch ${assignedBatchNo} dikonsolidasikan: ${mergedCount} item digabung, ${appendedCount} item baru ditambahkan (Total ${finalItems.length} item).`
+          : `Batch ${assignedBatchNo} berhasil ditambahkan (+${appendedCount} item baru, Total ${finalItems.length} item).`;
+
+      fs.writeFileSync(STORAGE_FILE_PATH, JSON.stringify(responseData, null, 2), 'utf-8');
+      return NextResponse.json(responseData);
     }
 
     // 4. Aksi: Simpan JSON langsung
