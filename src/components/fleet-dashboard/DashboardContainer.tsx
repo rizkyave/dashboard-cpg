@@ -54,6 +54,8 @@ export default function DashboardContainer({
   const [filterState, setFilterState] = useState<GlobalFilterState>({
     tahun: initialYear,
     bulan: defaultMonth,
+    startDate: '',
+    endDate: '',
     entitas: 'ALL',
     selectedArmadaId: selectedArmadaProp && selectedArmadaProp !== 'ALL' ? selectedArmadaProp : null,
     statusFilter: 'ALL',
@@ -142,11 +144,19 @@ export default function DashboardContainer({
         }
       }
 
-      // 3. Filter Periode Bulan & Tahun
+      // 3. Filter Periode (Rentang Tanggal Custom ATAU Bulan & Tahun)
       const dateVal = it.tglFpb || it.date || it.tglPo || it.tglFstb;
       const d = parseDateObj(dateVal);
 
-      if (d) {
+      const startTs = filterState.startDate ? new Date(`${filterState.startDate}T00:00:00`).getTime() : null;
+      const endTs = filterState.endDate ? new Date(`${filterState.endDate}T23:59:59`).getTime() : null;
+
+      if (startTs || endTs) {
+        if (!d) return false;
+        const ts = d.getTime();
+        if (startTs && ts < startTs) return false;
+        if (endTs && ts > endTs) return false;
+      } else if (d) {
         if (filterState.tahun !== 'ALL') {
           if (String(d.getFullYear()) !== filterState.tahun) return false;
         }
@@ -577,8 +587,20 @@ export default function DashboardContainer({
     totalFpbAllArmadas,
   ]);
 
+  const formatShortYmd = (ymd?: string) => {
+    if (!ymd) return '';
+    const [y, m, d] = ymd.split('-');
+    return y && m && d ? `${d}/${m}/${y.slice(-2)}` : ymd;
+  };
+
   const activePeriodLabel =
-    filterState.bulan !== 'ALL'
+    filterState.startDate && filterState.endDate
+      ? `${formatShortYmd(filterState.startDate)} – ${formatShortYmd(filterState.endDate)}`
+      : filterState.startDate
+      ? `Dari ${formatShortYmd(filterState.startDate)}`
+      : filterState.endDate
+      ? `s/d ${formatShortYmd(filterState.endDate)}`
+      : filterState.bulan !== 'ALL'
       ? `${MONTH_NAMES_ID[filterState.bulan] || filterState.bulan} ${filterState.tahun !== 'ALL' ? filterState.tahun : '2026'}`
       : filterState.tahun !== 'ALL'
       ? `Tahun ${filterState.tahun}`

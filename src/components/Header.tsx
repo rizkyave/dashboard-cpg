@@ -1021,7 +1021,7 @@ export default function Header({
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
                       <span className="font-semibold block leading-tight text-xs text-foreground">
-                        {isSyncingPosisiKapal ? 'Menyinkronkan...' : 'Refresh Posisi Kapal'}
+                        {isSyncingPosisiKapal ? 'Menyinkronkan...' : 'Refresh Titik Kirim'}
                       </span>
                       <span className="text-[9px] font-bold px-1 rounded bg-sky-500/15 text-sky-600 dark:text-sky-400">
                         Daily Report

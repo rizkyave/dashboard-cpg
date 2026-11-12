@@ -1,6 +1,8 @@
 export interface GlobalFilterState {
   tahun: string;              // 'ALL' | '2026' | '2025'
-  bulan: string;              // 'ALL' | '06' | '07' | '08' | '09' | '10'
+  bulan: string;              // 'ALL' | '06' | '07' | '08' | '09' | '10' | '11' | '12'
+  startDate?: string;         // 'YYYY-MM-DD' (tenggang waktu mulai)
+  endDate?: string;           // 'YYYY-MM-DD' (tenggang waktu akhir)
   entitas: string;            // 'ALL' | 'CPL' | 'PPI' | 'GAJ' | 'HL' | 'MIL'
   selectedArmadaId: string | null; // e.g. 'OFFICE GAJ' atau null jika semua armada
   statusFilter: 'ALL' | 'LENGKAP' | 'PROSES' | 'PARSIAL' | 'BACKLOG';

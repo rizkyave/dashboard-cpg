@@ -1202,7 +1202,7 @@ export default function DashboardPage() {
                     : activeTab === 'galeri-ttb'
                     ? 'Galeri Foto TTB'
                     : activeTab === 'pos-kapal'
-                    ? 'Posisi Kapal'
+                    ? 'Titik Kirim Armada'
                     : activeTab === 'crew-kapal'
                     ? 'Data Awak & Monitoring Armada Kapal'
                     : activeTab === 'work-order'

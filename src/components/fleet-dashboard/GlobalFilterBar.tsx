@@ -28,7 +28,14 @@ export default function GlobalFilterBar({
   totalFpbCount,
   totalVesselCount,
 }: GlobalFilterBarProps) {
-  const isPeriodFiltered = filterState.bulan !== 'ALL' || filterState.tahun !== 'ALL';
+  const formatShortYmd = (ymd?: string) => {
+    if (!ymd) return '';
+    const [y, m, d] = ymd.split('-');
+    return y && m && d ? `${d}/${m}/${y.slice(-2)}` : ymd;
+  };
+
+  const hasCustomDateRange = Boolean(filterState.startDate || filterState.endDate);
+  const isPeriodFiltered = filterState.bulan !== 'ALL' || filterState.tahun !== 'ALL' || hasCustomDateRange;
   const hasActiveFilters =
     isPeriodFiltered ||
     filterState.entitas !== 'ALL' ||
@@ -37,7 +44,13 @@ export default function GlobalFilterBar({
     filterState.searchTerm.trim() !== '';
 
   const activePeriodLabel =
-    filterState.bulan !== 'ALL'
+    filterState.startDate && filterState.endDate
+      ? `${formatShortYmd(filterState.startDate)} – ${formatShortYmd(filterState.endDate)}`
+      : filterState.startDate
+      ? `Dari ${formatShortYmd(filterState.startDate)}`
+      : filterState.endDate
+      ? `s/d ${formatShortYmd(filterState.endDate)}`
+      : filterState.bulan !== 'ALL'
       ? `${MONTH_NAMES_ID[filterState.bulan] || filterState.bulan} ${filterState.tahun !== 'ALL' ? filterState.tahun : '2026'}`
       : filterState.tahun !== 'ALL'
       ? `Tahun ${filterState.tahun}`
@@ -48,6 +61,8 @@ export default function GlobalFilterBar({
     onFilterChange({
       tahun: '2026',
       bulan: currentMonthKey,
+      startDate: '',
+      endDate: '',
       entitas: 'ALL',
       selectedArmadaId: null,
       statusFilter: 'ALL',
@@ -68,13 +83,13 @@ export default function GlobalFilterBar({
           </span>
         </div>
 
-        {/* Kontrol Dropdown Sejajar 1 Baris */}
-        <div className="flex items-center gap-2 flex-1 flex-wrap sm:flex-nowrap min-w-0">
+        {/* Kontrol Dropdown & Rentang Tanggal */}
+        <div className="flex items-center gap-2 flex-1 flex-wrap min-w-0">
           {/* Dropdown 1: Tahun */}
-          <div className="relative shrink-0 w-24 sm:w-28">
+          <div className="relative shrink-0 w-24 sm:w-26">
             <select
               value={filterState.tahun}
-              onChange={(e) => onFilterChange({ tahun: e.target.value })}
+              onChange={(e) => onFilterChange({ tahun: e.target.value, startDate: '', endDate: '' })}
               className="w-full h-8 pl-2 pr-4 bg-slate-800/90 border border-slate-700/80 rounded-lg text-slate-200 text-xs font-medium focus:ring-1 focus:ring-teal-400 focus:outline-hidden cursor-pointer"
             >
               <option value="ALL">Thn: Semua</option>
@@ -90,7 +105,7 @@ export default function GlobalFilterBar({
           <div className="relative shrink-0 w-32 sm:w-36">
             <select
               value={filterState.bulan}
-              onChange={(e) => onFilterChange({ bulan: e.target.value })}
+              onChange={(e) => onFilterChange({ bulan: e.target.value, startDate: '', endDate: '' })}
               className="w-full h-8 pl-2 pr-4 bg-slate-800/90 border border-slate-700/80 rounded-lg text-slate-100 text-xs font-semibold focus:ring-1 focus:ring-teal-400 focus:outline-hidden cursor-pointer"
             >
               <option value="ALL">Bln: Semua Periode</option>
@@ -102,6 +117,43 @@ export default function GlobalFilterBar({
               <option value="11">11 - November 2026</option>
               <option value="12">12 - Desember 2026</option>
             </select>
+          </div>
+
+          {/* Tenggang Waktu: Dari Tanggal & Sampai Tanggal */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            <div className="flex items-center gap-1 bg-slate-800/90 border border-slate-700/80 rounded-lg px-2 h-8">
+              <span className="text-[10px] text-slate-400 font-medium shrink-0">Dari</span>
+              <input
+                type="date"
+                value={filterState.startDate || ''}
+                onChange={(e) =>
+                  onFilterChange({
+                    startDate: e.target.value,
+                    tahun: 'ALL',
+                    bulan: 'ALL',
+                  })
+                }
+                title="Dari Tanggal (Mulai)"
+                className="bg-transparent text-slate-100 text-[11px] font-medium focus:outline-hidden cursor-pointer w-[112px] [color-scheme:dark]"
+              />
+            </div>
+            <span className="text-[10px] text-slate-500">s/d</span>
+            <div className="flex items-center gap-1 bg-slate-800/90 border border-slate-700/80 rounded-lg px-2 h-8">
+              <span className="text-[10px] text-slate-400 font-medium shrink-0">Sampai</span>
+              <input
+                type="date"
+                value={filterState.endDate || ''}
+                onChange={(e) =>
+                  onFilterChange({
+                    endDate: e.target.value,
+                    tahun: 'ALL',
+                    bulan: 'ALL',
+                  })
+                }
+                title="Sampai Tanggal (Akhir)"
+                className="bg-transparent text-slate-100 text-[11px] font-medium focus:outline-hidden cursor-pointer w-[112px] [color-scheme:dark]"
+              />
+            </div>
           </div>
 
           {/* Dropdown 3: Entitas */}

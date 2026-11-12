@@ -469,16 +469,135 @@ export default function AnalyticsTab({
   const [endDate, setEndDate] = useState<string>('');
   const [showDateFilter, setShowDateFilter] = useState<boolean>(false);
 
-  // Available years from items
-  const availableYears = useMemo(() => {
-    const set = new Set<string>();
+  // Available years from items + dynamic dataset & current-date period metadata
+  const MONTH_NAMES_ID = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+  ];
+  const MONTH_SHORT_ID = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+
+  const periodPresetsMeta = useMemo(() => {
+    const now = new Date();
+    const pad2 = (n: number) => String(n).padStart(2, '0');
+    const toYmd = (d: Date) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+
+    const curYearNum = now.getFullYear();
+    const curMonthIdx = now.getMonth();
+    const currentYear = String(curYearNum);
+    const currentMonth = pad2(curMonthIdx + 1);
+    const currentMonthName = MONTH_NAMES_ID[curMonthIdx];
+
+    const prevMonthDate = new Date(curYearNum, curMonthIdx - 1, 1);
+    const prevYear = String(prevMonthDate.getFullYear());
+    const prevMonth = pad2(prevMonthDate.getMonth() + 1);
+    const prevMonthName = MONTH_NAMES_ID[prevMonthDate.getMonth()];
+
+    const todayStr = toYmd(now);
+    const d7 = new Date(curYearNum, curMonthIdx, now.getDate() - 6);
+    const last7Start = toYmd(d7);
+    const d30 = new Date(curYearNum, curMonthIdx, now.getDate() - 29);
+    const last30Start = toYmd(d30);
+
+    const curQ = Math.floor(curMonthIdx / 3) + 1;
+    const curQStartMonth = (curQ - 1) * 3;
+    const curQStart = toYmd(new Date(curYearNum, curQStartMonth, 1));
+    const curQEnd = toYmd(new Date(curYearNum, curQStartMonth + 3, 0));
+    const curQLabel = `Kuartal ${curQ} (${MONTH_SHORT_ID[curQStartMonth]}–${MONTH_SHORT_ID[curQStartMonth + 2]} ${curYearNum})`;
+
+    const prevQDate = new Date(curYearNum, curQStartMonth - 3, 1);
+    const prevQYear = prevQDate.getFullYear();
+    const prevQNum = Math.floor(prevQDate.getMonth() / 3) + 1;
+    const prevQStartMonth = (prevQNum - 1) * 3;
+    const prevQStart = toYmd(new Date(prevQYear, prevQStartMonth, 1));
+    const prevQEnd = toYmd(new Date(prevQYear, prevQStartMonth + 3, 0));
+    const prevQLabel = `Kuartal ${prevQNum} (${MONTH_SHORT_ID[prevQStartMonth]}–${MONTH_SHORT_ID[prevQStartMonth + 2]} ${prevQYear})`;
+
+    return {
+      currentYear,
+      currentMonth,
+      currentMonthName,
+      prevYear,
+      prevMonth,
+      prevMonthName,
+      todayStr,
+      last7Start,
+      last30Start,
+      curQStart,
+      curQEnd,
+      curQLabel,
+      prevQStart,
+      prevQEnd,
+      prevQLabel,
+    };
+  }, []);
+
+  const datasetDateMeta = useMemo(() => {
+    const yearSet = new Set<string>();
+    const monthCountsByYear = new Map<string, Record<string, number>>();
+    const totalMonthCounts: Record<string, number> = {};
+    let minTs = Infinity;
+    let maxTs = -Infinity;
+
     items.forEach((it) => {
-      const { year } = extractDateInfo(it.date);
-      if (year && year.length === 4) set.add(year);
+      const { year, month, timestamp } = extractDateInfo(it.date);
+      if (year && year.length === 4) {
+        yearSet.add(year);
+        if (month) {
+          if (!monthCountsByYear.has(year)) monthCountsByYear.set(year, {});
+          const ym = monthCountsByYear.get(year)!;
+          ym[month] = (ym[month] || 0) + 1;
+          totalMonthCounts[month] = (totalMonthCounts[month] || 0) + 1;
+        }
+      }
+      if (timestamp > 0) {
+        if (timestamp < minTs) minTs = timestamp;
+        if (timestamp > maxTs) maxTs = timestamp;
+      }
     });
-    const arr = Array.from(set).sort().reverse();
-    return arr.length > 0 ? arr : ['2026', '2025'];
-  }, [items]);
+
+    const years = Array.from(yearSet).sort().reverse();
+    const availableYearsList = years.length > 0 ? years : [periodPresetsMeta.currentYear, String(Number(periodPresetsMeta.currentYear) - 1)];
+
+    let rangeLabel = `${periodPresetsMeta.currentMonthName} ${periodPresetsMeta.currentYear}`;
+    let minDateFormatted = '';
+    let maxDateFormatted = '';
+
+    if (minTs !== Infinity && maxTs !== -Infinity) {
+      const minD = new Date(minTs);
+      const maxD = new Date(maxTs);
+      const minMName = MONTH_NAMES_ID[minD.getMonth()];
+      const maxMName = MONTH_NAMES_ID[maxD.getMonth()];
+      const minY = minD.getFullYear();
+      const maxY = maxD.getFullYear();
+
+      rangeLabel =
+        minY === maxY
+          ? minMName === maxMName
+            ? `${minMName} ${minY}`
+            : `${minMName} – ${maxMName} ${maxY}`
+          : `${minMName} ${minY} – ${maxMName} ${maxY}`;
+
+      minDateFormatted = `${String(minD.getDate()).padStart(2, '0')}/${String(minD.getMonth() + 1).padStart(2, '0')}/${minY}`;
+      maxDateFormatted = `${String(maxD.getDate()).padStart(2, '0')}/${String(maxD.getMonth() + 1).padStart(2, '0')}/${maxY}`;
+    }
+
+    return {
+      availableYears: availableYearsList,
+      monthCountsByYear,
+      totalMonthCounts,
+      rangeLabel,
+      minDateFormatted,
+      maxDateFormatted,
+    };
+  }, [items, periodPresetsMeta]);
+
+  const availableYears = datasetDateMeta.availableYears;
+  const activeMonthCounts = useMemo(() => {
+    if (selectedYear !== 'ALL') {
+      return datasetDateMeta.monthCountsByYear.get(selectedYear) || {};
+    }
+    return datasetDateMeta.totalMonthCounts;
+  }, [datasetDateMeta, selectedYear]);
 
   const isFilteredByDate = selectedYear !== 'ALL' || selectedMonth !== 'ALL' || Boolean(startDate) || Boolean(endDate);
 
@@ -501,11 +620,11 @@ export default function AnalyticsTab({
     return items.filter((it) => {
       const { year, month, timestamp } = extractDateInfo(it.date);
 
-      if (selectedYear !== 'ALL' && year && year !== selectedYear) return false;
-      if (selectedMonth !== 'ALL' && month && month !== selectedMonth) return false;
+      if (selectedYear !== 'ALL' && (!year || year !== selectedYear)) return false;
+      if (selectedMonth !== 'ALL' && (!month || month !== selectedMonth)) return false;
 
-      if (startTs && timestamp > 0 && timestamp < startTs) return false;
-      if (endTs && timestamp > 0 && timestamp > endTs) return false;
+      if (startTs && (!timestamp || timestamp < startTs)) return false;
+      if (endTs && (!timestamp || timestamp > endTs)) return false;
 
       return true;
     });
@@ -513,27 +632,27 @@ export default function AnalyticsTab({
 
   const displayPeriodText = useMemo(() => {
     if (startDate && endDate) {
-      return `${startDate} s/d ${endDate}`;
+      return `${formatDateDdMmYy(startDate)} s/d ${formatDateDdMmYy(endDate)}`;
     }
     if (startDate) {
-      return `Dari ${startDate}`;
+      return `Dari ${formatDateDdMmYy(startDate)}`;
     }
     if (endDate) {
-      return `Sampai ${endDate}`;
+      return `Sampai ${formatDateDdMmYy(endDate)}`;
     }
     if (selectedYear !== 'ALL' && selectedMonth !== 'ALL') {
       const mObj = MONTH_OPTIONS.find((m) => m.value === selectedMonth);
-      return `${mObj?.label.replace(/^\d+\s*-\s*/, '') || selectedMonth} ${selectedYear}`;
+      return `${mObj?.label.replace(/\s*\(\d+\)$/, '') || selectedMonth} ${selectedYear}`;
     }
     if (selectedYear !== 'ALL') {
       return `Tahun ${selectedYear}`;
     }
     if (selectedMonth !== 'ALL') {
       const mObj = MONTH_OPTIONS.find((m) => m.value === selectedMonth);
-      return `Bulan ${mObj?.label.replace(/^\d+\s*-\s*/, '') || selectedMonth}`;
+      return `Bulan ${mObj?.label.replace(/\s*\(\d+\)$/, '') || selectedMonth}`;
     }
-    return 'Semua (Juni – Oktober 2026)';
-  }, [selectedYear, selectedMonth, startDate, endDate]);
+    return `Semua (${datasetDateMeta.rangeLabel})`;
+  }, [selectedYear, selectedMonth, startDate, endDate, datasetDateMeta.rangeLabel]);
 
   // ─────────────────────────────────────────────────────────────
   // FLEET / ARMADA ANALYTICS LOGIC & COMPUTATIONS
@@ -647,10 +766,10 @@ export default function AnalyticsTab({
 
     return enrichedList.filter((it) => {
       const dateInfo = extractDateInfo(it.tglPo || it.tglFpb || it.tglFstb);
-      if (selectedYear !== 'ALL' && dateInfo.year && dateInfo.year !== selectedYear) return false;
-      if (selectedMonth !== 'ALL' && dateInfo.month && dateInfo.month !== selectedMonth) return false;
-      if (startTs && dateInfo.timestamp > 0 && dateInfo.timestamp < startTs) return false;
-      if (endTs && dateInfo.timestamp > 0 && dateInfo.timestamp > endTs) return false;
+      if (selectedYear !== 'ALL' && (!dateInfo.year || dateInfo.year !== selectedYear)) return false;
+      if (selectedMonth !== 'ALL' && (!dateInfo.month || dateInfo.month !== selectedMonth)) return false;
+      if (startTs && (!dateInfo.timestamp || dateInfo.timestamp < startTs)) return false;
+      if (endTs && (!dateInfo.timestamp || dateInfo.timestamp > endTs)) return false;
       return true;
     });
   }, [armadaItems, items, isFilteredByDate, selectedYear, selectedMonth, startDate, endDate, sisaLayananFpbMap]);
@@ -2149,11 +2268,16 @@ export default function AnalyticsTab({
       {showDateFilter && (
         <div className="bg-card border border-primary/30 rounded-xl p-4 shadow-sm space-y-3.5 animate-in slide-in-from-top-2 duration-200">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-border/70">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <CalendarDays className="w-4 h-4 text-primary" />
               <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
-                Pengaturan Periode Analisis (Tahun, Bulan & Rentang Tanggal)
+                Pengaturan Periode Analisis (Tahun, Bulan &amp; Rentang Tanggal)
               </h3>
+              {datasetDateMeta.minDateFormatted && datasetDateMeta.maxDateFormatted && (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-muted text-muted-foreground border border-border/70">
+                  Data: {datasetDateMeta.minDateFormatted} – {datasetDateMeta.maxDateFormatted}
+                </span>
+              )}
             </div>
             <div className="text-[11px] text-muted-foreground flex items-center gap-2">
               <span>Transaksi Terpilih: <strong className="text-foreground">{dateFilteredItems.length.toLocaleString()}</strong> dari {items.length.toLocaleString()}</span>
@@ -2198,9 +2322,14 @@ export default function AnalyticsTab({
                 }}
                 className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
               >
-                {MONTH_OPTIONS.map((m) => (
-                  <option key={m.value} value={m.value}>{m.label}</option>
-                ))}
+                {MONTH_OPTIONS.map((m) => {
+                  const cnt = m.value !== 'ALL' ? activeMonthCounts[m.value] : undefined;
+                  return (
+                    <option key={m.value} value={m.value}>
+                      {cnt ? `${m.label} — ${cnt.toLocaleString()} data` : m.label}
+                    </option>
+                  );
+                })}
               </select>
             </div>
 
@@ -2235,59 +2364,148 @@ export default function AnalyticsTab({
             </div>
           </div>
 
-          {/* Quick Preset Buttons */}
+          {/* Quick Preset Buttons (Dinamis mengikuti tanggal berjalan & data aktual) */}
           <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-border/50 text-xs">
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="text-[11px] text-muted-foreground font-medium mr-1">Preset Cepat:</span>
               <button
                 type="button"
                 onClick={resetDateFilter}
-                className="px-2.5 py-1 rounded-md text-[11px] font-medium bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors cursor-pointer ${
+                  !isFilteredByDate
+                    ? 'bg-primary text-primary-foreground shadow-xs font-semibold'
+                    : 'bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground'
+                }`}
               >
                 Semua Periode
               </button>
               <button
                 type="button"
                 onClick={() => {
-                  setSelectedYear('2026');
-                  setSelectedMonth('ALL');
+                  setSelectedYear(periodPresetsMeta.currentYear);
+                  setSelectedMonth(periodPresetsMeta.currentMonth);
                   setStartDate('');
                   setEndDate('');
                 }}
-                className="px-2.5 py-1 rounded-md text-[11px] font-medium bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors cursor-pointer ${
+                  selectedYear === periodPresetsMeta.currentYear &&
+                  selectedMonth === periodPresetsMeta.currentMonth &&
+                  !startDate &&
+                  !endDate
+                    ? 'bg-primary text-primary-foreground shadow-xs font-semibold'
+                    : 'bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground'
+                }`}
               >
-                Tahun 2026 Penuh
+                {periodPresetsMeta.currentMonthName} {periodPresetsMeta.currentYear} (Bulan Ini)
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedYear(periodPresetsMeta.prevYear);
+                  setSelectedMonth(periodPresetsMeta.prevMonth);
+                  setStartDate('');
+                  setEndDate('');
+                }}
+                className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors cursor-pointer ${
+                  selectedYear === periodPresetsMeta.prevYear &&
+                  selectedMonth === periodPresetsMeta.prevMonth &&
+                  !startDate &&
+                  !endDate
+                    ? 'bg-primary text-primary-foreground shadow-xs font-semibold'
+                    : 'bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {periodPresetsMeta.prevMonthName} {periodPresetsMeta.prevYear} (Bulan Lalu)
               </button>
               <button
                 type="button"
                 onClick={() => {
                   setSelectedYear('ALL');
                   setSelectedMonth('ALL');
-                  setStartDate('2026-07-01');
-                  setEndDate('2026-09-30');
+                  setStartDate(periodPresetsMeta.last7Start);
+                  setEndDate(periodPresetsMeta.todayStr);
                 }}
-                className="px-2.5 py-1 rounded-md text-[11px] font-medium bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors cursor-pointer ${
+                  startDate === periodPresetsMeta.last7Start && endDate === periodPresetsMeta.todayStr
+                    ? 'bg-primary text-primary-foreground shadow-xs font-semibold'
+                    : 'bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground'
+                }`}
               >
-                Kuartal 3 (Jul–Sep 2026)
+                7 Hari Terakhir
               </button>
               <button
                 type="button"
                 onClick={() => {
-                  setSelectedYear('2026');
-                  setSelectedMonth('10');
+                  setSelectedYear('ALL');
+                  setSelectedMonth('ALL');
+                  setStartDate(periodPresetsMeta.last30Start);
+                  setEndDate(periodPresetsMeta.todayStr);
+                }}
+                className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors cursor-pointer ${
+                  startDate === periodPresetsMeta.last30Start && endDate === periodPresetsMeta.todayStr
+                    ? 'bg-primary text-primary-foreground shadow-xs font-semibold'
+                    : 'bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                30 Hari Terakhir
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedYear('ALL');
+                  setSelectedMonth('ALL');
+                  setStartDate(periodPresetsMeta.curQStart);
+                  setEndDate(periodPresetsMeta.curQEnd);
+                }}
+                className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors cursor-pointer ${
+                  startDate === periodPresetsMeta.curQStart && endDate === periodPresetsMeta.curQEnd
+                    ? 'bg-primary text-primary-foreground shadow-xs font-semibold'
+                    : 'bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {periodPresetsMeta.curQLabel}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedYear('ALL');
+                  setSelectedMonth('ALL');
+                  setStartDate(periodPresetsMeta.prevQStart);
+                  setEndDate(periodPresetsMeta.prevQEnd);
+                }}
+                className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors cursor-pointer ${
+                  startDate === periodPresetsMeta.prevQStart && endDate === periodPresetsMeta.prevQEnd
+                    ? 'bg-primary text-primary-foreground shadow-xs font-semibold'
+                    : 'bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {periodPresetsMeta.prevQLabel}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedYear(periodPresetsMeta.currentYear);
+                  setSelectedMonth('ALL');
                   setStartDate('');
                   setEndDate('');
                 }}
-                className="px-2.5 py-1 rounded-md text-[11px] font-medium bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors cursor-pointer ${
+                  selectedYear === periodPresetsMeta.currentYear &&
+                  selectedMonth === 'ALL' &&
+                  !startDate &&
+                  !endDate
+                    ? 'bg-primary text-primary-foreground shadow-xs font-semibold'
+                    : 'bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground'
+                }`}
               >
-                Oktober 2026 (Bulan Ini)
+                Tahun {periodPresetsMeta.currentYear} Penuh
               </button>
             </div>
 
             <button
               type="button"
               onClick={() => setShowDateFilter(false)}
-              className="text-[11px] font-medium text-primary hover:underline px-2 py-1"
+              className="text-[11px] font-medium text-primary hover:underline px-2 py-1 cursor-pointer"
             >
               Tutup Pengaturan ✕
             </button>
@@ -3002,7 +3220,9 @@ export default function AnalyticsTab({
                     </h4>
                   </div>
                   <span className="px-2 py-0.5 rounded-md font-mono text-[10px] font-semibold bg-slate-100 text-slate-600 dark:bg-muted dark:text-muted-foreground border border-slate-200 dark:border-border shrink-0">
-                    Jun 2026 – Okt 2026
+                    {fleetMonthlyTrend.length > 1
+                      ? `${fleetMonthlyTrend[0].monthName} – ${fleetMonthlyTrend[fleetMonthlyTrend.length - 1].monthName}`
+                      : fleetMonthlyTrend[0]?.monthName || 'Periode Aktif'}
                   </span>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-muted-foreground">
