@@ -1380,11 +1380,11 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                 </h2>
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
                   <ShieldCheck className="size-3.5" />
-                  <span>Mode Mandiri &bull; Bebas IT</span>
+                  <span>Terintegrasi &bull; Real-Time</span>
                 </span>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Pusat review FPB armada, analisa ketersediaan stok gudang master persediaan, deteksi duplikasi, dan disposisi logistik mandiri tanpa ketergantungan server IT.
+                Pusat review FPB armada, analisa ketersediaan stok gudang master persediaan, deteksi duplikasi, dan disposisi logistik secara terintegrasi.
               </p>
             </div>
           </div>
