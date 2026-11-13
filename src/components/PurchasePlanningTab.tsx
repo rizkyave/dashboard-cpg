@@ -88,6 +88,7 @@ export default function PurchasePlanningTab({
   // Integrasi Pratender (Anti-Dobel), Titik Kirim Armada & Optimizer Pagu
   const [pratenderPackages, setPratenderPackages] = useState<PratenderPackage[]>([]);
   const [vesselPositions, setVesselPositions] = useState<KapalPosisiItem[]>([]);
+  const [warehouseStockItems, setWarehouseStockItems] = useState<any[]>([]);
   const [onlyUntendered, setOnlyUntendered] = useState<boolean>(false);
   const [budgetCapMillions, setBudgetCapMillions] = useState<number>(250);
   const [skipTenderedInOptimizer, setSkipTenderedInOptimizer] = useState<boolean>(true);
@@ -118,10 +119,11 @@ export default function PurchasePlanningTab({
 
     try {
       const ts = Date.now();
-      const [planRes, pratenderRes, posRes] = await Promise.allSettled([
+      const [planRes, pratenderRes, posRes, whRes] = await Promise.allSettled([
         fetch(`/api/purchase-planning?_t=${ts}`),
         fetch(`/api/pratender?_t=${ts}`),
         fetch(`/api/posisi-kapal?_t=${ts}`),
+        fetch(`/api/warehouse-stock?_t=${ts}`),
       ]);
 
       if (planRes.status === 'fulfilled' && planRes.value.ok) {
@@ -143,6 +145,11 @@ export default function PurchasePlanningTab({
         if (Array.isArray(kJson.items)) {
           setVesselPositions(kJson.items);
         }
+      }
+      if (whRes.status === 'fulfilled' && whRes.value.ok) {
+        const wJson = await whRes.value.json();
+        const items = Array.isArray(wJson.items) ? wJson.items : Array.isArray(wJson.data) ? wJson.data : [];
+        setWarehouseStockItems(items);
       }
     } catch {
       if (isManual) {
@@ -472,6 +479,40 @@ export default function PurchasePlanningTab({
     return anomalies;
   }, [data]);
 
+  // 4. Smart Stock Intercept: Peta Deteksi Stok Fisik Tersedia di Gudang Somber (Anti-Waste)
+  const warehouseStockMatchMap = useMemo(() => {
+    const byCode = new Map<string, { sisaStok: number; lokasiRak: string; satuan: string }>();
+    const byName = new Map<string, { sisaStok: number; lokasiRak: string; satuan: string }>();
+
+    (warehouseStockItems || []).forEach((w) => {
+      const sisa = Number(w.sisaStok || 0);
+      if (sisa <= 0) return;
+      const info = {
+        sisaStok: sisa,
+        lokasiRak: w.lokasiRak || 'Gudang Somber',
+        satuan: w.satuan || 'Pcs',
+      };
+      const code = String(w.kodeBarang || '').trim().toUpperCase();
+      const name = String(w.namaBarang || '').trim().toUpperCase();
+      if (code && code !== '-') byCode.set(code, info);
+      if (name) byName.set(name, info);
+    });
+
+    return { byCode, byName };
+  }, [warehouseStockItems]);
+
+  const getWarehouseStockForItem = (item: PurchasePlanningItem) => {
+    const code = (item.itemCode || '').trim().toUpperCase();
+    if (code && code !== '-' && warehouseStockMatchMap.byCode.has(code)) {
+      return warehouseStockMatchMap.byCode.get(code)!;
+    }
+    const name = (item.itemName || '').trim().toUpperCase();
+    if (name && warehouseStockMatchMap.byName.has(name)) {
+      return warehouseStockMatchMap.byName.get(name)!;
+    }
+    return null;
+  };
+
   // Filter & Sort Items
   const filteredItems = useMemo(() => {
     if (!data?.items) return [];
@@ -691,6 +732,43 @@ export default function PurchasePlanningTab({
     });
     const autoGroups = Array.from(groupMap.values()).sort((a, b) => b.totalBudget - a.totalBudget);
 
+    // 7. Budget Absorption per PT (Perusahaan: CPL, MO, HL, GAJ, SP)
+    const ptMap = new Map<string, { pt: string; count: number; totalBudget: number; approvedBudget: number; approvedCount: number }>();
+    const knownPts = ['CPL', 'MO', 'HL', 'GAJ', 'SP'];
+    knownPts.forEach((p) => ptMap.set(p, { pt: p, count: 0, totalBudget: 0, approvedBudget: 0, approvedCount: 0 }));
+
+    items.forEach((it) => {
+      let resolvedPt = (it.company || '').toUpperCase().trim();
+      if (!resolvedPt) {
+        // Deteksi dari no FPB (CPL-FPB..., MO-FPB..., HL-FPB..., GAJ-FPB..., SP-FPB...)
+        const firstFpb = (it.fpbRefs?.[0] || '').toUpperCase();
+        for (const p of knownPts) {
+          if (firstFpb.startsWith(`${p}-`)) {
+            resolvedPt = p;
+            break;
+          }
+        }
+      }
+      if (!resolvedPt) resolvedPt = 'CPL';
+
+      const cur = ptMap.get(resolvedPt) || { pt: resolvedPt, count: 0, totalBudget: 0, approvedBudget: 0, approvedCount: 0 };
+      cur.count += 1;
+      cur.totalBudget += it.totalEstimatedCost || 0;
+      if (it.approvalStatus === 'APPROVED') {
+        cur.approvedCount += 1;
+        cur.approvedBudget += it.totalEstimatedCost || 0;
+      }
+      ptMap.set(resolvedPt, cur);
+    });
+
+    const budgetAbsorptionByPt = Array.from(ptMap.values())
+      .filter((p) => p.count > 0)
+      .map((p) => ({
+        ...p,
+        absorptionRate: p.totalBudget > 0 ? Math.round((p.approvedBudget / p.totalBudget) * 100) : 0,
+      }))
+      .sort((a, b) => b.totalBudget - a.totalBudget);
+
     return {
       totalBudget,
       totalSavings,
@@ -701,6 +779,7 @@ export default function PurchasePlanningTab({
       simTotalBudget,
       simDeltaBudget: simTotalBudget - totalBudget,
       autoGroups,
+      budgetAbsorptionByPt,
     };
   }, [filteredItems, safetyBufferPct, targetCoverDays, autoGroupBy]);
 
@@ -1378,6 +1457,66 @@ export default function PurchasePlanningTab({
           </div>
         </div>
       </div>
+
+      {/* ── EXECUTIVE VIEW: BUDGET ABSORPTION & PENYERAPAN PER PT (CPL, MO, HL, GAJ, SP) ── */}
+      {analyticsData.budgetAbsorptionByPt.length > 0 && (
+        <div className="p-4 rounded-2xl bg-card border border-border shadow-xs space-y-3">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <div className="size-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                <Building2 className="size-4" />
+              </div>
+              <div>
+                <h3 className="text-xs font-bold text-foreground">Ringkasan Eksekutif: Penyerapan Anggaran per PT</h3>
+                <p className="text-[11px] text-muted-foreground">
+                  Alokasi estimasi pagu pengadaan dan rasio persetujuan manajemen lintas entitas usaha CPG
+                </p>
+              </div>
+            </div>
+            <span className="text-[10px] font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded-md">
+              Monitoring Finansial Entitas
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 pt-1">
+            {analyticsData.budgetAbsorptionByPt.map((ptItem) => {
+              const isHigh = ptItem.absorptionRate >= 75;
+              const isMedium = ptItem.absorptionRate >= 40 && ptItem.absorptionRate < 75;
+              const barColor = isHigh ? 'bg-emerald-500' : isMedium ? 'bg-amber-500' : 'bg-primary';
+
+              return (
+                <div
+                  key={ptItem.pt}
+                  className="p-3 rounded-xl border border-border bg-muted/20 space-y-2 hover:bg-muted/40 transition"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-foreground tracking-wider font-mono">PT. {ptItem.pt}</span>
+                    <span className="text-[10px] font-bold text-muted-foreground">{ptItem.count} Item</span>
+                  </div>
+
+                  <div>
+                    <div className="text-xs font-black text-foreground font-mono">
+                      <ConfidentialMaskedValue value={ptItem.totalBudget} showToast={showToast} />
+                    </div>
+                    <div className="flex items-center justify-between text-[10px] text-muted-foreground mt-0.5">
+                      <span>Approved: {ptItem.approvedCount}</span>
+                      <span className="font-bold text-foreground font-mono">{ptItem.absorptionRate}%</span>
+                    </div>
+                  </div>
+
+                  {/* Progress Bar Penyerapan */}
+                  <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-300 ${barColor}`}
+                      style={{ width: `${Math.min(100, Math.max(5, ptItem.absorptionRate))}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ── PANEL ANALITIK ANGGARAN, DETEKSI DUPLIKAT, SIMULASI & AUTO-GROUPING ── */}
       {data && data.items.length > 0 && (
@@ -2437,6 +2576,21 @@ export default function PurchasePlanningTab({
                               >
                                 <Ship className="size-2.5 text-sky-500" />
                                 <span>{hub.hubLabel} (+{hub.extraLeadDays}h)</span>
+                              </span>
+                            );
+                          })()}
+
+                          {/* Badge Smart Stock Intercept: Stok Tersedia di Gudang Somber */}
+                          {(() => {
+                            const wh = getWarehouseStockForItem(item);
+                            if (!wh) return null;
+                            return (
+                              <span
+                                className="inline-flex items-center gap-1 text-[9px] font-bold text-amber-800 dark:text-amber-200 bg-amber-500/20 border border-amber-500/40 px-1.5 py-0.5 rounded animate-pulse"
+                                title={`TERSEDIA FISIK DI GUDANG: ${wh.sisaStok} ${wh.satuan} di ${wh.lokasiRak}. Prioritaskan mutasi internal sebelum PO baru!`}
+                              >
+                                <Package className="size-2.5 text-amber-600 dark:text-amber-400" />
+                                <span>Gudang: {wh.sisaStok} {wh.satuan}</span>
                               </span>
                             );
                           })()}
