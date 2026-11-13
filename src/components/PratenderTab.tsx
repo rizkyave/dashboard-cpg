@@ -41,6 +41,11 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import CommercialBidTabulationModal from './CommercialBidTabulationModal';
+import {
+  generateRksDocumentPdf,
+  generateBaepDocumentPdf,
+  triggerBrowserPdfDownload,
+} from '@/utils/tenderDocumentGenerator';
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
 import { SisaLayananItem, SisaLayananStatus } from '@/types/sisaLayanan';
 import {
@@ -324,6 +329,29 @@ export default function PratenderTab({
   // CBT (Commercial Bid Tabulation - SAP ME49) Modal State
   const [isCbtModalOpen, setIsCbtModalOpen] = useState<boolean>(false);
   const [cbtPackage, setCbtPackage] = useState<PratenderPackage | null>(null);
+  const [generatingDocType, setGeneratingDocType] = useState<string | null>(null);
+
+  // Helper Download Dokumen Pendukung Tender (RKS RFQ & BAEP Penetapan Pemenang)
+  const handleDownloadTenderDoc = async (pkg: PratenderPackage, type: 'RKS' | 'BAEP') => {
+    setGeneratingDocType(`${type}-${pkg.id}`);
+    try {
+      showToast?.(`Mempersiapkan dokumen ${type === 'RKS' ? 'RKS / Syarat Teknis RFQ' : 'Berita Acara Penetapan Pemenang (BAEP)'}...`, 'info');
+      if (type === 'RKS') {
+        const bytes = await generateRksDocumentPdf(pkg);
+        triggerBrowserPdfDownload(bytes, `DOKUMEN_RKS_RFQ_${pkg.packageNumber}.pdf`);
+        showToast?.(`✓ Dokumen RKS RFQ ${pkg.packageNumber} berhasil diunduh!`, 'success');
+      } else {
+        const bytes = await generateBaepDocumentPdf(pkg);
+        triggerBrowserPdfDownload(bytes, `BERITA_ACARA_BAEP_${pkg.packageNumber}.pdf`);
+        showToast?.(`✓ Berita Acara BAEP ${pkg.packageNumber} berhasil diunduh!`, 'success');
+      }
+    } catch (err: any) {
+      console.error('Error generating tender document:', err);
+      showToast?.(err.message || 'Gagal membuat dokumen tender.', 'error');
+    } finally {
+      setGeneratingDocType(null);
+    }
+  };
 
   const handleSaveCbtPackage = async (updatedPkg: PratenderPackage) => {
     try {
@@ -1737,7 +1765,39 @@ export default function PratenderTab({
                         <Share2 className="size-3.5" />
                       </button>
 
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {/* Tombol Unduh Dokumen Pendukung Tender: RKS RFQ */}
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadTenderDoc(pkg, 'RKS')}
+                          disabled={generatingDocType === `RKS-${pkg.id}`}
+                          className="px-2 py-1.5 rounded-lg border border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/20 text-sky-600 dark:text-sky-400 text-xs font-bold transition inline-flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                          title="Unduh Dokumen RKS (Syarat Teknis & Rincian Volume RFQ Tender)"
+                        >
+                          {generatingDocType === `RKS-${pkg.id}` ? (
+                            <RefreshCw className="size-3 animate-spin" />
+                          ) : (
+                            <FileText className="size-3" />
+                          )}
+                          <span>RKS</span>
+                        </button>
+
+                        {/* Tombol Unduh Berita Acara Penetapan Pemenang (BAEP) */}
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadTenderDoc(pkg, 'BAEP')}
+                          disabled={generatingDocType === `BAEP-${pkg.id}`}
+                          className="px-2 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold transition inline-flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                          title="Unduh Berita Acara Evaluasi Pengadaan & Penetapan Pemenang (BAEP)"
+                        >
+                          {generatingDocType === `BAEP-${pkg.id}` ? (
+                            <RefreshCw className="size-3 animate-spin" />
+                          ) : (
+                            <Award className="size-3" />
+                          )}
+                          <span>BAEP</span>
+                        </button>
+
                         {isAdmin && (
                           <button
                             type="button"
@@ -2188,14 +2248,38 @@ export default function PratenderTab({
 
             {/* Footer */}
             <div className="p-4 bg-muted/40 border-t border-border flex flex-wrap items-center justify-between gap-2">
-              <button
-                type="button"
-                onClick={() => handleCopyWaRfq(selectedPackage)}
-                className="px-3.5 py-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs inline-flex items-center gap-1.5 hover:bg-emerald-500/20 transition cursor-pointer"
-              >
-                <Share2 className="size-3.5" />
-                <span>Salin RFQ WhatsApp</span>
-              </button>
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => handleCopyWaRfq(selectedPackage)}
+                  className="px-3 py-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs inline-flex items-center gap-1.5 hover:bg-emerald-500/20 transition cursor-pointer"
+                >
+                  <Share2 className="size-3.5" />
+                  <span>Salin RFQ WhatsApp</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleDownloadTenderDoc(selectedPackage, 'RKS')}
+                  disabled={generatingDocType === `RKS-${selectedPackage.id}`}
+                  className="px-3 py-2 rounded-xl border border-sky-500/30 bg-sky-500/10 text-sky-600 dark:text-sky-400 font-bold text-xs inline-flex items-center gap-1.5 hover:bg-sky-500/20 transition cursor-pointer disabled:opacity-50"
+                  title="Unduh Dokumen RKS / Syarat Teknis RFQ PDF"
+                >
+                  <FileText className="size-3.5" />
+                  <span>Unduh RKS PDF</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleDownloadTenderDoc(selectedPackage, 'BAEP')}
+                  disabled={generatingDocType === `BAEP-${selectedPackage.id}`}
+                  className="px-3 py-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs inline-flex items-center gap-1.5 hover:bg-emerald-500/20 transition cursor-pointer disabled:opacity-50"
+                  title="Unduh Berita Acara Evaluasi Pengadaan (BAEP) PDF"
+                >
+                  <Award className="size-3.5" />
+                  <span>Unduh BAEP PDF</span>
+                </button>
+              </div>
 
               <div className="flex items-center gap-2">
                 <button
