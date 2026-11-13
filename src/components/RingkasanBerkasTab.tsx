@@ -733,6 +733,72 @@ _CPG Procurement & Fleet Monitoring System_`;
     }
   };
 
+  // Export Rekap Finance "Ready to Pay" (Berkas 4/4 Selesai Administrasi)
+  const handleExportReadyToPayFinance = () => {
+    const readyItems = dossierItems.filter((i) => isSoftcopyComplete(i));
+    if (readyItems.length === 0) {
+      showToast?.('Belum ada berkas dengan status 4 Pilar Lengkap (4/4) yang siap bayar.', 'info');
+      return;
+    }
+
+    const headers = [
+      'NO',
+      'ENTITAS',
+      'ARMADA / UNIT',
+      'NO. FPB',
+      'TGL FPB',
+      'NO. PO',
+      'TGL PO',
+      'NO. FSTB',
+      'NO. TTB',
+      'ITEM PENGADAAN',
+      'QTY',
+      'SATUAN',
+      'STATUS ADMINISTRASI',
+      'STATUS 4 PILAR',
+      'TANGGAL REKAP FINANCE',
+    ];
+
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const rows = readyItems.map((item, idx) => [
+      idx + 1,
+      item.entity || 'CPL',
+      item.armada || 'Armada CPG',
+      item.fpb || '-',
+      item.tglFpb || '-',
+      item.po || 'Belum PO',
+      item.tglPo || '-',
+      item.noFstb || '-',
+      item.noTtb || '-',
+      item.item || '-',
+      item.qty || 1,
+      item.unit || 'Pcs',
+      'SIAP BAYAR (VERIFIED)',
+      'LENGKAP 4/4 (FPB, FSTB, TTB, FOTO)',
+      todayStr,
+    ]);
+
+    const csvContent = [
+      `REKAP BERKAS ADMINISTRASI PENGAJUAN PEMBAYARAN FINANCE (READY TO PAY)`,
+      `TANGGAL UNDUH: ${todayStr} | TOTAL BERKAS LENGKAP: ${readyItems.length} ITEM`,
+      ``,
+      headers.join(','),
+      ...rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')),
+    ].join('\r\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `REKAP_FINANCE_READY_TO_PAY_${todayStr}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showToast?.(`✓ Berhasil mengekspor ${readyItems.length} berkas 'Ready to Pay' untuk Finance!`, 'success');
+  };
+
   // Upload langsung file PDF e-FPB ke R2 dari modal pratinjau Ringkasan Berkas
   const handleUploadFpbPdf = async (fpbNo: string, file: File) => {
     if (!fpbNo || !file) return;
@@ -1109,6 +1175,15 @@ _CPG Procurement & Fleet Monitoring System_`;
               }}
             />
           </label>
+
+          <button
+            onClick={handleExportReadyToPayFinance}
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition shadow-xs active:scale-95 cursor-pointer"
+            title="Ekspor rekap berkas administrasi 4 pilar lengkap (Ready to Pay) untuk verifikasi & pencairan bagian Keuangan"
+          >
+            <Download className="size-3.5" />
+            <span>Ekspor 'Ready to Pay' ({metrics.totalComplete})</span>
+          </button>
 
           <button
             onClick={fetchManifests}
