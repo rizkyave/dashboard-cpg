@@ -768,18 +768,25 @@ PT. Cipta Sarana Transindo - CPG Group
                                 />
                               </td>
                               <td className="py-2 px-3 text-right">
-                                <input
-                                  type="number"
-                                  placeholder="0"
-                                  value={newItemPrices[it.itemId] || ''}
-                                  onChange={(e) =>
-                                    setNewItemPrices({
-                                      ...newItemPrices,
-                                      [it.itemId]: Number(e.target.value),
-                                    })
-                                  }
-                                  className="w-32 h-7 px-2 rounded border border-border bg-background text-right font-mono text-xs font-bold"
-                                />
+                                <div className="relative inline-flex items-center">
+                                  <span className="absolute left-2 text-[10px] font-mono text-muted-foreground pointer-events-none select-none">
+                                    Rp
+                                  </span>
+                                  <input
+                                    type="text"
+                                    inputMode="numeric"
+                                    placeholder="0"
+                                    value={newItemPrices[it.itemId] ? Number(newItemPrices[it.itemId]).toLocaleString('id-ID') : ''}
+                                    onChange={(e) => {
+                                      const rawDigits = e.target.value.replace(/\D/g, '');
+                                      setNewItemPrices({
+                                        ...newItemPrices,
+                                        [it.itemId]: rawDigits ? Number(rawDigits) : 0,
+                                      });
+                                    }}
+                                    className="w-36 h-7 pl-7 pr-2 rounded border border-border bg-background text-right font-mono text-xs font-bold focus:ring-1 focus:ring-primary focus:outline-none"
+                                  />
+                                </div>
                               </td>
                             </tr>
                           ))}
@@ -793,12 +800,22 @@ PT. Cipta Sarana Transindo - CPG Group
                       <label className="font-semibold block mb-1 text-foreground">
                         Biaya Pengiriman / Ekspedisi Franco Dermaga (Rp)
                       </label>
-                      <input
-                        type="number"
-                        value={newDeliveryFee}
-                        onChange={(e) => setNewDeliveryFee(Number(e.target.value))}
-                        className="w-full h-8 px-2.5 rounded-lg border border-border bg-background text-foreground text-xs font-mono"
-                      />
+                      <div className="relative flex items-center">
+                        <span className="absolute left-2.5 text-xs font-mono font-bold text-muted-foreground select-none pointer-events-none">
+                          Rp
+                        </span>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={newDeliveryFee ? Number(newDeliveryFee).toLocaleString('id-ID') : ''}
+                          onChange={(e) => {
+                            const rawDigits = e.target.value.replace(/\D/g, '');
+                            setNewDeliveryFee(rawDigits ? Number(rawDigits) : 0);
+                          }}
+                          placeholder="0"
+                          className="w-full h-8 pl-8 pr-2.5 rounded-lg border border-border bg-background text-foreground text-xs font-mono font-bold focus:ring-1 focus:ring-primary focus:outline-none"
+                        />
+                      </div>
                     </div>
                     <div>
                       <label className="font-semibold block mb-1 text-foreground">
@@ -1248,17 +1265,26 @@ PT. Cipta Sarana Transindo - CPG Group
                           <label className="font-semibold block mb-1 text-foreground">
                             Harga Hasil Negosiasi Final / BAFO (Rp):
                           </label>
-                          <input
-                            type="number"
-                            value={currentNeg}
-                            onChange={(e) =>
-                              setNegotiatedTotals({
-                                ...negotiatedTotals,
-                                [b.id]: Number(e.target.value),
-                              })
-                            }
-                            className="w-full h-8 px-2.5 rounded-lg border border-border bg-background text-foreground font-mono font-bold text-xs"
-                          />
+                          <div className="relative flex items-center">
+                            <span className="absolute left-2.5 text-xs font-mono font-bold text-muted-foreground select-none pointer-events-none">
+                              Rp
+                            </span>
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              value={currentNeg ? Number(currentNeg).toLocaleString('id-ID') : ''}
+                              onChange={(e) => {
+                                const rawDigits = e.target.value.replace(/\D/g, '');
+                                const numVal = rawDigits ? Number(rawDigits) : 0;
+                                setNegotiatedTotals({
+                                  ...negotiatedTotals,
+                                  [b.id]: numVal,
+                                });
+                              }}
+                              placeholder="0"
+                              className="w-full h-8 pl-8 pr-2.5 rounded-lg border border-border bg-background text-foreground font-mono font-bold text-xs focus:ring-1 focus:ring-primary focus:outline-none"
+                            />
+                          </div>
                           {saving > 0 && (
                             <span className="text-[11px] text-emerald-600 font-semibold mt-1 inline-block">
                               ✓ Berhasil dinegosiasikan turun Rp {saving.toLocaleString('id-ID')}
