@@ -134,6 +134,7 @@ export interface PratenderPackage {
   awardedVendor?: string;
   awardedValue?: number;
   poNumberGenerated?: string;
+  waGroupInviteLink?: string; // Tautan undangan grup WhatsApp koordinasi vendor
   notes?: string;
   updatedAt?: string;
 }

@@ -1,5 +1,133 @@
 [
   {
+    "id": "pkg-1794586860059",
+    "packageNumber": "CPG-TDR-26-2702",
+    "title": "Paket Pengadaan Consumable Armada Q4 2026",
+    "category": "Consumable",
+    "status": "DRAFT",
+    "createdAt": "2026-11-13T16:21:00.059Z",
+    "createdBy": "Administrator CPG",
+    "targetClosingDate": "2026-11-20",
+    "description": "Spesifikasi asli (OEM) bergaransi resmi, sertifikat asal barang (COO) terlampir.",
+    "items": [
+      {
+        "itemId": "CPL-PP-2026-003__plan-014",
+        "itemName": "TISSUE MAKAN FACIAL REFILL 900 GR (NICE TISSUE)",
+        "category": "Consumable",
+        "satuan": "BKS",
+        "totalQty": 10,
+        "originalQty": 10,
+        "targetPrice": 45000,
+        "targetTotalPrice": 450000,
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "CPL-FPB-26-0005023"
+        ]
+      },
+      {
+        "itemId": "CPL-PP-2026-003__plan-015",
+        "itemName": "PEMBERSIH LANTAI 770 ML (SUPER PELL)",
+        "category": "General",
+        "satuan": "BKS",
+        "totalQty": 2,
+        "originalQty": 2,
+        "targetPrice": 20000,
+        "targetTotalPrice": 40000,
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "CPL-FPB-26-0005023"
+        ]
+      },
+      {
+        "itemId": "CPL-PP-2026-003__plan-016",
+        "itemName": "SABUN CUCI PIRING 650 ML (REFILL) (SUNLIGHT)",
+        "category": "Consumable",
+        "satuan": "BKS",
+        "totalQty": 2,
+        "originalQty": 2,
+        "targetPrice": 18000,
+        "targetTotalPrice": 36000,
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "CPL-FPB-26-0005023"
+        ]
+      },
+      {
+        "itemId": "CPL-PP-2026-003__plan-017",
+        "itemName": "KOPI BUBUK 380 GRAM (KAPAL API)",
+        "category": "Consumable",
+        "satuan": "BKS",
+        "totalQty": 3,
+        "originalQty": 3,
+        "targetPrice": 40000,
+        "targetTotalPrice": 120000,
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "CPL-FPB-26-0005055"
+        ]
+      },
+      {
+        "itemId": "CPL-PP-2026-003__plan-018",
+        "itemName": "GULA PASIR 1 KG (00)",
+        "category": "Consumable",
+        "satuan": "BKS",
+        "totalQty": 2,
+        "originalQty": 2,
+        "targetPrice": 23000,
+        "targetTotalPrice": 46000,
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "CPL-FPB-26-0005055"
+        ]
+      },
+      {
+        "itemId": "CPL-PP-2026-003__plan-019",
+        "itemName": "KOPI SACHET CAPPUCCINO (GOOD DAY)",
+        "category": "Consumable",
+        "satuan": "RTG",
+        "totalQty": 2,
+        "originalQty": 2,
+        "targetPrice": 27000,
+        "targetTotalPrice": 54000,
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "CPL-FPB-26-0005055"
+        ]
+      },
+      {
+        "itemId": "CPL-PP-2026-003__plan-020",
+        "itemName": "BATERAI AA 1,5V (ALKALINE)",
+        "category": "Electrical",
+        "satuan": "PCS",
+        "totalQty": 6,
+        "originalQty": 6,
+        "targetPrice": 7500,
+        "targetTotalPrice": 45000,
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "CPL-FPB-26-0005020"
+        ]
+      }
+    ],
+    "totalEstimatedBudget": 791000,
+    "ownerEstimateHps": 791000,
+    "updatedAt": "2026-11-13T16:21:00.380Z"
+  },
+  {
     "id": "pkg-1794584732066",
     "packageNumber": "CPG-TDR-26-7906",
     "title": "Paket Pengadaan Construction Armada Q4 2026",

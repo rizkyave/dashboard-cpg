@@ -39,6 +39,9 @@ import {
   Flame,
   ShieldAlert,
   ArrowRight,
+  MessageCircle,
+  Send,
+  Link2,
 } from 'lucide-react';
 import CommercialBidTabulationModal from './CommercialBidTabulationModal';
 import {
@@ -330,6 +333,10 @@ export default function PratenderTab({
   const [isCbtModalOpen, setIsCbtModalOpen] = useState<boolean>(false);
   const [cbtPackage, setCbtPackage] = useState<PratenderPackage | null>(null);
   const [generatingDocType, setGeneratingDocType] = useState<string | null>(null);
+
+  // State WhatsApp Blast & Vendor Group Invite Link
+  const [waBlastPackage, setWaBlastPackage] = useState<PratenderPackage | null>(null);
+  const [waGroupLink, setWaGroupLink] = useState<string>('');
 
   // Helper Download Dokumen Pendukung Tender (RKS RFQ & BAEP Penetapan Pemenang)
   const handleDownloadTenderDoc = async (pkg: PratenderPackage, type: 'RKS' | 'BAEP') => {
@@ -894,32 +901,101 @@ export default function PratenderTab({
     }
   };
 
-  // Salin teks penawaran RFQ ke WhatsApp Vendor
-  const handleCopyWaRfq = (pkg: PratenderPackage) => {
+  // Helper membuat naskah WhatsApp Blast Resmi
+  const buildWaBlastMessage = (pkg: PratenderPackage, groupLink?: string) => {
+    const itemLines = pkg.items.slice(0, 15).map(
+      (it, idx) => `${idx + 1}. *${it.itemName}* — Total: *${it.totalQty} ${it.satuan}*`
+    );
+    if (pkg.items.length > 15) {
+      itemLines.push(`_...dan ${pkg.items.length - 15} item material lainnya (lihat dokumen RKS)._`);
+    }
+
     const lines = [
-      `*Yth. Mitra Vendor Rekanan PT CPG / Marine Group*`,
-      `Berikut kami sampaikan Permintaan Penawaran Harga (*Request for Quotation / RFQ*):`,
-      ``,
+      `📢 *PENGUMUMAN PENGADAAN & TENDER RESMI*`,
+      `*PT Cipta Sarana Transindo - CPG Group*`,
+      `=====================================`,
       `📋 *No. Paket Tender:* ${pkg.packageNumber}`,
       `📌 *Judul Pengadaan:* ${pkg.title}`,
       `🏷️ *Kategori Kebutuhan:* ${pkg.category}`,
       `📅 *Batas Akhir Penawaran:* ${pkg.targetClosingDate || '3 Hari Kerja'}`,
       ``,
-      `*Daftar Rincian Material & Kuantitas Gabungan:*`,
-      ...pkg.items.map(
-        (it, idx) =>
-          `${idx + 1}. *${it.itemName}* — Total: *${it.totalQty} ${it.satuan}* (Untuk: ${it.vessels.join(', ')})`
-      ),
+      `📦 *Daftar Rincian Material & Kuantitas:*`,
+      ...itemLines,
       ``,
-      pkg.description ? `📝 *Syarat / Catatan Khusus:*\n${pkg.description}\n` : '',
-      `Mohon dapat mengirimkan penawaran harga terbaik, ketersediaan stok, dan estimasi waktu pengiriman (lead time).`,
-      `Terima kasih.`,
-      `_Procurement & Sourcing Division CPG_`,
     ];
 
-    const message = lines.filter(Boolean).join('\n');
-    navigator.clipboard.writeText(message);
-    showToast?.('Format penawaran RFQ berhasil disalin ke clipboard! Siap dikirim via WhatsApp.', 'success');
+    if (pkg.description) {
+      lines.push(`📝 *Syarat / Ketentuan Khusus:*`, `${pkg.description}`, ``);
+    }
+
+    if (groupLink && groupLink.trim()) {
+      lines.push(
+        `🔗 *Tautan Grup Koordinasi & Pendaftaran Rekanan:*`,
+        `👉 ${groupLink.trim()}`,
+        `_(Bagi mitra vendor/rekanan yang berminat, silakan klik tautan di atas untuk masuk ke grup koordinasi tender & mengajukan penawaran harga)._`,
+        ``
+      );
+    }
+
+    lines.push(
+      `📩 Mohon mengirimkan penawaran harga terbaik, konfirmasi stok, dan estimasi waktu pengiriman (lead time).`,
+      `Terima kasih.`,
+      ``,
+      `_Divisi Pengadaan & Logistik Armada CPG Group_`
+    );
+
+    return lines.join('\n');
+  };
+
+  const handleOpenWaBlastModal = (pkg: PratenderPackage) => {
+    setWaBlastPackage(pkg);
+    setWaGroupLink(pkg.waGroupInviteLink || '');
+  };
+
+  const handleSendWaBlast = async () => {
+    if (!waBlastPackage) return;
+
+    const trimmedLink = waGroupLink.trim();
+    const msg = buildWaBlastMessage(waBlastPackage, trimmedLink);
+
+    // Simpan waGroupInviteLink ke paket jika berubah
+    if (trimmedLink !== (waBlastPackage.waGroupInviteLink || '')) {
+      try {
+        const updatedPkg: PratenderPackage = {
+          ...waBlastPackage,
+          waGroupInviteLink: trimmedLink,
+          updatedAt: new Date().toISOString(),
+        };
+        await fetch('/api/pratender', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'SAVE_PACKAGE',
+            package: updatedPkg,
+          }),
+        });
+        setPackages((prev) =>
+          prev.map((p) => (p.id === updatedPkg.id ? updatedPkg : p))
+        );
+        if (selectedPackage?.id === updatedPkg.id) {
+          setSelectedPackage(updatedPkg);
+        }
+      } catch (e) {
+        console.error('Failed to save WA group link:', e);
+      }
+    }
+
+    // Salin ke clipboard
+    try {
+      await navigator.clipboard.writeText(msg);
+    } catch (e) {}
+
+    // Buka WhatsApp
+    const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+    window.open(waUrl, '_blank');
+
+    showToast?.('Pesan berhasil disalin & WhatsApp dibuka! Silakan kirim ke Group Pengadaan.', 'success');
+    setWaBlastPackage(null);
   };
 
   return (
@@ -1758,11 +1834,11 @@ export default function PratenderTab({
                     <div className="pt-2 border-t border-border/60 flex items-center justify-between gap-2">
                       <button
                         type="button"
-                        onClick={() => handleCopyWaRfq(pkg)}
-                        className="p-1.5 rounded-lg border border-border bg-background hover:bg-emerald-500/10 hover:text-emerald-600 text-muted-foreground transition cursor-pointer"
-                        title="Salin Pesan RFQ WhatsApp"
+                        onClick={() => handleOpenWaBlastModal(pkg)}
+                        className="p-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 transition cursor-pointer"
+                        title="Blast WhatsApp ke Group Pengadaan & Buat Grup Vendor"
                       >
-                        <Share2 className="size-3.5" />
+                        <MessageCircle className="size-3.5" />
                       </button>
 
                       <div className="flex items-center gap-1.5 flex-wrap">
@@ -2251,11 +2327,12 @@ export default function PratenderTab({
               <div className="flex items-center gap-2 flex-wrap">
                 <button
                   type="button"
-                  onClick={() => handleCopyWaRfq(selectedPackage)}
+                  onClick={() => handleOpenWaBlastModal(selectedPackage)}
                   className="px-3 py-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs inline-flex items-center gap-1.5 hover:bg-emerald-500/20 transition cursor-pointer"
+                  title="Blast WhatsApp ke Group Pengadaan & Buat Grup Vendor"
                 >
-                  <Share2 className="size-3.5" />
-                  <span>Salin RFQ WhatsApp</span>
+                  <MessageCircle className="size-3.5" />
+                  <span>Blast WhatsApp RFQ</span>
                 </button>
 
                 <button
@@ -2391,6 +2468,141 @@ export default function PratenderTab({
                 className="px-4 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90"
               >
                 Simpan Perubahan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: BLAST WHATSAPP KE GROUP PENGADAAN & UNDANG VENDOR KE GRUP BARU */}
+      {waBlastPackage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-card border border-border rounded-3xl w-full max-w-xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
+            {/* Header Modal */}
+            <div className="p-4 sm:p-5 bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-transparent border-b border-border flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="p-2.5 rounded-2xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shrink-0">
+                  <MessageCircle className="size-5 sm:size-6" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                      {waBlastPackage.packageNumber}
+                    </span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Blast WhatsApp Pengadaan
+                    </span>
+                  </div>
+                  <h3 className="text-sm sm:text-base font-bold text-foreground truncate mt-0.5">
+                    {waBlastPackage.title}
+                  </h3>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setWaBlastPackage(null)}
+                className="p-1.5 rounded-full hover:bg-muted text-muted-foreground transition"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            {/* Body Modal */}
+            <div className="p-4 sm:p-5 overflow-y-auto space-y-4 text-xs">
+              {/* Petunjuk Solusi 1 */}
+              <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-3.5 space-y-2 text-foreground">
+                <div className="font-bold flex items-center gap-1.5 text-emerald-700 dark:text-emerald-300">
+                  <Sparkles className="size-4" />
+                  <span>Alur Koordinasi Grup Tender &amp; Undangan Vendor</span>
+                </div>
+                <ol className="list-decimal list-inside space-y-1 text-muted-foreground text-[11px] leading-relaxed">
+                  <li>Buat grup baru di WhatsApp (misal: <em>&quot;Tender {waBlastPackage.packageNumber}&quot;</em>).</li>
+                  <li>Salin <strong>Tautan Undangan Grup</strong> (<em>Group Invite Link</em>) lalu tempelkan di kotak bawah.</li>
+                  <li>Klik tombol <strong>Blast ke WhatsApp</strong> untuk mengirim ke <strong>Group Pengadaan Umum</strong>.</li>
+                  <li>Vendor rekanan di group umum tinggal <strong>1-klik tautan</strong> tersebut untuk otomatis masuk ke grup baru Anda!</li>
+                </ol>
+              </div>
+
+              {/* Input Link Grup WhatsApp */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="font-bold text-foreground flex items-center gap-1.5">
+                    <Link2 className="size-3.5 text-emerald-600" />
+                    <span>Tautan Undangan Grup WhatsApp Tender (Invite Link):</span>
+                  </label>
+                  <a
+                    href="https://web.whatsapp.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[11px] text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1 font-semibold"
+                  >
+                    <ExternalLink className="size-3" />
+                    <span>Buka WA Web</span>
+                  </a>
+                </div>
+                <div className="relative">
+                  <input
+                    type="url"
+                    placeholder="https://chat.whatsapp.com/L1234567890abcdef"
+                    value={waGroupLink}
+                    onChange={(e) => setWaGroupLink(e.target.value)}
+                    className="w-full h-9 pl-3 pr-20 rounded-xl border border-border bg-background text-foreground font-mono text-xs focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                  />
+                  {waGroupLink && (
+                    <button
+                      type="button"
+                      onClick={() => setWaGroupLink('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground hover:text-foreground font-semibold px-1.5 py-0.5 rounded bg-muted"
+                    >
+                      Hapus
+                    </button>
+                  )}
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  *Tautan ini otomatis disisipkan ke dalam pesan blast agar vendor bisa langsung bergabung ke grup koordinasi tender.
+                </p>
+              </div>
+
+              {/* Pratinjau Pesan WA */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="font-bold text-foreground">Pratinjau Pesan yang Akan Dikirim:</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const msg = buildWaBlastMessage(waBlastPackage, waGroupLink);
+                      navigator.clipboard.writeText(msg);
+                      showToast?.('Naskah pesan RFQ berhasil disalin ke clipboard!', 'success');
+                    }}
+                    className="text-[11px] text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
+                  >
+                    <Copy className="size-3" />
+                    <span>Salin Naskah Saja</span>
+                  </button>
+                </div>
+                <div className="bg-muted/40 border border-border rounded-xl p-3 font-mono text-[11px] whitespace-pre-wrap max-h-48 overflow-y-auto leading-relaxed text-foreground select-text">
+                  {buildWaBlastMessage(waBlastPackage, waGroupLink)}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Modal */}
+            <div className="p-3 sm:p-4 bg-muted/40 border-t border-border flex items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={() => setWaBlastPackage(null)}
+                className="px-3.5 py-2 rounded-xl border border-border text-xs font-semibold text-muted-foreground hover:bg-muted transition"
+              >
+                Batal
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSendWaBlast}
+                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs inline-flex items-center gap-2 shadow-sm transition cursor-pointer"
+              >
+                <Send className="size-3.5" />
+                <span>Blast ke WhatsApp Sekarang</span>
               </button>
             </div>
           </div>
