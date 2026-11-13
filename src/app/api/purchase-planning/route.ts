@@ -33,6 +33,13 @@ export interface PurchasePlanningItem {
   batchNo?: string;
   dataSource?: 'DESKTOP_EXCEL' | 'EFPB_LIVE' | 'HYBRID_CONSOLIDATED';
   syncedAt?: string;
+  approvalStatus?: 'APPROVED' | 'REJECTED' | 'INCOMPLETE/ NEED REVISION' | 'PENDING';
+  approvalDate?: string;
+  department?: string;
+  company?: string;
+  requester?: string;
+  pic?: string;
+  leadTimeText?: string;
 }
 
 export interface PurchasePlanningSyncStats {
@@ -493,6 +500,13 @@ export async function POST(req: NextRequest) {
               batchNo: Array.from(batchSet).join(', '),
               dataSource: 'HYBRID_CONSOLIDATED',
               syncedAt: nowIso,
+              approvalStatus: newIt.approvalStatus || ex.approvalStatus,
+              approvalDate: newIt.approvalDate || ex.approvalDate,
+              department: newIt.department || ex.department,
+              company: newIt.company || ex.company,
+              requester: newIt.requester || ex.requester,
+              pic: newIt.pic || ex.pic,
+              leadTimeText: newIt.leadTimeText || ex.leadTimeText,
             };
             mergedCount++;
           } else {

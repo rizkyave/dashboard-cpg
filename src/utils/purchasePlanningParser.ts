@@ -126,6 +126,12 @@ export function parsePurchasePlanningWorkbook(workbook: XLSX.WorkBook): Purchase
   const cStock = colIndex(['BARANG STOCK LOGISTIK', 'STOK GUDANG', 'CURRENT STOCK', 'STOK', 'STOK GUDANG SOMBER']);
   const cPrice = colIndex(['HARGA SATUAN', 'ESTIMASI HARGA', 'HARGA', 'PRICE', 'UNIT PRICE']);
   const cVendor = colIndex(['VENDOR', 'REKOMENDASI VENDOR', 'PEMASOK', 'SUGGESTED VENDOR']);
+  const cStatus = colIndex(['STATUS', 'STATUS APPROVAL', 'APPROVAL STATUS', 'PERSETUJUAN']);
+  const cPic = colIndex(['PIC', 'PIC PURCHASING', 'BUYER']);
+  const cLeadTime = colIndex(['LEAD TIME', 'WAKTU PENGADAAN']);
+  const cDept = colIndex(['DEPARTMENT', 'DEPT', 'DEPARTEMEN']);
+  const cPt = colIndex(['PT', 'PERUSAHAAN', 'COMPANY', 'ENTITAS']);
+  const cTglTerima = colIndex(['TANGGAL TERIMA DARI PCH', 'TGL TERIMA', 'TGL APPROVAL', 'TANGGAL APPROVAL']);
 
   const consolidatedMap = new Map<string, {
     itemCode: string;
@@ -142,6 +148,12 @@ export function parsePurchasePlanningWorkbook(workbook: XLSX.WorkBook): Purchase
     pemohon: string;
     unitPriceFromExcel: number;
     vendorFromExcel: string;
+    approvalStatus?: 'APPROVED' | 'REJECTED' | 'INCOMPLETE/ NEED REVISION' | 'PENDING';
+    approvalDate?: string;
+    department?: string;
+    company?: string;
+    pic?: string;
+    leadTimeText?: string;
   }>();
 
   const APPROVAL_KEYWORDS = [
@@ -214,6 +226,23 @@ export function parsePurchasePlanningWorkbook(workbook: XLSX.WorkBook): Purchase
     const price = cPrice !== -1 && row[cPrice] !== '' && !isNaN(Number(row[cPrice])) ? Number(row[cPrice]) : 0;
     const vendor = cVendor !== -1 && row[cVendor] ? String(row[cVendor]).trim() : '';
 
+    // Deteksi Status Approval
+    let rawStatus = cStatus !== -1 && row[cStatus] ? String(row[cStatus]).trim().toUpperCase() : '';
+    let parsedApprovalStatus: 'APPROVED' | 'REJECTED' | 'INCOMPLETE/ NEED REVISION' | 'PENDING' | undefined = undefined;
+    if (rawStatus.includes('APPROV') || rawStatus.includes('SETUJU') || rawStatus === 'OK') {
+      parsedApprovalStatus = 'APPROVED';
+    } else if (rawStatus.includes('REJECT') || rawStatus.includes('TOLAK')) {
+      parsedApprovalStatus = 'REJECTED';
+    } else if (rawStatus.includes('INCOMPLETE') || rawStatus.includes('REVISI') || rawStatus.includes('PENDING')) {
+      parsedApprovalStatus = 'INCOMPLETE/ NEED REVISION';
+    }
+
+    const leadTimeText = cLeadTime !== -1 && row[cLeadTime] ? String(row[cLeadTime]).trim() : '';
+    const pic = cPic !== -1 && row[cPic] ? String(row[cPic]).trim() : '';
+    const department = cDept !== -1 && row[cDept] ? String(row[cDept]).trim() : '';
+    const company = cPt !== -1 && row[cPt] ? String(row[cPt]).trim() : '';
+    const approvalDate = cTglTerima !== -1 && row[cTglTerima] ? String(row[cTglTerima]).trim() : '';
+
     if (!consolidatedMap.has(key)) {
       consolidatedMap.set(key, {
         itemCode: rawCode || `ITEM-${key.replace(/[^a-zA-Z0-9]/g, '').slice(0, 10).toUpperCase()}`,
@@ -230,6 +259,12 @@ export function parsePurchasePlanningWorkbook(workbook: XLSX.WorkBook): Purchase
         pemohon: pemohon || '',
         unitPriceFromExcel: price,
         vendorFromExcel: vendor,
+        approvalStatus: parsedApprovalStatus,
+        approvalDate: approvalDate || undefined,
+        department: department || undefined,
+        company: company || undefined,
+        pic: pic || undefined,
+        leadTimeText: leadTimeText || undefined,
       });
     }
 
@@ -242,6 +277,17 @@ export function parsePurchasePlanningWorkbook(workbook: XLSX.WorkBook): Purchase
     if (fpb) itemRecord.fpbRefs.add(fpb);
     if (prio) itemRecord.priorities.add(prio);
     if (ket) itemRecord.keteranganList.add(ket);
+    if (parsedApprovalStatus && (!itemRecord.approvalStatus || itemRecord.approvalStatus === 'APPROVED')) {
+      // Prioritaskan status non-approved jika ada salah satu fpb yang ditolak/revisi
+      if (parsedApprovalStatus !== 'APPROVED') itemRecord.approvalStatus = parsedApprovalStatus;
+    } else if (parsedApprovalStatus && !itemRecord.approvalStatus) {
+      itemRecord.approvalStatus = parsedApprovalStatus;
+    }
+    if (approvalDate && !itemRecord.approvalDate) itemRecord.approvalDate = approvalDate;
+    if (department && !itemRecord.department) itemRecord.department = department;
+    if (company && !itemRecord.company) itemRecord.company = company;
+    if (pic && !itemRecord.pic) itemRecord.pic = pic;
+    if (leadTimeText && !itemRecord.leadTimeText) itemRecord.leadTimeText = leadTimeText;
   }
 
   if (consolidatedMap.size === 0) {
@@ -307,6 +353,13 @@ export function parsePurchasePlanningWorkbook(workbook: XLSX.WorkBook): Purchase
       suggestedVendor: c.vendorFromExcel || (c.category.includes('Pelumas') ? 'PT. Pertamina Lubricants' : 'Distributor Resmi / Rekanan CPG'),
       fpbRefs: fpbs,
       batchNo: c.batchId || 'CPL-PP-2026-001',
+      approvalStatus: c.approvalStatus,
+      approvalDate: c.approvalDate,
+      department: c.department,
+      company: c.company,
+      requester: c.pemohon,
+      pic: c.pic,
+      leadTimeText: c.leadTimeText,
     };
   });
 

@@ -63,6 +63,7 @@ export default function PurchasePlanningTab({
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [selectedUrgency, setSelectedUrgency] = useState<string>('ALL');
+  const [selectedApproval, setSelectedApproval] = useState<string>('ALL');
   const [selectedVessel, setSelectedVessel] = useState<string>('ALL');
   const [selectedBatch, setSelectedBatch] = useState<string>('ALL');
   const [selectedDataSource, setSelectedDataSource] = useState<'ALL' | 'DESKTOP_EXCEL' | 'EFPB_LIVE' | 'HYBRID_CONSOLIDATED'>('ALL');
@@ -493,6 +494,15 @@ export default function PurchasePlanningTab({
       // Filter Urgency
       if (selectedUrgency !== 'ALL' && item.urgency !== selectedUrgency) return false;
 
+      // Filter Approval Status
+      if (selectedApproval !== 'ALL') {
+        const itemApp = item.approvalStatus || 'PENDING';
+        if (selectedApproval === 'APPROVED' && itemApp !== 'APPROVED') return false;
+        if (selectedApproval === 'REJECTED' && itemApp !== 'REJECTED') return false;
+        if (selectedApproval === 'REVISION' && itemApp !== 'INCOMPLETE/ NEED REVISION') return false;
+        if (selectedApproval === 'PENDING' && (itemApp === 'APPROVED' || itemApp === 'REJECTED' || itemApp === 'INCOMPLETE/ NEED REVISION')) return false;
+      }
+
       // Filter Vessel
       if (selectedVessel !== 'ALL' && !item.requestingVessels.includes(selectedVessel)) return false;
 
@@ -546,7 +556,7 @@ export default function PurchasePlanningTab({
     });
 
     return result;
-  }, [data, selectedBatch, selectedCategory, selectedUrgency, selectedVessel, selectedDataSource, onlyUntendered, pratenderMatchMap, searchQuery, sortBy, sortOrder]);
+  }, [data, selectedBatch, selectedCategory, selectedUrgency, selectedApproval, selectedVessel, selectedDataSource, onlyUntendered, pratenderMatchMap, searchQuery, sortBy, sortOrder]);
 
   // ── ANALITIK ANGGARAN, MATRIX URGENSI, DETEKSI DUPLIKAT, SIMULASI & AUTO-GROUPING ──
   const analyticsData = useMemo(() => {
@@ -1913,6 +1923,20 @@ export default function PurchasePlanningTab({
               </button>
             </div>
 
+            {/* Filter Status Approval */}
+            <select
+              value={selectedApproval}
+              onChange={(e) => setSelectedApproval(e.target.value)}
+              className="text-xs px-2.5 py-1.5 rounded-xl bg-background border border-border text-foreground font-semibold cursor-pointer shadow-2xs focus:outline-hidden focus:ring-1 focus:ring-primary max-w-[170px]"
+              title="Filter status approval manajemen"
+            >
+              <option value="ALL">📋 Semua Approval</option>
+              <option value="APPROVED">🟢 APPROVED (Disetujui)</option>
+              <option value="REVISION">🟡 REVISI / INCOMPLETE</option>
+              <option value="REJECTED">🔴 REJECTED (Ditolak)</option>
+              <option value="PENDING">⚪ Belum Di-review</option>
+            </select>
+
             {/* Filter Armada */}
             {uniqueVessels.length > 0 && (
               <select
@@ -2316,6 +2340,23 @@ export default function PurchasePlanningTab({
                             <span className="text-[9px] uppercase font-bold tracking-wider text-emerald-600 dark:text-emerald-400">Batch:</span>
                             <span className="font-semibold">{item.batchNo || 'CPL-PP-2026-001'}</span>
                           </span>
+
+                          {/* Badge Status Approval Manajemen */}
+                          {item.approvalStatus === 'APPROVED' ? (
+                            <span className="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 rounded" title={`Telah Disetujui (Approved) ${item.approvalDate ? 'pada ' + item.approvalDate : ''}`}>
+                              <CheckCircle2 className="size-2.5 text-emerald-600 dark:text-emerald-400" />
+                              <span>APPROVED</span>
+                            </span>
+                          ) : item.approvalStatus === 'REJECTED' ? (
+                            <span className="inline-flex items-center gap-1 text-[9px] font-bold text-rose-700 dark:text-rose-300 bg-rose-500/15 border border-rose-500/30 px-1.5 py-0.5 rounded" title="Ditolak oleh Manajemen">
+                              <span className="size-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+                              <span>REJECTED</span>
+                            </span>
+                          ) : item.approvalStatus === 'INCOMPLETE/ NEED REVISION' ? (
+                            <span className="inline-flex items-center gap-1 text-[9px] font-bold text-amber-700 dark:text-amber-300 bg-amber-500/15 border border-amber-500/30 px-1.5 py-0.5 rounded" title="Perlu Revisi / Spesifikasi Belum Lengkap">
+                              <span>⚠️ REVISI</span>
+                            </span>
+                          ) : null}
 
                           {/* Badge Sumber Data */}
                           {item.dataSource === 'EFPB_LIVE' ? (
