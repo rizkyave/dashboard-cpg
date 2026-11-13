@@ -1,1 +1,794 @@
-[]
+[
+  {
+    "id": "pkg-1794584732066",
+    "packageNumber": "CPG-TDR-26-7906",
+    "title": "Paket Pengadaan Construction Armada Q4 2026",
+    "category": "Construction",
+    "status": "AWARDED",
+    "createdAt": "2026-11-13T15:45:32.066Z",
+    "createdBy": "Administrator CPG",
+    "targetClosingDate": "2026-11-20",
+    "description": "Spesifikasi asli (OEM) bergaransi resmi, sertifikat asal barang (COO) terlampir.",
+    "items": [
+      {
+        "itemId": "CPL-PP-2026-003__plan-009",
+        "itemName": "KARET KEDAP 4 X 2 CM (00)",
+        "category": "Construction",
+        "satuan": "MTR",
+        "totalQty": 6,
+        "originalQty": 6,
+        "targetPrice": 50000,
+        "targetTotalPrice": 300000,
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "HL-FPB-26-0001538"
+        ]
+      },
+      {
+        "itemId": "CPL-PP-2026-003__plan-036",
+        "itemName": "HANDLE PINTU 80730-9Z00A CWE 280 (UD TRUCK)",
+        "category": "Construction",
+        "satuan": "PCS",
+        "totalQty": 1,
+        "originalQty": 1,
+        "targetPrice": 204392,
+        "targetTotalPrice": 204392,
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "MO-FPB-26-0001945"
+        ]
+      },
+      {
+        "itemId": "CPL-PP-2026-003__plan-038",
+        "itemName": "PIPA SGP 2 1/2\" (2,8 MM) X 6 MTR (00)",
+        "category": "Construction",
+        "satuan": "BTG",
+        "totalQty": 1,
+        "originalQty": 1,
+        "targetPrice": 925000,
+        "targetTotalPrice": 925000,
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "MO-FPB-26-0001922"
+        ]
+      },
+      {
+        "itemId": "CPL-PP-2026-003__plan-057",
+        "itemName": "B/N (SS) 8 MM X 40 MM (00)",
+        "category": "Construction",
+        "satuan": "PCS",
+        "totalQty": 40,
+        "originalQty": 40,
+        "targetPrice": 3784,
+        "targetTotalPrice": 151360,
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "CPL-FPB-26-0005037"
+        ]
+      },
+      {
+        "itemId": "CPL-PP-2026-003__plan-058",
+        "itemName": "PIPA SEAMLESS 2\" SCH 80 (00)",
+        "category": "Construction",
+        "satuan": "BTG",
+        "totalQty": 1,
+        "originalQty": 1,
+        "targetPrice": 703524,
+        "targetTotalPrice": 703524,
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "CPL-FPB-26-0005037"
+        ]
+      },
+      {
+        "itemId": "CPL-PP-2026-003__plan-059",
+        "itemName": "PIPA SEAMLESS 1 1/2\" SCH 80 (00)",
+        "category": "Construction",
+        "satuan": "BTG",
+        "totalQty": 3,
+        "originalQty": 3,
+        "targetPrice": 508832.4,
+        "targetTotalPrice": 1526497.2000000002,
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "CPL-FPB-26-0005037"
+        ]
+      },
+      {
+        "itemId": "CPL-PP-2026-003__plan-060",
+        "itemName": "RING PLAT (SS) 8 MM (00)",
+        "category": "Construction",
+        "satuan": "PCS",
+        "totalQty": 40,
+        "originalQty": 40,
+        "targetPrice": 315.3,
+        "targetTotalPrice": 12612,
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "CPL-FPB-26-0005037"
+        ]
+      },
+      {
+        "itemId": "CPL-PP-2026-003__plan-062",
+        "itemName": "ELBOW 2\" 45° SCH 80 (00)",
+        "category": "Construction",
+        "satuan": "PCS",
+        "totalQty": 6,
+        "originalQty": 6,
+        "targetPrice": 51500,
+        "targetTotalPrice": 309000,
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "CPL-FPB-26-0005037"
+        ]
+      },
+      {
+        "itemId": "CPL-PP-2026-003__plan-066",
+        "itemName": "PIPA SEAMLESS 2\" SCH 40 (00)",
+        "category": "Construction",
+        "satuan": "BTG",
+        "totalQty": 2,
+        "originalQty": 2,
+        "targetPrice": 511654,
+        "targetTotalPrice": 1023308,
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "HL-FPB-26-0001551"
+        ]
+      },
+      {
+        "itemId": "CPL-PP-2026-003__plan-067",
+        "itemName": "CLAMP PLAT 74-79 (00)",
+        "category": "Construction",
+        "satuan": "PCS",
+        "totalQty": 4,
+        "originalQty": 4,
+        "targetPrice": 17500,
+        "targetTotalPrice": 70000,
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "HL-FPB-26-0001551"
+        ]
+      },
+      {
+        "itemId": "CPL-PP-2026-003__plan-068",
+        "itemName": "ELBOW 1 1/2\" SCH 80 (00)",
+        "category": "Construction",
+        "satuan": "PCS",
+        "totalQty": 6,
+        "originalQty": 6,
+        "targetPrice": 17568,
+        "targetTotalPrice": 105408,
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "HL-FPB-26-0001551"
+        ]
+      },
+      {
+        "itemId": "CPL-PP-2026-003__plan-088",
+        "itemName": "B/N (SS) 5/8\" X 2 1/2\" (00)",
+        "category": "Construction",
+        "satuan": "PCS",
+        "totalQty": 46,
+        "originalQty": 46,
+        "targetPrice": 15766,
+        "targetTotalPrice": 725236,
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "CPL-FPB-26-0005113",
+          "MO-FPB-26-0001950"
+        ]
+      },
+      {
+        "itemId": "CPL-PP-2026-003__plan-089",
+        "itemName": "ELBOW 4\" SCH 80 (00)",
+        "category": "Construction",
+        "satuan": "PCS",
+        "totalQty": 1,
+        "originalQty": 1,
+        "targetPrice": 190000,
+        "targetTotalPrice": 190000,
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "CPL-FPB-26-0005113"
+        ]
+      },
+      {
+        "itemId": "CPL-PP-2026-003__plan-090",
+        "itemName": "ELBOW 45° 4\" SCH 80 (00)",
+        "category": "Construction",
+        "satuan": "PCS",
+        "totalQty": 2,
+        "originalQty": 2,
+        "targetPrice": 216216,
+        "targetTotalPrice": 432432,
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "CPL-FPB-26-0005113"
+        ]
+      },
+      {
+        "itemId": "CPL-PP-2026-003__plan-096",
+        "itemName": "KACA LAS BENING (00)",
+        "category": "Construction",
+        "satuan": "PCS",
+        "totalQty": 50,
+        "originalQty": 50,
+        "targetPrice": 1500,
+        "targetTotalPrice": 75000,
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "GAJ-FPB-26-0001062"
+        ]
+      },
+      {
+        "itemId": "CPL-PP-2026-003__plan-097",
+        "itemName": "KACA BLASTING BENING 3 MM X 13 CM X 18 CM (00)",
+        "category": "Construction",
+        "satuan": "PCS",
+        "totalQty": 50,
+        "originalQty": 50,
+        "targetPrice": 8000,
+        "targetTotalPrice": 400000,
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "GAJ-FPB-26-0001062"
+        ]
+      }
+    ],
+    "totalEstimatedBudget": 71537692,
+    "ownerEstimateHps": 71537692,
+    "updatedAt": "2026-11-13T16:05:12.937Z",
+    "vendorBids": [
+      {
+        "id": "bid-1-1794585364361",
+        "vendorName": "PT. Samudra Bahari Teknik",
+        "vendorPic": "Bpk. Hendra Gunawan",
+        "vendorContact": "+62 812-8877-6655",
+        "quotationRefNo": "SBT/QUO/2026/0421",
+        "bidDate": "2026-11-13",
+        "termOfPayment": "NET 30 Hari",
+        "deliveryLeadTimeDays": 5,
+        "francoDeliveryPoint": "Franco Dermaga Somber Balikpapan",
+        "validityDays": 30,
+        "subtotal": 6846500,
+        "ppnPercent": 11,
+        "ppnAmount": 753115,
+        "deliveryFee": 1500000,
+        "grandTotal": 9099615,
+        "status": "REJECTED",
+        "items": [
+          {
+            "itemId": "CPL-PP-2026-003__plan-009",
+            "itemName": "KARET KEDAP 4 X 2 CM (00)",
+            "qty": 6,
+            "unitPrice": 45500,
+            "totalPrice": 273000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-036",
+            "itemName": "HANDLE PINTU 80730-9Z00A CWE 280 (UD TRUCK)",
+            "qty": 1,
+            "unitPrice": 192000,
+            "totalPrice": 192000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-038",
+            "itemName": "PIPA SGP 2 1/2\" (2,8 MM) X 6 MTR (00)",
+            "qty": 1,
+            "unitPrice": 895500,
+            "totalPrice": 895500,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-057",
+            "itemName": "B/N (SS) 8 MM X 40 MM (00)",
+            "qty": 40,
+            "unitPrice": 3500,
+            "totalPrice": 140000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-058",
+            "itemName": "PIPA SEAMLESS 2\" SCH 80 (00)",
+            "qty": 1,
+            "unitPrice": 661500,
+            "totalPrice": 661500,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-059",
+            "itemName": "PIPA SEAMLESS 1 1/2\" SCH 80 (00)",
+            "qty": 3,
+            "unitPrice": 492500,
+            "totalPrice": 1477500,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-060",
+            "itemName": "RING PLAT (SS) 8 MM (00)",
+            "qty": 40,
+            "unitPrice": 500,
+            "totalPrice": 20000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-062",
+            "itemName": "ELBOW 2\" 45° SCH 80 (00)",
+            "qty": 6,
+            "unitPrice": 48500,
+            "totalPrice": 291000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-066",
+            "itemName": "PIPA SEAMLESS 2\" SCH 40 (00)",
+            "qty": 2,
+            "unitPrice": 495500,
+            "totalPrice": 991000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-067",
+            "itemName": "CLAMP PLAT 74-79 (00)",
+            "qty": 4,
+            "unitPrice": 16000,
+            "totalPrice": 64000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-068",
+            "itemName": "ELBOW 1 1/2\" SCH 80 (00)",
+            "qty": 6,
+            "unitPrice": 16500,
+            "totalPrice": 99000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-088",
+            "itemName": "B/N (SS) 5/8\" X 2 1/2\" (00)",
+            "qty": 46,
+            "unitPrice": 15500,
+            "totalPrice": 713000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-089",
+            "itemName": "ELBOW 4\" SCH 80 (00)",
+            "qty": 1,
+            "unitPrice": 173000,
+            "totalPrice": 173000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-090",
+            "itemName": "ELBOW 45° 4\" SCH 80 (00)",
+            "qty": 2,
+            "unitPrice": 203000,
+            "totalPrice": 406000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-096",
+            "itemName": "KACA LAS BENING (00)",
+            "qty": 50,
+            "unitPrice": 1500,
+            "totalPrice": 75000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-097",
+            "itemName": "KACA BLASTING BENING 3 MM X 13 CM X 18 CM (00)",
+            "qty": 50,
+            "unitPrice": 7500,
+            "totalPrice": 375000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          }
+        ],
+        "negotiatedGrandTotal": 9099615,
+        "technicalStatus": "FAILED"
+      },
+      {
+        "id": "bid-2-1794585364361",
+        "vendorName": "CV. Cipta Marine Mandiri",
+        "vendorPic": "Ibu Ratna Dewi",
+        "vendorContact": "+62 813-9988-1122",
+        "quotationRefNo": "CMM-RFQ-26-891",
+        "bidDate": "2026-11-13",
+        "termOfPayment": "NET 45 Hari",
+        "deliveryLeadTimeDays": 7,
+        "francoDeliveryPoint": "Franco Dermaga Somber Balikpapan",
+        "validityDays": 30,
+        "subtotal": 7467500,
+        "ppnPercent": 11,
+        "ppnAmount": 821425,
+        "deliveryFee": 2000000,
+        "grandTotal": 10288925,
+        "status": "UNDER_EVALUATION",
+        "items": [
+          {
+            "itemId": "CPL-PP-2026-003__plan-009",
+            "itemName": "KARET KEDAP 4 X 2 CM (00)",
+            "qty": 6,
+            "unitPrice": 50000,
+            "totalPrice": 300000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-036",
+            "itemName": "HANDLE PINTU 80730-9Z00A CWE 280 (UD TRUCK)",
+            "qty": 1,
+            "unitPrice": 210500,
+            "totalPrice": 210500,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-038",
+            "itemName": "PIPA SGP 2 1/2\" (2,8 MM) X 6 MTR (00)",
+            "qty": 1,
+            "unitPrice": 981500,
+            "totalPrice": 981500,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-057",
+            "itemName": "B/N (SS) 8 MM X 40 MM (00)",
+            "qty": 40,
+            "unitPrice": 4000,
+            "totalPrice": 160000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-058",
+            "itemName": "PIPA SEAMLESS 2\" SCH 80 (00)",
+            "qty": 1,
+            "unitPrice": 724500,
+            "totalPrice": 724500,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-059",
+            "itemName": "PIPA SEAMLESS 1 1/2\" SCH 80 (00)",
+            "qty": 3,
+            "unitPrice": 540000,
+            "totalPrice": 1620000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-060",
+            "itemName": "RING PLAT (SS) 8 MM (00)",
+            "qty": 40,
+            "unitPrice": 500,
+            "totalPrice": 20000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-062",
+            "itemName": "ELBOW 2\" 45° SCH 80 (00)",
+            "qty": 6,
+            "unitPrice": 53000,
+            "totalPrice": 318000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-066",
+            "itemName": "PIPA SEAMLESS 2\" SCH 40 (00)",
+            "qty": 2,
+            "unitPrice": 543000,
+            "totalPrice": 1086000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-067",
+            "itemName": "CLAMP PLAT 74-79 (00)",
+            "qty": 4,
+            "unitPrice": 17500,
+            "totalPrice": 70000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-068",
+            "itemName": "ELBOW 1 1/2\" SCH 80 (00)",
+            "qty": 6,
+            "unitPrice": 18000,
+            "totalPrice": 108000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-088",
+            "itemName": "B/N (SS) 5/8\" X 2 1/2\" (00)",
+            "qty": 46,
+            "unitPrice": 16500,
+            "totalPrice": 759000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-089",
+            "itemName": "ELBOW 4\" SCH 80 (00)",
+            "qty": 1,
+            "unitPrice": 190000,
+            "totalPrice": 190000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-090",
+            "itemName": "ELBOW 45° 4\" SCH 80 (00)",
+            "qty": 2,
+            "unitPrice": 222500,
+            "totalPrice": 445000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-096",
+            "itemName": "KACA LAS BENING (00)",
+            "qty": 50,
+            "unitPrice": 1500,
+            "totalPrice": 75000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-097",
+            "itemName": "KACA BLASTING BENING 3 MM X 13 CM X 18 CM (00)",
+            "qty": 50,
+            "unitPrice": 8000,
+            "totalPrice": 400000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          }
+        ],
+        "negotiatedGrandTotal": 10288925,
+        "technicalStatus": "PASSED"
+      },
+      {
+        "id": "bid-3-1794585364361",
+        "vendorName": "PT. Pelayaran Global Nusantara Supply",
+        "vendorPic": "Bpk. Dimas Pratama",
+        "vendorContact": "+62 821-4433-2211",
+        "quotationRefNo": "PGN/P/2026/019",
+        "bidDate": "2026-11-13",
+        "termOfPayment": "COD / 14 Hari",
+        "deliveryLeadTimeDays": 4,
+        "francoDeliveryPoint": "Franco Gudang Transit Balikpapan",
+        "validityDays": 14,
+        "subtotal": 6623500,
+        "ppnPercent": 11,
+        "ppnAmount": 728585,
+        "deliveryFee": 1000000,
+        "grandTotal": 8352085,
+        "status": "RECOMMENDED",
+        "items": [
+          {
+            "itemId": "CPL-PP-2026-003__plan-009",
+            "itemName": "KARET KEDAP 4 X 2 CM (00)",
+            "qty": 6,
+            "unitPrice": 44000,
+            "totalPrice": 264000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-036",
+            "itemName": "HANDLE PINTU 80730-9Z00A CWE 280 (UD TRUCK)",
+            "qty": 1,
+            "unitPrice": 186000,
+            "totalPrice": 186000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-038",
+            "itemName": "PIPA SGP 2 1/2\" (2,8 MM) X 6 MTR (00)",
+            "qty": 1,
+            "unitPrice": 867000,
+            "totalPrice": 867000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-057",
+            "itemName": "B/N (SS) 8 MM X 40 MM (00)",
+            "qty": 40,
+            "unitPrice": 3500,
+            "totalPrice": 140000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-058",
+            "itemName": "PIPA SEAMLESS 2\" SCH 80 (00)",
+            "qty": 1,
+            "unitPrice": 640000,
+            "totalPrice": 640000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-059",
+            "itemName": "PIPA SEAMLESS 1 1/2\" SCH 80 (00)",
+            "qty": 3,
+            "unitPrice": 477000,
+            "totalPrice": 1431000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-060",
+            "itemName": "RING PLAT (SS) 8 MM (00)",
+            "qty": 40,
+            "unitPrice": 500,
+            "totalPrice": 20000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-062",
+            "itemName": "ELBOW 2\" 45° SCH 80 (00)",
+            "qty": 6,
+            "unitPrice": 47000,
+            "totalPrice": 282000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-066",
+            "itemName": "PIPA SEAMLESS 2\" SCH 40 (00)",
+            "qty": 2,
+            "unitPrice": 479500,
+            "totalPrice": 959000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-067",
+            "itemName": "CLAMP PLAT 74-79 (00)",
+            "qty": 4,
+            "unitPrice": 15500,
+            "totalPrice": 62000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-068",
+            "itemName": "ELBOW 1 1/2\" SCH 80 (00)",
+            "qty": 6,
+            "unitPrice": 16000,
+            "totalPrice": 96000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-088",
+            "itemName": "B/N (SS) 5/8\" X 2 1/2\" (00)",
+            "qty": 46,
+            "unitPrice": 15000,
+            "totalPrice": 690000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-089",
+            "itemName": "ELBOW 4\" SCH 80 (00)",
+            "qty": 1,
+            "unitPrice": 167500,
+            "totalPrice": 167500,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-090",
+            "itemName": "ELBOW 45° 4\" SCH 80 (00)",
+            "qty": 2,
+            "unitPrice": 197000,
+            "totalPrice": 394000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-096",
+            "itemName": "KACA LAS BENING (00)",
+            "qty": 50,
+            "unitPrice": 1500,
+            "totalPrice": 75000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CPL-PP-2026-003__plan-097",
+            "itemName": "KACA BLASTING BENING 3 MM X 13 CM X 18 CM (00)",
+            "qty": 50,
+            "unitPrice": 7000,
+            "totalPrice": 350000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          }
+        ],
+        "negotiatedGrandTotal": 8000000,
+        "technicalStatus": "PASSED"
+      }
+    ],
+    "evaluationSummary": {
+      "evaluatedBy": "Administrator CPG",
+      "evaluatedAt": "2026-11-13T16:05:12.726Z",
+      "recommendationNotes": "Direkomendasikan pemenang tender kepada PT. Pelayaran Global Nusantara Supply berdasarkan evaluasi komparasi harga terendah responsif (CBT) dan kepatuhan RKS.",
+      "winningVendorId": "bid-3-1794585364361",
+      "winningVendorName": "PT. Pelayaran Global Nusantara Supply",
+      "winningAmount": 8000000,
+      "costSavingVsHps": 63537692,
+      "costSavingPercent": 88.8,
+      "approvalLevel": "SUPERVISOR",
+      "approvalStatus": "APPROVED",
+      "approvedBy": "Administrator CPG",
+      "approvedAt": "2026-11-13T16:05:12.726Z",
+      "approvalNotes": "",
+      "baepNumber": "BAEP-CPG-TDR-26-7906"
+    },
+    "awardedVendor": "PT. Pelayaran Global Nusantara Supply",
+    "awardedValue": 8000000,
+    "poNumberGenerated": "Armada-PO-26-92934"
+  }
+]
