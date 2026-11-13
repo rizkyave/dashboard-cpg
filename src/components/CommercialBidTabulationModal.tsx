@@ -110,19 +110,19 @@ export default function CommercialBidTabulationModal({
     return packageData.items.reduce((acc, it) => acc + (it.targetTotalPrice || (it.targetPrice || 0) * it.totalQty), 0);
   }, [packageData]);
 
-  // Ranking Bids by grandTotal or negotiatedGrandTotal
+  // Ranking Bids by grandTotal or negotiatedGrandTotal (live sync with negotiatedTotals)
   const rankedBids = useMemo(() => {
     const list = [...bids];
     list.sort((a, b) => {
-      const priceA = a.negotiatedGrandTotal || a.grandTotal;
-      const priceB = b.negotiatedGrandTotal || b.grandTotal;
+      const priceA = negotiatedTotals[a.id] !== undefined ? negotiatedTotals[a.id] : (a.negotiatedGrandTotal || a.grandTotal);
+      const priceB = negotiatedTotals[b.id] !== undefined ? negotiatedTotals[b.id] : (b.negotiatedGrandTotal || b.grandTotal);
       return priceA - priceB;
     });
     return list.map((bid, idx) => ({
       ...bid,
       ranking: idx + 1,
     }));
-  }, [bids]);
+  }, [bids, negotiatedTotals]);
 
   // Find lowest price per item across all bids
   const lowestPricePerItem = useMemo(() => {
@@ -392,8 +392,12 @@ export default function CommercialBidTabulationModal({
 
   // Helper Copy Berita Acara Evaluasi Pengadaan
   const handleCopyBaep = () => {
-    const winner = bids.find((b) => b.id === selectedWinnerId) || rankedBids[0];
-    const winVal = winner ? (winner.negotiatedGrandTotal || winner.grandTotal) : 0;
+    const winner = (selectedWinnerId ? bids.find((b) => b.id === selectedWinnerId) : null) || rankedBids[0];
+    const winVal = winner
+      ? (negotiatedTotals[winner.id] !== undefined
+          ? negotiatedTotals[winner.id]
+          : (winner.negotiatedGrandTotal || winner.grandTotal))
+      : 0;
     const saving = totalHps - winVal;
 
     const baepText = `================================================
@@ -410,8 +414,10 @@ Tanggal Evaluasi : ${new Date().toLocaleDateString('id-ID', { dateStyle: 'full' 
 RINGKASAN HASIL EVALUASI KOMERSIAL & PENAWARAN (CBT SAP):
 ${rankedBids
   .map(
-    (b, idx) =>
-      `${idx + 1}. ${b.vendorName}\n   - Penawaran Awal : Rp ${b.grandTotal.toLocaleString('id-ID')}\n   - Negosiasi/BAFO : Rp ${(b.negotiatedGrandTotal || b.grandTotal).toLocaleString('id-ID')}\n   - TOP / LeadTime : ${b.termOfPayment} / ${b.deliveryLeadTimeDays} hari\n   - Deviasi vs HPS : ${totalHps > 0 ? (((b.negotiatedGrandTotal || b.grandTotal) - totalHps) / totalHps * 100).toFixed(1) + '%' : '-'}`
+    (b, idx) => {
+      const bPrice = negotiatedTotals[b.id] !== undefined ? negotiatedTotals[b.id] : (b.negotiatedGrandTotal || b.grandTotal);
+      return `${idx + 1}. ${b.vendorName}\n   - Penawaran Awal : Rp ${b.grandTotal.toLocaleString('id-ID')}\n   - Negosiasi/BAFO : Rp ${bPrice.toLocaleString('id-ID')}\n   - TOP / LeadTime : ${b.termOfPayment} / ${b.deliveryLeadTimeDays} hari\n   - Deviasi vs HPS : ${totalHps > 0 ? (((bPrice) - totalHps) / totalHps * 100).toFixed(1) + '%' : '-'}`;
+    }
   )
   .join('\n\n')}
 
@@ -429,7 +435,12 @@ PT. Cipta Sarana Transindo - CPG Group
     setTimeout(() => setSuccessMsg(null), 3500);
   };
 
-  const winningBid = bids.find((b) => b.id === selectedWinnerId) || rankedBids[0];
+  const winningBid = (selectedWinnerId ? bids.find((b) => b.id === selectedWinnerId) : null) || rankedBids[0];
+  const winningBidValue = winningBid
+    ? (negotiatedTotals[winningBid.id] !== undefined
+        ? negotiatedTotals[winningBid.id]
+        : (winningBid.negotiatedGrandTotal || winningBid.grandTotal))
+    : 0;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-150">
@@ -1290,7 +1301,7 @@ PT. Cipta Sarana Transindo - CPG Group
                   <div className="text-right">
                     <span className="text-[10px] text-muted-foreground block">Nilai Kontrak / PO</span>
                     <span className="text-lg font-mono font-extrabold text-emerald-600 dark:text-emerald-400">
-                      Rp {(winningBid ? (winningBid.negotiatedGrandTotal || winningBid.grandTotal) : 0).toLocaleString('id-ID')}
+                      Rp {winningBidValue.toLocaleString('id-ID')}
                     </span>
                   </div>
                 </div>
@@ -1303,7 +1314,7 @@ PT. Cipta Sarana Transindo - CPG Group
                   <div>
                     <span className="text-muted-foreground text-[10px] block">Efisiensi Biaya (Saving)</span>
                     <strong className="font-mono text-emerald-600">
-                      Rp {(totalHps - (winningBid ? (winningBid.negotiatedGrandTotal || winningBid.grandTotal) : 0)).toLocaleString('id-ID')}
+                      Rp {(totalHps - winningBidValue).toLocaleString('id-ID')}
                     </strong>
                   </div>
                   <div>
