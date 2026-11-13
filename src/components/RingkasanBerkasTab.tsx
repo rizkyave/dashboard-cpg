@@ -364,14 +364,14 @@ export default function RingkasanBerkasTab({
           (rawArmada || 'Armada CPG');
       }
 
-      // Check Photos (Mencocokkan noTtb, nomor digit TTB, atau nama armada)
+      // Check Photos (HANYA mencocokkan nomor TTB spesifik dan nomor digit TTB-nya, JANGAN fallback ke nama armada agar foto dari TTB lain tidak bocor)
       let photoLookup: string[] = [];
       if (noTtb) {
         const cleanTtb = noTtb.toLowerCase();
         photoLookup = photoMap[cleanTtb] || photoMap[cleanTtb.replace(/[^a-z0-9]/g, '')] || [];
 
         if (photoLookup.length === 0) {
-          // Cari berdasarkan 4-6 digit angka dari nomor TTB
+          // Cari berdasarkan 4-6 digit angka dari nomor TTB spesifik tiket ini
           const digits = cleanTtb.match(/\b\d{4,6}\b/g) || [];
           for (const d of digits) {
             if (photoMap[d]?.length) {
@@ -385,12 +385,6 @@ export default function RingkasanBerkasTab({
             }
           }
         }
-      }
-
-      if (photoLookup.length === 0 && resolvedArmada && !/^(armada\s*cpg|cpg)$/i.test(resolvedArmada)) {
-        photoLookup = photoMap[resolvedArmada.toLowerCase()] || [];
-      } else if (photoLookup.length === 0 && normArmada) {
-        photoLookup = photoMap[normArmada] || [];
       }
 
       const hasPhotos = photoLookup.length > 0;
