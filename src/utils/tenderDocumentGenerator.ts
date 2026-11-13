@@ -157,16 +157,32 @@ export async function generateRksDocumentPdf(pkg: PratenderPackage): Promise<Uin
   });
 
   // Footer Tanda Tangan
-  curY -= 25;
-  const signY = Math.max(50, curY);
+  curY -= 28;
+  const signTopY = curY;
 
-  page.drawText('Dibuat & Diterbitkan Oleh,', { x: 70, y: signY + 45, size: 8, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
-  page.drawText('TIM PENGADAAN & PPIC CPG', { x: 70, y: signY + 32, size: 8.5, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
-  page.drawText('( Staf Purchasing Desk )', { x: 70, y: signY, size: 7.5, font: fontRegular, color: rgb(0.4, 0.45, 0.55) });
+  page.drawText('Dibuat & Diterbitkan Oleh,', { x: 70, y: signTopY, size: 8, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
+  page.drawText('Disetujui Oleh,', { x: 380, y: signTopY, size: 8, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
 
-  page.drawText('Disetujui Oleh,', { x: 380, y: signY + 45, size: 8, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
-  page.drawText('PURCHASING & FLEET LOGISTIC MGR', { x: 380, y: signY + 32, size: 8.5, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
-  page.drawText('( Pejabat Berwenang )', { x: 380, y: signY, size: 7.5, font: fontRegular, color: rgb(0.4, 0.45, 0.55) });
+  const signOrgY = signTopY - 14;
+  page.drawText('TIM PENGADAAN & PPIC CPG', { x: 70, y: signOrgY, size: 8.5, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
+  page.drawText('PURCHASING & FLEET LOGISTIC MGR', { x: 380, y: signOrgY, size: 8.5, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
+
+  const signBottomY = signOrgY - 44;
+  page.drawLine({
+    start: { x: 70, y: signBottomY + 12 },
+    end: { x: 230, y: signBottomY + 12 },
+    thickness: 0.75,
+    color: rgb(0.75, 0.8, 0.85),
+  });
+  page.drawLine({
+    start: { x: 380, y: signBottomY + 12 },
+    end: { x: 540, y: signBottomY + 12 },
+    thickness: 0.75,
+    color: rgb(0.75, 0.8, 0.85),
+  });
+
+  page.drawText('( Staf Purchasing Desk )', { x: 70, y: signBottomY, size: 7.5, font: fontRegular, color: rgb(0.4, 0.45, 0.55) });
+  page.drawText('( Pejabat Berwenang )', { x: 380, y: signBottomY, size: 7.5, font: fontRegular, color: rgb(0.4, 0.45, 0.55) });
 
   return await pdfDoc.save();
 }
@@ -363,16 +379,32 @@ export async function generateBaepDocumentPdf(pkg: PratenderPackage): Promise<Ui
   page.drawText(notesText.slice(115, 230), { x: 40, y: curY, size: 7.5, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
 
   // Signatures
-  curY -= 40;
-  const signY = Math.max(50, curY);
+  curY -= 28;
+  const signTopY = curY;
 
-  page.drawText('Disusun Oleh (Evaluator):', { x: 70, y: signY + 45, size: 8, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
-  page.drawText('PANITIA PENGADAAN CPG', { x: 70, y: signY + 32, size: 8.5, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
-  page.drawText('( Staf Purchasing & PPIC )', { x: 70, y: signY, size: 7.5, font: fontRegular, color: rgb(0.4, 0.45, 0.55) });
+  page.drawText('Disusun Oleh (Evaluator):', { x: 70, y: signTopY, size: 8, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
+  page.drawText('Disetujui Oleh (Approval Pemenang):', { x: 360, y: signTopY, size: 8, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
 
-  page.drawText('Disetujui Oleh (Approval Pemenang):', { x: 360, y: signY + 45, size: 8, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
-  page.drawText('DIREKSI / GENERAL MANAGER', { x: 360, y: signY + 32, size: 8.5, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
-  page.drawText('( Otoritas Penetapan Pemenang )', { x: 360, y: signY, size: 7.5, font: fontRegular, color: rgb(0.4, 0.45, 0.55) });
+  const signOrgY = signTopY - 14;
+  page.drawText('PANITIA PENGADAAN CPG', { x: 70, y: signOrgY, size: 8.5, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
+  page.drawText('DIREKSI / GENERAL MANAGER', { x: 360, y: signOrgY, size: 8.5, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
+
+  const signBottomY = signOrgY - 44;
+  page.drawLine({
+    start: { x: 70, y: signBottomY + 12 },
+    end: { x: 230, y: signBottomY + 12 },
+    thickness: 0.75,
+    color: rgb(0.75, 0.8, 0.85),
+  });
+  page.drawLine({
+    start: { x: 360, y: signBottomY + 12 },
+    end: { x: 530, y: signBottomY + 12 },
+    thickness: 0.75,
+    color: rgb(0.75, 0.8, 0.85),
+  });
+
+  page.drawText('( Staf Purchasing & PPIC )', { x: 70, y: signBottomY, size: 7.5, font: fontRegular, color: rgb(0.4, 0.45, 0.55) });
+  page.drawText('( Otoritas Penetapan Pemenang )', { x: 360, y: signBottomY, size: 7.5, font: fontRegular, color: rgb(0.4, 0.45, 0.55) });
 
   return await pdfDoc.save();
 }
@@ -498,8 +530,61 @@ export async function generatePoAwardDocumentPdf(
 
   curY -= 20;
 
+  let activePage = page;
+
+  // Helper untuk menambah halaman baru jika tabel atau footer melebihi kapasitas
+  const addNewPageIfOverflow = (neededHeight: number) => {
+    if (curY - neededHeight < 40) {
+      activePage = pdfDoc.addPage(PageSizes.A4);
+      const { width: pWidth, height: pHeight } = activePage.getSize();
+      activePage.drawRectangle({
+        x: 0,
+        y: pHeight - 45,
+        width: pWidth,
+        height: 45,
+        color: rgb(0.04, 0.1, 0.22),
+      });
+      activePage.drawText(`PT CINDARA PRATAMA LINES - PURCHASE ORDER (LANJUTAN)`, {
+        x: 40,
+        y: pHeight - 22,
+        size: 9,
+        font: fontBold,
+        color: rgb(1, 1, 1),
+      });
+      activePage.drawText(`NOMOR PO: ${poNumber}   •   REF PAKET: ${pkg.packageNumber}`, {
+        x: 40,
+        y: pHeight - 36,
+        size: 7.5,
+        font: fontRegular,
+        color: rgb(0.7, 0.85, 1.0),
+      });
+      curY = pHeight - 65;
+      return true;
+    }
+    return false;
+  };
+
   let grandTotalPo = 0;
-  (pkg.items || []).slice(0, 14).forEach((item, idx) => {
+  (pkg.items || []).forEach((item, idx) => {
+    // Check if new row fits on current page
+    const isNewPage = addNewPageIfOverflow(25);
+    if (isNewPage) {
+      activePage.drawRectangle({
+        x: 40,
+        y: curY - 18,
+        width: width - 80,
+        height: 18,
+        color: rgb(0.92, 0.94, 0.98),
+      });
+      activePage.drawText('NO', { x: 48, y: curY - 12, size: 7.5, font: fontBold, color: rgb(0.2, 0.25, 0.35) });
+      activePage.drawText('DESKRIPSI BARANG & SPESIFIKASI', { x: 75, y: curY - 12, size: 7.5, font: fontBold, color: rgb(0.2, 0.25, 0.35) });
+      activePage.drawText('QTY', { x: 290, y: curY - 12, size: 7.5, font: fontBold, color: rgb(0.2, 0.25, 0.35) });
+      activePage.drawText('SATUAN', { x: 330, y: curY - 12, size: 7.5, font: fontBold, color: rgb(0.2, 0.25, 0.35) });
+      activePage.drawText('HARGA SATUAN', { x: 380, y: curY - 12, size: 7.5, font: fontBold, color: rgb(0.2, 0.25, 0.35) });
+      activePage.drawText('TOTAL HARGA', { x: 470, y: curY - 12, size: 7.5, font: fontBold, color: rgb(0.2, 0.25, 0.35) });
+      curY -= 20;
+    }
+
     // Ambil harga satuan dari penawaran vendor jika ada, atau target price
     const vendorLine = winner?.items?.find((vi) => vi.itemId === item.itemId);
     const unitPrice = vendorLine && vendorLine.unitPrice > 0 ? vendorLine.unitPrice : (item.targetPrice || 0);
@@ -508,7 +593,7 @@ export async function generatePoAwardDocumentPdf(
 
     const isEven = idx % 2 === 0;
     if (isEven) {
-      page.drawRectangle({
+      activePage.drawRectangle({
         x: 40,
         y: curY - 14,
         width: width - 80,
@@ -517,12 +602,12 @@ export async function generatePoAwardDocumentPdf(
       });
     }
 
-    page.drawText(String(idx + 1), { x: 50, y: curY - 9, size: 7.5, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
-    page.drawText((item.itemName || '-').slice(0, 42), { x: 75, y: curY - 9, size: 7.5, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
-    page.drawText(String(item.totalQty || 1), { x: 295, y: curY - 9, size: 7.5, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
-    page.drawText(item.satuan || 'Pcs', { x: 330, y: curY - 9, size: 7.5, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
-    page.drawText(formatRupiah(unitPrice), { x: 380, y: curY - 9, size: 7.5, font: fontRegular, color: rgb(0.2, 0.25, 0.35) });
-    page.drawText(formatRupiah(lineTotal), { x: 470, y: curY - 9, size: 7.5, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
+    activePage.drawText(String(idx + 1), { x: 50, y: curY - 9, size: 7.5, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
+    activePage.drawText((item.itemName || '-').slice(0, 42), { x: 75, y: curY - 9, size: 7.5, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
+    activePage.drawText(String(item.totalQty || 1), { x: 295, y: curY - 9, size: 7.5, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
+    activePage.drawText(item.satuan || 'Pcs', { x: 330, y: curY - 9, size: 7.5, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
+    activePage.drawText(formatRupiah(unitPrice), { x: 380, y: curY - 9, size: 7.5, font: fontRegular, color: rgb(0.2, 0.25, 0.35) });
+    activePage.drawText(formatRupiah(lineTotal), { x: 470, y: curY - 9, size: 7.5, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
 
     curY -= 17;
   });
@@ -534,9 +619,12 @@ export async function generatePoAwardDocumentPdf(
     (winner && (winner.negotiatedGrandTotal || winner.grandTotal)) ||
     grandTotalPo;
 
+  // Pastikan ruang cukup untuk Box Total PO, Syarat Ketentuan, dan Tanda Tangan (butuh ~175 pt)
+  addNewPageIfOverflow(175);
+
   // Box Total PO
   curY -= 6;
-  page.drawRectangle({
+  activePage.drawRectangle({
     x: 350,
     y: curY - 22,
     width: width - 390,
@@ -546,13 +634,13 @@ export async function generatePoAwardDocumentPdf(
     color: rgb(0.94, 0.99, 0.96),
   });
 
-  page.drawText('TOTAL PURCHASE ORDER:', { x: 360, y: curY - 14, size: 8, font: fontBold, color: rgb(0.1, 0.45, 0.25) });
-  page.drawText(formatRupiah(finalPoVal), { x: 470, y: curY - 14, size: 9, font: fontBold, color: rgb(0.08, 0.5, 0.25) });
+  activePage.drawText('TOTAL PURCHASE ORDER:', { x: 360, y: curY - 14, size: 8, font: fontBold, color: rgb(0.1, 0.45, 0.25) });
+  activePage.drawText(formatRupiah(finalPoVal), { x: 470, y: curY - 14, size: 9, font: fontBold, color: rgb(0.08, 0.5, 0.25) });
 
-  curY -= 36;
+  curY -= 34;
 
   // Catatan Instruksi Pengantaran & Dokumen Penagihan
-  page.drawText('SYARAT & KETENTUAN PENERIMAAN / PENAGIHAN VENDOR:', {
+  activePage.drawText('SYARAT & KETENTUAN PENERIMAAN / PENAGIHAN VENDOR:', {
     x: 40,
     y: curY,
     size: 8.5,
@@ -568,25 +656,47 @@ export async function generatePoAwardDocumentPdf(
 
   curY -= 14;
   poNotes.forEach((n) => {
-    page.drawText(n, { x: 45, y: curY, size: 7, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
+    activePage.drawText(n, { x: 45, y: curY, size: 7, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
     curY -= 11;
   });
 
-  // Signatures PO
-  curY -= 25;
-  const signY = Math.max(45, curY);
+  // Signatures PO - Jarak aman ke bawah tanpa tumpang tindih
+  curY -= 24;
+  const signTopY = curY;
 
-  page.drawText('Dipesan Oleh (Purchasing):', { x: 60, y: signY + 45, size: 7.5, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
-  page.drawText('PT CINDARA PRATAMA LINES', { x: 60, y: signY + 32, size: 8, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
-  page.drawText('( Bagian Pengadaan / Purchasing )', { x: 60, y: signY, size: 7, font: fontRegular, color: rgb(0.4, 0.45, 0.55) });
+  activePage.drawText('Dipesan Oleh (Purchasing):', { x: 60, y: signTopY, size: 7.5, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
+  activePage.drawText('Disetujui Oleh (Management):', { x: 235, y: signTopY, size: 7.5, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
+  activePage.drawText('Dikonfirmasi Oleh Vendor:', { x: 410, y: signTopY, size: 7.5, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
 
-  page.drawText('Disetujui Oleh (Management):', { x: 235, y: signY + 45, size: 7.5, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
-  page.drawText('PURCHASING & LOGISTIC MGR', { x: 235, y: signY + 32, size: 8, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
-  page.drawText('( Pejabat Berwenang )', { x: 235, y: signY, size: 7, font: fontRegular, color: rgb(0.4, 0.45, 0.55) });
+  const signOrgY = signTopY - 14;
+  activePage.drawText('PT CINDARA PRATAMA LINES', { x: 60, y: signOrgY, size: 8, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
+  activePage.drawText('PURCHASING & LOGISTIC MGR', { x: 235, y: signOrgY, size: 8, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
+  activePage.drawText(vendorName.slice(0, 24).toUpperCase(), { x: 410, y: signOrgY, size: 8, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
 
-  page.drawText('Dikonfirmasi Oleh Vendor:', { x: 410, y: signY + 45, size: 7.5, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
-  page.drawText(vendorName.slice(0, 24).toUpperCase(), { x: 410, y: signY + 32, size: 8, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
-  page.drawText('( Tanda Tangan & Cap Perusahaan )', { x: 410, y: signY, size: 7, font: fontRegular, color: rgb(0.4, 0.45, 0.55) });
+  const signBottomY = signOrgY - 44;
+
+  activePage.drawLine({
+    start: { x: 60, y: signBottomY + 12 },
+    end: { x: 195, y: signBottomY + 12 },
+    thickness: 0.75,
+    color: rgb(0.75, 0.8, 0.85),
+  });
+  activePage.drawLine({
+    start: { x: 235, y: signBottomY + 12 },
+    end: { x: 370, y: signBottomY + 12 },
+    thickness: 0.75,
+    color: rgb(0.75, 0.8, 0.85),
+  });
+  activePage.drawLine({
+    start: { x: 410, y: signBottomY + 12 },
+    end: { x: 545, y: signBottomY + 12 },
+    thickness: 0.75,
+    color: rgb(0.75, 0.8, 0.85),
+  });
+
+  activePage.drawText('( Bagian Pengadaan / Purchasing )', { x: 60, y: signBottomY, size: 7, font: fontRegular, color: rgb(0.4, 0.45, 0.55) });
+  activePage.drawText('( Pejabat Berwenang )', { x: 235, y: signBottomY, size: 7, font: fontRegular, color: rgb(0.4, 0.45, 0.55) });
+  activePage.drawText('( Tanda Tangan & Cap Perusahaan )', { x: 410, y: signBottomY, size: 7, font: fontRegular, color: rgb(0.4, 0.45, 0.55) });
 
   return await pdfDoc.save();
 }
