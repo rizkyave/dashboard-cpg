@@ -731,6 +731,30 @@ export default function PurchasePlanningTab({
     });
   };
 
+  // Pilih semua item yang berstatus APPROVED (One-Click Bulk Select)
+  const handleSelectAllApproved = () => {
+    if (!data?.items) return;
+    const approvedItems = data.items.filter(
+      (it) => it.approvalStatus === 'APPROVED' && (!onlyUntendered || !getPratenderStatusForItem(it))
+    );
+    if (approvedItems.length === 0) {
+      showToast?.('Tidak ditemukan item berstatus APPROVED yang belum masuk paket tender.', 'info');
+      return;
+    }
+    setSelectedItemIds((prev) => {
+      const next = new Set(prev);
+      const isAllApprovedSelected = approvedItems.every((it) => next.has(it.id));
+      if (isAllApprovedSelected) {
+        approvedItems.forEach((it) => next.delete(it.id));
+        showToast?.('Batal memilih item Approved.', 'info');
+      } else {
+        approvedItems.forEach((it) => next.add(it.id));
+        showToast?.(`✓ ${approvedItems.length} item APPROVED berhasil dipilih untuk paket Pratender!`, 'success');
+      }
+      return next;
+    });
+  };
+
   // Pilih semua item dalam kategori tertentu (Per Kategori)
   const handleSelectByCategory = (catName: string) => {
     if (!data?.items) return;
@@ -2023,6 +2047,17 @@ export default function PurchasePlanningTab({
               title={sortOrder === 'asc' ? 'Urutan Naik (A-Z)' : 'Urutan Turun (Z-A)'}
             >
               <ArrowUpDown className="size-3.5" />
+            </button>
+
+            {/* Tombol One-Click Pilih Semua Approved */}
+            <button
+              type="button"
+              onClick={handleSelectAllApproved}
+              className="px-2.5 py-1.5 rounded-xl text-xs font-semibold border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
+              title="Pilih langsung semua item berstatus APPROVED untuk dibentuk ke paket Pratender"
+            >
+              <CheckCircle2 className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>Pilih Semua Approved</span>
             </button>
 
             {/* Filter Anti-Dobel (Belum Masuk Pratender) */}

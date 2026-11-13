@@ -30,7 +30,39 @@ interface TtbOption {
 
 type ConditionStatus = 'LENGKAP_BAIK' | 'SEBAGIAN_KURANG' | 'RUSAK_CACAT';
 
-async function compressImage(file: File): Promise<File> {
+async function getCurrentGpsCoordinates(): Promise<{ lat: number; lng: number } | null> {
+  return new Promise((resolve) => {
+    if (typeof window === 'undefined' || !navigator.geolocation) {
+      resolve(null);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        resolve({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        });
+      },
+      () => {
+        resolve(null);
+      },
+      { timeout: 3500, enableHighAccuracy: false }
+    );
+  });
+}
+
+interface WatermarkMetadata {
+  docNumber: string;
+  armada: string;
+  userName: string;
+  conditionStatus?: string;
+  gps?: { lat: number; lng: number } | null;
+}
+
+async function compressAndStampWatermark(
+  file: File,
+  meta: WatermarkMetadata
+): Promise<File> {
   return new Promise((resolve) => {
     if (!file.type.startsWith('image/')) {
       resolve(file);
@@ -55,9 +87,78 @@ async function compressImage(file: File): Promise<File> {
         resolve(file);
         return;
       }
-      ctx.fillStyle = '#FFFFFF';
+
+      // Draw original image
+      ctx.fillStyle = '#000000';
       ctx.fillRect(0, 0, width, height);
       ctx.drawImage(img, 0, 0, width, height);
+
+      // Watermark Overlay Banner (Bottom banner)
+      const bannerHeight = Math.max(54, Math.round(height * 0.09));
+      const bannerY = height - bannerHeight;
+
+      // Semi-transparent gradient bar for legibility
+      const grad = ctx.createLinearGradient(0, bannerY, 0, height);
+      grad.addColorStop(0, 'rgba(15, 23, 42, 0.78)');
+      grad.addColorStop(1, 'rgba(2, 6, 23, 0.94)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, bannerY, width, bannerHeight);
+
+      // Accent border
+      ctx.fillStyle = '#0284c7';
+      ctx.fillRect(0, bannerY, width, 2);
+
+      // Watermark Text Content
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('id-ID', {
+        timeZone: 'Asia/Makassar',
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit',
+      });
+      const timeStr = now.toLocaleTimeString('id-ID', {
+        timeZone: 'Asia/Makassar',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+
+      const fontSizePrimary = Math.max(11, Math.round(width * 0.016));
+      const fontSizeSecondary = Math.max(9.5, Math.round(width * 0.013));
+      const padX = Math.max(12, Math.round(width * 0.02));
+
+      // Left Column: Doc Number & Armada & Checker
+      ctx.fillStyle = '#ffffff';
+      ctx.font = `bold ${fontSizePrimary}px sans-serif`;
+      ctx.fillText(
+        `DOKUMEN TTB: ${meta.docNumber || 'SERAH TERIMA BARANG'} | ARMADA: ${meta.armada || 'CPG FLEET'}`,
+        padX,
+        bannerY + Math.round(bannerHeight * 0.42)
+      );
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = `${fontSizeSecondary}px sans-serif`;
+      const checkerStr = meta.userName ? `Petugas: ${meta.userName} | ` : '';
+      const condStr = meta.conditionStatus ? `Status: ${meta.conditionStatus} | ` : '';
+      ctx.fillText(
+        `${checkerStr}${condStr}OTENTIKASI TIM PENERIMA BARANG LAPANGAN`,
+        padX,
+        bannerY + Math.round(bannerHeight * 0.82)
+      );
+
+      // Right Column: Date, Time (WITA) & GPS Coordinates
+      const timeText = `📅 ${dateStr} ${timeStr} WITA`;
+      ctx.font = `bold ${fontSizeSecondary}px monospace`;
+      const timeWidth = ctx.measureText(timeText).width;
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillText(timeText, width - padX - timeWidth, bannerY + Math.round(bannerHeight * 0.42));
+
+      const gpsText = meta.gps ? `📍 ${meta.gps.lat.toFixed(5)}, ${meta.gps.lng.toFixed(5)}` : '📍 LOKASI OPERASIONAL CPG';
+      ctx.font = `${fontSizeSecondary}px monospace`;
+      const gpsWidth = ctx.measureText(gpsText).width;
+      ctx.fillStyle = '#cbd5e1';
+      ctx.fillText(gpsText, width - padX - gpsWidth, bannerY + Math.round(bannerHeight * 0.82));
+
       canvas.toBlob(
         (blob) => {
           if (!blob) {
@@ -72,7 +173,7 @@ async function compressImage(file: File): Promise<File> {
           );
         },
         'image/jpeg',
-        0.65
+        0.72
       );
     };
     img.onerror = () => {
@@ -265,10 +366,20 @@ function CekTtbContent() {
     if (picked.length === 0) return;
     const remainingSlot = Math.max(0, 10 - capturedPhotos.length);
     const slice = picked.slice(0, remainingSlot);
+
+    // Ambil GPS jika diizinkan browser
+    const gpsCoords = await getCurrentGpsCoordinates();
+
     const processed = await Promise.all(
       slice.map(async (f) => {
-        const compressed = await compressImage(f);
-        return { file: compressed, previewUrl: URL.createObjectURL(compressed) };
+        const stamped = await compressAndStampWatermark(f, {
+          docNumber: noTtb.trim() || 'TTB OTOMATIS',
+          armada: armada.trim() || 'ARMADA CPG',
+          userName: checkerName.trim() || 'Staf Penerima Barang',
+          conditionStatus,
+          gps: gpsCoords,
+        });
+        return { file: stamped, previewUrl: URL.createObjectURL(stamped) };
       })
     );
     setCapturedPhotos((prev) => [...prev, ...processed]);
