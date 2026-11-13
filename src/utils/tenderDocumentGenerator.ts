@@ -349,6 +349,217 @@ export async function generateBaepDocumentPdf(pkg: PratenderPackage): Promise<Ui
 }
 
 /**
+ * 3. GENERATE DOKUMEN PURCHASE ORDER (PO AWARD) KEPADA PEMENANG TENDER
+ */
+export async function generatePoAwardDocumentPdf(
+  pkg: PratenderPackage,
+  poNumberOverride?: string
+): Promise<Uint8Array> {
+  const pdfDoc = await PDFDocument.create();
+  const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+  const page = pdfDoc.addPage(PageSizes.A4);
+  const { width, height } = page.getSize();
+
+  // Header Banner Biru Gelap Korporat
+  page.drawRectangle({
+    x: 0,
+    y: height - 85,
+    width,
+    height: 85,
+    color: rgb(0.04, 0.1, 0.22),
+  });
+
+  page.drawText('PT CINDARA PRATAMA LINES & GROUP', {
+    x: 40,
+    y: height - 32,
+    size: 14,
+    font: fontBold,
+    color: rgb(1, 1, 1),
+  });
+
+  page.drawText('PURCHASE ORDER (PO) RESMI PENGADAAN & LOGISTIK ARMADA', {
+    x: 40,
+    y: height - 50,
+    size: 9.5,
+    font: fontBold,
+    color: rgb(0.2, 0.75, 0.95),
+  });
+
+  const entityPrefix = (pkg.items && pkg.items[0]?.vessels?.[0]?.split(' ')[0]) || 'CPL';
+  const cleanEntity = ['CPL', 'MO', 'HL', 'GAJ', 'SP'].includes(entityPrefix) ? entityPrefix : 'CPL';
+  const poNumber =
+    poNumberOverride ||
+    pkg.poNumberGenerated ||
+    `${cleanEntity}-PO-26-${String(Math.floor(10000 + Math.random() * 90000))}`;
+
+  page.drawText(`NOMOR PO: ${poNumber}   •   REF PAKET: ${pkg.packageNumber}`, {
+    x: 40,
+    y: height - 68,
+    size: 8.5,
+    font: fontBold,
+    color: rgb(0.9, 0.95, 1.0),
+  });
+
+  let curY = height - 110;
+
+  // 2 Kolom Informasi: Kiri Vendor Pemenang, Kanan Pengiriman & Entitas CPG
+  page.drawRectangle({
+    x: 40,
+    y: curY - 80,
+    width: width - 80,
+    height: 80,
+    borderColor: rgb(0.8, 0.85, 0.9),
+    borderWidth: 1,
+    color: rgb(0.98, 0.99, 1.0),
+  });
+
+  const winner = (pkg.vendorBids && pkg.vendorBids[0]) || null;
+  const vendorName = pkg.evaluationSummary?.winningVendorName || pkg.awardedVendor || winner?.vendorName || 'PT. Vendor Pemenang Tender';
+  const termOfPayment = winner?.termOfPayment || 'NET 30 Hari Setelah TTB';
+  const leadTimeDays = winner?.deliveryLeadTimeDays || 4;
+  const francoPoint = winner?.francoDeliveryPoint || 'Franco Somber Balikpapan';
+
+  // Kolom Kiri (Vendor)
+  page.drawText('KEPADA (VENDOR PEMENANG):', { x: 55, y: curY - 18, size: 8, font: fontBold, color: rgb(0.1, 0.45, 0.75) });
+  page.drawText(vendorName.slice(0, 36), { x: 55, y: curY - 34, size: 10, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
+  page.drawText(`PIC: ${winner?.vendorPic || 'Bagian Pemasaran / Sales'}`, { x: 55, y: curY - 48, size: 7.5, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
+  page.drawText(`Telp: ${winner?.vendorContact || '+62 812-xxxx-xxxx'}`, { x: 55, y: curY - 62, size: 7.5, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
+  page.drawText(`No. Penawaran: ${winner?.quotationRefNo || 'BAFO/TDR/2026'}`, { x: 55, y: curY - 74, size: 7.5, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
+
+  // Kolom Kanan (PO Detail & Franco)
+  page.drawText('KETENTUAN PENGIRIMAN & PENAGIHAN:', { x: 320, y: curY - 18, size: 8, font: fontBold, color: rgb(0.1, 0.45, 0.75) });
+  page.drawText(`Tanggal PO     : ${new Date().toLocaleDateString('id-ID', { dateStyle: 'long' })}`, { x: 320, y: curY - 34, size: 7.5, font: fontRegular, color: rgb(0.2, 0.25, 0.35) });
+  page.drawText(`Titik Serah    : ${francoPoint.slice(0, 32)}`, { x: 320, y: curY - 48, size: 7.5, font: fontRegular, color: rgb(0.2, 0.25, 0.35) });
+  page.drawText(`Waktu Kirim    : Maksimal ${leadTimeDays} Hari Kerja`, { x: 320, y: curY - 62, size: 7.5, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
+  page.drawText(`Term Pembayaran: ${termOfPayment}`, { x: 320, y: curY - 74, size: 7.5, font: fontBold, color: rgb(0.1, 0.55, 0.3) });
+
+  curY -= 105;
+
+  // Section Table: Rincian Barang yang Dipesan
+  page.drawText('RINCIAN MATERIAL PENGADAAN (PURCHASE ORDER ITEMS)', {
+    x: 40,
+    y: curY,
+    size: 9.5,
+    font: fontBold,
+    color: rgb(0.08, 0.15, 0.3),
+  });
+
+  curY -= 18;
+
+  // Table Header
+  page.drawRectangle({
+    x: 40,
+    y: curY - 18,
+    width: width - 80,
+    height: 18,
+    color: rgb(0.92, 0.94, 0.98),
+  });
+
+  page.drawText('NO', { x: 48, y: curY - 12, size: 7.5, font: fontBold, color: rgb(0.2, 0.25, 0.35) });
+  page.drawText('DESKRIPSI BARANG & SPESIFIKASI', { x: 75, y: curY - 12, size: 7.5, font: fontBold, color: rgb(0.2, 0.25, 0.35) });
+  page.drawText('QTY', { x: 290, y: curY - 12, size: 7.5, font: fontBold, color: rgb(0.2, 0.25, 0.35) });
+  page.drawText('SATUAN', { x: 330, y: curY - 12, size: 7.5, font: fontBold, color: rgb(0.2, 0.25, 0.35) });
+  page.drawText('HARGA SATUAN', { x: 380, y: curY - 12, size: 7.5, font: fontBold, color: rgb(0.2, 0.25, 0.35) });
+  page.drawText('TOTAL HARGA', { x: 470, y: curY - 12, size: 7.5, font: fontBold, color: rgb(0.2, 0.25, 0.35) });
+
+  curY -= 20;
+
+  let grandTotalPo = 0;
+  (pkg.items || []).slice(0, 14).forEach((item, idx) => {
+    // Ambil harga satuan dari penawaran vendor jika ada, atau target price
+    const vendorLine = winner?.items?.find((vi) => vi.itemId === item.itemId);
+    const unitPrice = vendorLine && vendorLine.unitPrice > 0 ? vendorLine.unitPrice : (item.targetPrice || 0);
+    const lineTotal = unitPrice * item.totalQty;
+    grandTotalPo += lineTotal;
+
+    const isEven = idx % 2 === 0;
+    if (isEven) {
+      page.drawRectangle({
+        x: 40,
+        y: curY - 14,
+        width: width - 80,
+        height: 16,
+        color: rgb(0.98, 0.99, 1.0),
+      });
+    }
+
+    page.drawText(String(idx + 1), { x: 50, y: curY - 9, size: 7.5, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
+    page.drawText((item.itemName || '-').slice(0, 42), { x: 75, y: curY - 9, size: 7.5, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
+    page.drawText(String(item.totalQty || 1), { x: 295, y: curY - 9, size: 7.5, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
+    page.drawText(item.satuan || 'Pcs', { x: 330, y: curY - 9, size: 7.5, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
+    page.drawText(formatRupiah(unitPrice), { x: 380, y: curY - 9, size: 7.5, font: fontRegular, color: rgb(0.2, 0.25, 0.35) });
+    page.drawText(formatRupiah(lineTotal), { x: 470, y: curY - 9, size: 7.5, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
+
+    curY -= 17;
+  });
+
+  // Jika ada nilai awarded / negosiasi khusus, gunakan itu sebagai total akhir
+  const finalPoVal =
+    pkg.evaluationSummary?.winningAmount ||
+    pkg.awardedValue ||
+    (winner && (winner.negotiatedGrandTotal || winner.grandTotal)) ||
+    grandTotalPo;
+
+  // Box Total PO
+  curY -= 6;
+  page.drawRectangle({
+    x: 350,
+    y: curY - 22,
+    width: width - 390,
+    height: 22,
+    borderColor: rgb(0.2, 0.7, 0.4),
+    borderWidth: 1,
+    color: rgb(0.94, 0.99, 0.96),
+  });
+
+  page.drawText('TOTAL PURCHASE ORDER:', { x: 360, y: curY - 14, size: 8, font: fontBold, color: rgb(0.1, 0.45, 0.25) });
+  page.drawText(formatRupiah(finalPoVal), { x: 470, y: curY - 14, size: 9, font: fontBold, color: rgb(0.08, 0.5, 0.25) });
+
+  curY -= 36;
+
+  // Catatan Instruksi Pengantaran & Dokumen Penagihan
+  page.drawText('SYARAT & KETENTUAN PENERIMAAN / PENAGIHAN VENDOR:', {
+    x: 40,
+    y: curY,
+    size: 8.5,
+    font: fontBold,
+    color: rgb(0.08, 0.15, 0.3),
+  });
+
+  const poNotes = [
+    '1. Surat Jalan & Invoice penagihan wajib mencantumkan Nomor PO resmi ini secara jelas.',
+    '2. Pengiriman barang wajib diperiksa oleh Petugas Gudang / Tim TTB CPG dan diterbitkan Formulir TTB resmi.',
+    '3. Penagihan (Invoice) wajib melampirkan berkas lengkap: Asli PO, Asli Surat Jalan / FSTB, dan Lembar Asli TTB.',
+  ];
+
+  curY -= 14;
+  poNotes.forEach((n) => {
+    page.drawText(n, { x: 45, y: curY, size: 7, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
+    curY -= 11;
+  });
+
+  // Signatures PO
+  curY -= 25;
+  const signY = Math.max(45, curY);
+
+  page.drawText('Dipesan Oleh (Purchasing):', { x: 60, y: signY + 45, size: 7.5, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
+  page.drawText('PT CINDARA PRATAMA LINES', { x: 60, y: signY + 32, size: 8, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
+  page.drawText('( Bagian Pengadaan / Purchasing )', { x: 60, y: signY, size: 7, font: fontRegular, color: rgb(0.4, 0.45, 0.55) });
+
+  page.drawText('Disetujui Oleh (Management):', { x: 235, y: signY + 45, size: 7.5, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
+  page.drawText('PURCHASING & LOGISTIC MGR', { x: 235, y: signY + 32, size: 8, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
+  page.drawText('( Pejabat Berwenang )', { x: 235, y: signY, size: 7, font: fontRegular, color: rgb(0.4, 0.45, 0.55) });
+
+  page.drawText('Dikonfirmasi Oleh Vendor:', { x: 410, y: signY + 45, size: 7.5, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
+  page.drawText(vendorName.slice(0, 24).toUpperCase(), { x: 410, y: signY + 32, size: 8, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
+  page.drawText('( Tanda Tangan & Cap Perusahaan )', { x: 410, y: signY, size: 7, font: fontRegular, color: rgb(0.4, 0.45, 0.55) });
+
+  return await pdfDoc.save();
+}
+
+/**
  * Trigger download file PDF di browser
  */
 export function triggerBrowserPdfDownload(bytes: Uint8Array, filename: string) {

@@ -26,7 +26,12 @@ import {
   Check,
   Truck,
   Calendar,
+  Download,
 } from 'lucide-react';
+import {
+  generatePoAwardDocumentPdf,
+  triggerBrowserPdfDownload,
+} from '@/utils/tenderDocumentGenerator';
 import {
   PratenderPackage,
   VendorBidSubmission,
@@ -381,8 +386,23 @@ export default function CommercialBidTabulationModal({
       };
 
       await onSavePackage(updatedPackage);
-      setSuccessMsg('Seluruh matriks komparasi & penetapan tender berhasil disahkan!');
-      setTimeout(() => setSuccessMsg(null), 3000);
+
+      // Jika aksi Terbitkan PO (COMPLETED), otomatis unduhkan berkas PDF Purchase Order resmi kepada pemenang
+      if (finalStatus === 'COMPLETED' && generatedPo) {
+        try {
+          const poBytes = await generatePoAwardDocumentPdf(updatedPackage, generatedPo);
+          triggerBrowserPdfDownload(poBytes, `PURCHASE_ORDER_${generatedPo}_${winner?.vendorName.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
+        } catch (pdfErr) {
+          console.warn('Gagal mengunduh otomatis PDF PO:', pdfErr);
+        }
+      }
+
+      setSuccessMsg(
+        finalStatus === 'COMPLETED'
+          ? `✓ Purchase Order ${generatedPo} berhasil diterbitkan & dokumen PDF PO resmi otomatis diunduh!`
+          : 'Seluruh matriks komparasi & penetapan tender berhasil disahkan!'
+      );
+      setTimeout(() => setSuccessMsg(null), 4000);
     } catch (err: any) {
       alert(`Gagal menyimpan: ${err.message}`);
     } finally {
@@ -1345,6 +1365,32 @@ PT. Cipta Sarana Transindo - CPG Group
                 </div>
 
                 <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        const winner = (selectedWinnerId ? bids.find((b) => b.id === selectedWinnerId) : null) || rankedBids[0];
+                        const mockPkg: PratenderPackage = {
+                          ...packageData,
+                          awardedVendor: winner?.vendorName,
+                          awardedValue: winningBidValue,
+                          poNumberGenerated: packageData.poNumberGenerated || `CPL-PO-26-${Math.floor(10000 + Math.random() * 90000)}`,
+                        };
+                        const poBytes = await generatePoAwardDocumentPdf(mockPkg, mockPkg.poNumberGenerated);
+                        triggerBrowserPdfDownload(poBytes, `PURCHASE_ORDER_${mockPkg.poNumberGenerated}_${winner?.vendorName.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
+                        setSuccessMsg(`✓ Berkas Purchase Order (PO Award) ${mockPkg.poNumberGenerated} berhasil diunduh!`);
+                        setTimeout(() => setSuccessMsg(null), 3000);
+                      } catch (err: any) {
+                        alert(`Gagal unduh PO: ${err.message}`);
+                      }
+                    }}
+                    className="px-3 py-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-xs font-bold text-emerald-700 dark:text-emerald-300 inline-flex items-center gap-1.5 transition cursor-pointer"
+                    title="Pratinjau & Unduh Dokumen Purchase Order (PO Award) Resmi untuk Pemenang Tender"
+                  >
+                    <Download className="size-3.5" />
+                    <span>Unduh PDF PO Award</span>
+                  </button>
+
                   <button
                     type="button"
                     onClick={handleCopyBaep}
