@@ -20,6 +20,7 @@ import {
   Clock,
   Sparkles,
   ChevronRight,
+  ChevronDown,
   ArrowRight,
   FileText,
   BadgePercent,
@@ -96,6 +97,15 @@ export default function CommercialBidTabulationModal({
     return map;
   });
 
+  // Technical Evaluation State (Status Kategori 1: 'PASSED' = Lolos Syarat Teknis, 'FAILED' = Tidak Lolos Evaluasi I)
+  const [technicalStatuses, setTechnicalStatuses] = useState<Record<string, 'PASSED' | 'FAILED'>>(() => {
+    const map: Record<string, 'PASSED' | 'FAILED'> = {};
+    bids.forEach((b) => {
+      map[b.id] = b.technicalStatus || 'PASSED';
+    });
+    return map;
+  });
+
   // Awarding & Approval State
   const [selectedWinnerId, setSelectedWinnerId] = useState<string>(
     packageData.evaluationSummary?.winningVendorId || bids[0]?.id || ''
@@ -103,6 +113,20 @@ export default function CommercialBidTabulationModal({
   const [approvalNotes, setApprovalNotes] = useState<string>(
     packageData.evaluationSummary?.approvalNotes || ''
   );
+
+  // Switch Technical Status with Winner Auto-Correction
+  const handleSetTechnicalStatus = (bidId: string, status: 'PASSED' | 'FAILED') => {
+    setTechnicalStatuses((prev) => {
+      const updated = { ...prev, [bidId]: status };
+      if (status === 'FAILED' && selectedWinnerId === bidId) {
+        const nextEligible = bids.find((b) => b.id !== bidId && (updated[b.id] ?? b.technicalStatus ?? 'PASSED') === 'PASSED');
+        if (nextEligible) {
+          setSelectedWinnerId(nextEligible.id);
+        }
+      }
+      return updated;
+    });
+  };
 
   // Calculate HPS Total
   const totalHps = useMemo(() => {
@@ -115,19 +139,39 @@ export default function CommercialBidTabulationModal({
     return packageData.items.reduce((acc, it) => acc + (it.targetTotalPrice || (it.targetPrice || 0) * it.totalQty), 0);
   }, [packageData]);
 
-  // Ranking Bids by grandTotal or negotiatedGrandTotal (live sync with negotiatedTotals)
+  // Ranking Bids: Evaluasi Kategori 1 (Syarat Teknis Pass/Fail) -> Kategori 2 (Harga Terendah Responsif)
   const rankedBids = useMemo(() => {
-    const list = [...bids];
-    list.sort((a, b) => {
+    const passedList = bids.filter((b) => (technicalStatuses[b.id] ?? b.technicalStatus ?? 'PASSED') === 'PASSED');
+    const failedList = bids.filter((b) => (technicalStatuses[b.id] ?? b.technicalStatus ?? 'PASSED') === 'FAILED');
+
+    passedList.sort((a, b) => {
       const priceA = negotiatedTotals[a.id] !== undefined ? negotiatedTotals[a.id] : (a.negotiatedGrandTotal || a.grandTotal);
       const priceB = negotiatedTotals[b.id] !== undefined ? negotiatedTotals[b.id] : (b.negotiatedGrandTotal || b.grandTotal);
       return priceA - priceB;
     });
-    return list.map((bid, idx) => ({
+
+    failedList.sort((a, b) => {
+      const priceA = negotiatedTotals[a.id] !== undefined ? negotiatedTotals[a.id] : (a.negotiatedGrandTotal || a.grandTotal);
+      const priceB = negotiatedTotals[b.id] !== undefined ? negotiatedTotals[b.id] : (b.negotiatedGrandTotal || b.grandTotal);
+      return priceA - priceB;
+    });
+
+    const rankedPassed = passedList.map((bid, idx) => ({
       ...bid,
       ranking: idx + 1,
+      isDisqualified: false,
+      technicalStatus: 'PASSED' as const,
     }));
-  }, [bids, negotiatedTotals]);
+
+    const rankedFailed = failedList.map((bid, idx) => ({
+      ...bid,
+      ranking: passedList.length + idx + 1,
+      isDisqualified: true,
+      technicalStatus: 'FAILED' as const,
+    }));
+
+    return [...rankedPassed, ...rankedFailed];
+  }, [bids, negotiatedTotals, technicalStatuses]);
 
   // Find lowest price per item across all bids
   const lowestPricePerItem = useMemo(() => {
@@ -236,7 +280,14 @@ export default function CommercialBidTabulationModal({
       v.ppnAmount = Math.round((sub * v.ppnPercent) / 100);
       v.grandTotal = v.subtotal + v.ppnAmount + v.deliveryFee;
       v.negotiatedGrandTotal = v.grandTotal;
+      v.technicalStatus = 'PASSED';
     });
+
+    const newTechMap: Record<string, 'PASSED' | 'FAILED'> = {};
+    mockVendors.forEach((v) => {
+      newTechMap[v.id] = 'PASSED';
+    });
+    setTechnicalStatuses(newTechMap);
 
     setBids(mockVendors);
     setSelectedWinnerId(mockVendors[2].id); // Vendor 3 terendah
@@ -288,11 +339,13 @@ export default function CommercialBidTabulationModal({
       deliveryFee: Number(newDeliveryFee || 0),
       grandTotal,
       negotiatedGrandTotal: grandTotal,
+      technicalStatus: 'PASSED',
       status: 'SUBMITTED',
     };
 
     const updated = [...bids, newBid];
     setBids(updated);
+    setTechnicalStatuses((prev) => ({ ...prev, [newBid.id]: 'PASSED' }));
     if (!selectedWinnerId) setSelectedWinnerId(newBid.id);
     setIsAddingBid(false);
 
@@ -322,9 +375,10 @@ export default function CommercialBidTabulationModal({
   const handleSaveAllToPackage = async (finalStatus?: 'EVALUATION' | 'AWARDED' | 'COMPLETED') => {
     setIsSaving(true);
     try {
-      // Find winning vendor details
-      const winner = bids.find((b) => b.id === selectedWinnerId) || rankedBids[0];
-      const winVal = winner ? (winner.negotiatedGrandTotal || winner.grandTotal) : undefined;
+      // Find winning vendor details (strictly from technically eligible bids)
+      const eligibleBids = rankedBids.filter((b) => !b.isDisqualified);
+      const winner = (selectedWinnerId ? eligibleBids.find((b) => b.id === selectedWinnerId) : null) || eligibleBids[0] || rankedBids[0];
+      const winVal = winner ? (negotiatedTotals[winner.id] !== undefined ? negotiatedTotals[winner.id] : (winner.negotiatedGrandTotal || winner.grandTotal)) : undefined;
       const costSaving = totalHps > 0 && winVal ? totalHps - winVal : 0;
       const costSavingPct = totalHps > 0 && winVal ? Math.round((costSaving / totalHps) * 1000) / 10 : 0;
 
@@ -353,13 +407,21 @@ export default function CommercialBidTabulationModal({
         baepNumber: `BAEP-${packageData.packageNumber.replace('PKG-', '')}`,
       };
 
-      // Prepare updated bids with negotiation values
-      const updatedBids = bids.map((b) => ({
-        ...b,
-        negotiatedGrandTotal: negotiatedTotals[b.id] !== undefined ? negotiatedTotals[b.id] : b.grandTotal,
-        negotiationNotes: negotiationNotes[b.id] || b.negotiationNotes,
-        status: b.id === winner?.id ? ('RECOMMENDED' as const) : ('UNDER_EVALUATION' as const),
-      }));
+      // Prepare updated bids with negotiation values and technical evaluation status
+      const updatedBids = bids.map((b) => {
+        const isFailed = (technicalStatuses[b.id] ?? b.technicalStatus ?? 'PASSED') === 'FAILED';
+        return {
+          ...b,
+          technicalStatus: isFailed ? ('FAILED' as const) : ('PASSED' as const),
+          negotiatedGrandTotal: negotiatedTotals[b.id] !== undefined ? negotiatedTotals[b.id] : b.grandTotal,
+          negotiationNotes: negotiationNotes[b.id] || b.negotiationNotes,
+          status: isFailed
+            ? ('REJECTED' as const)
+            : b.id === winner?.id
+            ? ('RECOMMENDED' as const)
+            : ('UNDER_EVALUATION' as const),
+        };
+      });
 
       let newStatus = finalStatus || packageData.status;
       if (bids.length > 0 && newStatus === 'DRAFT') {
@@ -412,7 +474,8 @@ export default function CommercialBidTabulationModal({
 
   // Helper Copy Berita Acara Evaluasi Pengadaan
   const handleCopyBaep = () => {
-    const winner = (selectedWinnerId ? bids.find((b) => b.id === selectedWinnerId) : null) || rankedBids[0];
+    const eligibleBids = rankedBids.filter((b) => !b.isDisqualified);
+    const winner = (selectedWinnerId ? eligibleBids.find((b) => b.id === selectedWinnerId) : null) || eligibleBids[0] || rankedBids[0];
     const winVal = winner
       ? (negotiatedTotals[winner.id] !== undefined
           ? negotiatedTotals[winner.id]
@@ -436,14 +499,16 @@ ${rankedBids
   .map(
     (b, idx) => {
       const bPrice = negotiatedTotals[b.id] !== undefined ? negotiatedTotals[b.id] : (b.negotiatedGrandTotal || b.grandTotal);
-      return `${idx + 1}. ${b.vendorName}\n   - Penawaran Awal : Rp ${b.grandTotal.toLocaleString('id-ID')}\n   - Negosiasi/BAFO : Rp ${bPrice.toLocaleString('id-ID')}\n   - TOP / LeadTime : ${b.termOfPayment} / ${b.deliveryLeadTimeDays} hari\n   - Deviasi vs HPS : ${totalHps > 0 ? (((bPrice) - totalHps) / totalHps * 100).toFixed(1) + '%' : '-'}`;
+      const isFailed = (technicalStatuses[b.id] ?? b.technicalStatus ?? 'PASSED') === 'FAILED';
+      const statusKet = isFailed ? 'TIDAK LOLOS EVALUASI I (GUGUR TEKNIS)' : 'LOLOS SYARAT TEKNIS';
+      return `${idx + 1}. ${b.vendorName} [${statusKet}]\n   - Penawaran Awal : Rp ${b.grandTotal.toLocaleString('id-ID')}\n   - Negosiasi/BAFO : Rp ${bPrice.toLocaleString('id-ID')}\n   - TOP / LeadTime : ${b.termOfPayment} / ${b.deliveryLeadTimeDays} hari\n   - Deviasi vs HPS : ${totalHps > 0 ? (((bPrice) - totalHps) / totalHps * 100).toFixed(1) + '%' : '-'}`;
     }
   )
   .join('\n\n')}
 
 USULAN PENETAPAN PEMENANG TENDER:
 1. Pemenang I : ${winner?.vendorName || '-'} (Nilai: Rp ${winVal.toLocaleString('id-ID')})
-2. Cadangan I : ${rankedBids[1]?.vendorName || 'Tidak Ada'}
+2. Cadangan I : ${eligibleBids[1]?.vendorName || 'Tidak Ada'}
 Total Efisiensi Biaya (Cost Saving) : Rp ${saving.toLocaleString('id-ID')} (${totalHps > 0 ? ((saving / totalHps) * 100).toFixed(1) : 0}%)
 
 Disahkan Oleh Tim Pengadaan (Purchasing Desk)
@@ -455,7 +520,8 @@ PT. Cipta Sarana Transindo - CPG Group
     setTimeout(() => setSuccessMsg(null), 3500);
   };
 
-  const winningBid = (selectedWinnerId ? bids.find((b) => b.id === selectedWinnerId) : null) || rankedBids[0];
+  const eligibleBids = rankedBids.filter((b) => !b.isDisqualified);
+  const winningBid = (selectedWinnerId ? eligibleBids.find((b) => b.id === selectedWinnerId) : null) || eligibleBids[0] || rankedBids[0];
   const winningBidValue = winningBid
     ? (negotiatedTotals[winningBid.id] !== undefined
         ? negotiatedTotals[winningBid.id]
@@ -1164,52 +1230,102 @@ PT. Cipta Sarana Transindo - CPG Group
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/60">
-                    {rankedBids.map((b, idx) => (
-                      <tr key={b.id} className="hover:bg-muted/20">
-                        <td className="py-3 px-4 font-mono font-bold">
-                          <span
-                            className={`inline-flex items-center justify-center size-6 rounded-full text-xs ${
-                              idx === 0
-                                ? 'bg-emerald-500 text-white'
-                                : idx === 1
-                                ? 'bg-sky-500 text-white'
-                                : 'bg-muted text-muted-foreground'
-                            }`}
-                          >
-                            {idx + 1}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 font-semibold text-foreground">
-                          <div>{b.vendorName}</div>
-                          <div className="text-[10px] text-muted-foreground">
-                            PIC: {b.vendorPic || '-'} ({b.vendorContact || '-'})
-                          </div>
-                        </td>
-                        <td className="py-3 px-3">
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                            <Check className="size-3" />
-                            Lolos Syarat Teknis
-                          </span>
-                        </td>
-                        <td className="py-3 px-3 font-mono">{b.termOfPayment}</td>
-                        <td className="py-3 px-3 text-right font-mono font-bold text-foreground">
-                          Rp {(b.negotiatedGrandTotal || b.grandTotal).toLocaleString('id-ID')}
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          {idx === 0 ? (
-                            <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
-                              Calon Pemenang Utama
-                            </span>
-                          ) : idx === 1 ? (
-                            <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/20">
-                              Cadangan I
-                            </span>
-                          ) : (
-                            <span className="text-muted-foreground text-[11px]">Memenuhi Syarat</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
+                    {rankedBids.map((b) => {
+                      const isFailed = (technicalStatuses[b.id] ?? b.technicalStatus ?? 'PASSED') === 'FAILED';
+                      return (
+                        <tr
+                          key={b.id}
+                          className={isFailed ? 'bg-rose-500/[0.04] hover:bg-rose-500/[0.08] transition-colors' : 'hover:bg-muted/20 transition-colors'}
+                        >
+                          <td className="py-3 px-4 font-mono font-bold">
+                            {isFailed ? (
+                              <span
+                                className="inline-flex items-center justify-center size-6 rounded-full text-xs font-bold bg-rose-500/20 text-rose-600 dark:text-rose-400"
+                                title="Tidak Lolos Evaluasi I"
+                              >
+                                ✕
+                              </span>
+                            ) : (
+                              <span
+                                className={`inline-flex items-center justify-center size-6 rounded-full text-xs ${
+                                  b.ranking === 1
+                                    ? 'bg-emerald-500 text-white shadow-xs'
+                                    : b.ranking === 2
+                                    ? 'bg-sky-500 text-white'
+                                    : 'bg-muted text-muted-foreground'
+                                }`}
+                              >
+                                {b.ranking}
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 font-semibold text-foreground">
+                            <div className="flex items-center gap-2">
+                              <span>{b.vendorName}</span>
+                              {isFailed && (
+                                <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/25">
+                                  GUGUR TEKNIS
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[10px] text-muted-foreground">
+                              PIC: {b.vendorPic || '-'} ({b.vendorContact || '-'})
+                            </div>
+                          </td>
+                          <td className="py-3 px-3">
+                            {/* DROPDOWN STATUS KATEGORI 1 */}
+                            <div className="relative inline-flex items-center">
+                              <select
+                                value={technicalStatuses[b.id] ?? b.technicalStatus ?? 'PASSED'}
+                                onChange={(e) =>
+                                  handleSetTechnicalStatus(b.id, e.target.value as 'PASSED' | 'FAILED')
+                                }
+                                className={`text-[11px] font-bold py-1.5 pl-3 pr-7 rounded-full border appearance-none cursor-pointer transition-all shadow-xs focus:outline-none focus:ring-2 ${
+                                  !isFailed
+                                    ? 'bg-emerald-500/10 hover:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 focus:ring-emerald-500/20'
+                                    : 'bg-rose-500/10 hover:bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30 focus:ring-rose-500/20'
+                                }`}
+                              >
+                                <option value="PASSED" className="bg-background text-foreground font-semibold">
+                                  ✓ Lolos Syarat Teknis
+                                </option>
+                                <option value="FAILED" className="bg-background text-rose-600 dark:text-rose-400 font-semibold">
+                                  ✕ Tidak Lolos Evaluasi I
+                                </option>
+                              </select>
+                              <ChevronDown
+                                className={`size-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none ${
+                                  !isFailed
+                                    ? 'text-emerald-600 dark:text-emerald-400'
+                                    : 'text-rose-600 dark:text-rose-400'
+                                }`}
+                              />
+                            </div>
+                          </td>
+                          <td className="py-3 px-3 font-mono">{b.termOfPayment}</td>
+                          <td className="py-3 px-3 text-right font-mono font-bold text-foreground">
+                            Rp {(b.negotiatedGrandTotal || b.grandTotal).toLocaleString('id-ID')}
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            {isFailed ? (
+                              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/20">
+                                Gugur Evaluasi I
+                              </span>
+                            ) : b.ranking === 1 ? (
+                              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                                Calon Pemenang Utama
+                              </span>
+                            ) : b.ranking === 2 ? (
+                              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/20">
+                                Cadangan I
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground text-[11px]">Memenuhi Syarat</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -1236,23 +1352,42 @@ PT. Cipta Sarana Transindo - CPG Group
                   const initialPrice = b.grandTotal;
                   const currentNeg = negotiatedTotals[b.id] !== undefined ? negotiatedTotals[b.id] : initialPrice;
                   const saving = initialPrice - currentNeg;
+                  const isFailed = (technicalStatuses[b.id] ?? b.technicalStatus ?? 'PASSED') === 'FAILED';
 
                   return (
                     <div
                       key={b.id}
-                      className="bg-card border border-border rounded-2xl p-4 shadow-sm space-y-3"
+                      className={`bg-card border rounded-2xl p-4 shadow-sm space-y-3 transition-colors ${
+                        isFailed ? 'border-rose-500/30 bg-rose-500/[0.02]' : 'border-border'
+                      }`}
                     >
+                      {isFailed && (
+                        <div className="bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-300 text-[11px] font-semibold px-3 py-1.5 rounded-xl flex items-center gap-2">
+                          <AlertCircle className="size-3.5 shrink-0 text-rose-600" />
+                          <span>Rekanan Tidak Lolos Evaluasi I (Gugur Syarat Teknis). Negosiasi tidak mempengaruhi nominasi pemenang.</span>
+                        </div>
+                      )}
+
                       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-2">
                         <div className="flex items-center gap-2">
                           <span
                             className={`size-6 rounded-full flex items-center justify-center font-mono text-xs font-bold ${
-                              idx === 0 ? 'bg-emerald-500 text-white' : 'bg-muted text-muted-foreground'
+                              isFailed
+                                ? 'bg-rose-500/20 text-rose-600 dark:text-rose-400'
+                                : idx === 0
+                                ? 'bg-emerald-500 text-white'
+                                : 'bg-muted text-muted-foreground'
                             }`}
                           >
-                            {idx + 1}
+                            {isFailed ? '✕' : b.ranking}
                           </span>
-                          <h4 className="font-bold text-foreground text-xs sm:text-sm">
-                            {b.vendorName}
+                          <h4 className="font-bold text-foreground text-xs sm:text-sm flex items-center gap-2">
+                            <span>{b.vendorName}</span>
+                            {isFailed && (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                                Tidak Lolos Evaluasi I
+                              </span>
+                            )}
                           </h4>
                         </div>
                         <div className="text-xs text-muted-foreground">

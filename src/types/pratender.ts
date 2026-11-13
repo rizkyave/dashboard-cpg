@@ -43,6 +43,7 @@ export interface VendorBidSubmission {
   commercialScore?: number; // 0 - 100
   overallScore?: number; // 0 - 100
   ranking?: number;
+  technicalStatus?: 'PASSED' | 'FAILED'; // 'PASSED' = Lolos Syarat Teknis, 'FAILED' = Tidak Lolos Evaluasi I
   status: 'SUBMITTED' | 'UNDER_EVALUATION' | 'NEGOTIATION' | 'RECOMMENDED' | 'AWARDED' | 'REJECTED';
   negotiationNotes?: string;
   negotiatedGrandTotal?: number; // BAFO (Best & Final Offer)

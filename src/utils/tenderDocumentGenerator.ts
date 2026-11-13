@@ -289,13 +289,18 @@ export async function generateBaepDocumentPdf(pkg: PratenderPackage): Promise<Ui
 
   const bidsList: VendorBidSubmission[] = (pkg.vendorBids || []).slice();
   bidsList.sort((a, b) => {
+    const isFailedA = a.technicalStatus === 'FAILED';
+    const isFailedB = b.technicalStatus === 'FAILED';
+    if (isFailedA && !isFailedB) return 1;
+    if (!isFailedA && isFailedB) return -1;
     const pA = a.negotiatedGrandTotal || a.grandTotal;
     const pB = b.negotiatedGrandTotal || b.grandTotal;
     return pA - pB;
   });
 
   bidsList.forEach((bid, idx) => {
-    const isWinner = idx === 0;
+    const isDisqualified = bid.technicalStatus === 'FAILED';
+    const isWinner = !isDisqualified && idx === 0;
     if (isWinner) {
       page.drawRectangle({
         x: 40,
@@ -304,10 +309,34 @@ export async function generateBaepDocumentPdf(pkg: PratenderPackage): Promise<Ui
         height: 16,
         color: rgb(0.9, 0.98, 0.93),
       });
+    } else if (isDisqualified) {
+      page.drawRectangle({
+        x: 40,
+        y: curY - 14,
+        width: width - 80,
+        height: 16,
+        color: rgb(0.99, 0.94, 0.94),
+      });
     }
 
-    page.drawText(`#${idx + 1}`, { x: 50, y: curY - 9, size: 7.5, font: fontBold, color: isWinner ? rgb(0.1, 0.6, 0.3) : rgb(0.3, 0.35, 0.45) });
-    page.drawText((bid.vendorName || '-').slice(0, 32), { x: 85, y: curY - 9, size: 7.5, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
+    const rankLabel = isDisqualified ? 'GUGUR' : `#${idx + 1}`;
+    page.drawText(rankLabel, {
+      x: 46,
+      y: curY - 9,
+      size: 7,
+      font: fontBold,
+      color: isWinner ? rgb(0.1, 0.6, 0.3) : isDisqualified ? rgb(0.8, 0.2, 0.2) : rgb(0.3, 0.35, 0.45),
+    });
+    const vendorDisplayName = isDisqualified
+      ? `${(bid.vendorName || '-').slice(0, 24)} (GUGUR I)`
+      : (bid.vendorName || '-').slice(0, 32);
+    page.drawText(vendorDisplayName, {
+      x: 85,
+      y: curY - 9,
+      size: 7.5,
+      font: fontBold,
+      color: isDisqualified ? rgb(0.7, 0.2, 0.2) : rgb(0.1, 0.15, 0.25),
+    });
     page.drawText(formatRupiah(bid.grandTotal), { x: 260, y: curY - 9, size: 7.5, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
     page.drawText(formatRupiah(bid.negotiatedGrandTotal || bid.grandTotal), { x: 360, y: curY - 9, size: 7.5, font: fontBold, color: isWinner ? rgb(0.1, 0.6, 0.3) : rgb(0.1, 0.15, 0.25) });
     page.drawText(`${bid.deliveryLeadTimeDays || 7} Hari`, { x: 470, y: curY - 9, size: 7.5, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
@@ -415,7 +444,10 @@ export async function generatePoAwardDocumentPdf(
     color: rgb(0.98, 0.99, 1.0),
   });
 
-  const winner = (pkg.vendorBids && pkg.vendorBids[0]) || null;
+  const winner = (pkg.vendorBids && pkg.vendorBids.find((b) => b.id === pkg.evaluationSummary?.winningVendorId))
+    || (pkg.vendorBids && pkg.vendorBids.find((b) => b.technicalStatus !== 'FAILED'))
+    || (pkg.vendorBids && pkg.vendorBids[0])
+    || null;
   const vendorName = pkg.evaluationSummary?.winningVendorName || pkg.awardedVendor || winner?.vendorName || 'PT. Vendor Pemenang Tender';
   const termOfPayment = winner?.termOfPayment || 'NET 30 Hari Setelah TTB';
   const leadTimeDays = winner?.deliveryLeadTimeDays || 4;
