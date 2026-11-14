@@ -1048,7 +1048,7 @@ export default function OverviewTab({
 
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 shrink-0">
                         {rec.reviewStatus === 'APPROVED_PO'
-                          ? 'Disetujui PO'
+                          ? 'Purchase Planning'
                           : rec.reviewStatus === 'FULFILL_STOCK'
                           ? 'Penuhi Stok'
                           : rec.reviewStatus === 'REJECTED'

@@ -135,7 +135,7 @@ export default function LogisticsApprovalCell({
           type="button"
           onClick={handleCopyWa}
           className="p-1 rounded text-muted-foreground hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-500/10 transition cursor-pointer"
-          title="Salin teks format WhatsApp persetujuan PO & No. TKB ke clipboard"
+          title="Salin teks format WhatsApp persetujuan Purchase Planning & No. TKB ke clipboard"
         >
           {isCopied ? <Check className="size-3 text-emerald-500" /> : <Copy className="size-3" />}
         </button>

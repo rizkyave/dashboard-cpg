@@ -1361,7 +1361,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
             <CheckCircle2 className="size-3.5" />
-            Disetujui Terbit PO
+            Disetujui Masuk Purchase Planning
           </span>
         );
       case 'FULFILL_STOCK':
@@ -1776,7 +1776,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
             <div className="text-[10px] text-muted-foreground">Perlu review tim</div>
           </div>
 
-          {/* Disetujui Terbit PO */}
+          {/* Disetujui Masuk Purchase Planning */}
           <div
             onClick={() => setSelectedStatus(selectedStatus === 'APPROVED_PO' ? 'ALL' : 'APPROVED_PO')}
             className={`p-3.5 rounded-xl border transition cursor-pointer ${
@@ -1786,11 +1786,11 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
             }`}
           >
             <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400 mb-1">
-              <span className="text-xs font-medium">Disetujui PO</span>
+              <span className="text-xs font-medium">Purchase Planning</span>
               <FileCheck className="size-4 text-emerald-500" />
             </div>
             <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400">{metrics.approvedPo}</div>
-            <div className="text-[10px] text-muted-foreground">Diproses purchasing</div>
+            <div className="text-[10px] text-muted-foreground">Masuk perencanaan</div>
           </div>
 
           {/* Penuhi dari Stok */}
@@ -1906,7 +1906,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
               >
                 <option value="ALL">Semua Status Review</option>
                 <option value="PENDING_REVIEW">Menunggu Analisa</option>
-                <option value="APPROVED_PO">Disetujui Terbit PO</option>
+                <option value="APPROVED_PO">Disetujui Masuk Purchase Planning</option>
                 <option value="FULFILL_STOCK">Dipenuhi dari Stok</option>
                 <option value="NEED_CLARIFICATION">Perlu Klarifikasi</option>
                 <option value="REJECTED">Ditolak</option>
@@ -2192,7 +2192,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                             {/* Status kolom "Item & Stok" (misal: "Perlu PO") hanya boleh aktif setelah FPB disetujui, bukan saat berkas masih di tahap analisa awal */}
                             {rec.reviewStatus === 'APPROVED_PO' ? (
                               <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
-                                {inStockCount > 0 ? `${inStockCount} stok / sisa PO` : 'Perlu PO'}
+                                {inStockCount > 0 ? `${inStockCount} stok / sisa Planning` : 'Purchase Planning'}
                               </span>
                             ) : rec.reviewStatus === 'FULFILL_STOCK' ? (
                               <span className="text-[11px] font-medium text-cyan-600 dark:text-cyan-400">
@@ -2370,10 +2370,10 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                     }}
                     disabled={isApprovingLogistic}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition cursor-pointer"
-                    title="Telah disetujui untuk Terbit PO. Klik untuk membatalkan / kembalikan ke Menunggu Analisa."
+                    title="Telah disetujui masuk Purchase Planning. Klik untuk membatalkan / kembalikan ke Menunggu Analisa."
                   >
                     <CheckCircle2 className="size-3.5 text-white" />
-                    <span>✓ Disetujui Terbit PO</span>
+                    <span>✓ Disetujui Masuk Purchase Planning</span>
                   </button>
                 ) : (
                   <button
@@ -2382,11 +2382,11 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                       setFormStatus('APPROVED_PO');
                       setFormIsReceivedLogistik(true);
                       if (selectedRecord) handleQuickApproveLogistic(selectedRecord, true);
-                      showToast?.('Pengajuan FPB disetujui untuk terbit PO pengadaan!', 'success');
+                      showToast?.('Pengajuan FPB disetujui masuk Purchase Planning!', 'success');
                     }}
                     disabled={isApprovingLogistic}
                     className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white shadow-xs transition cursor-pointer disabled:opacity-50"
-                    title="Klik untuk menyetujui dokumen ini dan meneruskannya ke antrean Purchasing (mengubah status menjadi hijau)"
+                    title="Klik untuk menyetujui dokumen ini dan meneruskannya ke antrean Purchase Planning (mengubah status menjadi hijau)"
                   >
                     <CheckCircle2 className="size-3.5" />
                     <span>Setujui &amp; Teruskan ke Purchasing</span>
@@ -3240,7 +3240,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                     </span>
                     {formStatus === 'APPROVED_PO' ? (
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-600 text-white shadow-2xs">
-                        ✓ DISETUJUI TERBIT PO (PURCHASING)
+                        ✓ DISETUJUI MASUK PURCHASE PLANNING
                       </span>
                     ) : formStatus === 'FULFILL_STOCK' ? (
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-600 text-white shadow-2xs">
@@ -3254,14 +3254,14 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                   </div>
                   <p className="text-[11px] text-muted-foreground">
                     {formStatus === 'APPROVED_PO'
-                      ? 'Dokumen FPB ini telah disetujui Tim FPB untuk diterbitkan PO pengadaan. Tim Purchasing diizinkan segera memproses PO.'
+                      ? 'Dokumen FPB ini telah disetujui Tim Review untuk diteruskan ke tahap Perencanaan Pengadaan (Purchase Planning & Konsolidasi Kebutuhan).'
                       : formStatus === 'FULFILL_STOCK'
                       ? 'Dokumen FPB ini disetujui untuk dipenuhi dari stok gudang perusahaan tanpa menerbitkan PO baru.'
                       : 'Dokumen FPB ini belum disetujui (default: tombol orange). Tekan tombol di sebelah kanan untuk menyetujui dan mengubah status menjadi hijau.'}
                   </p>
                 </div>
 
-                {/* Tombol Persetujuan (Default: Orange, Menjadi Hijau jika Tim FPB menyetujui untuk PO) */}
+                {/* Tombol Persetujuan (Default: Orange, Menjadi Hijau jika Tim FPB menyetujui untuk Purchase Planning) */}
                 <button
                   type="button"
                   onClick={() => {
@@ -3274,7 +3274,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                       setFormStatus('APPROVED_PO');
                       setFormIsReceivedLogistik(true);
                       if (selectedRecord) handleQuickApproveLogistic(selectedRecord, true);
-                      showToast?.('Pengajuan FPB disetujui untuk terbit PO pengadaan!', 'success');
+                      showToast?.('Pengajuan FPB disetujui masuk Purchase Planning!', 'success');
                     }
                   }}
                   className={`px-4 py-2 rounded-lg text-xs font-bold transition shadow-xs cursor-pointer inline-flex items-center gap-1.5 select-none ${
@@ -3286,17 +3286,17 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                   }`}
                   title={
                     formStatus === 'APPROVED_PO'
-                      ? 'Telah disetujui untuk dibuatkan PO. Klik untuk membatalkan / mengembalikan ke Menunggu Analisa.'
-                      : 'Klik untuk menyetujui pengajuan ini agar Tim Purchasing dapat menerbitkan PO.'
+                      ? 'Telah disetujui masuk Purchase Planning. Klik untuk membatalkan / mengembalikan ke Menunggu Analisa.'
+                      : 'Klik untuk menyetujui pengajuan ini agar masuk ke tahap Purchase Planning.'
                   }
                 >
                   <CheckCircle2 className="size-4" />
                   <span>
                     {formStatus === 'APPROVED_PO'
-                      ? '✓ Disetujui Terbit PO (Purchasing)'
+                      ? '✓ Disetujui Masuk Purchase Planning'
                       : formStatus === 'FULFILL_STOCK'
                       ? '✓ Disetujui Penuhi Stok Gudang'
-                      : 'Setujui & Teruskan ke Purchasing'}
+                      : 'Setujui Masuk Purchase Planning'}
                   </span>
                 </button>
               </div>
@@ -3351,7 +3351,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                     className="w-full py-2 px-3 text-xs font-semibold rounded-lg border border-border bg-background text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20"
                   >
                     <option value="PENDING_REVIEW">⏳ Menunggu Analisa / Belum Selesai</option>
-                    <option value="APPROVED_PO">✅ Disetujui untuk Terbit PO (Purchasing)</option>
+                    <option value="APPROVED_PO">✅ Disetujui Masuk Purchase Planning</option>
                     <option value="FULFILL_STOCK">📦 Dipenuhi dari Stok Gudang (Logistik)</option>
                     <option value="NEED_CLARIFICATION">❓ Perlu Klarifikasi ke Armada</option>
                     <option value="REJECTED">❌ Ditolak / Dibatalkan</option>
@@ -3588,7 +3588,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-xs hover:shadow transition select-none cursor-pointer"
-                            title={`Kirim notifikasi WhatsApp ke Tim Purchasing bahwa pengajuan ini disetujui terbit PO (${selectedRecord.tkbNo ? `No. TKB: ${selectedRecord.tkbNo}` : 'TKB Otomatis'})`}
+                            title={`Kirim notifikasi WhatsApp ke Tim Purchasing/Procurement bahwa pengajuan ini disetujui masuk Purchase Planning (${selectedRecord.tkbNo ? `No. TKB: ${selectedRecord.tkbNo}` : 'TKB Otomatis'})`}
                           >
                             <MessageSquare className="size-3.5" />
                             <span>Kirim WA Purchasing</span>
@@ -3610,7 +3610,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                                 priorityLevel: formPriority,
                               });
                               navigator.clipboard.writeText(text);
-                              showToast?.('Format pesan WhatsApp persetujuan PO & No. TKB berhasil disalin ke clipboard!', 'success');
+                              showToast?.('Format pesan WhatsApp persetujuan Purchase Planning & No. TKB berhasil disalin ke clipboard!', 'success');
                             }}
                             className="p-2 rounded-lg border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition cursor-pointer"
                             title="Salin format pesan WhatsApp ke clipboard"

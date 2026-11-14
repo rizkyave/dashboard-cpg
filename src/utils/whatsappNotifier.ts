@@ -373,11 +373,11 @@ export function formatFpbApprovalWaMessage(record: FpbReviewRecord): string {
     ? `${record.priorityLevel} (Target SLA)`
     : 'P1 (Utama: 1-2 Hari)';
 
-  return `🔔 *NOTIFIKASI APPROVAL FPB SIAP TERBIT PO* 📄
+  return `🔔 *NOTIFIKASI APPROVAL FPB MASUK PURCHASE PLANNING* 📄
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-Halo Tim Purchasing CPG,
+Halo Tim Purchasing / Procurement CPG,
 
-Pengajuan FPB berikut telah selesai di-review oleh Tim FPB / Logistik dan telah *DISETUJUI UNTUK PENERBITAN PO*:
+Pengajuan FPB berikut telah selesai di-review oleh Tim FPB / Logistik dan telah *DISETUJUI MASUK PURCHASE PLANNING*:
 
 📄 *No. FPB:* ${record.fpbNo}
 🏷️ *No. TKB:* *${tkb}*
@@ -388,16 +388,16 @@ Pengajuan FPB berikut telah selesai di-review oleh Tim FPB / Logistik dan telah 
 
 📊 *Ringkasan Alokasi Barang:*
 • Total Kebutuhan: *${totalItem} item*
-• Disetujui Terbit PO: *${poItems.length} item*
+• Masuk Purchase Planning: *${poItems.length} item*
 • Dipenuhi dari Stok Gudang: *${stockItems.length} item*
 ${itemSummaryLines}
 📝 *Catatan Review Tim FPB:*
-_${record.reviewNotes || 'Disetujui untuk segera diproses PO pengadaan'}_
+_${record.reviewNotes || 'Disetujui untuk masuk perencanaan pengadaan (Purchase Planning)'}_
 
 👤 *Reviewer:* ${record.reviewedBy || 'Tim Review FPB'}
 ⏰ *Waktu Disetujui:* ${dateStr} ${timeStr}
 
-Mohon bantuan Tim Purchasing untuk segera memproses penerbitan PO pengadaan sesuai konfirmasi No. TKB di atas.
+Mohon bantuan Tim Purchasing / Procurement untuk memproses konsolidasi kebutuhan & perencanaan pengadaan sesuai konfirmasi No. TKB di atas.
 
 🔗 *Buka Berkas e-FPB:*
 ${efpbUrl}
