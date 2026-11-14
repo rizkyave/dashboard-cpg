@@ -533,20 +533,6 @@ export default function TenderManagementTab({ showToast, onNavigateTab }: Props)
 
                     {/* Primary Tender Actions */}
                     <div className="flex items-center gap-2">
-                      {/* Button Open Vendor Portal for testing/submission */}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedPortalPackage(pkg);
-                          setIsVendorPortalOpen(true);
-                        }}
-                        className="px-3 py-1.5 rounded-xl border border-sky-500/40 bg-sky-500/10 hover:bg-sky-500/20 text-sky-700 dark:text-sky-300 text-xs font-bold inline-flex items-center gap-1.5 transition cursor-pointer shadow-xs"
-                        title="Buka Portal Rekanan untuk mengunggah atau melihat penawaran rekanan"
-                      >
-                        <Building2 className="size-3.5" />
-                        <span>Portal Rekanan</span>
-                      </button>
-
                       {/* Button CBT SAP ME49 Evaluation */}
                       <button
                         type="button"
@@ -554,7 +540,7 @@ export default function TenderManagementTab({ showToast, onNavigateTab }: Props)
                           setSelectedCbtPackage(pkg);
                           setIsCbtModalOpen(true);
                         }}
-                        className="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold inline-flex items-center gap-1.5 transition cursor-pointer shadow-xs"
+                        className="px-4 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold inline-flex items-center gap-1.5 transition cursor-pointer shadow-xs"
                         title="Buka Evaluasi Komparasi Penawaran CBT (SAP ME49)"
                       >
                         <Scale className="size-3.5" />
