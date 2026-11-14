@@ -152,6 +152,9 @@ export interface PratenderPackage {
   awardedValue?: number;
   poNumberGenerated?: string;
   waGroupInviteLink?: string; // Tautan undangan grup WhatsApp koordinasi vendor
+  isWinnerBlasted?: boolean; // Status 1x blast pengumuman pemenang ke peserta
+  winnerBlastedAt?: string; // Timestamp saat blast pengumuman disiarkan
+  winnerBlastedBy?: string; // Staf/Panitia yang melakukan blast pengumuman
   evaluationDeadline?: string; // Target SLA Evaluasi Panitia (1-2 hari kerja)
   scheduleAddendumHistory?: {
     extendedAt: string;
