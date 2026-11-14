@@ -47,6 +47,14 @@ export interface VendorBidSubmission {
   status: 'SUBMITTED' | 'UNDER_EVALUATION' | 'NEGOTIATION' | 'RECOMMENDED' | 'AWARDED' | 'REJECTED';
   negotiationNotes?: string;
   negotiatedGrandTotal?: number; // BAFO (Best & Final Offer)
+  isLocked?: boolean; // Status kunci 1x submit untuk cegah input ganda
+  lockedAt?: string;
+  unlockedAt?: string;
+  unlockedBy?: string;
+  receiptNumber?: string;
+  token?: string;
+  officialDocName?: string;
+  officialDocUrl?: string;
 }
 
 export interface TenderEvaluationSummary {

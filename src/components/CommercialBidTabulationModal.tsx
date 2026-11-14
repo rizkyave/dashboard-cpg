@@ -28,6 +28,8 @@ import {
   Truck,
   Calendar,
   Download,
+  Lock,
+  Unlock,
 } from 'lucide-react';
 import {
   generatePoAwardDocumentPdf,
@@ -370,6 +372,50 @@ export default function CommercialBidTabulationModal({
     setBids(updated);
     if (selectedWinnerId === bidId && updated.length > 0) {
       setSelectedWinnerId(updated[0].id);
+    }
+  };
+
+  // Toggle Kunci / Buka Kunci Portal Rekanan (Option 3)
+  const handleToggleLockBid = async (bidId: string) => {
+    const target = bids.find((b) => b.id === bidId);
+    if (!target) return;
+
+    const willLock = !target.isLocked;
+    const confirmMsg = willLock
+      ? `Kunci portal penawaran untuk ${target.vendorName}? Rekanan tidak akan dapat mengubah penawarannya.`
+      : `Buka kunci portal penawaran untuk ${target.vendorName}? Rekanan akan dapat mengakses portal kembali untuk melakukan perbaikan/input ulang.`;
+
+    if (!confirm(confirmMsg)) return;
+
+    const updatedBids = bids.map((b) => {
+      if (b.id === bidId) {
+        return {
+          ...b,
+          isLocked: willLock,
+          lockedAt: willLock ? new Date().toISOString() : b.lockedAt,
+          unlockedAt: !willLock ? new Date().toISOString() : undefined,
+          unlockedBy: !willLock ? userName : undefined,
+        };
+      }
+      return b;
+    });
+
+    setBids(updatedBids);
+    const updatedPkg: PratenderPackage = {
+      ...packageData,
+      vendorBids: updatedBids,
+    };
+
+    try {
+      await onSavePackage(updatedPkg);
+      setSuccessMsg(
+        willLock
+          ? `Portal rekanan ${target.vendorName} berhasil dikunci!`
+          : `Kunci portal ${target.vendorName} dibuka! Rekanan dapat menginput ulang.`
+      );
+      setTimeout(() => setSuccessMsg(null), 3000);
+    } catch (err: any) {
+      console.error('Gagal memperbarui status kunci penawaran:', err);
     }
   };
 
@@ -963,6 +1009,47 @@ PT. Cipta Sarana Transindo - CPG Group
                                     <div className="text-[10px] font-mono font-normal lowercase opacity-80">
                                       {bid.quotationRefNo || `Vendor #${bIdx + 1}`}
                                     </div>
+                                    {/* Badge Status Kunci 1x Submit & Tombol Buka Kunci */}
+                                    <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                                      {bid.isLocked ? (
+                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300 font-semibold text-[9px] border border-amber-500/30">
+                                          <Lock className="size-2.5" />
+                                          <span>Terkunci 1x</span>
+                                        </span>
+                                      ) : (
+                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-semibold text-[9px] border border-emerald-500/30">
+                                          <Unlock className="size-2.5" />
+                                          <span>Terbuka</span>
+                                        </span>
+                                      )}
+
+                                      <button
+                                        type="button"
+                                        onClick={() => handleToggleLockBid(bid.id)}
+                                        className={`px-1.5 py-0.5 rounded text-[9px] font-bold border transition inline-flex items-center gap-0.5 ${
+                                          bid.isLocked
+                                            ? 'border-sky-500/40 text-sky-600 hover:bg-sky-500/10'
+                                            : 'border-amber-500/40 text-amber-600 hover:bg-amber-500/10'
+                                        }`}
+                                        title={
+                                          bid.isLocked
+                                            ? 'Buka Kunci agar Rekanan dapat membuka kembali tautan & input ulang'
+                                            : 'Kunci penawaran rekanan'
+                                        }
+                                      >
+                                        {bid.isLocked ? (
+                                          <>
+                                            <Unlock className="size-2.5" />
+                                            <span>Buka Kunci</span>
+                                          </>
+                                        ) : (
+                                          <>
+                                            <Lock className="size-2.5" />
+                                            <span>Kunci</span>
+                                          </>
+                                        )}
+                                      </button>
+                                    </div>
                                   </div>
                                   <button
                                     type="button"
@@ -1272,6 +1359,24 @@ PT. Cipta Sarana Transindo - CPG Group
                             </div>
                             <div className="text-[10px] text-muted-foreground">
                               PIC: {b.vendorPic || '-'} ({b.vendorContact || '-'})
+                            </div>
+                            <div className="flex items-center gap-2 mt-1">
+                              {b.isLocked ? (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/25">
+                                  <Lock className="size-2.5" /> Terkunci 1x
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25">
+                                  <Unlock className="size-2.5" /> Terbuka
+                                </span>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => handleToggleLockBid(b.id)}
+                                className="text-[9px] text-sky-600 hover:underline font-bold"
+                              >
+                                {b.isLocked ? 'Buka Kunci' : 'Kunci'}
+                              </button>
                             </div>
                           </td>
                           <td className="py-3 px-3">

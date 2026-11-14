@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Suspense, useRef } from 'react';
+import React, { useState, useEffect, useMemo, Suspense, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
   Building2,
@@ -16,6 +16,13 @@ import {
   ShieldCheck,
   DollarSign,
   Package,
+  Lock,
+  Unlock,
+  ShieldAlert,
+  AlertTriangle,
+  Printer,
+  Check,
+  X,
 } from 'lucide-react';
 import { PratenderPackage, VendorBidSubmission, VendorBidItem } from '@/types/pratender';
 import { generateRksDocumentPdf, triggerBrowserPdfDownload } from '@/utils/tenderDocumentGenerator';
@@ -25,6 +32,9 @@ import { isNonMaterialOrSignature } from '@/utils/tenderSanitizer';
 function VendorTenderPortalContent() {
   const searchParams = useSearchParams();
   const pkgId = searchParams.get('pkg');
+  const searchToken = searchParams.get('token') || '';
+  const searchPhone = searchParams.get('vphone') || '';
+  const searchName = searchParams.get('vname') || '';
 
   const [packageData, setPackageData] = useState<PratenderPackage | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -34,9 +44,9 @@ function VendorTenderPortalContent() {
   const [activeStep, setActiveStep] = useState<'download' | 'pricing' | 'documents'>('pricing');
 
   // Vendor Identity
-  const [vendorName, setVendorName] = useState('');
+  const [vendorName, setVendorName] = useState(searchName);
   const [vendorPic, setVendorPic] = useState('');
-  const [vendorContact, setVendorContact] = useState('');
+  const [vendorContact, setVendorContact] = useState(searchPhone);
   const [quotationRefNo, setQuotationRefNo] = useState('');
   const [termOfPayment, setTermOfPayment] = useState('NET 30 Hari');
   const [deliveryLeadTimeDays, setDeliveryLeadTimeDays] = useState(7);
@@ -55,6 +65,10 @@ function VendorTenderPortalContent() {
   const [submissionReceiptId, setSubmissionReceiptId] = useState<string | null>(null);
   const [toastMsg, setToastMsg] = useState<{ text: string; type: 'success' | 'error' | 'info' } | null>(null);
 
+  // Confirmation Modal Before Locking (Option 3)
+  const [showConfirmLockModal, setShowConfirmLockModal] = useState(false);
+  const [agreeLockFinal, setAgreeLockFinal] = useState(false);
+
   const excelInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
 
@@ -62,6 +76,12 @@ function VendorTenderPortalContent() {
     setToastMsg({ text, type });
     setTimeout(() => setToastMsg(null), 4000);
   };
+
+  // Sync params if filled via URL
+  useEffect(() => {
+    if (searchName && !vendorName) setVendorName(searchName);
+    if (searchPhone && !vendorContact) setVendorContact(searchPhone);
+  }, [searchName, searchPhone]);
 
   // Fetch Package Info
   useEffect(() => {
@@ -109,6 +129,30 @@ function VendorTenderPortalContent() {
 
     loadPkg();
   }, [pkgId]);
+
+  // Deteksi apakah rekanan ini sudah pernah submit & statusnya terkunci (Option 3)
+  const lockedBid = useMemo(() => {
+    if (!packageData || !packageData.vendorBids || packageData.vendorBids.length === 0) return null;
+    const cleanCurrentPhone = (vendorContact || searchPhone || '').replace(/[^0-9]/g, '');
+    const cleanCurrentName = (vendorName || searchName || '').toLowerCase().trim();
+
+    return packageData.vendorBids.find((b) => {
+      if (!b.isLocked) return false;
+      if (searchToken && b.token && b.token === searchToken) return true;
+      const bPhone = (b.vendorContact || '').replace(/[^0-9]/g, '');
+      if (
+        cleanCurrentPhone.length >= 8 &&
+        bPhone.length >= 8 &&
+        (bPhone === cleanCurrentPhone || bPhone.endsWith(cleanCurrentPhone) || cleanCurrentPhone.endsWith(bPhone))
+      ) {
+        return true;
+      }
+      if (cleanCurrentName && b.vendorName && b.vendorName.toLowerCase().trim() === cleanCurrentName) {
+        return true;
+      }
+      return false;
+    });
+  }, [packageData, vendorContact, vendorName, searchToken, searchPhone, searchName]);
 
   // Calculations
   const subtotal = items.reduce((acc, curr) => acc + (curr.totalPrice || 0), 0);
@@ -209,12 +253,18 @@ function VendorTenderPortalContent() {
     showToast(`Dokumen penawaran resmi "${file.name}" terpilih!`, 'success');
   };
 
-  // Submit Bid directly to CPG server
-  const handleSubmitBid = async () => {
+  // Validasi & Buka Modal Konfirmasi Kunci 1x (Option 3)
+  const handleInitiateSubmit = () => {
     if (!packageData) return;
 
     if (!vendorName.trim()) {
       showToast('Nama perusahaan rekanan wajib diisi.', 'error');
+      setActiveStep('pricing');
+      return;
+    }
+
+    if (!vendorContact.trim()) {
+      showToast('Nomor WhatsApp kontak PIC rekanan wajib diisi.', 'error');
       setActiveStep('pricing');
       return;
     }
@@ -225,8 +275,41 @@ function VendorTenderPortalContent() {
       return;
     }
 
+    // Cek apakah nomor WA / perusahaan ini sudah terkunci
+    const cleanPhone = vendorContact.replace(/[^0-9]/g, '');
+    const alreadyLocked = (packageData.vendorBids || []).find((b) => {
+      if (!b.isLocked) return false;
+      const bPhone = (b.vendorContact || '').replace(/[^0-9]/g, '');
+      const bName = b.vendorName.toLowerCase().trim();
+      return (
+        (cleanPhone.length >= 8 && bPhone.length >= 8 && bPhone === cleanPhone) ||
+        (vendorName.trim().toLowerCase() === bName)
+      );
+    });
+
+    if (alreadyLocked) {
+      showToast(
+        `Nomor WhatsApp / Perusahaan ini sudah pernah mengirimkan penawaran resmi dan berstatus Terkunci.`,
+        'error'
+      );
+      return;
+    }
+
+    setAgreeLockFinal(false);
+    setShowConfirmLockModal(true);
+  };
+
+  // Submit Bid directly to CPG server & Permanently Lock (Option 3)
+  const handleConfirmSubmitBid = async () => {
+    if (!packageData || !agreeLockFinal) return;
+
     setIsSubmitting(true);
-    const receiptNo = `BID-REC-${packageData.packageNumber.replace(/[^a-zA-Z0-9]/g, '')}-${Date.now().toString(36).toUpperCase()}`;
+    setShowConfirmLockModal(false);
+
+    const cleanNo = packageData.packageNumber.replace(/[^a-zA-Z0-9]/g, '');
+    const receiptNo = `REC-CPG-${cleanNo}-${Date.now().toString(36).toUpperCase()}`;
+    const cleanPhone = vendorContact.replace(/[^0-9]/g, '');
+    const currentToken = searchToken || `VND-${cleanPhone || Date.now().toString(36).toUpperCase()}`;
 
     const newSubmission: VendorBidSubmission = {
       id: `bid-${Date.now().toString(36)}-${Math.random().toString(36).substr(2, 5)}`,
@@ -247,11 +330,20 @@ function VendorTenderPortalContent() {
       technicalStatus: 'PASSED',
       status: 'SUBMITTED',
       negotiatedGrandTotal: grandTotal,
+      isLocked: true,
+      lockedAt: new Date().toISOString(),
+      receiptNumber: receiptNo,
+      token: currentToken,
+      officialDocName: uploadedDocName || undefined,
     };
 
     const existingBids = packageData.vendorBids || [];
     const updatedBids = [
-      ...existingBids.filter((b) => b.vendorName.toLowerCase() !== newSubmission.vendorName.toLowerCase()),
+      ...existingBids.filter(
+        (b) =>
+          b.vendorName.toLowerCase().trim() !== newSubmission.vendorName.toLowerCase().trim() &&
+          (!newSubmission.vendorContact || b.vendorContact !== newSubmission.vendorContact)
+      ),
       newSubmission,
     ];
 
@@ -274,7 +366,8 @@ function VendorTenderPortalContent() {
       if (res.ok) {
         setSubmissionReceiptId(receiptNo);
         setIsSubmittedSuccess(true);
-        showToast('Penawaran harga resmi berhasil dikirimkan ke CPG!', 'success');
+        setPackageData(updatedPkg);
+        showToast('Penawaran resmi berhasil dikirim dan tautan telah dikunci!', 'success');
       } else {
         showToast('Gagal mengirimkan penawaran ke server.', 'error');
       }
@@ -396,35 +489,97 @@ function VendorTenderPortalContent() {
           </p>
         </div>
 
-        {/* SUBMITTED SUCCESS RECEIPT */}
-        {isSubmittedSuccess ? (
-          <div className="p-8 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm text-center space-y-4 max-w-lg mx-auto">
-            <div className="size-16 rounded-full bg-emerald-500/15 text-emerald-600 flex items-center justify-center mx-auto border-2 border-emerald-500/30">
-              <CheckCircle2 className="size-9" />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Penawaran Berhasil Diterima!</h3>
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                Terima kasih, <strong>{vendorName}</strong>. Dokumen penawaran harga dan lampiran resmi Anda telah
-                tersimpan di sistem tender PT Cindara Pratama Lines.
-              </p>
+        {/* VIEW KONDISI TERKUNCI (ONE-TIME SUBMISSION - OPTION 3) */}
+        {lockedBid || isSubmittedSuccess ? (
+          <div className="p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl text-center space-y-6 max-w-xl mx-auto animate-in fade-in duration-300">
+            {/* Header Lock Icon & Badge */}
+            <div className="flex flex-col items-center gap-3">
+              <div className="size-16 rounded-2xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center border-2 border-amber-500/25 shadow-xs">
+                <Lock className="size-8" />
+              </div>
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 font-bold text-xs border border-amber-500/30">
+                  <ShieldCheck className="size-3.5" />
+                  <span>TAUTAN TERKUNCI &bull; SATU KALI PENGISIAN</span>
+                </span>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mt-2">
+                  {lockedBid?.vendorName || vendorName}
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto leading-relaxed">
+                  Penawaran resmi rekanan telah berhasil dicatat oleh sistem pengadaan PT Cindara Pratama Lines. Untuk menjaga integritas proses tender, tautan ini telah <strong>DIKUNCI PERMANEN</strong>.
+                </p>
+              </div>
             </div>
 
-            <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-left space-y-2 text-xs">
-              <div className="flex justify-between pb-1 border-b border-slate-200 dark:border-slate-800">
+            {/* Receipt Summary Card */}
+            <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950 text-left space-y-2.5 text-xs">
+              <div className="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-slate-800">
                 <span className="text-slate-500">Nomor Tanda Terima:</span>
-                <span className="font-mono font-bold text-slate-900 dark:text-white">{submissionReceiptId}</span>
-              </div>
-              <div className="flex justify-between pb-1 border-b border-slate-200 dark:border-slate-800">
-                <span className="text-slate-500">Nilai Penawaran (Inc. PPN):</span>
-                <span className="font-mono font-bold text-emerald-600">
-                  Rp {grandTotal.toLocaleString('id-ID')}
+                <span className="font-mono font-bold text-slate-900 dark:text-white">
+                  {lockedBid?.receiptNumber || submissionReceiptId || '-'}
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Status:</span>
-                <span className="font-semibold text-sky-600">Tercatat di Evaluasi CBT SAP CPG</span>
+              <div className="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-slate-800">
+                <span className="text-slate-500">Waktu Penguncian:</span>
+                <span className="font-medium text-slate-700 dark:text-slate-300">
+                  {lockedBid?.lockedAt
+                    ? new Date(lockedBid.lockedAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })
+                    : new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}
+                </span>
               </div>
+              <div className="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-slate-800">
+                <span className="text-slate-500">Kontak PIC / WhatsApp:</span>
+                <span className="font-medium text-slate-700 dark:text-slate-300">
+                  {lockedBid?.vendorPic || vendorPic || '-'} ({lockedBid?.vendorContact || vendorContact || '-'})
+                </span>
+              </div>
+              <div className="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-slate-800">
+                <span className="text-slate-500">Surat Penawaran Resmi:</span>
+                <span className="font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                  <Check className="size-3 text-emerald-600" />
+                  <span className="truncate max-w-[200px]">
+                    {lockedBid?.officialDocName || uploadedDocName || 'Dokumen Penawaran Terlampir'}
+                  </span>
+                </span>
+              </div>
+              <div className="flex justify-between items-center pt-1 text-sm font-bold">
+                <span className="text-slate-700 dark:text-slate-300">Total Penawaran (Inc. PPN):</span>
+                <span className="text-emerald-600 font-mono">
+                  Rp {(lockedBid?.grandTotal || grandTotal).toLocaleString('id-ID')}
+                </span>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={handleDownloadRks}
+                disabled={isDownloadingRks}
+                className="w-full sm:w-auto px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 inline-flex items-center justify-center gap-1.5 transition cursor-pointer"
+              >
+                <Download className="size-3.5 text-sky-500" />
+                <span>Unduh Dokumen RKS</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="w-full sm:w-auto px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 text-xs font-bold inline-flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs"
+              >
+                <Printer className="size-3.5" />
+                <span>Cetak Bukti Tanda Terima</span>
+              </button>
+            </div>
+
+            {/* Notice Bantuan Admin Unlock */}
+            <div className="p-3.5 rounded-xl bg-sky-500/10 border border-sky-500/20 text-left text-xs space-y-1">
+              <div className="font-bold text-sky-800 dark:text-sky-300 flex items-center gap-1.5">
+                <AlertTriangle className="size-3.5 text-sky-600" />
+                <span>Permohonan Pembukaan Kunci (Unlock)</span>
+              </div>
+              <p className="text-[11px] text-sky-700/80 dark:text-sky-400 leading-relaxed">
+                Jika terdapat kesalahan teknis fatal pada file lampiran atau harga sebelum batas akhir penawaran, silakan hubungi <strong>Panitia Pengadaan PT Cindara Pratama Lines</strong> via WhatsApp. Panitia memiliki wewenang untuk membuka kembali akses formulir rekanan secara resmi.
+              </p>
             </div>
           </div>
         ) : (
@@ -701,12 +856,99 @@ function VendorTenderPortalContent() {
               <div className="flex justify-end pt-2">
                 <button
                   type="button"
-                  onClick={handleSubmitBid}
+                  onClick={handleInitiateSubmit}
                   disabled={isSubmitting}
                   className="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs inline-flex items-center gap-2 transition cursor-pointer shadow-md disabled:opacity-50"
                 >
-                  <Send className="size-4" />
-                  <span>{isSubmitting ? 'Mengirimkan...' : 'Kirimkan Penawaran Resmi ke Tim Pengadaan CPG'}</span>
+                  <Lock className="size-4" />
+                  <span>{isSubmitting ? 'Mengirimkan...' : 'Kirimkan & Kunci Penawaran Resmi'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL KONFIRMASI FINAL KUNCI 1X SUBMIT (OPTION 3) */}
+        {showConfirmLockModal && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200"
+            onClick={() => setShowConfirmLockModal(false)}
+          >
+            <div
+              className="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-6 space-y-4 animate-in zoom-in-95 duration-200"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-start gap-3">
+                <div className="size-11 rounded-xl bg-amber-500/15 text-amber-600 flex items-center justify-center shrink-0 border border-amber-500/25">
+                  <ShieldAlert className="size-6" />
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+                    Konfirmasi Pengiriman &amp; Kunci Penawaran
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Paket Tender: <strong className="font-mono">{packageData.packageNumber}</strong>
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/25 text-rose-800 dark:text-rose-300 text-xs space-y-1.5 leading-relaxed">
+                <div className="font-bold flex items-center gap-1.5">
+                  <AlertTriangle className="size-3.5 text-rose-600" />
+                  <span>PERHATIAN: PENGISIAN HANYA 1 (SATU) KALI</span>
+                </div>
+                <p className="text-[11px]">
+                  Setelah Anda menekan tombol di bawah, tautan penawaran ini akan <strong>SEKETIKA DIKUNCI PERMANEN</strong>. Anda tidak dapat lagi mengubah harga satuan, merk, ataupun mengunggah ulang dokumen penawaran dari tautan ini.
+                </p>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Perusahaan Rekanan:</span>
+                  <span className="font-bold text-slate-900 dark:text-white">{vendorName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Nomor WhatsApp PIC:</span>
+                  <span className="font-mono text-slate-900 dark:text-white">{vendorContact}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Surat Penawaran:</span>
+                  <span className="font-medium text-slate-900 dark:text-white">{uploadedDocName || 'Sudah dilampirkan'}</span>
+                </div>
+                <div className="flex justify-between font-bold pt-1 border-t border-slate-200 dark:border-slate-800 text-sm">
+                  <span className="text-slate-700 dark:text-slate-300">Total Penawaran:</span>
+                  <span className="text-emerald-600 font-mono">Rp {grandTotal.toLocaleString('id-ID')}</span>
+                </div>
+              </div>
+
+              <label className="flex items-start gap-2.5 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={agreeLockFinal}
+                  onChange={(e) => setAgreeLockFinal(e.target.checked)}
+                  className="size-4 rounded text-emerald-600 focus:ring-emerald-500 mt-0.5 cursor-pointer"
+                />
+                <span className="text-[11px] text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
+                  Saya menyatakan data penawaran di atas telah diverifikasi dengan benar, disetujui manajemen perusahaan, dan saya setuju bahwa tautan ini akan langsung dikunci secara permanen.
+                </span>
+              </label>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmLockModal(false)}
+                  className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer"
+                >
+                  Periksa Kembali
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmSubmitBid}
+                  disabled={!agreeLockFinal || isSubmitting}
+                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold inline-flex items-center gap-1.5 transition cursor-pointer shadow-md disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <Lock className="size-3.5" />
+                  <span>{isSubmitting ? 'Mengunci Penawaran...' : 'Ya, Kirim & Kunci Penawaran'}</span>
                 </button>
               </div>
             </div>

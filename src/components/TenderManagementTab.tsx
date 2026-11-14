@@ -28,6 +28,11 @@ import {
   Check,
   Package,
   X,
+  Lock,
+  Unlock,
+  ShieldAlert,
+  Phone,
+  User,
 } from 'lucide-react';
 import {
   PratenderPackage,
@@ -74,6 +79,9 @@ export default function TenderManagementTab({ showToast, onNavigateTab }: Props)
   // WhatsApp Blast Modal State
   const [waBlastPackage, setWaBlastPackage] = useState<PratenderPackage | null>(null);
   const [waGroupLink, setWaGroupLink] = useState<string>('');
+  const [waBlastMode, setWaBlastMode] = useState<'group' | 'personal'>('group');
+  const [personalVendorName, setPersonalVendorName] = useState<string>('');
+  const [personalVendorPhone, setPersonalVendorPhone] = useState<string>('');
 
   // Fetch Packages from server
   const fetchPackages = async () => {
@@ -618,18 +626,82 @@ export default function TenderManagementTab({ showToast, onNavigateTab }: Props)
               Kirimkan pengumuman tender resmi untuk paket <strong>{waBlastPackage.packageNumber}</strong> ke Group Rekanan WhatsApp beserta tautan pengisian penawaran online.
             </p>
 
-            <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-foreground flex items-center gap-1">
-                <Link2 className="size-3.5 text-emerald-600" />
-                <span>Tautan Undangan Grup WhatsApp Tender (Opsional):</span>
-              </label>
-              <input
-                type="text"
-                value={waGroupLink}
-                onChange={(e) => setWaGroupLink(e.target.value)}
-                placeholder="https://chat.whatsapp.com/..."
-                className="w-full h-8 px-2.5 rounded-lg border border-border bg-background text-foreground text-xs focus:ring-1 focus:ring-emerald-500 font-mono"
-              />
+            {/* Pilihan Mode Undangan WhatsApp */}
+            <div className="flex rounded-xl bg-muted p-1 gap-1 text-xs">
+              <button
+                type="button"
+                onClick={() => setWaBlastMode('group')}
+                className={`flex-1 py-1.5 rounded-lg font-semibold transition cursor-pointer text-center ${
+                  waBlastMode === 'group'
+                    ? 'bg-card text-foreground shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Grup WhatsApp Rekanan
+              </button>
+              <button
+                type="button"
+                onClick={() => setWaBlastMode('personal')}
+                className={`flex-1 py-1.5 rounded-lg font-semibold transition cursor-pointer text-center ${
+                  waBlastMode === 'personal'
+                    ? 'bg-card text-foreground shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Tautan Khusus Rekanan (1x Input)
+              </button>
+            </div>
+
+            {waBlastMode === 'group' ? (
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-foreground flex items-center gap-1">
+                  <Link2 className="size-3.5 text-emerald-600" />
+                  <span>Tautan Undangan Grup WhatsApp Tender (Opsional):</span>
+                </label>
+                <input
+                  type="text"
+                  value={waGroupLink}
+                  onChange={(e) => setWaGroupLink(e.target.value)}
+                  placeholder="https://chat.whatsapp.com/..."
+                  className="w-full h-8 px-2.5 rounded-lg border border-border bg-background text-foreground text-xs focus:ring-1 focus:ring-emerald-500 font-mono"
+                />
+              </div>
+            ) : (
+              <div className="space-y-2.5 p-3 rounded-xl border border-border bg-muted/20">
+                <div className="space-y-1">
+                  <label className="text-[11px] font-semibold text-foreground flex items-center gap-1">
+                    <Building2 className="size-3 text-sky-600" />
+                    <span>Nama Perusahaan Rekanan:</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={personalVendorName}
+                    onChange={(e) => setPersonalVendorName(e.target.value)}
+                    placeholder="Contoh: PT. Pelayaran Bahari Global"
+                    className="w-full h-8 px-2.5 rounded-lg border border-border bg-background text-foreground text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[11px] font-semibold text-foreground flex items-center gap-1">
+                    <Phone className="size-3 text-emerald-600" />
+                    <span>Nomor WhatsApp PIC Rekanan:</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={personalVendorPhone}
+                    onChange={(e) => setPersonalVendorPhone(e.target.value)}
+                    placeholder="Contoh: 081234567890 atau 62812..."
+                    className="w-full h-8 px-2.5 rounded-lg border border-border bg-background text-foreground text-xs font-mono"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-[11px] text-amber-800 dark:text-amber-300 flex items-start gap-2">
+              <Lock className="size-3.5 text-amber-600 shrink-0 mt-0.5" />
+              <span>
+                <strong>Proteksi 1x Upload Aktif:</strong> Rekanan yang menginput penawaran lewat tautan ini akan langsung dikunci otomatis. Tidak dapat menginput ulang dengan nomor WA atau nama yang sama.
+              </span>
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
@@ -640,18 +712,43 @@ export default function TenderManagementTab({ showToast, onNavigateTab }: Props)
               >
                 Tutup
               </button>
-              <a
-                href={`https://web.whatsapp.com/send?text=${encodeURIComponent(
-                  `*PENGUMUMAN TENDER PENGADAAN CPG*\n\nNomor: ${waBlastPackage.packageNumber}\nPaket: ${waBlastPackage.title}\nKategori: ${waBlastPackage.category}\nBatas Penawaran: ${waBlastPackage.targetClosingDate || 'Sesuai RKS'}\n\nRekanan dapat mengakses dokumen RKS dan menyampaikan penawaran resmi melalui link berikut:\n${typeof window !== 'undefined' ? window.location.origin : 'https://cpg-procurement.com'}/vendor/tender?pkg=${waBlastPackage.id}\n${waGroupLink ? `\nGabung Grup WhatsApp Tender:\n${waGroupLink}\n` : ''}\nPT Cindara Pratama Lines`
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => setWaBlastPackage(null)}
-                className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs inline-flex items-center gap-1.5 transition cursor-pointer"
-              >
-                <Send className="size-3.5" />
-                <span>Kirim via WhatsApp Web</span>
-              </a>
+              {(() => {
+                const origin = typeof window !== 'undefined' ? window.location.origin : 'https://cpg-procurement.com';
+                const cleanPhone = personalVendorPhone.replace(/[^0-9]/g, '');
+                const waPhoneTarget = cleanPhone.startsWith('0') ? '62' + cleanPhone.slice(1) : cleanPhone;
+
+                const portalLink =
+                  waBlastMode === 'personal' && personalVendorPhone
+                    ? `${origin}/vendor/tender?pkg=${waBlastPackage.id}&vphone=${cleanPhone}&vname=${encodeURIComponent(
+                        personalVendorName
+                      )}`
+                    : `${origin}/vendor/tender?pkg=${waBlastPackage.id}`;
+
+                const messageText =
+                  waBlastMode === 'personal' && personalVendorName
+                    ? `*UNDANGAN RESMI TENDER PENGADAAN CPG*\n\nKepada Yth. Pimpinan / PIC Komersial\n*${personalVendorName}*\n\nPT Cindara Pratama Lines mengundang perusahaan Anda untuk berpartisipasi dalam paket pengadaan:\n- Nomor: ${waBlastPackage.packageNumber}\n- Paket: ${waBlastPackage.title}\n- Kategori: ${waBlastPackage.category}\n- Batas Penawaran: ${waBlastPackage.targetClosingDate || 'Sesuai RKS'}\n\n*TAUTAN RESMI PENAWARAN (KHUSUS ${personalVendorName}):*\n${portalLink}\n\n⚠️ *PENTING (KETENTUAN 1X INPUT):*\nSetiap rekanan hanya memiliki *1 (satu) kali kesempatan submit*. Setelah formulir dikirim, tautan akan *SEKETIKA DIKUNCI PERMANEN* demi menjaga objektivitas tender.\n\nSalam hormat,\n*Tim Pengadaan PT Cindara Pratama Lines*`
+                    : `*PENGUMUMAN TENDER PENGADAAN CPG*\n\nNomor: ${waBlastPackage.packageNumber}\nPaket: ${waBlastPackage.title}\nKategori: ${waBlastPackage.category}\nBatas Penawaran: ${waBlastPackage.targetClosingDate || 'Sesuai RKS'}\n\nRekanan dapat mengakses dokumen RKS dan menyampaikan penawaran resmi melalui link berikut:\n${portalLink}\n${waGroupLink ? `\nGabung Grup WhatsApp Tender:\n${waGroupLink}\n` : ''}\n⚠️ *CATATAN:* Setiap rekanan hanya memiliki *1 (satu) kali kesempatan pengisian*. Tautan langsung dikunci setelah submit.\n\nPT Cindara Pratama Lines`;
+
+                const waUrl =
+                  waBlastMode === 'personal' && waPhoneTarget
+                    ? `https://web.whatsapp.com/send?phone=${waPhoneTarget}&text=${encodeURIComponent(messageText)}`
+                    : `https://web.whatsapp.com/send?text=${encodeURIComponent(messageText)}`;
+
+                return (
+                  <a
+                    href={waUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setWaBlastPackage(null)}
+                    className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs inline-flex items-center gap-1.5 transition cursor-pointer"
+                  >
+                    <Send className="size-3.5" />
+                    <span>
+                      {waBlastMode === 'personal' ? 'Kirim WA Personal ke Vendor' : 'Kirim via WhatsApp Web'}
+                    </span>
+                  </a>
+                );
+              })()}
             </div>
           </div>
         </div>
