@@ -111,10 +111,68 @@ export async function generateRksDocumentPdf(pkg: PratenderPackage): Promise<Uin
 
   curY -= 20;
 
-  (pkg.items || []).slice(0, 15).forEach((item, idx) => {
+  let activePage = page;
+
+  // Helper untuk menambah halaman baru secara dinamis jika baris item melebihi kapasitas
+  const addNewPageIfOverflow = (neededHeight: number) => {
+    if (curY - neededHeight < 40) {
+      activePage = pdfDoc.addPage(PageSizes.A4);
+      const { width: pWidth, height: pHeight } = activePage.getSize();
+
+      activePage.drawRectangle({
+        x: 0,
+        y: pHeight - 45,
+        width: pWidth,
+        height: 45,
+        color: rgb(0.06, 0.12, 0.24),
+      });
+
+      activePage.drawText('PT CINDARA PRATAMA LINES - DOKUMEN RKS (LANJUTAN)', {
+        x: 40,
+        y: pHeight - 22,
+        size: 9,
+        font: fontBold,
+        color: rgb(1, 1, 1),
+      });
+
+      activePage.drawText(`KODE PAKET: ${pkg.packageNumber}   •   ${pkg.title}`, {
+        x: 40,
+        y: pHeight - 36,
+        size: 7.5,
+        font: fontRegular,
+        color: rgb(0.7, 0.85, 1.0),
+      });
+
+      curY = pHeight - 65;
+
+      // Gambar ulang Table Header di halaman baru
+      activePage.drawRectangle({
+        x: 40,
+        y: curY - 18,
+        width: pWidth - 80,
+        height: 18,
+        color: rgb(0.92, 0.94, 0.98),
+      });
+
+      activePage.drawText('NO', { x: 48, y: curY - 12, size: 7.5, font: fontBold, color: rgb(0.2, 0.25, 0.35) });
+      activePage.drawText('NAMA BARANG / SPESIFIKASI', { x: 75, y: curY - 12, size: 7.5, font: fontBold, color: rgb(0.2, 0.25, 0.35) });
+      activePage.drawText('VOLUME', { x: 330, y: curY - 12, size: 7.5, font: fontBold, color: rgb(0.2, 0.25, 0.35) });
+      activePage.drawText('SATUAN', { x: 390, y: curY - 12, size: 7.5, font: fontBold, color: rgb(0.2, 0.25, 0.35) });
+      activePage.drawText('UNIT / ARMADA', { x: 445, y: curY - 12, size: 7.5, font: fontBold, color: rgb(0.2, 0.25, 0.35) });
+
+      curY -= 20;
+      return true;
+    }
+    return false;
+  };
+
+  // Iterasi seluruh item material tanpa pembatasan slice (100% lengkap)
+  (pkg.items || []).forEach((item, idx) => {
+    addNewPageIfOverflow(25);
+
     const isEven = idx % 2 === 0;
     if (isEven) {
-      page.drawRectangle({
+      activePage.drawRectangle({
         x: 40,
         y: curY - 14,
         width: width - 80,
@@ -123,19 +181,22 @@ export async function generateRksDocumentPdf(pkg: PratenderPackage): Promise<Uin
       });
     }
 
-    page.drawText(String(idx + 1), { x: 50, y: curY - 9, size: 7.5, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
-    page.drawText((item.itemName || '-').slice(0, 48), { x: 75, y: curY - 9, size: 7.5, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
-    page.drawText(String(item.totalQty || 1), { x: 335, y: curY - 9, size: 7.5, font: fontRegular, color: rgb(0.1, 0.15, 0.25) });
-    page.drawText(item.satuan || 'Pcs', { x: 390, y: curY - 9, size: 7.5, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
-    page.drawText(((item.vessels && item.vessels[0]) || 'Armada CPG').slice(0, 18), { x: 445, y: curY - 9, size: 7, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
+    activePage.drawText(String(idx + 1), { x: 50, y: curY - 9, size: 7.5, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
+    activePage.drawText((item.itemName || '-').slice(0, 48), { x: 75, y: curY - 9, size: 7.5, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
+    activePage.drawText(String(item.totalQty || 1), { x: 335, y: curY - 9, size: 7.5, font: fontRegular, color: rgb(0.1, 0.15, 0.25) });
+    activePage.drawText(item.satuan || 'Pcs', { x: 390, y: curY - 9, size: 7.5, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
+    activePage.drawText(((item.vessels && item.vessels[0]) || 'Armada CPG').slice(0, 18), { x: 445, y: curY - 9, size: 7, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
 
     curY -= 17;
   });
 
+  // Pastikan ada ruang cukup untuk Bagian Syarat & Tanda Tangan (butuh ~140px)
+  addNewPageIfOverflow(150);
+
   curY -= 15;
 
   // Section B: Syarat & Ketentuan Umum
-  page.drawText('B. PERSYARATAN & KETENTUAN PESERTA TENDER', {
+  activePage.drawText('B. PERSYARATAN & KETENTUAN PESERTA TENDER', {
     x: 40,
     y: curY,
     size: 9.5,
@@ -152,7 +213,7 @@ export async function generateRksDocumentPdf(pkg: PratenderPackage): Promise<Uin
 
   curY -= 16;
   terms.forEach((t) => {
-    page.drawText(t, { x: 45, y: curY, size: 7.5, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
+    activePage.drawText(t, { x: 45, y: curY, size: 7.5, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
     curY -= 13;
   });
 
@@ -160,29 +221,29 @@ export async function generateRksDocumentPdf(pkg: PratenderPackage): Promise<Uin
   curY -= 28;
   const signTopY = curY;
 
-  page.drawText('Dibuat & Diterbitkan Oleh,', { x: 70, y: signTopY, size: 8, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
-  page.drawText('Disetujui Oleh,', { x: 380, y: signTopY, size: 8, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
+  activePage.drawText('Dibuat & Diterbitkan Oleh,', { x: 70, y: signTopY, size: 8, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
+  activePage.drawText('Disetujui Oleh,', { x: 380, y: signTopY, size: 8, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
 
   const signOrgY = signTopY - 14;
-  page.drawText('TIM PENGADAAN & PPIC CPG', { x: 70, y: signOrgY, size: 8.5, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
-  page.drawText('PURCHASING & FLEET LOGISTIC MGR', { x: 380, y: signOrgY, size: 8.5, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
+  activePage.drawText('TIM PENGADAAN & PPIC CPG', { x: 70, y: signOrgY, size: 8.5, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
+  activePage.drawText('PURCHASING & FLEET LOGISTIC MGR', { x: 380, y: signOrgY, size: 8.5, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
 
   const signBottomY = signOrgY - 44;
-  page.drawLine({
+  activePage.drawLine({
     start: { x: 70, y: signBottomY + 12 },
     end: { x: 230, y: signBottomY + 12 },
     thickness: 0.75,
     color: rgb(0.75, 0.8, 0.85),
   });
-  page.drawLine({
+  activePage.drawLine({
     start: { x: 380, y: signBottomY + 12 },
     end: { x: 540, y: signBottomY + 12 },
     thickness: 0.75,
     color: rgb(0.75, 0.8, 0.85),
   });
 
-  page.drawText('( Staf Purchasing Desk )', { x: 70, y: signBottomY, size: 7.5, font: fontRegular, color: rgb(0.4, 0.45, 0.55) });
-  page.drawText('( Pejabat Berwenang )', { x: 380, y: signBottomY, size: 7.5, font: fontRegular, color: rgb(0.4, 0.45, 0.55) });
+  activePage.drawText('( Staf Purchasing Desk )', { x: 70, y: signBottomY, size: 7.5, font: fontRegular, color: rgb(0.4, 0.45, 0.55) });
+  activePage.drawText('( Pejabat Berwenang )', { x: 380, y: signBottomY, size: 7.5, font: fontRegular, color: rgb(0.4, 0.45, 0.55) });
 
   return await pdfDoc.save();
 }
