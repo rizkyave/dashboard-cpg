@@ -117,7 +117,13 @@ const PURCHASING_PICS = [
 
 export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabProps) {
   const { user } = useAuth();
-  const isAdmin = !user || user.role === 'direksi' || user.role === 'manager' || user.role === 'supervisor' || user.role === 'staf_purchasing';
+  const isAdmin =
+    !user ||
+    user.role === 'admin' ||
+    user.role === 'direksi' ||
+    user.role === 'manager' ||
+    user.role === 'supervisor' ||
+    user.role === 'staf_purchasing';
 
   // Data states
   const [reviews, setReviews] = useState<FpbReviewRecord[]>([]);
@@ -1567,7 +1573,11 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
               onClick={() => setIsCleanSheetModalOpen(true)}
               disabled={activeCount === 0 || isSyncing}
               className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl border border-amber-500/40 bg-amber-500/15 text-amber-800 dark:text-amber-200 hover:bg-amber-500/25 transition shadow-2xs cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-              title="Arsipkan seluruh berkas FPB saat ini ke riwayat database & buat lembar bersih (Clean Sheet)"
+              title={
+                activeCount === 0
+                  ? 'Lembar aktif saat ini sudah bersih (tidak ada berkas aktif untuk diarsipkan)'
+                  : 'Arsipkan seluruh berkas FPB saat ini ke riwayat database & buat lembar bersih (Clean Sheet)'
+              }
             >
               <Archive className="size-4 text-amber-600 dark:text-amber-400" />
               <span>Arsipkan &amp; Clean Sheet</span>
