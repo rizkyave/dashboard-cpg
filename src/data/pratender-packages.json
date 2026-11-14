@@ -279,7 +279,7 @@
     "packageNumber": "CPG-TDR-26-1320",
     "title": "Paket Pengadaan General Armada Q4 2026",
     "category": "General",
-    "status": "DRAFT",
+    "status": "EVALUATION",
     "createdAt": "2026-11-13T16:41:51.542Z",
     "createdBy": "Staf Purchasing & PPIC",
     "targetClosingDate": "2026-11-20",
@@ -613,8 +613,610 @@
     "invitedVendors": [
       "245000"
     ],
-    "updatedAt": "2026-11-13T16:41:51.646Z",
-    "ownerEstimateHps": 35255000
+    "updatedAt": "2026-11-14T14:04:28.001Z",
+    "ownerEstimateHps": 35255000,
+    "vendorBids": [
+      {
+        "id": "bid-1-1794665060725",
+        "vendorName": "PT. Samudra Bahari Teknik",
+        "vendorPic": "Bpk. Hendra Gunawan",
+        "vendorContact": "+62 812-8877-6655",
+        "quotationRefNo": "SBT/QUO/2026/0421",
+        "bidDate": "2026-11-14",
+        "termOfPayment": "NET 30 Hari",
+        "deliveryLeadTimeDays": 5,
+        "francoDeliveryPoint": "Franco Dermaga Somber Balikpapan",
+        "validityDays": 30,
+        "subtotal": 32772000,
+        "ppnPercent": 11,
+        "ppnAmount": 3604920,
+        "deliveryFee": 1500000,
+        "grandTotal": 37876920,
+        "status": "UNDER_EVALUATION",
+        "items": [
+          {
+            "itemId": "UNI01901001-ZZZ",
+            "itemName": "FULL BODY HARNEST (SAFETY BELT) (00)",
+            "qty": 2,
+            "unitPrice": 209500,
+            "totalPrice": 419000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "GUR00801001-MAI",
+            "itemName": "MESIN GURINDA 4\" (MAKITA)",
+            "qty": 1,
+            "unitPrice": 423000,
+            "totalPrice": 423000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "BNC00101003-BUS",
+            "itemName": "BINOCULAR 10 X 70 (BUSHNELL)",
+            "qty": 1,
+            "unitPrice": 527500,
+            "totalPrice": 527500,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CAI01401002-SPL",
+            "itemName": "PEMBERSIH LANTAI 770 ML (SUPER PELL)",
+            "qty": 2,
+            "unitPrice": 18000,
+            "totalPrice": 36000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "BUK00201008-ZZZ",
+            "itemName": "BUKU DAFTAR/LIST PASANG SURUT KEPULAUAN INDONESIA EDISI 2027 (00)",
+            "qty": 5,
+            "unitPrice": 141000,
+            "totalPrice": 705000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "PET00304020-ZZZ",
+            "itemName": "PETA LAUT NO. 301-400 ( NO. 362) (00)",
+            "qty": 1,
+            "unitPrice": 629500,
+            "totalPrice": 629500,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "UNI00102004-ZZZ",
+            "itemName": "BAJU COVERALL PT. CPL (XL) ORANGE (00)",
+            "qty": 50,
+            "unitPrice": 282500,
+            "totalPrice": 14125000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "SFT00401004-ZZZ",
+            "itemName": "HELM SAFETY PUTIH (00)",
+            "qty": 12,
+            "unitPrice": 47000,
+            "totalPrice": 564000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "UNI02302001-ZZZ",
+            "itemName": "SEPATU SAFETY NO. 06 (00)",
+            "qty": 6,
+            "unitPrice": 460000,
+            "totalPrice": 2760000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "UNI02303001-ZZZ",
+            "itemName": "SEPATU SAFETY NO. 07 (00)",
+            "qty": 7,
+            "unitPrice": 433000,
+            "totalPrice": 3031000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "UNI02304001-ZZZ",
+            "itemName": "SEPATU SAFETY NO. 08 (00)",
+            "qty": 6,
+            "unitPrice": 446500,
+            "totalPrice": 2679000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "UNI02305001-ZZZ",
+            "itemName": "SEPATU SAFETY NO. 09 (00)",
+            "qty": 4,
+            "unitPrice": 460000,
+            "totalPrice": 1840000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "GUR00202001-BBU",
+            "itemName": "MATA GURINDA 5\" NO. 80 (B BULLS)",
+            "qty": 24,
+            "unitPrice": 45500,
+            "totalPrice": 1092000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "COR00102001-LKS",
+            "itemName": "CORONG 30 CM (LUCKY STAR)",
+            "qty": 2,
+            "unitPrice": 19000,
+            "totalPrice": 38000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "AKU02301001-WOD",
+            "itemName": "METERAN 5 METER (WOOD)",
+            "qty": 10,
+            "unitPrice": 224500,
+            "totalPrice": 2245000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "SFT00601003-HPR",
+            "itemName": "LIFE BUOY (RING BUOY) 2,5 KG (HYPRO)",
+            "qty": 3,
+            "unitPrice": 223500,
+            "totalPrice": 670500,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "PRE00101010-WPR",
+            "itemName": "OIL PRESSURE GAUGE 10 KG/BAR 3/8\" NPT (WIPRO)",
+            "qty": 1,
+            "unitPrice": 258500,
+            "totalPrice": 258500,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "PAC01206001-ZZZ",
+            "itemName": "PACKING KARET 5 MM (00)",
+            "qty": 3,
+            "unitPrice": 174500,
+            "totalPrice": 523500,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "LEM00601001-FBD",
+            "itemName": "FN TAPE (ANTI SPLASHING TAPE) (FLASHBAND)",
+            "qty": 3,
+            "unitPrice": 68500,
+            "totalPrice": 205500,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          }
+        ],
+        "negotiatedGrandTotal": 37876920,
+        "technicalStatus": "PASSED"
+      },
+      {
+        "id": "bid-2-1794665060725",
+        "vendorName": "CV. Cipta Marine Mandiri",
+        "vendorPic": "Ibu Ratna Dewi",
+        "vendorContact": "+62 813-9988-1122",
+        "quotationRefNo": "CMM-RFQ-26-891",
+        "bidDate": "2026-11-14",
+        "termOfPayment": "NET 45 Hari",
+        "deliveryLeadTimeDays": 7,
+        "francoDeliveryPoint": "Franco Dermaga Somber Balikpapan",
+        "validityDays": 30,
+        "subtotal": 35912500,
+        "ppnPercent": 11,
+        "ppnAmount": 3950375,
+        "deliveryFee": 2000000,
+        "grandTotal": 41862875,
+        "status": "UNDER_EVALUATION",
+        "items": [
+          {
+            "itemId": "UNI01901001-ZZZ",
+            "itemName": "FULL BODY HARNEST (SAFETY BELT) (00)",
+            "qty": 2,
+            "unitPrice": 230000,
+            "totalPrice": 460000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "GUR00801001-MAI",
+            "itemName": "MESIN GURINDA 4\" (MAKITA)",
+            "qty": 1,
+            "unitPrice": 463500,
+            "totalPrice": 463500,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "BNC00101003-BUS",
+            "itemName": "BINOCULAR 10 X 70 (BUSHNELL)",
+            "qty": 1,
+            "unitPrice": 578000,
+            "totalPrice": 578000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CAI01401002-SPL",
+            "itemName": "PEMBERSIH LANTAI 770 ML (SUPER PELL)",
+            "qty": 2,
+            "unitPrice": 20000,
+            "totalPrice": 40000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "BUK00201008-ZZZ",
+            "itemName": "BUKU DAFTAR/LIST PASANG SURUT KEPULAUAN INDONESIA EDISI 2027 (00)",
+            "qty": 5,
+            "unitPrice": 154500,
+            "totalPrice": 772500,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "PET00304020-ZZZ",
+            "itemName": "PETA LAUT NO. 301-400 ( NO. 362) (00)",
+            "qty": 1,
+            "unitPrice": 689500,
+            "totalPrice": 689500,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "UNI00102004-ZZZ",
+            "itemName": "BAJU COVERALL PT. CPL (XL) ORANGE (00)",
+            "qty": 50,
+            "unitPrice": 309500,
+            "totalPrice": 15475000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "SFT00401004-ZZZ",
+            "itemName": "HELM SAFETY PUTIH (00)",
+            "qty": 12,
+            "unitPrice": 51500,
+            "totalPrice": 618000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "UNI02302001-ZZZ",
+            "itemName": "SEPATU SAFETY NO. 06 (00)",
+            "qty": 6,
+            "unitPrice": 504000,
+            "totalPrice": 3024000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "UNI02303001-ZZZ",
+            "itemName": "SEPATU SAFETY NO. 07 (00)",
+            "qty": 7,
+            "unitPrice": 474500,
+            "totalPrice": 3321500,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "UNI02304001-ZZZ",
+            "itemName": "SEPATU SAFETY NO. 08 (00)",
+            "qty": 6,
+            "unitPrice": 489500,
+            "totalPrice": 2937000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "UNI02305001-ZZZ",
+            "itemName": "SEPATU SAFETY NO. 09 (00)",
+            "qty": 4,
+            "unitPrice": 504000,
+            "totalPrice": 2016000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "GUR00202001-BBU",
+            "itemName": "MATA GURINDA 5\" NO. 80 (B BULLS)",
+            "qty": 24,
+            "unitPrice": 50000,
+            "totalPrice": 1200000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "COR00102001-LKS",
+            "itemName": "CORONG 30 CM (LUCKY STAR)",
+            "qty": 2,
+            "unitPrice": 20500,
+            "totalPrice": 41000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "AKU02301001-WOD",
+            "itemName": "METERAN 5 METER (WOOD)",
+            "qty": 10,
+            "unitPrice": 246000,
+            "totalPrice": 2460000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "SFT00601003-HPR",
+            "itemName": "LIFE BUOY (RING BUOY) 2,5 KG (HYPRO)",
+            "qty": 3,
+            "unitPrice": 245000,
+            "totalPrice": 735000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "PRE00101010-WPR",
+            "itemName": "OIL PRESSURE GAUGE 10 KG/BAR 3/8\" NPT (WIPRO)",
+            "qty": 1,
+            "unitPrice": 283500,
+            "totalPrice": 283500,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "PAC01206001-ZZZ",
+            "itemName": "PACKING KARET 5 MM (00)",
+            "qty": 3,
+            "unitPrice": 191000,
+            "totalPrice": 573000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "LEM00601001-FBD",
+            "itemName": "FN TAPE (ANTI SPLASHING TAPE) (FLASHBAND)",
+            "qty": 3,
+            "unitPrice": 75000,
+            "totalPrice": 225000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          }
+        ],
+        "negotiatedGrandTotal": 41862875,
+        "technicalStatus": "PASSED"
+      },
+      {
+        "id": "bid-3-1794665060725",
+        "vendorName": "PT. Pelayaran Global Nusantara Supply",
+        "vendorPic": "Bpk. Dimas Pratama",
+        "vendorContact": "+62 821-4433-2211",
+        "quotationRefNo": "PGN/P/2026/019",
+        "bidDate": "2026-11-14",
+        "termOfPayment": "COD / 14 Hari",
+        "deliveryLeadTimeDays": 4,
+        "francoDeliveryPoint": "Franco Gudang Transit Balikpapan",
+        "validityDays": 14,
+        "subtotal": 31726000,
+        "ppnPercent": 11,
+        "ppnAmount": 3489860,
+        "deliveryFee": 1000000,
+        "grandTotal": 36215860,
+        "status": "RECOMMENDED",
+        "items": [
+          {
+            "itemId": "UNI01901001-ZZZ",
+            "itemName": "FULL BODY HARNEST (SAFETY BELT) (00)",
+            "qty": 2,
+            "unitPrice": 203000,
+            "totalPrice": 406000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "GUR00801001-MAI",
+            "itemName": "MESIN GURINDA 4\" (MAKITA)",
+            "qty": 1,
+            "unitPrice": 409500,
+            "totalPrice": 409500,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "BNC00101003-BUS",
+            "itemName": "BINOCULAR 10 X 70 (BUSHNELL)",
+            "qty": 1,
+            "unitPrice": 511000,
+            "totalPrice": 511000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "CAI01401002-SPL",
+            "itemName": "PEMBERSIH LANTAI 770 ML (SUPER PELL)",
+            "qty": 2,
+            "unitPrice": 17500,
+            "totalPrice": 35000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "BUK00201008-ZZZ",
+            "itemName": "BUKU DAFTAR/LIST PASANG SURUT KEPULAUAN INDONESIA EDISI 2027 (00)",
+            "qty": 5,
+            "unitPrice": 136500,
+            "totalPrice": 682500,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "PET00304020-ZZZ",
+            "itemName": "PETA LAUT NO. 301-400 ( NO. 362) (00)",
+            "qty": 1,
+            "unitPrice": 609000,
+            "totalPrice": 609000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "UNI00102004-ZZZ",
+            "itemName": "BAJU COVERALL PT. CPL (XL) ORANGE (00)",
+            "qty": 50,
+            "unitPrice": 273500,
+            "totalPrice": 13675000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "SFT00401004-ZZZ",
+            "itemName": "HELM SAFETY PUTIH (00)",
+            "qty": 12,
+            "unitPrice": 45500,
+            "totalPrice": 546000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "UNI02302001-ZZZ",
+            "itemName": "SEPATU SAFETY NO. 06 (00)",
+            "qty": 6,
+            "unitPrice": 445000,
+            "totalPrice": 2670000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "UNI02303001-ZZZ",
+            "itemName": "SEPATU SAFETY NO. 07 (00)",
+            "qty": 7,
+            "unitPrice": 419500,
+            "totalPrice": 2936500,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "UNI02304001-ZZZ",
+            "itemName": "SEPATU SAFETY NO. 08 (00)",
+            "qty": 6,
+            "unitPrice": 432500,
+            "totalPrice": 2595000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "UNI02305001-ZZZ",
+            "itemName": "SEPATU SAFETY NO. 09 (00)",
+            "qty": 4,
+            "unitPrice": 445000,
+            "totalPrice": 1780000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "GUR00202001-BBU",
+            "itemName": "MATA GURINDA 5\" NO. 80 (B BULLS)",
+            "qty": 24,
+            "unitPrice": 44000,
+            "totalPrice": 1056000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "COR00102001-LKS",
+            "itemName": "CORONG 30 CM (LUCKY STAR)",
+            "qty": 2,
+            "unitPrice": 18000,
+            "totalPrice": 36000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "AKU02301001-WOD",
+            "itemName": "METERAN 5 METER (WOOD)",
+            "qty": 10,
+            "unitPrice": 217500,
+            "totalPrice": 2175000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "SFT00601003-HPR",
+            "itemName": "LIFE BUOY (RING BUOY) 2,5 KG (HYPRO)",
+            "qty": 3,
+            "unitPrice": 216500,
+            "totalPrice": 649500,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "PRE00101010-WPR",
+            "itemName": "OIL PRESSURE GAUGE 10 KG/BAR 3/8\" NPT (WIPRO)",
+            "qty": 1,
+            "unitPrice": 250500,
+            "totalPrice": 250500,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "PAC01206001-ZZZ",
+            "itemName": "PACKING KARET 5 MM (00)",
+            "qty": 3,
+            "unitPrice": 168500,
+            "totalPrice": 505500,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          },
+          {
+            "itemId": "LEM00601001-FBD",
+            "itemName": "FN TAPE (ANTI SPLASHING TAPE) (FLASHBAND)",
+            "qty": 3,
+            "unitPrice": 66000,
+            "totalPrice": 198000,
+            "brandOffered": "Original / Sesuai RKS Spek",
+            "compliance": "COMPLIANT"
+          }
+        ],
+        "negotiatedGrandTotal": 36215860,
+        "technicalStatus": "PASSED"
+      }
+    ],
+    "evaluationSummary": {
+      "evaluatedBy": "Administrator CPG",
+      "evaluatedAt": "2026-11-14T14:04:27.552Z",
+      "recommendationNotes": "Direkomendasikan pemenang tender kepada PT. Pelayaran Global Nusantara Supply berdasarkan evaluasi komparasi harga terendah responsif (CBT) dan kepatuhan RKS.",
+      "winningVendorId": "bid-3-1794665060725",
+      "winningVendorName": "PT. Pelayaran Global Nusantara Supply",
+      "winningAmount": 36215860,
+      "costSavingVsHps": -960860,
+      "costSavingPercent": -2.7,
+      "approvalLevel": "DIREKSI",
+      "approvalStatus": "PENDING_APPROVAL",
+      "releaseTierId": "tier-3",
+      "releaseTierName": "Tier 3",
+      "isPoReleased": false,
+      "approvalNotes": "",
+      "baepNumber": "BAEP-CPG-TDR-26-1320",
+      "standstillStatus": "IN_PROGRESS",
+      "disputeNotes": ""
+    },
+    "awardedVendor": "PT. Pelayaran Global Nusantara Supply",
+    "awardedValue": 36215860
   },
   {
     "id": "pkg-1794586860059",
