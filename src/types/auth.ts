@@ -117,7 +117,7 @@ export interface ModulePermissionItem {
 
 export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = rawRbacMatrix as unknown as ModulePermissionItem[];
 
-export const RBAC_MATRIX_STORAGE_KEY = 'CPG_AUTH_RBAC_MATRIX_V9';
+export const RBAC_MATRIX_STORAGE_KEY = 'CPG_AUTH_RBAC_MATRIX_V10';
 
 /**
  * Membaca matriks perizinan dinamis dari localStorage (fallback ke default matrix)
@@ -136,12 +136,29 @@ export function getStoredPermissionsMatrix(): ModulePermissionItem[] {
     localStorage.removeItem('CPG_AUTH_RBAC_MATRIX_V6');
     localStorage.removeItem('CPG_AUTH_RBAC_MATRIX_V7');
     localStorage.removeItem('CPG_AUTH_RBAC_MATRIX_V8');
+    localStorage.removeItem('CPG_AUTH_RBAC_MATRIX_V9');
 
     const raw = localStorage.getItem(RBAC_MATRIX_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+        const storedMap = new Map<string, ModulePermissionItem>();
+        parsed.forEach((item: any) => storedMap.set(item.tabId, item));
+
+        const merged = MODULE_PERMISSIONS_MATRIX.map((sysItem) => {
+          const existing = storedMap.get(sysItem.tabId);
+          if (existing) {
+            return {
+              ...sysItem,
+              ...existing,
+              name: sysItem.name,
+              category: sysItem.category,
+              description: sysItem.description,
+            };
+          }
+          return sysItem;
+        });
+        return merged;
       }
     }
   } catch (err) {

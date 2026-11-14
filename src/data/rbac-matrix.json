@@ -1,9 +1,64 @@
 [
   {
+    "tabId": "notifikasi-pekerjaan",
+    "category": "Dashboards",
+    "name": "Notifikasi & Log Kerja",
+    "description": "Pusat notifikasi dan log aktivitas pekerjaan lintas unit kerja",
+    "permissions": {
+      "admin": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
+      },
+      "manager": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Akses membaca seluruh log pekerjaan lintas seksi"
+      },
+      "supervisor": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Akses membaca log pekerjaan tim logistik dan armada"
+      },
+      "staf_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Akses monitoring berkas FSTB dan PO"
+      },
+      "staf_ttb": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Akses monitoring pengesahan dan penerimaan TTB"
+      },
+      "staf_lapangan": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Akses notifikasi pengiriman dan serah terima kapal"
+      },
+      "end_user": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Akses monitoring serah terima unit/kapal"
+      },
+      "visitor": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Akses membaca notifikasi umum"
+      }
+    }
+  },
+  {
     "tabId": "overview",
     "category": "Dashboards",
-    "name": "Overview",
-    "description": "Ringkasan visual KPI monitoring procurement, pipeline lead time, dan status pengadaan",
+    "name": "Pencarian Cepat",
+    "description": "Pencarian cepat dokumen, multi-FPB, PO, material & pelacakan berkas pengadaan",
     "permissions": {
       "admin": {
         "allowed": true,
@@ -55,6 +110,54 @@
     }
   },
   {
+    "tabId": "ringkasan-berkas",
+    "category": "Dashboards",
+    "name": "Ringkasan Berkas",
+    "description": "Ringkasan berkas selesai administrasi (FPB, FSTB, TTB, foto) & kompilasi 1-klik file PDF",
+    "permissions": {
+      "admin": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
+      },
+      "manager": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
+      },
+      "supervisor": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
+      },
+      "staf_purchasing": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
+      },
+      "staf_ttb": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
+      },
+      "staf_lapangan": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
+      },
+      "end_user": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
+      },
+      "visitor": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
+      }
+    }
+  },
+  {
     "tabId": "review-fpb",
     "category": "Dashboards",
     "name": "Review & Analisa FPB",
@@ -84,10 +187,10 @@
         "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_ttb": {
-        "allowed": true,
-        "level": "Full Access",
-        "badgeTone": "purple",
-        "notes": "Dikonfigurasi manual oleh Admin: Full Access"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Dikonfigurasi manual oleh Admin: Dilarang"
       },
       "staf_lapangan": {
         "allowed": false,
@@ -138,10 +241,10 @@
         "notes": "Akses penyusunan paket pengadaan dan estimasi harga tender"
       },
       "staf_ttb": {
-        "allowed": true,
-        "level": "Full Access",
-        "badgeTone": "purple",
-        "notes": "Dikonfigurasi manual oleh Admin: Full Access"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Dikonfigurasi manual oleh Admin: Dilarang"
       },
       "staf_lapangan": {
         "allowed": false,
@@ -167,7 +270,7 @@
     "tabId": "pratender",
     "category": "Dashboards",
     "name": "Pratender Material",
-    "description": "Konsolidasi & agregasi kebutuhan material terbuka (open/unsupplied) lintas armada untuk paket tender pengadaan bersama",
+    "description": "Konsolidasi & agregasi kebutuhan material terbuka lintas armada untuk paket tender bersama",
     "permissions": {
       "admin": {
         "allowed": true,
@@ -218,63 +321,9 @@
     }
   },
   {
-    "tabId": "monitoring-internal",
-    "category": "Dashboards",
-    "name": "Monitoring Berkas Internal",
-    "description": "Monitoring berkas internal procurement, PIC purchasing, lead time delivery, dan serah terima dokumen fisik ke PIC TTB",
-    "permissions": {
-      "admin": {
-        "allowed": true,
-        "level": "Full Access",
-        "badgeTone": "purple"
-      },
-      "manager": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
-      },
-      "supervisor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
-      },
-      "staf_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
-      },
-      "staf_ttb": {
-        "allowed": true,
-        "level": "Full Access",
-        "badgeTone": "purple",
-        "notes": "Dikonfigurasi manual oleh Admin: Full Access"
-      },
-      "staf_lapangan": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Dikonfigurasi manual oleh Admin: Dilarang"
-      },
-      "end_user": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Alur internal purchasing disembunyikan"
-      },
-      "visitor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose"
-      }
-    }
-  },
-  {
     "tabId": "procurement",
     "category": "Dashboards",
-    "name": "Procurement",
+    "name": "Pengadaan",
     "description": "Monitoring alur berkas FPB-PO, SLA lead time, verifikasi barang sisa layanan",
     "permissions": {
       "admin": {
@@ -329,7 +378,7 @@
     "tabId": "armada",
     "category": "Dashboards",
     "name": "Layanan Armada",
-    "description": "Monitoring layanan armada kapal, status FSTB, dan log servis operasional",
+    "description": "Monitoring layanan armada, jadwal operasional kapal, dan status berkas FSTB",
     "permissions": {
       "admin": {
         "allowed": true,
@@ -380,10 +429,64 @@
     }
   },
   {
+    "tabId": "monitoring-internal",
+    "category": "Dashboards",
+    "name": "Monitoring Internal",
+    "description": "Monitoring berkas internal procurement, PIC purchasing, lead time delivery, dan serah terima dokumen fisik ke PIC TTB",
+    "permissions": {
+      "admin": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
+      },
+      "manager": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
+      },
+      "supervisor": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
+      },
+      "staf_purchasing": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
+      },
+      "staf_ttb": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Dikonfigurasi manual oleh Admin: Full Access"
+      },
+      "staf_lapangan": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Dikonfigurasi manual oleh Admin: Dilarang"
+      },
+      "end_user": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Alur internal purchasing disembunyikan"
+      },
+      "visitor": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
+      }
+    }
+  },
+  {
     "tabId": "upload-fstb",
     "category": "Dashboards",
-    "name": "Upload FSTB",
-    "description": "Upload berkas FSTB resmi ke Cloudflare R2 / Drive dengan penamaan otomatis no. FSTB",
+    "name": "Unggah FSTB",
+    "description": "Unggah dokumen FSTB ke Cloud Storage dengan format otomatis sesuai No. FSTB",
     "permissions": {
       "admin": {
         "allowed": true,
@@ -434,10 +537,64 @@
     }
   },
   {
+    "tabId": "validasi-dokumen",
+    "category": "Dashboards",
+    "name": "Validasi FSTB & TTB",
+    "description": "Validasi tanda tangan digital multi-lini (Purchasing, Logistik, Manajer Procurement) dokumen FSTB & TTB",
+    "permissions": {
+      "admin": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
+      },
+      "manager": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Dikonfigurasi manual oleh Admin: Full Access"
+      },
+      "supervisor": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Dikonfigurasi manual oleh Admin: Full Access"
+      },
+      "staf_purchasing": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Dikonfigurasi manual oleh Admin: Full Access"
+      },
+      "staf_ttb": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Dikonfigurasi manual oleh Admin: Full Access"
+      },
+      "staf_lapangan": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Dikonfigurasi manual oleh Admin: Dilarang"
+      },
+      "end_user": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
+      },
+      "visitor": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
+      }
+    }
+  },
+  {
     "tabId": "upload-ttb",
     "category": "Dashboards",
-    "name": "Upload TTB",
-    "description": "Upload berkas TTB resmi ke Cloudflare R2 / Drive dengan penamaan otomatis no. TTB",
+    "name": "Daftar TTB & Kirim WA",
+    "description": "Pusat serah terima TTB: pengantaran barang via notifikasi WhatsApp ke End User & unggah berkas resmi",
     "permissions": {
       "admin": {
         "allowed": true,
@@ -491,7 +648,7 @@
     "tabId": "jadwal-pengantaran",
     "category": "Dashboards",
     "name": "Jadwal Pengantaran",
-    "description": "Perencanaan jadwal pengantaran barang armada 5 hari kerja (Senin-Jumat) berbasis clustering AI & posisi kapal",
+    "description": "Perencanaan jadwal pengantaran barang ke kapal 5 hari kerja berbasis posisi kapal & AI",
     "permissions": {
       "admin": {
         "allowed": true,
@@ -542,118 +699,10 @@
     }
   },
   {
-    "tabId": "validasi-dokumen",
-    "category": "Dashboards",
-    "name": "Validasi FSTB & TTB",
-    "description": "Validasi tanda tangan digital multi-lini (Purchasing, Logistik, Lapangan) untuk berkas FSTB dan TTB sebelum dikirimkan ke armada",
-    "permissions": {
-      "admin": {
-        "allowed": true,
-        "level": "Full Access",
-        "badgeTone": "purple"
-      },
-      "manager": {
-        "allowed": true,
-        "level": "Full Access",
-        "badgeTone": "purple",
-        "notes": "Dikonfigurasi manual oleh Admin: Full Access"
-      },
-      "supervisor": {
-        "allowed": true,
-        "level": "Full Access",
-        "badgeTone": "purple",
-        "notes": "Dikonfigurasi manual oleh Admin: Full Access"
-      },
-      "staf_purchasing": {
-        "allowed": true,
-        "level": "Full Access",
-        "badgeTone": "purple",
-        "notes": "Dikonfigurasi manual oleh Admin: Full Access"
-      },
-      "staf_ttb": {
-        "allowed": true,
-        "level": "Full Access",
-        "badgeTone": "purple",
-        "notes": "Dikonfigurasi manual oleh Admin: Full Access"
-      },
-      "staf_lapangan": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Dikonfigurasi manual oleh Admin: Dilarang"
-      },
-      "end_user": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
-      },
-      "visitor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose"
-      }
-    }
-  },
-  {
-    "tabId": "serah-terima-lapangan",
-    "category": "Dashboards",
-    "name": "Serah Terima Lap.",
-    "description": "Portal input data serah terima barang di lapangan/dermaga berbasis referensi TTB",
-    "permissions": {
-      "admin": {
-        "allowed": true,
-        "level": "Full Access",
-        "badgeTone": "purple"
-      },
-      "manager": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
-      },
-      "supervisor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
-      },
-      "staf_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
-      },
-      "staf_ttb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
-      },
-      "staf_lapangan": {
-        "allowed": true,
-        "level": "Full Access",
-        "badgeTone": "purple",
-        "notes": "Dialihkan via toolbar pengalihan cepat ke Full Access"
-      },
-      "end_user": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
-      },
-      "visitor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose"
-      }
-    }
-  },
-  {
     "tabId": "galeri-ttb",
     "category": "Dashboards",
     "name": "Galeri Foto TTB",
-    "description": "Katalog arsip foto serah terima TTB dari lapangan dan pencarian dokumen",
+    "description": "Galeri arsip foto serah terima barang TTB dari lapangan",
     "permissions": {
       "admin": {
         "allowed": true,
@@ -708,7 +757,7 @@
     "tabId": "inventory",
     "category": "Modul Tambahan",
     "name": "Cek Persediaan",
-    "description": "Pengecekan fisik stok gudang dan katalog persediaan konsolidasi Accurate CPG",
+    "description": "Cek persediaan stok barang gudang Accurate, mutasi keluar-masuk, dan nilai valuasi aset logistik",
     "permissions": {
       "admin": {
         "allowed": true,
@@ -762,7 +811,7 @@
     "tabId": "stok-gudang",
     "category": "Modul Tambahan",
     "name": "Stok Gudang Pusat",
-    "description": "Penerimaan masuk PO & pengambilan barang keluar dari stok fisik Gudang Somber Pak Budi Agustiansyah",
+    "description": "Monitoring stok gudang pusat, ketersediaan material cadang armada, dan pergerakan persediaan fisik",
     "permissions": {
       "admin": {
         "allowed": true,
@@ -816,7 +865,7 @@
     "tabId": "pos-kapal",
     "category": "Modul Tambahan",
     "name": "Posisi Kapal",
-    "description": "Monitoring posisi koordinat harian kapal FMS dan status operasional laut",
+    "description": "Pelacakan posisi riil seluruh armada kapal CPG, status operasi di laut, dan estimasi waktu sandar",
     "permissions": {
       "admin": {
         "allowed": true,
@@ -870,7 +919,7 @@
     "tabId": "crew-kapal",
     "category": "Modul Tambahan",
     "name": "Crew & Armada",
-    "description": "Database 60 kapal & 633 kru kapal aktif CPG, kontak nahkoda, & alokasi armada",
+    "description": "Data manifest kru kapal, kapten/master on-duty, dan status pergantian awak armada",
     "permissions": {
       "admin": {
         "allowed": true,
@@ -896,10 +945,10 @@
         "notes": "Menu disembunyikan"
       },
       "staf_ttb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Menu disembunyikan"
+        "allowed": true,
+        "level": "View & Verifikasi",
+        "badgeTone": "blue",
+        "notes": "Dikonfigurasi manual oleh Admin: View & Verifikasi"
       },
       "staf_lapangan": {
         "allowed": false,
@@ -923,8 +972,8 @@
   {
     "tabId": "work-order",
     "category": "Modul Tambahan",
-    "name": "List WO",
-    "description": "Monitoring surat perintah kerja (WO) lapangan & log tindak lanjut perbaikan",
+    "name": "List Work Order (WO)",
+    "description": "Daftar surat perintah kerja perbaikan kapal, pemeliharaan rutin armada, dan status pengerjaan teknis",
     "permissions": {
       "admin": {
         "allowed": true,
@@ -977,8 +1026,8 @@
   {
     "tabId": "list-sm",
     "category": "Modul Tambahan",
-    "name": "List SM",
-    "description": "Monitoring Service & Maintenance armada pada bengkel vendor rekanan",
+    "name": "List Surat Masuk (SM)",
+    "description": "Register berkas administrasi surat masuk kapal, permohonan logistik, dan arsip disposisi operasional",
     "permissions": {
       "admin": {
         "allowed": true,
@@ -1032,7 +1081,7 @@
     "tabId": "sisa-layanan",
     "category": "Modul Tambahan",
     "name": "Sisa Layanan",
-    "description": "Laporan rekonsiliasi sisa layanan gabungan FPB-PO-FSTB-TTB seluruh unit",
+    "description": "Monitoring saldo sisa kuota layanan kontrak, verifikasi tagihan rekanan, dan realisasi anggaran",
     "permissions": {
       "admin": {
         "allowed": true,
@@ -1083,10 +1132,10 @@
     }
   },
   {
-    "tabId": "notifikasi-pekerjaan",
+    "tabId": "serah-terima-lapangan",
     "category": "Modul Tambahan",
-    "name": "Notifikasi & Log Kerja",
-    "description": "Pusat monitoring notifikasi pekerjaan, riwayat serah terima, dan log aktivitas lintas seksi unit kerja",
+    "name": "Serah Terima Lapangan",
+    "description": "Pencatatan serah terima fisik barang di dermaga/kapal, verifikasi penerimaan, dan dokumentasi lapangan",
     "permissions": {
       "admin": {
         "allowed": true,
@@ -1094,46 +1143,45 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Akses membaca seluruh log pekerjaan lintas seksi"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "supervisor": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Akses membaca log pekerjaan tim logistik dan armada"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "staf_purchasing": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Akses monitoring berkas FSTB dan PO"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Menu disembunyikan"
       },
       "staf_ttb": {
         "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Akses monitoring pengesahan dan penerimaan TTB"
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Dikonfigurasi manual oleh Admin: Full Access"
       },
       "staf_lapangan": {
         "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Akses notifikasi pengiriman dan serah terima kapal"
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Full Access"
       },
       "end_user": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Akses monitoring serah terima unit/kapal"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
       },
       "visitor": {
-        "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Akses membaca notifikasi umum"
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
       }
     }
   },
@@ -1141,7 +1189,7 @@
     "tabId": "analytics",
     "category": "Modul Khusus",
     "name": "Analytics",
-    "description": "Analisis bottleneck SLA pengadaan, evaluasi vendor, dan performa PIC",
+    "description": "Visualisasi analitik performa purchasing, efisiensi anggaran belanja, dan tren pengadaan armada",
     "permissions": {
       "admin": {
         "allowed": true,
@@ -1195,7 +1243,7 @@
     "tabId": "admin-settings",
     "category": "Modul Khusus",
     "name": "Admin Settings",
-    "description": "Manajemen hak akses RBAC, pembuatan user kredensial, dan konfigurasi sistem",
+    "description": "Konfigurasi otoritas RBAC matriks, manajemen akun pengguna, sinkronisasi data master, dan audit log",
     "permissions": {
       "admin": {
         "allowed": true,

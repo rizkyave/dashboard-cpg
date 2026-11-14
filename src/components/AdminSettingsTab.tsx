@@ -1995,31 +1995,32 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                     onChange={(e) => setQuickModule(e.target.value as any)}
                     className="w-full pl-3 pr-8 py-2 text-xs rounded-lg border border-border bg-background text-foreground font-medium focus:outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer"
                   >
-                    <option value="ALL">📦 Seluruh Modul (22 Fitur Sistem)</option>
-                    <optgroup label="Dashboards (12 Modul)">
-                      <option value="overview">Executive Overview</option>
-                      <option value="ringkasan-berkas">Ringkasan Berkas Lengkap (Dossier)</option>
-                      <option value="review-fpb">Review &amp; Analisa FPB</option>
+                    <option value="ALL">📦 Seluruh Modul (24 Fitur Sistem)</option>
+                    <optgroup label="Menu Utama (14 Modul)">
+                      <option value="notifikasi-pekerjaan">🔔 Notifikasi &amp; Log Kerja</option>
+                      <option value="overview">🔍 Pencarian Cepat</option>
+                      <option value="ringkasan-berkas">📁 Ringkasan Berkas</option>
+                      <option value="review-fpb">📋 Review &amp; Analisa FPB</option>
                       <option value="purchase-planning">📊 Perencanaan Pengadaan</option>
-                      <option value="pratender">Pratender Material Terbuka</option>
-                      <option value="procurement">Procurement (FPB &amp; PO)</option>
-                      <option value="armada">Layanan Armada</option>
-                      <option value="monitoring-internal">Monitoring Berkas Internal</option>
-                      <option value="upload-fstb">Upload FSTB Resmi</option>
-                      <option value="upload-ttb">Upload TTB Resmi</option>
-                      <option value="validasi-dokumen">Validasi &amp; TTD Dokumen (TTB / FSTB)</option>
-                      <option value="serah-terima-lapangan">Serah Terima Fisik Lapangan</option>
-                      <option value="galeri-ttb">Galeri &amp; Bukti TTB</option>
+                      <option value="pratender">📦 Pratender Material</option>
+                      <option value="procurement">🛍️ Pengadaan</option>
+                      <option value="armada">⚓ Layanan Armada</option>
+                      <option value="monitoring-internal">📑 Monitoring Internal</option>
+                      <option value="upload-fstb">📤 Unggah FSTB</option>
+                      <option value="validasi-dokumen">✍️ Validasi FSTB &amp; TTB</option>
+                      <option value="upload-ttb">🚚 Daftar TTB &amp; Kirim WA</option>
+                      <option value="jadwal-pengantaran">📅 Jadwal Pengantaran</option>
+                      <option value="galeri-ttb">🖼️ Galeri Foto TTB</option>
                     </optgroup>
                     <optgroup label="Modul Tambahan (8 Modul)">
-                      <option value="inventory">Monitoring Inventory</option>
-                      <option value="stok-gudang">Stok Gudang (Accurate)</option>
-                      <option value="pos-kapal">Posisi Armada Kapal</option>
-                      <option value="crew-kapal">Daftar Kru &amp; Kontak Armada</option>
-                      <option value="work-order">Work Order (SPK) Armada</option>
-                      <option value="list-sm">List Service Maintenance (SM)</option>
-                      <option value="sisa-layanan">Sisa Layanan FPB</option>
-                      <option value="notifikasi-pekerjaan">🔔 Notifikasi &amp; Log Kerja</option>
+                      <option value="inventory">Cek Persediaan</option>
+                      <option value="stok-gudang">Stok Gudang Pusat</option>
+                      <option value="pos-kapal">Posisi Kapal</option>
+                      <option value="crew-kapal">Crew &amp; Armada</option>
+                      <option value="work-order">List Work Order (WO)</option>
+                      <option value="list-sm">List Surat Masuk (SM)</option>
+                      <option value="sisa-layanan">Sisa Layanan</option>
+                      <option value="serah-terima-lapangan">Serah Terima Lapangan</option>
                     </optgroup>
                     <optgroup label="Modul Khusus (2 Modul)">
                       <option value="analytics">Analisis &amp; Evaluasi Procurement</option>
@@ -2233,7 +2234,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                                 : 'bg-purple-500'
                             }`}
                           />
-                          <span>{category}</span>
+                          <span>{category === 'Dashboards' ? 'Menu Utama (Dashboards)' : category}</span>
                           <span className="text-[10px] font-normal text-muted-foreground font-mono">
                             ({itemsInCategory.length} Modul)
                           </span>
