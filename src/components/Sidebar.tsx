@@ -13,6 +13,7 @@ import {
   Mail,
   Upload,
   Boxes,
+  Gavel,
   Images,
   Navigation,
   ShieldCheck,
@@ -155,6 +156,13 @@ export default function Sidebar({
       icon: Layers,
       badge: 'Sourcing',
       title: 'Konsolidasi & Agregasi Kebutuhan Material Terbuka (Open/Unsupplied) Lintas Armada untuk Paket Tender Bersama',
+    },
+    {
+      id: 'tender' as TabType,
+      label: 'Manajemen Tender',
+      icon: Gavel,
+      badge: 'E-Proc',
+      title: 'Sistem Manajemen Tender Resmi, Portal Rekanan, Evaluasi Komparasi CBT SAP (ME49) & Penerbitan PO Award',
     },
     {
       id: 'procurement' as TabType,

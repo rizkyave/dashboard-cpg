@@ -10,6 +10,7 @@ export type TabType =
   | 'review-fpb'
   | 'purchase-planning'
   | 'pratender'
+  | 'tender'
   | 'monitoring-internal'
   | 'procurement'
   | 'armada'

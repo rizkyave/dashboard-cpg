@@ -1996,13 +1996,14 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                     className="w-full pl-3 pr-8 py-2 text-xs rounded-lg border border-border bg-background text-foreground font-medium focus:outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer"
                   >
                     <option value="ALL">📦 Seluruh Modul (24 Fitur Sistem)</option>
-                    <optgroup label="Menu Utama (14 Modul)">
+                    <optgroup label="Menu Utama (15 Modul)">
                       <option value="notifikasi-pekerjaan">🔔 Notifikasi &amp; Log Kerja</option>
                       <option value="overview">🔍 Pencarian Cepat</option>
                       <option value="ringkasan-berkas">📁 Ringkasan Berkas</option>
                       <option value="review-fpb">📋 Review &amp; Analisa FPB</option>
                       <option value="purchase-planning">📊 Perencanaan Pengadaan</option>
                       <option value="pratender">📦 Pratender Material</option>
+                      <option value="tender">⚖️ Manajemen Tender (E-Proc)</option>
                       <option value="procurement">🛍️ Pengadaan</option>
                       <option value="armada">⚓ Layanan Armada</option>
                       <option value="monitoring-internal">📑 Monitoring Internal</option>

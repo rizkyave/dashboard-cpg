@@ -321,6 +321,57 @@
     }
   },
   {
+    "tabId": "tender",
+    "category": "Dashboards",
+    "name": "Manajemen Tender",
+    "description": "Sistem tender pengadaan resmi, portal penawaran rekanan, evaluasi komparasi CBT SAP (ME49), dan penetapan pemenang PO Award",
+    "permissions": {
+      "admin": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
+      },
+      "manager": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Akses evaluasi komparasi harga, scoring rekanan, dan pengesahan pemenang"
+      },
+      "supervisor": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Akses tabulasi penawaran rekanan dan rekomendasi pemenang"
+      },
+      "staf_purchasing": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Akses blast RFQ WhatsApp, input penawaran vendor, dan tabulasi CBT"
+      },
+      "staf_ttb": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
+      },
+      "staf_lapangan": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
+      },
+      "end_user": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
+      },
+      "visitor": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
+      }
+    }
+  },
+  {
     "tabId": "procurement",
     "category": "Dashboards",
     "name": "Pengadaan",

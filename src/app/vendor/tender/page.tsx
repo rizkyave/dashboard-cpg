@@ -1,0 +1,733 @@
+'use client';
+
+import React, { useState, useEffect, Suspense, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
+import {
+  Building2,
+  Download,
+  FileSpreadsheet,
+  FileText,
+  Upload,
+  CheckCircle2,
+  Clock,
+  Send,
+  Sparkles,
+  ChevronRight,
+  ShieldCheck,
+  DollarSign,
+  Package,
+} from 'lucide-react';
+import { PratenderPackage, VendorBidSubmission, VendorBidItem } from '@/types/pratender';
+import { generateRksDocumentPdf, triggerBrowserPdfDownload } from '@/utils/tenderDocumentGenerator';
+import { generateTenderBiddingExcel, parseTenderBiddingExcel } from '@/utils/tenderExcelBidding';
+
+function VendorTenderPortalContent() {
+  const searchParams = useSearchParams();
+  const pkgId = searchParams.get('pkg');
+
+  const [packageData, setPackageData] = useState<PratenderPackage | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  // Stepper State
+  const [activeStep, setActiveStep] = useState<'download' | 'pricing' | 'documents'>('pricing');
+
+  // Vendor Identity
+  const [vendorName, setVendorName] = useState('');
+  const [vendorPic, setVendorPic] = useState('');
+  const [vendorContact, setVendorContact] = useState('');
+  const [quotationRefNo, setQuotationRefNo] = useState('');
+  const [termOfPayment, setTermOfPayment] = useState('NET 30 Hari');
+  const [deliveryLeadTimeDays, setDeliveryLeadTimeDays] = useState(7);
+  const [francoDeliveryPoint, setFrancoDeliveryPoint] = useState('Gudang Somber Balikpapan / Dermaga CPG');
+
+  // Item Bids State
+  const [items, setItems] = useState<VendorBidItem[]>([]);
+
+  // Uploaded Official Doc (PDF)
+  const [uploadedDocName, setUploadedDocName] = useState<string | null>(null);
+
+  // States
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDownloadingRks, setIsDownloadingRks] = useState(false);
+  const [isSubmittedSuccess, setIsSubmittedSuccess] = useState(false);
+  const [submissionReceiptId, setSubmissionReceiptId] = useState<string | null>(null);
+  const [toastMsg, setToastMsg] = useState<{ text: string; type: 'success' | 'error' | 'info' } | null>(null);
+
+  const excelInputRef = useRef<HTMLInputElement>(null);
+  const docInputRef = useRef<HTMLInputElement>(null);
+
+  const showToast = (text: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setToastMsg({ text, type });
+    setTimeout(() => setToastMsg(null), 4000);
+  };
+
+  // Fetch Package Info
+  useEffect(() => {
+    if (!pkgId) {
+      setIsLoading(false);
+      setLoadError('Tautan tender tidak valid atau parameter paket tidak disertakan.');
+      return;
+    }
+
+    const loadPkg = async () => {
+      try {
+        const res = await fetch(`/api/pratender?_t=${Date.now()}`);
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.packages)) {
+            const match = json.packages.find((p: PratenderPackage) => p.id === pkgId);
+            if (match) {
+              setPackageData(match);
+              setItems(
+                match.items.map((it: any) => ({
+                  itemId: it.itemId,
+                  itemName: it.itemName,
+                  qty: it.totalQty,
+                  unitPrice: 0,
+                  totalPrice: 0,
+                  brandOffered: '',
+                  compliance: 'COMPLIANT',
+                  notes: '',
+                }))
+              );
+            } else {
+              setLoadError(`Paket tender "${pkgId}" tidak ditemukan atau sudah ditutup.`);
+            }
+          }
+        }
+      } catch (err: any) {
+        setLoadError(`Gagal menghubungi server tender: ${err.message}`);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadPkg();
+  }, [pkgId]);
+
+  // Calculations
+  const subtotal = items.reduce((acc, curr) => acc + (curr.totalPrice || 0), 0);
+  const ppnAmount = Math.round(subtotal * 0.11);
+  const grandTotal = subtotal + ppnAmount;
+
+  // Handle single item price update
+  const handleItemPriceChange = (itemId: string, newUnitPrice: number) => {
+    setItems((prev) =>
+      prev.map((it) => {
+        if (it.itemId === itemId) {
+          const total = it.qty * newUnitPrice;
+          return { ...it, unitPrice: newUnitPrice, totalPrice: total };
+        }
+        return it;
+      })
+    );
+  };
+
+  // Handle single item brand update
+  const handleItemBrandChange = (itemId: string, brand: string) => {
+    setItems((prev) =>
+      prev.map((it) => (it.itemId === itemId ? { ...it, brandOffered: brand } : it))
+    );
+  };
+
+  // Handle download RKS PDF
+  const handleDownloadRks = async () => {
+    if (!packageData) return;
+    setIsDownloadingRks(true);
+    try {
+      const pdfBytes = await generateRksDocumentPdf(packageData);
+      triggerBrowserPdfDownload(pdfBytes, `DOKUMEN_RKS_RFQ_${packageData.packageNumber}.pdf`);
+      showToast('Dokumen RKS & Syarat Tender berhasil diunduh.', 'success');
+    } catch (err: any) {
+      showToast(err.message || 'Gagal mengunduh RKS.', 'error');
+    } finally {
+      setIsDownloadingRks(false);
+    }
+  };
+
+  // Handle download Excel Template
+  const handleDownloadExcelTemplate = () => {
+    if (!packageData) return;
+    try {
+      generateTenderBiddingExcel(packageData, vendorName);
+      showToast('Template Excel Penawaran Harga berhasil diunduh.', 'success');
+    } catch (err: any) {
+      showToast(err.message || 'Gagal membuat file Excel.', 'error');
+    }
+  };
+
+  // Handle Upload Excel
+  const handleExcelUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!packageData) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const buffer = event.target?.result as ArrayBuffer;
+        const res = parseTenderBiddingExcel(buffer, packageData);
+
+        if (res.success && res.items && res.items.length > 0) {
+          setItems(res.items);
+          if (res.vendorName && !vendorName) setVendorName(res.vendorName);
+          if (res.quotationRefNo) setQuotationRefNo(res.quotationRefNo);
+          if (res.termOfPayment) setTermOfPayment(res.termOfPayment);
+          if (res.leadTimeDays) setDeliveryLeadTimeDays(res.leadTimeDays);
+
+          showToast(
+            `✓ Berhasil membaca penawaran Excel! Total Rp ${res.grandTotal?.toLocaleString('id-ID')}`,
+            'success'
+          );
+        } else {
+          showToast(res.message || 'Gagal membaca format Excel penawaran.', 'error');
+        }
+      } catch (err: any) {
+        showToast(`Kesalahan membaca Excel: ${err.message}`, 'error');
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    e.target.value = '';
+  };
+
+  // Handle Document Upload
+  const handleDocUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 15 * 1024 * 1024) {
+      showToast('Ukuran berkas penawaran maksimal 15MB.', 'error');
+      return;
+    }
+
+    setUploadedDocName(file.name);
+    showToast(`Dokumen penawaran resmi "${file.name}" terpilih!`, 'success');
+  };
+
+  // Submit Bid directly to CPG server
+  const handleSubmitBid = async () => {
+    if (!packageData) return;
+
+    if (!vendorName.trim()) {
+      showToast('Nama perusahaan rekanan wajib diisi.', 'error');
+      setActiveStep('pricing');
+      return;
+    }
+
+    if (items.some((it) => it.unitPrice <= 0)) {
+      showToast('Semua item pengadaan wajib diisi harga penawarannya.', 'error');
+      setActiveStep('pricing');
+      return;
+    }
+
+    setIsSubmitting(true);
+    const receiptNo = `BID-REC-${packageData.packageNumber.replace(/[^a-zA-Z0-9]/g, '')}-${Date.now().toString(36).toUpperCase()}`;
+
+    const newSubmission: VendorBidSubmission = {
+      id: `bid-${Date.now().toString(36)}-${Math.random().toString(36).substr(2, 5)}`,
+      vendorName: vendorName.trim(),
+      vendorPic: vendorPic.trim() || undefined,
+      vendorContact: vendorContact.trim() || undefined,
+      quotationRefNo: quotationRefNo.trim() || receiptNo,
+      bidDate: new Date().toISOString().split('T')[0],
+      termOfPayment,
+      deliveryLeadTimeDays,
+      francoDeliveryPoint,
+      items,
+      subtotal,
+      ppnPercent: 11,
+      ppnAmount,
+      deliveryFee: 0,
+      grandTotal,
+      technicalStatus: 'PASSED',
+      status: 'SUBMITTED',
+      negotiatedGrandTotal: grandTotal,
+    };
+
+    const existingBids = packageData.vendorBids || [];
+    const updatedBids = [
+      ...existingBids.filter((b) => b.vendorName.toLowerCase() !== newSubmission.vendorName.toLowerCase()),
+      newSubmission,
+    ];
+
+    const updatedPkg: PratenderPackage = {
+      ...packageData,
+      status: packageData.status === 'DRAFT' || packageData.status === 'RFQ_SENT' ? 'EVALUATION' : packageData.status,
+      vendorBids: updatedBids,
+    };
+
+    try {
+      const res = await fetch('/api/pratender', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'SAVE_PACKAGE',
+          package: updatedPkg,
+        }),
+      });
+
+      if (res.ok) {
+        setSubmissionReceiptId(receiptNo);
+        setIsSubmittedSuccess(true);
+        showToast('Penawaran harga resmi berhasil dikirimkan ke CPG!', 'success');
+      } else {
+        showToast('Gagal mengirimkan penawaran ke server.', 'error');
+      }
+    } catch (err: any) {
+      showToast(`Kesalahan server: ${err.message}`, 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4">
+        <div className="text-center space-y-3">
+          <div className="size-10 rounded-full border-3 border-sky-500 border-t-transparent animate-spin mx-auto" />
+          <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+            Menghubungkan ke Portal Tender PT Cindara Pratama Lines...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (loadError || !packageData) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 text-center space-y-4 shadow-xl">
+          <div className="size-12 rounded-full bg-rose-500/10 text-rose-600 flex items-center justify-center mx-auto">
+            <Building2 className="size-6" />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-slate-900 dark:text-white">Akses Portal Tidak Ditemukan</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+              {loadError || 'Paket tender tidak ditemukan.'}
+            </p>
+          </div>
+          <p className="text-[11px] text-slate-400">
+            Silakan hubungi Tim Pengadaan PT Cindara Pratama Lines via WhatsApp untuk verifikasi tautan penawaran Anda.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col justify-between text-xs">
+      {/* Toast Alert */}
+      {toastMsg && (
+        <div
+          className={`fixed top-4 right-4 z-50 px-4 py-2.5 rounded-xl shadow-lg border text-xs font-semibold animate-in fade-in slide-in-from-top-2 ${
+            toastMsg.type === 'success'
+              ? 'bg-emerald-500 text-white border-emerald-600'
+              : toastMsg.type === 'error'
+              ? 'bg-rose-500 text-white border-rose-600'
+              : 'bg-slate-800 text-white border-slate-700'
+          }`}
+        >
+          {toastMsg.text}
+        </div>
+      )}
+
+      {/* Portal Top Bar */}
+      <header className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 sm:px-8 py-4 sticky top-0 z-20 shadow-xs">
+        <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="size-10 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+              <Building2 className="size-5" />
+            </div>
+            <div>
+              <h1 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white leading-tight">
+                PT CINDARA PRATAMA LINES
+              </h1>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Portal Resmi Pengadaan Barang &amp; Jasa Armada &bull; Electronic Bidding System
+              </p>
+            </div>
+          </div>
+
+          <div className="hidden sm:flex items-center gap-2 font-mono text-[11px]">
+            <span className="px-2.5 py-1 rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400 font-bold border border-sky-500/20">
+              {packageData.packageNumber}
+            </span>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content Area */}
+      <main className="max-w-5xl mx-auto w-full p-4 sm:p-6 space-y-6 flex-1">
+        {/* Tender Package Banner */}
+        <div className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
+                  {packageData.packageNumber}
+                </span>
+                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                  Kategori: {packageData.category}
+                </span>
+              </div>
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mt-1">
+                {packageData.title}
+              </h2>
+            </div>
+
+            <div className="text-left sm:text-right text-xs">
+              <span className="text-[10px] text-slate-400 uppercase tracking-wider font-bold block">
+                Batas Akhir Penawaran
+              </span>
+              <span className="font-semibold text-slate-900 dark:text-white">
+                {packageData.targetClosingDate || 'Sesuai Jadwal RKS'}
+              </span>
+            </div>
+          </div>
+
+          <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+            {packageData.description ||
+              'Pengadaan material operasional armada PT Cindara Pratama Lines. Rekanan diundang untuk menyampaikan penawaran harga resmi.'}
+          </p>
+        </div>
+
+        {/* SUBMITTED SUCCESS RECEIPT */}
+        {isSubmittedSuccess ? (
+          <div className="p-8 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm text-center space-y-4 max-w-lg mx-auto">
+            <div className="size-16 rounded-full bg-emerald-500/15 text-emerald-600 flex items-center justify-center mx-auto border-2 border-emerald-500/30">
+              <CheckCircle2 className="size-9" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Penawaran Berhasil Diterima!</h3>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                Terima kasih, <strong>{vendorName}</strong>. Dokumen penawaran harga dan lampiran resmi Anda telah
+                tersimpan di sistem tender PT Cindara Pratama Lines.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-left space-y-2 text-xs">
+              <div className="flex justify-between pb-1 border-b border-slate-200 dark:border-slate-800">
+                <span className="text-slate-500">Nomor Tanda Terima:</span>
+                <span className="font-mono font-bold text-slate-900 dark:text-white">{submissionReceiptId}</span>
+              </div>
+              <div className="flex justify-between pb-1 border-b border-slate-200 dark:border-slate-800">
+                <span className="text-slate-500">Nilai Penawaran (Inc. PPN):</span>
+                <span className="font-mono font-bold text-emerald-600">
+                  Rp {grandTotal.toLocaleString('id-ID')}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Status:</span>
+                <span className="font-semibold text-sky-600">Tercatat di Evaluasi CBT SAP CPG</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {/* Step 1: Download Berkas Pengadaan */}
+            <div className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm space-y-4">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Download className="size-4 text-sky-500" />
+                <span>1. Unduh Berkas &amp; Ketentuan Tender</span>
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950 flex flex-col justify-between space-y-3">
+                  <div className="flex items-start gap-3">
+                    <FileText className="size-6 text-rose-500 shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-bold text-xs">Dokumen RKS &amp; Spesifikasi (PDF)</h4>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        Ketentuan umum, syarat kualifikasi, dan spesifikasi teknis barang.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleDownloadRks}
+                    disabled={isDownloadingRks}
+                    className="w-full py-2 px-3 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs flex items-center justify-center gap-2 transition cursor-pointer disabled:opacity-50"
+                  >
+                    <Download className="size-3.5" />
+                    <span>{isDownloadingRks ? 'Membuat PDF...' : 'Unduh Dokumen RKS'}</span>
+                  </button>
+                </div>
+
+                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950 flex flex-col justify-between space-y-3">
+                  <div className="flex items-start gap-3">
+                    <FileSpreadsheet className="size-6 text-emerald-500 shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-bold text-xs">Template Excel Penawaran Harga</h4>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        Blanko resmi {packageData.items.length} item material. Tinggal isi kolom harga satuan.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleDownloadExcelTemplate}
+                    className="w-full py-2 px-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-semibold text-xs flex items-center justify-center gap-2 transition cursor-pointer"
+                  >
+                    <Download className="size-3.5" />
+                    <span>Unduh Template Excel</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 2: Data Rekanan & Input Harga */}
+            <div className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm space-y-4">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <DollarSign className="size-4 text-sky-500" />
+                <span>2. Data Perusahaan &amp; Penawaran Harga Rekanan</span>
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 block mb-1">
+                    Nama Perusahaan Rekanan *
+                  </label>
+                  <input
+                    type="text"
+                    value={vendorName}
+                    onChange={(e) => setVendorName(e.target.value)}
+                    placeholder="PT. Pelayaran Rekanan..."
+                    className="w-full h-8 px-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 block mb-1">
+                    Nama PIC Rekanan
+                  </label>
+                  <input
+                    type="text"
+                    value={vendorPic}
+                    onChange={(e) => setVendorPic(e.target.value)}
+                    placeholder="Nama kontak penanggung jawab"
+                    className="w-full h-8 px-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 block mb-1">
+                    No. WhatsApp PIC
+                  </label>
+                  <input
+                    type="text"
+                    value={vendorContact}
+                    onChange={(e) => setVendorContact(e.target.value)}
+                    placeholder="0812..."
+                    className="w-full h-8 px-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 block mb-1">
+                    Nomor Surat Penawaran (Quotation Ref)
+                  </label>
+                  <input
+                    type="text"
+                    value={quotationRefNo}
+                    onChange={(e) => setQuotationRefNo(e.target.value)}
+                    placeholder="QTN/..."
+                    className="w-full h-8 px-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 block mb-1">
+                    Syarat Pembayaran (TOP)
+                  </label>
+                  <select
+                    value={termOfPayment}
+                    onChange={(e) => setTermOfPayment(e.target.value)}
+                    className="w-full h-8 px-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                  >
+                    <option value="COD / 14 Hari">COD / 14 Hari</option>
+                    <option value="NET 30 Hari">NET 30 Hari</option>
+                    <option value="NET 45 Hari">NET 45 Hari</option>
+                    <option value="NET 60 Hari">NET 60 Hari</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 block mb-1">
+                    Lead Time Pengiriman (Hari)
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={deliveryLeadTimeDays}
+                    onChange={(e) => setDeliveryLeadTimeDays(Number(e.target.value) || 1)}
+                    className="w-full h-8 px-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                  />
+                </div>
+              </div>
+
+              {/* Upload Excel Quick Fill */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                  Daftar Penawaran Harga Material ({items.length} Item)
+                </span>
+                <label className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs inline-flex items-center gap-1.5 transition cursor-pointer shadow-xs">
+                  <Upload className="size-3.5" />
+                  <span>Upload Excel Bidding yang Sudah Diisi</span>
+                  <input
+                    ref={excelInputRef}
+                    type="file"
+                    accept=".xlsx, .xls"
+                    onChange={handleExcelUpload}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+
+              {/* Items Table */}
+              <div className="rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+                <div className="overflow-x-auto max-h-72">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 sticky top-0 z-10 font-bold border-b border-slate-200 dark:border-slate-700">
+                      <tr>
+                        <th className="py-2 px-3 text-center w-10">No</th>
+                        <th className="py-2 px-3">Kode &amp; Nama Material</th>
+                        <th className="py-2 px-3 text-center w-24">Kebutuhan</th>
+                        <th className="py-2 px-3 w-40">Merk Ditawarkan</th>
+                        <th className="py-2 px-3 text-right w-44">Harga Satuan (Rp)</th>
+                        <th className="py-2 px-3 text-right w-44">Total (Rp)</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
+                      {items.map((it, idx) => (
+                        <tr key={it.itemId} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                          <td className="py-2 px-3 text-center text-slate-400 font-mono">{idx + 1}</td>
+                          <td className="py-2 px-3">
+                            <div className="font-semibold text-slate-900 dark:text-white">{it.itemName}</div>
+                            <div className="text-[10px] text-slate-400 font-mono">{it.itemId}</div>
+                          </td>
+                          <td className="py-2 px-3 text-center font-mono font-semibold">
+                            {it.qty} {packageData.items[idx]?.satuan || 'PCS'}
+                          </td>
+                          <td className="py-1.5 px-3">
+                            <input
+                              type="text"
+                              value={it.brandOffered || ''}
+                              onChange={(e) => handleItemBrandChange(it.itemId, e.target.value)}
+                              placeholder="Merk/Tipe"
+                              className="w-full h-7 px-2 rounded border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-xs"
+                            />
+                          </td>
+                          <td className="py-1.5 px-3 text-right">
+                            <input
+                              type="number"
+                              min={0}
+                              value={it.unitPrice || ''}
+                              onChange={(e) => handleItemPriceChange(it.itemId, Number(e.target.value) || 0)}
+                              placeholder="0"
+                              className="w-full h-7 px-2 rounded border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-xs text-right font-mono font-semibold"
+                            />
+                          </td>
+                          <td className="py-2 px-3 text-right font-mono font-bold text-slate-900 dark:text-white">
+                            Rp {(it.totalPrice || 0).toLocaleString('id-ID')}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="p-3.5 bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <span className="text-[11px] text-slate-500">
+                    Franco: <strong>{francoDeliveryPoint}</strong>
+                  </span>
+                  <div className="space-y-1 text-right">
+                    <div className="flex justify-between sm:justify-end gap-6 text-[11px] text-slate-500">
+                      <span>Subtotal:</span>
+                      <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
+                        Rp {subtotal.toLocaleString('id-ID')}
+                      </span>
+                    </div>
+                    <div className="flex justify-between sm:justify-end gap-6 text-[11px] text-slate-500">
+                      <span>PPN 11%:</span>
+                      <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
+                        Rp {ppnAmount.toLocaleString('id-ID')}
+                      </span>
+                    </div>
+                    <div className="flex justify-between sm:justify-end gap-6 text-sm font-bold text-slate-900 dark:text-white pt-1 border-t border-slate-200 dark:border-slate-800">
+                      <span>Grand Total:</span>
+                      <span className="font-mono text-emerald-600">
+                        Rp {grandTotal.toLocaleString('id-ID')}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 3: Unggah Dokumen Resmi & Submit */}
+            <div className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm space-y-4">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Upload className="size-4 text-sky-500" />
+                <span>3. Unggah Surat Penawaran Resmi &amp; Pengiriman</span>
+              </h3>
+
+              <div className="p-4 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl text-center space-y-2">
+                {uploadedDocName ? (
+                  <p className="font-bold text-emerald-600 text-xs">
+                    ✓ Berkas Terpilih: {uploadedDocName}
+                  </p>
+                ) : (
+                  <p className="text-xs text-slate-500">
+                    Unggah scan surat penawaran resmi bertanda tangan &amp; stempel (Format PDF / Gambar, Maks 15MB)
+                  </p>
+                )}
+                <input
+                  ref={docInputRef}
+                  type="file"
+                  accept=".pdf, .png, .jpg, .jpeg"
+                  onChange={handleDocUpload}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => docInputRef.current?.click()}
+                  className="px-3.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-semibold cursor-pointer"
+                >
+                  {uploadedDocName ? 'Ganti Berkas PDF' : 'Pilih Berkas PDF'}
+                </button>
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <button
+                  type="button"
+                  onClick={handleSubmitBid}
+                  disabled={isSubmitting}
+                  className="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs inline-flex items-center gap-2 transition cursor-pointer shadow-md disabled:opacity-50"
+                >
+                  <Send className="size-4" />
+                  <span>{isSubmitting ? 'Mengirimkan...' : 'Kirimkan Penawaran Resmi ke Tim Pengadaan CPG'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+
+      {/* Portal Footer */}
+      <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3 text-center text-[11px] text-slate-400">
+        &copy; {new Date().getFullYear()} PT Cindara Pratama Lines &bull; Divisi Pengadaan &amp; Logistik Armada
+      </footer>
+    </div>
+  );
+}
+
+export default function VendorTenderPortalPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center p-4">
+          <div className="size-8 rounded-full border-2 border-sky-500 border-t-transparent animate-spin" />
+        </div>
+      }
+    >
+      <VendorTenderPortalContent />
+    </Suspense>
+  );
+}

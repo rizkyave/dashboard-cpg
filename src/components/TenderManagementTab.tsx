@@ -1,0 +1,660 @@
+'use client';
+
+import React, { useState, useMemo, useEffect } from 'react';
+import {
+  Gavel,
+  Search,
+  Filter,
+  Plus,
+  Scale,
+  FileText,
+  Download,
+  Share2,
+  Calendar,
+  Building2,
+  TrendingDown,
+  Award,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  Eye,
+  RefreshCw,
+  ShoppingBag,
+  ExternalLink,
+  Users,
+  Send,
+  Link2,
+  Copy,
+  Check,
+  Package,
+  X,
+} from 'lucide-react';
+import {
+  PratenderPackage,
+  PratenderStatus,
+  VendorBidSubmission,
+} from '@/types/pratender';
+import CommercialBidTabulationModal from './CommercialBidTabulationModal';
+import VendorTenderPortalModal from './VendorTenderPortalModal';
+import {
+  generateRksDocumentPdf,
+  generateBaepDocumentPdf,
+  generatePoAwardDocumentPdf,
+  triggerBrowserPdfDownload,
+} from '@/utils/tenderDocumentGenerator';
+import { useAuth } from '@/context/AuthContext';
+
+interface Props {
+  showToast?: (msg: string, type?: 'success' | 'warning' | 'error' | 'info') => void;
+  onNavigateTab?: (tab: any) => void;
+}
+
+export default function TenderManagementTab({ showToast, onNavigateTab }: Props) {
+  const { user } = useAuth();
+
+  // Data States
+  const [packages, setPackages] = useState<PratenderPackage[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  // Filter States
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [categoryFilter, setCategoryFilter] = useState<string>('ALL');
+
+  // Modal States
+  const [isCbtModalOpen, setIsCbtModalOpen] = useState<boolean>(false);
+  const [selectedCbtPackage, setSelectedCbtPackage] = useState<PratenderPackage | null>(null);
+
+  const [isVendorPortalOpen, setIsVendorPortalOpen] = useState<boolean>(false);
+  const [selectedPortalPackage, setSelectedPortalPackage] = useState<PratenderPackage | null>(null);
+
+  const [generatingDocType, setGeneratingDocType] = useState<string | null>(null);
+
+  // WhatsApp Blast Modal State
+  const [waBlastPackage, setWaBlastPackage] = useState<PratenderPackage | null>(null);
+  const [waGroupLink, setWaGroupLink] = useState<string>('');
+
+  // Fetch Packages from server
+  const fetchPackages = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch(`/api/pratender?_t=${Date.now()}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && Array.isArray(json.packages)) {
+          setPackages(json.packages);
+        }
+      }
+    } catch (err: any) {
+      if (showToast) showToast('Gagal memuat daftar tender.', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPackages();
+  }, []);
+
+  // Filtered Packages
+  const filteredPackages = useMemo(() => {
+    return packages.filter((pkg) => {
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const matchTitle = pkg.title.toLowerCase().includes(q);
+        const matchNo = pkg.packageNumber.toLowerCase().includes(q);
+        const matchCat = pkg.category.toLowerCase().includes(q);
+        const matchItem = pkg.items.some((it) => it.itemName.toLowerCase().includes(q));
+        if (!matchTitle && !matchNo && !matchCat && !matchItem) return false;
+      }
+      if (statusFilter !== 'ALL' && pkg.status !== statusFilter) return false;
+      if (categoryFilter !== 'ALL' && pkg.category !== categoryFilter) return false;
+      return true;
+    });
+  }, [packages, searchQuery, statusFilter, categoryFilter]);
+
+  // Categories list
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    packages.forEach((p) => {
+      if (p.category) set.add(p.category);
+    });
+    return Array.from(set);
+  }, [packages]);
+
+  // KPI Metrics
+  const metrics = useMemo(() => {
+    const total = packages.length;
+    const rfqActive = packages.filter((p) => p.status === 'RFQ_SENT' || p.status === 'DRAFT').length;
+    const inEvaluation = packages.filter((p) => p.status === 'EVALUATION').length;
+    const completed = packages.filter((p) => p.status === 'AWARDED' || p.status === 'COMPLETED').length;
+
+    let totalSavings = 0;
+    packages.forEach((p) => {
+      if (p.evaluationSummary?.costSavingVsHps && p.evaluationSummary.costSavingVsHps > 0) {
+        totalSavings += p.evaluationSummary.costSavingVsHps;
+      }
+    });
+
+    return { total, rfqActive, inEvaluation, completed, totalSavings };
+  }, [packages]);
+
+  // Handle Save CBT package (e.g. from CBT modal)
+  const handleSaveCbtPackage = async (updatedPkg: PratenderPackage) => {
+    try {
+      const res = await fetch('/api/pratender', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'SAVE_PACKAGE',
+          package: updatedPkg,
+        }),
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success) {
+          setPackages((prev) =>
+            prev.map((p) => (p.id === updatedPkg.id ? updatedPkg : p))
+          );
+          if (showToast) showToast('Data evaluasi komparasi tender (CBT SAP) berhasil disimpan.', 'success');
+        }
+      }
+    } catch (err: any) {
+      if (showToast) showToast(`Gagal menyimpan data tender: ${err.message}`, 'error');
+    }
+  };
+
+  // Handle Bid Submitted from Vendor Portal
+  const handleVendorBidSubmitted = async (submission: VendorBidSubmission) => {
+    if (!selectedPortalPackage) return;
+
+    const existingBids = selectedPortalPackage.vendorBids || [];
+    const updatedBids = [...existingBids.filter((b) => b.vendorName.toLowerCase() !== submission.vendorName.toLowerCase()), submission];
+
+    const updatedPkg: PratenderPackage = {
+      ...selectedPortalPackage,
+      status: selectedPortalPackage.status === 'DRAFT' || selectedPortalPackage.status === 'RFQ_SENT' ? 'EVALUATION' : selectedPortalPackage.status,
+      vendorBids: updatedBids,
+    };
+
+    await handleSaveCbtPackage(updatedPkg);
+  };
+
+  // Helper Download Dokumen Pendukung Tender (RKS RFQ, BAEP, PO)
+  const handleDownloadTenderDoc = async (pkg: PratenderPackage, type: 'RKS' | 'BAEP' | 'PO') => {
+    setGeneratingDocType(`${type}-${pkg.id}`);
+    try {
+      if (type === 'RKS') {
+        const bytes = await generateRksDocumentPdf(pkg);
+        triggerBrowserPdfDownload(bytes, `DOKUMEN_RKS_RFQ_${pkg.packageNumber}.pdf`);
+        if (showToast) showToast(`✓ Dokumen RKS RFQ ${pkg.packageNumber} berhasil diunduh!`, 'success');
+      } else if (type === 'BAEP') {
+        const bytes = await generateBaepDocumentPdf(pkg);
+        triggerBrowserPdfDownload(bytes, `BERITA_ACARA_BAEP_${pkg.packageNumber}.pdf`);
+        if (showToast) showToast(`✓ Berita Acara BAEP ${pkg.packageNumber} berhasil diunduh!`, 'success');
+      } else if (type === 'PO') {
+        const bytes = await generatePoAwardDocumentPdf(pkg);
+        triggerBrowserPdfDownload(bytes, `PO_AWARD_${pkg.packageNumber}.pdf`);
+        if (showToast) showToast(`✓ Dokumen Purchase Order (PO Award) ${pkg.packageNumber} berhasil diunduh!`, 'success');
+      }
+    } catch (err: any) {
+      if (showToast) showToast(err.message || 'Gagal membuat dokumen tender.', 'error');
+    } finally {
+      setGeneratingDocType(null);
+    }
+  };
+
+  // Render Status Badge
+  const renderStatusBadge = (status: PratenderStatus) => {
+    switch (status) {
+      case 'DRAFT':
+        return (
+          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20">
+            Draft RKS
+          </span>
+        );
+      case 'RFQ_SENT':
+        return (
+          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 animate-pulse">
+            Bidding Dibuka (RFQ)
+          </span>
+        );
+      case 'EVALUATION':
+        return (
+          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+            Evaluasi CBT SAP
+          </span>
+        );
+      case 'AWARDED':
+        return (
+          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+            Pemenang Ditetapkan
+          </span>
+        );
+      case 'COMPLETED':
+        return (
+          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+            Selesai (Terbit PO)
+          </span>
+        );
+      case 'CANCELLED':
+        return (
+          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+            Dibatalkan
+          </span>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="p-4 sm:p-6 space-y-6 text-xs animate-in fade-in duration-200">
+      {/* Header Banner */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-2xl border border-border bg-card shadow-xs">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="p-2 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 shadow-xs">
+              <Gavel className="size-5" />
+            </span>
+            <div>
+              <h1 className="text-lg sm:text-xl font-bold text-foreground">
+                Sistem Manajemen Tender &amp; Portal Rekanan
+              </h1>
+              <p className="text-xs text-muted-foreground">
+                Pengadaan strategis armada CPG, komparasi penawaran rekanan CBT (SAP ME49), dan penerbitan PO Award.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={fetchPackages}
+            disabled={isLoading}
+            className="px-3 py-2 rounded-xl border border-border bg-card hover:bg-muted text-foreground text-xs font-semibold inline-flex items-center gap-1.5 transition cursor-pointer disabled:opacity-50"
+            title="Muat Ulang Daftar Paket Tender"
+          >
+            <RefreshCw className={`size-3.5 ${isLoading ? 'animate-spin text-sky-500' : ''}`} />
+            <span>Segarkan</span>
+          </button>
+
+          {onNavigateTab && (
+            <button
+              type="button"
+              onClick={() => onNavigateTab('pratender')}
+              className="px-3.5 py-2 rounded-xl border border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/20 text-sky-700 dark:text-sky-300 text-xs font-semibold inline-flex items-center gap-1.5 transition cursor-pointer"
+              title="Ambil kebutuhan material dari Pratender"
+            >
+              <Package className="size-3.5" />
+              <span>Sourcing Pratender</span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+        <div className="p-4 rounded-xl border border-border bg-card shadow-xs space-y-1">
+          <span className="text-[11px] font-medium text-muted-foreground block">Total Paket Tender</span>
+          <div className="text-xl sm:text-2xl font-bold text-foreground font-mono">{metrics.total}</div>
+          <span className="text-[10px] text-muted-foreground">Paket resmi terdaftar</span>
+        </div>
+
+        <div className="p-4 rounded-xl border border-border bg-card shadow-xs space-y-1">
+          <span className="text-[11px] font-medium text-muted-foreground block">Bidding / RFQ Dibuka</span>
+          <div className="text-xl sm:text-2xl font-bold text-sky-600 dark:text-sky-400 font-mono">{metrics.rfqActive}</div>
+          <span className="text-[10px] text-sky-600/80">Menunggu submission vendor</span>
+        </div>
+
+        <div className="p-4 rounded-xl border border-border bg-card shadow-xs space-y-1">
+          <span className="text-[11px] font-medium text-muted-foreground block">Evaluasi CBT ME49</span>
+          <div className="text-xl sm:text-2xl font-bold text-amber-600 dark:text-amber-400 font-mono">{metrics.inEvaluation}</div>
+          <span className="text-[10px] text-amber-600/80">Proses tabulasi &amp; scoring</span>
+        </div>
+
+        <div className="p-4 rounded-xl border border-border bg-card shadow-xs space-y-1">
+          <span className="text-[11px] font-medium text-muted-foreground block">Pemenang / Terbit PO</span>
+          <div className="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400 font-mono">{metrics.completed}</div>
+          <span className="text-[10px] text-emerald-600/80">PO Award disahkan</span>
+        </div>
+
+        <div className="p-4 rounded-xl border border-border bg-card shadow-xs space-y-1 col-span-2 lg:col-span-1">
+          <span className="text-[11px] font-medium text-muted-foreground block">Total Efisiensi (Saving)</span>
+          <div className="text-lg sm:text-xl font-bold text-purple-600 dark:text-purple-400 font-mono truncate">
+            Rp {metrics.totalSavings.toLocaleString('id-ID')}
+          </div>
+          <span className="text-[10px] text-purple-600/80">Penghematan anggaran vs HPS</span>
+        </div>
+      </div>
+
+      {/* Filter & Search Bar */}
+      <div className="p-3.5 rounded-xl border border-border bg-card shadow-xs flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+        <div className="relative flex-1">
+          <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Cari nomor tender (CPG-TDR-...), judul paket, kategori, atau nama item..."
+            className="w-full h-9 pl-9 pr-3 rounded-lg border border-border bg-background text-foreground text-xs focus:ring-1 focus:ring-primary focus:outline-hidden"
+          />
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="h-9 px-3 rounded-lg border border-border bg-background text-foreground text-xs focus:ring-1 focus:ring-primary focus:outline-hidden"
+          >
+            <option value="ALL">Semua Tahapan Status</option>
+            <option value="DRAFT">Draft RKS</option>
+            <option value="RFQ_SENT">Bidding Dibuka (RFQ)</option>
+            <option value="EVALUATION">Evaluasi CBT SAP</option>
+            <option value="AWARDED">Pemenang Ditetapkan</option>
+            <option value="COMPLETED">Selesai (Terbit PO)</option>
+          </select>
+
+          {categories.length > 0 && (
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="h-9 px-3 rounded-lg border border-border bg-background text-foreground text-xs focus:ring-1 focus:ring-primary focus:outline-hidden"
+            >
+              <option value="ALL">Semua Kategori Pengadaan</option>
+              {categories.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+      </div>
+
+      {/* List of Tender Packages */}
+      <div className="space-y-4">
+        {filteredPackages.length === 0 ? (
+          <div className="py-12 text-center rounded-2xl border border-dashed border-border bg-muted/20 space-y-2">
+            <Gavel className="size-10 text-muted-foreground/40 mx-auto" />
+            <h3 className="font-bold text-foreground text-sm">Tidak Ada Paket Tender Ditemukan</h3>
+            <p className="text-xs text-muted-foreground max-w-md mx-auto">
+              {searchQuery || statusFilter !== 'ALL' || categoryFilter !== 'ALL'
+                ? 'Tidak ada paket tender yang cocok dengan kriteria filter pencarian Anda.'
+                : 'Belum ada paket tender resmi yang dibuat. Buat paket tender baru melalui modul Pratender Material.'}
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4">
+            {filteredPackages.map((pkg) => {
+              const vendorBidsCount = pkg.vendorBids?.length || 0;
+              const hasWinner = pkg.status === 'AWARDED' || pkg.status === 'COMPLETED';
+
+              return (
+                <div
+                  key={pkg.id}
+                  className="p-5 rounded-2xl border border-border bg-card shadow-xs hover:border-purple-500/40 transition flex flex-col justify-between space-y-4"
+                >
+                  {/* Top Bar Paket */}
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 pb-3 border-b border-border/70">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-mono text-xs font-bold px-2.5 py-0.5 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/25">
+                          {pkg.packageNumber}
+                        </span>
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-muted text-muted-foreground border border-border">
+                          Kategori: {pkg.category}
+                        </span>
+                        {renderStatusBadge(pkg.status)}
+                      </div>
+                      <h3 className="text-base font-bold text-foreground mt-1">{pkg.title}</h3>
+                      <p className="text-[11px] text-muted-foreground">
+                        Dibuat oleh <span className="font-semibold text-foreground">{pkg.createdBy}</span> &bull;{' '}
+                        {new Date(pkg.createdAt).toLocaleDateString('id-ID', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric',
+                        })}
+                      </p>
+                    </div>
+
+                    <div className="text-left sm:text-right space-y-0.5">
+                      <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider block">
+                        Nilai HPS / OE
+                      </span>
+                      <span className="font-mono text-base font-bold text-foreground">
+                        Rp {(pkg.ownerEstimateHps || pkg.totalEstimatedBudget || 0).toLocaleString('id-ID')}
+                      </span>
+                      {pkg.targetClosingDate && (
+                        <p className="text-[11px] text-muted-foreground">
+                          Batas Penawaran:{' '}
+                          <span className="font-medium text-foreground">{pkg.targetClosingDate}</span>
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Middle Info & Bidding Status */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-xl bg-muted/30 border border-border/60">
+                    <div>
+                      <span className="text-[10px] text-muted-foreground block">Item Kebutuhan</span>
+                      <span className="font-semibold text-foreground text-xs">
+                        {pkg.items.length} Macam Material / Jasa
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] text-muted-foreground block">Partisipasi Rekanan</span>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <Users className="size-3.5 text-sky-500" />
+                        <span className="font-bold text-xs text-foreground">
+                          {vendorBidsCount} Penawaran Masuk
+                        </span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] text-muted-foreground block">Status Pemenang Tender</span>
+                      {hasWinner && pkg.awardedVendor ? (
+                        <span className="font-bold text-emerald-600 dark:text-emerald-400 text-xs truncate block">
+                          ✓ {pkg.awardedVendor}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground text-xs italic">
+                          Dalam evaluasi / belum penetapan
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Action Buttons Bar */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+                    {/* Dokumen RKS & BAEP Downloads */}
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadTenderDoc(pkg, 'RKS')}
+                        disabled={generatingDocType === `RKS-${pkg.id}`}
+                        className="px-2.5 py-1.5 rounded-lg border border-border bg-card hover:bg-muted text-foreground text-xs font-medium inline-flex items-center gap-1 transition cursor-pointer disabled:opacity-50"
+                        title="Unduh Dokumen RKS / Ketentuan Tender (PDF)"
+                      >
+                        <FileText className="size-3 text-sky-500" />
+                        <span>RKS</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadTenderDoc(pkg, 'BAEP')}
+                        disabled={generatingDocType === `BAEP-${pkg.id}`}
+                        className="px-2.5 py-1.5 rounded-lg border border-border bg-card hover:bg-muted text-foreground text-xs font-medium inline-flex items-center gap-1 transition cursor-pointer disabled:opacity-50"
+                        title="Unduh Berita Acara Evaluasi Pengadaan (BAEP PDF)"
+                      >
+                        <Award className="size-3 text-amber-500" />
+                        <span>BAEP</span>
+                      </button>
+
+                      {hasWinner && (
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadTenderDoc(pkg, 'PO')}
+                          disabled={generatingDocType === `PO-${pkg.id}`}
+                          className="px-2.5 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-semibold inline-flex items-center gap-1 transition cursor-pointer disabled:opacity-50"
+                          title="Unduh Surat Purchase Order (PO Award) Resmi (PDF)"
+                        >
+                          <Download className="size-3 text-emerald-600" />
+                          <span>PO Award</span>
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setWaBlastPackage(pkg);
+                          setWaGroupLink(pkg.waGroupInviteLink || '');
+                        }}
+                        className="px-2.5 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-semibold inline-flex items-center gap-1 transition cursor-pointer"
+                        title="Blast WhatsApp Undangan Tender ke Rekanan"
+                      >
+                        <Share2 className="size-3 text-emerald-600" />
+                        <span>Blast WA</span>
+                      </button>
+                    </div>
+
+                    {/* Primary Tender Actions */}
+                    <div className="flex items-center gap-2">
+                      {/* Button Open Vendor Portal for testing/submission */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedPortalPackage(pkg);
+                          setIsVendorPortalOpen(true);
+                        }}
+                        className="px-3 py-1.5 rounded-xl border border-sky-500/40 bg-sky-500/10 hover:bg-sky-500/20 text-sky-700 dark:text-sky-300 text-xs font-bold inline-flex items-center gap-1.5 transition cursor-pointer shadow-xs"
+                        title="Buka Portal Rekanan untuk mengunggah atau melihat penawaran rekanan"
+                      >
+                        <Building2 className="size-3.5" />
+                        <span>Portal Rekanan</span>
+                      </button>
+
+                      {/* Button CBT SAP ME49 Evaluation */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedCbtPackage(pkg);
+                          setIsCbtModalOpen(true);
+                        }}
+                        className="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold inline-flex items-center gap-1.5 transition cursor-pointer shadow-xs"
+                        title="Buka Evaluasi Komparasi Penawaran CBT (SAP ME49)"
+                      >
+                        <Scale className="size-3.5" />
+                        <span>CBT SAP (ME49)</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* MODAL 1: CBT SAP EVALUATION (COMMERCIAL BID TABULATION - ME49) */}
+      {isCbtModalOpen && selectedCbtPackage && (
+        <CommercialBidTabulationModal
+          isOpen={isCbtModalOpen}
+          onClose={() => {
+            setIsCbtModalOpen(false);
+            setSelectedCbtPackage(null);
+          }}
+          packageData={selectedCbtPackage}
+          onSavePackage={handleSaveCbtPackage}
+          userRole={user?.role}
+          userName={user?.name || user?.username}
+        />
+      )}
+
+      {/* MODAL 2: VENDOR TENDER PORTAL (E-QUOTATION & DOCUMENT SUBMISSION) */}
+      {isVendorPortalOpen && selectedPortalPackage && (
+        <VendorTenderPortalModal
+          isOpen={isVendorPortalOpen}
+          onClose={() => {
+            setIsVendorPortalOpen(false);
+            setSelectedPortalPackage(null);
+          }}
+          packageData={selectedPortalPackage}
+          onBidSubmitted={handleVendorBidSubmitted}
+          showToast={showToast}
+        />
+      )}
+
+      {/* MODAL 3: WHATSAPP BLAST & INVITE LINK */}
+      {waBlastPackage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+          onClick={() => setWaBlastPackage(null)}
+        >
+          <div
+            className="relative w-full max-w-lg bg-card border border-border rounded-2xl shadow-2xl overflow-hidden p-5 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-border">
+              <div className="flex items-center gap-2">
+                <Share2 className="size-4 text-emerald-600" />
+                <h3 className="font-bold text-foreground text-sm">Blast Undangan Tender &amp; Portal Rekanan</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setWaBlastPackage(null)}
+                className="p-1 rounded-lg hover:bg-muted text-muted-foreground"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-muted-foreground">
+              Kirimkan pengumuman tender resmi untuk paket <strong>{waBlastPackage.packageNumber}</strong> ke Group Rekanan WhatsApp beserta tautan pengisian penawaran online.
+            </p>
+
+            <div className="space-y-1">
+              <label className="text-[11px] font-semibold text-foreground flex items-center gap-1">
+                <Link2 className="size-3.5 text-emerald-600" />
+                <span>Tautan Undangan Grup WhatsApp Tender (Opsional):</span>
+              </label>
+              <input
+                type="text"
+                value={waGroupLink}
+                onChange={(e) => setWaGroupLink(e.target.value)}
+                placeholder="https://chat.whatsapp.com/..."
+                className="w-full h-8 px-2.5 rounded-lg border border-border bg-background text-foreground text-xs focus:ring-1 focus:ring-emerald-500 font-mono"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setWaBlastPackage(null)}
+                className="px-3 py-1.5 rounded-lg border border-border hover:bg-muted text-foreground text-xs"
+              >
+                Tutup
+              </button>
+              <a
+                href={`https://web.whatsapp.com/send?text=${encodeURIComponent(
+                  `*PENGUMUMAN TENDER PENGADAAN CPG*\n\nNomor: ${waBlastPackage.packageNumber}\nPaket: ${waBlastPackage.title}\nKategori: ${waBlastPackage.category}\nBatas Penawaran: ${waBlastPackage.targetClosingDate || 'Sesuai RKS'}\n\nRekanan dapat mengakses dokumen RKS dan menyampaikan penawaran resmi melalui link berikut:\n${typeof window !== 'undefined' ? window.location.origin : 'https://cpg-procurement.com'}/vendor/tender?pkg=${waBlastPackage.id}\n${waGroupLink ? `\nGabung Grup WhatsApp Tender:\n${waGroupLink}\n` : ''}\nPT Cindara Pratama Lines`
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setWaBlastPackage(null)}
+                className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs inline-flex items-center gap-1.5 transition cursor-pointer"
+              >
+                <Send className="size-3.5" />
+                <span>Kirim via WhatsApp Web</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

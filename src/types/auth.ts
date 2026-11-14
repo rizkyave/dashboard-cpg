@@ -117,7 +117,7 @@ export interface ModulePermissionItem {
 
 export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = rawRbacMatrix as unknown as ModulePermissionItem[];
 
-export const RBAC_MATRIX_STORAGE_KEY = 'CPG_AUTH_RBAC_MATRIX_V10';
+export const RBAC_MATRIX_STORAGE_KEY = 'CPG_AUTH_RBAC_MATRIX_V11';
 
 /**
  * Membaca matriks perizinan dinamis dari localStorage (fallback ke default matrix)
@@ -137,6 +137,7 @@ export function getStoredPermissionsMatrix(): ModulePermissionItem[] {
     localStorage.removeItem('CPG_AUTH_RBAC_MATRIX_V7');
     localStorage.removeItem('CPG_AUTH_RBAC_MATRIX_V8');
     localStorage.removeItem('CPG_AUTH_RBAC_MATRIX_V9');
+    localStorage.removeItem('CPG_AUTH_RBAC_MATRIX_V10');
 
     const raw = localStorage.getItem(RBAC_MATRIX_STORAGE_KEY);
     if (raw) {
@@ -310,6 +311,7 @@ export function getDefaultTabForRole(role: UserRole | undefined): TabType {
     'ringkasan-berkas',
     'review-fpb',
     'pratender',
+    'tender',
     'upload-fstb',
     'inventory',
     'stok-gudang',

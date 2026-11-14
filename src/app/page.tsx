@@ -59,6 +59,7 @@ import AnalyticsTab from '@/components/AnalyticsTab';
 import ReviewFpbTab from '@/components/ReviewFpbTab';
 import PurchasePlanningTab from '@/components/PurchasePlanningTab';
 import PratenderTab from '@/components/PratenderTab';
+import TenderManagementTab from '@/components/TenderManagementTab';
 import MonitoringInternalTab from '@/components/MonitoringInternalTab';
 import InventoryTab from '@/components/InventoryTab';
 import WarehouseStockTab from '@/components/WarehouseStockTab';
@@ -1367,6 +1368,14 @@ export default function DashboardPage() {
               sisaLayananItems={sisaLayananItems}
               onOpenAudit={handleOpenAudit}
               showToast={showToast}
+            />
+          )}
+
+          {/* Tab Modul Tender Resmi, Portal Rekanan & Evaluasi CBT SAP (ME49) */}
+          {activeTab === 'tender' && (
+            <TenderManagementTab
+              showToast={showToast}
+              onNavigateTab={(tab) => setActiveTab(tab as TabType)}
             />
           )}
 
