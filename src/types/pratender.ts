@@ -77,6 +77,10 @@ export interface TenderEvaluationSummary {
   isPoReleased?: boolean;
   poReleasedAt?: string;
   poReleasedBy?: string;
+  standstillStartedAt?: string;
+  standstillEndsAt?: string;
+  standstillStatus?: 'IN_PROGRESS' | 'COMPLETED_NO_DISPUTE' | 'DISPUTED';
+  disputeNotes?: string;
 }
 
 export interface PratenderRequestRef {

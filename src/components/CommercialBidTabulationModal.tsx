@@ -136,6 +136,14 @@ export default function CommercialBidTabulationModal({
     packageData.evaluationSummary?.approvedAt
   );
 
+  // Masa Sanggah 3 Hari State (Standstill Period)
+  const [standstillStatus, setStandstillStatus] = useState<'IN_PROGRESS' | 'COMPLETED_NO_DISPUTE' | 'DISPUTED'>(
+    packageData.evaluationSummary?.standstillStatus || 'IN_PROGRESS'
+  );
+  const [disputeNotes, setDisputeNotes] = useState<string>(
+    packageData.evaluationSummary?.disputeNotes || ''
+  );
+
   // Switch Technical Status with Winner Auto-Correction
   const handleSetTechnicalStatus = (bidId: string, status: 'PASSED' | 'FAILED') => {
     setTechnicalStatuses((prev) => {
@@ -450,6 +458,14 @@ export default function CommercialBidTabulationModal({
       return;
     }
 
+    // Validasi Masa Sanggah: Tidak boleh terbitkan PO jika ada tangguhan rekanan yang belum selesai
+    if (finalStatus === 'COMPLETED' && standstillStatus === 'DISPUTED') {
+      alert(
+        `Penerbitan PO Ditahan!\n\nPaket ini masih dalam status Sanggahan Rekanan (Disputed).\nCatatan: "${disputeNotes}"\n\nSelesaikan tindak lanjut sanggahan terlebih dahulu sebelum menerbitkan Purchase Order.`
+      );
+      return;
+    }
+
     setIsSaving(true);
     try {
       // Find winning vendor details (strictly from technically eligible bids)
@@ -457,6 +473,15 @@ export default function CommercialBidTabulationModal({
       const winVal = winningBidValue;
       const costSaving = totalHps > 0 && winVal ? totalHps - winVal : 0;
       const costSavingPct = totalHps > 0 && winVal ? Math.round((costSaving / totalHps) * 1000) / 10 : 0;
+
+      // Inisiasi Masa Sanggah 3 Hari Kalender
+      const now = new Date();
+      const stStarted = packageData.evaluationSummary?.standstillStartedAt || (finalStatus === 'AWARDED' ? now.toISOString() : undefined);
+      const stEnds = packageData.evaluationSummary?.standstillEndsAt || (finalStatus === 'AWARDED' ? new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString() : undefined);
+      let stStatus = standstillStatus;
+      if (finalStatus === 'COMPLETED') {
+        stStatus = 'COMPLETED_NO_DISPUTE';
+      }
 
       const evalSummary: TenderEvaluationSummary = {
         evaluatedBy: userName,
@@ -483,6 +508,10 @@ export default function CommercialBidTabulationModal({
         poReleasedBy: evalApprovalStatus === 'APPROVED' ? evalApprovedBy : undefined,
         approvalNotes: approvalNotes,
         baepNumber: `BAEP-${packageData.packageNumber.replace('PKG-', '')}`,
+        standstillStartedAt: stStarted,
+        standstillEndsAt: stEnds,
+        standstillStatus: stStatus,
+        disputeNotes: disputeNotes,
         ...(extraOverrides || {}),
       };
 
@@ -678,6 +707,95 @@ PT. Cipta Sarana Transindo - CPG Group
     setTimeout(() => setSuccessMsg(null), 3000);
   };
 
+  // Status Data Frozen / Read-Only demi tertib administrasi & audit pasca pemenang disahkan
+  const isDataFrozen = packageData.status === 'AWARDED' || packageData.status === 'COMPLETED';
+
+  // Perhitungan sisa waktu masa sanggah (3 hari kalender)
+  const standstillStartedAt = packageData.evaluationSummary?.standstillStartedAt;
+  const standstillEndsAt = packageData.evaluationSummary?.standstillEndsAt;
+
+  const standstillInfo = useMemo(() => {
+    if (!standstillEndsAt) {
+      return { isEnded: true, remainingText: 'Belum diaktifkan (Aktif otomatis setelah Sahkan Pemenang)', remainingDays: 0, endsAtFormatted: '-' };
+    }
+    const endMs = new Date(standstillEndsAt).getTime();
+    const nowMs = Date.now();
+    const diffMs = endMs - nowMs;
+    if (diffMs <= 0 || standstillStatus === 'COMPLETED_NO_DISPUTE') {
+      return { isEnded: true, remainingText: 'Telah Berakhir (3 Hari Selesai / Bebas Tangguhan)', remainingDays: 0, endsAtFormatted: new Date(standstillEndsAt).toLocaleDateString('id-ID') };
+    }
+    const d = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const h = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const m = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    return {
+      isEnded: false,
+      remainingText: `Sisa ${d} Hari ${h} Jam ${m} Menit`,
+      remainingDays: d,
+      endsAtFormatted: new Date(standstillEndsAt).toLocaleDateString('id-ID', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+    };
+  }, [standstillEndsAt, standstillStatus]);
+
+  // Handler: Konfirmasi Bebas Sanggahan / Percepat Penerbitan PO
+  const handleConfirmNoDispute = async () => {
+    if (
+      !confirm(
+        'Konfirmasi bahwa seluruh rekanan bidder tidak memiliki tangguhan/sanggahan tertulis?\n\nMasa Sanggah akan dinyatakan tuntas (Final & Inkracht) dan paket siap diterbitkan Purchase Order (PO).'
+      )
+    )
+      return;
+
+    setStandstillStatus('COMPLETED_NO_DISPUTE');
+    await handleSaveAllToPackage('AWARDED', {
+      standstillStatus: 'COMPLETED_NO_DISPUTE',
+    });
+    setSuccessMsg('✓ Masa Sanggah 3 hari dinyatakan tuntas & bebas tangguhan. PO siap diterbitkan.');
+    setTimeout(() => setSuccessMsg(null), 3000);
+  };
+
+  // Handler: Catat Sanggahan Rekanan
+  const handleRecordDispute = async () => {
+    const note = prompt(
+      'Masukkan rincian / No. Surat Sanggahan dari rekanan bidder:\n(Contoh: Surat Sanggah No. 012/EXT/XI/2026 dari PT B terkait kualifikasi teknis)',
+      disputeNotes || ''
+    );
+    if (note === null) return;
+
+    setDisputeNotes(note);
+    setStandstillStatus('DISPUTED');
+    await handleSaveAllToPackage('AWARDED', {
+      standstillStatus: 'DISPUTED',
+      disputeNotes: note,
+    });
+    setSuccessMsg('⚠️ Sanggahan rekanan berhasil dicatat. Penerbitan PO ditahan untuk peninjauan.');
+    setTimeout(() => setSuccessMsg(null), 3000);
+  };
+
+  // Handler: Selesaikan Sanggahan Rekanan
+  const handleResolveDispute = async () => {
+    if (
+      !confirm(
+        'Nyatakan sanggahan rekanan telah selesai diklarifikasi dan diputuskan resmi oleh Panitia Pengadaan?'
+      )
+    )
+      return;
+
+    const resolvedNote = `${disputeNotes} [Diselesaikan resmi oleh Panitia Pengadaan pada ${new Date().toLocaleDateString('id-ID')}]`;
+    setDisputeNotes(resolvedNote);
+    setStandstillStatus('COMPLETED_NO_DISPUTE');
+    await handleSaveAllToPackage('AWARDED', {
+      standstillStatus: 'COMPLETED_NO_DISPUTE',
+      disputeNotes: resolvedNote,
+    });
+    setSuccessMsg('✓ Sanggahan rekanan telah diselesaikan. Proses tender dilanjutkan.');
+    setTimeout(() => setSuccessMsg(null), 3000);
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-150">
       <div className="bg-card border border-border rounded-3xl w-full max-w-6xl max-h-[95vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
@@ -802,6 +920,24 @@ PT. Cipta Sarana Transindo - CPG Group
           {/* ============================================================== */}
           {activeTab === 'matrix' && (
             <div className="space-y-4">
+              {/* BANNER DATA FROZEN JIKA SUDAH DISAHKAN */}
+              {isDataFrozen && (
+                <div className="p-3.5 rounded-2xl border border-sky-500/30 bg-sky-500/10 text-sky-800 dark:text-sky-200 text-xs flex items-center justify-between gap-3 shadow-xs">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-1.5 rounded-lg bg-sky-500/20 text-sky-600 dark:text-sky-400 shrink-0">
+                      <Lock className="size-4" />
+                    </div>
+                    <div>
+                      <strong className="block text-foreground">Data Penawaran Dikunci &amp; Dibekukan (Data Sealed):</strong>
+                      <span className="text-[11px] opacity-90">Pemenang tender telah disahkan. Seluruh nilai komparasi penawaran rekanan dikunci demi tertib administrasi &amp; kepatuhan audit.</span>
+                    </div>
+                  </div>
+                  <span className="text-[10px] uppercase font-extrabold px-2.5 py-1 rounded-full bg-sky-500/20 text-sky-700 dark:text-sky-300 border border-sky-500/30 shrink-0">
+                    Read-Only
+                  </span>
+                </div>
+              )}
+
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
@@ -813,16 +949,18 @@ PT. Cipta Sarana Transindo - CPG Group
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsAddingBid(!isAddingBid)}
-                    className="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm transition cursor-pointer"
-                  >
-                    <Plus className="size-3.5" />
-                    <span>{isAddingBid ? 'Tutup Form Input' : 'Tambah Penawaran Rekanan'}</span>
-                  </button>
-                </div>
+                {!isDataFrozen && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsAddingBid(!isAddingBid)}
+                      className="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+                    >
+                      <Plus className="size-3.5" />
+                      <span>{isAddingBid ? 'Tutup Form Input' : 'Tambah Penawaran Rekanan'}</span>
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* FORM TAMBAH PENAWARAN VENDOR BARU */}
@@ -1153,14 +1291,16 @@ PT. Cipta Sarana Transindo - CPG Group
                                       </button>
                                     </div>
                                   </div>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleDeleteBid(bid.id)}
-                                    className="text-rose-500 hover:text-rose-700 p-1 transition"
-                                    title="Hapus Rekanan dari Matriks"
-                                  >
-                                    <Trash2 className="size-3" />
-                                  </button>
+                                  {!isDataFrozen && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteBid(bid.id)}
+                                      className="text-rose-500 hover:text-rose-700 p-1 transition"
+                                      title="Hapus Rekanan dari Matriks"
+                                    >
+                                      <Trash2 className="size-3" />
+                                    </button>
+                                  )}
                                 </div>
                               </th>
                             );
@@ -1660,8 +1800,11 @@ PT. Cipta Sarana Transindo - CPG Group
                                   [b.id]: numVal,
                                 });
                               }}
+                              disabled={isDataFrozen}
                               placeholder="0"
-                              className="w-full h-8 pl-8 pr-2.5 rounded-lg border border-border bg-background text-foreground font-mono font-bold text-xs focus:ring-1 focus:ring-primary focus:outline-none"
+                              className={`w-full h-8 pl-8 pr-2.5 rounded-lg border border-border font-mono font-bold text-xs focus:ring-1 focus:ring-primary focus:outline-none ${
+                                isDataFrozen ? 'bg-muted text-muted-foreground cursor-not-allowed' : 'bg-background text-foreground'
+                              }`}
                             />
                           </div>
                           {saving > 0 && (
@@ -1682,6 +1825,7 @@ PT. Cipta Sarana Transindo - CPG Group
                           </label>
                           <input
                             type="text"
+                            disabled={isDataFrozen}
                             placeholder="Contoh: Disepakati diskon volume 3% dan bebas ongkos angkut Franco Dermaga."
                             value={negotiationNotes[b.id] || ''}
                             onChange={(e) =>
@@ -1690,7 +1834,9 @@ PT. Cipta Sarana Transindo - CPG Group
                                 [b.id]: e.target.value,
                               })
                             }
-                            className="w-full h-8 px-2.5 rounded-lg border border-border bg-background text-foreground text-xs"
+                            className={`w-full h-8 px-2.5 rounded-lg border border-border text-xs ${
+                              isDataFrozen ? 'bg-muted text-muted-foreground cursor-not-allowed' : 'bg-background text-foreground'
+                            }`}
                           />
                         </div>
                       </div>
@@ -1819,6 +1965,100 @@ PT. Cipta Sarana Transindo - CPG Group
                   <div>
                     <span className="text-muted-foreground text-[10px] block">Lead Time Franco</span>
                     <strong>{winningBid?.deliveryLeadTimeDays || 7} Hari</strong>
+                  </div>
+                </div>
+              </div>
+
+              {/* KARTU MASA SANGGAH (STANDSTILL PERIOD - 3 HARI) */}
+              <div className="bg-card border border-border rounded-2xl p-4 space-y-3 shadow-xs">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h4 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+                    <Clock className="size-4 text-purple-600" />
+                    <span>Masa Sanggah Tender (Standstill Period 3 Hari Kalender)</span>
+                  </h4>
+
+                  {standstillStatus === 'DISPUTED' ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-500/10 text-rose-600 border border-rose-500/30">
+                      <AlertCircle className="size-3.5" />
+                      Status: Terdapat Sanggahan Rekanan (On Hold)
+                    </span>
+                  ) : standstillInfo.isEnded || standstillStatus === 'COMPLETED_NO_DISPUTE' ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/30">
+                      <CheckCircle2 className="size-3.5" />
+                      Status: Masa Sanggah Selesai (Final &amp; Inkracht)
+                    </span>
+                  ) : isDataFrozen ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-600 border border-amber-500/30">
+                      <Clock className="size-3.5" />
+                      Status: {standstillInfo.remainingText}
+                    </span>
+                  ) : (
+                    <span className="text-[11px] text-muted-foreground font-medium">
+                      Otomatis aktif 3 hari setelah Pemenang Tender disahkan
+                    </span>
+                  )}
+                </div>
+
+                <div className="p-3.5 rounded-xl border border-border bg-muted/30 text-xs space-y-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <p className="text-muted-foreground leading-relaxed">
+                      {standstillStatus === 'DISPUTED' ? (
+                        <span className="text-rose-600 dark:text-rose-400 font-semibold">
+                          ⚠️ Terdapat catatan tangguhan dari peserta tender: &quot;{disputeNotes}&quot;. Penerbitan PO ditahan hingga klarifikasi selesai.
+                        </span>
+                      ) : standstillInfo.isEnded || standstillStatus === 'COMPLETED_NO_DISPUTE' ? (
+                        <span>
+                          ✓ Masa sanggah 3 hari kalender telah berakhir tanpa tangguhan dari bidder lain. Paket tender dinyatakan <strong>selesai secara teknis dan administratif</strong>, sah untuk penerbitan PO.
+                        </span>
+                      ) : isDataFrozen ? (
+                        <span>
+                          ⏳ Masa sanggah sedang berjalan hingga <strong>{standstillInfo.endsAtFormatted} WIB</strong> ({standstillInfo.remainingText}). Seluruh portal penawaran vendor telah dikunci total untuk menjamin integritas data.
+                        </span>
+                      ) : (
+                        <span>
+                          Setelah tombol <em>&quot;Sahkan Pemenang Tender&quot;</em> ditekan, sistem otomatis membekukan data dan memberikan waktu 3 hari kalender bagi bidder lain untuk menyampaikan tangguhan jika ada ketidaksesuaian.
+                        </span>
+                      )}
+                    </p>
+
+                    {isDataFrozen && (
+                      <div className="flex items-center gap-2 shrink-0">
+                        {standstillStatus === 'DISPUTED' ? (
+                          <button
+                            type="button"
+                            onClick={handleResolveDispute}
+                            disabled={isSaving}
+                            className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs inline-flex items-center gap-1 shadow-sm transition cursor-pointer"
+                          >
+                            <Check className="size-3.5" />
+                            <span>Selesaikan Sanggahan</span>
+                          </button>
+                        ) : standstillStatus === 'IN_PROGRESS' && !standstillInfo.isEnded ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={handleConfirmNoDispute}
+                              disabled={isSaving}
+                              className="px-3 py-1.5 rounded-lg bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-700 dark:text-emerald-300 border border-emerald-600/30 font-bold text-xs inline-flex items-center gap-1 transition cursor-pointer"
+                              title="Seluruh bidder mengonfirmasi tidak ada tangguhan, selesaikan masa sanggah lebih awal"
+                            >
+                              <Check className="size-3.5" />
+                              <span>Bebas Sanggahan</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleRecordDispute}
+                              disabled={isSaving}
+                              className="px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 font-bold text-xs inline-flex items-center gap-1 transition cursor-pointer"
+                              title="Catat jika terdapat surat sanggahan dari rekanan"
+                            >
+                              <AlertCircle className="size-3.5" />
+                              <span>Catat Sanggahan</span>
+                            </button>
+                          </>
+                        ) : null}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -2194,29 +2434,35 @@ PT. Cipta Sarana Transindo - CPG Group
             <button
               type="button"
               onClick={() => handleSaveAllToPackage('COMPLETED')}
-              disabled={isSaving || bids.length === 0 || evalApprovalStatus !== 'APPROVED'}
+              disabled={isSaving || bids.length === 0 || evalApprovalStatus !== 'APPROVED' || standstillStatus === 'DISPUTED'}
               className={`px-4 py-2 rounded-xl text-xs font-bold inline-flex items-center gap-1.5 shadow-md transition cursor-pointer disabled:opacity-50 ${
-                evalApprovalStatus === 'APPROVED'
+                evalApprovalStatus === 'APPROVED' && standstillStatus !== 'DISPUTED'
                   ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
                   : 'bg-muted text-muted-foreground border border-border cursor-not-allowed'
               }`}
               title={
-                evalApprovalStatus === 'APPROVED'
+                standstillStatus === 'DISPUTED'
+                  ? 'Ditahan: Terdapat sanggahan rekanan yang belum diselesaikan'
+                  : evalApprovalStatus === 'APPROVED'
                   ? 'Terbitkan nomor PO resmi ERP untuk dimasukkan ke alur FSTB & TTB'
                   : `Terkunci: Memerlukan otorisasi release dari ${requiredTier.authorizedRoleLabel} (${requiredTier.name})`
               }
             >
-              {evalApprovalStatus === 'APPROVED' ? (
+              {evalApprovalStatus === 'APPROVED' && standstillStatus !== 'DISPUTED' ? (
                 <CheckCircle2 className="size-3.5" />
               ) : (
                 <Lock className="size-3.5 text-amber-500" />
               )}
               <span>Terbitkan Purchase Order (PO)</span>
-              {evalApprovalStatus !== 'APPROVED' && (
+              {standstillStatus === 'DISPUTED' ? (
+                <span className="text-[10px] bg-rose-500/10 text-rose-600 dark:text-rose-400 px-1.5 py-0.5 rounded border border-rose-500/20 ml-1">
+                  Ada Sanggahan
+                </span>
+              ) : evalApprovalStatus !== 'APPROVED' ? (
                 <span className="text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded border border-amber-500/20 ml-1">
                   Terkunci
                 </span>
-              )}
+              ) : null}
             </button>
           </div>
         </div>

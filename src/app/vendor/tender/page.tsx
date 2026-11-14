@@ -23,6 +23,8 @@ import {
   Printer,
   Check,
   X,
+  Award,
+  Trophy,
 } from 'lucide-react';
 import { PratenderPackage, VendorBidSubmission, VendorBidItem } from '@/types/pratender';
 import { generateRksDocumentPdf, triggerBrowserPdfDownload } from '@/utils/tenderDocumentGenerator';
@@ -489,8 +491,67 @@ function VendorTenderPortalContent() {
           </p>
         </div>
 
-        {/* VIEW KONDISI TERKUNCI (ONE-TIME SUBMISSION - OPTION 3) */}
-        {lockedBid || isSubmittedSuccess ? (
+        {/* VIEW JIKA TENDER TELAH SELESAI & MASUK MASA SANGGAH / PO TERBIT */}
+        {(packageData.status === 'AWARDED' || packageData.status === 'COMPLETED') ? (
+          <div className="p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl text-center space-y-6 max-w-xl mx-auto animate-in fade-in duration-300">
+            <div className="flex flex-col items-center gap-3">
+              <div className="size-16 rounded-2xl bg-purple-500/15 text-purple-600 dark:text-purple-400 flex items-center justify-center border-2 border-purple-500/25 shadow-xs">
+                <Award className="size-8" />
+              </div>
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/15 text-purple-700 dark:text-purple-300 font-bold text-xs border border-purple-500/30">
+                  <ShieldCheck className="size-3.5" />
+                  <span>PROSES TENDER SELESAI &bull; PEMENANG TELAH DITETAPKAN</span>
+                </span>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mt-2">
+                  Paket {packageData.packageNumber}
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto leading-relaxed">
+                  Evaluasi tabulasi harga komparasi (CBT) dan verifikasi teknis telah tuntas dilaksanakan oleh Panitia Pengadaan PT Cindara Pratama Lines.
+                </p>
+              </div>
+            </div>
+
+            {/* Informasi Hasil & Masa Sanggah */}
+            <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950 text-left space-y-2.5 text-xs">
+              <div className="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-slate-800">
+                <span className="text-slate-500">Pemenang Tender:</span>
+                <span className="font-bold text-slate-900 dark:text-white">
+                  {packageData.awardedVendor || packageData.evaluationSummary?.winningVendorName || 'PT Rekanan Terpilih'}
+                </span>
+              </div>
+              <div className="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-slate-800">
+                <span className="text-slate-500">Status Tahapan:</span>
+                <span className="font-semibold text-purple-600 dark:text-purple-400">
+                  {packageData.status === 'COMPLETED'
+                    ? 'Purchase Order (PO) Telah Diterbitkan'
+                    : 'Masa Sanggah 3 Hari Kalender'}
+                </span>
+              </div>
+              {packageData.evaluationSummary?.standstillEndsAt && (
+                <div className="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-slate-800">
+                  <span className="text-slate-500">Batas Akhir Sanggahan:</span>
+                  <span className="font-mono font-medium text-slate-700 dark:text-slate-300">
+                    {new Date(packageData.evaluationSummary.standstillEndsAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })} WIB
+                  </span>
+                </div>
+              )}
+              <div className="pt-1 text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                Seluruh formulir penawaran harga rekanan telah <strong>DITUTUP PERMANEN</strong> demi menjaga tertib administrasi dan integritas audit proses pengadaan.
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 transition cursor-pointer"
+              >
+                Muat Ulang Halaman
+              </button>
+            </div>
+          </div>
+        ) : lockedBid || isSubmittedSuccess ? (
           <div className="p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl text-center space-y-6 max-w-xl mx-auto animate-in fade-in duration-300">
             {/* Header Lock Icon & Badge */}
             <div className="flex flex-col items-center gap-3">

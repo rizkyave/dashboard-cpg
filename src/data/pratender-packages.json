@@ -1015,7 +1015,7 @@
     ],
     "totalEstimatedBudget": 71537692,
     "ownerEstimateHps": 71537692,
-    "updatedAt": "2026-11-14T13:26:16.198Z",
+    "updatedAt": "2026-11-14T13:47:40.043Z",
     "vendorBids": [
       {
         "id": "bid-1-1794585364361",
@@ -1518,7 +1518,7 @@
     ],
     "evaluationSummary": {
       "evaluatedBy": "Administrator CPG",
-      "evaluatedAt": "2026-11-14T13:26:15.892Z",
+      "evaluatedAt": "2026-11-14T13:47:39.832Z",
       "recommendationNotes": "Direkomendasikan pemenang tender kepada PT. Pelayaran Global Nusantara Supply berdasarkan evaluasi komparasi harga terendah responsif (CBT) dan kepatuhan RKS.",
       "winningVendorId": "bid-3-1794585364361",
       "winningVendorName": "PT. Pelayaran Global Nusantara Supply",
@@ -1535,7 +1535,9 @@
       "poReleasedAt": "2026-11-14T13:26:11.125Z",
       "poReleasedBy": "Administrator CPG",
       "approvalNotes": "",
-      "baepNumber": "BAEP-CPG-TDR-26-7906"
+      "baepNumber": "BAEP-CPG-TDR-26-7906",
+      "standstillStatus": "COMPLETED_NO_DISPUTE",
+      "disputeNotes": ""
     },
     "awardedVendor": "PT. Pelayaran Global Nusantara Supply",
     "awardedValue": 8000000,
