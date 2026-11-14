@@ -30,6 +30,7 @@ import {
   Download,
   Lock,
   Unlock,
+  Trophy,
 } from 'lucide-react';
 import {
   generatePoAwardDocumentPdf,
@@ -110,9 +111,9 @@ export default function CommercialBidTabulationModal({
     return map;
   });
 
-  // Awarding & Approval State
-  const [selectedWinnerId, setSelectedWinnerId] = useState<string>(
-    packageData.evaluationSummary?.winningVendorId || bids[0]?.id || ''
+  // Awarding & Approval State: null = otomatis mengikuti harga BAFO terendah peringkat 1 (rekomendasi sistem)
+  const [manualOverrideWinnerId, setManualOverrideWinnerId] = useState<string | null>(
+    packageData.evaluationSummary?.winningVendorId || null
   );
   const [approvalNotes, setApprovalNotes] = useState<string>(
     packageData.evaluationSummary?.approvalNotes || ''
@@ -122,11 +123,8 @@ export default function CommercialBidTabulationModal({
   const handleSetTechnicalStatus = (bidId: string, status: 'PASSED' | 'FAILED') => {
     setTechnicalStatuses((prev) => {
       const updated = { ...prev, [bidId]: status };
-      if (status === 'FAILED' && selectedWinnerId === bidId) {
-        const nextEligible = bids.find((b) => b.id !== bidId && (updated[b.id] ?? b.technicalStatus ?? 'PASSED') === 'PASSED');
-        if (nextEligible) {
-          setSelectedWinnerId(nextEligible.id);
-        }
+      if (status === 'FAILED' && manualOverrideWinnerId === bidId) {
+        setManualOverrideWinnerId(null);
       }
       return updated;
     });
@@ -294,7 +292,7 @@ export default function CommercialBidTabulationModal({
     setTechnicalStatuses(newTechMap);
 
     setBids(mockVendors);
-    setSelectedWinnerId(mockVendors[2].id); // Vendor 3 terendah
+    setManualOverrideWinnerId(null); // Otomatis pilih vendor terendah
     setSuccessMsg('Simulasi 3 penawaran rekanan berhasil dimuat!');
     setTimeout(() => setSuccessMsg(null), 3000);
   };
@@ -350,7 +348,6 @@ export default function CommercialBidTabulationModal({
     const updated = [...bids, newBid];
     setBids(updated);
     setTechnicalStatuses((prev) => ({ ...prev, [newBid.id]: 'PASSED' }));
-    if (!selectedWinnerId) setSelectedWinnerId(newBid.id);
     setIsAddingBid(false);
 
     // Reset Form
@@ -370,8 +367,8 @@ export default function CommercialBidTabulationModal({
     if (!confirm('Hapus penawaran rekanan ini dari matriks tabulasi?')) return;
     const updated = bids.filter((b) => b.id !== bidId);
     setBids(updated);
-    if (selectedWinnerId === bidId && updated.length > 0) {
-      setSelectedWinnerId(updated[0].id);
+    if (manualOverrideWinnerId === bidId) {
+      setManualOverrideWinnerId(null);
     }
   };
 
@@ -568,8 +565,20 @@ PT. Cipta Sarana Transindo - CPG Group
     setTimeout(() => setSuccessMsg(null), 3500);
   };
 
-  const eligibleBids = rankedBids.filter((b) => !b.isDisqualified);
-  const winningBid = (selectedWinnerId ? eligibleBids.find((b) => b.id === selectedWinnerId) : null) || eligibleBids[0] || rankedBids[0];
+  const eligibleBids = useMemo(() => rankedBids.filter((b) => !b.isDisqualified), [rankedBids]);
+  const defaultTopWinner = eligibleBids[0] || rankedBids[0];
+
+  // Calon Pemenang: otomatis penawar terendah pasca-negosiasi (defaultTopWinner),
+  // kecuali panitia memilih kandidat lain secara manual di Tab 4.
+  const winningBid = useMemo(() => {
+    if (manualOverrideWinnerId) {
+      const match = eligibleBids.find((b) => b.id === manualOverrideWinnerId);
+      if (match) return match;
+    }
+    return defaultTopWinner;
+  }, [manualOverrideWinnerId, eligibleBids, defaultTopWinner]);
+
+  const selectedWinnerId = winningBid?.id || '';
   const winningBidValue = winningBid
     ? (negotiatedTotals[winningBid.id] !== undefined
         ? negotiatedTotals[winningBid.id]
@@ -1167,7 +1176,12 @@ PT. Cipta Sarana Transindo - CPG Group
                           </td>
                           {bids.map((bid) => {
                             const isRank1 = rankedBids[0]?.id === bid.id;
-                            const currentTotal = bid.negotiatedGrandTotal || bid.grandTotal;
+                            const currentTotal =
+                              negotiatedTotals[bid.id] !== undefined
+                                ? negotiatedTotals[bid.id]
+                                : bid.negotiatedGrandTotal || bid.grandTotal;
+                            const hasNegotiation =
+                              negotiatedTotals[bid.id] !== undefined && negotiatedTotals[bid.id] !== bid.grandTotal;
 
                             return (
                               <td
@@ -1176,13 +1190,18 @@ PT. Cipta Sarana Transindo - CPG Group
                                   isRank1 ? 'text-emerald-600 dark:text-emerald-400 font-extrabold' : ''
                                 }`}
                               >
-                                <div className="flex items-center justify-end gap-1.5">
+                                <div className="flex items-center justify-end gap-1.5 flex-wrap">
                                   {isRank1 && (
-                                    <span className="px-1.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-sans font-bold">
-                                      Peringkat 1
+                                    <span className="px-1.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-sans font-bold inline-flex items-center gap-0.5">
+                                      <Trophy className="size-2.5" /> Peringkat 1
                                     </span>
                                   )}
                                   <span>Rp {currentTotal.toLocaleString('id-ID')}</span>
+                                  {hasNegotiation && (
+                                    <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-sans block w-full">
+                                      (Hasil BAFO)
+                                    </span>
+                                  )}
                                 </div>
                               </td>
                             );
@@ -1195,7 +1214,10 @@ PT. Cipta Sarana Transindo - CPG Group
                             Deviasi terhadap HPS (Rp {totalHps.toLocaleString('id-ID')})
                           </td>
                           {bids.map((bid) => {
-                            const currentTotal = bid.negotiatedGrandTotal || bid.grandTotal;
+                            const currentTotal =
+                              negotiatedTotals[bid.id] !== undefined
+                                ? negotiatedTotals[bid.id]
+                                : bid.negotiatedGrandTotal || bid.grandTotal;
                             const diff = currentTotal - totalHps;
                             const diffPct = totalHps > 0 ? (diff / totalHps) * 100 : 0;
                             const isUnderHps = diff <= 0;
@@ -1411,7 +1433,14 @@ PT. Cipta Sarana Transindo - CPG Group
                           </td>
                           <td className="py-3 px-3 font-mono">{b.termOfPayment}</td>
                           <td className="py-3 px-3 text-right font-mono font-bold text-foreground">
-                            Rp {(b.negotiatedGrandTotal || b.grandTotal).toLocaleString('id-ID')}
+                            <div>
+                              Rp {(negotiatedTotals[b.id] !== undefined ? negotiatedTotals[b.id] : (b.negotiatedGrandTotal || b.grandTotal)).toLocaleString('id-ID')}
+                            </div>
+                            {negotiatedTotals[b.id] !== undefined && negotiatedTotals[b.id] !== b.grandTotal && (
+                              <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-sans font-normal">
+                                (BAFO Negosiasi)
+                              </div>
+                            )}
                           </td>
                           <td className="py-3 px-4 text-center">
                             {isFailed ? (
@@ -1464,8 +1493,12 @@ PT. Cipta Sarana Transindo - CPG Group
                   return (
                     <div
                       key={b.id}
-                      className={`bg-card border rounded-2xl p-4 shadow-sm space-y-3 transition-colors ${
-                        isFailed ? 'border-rose-500/30 bg-rose-500/[0.02]' : 'border-border'
+                      className={`rounded-2xl p-4 shadow-sm space-y-3 transition-all ${
+                        isFailed
+                          ? 'bg-card border border-rose-500/30 bg-rose-500/[0.02]'
+                          : idx === 0
+                          ? 'border-2 border-emerald-500 bg-emerald-500/[0.04] dark:bg-emerald-500/[0.06] shadow-md ring-1 ring-emerald-500/20'
+                          : 'bg-card border border-border'
                       }`}
                     >
                       {isFailed && (
@@ -1476,20 +1509,26 @@ PT. Cipta Sarana Transindo - CPG Group
                       )}
 
                       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-2">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span
                             className={`size-6 rounded-full flex items-center justify-center font-mono text-xs font-bold ${
                               isFailed
                                 ? 'bg-rose-500/20 text-rose-600 dark:text-rose-400'
                                 : idx === 0
-                                ? 'bg-emerald-500 text-white'
+                                ? 'bg-emerald-500 text-white shadow-xs'
                                 : 'bg-muted text-muted-foreground'
                             }`}
                           >
                             {isFailed ? '✕' : b.ranking}
                           </span>
-                          <h4 className="font-bold text-foreground text-xs sm:text-sm flex items-center gap-2">
+                          <h4 className="font-bold text-foreground text-xs sm:text-sm flex items-center gap-2 flex-wrap">
                             <span>{b.vendorName}</span>
+                            {!isFailed && idx === 0 && (
+                              <span className="px-2.5 py-0.5 rounded-full bg-emerald-500 text-white font-bold text-[10px] inline-flex items-center gap-1 shadow-xs animate-in fade-in">
+                                <Trophy className="size-3 text-amber-200" />
+                                <span>POTENSI JUARA / PEMENANG I (TERENDAH BAFO)</span>
+                              </span>
+                            )}
                             {isFailed && (
                               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
                                 Tidak Lolos Evaluasi I
@@ -1497,8 +1536,13 @@ PT. Cipta Sarana Transindo - CPG Group
                             )}
                           </h4>
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          Penawaran Awal: <strong className="font-mono text-foreground">Rp {initialPrice.toLocaleString('id-ID')}</strong>
+                        <div className="text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
+                          <span>Penawaran Awal: <strong className="font-mono text-foreground">Rp {initialPrice.toLocaleString('id-ID')}</strong></span>
+                          {!isFailed && idx === 0 && (
+                            <span className="text-emerald-600 dark:text-emerald-400 font-bold text-[11px] bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                              Terendah Saat Ini
+                            </span>
+                          )}
                         </div>
                       </div>
 
@@ -1531,6 +1575,11 @@ PT. Cipta Sarana Transindo - CPG Group
                             <span className="text-[11px] text-emerald-600 font-semibold mt-1 inline-block">
                               ✓ Berhasil dinegosiasikan turun Rp {saving.toLocaleString('id-ID')}
                             </span>
+                          )}
+                          {!isFailed && idx === 0 && rankedBids[1] && (
+                            <div className="text-[10px] text-emerald-700 dark:text-emerald-300 font-medium mt-1">
+                              ★ Lebih hemat Rp {Math.max(0, (negotiatedTotals[rankedBids[1].id] !== undefined ? negotiatedTotals[rankedBids[1].id] : rankedBids[1].grandTotal) - currentNeg).toLocaleString('id-ID')} dibanding penawar terdekat ({rankedBids[1].vendorName})
+                            </div>
                           )}
                         </div>
 
@@ -1574,12 +1623,72 @@ PT. Cipta Sarana Transindo - CPG Group
                 </p>
               </div>
 
+              {/* SELECTOR PEMENANG TENDER DENGAN AUTO-LOWEST BAFO */}
+              <div className="bg-card border border-border rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-xs">
+                <div>
+                  <span className="font-bold text-foreground flex items-center gap-1.5 text-xs">
+                    <Trophy className="size-4 text-amber-500" />
+                    <span>Penetapan Calon Pemenang Tender Resmi:</span>
+                  </span>
+                  <span className="text-[11px] text-muted-foreground mt-0.5 block">
+                    {manualOverrideWinnerId
+                      ? '⚠️ Panitia mengalihkan pemenang secara manual (bukan penawar terendah rekomendasi).'
+                      : '✓ Sistem otomatis menetapkan penawar harga BAFO terendah sebagai calon pemenang.'}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  <select
+                    value={winningBid?.id || ''}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === defaultTopWinner?.id) {
+                        setManualOverrideWinnerId(null);
+                      } else {
+                        setManualOverrideWinnerId(val);
+                      }
+                    }}
+                    className="h-9 px-3 rounded-xl border border-purple-500/30 bg-background text-foreground font-bold text-xs focus:ring-1 focus:ring-purple-500"
+                  >
+                    {eligibleBids.map((b, idx) => {
+                      const bPrice =
+                        negotiatedTotals[b.id] !== undefined
+                          ? negotiatedTotals[b.id]
+                          : b.negotiatedGrandTotal || b.grandTotal;
+                      const isLowest = idx === 0;
+                      return (
+                        <option key={b.id} value={b.id}>
+                          {isLowest ? '🏆 [Peringkat 1 Terendah BAFO] ' : `[Peringkat ${idx + 1}] `}
+                          {b.vendorName} — Rp {bPrice.toLocaleString('id-ID')}
+                        </option>
+                      );
+                    })}
+                  </select>
+
+                  {manualOverrideWinnerId && (
+                    <button
+                      type="button"
+                      onClick={() => setManualOverrideWinnerId(null)}
+                      className="px-3 py-1.5 rounded-xl border border-border bg-muted hover:bg-muted/80 text-[11px] text-foreground font-bold transition cursor-pointer"
+                      title="Kembalikan ke Peringkat 1 Otomatis (Rekomendasi Terendah)"
+                    >
+                      ↺ Reset ke Terendah
+                    </button>
+                  )}
+                </div>
+              </div>
+
               {/* CARD RINGKASAN PEMENANG */}
               <div className="bg-gradient-to-r from-purple-500/10 via-emerald-500/10 to-sky-500/10 border border-purple-500/30 rounded-2xl p-5 space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-purple-600 block">
-                      Rekomendasi Pemenang Tender (Peringkat 1)
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-purple-600 block flex items-center gap-1">
+                      <Trophy className="size-3 text-amber-500" />
+                      <span>
+                        {manualOverrideWinnerId
+                          ? 'Pemenang Pilihan Manual Panitia'
+                          : 'Rekomendasi Pemenang Tender (Peringkat 1 Terendah BAFO)'}
+                      </span>
                     </span>
                     <h3 className="text-lg font-extrabold text-foreground mt-0.5">
                       {winningBid?.vendorName || '-'}
@@ -1587,10 +1696,15 @@ PT. Cipta Sarana Transindo - CPG Group
                   </div>
 
                   <div className="text-right">
-                    <span className="text-[10px] text-muted-foreground block">Nilai Kontrak / PO</span>
+                    <span className="text-[10px] text-muted-foreground block">Nilai Kontrak / PO Akhir</span>
                     <span className="text-lg font-mono font-extrabold text-emerald-600 dark:text-emerald-400">
                       Rp {winningBidValue.toLocaleString('id-ID')}
                     </span>
+                    {winningBid && winningBid.grandTotal !== winningBidValue && (
+                      <span className="text-[10px] text-muted-foreground block line-through">
+                        Awal: Rp {winningBid.grandTotal.toLocaleString('id-ID')}
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -1600,7 +1714,7 @@ PT. Cipta Sarana Transindo - CPG Group
                     <strong className="font-mono">Rp {totalHps.toLocaleString('id-ID')}</strong>
                   </div>
                   <div>
-                    <span className="text-muted-foreground text-[10px] block">Efisiensi Biaya (Saving)</span>
+                    <span className="text-muted-foreground text-[10px] block">Efisiensi Total (Saving)</span>
                     <strong className="font-mono text-emerald-600">
                       Rp {(totalHps - winningBidValue).toLocaleString('id-ID')}
                     </strong>
@@ -1637,7 +1751,7 @@ PT. Cipta Sarana Transindo - CPG Group
                     type="button"
                     onClick={async () => {
                       try {
-                        const winner = (selectedWinnerId ? bids.find((b) => b.id === selectedWinnerId) : null) || rankedBids[0];
+                        const winner = winningBid;
                         const mockPkg: PratenderPackage = {
                           ...packageData,
                           awardedVendor: winner?.vendorName,
