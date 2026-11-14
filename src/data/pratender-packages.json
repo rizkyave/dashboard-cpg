@@ -36,7 +36,7 @@
     "packageNumber": "CPG-TDR-26-8045",
     "title": "Paket Pengadaan Electrical Armada Q4 2026",
     "category": "Electrical",
-    "status": "EVALUATION",
+    "status": "COMPLETED",
     "createdAt": "2026-11-14T12:33:28.002Z",
     "createdBy": "Administrator CPG",
     "targetClosingDate": "2026-11-21",
@@ -77,7 +77,7 @@
     ],
     "totalEstimatedBudget": 3545000,
     "ownerEstimateHps": 3545000,
-    "updatedAt": "2026-11-14T13:24:09.438Z",
+    "updatedAt": "2026-11-14T14:23:30.332Z",
     "vendorBids": [
       {
         "id": "bid-mwge215p-vgqh1",
@@ -254,7 +254,7 @@
     ],
     "evaluationSummary": {
       "evaluatedBy": "Administrator CPG",
-      "evaluatedAt": "2026-11-14T13:24:09.196Z",
+      "evaluatedAt": "2026-11-14T14:23:30.081Z",
       "recommendationNotes": "Direkomendasikan pemenang tender kepada PT D berdasarkan evaluasi komparasi harga terendah responsif (CBT) dan kepatuhan RKS.",
       "winningVendorId": "bid-mwgepevp-bsacr",
       "winningVendorName": "PT D",
@@ -262,17 +262,22 @@
       "costSavingVsHps": 2445000,
       "costSavingPercent": 69,
       "approvalLevel": "SUPERVISOR",
-      "approvalStatus": "PENDING_APPROVAL",
+      "approvalStatus": "APPROVED",
+      "approvedBy": "Administrator CPG",
+      "approvedAt": "2026-11-14T14:23:26.497Z",
       "releaseTierId": "tier-1",
       "releaseTierName": "Tier 1",
-      "isPoReleased": false,
-      "poReleasedAt": "2026-11-14T13:23:39.481Z",
+      "isPoReleased": true,
+      "poReleasedAt": "2026-11-14T14:23:26.497Z",
       "poReleasedBy": "Administrator CPG",
       "approvalNotes": "",
-      "baepNumber": "BAEP-CPG-TDR-26-8045"
+      "baepNumber": "BAEP-CPG-TDR-26-8045",
+      "standstillStatus": "COMPLETED_NO_DISPUTE",
+      "disputeNotes": ""
     },
     "awardedVendor": "PT D",
-    "awardedValue": 1100000
+    "awardedValue": 1100000,
+    "poNumberGenerated": "Armada-PO-26-37507"
   },
   {
     "id": "pkg-1794588111542",

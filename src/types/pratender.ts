@@ -96,6 +96,8 @@ export interface PratenderRequestRef {
   workOrderNo?: string;
 }
 
+export type MaterialTenderStatus = 'NOT_IN_TENDER' | 'IN_TENDER' | 'AWARDED';
+
 export interface PratenderOpenItem {
   id: string;
   cleanName: string;
@@ -109,6 +111,11 @@ export interface PratenderOpenItem {
   isPackaged?: boolean;
   packageId?: string;
   packageNumber?: string;
+  tenderStatus?: MaterialTenderStatus;
+  tenderPackageTitle?: string;
+  tenderPackageStatus?: PratenderStatus;
+  tenderWinningVendor?: string;
+  tenderPoNumber?: string;
   currentStock?: number;
   avgUnitPrice?: number;
   totalEstimatedCost?: number;

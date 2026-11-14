@@ -42,6 +42,7 @@ import {
   MessageCircle,
   Send,
   Link2,
+  Lock,
 } from 'lucide-react';
 import CommercialBidTabulationModal from './CommercialBidTabulationModal';
 import {
@@ -52,6 +53,7 @@ import {
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
 import { SisaLayananItem, SisaLayananStatus } from '@/types/sisaLayanan';
 import {
+  MaterialTenderStatus,
   PratenderOpenItem,
   PratenderPackage,
   PratenderPackageItem,
@@ -287,6 +289,7 @@ export default function PratenderTab({
   }, []);
 
   const [activeSubTab, setActiveSubTab] = useState<'pool' | 'packages'>('pool');
+  const [tenderStatusFilter, setTenderStatusFilter] = useState<'ALL' | 'NOT_IN_TENDER' | 'IN_TENDER' | 'AWARDED'>('ALL');
   const [statusFilter, setStatusFilter] = useState<'ALL_UNSUPPLIED' | 'OPEN_ONLY' | 'KURANG_ONLY'>('ALL_UNSUPPLIED');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [selectedVessel, setSelectedVessel] = useState<string>('ALL');
@@ -418,13 +421,41 @@ export default function PratenderTab({
     fetchPackages();
   }, []);
 
-  // 1. Packaged Item IDs Lookup (agar item yang sudah masuk paket memiliki badge & nomor paket)
-  const packagedItemIds = useMemo(() => {
-    const map = new Map<string, { pkgId: string; pkgNumber: string }>();
+  // 1. Packaged Item IDs Lookup (detail status tender & pemenang)
+  const packagedItemDetails = useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        pkgId: string;
+        pkgNumber: string;
+        pkgTitle: string;
+        pkgStatus: PratenderStatus;
+        tenderStatus: 'IN_TENDER' | 'AWARDED';
+        winningVendor?: string;
+        poNumber?: string;
+      }
+    >();
+
     packages.forEach((pkg) => {
       if (pkg.status !== 'CANCELLED') {
+        const isAwarded =
+          pkg.status === 'AWARDED' ||
+          pkg.status === 'COMPLETED' ||
+          Boolean(pkg.evaluationSummary?.winningVendorName || pkg.awardedVendor);
+
+        const winningVendor = pkg.evaluationSummary?.winningVendorName || pkg.awardedVendor;
+        const poNumber = pkg.poNumberGenerated || pkg.evaluationSummary?.baepNumber;
+
         pkg.items.forEach((pItem) => {
-          map.set(pItem.itemId, { pkgId: pkg.id, pkgNumber: pkg.packageNumber });
+          map.set(pItem.itemId, {
+            pkgId: pkg.id,
+            pkgNumber: pkg.packageNumber,
+            pkgTitle: pkg.title,
+            pkgStatus: pkg.status,
+            tenderStatus: isAwarded ? 'AWARDED' : 'IN_TENDER',
+            winningVendor,
+            poNumber,
+          });
         });
       }
     });
@@ -434,7 +465,11 @@ export default function PratenderTab({
   // 2. POOL PERENCANAAN PENGADAAN (NET DEMAND KONSOLIDASI, POTONG STOK & BEBAS TRADING)
   const planningPool = useMemo(() => {
     return planningItems.map((pi) => {
-      const matchPkg = packagedItemIds.get(pi.id);
+      const matchPkg = packagedItemDetails.get(pi.id);
+      const tenderStatus: MaterialTenderStatus = matchPkg
+        ? matchPkg.tenderStatus
+        : 'NOT_IN_TENDER';
+
       const requests: PratenderRequestRef[] = (pi.fpbRefs || []).map((fpb) => ({
         fpb,
         armada: (pi.requestingVessels || []).join(', '),
@@ -457,6 +492,11 @@ export default function PratenderTab({
         isPackaged: !!matchPkg,
         packageId: matchPkg?.pkgId,
         packageNumber: matchPkg?.pkgNumber,
+        tenderStatus,
+        tenderPackageTitle: matchPkg?.pkgTitle,
+        tenderPackageStatus: matchPkg?.pkgStatus,
+        tenderWinningVendor: matchPkg?.winningVendor,
+        tenderPoNumber: matchPkg?.poNumber,
         currentStock: pi.currentStock,
         avgUnitPrice: pi.avgUnitPrice,
         totalEstimatedCost: pi.totalEstimatedCost,
@@ -465,7 +505,7 @@ export default function PratenderTab({
         urgencyReason: pi.urgencyReason,
       };
     });
-  }, [planningItems, packagedItemIds]);
+  }, [planningItems, packagedItemDetails]);
 
   // 3. POOL SISA LAYANAN MENTAH (GROSS DEMAND DARI BACKLOG FPB)
   const rawSisaPool = useMemo(() => {
@@ -537,18 +577,27 @@ export default function PratenderTab({
     });
 
     const result = Array.from(map.values()).map((item) => {
-      const matchPkg = packagedItemIds.get(item.id);
+      const matchPkg = packagedItemDetails.get(item.id);
+      const tenderStatus: MaterialTenderStatus = matchPkg
+        ? matchPkg.tenderStatus
+        : 'NOT_IN_TENDER';
+
       return {
         ...item,
         isPackaged: !!matchPkg,
         packageId: matchPkg?.pkgId,
         packageNumber: matchPkg?.pkgNumber,
+        tenderStatus,
+        tenderPackageTitle: matchPkg?.pkgTitle,
+        tenderPackageStatus: matchPkg?.pkgStatus,
+        tenderWinningVendor: matchPkg?.winningVendor,
+        tenderPoNumber: matchPkg?.poNumber,
       };
     });
 
     // Urutkan: item yang diminta oleh banyak kapal terlebih dahulu, lalu kuantitas terbesar
     return result.sort((a, b) => b.vesselCount - a.vesselCount || b.totalQtyRemaining - a.totalQtyRemaining);
-  }, [sisaItems, packagedItemIds]);
+  }, [sisaItems, packagedItemDetails]);
 
   // POOL AKTIF BERDASARKAN PILIHAN SUMBER DATA
   const openItemsPool = useMemo(() => {
@@ -584,6 +633,11 @@ export default function PratenderTab({
   // Filter Pool Item Terbuka Sesuai Kontrol Pengguna
   const filteredOpenItems = useMemo(() => {
     return openItemsPool.filter((it) => {
+      // Filter Status Tender
+      if (tenderStatusFilter !== 'ALL' && it.tenderStatus !== tenderStatusFilter) {
+        return false;
+      }
+
       if (dataSourceType === 'SISA_LAYANAN') {
         if (statusFilter === 'OPEN_ONLY') {
           const hasOpen = it.requests.some((r) => r.status === 'OPEN');
@@ -609,11 +663,26 @@ export default function PratenderTab({
         const matchCat = it.category.toLowerCase().includes(q);
         const matchFpb = it.requests.some((r) => r.fpb.toLowerCase().includes(q));
         const matchVessel = it.vessels.some((v) => v.toLowerCase().includes(q));
-        if (!matchName && !matchCat && !matchFpb && !matchVessel) return false;
+        const matchPkg = it.packageNumber?.toLowerCase().includes(q);
+        const matchWinner = it.tenderWinningVendor?.toLowerCase().includes(q);
+        if (!matchName && !matchCat && !matchFpb && !matchVessel && !matchPkg && !matchWinner) return false;
       }
       return true;
     });
-  }, [openItemsPool, dataSourceType, statusFilter, urgencyFilter, selectedCategory, selectedVessel, selectedPt, filterMultiVesselOnly, searchQuery]);
+  }, [openItemsPool, dataSourceType, tenderStatusFilter, statusFilter, urgencyFilter, selectedCategory, selectedVessel, selectedPt, filterMultiVesselOnly, searchQuery]);
+
+  // Statistik Jumlah Item Per Status Tender
+  const tenderStatusCounts = useMemo(() => {
+    let notInTender = 0;
+    let inTender = 0;
+    let awarded = 0;
+    openItemsPool.forEach((it) => {
+      if (it.tenderStatus === 'AWARDED') awarded++;
+      else if (it.tenderStatus === 'IN_TENDER') inTender++;
+      else notInTender++;
+    });
+    return { notInTender, inTender, awarded, total: openItemsPool.length };
+  }, [openItemsPool]);
 
   // KPI Metrics Summary
   const kpiMetrics = useMemo(() => {
@@ -625,8 +694,21 @@ export default function PratenderTab({
     return { totalItems, totalQty, multiVesselItems, activePackages, totalEstCost };
   }, [openItemsPool, packages]);
 
-  // Toggle selection item (Persatuan Item)
+  // Toggle selection item (dengan proteksi item tender)
   const handleToggleSelect = (itemId: string) => {
+    const item = openItemsPool.find((i) => i.id === itemId);
+    if (item && item.tenderStatus && item.tenderStatus !== 'NOT_IN_TENDER') {
+      if (showToast) {
+        showToast(
+          item.tenderStatus === 'AWARDED'
+            ? `Material "${item.cleanName}" sudah ada pemenang tender (${item.tenderWinningVendor}) dan tidak dapat dipilih lagi.`
+            : `Material "${item.cleanName}" sedang dalam paket tender aktif (${item.packageNumber}).`,
+          'warning'
+        );
+      }
+      return;
+    }
+
     setSelectedItemIds((prev) => {
       const next = new Set(prev);
       if (next.has(itemId)) next.delete(itemId);
@@ -635,13 +717,15 @@ export default function PratenderTab({
     });
   };
 
-  // Toggle selection per Kategori
+  // Toggle selection per Kategori (hanya item belum ditenderkan)
   const handleSelectCategoryItems = (cat: string) => {
-    const itemsInCat = filteredOpenItems.filter((i) => i.category === cat);
+    const selectableInCat = filteredOpenItems.filter(
+      (i) => i.category === cat && (!i.tenderStatus || i.tenderStatus === 'NOT_IN_TENDER')
+    );
     setSelectedItemIds((prev) => {
       const next = new Set(prev);
-      const allSelected = itemsInCat.length > 0 && itemsInCat.every((i) => next.has(i.id));
-      itemsInCat.forEach((i) => {
+      const allSelected = selectableInCat.length > 0 && selectableInCat.every((i) => next.has(i.id));
+      selectableInCat.forEach((i) => {
         if (allSelected) {
           next.delete(i.id);
         } else {
@@ -652,11 +736,26 @@ export default function PratenderTab({
     });
   };
 
+  // Select all visible (hanya yang belum ditenderkan)
   const handleSelectAllVisible = () => {
-    if (selectedItemIds.size === filteredOpenItems.length) {
-      setSelectedItemIds(new Set());
+    const selectableVisible = filteredOpenItems.filter(
+      (i) => !i.tenderStatus || i.tenderStatus === 'NOT_IN_TENDER'
+    );
+    const allSelectableChosen =
+      selectableVisible.length > 0 && selectableVisible.every((i) => selectedItemIds.has(i.id));
+
+    if (allSelectableChosen) {
+      setSelectedItemIds((prev) => {
+        const next = new Set(prev);
+        selectableVisible.forEach((i) => next.delete(i.id));
+        return next;
+      });
     } else {
-      setSelectedItemIds(new Set(filteredOpenItems.map((i) => i.id)));
+      setSelectedItemIds((prev) => {
+        const next = new Set(prev);
+        selectableVisible.forEach((i) => next.add(i.id));
+        return next;
+      });
     }
   };
 
@@ -1261,6 +1360,62 @@ export default function PratenderTab({
               </div>
             </div>
 
+            {/* Quick Filter Per Status Tender */}
+            <div className="flex items-center gap-2 flex-wrap pt-1 border-t border-border/60">
+              <span className="text-[11px] font-semibold text-muted-foreground whitespace-nowrap">
+                Status Tender Material:
+              </span>
+              <div className="flex items-center gap-1.5 overflow-x-auto text-xs no-scrollbar">
+                <button
+                  type="button"
+                  onClick={() => setTenderStatusFilter('ALL')}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold cursor-pointer transition ${
+                    tenderStatusFilter === 'ALL'
+                      ? 'bg-foreground text-background shadow-xs'
+                      : 'bg-muted/80 text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Semua ({tenderStatusCounts.total})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTenderStatusFilter('NOT_IN_TENDER')}
+                  className={`px-3 py-1 rounded-lg text-xs font-semibold cursor-pointer transition inline-flex items-center gap-1.5 ${
+                    tenderStatusFilter === 'NOT_IN_TENDER'
+                      ? 'bg-slate-700 text-white shadow-xs'
+                      : 'bg-background border border-border text-slate-700 dark:text-slate-300 hover:bg-muted'
+                  }`}
+                >
+                  <span className="size-2 rounded-full bg-slate-400"></span>
+                  <span>Belum Ditenderkan ({tenderStatusCounts.notInTender})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTenderStatusFilter('IN_TENDER')}
+                  className={`px-3 py-1 rounded-lg text-xs font-semibold cursor-pointer transition inline-flex items-center gap-1.5 ${
+                    tenderStatusFilter === 'IN_TENDER'
+                      ? 'bg-sky-600 text-white shadow-xs'
+                      : 'bg-background border border-border text-sky-700 dark:text-sky-300 hover:bg-muted'
+                  }`}
+                >
+                  <span className="size-2 rounded-full bg-sky-500 animate-pulse"></span>
+                  <span>Sedang Tender Aktif ({tenderStatusCounts.inTender})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTenderStatusFilter('AWARDED')}
+                  className={`px-3 py-1 rounded-lg text-xs font-semibold cursor-pointer transition inline-flex items-center gap-1.5 ${
+                    tenderStatusFilter === 'AWARDED'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'bg-background border border-border text-emerald-700 dark:text-emerald-300 hover:bg-muted'
+                  }`}
+                >
+                  <Award className="size-3.5 text-emerald-600" />
+                  <span>Sudah Ada Pemenang ({tenderStatusCounts.awarded})</span>
+                </button>
+              </div>
+            </div>
+
             {/* Quick Sort & Select Per Kategori Chips */}
             <div className="space-y-1.5 pt-1 border-t border-border/60">
               <div className="flex items-center justify-between text-[11px] text-muted-foreground font-medium">
@@ -1385,7 +1540,7 @@ export default function PratenderTab({
                     <th className="py-2.5 px-3 text-right">Net Demand (Rekomendasi Beli)</th>
                     <th className="py-2.5 px-3 text-right">Estimasi Pagu HPS</th>
                     <th className="py-2.5 px-3">Kapal Peminta</th>
-                    <th className="py-2.5 px-3 text-center">Prioritas &amp; Status</th>
+                    <th className="py-2.5 px-3 text-center">Status Tender &amp; Prioritas</th>
                   </tr>
                 ) : (
                   <tr>
@@ -1408,7 +1563,7 @@ export default function PratenderTab({
                     <th className="py-2.5 px-3 text-right">Kuantitas Belum Terpenuhi</th>
                     <th className="py-2.5 px-3">Kapal Peminta (Armada)</th>
                     <th className="py-2.5 px-3">Status Sisa Layanan</th>
-                    <th className="py-2.5 px-3 text-center">Audit FPB</th>
+                    <th className="py-2.5 px-3 text-center">Status Tender &amp; FPB</th>
                   </tr>
                 )}
               </thead>
@@ -1442,19 +1597,36 @@ export default function PratenderTab({
                             isSelected ? 'bg-purple-500/[0.06]' : ''
                           }`}
                         >
-                          {/* Checkbox Persatuan Item */}
+                          {/* Checkbox Persatuan Item dengan Proteksi Tender Status */}
                           <td className="py-3 px-3 text-center">
-                            <button
-                              type="button"
-                              onClick={() => handleToggleSelect(item.id)}
-                              className="cursor-pointer"
-                            >
-                              {isSelected ? (
-                                <CheckSquare className="size-4 text-purple-600 dark:text-purple-400" />
-                              ) : (
-                                <Square className="size-4 text-muted-foreground" />
-                              )}
-                            </button>
+                            {item.tenderStatus === 'AWARDED' ? (
+                              <span
+                                className="inline-flex items-center justify-center cursor-not-allowed opacity-50"
+                                title={`Material ini telah memiliki pemenang tender (${item.tenderWinningVendor}) dan tidak dapat dipilih lagi`}
+                              >
+                                <Lock className="size-4 text-emerald-600" />
+                              </span>
+                            ) : item.tenderStatus === 'IN_TENDER' ? (
+                              <span
+                                className="inline-flex items-center justify-center cursor-not-allowed opacity-60"
+                                title={`Material ini sedang dalam proses tender aktif (${item.packageNumber})`}
+                              >
+                                <Lock className="size-4 text-sky-600" />
+                              </span>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handleToggleSelect(item.id)}
+                                className="cursor-pointer"
+                                title="Pilih material ini untuk tender baru"
+                              >
+                                {isSelected ? (
+                                  <CheckSquare className="size-4 text-purple-600 dark:text-purple-400" />
+                                ) : (
+                                  <Square className="size-4 text-muted-foreground" />
+                                )}
+                              </button>
+                            )}
                           </td>
 
                           {/* Nama Barang & Kode */}
@@ -1546,9 +1718,47 @@ export default function PratenderTab({
                             </div>
                           </td>
 
-                          {/* Prioritas & Status */}
+                          {/* Status Tender & Prioritas */}
                           <td className="py-3 px-3 text-center whitespace-nowrap">
                             <div className="flex flex-col items-center gap-1">
+                              {/* 1. Indikasi Status Tender */}
+                              {item.tenderStatus === 'AWARDED' ? (
+                                <div
+                                  className="flex flex-col items-center gap-0.5 p-1 rounded-lg bg-emerald-500/10 border border-emerald-500/25"
+                                  title={`Pemenang: ${item.tenderWinningVendor || '-'} (${item.packageNumber})`}
+                                >
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">
+                                    <Award className="size-2.5 text-emerald-600" />
+                                    <span>AWARDED</span>
+                                  </span>
+                                  <span className="text-[9px] font-bold text-foreground truncate max-w-[130px]">
+                                    {item.tenderWinningVendor || 'Pemenang Sah'}
+                                  </span>
+                                  <span className="text-[8px] font-mono text-muted-foreground">
+                                    {item.packageNumber}
+                                  </span>
+                                </div>
+                              ) : item.tenderStatus === 'IN_TENDER' ? (
+                                <div
+                                  className="flex flex-col items-center gap-0.5 p-1 rounded-lg bg-sky-500/10 border border-sky-500/25"
+                                  title={`Paket: ${item.packageNumber} (${item.tenderPackageStatus || 'EVALUASI'})`}
+                                >
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-sky-500/20 text-sky-700 dark:text-sky-300">
+                                    <Clock className="size-2.5 text-sky-600" />
+                                    <span>TENDER AKTIF</span>
+                                  </span>
+                                  <span className="text-[9px] font-mono font-bold text-foreground">
+                                    {item.packageNumber}
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-semibold bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20">
+                                  <span className="size-1.5 rounded-full bg-slate-400"></span>
+                                  <span>Belum Tender</span>
+                                </span>
+                              )}
+
+                              {/* 2. Prioritas Urgensi Pengadaan */}
                               {item.urgency === 'CRITICAL' && (
                                 <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-rose-500/10 text-rose-600 border border-rose-500/20 flex items-center gap-1">
                                   <Flame className="size-2.5" />
@@ -1563,12 +1773,6 @@ export default function PratenderTab({
                               {item.urgency === 'PLANNED' && (
                                 <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-sky-500/10 text-sky-600 border border-sky-500/20">
                                   PLANNED
-                                </span>
-                              )}
-                              {item.isPackaged && (
-                                <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
-                                  <CheckCircle2 className="size-2.5" />
-                                  <span>{item.packageNumber}</span>
                                 </span>
                               )}
                             </div>
@@ -1588,19 +1792,36 @@ export default function PratenderTab({
                           isSelected ? 'bg-purple-500/[0.06]' : ''
                         }`}
                       >
-                        {/* Checkbox */}
+                        {/* Checkbox dengan Proteksi Tender Status */}
                         <td className="py-3 px-3 text-center">
-                          <button
-                            type="button"
-                            onClick={() => handleToggleSelect(item.id)}
-                            className="cursor-pointer"
-                          >
-                            {isSelected ? (
-                              <CheckSquare className="size-4 text-purple-600 dark:text-purple-400" />
-                            ) : (
-                              <Square className="size-4 text-muted-foreground" />
-                            )}
-                          </button>
+                          {item.tenderStatus === 'AWARDED' ? (
+                            <span
+                              className="inline-flex items-center justify-center cursor-not-allowed opacity-50"
+                              title={`Material ini telah memiliki pemenang tender (${item.tenderWinningVendor}) dan tidak dapat dipilih lagi`}
+                            >
+                              <Lock className="size-4 text-emerald-600" />
+                            </span>
+                          ) : item.tenderStatus === 'IN_TENDER' ? (
+                            <span
+                              className="inline-flex items-center justify-center cursor-not-allowed opacity-60"
+                              title={`Material ini sedang dalam proses tender aktif (${item.packageNumber})`}
+                            >
+                              <Lock className="size-4 text-sky-600" />
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleToggleSelect(item.id)}
+                              className="cursor-pointer"
+                              title="Pilih material ini untuk tender baru"
+                            >
+                              {isSelected ? (
+                                <CheckSquare className="size-4 text-purple-600 dark:text-purple-400" />
+                              ) : (
+                                <Square className="size-4 text-muted-foreground" />
+                              )}
+                            </button>
+                          )}
                         </td>
 
                         {/* Nama Barang Asli */}
@@ -1665,31 +1886,60 @@ export default function PratenderTab({
                                 KURANG
                               </span>
                             )}
-                            {item.isPackaged && (
-                              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
-                                <CheckCircle2 className="size-2.5" />
-                                <span>{item.packageNumber}</span>
-                              </span>
-                            )}
                           </div>
                         </td>
 
-                        {/* Aksi Audit FPB */}
+                        {/* Status Tender & Audit FPB */}
                         <td className="py-3 px-3 text-center whitespace-nowrap">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const targetFpb = item.requests[0]?.fpb;
-                              const targetPo = item.requests[0]?.noPo;
-                              if (targetFpb && onOpenAudit) {
-                                onOpenAudit(targetFpb, targetPo);
-                              }
-                            }}
-                            className="p-1 rounded-md text-muted-foreground hover:text-primary hover:bg-muted transition cursor-pointer"
-                            title="Audit Jejak FPB Dokumen"
-                          >
-                            <ExternalLink className="size-3.5" />
-                          </button>
+                          <div className="flex items-center justify-center gap-1.5">
+                            {item.tenderStatus === 'AWARDED' ? (
+                              <div
+                                className="flex flex-col items-center gap-0.5 p-1 rounded-lg bg-emerald-500/10 border border-emerald-500/25"
+                                title={`Pemenang: ${item.tenderWinningVendor || '-'} (${item.packageNumber})`}
+                              >
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">
+                                  <Award className="size-2.5 text-emerald-600" />
+                                  <span>AWARDED</span>
+                                </span>
+                                <span className="text-[9px] font-bold text-foreground truncate max-w-[120px]">
+                                  {item.tenderWinningVendor || 'Pemenang Sah'}
+                                </span>
+                              </div>
+                            ) : item.tenderStatus === 'IN_TENDER' ? (
+                              <div
+                                className="flex flex-col items-center gap-0.5 p-1 rounded-lg bg-sky-500/10 border border-sky-500/25"
+                                title={`Paket: ${item.packageNumber} (${item.tenderPackageStatus || 'EVALUASI'})`}
+                              >
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-sky-500/20 text-sky-700 dark:text-sky-300">
+                                  <Clock className="size-2.5 text-sky-600" />
+                                  <span>TENDER AKTIF</span>
+                                </span>
+                                <span className="text-[9px] font-mono font-bold text-foreground">
+                                  {item.packageNumber}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-semibold bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20">
+                                <span className="size-1.5 rounded-full bg-slate-400"></span>
+                                <span>Belum Tender</span>
+                              </span>
+                            )}
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const targetFpb = item.requests[0]?.fpb;
+                                const targetPo = item.requests[0]?.noPo;
+                                if (targetFpb && onOpenAudit) {
+                                  onOpenAudit(targetFpb, targetPo);
+                                }
+                              }}
+                              className="p-1 rounded-md text-muted-foreground hover:text-primary hover:bg-muted transition cursor-pointer"
+                              title="Audit Jejak FPB Dokumen"
+                            >
+                              <ExternalLink className="size-3.5" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
