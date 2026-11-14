@@ -1850,6 +1850,20 @@ PT. Cipta Sarana Transindo - CPG Group
                           awardedVendor: winner?.vendorName,
                           awardedValue: winningBidValue,
                           poNumberGenerated: packageData.poNumberGenerated || `CPL-PO-26-${Math.floor(10000 + Math.random() * 90000)}`,
+                          evaluationSummary: {
+                            ...(packageData.evaluationSummary || {}),
+                            winningVendorId: winner?.id,
+                            winningVendorName: winner?.vendorName,
+                            winningAmount: winningBidValue,
+                            approvalStatus: evalApprovalStatus,
+                            approvedBy: evalApprovedBy,
+                            approvedAt: evalApprovedAt,
+                            releaseTierId: requiredTier.id,
+                            releaseTierName: requiredTier.name,
+                            isPoReleased: evalApprovalStatus === 'APPROVED',
+                            poReleasedAt: evalApprovalStatus === 'APPROVED' ? evalApprovedAt : undefined,
+                            poReleasedBy: evalApprovalStatus === 'APPROVED' ? evalApprovedBy : undefined,
+                          },
                         };
                         const poBytes = await generatePoAwardDocumentPdf(mockPkg, mockPkg.poNumberGenerated);
                         triggerBrowserPdfDownload(poBytes, `PURCHASE_ORDER_${mockPkg.poNumberGenerated}_${winner?.vendorName.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);

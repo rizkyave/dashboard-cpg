@@ -1,6 +1,7 @@
 import { PDFDocument, rgb, StandardFonts, PageSizes } from 'pdf-lib';
 import { PratenderPackage, VendorBidSubmission } from '@/types/pratender';
 import { isNonMaterialOrSignature } from '@/utils/tenderSanitizer';
+import { determineRequiredApprovalTier } from '@/utils/tenderApprovalConfig';
 
 /**
  * Format currency ke Rupiah
@@ -688,8 +689,8 @@ export async function generatePoAwardDocumentPdf(
     (winner && (winner.negotiatedGrandTotal || winner.grandTotal)) ||
     grandTotalPo;
 
-  // Pastikan ruang cukup untuk Box Total PO, Syarat Ketentuan, dan Tanda Tangan (butuh ~175 pt)
-  addNewPageIfOverflow(175);
+  // Pastikan ruang cukup untuk Box Total PO, Evidence Otorisasi Keuangan, Syarat Ketentuan, dan Tanda Tangan (butuh ~235 pt)
+  addNewPageIfOverflow(235);
 
   // Box Total PO
   curY -= 6;
@@ -706,7 +707,95 @@ export async function generatePoAwardDocumentPdf(
   activePage.drawText('TOTAL PURCHASE ORDER:', { x: 360, y: curY - 14, size: 8, font: fontBold, color: rgb(0.1, 0.45, 0.25) });
   activePage.drawText(formatRupiah(finalPoVal), { x: 470, y: curY - 14, size: 9, font: fontBold, color: rgb(0.08, 0.5, 0.25) });
 
-  curY -= 34;
+  curY -= 30;
+
+  // DATA OTORISASI RELEASE & EVIDENCE KEUANGAN (SAP RELEASE STRATEGY)
+  const evalSummary = pkg.evaluationSummary;
+  const isReleased = evalSummary?.isPoReleased || evalSummary?.approvalStatus === 'APPROVED';
+  const tierConfig = determineRequiredApprovalTier(finalPoVal);
+  const tierName = evalSummary?.releaseTierName || tierConfig.name;
+  const tierRoleLabel = tierConfig.authorizedRoleLabel;
+  const releasedBy = evalSummary?.poReleasedBy || evalSummary?.approvedBy || 'Pejabat Berwenang';
+  const releasedAtRaw = evalSummary?.poReleasedAt || evalSummary?.approvedAt || pkg.updatedAt || new Date().toISOString();
+  const releaseDateObj = new Date(releasedAtRaw);
+  const formattedReleaseDate = !isNaN(releaseDateObj.getTime())
+    ? releaseDateObj.toLocaleDateString('id-ID', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+
+  // Security Evidence Hash / Token Validasi Keuangan
+  const rawCodeSeed = `${pkg.packageNumber}-${poNumber}-${releasedBy}-${finalPoVal}`;
+  let hashCode = 0;
+  for (let i = 0; i < rawCodeSeed.length; i++) {
+    hashCode = ((hashCode << 5) - hashCode + rawCodeSeed.charCodeAt(i)) & 0xffffffff;
+  }
+  const hexHash = Math.abs(hashCode).toString(16).toUpperCase().padStart(8, '0');
+  const evidenceToken = `AUTH-CPG-FIN-${hexHash.slice(0, 4)}-${hexHash.slice(4, 8)}`;
+
+  // Box Status Otorisasi & Evidence Keuangan
+  const authBoxHeight = 44;
+  activePage.drawRectangle({
+    x: 40,
+    y: curY - authBoxHeight,
+    width: width - 80,
+    height: authBoxHeight,
+    borderColor: isReleased ? rgb(0.12, 0.58, 0.32) : rgb(0.85, 0.6, 0.15),
+    borderWidth: 1,
+    color: isReleased ? rgb(0.95, 0.99, 0.96) : rgb(0.99, 0.98, 0.94),
+  });
+
+  // Header Box Otorisasi
+  activePage.drawText(
+    isReleased
+      ? 'STATUS OTORISASI: RELEASED & APPROVED (VALID UNTUK PENCAIRAN FINANCE)'
+      : 'STATUS OTORISASI: MENUNGGU RELEASE PEJABAT BERWENANG (PENDING APPROVAL)',
+    {
+      x: 50,
+      y: curY - 13,
+      size: 7.5,
+      font: fontBold,
+      color: isReleased ? rgb(0.08, 0.48, 0.22) : rgb(0.75, 0.45, 0.05),
+    }
+  );
+
+  activePage.drawText(`CONFIDENTIAL EVIDENCE: ${evidenceToken}`, {
+    x: width - 235,
+    y: curY - 13,
+    size: 6.5,
+    font: fontBold,
+    color: isReleased ? rgb(0.15, 0.35, 0.25) : rgb(0.6, 0.4, 0.1),
+  });
+
+  // Baris Info Pejabat & Tanggal
+  const releaseDetails = isReleased
+    ? `Wewenang: ${tierName} (${tierRoleLabel})   •   Di-release Oleh: ${releasedBy}   •   Waktu: ${formattedReleaseDate} WIB`
+    : `Memerlukan Otorisasi: ${tierName} (${tierRoleLabel}) sesuai Matriks Otorisasi Berjenjang SAP Release Strategy`;
+
+  activePage.drawText(releaseDetails.slice(0, 110), {
+    x: 50,
+    y: curY - 26,
+    size: 7,
+    font: fontRegular,
+    color: rgb(0.18, 0.25, 0.35),
+  });
+
+  activePage.drawText(
+    'Evidence Audit Trail: Dokumen PO ini telah disahkan dan diakui secara sah oleh Sistem Otorisasi CPG untuk dasar verifikasi AP Keuangan.',
+    {
+      x: 50,
+      y: curY - 37,
+      size: 6,
+      font: fontRegular,
+      color: rgb(0.4, 0.48, 0.55),
+    }
+  );
+
+  curY -= authBoxHeight + 14;
 
   // Catatan Instruksi Pengantaran & Dokumen Penagihan
   activePage.drawText('SYARAT & KETENTUAN PENERIMAAN / PENAGIHAN VENDOR:', {
@@ -730,7 +819,7 @@ export async function generatePoAwardDocumentPdf(
   });
 
   // Signatures PO - Jarak aman ke bawah tanpa tumpang tindih
-  curY -= 24;
+  curY -= 20;
   const signTopY = curY;
 
   activePage.drawText('Dipesan Oleh (Purchasing):', { x: 60, y: signTopY, size: 7.5, font: fontRegular, color: rgb(0.3, 0.35, 0.45) });
@@ -739,10 +828,44 @@ export async function generatePoAwardDocumentPdf(
 
   const signOrgY = signTopY - 14;
   activePage.drawText('PT CINDARA PRATAMA LINES', { x: 60, y: signOrgY, size: 8, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
-  activePage.drawText('PURCHASING & LOGISTIC MGR', { x: 235, y: signOrgY, size: 8, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
+  activePage.drawText(tierRoleLabel.toUpperCase().slice(0, 26), { x: 235, y: signOrgY, size: 8, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
   activePage.drawText(vendorName.slice(0, 24).toUpperCase(), { x: 410, y: signOrgY, size: 8, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
 
   const signBottomY = signOrgY - 44;
+
+  if (isReleased) {
+    // Stamp Digital Release Otorisasi
+    activePage.drawRectangle({
+      x: 235,
+      y: signBottomY + 12,
+      width: 135,
+      height: 25,
+      borderColor: rgb(0.15, 0.65, 0.35),
+      borderWidth: 0.75,
+      color: rgb(0.95, 0.99, 0.96),
+    });
+    activePage.drawText('[ DIGITALLY RELEASED ]', {
+      x: 242,
+      y: signBottomY + 28,
+      size: 6.5,
+      font: fontBold,
+      color: rgb(0.1, 0.55, 0.25),
+    });
+    activePage.drawText(`Oleh: ${releasedBy.slice(0, 20)}`, {
+      x: 242,
+      y: signBottomY + 20,
+      size: 6,
+      font: fontRegular,
+      color: rgb(0.15, 0.2, 0.3),
+    });
+    activePage.drawText(`Tgl : ${formattedReleaseDate.slice(0, 18)}`, {
+      x: 242,
+      y: signBottomY + 14,
+      size: 5.5,
+      font: fontRegular,
+      color: rgb(0.35, 0.45, 0.4),
+    });
+  }
 
   activePage.drawLine({
     start: { x: 60, y: signBottomY + 12 },
@@ -754,7 +877,7 @@ export async function generatePoAwardDocumentPdf(
     start: { x: 235, y: signBottomY + 12 },
     end: { x: 370, y: signBottomY + 12 },
     thickness: 0.75,
-    color: rgb(0.75, 0.8, 0.85),
+    color: isReleased ? rgb(0.2, 0.65, 0.35) : rgb(0.75, 0.8, 0.85),
   });
   activePage.drawLine({
     start: { x: 410, y: signBottomY + 12 },
@@ -764,7 +887,16 @@ export async function generatePoAwardDocumentPdf(
   });
 
   activePage.drawText('( Bagian Pengadaan / Purchasing )', { x: 60, y: signBottomY, size: 7, font: fontRegular, color: rgb(0.4, 0.45, 0.55) });
-  activePage.drawText('( Pejabat Berwenang )', { x: 235, y: signBottomY, size: 7, font: fontRegular, color: rgb(0.4, 0.45, 0.55) });
+  activePage.drawText(
+    isReleased ? `( ${releasedBy.slice(0, 22)} )` : '( Pejabat Berwenang )',
+    {
+      x: 235,
+      y: signBottomY,
+      size: 7,
+      font: isReleased ? fontBold : fontRegular,
+      color: isReleased ? rgb(0.1, 0.15, 0.25) : rgb(0.4, 0.45, 0.55),
+    }
+  );
   activePage.drawText('( Tanda Tangan & Cap Perusahaan )', { x: 410, y: signBottomY, size: 7, font: fontRegular, color: rgb(0.4, 0.45, 0.55) });
 
   return await pdfDoc.save();

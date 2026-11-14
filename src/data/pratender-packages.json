@@ -1,5 +1,248 @@
 [
   {
+    "id": "pkg-1794659608002",
+    "packageNumber": "CPG-TDR-26-8045",
+    "title": "Paket Pengadaan Electrical Armada Q4 2026",
+    "category": "Electrical",
+    "status": "EVALUATION",
+    "createdAt": "2026-11-14T12:33:28.002Z",
+    "createdBy": "Administrator CPG",
+    "targetClosingDate": "2026-11-21",
+    "description": "Spesifikasi asli (OEM) bergaransi resmi, sertifikat asal barang (COO) terlampir.",
+    "items": [
+      {
+        "itemId": "CPL-PP-2026-003__plan-020",
+        "itemName": "BATERAI AA 1,5V (ALKALINE)",
+        "category": "Electrical",
+        "satuan": "PCS",
+        "totalQty": 6,
+        "originalQty": 6,
+        "targetPrice": 7500,
+        "targetTotalPrice": 45000,
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "CPL-FPB-26-0005020"
+        ]
+      },
+      {
+        "itemId": "CPL-PP-2026-004__plan-008",
+        "itemName": "POMPA CELUP 2\" (TSURUMI)",
+        "category": "Electrical",
+        "satuan": "PCS",
+        "totalQty": 1,
+        "originalQty": 1,
+        "targetPrice": 3500000,
+        "targetTotalPrice": 3500000,
+        "vessels": [
+          "SPOB ROYAL REY"
+        ],
+        "requestFpbs": [
+          "CPL-FPB-26-0005124"
+        ]
+      }
+    ],
+    "totalEstimatedBudget": 3545000,
+    "ownerEstimateHps": 3545000,
+    "updatedAt": "2026-11-14T13:24:09.438Z",
+    "vendorBids": [
+      {
+        "id": "bid-mwge215p-vgqh1",
+        "vendorName": "PT A",
+        "vendorPic": "HERY",
+        "vendorContact": "0888888888",
+        "quotationRefNo": "Q-01",
+        "bidDate": "2026-11-14",
+        "termOfPayment": "NET 30 Hari",
+        "deliveryLeadTimeDays": 7,
+        "francoDeliveryPoint": "Gudang Somber Balikpapan / Dermaga CPG",
+        "items": [
+          {
+            "itemId": "CPL-PP-2026-003__plan-020",
+            "itemName": "BATERAI AA 1,5V (ALKALINE)",
+            "qty": 6,
+            "unitPrice": 15000,
+            "totalPrice": 90000,
+            "brandOffered": "ALKALINE",
+            "compliance": "COMPLIANT",
+            "notes": ""
+          },
+          {
+            "itemId": "CPL-PP-2026-004__plan-008",
+            "itemName": "POMPA CELUP 2\" (TSURUMI)",
+            "qty": 1,
+            "unitPrice": 1000000,
+            "totalPrice": 1000000,
+            "brandOffered": "TSURUMI",
+            "compliance": "COMPLIANT",
+            "notes": ""
+          }
+        ],
+        "subtotal": 1090000,
+        "ppnPercent": 11,
+        "ppnAmount": 119900,
+        "deliveryFee": 0,
+        "grandTotal": 1209900,
+        "technicalStatus": "PASSED",
+        "status": "UNDER_EVALUATION",
+        "negotiatedGrandTotal": 1209900,
+        "isLocked": true,
+        "lockedAt": "2026-11-14T12:54:01.260Z"
+      },
+      {
+        "id": "bid-mwgedgqg-g6bfd",
+        "vendorName": "PT B",
+        "vendorPic": "FERY",
+        "vendorContact": "08912823123",
+        "quotationRefNo": "Q-1",
+        "bidDate": "2026-11-14",
+        "termOfPayment": "NET 30 Hari",
+        "deliveryLeadTimeDays": 7,
+        "francoDeliveryPoint": "Gudang Somber Balikpapan / Dermaga CPG",
+        "items": [
+          {
+            "itemId": "CPL-PP-2026-003__plan-020",
+            "itemName": "BATERAI AA 1,5V (ALKALINE)",
+            "qty": 6,
+            "unitPrice": 12000,
+            "totalPrice": 72000,
+            "brandOffered": "ABC",
+            "compliance": "COMPLIANT",
+            "notes": ""
+          },
+          {
+            "itemId": "CPL-PP-2026-004__plan-008",
+            "itemName": "POMPA CELUP 2\" (TSURUMI)",
+            "qty": 1,
+            "unitPrice": 1200000,
+            "totalPrice": 1200000,
+            "brandOffered": "TSURUMI",
+            "compliance": "COMPLIANT",
+            "notes": ""
+          }
+        ],
+        "subtotal": 1272000,
+        "ppnPercent": 11,
+        "ppnAmount": 139920,
+        "deliveryFee": 0,
+        "grandTotal": 1411920,
+        "technicalStatus": "PASSED",
+        "status": "UNDER_EVALUATION",
+        "negotiatedGrandTotal": 1411920,
+        "isLocked": true,
+        "lockedAt": "2026-11-14T12:54:03.785Z"
+      },
+      {
+        "id": "bid-mwgef4m1-8jmnn",
+        "vendorName": "PT C",
+        "vendorPic": "DENY",
+        "vendorContact": "0723123111212",
+        "quotationRefNo": "Q-4",
+        "bidDate": "2026-11-14",
+        "termOfPayment": "NET 30 Hari",
+        "deliveryLeadTimeDays": 7,
+        "francoDeliveryPoint": "Gudang Somber Balikpapan / Dermaga CPG",
+        "items": [
+          {
+            "itemId": "CPL-PP-2026-003__plan-020",
+            "itemName": "BATERAI AA 1,5V (ALKALINE)",
+            "qty": 6,
+            "unitPrice": 13000,
+            "totalPrice": 78000,
+            "brandOffered": "ABC",
+            "compliance": "COMPLIANT",
+            "notes": ""
+          },
+          {
+            "itemId": "CPL-PP-2026-004__plan-008",
+            "itemName": "POMPA CELUP 2\" (TSURUMI)",
+            "qty": 1,
+            "unitPrice": 990000,
+            "totalPrice": 990000,
+            "brandOffered": "TSURUMI",
+            "compliance": "COMPLIANT",
+            "notes": ""
+          }
+        ],
+        "subtotal": 1068000,
+        "ppnPercent": 11,
+        "ppnAmount": 117480,
+        "deliveryFee": 0,
+        "grandTotal": 1185480,
+        "technicalStatus": "PASSED",
+        "status": "UNDER_EVALUATION",
+        "negotiatedGrandTotal": 1150000,
+        "isLocked": true,
+        "lockedAt": "2026-11-14T12:54:05.409Z"
+      },
+      {
+        "id": "bid-mwgepevp-bsacr",
+        "vendorName": "PT D",
+        "vendorPic": "MEERY",
+        "vendorContact": "081172671767",
+        "quotationRefNo": "Q-09",
+        "bidDate": "2026-11-14",
+        "termOfPayment": "NET 30 Hari",
+        "deliveryLeadTimeDays": 7,
+        "francoDeliveryPoint": "Gudang Somber Balikpapan / Dermaga CPG",
+        "items": [
+          {
+            "itemId": "CPL-PP-2026-003__plan-020",
+            "itemName": "BATERAI AA 1,5V (ALKALINE)",
+            "qty": 6,
+            "unitPrice": 10000,
+            "totalPrice": 60000,
+            "brandOffered": "ABC",
+            "compliance": "COMPLIANT",
+            "notes": ""
+          },
+          {
+            "itemId": "CPL-PP-2026-004__plan-008",
+            "itemName": "POMPA CELUP 2\" (TSURUMI)",
+            "qty": 1,
+            "unitPrice": 1000000,
+            "totalPrice": 1000000,
+            "brandOffered": "TSURUMI",
+            "compliance": "COMPLIANT",
+            "notes": ""
+          }
+        ],
+        "subtotal": 1060000,
+        "ppnPercent": 11,
+        "ppnAmount": 116600,
+        "deliveryFee": 0,
+        "grandTotal": 1176600,
+        "technicalStatus": "PASSED",
+        "status": "RECOMMENDED",
+        "negotiatedGrandTotal": 1100000,
+        "isLocked": true,
+        "lockedAt": "2026-11-14T12:54:08.719Z"
+      }
+    ],
+    "evaluationSummary": {
+      "evaluatedBy": "Administrator CPG",
+      "evaluatedAt": "2026-11-14T13:24:09.196Z",
+      "recommendationNotes": "Direkomendasikan pemenang tender kepada PT D berdasarkan evaluasi komparasi harga terendah responsif (CBT) dan kepatuhan RKS.",
+      "winningVendorId": "bid-mwgepevp-bsacr",
+      "winningVendorName": "PT D",
+      "winningAmount": 1100000,
+      "costSavingVsHps": 2445000,
+      "costSavingPercent": 69,
+      "approvalLevel": "SUPERVISOR",
+      "approvalStatus": "PENDING_APPROVAL",
+      "releaseTierId": "tier-1",
+      "releaseTierName": "Tier 1",
+      "isPoReleased": false,
+      "poReleasedAt": "2026-11-14T13:23:39.481Z",
+      "poReleasedBy": "Administrator CPG",
+      "approvalNotes": "",
+      "baepNumber": "BAEP-CPG-TDR-26-8045"
+    },
+    "awardedVendor": "PT D",
+    "awardedValue": 1100000
+  },
+  {
     "id": "pkg-1794588111542",
     "packageNumber": "CPG-TDR-26-1320",
     "title": "Paket Pengadaan General Armada Q4 2026",
@@ -474,7 +717,7 @@
     "packageNumber": "CPG-TDR-26-7906",
     "title": "Paket Pengadaan Construction Armada Q4 2026",
     "category": "Construction",
-    "status": "AWARDED",
+    "status": "COMPLETED",
     "createdAt": "2026-11-13T15:45:32.066Z",
     "createdBy": "Administrator CPG",
     "targetClosingDate": "2026-11-20",
@@ -740,7 +983,7 @@
     ],
     "totalEstimatedBudget": 71537692,
     "ownerEstimateHps": 71537692,
-    "updatedAt": "2026-11-13T16:32:02.589Z",
+    "updatedAt": "2026-11-14T13:26:16.198Z",
     "vendorBids": [
       {
         "id": "bid-1-1794585364361",
@@ -1243,17 +1486,22 @@
     ],
     "evaluationSummary": {
       "evaluatedBy": "Administrator CPG",
-      "evaluatedAt": "2026-11-13T16:05:12.726Z",
+      "evaluatedAt": "2026-11-14T13:26:15.892Z",
       "recommendationNotes": "Direkomendasikan pemenang tender kepada PT. Pelayaran Global Nusantara Supply berdasarkan evaluasi komparasi harga terendah responsif (CBT) dan kepatuhan RKS.",
       "winningVendorId": "bid-3-1794585364361",
       "winningVendorName": "PT. Pelayaran Global Nusantara Supply",
       "winningAmount": 8000000,
       "costSavingVsHps": 63537692,
       "costSavingPercent": 88.8,
-      "approvalLevel": "SUPERVISOR",
+      "approvalLevel": "MANAGER",
       "approvalStatus": "APPROVED",
       "approvedBy": "Administrator CPG",
-      "approvedAt": "2026-11-13T16:05:12.726Z",
+      "approvedAt": "2026-11-14T13:26:11.125Z",
+      "releaseTierId": "tier-2",
+      "releaseTierName": "Tier 2",
+      "isPoReleased": true,
+      "poReleasedAt": "2026-11-14T13:26:11.125Z",
+      "poReleasedBy": "Administrator CPG",
       "approvalNotes": "",
       "baepNumber": "BAEP-CPG-TDR-26-7906"
     },
