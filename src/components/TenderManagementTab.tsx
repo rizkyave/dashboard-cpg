@@ -548,7 +548,7 @@ export default function TenderManagementTab({ showToast, onNavigateTab }: Props)
                         </button>
                       )}
 
-                      {/* Button Blast WA / Blast Pemenang (1x Click Protected) */}
+                      {/* Button Blast WA / Blast Pemenang (1x Click Protected & Authorization Gated) */}
                       {(() => {
                         const isAwarded =
                           pkg.status === 'AWARDED' ||
@@ -576,6 +576,31 @@ export default function TenderManagementTab({ showToast, onNavigateTab }: Props)
                               >
                                 <CheckCircle2 className="size-3 text-emerald-600" />
                                 <span>Pengumuman Terkirim</span>
+                              </button>
+                            );
+                          }
+
+                          // Cek Otorisasi Release (Gatekeeping)
+                          const isReleased = Boolean(
+                            pkg.evaluationSummary?.isPoReleased ||
+                            pkg.evaluationSummary?.approvalStatus === 'APPROVED'
+                          );
+
+                          if (!isReleased) {
+                            const approverLabel =
+                              pkg.evaluationSummary?.releaseTierName ||
+                              pkg.evaluationSummary?.approvalLevel ||
+                              'Pejabat Berwenang';
+
+                            return (
+                              <button
+                                type="button"
+                                disabled
+                                className="px-2.5 py-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400 text-xs font-semibold inline-flex items-center gap-1 cursor-not-allowed opacity-75"
+                                title={`Blast pengumuman ditahan: Menunggu Otorisasi Release (${approverLabel}) pada Tab 4 CBT`}
+                              >
+                                <Lock className="size-3 text-amber-600" />
+                                <span>Menunggu Otorisasi</span>
                               </button>
                             );
                           }
@@ -682,6 +707,11 @@ export default function TenderManagementTab({ showToast, onNavigateTab }: Props)
           waBlastPackage.evaluationSummary?.winningAmount ||
           waBlastPackage.awardedValue ||
           0;
+
+        const isWinnerReleased = Boolean(
+          waBlastPackage.evaluationSummary?.isPoReleased ||
+          waBlastPackage.evaluationSummary?.approvalStatus === 'APPROVED'
+        );
 
         const standstillEndDate = waBlastPackage.evaluationSummary?.standstillEndsAt
           ? new Date(waBlastPackage.evaluationSummary.standstillEndsAt)
@@ -800,8 +830,25 @@ Salam hormat,
                     </div>
                   </div>
 
-                  {/* Jika sudah pernah di-blast */}
-                  {waBlastPackage.isWinnerBlasted ? (
+                  {/* Jika belum diotorisasi release */}
+                  {!isWinnerReleased ? (
+                    <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-center space-y-2">
+                      <Lock className="size-8 text-amber-600 mx-auto" />
+                      <p className="text-xs font-bold text-foreground">Siaran Pengumuman Ditahan (Belum Otorisasi)</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        Paket ini membutuhkan <strong>Otorisasi Release</strong> resmi dari{' '}
+                        <strong>
+                          {waBlastPackage.evaluationSummary?.releaseTierName
+                            ? `${waBlastPackage.evaluationSummary.releaseTierName} (${waBlastPackage.evaluationSummary.approvalLevel || 'Pejabat Berwenang'})`
+                            : 'Pejabat Berwenang'}
+                        </strong>{' '}
+                        sebelum dapat diumumkan kepada para rekanan.
+                      </p>
+                      <div className="p-2.5 rounded-lg bg-background border border-border text-[11px] text-amber-800 dark:text-amber-300 text-left">
+                        Silakan selesaikan otorisasi release pada menu <strong>CBT SAP (ME49) &rarr; Tab 4. Penetapan Pemenang &amp; PO</strong> terlebih dahulu.
+                      </div>
+                    </div>
+                  ) : waBlastPackage.isWinnerBlasted ? (
                     <div className="p-4 rounded-xl bg-muted/60 border border-border text-center space-y-2">
                       <CheckCircle2 className="size-7 text-emerald-600 mx-auto" />
                       <p className="text-xs font-bold text-foreground">Pengumuman Pemenang Sudah Disiarkan</p>
@@ -948,7 +995,7 @@ Salam hormat,
                 </button>
 
                 {isWinnerAnnouncement ? (
-                  !waBlastPackage.isWinnerBlasted && (
+                  !waBlastPackage.isWinnerBlasted && isWinnerReleased && (
                     <button
                       type="button"
                       onClick={() => handleSendWinnerBlast(winnerWaUrl, waBlastPackage)}
