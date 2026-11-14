@@ -3946,64 +3946,6 @@
       "syncedAt": "2026-11-13T12:50:16.107Z"
     },
     {
-      "id": "CPL-PP-2026-003__plan-107",
-      "itemCode": "Review,",
-      "itemName": "Aknowledge,",
-      "category": "General",
-      "unit": "PCS",
-      "currentStock": 0,
-      "openFpbCount": 1,
-      "requestingVessels": [
-        "Armada / Unit CPG"
-      ],
-      "totalRequestedQty": 1,
-      "recommendedOrderQty": 1,
-      "avgUnitPrice": 150000,
-      "totalEstimatedCost": 150000,
-      "urgency": "REORDER",
-      "urgencyReason": "Kebutuhan operasional 0 armada/unit. Stok gudang tidak mencukupi permintaan (1 PCS).",
-      "leadTimeDays": 7,
-      "potentialBulkDiscount": 3,
-      "potentialSavingsAmount": 4500,
-      "reorderPoint": 1,
-      "monthlyConsumption": 1,
-      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
-      "fpbRefs": [],
-      "batchNo": "CPL-PP-2026-003",
-      "requester": "Maker,",
-      "dataSource": "DESKTOP_EXCEL",
-      "syncedAt": "2026-11-13T12:50:16.107Z"
-    },
-    {
-      "id": "CPL-PP-2026-003__plan-108",
-      "itemCode": "Hadi Sunaryo",
-      "itemName": "Finance",
-      "category": "General",
-      "unit": "PCS",
-      "currentStock": 0,
-      "openFpbCount": 1,
-      "requestingVessels": [
-        "Armada / Unit CPG"
-      ],
-      "totalRequestedQty": 1,
-      "recommendedOrderQty": 1,
-      "avgUnitPrice": 150000,
-      "totalEstimatedCost": 150000,
-      "urgency": "REORDER",
-      "urgencyReason": "Kebutuhan operasional 0 armada/unit. Stok gudang tidak mencukupi permintaan (1 PCS).",
-      "leadTimeDays": 7,
-      "potentialBulkDiscount": 3,
-      "potentialSavingsAmount": 4500,
-      "reorderPoint": 1,
-      "monthlyConsumption": 1,
-      "suggestedVendor": "Distributor Resmi / Rekanan CPG",
-      "fpbRefs": [],
-      "batchNo": "CPL-PP-2026-003",
-      "requester": "Rahmahwati",
-      "dataSource": "DESKTOP_EXCEL",
-      "syncedAt": "2026-11-13T12:50:16.107Z"
-    },
-    {
       "id": "CPL-PP-2026-004__plan-001",
       "itemCode": "TAP00101001-YAN",
       "itemName": "TAPPET 123900-14200 (YANMAR)",
@@ -19561,7 +19503,7 @@
     }
   ],
   "syncStats": {
-    "desktopCount": 572,
+    "desktopCount": 570,
     "efpbCount": 0,
     "hybridCount": 0,
     "pendingApprovedFpbsCount": 96,

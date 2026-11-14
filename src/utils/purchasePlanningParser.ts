@@ -209,6 +209,30 @@ export function parsePurchasePlanningWorkbook(workbook: XLSX.WorkBook): Purchase
     if (normName.includes('NAMA BARANG') || normCode.includes('KODE BARANG')) continue;
     if (APPROVAL_BLACKLIST.has(normName) || APPROVAL_BLACKLIST.has(normCode)) continue;
 
+    // Filter ketat baris blok tanda tangan / reviewer / pejabat persetujuan Excel
+    const cleanNormName = normName.replace(/[^A-Z0-9]/g, '');
+    const cleanNormCode = normCode.replace(/[^A-Z0-9]/g, '');
+    const isSignatureRow = [
+      'AKNOWLEDGE',
+      'ACKNOWLEDGE',
+      'REVIEW',
+      'REVIEWER',
+      'FINANCE',
+      'HADISUNARYO',
+      'MAKER',
+      'CHECKER',
+      'APPROVER',
+      'APPROVAL',
+      'TANDATANGAN',
+      'MENGETAHUI',
+      'DISETUJUI',
+      'DIBUATOLEH',
+      'HERMANSYAH',
+      'MELINDA',
+      'NOORHASANAH',
+    ].some((kw) => cleanNormName.includes(kw) || cleanNormCode.includes(kw));
+    if (isSignatureRow) continue;
+
     // 4. Validasi baris item fisik (harus ada kode barang, nomor FPB, atau satuan/qty yang jelas)
     if (!rawCode && !row[cFpb] && !row[cUnit]) continue;
 

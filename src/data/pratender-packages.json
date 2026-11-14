@@ -332,43 +332,14 @@
         "requestFpbs": [
           "CPL-FPB-26-0005142"
         ]
-      },
-      {
-        "itemId": "Review,",
-        "itemName": "Aknowledge,",
-        "category": "General",
-        "satuan": "PCS",
-        "totalQty": 1,
-        "originalQty": 1,
-        "targetPrice": 150000,
-        "targetTotalPrice": 150000,
-        "notes": "Kebutuhan operasional 0 armada/unit. Stok gudang tidak mencukupi permintaan (1 PCS).",
-        "vessels": [
-          "Armada / Unit CPG"
-        ],
-        "requestFpbs": []
-      },
-      {
-        "itemId": "Hadi Sunaryo",
-        "itemName": "Finance",
-        "category": "General",
-        "satuan": "PCS",
-        "totalQty": 1,
-        "originalQty": 1,
-        "targetPrice": 150000,
-        "targetTotalPrice": 150000,
-        "notes": "Kebutuhan operasional 0 armada/unit. Stok gudang tidak mencukupi permintaan (1 PCS).",
-        "vessels": [
-          "Armada / Unit CPG"
-        ],
-        "requestFpbs": []
       }
     ],
-    "totalEstimatedBudget": 35555000,
+    "totalEstimatedBudget": 35255000,
     "invitedVendors": [
       "245000"
     ],
-    "updatedAt": "2026-11-13T16:41:51.646Z"
+    "updatedAt": "2026-11-13T16:41:51.646Z",
+    "ownerEstimateHps": 35255000
   },
   {
     "id": "pkg-1794586860059",
