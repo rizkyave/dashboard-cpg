@@ -185,7 +185,7 @@ export function UserProfileModal({ isOpen, onClose, showToast }: UserProfileModa
                 <span>Profil &amp; Akun Pengguna</span>
               </h2>
               <p className="text-xs text-muted-foreground">
-                @{user.username} &bull; {roleName}
+                Username: {user.username} &bull; {roleName}
               </p>
             </div>
           </div>
@@ -252,7 +252,7 @@ export function UserProfileModal({ isOpen, onClose, showToast }: UserProfileModa
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 p-3 rounded-xl bg-muted/40 border border-border/70">
                 <div>
                   <span className="text-[10px] font-medium text-muted-foreground block">Username ID</span>
-                  <span className="font-mono font-bold text-foreground">@{user.username}</span>
+                  <span className="font-mono font-bold text-foreground">{user.username}</span>
                 </div>
                 <div>
                   <span className="text-[10px] font-medium text-muted-foreground block">Hak Akses / Role</span>

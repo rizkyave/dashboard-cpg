@@ -780,14 +780,14 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
 
   const handleQuickResetPassword = async (userItem: AuthUser) => {
     const confirm = window.confirm(
-      `Reset kata sandi untuk akun ${userItem.name} (@${userItem.username}) ke default "cpg123"?`
+      `Reset kata sandi untuk akun ${userItem.name} (${userItem.username}) ke default "cpg123"?`
     );
     if (!confirm) return;
 
     try {
       const res = await updateUser(userItem.id, { password: 'cpg123' });
       if (res.success) {
-        showToast(`Password untuk @${userItem.username} berhasil direset ke "cpg123"`, 'success');
+        showToast(`Password untuk ${userItem.username} berhasil direset ke "cpg123"`, 'success');
       } else {
         showToast(res.message || 'Gagal mereset kata sandi.', 'error');
       }
@@ -802,7 +802,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
       const res = await updateUser(userItem.id, { role: nextRole });
       if (res.success) {
         showToast(
-          `Role untuk @${userItem.username} berhasil diubah menjadi ${getRoleDisplayName(nextRole)}.`,
+          `Role untuk ${userItem.username} berhasil diubah menjadi ${getRoleDisplayName(nextRole)}.`,
           'success'
         );
       } else {
@@ -1619,7 +1619,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                               )}
                             </div>
                             <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground font-mono truncate">
-                              <span>@{item.username}</span>
+                              <span>{item.username}</span>
                               {item.jabatan && (
                                 <>
                                   <span className="text-muted-foreground/40">&bull;</span>
@@ -2911,7 +2911,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
               </div>
               <div>
                 <h3 className="text-base font-bold text-foreground">
-                  Edit Akun: @{editingUser.username}
+                  Edit Akun: {editingUser.username}
                 </h3>
                 <p className="text-[11px] text-muted-foreground">
                   Ubah data nama, perbarui role hak akses, atau reset password
@@ -3221,7 +3221,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
 
             <h3 className="text-base font-bold text-foreground">Hapus Akun Pengguna?</h3>
             <p className="text-xs text-muted-foreground mt-1">
-              Apakah Anda yakin ingin menghapus akun <strong>@{targetDeleteUser.username}</strong> ({targetDeleteUser.name})? Tindakan ini tidak dapat dibatalkan.
+              Apakah Anda yakin ingin menghapus akun <strong>{targetDeleteUser.username}</strong> ({targetDeleteUser.name})? Tindakan ini tidak dapat dibatalkan.
             </p>
 
             <div className="flex items-center justify-center gap-2 mt-5">
@@ -3310,7 +3310,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                         {signatureTargetUser.name}
                       </span>
                       <span className="text-[10px] text-muted-foreground font-mono">
-                        @{signatureTargetUser.username}
+                        {signatureTargetUser.username}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 mt-0.5">
@@ -3336,7 +3336,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                   >
                     {users.map((u) => (
                       <option key={u.id} value={u.id}>
-                        {u.name} (@{u.username}) - {u.role.toUpperCase()}
+                        {u.name} ({u.username}) - {u.role.toUpperCase()}
                       </option>
                     ))}
                   </select>
@@ -3491,7 +3491,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                         ADMIN VERIFIKATOR
                       </span>
                       <span className="font-medium text-foreground text-xs">
-                        {signatureTargetUser.signature.verifiedByName} (@{signatureTargetUser.signature.verifiedBy})
+                        {signatureTargetUser.signature.verifiedByName} ({signatureTargetUser.signature.verifiedBy})
                       </span>
                     </div>
 
@@ -3708,7 +3708,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                       Admin Verifikator (Saat Ini)
                     </label>
                     <div className="w-full px-3 py-1.5 text-xs rounded-lg border border-border bg-muted/40 text-muted-foreground font-mono flex items-center justify-between">
-                      <span>{currentUser?.name || 'Administrator CPG'} (@{currentUser?.username || 'admin'})</span>
+                      <span>{currentUser?.name || 'Administrator CPG'} ({currentUser?.username || 'admin'})</span>
                       <ShieldCheck className="size-3.5 text-purple-600 dark:text-purple-400" />
                     </div>
                   </div>
@@ -3918,7 +3918,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                   <div>
                     <div className="font-bold text-foreground">{pendingUserRoleChange.user.name}</div>
                     <div className="text-[11px] text-muted-foreground font-mono">
-                      @{pendingUserRoleChange.user.username} &bull; {pendingUserRoleChange.user.department || 'Operasional'}
+                      {pendingUserRoleChange.user.username} &bull; {pendingUserRoleChange.user.department || 'Operasional'}
                     </div>
                   </div>
                 </div>

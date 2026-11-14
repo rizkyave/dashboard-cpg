@@ -1284,7 +1284,7 @@ export default function Header({
                 ? 'bg-linear-to-tr from-emerald-600 to-teal-600'
                 : 'bg-linear-to-tr from-sky-500 to-indigo-500'
             }`}
-            title={`${user?.name || 'User'} (@${user?.username}) - Klik untuk Profil & Ganti Password`}
+            title={`${user?.name || 'User'} (${user?.username || ''}) - Klik untuk Profil & Ganti Password`}
           >
             {user?.avatar || (user?.name ? user.name[0]?.toUpperCase() : 'U')}
           </button>
@@ -1307,7 +1307,7 @@ export default function Header({
                 </div>
                 <div className="leading-tight min-w-0 flex-1">
                   <p className="font-bold text-foreground truncate">{user?.name || 'Pengguna'}</p>
-                  <p className="text-[10px] text-muted-foreground truncate font-mono">@{user?.username}</p>
+                  <p className="text-[10px] text-muted-foreground truncate font-mono">Username: {user?.username}</p>
                   <span className="inline-block mt-1 text-[9px] font-semibold px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
                     {getRoleDisplayName(user?.role)}
                   </span>
