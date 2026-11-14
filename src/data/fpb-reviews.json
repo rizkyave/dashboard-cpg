@@ -54,7 +54,7 @@
       "ttbNos": []
     },
     "createdAt": "2026-11-12T03:01:58.671Z",
-    "updatedAt": "2026-11-12T03:03:00.419Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "slaTargetDate": "",
     "slaDaysRemaining": 0,
     "slaStatus": "ON_TRACK",
@@ -63,7 +63,10 @@
     "pchLogistik": "-",
     "reviewedBy": "Administrator CPG",
     "reviewedAt": "2026-11-12T03:03:00.419Z",
-    "requesterPhone": "081349361659"
+    "requesterPhone": "081349361659",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001063",
@@ -183,7 +186,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-12T13:31:58.039Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-08T15:58:25.529Z",
     "priorityLevel": "P3",
     "slaTargetDate": "06/12/26",
@@ -194,7 +197,10 @@
     "reviewedBy": "Administrator CPG",
     "reviewedAt": "2026-11-12T13:31:58.039Z",
     "tkbNo": "TKB-013",
-    "requesterPhone": "+62 858-2195-6632"
+    "requesterPhone": "+62 858-2195-6632",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MIL-FPB-26-0000071",
@@ -205,7 +211,7 @@
     "date": "07/11/26",
     "purpose": "U/ AE KANAN",
     "efpbStatus": "Approved",
-    "isReceivedLogistik": true,
+    "isReceivedLogistik": false,
     "pdfUrl": "/api/review-fpb/pdf?fpbNo=MIL-FPB-26-0000071&type=signed",
     "reviewStatus": "PENDING_REVIEW",
     "urgency": "URGENT",
@@ -439,16 +445,19 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-14T14:47:08.120Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-08T15:58:25.529Z",
     "priorityLevel": "P1",
     "slaTargetDate": "09/11/26",
     "slaDaysRemaining": -3,
     "slaStatus": "OVERDUE",
     "requestedBy": "CHOIRU",
-    "pchLogistik": "Received_Logistic",
+    "pchLogistik": "-",
     "reviewedBy": "Administrator CPG",
-    "reviewedAt": "2026-11-14T14:47:08.120Z"
+    "reviewedAt": "2026-11-14T15:02:38.772Z",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005209",
@@ -721,13 +730,16 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-08T16:01:17.722Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-08T15:58:25.529Z",
     "priorityLevel": "P1",
     "slaTargetDate": "09/11/26",
     "slaDaysRemaining": -3,
     "slaStatus": "OVERDUE",
-    "requestedBy": "CHOIRU"
+    "requestedBy": "CHOIRU",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005185",
@@ -773,12 +785,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-13T08:57:15.252Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-06T23:52:50.406Z",
     "priorityLevel": "P3",
     "slaTargetDate": "05/12/26",
     "slaDaysRemaining": 23,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MIL-FPB-26-0000070",
@@ -875,7 +890,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-07T04:57:25.701Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-06T23:52:50.406Z",
     "priorityLevel": "P3",
     "slaTargetDate": "06/12/26",
@@ -884,7 +899,10 @@
     "requestedBy": "RIFKI RAMADHAN",
     "pchLogistik": "Received_Logistic",
     "reviewedBy": "Administrator CPG",
-    "reviewedAt": "2026-11-07T04:57:25.701Z"
+    "reviewedAt": "2026-11-07T04:57:25.701Z",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001154",
@@ -920,7 +938,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-12T13:13:39.614Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-06T23:52:50.406Z",
     "priorityLevel": "P2",
     "slaTargetDate": "20/11/26",
@@ -930,7 +948,10 @@
     "reviewedBy": "Administrator CPG",
     "reviewedAt": "2026-11-12T13:13:39.614Z",
     "requestedBy": "SALMAN",
-    "requesterPhone": "081349361659"
+    "requesterPhone": "081349361659",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005187",
@@ -982,13 +1003,16 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-08T16:38:48.969Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-06T23:52:50.406Z",
     "priorityLevel": "P1",
     "slaTargetDate": "08/11/26",
     "slaDaysRemaining": -4,
     "slaStatus": "OVERDUE",
-    "requestedBy": "SALMAN"
+    "requestedBy": "SALMAN",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001578",
@@ -1013,12 +1037,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-06T23:52:50.406Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-06T23:52:50.406Z",
     "priorityLevel": "P3",
     "slaTargetDate": "06/12/26",
     "slaDaysRemaining": 24,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001155",
@@ -1067,13 +1094,16 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-08T16:04:26.187Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-06T23:52:50.406Z",
     "priorityLevel": "P3",
     "slaTargetDate": "06/12/26",
     "slaDaysRemaining": 24,
     "slaStatus": "ON_TRACK",
-    "requestedBy": "Ardiyan Fauzi"
+    "requestedBy": "Ardiyan Fauzi",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005188",
@@ -1119,7 +1149,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-08T15:58:25.529Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-06T23:52:50.406Z",
     "priorityLevel": "P3",
     "slaTargetDate": "06/12/26",
@@ -1127,7 +1157,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Mengambil data terbaru tgl 06/11/26 (postingan lain tgl 06/11/26 dilewati)."
+    "revisionNote": "Revisi e-FPB (2x): Mengambil data terbaru tgl 06/11/26 (postingan lain tgl 06/11/26 dilewati).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005189",
@@ -1194,13 +1227,16 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-08T15:58:25.529Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-06T23:52:50.406Z",
     "priorityLevel": "P1",
     "slaTargetDate": "08/11/26",
     "slaDaysRemaining": -4,
     "slaStatus": "OVERDUE",
-    "requestedBy": "CHOIRU"
+    "requestedBy": "CHOIRU",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001156",
@@ -1320,13 +1356,16 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-08T16:12:43.409Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-06T23:52:50.406Z",
     "priorityLevel": "P3",
     "slaTargetDate": "06/12/26",
     "slaDaysRemaining": 24,
     "slaStatus": "ON_TRACK",
-    "requestedBy": "irma yunita"
+    "requestedBy": "irma yunita",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005192",
@@ -1468,7 +1507,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-08T18:47:04.068Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-06T23:52:50.406Z",
     "priorityLevel": "P3",
     "slaTargetDate": "06/12/26",
@@ -1477,7 +1516,10 @@
     "requestedBy": "SALMAN",
     "pchLogistik": "Received_Logistic",
     "reviewedBy": "Administrator CPG",
-    "reviewedAt": "2026-11-08T18:47:04.068Z"
+    "reviewedAt": "2026-11-08T18:47:04.068Z",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005194",
@@ -1502,12 +1544,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-13T08:57:19.233Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-06T23:52:50.406Z",
     "priorityLevel": "P3",
     "slaTargetDate": "06/12/26",
     "slaDaysRemaining": 24,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005196",
@@ -1532,12 +1577,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-08T15:58:25.529Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-06T23:52:50.406Z",
     "priorityLevel": "P3",
     "slaTargetDate": "06/12/26",
     "slaDaysRemaining": 24,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005197",
@@ -1573,12 +1621,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-08T15:58:25.529Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-06T23:52:50.406Z",
     "priorityLevel": "P3",
     "slaTargetDate": "06/12/26",
     "slaDaysRemaining": 24,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001157",
@@ -1685,13 +1736,16 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-08T16:45:57.279Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-06T23:52:50.406Z",
     "priorityLevel": "P1",
     "slaTargetDate": "08/11/26",
     "slaDaysRemaining": -4,
     "slaStatus": "OVERDUE",
-    "requestedBy": "Ardiyan Fauzi"
+    "requestedBy": "Ardiyan Fauzi",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001158",
@@ -1716,12 +1770,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-08T15:58:25.529Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-06T23:52:50.406Z",
     "priorityLevel": "P3",
     "slaTargetDate": "06/12/26",
     "slaDaysRemaining": 24,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001159",
@@ -1746,12 +1803,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-08T15:58:25.529Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-06T23:52:50.406Z",
     "priorityLevel": "P3",
     "slaTargetDate": "06/12/26",
     "slaDaysRemaining": 24,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001160",
@@ -1776,12 +1836,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-08T15:58:25.529Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-06T23:52:50.406Z",
     "priorityLevel": "P3",
     "slaTargetDate": "06/12/26",
     "slaDaysRemaining": 24,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005207",
@@ -1880,13 +1943,16 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-13T08:57:28.728Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-06T23:52:50.406Z",
     "priorityLevel": "P1",
     "slaTargetDate": "08/11/26",
     "slaDaysRemaining": -4,
     "slaStatus": "OVERDUE",
-    "requestedBy": "Iwan"
+    "requestedBy": "Iwan",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005148",
@@ -1922,12 +1988,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T06:08:44.948Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T06:08:44.948Z",
     "priorityLevel": "P3",
     "slaTargetDate": "03/12/26",
     "slaDaysRemaining": 21,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001147",
@@ -1973,12 +2042,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T06:08:44.948Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T06:08:44.948Z",
     "priorityLevel": "P3",
     "slaTargetDate": "03/12/26",
     "slaDaysRemaining": 21,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005149",
@@ -2014,12 +2086,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T06:08:44.948Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T06:08:44.948Z",
     "priorityLevel": "P3",
     "slaTargetDate": "03/12/26",
     "slaDaysRemaining": 21,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005150",
@@ -2071,7 +2146,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-08T17:04:20.138Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T06:08:44.948Z",
     "priorityLevel": "P3",
     "slaTargetDate": "03/12/26",
@@ -2082,7 +2157,10 @@
     "reviewedAt": "2026-11-04T06:13:02.803Z",
     "requestedBy": "YULIANINGSIH AMANDA",
     "tkbNo": "TKB-012",
-    "requesterPhone": "081254332901"
+    "requesterPhone": "081254332901",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005153",
@@ -2107,12 +2185,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T06:08:44.948Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T06:08:44.948Z",
     "priorityLevel": "P3",
     "slaTargetDate": "03/12/26",
     "slaDaysRemaining": 21,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001125",
@@ -2137,12 +2218,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T06:08:44.948Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T06:08:44.948Z",
     "priorityLevel": "P3",
     "slaTargetDate": "04/12/26",
     "slaDaysRemaining": 22,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001072",
@@ -2167,12 +2251,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T06:08:44.948Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T06:08:44.948Z",
     "priorityLevel": "P3",
     "slaTargetDate": "04/12/26",
     "slaDaysRemaining": 22,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001013",
@@ -2203,12 +2290,15 @@
         "GAJ-TTB-26-01201"
       ]
     },
-    "updatedAt": "2026-11-04T06:08:44.948Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T06:08:44.948Z",
     "priorityLevel": "P3",
     "slaTargetDate": "04/12/26",
     "slaDaysRemaining": 22,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001084",
@@ -2233,12 +2323,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T06:08:44.948Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T06:08:44.948Z",
     "priorityLevel": "P3",
     "slaTargetDate": "04/12/26",
     "slaDaysRemaining": 22,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001148",
@@ -2307,12 +2400,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-13T08:57:47.492Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T06:08:44.948Z",
     "priorityLevel": "P3",
     "slaTargetDate": "04/12/26",
     "slaDaysRemaining": 22,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001149",
@@ -2337,12 +2433,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T06:08:44.948Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T06:08:44.948Z",
     "priorityLevel": "P3",
     "slaTargetDate": "04/12/26",
     "slaDaysRemaining": 22,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001958",
@@ -2408,12 +2507,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-06T23:52:50.406Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T06:08:44.948Z",
     "priorityLevel": "P3",
     "slaTargetDate": "04/12/26",
     "slaDaysRemaining": 22,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005158",
@@ -2449,12 +2551,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T06:08:44.948Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T06:08:44.948Z",
     "priorityLevel": "P3",
     "slaTargetDate": "04/12/26",
     "slaDaysRemaining": 22,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001959",
@@ -2500,12 +2605,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-13T08:58:22.919Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T06:08:44.948Z",
     "priorityLevel": "P3",
     "slaTargetDate": "04/12/26",
     "slaDaysRemaining": 22,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001150",
@@ -2551,12 +2659,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-13T08:57:51.556Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T06:08:44.948Z",
     "priorityLevel": "P3",
     "slaTargetDate": "04/12/26",
     "slaDaysRemaining": 22,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005037",
@@ -2696,13 +2807,16 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-08T17:03:06.657Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T06:08:44.948Z",
     "priorityLevel": "P1",
     "slaTargetDate": "06/11/26",
     "slaDaysRemaining": -6,
     "slaStatus": "OVERDUE",
-    "requestedBy": "Iwan"
+    "requestedBy": "Iwan",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005164",
@@ -2748,12 +2862,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T06:08:44.948Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T06:08:44.948Z",
     "priorityLevel": "P3",
     "slaTargetDate": "04/12/26",
     "slaDaysRemaining": 22,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001556",
@@ -2805,13 +2922,16 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T00:47:17.272Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T00:23:45.993Z",
     "priorityLevel": "P3",
     "slaTargetDate": "03/12/26",
     "slaDaysRemaining": 21,
     "slaStatus": "ON_TRACK",
-    "requestedBy": "Iqbal Polejiwa"
+    "requestedBy": "Iqbal Polejiwa",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005117",
@@ -2836,12 +2956,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T00:23:45.993Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T00:23:45.993Z",
     "priorityLevel": "P3",
     "slaTargetDate": "03/12/26",
     "slaDaysRemaining": 21,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005119",
@@ -2866,12 +2989,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T00:23:45.993Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T00:23:45.993Z",
     "priorityLevel": "P3",
     "slaTargetDate": "03/12/26",
     "slaDaysRemaining": 21,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005118",
@@ -2896,12 +3022,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T00:23:45.993Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T00:23:45.993Z",
     "priorityLevel": "P3",
     "slaTargetDate": "03/12/26",
     "slaDaysRemaining": 21,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005120",
@@ -2926,12 +3055,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T00:23:45.993Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T00:23:45.993Z",
     "priorityLevel": "P3",
     "slaTargetDate": "03/12/26",
     "slaDaysRemaining": 21,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001557",
@@ -2972,7 +3104,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T04:48:40.973Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T00:23:45.993Z",
     "priorityLevel": "P1",
     "slaTargetDate": "05/11/26",
@@ -2981,7 +3113,10 @@
     "requestedBy": "Iqbal Polejiwa",
     "pchLogistik": "Received_Logistic",
     "reviewedBy": "Administrator CPG",
-    "reviewedAt": "2026-11-04T04:48:40.973Z"
+    "reviewedAt": "2026-11-04T04:48:40.973Z",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005121",
@@ -3027,12 +3162,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T00:23:45.993Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T00:23:45.993Z",
     "priorityLevel": "P3",
     "slaTargetDate": "03/12/26",
     "slaDaysRemaining": 21,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004902",
@@ -3068,12 +3206,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T00:23:45.993Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T00:23:45.993Z",
     "priorityLevel": "P3",
     "slaTargetDate": "03/12/26",
     "slaDaysRemaining": 21,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001144",
@@ -3098,12 +3239,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T00:23:45.993Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T00:23:45.993Z",
     "priorityLevel": "P3",
     "slaTargetDate": "03/12/26",
     "slaDaysRemaining": 21,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005122",
@@ -3128,12 +3272,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T00:23:45.993Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T00:23:45.993Z",
     "priorityLevel": "P3",
     "slaTargetDate": "03/12/26",
     "slaDaysRemaining": 21,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005113",
@@ -3161,12 +3308,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T00:23:45.993Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T00:23:45.993Z",
     "priorityLevel": "P3",
     "slaTargetDate": "03/12/26",
     "slaDaysRemaining": 21,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MOI-FPB-26-0000104",
@@ -3191,12 +3341,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T06:08:44.948Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T00:23:45.993Z",
     "priorityLevel": "P3",
     "slaTargetDate": "03/12/26",
     "slaDaysRemaining": 21,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004802",
@@ -3232,12 +3385,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T00:23:45.993Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T00:23:45.993Z",
     "priorityLevel": "P3",
     "slaTargetDate": "03/12/26",
     "slaDaysRemaining": 21,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001145",
@@ -3287,13 +3443,16 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T00:54:12.149Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T00:23:45.993Z",
     "priorityLevel": "P1",
     "slaTargetDate": "05/11/26",
     "slaDaysRemaining": -7,
     "slaStatus": "OVERDUE",
-    "requestedBy": "SALMAN"
+    "requestedBy": "SALMAN",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005128",
@@ -3334,13 +3493,16 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T00:55:26.951Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T00:23:45.993Z",
     "priorityLevel": "P3",
     "slaTargetDate": "03/12/26",
     "slaDaysRemaining": 21,
     "slaStatus": "ON_TRACK",
-    "requestedBy": "M Faizi Ismail"
+    "requestedBy": "M Faizi Ismail",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005130",
@@ -3392,13 +3554,16 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T00:55:49.226Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T00:23:45.993Z",
     "priorityLevel": "P3",
     "slaTargetDate": "03/12/26",
     "slaDaysRemaining": 21,
     "slaStatus": "ON_TRACK",
-    "requestedBy": "M Faizi Ismail"
+    "requestedBy": "M Faizi Ismail",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-005070",
@@ -3434,12 +3599,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T00:23:45.993Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-04T00:23:45.993Z",
     "priorityLevel": "P3",
     "slaTargetDate": "03/12/26",
     "slaDaysRemaining": 21,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0000989",
@@ -3534,13 +3702,16 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-03T00:42:44.637Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-03T00:00:27.545Z",
     "priorityLevel": "P3",
     "slaTargetDate": "02/12/26",
     "slaDaysRemaining": 20,
     "slaStatus": "ON_TRACK",
-    "requestedBy": "HUSAIN"
+    "requestedBy": "HUSAIN",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005094",
@@ -3596,13 +3767,16 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-03T08:31:14.065Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-03T00:00:27.545Z",
     "priorityLevel": "P1",
     "slaTargetDate": "04/11/26",
     "slaDaysRemaining": -8,
     "slaStatus": "OVERDUE",
-    "requestedBy": "Iwan"
+    "requestedBy": "Iwan",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001950",
@@ -3656,13 +3830,16 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T00:56:55.276Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-03T00:00:27.545Z",
     "priorityLevel": "P1",
     "slaTargetDate": "04/11/26",
     "slaDaysRemaining": -8,
     "slaStatus": "OVERDUE",
-    "requestedBy": "Iwan"
+    "requestedBy": "Iwan",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0001549",
@@ -3714,13 +3891,16 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-03T00:42:44.637Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-03T00:00:27.545Z",
     "priorityLevel": "P1",
     "slaTargetDate": "04/11/26",
     "slaDaysRemaining": -8,
     "slaStatus": "OVERDUE",
-    "requestedBy": "SALMAN"
+    "requestedBy": "SALMAN",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005095",
@@ -3756,12 +3936,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-03T00:42:44.637Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-03T00:00:27.545Z",
     "priorityLevel": "P3",
     "slaTargetDate": "02/12/26",
     "slaDaysRemaining": 20,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001501",
@@ -3800,13 +3983,16 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T00:51:48.983Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-03T00:00:27.545Z",
     "priorityLevel": "P1",
     "slaTargetDate": "04/11/26",
     "slaDaysRemaining": -8,
     "slaStatus": "OVERDUE",
-    "requestedBy": "CHOIRU"
+    "requestedBy": "CHOIRU",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001139",
@@ -3856,13 +4042,16 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-03T00:42:44.637Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-03T00:00:27.545Z",
     "priorityLevel": "P1",
     "slaTargetDate": "04/11/26",
     "slaDaysRemaining": -8,
     "slaStatus": "OVERDUE",
-    "requestedBy": "SALMAN"
+    "requestedBy": "SALMAN",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001952",
@@ -3887,12 +4076,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-13T08:58:15.523Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-03T00:00:27.545Z",
     "priorityLevel": "P3",
     "slaTargetDate": "02/12/26",
     "slaDaysRemaining": 20,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001947",
@@ -3928,12 +4120,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-03T00:42:44.637Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-03T00:00:27.545Z",
     "priorityLevel": "P3",
     "slaTargetDate": "02/12/26",
     "slaDaysRemaining": 20,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005088",
@@ -3969,12 +4164,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-03T00:42:44.637Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-03T00:00:27.545Z",
     "priorityLevel": "P3",
     "slaTargetDate": "02/12/26",
     "slaDaysRemaining": 20,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001140",
@@ -4015,13 +4213,16 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T00:51:17.252Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-03T00:00:27.545Z",
     "priorityLevel": "P3",
     "slaTargetDate": "02/12/26",
     "slaDaysRemaining": 20,
     "slaStatus": "ON_TRACK",
-    "requestedBy": "SALMAN"
+    "requestedBy": "SALMAN",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001948",
@@ -4067,12 +4268,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-03T00:42:44.637Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-03T00:00:27.545Z",
     "priorityLevel": "P3",
     "slaTargetDate": "02/12/26",
     "slaDaysRemaining": 20,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001551",
@@ -4108,12 +4312,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-03T00:42:44.637Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-03T00:00:27.545Z",
     "priorityLevel": "P3",
     "slaTargetDate": "02/12/26",
     "slaDaysRemaining": 20,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001549",
@@ -4149,12 +4356,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-03T00:42:44.637Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-03T00:00:27.545Z",
     "priorityLevel": "P3",
     "slaTargetDate": "02/12/26",
     "slaDaysRemaining": 20,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005110",
@@ -4221,13 +4431,16 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T00:50:56.955Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-03T00:00:27.545Z",
     "priorityLevel": "P1",
     "slaTargetDate": "04/11/26",
     "slaDaysRemaining": -8,
     "slaStatus": "OVERDUE",
-    "requestedBy": "Iwan"
+    "requestedBy": "Iwan",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001953",
@@ -4273,12 +4486,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-13T08:58:19.370Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-03T00:00:27.545Z",
     "priorityLevel": "P3",
     "slaTargetDate": "02/12/26",
     "slaDaysRemaining": 20,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001141",
@@ -4344,12 +4560,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T00:23:45.993Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-03T00:00:27.545Z",
     "priorityLevel": "P3",
     "slaTargetDate": "02/12/26",
     "slaDaysRemaining": 20,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001554",
@@ -4385,12 +4604,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-03T00:42:44.637Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-03T00:00:27.545Z",
     "priorityLevel": "P3",
     "slaTargetDate": "02/12/26",
     "slaDaysRemaining": 20,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005085",
@@ -4415,12 +4637,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-02T01:26:06.980Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-02T01:26:06.980Z",
     "priorityLevel": "P3",
     "slaTargetDate": "29/11/26",
     "slaDaysRemaining": 17,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005091",
@@ -4445,12 +4670,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-02T01:26:06.980Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-02T01:26:06.980Z",
     "priorityLevel": "P3",
     "slaTargetDate": "30/11/26",
     "slaDaysRemaining": 18,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001945",
@@ -4525,13 +4753,16 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-02T01:26:06.980Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-01T05:36:47.965Z",
     "priorityLevel": "P1",
     "slaTargetDate": "01/11/26",
     "slaDaysRemaining": -11,
     "slaStatus": "OVERDUE",
-    "requestedBy": "SALMAN"
+    "requestedBy": "SALMAN",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005082",
@@ -4611,13 +4842,16 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-02T01:26:06.980Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-01T05:36:47.965Z",
     "priorityLevel": "P3",
     "slaTargetDate": "29/11/26",
     "slaDaysRemaining": 17,
     "slaStatus": "ON_TRACK",
-    "requestedBy": "NURHIDAYAH"
+    "requestedBy": "NURHIDAYAH",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005084",
@@ -4642,12 +4876,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-02T01:26:06.980Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-01T05:36:47.965Z",
     "priorityLevel": "P3",
     "slaTargetDate": "29/11/26",
     "slaDaysRemaining": 17,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005089",
@@ -4688,7 +4925,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-02T01:26:06.980Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-01T05:36:47.965Z",
     "priorityLevel": "P1",
     "slaTargetDate": "02/11/26",
@@ -4699,7 +4936,10 @@
     "reviewedBy": "Administrator CPG",
     "reviewedAt": "2026-11-02T01:03:52.137Z",
     "tkbNo": "TKB-010",
-    "requesterPhone": "081349361659"
+    "requesterPhone": "081349361659",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001946",
@@ -4745,12 +4985,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-02T01:26:06.980Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-01T05:36:47.965Z",
     "priorityLevel": "P3",
     "slaTargetDate": "30/11/26",
     "slaDaysRemaining": 18,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001546",
@@ -4791,13 +5034,16 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-03T08:32:15.260Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-01T05:36:47.965Z",
     "priorityLevel": "P3",
     "slaTargetDate": "30/11/26",
     "slaDaysRemaining": 18,
     "slaStatus": "ON_TRACK",
-    "requestedBy": "MELINDA PCH"
+    "requestedBy": "MELINDA PCH",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005090",
@@ -4836,13 +5082,16 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-02T01:26:06.980Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-01T05:36:47.965Z",
     "priorityLevel": "P1",
     "slaTargetDate": "02/11/26",
     "slaDaysRemaining": -10,
     "slaStatus": "OVERDUE",
-    "requestedBy": "M Faizi Ismail"
+    "requestedBy": "M Faizi Ismail",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005086",
@@ -5135,13 +5384,16 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-03T00:42:44.637Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-01T05:36:47.965Z",
     "priorityLevel": "P3",
     "slaTargetDate": "30/11/26",
     "slaDaysRemaining": 18,
     "slaStatus": "ON_TRACK",
-    "requestedBy": "M Faizi Ismail"
+    "requestedBy": "M Faizi Ismail",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001133",
@@ -5246,7 +5498,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-31T09:42:12.431Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P1",
     "slaTargetDate": "01/11/26",
@@ -5258,7 +5510,10 @@
     "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
     "pchLogistik": "Received_Logistic",
     "reviewedBy": "Hermansyah",
-    "reviewedAt": "2026-10-31T09:42:12.431Z"
+    "reviewedAt": "2026-10-31T09:42:12.431Z",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001942",
@@ -5304,7 +5559,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P3",
     "slaTargetDate": "29/11/26",
@@ -5312,7 +5567,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005075",
@@ -5392,13 +5650,16 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-31T09:01:06.357Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P1",
     "slaTargetDate": "01/11/26",
     "slaDaysRemaining": -11,
     "slaStatus": "OVERDUE",
-    "requestedBy": "CHOIRU"
+    "requestedBy": "CHOIRU",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005076",
@@ -5444,7 +5705,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P3",
     "slaTargetDate": "29/11/26",
@@ -5452,7 +5713,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005046",
@@ -5488,7 +5752,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-31T01:26:12.165Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P3",
     "slaTargetDate": "29/11/26",
@@ -5496,7 +5760,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001135",
@@ -5548,7 +5815,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T00:48:36.447Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P1",
     "slaTargetDate": "01/11/26",
@@ -5557,7 +5824,10 @@
     "isRevised": true,
     "revisionCount": 2,
     "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
-    "requestedBy": "Iwan"
+    "requestedBy": "Iwan",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MOI-FPB-26-0000103",
@@ -5609,7 +5879,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-31T07:58:12.182Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P1",
     "slaTargetDate": "01/11/26",
@@ -5618,7 +5888,10 @@
     "isRevised": true,
     "revisionCount": 2,
     "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
-    "requestedBy": "Yoga Aditya Windrawan"
+    "requestedBy": "Yoga Aditya Windrawan",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001943",
@@ -5667,7 +5940,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-02T03:17:35.762Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P1",
     "slaTargetDate": "01/11/26",
@@ -5676,7 +5949,10 @@
     "isRevised": true,
     "revisionCount": 2,
     "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
-    "requestedBy": "Iwan"
+    "requestedBy": "Iwan",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001944",
@@ -5753,7 +6029,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-01T05:36:47.965Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P2",
     "slaTargetDate": "13/11/26",
@@ -5767,7 +6043,10 @@
     "reviewedBy": "Hermansyah",
     "reviewedAt": "2026-10-31T09:18:11.558Z",
     "tkbNo": "TKB-009",
-    "requesterPhone": "081349361659"
+    "requesterPhone": "081349361659",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005079",
@@ -5792,7 +6071,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-02T01:26:06.980Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P3",
     "slaTargetDate": "29/11/26",
@@ -5800,7 +6079,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005081",
@@ -5825,7 +6107,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-02T01:26:06.980Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P3",
     "slaTargetDate": "29/11/26",
@@ -5833,7 +6115,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005083",
@@ -5858,7 +6143,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-02T01:26:06.980Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P3",
     "slaTargetDate": "29/11/26",
@@ -5866,7 +6151,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001932",
@@ -5891,7 +6179,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-02T01:26:06.980Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P3",
     "slaTargetDate": "29/11/26",
@@ -5899,7 +6187,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001941",
@@ -5924,7 +6215,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-02T01:26:06.980Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P3",
     "slaTargetDate": "29/11/26",
@@ -5932,7 +6223,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001933",
@@ -5957,7 +6251,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-02T01:26:06.980Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P3",
     "slaTargetDate": "29/11/26",
@@ -5965,7 +6259,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001934",
@@ -5990,7 +6287,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-02T01:26:06.980Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P3",
     "slaTargetDate": "29/11/26",
@@ -5998,7 +6295,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005078",
@@ -6034,7 +6334,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-02T01:26:06.980Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P3",
     "slaTargetDate": "29/11/26",
@@ -6042,7 +6342,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005070",
@@ -6078,7 +6381,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-02T01:26:06.980Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-31T01:26:01.011Z",
     "priorityLevel": "P3",
     "slaTargetDate": "29/11/26",
@@ -6086,7 +6389,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MOI-FPB-26-0000102",
@@ -6138,7 +6444,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-02T01:26:06.980Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-30T01:49:50.792Z",
     "priorityLevel": "P1",
     "slaTargetDate": "01/11/26",
@@ -6152,7 +6458,10 @@
     "requesterPhone": "081244752362",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005068",
@@ -6177,7 +6486,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-30T01:49:50.792Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-30T01:49:50.792Z",
     "priorityLevel": "P3",
     "slaTargetDate": "29/11/26",
@@ -6185,7 +6494,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001537",
@@ -6210,7 +6522,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-30T01:49:50.792Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-30T01:49:50.792Z",
     "priorityLevel": "P3",
     "slaTargetDate": "29/11/26",
@@ -6218,7 +6530,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001126",
@@ -6280,7 +6595,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-30T01:04:21.792Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P1",
     "slaTargetDate": "31/10/26",
@@ -6292,7 +6607,10 @@
     "requestedBy": "Sujatmiko",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005055",
@@ -6357,7 +6675,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-30T01:04:21.792Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
@@ -6370,7 +6688,10 @@
     "requesterPhone": "081254332901",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001532",
@@ -6454,7 +6775,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-30T01:04:21.792Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
@@ -6463,7 +6784,10 @@
     "requestedBy": "jihaan nada'a utami",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001930",
@@ -6523,7 +6847,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-02T03:21:18.920Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P1",
     "slaTargetDate": "31/10/26",
@@ -6537,7 +6861,10 @@
     "reviewedBy": "Administrator CPG",
     "reviewedAt": "2026-11-02T03:21:18.920Z",
     "tkbNo": "TKB-011",
-    "requesterPhone": "085246776460"
+    "requesterPhone": "085246776460",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005057",
@@ -6578,7 +6905,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-30T01:49:50.792Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P1",
     "slaTargetDate": "31/10/26",
@@ -6587,7 +6914,10 @@
     "requestedBy": "Iqbal Polejiwa",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005056",
@@ -6847,7 +7177,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-03T00:42:44.637Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P1",
     "slaTargetDate": "31/10/26",
@@ -6856,7 +7186,10 @@
     "requestedBy": "Iqbal Polejiwa",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MIL-FPB-26-0000064",
@@ -6938,7 +7271,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-30T01:49:50.792Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P1",
     "slaTargetDate": "31/10/26",
@@ -6947,7 +7280,10 @@
     "requestedBy": "Iqbal Polejiwa",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001931",
@@ -6988,7 +7324,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-30T01:49:50.792Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P1",
     "slaTargetDate": "31/10/26",
@@ -6997,7 +7333,10 @@
     "requestedBy": "YULIANINGSIH AMANDA",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001130",
@@ -7104,7 +7443,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-02T01:26:58.406Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P1",
     "slaTargetDate": "31/10/26",
@@ -7113,7 +7452,10 @@
     "isRevised": true,
     "revisionCount": 2,
     "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
-    "requestedBy": "SALMAN"
+    "requestedBy": "SALMAN",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005025",
@@ -7159,7 +7501,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-30T01:49:50.792Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
@@ -7167,7 +7509,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001128",
@@ -7338,7 +7683,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-02T01:27:19.849Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P1",
     "slaTargetDate": "31/10/26",
@@ -7347,7 +7692,10 @@
     "isRevised": true,
     "revisionCount": 2,
     "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
-    "requestedBy": "SALMAN"
+    "requestedBy": "SALMAN",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001129",
@@ -7562,7 +7910,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-31T09:00:10.186Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P1",
     "slaTargetDate": "31/10/26",
@@ -7576,7 +7924,10 @@
     "pchLogistik": "-",
     "reviewedBy": "Hermansyah",
     "reviewedAt": "2026-10-31T09:00:10.186Z",
-    "requesterPhone": "081349361659"
+    "requesterPhone": "081349361659",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005059",
@@ -7601,7 +7952,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-30T01:49:50.792Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
@@ -7609,7 +7960,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001536",
@@ -7706,7 +8060,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-30T01:49:50.792Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
@@ -7715,7 +8069,10 @@
     "requestedBy": "SUPRIYONO",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005060",
@@ -7767,7 +8124,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-30T01:49:50.792Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
@@ -7775,7 +8132,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005061",
@@ -7917,7 +8277,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-30T01:49:50.792Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P1",
     "slaTargetDate": "31/10/26",
@@ -7925,7 +8285,10 @@
     "slaStatus": "OVERDUE",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001535",
@@ -7966,7 +8329,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-30T01:49:50.792Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P3",
     "slaTargetDate": "28/11/26",
@@ -7975,7 +8338,10 @@
     "requestedBy": "Iqbal Polejiwa",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001131",
@@ -8042,7 +8408,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-30T01:49:50.792Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T13:14:25.535Z",
     "priorityLevel": "P1",
     "slaTargetDate": "31/10/26",
@@ -8050,7 +8416,10 @@
     "slaStatus": "OVERDUE",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001115",
@@ -8097,7 +8466,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T13:21:43.701Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
@@ -8106,7 +8475,10 @@
     "reviewedAt": "2026-10-29T13:21:43.701Z",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001116",
@@ -8147,7 +8519,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-10T15:05:57.135Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-11-10T15:05:08.994Z",
     "priorityLevel": "P3",
     "slaTargetDate": "27/11/26",
@@ -8156,7 +8528,10 @@
     "isRevised": true,
     "revisionCount": 2,
     "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
-    "requestedBy": "Ardiyan Fauzi"
+    "requestedBy": "Ardiyan Fauzi",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001928",
@@ -8218,7 +8593,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T13:25:16.008Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P2",
     "slaTargetDate": "11/11/26",
@@ -8229,7 +8604,10 @@
     "reviewedAt": "2026-10-29T13:25:16.008Z",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005004",
@@ -8315,7 +8693,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-30T01:49:50.792Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P3",
     "slaTargetDate": "27/11/26",
@@ -8323,7 +8701,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001929",
@@ -8385,7 +8766,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:47:02.058Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
@@ -8393,7 +8774,10 @@
     "slaStatus": "OVERDUE",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001117",
@@ -8470,7 +8854,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-02T01:28:01.262Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
@@ -8479,7 +8863,10 @@
     "isRevised": true,
     "revisionCount": 2,
     "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
-    "requestedBy": "SALMAN"
+    "requestedBy": "SALMAN",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005026",
@@ -8520,7 +8907,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T05:41:36.761Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P3",
     "slaTargetDate": "27/11/26",
@@ -8528,7 +8915,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001118",
@@ -8610,7 +9000,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:47:08.695Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
@@ -8618,7 +9008,10 @@
     "slaStatus": "OVERDUE",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005027",
@@ -8643,7 +9036,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-08T18:55:41.528Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P3",
     "slaTargetDate": "27/11/26",
@@ -8654,7 +9047,10 @@
     "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
     "pchLogistik": "-",
     "reviewedBy": "Administrator CPG",
-    "reviewedAt": "2026-11-08T18:55:41.528Z"
+    "reviewedAt": "2026-11-08T18:55:41.528Z",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005028",
@@ -8770,7 +9166,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:47:23.537Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P3",
     "slaTargetDate": "27/11/26",
@@ -8778,7 +9174,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005030",
@@ -8830,7 +9229,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:47:29.272Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
@@ -8838,7 +9237,10 @@
     "slaStatus": "OVERDUE",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001119",
@@ -8928,7 +9330,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:47:34.618Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
@@ -8936,7 +9338,10 @@
     "slaStatus": "OVERDUE",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001120",
@@ -9026,7 +9431,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:47:37.014Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
@@ -9034,7 +9439,10 @@
     "slaStatus": "OVERDUE",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001121",
@@ -9111,7 +9519,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:47:41.089Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
@@ -9119,7 +9527,10 @@
     "slaStatus": "OVERDUE",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-SP-FPB-26-0000992",
@@ -9160,7 +9571,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T00:50:51.145Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
@@ -9168,7 +9579,10 @@
     "slaStatus": "OVERDUE",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001122",
@@ -9233,7 +9647,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:47:49.329Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
@@ -9241,7 +9655,10 @@
     "slaStatus": "OVERDUE",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004517",
@@ -9318,7 +9735,7 @@
         "CPL-TTB-26-06934"
       ]
     },
-    "updatedAt": "2026-10-29T13:52:38.392Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P1",
     "slaTargetDate": "30/10/26",
@@ -9330,7 +9747,10 @@
     "reviewedAt": "2026-10-29T13:52:38.392Z",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0000993",
@@ -9455,7 +9875,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:48:05.465Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-29T00:39:20.305Z",
     "priorityLevel": "P3",
     "slaTargetDate": "27/11/26",
@@ -9463,7 +9883,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001114",
@@ -9499,7 +9922,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T00:39:20.305Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-28T05:50:09.035Z",
     "priorityLevel": "P3",
     "slaTargetDate": "27/11/26",
@@ -9507,7 +9930,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001080",
@@ -9630,7 +10056,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:48:24.230Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-28T01:02:53.918Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
@@ -9638,7 +10064,10 @@
     "slaStatus": "OVERDUE",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001101",
@@ -9690,7 +10119,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-28T05:52:40.841Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-28T01:02:53.918Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
@@ -9698,7 +10127,10 @@
     "slaStatus": "OVERDUE",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001111",
@@ -9870,7 +10302,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:48:28.619Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-28T01:02:53.918Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
@@ -9881,7 +10313,10 @@
     "reviewedAt": "2026-10-28T06:06:38.001Z",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004998",
@@ -9978,7 +10413,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-27T08:21:35.818Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -9986,7 +10421,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001213",
@@ -10032,7 +10470,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:48:41.589Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
@@ -10040,7 +10478,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005003",
@@ -10092,7 +10533,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-28T01:09:16.726Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
@@ -10100,7 +10541,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001105",
@@ -10156,7 +10600,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:48:45.758Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
@@ -10164,7 +10608,10 @@
     "slaStatus": "OVERDUE",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0005005",
@@ -10210,7 +10657,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-28T01:02:53.918Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
@@ -10218,7 +10665,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005006",
@@ -10295,7 +10745,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:49:01.431Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
@@ -10303,7 +10753,10 @@
     "slaStatus": "OVERDUE",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005007",
@@ -10359,7 +10812,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:49:11.590Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
@@ -10367,7 +10820,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001107",
@@ -10408,7 +10864,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:49:17.000Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
@@ -10416,7 +10872,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-HL-FPB-26-001528",
@@ -10441,7 +10900,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-28T05:52:40.841Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
@@ -10449,7 +10908,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001303",
@@ -10511,7 +10973,7 @@
         "HL-TTB-26-01996"
       ]
     },
-    "updatedAt": "2026-10-29T12:49:32.827Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
@@ -10519,7 +10981,10 @@
     "slaStatus": "OVERDUE",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001083",
@@ -10620,7 +11085,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:49:36.669Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
@@ -10628,7 +11093,10 @@
     "slaStatus": "OVERDUE",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001108",
@@ -10706,7 +11174,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:49:41.278Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
@@ -10714,7 +11182,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 27/10/26 (berkas lain tgl 27/10/26)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 27/10/26 (berkas lain tgl 27/10/26).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001110",
@@ -10777,7 +11248,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:49:45.382Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
@@ -10785,7 +11256,10 @@
     "slaStatus": "OVERDUE",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001102",
@@ -10978,7 +11452,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-28T05:52:40.841Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
@@ -10986,7 +11460,10 @@
     "slaStatus": "OVERDUE",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005013",
@@ -11027,7 +11504,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:49:52.781Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P1",
     "slaTargetDate": "29/10/26",
@@ -11035,7 +11512,10 @@
     "slaStatus": "OVERDUE",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005015",
@@ -11102,7 +11582,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:49:59.342Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
@@ -11110,7 +11590,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0005018",
@@ -11151,7 +11634,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:50:04.561Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-27T08:21:01.960Z",
     "priorityLevel": "P3",
     "slaTargetDate": "26/11/26",
@@ -11159,7 +11642,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004742",
@@ -11245,7 +11731,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-31T09:11:37.934Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-27T01:49:18.402Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -11254,7 +11740,10 @@
     "isRevised": true,
     "revisionCount": 2,
     "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
-    "requestedBy": "SALMAN"
+    "requestedBy": "SALMAN",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004667",
@@ -11377,7 +11866,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:50:08.977Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-27T01:49:18.402Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -11385,7 +11874,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004993",
@@ -11426,7 +11918,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-27T01:51:00.300Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-27T01:49:18.402Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -11434,7 +11926,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004994",
@@ -11494,7 +11989,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:50:15.059Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-27T01:49:18.402Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -11502,7 +11997,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004996",
@@ -11541,7 +12039,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-27T01:53:04.940Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-27T01:49:18.402Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -11553,7 +12051,10 @@
     "tkbNo": "TKB-003",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004962",
@@ -11594,7 +12095,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T16:26:12.513Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P3",
     "slaTargetDate": "22/11/26",
@@ -11605,7 +12106,10 @@
     "reviewedAt": "2026-10-26T16:26:12.513Z",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001513",
@@ -11646,7 +12150,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:52:01.254Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P3",
     "slaTargetDate": "22/11/26",
@@ -11654,7 +12158,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001903",
@@ -11751,7 +12258,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T17:08:06.693Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P3",
     "slaTargetDate": "22/11/26",
@@ -11759,7 +12266,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001902",
@@ -11821,7 +12331,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T16:36:20.562Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "25/10/26",
@@ -11830,7 +12340,10 @@
     "pchLogistik": "Received_Logistic",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001904",
@@ -11892,7 +12405,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:52:05.196Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "25/10/26",
@@ -11901,7 +12414,10 @@
     "pchLogistik": "Received_Logistic",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004943",
@@ -11940,7 +12456,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-28T01:33:57.531Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "25/10/26",
@@ -11948,7 +12464,10 @@
     "slaStatus": "OVERDUE",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001082",
@@ -11984,7 +12503,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T16:07:43.101Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P3",
     "slaTargetDate": "22/11/26",
@@ -11992,7 +12511,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004964",
@@ -12106,7 +12628,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-08T15:58:25.529Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
@@ -12117,7 +12639,10 @@
     "reviewedAt": "2026-10-26T16:26:57.471Z",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001906",
@@ -12179,7 +12704,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:51:06.630Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
@@ -12187,7 +12712,10 @@
     "slaStatus": "OVERDUE",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004915",
@@ -12212,7 +12740,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T16:07:43.101Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P3",
     "slaTargetDate": "23/11/26",
@@ -12220,7 +12748,10 @@
     "slaStatus": "ON_TRACK",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001907",
@@ -12282,7 +12813,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:51:19.363Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
@@ -12290,7 +12821,10 @@
     "slaStatus": "OVERDUE",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001908",
@@ -12376,7 +12910,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:51:26.437Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
@@ -12384,7 +12918,10 @@
     "slaStatus": "OVERDUE",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001514",
@@ -12446,7 +12983,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:51:31.170Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
@@ -12454,7 +12991,10 @@
     "slaStatus": "OVERDUE",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001909",
@@ -12504,7 +13044,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:51:37.777Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
@@ -12516,7 +13056,10 @@
     "tkbNo": "TKB-002",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001088",
@@ -12688,7 +13231,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:51:44.731Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
@@ -12700,7 +13243,10 @@
     "tkbNo": "TKB-001",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004963",
@@ -12866,7 +13412,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:51:51.650Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
@@ -12874,7 +13420,10 @@
     "slaStatus": "OVERDUE",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004961",
@@ -12952,7 +13501,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:51:56.352Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "26/10/26",
@@ -12960,7 +13509,10 @@
     "slaStatus": "OVERDUE",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004971",
@@ -13022,7 +13574,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-27T01:53:23.071Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
@@ -13033,7 +13585,10 @@
     "reviewedAt": "2026-10-26T17:03:43.403Z",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001089",
@@ -13089,7 +13644,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:50:19.757Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
@@ -13100,7 +13655,10 @@
     "reviewedAt": "2026-10-26T17:03:50.491Z",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0003987",
@@ -13489,7 +14047,7 @@
         "CPL-TTB-26-06631"
       ]
     },
-    "updatedAt": "2026-10-29T13:53:56.221Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T16:07:43.101Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
@@ -13501,7 +14059,10 @@
     "tkbNo": "TKB-005",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001918",
@@ -13541,7 +14102,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T17:06:08.453Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
@@ -13574,7 +14135,10 @@
     "reviewedAt": "2026-10-26T17:04:13.680Z",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001094",
@@ -13614,7 +14178,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T17:06:08.453Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
@@ -13626,7 +14190,10 @@
     "reviewedAt": "2026-10-26T17:04:21.655Z",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001920",
@@ -13679,7 +14246,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-26T17:06:08.453Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
@@ -13712,7 +14279,10 @@
     "reviewedAt": "2026-10-26T17:03:24.040Z",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0000712",
@@ -14197,7 +14767,7 @@
         "GAJ-TTB-26-00943"
       ]
     },
-    "updatedAt": "2026-10-29T13:57:46.433Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -14210,7 +14780,10 @@
     "tkbNo": "TKB-006",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-HL-FPB-26-0001525",
@@ -14250,7 +14823,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-27T01:49:18.402Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
@@ -14273,7 +14846,10 @@
     "reviewedAt": "2026-10-26T17:04:46.176Z",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004985",
@@ -14297,7 +14873,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-27T01:49:18.402Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -14309,7 +14885,10 @@
     "reviewedAt": "2026-10-26T17:04:53.144Z",
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004967",
@@ -14362,12 +14941,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:50:37.784Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
     "slaDaysRemaining": 13,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001099",
@@ -14508,7 +15090,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-04T06:08:44.948Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
@@ -14558,7 +15140,10 @@
     ],
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004976",
@@ -14606,12 +15191,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-27T01:49:18.402Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
     "slaDaysRemaining": 13,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001923",
@@ -14651,7 +15239,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-27T01:49:18.402Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
@@ -14681,7 +15269,10 @@
     ],
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004980",
@@ -14734,7 +15325,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-30T01:49:50.792Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -14764,7 +15355,10 @@
     ],
     "isRevised": true,
     "revisionCount": 2,
-    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44)."
+    "revisionNote": "Revisi e-FPB (2x): Menggunakan berkas terbaru tgl 23/10/26 20:13 (menggantikan berkas lama tgl 22/10/26 16:44).",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004982",
@@ -14839,12 +15433,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:50:47.727Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
     "slaDaysRemaining": 13,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001921",
@@ -14882,7 +15479,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-02T03:18:13.282Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
@@ -14891,7 +15488,10 @@
     "pchLogistik": "Received_Logistic",
     "reviewedBy": "NOOR HASANAH",
     "reviewedAt": "2026-10-26T14:03:44.565Z",
-    "requestedBy": "M Faizi Ismail"
+    "requestedBy": "M Faizi Ismail",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001085",
@@ -14931,12 +15531,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:50:57.240Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
     "slaDaysRemaining": -15,
-    "slaStatus": "OVERDUE"
+    "slaStatus": "OVERDUE",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-MO-FPB-26-0001922",
@@ -15052,12 +15655,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-27T01:49:18.402Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
     "slaDaysRemaining": -15,
-    "slaStatus": "OVERDUE"
+    "slaStatus": "OVERDUE",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001100",
@@ -15095,12 +15701,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-27T01:49:18.402Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P1",
     "slaTargetDate": "28/10/26",
     "slaDaysRemaining": -15,
-    "slaStatus": "OVERDUE"
+    "slaStatus": "OVERDUE",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-CPL-FPB-26-0004997",
@@ -15140,12 +15749,15 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-28T05:52:40.841Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
     "slaDaysRemaining": 13,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001104",
@@ -15222,11 +15834,14 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-10-29T12:51:01.511Z",
+    "updatedAt": "2026-11-14T15:13:00.214Z",
     "createdAt": "2026-10-26T12:05:06.421Z",
     "priorityLevel": "P3",
     "slaTargetDate": "25/11/26",
     "slaDaysRemaining": 13,
-    "slaStatus": "ON_TRACK"
+    "slaStatus": "ON_TRACK",
+    "isArchived": true,
+    "archivedAt": "2026-11-14T15:13:00.214Z",
+    "archivedBy": "Administrator CPG"
   }
 ]
