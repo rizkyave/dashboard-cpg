@@ -796,6 +796,48 @@ PT. Cipta Sarana Transindo - CPG Group
     setTimeout(() => setSuccessMsg(null), 3000);
   };
 
+  // Handler: Penerbitan Addendum Perpanjangan Jadwal Tender jika kuorum rekanan belum cukup
+  const handleAddendumSchedule = async () => {
+    const currentClosing = packageData.targetClosingDate || new Date().toISOString().slice(0, 10);
+    const newDate = prompt(
+      'Terbitkan Addendum Perpanjangan Jadwal Batas Penawaran:\nMasukkan tanggal batas penawaran baru (YYYY-MM-DD):',
+      currentClosing
+    );
+    if (!newDate || newDate === currentClosing) return;
+
+    const reason = prompt(
+      'Masukkan alasan resmi penerbitan Addendum Perpanjangan Jadwal:\n(Contoh: Kuorum peserta penawaran belum terpenuhi sesuai ketentuan RKS armada)',
+      'Kuorum peserta penawaran belum terpenuhi'
+    );
+    if (!reason) return;
+
+    const historyItem = {
+      extendedAt: new Date().toISOString(),
+      extendedBy: userName,
+      oldDate: currentClosing,
+      newDate: newDate,
+      reason: reason,
+    };
+
+    const updatedPkg: PratenderPackage = {
+      ...packageData,
+      targetClosingDate: newDate,
+      scheduleAddendumHistory: [
+        ...(packageData.scheduleAddendumHistory || []),
+        historyItem,
+      ],
+      updatedAt: new Date().toISOString(),
+    };
+
+    try {
+      await onSavePackage(updatedPkg);
+      setSuccessMsg(`✓ Addendum Jadwal diterbitkan! Batas penawaran diperpanjang hingga ${newDate}.`);
+      setTimeout(() => setSuccessMsg(null), 3500);
+    } catch (err: any) {
+      alert(`Gagal menyimpan addendum: ${err.message}`);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-150">
       <div className="bg-card border border-border rounded-3xl w-full max-w-6xl max-h-[95vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
@@ -816,6 +858,26 @@ PT. Cipta Sarana Transindo - CPG Group
                 <span className="text-[10px] font-semibold text-muted-foreground">
                   HPS / OE: <strong className="text-foreground">Rp {totalHps.toLocaleString('id-ID')}</strong>
                 </span>
+                {packageData.targetClosingDate && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
+                    <Clock className="size-3" />
+                    <span>
+                      {new Date(packageData.targetClosingDate).getTime() < Date.now()
+                        ? '⏱️ Tahap Evaluasi (SLA: 1–2 Hari Kerja)'
+                        : `Batas Penawaran: ${packageData.targetClosingDate}`}
+                    </span>
+                  </span>
+                )}
+                {!isDataFrozen && (
+                  <button
+                    type="button"
+                    onClick={handleAddendumSchedule}
+                    className="text-[10px] font-bold px-2 py-0.5 rounded-md border border-purple-500/30 bg-purple-500/10 text-purple-600 hover:bg-purple-500/20 transition cursor-pointer"
+                    title="Terbitkan Addendum untuk memperpanjang batas penawaran jika kuorum rekanan belum cukup"
+                  >
+                    + Addendum Jadwal
+                  </button>
+                )}
               </div>
               <h2 className="text-sm sm:text-base font-bold text-foreground truncate mt-0.5">
                 {packageData.title}

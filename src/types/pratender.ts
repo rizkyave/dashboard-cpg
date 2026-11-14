@@ -152,6 +152,14 @@ export interface PratenderPackage {
   awardedValue?: number;
   poNumberGenerated?: string;
   waGroupInviteLink?: string; // Tautan undangan grup WhatsApp koordinasi vendor
+  evaluationDeadline?: string; // Target SLA Evaluasi Panitia (1-2 hari kerja)
+  scheduleAddendumHistory?: {
+    extendedAt: string;
+    extendedBy: string;
+    oldDate: string;
+    newDate: string;
+    reason: string;
+  }[];
   notes?: string;
   updatedAt?: string;
 }

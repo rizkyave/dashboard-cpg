@@ -156,6 +156,19 @@ function VendorTenderPortalContent() {
     });
   }, [packageData, vendorContact, vendorName, searchToken, searchPhone, searchName]);
 
+  // Deteksi apakah batas akhir penawaran telah lewat (Deadline Passed -> Masuk Masa Evaluasi)
+  const isDeadlinePassed = useMemo(() => {
+    if (!packageData || !packageData.targetClosingDate) return false;
+    const raw = packageData.targetClosingDate;
+    const closingDate = new Date(raw);
+    if (isNaN(closingDate.getTime())) return false;
+    // Jika format hanya YYYY-MM-DD, set ke akhir hari 23:59:59
+    if (raw.length === 10) {
+      closingDate.setHours(23, 59, 59, 999);
+    }
+    return Date.now() > closingDate.getTime();
+  }, [packageData]);
+
   // Calculations
   const subtotal = items.reduce((acc, curr) => acc + (curr.totalPrice || 0), 0);
   const ppnAmount = Math.round(subtotal * 0.11);
@@ -538,6 +551,55 @@ function VendorTenderPortalContent() {
               )}
               <div className="pt-1 text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
                 Seluruh formulir penawaran harga rekanan telah <strong>DITUTUP PERMANEN</strong> demi menjaga tertib administrasi dan integritas audit proses pengadaan.
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 transition cursor-pointer"
+              >
+                Muat Ulang Halaman
+              </button>
+            </div>
+          </div>
+        ) : isDeadlinePassed ? (
+          <div className="p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl text-center space-y-6 max-w-xl mx-auto animate-in fade-in duration-300">
+            <div className="flex flex-col items-center gap-3">
+              <div className="size-16 rounded-2xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center border-2 border-amber-500/25 shadow-xs">
+                <Clock className="size-8" />
+              </div>
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 font-bold text-xs border border-amber-500/30">
+                  <Lock className="size-3.5" />
+                  <span>PEMASUKAN PENAWARAN DITUTUP &bull; TAHAP EVALUASI</span>
+                </span>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mt-2">
+                  Paket {packageData.packageNumber}
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto leading-relaxed">
+                  Batas waktu penawaran telah resmi berakhir. Seluruh berkas yang masuk sedang dalam tahap <strong>Evaluasi Teknis &amp; Tabulasi Komparasi (SLA 1–2 Hari Kerja)</strong> oleh Panitia Pengadaan.
+                </p>
+              </div>
+            </div>
+
+            {/* Informasi Penutupan & SLA */}
+            <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950 text-left space-y-2.5 text-xs">
+              <div className="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-slate-800">
+                <span className="text-slate-500">Batas Akhir Penawaran:</span>
+                <span className="font-mono font-bold text-slate-900 dark:text-white">
+                  {packageData.targetClosingDate ? new Date(packageData.targetClosingDate).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : 'Telah Berakhir'} WIB
+                </span>
+              </div>
+              <div className="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-slate-800">
+                <span className="text-slate-500">Status Tahapan:</span>
+                <span className="font-semibold text-amber-600 dark:text-amber-400">
+                  Evaluasi Administrasi &amp; Teknis (SLA 1-2 Hari)
+                </span>
+              </div>
+              <div className="pt-1 text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                Sesuai tata tertib pengadaan tender, dokumen atau revisi harga susulan yang disampaikan setelah batas waktu <strong>tidak dapat diterima</strong> demi kepatuhan SOP pengadaan armada.
               </div>
             </div>
 
