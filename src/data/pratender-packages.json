@@ -1,5 +1,37 @@
 [
   {
+    "id": "pkg-1794663121790",
+    "packageNumber": "CPG-TDR-26-7686",
+    "title": "Paket Pengadaan Construction Armada Q4 2026",
+    "category": "Construction",
+    "status": "DRAFT",
+    "createdAt": "2026-11-14T13:32:01.790Z",
+    "createdBy": "Administrator CPG",
+    "targetClosingDate": "2026-11-16",
+    "description": "Spesifikasi asli (OEM) bergaransi resmi, sertifikat asal barang (COO) terlampir.",
+    "items": [
+      {
+        "itemId": "CPL-PP-2026-003__plan-058",
+        "itemName": "PIPA SEAMLESS 2\" SCH 80 (00)",
+        "category": "Construction",
+        "satuan": "BTG",
+        "totalQty": 1,
+        "originalQty": 1,
+        "targetPrice": 703524,
+        "targetTotalPrice": 703524,
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "CPL-FPB-26-0005037"
+        ]
+      }
+    ],
+    "totalEstimatedBudget": 703524,
+    "ownerEstimateHps": 703524,
+    "updatedAt": "2026-11-14T13:33:30.189Z"
+  },
+  {
     "id": "pkg-1794659608002",
     "packageNumber": "CPG-TDR-26-8045",
     "title": "Paket Pengadaan Electrical Armada Q4 2026",

@@ -3,6 +3,7 @@ import { TabType } from './procurement';
 
 export type UserRole =
   | 'admin'
+  | 'direksi'
   | 'manager'
   | 'supervisor'
   | 'staf_purchasing'
@@ -263,6 +264,10 @@ export function resetStoredPermissionsMatrix(): void {
  */
 export function canAccessTab(role: UserRole | undefined, tab: TabType): boolean {
   if (!role || role === 'admin') return true;
+  if (role === 'direksi') {
+    // Direksi memiliki hak akses eksekutif penuh ke seluruh modul operasional (kecuali setelan teknis admin-settings)
+    return tab !== 'admin-settings';
+  }
   if (tab === 'admin-settings') return false;
 
   // 1. Cek perizinan dinamis dari matriks yang dikonfigurasi & disimpan oleh Admin
@@ -333,6 +338,8 @@ export function getRoleDisplayName(role: UserRole | undefined): string {
   switch (role) {
     case 'admin':
       return 'Administrator';
+    case 'direksi':
+      return 'Direktur Keuangan & Operasional';
     case 'manager':
       return 'Manager Procurement';
     case 'supervisor':

@@ -1669,6 +1669,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                               title="Klik untuk langsung mengubah role pengguna"
                             >
                               <option value="admin">👑 Administrator</option>
+                              <option value="direksi">💼 Direktur Keuangan / Direksi</option>
                               <option value="manager">👔 Manager Procurement</option>
                               <option value="supervisor">🎖️ Supervisor Procurement</option>
                               <option value="staf_purchasing">🛒 Staf Purchasing</option>
@@ -1973,6 +1974,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                     className="w-full pl-3 pr-8 py-2 text-xs rounded-lg border border-border bg-background text-foreground font-medium focus:outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer"
                   >
                     <option value="ALL">🌐 Semua Pemakai (Semua Role)</option>
+                    <option value="direksi">💼 Direktur Keuangan / Direksi</option>
                     <option value="staf_ttb">📄 Staf Dokumen TTB (⭐ Nurul Hafifah, Davila, Idham)</option>
                     <option value="staf_lapangan">🚚 Staf Serah Terima Lap. (Agussalim, Akbar, Bardi, Hamka)</option>
                     <option value="staf_purchasing">🛒 Staf Purchasing (Pengadaan CPG)</option>
