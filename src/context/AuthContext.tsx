@@ -47,7 +47,8 @@ interface AuthContextType {
   }) => Promise<{ success: boolean; message?: string }>;
   updateUser: (
     id: string,
-    updates: Partial<Omit<UserAccount, 'id'>>
+    updates: Partial<Omit<UserAccount, 'id'>>,
+    currentPassword?: string
   ) => Promise<{ success: boolean; message?: string }>;
   deleteUser: (id: string) => Promise<{ success: boolean; message?: string }>;
   resetDefaults: () => void;
@@ -363,17 +364,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const updateUser = async (
     id: string,
-    updates: Partial<Omit<UserAccount, 'id'>>
+    updates: Partial<Omit<UserAccount, 'id'>>,
+    currentPassword?: string
   ) => {
     // 1. Update lokal cepat
-    const localRes = updateUserAccount(id, updates);
-    if (localRes.success) {
-      loadUsersFromStorage();
-      const current = getStoredSessionUser();
-      if (current && (current.id === id || user?.id === id)) {
-        const refreshedSession = getStoredSessionUser();
-        if (refreshedSession) setUser(refreshedSession);
-      }
+    const localRes = updateUserAccount(id, updates, currentPassword);
+    if (!localRes.success) {
+      return localRes;
+    }
+    loadUsersFromStorage();
+    const current = getStoredSessionUser();
+    if (current && (current.id === id || user?.id === id)) {
+      const refreshedSession = getStoredSessionUser();
+      if (refreshedSession) setUser(refreshedSession);
     }
 
     // Broadcast instan ke seluruh tab
@@ -399,7 +402,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const res = await fetch('/api/users', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, updates }),
+        body: JSON.stringify({ id, updates, currentPassword }),
       });
       const json = await res.json();
       if (json.success && Array.isArray(json.users)) {

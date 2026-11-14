@@ -7712,5 +7712,64 @@
     "createdAt": "2026-11-13T09:02:18.632Z",
     "updatedAt": "2026-11-13T14:42:31.520Z",
     "fileExists": true
+  },
+  {
+    "id": "val-ttb-r2-CPL-FSTB-26-06360CPL-FSTB-26-06449CPL-FSTB-26-0637812lainnya-2919714",
+    "docType": "TTB",
+    "docId": "r2-CPL-FSTB-26-06360CPL-FSTB-26-06449CPL-FSTB-26-0637812lainnya-2919714",
+    "docNumber": "CPL-FSTB-26-06360CPL-FSTB-26-06449CPL-FSTB-26-0637812lainnya",
+    "cleanDocNumber": "CPL-FSTB-26-06360CPL-FSTB-26-06449CPL-FSTB-26-0637812lainnya",
+    "armada": "-",
+    "poNumber": "",
+    "fpbNumber": "",
+    "relatedDocuments": {
+      "relatedFstbs": [],
+      "relatedTtbs": [],
+      "relatedPos": []
+    },
+    "receivedDate": "2026-11-13",
+    "originalFileName": "CPL-FSTB-26-06360CPL-FSTB-26-06449CPL-FSTB-26-0637812lainnya.pdf",
+    "renamedFileName": "CPL-FSTB-26-06360CPL-FSTB-26-06449CPL-FSTB-26-0637812lainnya.pdf",
+    "fileUrl": "/api/r2-file?key=ttb-documents%2FCPL-FSTB-26-06360CPL-FSTB-26-06449CPL-FSTB-26-0637812lainnya.pdf&v=1794581926672",
+    "r2Key": "ttb-documents/CPL-FSTB-26-06360CPL-FSTB-26-06449CPL-FSTB-26-0637812lainnya.pdf",
+    "storageProvider": "CLOUDFLARE_R2",
+    "purchasingValidation": {
+      "isValidated": false
+    },
+    "logistikValidation": {
+      "isValidated": true,
+      "validatorName": "STAF LOGISTIK CPG",
+      "validatorRole": "staf_ttb",
+      "validatorJabatan": "Staf Logistik & Pergudangan",
+      "validatedAt": "2026-11-13T14:58:21.681Z",
+      "notes": "Tervalidasi otomatis saat pengunggahan berkas oleh Staf Logistik",
+      "verificationToken": "VAL-LOG-MWF7P04I-V7N1"
+    },
+    "lapanganValidation": {
+      "isValidated": false
+    },
+    "ttbSlots": {
+      "deliveredBy": {
+        "isValidated": true,
+        "validatorName": "STAF LOGISTIK CPG",
+        "validatorRole": "staf_ttb",
+        "validatorJabatan": "Staf Logistik & Pergudangan",
+        "validatedAt": "2026-11-13T14:58:21.681Z"
+      },
+      "receivedBy": {
+        "isValidated": false
+      },
+      "approvedBy": {
+        "isValidated": false
+      },
+      "acknowledgedBy": {
+        "isValidated": false
+      }
+    },
+    "overallStatus": "PROSES_VALIDASI",
+    "completedLinesCount": 1,
+    "isReadyForDispatch": false,
+    "createdAt": "2026-11-13T14:58:21.681Z",
+    "updatedAt": "2026-11-13T14:58:21.681Z"
   }
 ]

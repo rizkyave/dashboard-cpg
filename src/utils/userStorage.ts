@@ -238,7 +238,8 @@ export function createUserAccount(input: {
 
 export function updateUserAccount(
   id: string,
-  updates: Partial<Omit<UserAccount, 'id'>>
+  updates: Partial<Omit<UserAccount, 'id'>>,
+  currentPassword?: string
 ): { success: boolean; message?: string } {
   const users = getStoredUsers();
   const index = users.findIndex((u) => u.id === id);
@@ -247,6 +248,17 @@ export function updateUserAccount(
   }
 
   const existing = users[index];
+
+  // Jika melakukan update password dan currentPassword disertakan, verifikasi password lama
+  if (updates.password && typeof currentPassword === 'string') {
+    const existingPw = existing.password || `${existing.username}123`;
+    if (existingPw !== currentPassword.trim()) {
+      return {
+        success: false,
+        message: 'Password saat ini tidak sesuai. Silakan periksa kembali password lama Anda.',
+      };
+    }
+  }
 
   if (updates.username && updates.username.toLowerCase() !== existing.username.toLowerCase()) {
     const targetUsername = updates.username.toLowerCase();

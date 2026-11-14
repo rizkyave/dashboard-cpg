@@ -1,5 +1,376 @@
 [
   {
+    "id": "pkg-1794588111542",
+    "packageNumber": "CPG-TDR-26-1320",
+    "title": "Paket Pengadaan General Armada Q4 2026",
+    "category": "General",
+    "status": "DRAFT",
+    "createdAt": "2026-11-13T16:41:51.542Z",
+    "createdBy": "Staf Purchasing & PPIC",
+    "targetClosingDate": "2026-11-20",
+    "description": "Spesifikasi asli bergaransi resmi, pengiriman langsung ke Gudang Somber / Galangan CPG.",
+    "items": [
+      {
+        "itemId": "UNI01901001-ZZZ",
+        "itemName": "FULL BODY HARNEST (SAFETY BELT) (00)",
+        "category": "General",
+        "satuan": "UNT",
+        "totalQty": 2,
+        "originalQty": 2,
+        "targetPrice": 230000,
+        "targetTotalPrice": 460000,
+        "notes": "Kebutuhan operasional 0 armada/unit. Stok gudang tidak mencukupi permintaan (2 UNT). (U/ SAFETY DI KETINGGIAN)",
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "CPL-FPB-26-0005145"
+        ]
+      },
+      {
+        "itemId": "GUR00801001-MAI",
+        "itemName": "MESIN GURINDA 4\" (MAKITA)",
+        "category": "General",
+        "satuan": "UNT",
+        "totalQty": 1,
+        "originalQty": 1,
+        "targetPrice": 450000,
+        "targetTotalPrice": 450000,
+        "notes": "Kebutuhan operasional 0 armada/unit. Stok gudang tidak mencukupi permintaan (1 UNT). (U/ ALAT KERJA (PENAMBAHAN))",
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "MO-FPB-26-0001956"
+        ]
+      },
+      {
+        "itemId": "BNC00101003-BUS",
+        "itemName": "BINOCULAR 10 X 70 (BUSHNELL)",
+        "category": "General",
+        "satuan": "PCS",
+        "totalQty": 1,
+        "originalQty": 1,
+        "targetPrice": 545000,
+        "targetTotalPrice": 545000,
+        "notes": "Kebutuhan operasional 0 armada/unit. Stok gudang tidak mencukupi permintaan (1 PCS). (U/ PERGANTIAN YANG RUSAK (INTERNAL INSPECTION))",
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "HL-FPB-26-0001530"
+        ]
+      },
+      {
+        "itemId": "CAI01401002-SPL",
+        "itemName": "PEMBERSIH LANTAI 770 ML (SUPER PELL)",
+        "category": "General",
+        "satuan": "BKS",
+        "totalQty": 2,
+        "originalQty": 2,
+        "targetPrice": 20000,
+        "targetTotalPrice": 40000,
+        "notes": "Kebutuhan operasional 0 armada/unit. Stok gudang tidak mencukupi permintaan (2 BKS). (U/ CONSUMABLE NOVEMBER 2026)",
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "CPL-FPB-26-0005023"
+        ]
+      },
+      {
+        "itemId": "BUK00201008-ZZZ",
+        "itemName": "BUKU DAFTAR/LIST PASANG SURUT KEPULAUAN INDONESIA EDISI 2027 (00)",
+        "category": "General",
+        "satuan": "SET",
+        "totalQty": 5,
+        "originalQty": 5,
+        "targetPrice": 150000,
+        "targetTotalPrice": 750000,
+        "notes": "Prioritas Darurat P1 dari 0 unit. Stok gudang 0 SET. (U/ OPERASIONAL KAPAL)",
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "CPL-FPB-26-0004993"
+        ]
+      },
+      {
+        "itemId": "PET00304020-ZZZ",
+        "itemName": "PETA LAUT NO. 301-400 ( NO. 362) (00)",
+        "category": "General",
+        "satuan": "LBR",
+        "totalQty": 1,
+        "originalQty": 1,
+        "targetPrice": 650000,
+        "targetTotalPrice": 650000,
+        "notes": "Kebutuhan operasional 0 armada/unit. Stok gudang tidak mencukupi permintaan (1 LBR). (U/ OPERASIONAL KAPAL)",
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "CPL-FPB-26-0005150"
+        ]
+      },
+      {
+        "itemId": "UNI00102004-ZZZ",
+        "itemName": "BAJU COVERALL PT. CPL (XL) ORANGE (00)",
+        "category": "General",
+        "satuan": "PCS",
+        "totalQty": 50,
+        "originalQty": 50,
+        "targetPrice": 310000,
+        "targetTotalPrice": 15500000,
+        "notes": "Prioritas Darurat P1 dari 0 unit. Stok gudang 0 PCS. (U/ STOCK GUDANG)",
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "CPL-FPB-26-0004881"
+        ]
+      },
+      {
+        "itemId": "SFT00401004-ZZZ",
+        "itemName": "HELM SAFETY PUTIH (00)",
+        "category": "General",
+        "satuan": "PCS",
+        "totalQty": 12,
+        "originalQty": 12,
+        "targetPrice": 50000,
+        "targetTotalPrice": 600000,
+        "notes": "Prioritas Darurat P1 dari 0 unit. Stok gudang 0 PCS. (U/ STOCK GUDANG)",
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "CPL-FPB-26-0005028"
+        ]
+      },
+      {
+        "itemId": "UNI02302001-ZZZ",
+        "itemName": "SEPATU SAFETY NO. 06 (00)",
+        "category": "General",
+        "satuan": "PSG",
+        "totalQty": 6,
+        "originalQty": 6,
+        "targetPrice": 475000,
+        "targetTotalPrice": 2850000,
+        "notes": "Prioritas Darurat P1 dari 0 unit. Stok gudang 0 PSG. (U/ STOCK GUDANG)",
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "CPL-FPB-26-0005120"
+        ]
+      },
+      {
+        "itemId": "UNI02303001-ZZZ",
+        "itemName": "SEPATU SAFETY NO. 07 (00)",
+        "category": "General",
+        "satuan": "PSG",
+        "totalQty": 7,
+        "originalQty": 7,
+        "targetPrice": 475000,
+        "targetTotalPrice": 3325000,
+        "notes": "Prioritas Darurat P1 dari 0 unit. Stok gudang 0 PSG. (U/ STOCK GUDANG)",
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "CPL-FPB-26-0005120"
+        ]
+      },
+      {
+        "itemId": "UNI02304001-ZZZ",
+        "itemName": "SEPATU SAFETY NO. 08 (00)",
+        "category": "General",
+        "satuan": "PSG",
+        "totalQty": 6,
+        "originalQty": 6,
+        "targetPrice": 475000,
+        "targetTotalPrice": 2850000,
+        "notes": "Prioritas Darurat P1 dari 0 unit. Stok gudang 0 PSG. (U/ STOCK GUDANG)",
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "CPL-FPB-26-0005120"
+        ]
+      },
+      {
+        "itemId": "UNI02305001-ZZZ",
+        "itemName": "SEPATU SAFETY NO. 09 (00)",
+        "category": "General",
+        "satuan": "PSG",
+        "totalQty": 4,
+        "originalQty": 4,
+        "targetPrice": 475000,
+        "targetTotalPrice": 1900000,
+        "notes": "Kebutuhan operasional 0 armada/unit. Stok gudang tidak mencukupi permintaan (4 PSG). (U/ STOCK GUDANG)",
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "CPL-FPB-26-0005120"
+        ]
+      },
+      {
+        "itemId": "GUR00202001-BBU",
+        "itemName": "MATA GURINDA 5\" NO. 80 (B BULLS)",
+        "category": "General",
+        "satuan": "PCS",
+        "totalQty": 24,
+        "originalQty": 24,
+        "targetPrice": 50000,
+        "targetTotalPrice": 1200000,
+        "notes": "Prioritas Darurat P1 dari 0 unit. Stok gudang 0 PCS. (U/ SARANA KERJA KONSTRUKSI)",
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "GAJ-FPB-26-0001062"
+        ]
+      },
+      {
+        "itemId": "COR00102001-LKS",
+        "itemName": "CORONG 30 CM (LUCKY STAR)",
+        "category": "General",
+        "satuan": "PCS",
+        "totalQty": 2,
+        "originalQty": 2,
+        "targetPrice": 20000,
+        "targetTotalPrice": 40000,
+        "notes": "Kebutuhan operasional 0 armada/unit. Stok gudang tidak mencukupi permintaan (2 PCS). (U/SARANA KERJA (TAKARAN BBM & OLI))",
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "GAJ-FPB-26-0001125"
+        ]
+      },
+      {
+        "itemId": "AKU02301001-WOD",
+        "itemName": "METERAN 5 METER (WOOD)",
+        "category": "General",
+        "satuan": "PCS",
+        "totalQty": 10,
+        "originalQty": 10,
+        "targetPrice": 232000,
+        "targetTotalPrice": 2320000,
+        "notes": "Prioritas Darurat P1 dari 0 unit. Stok gudang 0 PCS. (U/ SARANA KERJA)",
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "GAJ-FPB-26-0001029"
+        ]
+      },
+      {
+        "itemId": "SFT00601003-HPR",
+        "itemName": "LIFE BUOY (RING BUOY) 2,5 KG (HYPRO)",
+        "category": "General",
+        "satuan": "PCS",
+        "totalQty": 3,
+        "originalQty": 3,
+        "targetPrice": 245000,
+        "targetTotalPrice": 735000,
+        "notes": "Kebutuhan operasional 0 armada/unit. Stok gudang tidak mencukupi permintaan (3 PCS). (U/ SEBELAH KANAN & KIRI ANJUNGAN | U/ ANJUNGAN BELAKANG KANA)",
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "CPL-FPB-26-0005151"
+        ]
+      },
+      {
+        "itemId": "PRE00101010-WPR",
+        "itemName": "OIL PRESSURE GAUGE 10 KG/BAR 3/8\" NPT (WIPRO)",
+        "category": "General",
+        "satuan": "PCS",
+        "totalQty": 1,
+        "originalQty": 1,
+        "targetPrice": 275000,
+        "targetTotalPrice": 275000,
+        "notes": "Kebutuhan operasional 0 armada/unit. Stok gudang tidak mencukupi permintaan (1 PCS). (U/ MANFOLD CARGO, FINDING PSA)",
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "HL-FPB-26-0001557"
+        ]
+      },
+      {
+        "itemId": "PAC01206001-ZZZ",
+        "itemName": "PACKING KARET 5 MM (00)",
+        "category": "General",
+        "satuan": "MTR",
+        "totalQty": 3,
+        "originalQty": 3,
+        "targetPrice": 180000,
+        "targetTotalPrice": 540000,
+        "notes": "Kebutuhan operasional 0 armada/unit. Stok gudang tidak mencukupi permintaan (3 MTR). (U/ PERBAIKKAN MANHOLE)",
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "MO-FPB-26-0001950"
+        ]
+      },
+      {
+        "itemId": "LEM00601001-FBD",
+        "itemName": "FN TAPE (ANTI SPLASHING TAPE) (FLASHBAND)",
+        "category": "General",
+        "satuan": "PCS",
+        "totalQty": 3,
+        "originalQty": 3,
+        "targetPrice": 75000,
+        "targetTotalPrice": 225000,
+        "notes": "Kebutuhan operasional 0 armada/unit. Stok gudang tidak mencukupi permintaan (3 PCS). (U/ PIPA INJECTOR ME, FINDING PSA)",
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": [
+          "CPL-FPB-26-0005142"
+        ]
+      },
+      {
+        "itemId": "Review,",
+        "itemName": "Aknowledge,",
+        "category": "General",
+        "satuan": "PCS",
+        "totalQty": 1,
+        "originalQty": 1,
+        "targetPrice": 150000,
+        "targetTotalPrice": 150000,
+        "notes": "Kebutuhan operasional 0 armada/unit. Stok gudang tidak mencukupi permintaan (1 PCS).",
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": []
+      },
+      {
+        "itemId": "Hadi Sunaryo",
+        "itemName": "Finance",
+        "category": "General",
+        "satuan": "PCS",
+        "totalQty": 1,
+        "originalQty": 1,
+        "targetPrice": 150000,
+        "targetTotalPrice": 150000,
+        "notes": "Kebutuhan operasional 0 armada/unit. Stok gudang tidak mencukupi permintaan (1 PCS).",
+        "vessels": [
+          "Armada / Unit CPG"
+        ],
+        "requestFpbs": []
+      }
+    ],
+    "totalEstimatedBudget": 35555000,
+    "invitedVendors": [
+      "245000"
+    ],
+    "updatedAt": "2026-11-13T16:41:51.646Z"
+  },
+  {
     "id": "pkg-1794586860059",
     "packageNumber": "CPG-TDR-26-2702",
     "title": "Paket Pengadaan Consumable Armada Q4 2026",
@@ -398,7 +769,7 @@
     ],
     "totalEstimatedBudget": 71537692,
     "ownerEstimateHps": 71537692,
-    "updatedAt": "2026-11-13T16:05:12.937Z",
+    "updatedAt": "2026-11-13T16:32:02.589Z",
     "vendorBids": [
       {
         "id": "bid-1-1794585364361",
@@ -917,6 +1288,7 @@
     },
     "awardedVendor": "PT. Pelayaran Global Nusantara Supply",
     "awardedValue": 8000000,
-    "poNumberGenerated": "Armada-PO-26-92934"
+    "poNumberGenerated": "Armada-PO-26-92934",
+    "waGroupInviteLink": "https://chat.whatsapp.com/J6kxmjKOXVxBWakT6BzwEw"
   }
 ]

@@ -294,7 +294,7 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    const { id, updates } = body;
+    const { id, updates, currentPassword } = body;
 
     if (!id || !updates || typeof updates !== 'object') {
       return NextResponse.json(
@@ -314,6 +314,20 @@ export async function PUT(req: NextRequest) {
     }
 
     const existing = currentUsers[index];
+
+    // Verifikasi password saat ini jika user mengganti password
+    if (updates.password && typeof currentPassword === 'string') {
+      const existingPw = existing.password || `${existing.username}123`;
+      if (existingPw !== currentPassword.trim()) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: 'Password saat ini tidak sesuai. Silakan periksa kembali password lama Anda.',
+          },
+          { status: 400 }
+        );
+      }
+    }
 
     // Cek duplikasi jika username diubah
     if (updates.username && updates.username.toLowerCase() !== existing.username.toLowerCase()) {

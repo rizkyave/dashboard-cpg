@@ -17,6 +17,7 @@ import {
   Navigation,
   ShieldCheck,
   LogOut,
+  KeyRound,
   ShieldAlert,
   FileSpreadsheet,
   ExternalLink,
@@ -38,6 +39,7 @@ import * as XLSX from 'xlsx';
 import { TabType, LapseFilterType, ProcurementItem, ArmadaItem } from '@/types/procurement';
 import { parseAndMergeWorkbook } from '@/utils/excelParser';
 import ThemeToggle from './ThemeToggle';
+import { UserProfileModal } from './UserProfileModal';
 import { useAuth } from '@/context/AuthContext';
 import { canAccessTab, getRoleDisplayName } from '@/types/auth';
 
@@ -78,6 +80,7 @@ export default function Sidebar({
 }: SidebarProps) {
   const { user, isAdmin, isVisitor, logout } = useAuth();
   const [unreadNotifCount, setUnreadNotifCount] = useState<number>(0);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
 
   useEffect(() => {
     if (!user) return;
@@ -698,9 +701,13 @@ export default function Sidebar({
 
       {/* Footer User Info, Logout & Theme Toggle */}
       <div className="pt-3 border-t border-border flex items-center justify-between text-xs pb-safe gap-1.5 shrink-0 mt-4">
-        <div className="flex items-center gap-2 min-w-0 flex-1">
+        <div
+          onClick={() => setIsProfileModalOpen(true)}
+          className="flex items-center gap-2 min-w-0 flex-1 p-1 rounded-lg hover:bg-muted/60 transition cursor-pointer group"
+          title="Klik untuk membuka Profil & Ganti Kata Sandi"
+        >
           <div
-            className={`size-7 rounded-full flex items-center justify-center font-bold text-white text-[11px] shrink-0 ${
+            className={`size-7 rounded-full flex items-center justify-center font-bold text-white text-[11px] shrink-0 group-hover:scale-105 transition ${
               isAdmin
                 ? 'bg-linear-to-tr from-purple-600 to-indigo-600'
                 : isVisitor
@@ -717,7 +724,7 @@ export default function Sidebar({
             {user?.avatar || (user?.name ? user.name[0]?.toUpperCase() : 'U')}
           </div>
           <div className="grid leading-tight min-w-0 flex-1">
-            <span className="text-foreground font-semibold text-xs truncate">
+            <span className="text-foreground font-semibold text-xs truncate group-hover:text-sky-500 transition">
               {user?.name || 'Pengguna'}
             </span>
             <span className="text-[10px] text-muted-foreground truncate">
@@ -727,6 +734,13 @@ export default function Sidebar({
         </div>
 
         <div className="flex items-center gap-1 shrink-0">
+          <button
+            onClick={() => setIsProfileModalOpen(true)}
+            title="Pengaturan Profil & Ganti Password"
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-sky-500 hover:bg-sky-500/10 transition cursor-pointer"
+          >
+            <KeyRound className="size-3.5" />
+          </button>
           <button
             onClick={() => {
               if (window.confirm('Apakah Anda yakin ingin keluar?')) {
@@ -742,6 +756,13 @@ export default function Sidebar({
         </div>
       </div>
     </aside>
+
+    {/* Modal Profil & Ganti Password Pengguna */}
+    <UserProfileModal
+      isOpen={isProfileModalOpen}
+      onClose={() => setIsProfileModalOpen(false)}
+      showToast={showToast}
+    />
     </>
   );
 }

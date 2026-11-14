@@ -20,6 +20,8 @@ import {
   LogOut,
   Users,
   ShieldCheck,
+  UserCheck,
+  KeyRound,
   Eye,
   Wrench,
 } from 'lucide-react';
@@ -32,6 +34,8 @@ import ThemeToggle from './ThemeToggle';
 import NotificationBell from './NotificationBell';
 import SyncEfpbModal from './SyncEfpbModal';
 import ResetConfirmModal, { ResetScope } from './ResetConfirmModal';
+import { UserProfileModal } from './UserProfileModal';
+import { getRoleDisplayName } from '@/types/auth';
 import { mergeProcurementDatasets, mergeArmadaDatasets } from '@/utils/dataMerger';
 import { useAuth } from '@/context/AuthContext';
 interface HeaderProps {
@@ -87,7 +91,10 @@ export default function Header({
   const [searchQuery, setSearchQuery] = useState<string>(searchKeyword || '');
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [isResetModalOpen, setIsResetModalOpen] = useState<boolean>(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState<boolean>(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   // State untuk sinkronisasi Google Sheets
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
@@ -136,6 +143,20 @@ export default function Header({
   }, [searchKeyword]);
 
   // Click outside and Escape key listener for action dropdown menu
+  useEffect(() => {
+    const handleUserClickOutside = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    if (isUserMenuOpen) {
+      document.addEventListener('mousedown', handleUserClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleUserClickOutside);
+    };
+  }, [isUserMenuOpen]);
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -593,6 +614,17 @@ export default function Header({
                     {user?.department || (isAdmin ? 'CPG Administrator • Somber HQ' : isVisitor ? 'Tamu (Akses Hanya Baca)' : 'Staff Operasional')}
                   </p>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    setIsProfileModalOpen(true);
+                  }}
+                  className="p-1 rounded-md text-muted-foreground hover:text-sky-500 hover:bg-sky-500/10 transition cursor-pointer shrink-0"
+                  title="Buka Pengaturan Profil & Ganti Password"
+                >
+                  <KeyRound className="size-4" />
+                </button>
               </div>
 
               {/* Shortcut: Admin Settings (Khusus Admin) */}
@@ -1240,23 +1272,100 @@ export default function Header({
         <NotificationBell onNavigateTab={onNavigateTab} showToast={showToast} />
         <ThemeToggle />
 
-        {/* User Profile Avatar (Clickable to open menu as well) */}
-        <div
-          onClick={() => {
-            if (isAdmin) setIsMenuOpen((prev) => !prev);
-          }}
-          className={`flex size-7.5 shrink-0 items-center justify-center rounded-full text-white font-bold text-xs select-none shadow-xs transition active:scale-95 ml-0.5 ${
-            isAdmin ? 'cursor-pointer hover:opacity-90' : 'cursor-default'
-          } ${
-            isAdmin
-              ? 'bg-linear-to-tr from-purple-600 to-indigo-600'
-              : isVisitor
-              ? 'bg-linear-to-tr from-emerald-600 to-teal-600'
-              : 'bg-linear-to-tr from-sky-500 to-indigo-500'
-          }`}
-          title={`${user?.name || 'User'} (${user?.role?.toUpperCase()})${isAdmin ? ' - Klik untuk menu' : ''}`}
-        >
-          {user?.avatar || (user?.name ? user.name[0]?.toUpperCase() : 'U')}
+        {/* User Profile Avatar Popover (Clickable by ANY user) */}
+        <div className="relative" ref={userMenuRef}>
+          <button
+            type="button"
+            onClick={() => setIsUserMenuOpen((prev) => !prev)}
+            className={`flex size-8 shrink-0 items-center justify-center rounded-full text-white font-bold text-xs select-none shadow-xs transition active:scale-95 ml-0.5 cursor-pointer hover:opacity-90 ring-2 ring-transparent hover:ring-sky-500/40 ${
+              isAdmin
+                ? 'bg-linear-to-tr from-purple-600 to-indigo-600'
+                : isVisitor
+                ? 'bg-linear-to-tr from-emerald-600 to-teal-600'
+                : 'bg-linear-to-tr from-sky-500 to-indigo-500'
+            }`}
+            title={`${user?.name || 'User'} (@${user?.username}) - Klik untuk Profil & Ganti Password`}
+          >
+            {user?.avatar || (user?.name ? user.name[0]?.toUpperCase() : 'U')}
+          </button>
+
+          {/* User Profile Popover Dropdown */}
+          {isUserMenuOpen && (
+            <div className="absolute right-0 top-10 w-72 rounded-xl border border-border bg-card p-2 shadow-2xl z-50 text-xs animate-in fade-in slide-in-from-top-2 duration-150">
+              {/* User Header Info */}
+              <div className="flex items-center gap-2.5 p-2.5 rounded-lg bg-muted/40 border border-border/60 mb-1.5">
+                <div
+                  className={`flex size-9 shrink-0 items-center justify-center rounded-full text-white font-bold text-sm shadow-xs ${
+                    isAdmin
+                      ? 'bg-linear-to-tr from-purple-600 to-indigo-600'
+                      : isVisitor
+                      ? 'bg-linear-to-tr from-emerald-600 to-teal-600'
+                      : 'bg-linear-to-tr from-sky-500 to-indigo-500'
+                  }`}
+                >
+                  {user?.avatar || (user?.name ? user.name[0]?.toUpperCase() : 'U')}
+                </div>
+                <div className="leading-tight min-w-0 flex-1">
+                  <p className="font-bold text-foreground truncate">{user?.name || 'Pengguna'}</p>
+                  <p className="text-[10px] text-muted-foreground truncate font-mono">@{user?.username}</p>
+                  <span className="inline-block mt-1 text-[9px] font-semibold px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
+                    {getRoleDisplayName(user?.role)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="space-y-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsUserMenuOpen(false);
+                    setIsProfileModalOpen(true);
+                  }}
+                  className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-foreground hover:bg-sky-500/10 hover:text-sky-600 dark:hover:text-sky-400 transition cursor-pointer text-left font-medium"
+                >
+                  <UserCheck className="size-4 text-sky-500 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold">Profil &amp; Ganti Password</p>
+                    <p className="text-[10px] text-muted-foreground truncate">Ubah identitas, NIK &amp; kata sandi pribadi</p>
+                  </div>
+                </button>
+
+                {isAdmin && onNavigateTab && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsUserMenuOpen(false);
+                      onNavigateTab('admin-settings');
+                    }}
+                    className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-foreground hover:bg-purple-500/10 hover:text-purple-600 dark:hover:text-purple-400 transition cursor-pointer text-left font-medium"
+                  >
+                    <ShieldCheck className="size-4 text-purple-500 shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold">Pengaturan Admin</p>
+                      <p className="text-[10px] text-muted-foreground truncate">Kelola seluruh pengguna &amp; hak akses</p>
+                    </div>
+                  </button>
+                )}
+
+                <div className="border-t border-border/80 my-1 pt-1" />
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsUserMenuOpen(false);
+                    if (window.confirm('Apakah Anda yakin ingin keluar dari sistem?')) {
+                      logout();
+                    }
+                  }}
+                  className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 transition cursor-pointer text-left font-semibold"
+                >
+                  <LogOut className="size-3.5 shrink-0" />
+                  <span>Keluar dari Sistem</span>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -1285,6 +1394,12 @@ export default function Header({
         }}
         procurementCount={procurementData?.length || 0}
         inventoryCount={inventoryItems?.length || 0}
+      />
+      {/* Modal Profil & Ganti Password Mandiri */}
+      <UserProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        showToast={showToast}
       />
     </header>
   );
