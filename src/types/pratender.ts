@@ -72,6 +72,11 @@ export interface TenderEvaluationSummary {
   approvedAt?: string;
   approvalNotes?: string;
   baepNumber?: string; // Berita Acara Evaluasi Pengadaan No.
+  releaseTierId?: string;
+  releaseTierName?: string;
+  isPoReleased?: boolean;
+  poReleasedAt?: string;
+  poReleasedBy?: string;
 }
 
 export interface PratenderRequestRef {

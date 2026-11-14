@@ -44,6 +44,12 @@ import {
   TenderEvaluationSummary,
 } from '@/types/pratender';
 import { sanitizeTenderPackage } from '@/utils/tenderSanitizer';
+import {
+  getStoredTenderApprovalSettings,
+  determineRequiredApprovalTier,
+  checkUserCanReleaseTier,
+  TenderApprovalTierConfig,
+} from '@/utils/tenderApprovalConfig';
 
 interface Props {
   isOpen: boolean;
@@ -117,6 +123,17 @@ export default function CommercialBidTabulationModal({
   );
   const [approvalNotes, setApprovalNotes] = useState<string>(
     packageData.evaluationSummary?.approvalNotes || ''
+  );
+
+  // SAP Release Status State
+  const [evalApprovalStatus, setEvalApprovalStatus] = useState<'PENDING_APPROVAL' | 'APPROVED'>(
+    packageData.evaluationSummary?.approvalStatus === 'APPROVED' ? 'APPROVED' : 'PENDING_APPROVAL'
+  );
+  const [evalApprovedBy, setEvalApprovedBy] = useState<string | undefined>(
+    packageData.evaluationSummary?.approvedBy
+  );
+  const [evalApprovedAt, setEvalApprovedAt] = useState<string | undefined>(
+    packageData.evaluationSummary?.approvedAt
   );
 
   // Switch Technical Status with Winner Auto-Correction
@@ -417,23 +434,29 @@ export default function CommercialBidTabulationModal({
   };
 
   // Save full state back to Package and API
-  const handleSaveAllToPackage = async (finalStatus?: 'EVALUATION' | 'AWARDED' | 'COMPLETED') => {
+  const handleSaveAllToPackage = async (
+    finalStatus?: 'EVALUATION' | 'AWARDED' | 'COMPLETED',
+    extraOverrides?: Partial<TenderEvaluationSummary>
+  ) => {
+    // Validasi SAP Release Strategy: Tidak boleh terbitkan PO jika belum di-release oleh pejabat tier terkait
+    if (finalStatus === 'COMPLETED' && evalApprovalStatus !== 'APPROVED') {
+      alert(
+        `Penerbitan PO Dikunci!\n\nNilai kontrak sebesar Rp ${(winningBidValue || 0).toLocaleString(
+          'id-ID'
+        )} memerlukan otorisasi release resmi dari ${requiredTier.authorizedRoleLabel} (${
+          requiredTier.name
+        }) sebelum PO dapat diterbitkan ke sistem ERP.`
+      );
+      return;
+    }
+
     setIsSaving(true);
     try {
       // Find winning vendor details (strictly from technically eligible bids)
-      const eligibleBids = rankedBids.filter((b) => !b.isDisqualified);
-      const winner = (selectedWinnerId ? eligibleBids.find((b) => b.id === selectedWinnerId) : null) || eligibleBids[0] || rankedBids[0];
-      const winVal = winner ? (negotiatedTotals[winner.id] !== undefined ? negotiatedTotals[winner.id] : (winner.negotiatedGrandTotal || winner.grandTotal)) : undefined;
+      const winner = winningBid;
+      const winVal = winningBidValue;
       const costSaving = totalHps > 0 && winVal ? totalHps - winVal : 0;
       const costSavingPct = totalHps > 0 && winVal ? Math.round((costSaving / totalHps) * 1000) / 10 : 0;
-
-      // Determine required approval tier
-      let requiredTier: 'SUPERVISOR' | 'MANAGER' | 'DIREKSI' = 'SUPERVISOR';
-      if ((winVal || totalHps) > 250000000) {
-        requiredTier = 'DIREKSI';
-      } else if ((winVal || totalHps) > 50000000) {
-        requiredTier = 'MANAGER';
-      }
 
       const evalSummary: TenderEvaluationSummary = {
         evaluatedBy: userName,
@@ -444,12 +467,23 @@ export default function CommercialBidTabulationModal({
         winningAmount: winVal,
         costSavingVsHps: costSaving,
         costSavingPercent: costSavingPct,
-        approvalLevel: requiredTier,
-        approvalStatus: finalStatus === 'AWARDED' || finalStatus === 'COMPLETED' ? 'APPROVED' : 'PENDING_APPROVAL',
-        approvedBy: finalStatus === 'AWARDED' ? userName : undefined,
-        approvedAt: finalStatus === 'AWARDED' ? new Date().toISOString() : undefined,
+        approvalLevel:
+          requiredTier.authorizedRole === 'supervisor'
+            ? 'SUPERVISOR'
+            : requiredTier.authorizedRole === 'manager'
+            ? 'MANAGER'
+            : 'DIREKSI',
+        approvalStatus: evalApprovalStatus,
+        approvedBy: evalApprovedBy,
+        approvedAt: evalApprovedAt,
+        releaseTierId: requiredTier.id,
+        releaseTierName: requiredTier.name,
+        isPoReleased: evalApprovalStatus === 'APPROVED',
+        poReleasedAt: evalApprovalStatus === 'APPROVED' ? evalApprovedAt : undefined,
+        poReleasedBy: evalApprovalStatus === 'APPROVED' ? evalApprovedBy : undefined,
         approvalNotes: approvalNotes,
         baepNumber: `BAEP-${packageData.packageNumber.replace('PKG-', '')}`,
+        ...(extraOverrides || {}),
       };
 
       // Prepare updated bids with negotiation values and technical evaluation status
@@ -584,6 +618,65 @@ PT. Cipta Sarana Transindo - CPG Group
         ? negotiatedTotals[winningBid.id]
         : (winningBid.negotiatedGrandTotal || winningBid.grandTotal))
     : 0;
+
+  // Konfigurasi Matriks Otorisasi Berjenjang (SAP Release Strategy)
+  const approvalSettings = useMemo(() => getStoredTenderApprovalSettings(), []);
+  const requiredTier = useMemo(() => {
+    return determineRequiredApprovalTier(winningBidValue, approvalSettings);
+  }, [winningBidValue, approvalSettings]);
+
+  const canRelease = useMemo(() => {
+    return checkUserCanReleaseTier(userRole, requiredTier);
+  }, [userRole, requiredTier]);
+
+  // Handler: Release Otorisasi Persetujuan PO (SAP Release Strategy)
+  const handleReleaseApproval = async () => {
+    if (!canRelease.allowed) {
+      alert(`Akses Ditolak: ${canRelease.reason}`);
+      return;
+    }
+
+    const confirmMsg = `Otorisasi & Release Persetujuan Penerbitan PO?\n\n- Rekanan Calon Pemenang: ${winningBid?.vendorName}\n- Nilai Kontrak Akhir: Rp ${winningBidValue.toLocaleString('id-ID')}\n- Kategori Otorisasi: ${requiredTier.name} (${requiredTier.authorizedRoleLabel})\n- Di-release Oleh: ${userName} (${userRole || 'Otorisator'})\n\nSetelah di-release, panitia dapat langsung mencetak/menerbitkan Purchase Order (PO). Lanjutkan?`;
+    if (!confirm(confirmMsg)) return;
+
+    const nowIso = new Date().toISOString();
+    setEvalApprovalStatus('APPROVED');
+    setEvalApprovedBy(userName);
+    setEvalApprovedAt(nowIso);
+
+    // Otomatis simpan status release ke paket
+    await handleSaveAllToPackage('AWARDED', {
+      approvalStatus: 'APPROVED',
+      approvedBy: userName,
+      approvedAt: nowIso,
+      releaseTierId: requiredTier.id,
+      releaseTierName: requiredTier.name,
+      isPoReleased: true,
+      poReleasedAt: nowIso,
+      poReleasedBy: userName,
+    });
+
+    setSuccessMsg(`✓ Persetujuan berhasil di-release oleh ${userName} (${requiredTier.authorizedRoleLabel})! Tombol Terbitkan PO kini aktif.`);
+    setTimeout(() => setSuccessMsg(null), 4000);
+  };
+
+  // Handler: Batalkan Release Otorisasi PO
+  const handleRevokeRelease = async () => {
+    if (!confirm('Batalkan status release persetujuan untuk paket ini? Penerbitan Purchase Order akan dikunci kembali.')) return;
+    setEvalApprovalStatus('PENDING_APPROVAL');
+    setEvalApprovedBy(undefined);
+    setEvalApprovedAt(undefined);
+
+    await handleSaveAllToPackage('EVALUATION', {
+      approvalStatus: 'PENDING_APPROVAL',
+      approvedBy: undefined,
+      approvedAt: undefined,
+      isPoReleased: false,
+    });
+
+    setSuccessMsg('Status release otorisasi berhasil dibatalkan.');
+    setTimeout(() => setSuccessMsg(null), 3000);
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-150">
@@ -1784,31 +1877,254 @@ PT. Cipta Sarana Transindo - CPG Group
                 </div>
               </div>
 
-              {/* OTORISASI BERJENJANG MATRIKS APPROVAL */}
-              <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
-                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
-                  <ShieldCheck className="size-4 text-purple-600" />
-                  <span>Matriks Otorisasi Berjenjang (SAP Release Strategy)</span>
-                </h4>
+              {/* OTORISASI BERJENJANG MATRIKS APPROVAL (SAP RELEASE STRATEGY) */}
+              <div className="bg-card border border-border rounded-2xl p-4 space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h4 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+                    <ShieldCheck className="size-4 text-purple-600" />
+                    <span>Matriks Otorisasi Berjenjang (SAP Release Strategy)</span>
+                  </h4>
+                  {evalApprovalStatus === 'APPROVED' ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/30">
+                      <CheckCircle2 className="size-3.5" />
+                      Status: Released &amp; Disetujui (PO Unlocked)
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-600 border border-amber-500/30">
+                      <Lock className="size-3.5" />
+                      Status: Menunggu Release Otorisasi ({requiredTier.name})
+                    </span>
+                  )}
+                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                  <div className="p-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5">
-                    <span className="text-[10px] font-bold text-emerald-600 block">Tier 1: Nilai &le; 50 Jt</span>
-                    <strong className="text-foreground">Supervisor Pengadaan</strong>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">Otorisasi langsung pengadaan rutin armada</p>
-                  </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                  {/* Tier 1 Card */}
+                  {(() => {
+                    const isTierActive = requiredTier.id === 'tier-1';
+                    const isPassed = requiredTier.id === 'tier-2' || requiredTier.id === 'tier-3';
+                    return (
+                      <div
+                        className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between ${
+                          isTierActive
+                            ? evalApprovalStatus === 'APPROVED'
+                              ? 'border-emerald-500 bg-emerald-500/10 shadow-sm ring-2 ring-emerald-500/20'
+                              : 'border-purple-500 bg-purple-500/5 shadow-md ring-2 ring-purple-500/30'
+                            : isPassed
+                            ? 'border-border/60 bg-muted/30 opacity-60'
+                            : 'border-border/60 bg-muted/20 opacity-50'
+                        }`}
+                      >
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">
+                              Tier 1 &bull; Nilai &le; Rp {(approvalSettings.tier1.maxAmount || 5000000).toLocaleString('id-ID')}
+                            </span>
+                            {isTierActive && (
+                              <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-purple-600 text-white">
+                                TIER AKTIF
+                              </span>
+                            )}
+                          </div>
+                          <strong className="text-foreground block text-sm">{approvalSettings.tier1.authorizedRoleLabel}</strong>
+                          <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{approvalSettings.tier1.scopeDescription}</p>
+                        </div>
 
-                  <div className="p-3 rounded-xl border border-purple-500/20 bg-purple-500/5">
-                    <span className="text-[10px] font-bold text-purple-600 block">Tier 2: Nilai &le; 250 Jt</span>
-                    <strong className="text-foreground">Manager Purchasing</strong>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">Otorisasi tender suku cadang &amp; cat kapal</p>
-                  </div>
+                        {isTierActive && (
+                          <div className="mt-3 pt-3 border-t border-border/80">
+                            {evalApprovalStatus === 'APPROVED' ? (
+                              <div className="space-y-1.5">
+                                <div className="flex items-center gap-1.5 text-emerald-600 font-bold text-[11px]">
+                                  <Check className="size-3.5" />
+                                  <span>Telah Di-release Resmi</span>
+                                </div>
+                                <p className="text-[10px] text-muted-foreground">
+                                  Oleh: <strong className="text-foreground">{evalApprovedBy || 'Pejabat Berwenang'}</strong>
+                                  {evalApprovedAt && ` (${new Date(evalApprovedAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })})`}
+                                </p>
+                                <button
+                                  type="button"
+                                  onClick={handleRevokeRelease}
+                                  disabled={isSaving}
+                                  className="text-[10px] text-red-500 hover:underline inline-block mt-1 font-medium cursor-pointer"
+                                >
+                                  Batalkan Release
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="space-y-2">
+                                <button
+                                  type="button"
+                                  onClick={handleReleaseApproval}
+                                  disabled={!canRelease.allowed || isSaving}
+                                  className="w-full py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs inline-flex items-center justify-center gap-1.5 shadow transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                  title={canRelease.allowed ? 'Klik untuk release otorisasi penerbitan PO' : canRelease.reason}
+                                >
+                                  <ShieldCheck className="size-4" />
+                                  <span>Otorisasi &amp; Release PO</span>
+                                </button>
+                                {!canRelease.allowed && (
+                                  <p className="text-[10px] text-amber-600 dark:text-amber-400 leading-tight">
+                                    {canRelease.reason}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
 
-                  <div className="p-3 rounded-xl border border-sky-500/20 bg-sky-500/5">
-                    <span className="text-[10px] font-bold text-sky-600 block">Tier 3: Nilai &gt; 250 Jt</span>
-                    <strong className="text-foreground">Direktur Operasional / Keuangan</strong>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">Otorisasi tender kontrak payung / dok kapal</p>
-                  </div>
+                  {/* Tier 2 Card */}
+                  {(() => {
+                    const isTierActive = requiredTier.id === 'tier-2';
+                    const isBypassed = requiredTier.id === 'tier-3';
+                    return (
+                      <div
+                        className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between ${
+                          isTierActive
+                            ? evalApprovalStatus === 'APPROVED'
+                              ? 'border-emerald-500 bg-emerald-500/10 shadow-sm ring-2 ring-emerald-500/20'
+                              : 'border-purple-500 bg-purple-500/5 shadow-md ring-2 ring-purple-500/30'
+                            : isBypassed
+                            ? 'border-border/60 bg-muted/30 opacity-60'
+                            : 'border-border/60 bg-muted/20 opacity-50'
+                        }`}
+                      >
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-[10px] font-bold text-purple-600 uppercase tracking-wider">
+                              Tier 2 &bull; &le; Rp {(approvalSettings.tier2.maxAmount || 30000000).toLocaleString('id-ID')}
+                            </span>
+                            {isTierActive && (
+                              <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-purple-600 text-white">
+                                TIER AKTIF
+                              </span>
+                            )}
+                          </div>
+                          <strong className="text-foreground block text-sm">{approvalSettings.tier2.authorizedRoleLabel}</strong>
+                          <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{approvalSettings.tier2.scopeDescription}</p>
+                        </div>
+
+                        {isTierActive && (
+                          <div className="mt-3 pt-3 border-t border-border/80">
+                            {evalApprovalStatus === 'APPROVED' ? (
+                              <div className="space-y-1.5">
+                                <div className="flex items-center gap-1.5 text-emerald-600 font-bold text-[11px]">
+                                  <Check className="size-3.5" />
+                                  <span>Telah Di-release Resmi</span>
+                                </div>
+                                <p className="text-[10px] text-muted-foreground">
+                                  Oleh: <strong className="text-foreground">{evalApprovedBy || 'Pejabat Berwenang'}</strong>
+                                  {evalApprovedAt && ` (${new Date(evalApprovedAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })})`}
+                                </p>
+                                <button
+                                  type="button"
+                                  onClick={handleRevokeRelease}
+                                  disabled={isSaving}
+                                  className="text-[10px] text-red-500 hover:underline inline-block mt-1 font-medium cursor-pointer"
+                                >
+                                  Batalkan Release
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="space-y-2">
+                                <button
+                                  type="button"
+                                  onClick={handleReleaseApproval}
+                                  disabled={!canRelease.allowed || isSaving}
+                                  className="w-full py-2 px-3 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs inline-flex items-center justify-center gap-1.5 shadow transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                  title={canRelease.allowed ? 'Klik untuk release otorisasi penerbitan PO' : canRelease.reason}
+                                >
+                                  <ShieldCheck className="size-4" />
+                                  <span>Otorisasi &amp; Release PO</span>
+                                </button>
+                                {!canRelease.allowed && (
+                                  <p className="text-[10px] text-amber-600 dark:text-amber-400 leading-tight">
+                                    {canRelease.reason}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+
+                  {/* Tier 3 Card */}
+                  {(() => {
+                    const isTierActive = requiredTier.id === 'tier-3';
+                    return (
+                      <div
+                        className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between ${
+                          isTierActive
+                            ? evalApprovalStatus === 'APPROVED'
+                              ? 'border-emerald-500 bg-emerald-500/10 shadow-sm ring-2 ring-emerald-500/20'
+                              : 'border-purple-500 bg-purple-500/5 shadow-md ring-2 ring-purple-500/30'
+                            : 'border-border/60 bg-muted/20 opacity-50'
+                        }`}
+                      >
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-[10px] font-bold text-sky-600 uppercase tracking-wider">
+                              Tier 3 &bull; &gt; Rp {(approvalSettings.tier2.maxAmount || 30000000).toLocaleString('id-ID')}
+                            </span>
+                            {isTierActive && (
+                              <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-purple-600 text-white">
+                                TIER AKTIF
+                              </span>
+                            )}
+                          </div>
+                          <strong className="text-foreground block text-sm">{approvalSettings.tier3.authorizedRoleLabel}</strong>
+                          <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{approvalSettings.tier3.scopeDescription}</p>
+                        </div>
+
+                        {isTierActive && (
+                          <div className="mt-3 pt-3 border-t border-border/80">
+                            {evalApprovalStatus === 'APPROVED' ? (
+                              <div className="space-y-1.5">
+                                <div className="flex items-center gap-1.5 text-emerald-600 font-bold text-[11px]">
+                                  <Check className="size-3.5" />
+                                  <span>Telah Di-release Resmi</span>
+                                </div>
+                                <p className="text-[10px] text-muted-foreground">
+                                  Oleh: <strong className="text-foreground">{evalApprovedBy || 'Pejabat Berwenang'}</strong>
+                                  {evalApprovedAt && ` (${new Date(evalApprovedAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })})`}
+                                </p>
+                                <button
+                                  type="button"
+                                  onClick={handleRevokeRelease}
+                                  disabled={isSaving}
+                                  className="text-[10px] text-red-500 hover:underline inline-block mt-1 font-medium cursor-pointer"
+                                >
+                                  Batalkan Release
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="space-y-2">
+                                <button
+                                  type="button"
+                                  onClick={handleReleaseApproval}
+                                  disabled={!canRelease.allowed || isSaving}
+                                  className="w-full py-2 px-3 rounded-lg bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs inline-flex items-center justify-center gap-1.5 shadow transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                  title={canRelease.allowed ? 'Klik untuk release otorisasi penerbitan PO' : canRelease.reason}
+                                >
+                                  <ShieldCheck className="size-4" />
+                                  <span>Otorisasi &amp; Release PO</span>
+                                </button>
+                                {!canRelease.allowed && (
+                                  <p className="text-[10px] text-amber-600 dark:text-amber-400 leading-tight">
+                                    {canRelease.reason}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 <div>
@@ -1864,12 +2180,29 @@ PT. Cipta Sarana Transindo - CPG Group
             <button
               type="button"
               onClick={() => handleSaveAllToPackage('COMPLETED')}
-              disabled={isSaving || bids.length === 0}
-              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-md transition cursor-pointer disabled:opacity-50"
-              title="Terbitkan nomor PO resmi ERP untuk dimasukkan ke alur FSTB & TTB"
+              disabled={isSaving || bids.length === 0 || evalApprovalStatus !== 'APPROVED'}
+              className={`px-4 py-2 rounded-xl text-xs font-bold inline-flex items-center gap-1.5 shadow-md transition cursor-pointer disabled:opacity-50 ${
+                evalApprovalStatus === 'APPROVED'
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                  : 'bg-muted text-muted-foreground border border-border cursor-not-allowed'
+              }`}
+              title={
+                evalApprovalStatus === 'APPROVED'
+                  ? 'Terbitkan nomor PO resmi ERP untuk dimasukkan ke alur FSTB & TTB'
+                  : `Terkunci: Memerlukan otorisasi release dari ${requiredTier.authorizedRoleLabel} (${requiredTier.name})`
+              }
             >
-              <CheckCircle2 className="size-3.5" />
+              {evalApprovalStatus === 'APPROVED' ? (
+                <CheckCircle2 className="size-3.5" />
+              ) : (
+                <Lock className="size-3.5 text-amber-500" />
+              )}
               <span>Terbitkan Purchase Order (PO)</span>
+              {evalApprovalStatus !== 'APPROVED' && (
+                <span className="text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded border border-amber-500/20 ml-1">
+                  Terkunci
+                </span>
+              )}
             </button>
           </div>
         </div>

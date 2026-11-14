@@ -58,6 +58,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import ImageOptimizationCard from './ImageOptimizationCard';
+import TenderApprovalConfigCard from './TenderApprovalConfigCard';
 import SystemReleaseLogsCard from './SystemReleaseLogsCard';
 import ConfidentialUnlockModal from './ConfidentialUnlockModal';
 import { SYSTEM_CURRENT_VERSION } from '@/data/system-changelog';
@@ -2454,6 +2455,9 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
 
       {/* Kartu Pengaturan Optimasi & Auto-Scaling Penyimpanan Foto */}
       <ImageOptimizationCard isAdmin={isAdmin} showToast={showToast} />
+
+      {/* Kartu Pengaturan Matriks Otorisasi Berjenjang Tender (SAP Release Strategy) */}
+      <TenderApprovalConfigCard isAdmin={isAdmin} showToast={showToast} />
 
       {/* Kartu Pengaturan Keamanan Nilai Finansial (Confidential PIN & Hak Akses) */}
       <div className="bg-card border border-border rounded-2xl p-5 sm:p-6 shadow-sm space-y-4">
