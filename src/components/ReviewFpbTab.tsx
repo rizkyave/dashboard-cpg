@@ -55,6 +55,8 @@ import {
   FileSpreadsheet,
   ShieldCheck,
   Upload,
+  Archive,
+  RotateCcw,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import {
@@ -115,6 +117,7 @@ const PURCHASING_PICS = [
 
 export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabProps) {
   const { user } = useAuth();
+  const isAdmin = !user || user.role === 'direksi' || user.role === 'manager' || user.role === 'supervisor' || user.role === 'staf_purchasing';
 
   // Data states
   const [reviews, setReviews] = useState<FpbReviewRecord[]>([]);
@@ -166,6 +169,11 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
   const [formIsReceivedLogistik, setFormIsReceivedLogistik] = useState<boolean>(false);
   const [isApprovingLogistic, setIsApprovingLogistic] = useState<boolean>(false);
   const [isVerifyingEfpb, setIsVerifyingEfpb] = useState<boolean>(false);
+
+  // Clean Sheet & Archive States
+  const [sheetViewMode, setSheetViewMode] = useState<'active' | 'archived'>('active');
+  const [isCleanSheetModalOpen, setIsCleanSheetModalOpen] = useState<boolean>(false);
+  const [isCleaningSheet, setIsCleaningSheet] = useState<boolean>(false);
 
   // Requester (Pembuat e-FPB) & Kontak WA state
   const [formRequestedBy, setFormRequestedBy] = useState<string>('');
@@ -369,86 +377,171 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
     reader.readAsBinaryString(file);
   };
 
-  // Upload PDF FPB Mandiri & Ekstrak Item
+  // Upload Multi-PDF FPB Mandiri & Ekstrak Item Sekaligus
   const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const fileList = e.target.files;
+    if (!fileList || fileList.length === 0) return;
+    const files = Array.from(fileList);
 
     try {
       setIsSyncing(true);
-      showToast?.(`Membaca dan mengekstrak isi berkas PDF ${file.name}...`, 'info');
+      showToast?.(`Memulai pemrosesan ${files.length} berkas PDF FPB...`, 'info');
 
-      const formData = new FormData();
-      formData.append('file', file);
+      const extractedRecords: FpbReviewRecord[] = [];
+      let successCount = 0;
+      let failCount = 0;
 
-      const res = await fetch('/api/parse-fpb-pdf', {
-        method: 'POST',
-        body: formData,
-      });
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        showToast?.(`Mengekstrak PDF (${i + 1}/${files.length}): ${file.name}...`, 'info');
 
-      const json = await res.json();
-      if (json.success && json.data) {
-        const pd = json.data;
-        const cleanNo = (pd.fpbNo || file.name.replace(/\.pdf$/i, '')).trim();
+        try {
+          const formData = new FormData();
+          formData.append('file', file);
 
-        const newRecord: FpbReviewRecord = {
-          id: `fpb-rev-${cleanNo}`,
-          fpbNo: cleanNo,
-          originalFpb: cleanNo,
-          entity: cleanNo.split('-')[0] || 'CPL',
-          armada: pd.userArmada || 'Armada Kapal',
-          date: pd.fpbDate || new Date().toLocaleDateString('id-ID'),
-          purpose: pd.tujuanPeruntukan || 'Pengadaan suku cadang/kebutuhan armada',
-          efpbStatus: 'Approved',
-          isReceivedLogistik: Boolean(pd.isLogistikApproved),
-          pdfUrl: `/api/review-fpb/pdf?fpbNo=${encodeURIComponent(cleanNo)}&type=signed`,
-          reviewStatus: 'PENDING_REVIEW',
-          urgency: 'NORMAL',
-          priorityLevel: 'P2',
-          picPurchasing: '-',
-          reviewNotes: 'Diekstrak dari unggahan file PDF fisik mandiri',
-          items: pd.items.map((it: any, i: number) => ({
-            no: it.no || i + 1,
-            itemCode: it.itemCode || '-',
-            itemName: it.itemName || `Barang ${i + 1}`,
-            qty: Number(it.qty) || 1,
-            unit: it.unit || 'PCS',
-            description: it.description || '',
-            priority: it.priority || 'P2',
-            stockAvailable: 0,
-            stockStatus: 'OUT_OF_STOCK',
-            decision: 'PO',
-            notes: 'Menunggu review tim purchasing',
-          })),
-          duplicateAlerts: [],
-          relatedDocs: { poNos: [], fstbNos: [], ttbNos: [] },
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
+          const res = await fetch('/api/parse-fpb-pdf', {
+            method: 'POST',
+            body: formData,
+          });
 
+          const json = await res.json();
+          if (json.success && json.data) {
+            const pd = json.data;
+            const cleanNo = (pd.fpbNo || file.name.replace(/\.pdf$/i, '')).trim();
+
+            const newRecord: FpbReviewRecord = {
+              id: `fpb-rev-${cleanNo}`,
+              fpbNo: cleanNo,
+              originalFpb: cleanNo,
+              entity: cleanNo.split('-')[0] || 'CPL',
+              armada: pd.userArmada || 'Armada Kapal',
+              date: pd.fpbDate || new Date().toLocaleDateString('id-ID'),
+              purpose: pd.tujuanPeruntukan || 'Pengadaan suku cadang/kebutuhan armada',
+              efpbStatus: 'Approved',
+              isReceivedLogistik: Boolean(pd.isLogistikApproved),
+              pdfUrl: `/api/review-fpb/pdf?fpbNo=${encodeURIComponent(cleanNo)}&type=signed`,
+              reviewStatus: 'PENDING_REVIEW',
+              urgency: 'NORMAL',
+              priorityLevel: 'P2',
+              picPurchasing: '-',
+              reviewNotes: 'Diekstrak dari unggahan berkas PDF fisik (Multi-Upload)',
+              isArchived: false,
+              items: (pd.items || []).map((it: any, idx: number) => ({
+                no: it.no || idx + 1,
+                itemCode: it.itemCode || '-',
+                itemName: it.itemName || `Barang ${idx + 1}`,
+                qty: Number(it.qty) || 1,
+                unit: it.unit || 'PCS',
+                description: it.description || '',
+                priority: it.priority || 'P2',
+                stockAvailable: 0,
+                stockStatus: 'OUT_OF_STOCK',
+                decision: 'PO',
+                notes: 'Menunggu review tim purchasing',
+              })),
+              duplicateAlerts: [],
+              relatedDocs: { poNos: [], fstbNos: [], ttbNos: [] },
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            };
+
+            extractedRecords.push(newRecord);
+            successCount++;
+          } else {
+            failCount++;
+            console.warn(`Gagal parse PDF ${file.name}:`, json.message);
+          }
+        } catch (fileErr) {
+          failCount++;
+          console.error(`Error processing PDF ${file.name}:`, fileErr);
+        }
+      }
+
+      if (extractedRecords.length > 0) {
+        showToast?.(`Menyimpan ${extractedRecords.length} berkas FPB baru ke lembar kerja aktif...`, 'info');
         const saveRes = await fetch('/api/review-fpb', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             action: 'import_records',
-            records: [newRecord],
+            records: extractedRecords,
           }),
         });
 
         const saveJson = await saveRes.json();
         if (saveJson.success) {
-          showToast?.(`Berhasil mencatat berkas FPB ${cleanNo} dengan ${pd.items?.length || 0} item material dari PDF!`, 'success');
+          showToast?.(
+            `Berhasil mengimpor ${extractedRecords.length} berkas FPB ke lembar aktif!${failCount > 0 ? ` (${failCount} berkas gagal)` : ''}`,
+            'success'
+          );
+          setSheetViewMode('active');
           fetchReviews();
         }
       } else {
-        showToast?.(json.message || 'Gagal mengekstrak teks dari PDF', 'warning');
+        showToast?.('Tidak ada berkas PDF yang berhasil diekstrak.', 'warning');
       }
     } catch (err: any) {
-      console.error('Error uploading PDF FPB:', err);
-      showToast?.('Gagal mengunggah file PDF: ' + err.message, 'error');
+      console.error('Error uploading PDF FPB batch:', err);
+      showToast?.('Gagal memproses batch PDF: ' + err.message, 'error');
     } finally {
       setIsSyncing(false);
       if (e.target) e.target.value = '';
+    }
+  };
+
+  // Handler Clean Sheet (Arsipkan Semua FPB Aktif)
+  const handleExecuteCleanSheet = async () => {
+    try {
+      setIsCleaningSheet(true);
+      const res = await fetch('/api/review-fpb', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'clean_sheet_archive',
+          archivedBy: user?.name || user?.username || 'Administrator',
+        }),
+      });
+
+      const json = await res.json();
+      if (json.success) {
+        showToast?.(
+          json.message || 'Lembar kerja berhasil dibersihkan (Clean Sheet). Data lama aman tersimpan di riwayat arsip.',
+          'success'
+        );
+        setIsCleanSheetModalOpen(false);
+        setSheetViewMode('active');
+        fetchReviews();
+      } else {
+        showToast?.(json.message || 'Gagal membersihkan lembar kerja.', 'error');
+      }
+    } catch (err: any) {
+      showToast?.('Error saat clean sheet: ' + err.message, 'error');
+    } finally {
+      setIsCleaningSheet(false);
+    }
+  };
+
+  // Handler Restore Record from Archive
+  const handleRestoreFromArchive = async (fpbNos?: string[]) => {
+    try {
+      const res = await fetch('/api/review-fpb', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'restore_archive',
+          fpbNos,
+        }),
+      });
+
+      const json = await res.json();
+      if (json.success) {
+        showToast?.(json.message || 'Berkas FPB berhasil dikembalikan ke lembar aktif.', 'success');
+        fetchReviews();
+      } else {
+        showToast?.(json.message || 'Gagal mengembalikan berkas.', 'error');
+      }
+    } catch (err: any) {
+      showToast?.('Error saat restore arsip: ' + err.message, 'error');
     }
   };
 
@@ -1152,6 +1245,13 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
   // Filtered Reviews Memo
   const filteredReviews = useMemo(() => {
     return reviews.filter((r) => {
+      // 0. Sheet View Mode (Lembar Aktif vs Arsip Riwayat)
+      if (sheetViewMode === 'active') {
+        if (r.isArchived) return false;
+      } else if (sheetViewMode === 'archived') {
+        if (!r.isArchived) return false;
+      }
+
       // 1. Search Query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
@@ -1198,7 +1298,11 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
 
       return true;
     });
-  }, [reviews, searchQuery, selectedEntity, selectedStatus, selectedUrgency, selectedPriority, onlyDuplicates]);
+  }, [reviews, sheetViewMode, searchQuery, selectedEntity, selectedStatus, selectedUrgency, selectedPriority, onlyDuplicates]);
+
+  // Statistik Berkas Aktif vs Diarsipkan
+  const activeCount = useMemo(() => reviews.filter((r) => !r.isArchived).length, [reviews]);
+  const archivedCount = useMemo(() => reviews.filter((r) => Boolean(r.isArchived)).length, [reviews]);
 
   // Helper Priority Badge
   const getPriorityBadge = (priority?: FpbPriorityLevel) => {
@@ -1403,6 +1507,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
           ref={pdfInputRef}
           onChange={handlePdfUpload}
           accept=".pdf"
+          multiple
           className="hidden"
         />
 
@@ -1443,17 +1548,31 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
             <span>Import Excel / CSV</span>
           </button>
 
-          {/* Upload File PDF FPB Fisik & Ekstrak Item */}
+          {/* Upload File PDF FPB Fisik (Multi-Upload) */}
           <button
             type="button"
             onClick={() => pdfInputRef.current?.click()}
             disabled={isSyncing}
             className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl border border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300 hover:bg-sky-500/20 transition shadow-2xs cursor-pointer disabled:opacity-50"
-            title="Unggah berkas PDF FPB kapal untuk diekstrak itemnya secara mandiri"
+            title="Unggah satu atau banyak berkas PDF FPB sekaligus (Multi-Select) untuk diekstrak otomatis"
           >
             <Upload className="size-4 text-sky-600 dark:text-sky-400" />
-            <span>Upload PDF FPB</span>
+            <span>Upload PDF FPB (Multi)</span>
           </button>
+
+          {/* Tombol Clean Sheet & Arsip Khusus Admin / Pengadaan */}
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={() => setIsCleanSheetModalOpen(true)}
+              disabled={activeCount === 0 || isSyncing}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl border border-amber-500/40 bg-amber-500/15 text-amber-800 dark:text-amber-200 hover:bg-amber-500/25 transition shadow-2xs cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              title="Arsipkan seluruh berkas FPB saat ini ke riwayat database & buat lembar bersih (Clean Sheet)"
+            >
+              <Archive className="size-4 text-amber-600 dark:text-amber-400" />
+              <span>Arsipkan &amp; Clean Sheet</span>
+            </button>
+          )}
 
           {/* Tombol Input Manual Mandiri */}
           <button
@@ -1466,6 +1585,59 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
             <span>Catat FPB Baru</span>
           </button>
         </div>
+      </div>
+
+      {/* Toggle Lembar Aktif vs Arsip Riwayat FPB */}
+      <div className="flex items-center justify-between flex-wrap gap-2 pt-1">
+        <div className="flex items-center p-1 rounded-xl bg-muted border border-border text-xs gap-1">
+          <button
+            type="button"
+            onClick={() => setSheetViewMode('active')}
+            className={`px-3.5 py-1.5 rounded-lg font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+              sheetViewMode === 'active'
+                ? 'bg-card text-foreground shadow-xs font-bold'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Sparkles className="size-3.5 text-primary" />
+            <span>Lembar Aktif ({activeCount})</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setSheetViewMode('archived')}
+            className={`px-3.5 py-1.5 rounded-lg font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+              sheetViewMode === 'archived'
+                ? 'bg-card text-foreground shadow-xs font-bold'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Archive className="size-3.5 text-amber-600" />
+            <span>Arsip Riwayat ({archivedCount})</span>
+          </button>
+        </div>
+
+        {sheetViewMode === 'archived' && (
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-muted-foreground text-[11px]">
+              Menampilkan riwayat berkas FPB yang telah diarsipkan di database.
+            </span>
+            {isAdmin && archivedCount > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (confirm('Kembalikan seluruh berkas dari arsip ke lembar aktif?')) {
+                    handleRestoreFromArchive();
+                  }
+                }}
+                className="px-2.5 py-1 rounded-lg border border-border bg-background hover:bg-muted text-foreground text-xs font-medium inline-flex items-center gap-1 cursor-pointer"
+                title="Pulihkan seluruh berkas arsip kembali ke lembar aktif"
+              >
+                <RotateCcw className="size-3 text-sky-600" />
+                <span>Pulihkan Semua ke Lembar Aktif</span>
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ======================================================== */}
@@ -1816,27 +1988,69 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
             <p className="text-xs text-muted-foreground mt-1">Mengambil data dari Cloud Storage dan sinkronisasi status</p>
           </div>
         ) : filteredReviews.length === 0 ? (
-          <div className="p-12 text-center space-y-3">
-            <FileSearch className="size-10 mx-auto text-muted-foreground/60" />
-            <p className="text-sm font-semibold text-foreground">Tidak ada FPB yang cocok dengan kriteria filter</p>
-            <p className="text-xs text-muted-foreground max-w-md mx-auto">
-              Coba atur ulang kata kunci pencarian atau klik tombol "Sync E-FPB" untuk menarik berkas terbaru dari server e-FPB.
-            </p>
-            <button
-              type="button"
-              onClick={() => {
-                setSearchQuery('');
-                setSelectedEntity('ALL');
-                setSelectedStatus('ALL');
-                setSelectedPriority('ALL');
-                setSelectedUrgency('ALL');
-                setOnlyDuplicates(false);
-              }}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border border-border bg-background text-foreground hover:bg-muted transition"
-            >
-              Reset Semua Filter
-            </button>
-          </div>
+          sheetViewMode === 'active' && activeCount === 0 ? (
+            <div className="p-12 text-center space-y-4">
+              <div className="size-16 rounded-2xl bg-primary/10 text-primary mx-auto flex items-center justify-center">
+                <Sparkles className="size-8" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-base font-bold text-foreground">Lembar Kerja Bersih (Clean Sheet Aktif)</h4>
+                <p className="text-xs text-muted-foreground max-w-lg mx-auto">
+                  Seluruh berkas FPB batch sebelumnya telah aman diarsipkan ke database riwayat ({archivedCount} berkas). Lembar review saat ini kosong dan siap menerima berkas FPB baru sebagai dasar perencanaan pengadaan barang.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => pdfInputRef.current?.click()}
+                  className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+                >
+                  <Upload className="size-4" />
+                  <span>Upload PDF FPB (Multi-Select)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => excelInputRef.current?.click()}
+                  className="px-4 py-2 rounded-xl border border-border bg-background hover:bg-muted text-foreground font-semibold text-xs inline-flex items-center gap-1.5 transition cursor-pointer"
+                >
+                  <FileSpreadsheet className="size-4 text-emerald-600" />
+                  <span>Import Excel / CSV</span>
+                </button>
+                {archivedCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setSheetViewMode('archived')}
+                    className="px-3.5 py-2 rounded-xl border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground text-xs inline-flex items-center gap-1.5 transition cursor-pointer"
+                  >
+                    <Archive className="size-3.5 text-amber-600" />
+                    <span>Lihat Riwayat Arsip ({archivedCount})</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="p-12 text-center space-y-3">
+              <FileSearch className="size-10 mx-auto text-muted-foreground/60" />
+              <p className="text-sm font-semibold text-foreground">Tidak ada FPB yang cocok dengan kriteria filter</p>
+              <p className="text-xs text-muted-foreground max-w-md mx-auto">
+                Coba atur ulang kata kunci pencarian atau ganti mode filter lembar tampilan.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('');
+                  setSelectedEntity('ALL');
+                  setSelectedStatus('ALL');
+                  setSelectedPriority('ALL');
+                  setSelectedUrgency('ALL');
+                  setOnlyDuplicates(false);
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border border-border bg-background text-foreground hover:bg-muted transition cursor-pointer"
+              >
+                Reset Semua Filter
+              </button>
+            </div>
+          )
         ) : (
           <>
             <div className="overflow-x-auto">
@@ -2025,15 +2239,31 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
 
                       {/* Aksi */}
                       <td className="py-3 px-4 text-center whitespace-nowrap w-24" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          type="button"
-                          onClick={() => handleOpenReview(rec)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition shadow-2xs cursor-pointer"
-                        >
-                          <FileSearch className="size-3.5" />
-                          <span>Review</span>
-                          <ChevronRight className="size-3" />
-                        </button>
+                        <div className="inline-flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenReview(rec)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition shadow-2xs cursor-pointer"
+                            title="Buka detail analisa & disposisi FPB"
+                          >
+                            <FileSearch className="size-3.5" />
+                            <span>Review</span>
+                          </button>
+                          {rec.isArchived && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (confirm(`Kembalikan FPB ${rec.fpbNo} ke lembar aktif?`)) {
+                                  handleRestoreFromArchive([rec.fpbNo]);
+                                }
+                              }}
+                              className="p-1.5 text-muted-foreground hover:text-sky-600 hover:bg-sky-500/10 rounded-lg transition cursor-pointer"
+                              title="Pulihkan berkas ini kembali ke Lembar Aktif"
+                            >
+                              <RotateCcw className="size-3.5" />
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -3733,6 +3963,74 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                 alt={previewImageModal.title}
                 className="max-w-full max-h-[75vh] object-contain rounded-lg shadow-md"
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL KONFIRMASI CLEAN SHEET (ARSIP BATCH FPB) */}
+      {isCleanSheetModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150"
+          onClick={() => setIsCleanSheetModalOpen(false)}
+        >
+          <div
+            className="relative w-full max-w-md bg-card border border-border rounded-2xl shadow-2xl p-5 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-600 border border-amber-500/20">
+                <Archive className="size-6" />
+              </div>
+              <div>
+                <h3 className="font-bold text-foreground text-sm">
+                  Mulai Lembar Bersih (Clean Sheet)?
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Arsipkan seluruh FPB aktif untuk memulai siklus perencanaan pengadaan baru.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-3 rounded-xl bg-muted/60 border border-border text-xs space-y-2 text-muted-foreground">
+              <p>
+                Tindakan ini akan memindahkan <strong className="text-foreground">{activeCount} berkas FPB aktif</strong> ke database riwayat/arsip.
+              </p>
+              <div className="p-2.5 rounded-lg bg-background border border-border text-[11px] text-amber-800 dark:text-amber-300 flex items-start gap-1.5">
+                <ShieldCheck className="size-3.5 shrink-0 mt-0.5 text-emerald-600" />
+                <span>
+                  <strong>Data Aman 100%:</strong> Seluruh berkas FPB lama tidak dihapus. Anda dapat melihat kembali atau memulihkannya kapan saja melalui tab <strong>Arsip Riwayat</strong>.
+                </span>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-border">
+              <button
+                type="button"
+                onClick={() => setIsCleanSheetModalOpen(false)}
+                disabled={isCleaningSheet}
+                className="px-3.5 py-1.5 rounded-xl border border-border bg-background hover:bg-muted text-xs font-semibold text-foreground transition cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleExecuteCleanSheet}
+                disabled={isCleaningSheet}
+                className="px-4 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-sm transition cursor-pointer disabled:opacity-50"
+              >
+                {isCleaningSheet ? (
+                  <>
+                    <RefreshCw className="size-3.5 animate-spin" />
+                    <span>Mengarsipkan...</span>
+                  </>
+                ) : (
+                  <>
+                    <Archive className="size-3.5" />
+                    <span>Ya, Arsipkan &amp; Clean Sheet</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>

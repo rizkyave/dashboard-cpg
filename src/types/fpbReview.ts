@@ -124,6 +124,9 @@ export interface FpbReviewRecord {
   isRevised?: boolean;
   revisionCount?: number;
   revisionNote?: string;
+  isArchived?: boolean;
+  archivedAt?: string;
+  archivedBy?: string;
   updatedAt: string;
   createdAt: string;
 }

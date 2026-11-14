@@ -1373,6 +1373,70 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // ----------------------------------------------------
+    // Action 7: Clean Sheet (Soft Archive Active FPB Records)
+    // ----------------------------------------------------
+    if (action === 'clean_sheet_archive') {
+      const archivedBy = body.archivedBy || 'Administrator';
+      const nowIso = new Date().toISOString();
+      let count = 0;
+
+      records = records.map((r) => {
+        if (!r.isArchived) {
+          count++;
+          return {
+            ...r,
+            isArchived: true,
+            archivedAt: nowIso,
+            archivedBy,
+            updatedAt: nowIso,
+          };
+        }
+        return r;
+      });
+
+      await saveReviews(records);
+
+      return NextResponse.json({
+        success: true,
+        message: `Berhasil mengarsipkan ${count} berkas FPB ke riwayat database. Lembar kerja aktif sekarang menjadi Clean Sheet!`,
+        archivedCount: count,
+        total: records.length,
+      });
+    }
+
+    // ----------------------------------------------------
+    // Action 8: Restore Archived Records to Active Sheet
+    // ----------------------------------------------------
+    if (action === 'restore_archive') {
+      const { fpbNos } = body;
+      const nowIso = new Date().toISOString();
+      let count = 0;
+
+      records = records.map((r) => {
+        if (r.isArchived) {
+          if (!fpbNos || !Array.isArray(fpbNos) || fpbNos.includes(r.fpbNo)) {
+            count++;
+            return {
+              ...r,
+              isArchived: false,
+              updatedAt: nowIso,
+            };
+          }
+        }
+        return r;
+      });
+
+      await saveReviews(records);
+
+      return NextResponse.json({
+        success: true,
+        message: `Berhasil mengembalikan ${count} berkas FPB dari arsip ke lembar aktif.`,
+        restoredCount: count,
+        total: records.length,
+      });
+    }
+
     return NextResponse.json(
       { success: false, message: `Action "${action}" tidak dikenali.` },
       { status: 400 }
