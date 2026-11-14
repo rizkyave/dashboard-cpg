@@ -34,6 +34,7 @@ import {
   PratenderStatus,
   VendorBidSubmission,
 } from '@/types/pratender';
+import { sanitizeTenderPackages } from '@/utils/tenderSanitizer';
 import CommercialBidTabulationModal from './CommercialBidTabulationModal';
 import VendorTenderPortalModal from './VendorTenderPortalModal';
 import {
@@ -82,7 +83,7 @@ export default function TenderManagementTab({ showToast, onNavigateTab }: Props)
       if (res.ok) {
         const json = await res.json();
         if (json.success && Array.isArray(json.packages)) {
-          setPackages(json.packages);
+          setPackages(sanitizeTenderPackages(json.packages));
         }
       }
     } catch (err: any) {

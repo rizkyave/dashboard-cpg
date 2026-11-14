@@ -1,5 +1,6 @@
 import { PDFDocument, rgb, StandardFonts, PageSizes } from 'pdf-lib';
 import { PratenderPackage, VendorBidSubmission } from '@/types/pratender';
+import { isNonMaterialOrSignature } from '@/utils/tenderSanitizer';
 
 /**
  * Format currency ke Rupiah
@@ -166,8 +167,12 @@ export async function generateRksDocumentPdf(pkg: PratenderPackage): Promise<Uin
     return false;
   };
 
-  // Iterasi seluruh item material tanpa pembatasan slice (100% lengkap)
-  (pkg.items || []).forEach((item, idx) => {
+  // Iterasi seluruh item material fisik valid (membersihkan baris footnote/signature jika ada)
+  const validItems = (pkg.items || []).filter(
+    (item) => !isNonMaterialOrSignature(item.itemName, item.itemId)
+  );
+
+  validItems.forEach((item, idx) => {
     addNewPageIfOverflow(25);
 
     const isEven = idx % 2 === 0;
@@ -626,7 +631,10 @@ export async function generatePoAwardDocumentPdf(
   };
 
   let grandTotalPo = 0;
-  (pkg.items || []).forEach((item, idx) => {
+  const validPoItems = (pkg.items || []).filter(
+    (item) => !isNonMaterialOrSignature(item.itemName, item.itemId)
+  );
+  validPoItems.forEach((item, idx) => {
     // Check if new row fits on current page
     const isNewPage = addNewPageIfOverflow(25);
     if (isNewPage) {

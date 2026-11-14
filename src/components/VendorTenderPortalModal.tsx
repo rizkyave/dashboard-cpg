@@ -25,6 +25,7 @@ import {
 import { PratenderPackage, VendorBidSubmission, VendorBidItem } from '@/types/pratender';
 import { generateRksDocumentPdf, triggerBrowserPdfDownload } from '@/utils/tenderDocumentGenerator';
 import { generateTenderBiddingExcel, parseTenderBiddingExcel } from '@/utils/tenderExcelBidding';
+import { isNonMaterialOrSignature } from '@/utils/tenderSanitizer';
 
 interface Props {
   isOpen: boolean;
@@ -55,18 +56,20 @@ export default function VendorTenderPortalModal({
   const [deliveryLeadTimeDays, setDeliveryLeadTimeDays] = useState(7);
   const [francoDeliveryPoint, setFrancoDeliveryPoint] = useState('Gudang Somber Balikpapan / Dermaga CPG');
 
-  // Item Bids State
+  // Item Bids State (hanya item material valid)
   const [items, setItems] = useState<VendorBidItem[]>(() =>
-    packageData.items.map((it) => ({
-      itemId: it.itemId,
-      itemName: it.itemName,
-      qty: it.totalQty,
-      unitPrice: it.targetPrice || 0,
-      totalPrice: (it.targetPrice || 0) * it.totalQty,
-      brandOffered: '',
-      compliance: 'COMPLIANT',
-      notes: '',
-    }))
+    (packageData.items || [])
+      .filter((it) => !isNonMaterialOrSignature(it.itemName, it.itemId))
+      .map((it) => ({
+        itemId: it.itemId,
+        itemName: it.itemName,
+        qty: it.totalQty,
+        unitPrice: it.targetPrice || 0,
+        totalPrice: (it.targetPrice || 0) * it.totalQty,
+        brandOffered: '',
+        compliance: 'COMPLIANT',
+        notes: '',
+      }))
   );
 
   // Uploaded Official Doc (PDF)

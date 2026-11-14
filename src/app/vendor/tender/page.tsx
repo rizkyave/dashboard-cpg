@@ -20,6 +20,7 @@ import {
 import { PratenderPackage, VendorBidSubmission, VendorBidItem } from '@/types/pratender';
 import { generateRksDocumentPdf, triggerBrowserPdfDownload } from '@/utils/tenderDocumentGenerator';
 import { generateTenderBiddingExcel, parseTenderBiddingExcel } from '@/utils/tenderExcelBidding';
+import { isNonMaterialOrSignature } from '@/utils/tenderSanitizer';
 
 function VendorTenderPortalContent() {
   const searchParams = useSearchParams();
@@ -79,8 +80,11 @@ function VendorTenderPortalContent() {
             const match = json.packages.find((p: PratenderPackage) => p.id === pkgId);
             if (match) {
               setPackageData(match);
+              const validItems = (match.items || []).filter(
+                (it: any) => !isNonMaterialOrSignature(it.itemName, it.itemId)
+              );
               setItems(
-                match.items.map((it: any) => ({
+                validItems.map((it: any) => ({
                   itemId: it.itemId,
                   itemName: it.itemName,
                   qty: it.totalQty,

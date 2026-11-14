@@ -40,6 +40,7 @@ import {
   ProcurementMethod,
   TenderEvaluationSummary,
 } from '@/types/pratender';
+import { sanitizeTenderPackage } from '@/utils/tenderSanitizer';
 
 interface Props {
   isOpen: boolean;
@@ -55,11 +56,12 @@ type CbtSubTab = 'matrix' | 'scoring' | 'negotiation' | 'awarding';
 export default function CommercialBidTabulationModal({
   isOpen,
   onClose,
-  packageData,
+  packageData: rawPackageData,
   onSavePackage,
   userRole = 'staf_purchasing',
   userName = 'Staf Pengadaan',
 }: Props) {
+  const packageData = useMemo(() => sanitizeTenderPackage(rawPackageData), [rawPackageData]);
   const [activeTab, setActiveTab] = useState<CbtSubTab>('matrix');
   const [bids, setBids] = useState<VendorBidSubmission[]>(
     packageData.vendorBids || []

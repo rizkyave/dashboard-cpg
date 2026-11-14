@@ -1,11 +1,17 @@
 import * as XLSX from 'xlsx';
 import { PratenderPackage, VendorBidItem } from '@/types/pratender';
+import { isNonMaterialOrSignature } from '@/utils/tenderSanitizer';
 
 /**
  * Generate Excel file template untuk penawaran harga rekanan (Bidding Sheet)
  */
 export function generateTenderBiddingExcel(pkg: PratenderPackage, vendorName: string = ''): void {
   const wb = XLSX.utils.book_new();
+
+  // Validasi & filter ketat: hanya item material fisik yang masuk ke sheet Excel
+  const validItems = (pkg.items || []).filter(
+    (item) => !isNonMaterialOrSignature(item.itemName, item.itemId)
+  );
 
   // Header info
   const sheetData: any[][] = [
@@ -42,7 +48,7 @@ export function generateTenderBiddingExcel(pkg: PratenderPackage, vendorName: st
 
   // Rows
   const startRowIdx = sheetData.length + 1; // 1-indexed Excel row
-  pkg.items.forEach((item, idx) => {
+  validItems.forEach((item, idx) => {
     const rowNum = startRowIdx + idx;
     sheetData.push([
       idx + 1,
@@ -58,7 +64,7 @@ export function generateTenderBiddingExcel(pkg: PratenderPackage, vendorName: st
   });
 
   // Summary Rows
-  const lastItemRow = startRowIdx + pkg.items.length - 1;
+  const lastItemRow = startRowIdx + Math.max(validItems.length - 1, 0);
   sheetData.push([]);
   sheetData.push([
     '',
@@ -189,8 +195,11 @@ export function parseTenderBiddingExcel(
     const parsedItems: VendorBidItem[] = [];
     let subtotal = 0;
 
-    // Map existing pkg items by itemId
-    const itemMap = new Map(pkg.items.map((it) => [it.itemId.trim().toLowerCase(), it]));
+    // Map existing pkg items by itemId (hanya valid material items)
+    const validPkgItems = (pkg.items || []).filter(
+      (it) => !isNonMaterialOrSignature(it.itemName, it.itemId)
+    );
+    const itemMap = new Map(validPkgItems.map((it) => [it.itemId.trim().toLowerCase(), it]));
 
     for (let r = headerRowIdx + 1; r < rawRows.length; r++) {
       const row = rawRows[r];

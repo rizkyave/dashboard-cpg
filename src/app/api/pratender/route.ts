@@ -7,6 +7,7 @@ import {
   getObjectFromR2,
   uploadToR2,
 } from '@/utils/r2Client';
+import { sanitizeTenderPackages, sanitizeTenderPackage } from '@/utils/tenderSanitizer';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -16,29 +17,39 @@ const R2_PRATENDER_KEY = 'pratender-metadata/packages.json';
 const LOCAL_PRATENDER_PATH = path.join(process.cwd(), 'src', 'data', 'pratender-packages.json');
 
 async function getStoredPackages(): Promise<PratenderPackage[]> {
+  let packages: PratenderPackage[] = [];
+
   if (isR2Configured()) {
     try {
       const r2Obj = await getObjectFromR2(R2_PRATENDER_KEY);
       if (r2Obj && r2Obj.body) {
         const text = Buffer.from(r2Obj.body).toString('utf8');
         const parsed = JSON.parse(text);
-        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed)) {
+          packages = parsed;
+        }
       }
     } catch (err) {
       console.warn('Gagal membaca pratender dari R2:', err);
     }
   }
 
-  try {
-    const raw = await fs.readFile(LOCAL_PRATENDER_PATH, 'utf8');
-    return JSON.parse(raw);
-  } catch {
-    return [];
+  if (packages.length === 0) {
+    try {
+      const raw = await fs.readFile(LOCAL_PRATENDER_PATH, 'utf8');
+      packages = JSON.parse(raw);
+    } catch {
+      packages = [];
+    }
   }
+
+  // Sanitasi ketat: hilangkan seluruh item non-material/signature
+  return sanitizeTenderPackages(packages);
 }
 
 async function savePackages(packages: PratenderPackage[]) {
-  const jsonStr = JSON.stringify(packages, null, 2);
+  const sanitized = sanitizeTenderPackages(packages);
+  const jsonStr = JSON.stringify(sanitized, null, 2);
 
   if (isR2Configured()) {
     try {
