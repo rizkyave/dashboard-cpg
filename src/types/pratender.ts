@@ -24,6 +24,8 @@ export interface VendorBidItem {
 
 export interface VendorBidSubmission {
   id: string;
+  vendorId?: string; // ID resmi rekanan di DPT CPG (e.g. VND-CPG-001)
+  isDptVerified?: boolean; // Tanda keabsahan rekanan resmi DPT
   vendorName: string;
   vendorPic?: string;
   vendorContact?: string;

@@ -1,6 +1,7 @@
 import * as XLSX from 'xlsx';
 import { PratenderPackage, VendorBidItem } from '@/types/pratender';
 import { isNonMaterialOrSignature } from '@/utils/tenderSanitizer';
+import { formatTenderClosingFull } from '@/utils/tenderDateFormatter';
 
 /**
  * Generate Excel file template untuk penawaran harga rekanan (Bidding Sheet)
@@ -21,7 +22,7 @@ export function generateTenderBiddingExcel(pkg: PratenderPackage, vendorName: st
     ['Nomor Tender / RFQ', pkg.packageNumber],
     ['Nama Paket Pengadaan', pkg.title],
     ['Kategori Pengadaan', pkg.category],
-    ['Batas Akhir Penawaran', pkg.targetClosingDate || 'Sesuai Jadwal RKS'],
+    ['Batas Akhir Penawaran', formatTenderClosingFull(pkg.targetClosingDate)],
     ['Nama Perusahaan Rekanan', vendorName || 'Diisi Nama Vendor'],
     ['Nomor Surat Penawaran (Quotation No)', 'Diisi No Penawaran Resmi'],
     ['Term of Payment (TOP)', 'NET 30 Hari'],

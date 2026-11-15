@@ -31,6 +31,7 @@ import { PratenderPackage, VendorBidSubmission, VendorBidItem } from '@/types/pr
 import { generateRksDocumentPdf, triggerBrowserPdfDownload } from '@/utils/tenderDocumentGenerator';
 import { generateTenderBiddingExcel, parseTenderBiddingExcel } from '@/utils/tenderExcelBidding';
 import { isNonMaterialOrSignature } from '@/utils/tenderSanitizer';
+import { formatTenderClosingFull } from '@/utils/tenderDateFormatter';
 
 interface Props {
   isOpen: boolean;
@@ -425,7 +426,7 @@ export default function VendorTenderPortalModal({
 
           <div className="hidden md:flex items-center gap-1 text-[11px] text-muted-foreground">
             <Clock className="size-3.5 text-amber-500" />
-            <span>Batas: {packageData.targetClosingDate || 'Sesuai RKS'}</span>
+            <span>Batas: {formatTenderClosingFull(packageData.targetClosingDate)}</span>
           </div>
         </div>
 

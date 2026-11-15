@@ -43,6 +43,7 @@ import { TabType, KapalPosisiItem } from '@/types/procurement';
 import { PurchasePlanningItem, PurchasePlanningResponse } from '@/app/api/purchase-planning/route';
 import { PratenderPackage, PratenderPackageItem } from '@/types/pratender';
 import ConfidentialMaskedValue from './ConfidentialMaskedValue';
+import { formatTenderClosingFull, toDatetimeLocalValue } from '@/utils/tenderDateFormatter';
 
 interface PurchasePlanningTabProps {
   onNavigateTab?: (tab: TabType) => void;
@@ -882,7 +883,7 @@ export default function PurchasePlanningTab({
 
     const yearStr = new Date().getFullYear().toString().slice(-2);
     setPkgTitle(`Paket Pengadaan ${dominantCategory} Armada Q4 20${yearStr}`);
-    setPkgClosingDate(new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10));
+    setPkgClosingDate(toDatetimeLocalValue(null, 17));
     setPkgNotes('Spesifikasi asli bergaransi resmi, pengiriman langsung ke Gudang Somber / Galangan CPG.');
     setPkgVendor(selectedItemsList[0]?.suggestedVendor || '');
     setCustomItemQtys(initQtys);
@@ -2785,13 +2786,23 @@ export default function PurchasePlanningTab({
 
                 {/* Target Closing RFQ */}
                 <div className="space-y-1">
-                  <label className="font-semibold text-foreground">Batas Waktu Penawaran (Closing Date)</label>
+                  <div className="flex items-center justify-between">
+                    <label className="font-semibold text-foreground">Batas Waktu Penawaran (Hari, Tanggal &amp; Jam)</label>
+                    <span className="text-[10px] text-amber-700 dark:text-amber-300 font-bold bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                      WITA
+                    </span>
+                  </div>
                   <input
-                    type="date"
+                    type="datetime-local"
                     value={pkgClosingDate}
                     onChange={(e) => setPkgClosingDate(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground text-xs font-medium focus:ring-1 focus:ring-primary focus:outline-hidden"
+                    className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground text-xs font-semibold focus:ring-1 focus:ring-primary focus:outline-hidden"
                   />
+                  {pkgClosingDate && (
+                    <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium truncate">
+                      ✓ {formatTenderClosingFull(pkgClosingDate)}
+                    </p>
+                  )}
                 </div>
 
                 {/* Rekomendasi Vendor */}

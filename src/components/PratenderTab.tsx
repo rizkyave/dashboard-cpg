@@ -46,6 +46,11 @@ import {
 } from 'lucide-react';
 import CommercialBidTabulationModal from './CommercialBidTabulationModal';
 import {
+  formatTenderClosingFull,
+  toDatetimeLocalValue,
+  getTenderDeadlineInfo,
+} from '@/utils/tenderDateFormatter';
+import {
   generateRksDocumentPdf,
   generateBaepDocumentPdf,
   triggerBrowserPdfDownload,
@@ -796,7 +801,7 @@ export default function PratenderTab({
     const dateStr = new Date().toISOString().slice(2, 4);
     setPkgTitle(`Paket Pengadaan ${domCat} Armada Q4 20${dateStr}`);
     setPkgNotes('Spesifikasi asli (OEM) bergaransi resmi, sertifikat asal barang (COO) terlampir.');
-    setPkgClosingDate(new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10));
+    setPkgClosingDate(toDatetimeLocalValue(null, 17));
     setPkgEstimatedBudget(initialEstCost > 0 ? String(initialEstCost) : '');
 
     setIsCreateModalOpen(true);
@@ -1016,7 +1021,7 @@ export default function PratenderTab({
       `📋 *No. Paket Tender:* ${pkg.packageNumber}`,
       `📌 *Judul Pengadaan:* ${pkg.title}`,
       `🏷️ *Kategori Kebutuhan:* ${pkg.category}`,
-      `📅 *Batas Akhir Penawaran:* ${pkg.targetClosingDate || '3 Hari Kerja'}`,
+      `📅 *Batas Akhir Penawaran:* *${formatTenderClosingFull(pkg.targetClosingDate)}*`,
       ``,
       `📦 *Daftar Rincian Material & Kuantitas:*`,
       ...itemLines,
@@ -2230,13 +2235,23 @@ export default function PratenderTab({
                 </div>
 
                 <div>
-                  <label className="font-semibold text-foreground block mb-1">Batas Penawaran (RFQ Deadline)</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="font-semibold text-foreground">Batas Penawaran (Hari, Tanggal &amp; Jam)</label>
+                    <span className="text-[10px] text-amber-700 dark:text-amber-300 font-bold bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                      WITA
+                    </span>
+                  </div>
                   <input
-                    type="date"
+                    type="datetime-local"
                     value={pkgClosingDate}
                     onChange={(e) => setPkgClosingDate(e.target.value)}
-                    className="w-full h-9 px-3 rounded-xl border border-border bg-background text-foreground text-xs focus:ring-1 focus:ring-primary focus:outline-none"
+                    className="w-full h-9 px-3 rounded-xl border border-border bg-background text-foreground text-xs font-semibold focus:ring-1 focus:ring-primary focus:outline-none"
                   />
+                  {pkgClosingDate && (
+                    <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium mt-1 truncate">
+                      ✓ {formatTenderClosingFull(pkgClosingDate)}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -2427,7 +2442,7 @@ export default function PratenderTab({
                 </div>
                 <div>
                   <span className="text-muted-foreground block text-[10px]">Target Deadline</span>
-                  <strong>{selectedPackage.targetClosingDate || '-'}</strong>
+                  <strong className="text-foreground">{formatTenderClosingFull(selectedPackage.targetClosingDate, '-')}</strong>
                 </div>
                 <div>
                   <span className="text-muted-foreground block text-[10px]">Estimasi Nilai HPS</span>

@@ -31,6 +31,7 @@ import {
   Lock,
   Unlock,
   ShieldAlert,
+  ShieldCheck,
   Phone,
   User,
 } from 'lucide-react';
@@ -39,7 +40,9 @@ import {
   PratenderStatus,
   VendorBidSubmission,
 } from '@/types/pratender';
+import { RegisteredVendor } from '@/types/vendor';
 import { sanitizeTenderPackages } from '@/utils/tenderSanitizer';
+import { formatTenderClosingFull, getTenderDeadlineInfo } from '@/utils/tenderDateFormatter';
 import CommercialBidTabulationModal from './CommercialBidTabulationModal';
 import VendorTenderPortalModal from './VendorTenderPortalModal';
 import {
@@ -79,23 +82,35 @@ export default function TenderManagementTab({ showToast, onNavigateTab }: Props)
   // WhatsApp Blast Modal State
   const [waBlastPackage, setWaBlastPackage] = useState<PratenderPackage | null>(null);
   const [waGroupLink, setWaGroupLink] = useState<string>('');
-  const [waBlastMode, setWaBlastMode] = useState<'group' | 'personal'>('group');
+  const [waBlastMode, setWaBlastMode] = useState<'group' | 'personal'>('personal');
   const [personalVendorName, setPersonalVendorName] = useState<string>('');
   const [personalVendorPhone, setPersonalVendorPhone] = useState<string>('');
+  const [registeredVendors, setRegisteredVendors] = useState<RegisteredVendor[]>([]);
+  const [selectedVendorId, setSelectedVendorId] = useState<string>('');
+  const [selectedVendorToken, setSelectedVendorToken] = useState<string>('');
 
-  // Fetch Packages from server
+  // Fetch Packages and Registered Vendors from server
   const fetchPackages = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/pratender?_t=${Date.now()}`);
-      if (res.ok) {
-        const json = await res.json();
+      const [pkgRes, vndRes] = await Promise.all([
+        fetch(`/api/pratender?_t=${Date.now()}`),
+        fetch(`/api/vendors?status=ACTIVE&_t=${Date.now()}`),
+      ]);
+      if (pkgRes.ok) {
+        const json = await pkgRes.json();
         if (json.success && Array.isArray(json.packages)) {
           setPackages(sanitizeTenderPackages(json.packages));
         }
       }
+      if (vndRes.ok) {
+        const vndJson = await vndRes.json();
+        if (vndJson.success && Array.isArray(vndJson.vendors)) {
+          setRegisteredVendors(vndJson.vendors);
+        }
+      }
     } catch (err: any) {
-      if (showToast) showToast('Gagal memuat daftar tender.', 'error');
+      if (showToast) showToast('Gagal memuat data tender & rekanan DPT.', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -467,12 +482,26 @@ export default function TenderManagementTab({ showToast, onNavigateTab }: Props)
                       <span className="font-mono text-base font-bold text-foreground">
                         Rp {(pkg.ownerEstimateHps || pkg.totalEstimatedBudget || 0).toLocaleString('id-ID')}
                       </span>
-                      {pkg.targetClosingDate && (
-                        <p className="text-[11px] text-muted-foreground">
-                          Batas Penawaran:{' '}
-                          <span className="font-medium text-foreground">{pkg.targetClosingDate}</span>
-                        </p>
-                      )}
+                      {pkg.targetClosingDate && (() => {
+                        const dInfo = getTenderDeadlineInfo(pkg.targetClosingDate);
+                        return (
+                          <div className="text-[11px] text-muted-foreground space-y-0.5 pt-1">
+                            <p>
+                              Batas Penawaran:{' '}
+                              <span className="font-semibold text-foreground">{dInfo.formattedFull}</span>
+                            </p>
+                            <span
+                              className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                                dInfo.isPassed
+                                  ? 'bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/20'
+                                  : 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20'
+                              }`}
+                            >
+                              {dInfo.isPassed ? '🔴 Pemasukan Ditutup' : `⏳ ${dInfo.remainingText}`}
+                            </span>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
 
@@ -945,33 +974,78 @@ Salam hormat,
                       />
                     </div>
                   ) : (
-                    <div className="space-y-2.5 p-3 rounded-xl border border-border bg-muted/20">
+                    <div className="space-y-3 p-3.5 rounded-xl border border-border bg-muted/20">
+                      {/* Pilih dari DPT */}
                       <div className="space-y-1">
-                        <label className="text-[11px] font-semibold text-foreground flex items-center gap-1">
-                          <Building2 className="size-3 text-sky-600" />
-                          <span>Nama Perusahaan Rekanan:</span>
+                        <label className="text-[11px] font-semibold text-foreground flex items-center justify-between">
+                          <span className="flex items-center gap-1">
+                            <Building2 className="size-3 text-emerald-600" />
+                            <span>Pilih Rekanan Terdaftar (DPT CPG) *:</span>
+                          </span>
+                          <span className="text-[10px] text-emerald-700 dark:text-emerald-300 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                            Wajib DPT Sah
+                          </span>
                         </label>
-                        <input
-                          type="text"
-                          value={personalVendorName}
-                          onChange={(e) => setPersonalVendorName(e.target.value)}
-                          placeholder="Contoh: PT. Pelayaran Bahari Global"
-                          className="w-full h-8 px-2.5 rounded-lg border border-border bg-background text-foreground text-xs"
-                        />
+                        <select
+                          value={selectedVendorId}
+                          onChange={(e) => {
+                            const vId = e.target.value;
+                            setSelectedVendorId(vId);
+                            const found = registeredVendors.find((v) => v.id === vId);
+                            if (found) {
+                              setPersonalVendorName(found.name);
+                              setPersonalVendorPhone(found.picPhone);
+                              setSelectedVendorToken(found.accessToken);
+                            } else {
+                              setSelectedVendorToken('');
+                            }
+                          }}
+                          className="w-full h-8 px-2.5 rounded-lg border border-border bg-background text-foreground text-xs font-semibold"
+                        >
+                          <option value="">-- Pilih dari Master Rekanan DPT --</option>
+                          {registeredVendors.map((v) => (
+                            <option key={v.id} value={v.id}>
+                              {v.name} ({v.code}) - PIC: {v.picName} ({v.picPhone})
+                            </option>
+                          ))}
+                        </select>
                       </div>
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-semibold text-foreground flex items-center gap-1">
-                          <Phone className="size-3 text-emerald-600" />
-                          <span>Nomor WhatsApp PIC Rekanan:</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={personalVendorPhone}
-                          onChange={(e) => setPersonalVendorPhone(e.target.value)}
-                          placeholder="Contoh: 081234567890 atau 62812..."
-                          className="w-full h-8 px-2.5 rounded-lg border border-border bg-background text-foreground text-xs font-mono"
-                        />
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-border/60">
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-semibold text-muted-foreground block">
+                            Nama Perusahaan:
+                          </label>
+                          <input
+                            type="text"
+                            value={personalVendorName}
+                            onChange={(e) => setPersonalVendorName(e.target.value)}
+                            placeholder="PT. Samudra..."
+                            className="w-full h-8 px-2 rounded-lg border border-border bg-background text-foreground text-xs"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-semibold text-muted-foreground block">
+                            No. WhatsApp PIC:
+                          </label>
+                          <input
+                            type="text"
+                            value={personalVendorPhone}
+                            onChange={(e) => setPersonalVendorPhone(e.target.value)}
+                            placeholder="0812..."
+                            className="w-full h-8 px-2 rounded-lg border border-border bg-background text-foreground text-xs font-mono"
+                          />
+                        </div>
                       </div>
+
+                      {selectedVendorId && (
+                        <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[11px] text-emerald-800 dark:text-emerald-200 flex items-center gap-1.5">
+                          <ShieldCheck className="size-3.5 text-emerald-600 shrink-0" />
+                          <span>
+                            Rekanan terverifikasi DPT (ID: <strong>{selectedVendorId}</strong>). Akses form penawaran akan dikunci khusus atas nama perusahaan ini.
+                          </span>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -1012,15 +1086,15 @@ Salam hormat,
 
                     const invitePortalLink =
                       waBlastMode === 'personal' && personalVendorPhone
-                        ? `${origin}/vendor/tender?pkg=${waBlastPackage.id}&vphone=${cleanPhone}&vname=${encodeURIComponent(
+                        ? `${origin}/vendor/tender?pkg=${waBlastPackage.id}&vendorId=${selectedVendorId || ''}&token=${selectedVendorToken || ''}&vphone=${cleanPhone}&vname=${encodeURIComponent(
                             personalVendorName
                           )}`
                         : `${origin}/vendor/tender?pkg=${waBlastPackage.id}`;
 
                     const messageText =
                       waBlastMode === 'personal' && personalVendorName
-                        ? `*UNDANGAN RESMI TENDER PENGADAAN CPG*\n\nKepada Yth. Pimpinan / PIC Komersial\n*${personalVendorName}*\n\nPT Cindara Pratama Lines mengundang perusahaan Anda untuk berpartisipasi dalam paket pengadaan:\n- Nomor: ${waBlastPackage.packageNumber}\n- Paket: ${waBlastPackage.title}\n- Kategori: ${waBlastPackage.category}\n- Batas Penawaran: ${waBlastPackage.targetClosingDate || 'Sesuai RKS'}\n\n*TAUTAN RESMI PENAWARAN (KHUSUS ${personalVendorName}):*\n${invitePortalLink}\n\n⚠️ *PENTING (KETENTUAN 1X INPUT):*\nSetiap rekanan hanya memiliki *1 (satu) kali kesempatan submit*. Setelah formulir dikirim, tautan akan *SEKETIKA DIKUNCI PERMANEN* demi menjaga objektivitas tender.\n\nSalam hormat,\n*Tim Pengadaan PT Cindara Pratama Lines*`
-                        : `*PENGUMUMAN TENDER PENGADAAN CPG*\n\nNomor: ${waBlastPackage.packageNumber}\nPaket: ${waBlastPackage.title}\nKategori: ${waBlastPackage.category}\nBatas Penawaran: ${waBlastPackage.targetClosingDate || 'Sesuai RKS'}\n\nRekanan dapat mengakses dokumen RKS dan menyampaikan penawaran resmi melalui link berikut:\n${invitePortalLink}\n${waGroupLink ? `\nGabung Grup WhatsApp Tender:\n${waGroupLink}\n` : ''}\n⚠️ *CATATAN:* Setiap rekanan hanya memiliki *1 (satu) kali kesempatan pengisian*. Tautan langsung dikunci setelah submit.\n\nPT Cindara Pratama Lines`;
+                        ? `*UNDANGAN RESMI TENDER PENGADAAN CPG*\n\nKepada Yth. Pimpinan / PIC Komersial\n*${personalVendorName}*\n\nPT Cindara Pratama Lines mengundang perusahaan Anda sebagai Rekanan Terdaftar (DPT) untuk berpartisipasi dalam paket pengadaan:\n- Nomor: ${waBlastPackage.packageNumber}\n- Paket: ${waBlastPackage.title}\n- Kategori: ${waBlastPackage.category}\n- Batas Akhir Penawaran: *${formatTenderClosingFull(waBlastPackage.targetClosingDate)}*\n${selectedVendorId ? `- Kode Verifikasi DPT: ${selectedVendorId}\n` : ''}\n*TAUTAN RESMI PENAWARAN (KHUSUS ${personalVendorName}):*\n${invitePortalLink}\n\n⚠️ *PENTING (KETENTUAN 1X INPUT & REKANAN DPT):*\n1. Portal hanya dapat diakses oleh Rekanan Terdaftar CPG.\n2. Batas waktu penutupan tegas pada *${formatTenderClosingFull(waBlastPackage.targetClosingDate)}*. Setelah lewat waktu tersebut, portal ditutup otomatis oleh sistem.\n3. Setiap rekanan hanya memiliki *1 (satu) kali kesempatan submit*. Setelah formulir dikirim, tautan akan *SEKETIKA DIKUNCI PERMANEN* demi menjaga objektivitas tender.\n\nSalam hormat,\n*Tim Pengadaan PT Cindara Pratama Lines*`
+                        : `*PENGUMUMAN TENDER PENGADAAN CPG*\n\nNomor: ${waBlastPackage.packageNumber}\nPaket: ${waBlastPackage.title}\nKategori: ${waBlastPackage.category}\nBatas Akhir Penawaran: *${formatTenderClosingFull(waBlastPackage.targetClosingDate)}*\n\nRekanan DPT dapat mengakses dokumen RKS dan menyampaikan penawaran resmi melalui link berikut:\n${invitePortalLink}\n${waGroupLink ? `\nGabung Grup WhatsApp Tender:\n${waGroupLink}\n` : ''}\n⚠️ *CATATAN:* Wajib rekanan terdaftar DPT CPG. Portal ditutup otomatis tepat pada *${formatTenderClosingFull(waBlastPackage.targetClosingDate)}*. Setiap rekanan hanya memiliki *1 (satu) kali kesempatan pengisian*.\n\nPT Cindara Pratama Lines`;
 
                     const waUrl =
                       waBlastMode === 'personal' && waPhoneTarget

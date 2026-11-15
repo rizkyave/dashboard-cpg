@@ -2,6 +2,7 @@ import { PDFDocument, rgb, StandardFonts, PageSizes } from 'pdf-lib';
 import { PratenderPackage, VendorBidSubmission } from '@/types/pratender';
 import { isNonMaterialOrSignature } from '@/utils/tenderSanitizer';
 import { determineRequiredApprovalTier } from '@/utils/tenderApprovalConfig';
+import { formatTenderClosingFull } from '@/utils/tenderDateFormatter';
 
 /**
  * Format currency ke Rupiah
@@ -79,7 +80,7 @@ export async function generateRksDocumentPdf(pkg: PratenderPackage): Promise<Uin
   drawField('Kategori', pkg.category || 'General', 55, curY - 36);
   drawField('Metode Seleksi', pkg.procurementMethod || 'Tender Terbatas', 55, curY - 52);
 
-  drawField('Batas Penawaran', pkg.targetClosingDate || '3 Hari Kerja', 330, curY - 20);
+  drawField('Batas Penawaran', formatTenderClosingFull(pkg.targetClosingDate), 330, curY - 20);
   drawField('Syarat Pengiriman', 'Franco Dermaga Somber', 330, curY - 36);
   drawField('Syarat Pembayaran', 'NET 30 Hari Setelah TTB', 330, curY - 52);
 

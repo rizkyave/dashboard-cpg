@@ -25,11 +25,15 @@ import {
   X,
   Award,
   Trophy,
+  Phone,
+  KeyRound,
 } from 'lucide-react';
 import { PratenderPackage, VendorBidSubmission, VendorBidItem } from '@/types/pratender';
+import { RegisteredVendor } from '@/types/vendor';
 import { generateRksDocumentPdf, triggerBrowserPdfDownload } from '@/utils/tenderDocumentGenerator';
 import { generateTenderBiddingExcel, parseTenderBiddingExcel } from '@/utils/tenderExcelBidding';
 import { isNonMaterialOrSignature } from '@/utils/tenderSanitizer';
+import { getTenderDeadlineInfo, formatTenderClosingFull } from '@/utils/tenderDateFormatter';
 
 function VendorTenderPortalContent() {
   const searchParams = useSearchParams();
@@ -37,10 +41,21 @@ function VendorTenderPortalContent() {
   const searchToken = searchParams.get('token') || '';
   const searchPhone = searchParams.get('vphone') || '';
   const searchName = searchParams.get('vname') || '';
+  const searchVendorId = searchParams.get('vendorId') || searchParams.get('vid') || '';
 
   const [packageData, setPackageData] = useState<PratenderPackage | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  // DPT Authentication States
+  const [verifiedVendor, setVerifiedVendor] = useState<RegisteredVendor | null>(null);
+  const [isDptVerified, setIsDptVerified] = useState<boolean>(false);
+  const [isVerifyingDpt, setIsVerifyingDpt] = useState<boolean>(false);
+  const [dptAuthError, setDptAuthError] = useState<string | null>(null);
+
+  // Manual DPT Input for unauthenticated links
+  const [inputVendorCodeOrToken, setInputVendorCodeOrToken] = useState<string>('');
+  const [inputPicPhone, setInputPicPhone] = useState<string>('');
 
   // Stepper State
   const [activeStep, setActiveStep] = useState<'download' | 'pricing' | 'documents'>('pricing');
@@ -65,7 +80,7 @@ function VendorTenderPortalContent() {
   const [isDownloadingRks, setIsDownloadingRks] = useState(false);
   const [isSubmittedSuccess, setIsSubmittedSuccess] = useState(false);
   const [submissionReceiptId, setSubmissionReceiptId] = useState<string | null>(null);
-  const [toastMsg, setToastMsg] = useState<{ text: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const [toastMsg, setToastMsg] = useState<{ text: string; type: 'success' | 'error' | 'info' | 'warning' } | null>(null);
 
   // Confirmation Modal Before Locking (Option 3)
   const [showConfirmLockModal, setShowConfirmLockModal] = useState(false);
@@ -74,16 +89,59 @@ function VendorTenderPortalContent() {
   const excelInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
 
-  const showToast = (text: string, type: 'success' | 'error' | 'info' = 'info') => {
+  const showToast = (text: string, type: 'success' | 'error' | 'info' | 'warning' = 'info') => {
     setToastMsg({ text, type });
     setTimeout(() => setToastMsg(null), 4000);
   };
 
-  // Sync params if filled via URL
+  // Verifikasi Hak Akses Rekanan Resmi (DPT CPG)
+  const verifyVendorAccess = async (params: { id?: string; token?: string; phone?: string; name?: string }) => {
+    setIsVerifyingDpt(true);
+    setDptAuthError(null);
+    try {
+      const q = new URLSearchParams({ verify: 'true' });
+      if (params.id) q.set('id', params.id);
+      if (params.token) q.set('token', params.token);
+      if (params.phone) q.set('phone', params.phone);
+      if (params.name) q.set('name', params.name);
+
+      const res = await fetch(`/api/vendors?${q.toString()}&_t=${Date.now()}`);
+      const data = await res.json();
+
+      if (res.ok && data.isValid && data.vendor) {
+        setVerifiedVendor(data.vendor);
+        setIsDptVerified(true);
+        setVendorName(data.vendor.name);
+        if (data.vendor.picName) setVendorPic(data.vendor.picName);
+        if (data.vendor.picPhone) setVendorContact(data.vendor.picPhone);
+        showToast(`Terverifikasi sebagai rekanan resmi: ${data.vendor.name}`, 'success');
+        return true;
+      } else {
+        setIsDptVerified(false);
+        setDptAuthError(data.error || 'Akses Ditolak: Perusahaan Anda belum terdaftar dalam DPT CPG.');
+        return false;
+      }
+    } catch {
+      setDptAuthError('Gagal memverifikasi status rekanan ke server.');
+      return false;
+    } finally {
+      setIsVerifyingDpt(false);
+    }
+  };
+
+  // Cek otentikasi DPT otomatis saat halaman dimuat
   useEffect(() => {
-    if (searchName && !vendorName) setVendorName(searchName);
-    if (searchPhone && !vendorContact) setVendorContact(searchPhone);
-  }, [searchName, searchPhone]);
+    if (searchVendorId || searchToken || searchPhone || searchName) {
+      verifyVendorAccess({
+        id: searchVendorId || undefined,
+        token: searchToken || undefined,
+        phone: searchPhone || undefined,
+        name: searchName || undefined,
+      });
+    } else {
+      setIsVerifyingDpt(false);
+    }
+  }, [searchVendorId, searchToken, searchPhone, searchName]);
 
   // Fetch Package Info
   useEffect(() => {
@@ -140,6 +198,7 @@ function VendorTenderPortalContent() {
 
     return packageData.vendorBids.find((b) => {
       if (!b.isLocked) return false;
+      if (verifiedVendor && b.vendorId && b.vendorId === verifiedVendor.id) return true;
       if (searchToken && b.token && b.token === searchToken) return true;
       const bPhone = (b.vendorContact || '').replace(/[^0-9]/g, '');
       if (
@@ -154,20 +213,14 @@ function VendorTenderPortalContent() {
       }
       return false;
     });
-  }, [packageData, vendorContact, vendorName, searchToken, searchPhone, searchName]);
+  }, [packageData, verifiedVendor, vendorContact, vendorName, searchToken, searchPhone, searchName]);
 
-  // Deteksi apakah batas akhir penawaran telah lewat (Deadline Passed -> Masuk Masa Evaluasi)
-  const isDeadlinePassed = useMemo(() => {
-    if (!packageData || !packageData.targetClosingDate) return false;
-    const raw = packageData.targetClosingDate;
-    const closingDate = new Date(raw);
-    if (isNaN(closingDate.getTime())) return false;
-    // Jika format hanya YYYY-MM-DD, set ke akhir hari 23:59:59
-    if (raw.length === 10) {
-      closingDate.setHours(23, 59, 59, 999);
-    }
-    return Date.now() > closingDate.getTime();
-  }, [packageData]);
+  // Deteksi status batas akhir penawaran (Hari, Tanggal, Jam & Sisa Waktu)
+  const deadlineInfo = useMemo(
+    () => getTenderDeadlineInfo(packageData?.targetClosingDate),
+    [packageData?.targetClosingDate]
+  );
+  const isDeadlinePassed = deadlineInfo.isPassed;
 
   // Calculations
   const subtotal = items.reduce((acc, curr) => acc + (curr.totalPrice || 0), 0);
@@ -328,6 +381,8 @@ function VendorTenderPortalContent() {
 
     const newSubmission: VendorBidSubmission = {
       id: `bid-${Date.now().toString(36)}-${Math.random().toString(36).substr(2, 5)}`,
+      vendorId: verifiedVendor?.id,
+      isDptVerified: Boolean(isDptVerified),
       vendorName: vendorName.trim(),
       vendorPic: vendorPic.trim() || undefined,
       vendorContact: vendorContact.trim() || undefined,
@@ -427,6 +482,140 @@ function VendorTenderPortalContent() {
     );
   }
 
+  // Gatekeeper: Validasi Rekanan Terdaftar (DPT CPG) Wajib
+  if (!isDptVerified) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4 text-xs">
+        <div className="max-w-md w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-7 space-y-5 shadow-2xl">
+          {/* Header */}
+          <div className="text-center space-y-2">
+            <div className="size-14 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/20 shadow-xs">
+              <ShieldCheck className="size-7" />
+            </div>
+            <div>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 uppercase tracking-wider">
+                Electronic Bidding System &bull; DPT Sah
+              </span>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white mt-1.5">
+                Verifikasi Rekanan Terdaftar (DPT)
+              </h2>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                Paket: <strong className="text-slate-800 dark:text-slate-200">{packageData.packageNumber} &bull; {packageData.title}</strong>
+              </p>
+            </div>
+          </div>
+
+          {/* DPT Notice */}
+          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1.5 text-slate-600 dark:text-slate-400">
+            <p className="font-semibold text-slate-800 dark:text-slate-200 text-[11px] flex items-center gap-1.5">
+              <Building2 className="size-3.5 text-emerald-600" />
+              <span>Ketentuan Akses Pengadaan CPG:</span>
+            </p>
+            <p className="text-[11px] leading-relaxed">
+              Sesuai kebijakan tata kelola pengadaan PT Cindara Pratama Lines, hanya penyedia yang terdaftar aktif dalam <strong>Daftar Penyedia Terseleksi (DPT)</strong> yang berhak mengakses spesifikasi teknis dan memasukkan penawaran harga.
+            </p>
+          </div>
+
+          {/* Error Message if any */}
+          {dptAuthError && (
+            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/25 text-rose-700 dark:text-rose-300 text-[11px] flex items-start gap-2">
+              <AlertTriangle className="size-3.5 text-rose-600 shrink-0 mt-0.5" />
+              <span>{dptAuthError}</span>
+            </div>
+          )}
+
+          {/* Verification Form */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!inputVendorCodeOrToken.trim() && !inputPicPhone.trim()) {
+                showToast('Mohon masukkan Kode Akses / Nomor WhatsApp terdaftar.', 'warning');
+                return;
+              }
+              verifyVendorAccess({
+                token: inputVendorCodeOrToken.trim().startsWith('vnd_sec_') ? inputVendorCodeOrToken.trim() : undefined,
+                id: inputVendorCodeOrToken.trim().startsWith('VND-') ? inputVendorCodeOrToken.trim() : undefined,
+                name:
+                  !inputVendorCodeOrToken.trim().startsWith('vnd_sec_') &&
+                  !inputVendorCodeOrToken.trim().startsWith('VND-')
+                    ? inputVendorCodeOrToken.trim()
+                    : undefined,
+                phone: inputPicPhone.trim(),
+              });
+            }}
+            className="space-y-3 pt-1"
+          >
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Kode Akses Rekanan / Nama PT Terdaftar *:
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={inputVendorCodeOrToken}
+                  onChange={(e) => setInputVendorCodeOrToken(e.target.value)}
+                  placeholder="Contoh: vnd_sec_... atau PT. Samudra Bahari"
+                  className="w-full h-8.5 px-3 pl-8 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-medium"
+                />
+                <KeyRound className="size-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Nomor WhatsApp PIC Rekanan Terdaftar:
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={inputPicPhone}
+                  onChange={(e) => setInputPicPhone(e.target.value)}
+                  placeholder="Contoh: 081288776655"
+                  className="w-full h-8.5 px-3 pl-8 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-mono"
+                />
+                <Phone className="size-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isVerifyingDpt}
+              className="w-full h-9 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition cursor-pointer disabled:opacity-50"
+            >
+              {isVerifyingDpt ? (
+                <>
+                  <div className="size-3.5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                  <span>Memverifikasi DPT...</span>
+                </>
+              ) : (
+                <>
+                  <ShieldCheck className="size-4" />
+                  <span>Verifikasi &amp; Buka Penawaran</span>
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Help & Contact */}
+          <div className="pt-2 border-t border-slate-100 dark:border-slate-800 text-center text-[11px] text-slate-500 dark:text-slate-400 space-y-1">
+            <p>Perusahaan Anda belum terdaftar dalam DPT CPG?</p>
+            <a
+              href={`https://web.whatsapp.com/send?phone=6281288776655&text=${encodeURIComponent(
+                `Halo Panitia Pengadaan PT Cindara Pratama Lines, perkenankan kami ingin mendaftar ke DPT untuk mengikuti paket tender: ${packageData.packageNumber} (${packageData.title}). Mohon panduan registrasi rekanan.`
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 font-semibold text-emerald-600 hover:text-emerald-500 hover:underline"
+            >
+              <Send className="size-3" />
+              <span>Hubungi Helpdesk Pengadaan via WhatsApp</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col justify-between text-xs">
       {/* Toast Alert */}
@@ -437,6 +626,8 @@ function VendorTenderPortalContent() {
               ? 'bg-emerald-500 text-white border-emerald-600'
               : toastMsg.type === 'error'
               ? 'bg-rose-500 text-white border-rose-600'
+              : toastMsg.type === 'warning'
+              ? 'bg-amber-500 text-white border-amber-600'
               : 'bg-slate-800 text-white border-slate-700'
           }`}
         >
@@ -488,13 +679,18 @@ function VendorTenderPortalContent() {
               </h2>
             </div>
 
-            <div className="text-left sm:text-right text-xs">
+            <div className="text-left sm:text-right text-xs space-y-0.5">
               <span className="text-[10px] text-slate-400 uppercase tracking-wider font-bold block">
                 Batas Akhir Penawaran
               </span>
-              <span className="font-semibold text-slate-900 dark:text-white">
-                {packageData.targetClosingDate || 'Sesuai Jadwal RKS'}
+              <span className="font-bold text-slate-900 dark:text-white block">
+                {deadlineInfo.formattedFull}
               </span>
+              {!deadlineInfo.isPassed && deadlineInfo.isValid && (
+                <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/25 mt-0.5">
+                  ⏳ {deadlineInfo.remainingText}
+                </span>
+              )}
             </div>
           </div>
 
@@ -588,8 +784,8 @@ function VendorTenderPortalContent() {
             <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950 text-left space-y-2.5 text-xs">
               <div className="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-slate-800">
                 <span className="text-slate-500">Batas Akhir Penawaran:</span>
-                <span className="font-mono font-bold text-slate-900 dark:text-white">
-                  {packageData.targetClosingDate ? new Date(packageData.targetClosingDate).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : 'Telah Berakhir'} WIB
+                <span className="font-bold text-slate-900 dark:text-white">
+                  {deadlineInfo.formattedFull}
                 </span>
               </div>
               <div className="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-slate-800">
@@ -770,14 +966,29 @@ function VendorTenderPortalContent() {
                   <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 block mb-1">
                     Nama Perusahaan Rekanan *
                   </label>
-                  <input
-                    type="text"
-                    value={vendorName}
-                    onChange={(e) => setVendorName(e.target.value)}
-                    placeholder="PT. Pelayaran Rekanan..."
-                    className="w-full h-8 px-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
-                    required
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={vendorName}
+                      readOnly={Boolean(isDptVerified)}
+                      onChange={(e) => !isDptVerified && setVendorName(e.target.value)}
+                      placeholder="PT. Pelayaran Rekanan..."
+                      className={`w-full h-8 px-2.5 rounded-lg border text-xs font-semibold ${
+                        isDptVerified
+                          ? 'bg-slate-100 dark:bg-slate-800 border-emerald-500/50 text-slate-900 dark:text-white cursor-not-allowed pr-8'
+                          : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs'
+                      }`}
+                      required
+                    />
+                    {isDptVerified && (
+                      <ShieldCheck className="size-4 text-emerald-600 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    )}
+                  </div>
+                  {isDptVerified && verifiedVendor && (
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold block mt-1">
+                      ✓ Rekanan DPT Sah &bull; NPWP: {verifiedVendor.npwp}
+                    </span>
+                  )}
                 </div>
                 <div>
                   <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 block mb-1">

@@ -44,6 +44,7 @@ import {
   TenderEvaluationSummary,
 } from '@/types/pratender';
 import { sanitizeTenderPackage } from '@/utils/tenderSanitizer';
+import { formatTenderClosingFull, getTenderDeadlineInfo } from '@/utils/tenderDateFormatter';
 import {
   getStoredTenderApprovalSettings,
   determineRequiredApprovalTier,
@@ -209,6 +210,8 @@ export default function CommercialBidTabulationModal({
     const mockVendors: VendorBidSubmission[] = [
       {
         id: `bid-1-${Date.now()}`,
+        vendorId: 'VND-CPG-001',
+        isDptVerified: true,
         vendorName: 'PT. Samudra Bahari Teknik',
         vendorPic: 'Bpk. Hendra Gunawan',
         vendorContact: '+62 812-8877-6655',
@@ -228,6 +231,8 @@ export default function CommercialBidTabulationModal({
       },
       {
         id: `bid-2-${Date.now()}`,
+        vendorId: 'VND-CPG-002',
+        isDptVerified: true,
         vendorName: 'CV. Cipta Marine Mandiri',
         vendorPic: 'Ibu Ratna Dewi',
         vendorContact: '+62 813-9988-1122',
@@ -247,6 +252,8 @@ export default function CommercialBidTabulationModal({
       },
       {
         id: `bid-3-${Date.now()}`,
+        vendorId: 'VND-CPG-003',
+        isDptVerified: true,
         vendorName: 'PT. Pelayaran Global Nusantara Supply',
         vendorPic: 'Bpk. Dimas Pratama',
         vendorContact: '+62 821-4433-2211',
@@ -778,16 +785,25 @@ PT. Cipta Sarana Transindo - CPG Group
                 <span className="text-[10px] font-semibold text-muted-foreground">
                   HPS / OE: <strong className="text-foreground">Rp {totalHps.toLocaleString('id-ID')}</strong>
                 </span>
-                {packageData.targetClosingDate && (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
-                    <Clock className="size-3" />
-                    <span>
-                      {new Date(packageData.targetClosingDate).getTime() < Date.now()
-                        ? '⏱️ Tahap Evaluasi (SLA: 1–2 Hari Kerja)'
-                        : `Batas Penawaran: ${packageData.targetClosingDate}`}
+                {packageData.targetClosingDate && (() => {
+                  const dInfo = getTenderDeadlineInfo(packageData.targetClosingDate);
+                  return (
+                    <span
+                      className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md border ${
+                        dInfo.isPassed
+                          ? 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20'
+                          : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
+                      }`}
+                    >
+                      <Clock className="size-3" />
+                      <span>
+                        {dInfo.isPassed
+                          ? `Pemasukan Ditutup (${dInfo.formattedFull})`
+                          : `Batas Penawaran: ${dInfo.formattedFull} (${dInfo.remainingText})`}
+                      </span>
                     </span>
-                  </span>
-                )}
+                  );
+                })()}
                 {!isDataFrozen && (
                   <button
                     type="button"
@@ -977,6 +993,10 @@ PT. Cipta Sarana Transindo - CPG Group
                                     </div>
                                     {/* Badge Status Kunci 1x Submit & Tombol Buka Kunci */}
                                     <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-semibold text-[9px] border border-emerald-500/30">
+                                        <ShieldCheck className="size-2.5" />
+                                        <span>DPT Sah</span>
+                                      </span>
                                       {bid.isLocked ? (
                                         <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300 font-semibold text-[9px] border border-amber-500/30">
                                           <Lock className="size-2.5" />
