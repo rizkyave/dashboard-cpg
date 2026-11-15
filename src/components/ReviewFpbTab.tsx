@@ -571,21 +571,62 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
     const now = nowDate;
     const currentYear = now.getFullYear();
 
+    // Helper konversi angka ke Romawi (I, II, III, ..., LII)
+    const toRoman = (num: number): string => {
+      if (num <= 0) return 'I';
+      const romanMap: [number, string][] = [
+        [100, 'C'], [90, 'XC'], [50, 'L'], [40, 'XL'],
+        [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']
+      ];
+      let res = '';
+      let n = num;
+      for (const [val, sym] of romanMap) {
+        while (n >= val) {
+          res += sym;
+          n -= val;
+        }
+      }
+      return res || String(num);
+    };
+
     // Hitung nomor minggu dalam setahun (1-52)
     const jan1 = new Date(currentYear, 0, 1);
     const dayOfYear = Math.floor((now.getTime() - jan1.getTime()) / (24 * 60 * 60 * 1000));
     const weekNumber = Math.ceil((dayOfYear + jan1.getDay() + 1) / 7);
 
-    // Cari tahu berapa batch yang sudah diarsipkan sebelumnya
-    const existingBatches = new Set<string>();
+    // Cari tahu berapa batch yang sudah diarsipkan pada TAHUN BERJALAN (currentYear)
+    // Sesuai aturan siklus tahunan: batch di-reset setiap awal tahun baru (1 Januari)
+    const existingBatchesThisYear = new Set<string>();
+    let maxBatchNumberThisYear = 0;
+
     reviews.forEach((r) => {
-      if (r.batchNo) existingBatches.add(r.batchNo);
+      if (r.batchNo) {
+        const yearMatch = r.batchNo.match(/(?:20\d{2})/);
+        const batchYear = yearMatch ? parseInt(yearMatch[0], 10) : null;
+        if (
+          batchYear === currentYear ||
+          (!batchYear && (r.archivedAt?.includes(String(currentYear)) || r.date?.includes(String(currentYear))))
+        ) {
+          existingBatchesThisYear.add(r.batchNo);
+          const numMatch = r.batchNo.match(/[B\-_](\d+)/i) || r.batchNo.match(/Batch\s*(\d+)/i);
+          if (numMatch) {
+            const parsed = parseInt(numMatch[1], 10);
+            if (!isNaN(parsed) && parsed > maxBatchNumberThisYear) {
+              maxBatchNumberThisYear = parsed;
+            }
+          }
+        }
+      }
     });
-    const batchSeq = Math.max(1, existingBatches.size + 1);
 
-    const romanNumerals = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX'];
-    const romanBatch = romanNumerals[batchSeq - 1] || `${batchSeq}`;
+    // Baseline untuk tahun 2026:
+    // Batch I dan Batch II sudah pernah dilaksanakan sebelumnya, sehingga batch aktif saat ini adalah Batch III (B03).
+    // Untuk tahun 2027 dan seterusnya, siklus otomatis di-reset mulai dari 1 (Batch I / B01).
+    const baseOffset = currentYear === 2026 ? 2 : 0;
+    const computedSeq = Math.max(existingBatchesThisYear.size + baseOffset + 1, maxBatchNumberThisYear + 1);
+    const batchSeq = Math.max(currentYear === 2026 ? 3 : 1, computedSeq);
 
+    const romanBatch = toRoman(batchSeq);
     const batchName = `Batch ${romanBatch} (Minggu ${weekNumber})`;
     const defaultBatchCode = `CPG-PP-${currentYear}-B${String(batchSeq).padStart(2, '0')}`;
 
