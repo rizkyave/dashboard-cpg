@@ -29,7 +29,7 @@
         "matchedInventoryItem": "[JASA-JAS003] JASA (SERVICE) - METAL SPRAY AREA DUDUKAN SEAL (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -98,7 +98,7 @@
         "matchedInventoryItem": "[UNIF-UNI010] UNIFORM - BAJU SERAGAM MERAH (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -368,7 +368,7 @@
         "matchedInventoryItem": "[CYLI-CYL001] CYLINDER - CYLINDER HEAD (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 11,
@@ -396,7 +396,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 13,
@@ -411,7 +411,7 @@
         "matchedInventoryItem": "[SEAL-SAL011] SEAL - SEAL CRANKSHAFT (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 14,
@@ -426,7 +426,7 @@
         "matchedInventoryItem": "[SEAL-SAL011] SEAL - SEAL CRANKSHAFT (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -523,7 +523,7 @@
         "matchedInventoryItem": "[BESI-BES002] BESI (IRON) - BESI BETON ESER (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 4,
@@ -598,7 +598,7 @@
         "matchedInventoryItem": "[BESI-BES002] BESI (IRON) - BESI BETON ESER (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 9,
@@ -643,7 +643,7 @@
         "matchedInventoryItem": "[BESI-BES002] BESI (IRON) - BESI BETON ESER (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 12,
@@ -671,7 +671,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 14,
@@ -686,7 +686,7 @@
         "matchedInventoryItem": "[PACK-PAC012] PACKING - PACKING KARET (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 15,
@@ -701,7 +701,7 @@
         "matchedInventoryItem": "[BBMN-B/O019] BAUT (BOLT) & MUR (NUT) - BAUT KUPU-KUPU KUNINGAN (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 16,
@@ -714,7 +714,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -991,7 +991,7 @@
         "matchedInventoryItem": "[KPST-KPS001] KAPASITOR - KAPASITOR (CAPACITOR) FAN UF (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -1087,7 +1087,7 @@
         "matchedInventoryItem": "[BTRI-BTR014] BATERAI (BATTERY) - BATERAI LAPTOP (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -1204,7 +1204,7 @@
         "matchedInventoryItem": "[ACCU-ACC001] ACCU - ACCU 12V (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -1411,7 +1411,7 @@
         "matchedInventoryItem": "[MIDR-MID001] MINUMAN (DRINK) - AIR MINERAL (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -1426,7 +1426,7 @@
         "matchedInventoryItem": "[BBGN-BBG020] BAHAN BANGUNAN - TALANG AIR KOTAK (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 3,
@@ -1439,7 +1439,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 4,
@@ -1454,7 +1454,7 @@
         "matchedInventoryItem": "[TISU-TIS003] TISSUE - TISSUE MAKAN (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 5,
@@ -1469,7 +1469,7 @@
         "matchedInventoryItem": "[TISU-TIS002] TISSUE - TISSUE BASAH (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 6,
@@ -1484,7 +1484,7 @@
         "matchedInventoryItem": "[CAIR-CAI010] CAIRAN - PEMBERSIH KACA (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 7,
@@ -1499,7 +1499,7 @@
         "matchedInventoryItem": "[PGHR-PGH003] PENGHARUM - PENGHARUM RUANGAN (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 8,
@@ -1512,7 +1512,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -1679,7 +1679,7 @@
         "matchedInventoryItem": "[HOUK-HOU013] HOUSE KEEPING - PEL LANTAI (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -1694,7 +1694,7 @@
         "matchedInventoryItem": "[CAIR-CAI014] CAIRAN - PEMBERSIH LANTAI (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 3,
@@ -1709,7 +1709,7 @@
         "matchedInventoryItem": "[SEHO-SEH014] SELANG (HOSE) - SELANG KAWAT (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -1896,7 +1896,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -1911,7 +1911,7 @@
         "matchedInventoryItem": "[SEAL-SAL027] SEAL - SEAL PIPA (PIPE) (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 3,
@@ -1926,7 +1926,7 @@
         "matchedInventoryItem": "[SEHO-SEH031] SELANG (HOSE) - HOSE RUBBER (HL)",
         "inventoryEntity": "HL",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 4,
@@ -2007,7 +2007,7 @@
         "matchedInventoryItem": "[ACCU-ACC005] ACCU - CHARGER PORTABLE (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -2172,7 +2172,7 @@
         "matchedInventoryItem": "[PETA-PET003] PETA (MAP) - PETA (MAP) LAUT (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -2757,7 +2757,7 @@
         "matchedInventoryItem": "[PRIN-PRI007] PRINTER - NAVTEX SNX-300 (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -2772,7 +2772,7 @@
         "matchedInventoryItem": "[RDIO-RDI006] RADIO - RADIO SSB (HL)",
         "inventoryEntity": "HL",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 3,
@@ -2800,7 +2800,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 5,
@@ -2815,7 +2815,7 @@
         "matchedInventoryItem": "[RING-RIN014] RING - RING PLAT (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 6,
@@ -3160,7 +3160,7 @@
         "matchedInventoryItem": "[PRES-PRE001] PRESSURE - OIL PRESSURE GAUGE (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -3496,7 +3496,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -3558,7 +3558,7 @@
         "matchedInventoryItem": "[LAMP-LAM032] LAMPU (LAMP) - LAMPU LIFE JACKET (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -3716,7 +3716,7 @@
         "matchedInventoryItem": "[UNIF-UNI019] UNIFORM - FULL BODY HARNEST (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -3731,7 +3731,7 @@
         "matchedInventoryItem": "[LAMP-LAM032] LAMPU (LAMP) - LAMPU LIFE JACKET (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 3,
@@ -3744,7 +3744,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 4,
@@ -3759,7 +3759,7 @@
         "matchedInventoryItem": "[SNTR-SNT005] SENTER - SENTER LED KEPALA (RECHARGEABLE) (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -3821,7 +3821,7 @@
         "matchedInventoryItem": "[JRGN-JRG001] JERIGEN - DRUM BEKAS OLI (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -3836,7 +3836,7 @@
         "matchedInventoryItem": "[PLAT-PLA003] PLAT - PLAT BESI (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -3885,7 +3885,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -3900,7 +3900,7 @@
         "matchedInventoryItem": "[PACK-PAC012] PACKING - PACKING KARET (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -3951,7 +3951,7 @@
         "matchedInventoryItem": "[VALV-VAL031] VALVE - VALVE ASSY RELIEFT (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -4056,7 +4056,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -4105,7 +4105,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -4291,7 +4291,7 @@
         "matchedInventoryItem": "[FRON-FRO009] FREON - HIGH PRESSURE GAUGE MANIFOLD FREON (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -4487,7 +4487,7 @@
         "matchedInventoryItem": "[GAS1-GAS005] GAS & LIQUID - OXYGEN (O2) (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -4502,7 +4502,7 @@
         "matchedInventoryItem": "[LPG1-LPG001] LPG - GAS LPG (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -4805,7 +4805,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -4820,7 +4820,7 @@
         "matchedInventoryItem": "[DOOR-DOO006] PINTU (DOOR) - HANDLE PINTU (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -4892,7 +4892,7 @@
         "matchedInventoryItem": "[ELEM-ELM001] ELEMENT - ELEMENT AIR CLEANER (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -4905,7 +4905,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 3,
@@ -4918,7 +4918,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 4,
@@ -4931,7 +4931,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -5016,7 +5016,7 @@
         "matchedInventoryItem": "[MOTA-MOR005] MOTOR A - MOTOR TRIM (CPL)",
         "inventoryEntity": "CPL",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -5127,7 +5127,7 @@
         "matchedInventoryItem": "[ACC-62001015] JASA PENGIRIMAN BARANG/DOKUMEN (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -5176,7 +5176,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -5227,7 +5227,7 @@
         "matchedInventoryItem": "[HLTH-HLT011] KESEHATAN (HEALTH) - KASA STERIL (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -5240,7 +5240,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 3,
@@ -5253,7 +5253,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 4,
@@ -5266,7 +5266,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 5,
@@ -5279,7 +5279,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 6,
@@ -5292,7 +5292,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 7,
@@ -5307,7 +5307,7 @@
         "matchedInventoryItem": "[KAIN-KAI011] KAIN (CLOTH) - KAIN SEGITIGA MITELA (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 8,
@@ -5322,7 +5322,7 @@
         "matchedInventoryItem": "[HLTH-HLT036] KESEHATAN (HEALTH) - PENITI (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 9,
@@ -5337,7 +5337,7 @@
         "matchedInventoryItem": "[MASK-MAS002] MASKER (MASK) - MASKER (MASK) BIASA (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 10,
@@ -5350,7 +5350,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 11,
@@ -5365,7 +5365,7 @@
         "matchedInventoryItem": "[HLTH-HLT027] KESEHATAN (HEALTH) - SENTER MEDIC (PENLIGHT) (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 12,
@@ -5380,7 +5380,7 @@
         "matchedInventoryItem": "[HLTH-HLT037] KESEHATAN (HEALTH) - GELAS CUCI MATA (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 13,
@@ -5395,7 +5395,7 @@
         "matchedInventoryItem": "[KAPL-KAP002] KANTONG PLASTIK - KANTONG KRESEK KECIL (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 14,
@@ -5408,7 +5408,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 15,
@@ -5421,7 +5421,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 16,
@@ -5436,7 +5436,7 @@
         "matchedInventoryItem": "[BUKU-BUK003] BUKU (BOOK) - BUKU INFORMASI/PANDUAN (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 17,
@@ -5451,7 +5451,7 @@
         "matchedInventoryItem": "[HLTH-HLT026] KESEHATAN (HEALTH) - SARUNG TANGAN MEDIK (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 18,
@@ -5464,7 +5464,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 19,
@@ -5479,7 +5479,7 @@
         "matchedInventoryItem": "[GTSC-GTS008] GUNTING (SCISSOR) - GUNTING (SCISSOR) SEDANG (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -5530,7 +5530,7 @@
         "matchedInventoryItem": "[BBMN-B/O023] BAUT (BOLT) & MUR (NUT) - BAUT ROOFING (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -5545,7 +5545,7 @@
         "matchedInventoryItem": "[BBMN-B/O023] BAUT (BOLT) & MUR (NUT) - BAUT ROOFING (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 3,
@@ -5558,7 +5558,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -5905,7 +5905,7 @@
         "matchedInventoryItem": "[PLAT-PLA004] PLAT - PLAT BESI NON CLASS (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -5970,7 +5970,7 @@
         "matchedInventoryItem": "[OLI1-OLI039] OLI (LUBRICANT) - OLI SAE 20W (CPL)",
         "inventoryEntity": "CPL",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -6035,7 +6035,7 @@
         "matchedInventoryItem": "[ACCU-ACC001] ACCU - ACCU 12V (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -6097,7 +6097,7 @@
         "matchedInventoryItem": "[SEAG-SEG002] SEALING - SEALING RING-HUB R/A (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -6112,7 +6112,7 @@
         "matchedInventoryItem": "[SEAG-SEG002] SEALING - SEALING RING-HUB R/A (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -6547,7 +6547,7 @@
         "matchedInventoryItem": "[OLI1-OLI039] OLI (LUBRICANT) - OLI SAE 20W (CPL)",
         "inventoryEntity": "CPL",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -6691,7 +6691,7 @@
         "matchedInventoryItem": "[BBGN-BBG002] BAHAN BANGUNAN - ATAP SPANDEK (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -6767,7 +6767,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -6780,7 +6780,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 3,
@@ -6793,7 +6793,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -6866,7 +6866,7 @@
         "matchedInventoryItem": "[LEM1-LEM002] LEM (GLUE) - DOUBLE TAPE (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 3,
@@ -6879,7 +6879,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 4,
@@ -6894,7 +6894,7 @@
         "matchedInventoryItem": "[ATK1-ATK034] ATK - SHEET PROTECTOR (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -6948,7 +6948,7 @@
         "matchedInventoryItem": "[SEAG-SEG006] SEALING - SEALING OIL (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -7026,7 +7026,7 @@
         "matchedInventoryItem": "[BBMN-B/N002] BAUT (BOLT) & MUR (NUT) - B/N BAJA (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -7080,7 +7080,7 @@
         "matchedInventoryItem": "[PACK-PAC020] PACKING - PACKING TOMBO (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -7095,7 +7095,7 @@
         "matchedInventoryItem": "[PACK-PAC012] PACKING - PACKING KARET (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 3,
@@ -7110,7 +7110,7 @@
         "matchedInventoryItem": "[PACK-PAC012] PACKING - PACKING KARET (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 4,
@@ -7125,7 +7125,7 @@
         "matchedInventoryItem": "[PACK-PAC019] PACKING - PACKING TBA (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 5,
@@ -7140,7 +7140,7 @@
         "matchedInventoryItem": "[KLEM-KLE005] KLEM (CLAMP) - KLEM SELANG (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 6,
@@ -7155,7 +7155,7 @@
         "matchedInventoryItem": "[KLEM-KLE005] KLEM (CLAMP) - KLEM SELANG (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 7,
@@ -7170,7 +7170,7 @@
         "matchedInventoryItem": "[SEAL-SAL031] SEAL - SEAL TAPE 1\" (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 8,
@@ -7198,7 +7198,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 10,
@@ -7211,7 +7211,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 11,
@@ -7241,7 +7241,7 @@
         "matchedInventoryItem": "[SNTR-SNT005] SENTER - SENTER LED KEPALA (RECHARGEABLE) (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 13,
@@ -7256,7 +7256,7 @@
         "matchedInventoryItem": "[KEYT-KEY003] KUNCI TUKANG - KUNCI MOMENT (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 14,
@@ -7286,7 +7286,7 @@
         "matchedInventoryItem": "[AKUR-AKU035] ALAT UKUR - PLASTIGAUGE (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 16,
@@ -7299,7 +7299,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -7368,7 +7368,7 @@
         "matchedInventoryItem": "[KBEL-KBE019] KABEL (CABLE) - KABEL NYYHY (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 3,
@@ -7383,7 +7383,7 @@
         "matchedInventoryItem": "[PIPA-PIP013] PIPA (PIPE) - PIPA (PIPE) TUBING AC (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -7500,7 +7500,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -7515,7 +7515,7 @@
         "matchedInventoryItem": "[BOR1-BOR021] BOR (DRILL) - ENDMILL CARBIDE (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 3,
@@ -7530,7 +7530,7 @@
         "matchedInventoryItem": "[BOR1-BOR021] BOR (DRILL) - ENDMILL CARBIDE (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 4,
@@ -7545,7 +7545,7 @@
         "matchedInventoryItem": "[BOR1-BOR021] BOR (DRILL) - ENDMILL CARBIDE (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 5,
@@ -7560,7 +7560,7 @@
         "matchedInventoryItem": "[BOR1-BOR021] BOR (DRILL) - ENDMILL CARBIDE (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -7680,7 +7680,7 @@
         "matchedInventoryItem": "[KAPL-KAP006] KANTONG PLASTIK - PLASTIK COR (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -7693,7 +7693,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 3,
@@ -7708,7 +7708,7 @@
         "matchedInventoryItem": "[PAKU-PAK009] PAKU (NAIL) - PAKU ULIN (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 4,
@@ -7723,7 +7723,7 @@
         "matchedInventoryItem": "[A2TK-A2T126] ALAT2 TUKANG - KASUT KAYU (CPL)",
         "inventoryEntity": "CPL",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 5,
@@ -7738,7 +7738,7 @@
         "matchedInventoryItem": "[A2TK-A2T071] ALAT2 TUKANG - CETOK SEMEN (HL)",
         "inventoryEntity": "HL",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 6,
@@ -7753,7 +7753,7 @@
         "matchedInventoryItem": "[BOR1-BOR004] BOR (DRILL) - MATA BOR (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -7864,7 +7864,7 @@
         "matchedInventoryItem": "[BBGN-BBG002] BAHAN BANGUNAN - ATAP SPANDEK (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -7879,7 +7879,7 @@
         "matchedInventoryItem": "[KANA-KAN001] KANAL (CANAL) - KANAL (CANAL) BAJA RINGAN (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 3,
@@ -7892,7 +7892,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 4,
@@ -7907,7 +7907,7 @@
         "matchedInventoryItem": "[BBMN-B/O023] BAUT (BOLT) & MUR (NUT) - BAUT ROOFING (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 5,
@@ -7922,7 +7922,7 @@
         "matchedInventoryItem": "[GERG-GER008] GERGAJI (SAW) - ALAT GERGAJI BATA RINGAN (CPL)",
         "inventoryEntity": "CPL",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 6,
@@ -7935,7 +7935,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 7,
@@ -7950,7 +7950,7 @@
         "matchedInventoryItem": "[BBMN-B/O028] BAUT (BOLT) & MUR (NUT) - DYNABOLT (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 8,
@@ -8308,7 +8308,7 @@
         "matchedInventoryItem": "[JASA-JAS063] JASA (SERVICE) - CONTAINER LIFE RAFT (CPL)",
         "inventoryEntity": "CPL",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -8323,7 +8323,7 @@
         "matchedInventoryItem": "[JASA-JAS009] JASA (SERVICE) - RE-CERTIFICATION (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 3,
@@ -8338,7 +8338,7 @@
         "matchedInventoryItem": "[FIRE-FIR003] FIRE SAFETY - APAR CO2 SYSTEM (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 4,
@@ -8353,7 +8353,7 @@
         "matchedInventoryItem": "[HRU1-HRU002] HYDROSTATIC RELEASE UNIT (HRU) - HRU LIFE RAFT (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 5,
@@ -8368,7 +8368,7 @@
         "matchedInventoryItem": "[SCBA-SCB001] SELF CONTAINED BREATHING APPARATUS (SCBA) - SCBA (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 6,
@@ -8383,7 +8383,7 @@
         "matchedInventoryItem": "[SCBA-SCB001] SELF CONTAINED BREATHING APPARATUS (SCBA) - SCBA (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 7,
@@ -8398,7 +8398,7 @@
         "matchedInventoryItem": "[SCBA-SCB001] SELF CONTAINED BREATHING APPARATUS (SCBA) - SCBA (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -8462,7 +8462,7 @@
         "matchedInventoryItem": "[ELEK-ELE001] ELEKTRONIK - DISPENSER AIR MINUM (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -8516,7 +8516,7 @@
         "matchedInventoryItem": "[BEAR-BEA028] BEARING - CUTLESS BEARING (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -8531,7 +8531,7 @@
         "matchedInventoryItem": "[BEAR-BEA028] BEARING - CUTLESS BEARING (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -8593,7 +8593,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -8655,7 +8655,7 @@
         "matchedInventoryItem": "[KWAT-KWA014] KAWAT (WIRE) - KAWAT BENDRAT GALVANIS (HL)",
         "inventoryEntity": "HL",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -8709,7 +8709,7 @@
         "matchedInventoryItem": "[REM1-REM003] REM (BRAKE) - BRAKE KIT REPAIR (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -8816,7 +8816,7 @@
         "matchedInventoryItem": "[SGEL-SGE001] SEGEL - SEGEL D GALVANIS (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 4,
@@ -8831,7 +8831,7 @@
         "matchedInventoryItem": "[RNTI-RNT002] RANTAI (CHAIN) - RANTAI (CHAIN) GALVANIS (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -8884,7 +8884,7 @@
         "matchedInventoryItem": "[KPLG-KPL011] KOPLING (COUPLING) - MASTER KOPLING ATAS (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -8973,7 +8973,7 @@
         "matchedInventoryItem": "[PAKU-PAK009] PAKU (NAIL) - PAKU ULIN (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -9048,7 +9048,7 @@
         "matchedInventoryItem": "[SATA-SAT002] SARUNG TANGAN - SARUNG TANGAN KARET (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -9116,7 +9116,7 @@
         "matchedInventoryItem": "[CAT1-CAT025] CAT (PAINTING) - EPOXY (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -9363,7 +9363,7 @@
         "matchedInventoryItem": "[BAN1-BAN003] BAN (TYRE) - BAN LUAR (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -9427,7 +9427,7 @@
         "matchedInventoryItem": "[PRIN-PRI019] PRINTER - KEYPAD DISPENSER (CPL)",
         "inventoryEntity": "CPL",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -9440,7 +9440,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -9529,7 +9529,7 @@
         "matchedInventoryItem": "[PRIN-PRI019] PRINTER - KEYPAD DISPENSER (CPL)",
         "inventoryEntity": "CPL",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -9542,7 +9542,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -9631,7 +9631,7 @@
         "matchedInventoryItem": "[PRIN-PRI019] PRINTER - KEYPAD DISPENSER (CPL)",
         "inventoryEntity": "CPL",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -9720,7 +9720,7 @@
         "matchedInventoryItem": "[GSKT-GSK010] GASKET - GASKET HEAD (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -9771,7 +9771,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -9850,7 +9850,7 @@
         "matchedInventoryItem": "[PIPA-PIP022] PIPA (PIPE) - PIPA (PIPE) FUEL INJECTION PUMP (HL)",
         "inventoryEntity": "HL",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -9880,7 +9880,7 @@
         "matchedInventoryItem": "[SKRP-SKR011] SKRUP (SCREW) - SKRUP (SCREW) HOLLOW (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -9941,7 +9941,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -10263,7 +10263,7 @@
         "matchedInventoryItem": "[LAS1-LAS006] LAS (WELDING) - KAWAT LAS 6013 (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -10327,7 +10327,7 @@
         "matchedInventoryItem": "[KBEL-KBE019] KABEL (CABLE) - KABEL NYYHY (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -10340,7 +10340,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 3,
@@ -10353,7 +10353,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 4,
@@ -10368,7 +10368,7 @@
         "matchedInventoryItem": "[PLUG-PLU023] PLUG - PLUG 5 PIN (CPL)",
         "inventoryEntity": "CPL",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 5,
@@ -10383,7 +10383,7 @@
         "matchedInventoryItem": "[LAMP-LAM065] LAMPU (LAMP) - LAMPU SOROT LED 220V (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 6,
@@ -10398,7 +10398,7 @@
         "matchedInventoryItem": "[ZINC-ZIN002] ZINC - ZINC ANODE (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -10681,7 +10681,7 @@
         "matchedInventoryItem": "[GURI-GUR008] GURINDA - MESIN GURINDA (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -10745,7 +10745,7 @@
         "matchedInventoryItem": "[ELBO-ELB002] ELBOW - ELBOW DRAT DALAM PVC (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -10760,7 +10760,7 @@
         "matchedInventoryItem": "[TEE1-TEE003] TEE - TEE DRAT PVC (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -10871,7 +10871,7 @@
         "matchedInventoryItem": "[FLTR-FLT009] FILTER - FILTER POMPA ALKON (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -10886,7 +10886,7 @@
         "matchedInventoryItem": "[ADAM-ADM001] ADAPTOR MACHINO - ADAPTOR MACHINO (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -10960,7 +10960,7 @@
         "matchedInventoryItem": "[SPRA-SPR002] SPRAY GUN - SPRAY GUN (TABUNG BAWAH) (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -10975,7 +10975,7 @@
         "matchedInventoryItem": "[NZZL-NZZ011] NOZZLE - NOZZLE HOSE PMK JET SPRAY (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -11207,7 +11207,7 @@
         "matchedInventoryItem": "[CAT1-CAT029] CAT (PAINTING) - CAT UPOX SIGNAL GREEN (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 3,
@@ -11237,7 +11237,7 @@
         "matchedInventoryItem": "[CAT1-CAT002] CAT (PAINTING) - BAK CAT ROLL (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -11305,7 +11305,7 @@
         "matchedInventoryItem": "[A2TK-A2T099] ALAT2 TUKANG - TIP CLEANER (CPL)",
         "inventoryEntity": "CPL",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -11320,7 +11320,7 @@
         "matchedInventoryItem": "[ATK1-ATK027] ATK - PENGGARIS SIKU BESI (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -11393,7 +11393,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -11406,7 +11406,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -11470,7 +11470,7 @@
         "matchedInventoryItem": "[LEM1-LEM026] LEM (GLUE) - LEM PIPA PVC (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -11485,7 +11485,7 @@
         "matchedInventoryItem": "[ELBO-ELB002] ELBOW - ELBOW DRAT DALAM PVC (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 3,
@@ -11500,7 +11500,7 @@
         "matchedInventoryItem": "[TEE1-TEE003] TEE - TEE DRAT PVC (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 4,
@@ -11515,7 +11515,7 @@
         "matchedInventoryItem": "[LEM1-LEM026] LEM (GLUE) - LEM PIPA PVC (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 5,
@@ -11530,7 +11530,7 @@
         "matchedInventoryItem": "[SEAL-SAL031] SEAL - SEAL TAPE 1\" (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 6,
@@ -11545,7 +11545,7 @@
         "matchedInventoryItem": "[SOCK-SOC008] SOCK - SOCK DRAT DALAM PVC (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 7,
@@ -11558,7 +11558,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 8,
@@ -11573,7 +11573,7 @@
         "matchedInventoryItem": "[KRAN-KRA001] KRAN - KRAN AIR (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 9,
@@ -11588,7 +11588,7 @@
         "matchedInventoryItem": "[VALV-VAL005] VALVE - BALL VALVE PVC (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 10,
@@ -11601,7 +11601,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -11675,7 +11675,7 @@
         "matchedInventoryItem": "[KBEL-KBE019] KABEL (CABLE) - KABEL NYYHY (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -11728,7 +11728,7 @@
         "matchedInventoryItem": "[LAS1-LAS015] LAS (WELDING) - TRAFO (TRAVO) LAS (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -11743,7 +11743,7 @@
         "matchedInventoryItem": "[LAMP-LAM001] LAMPU (LAMP) - FITTING LAMPU (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -11807,7 +11807,7 @@
         "matchedInventoryItem": "[ACC-611001016] BIAYA PEMELIHARAAN MOBIL (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -11858,7 +11858,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -11871,7 +11871,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 3,
@@ -11884,7 +11884,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -11957,7 +11957,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -11970,7 +11970,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 3,
@@ -11983,7 +11983,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 4,
@@ -11998,7 +11998,7 @@
         "matchedInventoryItem": "[MGKK-MGK003] MANGKUK (BOWL) - MANGKUK MAKAN MELAMIN (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 5,
@@ -12013,7 +12013,7 @@
         "matchedInventoryItem": "[ADKC-ADK008] ALAT2 DAPUR - GARFU MAKAN (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 6,
@@ -12026,7 +12026,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 7,
@@ -12041,7 +12041,7 @@
         "matchedInventoryItem": "[ADKC-ADK024] ALAT2 DAPUR - PENYIMPANAN BERAS (RICE BOX) (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -12094,7 +12094,7 @@
         "matchedInventoryItem": "[BUKU-BUK002] BUKU (BOOK) - BUKU DAFTAR/LIST (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -12145,7 +12145,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -12217,7 +12217,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -12274,7 +12274,7 @@
         "matchedInventoryItem": "[ACC-62001015] JASA PENGIRIMAN BARANG/DOKUMEN (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -12330,7 +12330,7 @@
         "matchedInventoryItem": "[ACC-62001015] JASA PENGIRIMAN BARANG/DOKUMEN (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -12492,7 +12492,7 @@
         "matchedInventoryItem": "[KACA-KAC015] KACA (GLASS) - KACA SPION (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -12640,7 +12640,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -12756,7 +12756,7 @@
         "matchedInventoryItem": "[COVE-COV008] CAP TUTUP (COVER) - COVER OIL COOLER (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 3,
@@ -12799,7 +12799,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 6,
@@ -12870,7 +12870,7 @@
         "matchedInventoryItem": "[RDTR-RDT003] RADIATOR - RADIATOR ASSY (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -12981,7 +12981,7 @@
         "matchedInventoryItem": "[RDTR-RDT003] RADIATOR - RADIATOR ASSY (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -13053,7 +13053,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -13066,7 +13066,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 3,
@@ -13079,7 +13079,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -13153,7 +13153,7 @@
         "matchedInventoryItem": "[PUMP-PUM016] POMPA (PUMP) - WATER PUMP ASSY (CPL)",
         "inventoryEntity": "CPL",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -13225,7 +13225,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -13293,7 +13293,7 @@
         "matchedInventoryItem": "[LAMP-LAM065] LAMPU (LAMP) - LAMPU SOROT LED 220V (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -13308,7 +13308,7 @@
         "matchedInventoryItem": "[KBEL-KBE019] KABEL (CABLE) - KABEL NYYHY (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 3,
@@ -13323,7 +13323,7 @@
         "matchedInventoryItem": "[STKO-STK001] STOP KONTAK - STOP KONTAK 1 LUBANG (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 4,
@@ -13338,7 +13338,7 @@
         "matchedInventoryItem": "[STEK-STE005] STEKER/STECKER (PLUG) - STEKER (PLUG) LISTRIK 2 KAKI (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 5,
@@ -13351,7 +13351,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 6,
@@ -13366,7 +13366,7 @@
         "matchedInventoryItem": "[SKLR-SKL009] SAKLAR - SAKLAR TUNGGAL (OUTBOW) (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 7,
@@ -13381,7 +13381,7 @@
         "matchedInventoryItem": "[LEM1-LEM009] LEM (GLUE) - ISOLASI 3M (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -13479,7 +13479,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -13494,7 +13494,7 @@
         "matchedInventoryItem": "[GSKT-GSK010] GASKET - GASKET HEAD (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 3,
@@ -13509,7 +13509,7 @@
         "matchedInventoryItem": "[GSKT-GSK026] GASKET - GASKET UPPER (CPL)",
         "inventoryEntity": "CPL",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 4,
@@ -13522,7 +13522,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 5,
@@ -13535,7 +13535,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 6,
@@ -13550,7 +13550,7 @@
         "matchedInventoryItem": "[KBEL-KBE020] KABEL (CABLE) - KABEL REMOTE (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 7,
@@ -13580,7 +13580,7 @@
         "matchedInventoryItem": "[GSKT-GSK033] GASKET - GASKET MANIFOLD (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 9,
@@ -13595,7 +13595,7 @@
         "matchedInventoryItem": "[GSKT-GSK033] GASKET - GASKET MANIFOLD (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -13657,7 +13657,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -13672,7 +13672,7 @@
         "matchedInventoryItem": "[GSKT-GSK010] GASKET - GASKET HEAD (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 3,
@@ -13685,7 +13685,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -13826,7 +13826,7 @@
         "matchedInventoryItem": "[KIEX-KIE003] KIPAS ANGIN & EXHAUST FAN - KIPAS ANGIN DINDING (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [],
@@ -13897,7 +13897,7 @@
         "matchedInventoryItem": "[FIRE-FIR003] FIRE SAFETY - APAR CO2 SYSTEM (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -13912,7 +13912,7 @@
         "matchedInventoryItem": "[FIRE-FIR003] FIRE SAFETY - APAR CO2 SYSTEM (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 3,
@@ -13927,7 +13927,7 @@
         "matchedInventoryItem": "[JASA-JAS017] JASA (SERVICE) - INSPECTION (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 4,
@@ -13942,7 +13942,7 @@
         "matchedInventoryItem": "[EEBD-EEB001] EMERGENCY ESCAPE BREATHING DEVICE (EEBD) - EEBD (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 5,
@@ -13957,7 +13957,7 @@
         "matchedInventoryItem": "[EEBD-EEB001] EMERGENCY ESCAPE BREATHING DEVICE (EEBD) - EEBD (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 6,
@@ -13972,7 +13972,7 @@
         "matchedInventoryItem": "[EEBD-EEB001] EMERGENCY ESCAPE BREATHING DEVICE (EEBD) - EEBD (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 7,
@@ -13987,7 +13987,7 @@
         "matchedInventoryItem": "[SCBA-SCB001] SELF CONTAINED BREATHING APPARATUS (SCBA) - SCBA (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 8,
@@ -14002,7 +14002,7 @@
         "matchedInventoryItem": "[SCBA-SCB001] SELF CONTAINED BREATHING APPARATUS (SCBA) - SCBA (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 9,
@@ -14017,7 +14017,7 @@
         "matchedInventoryItem": "[SCBA-SCB001] SELF CONTAINED BREATHING APPARATUS (SCBA) - SCBA (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 10,
@@ -14032,7 +14032,7 @@
         "matchedInventoryItem": "[JASA-JAS017] JASA (SERVICE) - INSPECTION (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 11,
@@ -14047,7 +14047,7 @@
         "matchedInventoryItem": "[JASA-JAS063] JASA (SERVICE) - CONTAINER LIFE RAFT (CPL)",
         "inventoryEntity": "CPL",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 12,
@@ -14062,7 +14062,7 @@
         "matchedInventoryItem": "[HRU1-HRU002] HYDROSTATIC RELEASE UNIT (HRU) - HRU LIFE RAFT (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 13,
@@ -14077,7 +14077,7 @@
         "matchedInventoryItem": "[HRU1-HRU002] HYDROSTATIC RELEASE UNIT (HRU) - HRU LIFE RAFT (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 14,
@@ -14092,7 +14092,7 @@
         "matchedInventoryItem": "[JASA-JAS063] JASA (SERVICE) - CONTAINER LIFE RAFT (CPL)",
         "inventoryEntity": "CPL",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 15,
@@ -14107,7 +14107,7 @@
         "matchedInventoryItem": "[HRU1-HRU002] HYDROSTATIC RELEASE UNIT (HRU) - HRU LIFE RAFT (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 16,
@@ -14122,7 +14122,7 @@
         "matchedInventoryItem": "[HRU1-HRU002] HYDROSTATIC RELEASE UNIT (HRU) - HRU LIFE RAFT (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 17,
@@ -14137,7 +14137,7 @@
         "matchedInventoryItem": "[FIRE-FIR001] FIRE SAFETY - APAR CO2 PORTABLE (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 18,
@@ -14152,7 +14152,7 @@
         "matchedInventoryItem": "[FIRE-FIR006] FIRE SAFETY - APAR DRY POWDER (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 19,
@@ -14167,7 +14167,7 @@
         "matchedInventoryItem": "[FIRE-FIR006] FIRE SAFETY - APAR DRY POWDER (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 20,
@@ -14182,7 +14182,7 @@
         "matchedInventoryItem": "[FIRE-FIR008] FIRE SAFETY - APAR FOAM (AFFF) (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 21,
@@ -14197,7 +14197,7 @@
         "matchedInventoryItem": "[FIRE-FIR008] FIRE SAFETY - APAR FOAM (AFFF) (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 22,
@@ -14212,7 +14212,7 @@
         "matchedInventoryItem": "[FIRE-FIR008] FIRE SAFETY - APAR FOAM (AFFF) (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 23,
@@ -14227,7 +14227,7 @@
         "matchedInventoryItem": "[JASA-JAS009] JASA (SERVICE) - RE-CERTIFICATION (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "attachments": [
@@ -14302,7 +14302,7 @@
         "matchedInventoryItem": "[LAMP-LAM024] LAMPU (LAMP) - LAMPU KOMBINASI BELAKANG (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "duplicateAlerts": [],
@@ -14379,7 +14379,7 @@
         "matchedInventoryItem": "[LAS1-LAS006] LAS (WELDING) - KAWAT LAS 6013 (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "duplicateAlerts": [],
@@ -14433,7 +14433,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -14448,7 +14448,7 @@
         "matchedInventoryItem": "[FLCO-FLC001] FLEXIBLE CONDUIT PLASTIK - FLEXIBLE CONDUIT PLASTIK (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "duplicateAlerts": [],
@@ -14525,7 +14525,7 @@
         "matchedInventoryItem": "[KACA-KAC001] KACA (GLASS) - FRAME KACA (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -14540,7 +14540,7 @@
         "matchedInventoryItem": "[KACA-KAC022] KACA (GLASS) - KACA BENING (CPL)",
         "inventoryEntity": "CPL",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 3,
@@ -14555,7 +14555,7 @@
         "matchedInventoryItem": "[KACA-KAC022] KACA (GLASS) - KACA BENING (CPL)",
         "inventoryEntity": "CPL",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 4,
@@ -14613,7 +14613,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 8,
@@ -14628,7 +14628,7 @@
         "matchedInventoryItem": "[KLEM-KLE005] KLEM (CLAMP) - KLEM SELANG (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 9,
@@ -14643,7 +14643,7 @@
         "matchedInventoryItem": "[KLEM-KLE005] KLEM (CLAMP) - KLEM SELANG (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 10,
@@ -14658,7 +14658,7 @@
         "matchedInventoryItem": "[NPEL-NPE004] NEPEL (NEPPLE) - NEPEL (NEPPLE) DOUBLE KUNINGAN (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 11,
@@ -14673,7 +14673,7 @@
         "matchedInventoryItem": "[NPEL-NPE004] NEPEL (NEPPLE) - NEPEL (NEPPLE) DOUBLE KUNINGAN (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 12,
@@ -14686,7 +14686,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 13,
@@ -14701,7 +14701,7 @@
         "matchedInventoryItem": "[CUTT-CUT003] CUTTING - CUTTING TIP (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 14,
@@ -14761,7 +14761,7 @@
         "matchedInventoryItem": "[LAS1-LAS013] LAS (WELDING) - STANG LAS (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 18,
@@ -14774,7 +14774,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 19,
@@ -14789,7 +14789,7 @@
         "matchedInventoryItem": "[LPG1-LPG002] LPG - REGULATOR LPG (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 20,
@@ -14804,7 +14804,7 @@
         "matchedInventoryItem": "[PAST-PAS001] PASTA - CHEMICO GRINDING PASTE (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 21,
@@ -14819,7 +14819,7 @@
         "matchedInventoryItem": "[KPUR-KPU002] KAPUR - KAPUR TULIS BESI (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 22,
@@ -14864,7 +14864,7 @@
         "matchedInventoryItem": "[SATA-SAT004] SARUNG TANGAN - SARUNG TANGAN LAS (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 25,
@@ -15027,7 +15027,7 @@
         "matchedInventoryItem": "[PLAT-PLA001] PLAT - PLAT ALUMINIUM (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "duplicateAlerts": [],
@@ -15132,7 +15132,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "duplicateAlerts": [
@@ -15226,7 +15226,7 @@
         "matchedInventoryItem": "[ENGS-ENG009] ENGSEL - ENGSEL PINTU (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 4,
@@ -15241,7 +15241,7 @@
         "matchedInventoryItem": "[DOOR-DOO006] PINTU (DOOR) - HANDLE PINTU (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 5,
@@ -15254,7 +15254,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 6,
@@ -15267,7 +15267,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 7,
@@ -15282,7 +15282,7 @@
         "matchedInventoryItem": "[DOOR-DOO008] PINTU (DOOR) - PINTU ALUMINIUM (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 8,
@@ -15297,7 +15297,7 @@
         "matchedInventoryItem": "[DOOR-DOO010] PINTU (DOOR) - KUSEN ALUMINIUM (CPL)",
         "inventoryEntity": "CPL",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "duplicateAlerts": [],
@@ -15391,7 +15391,7 @@
         "matchedInventoryItem": "[JRGN-JRG001] JERIGEN - DRUM BEKAS OLI (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "duplicateAlerts": [
@@ -15448,7 +15448,7 @@
         "matchedInventoryItem": "[SEHO-SEH027] SELANG (HOSE) - CONNECTION PNEUMATIC HOSE (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "duplicateAlerts": [],
@@ -15520,7 +15520,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "duplicateAlerts": [
@@ -15607,7 +15607,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -15622,7 +15622,7 @@
         "matchedInventoryItem": "[JRGN-JRG001] JERIGEN - DRUM BEKAS OLI (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "duplicateAlerts": [
@@ -15691,7 +15691,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "duplicateAlerts": [],
@@ -15744,7 +15744,7 @@
         "matchedInventoryItem": "[LEM1-LEM020] LEM (GLUE) - LEM BESI (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "duplicateAlerts": [],
@@ -15796,7 +15796,7 @@
         "matchedInventoryItem": "[ACCU-ACC012] ACCU - KEPALA ACCU (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -15811,7 +15811,7 @@
         "matchedInventoryItem": "[PIPA-PIP012] PIPA (PIPE) - PIPA (PIPE) SGP (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 3,
@@ -15856,7 +15856,7 @@
         "matchedInventoryItem": "[LEM1-LEM029] LEM (GLUE) - LEM THREEBOND/GASKET (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 6,
@@ -15869,7 +15869,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "duplicateAlerts": [],
@@ -15916,7 +15916,7 @@
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "duplicateAlerts": [],
@@ -15965,7 +15965,7 @@
         "matchedInventoryItem": "[LAS1-LAS006] LAS (WELDING) - KAWAT LAS 6013 (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "duplicateAlerts": [],
@@ -16014,7 +16014,7 @@
         "matchedInventoryItem": "[LPG1-LPG001] LPG - GAS LPG (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       },
       {
         "no": 2,
@@ -16029,7 +16029,7 @@
         "matchedInventoryItem": "[GAS1-GAS005] GAS & LIQUID - OXYGEN (O2) (MO)",
         "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
+        "notes": "Stok gudang kosong. Masuk Purchase Planning (PO)."
       }
     ],
     "duplicateAlerts": [

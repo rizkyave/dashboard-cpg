@@ -1528,7 +1528,7 @@ export default function InventoryTab({
 
                         <div className="bg-muted/40 p-2.5 rounded-md border border-border/80 space-y-1.5">
                           <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block">
-                            Kandidat Stok Tersedia di Gudang (Bisa Diambil Tanpa Beli Baru):
+                            Kandidat Stok Tersedia di Gudang (Bisa Dipenuhi Tanpa Pengadaan PO):
                           </span>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                             {match.invMatches.map((inv) => (

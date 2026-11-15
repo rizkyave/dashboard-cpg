@@ -1397,7 +1397,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
     }
   };
 
-  // Helper: Set semua item ke PO (Beli Baru)
+  // Helper: Set semua item ke PO (Purchase Planning)
   const handleSetAllPo = () => {
     const updatedItems = formItems.map((item) => ({
       ...item,
@@ -1405,7 +1405,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
     }));
     setFormItems(updatedItems);
     setFormStatus('APPROVED_PO');
-    showToast?.('Semua item diatur untuk Beli Baru (PO Purchasing).', 'info');
+    showToast?.('Semua item diatur untuk Purchase Planning (PO).', 'info');
   };
 
   // Save Review Decision to Cloud Storage
@@ -1508,7 +1508,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
       'Catatan Review',
       'Jumlah Item',
       'Item Tersedia di Stok',
-      'Item PO Beli Baru',
+      'Item Purchase Planning (PO)',
       'No. PO Terkait',
       'No. FSTB Terkait',
       'No. TTB Terkait',
@@ -3483,7 +3483,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                             type="button"
                             onClick={handleSetAllPo}
                             className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-border bg-background hover:bg-muted text-foreground transition cursor-pointer"
-                            title="Tetapkan semua item untuk dibeli baru melalui PO Purchasing"
+                            title="Tetapkan semua item untuk diproses ke Purchase Planning (PO)"
                           >
                             <span>Set Semua PO</span>
                           </button>
@@ -3579,7 +3579,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                                   ) : (
                                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
                                       <XCircle className="size-3" />
-                                      Stok Kosong / Beli Baru
+                                      Stok Gudang Kosong
                                     </span>
                                   )}
                                 </td>
@@ -3600,7 +3600,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                                     }`}
                                   >
                                     <option value="STOCK">Penuhi Stok</option>
-                                    <option value="PO">Beli Baru (PO)</option>
+                                    <option value="PO">Purchase Planning (PO)</option>
                                     <option value="HOLD">Tahan (Hold)</option>
                                     <option value="REJECT">Tolak Item</option>
                                   </select>

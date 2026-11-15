@@ -1172,9 +1172,9 @@ export async function POST(req: NextRequest) {
           if (stock.stockAvailable >= reqQty) {
             defaultNotes = `Stok gudang mencukupi (${stock.stockAvailable} ${it.unit || 'pcs'}). Disarankan penuhi dari stok gudang.`;
           } else if (stock.stockAvailable > 0) {
-            defaultNotes = `Stok gudang parsial (${stock.stockAvailable} ${it.unit || 'pcs'}). Sisa dibuatkan PO.`;
+            defaultNotes = `Stok gudang parsial (${stock.stockAvailable} ${it.unit || 'pcs'}). Sisa masuk Purchase Planning (PO).`;
           } else {
-            defaultNotes = 'Stok gudang kosong. Diproses pembelian baru (PO).';
+            defaultNotes = 'Stok gudang kosong. Masuk Purchase Planning (PO).';
           }
 
           return {
