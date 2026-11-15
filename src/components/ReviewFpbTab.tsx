@@ -57,6 +57,7 @@ import {
   Upload,
   Archive,
   RotateCcw,
+  BarChart3,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import {
@@ -179,7 +180,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
   const [isVerifyingEfpb, setIsVerifyingEfpb] = useState<boolean>(false);
 
   // Clean Sheet & Archive States
-  const [sheetViewMode, setSheetViewMode] = useState<'active' | 'archived'>('active');
+  const [sheetViewMode, setSheetViewMode] = useState<'active' | 'archived' | 'batch_summary'>('active');
   const [isCleanSheetModalOpen, setIsCleanSheetModalOpen] = useState<boolean>(false);
   const [isCleaningSheet, setIsCleaningSheet] = useState<boolean>(false);
 
@@ -792,7 +793,11 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
   }, [reviews]);
 
   // Handler Ekspor Excel Resmi Purchase Planning Batch (.xlsx) Multi-Sheet
-  const handleDownloadBatchExcel = (recordsToExport?: FpbReviewRecord[], customBatchLabel?: string) => {
+  const handleDownloadBatchExcel = (
+    recordsToExport?: FpbReviewRecord[],
+    customBatchLabel?: string,
+    customBatchName?: string
+  ) => {
     const targetRecords = recordsToExport || cycleInfo.activeApprovedReviews;
     if (!targetRecords || targetRecords.length === 0) {
       showToast?.('Belum ada dokumen FPB yang disetujui untuk diterbitkan ke Excel Batch ini.', 'warning');
@@ -800,7 +805,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
     }
 
     const batchCodeToUse = customBatchLabel || customBatchCode.trim() || cycleInfo.batchCode;
-    const batchNameToUse = customBatchLabel || cycleInfo.batchName;
+    const batchNameToUse = customBatchName || customBatchLabel || cycleInfo.batchName;
 
     const wb = XLSX.utils.book_new();
 
@@ -841,8 +846,9 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
       const poItems = (r.items || []).filter(
         (i) => i.decision === 'PO' || (r.reviewStatus === 'APPROVED_PO' && i.decision !== 'STOCK' && i.decision !== 'REJECT')
       );
+      const itemsToProcess = poItems.length > 0 ? poItems : (r.items || []);
 
-      poItems.forEach((it) => {
+      itemsToProcess.forEach((it) => {
         const reqQty = Number(it.qty) || 1;
         const sSomber = Number(it.stockSomber) || Number(it.stockAvailable) || 0;
         const sKariangau = Number(it.stockKariangau) || 0;
@@ -1790,6 +1796,194 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
   const activeCount = useMemo(() => reviews.filter((r) => !r.isArchived).length, [reviews]);
   const archivedCount = useMemo(() => reviews.filter((r) => Boolean(r.isArchived)).length, [reviews]);
 
+  // Metrik KPI tersaring dinamis berdasarkan lembar/siklus yang sedang aktif dilihat pengguna
+  // Menjamin jika sedang melihat Lembar Aktif, angka HANYA menghitung siklus berjalan (1 siklus saja)
+  const currentViewMetrics = useMemo<FpbReviewSummaryMetrics>(() => {
+    const targetRecords = reviews.filter((r) => {
+      if (sheetViewMode === 'active') {
+        return !r.isArchived;
+      }
+      if (sheetViewMode === 'archived') {
+        if (!r.isArchived) return false;
+        if (archivedBatchFilter !== 'ALL' && (r.batchNo || 'NON-BATCH') !== archivedBatchFilter) {
+          return false;
+        }
+        return true;
+      }
+      // 'batch_summary': Tampilkan akumulasi seluruh siklus tahun berjalan
+      return true;
+    });
+
+    let pending = 0;
+    let approvedPo = 0;
+    let fulfillStock = 0;
+    let needClarification = 0;
+    let rejected = 0;
+    let urgent = 0;
+    let emergency = 0;
+    let p1Count = 0;
+    let p2Count = 0;
+    let p3Count = 0;
+    let overdueCount = 0;
+
+    targetRecords.forEach((r) => {
+      if (r.reviewStatus === 'APPROVED_PO') approvedPo++;
+      else if (r.reviewStatus === 'FULFILL_STOCK') fulfillStock++;
+      else if (r.reviewStatus === 'NEED_CLARIFICATION') needClarification++;
+      else if (r.reviewStatus === 'REJECTED') rejected++;
+      else pending++;
+
+      if (r.urgency === 'URGENT') urgent++;
+      if (r.urgency === 'EMERGENCY') emergency++;
+
+      const prio = r.priorityLevel || 'P3';
+      if (prio === 'P1') p1Count++;
+      else if (prio === 'P2') p2Count++;
+      else p3Count++;
+
+      if (r.slaStatus === 'OVERDUE') overdueCount++;
+    });
+
+    return {
+      total: targetRecords.length,
+      pending,
+      approvedPo,
+      fulfillStock,
+      needClarification,
+      rejected,
+      urgent,
+      emergency,
+      p1Count,
+      p2Count,
+      p3Count,
+      overdueCount,
+    };
+  }, [reviews, sheetViewMode, archivedBatchFilter]);
+
+  // Data Matriks Rekapitulasi & Konklusi Per Batch Pengadaan
+  const batchSummaryList = useMemo(() => {
+    interface BatchSummaryItem {
+      batchCode: string;
+      batchName: string;
+      cutoffLabel: string;
+      isCurrentActive: boolean;
+      records: FpbReviewRecord[];
+      totalFpb: number;
+      approvedPo: number;
+      fulfillStock: number;
+      pending: number;
+      rejected: number;
+      needClarification: number;
+      totalItems: number;
+      totalNetDemand: number;
+      totalEstCost: number;
+    }
+
+    const map = new Map<string, BatchSummaryItem>();
+
+    // 1. Inisialisasi Siklus Berjalan (Aktif)
+    map.set(cycleInfo.batchCode, {
+      batchCode: cycleInfo.batchCode,
+      batchName: cycleInfo.batchName,
+      cutoffLabel: cycleInfo.cutoffFormatted,
+      isCurrentActive: true,
+      records: [],
+      totalFpb: 0,
+      approvedPo: 0,
+      fulfillStock: 0,
+      pending: 0,
+      rejected: 0,
+      needClarification: 0,
+      totalItems: 0,
+      totalNetDemand: 0,
+      totalEstCost: 0,
+    });
+
+    // 2. Inisialisasi batch historis standar
+    map.set('CPG-PP-2026-B02', {
+      batchCode: 'CPG-PP-2026-B02',
+      batchName: 'Batch II (Minggu 46)',
+      cutoffLabel: 'Jumat, 14 Nov 2026 pk 10:00 WITA',
+      isCurrentActive: false,
+      records: [],
+      totalFpb: 0,
+      approvedPo: 0,
+      fulfillStock: 0,
+      pending: 0,
+      rejected: 0,
+      needClarification: 0,
+      totalItems: 0,
+      totalNetDemand: 0,
+      totalEstCost: 0,
+    });
+
+    map.set('CPG-PP-2026-B01', {
+      batchCode: 'CPG-PP-2026-B01',
+      batchName: 'Batch I (Minggu 45)',
+      cutoffLabel: 'Jumat, 07 Nov 2026 pk 10:00 WITA',
+      isCurrentActive: false,
+      records: [],
+      totalFpb: 0,
+      approvedPo: 0,
+      fulfillStock: 0,
+      pending: 0,
+      rejected: 0,
+      needClarification: 0,
+      totalItems: 0,
+      totalNetDemand: 0,
+      totalEstCost: 0,
+    });
+
+    // 3. Masukkan records ke batch masing-masing
+    reviews.forEach((r) => {
+      let bCode = r.batchNo;
+      if (!bCode) {
+        bCode = r.isArchived ? 'CPG-PP-2026-B01' : cycleInfo.batchCode;
+      }
+
+      let entry = map.get(bCode);
+      if (!entry) {
+        entry = {
+          batchCode: bCode,
+          batchName: bCode,
+          cutoffLabel: 'Siklus Pengadaan',
+          isCurrentActive: !r.isArchived,
+          records: [],
+          totalFpb: 0,
+          approvedPo: 0,
+          fulfillStock: 0,
+          pending: 0,
+          rejected: 0,
+          needClarification: 0,
+          totalItems: 0,
+          totalNetDemand: 0,
+          totalEstCost: 0,
+        };
+        map.set(bCode, entry);
+      }
+
+      entry.records.push(r);
+      entry.totalFpb++;
+      if (r.reviewStatus === 'APPROVED_PO') entry.approvedPo++;
+      else if (r.reviewStatus === 'FULFILL_STOCK') entry.fulfillStock++;
+      else if (r.reviewStatus === 'REJECTED') entry.rejected++;
+      else if (r.reviewStatus === 'NEED_CLARIFICATION') entry.needClarification++;
+      else entry.pending++;
+
+      (r.items || []).forEach((it) => {
+        entry!.totalItems++;
+        const req = Number(it.qty) || 1;
+        const s1 = Number(it.stockSomber) || Number(it.stockAvailable) || 0;
+        const s2 = Number(it.stockKariangau) || 0;
+        const net = Math.max(0, req - (s1 + s2));
+        entry!.totalNetDemand += net > 0 ? net : req;
+        entry!.totalEstCost += (net > 0 ? net : req) * 750000;
+      });
+    });
+
+    return Array.from(map.values()).sort((a, b) => b.batchCode.localeCompare(a.batchCode));
+  }, [reviews, cycleInfo]);
+
   // Helper Priority Badge
   const getPriorityBadge = (priority?: FpbPriorityLevel) => {
     switch (priority) {
@@ -2174,7 +2368,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
         </div>
       </div>
 
-      {/* Toggle Lembar Aktif vs Arsip Riwayat FPB */}
+      {/* Toggle Lembar Aktif vs Arsip Riwayat FPB vs Rekap Per Batch */}
       <div className="flex items-center justify-between flex-wrap gap-2 pt-1">
         <div className="flex items-center p-1 rounded-xl bg-muted border border-border text-xs gap-1">
           <button
@@ -2187,7 +2381,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
             }`}
           >
             <Sparkles className="size-3.5 text-primary" />
-            <span>Lembar Aktif ({activeCount})</span>
+            <span>Siklus Aktif: {cycleInfo.batchName} ({activeCount})</span>
           </button>
           <button
             type="button"
@@ -2200,6 +2394,18 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
           >
             <Archive className="size-3.5 text-amber-600" />
             <span>Arsip Riwayat ({archivedCount})</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setSheetViewMode('batch_summary')}
+            className={`px-3.5 py-1.5 rounded-lg font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+              sheetViewMode === 'batch_summary'
+                ? 'bg-card text-indigo-600 dark:text-indigo-400 shadow-xs font-bold'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <BarChart3 className="size-3.5 text-indigo-500" />
+            <span>Rekap &amp; Konklusi Per Batch</span>
           </button>
         </div>
 
@@ -2215,12 +2421,15 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
               onChange={(e) => setArchivedBatchFilter(e.target.value)}
               className="text-xs px-2.5 py-1 rounded-lg bg-background border border-border text-foreground font-semibold cursor-pointer shadow-2xs"
             >
-              <option value="ALL">Semua Batch Riwayat</option>
-              {uniqueArchivedBatches.map((b) => (
-                <option key={b} value={b}>
-                  📦 {b}
-                </option>
-              ))}
+              <option value="ALL">Semua Batch Riwayat ({archivedCount})</option>
+              {uniqueArchivedBatches.map((b) => {
+                const countInB = reviews.filter((r) => r.isArchived && r.batchNo === b).length;
+                return (
+                  <option key={b} value={b}>
+                    📦 {b} ({countInB} FPB)
+                  </option>
+                );
+              })}
             </select>
 
             {/* Tombol Unduh Excel untuk Batch Terpilih di Arsip */}
@@ -2258,6 +2467,35 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
         )}
       </div>
 
+      {/* Label Konteks Indikator KPI */}
+      <div className="flex items-center justify-between text-xs px-1">
+        <div className="flex items-center gap-2">
+          {sheetViewMode === 'active' ? (
+            <span className="font-bold text-foreground flex items-center gap-1.5">
+              <Sparkles className="size-3.5 text-primary" />
+              Indikator Siklus Berjalan: <span className="text-primary">{cycleInfo.batchName}</span> ({currentViewMetrics.total} Dokumen FPB)
+            </span>
+          ) : sheetViewMode === 'archived' ? (
+            <span className="font-bold text-foreground flex items-center gap-1.5">
+              <Archive className="size-3.5 text-amber-600" />
+              Indikator Arsip Riwayat: <span className="text-amber-600">{archivedBatchFilter === 'ALL' ? 'Semua Batch Selesai' : archivedBatchFilter}</span> ({currentViewMetrics.total} Dokumen FPB)
+            </span>
+          ) : (
+            <span className="font-bold text-foreground flex items-center gap-1.5">
+              <BarChart3 className="size-3.5 text-indigo-500" />
+              Akumulasi Realisasi Tahunan 2026: <span className="text-indigo-600 dark:text-indigo-400">Seluruh Batch Pengadaan</span> ({reviews.length} Dokumen FPB)
+            </span>
+          )}
+        </div>
+        <span className="text-[11px] text-muted-foreground hidden sm:inline">
+          {sheetViewMode === 'active'
+            ? 'Metrik difilter khusus untuk siklus aktif saat ini'
+            : sheetViewMode === 'archived'
+            ? 'Metrik dokumen yang telah difinalisasi & diarsipkan'
+            : 'Akumulasi menyeluruh lintas siklus'}
+        </span>
+      </div>
+
       {/* ======================================================== */}
       {/* 2. Top Summary KPI Cards: Prioritas & Disposisi FPB      */}
       {/* ======================================================== */}
@@ -2282,7 +2520,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                 1 - 2 Hari
               </span>
             </div>
-            <div className="text-2xl font-bold text-rose-600 dark:text-rose-400">{metrics.p1Count}</div>
+            <div className="text-2xl font-bold text-rose-600 dark:text-rose-400">{currentViewMetrics.p1Count}</div>
             <div className="text-[11px] text-muted-foreground mt-0.5">Darurat / Kritis breakdown armada</div>
           </div>
 
@@ -2304,7 +2542,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                 3 - 14 Hari
               </span>
             </div>
-            <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">{metrics.p2Count}</div>
+            <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">{currentViewMetrics.p2Count}</div>
             <div className="text-[11px] text-muted-foreground mt-0.5">Pemeliharaan & operasional terjadwal</div>
           </div>
 
@@ -2326,7 +2564,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                 14 - 30 Hari
               </span>
             </div>
-            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{metrics.p3Count}</div>
+            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{currentViewMetrics.p3Count}</div>
             <div className="text-[11px] text-muted-foreground mt-0.5">Buffer stok cadangan gudang</div>
           </div>
 
@@ -2336,7 +2574,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
             className={`p-4 rounded-xl border transition cursor-pointer ${
               selectedPriority === 'OVERDUE'
                 ? 'bg-rose-500/15 border-rose-500 shadow-sm ring-2 ring-rose-500/20'
-                : metrics.overdueCount > 0
+                : currentViewMetrics.overdueCount > 0
                 ? 'bg-card border-rose-500/30 hover:border-rose-500 shadow-xs'
                 : 'bg-card border-border hover:border-border/80 shadow-xs'
             }`}
@@ -2346,13 +2584,13 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                 <Timer className="size-4 text-rose-500" />
                 Lewat Batas SLA
               </span>
-              {metrics.overdueCount > 0 && (
+              {currentViewMetrics.overdueCount > 0 && (
                 <span className="text-[10px] px-1.5 py-0.5 rounded font-bold bg-rose-600 text-white animate-pulse">
                   Perlu Tindakan
                 </span>
               )}
             </div>
-            <div className="text-2xl font-bold text-rose-600 dark:text-rose-400">{metrics.overdueCount}</div>
+            <div className="text-2xl font-bold text-rose-600 dark:text-rose-400">{currentViewMetrics.overdueCount}</div>
             <div className="text-[11px] text-muted-foreground mt-0.5">Melebihi target lead time pengadaan</div>
           </div>
         </div>
@@ -2373,7 +2611,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
               <span className="text-xs font-medium">Total FPB</span>
               <Layers className="size-4 text-blue-500" />
             </div>
-            <div className="text-xl font-bold text-foreground">{metrics.total}</div>
+            <div className="text-xl font-bold text-foreground">{currentViewMetrics.total}</div>
             <div className="text-[10px] text-muted-foreground">Berkas terdata</div>
           </div>
 
@@ -2390,7 +2628,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
               <span className="text-xs font-medium">Menunggu Analisa</span>
               <Clock className="size-4 text-amber-500" />
             </div>
-            <div className="text-xl font-bold text-amber-600 dark:text-amber-400">{metrics.pending}</div>
+            <div className="text-xl font-bold text-amber-600 dark:text-amber-400">{currentViewMetrics.pending}</div>
             <div className="text-[10px] text-muted-foreground">Perlu review tim</div>
           </div>
 
@@ -2407,7 +2645,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
               <span className="text-xs font-medium">Purchase Planning</span>
               <FileCheck className="size-4 text-emerald-500" />
             </div>
-            <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400">{metrics.approvedPo}</div>
+            <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400">{currentViewMetrics.approvedPo}</div>
             <div className="text-[10px] text-muted-foreground">Masuk perencanaan</div>
           </div>
 
@@ -2424,7 +2662,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
               <span className="text-xs font-medium">Stok Gudang</span>
               <PackageCheck className="size-4 text-cyan-500" />
             </div>
-            <div className="text-xl font-bold text-cyan-600 dark:text-cyan-400">{metrics.fulfillStock}</div>
+            <div className="text-xl font-bold text-cyan-600 dark:text-cyan-400">{currentViewMetrics.fulfillStock}</div>
             <div className="text-[10px] text-muted-foreground">Cukup persediaan</div>
           </div>
 
@@ -2441,7 +2679,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
               <span className="text-xs font-medium">Klarifikasi</span>
               <HelpCircle className="size-4 text-amber-500" />
             </div>
-            <div className="text-xl font-bold text-foreground">{metrics.needClarification}</div>
+            <div className="text-xl font-bold text-foreground">{currentViewMetrics.needClarification}</div>
             <div className="text-[10px] text-muted-foreground">Tanya ke armada</div>
           </div>
 
@@ -2458,15 +2696,206 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
               <span className="text-xs font-medium">Ditolak</span>
               <XCircle className="size-4 text-rose-500" />
             </div>
-            <div className="text-xl font-bold text-foreground">{metrics.rejected}</div>
+            <div className="text-xl font-bold text-foreground">{currentViewMetrics.rejected}</div>
             <div className="text-[10px] text-muted-foreground">Pengajuan batal</div>
           </div>
         </div>
       </div>
 
-      {/* ======================================================== */}
-      {/* 3. Filter & Search Toolbar                                */}
-      {/* ======================================================== */}
+      {sheetViewMode === 'batch_summary' ? (
+        /* Matriks Rekapitulasi & Konklusi Antar Batch */
+        <div className="space-y-4">
+          <div className="p-4 rounded-xl bg-card border border-border shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+                <BarChart3 className="size-5 text-indigo-500" />
+                Matriks Konklusi &amp; Evaluasi Antar Batch (Purchase Planning)
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Ringkasan akumulasi seluruh batch pengadaan tahun 2026, status finalisasi berkas, item material net demand, serta unduhan laporan Excel per siklus mingguan.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const allApproved = reviews.filter((r) => r.reviewStatus === 'APPROVED_PO');
+                  handleDownloadBatchExcel(allApproved.length > 0 ? allApproved : reviews, 'CPG-PP-2026-ALL', 'Akumulasi Seluruh Batch 2026');
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl border border-emerald-500/40 bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs transition cursor-pointer"
+                title="Unduh seluruh FPB yang disetujui sepanjang tahun 2026 ke dalam format Excel Purchase Planning"
+              >
+                <FileSpreadsheet className="size-4" />
+                <span>Unduh Konsolidasi Tahunan (.xlsx)</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Tabel Matriks Antar Batch */}
+          <div className="rounded-xl border border-border bg-card overflow-hidden shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-border bg-muted/60 text-muted-foreground font-semibold">
+                    <th className="py-3 px-4">Nama Batch &amp; Ref Planning</th>
+                    <th className="py-3 px-4">Batas Cut-Off Siklus</th>
+                    <th className="py-3 px-4 text-center">Total FPB</th>
+                    <th className="py-3 px-4">Disposisi Analisa</th>
+                    <th className="py-3 px-4 text-center">Item Material</th>
+                    <th className="py-3 px-4 text-right">Est. Anggaran (Net)</th>
+                    <th className="py-3 px-4 text-center">Status Siklus</th>
+                    <th className="py-3 px-4 text-right">Aksi Dokumen</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {batchSummaryList.map((b) => (
+                    <tr
+                      key={b.batchCode}
+                      className={`hover:bg-muted/40 transition ${
+                        b.isCurrentActive ? 'bg-primary/5 font-medium' : ''
+                      }`}
+                    >
+                      {/* Nama & Ref */}
+                      <td className="py-3 px-4">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="font-bold text-foreground text-sm flex items-center gap-1.5">
+                            {b.batchName}
+                            {b.isCurrentActive && (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-primary text-primary-foreground">
+                                AKTIF
+                              </span>
+                            )}
+                          </span>
+                          <span className="text-[11px] font-mono text-muted-foreground">
+                            {b.batchCode}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Cut-Off */}
+                      <td className="py-3 px-4 text-muted-foreground">
+                        <div className="flex items-center gap-1.5">
+                          <Calendar className="size-3.5 text-muted-foreground" />
+                          <span>{b.cutoffLabel}</span>
+                        </div>
+                      </td>
+
+                      {/* Total FPB */}
+                      <td className="py-3 px-4 text-center">
+                        <span className="font-bold text-sm text-foreground">
+                          {b.totalFpb}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground block">
+                          berkas
+                        </span>
+                      </td>
+
+                      {/* Disposisi */}
+                      <td className="py-3 px-4">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="px-2 py-0.5 rounded font-semibold text-[11px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                            {b.approvedPo} Disetujui PO
+                          </span>
+                          {b.fulfillStock > 0 && (
+                            <span className="px-2 py-0.5 rounded font-semibold text-[11px] bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20">
+                              {b.fulfillStock} Stok
+                            </span>
+                          )}
+                          {b.pending > 0 && (
+                            <span className="px-2 py-0.5 rounded font-medium text-[11px] bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                              {b.pending} Menunggu
+                            </span>
+                          )}
+                          {b.needClarification > 0 && (
+                            <span className="px-2 py-0.5 rounded font-medium text-[11px] bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+                              {b.needClarification} Tanya
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Item Material */}
+                      <td className="py-3 px-4 text-center">
+                        <span className="font-bold text-foreground">
+                          {b.totalItems} item
+                        </span>
+                        <span className="text-[10px] text-muted-foreground block">
+                          ({b.totalNetDemand} Qty Beli)
+                        </span>
+                      </td>
+
+                      {/* Est Anggaran */}
+                      <td className="py-3 px-4 text-right font-mono font-semibold text-foreground">
+                        Rp {b.totalEstCost.toLocaleString('id-ID')}
+                      </td>
+
+                      {/* Status Siklus */}
+                      <td className="py-3 px-4 text-center">
+                        {b.isCurrentActive ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                            <span className="size-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            Siklus Berjalan (Aktif)
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-muted text-muted-foreground border border-border">
+                            <CheckCircle2 className="size-3 text-emerald-600" />
+                            Selesai (Diarsipkan)
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Aksi */}
+                      <td className="py-3 px-4 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {b.isCurrentActive ? (
+                            <button
+                              type="button"
+                              onClick={() => setSheetViewMode('active')}
+                              className="px-2.5 py-1 rounded-lg border border-primary/30 bg-primary/10 hover:bg-primary/20 text-primary font-semibold text-xs transition cursor-pointer"
+                            >
+                              Buka Lembar Aktif
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setArchivedBatchFilter(b.batchCode);
+                                setSheetViewMode('archived');
+                              }}
+                              className="px-2.5 py-1 rounded-lg border border-border bg-background hover:bg-muted text-foreground font-medium text-xs transition cursor-pointer"
+                            >
+                              Buka di Arsip
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const bRecords =
+                                b.records.length > 0
+                                  ? b.records
+                                  : reviews.filter((r) => r.batchNo === b.batchCode || (!r.isArchived && b.isCurrentActive));
+                              handleDownloadBatchExcel(bRecords, b.batchCode, b.batchName);
+                            }}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-semibold transition cursor-pointer shadow-2xs"
+                            title={`Unduh berkas Excel untuk ${b.batchName}`}
+                          >
+                            <FileSpreadsheet className="size-3.5" />
+                            <span>Unduh Excel</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* ======================================================== */}
+          {/* 3. Filter & Search Toolbar                                */}
+          {/* ======================================================== */}
       <div className="p-4 rounded-xl bg-card border border-border shadow-xs space-y-3">
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
           {/* Search Bar */}
@@ -2897,12 +3326,18 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
             )}
           </div>
           <div className="text-xs text-muted-foreground">
-            Menampilkan <span className="font-semibold text-foreground">{filteredReviews.length}</span> dari <span className="font-semibold text-foreground">{reviews.length}</span> pengajuan FPB
+            Menampilkan <span className="font-semibold text-foreground">{filteredReviews.length}</span> dari{' '}
+            <span className="font-semibold text-foreground">
+              {sheetViewMode === 'active' ? activeCount : sheetViewMode === 'archived' ? archivedCount : reviews.length}
+            </span>{' '}
+            pengajuan FPB {sheetViewMode === 'active' && <span className="text-primary font-medium">({cycleInfo.batchName})</span>}
           </div>
         </div>
           </>
         )}
       </div>
+    </>
+  )}
 
       {/* ======================================================== */}
       {/* 5. Detail & Review Decision Modal (Split-View Drawer)    */}
