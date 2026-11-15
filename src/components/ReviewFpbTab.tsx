@@ -127,6 +127,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
     user.role === 'direksi' ||
     user.role === 'manager' ||
     user.role === 'supervisor' ||
+    user.role === 'staf_fpb' ||
     user.role === 'staf_purchasing';
 
   // Data states

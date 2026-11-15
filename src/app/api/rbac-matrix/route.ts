@@ -40,6 +40,10 @@ function ensureAllModulesPresent(stored: ModulePermissionItem[]): ModulePermissi
         name: sysItem.name,
         category: sysItem.category,
         description: sysItem.description,
+        permissions: {
+          ...sysItem.permissions,
+          ...existing.permissions,
+        },
       };
     }
     hasNew = true;

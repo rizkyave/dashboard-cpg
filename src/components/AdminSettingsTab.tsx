@@ -225,6 +225,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
   const adminCount = users.filter((u) => u.role === 'admin').length;
   const managerCount = users.filter((u) => u.role === 'manager').length;
   const supervisorCount = users.filter((u) => u.role === 'supervisor').length;
+  const stafFpbCount = users.filter((u) => u.role === 'staf_fpb').length;
   const stafPurchasingCount = users.filter((u) => u.role === 'staf_purchasing').length;
   const stafTtbCount = users.filter((u) => u.role === 'staf_ttb').length;
   const stafLapanganCount = users.filter((u) => u.role === 'staf_lapangan').length;
@@ -249,7 +250,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
   }, [highlightUser, users]);
 
   // Quick switch dropdown state
-  const [quickRole, setQuickRole] = useState<'ALL' | 'manager' | 'supervisor' | 'staf_purchasing' | 'staf_ttb' | 'staf_lapangan' | 'end_user' | 'visitor'>('manager');
+  const [quickRole, setQuickRole] = useState<'ALL' | 'manager' | 'supervisor' | 'staf_fpb' | 'staf_purchasing' | 'staf_ttb' | 'staf_lapangan' | 'end_user' | 'visitor'>('manager');
   const [quickModule, setQuickModule] = useState<'ALL' | TabType>('ALL');
   const [quickLevel, setQuickLevel] = useState<AccessLevel>('Full Access');
 
@@ -288,6 +289,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
       admin: '👑 Administrator',
       manager: '👔 Manager Procurement',
       supervisor: '🎖️ Supervisor Procurement',
+      staf_fpb: '📋 Staf Reviewer FPB',
       staf_purchasing: '🛒 Staf Purchasing',
       staf_ttb: '📄 Staf Dokumen TTB',
       staf_lapangan: '🚚 Staf Serah Terima Lap.',
@@ -298,7 +300,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
     for (const curMod of matrixData) {
       const origMod = savedMatrixData.find((m) => m.tabId === curMod.tabId);
       if (!origMod) continue;
-      const roles = ['manager', 'supervisor', 'staf_purchasing', 'staf_ttb', 'staf_lapangan', 'end_user', 'visitor'] as const;
+      const roles = ['manager', 'supervisor', 'staf_fpb', 'staf_purchasing', 'staf_ttb', 'staf_lapangan', 'end_user', 'visitor'] as const;
       for (const r of roles) {
         const curRule = curMod.permissions[r];
         const origRule = origMod.permissions[r];
@@ -356,7 +358,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
 
     const targetRoles =
       quickRole === 'ALL'
-        ? (['manager', 'supervisor', 'staf_purchasing', 'staf_ttb', 'staf_lapangan', 'end_user', 'visitor'] as const)
+        ? (['manager', 'supervisor', 'staf_fpb', 'staf_purchasing', 'staf_ttb', 'staf_lapangan', 'end_user', 'visitor'] as const)
         : [quickRole];
 
     let count = 0;
@@ -446,6 +448,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
     const nonAdminRoles: Array<keyof ModulePermissionItem['permissions']> = [
       'manager',
       'supervisor',
+      'staf_fpb',
       'staf_purchasing',
       'staf_ttb',
       'staf_lapangan',
@@ -650,6 +653,8 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
     setNewDepartment(
       targetRole === 'admin'
         ? 'Management Information System'
+        : targetRole === 'staf_fpb'
+        ? 'Supply Chain & Perencanaan Logistik'
         : targetRole === 'manager' || targetRole === 'supervisor' || targetRole === 'staf_purchasing'
         ? 'Purchasing & Procurement'
         : targetRole === 'visitor'
@@ -853,6 +858,8 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
         return 'Manager Procurement & Supply Chain';
       case 'supervisor':
         return 'Supervisor Procurement & Purchasing';
+      case 'staf_fpb':
+        return 'Staf Reviewer & Perencana FPB';
       case 'staf_purchasing':
         return 'Staf Purchasing & Pengadaan';
       case 'staf_ttb':
@@ -1505,7 +1512,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
 
           {/* Role Filter Tabs */}
           <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
-            {(['ALL', 'admin', 'manager', 'supervisor', 'staf_purchasing', 'staf_ttb', 'staf_lapangan', 'end_user', 'visitor', 'user'] as const).map((r) => {
+            {(['ALL', 'admin', 'manager', 'supervisor', 'staf_fpb', 'staf_purchasing', 'staf_ttb', 'staf_lapangan', 'end_user', 'visitor', 'user'] as const).map((r) => {
               const isActive = roleFilter === r;
               const label =
                 r === 'ALL'
@@ -1516,6 +1523,8 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                   ? 'Manager'
                   : r === 'supervisor'
                   ? 'Supervisor'
+                  : r === 'staf_fpb'
+                  ? 'Staf FPB'
                   : r === 'staf_purchasing'
                   ? 'Staf Purchasing'
                   : r === 'staf_ttb'
@@ -1591,6 +1600,8 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                                 ? 'bg-linear-to-tr from-indigo-600 to-blue-600'
                                 : item.role === 'supervisor'
                                 ? 'bg-linear-to-tr from-violet-600 to-purple-600'
+                                : item.role === 'staf_fpb'
+                                ? 'bg-linear-to-tr from-cyan-600 to-blue-600'
                                 : item.role === 'staf_purchasing'
                                 ? 'bg-linear-to-tr from-teal-600 to-cyan-600'
                                 : item.role === 'staf_ttb'
@@ -1655,6 +1666,8 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                                   ? 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-500/30'
                                   : item.role === 'supervisor'
                                   ? 'bg-violet-500/10 text-violet-700 dark:text-violet-300 border-violet-500/30'
+                                  : item.role === 'staf_fpb'
+                                  ? 'bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border-cyan-500/30'
                                   : item.role === 'staf_purchasing'
                                   ? 'bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-500/30'
                                   : item.role === 'staf_ttb'
@@ -1673,6 +1686,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                               <option value="direksi">💼 Direktur Keuangan / Direksi</option>
                               <option value="manager">👔 Manager Procurement</option>
                               <option value="supervisor">🎖️ Supervisor Procurement</option>
+                              <option value="staf_fpb">📋 Staf Reviewer FPB</option>
                               <option value="staf_purchasing">🛒 Staf Purchasing</option>
                               <option value="staf_ttb">📄 Staf Dokumen TTB</option>
                               <option value="staf_lapangan">🚚 Staf Serah Terima Lap.</option>
@@ -1696,6 +1710,11 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-violet-500/10 text-violet-700 dark:text-violet-300 border border-violet-500/20">
                             <Award className="size-3" />
                             <span>Supervisor Procurement</span>
+                          </span>
+                        ) : item.role === 'staf_fpb' ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-500/20">
+                            <FileSpreadsheet className="size-3" />
+                            <span>Staf Reviewer FPB</span>
                           </span>
                         ) : item.role === 'staf_purchasing' ? (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-teal-500/10 text-teal-700 dark:text-teal-300 border border-teal-500/20">
@@ -1976,6 +1995,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                   >
                     <option value="ALL">🌐 Semua Pemakai (Semua Role)</option>
                     <option value="direksi">💼 Direktur Keuangan / Direksi</option>
+                    <option value="staf_fpb">📋 Staf Reviewer FPB (Perencana &amp; Verifikator)</option>
                     <option value="staf_ttb">📄 Staf Dokumen TTB (⭐ Nurul Hafifah, Davila, Idham)</option>
                     <option value="staf_lapangan">🚚 Staf Serah Terima Lap. (Agussalim, Akbar, Bardi, Hamka)</option>
                     <option value="staf_purchasing">🛒 Staf Purchasing (Pengadaan CPG)</option>
@@ -2174,6 +2194,10 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                   <div className="font-bold text-foreground">🎖️ Supervisor</div>
                   <div className="text-[9px] text-muted-foreground font-normal mt-0.5">supervisor.procurement</div>
                 </th>
+                <th className={`py-3 px-2 text-center w-36 ${highlightedRole === 'staf_fpb' ? 'bg-cyan-500/20 ring-2 ring-cyan-500 font-bold' : ''}`}>
+                  <div className="font-bold text-cyan-600 dark:text-cyan-400">📋 Staf FPB</div>
+                  <div className="text-[9px] text-muted-foreground font-normal mt-0.5">staf.fpb</div>
+                </th>
                 <th className={`py-3 px-2 text-center w-36 ${highlightedRole === 'staf_purchasing' ? 'bg-teal-500/20 ring-2 ring-teal-500 font-bold' : ''}`}>
                   <div className="font-bold text-teal-600 dark:text-teal-400">🛒 Staf Purchasing</div>
                   <div className="text-[9px] text-muted-foreground font-normal mt-0.5">staf.purchasing</div>
@@ -2228,7 +2252,7 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                 return (
                   <React.Fragment key={category}>
                     <tr className="bg-muted/60 border-y border-border">
-                      <td colSpan={10} className="py-2 px-3 font-bold text-xs uppercase tracking-wider text-foreground">
+                      <td colSpan={11} className="py-2 px-3 font-bold text-xs uppercase tracking-wider text-foreground">
                         <div className="flex items-center gap-2">
                           <span
                             className={`size-2 rounded-full ${
@@ -2263,6 +2287,9 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                         </td>
                         <td className={`py-2.5 px-3 text-center transition-colors ${highlightedRole === 'supervisor' ? 'bg-violet-500/5' : ''}`}>
                           {renderPermissionCell(perm, 'supervisor')}
+                        </td>
+                        <td className={`py-2.5 px-3 text-center transition-colors ${highlightedRole === 'staf_fpb' ? 'bg-cyan-500/5' : ''}`}>
+                          {renderPermissionCell(perm, 'staf_fpb')}
                         </td>
                         <td className={`py-2.5 px-3 text-center transition-colors ${highlightedRole === 'staf_purchasing' ? 'bg-teal-500/5' : ''}`}>
                           {renderPermissionCell(perm, 'staf_purchasing')}
@@ -2607,6 +2634,27 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                   <button
                     type="button"
                     onClick={() => {
+                      setNewRole('staf_fpb');
+                      if (!newDepartment) setNewDepartment('Supply Chain & Perencanaan Logistik');
+                    }}
+                    className={`p-2.5 rounded-lg border text-left transition cursor-pointer flex flex-col justify-between ${
+                      newRole === 'staf_fpb'
+                        ? 'border-cyan-500 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 ring-1 ring-cyan-500'
+                        : 'border-border bg-card text-muted-foreground hover:border-border/80'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 font-bold text-xs">
+                      <FileSpreadsheet className="size-3.5" />
+                      <span>Staf FPB</span>
+                    </div>
+                    <span className="text-[9px] mt-1 text-muted-foreground leading-tight">
+                      Review &amp; Planner
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
                       setNewRole('staf_purchasing');
                       if (!newDepartment) setNewDepartment('Purchasing & Procurement');
                     }}
@@ -2741,6 +2789,11 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                   {newRole === 'supervisor' && (
                     <p>
                       <strong className="text-violet-600 dark:text-violet-400">Peran Supervisor Procurement:</strong> Wewenang otorisasi persetujuan pengadaan (Approved By / Purchasing Spv) pada berkas FSTB dan TTB Lini Purchasing, verifikasi PO/FPB di Procurement, pemantauan Analisis Risiko &amp; SLA, monitoring sisa layanan armada, dan pelaporan operasional.
+                    </p>
+                  )}
+                  {newRole === 'staf_fpb' && (
+                    <p>
+                      <strong className="text-cyan-600 dark:text-cyan-400">Peran Staf Reviewer &amp; Planner FPB:</strong> Wewenang penuh verifikasi dan review berkas e-FPB, cek ketersediaan stok fisik gudang Accurate, penetapan prioritas SLA, pengelolaan cut-off batch pengadaan, serta persetujuan alokasi masuk ke Purchase Planning. Modul PO Purchasing, tender, dan gudang bersifat Read-Only.
                     </p>
                   )}
                   {newRole === 'staf_purchasing' && (
@@ -2983,6 +3036,19 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
 
                   <button
                     type="button"
+                    onClick={() => setEditRole('staf_fpb')}
+                    className={`p-2.5 rounded-lg border text-left transition cursor-pointer flex flex-col justify-between ${
+                      editRole === 'staf_fpb'
+                        ? 'border-cyan-500 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 ring-1 ring-cyan-500'
+                        : 'border-border bg-card text-muted-foreground hover:border-border/80'
+                    }`}
+                  >
+                    <div className="font-bold text-xs">📋 Staf FPB</div>
+                    <span className="text-[9px] text-muted-foreground">Review &amp; Planner</span>
+                  </button>
+
+                  <button
+                    type="button"
                     onClick={() => setEditRole('staf_purchasing')}
                     className={`p-2.5 rounded-lg border text-left transition cursor-pointer flex flex-col justify-between ${
                       editRole === 'staf_purchasing'
@@ -3070,6 +3136,11 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
                   {editRole === 'supervisor' && (
                     <p>
                       <strong className="text-violet-600 dark:text-violet-400">Supervisor Procurement:</strong> Wewenang otorisasi persetujuan pengadaan (Approved By / Purchasing Spv) pada berkas FSTB dan TTB Lini Purchasing, verifikasi PO/FPB di Procurement, pemantauan Analisis Risiko &amp; SLA, monitoring sisa layanan armada, dan pelaporan operasional.
+                    </p>
+                  )}
+                  {editRole === 'staf_fpb' && (
+                    <p>
+                      <strong className="text-cyan-600 dark:text-cyan-400">Staf Reviewer FPB:</strong> Wewenang penuh verifikasi dan review berkas e-FPB, cek stok fisik gudang Accurate, penetapan prioritas SLA, dan persetujuan alokasi masuk ke lembar kerja Purchase Planning mingguan.
                     </p>
                   )}
                   {editRole === 'staf_purchasing' && (

@@ -6,6 +6,7 @@ export type UserRole =
   | 'direksi'
   | 'manager'
   | 'supervisor'
+  | 'staf_fpb'
   | 'staf_purchasing'
   | 'staf_ttb'
   | 'staf_lapangan'
@@ -108,6 +109,7 @@ export interface ModulePermissionItem {
     admin: RolePermissionRule;
     manager: RolePermissionRule;
     supervisor: RolePermissionRule;
+    staf_fpb?: RolePermissionRule;
     staf_purchasing: RolePermissionRule;
     staf_ttb: RolePermissionRule;
     staf_lapangan: RolePermissionRule;
@@ -118,7 +120,7 @@ export interface ModulePermissionItem {
 
 export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = rawRbacMatrix as unknown as ModulePermissionItem[];
 
-export const RBAC_MATRIX_STORAGE_KEY = 'CPG_AUTH_RBAC_MATRIX_V11';
+export const RBAC_MATRIX_STORAGE_KEY = 'CPG_AUTH_RBAC_MATRIX_V12';
 
 /**
  * Membaca matriks perizinan dinamis dari localStorage (fallback ke default matrix)
@@ -139,6 +141,7 @@ export function getStoredPermissionsMatrix(): ModulePermissionItem[] {
     localStorage.removeItem('CPG_AUTH_RBAC_MATRIX_V8');
     localStorage.removeItem('CPG_AUTH_RBAC_MATRIX_V9');
     localStorage.removeItem('CPG_AUTH_RBAC_MATRIX_V10');
+    localStorage.removeItem('CPG_AUTH_RBAC_MATRIX_V11');
 
     const raw = localStorage.getItem(RBAC_MATRIX_STORAGE_KEY);
     if (raw) {
@@ -156,6 +159,10 @@ export function getStoredPermissionsMatrix(): ModulePermissionItem[] {
               name: sysItem.name,
               category: sysItem.category,
               description: sysItem.description,
+              permissions: {
+                ...sysItem.permissions,
+                ...existing.permissions,
+              },
             };
           }
           return sysItem;
@@ -295,7 +302,8 @@ export function canAccessTab(role: UserRole | undefined, tab: TabType): boolean 
  */
 export function getDefaultTabForRole(role: UserRole | undefined): TabType {
   let preferred: TabType = 'overview';
-  if (role === 'staf_lapangan') preferred = 'serah-terima-lapangan';
+  if (role === 'staf_fpb') preferred = 'review-fpb';
+  else if (role === 'staf_lapangan') preferred = 'serah-terima-lapangan';
   else if (role === 'end_user') preferred = 'serah-terima-lapangan';
   else if (role === 'staf_ttb') preferred = 'upload-ttb';
   else if (role === 'staf_purchasing') preferred = 'procurement';
@@ -344,6 +352,8 @@ export function getRoleDisplayName(role: UserRole | undefined): string {
       return 'Manager Procurement';
     case 'supervisor':
       return 'Supervisor Procurement';
+    case 'staf_fpb':
+      return 'Staf Reviewer & Perencana FPB';
     case 'staf_purchasing':
       return 'Staf Purchasing';
     case 'staf_ttb':

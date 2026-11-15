@@ -23,6 +23,7 @@ interface AuthContextType {
   isAdmin: boolean;
   isManager: boolean;
   isSupervisor: boolean;
+  isStafFpb: boolean;
   isStafPurchasing: boolean;
   isUser: boolean;
   isVisitor: boolean;
@@ -469,6 +470,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isAdmin = user?.role === 'admin';
   const isManager = user?.role === 'manager';
   const isSupervisor = user?.role === 'supervisor';
+  const isStafFpb = user?.role === 'staf_fpb';
   const isStafPurchasing = user?.role === 'staf_purchasing';
   const isStafTtb = user?.role === 'staf_ttb';
   const isStafLapangan = user?.role === 'staf_lapangan';
@@ -479,6 +481,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isAdmin ||
     isManager ||
     isSupervisor ||
+    isStafFpb ||
     isStafPurchasing ||
     isStafTtb ||
     isStafLapangan ||
@@ -496,6 +499,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAdmin,
         isManager,
         isSupervisor,
+        isStafFpb,
         isStafPurchasing,
         isUser,
         isVisitor,

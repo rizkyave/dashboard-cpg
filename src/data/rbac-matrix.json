@@ -51,6 +51,12 @@
         "level": "Read-only",
         "badgeTone": "slate",
         "notes": "Akses membaca notifikasi umum"
+      },
+      "staf_fpb": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Bukan domain kerja perencana FPB"
       }
     }
   },
@@ -106,6 +112,12 @@
         "level": "Dilarang",
         "badgeTone": "rose",
         "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
+      },
+      "staf_fpb": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Pemantauan data pendukung perencana logistik"
       }
     }
   },
@@ -154,6 +166,12 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose"
+      },
+      "staf_fpb": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Pemantauan data pendukung perencana logistik"
       }
     }
   },
@@ -208,6 +226,12 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose"
+      },
+      "staf_fpb": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Akses penuh verifikasi FPB, cek stok gudang, dan persetujuan Purchase Planning"
       }
     }
   },
@@ -263,6 +287,12 @@
         "level": "Read-only",
         "badgeTone": "slate",
         "notes": "Akses membaca ringkasan estimasi"
+      },
+      "staf_fpb": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Bukan domain kerja perencana FPB"
       }
     }
   },
@@ -317,6 +347,12 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose"
+      },
+      "staf_fpb": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Bukan domain kerja perencana FPB"
       }
     }
   },
@@ -368,6 +404,12 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose"
+      },
+      "staf_fpb": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Bukan domain kerja perencana FPB"
       }
     }
   },
@@ -422,6 +464,12 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose"
+      },
+      "staf_fpb": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Pemantauan data pendukung perencana logistik"
       }
     }
   },
@@ -476,6 +524,12 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose"
+      },
+      "staf_fpb": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Pemantauan data pendukung perencana logistik"
       }
     }
   },
@@ -530,6 +584,12 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose"
+      },
+      "staf_fpb": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Pemantauan data pendukung perencana logistik"
       }
     }
   },
@@ -584,6 +644,12 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose"
+      },
+      "staf_fpb": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Bukan domain kerja perencana FPB"
       }
     }
   },
@@ -638,6 +704,12 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose"
+      },
+      "staf_fpb": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Bukan domain kerja perencana FPB"
       }
     }
   },
@@ -692,6 +764,12 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose"
+      },
+      "staf_fpb": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Bukan domain kerja perencana FPB"
       }
     }
   },
@@ -746,6 +824,12 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose"
+      },
+      "staf_fpb": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Bukan domain kerja perencana FPB"
       }
     }
   },
@@ -801,6 +885,12 @@
         "level": "Dilarang",
         "badgeTone": "rose",
         "notes": "Dialihkan via toolbar pengalihan cepat ke Dilarang"
+      },
+      "staf_fpb": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Bukan domain kerja perencana FPB"
       }
     }
   },
@@ -855,6 +945,12 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose"
+      },
+      "staf_fpb": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Pemantauan data pendukung perencana logistik"
       }
     }
   },
@@ -909,6 +1005,12 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose"
+      },
+      "staf_fpb": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Pemantauan data pendukung perencana logistik"
       }
     }
   },
@@ -963,6 +1065,12 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose"
+      },
+      "staf_fpb": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Pemantauan data pendukung perencana logistik"
       }
     }
   },
@@ -1017,6 +1125,12 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose"
+      },
+      "staf_fpb": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Pemantauan data pendukung perencana logistik"
       }
     }
   },
@@ -1071,6 +1185,12 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose"
+      },
+      "staf_fpb": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Pemantauan data pendukung perencana logistik"
       }
     }
   },
@@ -1125,6 +1245,12 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose"
+      },
+      "staf_fpb": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Bukan domain kerja perencana FPB"
       }
     }
   },
@@ -1179,6 +1305,12 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose"
+      },
+      "staf_fpb": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Bukan domain kerja perencana FPB"
       }
     }
   },
@@ -1233,6 +1365,12 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose"
+      },
+      "staf_fpb": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Bukan domain kerja perencana FPB"
       }
     }
   },
@@ -1287,6 +1425,12 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose"
+      },
+      "staf_fpb": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Bukan domain kerja perencana FPB"
       }
     }
   },
@@ -1341,6 +1485,12 @@
         "allowed": false,
         "level": "Dilarang",
         "badgeTone": "rose"
+      },
+      "staf_fpb": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Bukan domain kerja perencana FPB"
       }
     }
   }
