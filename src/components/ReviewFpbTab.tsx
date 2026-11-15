@@ -3343,7 +3343,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                 return (
                   <div className="w-full h-[640px] rounded-xl border border-border overflow-hidden bg-muted/20 shadow-xs">
                     <iframe
-                      src={activePdfUrl}
+                      src={`${activePdfUrl}#toolbar=0&navpanes=0`}
                       title={`Dokumen Resmi FPB ${selectedRecord.fpbNo}`}
                       className="w-full h-full border-none"
                     />
@@ -3984,10 +3984,10 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                         type="button"
                         onClick={handleSaveDecision}
                         disabled={isSavingDecision}
-                        className="inline-flex items-center gap-2 px-5 py-2 text-xs font-bold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition shadow-md cursor-pointer disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 px-6 py-2 text-xs font-bold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition shadow-md cursor-pointer disabled:opacity-50"
                       >
                         <FileCheck className={`size-4 ${isSavingDecision ? 'animate-spin' : ''}`} />
-                        <span>{isSavingDecision ? 'Menyimpan & Menyinkronkan...' : 'Simpan & Sinkronkan Keputusan ke Cloud'}</span>
+                        <span>{isSavingDecision ? 'Menyimpan...' : 'Simpan'}</span>
                       </button>
                     </div>
                   </div>
