@@ -2939,56 +2939,13 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                 </div>
               </div>
 
-              {/* Close & External Links */}
+              {/* Close Button */}
               <div className="flex items-center gap-2">
-                {formStatus === 'APPROVED_PO' ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFormStatus('PENDING_REVIEW');
-                      setFormIsReceivedLogistik(false);
-                      if (selectedRecord) handleQuickApproveLogistic(selectedRecord, false);
-                      showToast?.('Status approval dikembalikan ke Menunggu Analisa.', 'info');
-                    }}
-                    disabled={isApprovingLogistic}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition cursor-pointer"
-                    title="Telah disetujui masuk Purchase Planning. Klik untuk membatalkan / kembalikan ke Menunggu Analisa."
-                  >
-                    <CheckCircle2 className="size-3.5 text-white" />
-                    <span>✓ Disetujui Masuk Purchase Planning</span>
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFormStatus('APPROVED_PO');
-                      setFormIsReceivedLogistik(true);
-                      if (selectedRecord) handleQuickApproveLogistic(selectedRecord, true);
-                      showToast?.('Pengajuan FPB disetujui masuk Purchase Planning!', 'success');
-                    }}
-                    disabled={isApprovingLogistic}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white shadow-xs transition cursor-pointer disabled:opacity-50"
-                    title="Klik untuk menyetujui dokumen ini dan meneruskannya ke antrean Purchase Planning (mengubah status menjadi hijau)"
-                  >
-                    <CheckCircle2 className="size-3.5" />
-                    <span>Setujui &amp; Teruskan ke Purchasing</span>
-                  </button>
-                )}
-                <a
-                  href={`/api/review-fpb/pdf?fpbNo=${encodeURIComponent(selectedRecord.fpbNo)}&type=raw`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg border border-border bg-background hover:bg-muted text-foreground transition"
-                  title="Buka dokumen PDF asli pemohon e-FPB di tab baru"
-                >
-                  <ExternalLink className="size-3.5" />
-                  PDF Asli
-                </a>
                 <button
                   type="button"
                   onClick={handleCloseModal}
                   className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition cursor-pointer"
-                  title="Tutup"
+                  title="Tutup (Esc)"
                 >
                   <X className="size-5" />
                 </button>
