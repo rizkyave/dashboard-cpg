@@ -60,6 +60,7 @@ import {
   BarChart3,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { downloadPurchasePlanningBatchExcel } from '@/utils/batchExcelGenerator';
 import {
   formatFpbApprovalWaMessage,
   generateFpbApprovalWaLink,
@@ -792,13 +793,19 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
     return Array.from(setB).sort();
   }, [reviews]);
 
-  // Handler Ekspor Excel Resmi Purchase Planning Batch (.xlsx) Multi-Sheet
-  const handleDownloadBatchExcel = (
+  // Handler Ekspor Excel Resmi Purchase Planning Batch (.xlsx) Multi-Sheet Sesuai Standar Template CPG (3-Tab: SUMMARY, DETAIL, PETUNJUK)
+  const handleDownloadBatchExcel = async (
     recordsToExport?: FpbReviewRecord[],
     customBatchLabel?: string,
     customBatchName?: string
   ) => {
-    const targetRecords = recordsToExport || cycleInfo.activeApprovedReviews;
+    const targetRecords =
+      recordsToExport && recordsToExport.length > 0
+        ? recordsToExport
+        : cycleInfo.activeApprovedReviews.length > 0
+        ? cycleInfo.activeApprovedReviews
+        : reviews.filter((r) => !r.isArchived);
+
     if (!targetRecords || targetRecords.length === 0) {
       showToast?.('Belum ada dokumen FPB yang disetujui untuk diterbitkan ke Excel Batch ini.', 'warning');
       return;
@@ -807,196 +814,14 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
     const batchCodeToUse = customBatchLabel || customBatchCode.trim() || cycleInfo.batchCode;
     const batchNameToUse = customBatchName || customBatchLabel || cycleInfo.batchName;
 
-    const wb = XLSX.utils.book_new();
-
-    interface BatchItemRow {
-      no: number;
-      batch: string;
-      pt: string;
-      armada: string;
-      fpbNo: string;
-      tkbNo: string;
-      itemCode: string;
-      itemName: string;
-      category: string;
-      unit: string;
-      requestedQty: number;
-      stockSomber: number;
-      stockKariangau: number;
-      recommendedOrderQty: number;
-      urgency: string;
-      priority: string;
-      cycleStatus: string;
-      estUnitPrice: number;
-      estTotalPrice: number;
-      reviewNotes: string;
+    try {
+      showToast?.('Menyiapkan berkas Excel Purchase Planning resmi CPG (3 Tab & Analisa Audit)...', 'info');
+      await downloadPurchasePlanningBatchExcel(targetRecords, batchCodeToUse, batchNameToUse);
+      showToast?.(`✓ Berhasil mengunduh Excel Purchase Planning (${batchCodeToUse}) dengan format resmi 3 Tab!`, 'success');
+    } catch (err: any) {
+      console.error('Gagal generate batch excel:', err);
+      showToast?.('Gagal mengunduh Excel Purchase Planning: ' + err.message, 'error');
     }
-
-    const itemRows: BatchItemRow[] = [];
-    let counter = 1;
-    let grandTotalBudget = 0;
-
-    const ptSummaryMap = new Map<string, { pt: string; fpbSet: Set<string>; itemCount: number; totalCost: number }>();
-
-    targetRecords.forEach((r) => {
-      const pt = r.entity || 'CPL';
-      const ptEntry = ptSummaryMap.get(pt) || { pt, fpbSet: new Set<string>(), itemCount: 0, totalCost: 0 };
-      ptEntry.fpbSet.add(r.fpbNo);
-
-      const poItems = (r.items || []).filter(
-        (i) => i.decision === 'PO' || (r.reviewStatus === 'APPROVED_PO' && i.decision !== 'STOCK' && i.decision !== 'REJECT')
-      );
-      const itemsToProcess = poItems.length > 0 ? poItems : (r.items || []);
-
-      itemsToProcess.forEach((it) => {
-        const reqQty = Number(it.qty) || 1;
-        const sSomber = Number(it.stockSomber) || Number(it.stockAvailable) || 0;
-        const sKariangau = Number(it.stockKariangau) || 0;
-        const netOrder = Math.max(0, reqQty - (sSomber + sKariangau)) || reqQty;
-        const unitPrice = 750000;
-        const totalCost = netOrder * unitPrice;
-
-        grandTotalBudget += totalCost;
-        ptEntry.itemCount += 1;
-        ptEntry.totalCost += totalCost;
-
-        itemRows.push({
-          no: counter++,
-          batch: batchCodeToUse,
-          pt,
-          armada: r.armada || '-',
-          fpbNo: r.fpbNo,
-          tkbNo: r.tkbNo || '-',
-          itemCode: it.itemCode || '-',
-          itemName: it.itemName,
-          category: it.category || 'General',
-          unit: it.unit || 'PCS',
-          requestedQty: reqQty,
-          stockSomber: sSomber,
-          stockKariangau: sKariangau,
-          recommendedOrderQty: netOrder,
-          urgency: r.urgency,
-          priority: r.priorityLevel || 'P3',
-          cycleStatus: r.isLateEntry ? `Susulan (${r.originalCycleBatch || 'Lampau'})` : 'Reguler',
-          estUnitPrice: unitPrice,
-          estTotalPrice: totalCost,
-          reviewNotes: it.reviewerNotes || it.notes || r.reviewNotes || '-',
-        });
-      });
-
-      ptSummaryMap.set(pt, ptEntry);
-    });
-
-    // Sheet 1: Rekap Eksekutif Batch
-    const summarySheetData: any[] = [
-      ['DOKUMEN RILIS PERENCANAAN PENGADAAN (PURCHASE PLANNING BATCH)', ''],
-      ['PT CIPTA SARANA TRANSINDO (CPG GROUP)', ''],
-      ['', ''],
-      ['Informasi Siklus Pengadaan:', ''],
-      ['Nama Batch', batchNameToUse],
-      ['Kode Batch Referensi', batchCodeToUse],
-      ['Batas Cut-Off Siklus', cycleInfo.cutoffFormatted],
-      ['Waktu Ekspor', new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })],
-      ['Status Siklus', cycleInfo.isPastCutoff ? 'Telah Melewati Cut-Off (Siap Finalisasi)' : 'Siklus Berjalan (Aktif)'],
-      ['', ''],
-      ['Rangkuman Konsolidasi Kebutuhan:', ''],
-      ['Total Dokumen FPB Masuk Siklus Ini', targetRecords.length],
-      ['Total Item Material Siap Pengadaan (Net Demand)', itemRows.length],
-      ['Total Estimasi Anggaran Pengadaan (Rp)', grandTotalBudget],
-      ['', ''],
-      ['Ringkasan Alokasi per Entitas Perusahaan (PT):', '', '', ''],
-      ['Kode Perusahaan', 'Jumlah FPB', 'Jumlah Item Material', 'Estimasi Total Biaya (Rp)'],
-      ...Array.from(ptSummaryMap.values()).map((p) => [
-        p.pt,
-        p.fpbSet.size,
-        p.itemCount,
-        p.totalCost
-      ])
-    ];
-    const wsSummary = XLSX.utils.aoa_to_sheet(summarySheetData);
-    XLSX.utils.book_append_sheet(wb, wsSummary, 'Rekap Eksekutif Batch');
-
-    // Sheet 2: Rincian Belanja Siap Beli (Net Demand)
-    const detailSheetData: any[] = [
-      [
-        'No',
-        'Batch',
-        'Perusahaan',
-        'Armada / Kapal',
-        'No. FPB',
-        'No. Agenda Planning (Ref)',
-        'Kode Barang',
-        'Nama Barang',
-        'Kategori Material',
-        'Satuan',
-        'Qty Permintaan',
-        'Stok Somber',
-        'Stok Kariangau',
-        'Rekomendasi Beli Bersih (Net Demand)',
-        'Urgensi',
-        'Prioritas',
-        'Status Siklus',
-        'Estimasi Harga Satuan (Rp)',
-        'Total Estimasi Biaya (Rp)',
-        'Catatan Review Logistik'
-      ],
-      ...itemRows.map((r) => [
-        r.no,
-        r.batch,
-        r.pt,
-        r.armada,
-        r.fpbNo,
-        r.tkbNo,
-        r.itemCode,
-        r.itemName,
-        r.category,
-        r.unit,
-        r.requestedQty,
-        r.stockSomber,
-        r.stockKariangau,
-        r.recommendedOrderQty,
-        r.urgency,
-        r.priority,
-        r.cycleStatus,
-        r.estUnitPrice,
-        r.estTotalPrice,
-        r.reviewNotes
-      ])
-    ];
-    const wsDetail = XLSX.utils.aoa_to_sheet(detailSheetData);
-    XLSX.utils.book_append_sheet(wb, wsDetail, 'Rincian Belanja (Net Demand)');
-
-    // Sheet 3: Rekap per Kapal / Armada
-    const armadaMap = new Map<string, { armada: string; pt: string; fpbCount: number; itemCount: number; totalCost: number }>();
-    itemRows.forEach((it) => {
-      const cur = armadaMap.get(it.armada) || { armada: it.armada, pt: it.pt, fpbCount: 0, itemCount: 0, totalCost: 0 };
-      cur.itemCount += 1;
-      cur.totalCost += it.estTotalPrice;
-      armadaMap.set(it.armada, cur);
-    });
-    targetRecords.forEach((r) => {
-      const cur = armadaMap.get(r.armada);
-      if (cur) cur.fpbCount += 1;
-    });
-
-    const armadaSheetData: any[] = [
-      ['No', 'Nama Armada / Kapal', 'Perusahaan (PT)', 'Jumlah Dokumen FPB', 'Jumlah Item Material', 'Total Estimasi Anggaran (Rp)'],
-      ...Array.from(armadaMap.values()).map((a, idx) => [
-        idx + 1,
-        a.armada,
-        a.pt,
-        a.fpbCount,
-        a.itemCount,
-        a.totalCost
-      ])
-    ];
-    const wsArmada = XLSX.utils.aoa_to_sheet(armadaSheetData);
-    XLSX.utils.book_append_sheet(wb, wsArmada, 'Rekap per Armada');
-
-    // Trigger download
-    const cleanFileName = `${batchCodeToUse}_PP_${new Date().toISOString().slice(0, 10)}.xlsx`;
-    XLSX.writeFile(wb, cleanFileName);
-    showToast?.(`Berkas Excel "${cleanFileName}" berhasil diunduh!`, 'success');
   };
 
   // Handler Finalisasi & Rilis Batch PP (Cut-Off Execution)
