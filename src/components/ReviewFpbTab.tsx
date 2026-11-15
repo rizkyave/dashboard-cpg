@@ -2685,8 +2685,6 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                   <th className="py-3 px-3 whitespace-nowrap min-w-[90px] w-24" title="Tingkat kegentingan operasional armada (Normal / Urgent / Emergency). Pengajuan Urgent otomatis diprioritaskan P1 (SLA 1-2 hari)">Urgensi</th>
                   <th className="py-3 px-3 text-center whitespace-nowrap min-w-[90px] w-24" title="Nomor urutan registrasi antrean masuk Purchase Planning mingguan">Ref. Planning</th>
                   <th className="py-3 px-3 whitespace-nowrap min-w-[110px] w-28" title="Status alokasi barang (Dalam analisa tim sebelum disetujui, Perlu PO / Stok gudang setelah disetujui)">Item & Stok</th>
-                  <th className="py-3 px-3 whitespace-nowrap min-w-[120px] w-32">Dokumen Terkait</th>
-                  <th className="py-3 px-4 text-center whitespace-nowrap min-w-[90px] w-24">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -2733,6 +2731,22 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                               <History className="size-3" />
                               Revisi{rec.revisionCount && rec.revisionCount > 1 ? ` (${rec.revisionCount}x)` : ''}
                             </span>
+                          )}
+                          {rec.isArchived && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (confirm(`Kembalikan FPB ${rec.fpbNo} ke lembar aktif?`)) {
+                                  handleRestoreFromArchive([rec.fpbNo]);
+                                }
+                              }}
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold text-amber-700 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/25 transition cursor-pointer"
+                              title="Pulihkan berkas ini kembali ke Lembar Aktif"
+                            >
+                              <RotateCcw className="size-2.5" />
+                              <span>Pulihkan</span>
+                            </button>
                           )}
                           {rec.attachments && rec.attachments.length > 0 && (
                             <span
@@ -2852,53 +2866,6 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                             Belum diekstrak
                           </span>
                         )}
-                      </td>
-
-                      {/* Dokumen Terkait */}
-                      <td className="py-3 px-3 whitespace-nowrap w-32">
-                        <div className="flex flex-col gap-0.5">
-                          {rec.relatedDocs?.poNos && rec.relatedDocs.poNos.length > 0 ? (
-                            <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
-                              PO: {rec.relatedDocs.poNos.join(', ')}
-                            </span>
-                          ) : (
-                            <span className="text-[11px] text-muted-foreground">PO: Belum ada</span>
-                          )}
-                          {rec.relatedDocs?.ttbNos && rec.relatedDocs.ttbNos.length > 0 && (
-                            <span className="text-[10px] text-muted-foreground">
-                              TTB: {rec.relatedDocs.ttbNos[0]}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-
-                      {/* Aksi */}
-                      <td className="py-3 px-4 text-center whitespace-nowrap w-24" onClick={(e) => e.stopPropagation()}>
-                        <div className="inline-flex items-center gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => handleOpenReview(rec)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition shadow-2xs cursor-pointer"
-                            title="Buka detail analisa & disposisi FPB"
-                          >
-                            <FileSearch className="size-3.5" />
-                            <span>Review</span>
-                          </button>
-                          {rec.isArchived && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (confirm(`Kembalikan FPB ${rec.fpbNo} ke lembar aktif?`)) {
-                                  handleRestoreFromArchive([rec.fpbNo]);
-                                }
-                              }}
-                              className="p-1.5 text-muted-foreground hover:text-sky-600 hover:bg-sky-500/10 rounded-lg transition cursor-pointer"
-                              title="Pulihkan berkas ini kembali ke Lembar Aktif"
-                            >
-                              <RotateCcw className="size-3.5" />
-                            </button>
-                          )}
-                        </div>
                       </td>
                     </tr>
                   );
