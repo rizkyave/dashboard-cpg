@@ -58,6 +58,7 @@ import {
   Archive,
   RotateCcw,
   BarChart3,
+  ArrowUpRight,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { downloadPurchasePlanningBatchExcel } from '@/utils/batchExcelGenerator';
@@ -627,6 +628,48 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
       }
     } catch (err: any) {
       showToast?.('Error saat restore arsip: ' + err.message, 'error');
+    }
+  };
+
+  // Handler Carry-Over Backlog FPB to Active Batch
+  const handleCarryOverBacklog = async (record: FpbReviewRecord) => {
+    const originBatch = record.batchNo || 'Batch II';
+    const targetBatch = cycleInfo.batchCode || 'CPG-PP-2026-B03';
+
+    if (
+      !confirm(
+        `Alihkan pengajuan FPB ${record.fpbNo} (${record.armada || 'Armada'}) dari Backlog ${originBatch} ke Siklus Aktif (${targetBatch})?\n\nPengajuan akan otomatis masuk ke lembar kerja aktif sebagai Susulan Resmi (Late Entry) agar kebutuhan operasional armada dapat diproses.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/review-fpb', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'carry_over_backlog',
+          fpbNos: [record.fpbNo],
+          targetBatchNo: targetBatch,
+          actor: user?.name || 'Staff Reviewer FPB',
+        }),
+      });
+
+      const json = await res.json();
+      if (json.success) {
+        showToast?.(
+          `FPB ${record.fpbNo} berhasil dialihkan ke Siklus Aktif (${targetBatch}) sebagai Carry-Over.`,
+          'success'
+        );
+        await fetchReviews();
+        // Otomatis arahkan view ke lembar kerja aktif agar langsung terlihat
+        setSheetViewMode('active');
+      } else {
+        showToast?.(json.message || 'Gagal mengalihkan backlog.', 'error');
+      }
+    } catch (err: any) {
+      showToast?.('Error saat carry-over backlog: ' + err.message, 'error');
     }
   };
 
@@ -2628,8 +2671,19 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                             </span>
                           )}
                           {b.pending > 0 && (
-                            <span className="px-2 py-0.5 rounded font-medium text-[11px] bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                              {b.pending} Menunggu
+                            <span
+                              className={`px-2 py-0.5 rounded font-medium text-[11px] ${
+                                b.isCurrentActive
+                                  ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
+                                  : 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30 font-bold'
+                              }`}
+                              title={
+                                !b.isCurrentActive
+                                  ? `${b.pending} berkas tidak diselesaikan pada batas cut-off (Backlog Siklus Tertinggal)`
+                                  : undefined
+                              }
+                            >
+                              {b.pending} {b.isCurrentActive ? 'Menunggu' : 'Backlog Siklus (KPI)'}
                             </span>
                           )}
                           {b.needClarification > 0 && (
@@ -2663,10 +2717,24 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                             Siklus Berjalan (Aktif)
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-muted text-muted-foreground border border-border">
-                            <CheckCircle2 className="size-3 text-emerald-600" />
-                            Selesai (Diarsipkan)
-                          </span>
+                          <div className="flex flex-col items-center gap-1">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-muted text-muted-foreground border border-border">
+                              <CheckCircle2 className="size-3 text-emerald-600" />
+                              Selesai (Diarsipkan)
+                            </span>
+                            {b.totalFpb > 0 && (
+                              <span
+                                className={`text-[10px] font-mono font-bold px-1.5 py-0.2 rounded border ${
+                                  b.pending === 0
+                                    ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                                    : 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20'
+                                }`}
+                                title={`Tingkat penyelesaian review FPB sebelum cut-off: ${b.approvedPo + b.fulfillStock + b.rejected}/${b.totalFpb} berkas`}
+                              >
+                                KPI: {Math.round(((b.approvedPo + b.fulfillStock + b.rejected) / b.totalFpb) * 100)}% Tuntas
+                              </span>
+                            )}
+                          </div>
                         )}
                       </td>
 
@@ -2978,6 +3046,15 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                               </span>
                             );
                           })()}
+                          {rec.isCarryOver && (
+                            <span
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30"
+                              title={`Dokumen ini merupakan Carry-Over dari backlog ${rec.carryOverFromBatch || 'Batch Lalu'}`}
+                            >
+                              <ArrowUpRight className="size-2.5" />
+                              Carry-Over
+                            </span>
+                          )}
                           {rec.isRevised && (
                             <span
                               className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/30"
@@ -2987,7 +3064,20 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                               Revisi{rec.revisionCount && rec.revisionCount > 1 ? ` (${rec.revisionCount}x)` : ''}
                             </span>
                           )}
-                          {rec.isArchived && (
+                          {rec.isArchived && (!rec.reviewStatus || rec.reviewStatus === 'PENDING_REVIEW') ? (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCarryOverBacklog(rec);
+                              }}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold text-cyan-700 dark:text-cyan-300 bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 transition cursor-pointer shadow-2xs"
+                              title={`Alihkan backlog FPB ${rec.fpbNo} ke Siklus Aktif (${cycleInfo.batchCode || 'Batch III'}) sebagai dokumen Carry-Over agar kebutuhan kapal dapat diproses`}
+                            >
+                              <ArrowUpRight className="size-2.5" />
+                              <span>Carry-Over</span>
+                            </button>
+                          ) : rec.isArchived ? (
                             <button
                               type="button"
                               onClick={(e) => {
@@ -3002,7 +3092,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                               <RotateCcw className="size-2.5" />
                               <span>Pulihkan</span>
                             </button>
-                          )}
+                          ) : null}
                           {rec.attachments && rec.attachments.length > 0 && (
                             <span
                               className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/30"
@@ -3063,7 +3153,17 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
 
                       {/* Status Review Tim FPB */}
                       <td className="py-3 px-3 whitespace-nowrap">
-                        {getReviewStatusBadge(rec.reviewStatus)}
+                        {rec.isArchived && (!rec.reviewStatus || rec.reviewStatus === 'PENDING_REVIEW') ? (
+                          <span
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/25 shadow-2xs"
+                            title="FPB ini tidak diselesaikan hingga siklus batch ditutup. Tercatat sebagai Backlog KPI PIC Reviewer."
+                          >
+                            <AlertTriangle className="size-3 text-rose-500 shrink-0" />
+                            <span>⚠️ Backlog Siklus</span>
+                          </span>
+                        ) : (
+                          getReviewStatusBadge(rec.reviewStatus)
+                        )}
                       </td>
 
                       {/* Urgensi */}

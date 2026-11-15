@@ -1453,6 +1453,46 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // ----------------------------------------------------
+    // Action 9: Carry-Over Backlog FPB to Active Batch
+    // ----------------------------------------------------
+    if (action === 'carry_over_backlog') {
+      const { fpbNos, targetBatchNo, actor } = body;
+      const nowIso = new Date().toISOString();
+      let count = 0;
+
+      records = records.map((r) => {
+        if (r.isArchived && (!fpbNos || !Array.isArray(fpbNos) || fpbNos.includes(r.fpbNo))) {
+          count++;
+          const originBatch = r.batchNo || 'Batch II';
+          const newBatch = targetBatchNo || 'CPG-PP-2026-B03';
+          return {
+            ...r,
+            isArchived: false,
+            isLateEntry: true,
+            lateEntryOriginBatch: originBatch,
+            batchNo: newBatch,
+            isCarryOver: true,
+            carryOverFromBatch: originBatch,
+            carryOverAt: nowIso,
+            carryOverBy: actor || 'Staff Reviewer FPB',
+            updatedAt: nowIso,
+            reviewNotes: (r.reviewNotes ? r.reviewNotes + ' | ' : '') + `[Carry-Over dari backlog ${originBatch} ke ${newBatch}]`,
+          };
+        }
+        return r;
+      });
+
+      await saveReviews(records);
+
+      return NextResponse.json({
+        success: true,
+        message: `Berhasil mengalihkan ${count} berkas backlog ke Siklus Aktif (${targetBatchNo || 'Batch III'}) sebagai dokumen Carry-Over.`,
+        carriedCount: count,
+        total: records.length,
+      });
+    }
+
     return NextResponse.json(
       { success: false, message: `Action "${action}" tidak dikenali.` },
       { status: 400 }

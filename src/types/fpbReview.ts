@@ -151,6 +151,10 @@ export interface FpbReviewRecord {
   isLateEntry?: boolean;
   lateDays?: number;
   originalCycleBatch?: string;
+  isCarryOver?: boolean;
+  carryOverFromBatch?: string;
+  carryOverAt?: string;
+  carryOverBy?: string;
   cycleDisposition?: 'REGULAR' | 'LATE_ENTRY' | 'HISTORICAL_ARCHIVE';
   updatedAt: string;
   createdAt: string;

@@ -95,6 +95,19 @@ export default function LogisticsApprovalCell({
   }
 
   // 4. ATURAN BISNIS: Status Review Tim FPB masih "Menunggu Analisa"
+  // Jika dokumen berada di ARSIP tapi belum disetujui (Backlog siklus tertutup):
+  if (record.isArchived && isPendingReview) {
+    return (
+      <span
+        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/25 select-none shadow-2xs"
+        title="Dokumen berada di arsip siklus tertutup tanpa persetujuan (Backlog). Tercatat sebagai KPI keterlambatan PIC."
+      >
+        <Clock className="size-3 text-rose-500 shrink-0" />
+        <span>Lewat Siklus (Backlog)</span>
+      </span>
+    );
+  }
+
   // Status Persetujuan Logistik bernilai "Menunggu Review" / "Pending" sampai Tim FPB memberikan status Disetujui
   if (isPendingReview) {
     return (
