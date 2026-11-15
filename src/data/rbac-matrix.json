@@ -374,7 +374,7 @@
   {
     "tabId": "procurement",
     "category": "Dashboards",
-    "name": "Pengadaan",
+    "name": "Monitoring PO & Berkas",
     "description": "Monitoring alur berkas FPB-PO, SLA lead time, verifikasi barang sisa layanan",
     "permissions": {
       "admin": {

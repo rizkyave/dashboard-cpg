@@ -1197,7 +1197,7 @@ export default function DashboardPage() {
                     : activeTab === 'monitoring-internal'
                     ? 'Monitoring Berkas Internal Pengadaan'
                     : activeTab === 'procurement'
-                    ? 'Monitoring Berkas Pengadaan'
+                    ? 'Monitoring PO & Berkas'
                     : activeTab === 'armada'
                     ? 'Monitoring Layanan Armada'
                     : activeTab === 'galeri-ttb'

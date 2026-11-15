@@ -166,10 +166,10 @@ export default function Sidebar({
     },
     {
       id: 'procurement' as TabType,
-      label: 'Pengadaan',
+      label: 'Monitoring PO & Berkas',
       icon: ShoppingBag,
       badge: totalCount > 0 ? (totalCount >= 1000 ? `${(totalCount / 1000).toFixed(0)}k` : `${totalCount}`) : undefined,
-      title: 'Monitoring Alur Pengadaan & Waktu Tunggu (Hover FPB / Item untuk Nama Barang Sisa Layanan)',
+      title: 'Monitoring Transaksi Purchase Order (PO), Waktu Tunggu (Lead Time) & Status Pelacakan Berkas Armada',
     },
     {
       id: 'armada' as TabType,
