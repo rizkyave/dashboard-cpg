@@ -409,6 +409,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
       showToast?.(`Memulai pemrosesan ${files.length} berkas PDF FPB...`, 'info');
 
       const extractedRecords: FpbReviewRecord[] = [];
+      const incompleteSignatures: { fpbNo: string; missing: string[] }[] = [];
       let successCount = 0;
       let failCount = 0;
 
@@ -429,6 +430,14 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
           if (json.success && json.data) {
             const pd = json.data;
             const cleanNo = (pd.fpbNo || file.name.replace(/\.pdf$/i, '')).trim();
+            const sigVerification = pd.signatureVerification;
+
+            if (sigVerification && !sigVerification.isComplete) {
+              incompleteSignatures.push({
+                fpbNo: cleanNo,
+                missing: sigVerification.missingSignatures || ['Reviewer/Penyetuju'],
+              });
+            }
 
             const newRecord: FpbReviewRecord = {
               id: `fpb-rev-${cleanNo}`,
@@ -439,14 +448,20 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
               date: pd.fpbDate || new Date().toLocaleDateString('id-ID'),
               purpose: pd.tujuanPeruntukan || 'Pengadaan suku cadang/kebutuhan armada',
               efpbStatus: 'Approved',
-              isReceivedLogistik: Boolean(pd.isLogistikApproved),
+              isReceivedLogistik: true,
+              pchLogistik: 'Received_Logistic',
               pdfUrl: `/api/review-fpb/pdf?fpbNo=${encodeURIComponent(cleanNo)}&type=signed`,
               reviewStatus: 'PENDING_REVIEW',
               urgency: 'NORMAL',
               priorityLevel: 'P2',
               picPurchasing: '-',
-              reviewNotes: 'Diekstrak dari unggahan berkas PDF fisik (Multi-Upload)',
+              reviewNotes: sigVerification && !sigVerification.isComplete
+                ? `[PERIKSA TTD]: ${sigVerification.statusText}`
+                : 'Diekstrak dari unggahan berkas PDF fisik (Multi-Upload)',
               isArchived: false,
+              signatureVerification: sigVerification,
+              requestedBy: pd.requestedBy || '',
+              reviewedBy: pd.reviewedBy || '',
               items: (pd.items || []).map((it: any, idx: number) => ({
                 no: it.no || idx + 1,
                 itemCode: it.itemCode || '-',
@@ -495,6 +510,20 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
             `Berhasil mengimpor ${extractedRecords.length} berkas FPB ke lembar aktif!${failCount > 0 ? ` (${failCount} berkas gagal)` : ''}`,
             'success'
           );
+
+          if (incompleteSignatures.length > 0) {
+            setTimeout(() => {
+              showToast?.(
+                `⚠️ Verifikasi TTD: ${incompleteSignatures.length} berkas terdeteksi belum lengkap tanda tangannya (${incompleteSignatures.map((x) => `${x.fpbNo}: kurang ${x.missing.join(', ')}`).join('; ')})`,
+                'warning'
+              );
+            }, 1200);
+          } else {
+            setTimeout(() => {
+              showToast?.('✅ Semua berkas PDF yang diunggah terverifikasi bertanda tangan lengkap & sah.', 'success');
+            }, 1200);
+          }
+
           setSheetViewMode('active');
           fetchReviews();
         }
@@ -3356,29 +3385,76 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
 
                 return (
                   <div className="space-y-3">
-                    {/* Status Persetujuan Alert */}
-                    {isApproved ? (
-                      <div className="p-3.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                          <div className="size-8 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold shrink-0">
-                            <CheckCircle2 className="size-5" />
-                          </div>
-                          <div className="space-y-0.5">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-xs font-bold text-emerald-950 dark:text-emerald-200">
-                                Dokumen Telah Disetujui Logistik &amp; Siap Pengadaan
-                              </span>
-                              <span className="px-2 py-0.5 rounded-full text-[10px] bg-emerald-600 text-white font-bold">
-                                Siap Diteruskan ke Purchasing
-                              </span>
-                            </div>
-                            <p className="text-[11px] text-emerald-700 dark:text-emerald-300">
-                              Disetujui oleh: <strong>{selectedRecord.reviewedBy || 'Staf Operasional / Adm. Logistik (Noor Hasanah / Melinda Dwi Putri)'}</strong>
-                            </p>
-                          </div>
-                        </div>
+                    {/* Status Verifikasi Tanda Tangan & Keabsahan Dokumen */}
+                    {(() => {
+                      const sig = selectedRecord.signatureVerification;
+                      const isComplete = sig ? sig.isComplete : Boolean(selectedRecord.reviewedBy || isApproved);
+                      const req = sig?.requesterName || selectedRecord.requestedBy || 'Pemohon Armada';
+                      const rev = sig?.reviewerName || selectedRecord.reviewedBy || 'Reviewer FPB';
+                      const app = sig?.approverName || 'Penyetuju Resmi';
+                      const missing = sig?.missingSignatures || [];
 
-                        {isApproved && (
+                      return (
+                        <div
+                          className={`p-3.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                            isComplete
+                              ? 'border-emerald-500/30 bg-emerald-500/10'
+                              : 'border-amber-500/30 bg-amber-500/10'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div
+                              className={`size-8 rounded-lg flex items-center justify-center font-bold shrink-0 ${
+                                isComplete
+                                  ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                                  : 'bg-amber-500/20 text-amber-600 dark:text-amber-400'
+                              }`}
+                            >
+                              {isComplete ? <CheckCircle2 className="size-5" /> : <AlertTriangle className="size-5" />}
+                            </div>
+                            <div className="space-y-0.5 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span
+                                  className={`text-xs font-bold ${
+                                    isComplete
+                                      ? 'text-emerald-950 dark:text-emerald-200'
+                                      : 'text-amber-950 dark:text-amber-200'
+                                  }`}
+                                >
+                                  {isComplete
+                                    ? 'Dokumen Terverifikasi: Tanda Tangan Lengkap & Sah'
+                                    : 'Perhatian: Tanda Tangan Belum Lengkap'}
+                                </span>
+                                <span
+                                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                    isComplete
+                                      ? 'bg-emerald-600 text-white'
+                                      : 'bg-amber-600 text-white'
+                                  }`}
+                                >
+                                  {isComplete ? 'Siap Masuk Planning' : 'Verifikasi Otomatis'}
+                                </span>
+                              </div>
+                              <p
+                                className={`text-[11px] ${
+                                  isComplete
+                                    ? 'text-emerald-800 dark:text-emerald-300'
+                                    : 'text-amber-800 dark:text-amber-300'
+                                }`}
+                              >
+                                {isComplete ? (
+                                  <span>
+                                    Pemohon: <strong>{req}</strong> &bull; Reviewer: <strong>{rev}</strong> &bull; Penyetuju: <strong>{app}</strong>
+                                  </span>
+                                ) : (
+                                  <span>
+                                    Berkas ini terdeteksi belum memiliki tanda tangan lengkap ({missing.length > 0 ? `Kurang: ${missing.join(', ')}` : 'Reviewer / Penyetuju belum tertera'}). Mohon pastikan dokumen bertanda tangan lengkap sebelum difinalisasi.
+                                  </span>
+                                )}
+                              </p>
+                            </div>
+                          </div>
+
                           <div className="flex items-center gap-2 shrink-0">
                             <button
                               type="button"
@@ -3403,60 +3479,9 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                               Bertanda Tangan
                             </button>
                           </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="p-3.5 rounded-xl border border-amber-500/30 bg-amber-500/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                          <div className="size-8 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold shrink-0">
-                            <FileText className="size-5" />
-                          </div>
-                          <div className="space-y-0.5">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-xs font-bold text-amber-950 dark:text-amber-200">
-                                Menunggu Pengesahan Logistik di e-FPB
-                              </span>
-                              <span className="px-2 py-0.5 rounded-full text-[10px] bg-amber-500 text-white font-bold">
-                                Belum Ditekan di e-FPB
-                              </span>
-                            </div>
-                            <p className="text-[11px] text-amber-800 dark:text-amber-300">
-                              SOP Pengesahan: Silakan buka baris dokumen di web e-FPB dan tekan tombol <strong>Received_Logistic</strong> agar tombol di e-FPB menghilang dan tanda tangan resmi tercetak.
-                            </p>
-                          </div>
                         </div>
-
-                        <div className="flex items-center gap-2 shrink-0 flex-wrap">
-                          <a
-                            href={`https://e-fpb.cindaragroup.com/FilesList?psearch=${encodeURIComponent(cleanFpb)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-amber-600 hover:bg-amber-700 text-white transition shadow-xs cursor-pointer"
-                            title="Buka baris dokumen ini di web e-FPB untuk menekan tombol Received_Logistic"
-                          >
-                            <ExternalLink className="size-3.5" />
-                            <span>Buka &amp; Sahkan di e-FPB</span>
-                          </a>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (selectedRecord) handleVerifyEfpb(selectedRecord);
-                            }}
-                            disabled={isVerifyingEfpb}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-xs cursor-pointer disabled:opacity-50"
-                            title="Periksa apakah tombol di e-FPB sudah ditekan dan dokumen bertanda tangan sudah terbit di server"
-                          >
-                            {isVerifyingEfpb ? (
-                              <Loader2 className="size-3.5 animate-spin" />
-                            ) : (
-                              <RefreshCw className="size-3.5" />
-                            )}
-                            <span>Cek Status e-FPB</span>
-                          </button>
-                        </div>
-                      </div>
-                    )}
+                      );
+                    })()}
 
                     {/* PDF Viewer Iframe */}
                     <div className="w-full h-[580px] rounded-xl border border-border overflow-hidden bg-muted/20">

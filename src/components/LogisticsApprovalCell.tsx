@@ -142,46 +142,27 @@ export default function LogisticsApprovalCell({
       </div>
     ) : null;
 
-    // 5A. Sudah disahkan di e-FPB (Received_Logistic telah ditekan & ttd tertera)
-    if (isReceivedLogistik) {
-      const approver = record.reviewedBy || 'Staf Logistik';
-      const dateFormatted = record.reviewedAt
-        ? new Date(record.reviewedAt).toLocaleDateString('id-ID', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-          })
-        : '';
+    // 5. Sudah disetujui Tim Review untuk masuk Purchase Planning (Stand-alone mode)
+    const approver = record.reviewedBy || 'Staf Logistik';
+    const dateFormatted = record.reviewedAt
+      ? new Date(record.reviewedAt).toLocaleDateString('id-ID', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        })
+      : '';
 
-      return (
-        <div className="flex flex-col items-start gap-0.5" onClick={(e) => e.stopPropagation()}>
-          <span
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 select-none shadow-2xs"
-            title={`Telah disetujui tim review & disahkan di e-FPB (Tombol Received_Logistic telah ditekan)${
-              approver ? ` - Disetujui: ${approver}` : ''
-            }${dateFormatted ? ` (${dateFormatted})` : ''}`}
-          >
-            <CheckCircle2 className="size-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
-            <span>Siap Pengadaan</span>
-          </span>
-          {waButton}
-        </div>
-      );
-    }
-
-    // 5B. Sudah disetujui Tim Review, tetapi tombol Received_Logistic di e-FPB belum ditekan
     return (
-      <div className="flex flex-col items-start gap-1" onClick={(e) => e.stopPropagation()}>
-        <a
-          href={directEfpbUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white shadow-xs hover:shadow transition-all cursor-pointer select-none"
-          title="FPB telah disetujui tim review! Klik untuk membuka web e-FPB dan tekan tombol Received_Logistic agar tanda tangan logistik tertera dan pengadaan sah."
+      <div className="flex flex-col items-start gap-0.5" onClick={(e) => e.stopPropagation()}>
+        <span
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 select-none shadow-2xs"
+          title={`Telah disetujui tim review untuk masuk Purchase Planning${
+            approver ? ` - Reviewer: ${approver}` : ''
+          }${dateFormatted ? ` (${dateFormatted})` : ''}`}
         >
-          <span>Sahkan di e-FPB</span>
-          <ExternalLink className="size-3 shrink-0 opacity-80" />
-        </a>
+          <CheckCircle2 className="size-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+          <span>Siap Pengadaan</span>
+        </span>
         {waButton}
       </div>
     );

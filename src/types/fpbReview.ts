@@ -96,6 +96,20 @@ export interface FpbAttachment {
   caption?: string;
 }
 
+export interface SignatureVerification {
+  isComplete: boolean;
+  hasRequester: boolean;
+  hasReviewer: boolean;
+  hasApprover: boolean;
+  hasReceived?: boolean;
+  requesterName?: string;
+  reviewerName?: string;
+  approverName?: string;
+  receivedName?: string;
+  missingSignatures?: string[];
+  statusText?: string;
+}
+
 export interface FpbReviewRecord {
   id: string;
   fpbNo: string;
@@ -121,6 +135,7 @@ export interface FpbReviewRecord {
   duplicateAlerts: FpbDuplicateAlert[];
   relatedDocs: FpbRelatedDocs;
   attachments?: FpbAttachment[];
+  signatureVerification?: SignatureVerification;
   reviewedBy?: string;
   reviewedAt?: string;
   requestedBy?: string;

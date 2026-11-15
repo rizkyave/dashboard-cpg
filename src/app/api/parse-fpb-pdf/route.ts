@@ -20,6 +20,20 @@ export interface ParsedItem {
   priority: string;
 }
 
+export interface SignatureVerification {
+  isComplete: boolean;
+  hasRequester: boolean;
+  hasReviewer: boolean;
+  hasApprover: boolean;
+  hasReceived?: boolean;
+  requesterName?: string;
+  reviewerName?: string;
+  approverName?: string;
+  receivedName?: string;
+  missingSignatures: string[];
+  statusText: string;
+}
+
 export interface ParsedFpbData {
   fpbNo: string;
   fpbDate: string;
@@ -35,6 +49,7 @@ export interface ParsedFpbData {
   receivedBy: string;
   receivedDate: string;
   isLogistikApproved?: boolean;
+  signatureVerification?: SignatureVerification;
   items: ParsedItem[];
   tujuanPeruntukan: string;
   tanggalPenerimaanTerakhir?: string;
@@ -615,23 +630,58 @@ function extractPdfData(
       fpbNo
     )}.pdf`;
 
+  const reqName = (requestedBy || requestedByBottom || '').trim();
+  const revName = (reviewedBy || '').trim();
+  const appName = (approvedBy || '').trim();
+  const recName = (receivedBy || '').trim();
+
+  const hasRequester = Boolean(reqName);
+  const hasReviewer = Boolean(revName);
+  const hasApprover = Boolean(appName);
+  const hasReceived = Boolean(recName);
+
+  // Standar keabsahan FPB: minimal memiliki tanda tangan pemohon serta reviewer dan/atau penyetuju resmi
+  const isSignatureComplete = (hasReviewer && hasApprover) || (hasRequester && (hasReviewer || hasApprover));
+
+  const missingSignatures: string[] = [];
+  if (!hasRequester) missingSignatures.push('Pemohon (User Armada)');
+  if (!hasReviewer) missingSignatures.push('Reviewer FPB');
+  if (!hasApprover) missingSignatures.push('Penyetuju (Approver)');
+
+  const signatureVerification: SignatureVerification = {
+    isComplete: isSignatureComplete,
+    hasRequester,
+    hasReviewer,
+    hasApprover,
+    hasReceived,
+    requesterName: reqName || undefined,
+    reviewerName: revName || undefined,
+    approverName: appName || undefined,
+    receivedName: recName || undefined,
+    missingSignatures,
+    statusText: isSignatureComplete
+      ? 'Tanda Tangan Lengkap & Sah'
+      : `Tanda Tangan Belum Lengkap (Kurang: ${missingSignatures.join(', ')})`,
+  };
+
   return {
     fpbNo,
     fpbDate: formatDateDdMmYy(fpbDate),
     userArmada,
     workOrderNo: workOrderNo || undefined,
-    requestedBy: requestedBy || requestedByBottom || '',
+    requestedBy: reqName,
     requestedDate: formatDateDdMmYy(
       requestedDate || (userTimestamp ? userTimestamp.slice(0, 10) : '')
     ),
     requestedTimestamp: requestedDate || userTimestamp,
-    reviewedBy,
+    reviewedBy: revName,
     reviewedDate: formatDateDdMmYy(reviewedDate),
-    approvedBy,
+    approvedBy: appName,
     approvedDate: formatDateDdMmYy(approvedDate),
-    receivedBy: isLogistikApproved ? receivedBy : '',
+    receivedBy: isLogistikApproved ? recName : '',
     receivedDate: isLogistikApproved ? formatDateDdMmYy(receivedDate) : '',
-    isLogistikApproved: Boolean(isLogistikApproved && receivedBy),
+    isLogistikApproved: Boolean(isLogistikApproved && recName),
+    signatureVerification,
     items,
     tujuanPeruntukan,
     tanggalPenerimaanTerakhir,
