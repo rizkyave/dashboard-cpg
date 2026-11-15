@@ -113,7 +113,7 @@ export default function LogisticsApprovalCell({
     const isApprovedPo = record.reviewStatus === 'APPROVED_PO';
     const waUrl = isApprovedPo ? generateFpbApprovalWaLink(record) : '';
 
-    // Tombol Notifikasi WA ke Tim Purchasing (dengan No. TKB)
+    // Tombol Notifikasi WA ke Tim Purchasing (dengan No. Agenda Planning)
     const waButton = isApprovedPo ? (
       <div className="flex items-center gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
         <a
@@ -121,7 +121,7 @@ export default function LogisticsApprovalCell({
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-2xs hover:shadow-xs transition select-none cursor-pointer"
-          title={`Kirim notifikasi WhatsApp ke Tim Purchasing (FPB: ${cleanFpb}, No. TKB: ${record.tkbNo || '-'})`}
+          title={`Kirim notifikasi WhatsApp ke Tim Purchasing (FPB: ${cleanFpb}, No. Agenda: ${record.tkbNo || '-'})`}
         >
           <MessageSquare className="size-3 shrink-0" />
           <span>Link WA Purchasing</span>
@@ -135,7 +135,7 @@ export default function LogisticsApprovalCell({
           type="button"
           onClick={handleCopyWa}
           className="p-1 rounded text-muted-foreground hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-500/10 transition cursor-pointer"
-          title="Salin teks format WhatsApp persetujuan Purchase Planning & No. TKB ke clipboard"
+          title="Salin teks format WhatsApp persetujuan Purchase Planning & No. Agenda Planning ke clipboard"
         >
           {isCopied ? <Check className="size-3 text-emerald-500" /> : <Copy className="size-3" />}
         </button>

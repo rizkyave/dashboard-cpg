@@ -445,7 +445,7 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-15T06:37:18.419Z",
+    "updatedAt": "2026-11-15T06:52:33.029Z",
     "createdAt": "2026-11-08T15:58:25.529Z",
     "priorityLevel": "P1",
     "slaTargetDate": "09/11/26",
@@ -454,7 +454,7 @@
     "requestedBy": "CHOIRU",
     "pchLogistik": "Received_Logistic",
     "reviewedBy": "Administrator CPG",
-    "reviewedAt": "2026-11-15T06:37:18.419Z",
+    "reviewedAt": "2026-11-15T06:52:33.029Z",
     "isArchived": true,
     "archivedAt": "2026-11-14T15:13:00.214Z",
     "archivedBy": "Administrator CPG"

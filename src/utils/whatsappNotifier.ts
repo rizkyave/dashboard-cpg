@@ -380,7 +380,7 @@ Halo Tim Purchasing / Procurement CPG,
 Pengajuan FPB berikut telah selesai di-review oleh Tim FPB / Logistik dan telah *DISETUJUI MASUK PURCHASE PLANNING*:
 
 📄 *No. FPB:* ${record.fpbNo}
-🏷️ *No. TKB:* *${tkb}*
+🏷️ *No. Agenda Planning:* *${tkb}*
 🚢 *Armada / Unit:* ${record.armada} (${record.entity})
 📅 *Tanggal FPB:* ${record.date || dateStr}
 ⚡ *Prioritas & Urgensi:* ${priorityLabel} • ${urgencyLabel}
@@ -397,7 +397,7 @@ _${record.reviewNotes || 'Disetujui untuk masuk perencanaan pengadaan (Purchase 
 👤 *Reviewer:* ${record.reviewedBy || 'Tim Review FPB'}
 ⏰ *Waktu Disetujui:* ${dateStr} ${timeStr}
 
-Mohon bantuan Tim Purchasing / Procurement untuk memproses konsolidasi kebutuhan & perencanaan pengadaan sesuai konfirmasi No. TKB di atas.
+Mohon bantuan Tim Purchasing / Procurement untuk memproses konsolidasi kebutuhan & perencanaan pengadaan sesuai No. Agenda Planning di atas.
 
 🔗 *Buka Berkas e-FPB:*
 ${efpbUrl}

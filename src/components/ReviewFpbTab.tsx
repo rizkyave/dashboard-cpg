@@ -814,7 +814,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
         'Perusahaan',
         'Armada / Kapal',
         'No. FPB',
-        'No. TKB',
+        'No. Agenda Planning (Ref)',
         'Kode Barang',
         'Nama Barang',
         'Kategori Material',
@@ -1566,7 +1566,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
       'Status e-FPB',
       'Status Review Tim FPB',
       'Urgensi',
-      'Status TKB',
+      'No. Agenda Planning',
       'PIC Purchasing',
       'Catatan Review',
       'Jumlah Item',
@@ -2370,7 +2370,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari No. FPB, Status TKB, Armada, Keperluan, PIC, atau No. PO..."
+              placeholder="Cari No. FPB, No. Agenda Planning, Armada, Keperluan, PIC, atau No. PO..."
               className="w-full pl-9 pr-4 py-2 text-xs rounded-lg border border-border bg-background focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary text-foreground placeholder:text-muted-foreground transition"
             />
             {searchQuery && (
@@ -2577,7 +2577,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                   <th className="py-3 px-3 whitespace-nowrap min-w-[140px] w-36" title="Alur logistik berurutan: Menunggu Review -> Disetujui Tim Review -> Sahkan di e-FPB -> Siap Pengadaan">Persetujuan Logistik</th>
                   <th className="py-3 px-3 whitespace-nowrap min-w-[140px] w-36">Status Review Tim FPB</th>
                   <th className="py-3 px-3 whitespace-nowrap min-w-[90px] w-24" title="Tingkat kegentingan operasional armada (Normal / Urgent / Emergency). Pengajuan Urgent otomatis diprioritaskan P1 (SLA 1-2 hari)">Urgensi</th>
-                  <th className="py-3 px-3 text-center whitespace-nowrap min-w-[90px] w-24" title="Nomor urutan konfirmasi pengadaan TKB saat disetujui untuk purchasing">Status TKB</th>
+                  <th className="py-3 px-3 text-center whitespace-nowrap min-w-[90px] w-24" title="Nomor urutan registrasi antrean masuk Purchase Planning mingguan">Ref. Planning</th>
                   <th className="py-3 px-3 whitespace-nowrap min-w-[110px] w-28" title="Status alokasi barang (Dalam analisa tim sebelum disetujui, Perlu PO / Stok gudang setelah disetujui)">Item & Stok</th>
                   <th className="py-3 px-3 whitespace-nowrap min-w-[120px] w-32">Dokumen Terkait</th>
                   <th className="py-3 px-4 text-center whitespace-nowrap min-w-[90px] w-24">Aksi</th>
@@ -2679,12 +2679,12 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                         {getUrgencyBadge(rec.urgency)}
                       </td>
 
-                      {/* Status TKB (Nomor Konfirmasi Pengadaan Sesuai Urutan Disahkan) */}
+                      {/* Ref. Planning / No. Agenda Masuk Purchase Planning */}
                       <td className="py-3 px-3 whitespace-nowrap text-center">
                         {rec.reviewStatus === 'APPROVED_PO' && rec.tkbNo ? (
                           <span
                             className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25 shadow-xs"
-                            title={`Kode urutan konfirmasi purchasing: ${rec.tkbNo}`}
+                            title={`Nomor agenda antrean masuk Purchase Planning: ${rec.tkbNo}`}
                           >
                             <Tag className="size-3 text-emerald-500 shrink-0" />
                             <span>{rec.tkbNo}</span>
@@ -2792,7 +2792,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari No. FPB, Status TKB, Armada, Keperluan, PIC, atau No. PO..."
+              placeholder="Cari No. FPB, No. Agenda Planning, Armada, Keperluan, PIC, atau No. PO..."
               className="w-full pl-9 pr-8 py-2 text-xs rounded-lg border border-border bg-background focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary text-foreground placeholder:text-muted-foreground transition shadow-xs"
             />
             {searchQuery && (
@@ -3892,10 +3892,10 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                   </select>
                 </div>
 
-                {/* 4. Status TKB / PIC Purchasing */}
+                {/* 4. No. Agenda Planning / PIC Purchasing */}
                 <div>
                   <label className="block text-xs font-bold text-foreground mb-1.5 flex items-center justify-between">
-                    <span>Status TKB Pengadaan</span>
+                    <span>No. Agenda Planning</span>
                     {selectedRecord.tkbNo && (
                       <span className="inline-flex items-center gap-1 font-mono text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
                         <Tag className="size-2.5" />
@@ -3907,9 +3907,9 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                     <div className="py-2 px-3 text-xs rounded-lg border border-emerald-500/30 bg-emerald-500/5 text-foreground flex items-center justify-between">
                       <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
                         <Tag className="size-3.5" />
-                        {selectedRecord.tkbNo || 'TKB-Otomatis (Saat Disetujui)'}
+                        {selectedRecord.tkbNo || 'Auto-Register PP (Saat Disetujui)'}
                       </span>
-                      <span className="text-[10px] text-muted-foreground">Urutan sah PO</span>
+                      <span className="text-[10px] text-muted-foreground">Antrean Masuk Planning</span>
                     </div>
                   ) : (
                     <input
@@ -4085,14 +4085,14 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
 
                     {/* Action Buttons */}
                     <div className="flex items-center justify-end gap-2.5 shrink-0 flex-wrap">
-                      {/* Tombol Notifikasi WA ke Tim Purchasing (dengan No. TKB) */}
+                      {/* Tombol Notifikasi WA ke Tim Purchasing (dengan No. Agenda Planning) */}
                       {(formStatus === 'APPROVED_PO' || selectedRecord.reviewStatus === 'APPROVED_PO') && (
                         <div className="flex items-center gap-1">
                           <a
                             href={generateFpbApprovalWaLink({
                               ...selectedRecord,
                               reviewStatus: 'APPROVED_PO',
-                              tkbNo: selectedRecord.tkbNo || 'TKB-Otomatis (Saat Disetujui)',
+                              tkbNo: selectedRecord.tkbNo || 'Auto-Register PP',
                               reviewNotes: formNotes,
                               urgency: formUrgency,
                               priorityLevel: formPriority,
@@ -4100,7 +4100,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-xs hover:shadow transition select-none cursor-pointer"
-                            title={`Kirim notifikasi WhatsApp ke Tim Purchasing/Procurement bahwa pengajuan ini disetujui masuk Purchase Planning (${selectedRecord.tkbNo ? `No. TKB: ${selectedRecord.tkbNo}` : 'TKB Otomatis'})`}
+                            title={`Kirim notifikasi WhatsApp ke Tim Purchasing/Procurement bahwa pengajuan ini disetujui masuk Purchase Planning (${selectedRecord.tkbNo ? `No. Agenda: ${selectedRecord.tkbNo}` : 'Auto-Register PP'})`}
                           >
                             <MessageSquare className="size-3.5" />
                             <span>Kirim WA Purchasing</span>
@@ -4116,13 +4116,13 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                               const text = formatFpbApprovalWaMessage({
                                 ...selectedRecord,
                                 reviewStatus: 'APPROVED_PO',
-                                tkbNo: selectedRecord.tkbNo || 'TKB-Otomatis',
+                                tkbNo: selectedRecord.tkbNo || 'Auto-Register PP',
                                 reviewNotes: formNotes,
                                 urgency: formUrgency,
                                 priorityLevel: formPriority,
                               });
                               navigator.clipboard.writeText(text);
-                              showToast?.('Format pesan WhatsApp persetujuan Purchase Planning & No. TKB berhasil disalin ke clipboard!', 'success');
+                              showToast?.('Format pesan WhatsApp persetujuan Purchase Planning & No. Agenda berhasil disalin ke clipboard!', 'success');
                             }}
                             className="p-2 rounded-lg border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition cursor-pointer"
                             title="Salin format pesan WhatsApp ke clipboard"
