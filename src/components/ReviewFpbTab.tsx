@@ -3341,113 +3341,12 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                 const activePdfUrl = (isApproved && pdfViewMode === 'signed') ? signedPdfUrl : rawPdfUrl;
 
                 return (
-                  <div className="space-y-3">
-                    {/* Status Verifikasi Tanda Tangan & Keabsahan Dokumen */}
-                    {(() => {
-                      const sig = selectedRecord.signatureVerification;
-                      const isComplete = sig ? sig.isComplete : Boolean(selectedRecord.reviewedBy || isApproved);
-                      const req = sig?.requesterName || selectedRecord.requestedBy || 'Pemohon Armada';
-                      const rev = sig?.reviewerName || selectedRecord.reviewedBy || 'Reviewer FPB';
-                      const app = sig?.approverName || 'Penyetuju Resmi';
-                      const missing = sig?.missingSignatures || [];
-
-                      return (
-                        <div
-                          className={`p-3.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-                            isComplete
-                              ? 'border-emerald-500/30 bg-emerald-500/10'
-                              : 'border-amber-500/30 bg-amber-500/10'
-                          }`}
-                        >
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div
-                              className={`size-8 rounded-lg flex items-center justify-center font-bold shrink-0 ${
-                                isComplete
-                                  ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
-                                  : 'bg-amber-500/20 text-amber-600 dark:text-amber-400'
-                              }`}
-                            >
-                              {isComplete ? <CheckCircle2 className="size-5" /> : <AlertTriangle className="size-5" />}
-                            </div>
-                            <div className="space-y-0.5 min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span
-                                  className={`text-xs font-bold ${
-                                    isComplete
-                                      ? 'text-emerald-950 dark:text-emerald-200'
-                                      : 'text-amber-950 dark:text-amber-200'
-                                  }`}
-                                >
-                                  {isComplete
-                                    ? 'Dokumen Terverifikasi: Tanda Tangan Lengkap & Sah'
-                                    : 'Perhatian: Tanda Tangan Belum Lengkap'}
-                                </span>
-                                <span
-                                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                    isComplete
-                                      ? 'bg-emerald-600 text-white'
-                                      : 'bg-amber-600 text-white'
-                                  }`}
-                                >
-                                  {isComplete ? 'Siap Masuk Planning' : 'Verifikasi Otomatis'}
-                                </span>
-                              </div>
-                              <p
-                                className={`text-[11px] ${
-                                  isComplete
-                                    ? 'text-emerald-800 dark:text-emerald-300'
-                                    : 'text-amber-800 dark:text-amber-300'
-                                }`}
-                              >
-                                {isComplete ? (
-                                  <span>
-                                    Pemohon: <strong>{req}</strong> &bull; Reviewer: <strong>{rev}</strong> &bull; Penyetuju: <strong>{app}</strong>
-                                  </span>
-                                ) : (
-                                  <span>
-                                    Berkas ini terdeteksi belum memiliki tanda tangan lengkap ({missing.length > 0 ? `Kurang: ${missing.join(', ')}` : 'Reviewer / Penyetuju belum tertera'}). Mohon pastikan dokumen bertanda tangan lengkap sebelum difinalisasi.
-                                  </span>
-                                )}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2 shrink-0">
-                            <button
-                              type="button"
-                              onClick={() => setPdfViewMode('raw')}
-                              className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition cursor-pointer ${
-                                pdfViewMode === 'raw'
-                                  ? 'bg-emerald-700 text-white shadow-xs'
-                                  : 'bg-white/80 dark:bg-black/30 text-foreground hover:bg-white'
-                              }`}
-                            >
-                              Dokumen Asli
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setPdfViewMode('signed')}
-                              className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition cursor-pointer ${
-                                pdfViewMode === 'signed'
-                                  ? 'bg-emerald-700 text-white shadow-xs'
-                                  : 'bg-white/80 dark:bg-black/30 text-foreground hover:bg-white'
-                              }`}
-                            >
-                              Bertanda Tangan
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })()}
-
-                    {/* PDF Viewer Iframe */}
-                    <div className="w-full h-[580px] rounded-xl border border-border overflow-hidden bg-muted/20">
-                      <iframe
-                        src={activePdfUrl}
-                        title={`Dokumen Resmi FPB ${selectedRecord.fpbNo}`}
-                        className="w-full h-full border-none"
-                      />
-                    </div>
+                  <div className="w-full h-[640px] rounded-xl border border-border overflow-hidden bg-muted/20 shadow-xs">
+                    <iframe
+                      src={activePdfUrl}
+                      title={`Dokumen Resmi FPB ${selectedRecord.fpbNo}`}
+                      className="w-full h-full border-none"
+                    />
                   </div>
                 );
               })()}
