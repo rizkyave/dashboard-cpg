@@ -3613,95 +3613,6 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
 
             {/* Modal Footer: Keputusan Review Tim FPB */}
             <div className="p-5 border-t border-border bg-muted/30 space-y-4">
-              {/* Persetujuan Logistik & Izin Pengadaan Banner */}
-              <div className={`p-3.5 rounded-xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-                formStatus === 'APPROVED_PO'
-                  ? 'border-emerald-500/30 bg-emerald-500/10'
-                  : formStatus === 'FULFILL_STOCK'
-                  ? 'border-cyan-500/30 bg-cyan-500/10'
-                  : 'border-amber-500/30 bg-amber-500/10'
-              }`}>
-                <div className="space-y-0.5">
-                  <div className="flex items-center gap-2">
-                    <span className={`inline-flex items-center gap-1.5 text-xs font-bold ${
-                      formStatus === 'APPROVED_PO'
-                        ? 'text-emerald-900 dark:text-emerald-200'
-                        : formStatus === 'FULFILL_STOCK'
-                        ? 'text-cyan-900 dark:text-cyan-200'
-                        : 'text-amber-900 dark:text-amber-200'
-                    }`}>
-                      <CheckCircle2 className={`size-4 ${
-                        formStatus === 'APPROVED_PO'
-                          ? 'text-emerald-600 dark:text-emerald-400'
-                          : formStatus === 'FULFILL_STOCK'
-                          ? 'text-cyan-600 dark:text-cyan-400'
-                          : 'text-amber-600 dark:text-amber-400'
-                      }`} />
-                      Persetujuan Logistik &amp; Izin Pengadaan
-                    </span>
-                    {formStatus === 'APPROVED_PO' ? (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-600 text-white shadow-2xs">
-                        ✓ DISETUJUI MASUK PURCHASE PLANNING
-                      </span>
-                    ) : formStatus === 'FULFILL_STOCK' ? (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-600 text-white shadow-2xs">
-                        📦 DIPENUHI DARI STOK GUDANG (TTB MUTASI)
-                      </span>
-                    ) : (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30">
-                        MENUNGGU APPROVAL TIM FPB
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[11px] text-muted-foreground">
-                    {formStatus === 'APPROVED_PO'
-                      ? 'Dokumen FPB ini telah disetujui Tim Review untuk diteruskan ke tahap Perencanaan Pengadaan (Purchase Planning & Konsolidasi Kebutuhan).'
-                      : formStatus === 'FULFILL_STOCK'
-                      ? 'Dokumen FPB ini disetujui untuk dipenuhi dari stok gudang perusahaan tanpa menerbitkan PO baru.'
-                      : 'Dokumen FPB ini belum disetujui (default: tombol orange). Tekan tombol di sebelah kanan untuk menyetujui dan mengubah status menjadi hijau.'}
-                  </p>
-                </div>
-
-                {/* Tombol Persetujuan (Default: Orange, Menjadi Hijau jika Tim FPB menyetujui untuk Purchase Planning) */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (formStatus === 'APPROVED_PO') {
-                      setFormStatus('PENDING_REVIEW');
-                      setFormIsReceivedLogistik(false);
-                      if (selectedRecord) handleQuickApproveLogistic(selectedRecord, false);
-                      showToast?.('Status approval dikembalikan ke Menunggu Analisa.', 'info');
-                    } else {
-                      setFormStatus('APPROVED_PO');
-                      setFormIsReceivedLogistik(true);
-                      if (selectedRecord) handleQuickApproveLogistic(selectedRecord, true);
-                      showToast?.('Pengajuan FPB disetujui masuk Purchase Planning!', 'success');
-                    }
-                  }}
-                  className={`px-4 py-2 rounded-lg text-xs font-bold transition shadow-xs cursor-pointer inline-flex items-center gap-1.5 select-none ${
-                    formStatus === 'APPROVED_PO'
-                      ? 'bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-emerald-500/20'
-                      : formStatus === 'FULFILL_STOCK'
-                      ? 'bg-cyan-600 hover:bg-cyan-700 active:bg-cyan-800 text-white'
-                      : 'bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white shadow-amber-500/20'
-                  }`}
-                  title={
-                    formStatus === 'APPROVED_PO'
-                      ? 'Telah disetujui masuk Purchase Planning. Klik untuk membatalkan / mengembalikan ke Menunggu Analisa.'
-                      : 'Klik untuk menyetujui pengajuan ini agar masuk ke tahap Purchase Planning.'
-                  }
-                >
-                  <CheckCircle2 className="size-4" />
-                  <span>
-                    {formStatus === 'APPROVED_PO'
-                      ? '✓ Disetujui Masuk Purchase Planning'
-                      : formStatus === 'FULFILL_STOCK'
-                      ? '✓ Disetujui Penuhi Stok Gudang'
-                      : 'Setujui Masuk Purchase Planning'}
-                  </span>
-                </button>
-              </div>
-
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* 1. Skala Prioritas Dokumen (SLA Lead Time) */}
                 <div>
@@ -4020,6 +3931,46 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                           </button>
                         </div>
                       )}
+
+                      {/* Tombol Kompak: Setujui Masuk Purchase Planning */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (formStatus === 'APPROVED_PO') {
+                            setFormStatus('PENDING_REVIEW');
+                            setFormIsReceivedLogistik(false);
+                            if (selectedRecord) handleQuickApproveLogistic(selectedRecord, false);
+                            showToast?.('Status approval dikembalikan ke Menunggu Analisa.', 'info');
+                          } else {
+                            setFormStatus('APPROVED_PO');
+                            setFormIsReceivedLogistik(true);
+                            if (selectedRecord) handleQuickApproveLogistic(selectedRecord, true);
+                            showToast?.('Pengajuan FPB disetujui masuk Purchase Planning!', 'success');
+                          }
+                        }}
+                        disabled={isApprovingLogistic}
+                        className={`inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-lg transition shadow-xs cursor-pointer select-none disabled:opacity-50 ${
+                          formStatus === 'APPROVED_PO'
+                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/20'
+                            : formStatus === 'FULFILL_STOCK'
+                            ? 'bg-cyan-600 hover:bg-cyan-700 text-white'
+                            : 'bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white shadow-amber-500/20'
+                        }`}
+                        title={
+                          formStatus === 'APPROVED_PO'
+                            ? 'Telah disetujui masuk Purchase Planning. Klik untuk membatalkan.'
+                            : 'Klik untuk menyetujui pengajuan ini masuk ke Purchase Planning'
+                        }
+                      >
+                        <CheckCircle2 className="size-3.5" />
+                        <span>
+                          {formStatus === 'APPROVED_PO'
+                            ? '✓ Disetujui Masuk PP'
+                            : formStatus === 'FULFILL_STOCK'
+                            ? '✓ Disetujui Penuhi Stok'
+                            : 'Setujui Masuk Purchase Planning'}
+                        </span>
+                      </button>
 
                       <button
                         type="button"
