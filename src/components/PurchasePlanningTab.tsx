@@ -50,6 +50,85 @@ interface PurchasePlanningTabProps {
   showToast?: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
 }
 
+// ── KANONIKAL SIKLUS BATCH & HELPER PENAMAAN RESMI ──
+export function getCanonicalBatchId(rawBatchNo?: string): string {
+  const b = String(rawBatchNo || '').trim().toUpperCase();
+  if (b.includes('004') || b.includes('B02') || b.includes('BATCH II') || b.includes('BATCH 002') || b.includes('BATCH 2')) {
+    return 'CPG-PP-2026-B02';
+  }
+  if (b.includes('003') || b.includes('B01') || b.includes('BATCH I') || b.includes('BATCH 001') || b.includes('BATCH 1')) {
+    return 'CPG-PP-2026-B01';
+  }
+  if (b.includes('005') || b.includes('B03') || b.includes('BATCH III') || b.includes('BATCH 003') || b.includes('BATCH 3')) {
+    return 'CPG-PP-2026-B03';
+  }
+  return rawBatchNo || 'CPG-PP-2026-B02';
+}
+
+export function getBatchDisplayMeta(canonicalOrRaw?: string): {
+  canonicalId: string;
+  cycleName: string;
+  weekText: string;
+  fullLabel: string;
+  refCode: string;
+  stageLabel: string;
+  stageShort: string;
+  stageColor: string;
+  badgeCls: string;
+} {
+  const canonical = getCanonicalBatchId(canonicalOrRaw);
+  if (canonical === 'CPG-PP-2026-B02') {
+    return {
+      canonicalId: 'CPG-PP-2026-B02',
+      cycleName: 'Batch II',
+      weekText: 'Minggu 46',
+      fullLabel: 'Batch II (Minggu 46)',
+      refCode: 'CPG-PP-2026-B02',
+      stageLabel: 'Aktif Pengadaan • Siap Ditenderkan',
+      stageShort: 'Siap Tender',
+      stageColor: 'text-blue-600 dark:text-blue-400',
+      badgeCls: 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/30',
+    };
+  }
+  if (canonical === 'CPG-PP-2026-B01') {
+    return {
+      canonicalId: 'CPG-PP-2026-B01',
+      cycleName: 'Batch I',
+      weekText: 'Minggu 45',
+      fullLabel: 'Batch I (Minggu 45)',
+      refCode: 'CPG-PP-2026-B01',
+      stageLabel: 'Tahap PO & Purchasing',
+      stageShort: 'Proses PO',
+      stageColor: 'text-slate-600 dark:text-slate-400',
+      badgeCls: 'bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-500/30',
+    };
+  }
+  if (canonical === 'CPG-PP-2026-B03') {
+    return {
+      canonicalId: 'CPG-PP-2026-B03',
+      cycleName: 'Batch III',
+      weekText: 'Minggu 47',
+      fullLabel: 'Batch III (Minggu 47)',
+      refCode: 'CPG-PP-2026-B03',
+      stageLabel: 'Sedang Review FPB (Siklus Aktif)',
+      stageShort: 'Review FPB',
+      stageColor: 'text-emerald-600 dark:text-emerald-400',
+      badgeCls: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30',
+    };
+  }
+  return {
+    canonicalId: canonicalOrRaw || 'CUSTOM',
+    cycleName: canonicalOrRaw || 'Batch Khusus',
+    weekText: '',
+    fullLabel: canonicalOrRaw || 'Batch Khusus',
+    refCode: canonicalOrRaw || 'CPG-PP',
+    stageLabel: 'Perencanaan Pengadaan',
+    stageShort: 'Pengadaan',
+    stageColor: 'text-primary',
+    badgeCls: 'bg-primary/10 text-primary border-primary/30',
+  };
+}
+
 export default function PurchasePlanningTab({
   onNavigateTab,
   showToast,
@@ -98,6 +177,9 @@ export default function PurchasePlanningTab({
   // Hybrid Sync State
   const [isSyncingHybrid, setIsSyncingHybrid] = useState<boolean>(false);
 
+  // Live Sync dari Review FPB (Siklus Aktif Batch III)
+  const [reviewFpbList, setReviewFpbList] = useState<any[]>([]);
+
   // Multi-Selection State (Item konfirmasi siap PO / Pratender)
   const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
 
@@ -121,11 +203,12 @@ export default function PurchasePlanningTab({
 
     try {
       const ts = Date.now();
-      const [planRes, pratenderRes, posRes, whRes] = await Promise.allSettled([
+      const [planRes, pratenderRes, posRes, whRes, reviewRes] = await Promise.allSettled([
         fetch(`/api/purchase-planning?_t=${ts}`),
         fetch(`/api/pratender?_t=${ts}`),
         fetch(`/api/posisi-kapal?_t=${ts}`),
         fetch(`/api/warehouse-stock?_t=${ts}`),
+        fetch(`/api/review-fpb?_t=${ts}`),
       ]);
 
       if (planRes.status === 'fulfilled' && planRes.value.ok) {
@@ -136,6 +219,11 @@ export default function PurchasePlanningTab({
             showToast?.('Data perencanaan pengadaan berhasil diperbarui.', 'success');
           }
         }
+      }
+      if (reviewRes.status === 'fulfilled' && reviewRes.value.ok) {
+        const rJson = await reviewRes.value.json();
+        const rList = Array.isArray(rJson.data) ? rJson.data : Array.isArray(rJson) ? rJson : [];
+        setReviewFpbList(rList);
       }
       if (pratenderRes.status === 'fulfilled' && pratenderRes.value.ok) {
         const pJson = await pratenderRes.value.json();
@@ -446,6 +534,33 @@ export default function PurchasePlanningTab({
     return Array.from(setV).sort();
   }, [data]);
 
+  // Hitung akumulasi item per siklus batch resmi
+  const { batch1Count, batch2Count, batch3Count } = useMemo(() => {
+    if (!data?.items) return { batch1Count: 0, batch2Count: 0, batch3Count: 0 };
+    let b1 = 0, b2 = 0, b3 = 0;
+    data.items.forEach((it) => {
+      const cId = getCanonicalBatchId(it.batchNo);
+      if (cId === 'CPG-PP-2026-B01') b1++;
+      else if (cId === 'CPG-PP-2026-B02') b2++;
+      else if (cId === 'CPG-PP-2026-B03') b3++;
+      else b2++;
+    });
+    return { batch1Count: b1, batch2Count: b2, batch3Count: b3 };
+  }, [data]);
+
+  // FPB Aktif Batch III yang telah disetujui masuk PP di menu Review FPB
+  const activeCycleFpbs = useMemo(() => {
+    return reviewFpbList.filter((r: any) => !r.isArchived || r.batchNo === 'CPG-PP-2026-B03' || !r.batchNo);
+  }, [reviewFpbList]);
+
+  const activeCycleApprovedFpbs = useMemo(() => {
+    return activeCycleFpbs.filter((r: any) => r.reviewStatus === 'APPROVED_PO');
+  }, [activeCycleFpbs]);
+
+  const activeCycleApprovedItemsCount = useMemo(() => {
+    return activeCycleApprovedFpbs.reduce((acc: number, r: any) => acc + (r.items ? r.items.length : 1), 0);
+  }, [activeCycleApprovedFpbs]);
+
   // Daftar batch unik beserta ringkasan item & estimasi biaya
   const uniqueBatches = useMemo(() => {
     if (!data?.items) return [];
@@ -615,12 +730,19 @@ export default function PurchasePlanningTab({
         if (itemComp !== selectedCompany) return false;
       }
 
-      // Filter Batch
+      // Filter Batch (Mendukung Kanonikal & Kode Siklus Resmi)
       if (selectedBatch !== 'ALL') {
-        const itemBatches = (item.batchNo || 'CPL-PP-2026-001')
+        const itemCanonical = getCanonicalBatchId(item.batchNo);
+        const itemBatches = (item.batchNo || 'CPL-PP-2026-004')
           .split(',')
           .map((s) => s.trim());
-        if (!itemBatches.includes(selectedBatch)) return false;
+        const isMatch =
+          itemCanonical === selectedBatch ||
+          itemBatches.includes(selectedBatch) ||
+          (selectedBatch === 'CPG-PP-2026-B02' && itemBatches.some((b) => b.includes('004') || b.includes('B02'))) ||
+          (selectedBatch === 'CPG-PP-2026-B01' && itemBatches.some((b) => b.includes('003') || b.includes('B01'))) ||
+          (selectedBatch === 'CPG-PP-2026-B03' && itemBatches.some((b) => b.includes('005') || b.includes('B03')));
+        if (!isMatch) return false;
       }
 
       // Filter Category (Case-insensitive normalized)
@@ -1383,59 +1505,263 @@ export default function PurchasePlanningTab({
         </div>
       </div>
 
+      {/* ── ALUR SIKLUS PENGADAAN TERINTEGRASI (PROCUREMENT FLOW PIPELINE) ── */}
+      <div className="rounded-3xl bg-card border border-border p-4.5 shadow-xs space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/60 pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <TrendingUp className="size-4" />
+            </div>
+            <div>
+              <h2 className="font-bold text-sm text-foreground flex items-center gap-2 flex-wrap">
+                <span>Alur Siklus Pengadaan Terintegrasi (Procurement Flow)</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 flex items-center gap-1.5">
+                  <span className="flex h-1.5 w-1.5 relative shrink-0">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                  </span>
+                  <span>Siklus Berjalan: Batch III (Minggu 47)</span>
+                </span>
+              </h2>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                Proses pengadaan mengalir tepat: Verifikasi FPB Armada ➔ Konsolidasi Kebutuhan Grup ➔ Paket Lelang Pratender ➔ Terbit PO Purchasing.
+              </p>
+            </div>
+          </div>
+          {onNavigateTab && (
+            <button
+              type="button"
+              onClick={() => onNavigateTab('review-fpb')}
+              className="px-3 py-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-bold transition flex items-center gap-1.5 text-xs shadow-2xs cursor-pointer active:scale-98 shrink-0 self-start sm:self-auto"
+              title="Buka menu Review Analisa FPB untuk memproses dokumen pengajuan armada"
+            >
+              <ExternalLink className="size-3.5" />
+              <span>Review Analisa FPB</span>
+            </button>
+          )}
+        </div>
+
+        {/* 4 Tahapan Alur Pengadaan */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+          {/* Tahap 1: Review FPB */}
+          <div
+            onClick={() => onNavigateTab?.('review-fpb')}
+            className="p-3 rounded-2xl border border-emerald-500/35 bg-emerald-500/5 hover:bg-emerald-500/10 transition cursor-pointer relative group flex flex-col justify-between"
+            title="Klik untuk membuka menu Review Analisa FPB"
+          >
+            <div>
+              <div className="flex items-center justify-between gap-1 mb-1.5">
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 uppercase tracking-wider font-mono">
+                  Tahap 1 • Cek &amp; Review FPB
+                </span>
+                <span className="flex h-2 w-2 relative shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+              </div>
+              <div className="font-bold text-xs text-foreground group-hover:text-emerald-600 transition flex items-center justify-between">
+                <span>Batch III (Minggu 47)</span>
+                <ArrowRight className="size-3 text-muted-foreground group-hover:translate-x-0.5 transition" />
+              </div>
+              <div className="text-[10px] text-muted-foreground mt-1">
+                Cut-Off: <strong className="text-foreground">Jumat, 20 Nov pk 10:00</strong>
+              </div>
+            </div>
+            <div className="mt-2.5 pt-2 border-t border-emerald-500/20 flex items-center justify-between text-[11px]">
+              <span className="text-emerald-700 dark:text-emerald-300 font-bold font-mono">
+                {activeCycleApprovedFpbs.length} FPB Disetujui
+              </span>
+              <span className="text-[10px] text-muted-foreground font-semibold">Live Review ↗</span>
+            </div>
+          </div>
+
+          {/* Tahap 2: Perencanaan Pengadaan */}
+          <div
+            onClick={() => setSelectedBatch('CPG-PP-2026-B02')}
+            className={`p-3 rounded-2xl border transition cursor-pointer relative group flex flex-col justify-between ${
+              selectedBatch === 'CPG-PP-2026-B02'
+                ? 'border-blue-500 bg-blue-500/10 shadow-xs ring-1 ring-blue-500'
+                : 'border-blue-500/30 bg-blue-500/5 hover:bg-blue-500/10'
+            }`}
+            title="Klik untuk memfilter Batch II (Minggu 46)"
+          >
+            <div>
+              <div className="flex items-center justify-between gap-1 mb-1.5">
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-500/20 text-blue-700 dark:text-blue-300 uppercase tracking-wider font-mono">
+                  Tahap 2 • Perencanaan PP
+                </span>
+                <span className="size-2 rounded-full bg-blue-500"></span>
+              </div>
+              <div className="font-bold text-xs text-foreground group-hover:text-blue-600 transition flex items-center justify-between">
+                <span>Batch II (Minggu 46)</span>
+                <span className="font-mono text-[10px] text-blue-600 dark:text-blue-400">CPG-PP-2026-B02</span>
+              </div>
+              <div className="text-[10px] text-muted-foreground mt-1">
+                Status: <strong className="text-foreground">Aktif Pengadaan (Siap Tender)</strong>
+              </div>
+            </div>
+            <div className="mt-2.5 pt-2 border-t border-blue-500/20 flex items-center justify-between text-[11px]">
+              <span className="text-blue-700 dark:text-blue-300 font-bold font-mono">
+                {batch2Count} Item Material
+              </span>
+              <span className="text-[10px] text-muted-foreground font-semibold">
+                {selectedBatch === 'CPG-PP-2026-B02' ? '✓ Dipilih' : 'Pilih Batch'}
+              </span>
+            </div>
+          </div>
+
+          {/* Tahap 3: Paket Pratender */}
+          <div
+            onClick={() => onNavigateTab?.('pratender')}
+            className="p-3 rounded-2xl border border-purple-500/30 bg-purple-500/5 hover:bg-purple-500/10 transition cursor-pointer relative group flex flex-col justify-between"
+            title="Klik untuk membuka menu Pratender Material"
+          >
+            <div>
+              <div className="flex items-center justify-between gap-1 mb-1.5">
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-500/20 text-purple-700 dark:text-purple-300 uppercase tracking-wider font-mono">
+                  Tahap 3 • Pratender
+                </span>
+                <span className="size-2 rounded-full bg-purple-500"></span>
+              </div>
+              <div className="font-bold text-xs text-foreground group-hover:text-purple-600 transition flex items-center justify-between">
+                <span>Paket Tender Bersama</span>
+                <ExternalLink className="size-3 text-muted-foreground group-hover:translate-x-0.5 transition" />
+              </div>
+              <div className="text-[10px] text-muted-foreground mt-1">
+                Status: <strong className="text-foreground">Seleksi Vendor &amp; HPS</strong>
+              </div>
+            </div>
+            <div className="mt-2.5 pt-2 border-t border-purple-500/20 flex items-center justify-between text-[11px]">
+              <span className="text-purple-700 dark:text-purple-300 font-bold font-mono">
+                {data ? data.items.filter((it) => Boolean(getPratenderStatusForItem(it))).length : 59} Terpaketkan
+              </span>
+              <span className="text-[10px] text-muted-foreground font-semibold">Buka Pratender ➔</span>
+            </div>
+          </div>
+
+          {/* Tahap 4: PO Purchasing */}
+          <div
+            onClick={() => setSelectedBatch('CPG-PP-2026-B01')}
+            className={`p-3 rounded-2xl border transition cursor-pointer relative group flex flex-col justify-between ${
+              selectedBatch === 'CPG-PP-2026-B01'
+                ? 'border-slate-500 bg-slate-500/10 shadow-xs ring-1 ring-slate-500'
+                : 'border-border bg-card/60 hover:bg-muted/40'
+            }`}
+            title="Klik untuk memfilter Batch I (Minggu 45)"
+          >
+            <div>
+              <div className="flex items-center justify-between gap-1 mb-1.5">
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-muted text-muted-foreground uppercase tracking-wider font-mono">
+                  Tahap 4 • Purchasing PO
+                </span>
+                <span className="size-2 rounded-full bg-slate-400"></span>
+              </div>
+              <div className="font-bold text-xs text-foreground group-hover:text-foreground transition flex items-center justify-between">
+                <span>Batch I (Minggu 45)</span>
+                <span className="font-mono text-[10px] text-muted-foreground">CPG-PP-2026-B01</span>
+              </div>
+              <div className="text-[10px] text-muted-foreground mt-1">
+                Status: <strong className="text-foreground">Proses PO &amp; Pengiriman</strong>
+              </div>
+            </div>
+            <div className="mt-2.5 pt-2 border-t border-border flex items-center justify-between text-[11px]">
+              <span className="text-muted-foreground font-bold font-mono">
+                {batch1Count} Item Terbit PO
+              </span>
+              <span className="text-[10px] text-muted-foreground font-semibold">
+                {selectedBatch === 'CPG-PP-2026-B01' ? '✓ Dipilih' : 'Pilih Batch'}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* ── BANNER RINGKASAN MULTI-BATCH & INTEGRASI AKTIF ── */}
       {data && (
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 p-4 rounded-3xl bg-gradient-to-r from-emerald-500/10 via-card to-sky-500/[0.06] border border-emerald-500/25 text-xs shadow-xs">
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <span className="flex h-2.5 w-2.5 relative shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-bold text-foreground flex items-center gap-1.5 mr-1">
+              <Layers className="size-3.5 text-primary" />
+              <span>Siklus Batch:</span>
             </span>
 
-            <span className="font-bold text-foreground">Batch Aktif:</span>
-
-            {/* Clickable Batch Pills */}
+            {/* Pill: Semua Siklus */}
             <button
               type="button"
               onClick={() => setSelectedBatch('ALL')}
-              className={`px-2.5 py-1 rounded-lg font-mono text-[11px] font-bold border transition cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl font-mono text-[11px] font-bold border transition cursor-pointer ${
                 selectedBatch === 'ALL'
                   ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
-                  : 'bg-background/80 text-muted-foreground border-border hover:text-foreground'
+                  : 'bg-background/80 text-muted-foreground border-border hover:text-foreground hover:bg-muted/60'
               }`}
             >
-              Semua ({data.items.length})
+              Semua Siklus ({data.items.length})
             </button>
 
-            {uniqueBatches.map((b) => {
-              const isAct = selectedBatch === b.batchNo;
-              return (
-                <button
-                  key={b.batchNo}
-                  type="button"
-                  onClick={() => setSelectedBatch(isAct ? 'ALL' : b.batchNo)}
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-mono text-[11px] font-bold border transition cursor-pointer ${
-                    isAct
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
-                      : 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/30 hover:bg-blue-500/20'
-                  }`}
-                  title={`Klik untuk memfilter ${b.batchNo}`}
-                >
-                  <Layers className="size-3 shrink-0" />
-                  <span>{b.batchNo}</span>
-                  <span className="opacity-80">({b.count})</span>
-                </button>
-              );
-            })}
+            {/* Pill: Batch II (Aktif Pengadaan) */}
+            <button
+              type="button"
+              onClick={() => setSelectedBatch(selectedBatch === 'CPG-PP-2026-B02' ? 'ALL' : 'CPG-PP-2026-B02')}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold border transition cursor-pointer ${
+                selectedBatch === 'CPG-PP-2026-B02'
+                  ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
+                  : 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/30 hover:bg-blue-500/20'
+              }`}
+              title="Filter Batch II (Minggu 46) - Aktif Pengadaan & Pratender"
+            >
+              <span className="size-2 rounded-full bg-blue-500 shrink-0"></span>
+              <span>Batch II (Minggu 46)</span>
+              <span className="font-mono text-[10px] opacity-85">(CPG-PP-2026-B02)</span>
+              <span className="px-1.5 py-0.2 rounded bg-black/15 dark:bg-white/15 text-[10px] font-mono">
+                {batch2Count}
+              </span>
+            </button>
+
+            {/* Pill: Batch I (Tahap PO) */}
+            <button
+              type="button"
+              onClick={() => setSelectedBatch(selectedBatch === 'CPG-PP-2026-B01' ? 'ALL' : 'CPG-PP-2026-B01')}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold border transition cursor-pointer ${
+                selectedBatch === 'CPG-PP-2026-B01'
+                  ? 'bg-slate-700 text-white border-slate-700 shadow-2xs'
+                  : 'bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-500/30 hover:bg-slate-500/20'
+              }`}
+              title="Filter Batch I (Minggu 45) - Riwayat Pengadaan / Tahap PO Purchasing"
+            >
+              <span className="size-2 rounded-full bg-slate-400 shrink-0"></span>
+              <span>Batch I (Minggu 45)</span>
+              <span className="font-mono text-[10px] opacity-85">(CPG-PP-2026-B01)</span>
+              <span className="px-1.5 py-0.2 rounded bg-black/15 dark:bg-white/15 text-[10px] font-mono">
+                {batch1Count}
+              </span>
+            </button>
+
+            {/* Pill: Batch III (Live di Review FPB) */}
+            <button
+              type="button"
+              onClick={() => {
+                if (onNavigateTab) onNavigateTab('review-fpb');
+                else setSelectedBatch('CPG-PP-2026-B03');
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 transition cursor-pointer"
+              title="Buka Batch III (Minggu 47) yang sedang berjalan di menu Review Analisa FPB"
+            >
+              <span className="flex h-2 w-2 relative shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span>Batch III (Minggu 47)</span>
+              <span className="text-[10px] opacity-85">• Sedang Review FPB ↗</span>
+            </button>
 
             {/* Ringkasan Status Integrasi Pratender & Anomali */}
             {(() => {
               const tenderedCount = data.items.filter((it) => Boolean(getPratenderStatusForItem(it))).length;
               const untenderedCount = data.items.length - tenderedCount;
               return (
-                <div className="hidden sm:flex items-center gap-2 text-muted-foreground text-[11px] border-l border-border pl-3">
+                <div className="hidden xl:flex items-center gap-2 text-muted-foreground text-[11px] border-l border-border pl-3">
                   <span>
-                    🟣 <strong className="text-foreground">{tenderedCount}</strong> Sudah Pratender
+                    🟣 <strong className="text-foreground">{tenderedCount}</strong> Pratender
                   </span>
                   <span>&bull;</span>
                   <span>
@@ -1445,7 +1771,7 @@ export default function PurchasePlanningTab({
                     <>
                       <span>&bull;</span>
                       <span className="text-rose-600 dark:text-rose-400 font-semibold">
-                        ⚠️ {priceAnomalyMap.size} Anomali Harga
+                        ⚠️ {priceAnomalyMap.size} Anomali
                       </span>
                     </>
                   )}
@@ -2337,22 +2663,32 @@ export default function PurchasePlanningTab({
               </select>
             )}
 
-            {/* Filter Batch */}
-            {uniqueBatches.length > 0 && (
-              <div className="inline-flex items-center gap-1">
-                <select
-                  value={selectedBatch}
-                  onChange={(e) => setSelectedBatch(e.target.value)}
-                  className="text-xs px-2.5 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 font-semibold cursor-pointer shadow-2xs focus:outline-hidden focus:ring-1 focus:ring-emerald-500 max-w-[190px]"
-                  title="Filter item berdasarkan Batch Upload"
-                >
-                  <option value="ALL">Semua Batch ({uniqueBatches.length})</option>
-                  {uniqueBatches.map((b) => (
+            {/* Filter Batch Siklus Pengadaan */}
+            <div className="inline-flex items-center gap-1">
+              <select
+                value={selectedBatch}
+                onChange={(e) => setSelectedBatch(e.target.value)}
+                className="text-xs px-2.5 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 font-semibold cursor-pointer shadow-2xs focus:outline-hidden focus:ring-1 focus:ring-emerald-500 max-w-[260px]"
+                title="Filter item berdasarkan Siklus Batch Pengadaan"
+              >
+                <option value="ALL">Semua Siklus Batch ({data?.items.length || 570} Item)</option>
+                <option value="CPG-PP-2026-B02">
+                  📦 Batch II (Minggu 46) — CPG-PP-2026-B02 ({batch2Count} Item) [Aktif Pengadaan]
+                </option>
+                <option value="CPG-PP-2026-B01">
+                  📦 Batch I (Minggu 45) — CPG-PP-2026-B01 ({batch1Count} Item) [Tahap PO]
+                </option>
+                <option value="CPG-PP-2026-B03">
+                  📦 Batch III (Minggu 47) — CPG-PP-2026-B03 [Sedang Review FPB]
+                </option>
+                {uniqueBatches
+                  .filter((b) => !['CPG-PP-2026-B01', 'CPG-PP-2026-B02', 'CPL-PP-2026-003', 'CPL-PP-2026-004'].includes(b.batchNo))
+                  .map((b) => (
                     <option key={b.batchNo} value={b.batchNo}>
-                      📦 {b.batchNo} ({b.count})
+                      📦 {b.batchNo} ({b.count} item)
                     </option>
                   ))}
-                </select>
+              </select>
                 {selectedBatch !== 'ALL' && uniqueBatches.length > 1 && (
                   <button
                     type="button"
@@ -2373,7 +2709,6 @@ export default function PurchasePlanningTab({
                   </button>
                 )}
               </div>
-            )}
 
             {/* Filter Sumber Data */}
             <select
@@ -2676,9 +3011,19 @@ export default function PurchasePlanningTab({
                               <div className="text-[10px] font-mono text-muted-foreground mt-0.5 flex items-center gap-1.5 flex-wrap">
                                 <span>{item.itemCode || '-'}</span>
                                 <span>&bull;</span>
-                                <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
-                                  {item.batchNo || 'CPL-PP-2026-001'}
-                                </span>
+                                {(() => {
+                                  const meta = getBatchDisplayMeta(item.batchNo);
+                                  return (
+                                    <span
+                                      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold border ${meta.badgeCls}`}
+                                      title={`${meta.fullLabel} (${meta.refCode}) • ${meta.stageLabel}`}
+                                    >
+                                      <Layers className="size-2.5 shrink-0" />
+                                      <span>{meta.cycleName}</span>
+                                      <span className="opacity-75 font-mono text-[9px]">({meta.refCode})</span>
+                                    </span>
+                                  );
+                                })()}
                               </div>
                             </div>
                           </div>
@@ -2759,10 +3104,37 @@ export default function PurchasePlanningTab({
                 </tr>
               ) : filteredItems.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-muted-foreground space-y-2">
-                    <Package className="size-8 text-muted-foreground/40 mx-auto" />
-                    <p className="text-xs font-semibold text-foreground">Tidak ada item pengadaan yang sesuai</p>
-                    <p className="text-[11px] text-muted-foreground">Coba ubah kriteria filter atau pencarian Anda.</p>
+                  <td colSpan={9} className="py-12 text-center text-muted-foreground space-y-3">
+                    {selectedBatch === 'CPG-PP-2026-B03' ? (
+                      <div className="max-w-md mx-auto space-y-2 p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/20">
+                        <div className="size-10 rounded-xl bg-emerald-500/20 text-emerald-600 mx-auto flex items-center justify-center">
+                          <Clock className="size-5 animate-pulse" />
+                        </div>
+                        <p className="text-xs font-bold text-foreground">
+                          Batch III (Minggu 47) Sedang Berjalan di Menu Review Analisa FPB
+                        </p>
+                        <p className="text-[11px] text-muted-foreground leading-relaxed">
+                          Pengajuan FPB yang disetujui saat ini sedang dikumpulkan ({activeCycleApprovedFpbs.length} FPB disetujui).
+                          Item material akan otomatis dikonsolidasikan ke Purchase Planning saat batas waktu <strong>Cut-Off: Jumat, 20 Nov 2026 pk 10:00 WITA</strong>.
+                        </p>
+                        {onNavigateTab && (
+                          <button
+                            type="button"
+                            onClick={() => onNavigateTab('review-fpb')}
+                            className="mt-2 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm transition inline-flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <ExternalLink className="size-3.5" />
+                            <span>Buka Menu Review Analisa FPB</span>
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <>
+                        <Package className="size-8 text-muted-foreground/40 mx-auto" />
+                        <p className="text-xs font-semibold text-foreground">Tidak ada item pengadaan yang sesuai</p>
+                        <p className="text-[11px] text-muted-foreground">Coba ubah kriteria filter atau pencarian Anda.</p>
+                      </>
+                    )}
                   </td>
                 </tr>
               ) : (
@@ -2815,11 +3187,20 @@ export default function PurchasePlanningTab({
                             <span>{resolveItemCompany(item)}</span>
                           </span>
 
-                          <span className="inline-flex items-center gap-1 text-[10px] font-mono text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 font-medium">
-                            <Layers className="size-2.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                            <span className="text-[9px] uppercase font-bold tracking-wider text-emerald-600 dark:text-emerald-400">Batch:</span>
-                            <span className="font-semibold">{item.batchNo || 'CPL-PP-2026-001'}</span>
-                          </span>
+                          {(() => {
+                            const meta = getBatchDisplayMeta(item.batchNo);
+                            return (
+                              <span
+                                className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-md border font-semibold ${meta.badgeCls}`}
+                                title={`${meta.fullLabel} (${meta.refCode}) • ${meta.stageLabel}`}
+                              >
+                                <Layers className="size-2.5 shrink-0" />
+                                <span>{meta.cycleName}</span>
+                                <span className="opacity-75 font-mono text-[9px]">({meta.refCode})</span>
+                                <span className="opacity-90">• {meta.stageShort}</span>
+                              </span>
+                            );
+                          })()}
 
                           {/* Badge Status Approval Manajemen */}
                           {item.approvalStatus === 'APPROVED' ? (
@@ -3168,7 +3549,9 @@ export default function PurchasePlanningTab({
                               <div className="font-semibold text-foreground">{item.itemName}</div>
                               <div className="text-[10px] text-muted-foreground font-mono flex items-center gap-1.5 mt-0.5">
                                 <span>{item.itemCode}</span>
-                                <span className="text-emerald-600 dark:text-emerald-400 font-semibold">• Batch: {item.batchNo || 'CPL-PP-2026-001'}</span>
+                                <span className="font-semibold text-primary">
+                                  • {getBatchDisplayMeta(item.batchNo).fullLabel} ({getBatchDisplayMeta(item.batchNo).refCode})
+                                </span>
                               </div>
                             </td>
                             <td className="py-2 px-2 text-center text-muted-foreground">{item.unit}</td>
