@@ -69,7 +69,7 @@ export default function PurchasePlanningTab({
   const [selectedVessel, setSelectedVessel] = useState<string>('ALL');
   const [selectedBatch, setSelectedBatch] = useState<string>('ALL');
   const [selectedDataSource, setSelectedDataSource] = useState<'ALL' | 'DESKTOP_EXCEL' | 'EFPB_LIVE' | 'HYBRID_CONSOLIDATED'>('ALL');
-  const [sortBy, setSortBy] = useState<'urgency' | 'category' | 'cost' | 'name' | 'reorderQty'>('urgency');
+  const [sortBy, setSortBy] = useState<'urgency' | 'category' | 'company' | 'cost' | 'name' | 'reorderQty'>('urgency');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   // Multi-Batch Upload Modal State
@@ -85,7 +85,7 @@ export default function PurchasePlanningTab({
   const [analyticsSubTab, setAnalyticsSubTab] = useState<'budget' | 'duplicates' | 'whatif' | 'autogroup'>('budget');
   const [safetyBufferPct, setSafetyBufferPct] = useState<number>(20);
   const [targetCoverDays, setTargetCoverDays] = useState<number>(30);
-  const [autoGroupBy, setAutoGroupBy] = useState<'category' | 'vendor'>('category');
+  const [autoGroupBy, setAutoGroupBy] = useState<'category' | 'vendor' | 'company'>('category');
 
   // Integrasi Pratender (Anti-Dobel), Titik Kirim Armada & Optimizer Pagu
   const [pratenderPackages, setPratenderPackages] = useState<PratenderPackage[]>([]);
@@ -674,6 +674,9 @@ export default function PurchasePlanningTab({
       } else if (sortBy === 'category') {
         valA = a.category;
         valB = b.category;
+      } else if (sortBy === 'company') {
+        valA = resolveItemCompany(a);
+        valB = resolveItemCompany(b);
       } else if (sortBy === 'cost') {
         valA = a.totalEstimatedCost;
         valB = b.totalEstimatedCost;
@@ -804,12 +807,14 @@ export default function PurchasePlanningTab({
     });
     const simTotalBudget = simItems.reduce((s, x) => s + x.simCost, 0);
 
-    // 6. Auto-Grouping Paket Pratender (berdasarkan Kategori atau Vendor)
+    // 6. Auto-Grouping Paket Pratender (berdasarkan Kategori, Vendor, atau Perusahaan)
     const groupMap = new Map<string, { groupName: string; items: PurchasePlanningItem[]; totalBudget: number; totalSavings: number; criticalCount: number }>();
     items.forEach((it) => {
       const gKey =
         autoGroupBy === 'category'
           ? normalizeCategory(it.category)
+          : autoGroupBy === 'company'
+          ? `${resolveItemCompany(it)} - ${getCompanyFullName(resolveItemCompany(it))}`
           : it.suggestedVendor || 'Vendor Umum / Multi-Supplier';
       const cur = groupMap.get(gKey) || {
         groupName: gKey,
@@ -916,19 +921,26 @@ export default function PurchasePlanningTab({
     });
   };
 
-  // Pilih semua item dalam kategori tertentu (Per Kategori)
+  // Item dalam lingkup perusahaan yang sedang dipilih (untuk sinkronisasi hitungan kategori)
+  const scopedCompanyItems = useMemo(() => {
+    if (!data?.items) return [];
+    if (selectedCompany === 'ALL') return data.items;
+    return data.items.filter((it) => resolveItemCompany(it) === selectedCompany);
+  }, [data?.items, selectedCompany]);
+
+  // Pilih semua item dalam kategori tertentu (Per Kategori, menghormati filter perusahaan jika aktif)
   const handleSelectByCategory = (catName: string) => {
     if (!data?.items) return;
-    const catItems = data.items.filter((it) => normalizeCategory(it.category) === catName);
+    const catItems = scopedCompanyItems.filter((it) => normalizeCategory(it.category) === catName);
     setSelectedItemIds((prev) => {
       const next = new Set(prev);
-      const isAllCatSelected = catItems.every((it) => next.has(it.id));
+      const isAllCatSelected = catItems.length > 0 && catItems.every((it) => next.has(it.id));
       if (isAllCatSelected) {
         catItems.forEach((it) => next.delete(it.id));
-        showToast?.(`Batal memilih kategori "${catName}".`, 'info');
+        showToast?.(`Batal memilih kategori "${catName}"${selectedCompany !== 'ALL' ? ` (${selectedCompany})` : ''}.`, 'info');
       } else {
         catItems.forEach((it) => next.add(it.id));
-        showToast?.(`✓ ${catItems.length} item kategori "${catName}" berhasil dipilih!`, 'success');
+        showToast?.(`✓ ${catItems.length} item kategori "${catName}"${selectedCompany !== 'ALL' ? ` (${selectedCompany})` : ''} berhasil dipilih!`, 'success');
       }
       return next;
     });
@@ -1977,6 +1989,15 @@ export default function PurchasePlanningTab({
                       </button>
                       <button
                         type="button"
+                        onClick={() => setAutoGroupBy('company')}
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold cursor-pointer ${
+                          autoGroupBy === 'company' ? 'bg-card text-foreground shadow-2xs font-bold text-sky-600 dark:text-sky-400' : 'text-muted-foreground'
+                        }`}
+                      >
+                        Per Perusahaan (PT)
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => setAutoGroupBy('vendor')}
                         className={`px-3 py-1 rounded-lg text-xs font-semibold cursor-pointer ${
                           autoGroupBy === 'vendor' ? 'bg-card text-foreground shadow-2xs' : 'text-muted-foreground'
@@ -2029,152 +2050,168 @@ export default function PurchasePlanningTab({
         </div>
       )}
 
-      {/* ── PILIHAN PER PERUSAHAAN (COMPANY QUICK SELECTOR BAR) ── */}
-      {uniqueCompanies.length > 0 && data && (
-        <div className="p-4 bg-card border border-border rounded-2xl shadow-xs space-y-2.5">
-          <div className="flex items-center justify-between flex-wrap gap-2 text-xs">
-            <div className="flex items-center gap-1.5 font-bold text-foreground">
-              <Building2 className="size-3.5 text-sky-500" />
-              <span>Sortir &amp; Pilih Cepat per Perusahaan (Entitas PT):</span>
+      {/* ── BILAH SORTIR & PILIH CEPAT: PERUSAHAAN & KATEGORI MATERIAL ── */}
+      {data && (
+        <div className="p-4 bg-card border border-border rounded-2xl shadow-xs space-y-3.5">
+          {/* Baris 1: Sortir & Pilih Cepat per Perusahaan (Entitas PT) */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between flex-wrap gap-2 text-xs">
+              <div className="flex items-center gap-1.5 font-bold text-foreground">
+                <Building2 className="size-3.5 text-sky-500" />
+                <span>Sortir &amp; Pilih Cepat per Perusahaan (Entitas PT):</span>
+              </div>
+              <span className="text-[11px] text-muted-foreground">
+                Klik nama perusahaan untuk memfilter pengadaan, atau tombol (+) untuk memilih sekaligus seluruh item PT tersebut.
+              </span>
             </div>
-            <span className="text-[11px] text-muted-foreground">
-              Klik nama perusahaan untuk memfilter pengadaan, atau tombol (+) untuk memilih sekaligus seluruh item PT tersebut.
-            </span>
-          </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
-            <button
-              type="button"
-              onClick={() => setSelectedCompany('ALL')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
-                selectedCompany === 'ALL'
-                  ? 'bg-primary text-primary-foreground shadow-2xs font-bold'
-                  : 'bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground border border-border'
-              }`}
-            >
-              <Building2 className="size-3.5 opacity-80" />
-              <span>Semua Perusahaan</span>
-              <span className="font-mono text-[10px] opacity-80 font-bold">({data.items.length})</span>
-            </button>
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={() => setSelectedCompany('ALL')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+                  selectedCompany === 'ALL'
+                    ? 'bg-foreground text-background shadow-xs font-bold'
+                    : 'bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground border border-border'
+                }`}
+              >
+                <Building2 className="size-3.5 opacity-80" />
+                <span>Semua Perusahaan</span>
+                <span className="font-mono text-[10px] opacity-80 font-bold">({data.items.length})</span>
+              </button>
 
-            {uniqueCompanies.map((comp) => {
-              const compItems = data.items.filter((i) => resolveItemCompany(i) === comp.code);
-              const countInComp = compItems.length;
-              const isSelectedComp = selectedCompany === comp.code;
-              const isAllCompChecked = compItems.length > 0 && compItems.every((it) => selectedItemIds.has(it.id));
+              {uniqueCompanies.map((comp) => {
+                const compItems = data.items.filter((i) => resolveItemCompany(i) === comp.code);
+                const countInComp = compItems.length;
+                const isSelectedComp = selectedCompany === comp.code;
+                const isAllCompChecked = compItems.length > 0 && compItems.every((it) => selectedItemIds.has(it.id));
 
-              return (
-                <div
-                  key={comp.code}
-                  className={`inline-flex items-center rounded-xl border text-xs overflow-hidden transition ${
-                    isSelectedComp
-                      ? 'border-sky-500 bg-sky-500/15 text-sky-800 dark:text-sky-200 font-bold ring-1 ring-sky-500/30'
-                      : 'border-border bg-card text-muted-foreground hover:border-sky-500/40'
-                  }`}
-                >
-                  <button
-                    type="button"
-                    onClick={() => setSelectedCompany(isSelectedComp ? 'ALL' : comp.code)}
-                    className="px-2.5 py-1.5 hover:text-foreground cursor-pointer flex items-center gap-1.5"
-                    title={`Filter tabel ke entitas ${comp.name}`}
-                  >
-                    <span className="font-mono font-bold text-foreground">{comp.code}</span>
-                    <span className="text-[11px] opacity-90 hidden sm:inline">{comp.name.replace('PT ', '')}</span>
-                    <span className="font-mono text-[10px] bg-muted/70 px-1.5 py-0.2 rounded font-bold text-foreground">
-                      {countInComp}
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSelectByCompany(comp.code);
-                    }}
-                    className={`px-2 py-1.5 border-l border-border/80 hover:bg-sky-500/20 cursor-pointer transition flex items-center justify-center ${
-                      isAllCompChecked ? 'bg-sky-600 text-white font-bold' : 'text-muted-foreground hover:text-foreground'
+                return (
+                  <div
+                    key={comp.code}
+                    className={`inline-flex items-center rounded-xl border text-xs overflow-hidden transition ${
+                      isSelectedComp
+                        ? 'border-sky-500 bg-sky-500/15 text-sky-800 dark:text-sky-200 font-bold ring-1 ring-sky-500/30'
+                        : 'border-border bg-card text-muted-foreground hover:border-sky-500/40'
                     }`}
-                    title={isAllCompChecked ? `Batal pilih semua item ${comp.code}` : `Centang semua ${countInComp} item pengadaan ${comp.code}`}
                   >
-                    {isAllCompChecked ? <Check className="size-3" /> : <Plus className="size-3" />}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCompany(isSelectedComp ? 'ALL' : comp.code)}
+                      className="px-2.5 py-1.5 hover:text-foreground cursor-pointer flex items-center gap-1.5"
+                      title={`Filter tabel ke entitas ${comp.name}`}
+                    >
+                      <span className="font-mono font-bold text-foreground">{comp.code}</span>
+                      <span className="text-[11px] opacity-90 hidden sm:inline">{comp.name.replace('PT ', '')}</span>
+                      <span className="font-mono text-[10px] bg-muted/70 px-1.5 py-0.2 rounded font-bold text-foreground">
+                        {countInComp}
+                      </span>
+                    </button>
 
-      {/* ── PILIHAN PER KATEGORI (CATEGORY QUICK SELECTOR BAR) ── */}
-      {normalizedCategories.length > 0 && data && (
-        <div className="p-4 bg-card border border-border rounded-2xl shadow-xs space-y-2.5">
-          <div className="flex items-center justify-between flex-wrap gap-2 text-xs">
-            <div className="flex items-center gap-1.5 font-bold text-foreground">
-              <Tag className="size-3.5 text-purple-500" />
-              <span>Sortir &amp; Pilih Cepat per Kategori Material:</span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSelectByCompany(comp.code);
+                      }}
+                      className={`px-2 py-1.5 border-l border-border/80 hover:bg-sky-500/20 cursor-pointer transition flex items-center justify-center ${
+                        isAllCompChecked ? 'bg-sky-600 text-white font-bold' : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                      title={isAllCompChecked ? `Batal pilih semua item ${comp.code}` : `Centang semua ${countInComp} item pengadaan ${comp.code}`}
+                    >
+                      {isAllCompChecked ? <Check className="size-3" /> : <Plus className="size-3" />}
+                    </button>
+                  </div>
+                );
+              })}
             </div>
-            <span className="text-[11px] text-muted-foreground">
-              Klik kategori untuk memfilter, atau gunakan tombol centang untuk memilih satu kategori sekaligus.
-            </span>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
-            <button
-              type="button"
-              onClick={() => setSelectedCategory('ALL')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
-                selectedCategory === 'ALL'
-                  ? 'bg-primary text-primary-foreground shadow-2xs'
-                  : 'bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground border border-border'
-              }`}
-            >
-              <span>Semua Kategori</span>
-              <span className="font-mono text-[10px] opacity-80 font-bold">({data.items.length})</span>
-            </button>
+          <div className="border-t border-border/60" />
 
-            {normalizedCategories.map((cat) => {
-              const catItems = data.items.filter((i) => normalizeCategory(i.category) === cat);
-              const countInCat = catItems.length;
-              const isSelectedCat = selectedCategory === cat;
-              const isAllCatChecked = catItems.length > 0 && catItems.every((it) => selectedItemIds.has(it.id));
-
-              return (
-                <div
-                  key={cat}
-                  className={`inline-flex items-center rounded-xl border text-xs overflow-hidden transition ${
-                    isSelectedCat
-                      ? 'border-primary bg-primary/10 text-primary font-bold ring-1 ring-primary/30'
-                      : 'border-border bg-card text-muted-foreground hover:border-primary/40'
-                  }`}
-                >
-                  <button
-                    type="button"
-                    onClick={() => setSelectedCategory(isSelectedCat ? 'ALL' : cat)}
-                    className="px-2.5 py-1.5 hover:text-foreground cursor-pointer flex items-center gap-1"
-                    title={`Filter tabel ke kategori ${cat}`}
-                  >
-                    <span>{cat}</span>
-                    <span className="font-mono text-[10px] bg-muted/60 px-1.5 py-0.2 rounded font-bold text-foreground">
-                      {countInCat}
+          {/* Baris 2: Sortir & Pilih Cepat per Kategori Material (Tersinkron dengan PT Aktif) */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between flex-wrap gap-2 text-xs">
+              <div className="flex items-center gap-1.5 font-bold text-foreground">
+                <Tag className="size-3.5 text-purple-500" />
+                <span>
+                  Sortir &amp; Pilih Cepat per Kategori Material
+                  {selectedCompany !== 'ALL' && (
+                    <span className="text-sky-600 dark:text-sky-400 font-bold ml-1">
+                      (Khusus PT {selectedCompany})
                     </span>
-                  </button>
+                  )}
+                  :
+                </span>
+              </div>
+              <span className="text-[11px] text-muted-foreground">
+                Klik kategori untuk memfilter, atau tombol (+) untuk memilih satu kategori sekaligus
+                {selectedCompany !== 'ALL' ? ` pada PT ${selectedCompany}.` : '.'}
+              </span>
+            </div>
 
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSelectByCategory(cat);
-                    }}
-                    className={`px-2 py-1.5 border-l border-border/80 hover:bg-primary/20 cursor-pointer transition flex items-center justify-center ${
-                      isAllCatChecked ? 'bg-primary text-primary-foreground font-bold' : 'text-muted-foreground hover:text-foreground'
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={() => setSelectedCategory('ALL')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+                  selectedCategory === 'ALL'
+                    ? 'bg-foreground text-background shadow-xs font-bold'
+                    : 'bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground border border-border'
+                }`}
+              >
+                <span>Semua Kategori</span>
+                <span className="font-mono text-[10px] opacity-80 font-bold">
+                  ({scopedCompanyItems.length})
+                </span>
+              </button>
+
+              {normalizedCategories.map((cat) => {
+                const catItems = scopedCompanyItems.filter((i) => normalizeCategory(i.category) === cat);
+                const countInCat = catItems.length;
+                if (countInCat === 0 && selectedCompany !== 'ALL') return null;
+
+                const isSelectedCat = selectedCategory === cat;
+                const isAllCatChecked = catItems.length > 0 && catItems.every((it) => selectedItemIds.has(it.id));
+
+                return (
+                  <div
+                    key={cat}
+                    className={`inline-flex items-center rounded-xl border text-xs overflow-hidden transition ${
+                      isSelectedCat
+                        ? 'border-purple-500 bg-purple-500/15 text-purple-800 dark:text-purple-200 font-bold ring-1 ring-purple-500/30'
+                        : 'border-border bg-card text-muted-foreground hover:border-purple-500/40'
                     }`}
-                    title={isAllCatChecked ? `Batal pilih semua item ${cat}` : `Centang semua ${countInCat} item kategori ${cat}`}
                   >
-                    {isAllCatChecked ? <Check className="size-3" /> : <Plus className="size-3" />}
-                  </button>
-                </div>
-              );
-            })}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCategory(isSelectedCat ? 'ALL' : cat)}
+                      className="px-2.5 py-1.5 hover:text-foreground cursor-pointer flex items-center gap-1"
+                      title={`Filter tabel ke kategori ${cat}${selectedCompany !== 'ALL' ? ` (PT ${selectedCompany})` : ''}`}
+                    >
+                      <span>{cat}</span>
+                      <span className="font-mono text-[10px] bg-muted/70 px-1.5 py-0.2 rounded font-bold text-foreground">
+                        {countInCat}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSelectByCategory(cat);
+                      }}
+                      className={`px-2 py-1.5 border-l border-border/80 hover:bg-purple-500/20 cursor-pointer transition flex items-center justify-center ${
+                        isAllCatChecked ? 'bg-purple-600 text-white font-bold' : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                      title={isAllCatChecked ? `Batal pilih semua item ${cat}` : `Centang semua ${countInCat} item kategori ${cat}`}
+                    >
+                      {isAllCatChecked ? <Check className="size-3" /> : <Plus className="size-3" />}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
@@ -2357,6 +2394,7 @@ export default function PurchasePlanningTab({
               className="text-xs px-2.5 py-1.5 rounded-xl bg-background border border-border text-foreground font-medium cursor-pointer shadow-2xs focus:outline-hidden focus:ring-1 focus:ring-primary"
             >
               <option value="urgency">Urut: Tingkat Urgensi</option>
+              <option value="company">🏢 Urut: Perusahaan (PT)</option>
               <option value="category">Urut: Kategori Material</option>
               <option value="cost">Urut: Estimasi Biaya</option>
               <option value="reorderQty">Urut: Kuantitas Rekomendasi</option>
