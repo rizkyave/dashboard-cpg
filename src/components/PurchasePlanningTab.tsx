@@ -62,6 +62,7 @@ export default function PurchasePlanningTab({
 
   // Filter & Sort States
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedCompany, setSelectedCompany] = useState<string>('ALL');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [selectedUrgency, setSelectedUrgency] = useState<string>('ALL');
   const [selectedApproval, setSelectedApproval] = useState<string>('ALL');
@@ -351,6 +352,92 @@ export default function PurchasePlanningTab({
     return Array.from(setC).sort((a, b) => a.localeCompare(b, 'id-ID'));
   }, [data]);
 
+  // Helper identifikasi PT / Perusahaan per item
+  const resolveItemCompany = (it: PurchasePlanningItem): string => {
+    let c = (it.company || '').toUpperCase().trim();
+    if (c) {
+      if (c.includes('CPL') || c.includes('CINDARA')) return 'CPL';
+      if (c.includes('MO') || c.includes('MARINE')) return 'MO';
+      if (c.includes('HL') || c.includes('HANA')) return 'HL';
+      if (c.includes('GAJ') || c.includes('GALANGAN')) return 'GAJ';
+      if (c.includes('MIL') || c.includes('MAPAN')) return 'MIL';
+      if (c.includes('PPI') || c.includes('PETRO')) return 'PPI';
+      if (c.includes('SP') || c.includes('PASIFIK')) return 'SP';
+      if (c.includes('SSK') || c.includes('SURYA')) return 'SSK';
+      return c;
+    }
+
+    // Deteksi dari no FPB refs (CPL-FPB, MO-FPB, HL-FPB, GAJ-FPB, MIL-FPB, PPI-FPB, SP-FPB, SSK-FPB)
+    const firstFpb = (it.fpbRefs?.[0] || '').toUpperCase();
+    const knownCodes = ['CPL', 'MO', 'HL', 'GAJ', 'MIL', 'PPI', 'SP', 'SSK'];
+    for (const code of knownCodes) {
+      if (firstFpb.startsWith(`${code}-`) || firstFpb.startsWith(code)) {
+        return code;
+      }
+    }
+
+    // Deteksi dari batchNo jika ada
+    const batch = (it.batchNo || '').toUpperCase();
+    for (const code of knownCodes) {
+      if (batch.startsWith(`${code}-`) || batch.includes(code)) {
+        return code;
+      }
+    }
+
+    return 'CPL';
+  };
+
+  const getCompanyFullName = (code: string): string => {
+    const map: Record<string, string> = {
+      CPL: 'PT Cindara Pratama Lines',
+      MO: 'Marine Operation',
+      HL: 'PT Hana Lines',
+      GAJ: 'PT Galangan Aliran Jaya',
+      MIL: 'PT Mapan Indonesia Lines',
+      PPI: 'PT Petro Perkasa Indonesia',
+      SP: 'PT Sinar Pasifik',
+      SSK: 'PT Sinar Surya Konstruksi',
+    };
+    return map[code] || `PT ${code}`;
+  };
+
+  // Daftar perusahaan / entitas unik beserta counter item & total anggaran
+  const uniqueCompanies = useMemo(() => {
+    if (!data?.items) return [];
+    const compMap = new Map<string, { code: string; name: string; count: number; budget: number }>();
+    data.items.forEach((it) => {
+      const code = resolveItemCompany(it);
+      const cur = compMap.get(code) || {
+        code,
+        name: getCompanyFullName(code),
+        count: 0,
+        budget: 0,
+      };
+      cur.count += 1;
+      cur.budget += it.totalEstimatedCost || 0;
+      compMap.set(code, cur);
+    });
+    return Array.from(compMap.values()).sort((a, b) => b.count - a.count);
+  }, [data]);
+
+  // Handler memilih seluruh item milik satu perusahaan
+  const handleSelectByCompany = (companyCode: string) => {
+    if (!data?.items) return;
+    const compItems = data.items.filter((it) => resolveItemCompany(it) === companyCode);
+    const compItemIds = compItems.map((it) => it.id);
+    const isAllChecked = compItems.length > 0 && compItems.every((it) => selectedItemIds.has(it.id));
+
+    setSelectedItemIds((prev) => {
+      const next = new Set(prev);
+      if (isAllChecked) {
+        compItemIds.forEach((id) => next.delete(id));
+      } else {
+        compItemIds.forEach((id) => next.add(id));
+      }
+      return next;
+    });
+  };
+
   // Daftar armada unik
   const uniqueVessels = useMemo(() => {
     if (!data?.items) return [];
@@ -522,6 +609,12 @@ export default function PurchasePlanningTab({
       // Filter Anti-Dobel (Belum Masuk Pratender)
       if (onlyUntendered && getPratenderStatusForItem(item)) return false;
 
+      // Filter Perusahaan / Entitas
+      if (selectedCompany !== 'ALL') {
+        const itemComp = resolveItemCompany(item);
+        if (itemComp !== selectedCompany) return false;
+      }
+
       // Filter Batch
       if (selectedBatch !== 'ALL') {
         const itemBatches = (item.batchNo || 'CPL-PP-2026-001')
@@ -598,7 +691,7 @@ export default function PurchasePlanningTab({
     });
 
     return result;
-  }, [data, selectedBatch, selectedCategory, selectedUrgency, selectedApproval, selectedVessel, selectedDataSource, onlyUntendered, pratenderMatchMap, searchQuery, sortBy, sortOrder]);
+  }, [data, selectedCompany, selectedBatch, selectedCategory, selectedUrgency, selectedApproval, selectedVessel, selectedDataSource, onlyUntendered, pratenderMatchMap, searchQuery, sortBy, sortOrder]);
 
   // ── ANALITIK ANGGARAN, MATRIX URGENSI, DETEKSI DUPLIKAT, SIMULASI & AUTO-GROUPING ──
   const analyticsData = useMemo(() => {
@@ -733,25 +826,13 @@ export default function PurchasePlanningTab({
     });
     const autoGroups = Array.from(groupMap.values()).sort((a, b) => b.totalBudget - a.totalBudget);
 
-    // 7. Budget Absorption per PT (Perusahaan: CPL, MO, HL, GAJ, SP)
+    // 7. Budget Absorption per PT (Perusahaan: CPL, MO, HL, GAJ, MIL, PPI, SP, SSK)
     const ptMap = new Map<string, { pt: string; count: number; totalBudget: number; approvedBudget: number; approvedCount: number }>();
-    const knownPts = ['CPL', 'MO', 'HL', 'GAJ', 'SP'];
+    const knownPts = ['CPL', 'MO', 'HL', 'GAJ', 'MIL', 'PPI', 'SP', 'SSK'];
     knownPts.forEach((p) => ptMap.set(p, { pt: p, count: 0, totalBudget: 0, approvedBudget: 0, approvedCount: 0 }));
 
     items.forEach((it) => {
-      let resolvedPt = (it.company || '').toUpperCase().trim();
-      if (!resolvedPt) {
-        // Deteksi dari no FPB (CPL-FPB..., MO-FPB..., HL-FPB..., GAJ-FPB..., SP-FPB...)
-        const firstFpb = (it.fpbRefs?.[0] || '').toUpperCase();
-        for (const p of knownPts) {
-          if (firstFpb.startsWith(`${p}-`)) {
-            resolvedPt = p;
-            break;
-          }
-        }
-      }
-      if (!resolvedPt) resolvedPt = 'CPL';
-
+      const resolvedPt = resolveItemCompany(it);
       const cur = ptMap.get(resolvedPt) || { pt: resolvedPt, count: 0, totalBudget: 0, approvedBudget: 0, approvedCount: 0 };
       cur.count += 1;
       cur.totalBudget += it.totalEstimatedCost || 0;
@@ -1051,6 +1132,14 @@ export default function PurchasePlanningTab({
         Total_Anggaran_Rp: b.budget,
       })),
       { Bagian: '', Nama: '', Jumlah_Item: '', Total_Anggaran_Rp: '' },
+      { Bagian: 'RINGKASAN PER PERUSAHAAN', Nama: 'Entitas Perusahaan', Jumlah_Item: 'Jumlah Item', Total_Anggaran_Rp: 'Total Anggaran (Rp)' },
+      ...analyticsData.budgetAbsorptionByPt.map((p) => ({
+        Bagian: 'PERUSAHAAN',
+        Nama: `${p.pt} - ${getCompanyFullName(p.pt)}`,
+        Jumlah_Item: `${p.count} item (${p.approvedCount} approved)`,
+        Total_Anggaran_Rp: p.totalBudget,
+      })),
+      { Bagian: '', Nama: '', Jumlah_Item: '', Total_Anggaran_Rp: '' },
       { Bagian: 'RINGKASAN PER KATEGORI', Nama: 'Kategori Material', Jumlah_Item: 'Jumlah Item (Kritis)', Total_Anggaran_Rp: 'Total Anggaran (Rp)' },
       ...analyticsData.byCategory.map((c) => ({
         Bagian: 'KATEGORI',
@@ -1069,6 +1158,7 @@ export default function PurchasePlanningTab({
       const anomaly = priceAnomalyMap.get(i.id);
       return {
         No: idx + 1,
+        Perusahaan: `${resolveItemCompany(i)} - ${getCompanyFullName(resolveItemCompany(i))}`,
         Batch: i.batchNo || 'CPL-PP-2026-001',
         Kode_Barang: i.itemCode || '-',
         Nama_Barang: i.itemName,
@@ -1939,6 +2029,82 @@ export default function PurchasePlanningTab({
         </div>
       )}
 
+      {/* ── PILIHAN PER PERUSAHAAN (COMPANY QUICK SELECTOR BAR) ── */}
+      {uniqueCompanies.length > 0 && data && (
+        <div className="p-4 bg-card border border-border rounded-2xl shadow-xs space-y-2.5">
+          <div className="flex items-center justify-between flex-wrap gap-2 text-xs">
+            <div className="flex items-center gap-1.5 font-bold text-foreground">
+              <Building2 className="size-3.5 text-sky-500" />
+              <span>Sortir &amp; Pilih Cepat per Perusahaan (Entitas PT):</span>
+            </div>
+            <span className="text-[11px] text-muted-foreground">
+              Klik nama perusahaan untuk memfilter pengadaan, atau tombol (+) untuk memilih sekaligus seluruh item PT tersebut.
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => setSelectedCompany('ALL')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+                selectedCompany === 'ALL'
+                  ? 'bg-primary text-primary-foreground shadow-2xs font-bold'
+                  : 'bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground border border-border'
+              }`}
+            >
+              <Building2 className="size-3.5 opacity-80" />
+              <span>Semua Perusahaan</span>
+              <span className="font-mono text-[10px] opacity-80 font-bold">({data.items.length})</span>
+            </button>
+
+            {uniqueCompanies.map((comp) => {
+              const compItems = data.items.filter((i) => resolveItemCompany(i) === comp.code);
+              const countInComp = compItems.length;
+              const isSelectedComp = selectedCompany === comp.code;
+              const isAllCompChecked = compItems.length > 0 && compItems.every((it) => selectedItemIds.has(it.id));
+
+              return (
+                <div
+                  key={comp.code}
+                  className={`inline-flex items-center rounded-xl border text-xs overflow-hidden transition ${
+                    isSelectedComp
+                      ? 'border-sky-500 bg-sky-500/15 text-sky-800 dark:text-sky-200 font-bold ring-1 ring-sky-500/30'
+                      : 'border-border bg-card text-muted-foreground hover:border-sky-500/40'
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCompany(isSelectedComp ? 'ALL' : comp.code)}
+                    className="px-2.5 py-1.5 hover:text-foreground cursor-pointer flex items-center gap-1.5"
+                    title={`Filter tabel ke entitas ${comp.name}`}
+                  >
+                    <span className="font-mono font-bold text-foreground">{comp.code}</span>
+                    <span className="text-[11px] opacity-90 hidden sm:inline">{comp.name.replace('PT ', '')}</span>
+                    <span className="font-mono text-[10px] bg-muted/70 px-1.5 py-0.2 rounded font-bold text-foreground">
+                      {countInComp}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSelectByCompany(comp.code);
+                    }}
+                    className={`px-2 py-1.5 border-l border-border/80 hover:bg-sky-500/20 cursor-pointer transition flex items-center justify-center ${
+                      isAllCompChecked ? 'bg-sky-600 text-white font-bold' : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    title={isAllCompChecked ? `Batal pilih semua item ${comp.code}` : `Centang semua ${countInComp} item pengadaan ${comp.code}`}
+                  >
+                    {isAllCompChecked ? <Check className="size-3" /> : <Plus className="size-3" />}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* ── PILIHAN PER KATEGORI (CATEGORY QUICK SELECTOR BAR) ── */}
       {normalizedCategories.length > 0 && data && (
         <div className="p-4 bg-card border border-border rounded-2xl shadow-xs space-y-2.5">
@@ -2086,6 +2252,23 @@ export default function PurchasePlanningTab({
                 <span>📅 Terencana</span>
               </button>
             </div>
+
+            {/* Filter Perusahaan / Entitas */}
+            {uniqueCompanies.length > 0 && (
+              <select
+                value={selectedCompany}
+                onChange={(e) => setSelectedCompany(e.target.value)}
+                className="text-xs px-2.5 py-1.5 rounded-xl bg-background border border-border text-foreground font-semibold cursor-pointer shadow-2xs focus:outline-hidden focus:ring-1 focus:ring-primary max-w-[170px]"
+                title="Filter pengadaan berdasarkan entitas perusahaan"
+              >
+                <option value="ALL">🏢 Semua Perusahaan ({uniqueCompanies.length})</option>
+                {uniqueCompanies.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    🏢 {c.code} ({c.count} item)
+                  </option>
+                ))}
+              </select>
+            )}
 
             {/* Filter Status Approval */}
             <select
@@ -2246,6 +2429,74 @@ export default function PurchasePlanningTab({
             </div>
           </div>
         </div>
+
+        {/* Indikator Filter Aktif */}
+        {(selectedCompany !== 'ALL' || selectedCategory !== 'ALL' || selectedUrgency !== 'ALL' || selectedApproval !== 'ALL' || selectedVessel !== 'ALL' || selectedBatch !== 'ALL' || searchQuery.trim() !== '') && (
+          <div className="pt-2.5 border-t border-border/60 flex items-center gap-2 flex-wrap text-xs">
+            <span className="text-[11px] text-muted-foreground font-semibold flex items-center gap-1">
+              <Filter className="size-3" /> Filter Aktif:
+            </span>
+            {selectedCompany !== 'ALL' && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-sky-500/15 text-sky-800 dark:text-sky-200 border border-sky-500/30 font-semibold text-[11px]">
+                <Building2 className="size-3 text-sky-600 dark:text-sky-400" />
+                <span>Perusahaan: {selectedCompany}</span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedCompany('ALL')}
+                  className="hover:text-rose-600 p-0.5 cursor-pointer"
+                  title="Hapus filter perusahaan"
+                >
+                  <X className="size-3" />
+                </button>
+              </span>
+            )}
+            {selectedCategory !== 'ALL' && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-purple-500/15 text-purple-800 dark:text-purple-200 border border-purple-500/30 font-semibold text-[11px]">
+                <Tag className="size-3 text-purple-600 dark:text-purple-400" />
+                <span>Kategori: {selectedCategory}</span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategory('ALL')}
+                  className="hover:text-rose-600 p-0.5 cursor-pointer"
+                  title="Hapus filter kategori"
+                >
+                  <X className="size-3" />
+                </button>
+              </span>
+            )}
+            {selectedUrgency !== 'ALL' && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-muted text-foreground border border-border text-[11px] font-medium">
+                <span>Urgensi: {selectedUrgency}</span>
+                <button type="button" onClick={() => setSelectedUrgency('ALL')} className="hover:text-rose-600">
+                  <X className="size-3" />
+                </button>
+              </span>
+            )}
+            {selectedVessel !== 'ALL' && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-muted text-foreground border border-border text-[11px] font-medium">
+                <span>Armada: {selectedVessel}</span>
+                <button type="button" onClick={() => setSelectedVessel('ALL')} className="hover:text-rose-600">
+                  <X className="size-3" />
+                </button>
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedCompany('ALL');
+                setSelectedCategory('ALL');
+                setSelectedUrgency('ALL');
+                setSelectedApproval('ALL');
+                setSelectedVessel('ALL');
+                setSelectedBatch('ALL');
+                setSearchQuery('');
+              }}
+              className="text-[11px] text-muted-foreground hover:text-rose-600 font-semibold underline cursor-pointer ml-auto"
+            >
+              Reset Semua Filter
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ── FLOATING SELECTION ACTION BAR (PILIHAN PERSATUAN ITEM & PER KATEGORI) ── */}
@@ -2399,6 +2650,13 @@ export default function PurchasePlanningTab({
                         </div>
 
                         <div className="flex items-center gap-1.5 flex-wrap text-[10px]">
+                          <span
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/20 font-bold font-mono"
+                            title={`Perusahaan: ${getCompanyFullName(resolveItemCompany(item))}`}
+                          >
+                            <Building2 className="size-2.5 text-sky-600 dark:text-sky-400" />
+                            <span>{resolveItemCompany(item)}</span>
+                          </span>
                           <span className="px-2 py-0.5 rounded-md bg-muted text-muted-foreground font-medium">
                             {item.category}
                           </span>
@@ -2508,8 +2766,17 @@ export default function PurchasePlanningTab({
                             Lead Time: ~{item.leadTimeDays} Hari
                           </span>
                         </div>
-                        {/* Batch Number & Sumber Data di bawah kode barang */}
+                        {/* Batch Number, Perusahaan & Sumber Data di bawah kode barang */}
                         <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                          {/* Badge Entitas / Perusahaan */}
+                          <span
+                            className="inline-flex items-center gap-1 text-[9px] font-bold text-sky-700 dark:text-sky-300 bg-sky-500/15 border border-sky-500/30 px-1.5 py-0.5 rounded"
+                            title={`Perusahaan: ${getCompanyFullName(resolveItemCompany(item))}`}
+                          >
+                            <Building2 className="size-2.5 text-sky-600 dark:text-sky-400 shrink-0" />
+                            <span>{resolveItemCompany(item)}</span>
+                          </span>
+
                           <span className="inline-flex items-center gap-1 text-[10px] font-mono text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 font-medium">
                             <Layers className="size-2.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                             <span className="text-[9px] uppercase font-bold tracking-wider text-emerald-600 dark:text-emerald-400">Batch:</span>
@@ -2941,6 +3208,10 @@ export default function PurchasePlanningTab({
                   </span>
                   <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 font-semibold border border-indigo-500/20">
                     {selectedItemDetail.category}
+                  </span>
+                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-sky-500/10 text-sky-700 dark:text-sky-300 font-bold border border-sky-500/30 flex items-center gap-1">
+                    <Building2 className="size-3 text-sky-600 dark:text-sky-400" />
+                    <span>PT: {resolveItemCompany(selectedItemDetail)} ({getCompanyFullName(resolveItemCompany(selectedItemDetail))})</span>
                   </span>
                   <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold border border-emerald-500/20 flex items-center gap-1">
                     <Layers className="size-3" />

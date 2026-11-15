@@ -280,6 +280,10 @@ export function performHybridSync(options?: {
             matchedExisting.requestingVessels.push(r.armada);
           }
 
+          if (!matchedExisting.company && r.entity) {
+            matchedExisting.company = r.entity;
+          }
+
           // Tambah kuantitas kebutuhan
           matchedExisting.totalRequestedQty += reqQty;
           matchedExisting.recommendedOrderQty = Math.max(0, matchedExisting.totalRequestedQty - matchedExisting.currentStock) || matchedExisting.totalRequestedQty;
@@ -342,6 +346,7 @@ export function performHybridSync(options?: {
           fpbRefs: [r.fpbNo],
           batchNo: defaultBatchNo,
           dataSource: 'EFPB_LIVE',
+          company: r.entity || 'CPL',
           syncedAt: new Date().toISOString(),
         };
 
