@@ -148,6 +148,10 @@ export interface FpbReviewRecord {
   archivedBy?: string;
   batchNo?: string;
   batchPublishedAt?: string;
+  isLateEntry?: boolean;
+  lateDays?: number;
+  originalCycleBatch?: string;
+  cycleDisposition?: 'REGULAR' | 'LATE_ENTRY' | 'HISTORICAL_ARCHIVE';
   updatedAt: string;
   createdAt: string;
 }

@@ -78,6 +78,7 @@ import { useAuth } from '@/context/AuthContext';
 import { findCrewOrArmadaContact, syncCrewContact } from '@/utils/crewKapalStorage';
 import LogisticsApprovalCell from './LogisticsApprovalCell';
 import LogisticsApprovalConfirmModal from './LogisticsApprovalConfirmModal';
+import { checkFpbCycleAlignment } from '@/utils/fpbCycleHelper';
 
 // Helper formatting WhatsApp URL
 const getWaUrl = (phone: string, text: string) => {
@@ -410,6 +411,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
 
       const extractedRecords: FpbReviewRecord[] = [];
       const incompleteSignatures: { fpbNo: string; missing: string[] }[] = [];
+      const outOfCycleList: { fpbNo: string; date: string; originalBatch: string; daysLate: number }[] = [];
       let successCount = 0;
       let failCount = 0;
 
@@ -439,13 +441,32 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
               });
             }
 
+            const fpbDateStr = pd.fpbDate || new Date().toLocaleDateString('id-ID');
+            const cycleAlign = checkFpbCycleAlignment(fpbDateStr, nowDate, cycleInfo.batchSeq);
+
+            if (cycleAlign.isPastCycle) {
+              outOfCycleList.push({
+                fpbNo: cleanNo,
+                date: fpbDateStr,
+                originalBatch: cycleAlign.originalBatchName,
+                daysLate: cycleAlign.daysLate,
+              });
+            }
+
+            let reviewNoteText = 'Diekstrak dari unggahan berkas PDF fisik (Multi-Upload)';
+            if (cycleAlign.isPastCycle) {
+              reviewNoteText = `[DOKUMEN SUSULAN]: FPB tertanggal ${fpbDateStr} (Periode ${cycleAlign.originalBatchName}, terlambat ${cycleAlign.daysLate} hari dari cut-off). Diterima sebagai susulan di ${cycleInfo.batchName}.`;
+            } else if (sigVerification && !sigVerification.isComplete) {
+              reviewNoteText = `[PERIKSA TTD]: ${sigVerification.statusText}`;
+            }
+
             const newRecord: FpbReviewRecord = {
               id: `fpb-rev-${cleanNo}`,
               fpbNo: cleanNo,
               originalFpb: cleanNo,
               entity: cleanNo.split('-')[0] || 'CPL',
               armada: pd.userArmada || 'Armada Kapal',
-              date: pd.fpbDate || new Date().toLocaleDateString('id-ID'),
+              date: fpbDateStr,
               purpose: pd.tujuanPeruntukan || 'Pengadaan suku cadang/kebutuhan armada',
               efpbStatus: 'Approved',
               isReceivedLogistik: true,
@@ -455,11 +476,13 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
               urgency: 'NORMAL',
               priorityLevel: 'P2',
               picPurchasing: '-',
-              reviewNotes: sigVerification && !sigVerification.isComplete
-                ? `[PERIKSA TTD]: ${sigVerification.statusText}`
-                : 'Diekstrak dari unggahan berkas PDF fisik (Multi-Upload)',
+              reviewNotes: reviewNoteText,
               isArchived: false,
               signatureVerification: sigVerification,
+              isLateEntry: cycleAlign.isPastCycle,
+              lateDays: cycleAlign.daysLate,
+              originalCycleBatch: cycleAlign.originalBatchName,
+              cycleDisposition: cycleAlign.isPastCycle ? 'LATE_ENTRY' : 'REGULAR',
               requestedBy: pd.requestedBy || '',
               reviewedBy: pd.reviewedBy || '',
               items: (pd.items || []).map((it: any, idx: number) => ({
@@ -522,6 +545,15 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
             setTimeout(() => {
               showToast?.('✅ Semua berkas PDF yang diunggah terverifikasi bertanda tangan lengkap & sah.', 'success');
             }, 1200);
+          }
+
+          if (outOfCycleList.length > 0) {
+            setTimeout(() => {
+              showToast?.(
+                `⚠️ Aturan Siklus: ${outOfCycleList.length} berkas terdeteksi dari periode lampau (${outOfCycleList.map((x) => `${x.fpbNo}: ${x.originalBatch}, +${x.daysLate}hr`).join('; ')}). Berkas otomatis ditandai sebagai [Susulan / Late Entry].`,
+                'warning'
+              );
+            }, 2400);
           }
 
           setSheetViewMode('active');
@@ -789,6 +821,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
       recommendedOrderQty: number;
       urgency: string;
       priority: string;
+      cycleStatus: string;
       estUnitPrice: number;
       estTotalPrice: number;
       reviewNotes: string;
@@ -838,6 +871,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
           recommendedOrderQty: netOrder,
           urgency: r.urgency,
           priority: r.priorityLevel || 'P3',
+          cycleStatus: r.isLateEntry ? `Susulan (${r.originalCycleBatch || 'Lampau'})` : 'Reguler',
           estUnitPrice: unitPrice,
           estTotalPrice: totalCost,
           reviewNotes: it.reviewerNotes || it.notes || r.reviewNotes || '-',
@@ -895,6 +929,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
         'Rekomendasi Beli Bersih (Net Demand)',
         'Urgensi',
         'Prioritas',
+        'Status Siklus',
         'Estimasi Harga Satuan (Rp)',
         'Total Estimasi Biaya (Rp)',
         'Catatan Review Logistik'
@@ -916,6 +951,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
         r.recommendedOrderQty,
         r.urgency,
         r.priority,
+        r.cycleStatus,
         r.estUnitPrice,
         r.estTotalPrice,
         r.reviewNotes
@@ -2672,6 +2708,23 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                           <span className="font-semibold text-foreground group-hover:text-primary transition">
                             {rec.fpbNo}
                           </span>
+                          {/* Badge Susulan / Late Entry */}
+                          {(() => {
+                            const align = checkFpbCycleAlignment(rec.date, nowDate, cycleInfo.batchSeq);
+                            const isLate = rec.isLateEntry || align.isPastCycle;
+                            if (!isLate) return null;
+                            const batchOrigin = rec.originalCycleBatch || align.originalBatchName;
+                            const days = rec.lateDays || align.daysLate;
+                            return (
+                              <span
+                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/35"
+                                title={`FPB tertanggal ${rec.date} (diterbitkan pada periode ${batchOrigin}, terlambat ${days} hari dari batas cut-off ${cycleInfo.batchName}). Masuk sebagai dokumen susulan resmi.`}
+                              >
+                                <AlertTriangle className="size-2.5 text-amber-600 dark:text-amber-400" />
+                                Susulan ({batchOrigin})
+                              </span>
+                            );
+                          })()}
                           {rec.isRevised && (
                             <span
                               className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/30"
@@ -2914,6 +2967,22 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                     {getPriorityBadge(formPriority)}
                     {getReviewStatusBadge(formStatus)}
                     {getUrgencyBadge(formUrgency)}
+                    {/* Badge Susulan / Late Entry di Modal Header */}
+                    {(() => {
+                      const align = checkFpbCycleAlignment(selectedRecord.date, nowDate, cycleInfo.batchSeq);
+                      const isLate = selectedRecord.isLateEntry || align.isPastCycle;
+                      if (!isLate) return null;
+                      const batchOrigin = selectedRecord.originalCycleBatch || align.originalBatchName;
+                      return (
+                        <span
+                          className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/35 flex items-center gap-1"
+                          title={`Dokumen susulan dari periode ${batchOrigin} (FPB: ${selectedRecord.date}). Diterima masuk ${cycleInfo.batchName}.`}
+                        >
+                          <AlertTriangle className="size-3 text-amber-600 dark:text-amber-400" />
+                          Susulan ({batchOrigin})
+                        </span>
+                      );
+                    })()}
                   </div>
                   <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mt-0.5">
                     <span className="flex items-center gap-1 font-medium text-foreground">
@@ -2992,6 +3061,28 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                 </div>
               </div>
             )}
+
+            {/* Out-of-Cycle / Late Entry Notification Banner */}
+            {(() => {
+              const align = checkFpbCycleAlignment(selectedRecord.date, nowDate, cycleInfo.batchSeq);
+              const isLate = selectedRecord.isLateEntry || align.isPastCycle;
+              if (!isLate) return null;
+              const batchOrigin = selectedRecord.originalCycleBatch || align.originalBatchName;
+              const days = selectedRecord.lateDays || align.daysLate;
+              return (
+                <div className="p-3 mx-5 mt-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3 text-xs">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <AlertTriangle className="size-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                    <div className="text-amber-950 dark:text-amber-200">
+                      <span className="font-bold">Aturan Siklus &amp; Disiplin Cut-Off:</span> Dokumen FPB ini tertanggal <strong>{selectedRecord.date}</strong> (asal periode <strong>{batchOrigin}</strong>, selisih {days} hari). Diterima sebagai dokumen <strong>Susulan Resmi (Late Entry)</strong> pada siklus <strong>{cycleInfo.batchName}</strong>.
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500 text-white shrink-0">
+                    Late Entry
+                  </span>
+                </div>
+              );
+            })()}
 
             {/* Modal Tab Navigation */}
             <div className="flex items-center gap-1 px-5 pt-3 border-b border-border bg-background">

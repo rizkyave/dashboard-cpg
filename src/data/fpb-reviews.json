@@ -1965,12 +1965,16 @@
     "date": "3 Nop 2026",
     "purpose": "U/ PENGGANTIAN YANG RUSAK",
     "efpbStatus": "Approved",
-    "isReceivedLogistik": false,
+    "isReceivedLogistik": true,
     "pdfUrl": "/api/review-fpb/pdf?fpbNo=CPL-FPB-26-0005148&type=signed",
     "reviewStatus": "PENDING_REVIEW",
-    "urgency": "NORMAL",
+    "urgency": "URGENT",
     "picPurchasing": "-",
-    "reviewNotes": "Diekstrak dari unggahan berkas PDF fisik (Multi-Upload)",
+    "reviewNotes": "[DOKUMEN SUSULAN]: FPB tertanggal 3 Nop 2026 (Periode Batch I, terlambat 10 hari dari cut-off). Diterima sebagai susulan di Batch III.",
+    "isLateEntry": true,
+    "lateDays": 10,
+    "originalCycleBatch": "Batch I",
+    "cycleDisposition": "LATE_ENTRY",
     "items": [
       {
         "no": 1,
@@ -1982,8 +1986,10 @@
         "priority": "P2",
         "stockAvailable": 0,
         "stockStatus": "OUT_OF_STOCK",
+        "matchedInventoryItem": "[ACCU-ACC005] ACCU - CHARGER PORTABLE (MO)",
+        "inventoryEntity": "MO",
         "decision": "PO",
-        "notes": "Menunggu review tim purchasing"
+        "notes": "Stok gudang kosong. Diproses pembelian baru (PO)."
       }
     ],
     "attachments": [
@@ -2004,18 +2010,19 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-15T07:24:19.890Z",
+    "updatedAt": "2026-11-15T07:42:11.103Z",
     "createdAt": "2026-11-15T07:07:31.773Z",
-    "priorityLevel": "P2",
+    "priorityLevel": "P1",
     "slaTargetDate": "",
     "slaDaysRemaining": 0,
     "slaStatus": "ON_TRACK",
     "isArchived": false,
     "archivedAt": "2026-11-14T15:13:00.214Z",
     "archivedBy": "Administrator CPG",
-    "pchLogistik": "-",
+    "pchLogistik": "Received_Logistic",
     "reviewedBy": "Administrator CPG",
-    "reviewedAt": "2026-11-15T07:24:19.890Z"
+    "reviewedAt": "2026-11-15T07:42:11.103Z",
+    "requestedBy": "Iqbal Polejiwa"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001147",
