@@ -182,6 +182,20 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
   const [isCleanSheetModalOpen, setIsCleanSheetModalOpen] = useState<boolean>(false);
   const [isCleaningSheet, setIsCleaningSheet] = useState<boolean>(false);
 
+  // Weekly Cut-Off & Batch PP States (Siklus Mingguan Jumat pk 10:00)
+  const [nowDate, setNowDate] = useState<Date>(new Date());
+  const [isFinalizeBatchModalOpen, setIsFinalizeBatchModalOpen] = useState<boolean>(false);
+  const [customBatchCode, setCustomBatchCode] = useState<string>('');
+  const [autoDownloadExcelOnFinalize, setAutoDownloadExcelOnFinalize] = useState<boolean>(true);
+  const [archivedBatchFilter, setArchivedBatchFilter] = useState<string>('ALL');
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNowDate(new Date());
+    }, 30000);
+    return () => clearInterval(timer);
+  }, []);
+
   // Requester (Pembuat e-FPB) & Kontak WA state
   const [formRequestedBy, setFormRequestedBy] = useState<string>('');
   const [formRequesterPhone, setFormRequesterPhone] = useState<string>('');
@@ -549,6 +563,362 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
       }
     } catch (err: any) {
       showToast?.('Error saat restore arsip: ' + err.message, 'error');
+    }
+  };
+
+  // ── SIKLUS MINGGUAN & BATAS CUT-OFF PP JUMAT PK 10:00 ──
+  const cycleInfo = useMemo(() => {
+    const now = nowDate;
+    const currentYear = now.getFullYear();
+
+    // Hitung nomor minggu dalam setahun (1-52)
+    const jan1 = new Date(currentYear, 0, 1);
+    const dayOfYear = Math.floor((now.getTime() - jan1.getTime()) / (24 * 60 * 60 * 1000));
+    const weekNumber = Math.ceil((dayOfYear + jan1.getDay() + 1) / 7);
+
+    // Cari tahu berapa batch yang sudah diarsipkan sebelumnya
+    const existingBatches = new Set<string>();
+    reviews.forEach((r) => {
+      if (r.batchNo) existingBatches.add(r.batchNo);
+    });
+    const batchSeq = Math.max(1, existingBatches.size + 1);
+
+    const romanNumerals = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX'];
+    const romanBatch = romanNumerals[batchSeq - 1] || `${batchSeq}`;
+
+    const batchName = `Batch ${romanBatch} (Minggu ${weekNumber})`;
+    const defaultBatchCode = `CPG-PP-${currentYear}-B${String(batchSeq).padStart(2, '0')}`;
+
+    // Tentukan waktu cut-off Jumat jam 10:00:00
+    const day = now.getDay(); // 0 = Minggu, 5 = Jumat
+    const cutoff = new Date(now);
+    cutoff.setHours(10, 0, 0, 0);
+
+    let isPastCutoff = false;
+    if (day === 5) {
+      if (now.getTime() >= cutoff.getTime()) {
+        isPastCutoff = true;
+      }
+    } else if (day > 5) {
+      isPastCutoff = true;
+    }
+
+    const targetCutoff = new Date(cutoff);
+    if (day === 5) {
+      if (now.getTime() >= cutoff.getTime()) {
+        targetCutoff.setDate(targetCutoff.getDate() + 7);
+      }
+    } else if (day < 5) {
+      targetCutoff.setDate(targetCutoff.getDate() + (5 - day));
+    } else {
+      targetCutoff.setDate(targetCutoff.getDate() + 6);
+    }
+
+    const diffMs = targetCutoff.getTime() - now.getTime();
+    const isApproaching = diffMs > 0 && diffMs <= 24 * 60 * 60 * 1000;
+
+    const daysLeft = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+    const hoursLeft = Math.floor((diffMs % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+    const minsLeft = Math.floor((diffMs % (60 * 60 * 1000)) / (60 * 1000));
+
+    let countdownFormatted = '';
+    if (daysLeft > 0) {
+      countdownFormatted = `${daysLeft} Hari ${hoursLeft} Jam ${minsLeft} Mnt`;
+    } else if (hoursLeft > 0) {
+      countdownFormatted = `${hoursLeft} Jam ${minsLeft} Mnt`;
+    } else if (minsLeft > 0) {
+      countdownFormatted = `${minsLeft} Menit`;
+    } else {
+      countdownFormatted = 'Kurang dari 1 menit';
+    }
+
+    const cutoffFormatted = targetCutoff.toLocaleDateString('id-ID', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    }) + ' pk 10:00 WITA';
+
+    // Rangkuman FPB aktif yang telah disetujui masuk Purchase Planning
+    const activeApprovedReviews = reviews.filter(
+      (r) => !r.isArchived && (r.reviewStatus === 'APPROVED_PO' || (r.items && r.items.some((i) => i.decision === 'PO')))
+    );
+
+    let approvedItemsCount = 0;
+    let approvedEstimatedBudget = 0;
+
+    activeApprovedReviews.forEach((r) => {
+      const poItems = (r.items || []).filter(
+        (i) => i.decision === 'PO' || (r.reviewStatus === 'APPROVED_PO' && i.decision !== 'STOCK' && i.decision !== 'REJECT')
+      );
+      poItems.forEach((i) => {
+        const qty = Number(i.qty) || 1;
+        const totalStock = Number(i.stockAvailable) || (Number(i.stockSomber) || 0) + (Number(i.stockKariangau) || 0);
+        const netQty = Math.max(0, qty - totalStock) || qty;
+        const unitPrice = 750000;
+        approvedItemsCount += 1;
+        approvedEstimatedBudget += netQty * unitPrice;
+      });
+    });
+
+    return {
+      batchSeq,
+      batchName,
+      batchCode: defaultBatchCode,
+      weekNumber,
+      targetCutoff,
+      cutoffFormatted,
+      isApproaching,
+      isPastCutoff,
+      countdownFormatted,
+      activeApprovedCount: activeApprovedReviews.length,
+      approvedItemsCount,
+      approvedEstimatedBudget,
+      activeApprovedReviews,
+    };
+  }, [nowDate, reviews]);
+
+  // Daftar batch yang ada di riwayat arsip
+  const uniqueArchivedBatches = useMemo(() => {
+    const setB = new Set<string>();
+    reviews.forEach((r) => {
+      if (r.isArchived && r.batchNo) {
+        setB.add(r.batchNo);
+      }
+    });
+    return Array.from(setB).sort();
+  }, [reviews]);
+
+  // Handler Ekspor Excel Resmi Purchase Planning Batch (.xlsx) Multi-Sheet
+  const handleDownloadBatchExcel = (recordsToExport?: FpbReviewRecord[], customBatchLabel?: string) => {
+    const targetRecords = recordsToExport || cycleInfo.activeApprovedReviews;
+    if (!targetRecords || targetRecords.length === 0) {
+      showToast?.('Belum ada dokumen FPB yang disetujui untuk diterbitkan ke Excel Batch ini.', 'warning');
+      return;
+    }
+
+    const batchCodeToUse = customBatchLabel || customBatchCode.trim() || cycleInfo.batchCode;
+    const batchNameToUse = customBatchLabel || cycleInfo.batchName;
+
+    const wb = XLSX.utils.book_new();
+
+    interface BatchItemRow {
+      no: number;
+      batch: string;
+      pt: string;
+      armada: string;
+      fpbNo: string;
+      tkbNo: string;
+      itemCode: string;
+      itemName: string;
+      category: string;
+      unit: string;
+      requestedQty: number;
+      stockSomber: number;
+      stockKariangau: number;
+      recommendedOrderQty: number;
+      urgency: string;
+      priority: string;
+      estUnitPrice: number;
+      estTotalPrice: number;
+      reviewNotes: string;
+    }
+
+    const itemRows: BatchItemRow[] = [];
+    let counter = 1;
+    let grandTotalBudget = 0;
+
+    const ptSummaryMap = new Map<string, { pt: string; fpbSet: Set<string>; itemCount: number; totalCost: number }>();
+
+    targetRecords.forEach((r) => {
+      const pt = r.entity || 'CPL';
+      const ptEntry = ptSummaryMap.get(pt) || { pt, fpbSet: new Set<string>(), itemCount: 0, totalCost: 0 };
+      ptEntry.fpbSet.add(r.fpbNo);
+
+      const poItems = (r.items || []).filter(
+        (i) => i.decision === 'PO' || (r.reviewStatus === 'APPROVED_PO' && i.decision !== 'STOCK' && i.decision !== 'REJECT')
+      );
+
+      poItems.forEach((it) => {
+        const reqQty = Number(it.qty) || 1;
+        const sSomber = Number(it.stockSomber) || Number(it.stockAvailable) || 0;
+        const sKariangau = Number(it.stockKariangau) || 0;
+        const netOrder = Math.max(0, reqQty - (sSomber + sKariangau)) || reqQty;
+        const unitPrice = 750000;
+        const totalCost = netOrder * unitPrice;
+
+        grandTotalBudget += totalCost;
+        ptEntry.itemCount += 1;
+        ptEntry.totalCost += totalCost;
+
+        itemRows.push({
+          no: counter++,
+          batch: batchCodeToUse,
+          pt,
+          armada: r.armada || '-',
+          fpbNo: r.fpbNo,
+          tkbNo: r.tkbNo || '-',
+          itemCode: it.itemCode || '-',
+          itemName: it.itemName,
+          category: it.category || 'General',
+          unit: it.unit || 'PCS',
+          requestedQty: reqQty,
+          stockSomber: sSomber,
+          stockKariangau: sKariangau,
+          recommendedOrderQty: netOrder,
+          urgency: r.urgency,
+          priority: r.priorityLevel || 'P3',
+          estUnitPrice: unitPrice,
+          estTotalPrice: totalCost,
+          reviewNotes: it.reviewerNotes || it.notes || r.reviewNotes || '-',
+        });
+      });
+
+      ptSummaryMap.set(pt, ptEntry);
+    });
+
+    // Sheet 1: Rekap Eksekutif Batch
+    const summarySheetData: any[] = [
+      ['DOKUMEN RILIS PERENCANAAN PENGADAAN (PURCHASE PLANNING BATCH)', ''],
+      ['PT CIPTA SARANA TRANSINDO (CPG GROUP)', ''],
+      ['', ''],
+      ['Informasi Siklus Pengadaan:', ''],
+      ['Nama Batch', batchNameToUse],
+      ['Kode Batch Referensi', batchCodeToUse],
+      ['Batas Cut-Off Siklus', cycleInfo.cutoffFormatted],
+      ['Waktu Ekspor', new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })],
+      ['Status Siklus', cycleInfo.isPastCutoff ? 'Telah Melewati Cut-Off (Siap Finalisasi)' : 'Siklus Berjalan (Aktif)'],
+      ['', ''],
+      ['Rangkuman Konsolidasi Kebutuhan:', ''],
+      ['Total Dokumen FPB Masuk Siklus Ini', targetRecords.length],
+      ['Total Item Material Siap Pengadaan (Net Demand)', itemRows.length],
+      ['Total Estimasi Anggaran Pengadaan (Rp)', grandTotalBudget],
+      ['', ''],
+      ['Ringkasan Alokasi per Entitas Perusahaan (PT):', '', '', ''],
+      ['Kode Perusahaan', 'Jumlah FPB', 'Jumlah Item Material', 'Estimasi Total Biaya (Rp)'],
+      ...Array.from(ptSummaryMap.values()).map((p) => [
+        p.pt,
+        p.fpbSet.size,
+        p.itemCount,
+        p.totalCost
+      ])
+    ];
+    const wsSummary = XLSX.utils.aoa_to_sheet(summarySheetData);
+    XLSX.utils.book_append_sheet(wb, wsSummary, 'Rekap Eksekutif Batch');
+
+    // Sheet 2: Rincian Belanja Siap Beli (Net Demand)
+    const detailSheetData: any[] = [
+      [
+        'No',
+        'Batch',
+        'Perusahaan',
+        'Armada / Kapal',
+        'No. FPB',
+        'No. TKB',
+        'Kode Barang',
+        'Nama Barang',
+        'Kategori Material',
+        'Satuan',
+        'Qty Permintaan',
+        'Stok Somber',
+        'Stok Kariangau',
+        'Rekomendasi Beli Bersih (Net Demand)',
+        'Urgensi',
+        'Prioritas',
+        'Estimasi Harga Satuan (Rp)',
+        'Total Estimasi Biaya (Rp)',
+        'Catatan Review Logistik'
+      ],
+      ...itemRows.map((r) => [
+        r.no,
+        r.batch,
+        r.pt,
+        r.armada,
+        r.fpbNo,
+        r.tkbNo,
+        r.itemCode,
+        r.itemName,
+        r.category,
+        r.unit,
+        r.requestedQty,
+        r.stockSomber,
+        r.stockKariangau,
+        r.recommendedOrderQty,
+        r.urgency,
+        r.priority,
+        r.estUnitPrice,
+        r.estTotalPrice,
+        r.reviewNotes
+      ])
+    ];
+    const wsDetail = XLSX.utils.aoa_to_sheet(detailSheetData);
+    XLSX.utils.book_append_sheet(wb, wsDetail, 'Rincian Belanja (Net Demand)');
+
+    // Sheet 3: Rekap per Kapal / Armada
+    const armadaMap = new Map<string, { armada: string; pt: string; fpbCount: number; itemCount: number; totalCost: number }>();
+    itemRows.forEach((it) => {
+      const cur = armadaMap.get(it.armada) || { armada: it.armada, pt: it.pt, fpbCount: 0, itemCount: 0, totalCost: 0 };
+      cur.itemCount += 1;
+      cur.totalCost += it.estTotalPrice;
+      armadaMap.set(it.armada, cur);
+    });
+    targetRecords.forEach((r) => {
+      const cur = armadaMap.get(r.armada);
+      if (cur) cur.fpbCount += 1;
+    });
+
+    const armadaSheetData: any[] = [
+      ['No', 'Nama Armada / Kapal', 'Perusahaan (PT)', 'Jumlah Dokumen FPB', 'Jumlah Item Material', 'Total Estimasi Anggaran (Rp)'],
+      ...Array.from(armadaMap.values()).map((a, idx) => [
+        idx + 1,
+        a.armada,
+        a.pt,
+        a.fpbCount,
+        a.itemCount,
+        a.totalCost
+      ])
+    ];
+    const wsArmada = XLSX.utils.aoa_to_sheet(armadaSheetData);
+    XLSX.utils.book_append_sheet(wb, wsArmada, 'Rekap per Armada');
+
+    // Trigger download
+    const cleanFileName = `${batchCodeToUse}_PP_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    XLSX.writeFile(wb, cleanFileName);
+    showToast?.(`Berkas Excel "${cleanFileName}" berhasil diunduh!`, 'success');
+  };
+
+  // Handler Finalisasi & Rilis Batch PP (Cut-Off Execution)
+  const handleFinalizeBatch = async () => {
+    setIsCleaningSheet(true);
+    const batchCodeToUse = customBatchCode.trim() || cycleInfo.batchCode;
+    try {
+      const res = await fetch('/api/review-fpb', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'clean_sheet_archive',
+          batchNo: batchCodeToUse,
+          archivedBy: user?.name || user?.username || 'Administrator CPG',
+        }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        if (autoDownloadExcelOnFinalize) {
+          handleDownloadBatchExcel(cycleInfo.activeApprovedReviews, batchCodeToUse);
+        }
+        await fetchReviews();
+        setIsFinalizeBatchModalOpen(false);
+        showToast?.(
+          `Siklus ${batchCodeToUse} berhasil difinalisasi dan diterbitkan ke Purchase Planning! Lembar kerja baru siap digunakan.`,
+          'success'
+        );
+      } else {
+        showToast?.(json.message || 'Gagal memfinalisasi batch.', 'error');
+      }
+    } catch (err: any) {
+      showToast?.(`Error finalisasi batch: ${err.message}`, 'error');
+    } finally {
+      setIsCleaningSheet(false);
     }
   };
 
@@ -1257,6 +1627,9 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
         if (r.isArchived) return false;
       } else if (sheetViewMode === 'archived') {
         if (!r.isArchived) return false;
+        if (archivedBatchFilter !== 'ALL' && (r.batchNo || 'NON-BATCH') !== archivedBatchFilter) {
+          return false;
+        }
       }
 
       // 1. Search Query
@@ -1305,7 +1678,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
 
       return true;
     });
-  }, [reviews, sheetViewMode, searchQuery, selectedEntity, selectedStatus, selectedUrgency, selectedPriority, onlyDuplicates]);
+  }, [reviews, sheetViewMode, archivedBatchFilter, searchQuery, selectedEntity, selectedStatus, selectedUrgency, selectedPriority, onlyDuplicates]);
 
   // Statistik Berkas Aktif vs Diarsipkan
   const activeCount = useMemo(() => reviews.filter((r) => !r.isArchived).length, [reviews]);
@@ -1602,6 +1975,99 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
         </div>
       </div>
 
+      {/* ── WIDGET SIKLUS MINGGUAN & BATAS CUT-OFF PP (JUMAT PK 10:00) ── */}
+      <div className="p-4 rounded-2xl border border-border bg-gradient-to-r from-card via-card to-muted/30 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        {/* Kolom Kiri: Info Siklus, Countdown, & Status */}
+        <div className="space-y-1.5 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/25">
+              <Timer className="size-3.5 text-sky-600 dark:text-sky-400" />
+              <span>Siklus Mingguan: {cycleInfo.batchName}</span>
+            </span>
+
+            {cycleInfo.isPastCutoff ? (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30">
+                <span className="size-2 rounded-full bg-rose-500 animate-pulse" />
+                <span>Batas Cut-off Tercapai (Siap Terbit PP)</span>
+              </span>
+            ) : cycleInfo.isApproaching ? (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                <span className="size-2 rounded-full bg-amber-500 animate-pulse" />
+                <span>⚠️ &lt; 24 Jam Menuju Cut-off</span>
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                <span className="size-2 rounded-full bg-emerald-500" />
+                <span>Siklus Berjalan (Aktif)</span>
+              </span>
+            )}
+
+            <span className="text-[11px] font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded">
+              Ref: {cycleInfo.batchCode}
+            </span>
+          </div>
+
+          <div className="flex items-baseline gap-3 flex-wrap">
+            <div className="text-sm sm:text-base font-extrabold text-foreground flex items-center gap-1.5">
+              <Clock className="size-4 text-primary shrink-0" />
+              <span>Cut-Off: {cycleInfo.cutoffFormatted}</span>
+            </div>
+            <div className="text-xs font-semibold text-muted-foreground">
+              Sisa Waktu: <strong className="text-primary font-mono">{cycleInfo.countdownFormatted}</strong>
+            </div>
+          </div>
+
+          <p className="text-[11px] text-muted-foreground">
+            Semua pengajuan FPB yang disetujui sebelum cut-off Jumat pk 10:00 dikonsolidasikan ke dalam 1 siklus Purchase Planning ({cycleInfo.batchName}). Berkas yang disetujui lewat dari batas waktu otomatis dialihkan ke siklus minggu berikutnya.
+          </p>
+        </div>
+
+        {/* Kolom Kanan: Statistik Akumulasi & Tombol Aksi */}
+        <div className="flex flex-col sm:flex-row lg:flex-col items-start sm:items-center lg:items-end justify-between gap-3 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-border/60">
+          {/* Akumulasi Item Terkonfirmasi */}
+          <div className="flex items-center gap-3 text-xs bg-muted/50 px-3 py-1.5 rounded-xl border border-border">
+            <div className="text-left sm:text-right">
+              <span className="text-[10px] text-muted-foreground block">Akumulasi Siklus Ini:</span>
+              <span className="font-bold text-foreground">
+                <strong className="text-emerald-600 dark:text-emerald-400">{cycleInfo.activeApprovedCount} FPB Disetujui</strong> &bull; {cycleInfo.approvedItemsCount} Item Material
+              </span>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Download Excel Batch */}
+            <button
+              type="button"
+              onClick={() => handleDownloadBatchExcel()}
+              disabled={cycleInfo.activeApprovedCount === 0}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl border border-emerald-500/40 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-2xs transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              title="Unduh rekap resmi berkas Excel (.xlsx) Multi-Sheet untuk seluruh kebutuhan material siklus batch ini"
+            >
+              <FileSpreadsheet className="size-3.5" />
+              <span>Download Excel Batch PP (.xlsx)</span>
+            </button>
+
+            {/* Finalisasi & Terbitkan Batch */}
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={() => {
+                  setCustomBatchCode(cycleInfo.batchCode);
+                  setIsFinalizeBatchModalOpen(true);
+                }}
+                disabled={cycleInfo.activeApprovedCount === 0 || isCleaningSheet}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl border border-indigo-500/40 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white shadow-2xs transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                title="Kunci siklus ini, terbitkan nomor batch resmi ke Purchase Planning, dan bersihkan lembar kerja aktif untuk siklus berikutnya"
+              >
+                <Lock className="size-3.5" />
+                <span>Finalisasi &amp; Terbitkan Batch</span>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Toggle Lembar Aktif vs Arsip Riwayat FPB */}
       <div className="flex items-center justify-between flex-wrap gap-2 pt-1">
         <div className="flex items-center p-1 rounded-xl bg-muted border border-border text-xs gap-1">
@@ -1632,10 +2098,41 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
         </div>
 
         {sheetViewMode === 'archived' && (
-          <div className="flex items-center gap-2 text-xs">
+          <div className="flex items-center gap-2 text-xs flex-wrap">
             <span className="text-muted-foreground text-[11px]">
-              Menampilkan riwayat berkas FPB yang telah diarsipkan di database.
+              Filter Batch Riwayat:
             </span>
+
+            {/* Filter Dropdown Batch */}
+            <select
+              value={archivedBatchFilter}
+              onChange={(e) => setArchivedBatchFilter(e.target.value)}
+              className="text-xs px-2.5 py-1 rounded-lg bg-background border border-border text-foreground font-semibold cursor-pointer shadow-2xs"
+            >
+              <option value="ALL">Semua Batch Riwayat</option>
+              {uniqueArchivedBatches.map((b) => (
+                <option key={b} value={b}>
+                  📦 {b}
+                </option>
+              ))}
+            </select>
+
+            {/* Tombol Unduh Excel untuk Batch Terpilih di Arsip */}
+            {archivedBatchFilter !== 'ALL' && (
+              <button
+                type="button"
+                onClick={() => {
+                  const batchRecords = reviews.filter((r) => r.isArchived && r.batchNo === archivedBatchFilter);
+                  handleDownloadBatchExcel(batchRecords, archivedBatchFilter);
+                }}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-bold transition cursor-pointer shadow-2xs"
+                title={`Unduh berkas Excel untuk arsip ${archivedBatchFilter}`}
+              >
+                <FileSpreadsheet className="size-3 text-emerald-600 dark:text-emerald-400" />
+                <span>Unduh Excel {archivedBatchFilter}</span>
+              </button>
+            )}
+
             {isAdmin && archivedCount > 0 && (
               <button
                 type="button"
@@ -1648,7 +2145,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                 title="Pulihkan seluruh berkas arsip kembali ke lembar aktif"
               >
                 <RotateCcw className="size-3 text-sky-600" />
-                <span>Pulihkan Semua ke Lembar Aktif</span>
+                <span>Pulihkan Semua</span>
               </button>
             )}
           </div>
@@ -4043,6 +4540,114 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                   <>
                     <Archive className="size-3.5" />
                     <span>Ya, Arsipkan &amp; Clean Sheet</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL FINALISASI & TERBITKAN BATCH PURCHASE PLANNING ── */}
+      {isFinalizeBatchModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-card border border-border rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-border flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-indigo-500/10 border border-indigo-500/25 text-indigo-600 dark:text-indigo-400">
+                  <Lock className="size-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-foreground">
+                    Finalisasi &amp; Terbitkan Batch PP
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Siklus Mingguan &bull; Cut-Off Jumat pk 10:00
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsFinalizeBatchModalOpen(false)}
+                className="p-1 rounded-lg text-muted-foreground hover:bg-muted transition cursor-pointer"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4 text-xs">
+              <div className="p-3.5 rounded-xl bg-indigo-500/10 border border-indigo-500/25 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-muted-foreground">Siklus Berjalan:</span>
+                  <span className="font-bold text-foreground">{cycleInfo.batchName}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-muted-foreground">Total FPB Siap Diterbitkan:</span>
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400">{cycleInfo.activeApprovedCount} Berkas FPB</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-muted-foreground">Total Item Material Bersih:</span>
+                  <span className="font-bold text-foreground">{cycleInfo.approvedItemsCount} Item Siap Order</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-foreground mb-1">
+                  Nomor / Kode Batch Resmi:
+                </label>
+                <input
+                  type="text"
+                  value={customBatchCode}
+                  onChange={(e) => setCustomBatchCode(e.target.value)}
+                  placeholder="Misal: CPG-PP-2026-B03"
+                  className="w-full text-xs font-mono font-bold px-3 py-2 rounded-xl bg-background border border-border text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20"
+                />
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  Kode ini akan disematkan ke setiap berkas FPB dan terbaca otomatis di menu Perencanaan Pengadaan (Purchase Planning).
+                </p>
+              </div>
+
+              <label className="flex items-center gap-2 cursor-pointer p-2.5 rounded-xl border border-border bg-muted/30">
+                <input
+                  type="checkbox"
+                  checked={autoDownloadExcelOnFinalize}
+                  onChange={(e) => setAutoDownloadExcelOnFinalize(e.target.checked)}
+                  className="size-4 rounded border-border text-primary cursor-pointer accent-primary"
+                />
+                <span className="text-xs font-medium text-foreground">
+                  Otomatis unduh berkas resmi Excel (.xlsx) Multi-Sheet saat batch difinalisasi
+                </span>
+              </label>
+
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-800 dark:text-amber-200 text-[11px] leading-relaxed">
+                ℹ️ <strong>Ketentuan Cut-Off:</strong> Seluruh berkas FPB pada siklus ini akan diarsipkan dengan kode batch di atas, lalu lembar kerja akan dibersihkan (*Clean Sheet*) untuk memulai siklus minggu berikutnya.
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-border bg-muted/20 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setIsFinalizeBatchModalOpen(false)}
+                disabled={isCleaningSheet}
+                className="px-3.5 py-2 rounded-xl border border-border bg-background hover:bg-muted text-foreground text-xs font-semibold cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleFinalizeBatch}
+                disabled={isCleaningSheet}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold cursor-pointer transition shadow-xs disabled:opacity-50"
+              >
+                {isCleaningSheet ? (
+                  <>
+                    <Loader2 className="size-3.5 animate-spin" />
+                    <span>Menerbitkan Batch...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="size-3.5" />
+                    <span>Konfirmasi &amp; Terbitkan Batch</span>
                   </>
                 )}
               </button>

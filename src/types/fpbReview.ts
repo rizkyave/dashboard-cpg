@@ -56,13 +56,17 @@ export interface FpbItemReview {
   qty: number;
   unit: string;
   description: string;
+  category?: string;
   priority?: string;
   stockAvailable?: number;
+  stockSomber?: number;
+  stockKariangau?: number;
   stockStatus?: ItemStockStatus;
   matchedInventoryItem?: string;
   inventoryEntity?: string;
   decision?: ItemDecision;
   notes?: string;
+  reviewerNotes?: string;
 }
 
 export interface FpbDuplicateAlert {
@@ -127,6 +131,8 @@ export interface FpbReviewRecord {
   isArchived?: boolean;
   archivedAt?: string;
   archivedBy?: string;
+  batchNo?: string;
+  batchPublishedAt?: string;
   updatedAt: string;
   createdAt: string;
 }

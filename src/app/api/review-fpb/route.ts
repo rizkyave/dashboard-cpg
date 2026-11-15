@@ -1378,6 +1378,7 @@ export async function POST(req: NextRequest) {
     // ----------------------------------------------------
     if (action === 'clean_sheet_archive') {
       const archivedBy = body.archivedBy || 'Administrator';
+      const batchNo = body.batchNo;
       const nowIso = new Date().toISOString();
       let count = 0;
 
@@ -1389,6 +1390,8 @@ export async function POST(req: NextRequest) {
             isArchived: true,
             archivedAt: nowIso,
             archivedBy,
+            batchNo: batchNo || r.batchNo,
+            batchPublishedAt: batchNo ? nowIso : r.batchPublishedAt,
             updatedAt: nowIso,
           };
         }
@@ -1397,11 +1400,24 @@ export async function POST(req: NextRequest) {
 
       await saveReviews(records);
 
+      // Otomatis sinkronkan item yang disetujui ke Purchase Planning jika batchNo diberikan
+      if (batchNo) {
+        try {
+          const { performHybridSync } = await import('@/utils/purchasePlanningSync');
+          performHybridSync({ defaultBatchNo: batchNo });
+        } catch (syncErr) {
+          console.warn('[clean_sheet_archive] Gagal auto-sync ke Purchase Planning:', syncErr);
+        }
+      }
+
       return NextResponse.json({
         success: true,
-        message: `Berhasil mengarsipkan ${count} berkas FPB ke riwayat database. Lembar kerja aktif sekarang menjadi Clean Sheet!`,
+        message: batchNo
+          ? `Berhasil menerbitkan ${count} berkas FPB ke Purchase Planning ${batchNo} dan membersihkan lembar kerja aktif!`
+          : `Berhasil mengarsipkan ${count} berkas FPB ke riwayat database. Lembar kerja aktif sekarang menjadi Clean Sheet!`,
         archivedCount: count,
         total: records.length,
+        batchNo: batchNo || undefined,
       });
     }
 
