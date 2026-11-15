@@ -165,7 +165,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
 
   // Modal / Drawer state
   const [selectedRecord, setSelectedRecord] = useState<FpbReviewRecord | null>(null);
-  const [activeModalTab, setActiveModalTab] = useState<'items' | 'pdf' | 'attachments' | 'relations'>('items');
+  const [activeModalTab, setActiveModalTab] = useState<'items' | 'pdf' | 'attachments'>('items');
   const [pdfViewMode, setPdfViewMode] = useState<'raw' | 'signed'>('raw');
   const [isParsingItems, setIsParsingItems] = useState<boolean>(false);
   const [isSavingDecision, setIsSavingDecision] = useState<boolean>(false);
@@ -3363,19 +3363,6 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                   {formAttachments.length}
                 </span>
               </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveModalTab('relations')}
-                className={`flex items-center gap-2 py-2 px-3 text-xs font-semibold border-b-2 transition cursor-pointer ${
-                  activeModalTab === 'relations'
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <Layers className="size-4" />
-                <span>Alur Dokumen & PO</span>
-              </button>
             </div>
 
             {/* Modal Body Area */}
@@ -3866,65 +3853,6 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                       })}
                     </div>
                   )}
-                </div>
-              )}
-
-              {/* TAB 4: Relasi Dokumen */}
-              {activeModalTab === 'relations' && (
-                <div className="space-y-4">
-                  <div className="p-4 rounded-xl border border-border bg-card space-y-3">
-                    <h4 className="text-xs font-bold text-foreground flex items-center gap-2">
-                      <Layers className="size-4 text-primary" />
-                      Rantai Dokumen Terkait FPB {selectedRecord.fpbNo}
-                    </h4>
-                    <p className="text-xs text-muted-foreground">
-                      Relasi otomatis yang dihubungkan melalui modul sinkronisasi database pengadaan CPG (FPB ↔ PO ↔ FSTB ↔ TTB).
-                    </p>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                      {/* PO */}
-                      <div className="p-3 rounded-lg border border-border bg-muted/30">
-                        <div className="text-[11px] font-semibold text-muted-foreground uppercase">Nomor PO (Purchasing)</div>
-                        <div className="text-sm font-bold text-foreground mt-1">
-                          {selectedRecord.relatedDocs?.poNos && selectedRecord.relatedDocs.poNos.length > 0 ? (
-                            selectedRecord.relatedDocs.poNos.map((po, i) => (
-                              <div key={i} className="text-primary font-mono">{po}</div>
-                            ))
-                          ) : (
-                            <span className="text-muted-foreground italic text-xs">Belum ada PO terbit</span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* FSTB */}
-                      <div className="p-3 rounded-lg border border-border bg-muted/30">
-                        <div className="text-[11px] font-semibold text-muted-foreground uppercase">Nomor FSTB (Serah Terima Barang)</div>
-                        <div className="text-sm font-bold text-foreground mt-1">
-                          {selectedRecord.relatedDocs?.fstbNos && selectedRecord.relatedDocs.fstbNos.length > 0 ? (
-                            selectedRecord.relatedDocs.fstbNos.map((fstb, i) => (
-                              <div key={i} className="text-emerald-600 dark:text-emerald-400 font-mono">{fstb}</div>
-                            ))
-                          ) : (
-                            <span className="text-muted-foreground italic text-xs">Belum ada FSTB</span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* TTB */}
-                      <div className="p-3 rounded-lg border border-border bg-muted/30">
-                        <div className="text-[11px] font-semibold text-muted-foreground uppercase">Nomor TTB (Tanda Terima Barang)</div>
-                        <div className="text-sm font-bold text-foreground mt-1">
-                          {selectedRecord.relatedDocs?.ttbNos && selectedRecord.relatedDocs.ttbNos.length > 0 ? (
-                            selectedRecord.relatedDocs.ttbNos.map((ttb, i) => (
-                              <div key={i} className="text-blue-600 dark:text-blue-400 font-mono">{ttb}</div>
-                            ))
-                          ) : (
-                            <span className="text-muted-foreground italic text-xs">Belum ada TTB</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               )}
             </div>
