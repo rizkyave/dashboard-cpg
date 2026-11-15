@@ -3458,41 +3458,8 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                       </div>
                     )}
 
-                    {/* Toolbar Baris URL & Buka Tab Baru */}
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border border-border text-xs">
-                      <div className="truncate mr-3">
-                        <span className="font-semibold text-foreground">
-                          {pdfViewMode === 'signed' && isApproved
-                            ? 'Berkas PDF Bertanda Tangan Logistik: '
-                            : 'Berkas PDF Asli e-FPB (Pemohon): '}
-                        </span>
-                        <span className="text-muted-foreground font-mono text-[11px]">{activePdfUrl}</span>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <a
-                          href={`https://e-fpb.cindaragroup.com/FilesList?psearch=${encodeURIComponent(cleanFpb)}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-lg bg-amber-500/15 text-amber-700 dark:text-amber-400 hover:bg-amber-500/25 border border-amber-500/30 transition shadow-xs"
-                          title="Buka baris dokumen ini di web e-FPB FilesList"
-                        >
-                          <ExternalLink className="size-3.5" />
-                          Buka Baris e-FPB
-                        </a>
-                        <a
-                          href={activePdfUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition shadow-xs"
-                        >
-                          <ExternalLink className="size-3.5" />
-                          Buka di Tab Baru
-                        </a>
-                      </div>
-                    </div>
-
                     {/* PDF Viewer Iframe */}
-                    <div className="w-full h-[520px] rounded-xl border border-border overflow-hidden bg-muted/20">
+                    <div className="w-full h-[580px] rounded-xl border border-border overflow-hidden bg-muted/20">
                       <iframe
                         src={activePdfUrl}
                         title={`Dokumen Resmi FPB ${selectedRecord.fpbNo}`}

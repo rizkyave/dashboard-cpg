@@ -1959,19 +1959,33 @@
   {
     "id": "fpb-rev-CPL-FPB-26-0005148",
     "fpbNo": "CPL-FPB-26-0005148",
-    "originalFpb": "CPL/LOG/FPB/26-0005148",
+    "originalFpb": "CPL-FPB-26-0005148",
     "entity": "CPL",
-    "armada": "SPOB OCEAN MAMUJU",
-    "date": "03/11/26",
-    "purpose": "Kebutuhan Operasional SPOB OCEAN MAMUJU",
+    "armada": "SV TWINSISTER 305",
+    "date": "3 Nop 2026",
+    "purpose": "U/ PENGGANTIAN YANG RUSAK",
     "efpbStatus": "Approved",
-    "isReceivedLogistik": true,
-    "pdfUrl": "https://e-fpb.cindaragroup.com/files/Approved_rev_sign_CPL-FPB-26-0005148.pdf",
+    "isReceivedLogistik": false,
+    "pdfUrl": "/api/review-fpb/pdf?fpbNo=CPL-FPB-26-0005148&type=signed",
     "reviewStatus": "PENDING_REVIEW",
     "urgency": "NORMAL",
     "picPurchasing": "-",
-    "reviewNotes": "",
-    "items": [],
+    "reviewNotes": "Diekstrak dari unggahan berkas PDF fisik (Multi-Upload)",
+    "items": [
+      {
+        "no": 1,
+        "itemCode": "ACC00501002-MXR",
+        "itemName": "ACCU CHARGER PORTABLE CB-50 (MAXTRON)",
+        "qty": 1,
+        "unit": "UNT",
+        "description": "U/ PENGGANTIAN YANG RUSAK",
+        "priority": "P2",
+        "stockAvailable": 0,
+        "stockStatus": "OUT_OF_STOCK",
+        "decision": "PO",
+        "notes": "Menunggu review tim purchasing"
+      }
+    ],
     "attachments": [
       {
         "id": "efpb-att-CPL-FPB-26-0005148-2",
@@ -1990,15 +2004,18 @@
       "fstbNos": [],
       "ttbNos": []
     },
-    "updatedAt": "2026-11-14T15:13:00.214Z",
-    "createdAt": "2026-11-04T06:08:44.948Z",
-    "priorityLevel": "P3",
-    "slaTargetDate": "03/12/26",
-    "slaDaysRemaining": 18,
+    "updatedAt": "2026-11-15T07:11:55.463Z",
+    "createdAt": "2026-11-15T07:07:31.773Z",
+    "priorityLevel": "P2",
+    "slaTargetDate": "",
+    "slaDaysRemaining": 0,
     "slaStatus": "ON_TRACK",
-    "isArchived": true,
+    "isArchived": false,
     "archivedAt": "2026-11-14T15:13:00.214Z",
-    "archivedBy": "Administrator CPG"
+    "archivedBy": "Administrator CPG",
+    "pchLogistik": "-",
+    "reviewedBy": "Administrator CPG",
+    "reviewedAt": "2026-11-15T07:11:55.463Z"
   },
   {
     "id": "fpb-rev-GAJ-FPB-26-0001147",
