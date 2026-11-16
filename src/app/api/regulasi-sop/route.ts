@@ -9,6 +9,7 @@ import {
   getR2FileUrl,
 } from '@/utils/r2Client';
 import { RegulasiSopData, SopDocument, SopFolder } from '@/types/regulasiSop';
+import { getPersistentStorageDir } from '@/utils/persistentStorage';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -168,12 +169,18 @@ export async function POST(req: NextRequest) {
         const safeDocId = docNumber.replace(/[^a-zA-Z0-9_-]/g, '_');
         const r2Key = `sop-documents/${safeDocId}_${Date.now()}.${ext}`;
 
-        // Simpan ke disk lokal
+        // Simpan ke disk lokal dan penyimpanan permanen Hostinger
         try {
-          await fs.mkdir(LOCAL_UPLOADS_DIR, { recursive: true });
-          const localFilePath = path.join(LOCAL_UPLOADS_DIR, `${safeDocId}_${Date.now()}.${ext}`);
-          await fs.writeFile(localFilePath, buffer);
-          fileUrl = `/uploads/sop-documents/${path.basename(localFilePath)}`;
+          const targetDirs = [
+            LOCAL_UPLOADS_DIR,
+            path.join(getPersistentStorageDir(), 'sop-documents'),
+          ];
+          for (const d of targetDirs) {
+            await fs.mkdir(d, { recursive: true });
+            const localFilePath = path.join(d, `${safeDocId}_${Date.now()}.${ext}`);
+            await fs.writeFile(localFilePath, buffer);
+            fileUrl = `/uploads/sop-documents/${path.basename(localFilePath)}`;
+          }
         } catch (e) {
           console.warn('Gagal simpan file SOP ke disk lokal:', e);
         }

@@ -4,6 +4,7 @@ import path from 'path';
 import { sanitizeTtbNumber, formatTtbFilename, extractTtbComponents } from '@/utils/ttbRename';
 import { validateUploadDocumentType } from '@/utils/documentTypeGuard';
 import { getPhotosDir } from '@/utils/ttbPhotosDir';
+import { getPersistentStorageDir } from '@/utils/persistentStorage';
 import { UploadedTtbItem, UploadTtbResponse } from '@/types/ttbUpload';
 import { stampTtbPdf, formatTtbStampDate } from '@/utils/ttbStamper';
 import { getSignatureForUploader } from '@/utils/uploaderSignatures';
@@ -719,12 +720,20 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
         }
       }
 
-      // 2. Simpan salinan ke local storage jika diizinkan sistem file
+      // 2. Simpan ke disk lokal dan penyimpanan permanen Hostinger
       try {
-        const localFilePath = path.join(targetPhotosDir, renamedFileName);
-        await fs.writeFile(localFilePath, buffer);
+        const subfolder = isPdf ? 'ttb-documents' : 'ttb-photos';
+        const targetPaths = [
+          path.join(targetPhotosDir, renamedFileName),
+          path.join(getPersistentStorageDir(), subfolder, renamedFileName),
+          path.join(process.cwd(), 'public', 'uploads', subfolder, renamedFileName),
+        ];
+        for (const p of targetPaths) {
+          await fs.mkdir(path.dirname(p), { recursive: true });
+          await fs.writeFile(p, buffer);
+        }
       } catch {
-        // Non-fatal di serverless
+        // Non-fatal
       }
 
       const record: UploadedTtbItem = {

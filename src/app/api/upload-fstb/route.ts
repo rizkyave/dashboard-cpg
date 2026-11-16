@@ -20,6 +20,7 @@ import {
 import { AppNotification } from '@/types/notification';
 import { getWaConfig } from '@/utils/waConfigStorage';
 import { sendViaWaGateway } from '@/utils/whatsappNotifier';
+import { getPersistentStorageDir } from '@/utils/persistentStorage';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -382,10 +383,18 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      // Simpan salinan lokal
+      // Simpan ke disk lokal dan penyimpanan permanen Hostinger
       try {
-        const localFilePath = path.join(targetPhotosDir, renamedFileName);
-        await fs.writeFile(localFilePath, buffer);
+        const subfolder = isPdf ? 'fstb-documents' : 'fstb-photos';
+        const targetPaths = [
+          path.join(targetPhotosDir, renamedFileName),
+          path.join(getPersistentStorageDir(), subfolder, renamedFileName),
+          path.join(process.cwd(), 'public', 'uploads', subfolder, renamedFileName),
+        ];
+        for (const p of targetPaths) {
+          await fs.mkdir(path.dirname(p), { recursive: true });
+          await fs.writeFile(p, buffer);
+        }
       } catch {
         // Non-fatal
       }
