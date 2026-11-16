@@ -66,11 +66,18 @@ async function resolveLocalOrR2Pdf(
     }
   }
 
-  // 2. Cek penyimpanan file lokal di public/uploads
+  // 2. Cek penyimpanan file lokal di public/uploads dan public
   const localCandidates = [
     type === 'signed' ? path.join(process.cwd(), 'public', 'uploads', 'fpb-signed', `${normalizedFpb}.pdf`) : null,
+    type === 'signed' ? path.join(process.cwd(), 'public', 'uploads', 'fpb signed', `${normalizedFpb}.pdf`) : null,
+    type === 'signed' ? path.join(process.cwd(), 'public', 'fpb-signed', `${normalizedFpb}.pdf`) : null,
+    type === 'signed' ? path.join(process.cwd(), 'public', 'fpb signed', `${normalizedFpb}.pdf`) : null,
     path.join(process.cwd(), 'public', 'uploads', 'fpb-pdfs', `${normalizedFpb}.pdf`),
+    path.join(process.cwd(), 'public', 'fpb-pdfs', `${normalizedFpb}.pdf`),
     path.join(process.cwd(), 'public', 'uploads', 'fpb-signed', `${normalizedFpb}.pdf`),
+    path.join(process.cwd(), 'public', 'uploads', 'fpb signed', `${normalizedFpb}.pdf`),
+    path.join(process.cwd(), 'public', 'fpb-signed', `${normalizedFpb}.pdf`),
+    path.join(process.cwd(), 'public', 'fpb signed', `${normalizedFpb}.pdf`),
     path.join(LOCAL_PDF_DIR, `${normalizedFpb}.pdf`),
     path.join(LOCAL_PDF_DIR, `Approved_rev_sign_${normalizedFpb}.pdf`),
     path.join(LOCAL_PDF_DIR, `logistik_Approved_rev_sign_${normalizedFpb}.pdf`),

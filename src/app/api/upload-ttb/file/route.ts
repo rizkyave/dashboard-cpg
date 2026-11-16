@@ -33,11 +33,14 @@ export async function GET(req: NextRequest) {
     return new NextResponse('Format file tidak didukung.', { status: 415 });
   }
 
-  // 1. Coba baca dari disk lokal (folder public/uploads dan photos_TTB)
+  // 1. Coba baca dari disk lokal (folder public/uploads, public, dan photos_TTB)
   const candidateLocalPaths = [
     path.join(process.cwd(), 'public', 'uploads', 'ttb-documents', name),
+    path.join(process.cwd(), 'public', 'ttb-documents', name),
     path.join(process.cwd(), 'public', 'uploads', 'ttb-photos', name),
+    path.join(process.cwd(), 'public', 'ttb-photos', name),
     path.join(process.cwd(), 'public', 'uploads', name),
+    path.join(process.cwd(), 'public', name),
     path.join(getPhotosDir(), name),
     path.join(process.cwd(), 'src', 'app', 'public', 'photos_TTB', name),
   ];

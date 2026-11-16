@@ -25,9 +25,10 @@ export async function GET(req: NextRequest) {
   const mime = MIME[path.extname(name).toLowerCase()];
   if (!mime) return new NextResponse('Format tidak didukung', { status: 415 });
 
-  // 1. Coba baca dari disk lokal terlebih dahulu (public/uploads dan getPhotosDir)
+  // 1. Coba baca dari disk lokal terlebih dahulu (public/uploads, public/ttb-photos, dan getPhotosDir)
   const candidatePaths = [
     path.join(process.cwd(), 'public', 'uploads', 'ttb-photos', name),
+    path.join(process.cwd(), 'public', 'ttb-photos', name),
     path.join(getPhotosDir(), name),
     path.join(process.cwd(), 'src', 'app', 'public', 'photos_TTB', name),
   ];
