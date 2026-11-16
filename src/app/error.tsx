@@ -3,7 +3,7 @@
 import React, { useEffect } from 'react';
 import Link from 'next/link';
 
-export default function GlobalError({
+export default function AppError({
   error,
   reset,
 }: {
