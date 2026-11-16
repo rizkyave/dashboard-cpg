@@ -274,22 +274,22 @@ export default function BottomNewsTicker({ onCollapsedChange }: BottomNewsTicker
     switch (category) {
       case 'STATUS TTB':
         return severity === 'success' ? (
-          <PackageCheck className="size-3.5 text-emerald-400 shrink-0" />
+          <PackageCheck className="size-4 text-emerald-400 shrink-0" />
         ) : (
-          <Truck className="size-3.5 text-amber-400 shrink-0" />
+          <Truck className="size-4 text-amber-400 shrink-0" />
         );
       case 'JADWAL PENGANTARAN':
-        return <CalendarCheck className="size-3.5 text-blue-400 shrink-0" />;
+        return <CalendarCheck className="size-4 text-blue-400 shrink-0" />;
       case 'ARMADA':
-        return <Ship className="size-3.5 text-cyan-400 shrink-0" />;
+        return <Ship className="size-4 text-cyan-400 shrink-0" />;
       case 'CUACA':
-        return <Wind className="size-3.5 text-teal-400 shrink-0" />;
+        return <Wind className="size-4 text-teal-400 shrink-0" />;
       case 'SOP CPG':
-        return <FileText className="size-3.5 text-violet-400 shrink-0" />;
+        return <FileText className="size-4 text-violet-400 shrink-0" />;
       case 'SAFETY':
-        return <ShieldCheck className="size-3.5 text-purple-400 shrink-0" />;
+        return <ShieldCheck className="size-4 text-purple-400 shrink-0" />;
       default:
-        return <Radio className="size-3.5 text-cyan-400 shrink-0" />;
+        return <Radio className="size-4 text-cyan-400 shrink-0" />;
     }
   };
 
@@ -356,7 +356,7 @@ export default function BottomNewsTicker({ onCollapsedChange }: BottomNewsTicker
     <>
       {/* Ticker Bar Full Width di Bawah Layar */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-30 h-8 sm:h-9 bg-slate-950/92 border-t border-slate-800/80 backdrop-blur-xl flex items-center shadow-[0_-8px_25px_rgba(0,0,0,0.5)] select-none transition-all duration-300"
+        className="fixed bottom-0 left-0 right-0 z-30 h-9 sm:h-10 bg-slate-950/92 border-t border-slate-800/80 backdrop-blur-xl flex items-center shadow-[0_-8px_25px_rgba(0,0,0,0.5)] select-none transition-all duration-300"
         role="region"
         aria-label="CPG Live Fleet & Maritime Weather Ticker"
       >
@@ -375,7 +375,7 @@ export default function BottomNewsTicker({ onCollapsedChange }: BottomNewsTicker
                 }`}
               />
             </span>
-            <span className="text-[10px] sm:text-[11px] font-mono font-bold tracking-wider text-cyan-300 uppercase whitespace-nowrap">
+            <span className="text-[11px] sm:text-xs font-mono font-bold tracking-wider text-cyan-300 uppercase whitespace-nowrap">
               LIVE FEED
             </span>
           </div>
@@ -383,10 +383,10 @@ export default function BottomNewsTicker({ onCollapsedChange }: BottomNewsTicker
           {/* Offline / Cached Pill */}
           {(!isOnline || isCached) && (
             <span
-              className="hidden md:inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono bg-amber-500/15 border border-amber-500/30 text-amber-300"
+              className="hidden md:inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono bg-amber-500/15 border border-amber-500/30 text-amber-300"
               title={cacheTimestamp ? `Data tersimpan offline (${cacheTimestamp})` : 'Mode offline aktif'}
             >
-              <WifiOff className="size-2.5" />
+              <WifiOff className="size-3" />
               OFFLINE CACHE
             </span>
           )}
@@ -398,7 +398,7 @@ export default function BottomNewsTicker({ onCollapsedChange }: BottomNewsTicker
           title="Klik pada kabar untuk melihat detail lengkap (Hover mouse untuk jeda gerakan)"
         >
           <div
-            className={`animate-marquee flex items-center gap-6 sm:gap-8 px-4 ${
+            className={`animate-marquee flex items-center gap-7 sm:gap-9 px-4 ${
               isPaused ? 'is-paused' : ''
             }`}
             style={{
@@ -410,14 +410,14 @@ export default function BottomNewsTicker({ onCollapsedChange }: BottomNewsTicker
               <div
                 key={`${item.id}-${index}`}
                 onClick={() => setSelectedItem(item)}
-                className="flex items-center gap-2 text-xs text-slate-300 hover:text-white transition group/item shrink-0 cursor-pointer"
+                className="flex items-center gap-2.5 text-xs sm:text-[13px] text-slate-200 hover:text-white transition group/item shrink-0 cursor-pointer"
               >
                 {/* Category Icon */}
                 {renderCategoryIcon(item.category, item.severity)}
 
                 {/* Badge Category */}
                 <span
-                  className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold border ${getBadgeClass(
+                  className={`px-2 py-0.5 rounded text-[11px] sm:text-xs font-mono font-semibold border ${getBadgeClass(
                     item.category,
                     item.severity
                   )}`}
@@ -426,7 +426,7 @@ export default function BottomNewsTicker({ onCollapsedChange }: BottomNewsTicker
                 </span>
 
                 {/* Title */}
-                <span className="font-semibold text-white group-hover/item:text-cyan-300 transition-colors">
+                <span className="font-bold text-white group-hover/item:text-cyan-300 transition-colors">
                   {item.title}
                 </span>
 
@@ -434,13 +434,13 @@ export default function BottomNewsTicker({ onCollapsedChange }: BottomNewsTicker
                 <span className="text-slate-500">•</span>
 
                 {/* Content */}
-                <span className="text-slate-300 text-[11px] max-w-[420px] truncate group-hover/item:text-slate-100">
+                <span className="text-slate-200 group-hover/item:text-white max-w-[520px] truncate leading-none">
                   {item.content}
                 </span>
 
                 {/* Optional Highlight Pill */}
                 {item.highlight && (
-                  <span className="hidden sm:inline-block px-1.5 py-0.5 rounded-full text-[9px] font-mono bg-slate-800/90 text-cyan-300 border border-slate-700/80">
+                  <span className="hidden sm:inline-block px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-mono bg-slate-800/95 text-cyan-300 border border-slate-700/80 shadow-xs">
                     {item.highlight}
                   </span>
                 )}

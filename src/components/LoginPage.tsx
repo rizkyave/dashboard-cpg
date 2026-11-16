@@ -694,7 +694,7 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
       {/* Floating Bottom Fleet Status & Live Wallpaper Switcher */}
       <div
         className={`fixed ${
-          isTickerCollapsed ? 'bottom-3 sm:bottom-4' : 'bottom-11 sm:bottom-12'
+          isTickerCollapsed ? 'bottom-3 sm:bottom-4' : 'bottom-12 sm:bottom-13'
         } left-3 sm:left-6 z-20 flex items-center gap-1.5 transition-all duration-300`}
       >
         {/* Toggle Button (Area Kotak Putih / Cyan Pulse Dot) */}
