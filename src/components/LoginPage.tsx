@@ -467,7 +467,7 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
                   title={ent.name}
                 >
                   <span className="font-bold font-mono">{ent.code}</span>
-                  <span className="text-slate-300 hidden sm:inline text-[10px]">&bull; {ent.name.replace('PT ', '')}</span>
+                  <span className="text-slate-300 hidden sm:inline text-[10px]">• {ent.name.replace('PT ', '')}</span>
                 </div>
               ))}
             </div>
@@ -494,7 +494,7 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
                 CPG Procurement Hub
               </h2>
               <p className="text-xs text-slate-400 mt-1">
-                PT Cindara Pratama Lines &bull; Integrated Supply Chain
+                PT Cindara Pratama Lines • Integrated Supply Chain
               </p>
             </div>
 
@@ -681,7 +681,7 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
             <div className="mt-5 pt-4 border-t border-slate-800/90 space-y-1.5">
               <div className="flex items-center justify-center gap-1.5 text-[11px] font-mono text-slate-400">
                 <Shield className="size-3.5 text-cyan-400 shrink-0" />
-                <span>Security Patch SEC-2026 &bull; Zero-Trust Protocol</span>
+                <span>Security Patch SEC-2026 • Zero-Trust Protocol</span>
               </div>
               <p className="text-[10px] text-slate-500 text-center leading-relaxed">
                 Akses terbatas hanya untuk personel PT Cindara Pratama Lines yang berwenang.
@@ -739,7 +739,7 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
             <span className="font-semibold text-white group-hover:text-cyan-300 transition whitespace-nowrap">
               {FLEET_BACKGROUNDS[bgIndex].title}
             </span>
-            <span className="text-slate-400 hidden sm:inline whitespace-nowrap">&bull; {FLEET_BACKGROUNDS[bgIndex].category}</span>
+            <span className="text-slate-400 hidden sm:inline whitespace-nowrap">• {FLEET_BACKGROUNDS[bgIndex].category}</span>
             <RotateCcw className="size-3 text-slate-400 group-hover:rotate-180 transition-transform duration-500 shrink-0 ml-0.5" />
           </button>
 
@@ -804,9 +804,9 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
               </p>
               <div className="p-3 rounded-xl bg-slate-800/60 border border-slate-700/60 text-[11px] space-y-1">
                 <div className="font-semibold text-cyan-300">Tim IT &amp; Administrator CPG</div>
-                <div className="text-slate-400">&bull; Email: <span className="font-mono text-slate-300">admin@cindaragroup.com</span></div>
-                <div className="text-slate-400">&bull; PIC Procurement: <span className="font-mono text-slate-300">Pak Hermansyah (Ext. 102)</span></div>
-                <div className="text-slate-400">&bull; Operasional: <span className="text-slate-300">Kantor Pusat CPG Balikpapan</span></div>
+                <div className="text-slate-400">• Email: <span className="font-mono text-slate-300">admin@cindaragroup.com</span></div>
+                <div className="text-slate-400">• PIC Procurement: <span className="font-mono text-slate-300">Pak Hermansyah (Ext. 102)</span></div>
+                <div className="text-slate-400">• Operasional: <span className="text-slate-300">Kantor Pusat CPG Balikpapan</span></div>
               </div>
             </div>
 

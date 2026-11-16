@@ -345,7 +345,7 @@ export default function BottomNewsTicker({ onCollapsedChange }: BottomNewsTicker
           <span className="text-[11px] font-mono font-semibold tracking-wide text-cyan-300 group-hover:text-cyan-200">
             CPG LIVE FEED
           </span>
-          <span className="text-[10px] text-slate-400 hidden sm:inline">&bull; {items.length} Update</span>
+          <span className="text-[10px] text-slate-400 hidden sm:inline">• {items.length} Update</span>
           <ChevronUp className="size-3.5 text-slate-400 group-hover:text-cyan-300 transition-transform" />
         </button>
       </div>
@@ -431,7 +431,7 @@ export default function BottomNewsTicker({ onCollapsedChange }: BottomNewsTicker
                 </span>
 
                 {/* Separator */}
-                <span className="text-slate-500">&bull;</span>
+                <span className="text-slate-500">•</span>
 
                 {/* Content */}
                 <span className="text-slate-300 text-[11px] max-w-[420px] truncate group-hover/item:text-slate-100">
