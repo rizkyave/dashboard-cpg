@@ -23,6 +23,7 @@ import {
   CalendarCheck,
   PackageCheck,
   Navigation,
+  Gauge,
 } from 'lucide-react';
 import { NewsTickerItem, NewsTickerResponse } from '@/types/newsTicker';
 
@@ -142,6 +143,7 @@ export default function BottomNewsTicker({ onCollapsedChange }: BottomNewsTicker
   const [isCached, setIsCached] = useState<boolean>(false);
   const [cacheTimestamp, setCacheTimestamp] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState<boolean>(false);
+  const [speedMode, setSpeedMode] = useState<'relaxed' | 'slow' | 'normal'>('relaxed');
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
   const [selectedItem, setSelectedItem] = useState<NewsTickerItem | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -399,6 +401,10 @@ export default function BottomNewsTicker({ onCollapsedChange }: BottomNewsTicker
             className={`animate-marquee flex items-center gap-6 sm:gap-8 px-4 ${
               isPaused ? 'is-paused' : ''
             }`}
+            style={{
+              animationDuration:
+                speedMode === 'relaxed' ? '100s' : speedMode === 'slow' ? '140s' : '70s',
+            }}
           >
             {displayItems.map((item, index) => (
               <div
@@ -446,7 +452,7 @@ export default function BottomNewsTicker({ onCollapsedChange }: BottomNewsTicker
           </div>
         </div>
 
-        {/* Right Controls: Pause/Play, Refresh, Collapse */}
+        {/* Right Controls: Pause/Play, Speed Toggle, Refresh, Collapse */}
         <div className="flex items-center gap-1 px-2 h-full bg-slate-900/90 border-l border-slate-800/90 shrink-0 z-10">
           {/* Pause / Play */}
           <button
@@ -456,6 +462,29 @@ export default function BottomNewsTicker({ onCollapsedChange }: BottomNewsTicker
             title={isPaused ? 'Lanjutkan gerakan teks (Play)' : 'Jeda gerakan teks (Pause)'}
           >
             {isPaused ? <Play className="size-3.5" /> : <Pause className="size-3.5" />}
+          </button>
+
+          {/* Speed Toggle */}
+          <button
+            type="button"
+            onClick={() =>
+              setSpeedMode((prev) =>
+                prev === 'relaxed' ? 'slow' : prev === 'slow' ? 'normal' : 'relaxed'
+              )
+            }
+            className="px-1.5 py-0.5 rounded hover:bg-slate-800 text-[10px] font-mono text-slate-400 hover:text-cyan-300 transition cursor-pointer flex items-center gap-1"
+            title={`Kecepatan: ${
+              speedMode === 'relaxed'
+                ? 'Santai / Perlahan (100 detik)'
+                : speedMode === 'slow'
+                ? 'Sangat Lambat (140 detik)'
+                : 'Cepat (70 detik)'
+            } • Klik untuk mengganti kecepatan`}
+          >
+            <Gauge className="size-3 text-cyan-400" />
+            <span className="hidden sm:inline">
+              {speedMode === 'relaxed' ? 'Santai' : speedMode === 'slow' ? 'Pelan' : 'Cepat'}
+            </span>
           </button>
 
           {/* Refresh */}
