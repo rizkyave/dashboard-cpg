@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { promises as fs } from 'fs';
+import path from 'path';
 import { INITIAL_PROCUREMENT_DATA, INITIAL_ARMADA_DATA } from '@/data/initialData';
 import { ProcurementItem, ArmadaItem } from '@/types/procurement';
 import {
@@ -15,6 +17,10 @@ const R2_PROCUREMENT_KEY = 'dashboard-metadata/procurement-data.json';
 const R2_ARMADA_KEY = 'dashboard-metadata/armada-data.json';
 const R2_DASHBOARD_META_KEY = 'dashboard-metadata/dashboard-meta.json';
 
+const LOCAL_PROCUREMENT_PATH = path.join(process.cwd(), 'public', 'uploads', 'dashboard-metadata', 'procurement-data.json');
+const LOCAL_ARMADA_PATH = path.join(process.cwd(), 'public', 'uploads', 'dashboard-metadata', 'armada-data.json');
+const LOCAL_META_PATH = path.join(process.cwd(), 'public', 'uploads', 'dashboard-metadata', 'dashboard-meta.json');
+
 interface DashboardMeta {
   lastUpdated: string;
   totalProcurement: number;
@@ -27,10 +33,19 @@ const R2_PUBLIC_BASE =
   'https://pub-9a40b24be68549b19c6eaec0f2542c0b.r2.dev';
 
 /**
- * Baca dataset Procurement dari Cloudflare R2
+ * Baca dataset Procurement dari disk lokal Hostinger atau Cloudflare R2
  */
 async function getStoredProcurementFromR2(): Promise<ProcurementItem[] | null> {
-  // Prioritas 1: Ambil langsung dari Public CDN R2 (Sangat cepat, 0ms CPU limit)
+  // Prioritas 1: Baca dari disk lokal Hostinger
+  try {
+    const raw = await fs.readFile(LOCAL_PROCUREMENT_PATH, 'utf8');
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return parsed;
+    }
+  } catch {}
+
+  // Prioritas 2: Ambil langsung dari Public CDN R2 (Sangat cepat, 0ms CPU limit)
   if (R2_PUBLIC_BASE) {
     try {
       const res = await fetch(`${R2_PUBLIC_BASE}/${R2_PROCUREMENT_KEY}`, { cache: 'no-store' });
@@ -45,7 +60,7 @@ async function getStoredProcurementFromR2(): Promise<ProcurementItem[] | null> {
     }
   }
 
-  // Prioritas 2: Fallback ke S3 SDK jika public CDN tidak tersedia
+  // Prioritas 3: Fallback ke S3 SDK jika public CDN tidak tersedia
   if (!isR2Configured()) return null;
   try {
     const obj = await getObjectFromR2(R2_PROCUREMENT_KEY);
@@ -63,10 +78,19 @@ async function getStoredProcurementFromR2(): Promise<ProcurementItem[] | null> {
 }
 
 /**
- * Baca dataset Armada dari Cloudflare R2
+ * Baca dataset Armada dari disk lokal Hostinger atau Cloudflare R2
  */
 async function getStoredArmadaFromR2(): Promise<ArmadaItem[] | null> {
-  // Prioritas 1: Ambil langsung dari Public CDN R2 (Sangat cepat, 0ms CPU limit)
+  // Prioritas 1: Baca dari disk lokal Hostinger
+  try {
+    const raw = await fs.readFile(LOCAL_ARMADA_PATH, 'utf8');
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return parsed;
+    }
+  } catch {}
+
+  // Prioritas 2: Ambil langsung dari Public CDN R2 (Sangat cepat, 0ms CPU limit)
   if (R2_PUBLIC_BASE) {
     try {
       const res = await fetch(`${R2_PUBLIC_BASE}/${R2_ARMADA_KEY}`, { cache: 'no-store' });
@@ -81,7 +105,7 @@ async function getStoredArmadaFromR2(): Promise<ArmadaItem[] | null> {
     }
   }
 
-  // Prioritas 2: Fallback ke S3 SDK
+  // Prioritas 3: Fallback ke S3 SDK
   if (!isR2Configured()) return null;
   try {
     const obj = await getObjectFromR2(R2_ARMADA_KEY);

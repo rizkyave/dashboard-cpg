@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { promises as fs } from 'fs';
+import path from 'path';
 import { KapalPosisiItem, KapalPosisiSummary } from '@/types/procurement';
 import {
   isR2Configured,
@@ -14,6 +16,8 @@ const DEFAULT_BASE_URL = 'https://cindara.beruangmadutech.web.id';
 const DEFAULT_USERNAME = 'logistik';
 const DEFAULT_PASSWORD = '12345';
 const R2_POSISI_KAPAL_KEY = 'dashboard-metadata/posisi-kapal.json';
+const LOCAL_POSISI_PATH = path.join(process.cwd(), 'src', 'data', 'posisi-kapal.json');
+const UPLOADS_POSISI_PATH = path.join(process.cwd(), 'public', 'uploads', 'dashboard-metadata', 'posisi-kapal.json');
 
 interface ParsedDailyResult {
   items: KapalPosisiItem[];
@@ -21,39 +25,67 @@ interface ParsedDailyResult {
 }
 
 async function loadFromR2(): Promise<ParsedDailyResult | null> {
-  if (!isR2Configured()) return null;
-  try {
-    const obj = await getObjectFromR2(R2_POSISI_KAPAL_KEY);
-    if (obj && obj.body) {
-      const text = Buffer.from(obj.body).toString('utf8');
-      const parsed = JSON.parse(text);
+  // 1. Coba baca dari disk lokal Hostinger terlebih dahulu
+  for (const localP of [LOCAL_POSISI_PATH, UPLOADS_POSISI_PATH]) {
+    try {
+      const raw = await fs.readFile(localP, 'utf8');
+      const parsed = JSON.parse(raw);
       if (parsed && Array.isArray(parsed.items) && parsed.items.length > 0) {
         return {
           items: parsed.items,
           summary: parsed.summary,
         };
       }
-    }
-  } catch (err) {
-    console.warn('Gagal membaca posisi-kapal dari Cloudflare R2:', err);
+    } catch {}
   }
+
+  // 2. Fallback Cloudflare R2
+  if (isR2Configured()) {
+    try {
+      const obj = await getObjectFromR2(R2_POSISI_KAPAL_KEY);
+      if (obj && obj.body) {
+        const text = Buffer.from(obj.body).toString('utf8');
+        const parsed = JSON.parse(text);
+        if (parsed && Array.isArray(parsed.items) && parsed.items.length > 0) {
+          return {
+            items: parsed.items,
+            summary: parsed.summary,
+          };
+        }
+      }
+    } catch (err) {
+      console.warn('Gagal membaca posisi-kapal dari Cloudflare R2:', err);
+    }
+  }
+
   return null;
 }
 
 async function saveToR2(items: KapalPosisiItem[], summary: KapalPosisiSummary): Promise<boolean> {
-  if (!isR2Configured()) return false;
-  try {
-    const payload = JSON.stringify({ items, summary, savedAt: new Date().toISOString() });
-    await uploadToR2({
-      key: R2_POSISI_KAPAL_KEY,
-      body: Buffer.from(payload, 'utf8'),
-      contentType: 'application/json',
-    });
-    return true;
-  } catch (err) {
-    console.warn('Gagal menyimpan posisi-kapal ke Cloudflare R2:', err);
-    return false;
+  const payload = JSON.stringify({ items, summary, savedAt: new Date().toISOString() });
+
+  // Simpan ke disk lokal Hostinger
+  for (const localP of [LOCAL_POSISI_PATH, UPLOADS_POSISI_PATH]) {
+    try {
+      await fs.mkdir(path.dirname(localP), { recursive: true });
+      await fs.writeFile(localP, payload, 'utf8');
+    } catch {}
   }
+
+  // Simpan ke R2 jika aktif
+  if (isR2Configured()) {
+    try {
+      await uploadToR2({
+        key: R2_POSISI_KAPAL_KEY,
+        body: Buffer.from(payload, 'utf8'),
+        contentType: 'application/json',
+      });
+      return true;
+    } catch (err) {
+      console.warn('Gagal menyimpan posisi-kapal ke Cloudflare R2:', err);
+    }
+  }
+  return true;
 }
 
 function parseDailyReportHtml(html: string): ParsedDailyResult {
