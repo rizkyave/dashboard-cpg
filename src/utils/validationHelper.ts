@@ -299,6 +299,7 @@ export function getUserActionForRecord(
         isValid: isLogSpv,
         hasAuthority:
           isAdmin ||
+          role === 'spv_logistik' ||
           role === 'supervisor' ||
           role === 'manager' ||
           ((jabatan.includes('supervisor') ||
@@ -312,12 +313,18 @@ export function getUserActionForRecord(
         key: 'acknowledgedBy',
         code: 'PCH MGR',
         label: 'PCH MGR',
-        roleName: 'Purchasing Manager',
+        roleName: 'Purchasing Manager / Supervisi Purchasing',
         isValid: isPchMgr,
         hasAuthority:
           isAdmin ||
+          role === 'spv_purchasing' ||
           role === 'manager' ||
-          ((jabatan.includes('manager') || jabatan.includes('head')) &&
+          role === 'supervisor' ||
+          ((jabatan.includes('manager') ||
+            jabatan.includes('head') ||
+            jabatan.includes('spv') ||
+            jabatan.includes('supervisor') ||
+            jabatan.includes('lead')) &&
             (jabatan.includes('purchasing') ||
               jabatan.includes('procurement') ||
               dept.includes('procurement') ||
@@ -425,10 +432,11 @@ export function getUserActionForRecord(
       isValid: isPchSpv,
       hasAuthority:
         isAdmin ||
+        role === 'spv_purchasing' ||
         role === 'supervisor' ||
         role === 'manager' ||
-        ((jabatan.includes('supervisor') || jabatan.includes('spv')) &&
-          (jabatan.includes('purchasing') || dept.includes('purchasing'))),
+        ((jabatan.includes('supervisor') || jabatan.includes('spv') || jabatan.includes('lead') || jabatan.includes('head') || jabatan.includes('manager')) &&
+          (jabatan.includes('purchasing') || dept.includes('purchasing') || jabatan.includes('procurement') || dept.includes('procurement'))),
     },
     {
       key: 'receivedBy',
@@ -439,6 +447,7 @@ export function getUserActionForRecord(
       hasAuthority:
         isAdmin ||
         role === 'staf_ttb' ||
+        role === 'staf_logistik' ||
         jabatan.includes('logistik') ||
         dept.includes('logistik'),
     },
@@ -450,9 +459,10 @@ export function getUserActionForRecord(
       isValid: isLogSpv,
       hasAuthority:
         isAdmin ||
+        role === 'spv_logistik' ||
         role === 'supervisor' ||
         role === 'manager' ||
-        ((jabatan.includes('supervisor') || jabatan.includes('spv')) &&
+        ((jabatan.includes('supervisor') || jabatan.includes('spv') || jabatan.includes('lead') || jabatan.includes('head') || jabatan.includes('manager')) &&
           (jabatan.includes('logistik') || dept.includes('logistik'))),
     },
   ];

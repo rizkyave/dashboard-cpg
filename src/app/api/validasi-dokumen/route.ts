@@ -1187,6 +1187,138 @@ export async function POST(req: NextRequest) {
               signatureDataUrl: resolvedSignatureDataUrl,
             };
           }
+        } else if (record.docType === 'FSTB') {
+          record.fstbSlots = record.fstbSlots || {
+            deliveredBy: { isValidated: false },
+            approvedBy: { isValidated: false },
+            receivedBy: { isValidated: false },
+            acknowledgedBy: { isValidated: false },
+          };
+
+          // Tentukan target slot: cari slot pertama yang belum valid sesuai urutan FSTB:
+          // 1. deliveredBy (PCH STF) -> 2. approvedBy (PCH SPV) -> 3. receivedBy (LOG STF) -> 4. acknowledgedBy (LOG SPV)
+          let targetSlot: FstbSlotKey = 'deliveredBy';
+          if (!record.fstbSlots.deliveredBy?.isValidated) {
+            targetSlot = 'deliveredBy';
+          } else if (!record.fstbSlots.approvedBy?.isValidated) {
+            targetSlot = 'approvedBy';
+          } else if (!record.fstbSlots.receivedBy?.isValidated) {
+            targetSlot = 'receivedBy';
+          } else if (!record.fstbSlots.acknowledgedBy?.isValidated) {
+            targetSlot = 'acknowledgedBy';
+          }
+
+          let roleType: FstbStampRoleType = 'delivered_by';
+          let defaultJabatan = 'Purchasing Staff';
+          let prefix = 'PCH';
+
+          if (targetSlot === 'approvedBy') {
+            roleType = 'approved_by';
+            defaultJabatan = 'Purchasing Supervisor';
+            prefix = 'PCH-SPV';
+          } else if (targetSlot === 'receivedBy') {
+            roleType = 'received_by';
+            defaultJabatan = 'Logistic Staff';
+            prefix = 'LOG';
+          } else if (targetSlot === 'acknowledgedBy') {
+            roleType = 'acknowledged_by';
+            defaultJabatan = 'Logistic Supervisor';
+            prefix = 'LOG-SPV';
+          }
+
+          const token = `VAL-FSTB-${prefix}-BATCH-${Date.now().toString(36).toUpperCase()}-${Math.random()
+            .toString(36)
+            .substring(2, 6)
+            .toUpperCase()}`;
+
+          // Stamp PDF FSTB jika berkas PDF tersedia
+          let pdfBuffer: Buffer | null = null;
+          const filename = record.renamedFileName || `${record.cleanDocNumber}.pdf`;
+          const r2Key = record.r2Key || `fstb-documents/${filename}`;
+
+          if (isR2Configured()) {
+            try {
+              const r2Obj = await getObjectFromR2(r2Key);
+              if (r2Obj && r2Obj.body) {
+                pdfBuffer = Buffer.from(r2Obj.body);
+              }
+            } catch {}
+          }
+
+          if (!pdfBuffer) {
+            try {
+              const localDir = getFstbPhotosDir();
+              pdfBuffer = await fs.readFile(path.join(localDir, filename));
+            } catch {
+              try {
+                const altPath = path.join(process.cwd(), 'src', 'app', 'public', 'photos_FSTB', filename);
+                pdfBuffer = await fs.readFile(altPath);
+              } catch {}
+            }
+          }
+
+          if (pdfBuffer) {
+            try {
+              pdfBuffer = await stampFstbPdf({
+                pdfBuffer,
+                signatureDataUrl: resolvedSignatureDataUrl || undefined,
+                uploaderName: validatorName,
+                uploadDate: formatFstbStampDate(new Date()),
+                roleType,
+                verificationToken: token,
+              });
+
+              if (isR2Configured()) {
+                await uploadToR2({
+                  key: r2Key,
+                  body: pdfBuffer,
+                  contentType: 'application/pdf',
+                });
+              }
+
+              try {
+                const localDir = getFstbPhotosDir();
+                await fs.mkdir(localDir, { recursive: true });
+                await fs.writeFile(path.join(localDir, filename), pdfBuffer);
+              } catch {}
+
+              record.fileUrl = `/api/r2-file?key=${encodeURIComponent(r2Key)}&v=${Date.now()}`;
+            } catch (err) {
+              console.warn('Gagal stamp PDF FSTB pada batch sign:', err);
+            }
+          }
+
+          record.fstbSlots[targetSlot] = {
+            isValidated: true,
+            validatorName,
+            validatorUsername,
+            validatorRole,
+            validatorNik: effectiveNik,
+            validatorJabatan: effectiveJabatan || defaultJabatan,
+            signatureDataUrl: resolvedSignatureDataUrl,
+            validatedAt: nowIso,
+            notes: notes || `Disahkan massal oleh ${effectiveJabatan || defaultJabatan}.`,
+            verificationToken: token,
+          };
+
+          // Sinkronisasi agregat FSTB
+          if (record.fstbSlots.deliveredBy?.isValidated) {
+            record.purchasingValidation = record.fstbSlots.deliveredBy;
+          }
+          if (record.fstbSlots.approvedBy?.isValidated) {
+            record.lapanganValidation = record.fstbSlots.approvedBy;
+          }
+          if (record.fstbSlots.receivedBy?.isValidated) {
+            record.logistikValidation = record.fstbSlots.receivedBy;
+          }
+          if (record.fstbSlots.acknowledgedBy?.isValidated) {
+            record.recipientValidation = {
+              isSigned: true,
+              recipientName: validatorName,
+              signedAt: nowIso,
+              signatureDataUrl: resolvedSignatureDataUrl,
+            };
+          }
         }
 
         const comp = computeValidationStatus(record);

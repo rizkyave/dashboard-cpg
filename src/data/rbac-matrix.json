@@ -845,9 +845,9 @@
       },
       "spv_purchasing": {
         "allowed": true,
-        "level": "Read-only",
-        "badgeTone": "slate",
-        "notes": "Verifikasi kelengkapan berkas tagihan supplier"
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Otorisasi validasi dan tanda tangan digital massal dokumen FSTB & TTB"
       },
       "spv_logistik": {
         "allowed": true,
