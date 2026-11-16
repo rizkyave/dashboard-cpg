@@ -1067,10 +1067,28 @@ export async function POST(req: NextRequest) {
           let prefix = 'LOG';
 
           if (targetSlot === 'approvedBy') {
+            if (
+              validatorRole === 'spv_purchasing' ||
+              (effectiveJabatan &&
+                effectiveJabatan.toLowerCase().includes('purchasing') &&
+                !effectiveJabatan.toLowerCase().includes('logistik'))
+            ) {
+              // SPV Purchasing tidak berhak mengesahkan slot Logistic Supervisor
+              continue;
+            }
             roleType = 'approved_by';
             defaultJabatan = 'Logistic Supervisor';
             prefix = 'LOG-SPV';
           } else if (targetSlot === 'acknowledgedBy') {
+            if (
+              validatorRole === 'spv_logistik' ||
+              (effectiveJabatan &&
+                effectiveJabatan.toLowerCase().includes('logistik') &&
+                !effectiveJabatan.toLowerCase().includes('purchasing'))
+            ) {
+              // SPV Logistik tidak berhak mengesahkan slot Procurement Manager
+              continue;
+            }
             roleType = 'acknowledged_by';
             defaultJabatan = 'Procurement Manager';
             prefix = 'PCH-MGR';
@@ -1213,6 +1231,15 @@ export async function POST(req: NextRequest) {
           let prefix = 'PCH';
 
           if (targetSlot === 'approvedBy') {
+            if (
+              validatorRole === 'spv_logistik' ||
+              (effectiveJabatan &&
+                effectiveJabatan.toLowerCase().includes('logistik') &&
+                !effectiveJabatan.toLowerCase().includes('purchasing'))
+            ) {
+              // SPV Logistik tidak berhak mengesahkan slot Purchasing Supervisor pada FSTB
+              continue;
+            }
             roleType = 'approved_by';
             defaultJabatan = 'Purchasing Supervisor';
             prefix = 'PCH-SPV';
@@ -1221,6 +1248,15 @@ export async function POST(req: NextRequest) {
             defaultJabatan = 'Logistic Staff';
             prefix = 'LOG';
           } else if (targetSlot === 'acknowledgedBy') {
+            if (
+              validatorRole === 'spv_purchasing' ||
+              (effectiveJabatan &&
+                effectiveJabatan.toLowerCase().includes('purchasing') &&
+                !effectiveJabatan.toLowerCase().includes('logistik'))
+            ) {
+              // SPV Purchasing tidak berhak mengesahkan slot Logistic Supervisor pada FSTB
+              continue;
+            }
             roleType = 'acknowledged_by';
             defaultJabatan = 'Logistic Supervisor';
             prefix = 'LOG-SPV';
@@ -1751,10 +1787,30 @@ export async function POST(req: NextRequest) {
             defaultJabatan = 'Logistic Staff';
             prefix = 'LOG';
           } else if (slot === 'approvedBy') {
+            if (validatorRole === 'spv_logistik' && validatorRole !== 'admin') {
+              return NextResponse.json(
+                {
+                  success: false,
+                  error:
+                    'Akses ditolak: Slot Approved By (Purchasing Supervisor) pada FSTB hanya dapat disahkan oleh Supervisor Purchasing atau Manager.',
+                },
+                { status: 403 }
+              );
+            }
             roleType = 'approved_by';
             defaultJabatan = 'Purchasing Supervisor';
             prefix = 'PCH-SPV';
           } else if (slot === 'acknowledgedBy') {
+            if (validatorRole === 'spv_purchasing' && validatorRole !== 'admin') {
+              return NextResponse.json(
+                {
+                  success: false,
+                  error:
+                    'Akses ditolak: Slot Acknowledged By (Logistic Supervisor) pada FSTB hanya dapat disahkan oleh Supervisor Logistik atau Manager.',
+                },
+                { status: 403 }
+              );
+            }
             roleType = 'acknowledged_by';
             defaultJabatan = 'Logistic Supervisor';
             prefix = 'LOG-SPV';
@@ -1922,10 +1978,30 @@ export async function POST(req: NextRequest) {
             defaultJabatan = 'Penerima / Crew Armada Kapal';
             prefix = 'RCV-LAP';
           } else if (slot === 'approvedBy') {
+            if (validatorRole === 'spv_purchasing' && validatorRole !== 'admin') {
+              return NextResponse.json(
+                {
+                  success: false,
+                  error:
+                    'Akses ditolak: Slot Approved By (Logistic Supervisor) pada TTB hanya dapat disahkan oleh Supervisor Logistik atau Manager.',
+                },
+                { status: 403 }
+              );
+            }
             roleType = 'approved_by';
             defaultJabatan = 'Logistic Supervisor';
             prefix = 'LOG-SPV';
           } else if (slot === 'acknowledgedBy') {
+            if (validatorRole === 'spv_logistik' && validatorRole !== 'admin') {
+              return NextResponse.json(
+                {
+                  success: false,
+                  error:
+                    'Akses ditolak: Slot Acknowledge By (Procurement Manager) pada TTB hanya dapat disahkan oleh Purchasing / Procurement Manager.',
+                },
+                { status: 403 }
+              );
+            }
             roleType = 'acknowledged_by';
             defaultJabatan = validatorRole === 'manager' ? 'Procurement Manager' : 'Manager Procurement';
             prefix = 'PCH-MGR';

@@ -257,6 +257,28 @@ export function getUserActionForRecord(
   const jabatan = (user?.jabatan || '').toLowerCase();
   const dept = (user?.department || '').toLowerCase();
 
+  // Pemisahan ketat wewenang Supervisi Logistik vs Supervisi Purchasing
+  const isSpvLogistikUser =
+    role === 'spv_logistik' ||
+    (jabatan.includes('logistik') &&
+      (jabatan.includes('supervisor') ||
+        jabatan.includes('spv') ||
+        jabatan.includes('lead') ||
+        jabatan.includes('head')));
+
+  const isSpvPurchasingUser =
+    role === 'spv_purchasing' ||
+    (!jabatan.includes('logistik') &&
+      !role.includes('logistik') &&
+      (jabatan.includes('purchasing') || jabatan.includes('procurement')) &&
+      (jabatan.includes('supervisor') ||
+        jabatan.includes('spv') ||
+        jabatan.includes('lead') ||
+        jabatan.includes('head')));
+
+  const isGenericSpv =
+    role === 'supervisor' && !role.includes('logistik') && !role.includes('purchasing');
+
   // =========================================================================
   // DOKUMEN TTB: Urutan Kronologis (1. LOG STF -> 2. LOG SPV -> 3. PCH MGR -> 4. RCV/LAP)
   // =========================================================================
@@ -287,6 +309,7 @@ export function getUserActionForRecord(
         hasAuthority:
           isAdmin ||
           role === 'staf_ttb' ||
+          role === 'staf_logistik' ||
           jabatan.includes('logistik') ||
           jabatan.includes('pergudangan') ||
           dept.includes('logistik'),
@@ -299,15 +322,9 @@ export function getUserActionForRecord(
         isValid: isLogSpv,
         hasAuthority:
           isAdmin ||
-          role === 'spv_logistik' ||
-          role === 'supervisor' ||
           role === 'manager' ||
-          ((jabatan.includes('supervisor') ||
-            jabatan.includes('spv') ||
-            jabatan.includes('lead') ||
-            jabatan.includes('head') ||
-            jabatan.includes('manager')) &&
-            (jabatan.includes('logistik') || dept.includes('logistik'))),
+          isSpvLogistikUser ||
+          (isGenericSpv && (jabatan.includes('logistik') || dept.includes('logistik'))),
       },
       {
         key: 'acknowledgedBy',
@@ -317,18 +334,9 @@ export function getUserActionForRecord(
         isValid: isPchMgr,
         hasAuthority:
           isAdmin ||
-          role === 'spv_purchasing' ||
           role === 'manager' ||
-          role === 'supervisor' ||
-          ((jabatan.includes('manager') ||
-            jabatan.includes('head') ||
-            jabatan.includes('spv') ||
-            jabatan.includes('supervisor') ||
-            jabatan.includes('lead')) &&
-            (jabatan.includes('purchasing') ||
-              jabatan.includes('procurement') ||
-              dept.includes('procurement') ||
-              dept.includes('purchasing'))),
+          isSpvPurchasingUser ||
+          (isGenericSpv && (jabatan.includes('purchasing') || dept.includes('purchasing'))),
       },
       {
         key: 'receivedBy',
@@ -432,11 +440,9 @@ export function getUserActionForRecord(
       isValid: isPchSpv,
       hasAuthority:
         isAdmin ||
-        role === 'spv_purchasing' ||
-        role === 'supervisor' ||
         role === 'manager' ||
-        ((jabatan.includes('supervisor') || jabatan.includes('spv') || jabatan.includes('lead') || jabatan.includes('head') || jabatan.includes('manager')) &&
-          (jabatan.includes('purchasing') || dept.includes('purchasing') || jabatan.includes('procurement') || dept.includes('procurement'))),
+        isSpvPurchasingUser ||
+        (isGenericSpv && (jabatan.includes('purchasing') || dept.includes('purchasing'))),
     },
     {
       key: 'receivedBy',
@@ -459,11 +465,9 @@ export function getUserActionForRecord(
       isValid: isLogSpv,
       hasAuthority:
         isAdmin ||
-        role === 'spv_logistik' ||
-        role === 'supervisor' ||
         role === 'manager' ||
-        ((jabatan.includes('supervisor') || jabatan.includes('spv') || jabatan.includes('lead') || jabatan.includes('head') || jabatan.includes('manager')) &&
-          (jabatan.includes('logistik') || dept.includes('logistik'))),
+        isSpvLogistikUser ||
+        (isGenericSpv && (jabatan.includes('logistik') || dept.includes('logistik'))),
     },
   ];
 
