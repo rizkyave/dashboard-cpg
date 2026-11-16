@@ -29,7 +29,8 @@ export type TabType =
   | 'validasi-dokumen'
   | 'serah-terima-lapangan'
   | 'notifikasi-pekerjaan'
-  | 'jadwal-pengantaran';
+  | 'jadwal-pengantaran'
+  | 'regulasi-sop';
 
 export type StatusTone = 'emerald' | 'cyan' | 'purple' | 'amber' | 'rose';
 

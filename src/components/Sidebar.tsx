@@ -34,6 +34,7 @@ import {
   Search,
   FileStack,
   CalendarDays,
+  BookOpen,
 } from 'lucide-react';
 
 import * as XLSX from 'xlsx';
@@ -219,6 +220,13 @@ export default function Sidebar({
       icon: Images,
       badge: 'Blob',
       title: 'Galeri Arsip Foto TTB dari Lapangan',
+    },
+    {
+      id: 'regulasi-sop' as TabType,
+      label: 'Regulasi & SOP',
+      icon: BookOpen,
+      badge: 'Resmi',
+      title: 'Pusat Regulasi & SOP: Dokumen Resmi Pengadaan, SK Direksi, K3 & Tata Kelola CPG',
     },
   ];
 

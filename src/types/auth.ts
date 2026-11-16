@@ -282,6 +282,9 @@ export function canAccessTab(role: UserRole | undefined, tab: TabType): boolean 
   }
   if (tab === 'admin-settings') return false;
 
+  // Modul Regulasi & SOP dapat dibaca oleh seluruh tingkatan peran karyawan CPG
+  if (tab === 'regulasi-sop') return true;
+
   // 1. Cek perizinan dinamis dari matriks yang dikonfigurasi & disimpan oleh Admin
   if (typeof window !== 'undefined') {
     try {

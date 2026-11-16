@@ -72,6 +72,7 @@ import UploadTtbTab from '@/components/UploadTtbTab';
 import JadwalPengantaranTab from '@/components/JadwalPengantaranTab';
 import ValidasiDokumenTab from '@/components/ValidasiDokumenTab';
 import SerahTerimaLapanganTab from '@/components/SerahTerimaLapanganTab';
+import RegulasiSopTab from '@/components/RegulasiSopTab';
 import CrewKapalTab from '@/components/CrewKapalTab';
 import { SisaLayananItem, SisaLayananSummary } from '@/types/sisaLayanan';
 import {
@@ -1222,6 +1223,8 @@ export default function DashboardPage() {
                     ? 'Unggah Dokumen TTB ke Penyimpanan Cloud'
                     : activeTab === 'notifikasi-pekerjaan'
                     ? 'Pusat Notifikasi & Log Aktivitas Unit Kerja'
+                    : activeTab === 'regulasi-sop'
+                    ? 'Pusat Regulasi & SOP Resmi CPG'
                     : activeTab === 'admin-settings'
                     ? 'Pengaturan Administrator & Pengguna'
                     : 'Analisis SLA & Waktu Tunggu'}
@@ -1265,6 +1268,8 @@ export default function DashboardPage() {
                     ? 'Unggah foto fisik & dokumen scan tanda terima barang (TTB) ke Cloud Storage dengan sistem penamaan otomatis sesuai Nomor TTB resmi.'
                     : activeTab === 'notifikasi-pekerjaan'
                     ? 'Monitoring real-time alur pekerjaan lintas divisi: Pengadaan, Gudang, Logistik, Supervisor/Manager, dan Serah Terima Armada Kapal.'
+                    : activeTab === 'regulasi-sop'
+                    ? 'Portal repositori resmi untuk SOP operasional pengadaan, tata kelola SK Direksi, standar K3 maritim, dan formulir baku PT Cindara Pratama Lines.'
                     : activeTab === 'admin-settings'
                     ? 'Kelola akun operasional staf purchasing (User) dan akun tamu/peninjau (Visitor). Tambahkan pengguna baru dan konfigurasi wewenang hak akses.'
                     : 'Distribusi waktu perputaran berkas fisik (lead time) dan beban kerja produktivitas staf PIC operasional.'}
@@ -1272,7 +1277,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Tombol Sembunyikan Ringkasan Metrik KPI */}
-              {activeTab !== 'inventory' && activeTab !== 'stok-gudang' && activeTab !== 'ringkasan-berkas' && activeTab !== 'review-fpb' && activeTab !== 'monitoring-internal' && activeTab !== 'pos-kapal' && activeTab !== 'crew-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'admin-settings' && (!isVisitor || searchKeyword.trim() !== '') && (
+              {activeTab !== 'inventory' && activeTab !== 'stok-gudang' && activeTab !== 'ringkasan-berkas' && activeTab !== 'review-fpb' && activeTab !== 'monitoring-internal' && activeTab !== 'pos-kapal' && activeTab !== 'crew-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'admin-settings' && activeTab !== 'regulasi-sop' && (!isVisitor || searchKeyword.trim() !== '') && (
                 <button
                   type="button"
                   onClick={toggleKpiHidden}
@@ -1567,6 +1572,11 @@ export default function DashboardPage() {
               onNavigateTab={(tab) => setActiveTab(tab as TabType)}
               showToast={showToast}
             />
+          )}
+
+          {/* Tab Modul Baru: Pusat Regulasi & SOP Resmi CPG */}
+          {activeTab === 'regulasi-sop' && (
+            <RegulasiSopTab />
           )}
 
           {/* Tab 6: Admin Settings - Manajemen Pengguna & Visitor */}
