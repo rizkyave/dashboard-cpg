@@ -1183,7 +1183,7 @@ export default function DashboardPage() {
 
         <main className="flex-1 min-w-0 p-3.5 sm:p-5 lg:p-8 space-y-4 sm:space-y-6 max-w-[1800px] w-full mx-auto pb-24 lg:pb-8">
           {/* Page Header in clean Studio Admin typography */}
-          {activeTab !== 'serah-terima-lapangan' && activeTab !== 'validasi-dokumen' && activeTab !== 'jadwal-pengantaran' && (
+          {activeTab !== 'serah-terima-lapangan' && activeTab !== 'validasi-dokumen' && activeTab !== 'jadwal-pengantaran' && activeTab !== 'regulasi-sop' && (
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="space-y-1">
                 <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-foreground">
@@ -1223,8 +1223,6 @@ export default function DashboardPage() {
                     ? 'Unggah Dokumen TTB ke Penyimpanan Cloud'
                     : activeTab === 'notifikasi-pekerjaan'
                     ? 'Pusat Notifikasi & Log Aktivitas Unit Kerja'
-                    : activeTab === 'regulasi-sop'
-                    ? 'Pusat Regulasi & SOP Resmi CPG'
                     : activeTab === 'admin-settings'
                     ? 'Pengaturan Administrator & Pengguna'
                     : 'Analisis SLA & Waktu Tunggu'}
@@ -1268,8 +1266,6 @@ export default function DashboardPage() {
                     ? 'Unggah foto fisik & dokumen scan tanda terima barang (TTB) ke Cloud Storage dengan sistem penamaan otomatis sesuai Nomor TTB resmi.'
                     : activeTab === 'notifikasi-pekerjaan'
                     ? 'Monitoring real-time alur pekerjaan lintas divisi: Pengadaan, Gudang, Logistik, Supervisor/Manager, dan Serah Terima Armada Kapal.'
-                    : activeTab === 'regulasi-sop'
-                    ? 'Portal repositori resmi untuk SOP operasional pengadaan, tata kelola SK Direksi, standar K3 maritim, dan formulir baku PT Cindara Pratama Lines.'
                     : activeTab === 'admin-settings'
                     ? 'Kelola akun operasional staf purchasing (User) dan akun tamu/peninjau (Visitor). Tambahkan pengguna baru dan konfigurasi wewenang hak akses.'
                     : 'Distribusi waktu perputaran berkas fisik (lead time) dan beban kerja produktivitas staf PIC operasional.'}
@@ -1277,7 +1273,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Tombol Sembunyikan Ringkasan Metrik KPI */}
-              {activeTab !== 'inventory' && activeTab !== 'stok-gudang' && activeTab !== 'ringkasan-berkas' && activeTab !== 'review-fpb' && activeTab !== 'monitoring-internal' && activeTab !== 'pos-kapal' && activeTab !== 'crew-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'admin-settings' && activeTab !== 'regulasi-sop' && (!isVisitor || searchKeyword.trim() !== '') && (
+              {activeTab !== 'inventory' && activeTab !== 'stok-gudang' && activeTab !== 'ringkasan-berkas' && activeTab !== 'review-fpb' && activeTab !== 'monitoring-internal' && activeTab !== 'pos-kapal' && activeTab !== 'crew-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'admin-settings' && (!isVisitor || searchKeyword.trim() !== '') && (
                 <button
                   type="button"
                   onClick={toggleKpiHidden}
@@ -1309,7 +1305,7 @@ export default function DashboardPage() {
           ) : (
             <>
           {/* 4 Pillar Executive Metric Cards (procurement tabs only) */}
-          {activeTab !== 'inventory' && activeTab !== 'ringkasan-berkas' && activeTab !== 'review-fpb' && activeTab !== 'monitoring-internal' && activeTab !== 'pos-kapal' && activeTab !== 'crew-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'serah-terima-lapangan' && activeTab !== 'galeri-ttb' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'validasi-dokumen' && activeTab !== 'admin-settings' && activeTab !== 'jadwal-pengantaran' && !isKpiHidden && (!isVisitor || searchKeyword.trim() !== '') && (
+          {activeTab !== 'inventory' && activeTab !== 'ringkasan-berkas' && activeTab !== 'review-fpb' && activeTab !== 'monitoring-internal' && activeTab !== 'pos-kapal' && activeTab !== 'crew-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'serah-terima-lapangan' && activeTab !== 'galeri-ttb' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'validasi-dokumen' && activeTab !== 'admin-settings' && activeTab !== 'jadwal-pengantaran' && activeTab !== 'regulasi-sop' && !isKpiHidden && (!isVisitor || searchKeyword.trim() !== '') && (
             <div className="animate-in fade-in-50 duration-200">
               <KpiCards
                 procurementList={filteredProcurement}
