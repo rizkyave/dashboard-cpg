@@ -33,6 +33,7 @@ import {
   Link2,
   CheckSquare,
   ChevronUp,
+  RotateCcw,
 } from 'lucide-react';
 import {
   DocumentValidationRecord,
@@ -49,6 +50,7 @@ import ValidationSignatureModal from './ValidationSignatureModal';
 import FstbValidationModal from './FstbValidationModal';
 import TtbValidationModal from './TtbValidationModal';
 import BatchSignatureModal from './BatchSignatureModal';
+import RevisionUploadModal from './RevisionUploadModal';
 import { useAuth } from '@/context/AuthContext';
 
 export interface ValidasiDokumenTabProps {
@@ -56,7 +58,7 @@ export interface ValidasiDokumenTabProps {
 }
 
 export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProps) {
-  const { user, canEdit, isAdmin } = useAuth();
+  const { user, canEdit, isAdmin, isSupervisor, isManager } = useAuth();
 
   const [records, setRecords] = useState<DocumentValidationRecord[]>([]);
   const [metrics, setMetrics] = useState<ValidationSummaryMetrics>({
@@ -87,6 +89,10 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
   // Modal State
   const [selectedRecord, setSelectedRecord] = useState<DocumentValidationRecord | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
+  // Revision / Replacement Clean File Modal State
+  const [revisionRecord, setRevisionRecord] = useState<DocumentValidationRecord | null>(null);
+  const [isRevisionModalOpen, setIsRevisionModalOpen] = useState<boolean>(false);
 
   // Batch / Bulk Selection State
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -1317,6 +1323,20 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
                           <ExternalLink className="size-3.5" />
                         </a>
 
+                        {(isAdmin || isSupervisor || isManager) && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setRevisionRecord(item);
+                              setIsRevisionModalOpen(true);
+                            }}
+                            className="p-1.5 rounded-lg border border-amber-300 dark:border-amber-800/60 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 transition shadow-2xs cursor-pointer"
+                            title={`Revisi & Ganti Berkas Bersih (Koreksi Tanda Tangan) - ${item.docNumber}`}
+                          >
+                            <RotateCcw className="size-3.5" />
+                          </button>
+                        )}
+
                         {isAdmin && (
                           <button
                             type="button"
@@ -1428,6 +1448,22 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
             if (typeof window !== 'undefined') {
               window.dispatchEvent(new CustomEvent('cpg_validation_data_changed'));
             }
+          }}
+          showToast={showToast}
+        />
+      )}
+
+      {/* Modal Revisi & Unggah Berkas Bersih Pengganti (Koreksi TTD) */}
+      {isRevisionModalOpen && revisionRecord && (
+        <RevisionUploadModal
+          isOpen={isRevisionModalOpen}
+          record={revisionRecord}
+          onClose={() => {
+            setIsRevisionModalOpen(false);
+            setRevisionRecord(null);
+          }}
+          onSuccess={(updated) => {
+            handleValidationUpdated(updated);
           }}
           showToast={showToast}
         />

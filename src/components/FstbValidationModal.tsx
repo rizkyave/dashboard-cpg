@@ -27,7 +27,9 @@ import {
   Info,
   Calendar,
   Layers,
+  UploadCloud,
 } from 'lucide-react';
+import RevisionUploadModal from './RevisionUploadModal';
 import {
   DocumentValidationRecord,
   FstbSlotKey,
@@ -186,10 +188,11 @@ export default function FstbValidationModal({
   onValidationSuccess,
   showToast,
 }: FstbValidationModalProps) {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isSupervisor, isManager } = useAuth();
 
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [activeTabMobile, setActiveTabMobile] = useState<'checklist' | 'document'>('checklist');
+  const [isRevisionModalOpen, setIsRevisionModalOpen] = useState<boolean>(false);
 
   // State Checklist Slot yang dipilih pengguna saat ini
   const [selectedSlots, setSelectedSlots] = useState<Record<FstbSlotKey, boolean>>({
@@ -926,7 +929,20 @@ export default function FstbValidationModal({
                 )}
               </div>
 
-              <div className="flex items-center gap-2 w-full sm:w-auto">
+              <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
+                {(isAdmin || isSupervisor || isManager) && (
+                  <button
+                    type="button"
+                    onClick={() => setIsRevisionModalOpen(true)}
+                    disabled={isSubmitting}
+                    className="px-3.5 py-2 rounded-xl text-xs font-bold text-amber-700 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition cursor-pointer inline-flex items-center gap-1.5 active:scale-95"
+                    title="Unggah berkas scan PDF bersih untuk membersihkan tanda tangan yang salah posisi"
+                  >
+                    <UploadCloud className="size-3.5" />
+                    <span>Upload Berkas Bersih (Revisi)</span>
+                  </button>
+                )}
+
                 <button
                   type="button"
                   onClick={onClose}
@@ -959,6 +975,20 @@ export default function FstbValidationModal({
           </div>
         </div>
       </div>
+
+      {/* Modal Revisi & Upload Berkas Bersih Pengganti */}
+      {isRevisionModalOpen && (
+        <RevisionUploadModal
+          isOpen={isRevisionModalOpen}
+          record={record}
+          onClose={() => setIsRevisionModalOpen(false)}
+          onSuccess={(updated) => {
+            setPdfRefreshKey(Date.now());
+            onValidationSuccess(updated);
+          }}
+          showToast={showToast}
+        />
+      )}
     </div>
   );
 }

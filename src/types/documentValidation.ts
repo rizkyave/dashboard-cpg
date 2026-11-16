@@ -83,6 +83,16 @@ export interface DocumentValidationRecord {
   fileExists?: boolean; // True jika berkas fisik terverifikasi ada di R2 atau disk
   createdAt: string;
   updatedAt: string;
+
+  // Riwayat Revisi & Penggantian Berkas Bersih oleh Admin
+  revisionHistory?: Array<{
+    revisedAt: string;
+    revisedBy: string;
+    role?: string;
+    reason: string;
+    resetMode: 'keep_staff' | 'reset_all';
+    originalFileName?: string;
+  }>;
 }
 
 export type FstbSlotKey = 'deliveredBy' | 'receivedBy' | 'approvedBy' | 'acknowledgedBy';

@@ -31,7 +31,9 @@ import {
   Loader2,
   Image as ImageIcon,
   RotateCcw,
+  UploadCloud,
 } from 'lucide-react';
+import RevisionUploadModal from './RevisionUploadModal';
 import {
   DocumentValidationRecord,
   TtbSlotKey,
@@ -225,6 +227,7 @@ export default function TtbValidationModal({
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [pdfRefreshKey, setPdfRefreshKey] = useState<number>(Date.now());
   const [pdfPageCount, setPdfPageCount] = useState<number | null>(null);
+  const [isRevisionModalOpen, setIsRevisionModalOpen] = useState<boolean>(false);
 
   // Data Foto Bukti Serah Terima Lapangan (TimeMark R2)
   interface PhotoItem {
@@ -1257,6 +1260,19 @@ export default function TtbValidationModal({
               </div>
 
               <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
+                {(isAdmin || isSupervisor || isManager) && (
+                  <button
+                    type="button"
+                    onClick={() => setIsRevisionModalOpen(true)}
+                    disabled={isSubmitting}
+                    className="px-3.5 py-2 rounded-xl text-xs font-bold text-amber-700 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition cursor-pointer inline-flex items-center gap-1.5 active:scale-95"
+                    title="Unggah berkas scan PDF bersih untuk membersihkan tanda tangan yang salah posisi"
+                  >
+                    <UploadCloud className="size-3.5" />
+                    <span>Upload Berkas Bersih (Revisi)</span>
+                  </button>
+                )}
+
                 {(isAdmin || isSupervisor || isManager) && (record.completedLinesCount > 0 || Object.values(record.ttbSlots || {}).some((s) => s.isValidated)) && (
                   <button
                     type="button"
@@ -1442,6 +1458,20 @@ export default function TtbValidationModal({
 
         </div>
       </div>
+
+      {/* Modal Revisi & Upload Berkas Bersih Pengganti */}
+      {isRevisionModalOpen && (
+        <RevisionUploadModal
+          isOpen={isRevisionModalOpen}
+          record={record}
+          onClose={() => setIsRevisionModalOpen(false)}
+          onSuccess={(updated) => {
+            setPdfRefreshKey(Date.now());
+            onValidationSuccess(updated);
+          }}
+          showToast={showToast}
+        />
+      )}
     </div>
   );
 }
