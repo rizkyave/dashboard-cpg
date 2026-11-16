@@ -9,7 +9,7 @@ import { NewsTickerItem, NewsTickerResponse } from '@/types/newsTicker';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-export const revalidate = 60; // Cache 60 detik
+export const revalidate = 300; // Cache 5 menit untuk stabilitas data
 
 const R2_POSISI_KAPAL_KEY = 'dashboard-metadata/posisi-kapal.json';
 const R2_DELIVERY_KEY = 'dashboard-metadata/delivery-schedules.json';
@@ -17,6 +17,9 @@ const LOCAL_DELIVERY_PATH = path.join(process.cwd(), 'src', 'data', 'delivery-sc
 
 const R2_REMOTE_TOKENS_KEY = 'ttb-metadata/remote-handover-tokens.json';
 const LOCAL_REMOTE_TOKENS_PATH = path.join(process.cwd(), 'src', 'data', 'remote-handover-tokens.json');
+
+const LOCAL_FPB_REVIEWS_PATH = path.join(process.cwd(), 'src', 'data', 'fpb-reviews.json');
+const LOCAL_PURCHASE_PLAN_PATH = path.join(process.cwd(), 'src', 'data', 'purchase-planning-data.json');
 
 interface OpenMeteoResponse {
   current?: {
@@ -136,7 +139,6 @@ async function getVesselPositionsFromR2(): Promise<{ items: KapalPosisiItem[]; s
 }
 
 async function getDeliverySchedules(): Promise<DeliveryScheduleItem[]> {
-  // 1. Coba baca dari R2
   if (isR2Configured()) {
     try {
       const r2Obj = await getObjectFromR2(R2_DELIVERY_KEY);
@@ -147,7 +149,6 @@ async function getDeliverySchedules(): Promise<DeliveryScheduleItem[]> {
       }
     } catch {}
   }
-  // 2. Baca dari lokal
   try {
     const raw = await fs.readFile(LOCAL_DELIVERY_PATH, 'utf8');
     const parsed = JSON.parse(raw);
@@ -157,7 +158,6 @@ async function getDeliverySchedules(): Promise<DeliveryScheduleItem[]> {
 }
 
 async function getRemoteHandoverTokens(): Promise<RemoteHandoverTokenData[]> {
-  // 1. Coba baca dari R2
   if (isR2Configured()) {
     try {
       const r2Obj = await getObjectFromR2(R2_REMOTE_TOKENS_KEY);
@@ -168,7 +168,6 @@ async function getRemoteHandoverTokens(): Promise<RemoteHandoverTokenData[]> {
       }
     } catch {}
   }
-  // 2. Baca dari lokal
   try {
     const raw = await fs.readFile(LOCAL_REMOTE_TOKENS_PATH, 'utf8');
     const parsed = JSON.parse(raw);
@@ -177,30 +176,136 @@ async function getRemoteHandoverTokens(): Promise<RemoteHandoverTokenData[]> {
   return [];
 }
 
+async function getFpbReviewsData(): Promise<any[]> {
+  try {
+    const raw = await fs.readFile(LOCAL_FPB_REVIEWS_PATH, 'utf8');
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed;
+  } catch {}
+  return [];
+}
+
+async function getPurchasePlanningData(): Promise<any | null> {
+  try {
+    const raw = await fs.readFile(LOCAL_PURCHASE_PLAN_PATH, 'utf8');
+    return JSON.parse(raw);
+  } catch {}
+  return null;
+}
+
 export async function GET() {
   const now = new Date();
   const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
   const dateStr = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
 
-  // 1. Ambil data pengantaran dan serah terima TTB (FOKUS UTAMA)
-  const [schedules, remoteTokens, vesselData, weather] = await Promise.all([
+  // Ambil seluruh data secara paralel
+  const [schedules, remoteTokens, vesselData, weather, fpbReviews, purchasePlan] = await Promise.all([
     getDeliverySchedules(),
     getRemoteHandoverTokens(),
     getVesselPositionsFromR2(),
     fetchMarineWeather(),
+    getFpbReviewsData(),
+    getPurchasePlanningData(),
   ]);
 
   const items: NewsTickerItem[] = [];
 
   // ========================================================
-  // BAGIAN 1: STATUS TERAKHIR TTB DALAM PROSES PENGANTARAN (4-5 Items)
+  // 1. UPDATE STATUS REVIEW FPB (Analisa Ketersediaan & Alokasi PO)
+  // ========================================================
+  if (fpbReviews && fpbReviews.length > 0) {
+    const approvedCount = fpbReviews.filter((r) => r.reviewStatus === 'APPROVED_PO').length;
+    items.push({
+      id: 'fpb-review-summary',
+      category: 'REVIEW FPB',
+      badge: 'REVIEW FPB',
+      title: 'Pusat Analisis e-FPB',
+      content: `Total ${fpbReviews.length} Berkas e-FPB Teranalisis: ${approvedCount} Disetujui Masuk PO & Stok Gudang Mandiri.`,
+      highlight: `${approvedCount} Disetujui PO`,
+      timestamp: dateStr,
+      severity: 'marine',
+    });
+
+    // Ambil 2 sampel FPB penting terkini
+    const sampleReviews = fpbReviews.slice(0, 2);
+    sampleReviews.forEach((r) => {
+      const isApproved = r.reviewStatus === 'APPROVED_PO';
+      const cleanArmada = r.armada || 'Unit Operasional';
+      items.push({
+        id: `fpb-rev-${r.fpbNo}`,
+        category: 'REVIEW FPB',
+        badge: 'FPB TERKINI',
+        title: `${r.fpbNo} • ${cleanArmada}`,
+        content: `Keperluan: ${r.purpose || 'Kebutuhan Operasional'} • Rekomendasi: ${isApproved ? 'Disetujui Alokasi PO & Cek Stok' : 'Menunggu Klarifikasi Lanjutan'}`,
+        highlight: isApproved ? 'DISETUJUI PO' : 'KLARIFIKASI',
+        timestamp: r.date || dateStr,
+        severity: isApproved ? 'success' : 'warning',
+      });
+    });
+  } else {
+    items.push({
+      id: 'fallback-fpb-review',
+      category: 'REVIEW FPB',
+      badge: 'REVIEW FPB',
+      title: 'Analisa Review e-FPB Selesai',
+      content: 'Pemeriksaan duplikasi permintaan armada kapal & ketersediaan stok gudang Accurate berjalan otomatis.',
+      highlight: 'Sistem Aktif',
+      timestamp: dateStr,
+      severity: 'info',
+    });
+  }
+
+  // ========================================================
+  // 2. STATUS PURCHASE PLAN BATCH TERKINI (Konsolidasi Pengadaan)
+  // ========================================================
+  if (purchasePlan && purchasePlan.summary) {
+    const summ = purchasePlan.summary;
+    const estBudgetMilyar = (summ.totalEstimatedBudget / 1000000000).toFixed(1);
+    const savingsMilyar = (summ.totalPotentialSavings / 1000000000).toFixed(1);
+
+    items.push(
+      {
+        id: 'pp-batch-summary',
+        category: 'PURCHASE PLAN',
+        badge: 'PURCHASE PLAN BATCH',
+        title: 'Batch Konsolidasi CPL-PP-2026-004',
+        content: `Konsolidasi ${summ.totalItems} Item (${summ.criticalCount} Kritis, ${summ.reorderCount} Reorder) untuk ${summ.activeVesselsCount} Armada. Estimasi: Rp ${estBudgetMilyar} M (Potensi Hemat Rp ${savingsMilyar} M).`,
+        highlight: `Rp ${estBudgetMilyar} Miliar`,
+        timestamp: dateStr,
+        severity: 'success',
+      },
+      {
+        id: 'pp-batch-priority',
+        category: 'PURCHASE PLAN',
+        badge: 'BATCH PRIORITAS',
+        title: 'Batch Kebutuhan Kritis Armada',
+        content: `${summ.criticalCount} Item mendesak (Kebutuhan Suku Cadang Mesin & Kelistrikan Kapal) siap masuk tahap otorisasi PO massal.`,
+        highlight: `${summ.criticalCount} Item Kritis`,
+        timestamp: dateStr,
+        severity: 'warning',
+      }
+    );
+  } else {
+    items.push({
+      id: 'fallback-purchase-plan',
+      category: 'PURCHASE PLAN',
+      badge: 'PURCHASE PLAN',
+      title: 'Batch Konsolidasi Pengadaan',
+      content: 'Purchase Planning Batch berjalan optimal: memangkas biaya melalui skema bulk purchasing bersama lintas entitas CPG.',
+      highlight: 'Optimasi Biaya',
+      timestamp: dateStr,
+      severity: 'success',
+    });
+  }
+
+  // ========================================================
+  // 3. STATUS TERAKHIR TTB DALAM PROSES PENGANTARAN (3-4 Items)
   // ========================================================
   const pendingTokens = remoteTokens.filter((t) => !t.isUsed);
   const deliveredTokens = remoteTokens.filter((t) => t.isUsed);
 
-  // A. TTB yang sedang dalam proses antar / menunggu tanda tangan di kapal (Prioritas Utama)
   if (pendingTokens.length > 0) {
-    pendingTokens.slice(0, 3).forEach((t) => {
+    pendingTokens.slice(0, 2).forEach((t) => {
       const kurir = t.carrierContact || 'Tim Logistik';
       const target = t.recipientNameTarget || 'Nakhoda / Mualim';
       items.push({
@@ -216,7 +321,6 @@ export async function GET() {
     });
   }
 
-  // B. TTB yang baru saja berhasil diserahterimakan (Terkirim)
   if (deliveredTokens.length > 0) {
     deliveredTokens.slice(0, 2).forEach((t) => {
       const kurir = t.carrierContact || 'Tim Logistik';
@@ -234,48 +338,11 @@ export async function GET() {
     });
   }
 
-  // Fallback status TTB jika list kosong
-  if (items.filter((i) => i.category === 'STATUS TTB').length === 0) {
-    items.push(
-      {
-        id: 'fallback-ttb-1',
-        category: 'STATUS TTB',
-        badge: 'TTB ON-DELIVERY',
-        title: 'CPL-TTB-26-07465 • TB KING STAR',
-        content: 'Kurir: BARDI • Menuju Pelabuhan Semayang • Menunggu tanda tangan Nakhoda Abdul Rauf Wakano',
-        highlight: 'PROSES ANTAR',
-        timestamp: timeStr,
-        severity: 'warning',
-      },
-      {
-        id: 'fallback-ttb-2',
-        category: 'STATUS TTB',
-        badge: 'TTB ON-DELIVERY',
-        title: 'GAJ-TTB-26-01406 • COMPACTOR ASC 100',
-        content: 'Kurir: RENALDI • Pengantaran material workshop & suku cadang galangan GAJ Somber',
-        highlight: 'PROSES ANTAR',
-        timestamp: timeStr,
-        severity: 'warning',
-      },
-      {
-        id: 'fallback-ttb-3',
-        category: 'STATUS TTB',
-        badge: 'TTB TERKIRIM',
-        title: 'CPL-TTB-26-06278 • MT BLUE PETROL',
-        content: 'Kurir: Hermansyah Herman • Berhasil diterima & diverifikasi oleh Nakhoda Kiky di Rede Balikpapan',
-        highlight: 'SELESAI TERIMA',
-        timestamp: timeStr,
-        severity: 'success',
-      }
-    );
-  }
-
   // ========================================================
-  // BAGIAN 2: JADWAL PENGANTARAN KE KAPAL (4-5 Items)
+  // 4. JADWAL PENGANTARAN KE KAPAL (3 Items)
   // ========================================================
   if (schedules.length > 0) {
-    // Ambil jadwal aktif / terdekat
-    const selectedSchedules = schedules.slice(0, 5);
+    const selectedSchedules = schedules.slice(0, 3);
     selectedSchedules.forEach((s) => {
       const kurirNama = s.courier?.name || 'Tim Kurir Logistik';
       const klusterClean = s.clusterArea.replace(/_/g, ' ');
@@ -284,64 +351,20 @@ export async function GET() {
         category: 'JADWAL PENGANTARAN',
         badge: 'DELIVERY SCHEDULE',
         title: `Ke ${s.shipName}`,
-        content: `Jadwal: ${s.scheduledDay} (${s.scheduledDate}) • Slot: ${s.timeSlot} • Kurir: ${kurirNama} • Kluster: ${klusterClean} (${s.transportMethod})`,
+        content: `Jadwal: ${s.scheduledDay} (${s.scheduledDate}) • Slot: ${s.timeSlot} • Kurir: ${kurirNama} • Kluster: ${klusterClean}`,
         highlight: `${s.scheduledDay} • ${kurirNama}`,
         timestamp: s.scheduledDate,
         severity: s.urgency === 'CRITICAL' ? 'warning' : 'info',
       });
     });
-  } else {
-    items.push(
-      {
-        id: 'fallback-sched-1',
-        category: 'JADWAL PENGANTARAN',
-        badge: 'DELIVERY SCHEDULE',
-        title: 'Ke AMBER • Kluster Somber Kariangau',
-        content: 'Jadwal: SENIN • Slot: SIANG (13:00 - 15:30) • Kurir: BARDI • Pengantaran suku cadang perawatan',
-        highlight: 'SENIN • BARDI',
-        timestamp: dateStr,
-        severity: 'info',
-      },
-      {
-        id: 'fallback-sched-2',
-        category: 'JADWAL PENGANTARAN',
-        badge: 'DELIVERY SCHEDULE',
-        title: 'Ke BLUE PETROL • Kluster Semayang Balikpapan',
-        content: 'Jadwal: SELASA • Slot: PAGI (08:00 - 11:30) • Kurir: AKBAR RAMADHAN • Delivery pelumas & logistik',
-        highlight: 'SELASA • AKBAR',
-        timestamp: dateStr,
-        severity: 'info',
-      },
-      {
-        id: 'fallback-sched-3',
-        category: 'JADWAL PENGANTARAN',
-        badge: 'DELIVERY SCHEDULE',
-        title: 'Ke BARONGKO • Kluster Semayang Balikpapan',
-        content: 'Jadwal: SELASA • Slot: SIANG (13:00 - 15:30) • Kurir: ZULFIANSYAH • Suplai perlengkapan bunker kapal',
-        highlight: 'SELASA • ZULFIANSYAH',
-        timestamp: dateStr,
-        severity: 'info',
-      },
-      {
-        id: 'fallback-sched-4',
-        category: 'JADWAL PENGANTARAN',
-        badge: 'DELIVERY SCHEDULE',
-        title: 'Ke ANTASENA BUMI SURYA • Somber Kariangau',
-        content: 'Jadwal: RABU • Slot: PAGI (08:00 - 11:30) • Kurir: HAMKA ALKA • Diantar Tim Logistik CPG',
-        highlight: 'RABU • HAMKA ALKA',
-        timestamp: dateStr,
-        severity: 'info',
-      }
-    );
   }
 
   // ========================================================
-  // BAGIAN 3: ARMADA KAPAL (Cukup Beberapa Saja Sesuai Permintaan)
+  // 5. ARMADA KAPAL (Cukup 2 Item: Summary + Kapal Sorotan)
   // ========================================================
   const vessels = vesselData?.items || [];
   const summary = vesselData?.summary;
 
-  // Ringkasan radar armada
   if (summary && summary.totalKapal > 0) {
     items.push({
       id: 'armada-summary',
@@ -355,37 +378,24 @@ export async function GET() {
     });
   }
 
-  // Cukup 2 armada utama saja
   if (vessels.length > 0) {
-    const highlightShips = vessels.filter((v) => v.statusKode === 'ON').slice(0, 2);
-    highlightShips.forEach((v) => {
-      const act = v.activity && v.activity !== '-' ? ` • Aktivitas: ${v.activity}` : '';
+    const activeShip = vessels.find((v) => v.statusKode === 'ON');
+    if (activeShip) {
       items.push({
-        id: `vessel-${v.id || v.kapalSlug}`,
+        id: `vessel-${activeShip.id || activeShip.kapalSlug}`,
         category: 'ARMADA',
-        badge: `ARMADA [${v.statusKode}]`,
-        title: v.namaKapal,
-        content: `Posisi: ${v.posisi || 'Pelayaran'}${act}`,
+        badge: `ARMADA [ON]`,
+        title: activeShip.namaKapal,
+        content: `Posisi: ${activeShip.posisi || 'Pelayaran'} • Aktivitas: ${activeShip.activity || 'Operasional Kapal'}`,
         highlight: 'OPERASIONAL',
-        timestamp: v.tanggal || timeStr,
+        timestamp: activeShip.tanggal || timeStr,
         severity: 'marine',
       });
-    });
-  } else {
-    items.push({
-      id: 'vessel-fallback-1',
-      category: 'ARMADA',
-      badge: 'ARMADA [ON]',
-      title: 'TB Cindara 3112',
-      content: 'Posisi: Kariangau Anchorage • Operasi Towing & Berthing Support Selat Makassar',
-      highlight: 'OPERASI',
-      timestamp: timeStr,
-      severity: 'marine',
-    });
+    }
   }
 
   // ========================================================
-  // BAGIAN 4: CUACA MARITIM & SOP PENGADAAN (1-2 Items Pendukung)
+  // 6. CUACA MARITIM & SOP PENGADAAN (2 Items Pendukung)
   // ========================================================
   if (weather) {
     items.push({
@@ -393,7 +403,7 @@ export async function GET() {
       category: 'CUACA',
       badge: 'BMKG MARITIM',
       title: 'Cuaca Teluk Balikpapan',
-      content: `${weather.condition}, Suhu ${weather.temp}°C, Angin ${weather.windDir} ${weather.windKn} Kn, Gelombang ${weather.waveEstimate}. Aman untuk delivery laut.`,
+      content: `${weather.condition}, Suhu ${weather.temp}°C, Angin ${weather.windDir} ${weather.windKn} Kn, Gelombang ${weather.waveEstimate}. Aman untuk aktivitas laut.`,
       highlight: `${weather.temp}°C • ${weather.windKn} Kn`,
       timestamp: timeStr,
       severity: 'info',
@@ -405,7 +415,7 @@ export async function GET() {
     category: 'SOP CPG',
     badge: 'SOP PENGADAAN',
     title: 'Validasi Berjenjang TTB & FSTB',
-    content: 'Barang diterima wajib diverifikasi 4 PIC (Staff Logistik, Spv Logistik, Spv Purchasing, Mgr Procurement) & penerima fisik kapal.',
+    content: 'Persetujuan dokumen wajib diverifikasi 4 PIC (Staff Logistik, Spv Logistik, Spv Purchasing, Mgr Procurement) & penerima kapal.',
     highlight: 'Wajib 4 PIC',
     timestamp: dateStr,
     severity: 'info',
@@ -425,13 +435,13 @@ export async function GET() {
       weatherLocation: 'Teluk Balikpapan & Selat Makassar',
       temperature: weather?.temp,
       windKnots: weather?.windKn,
-      source: 'CPG Logistics Dispatch & Fleet Radar',
+      source: 'CPG Procurement Hub & Logistics Dispatch',
     },
   };
 
   return NextResponse.json(responsePayload, {
     headers: {
-      'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
+      'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
     },
   });
 }

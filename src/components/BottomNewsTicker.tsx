@@ -24,6 +24,8 @@ import {
   PackageCheck,
   Navigation,
   Gauge,
+  FileCheck,
+  TrendingUp,
 } from 'lucide-react';
 import { NewsTickerItem, NewsTickerResponse } from '@/types/newsTicker';
 
@@ -31,6 +33,26 @@ const CACHE_KEY = 'CPG_NEWS_TICKER_CACHE_V3';
 
 // Fallback jika tidak ada internet sama sekali sejak pertama kali load
 const DEFAULT_OFFLINE_ITEMS: NewsTickerItem[] = [
+  {
+    id: 'offline-fpb-1',
+    category: 'REVIEW FPB',
+    badge: 'REVIEW FPB',
+    title: 'Analisis Review e-FPB',
+    content: '205 Berkas e-FPB Teranalisis • 142 Disetujui Masuk PO Pengadaan & Stok Gudang Mandiri',
+    highlight: '142 DISETUJUI PO',
+    timestamp: 'Offline Fallback',
+    severity: 'marine',
+  },
+  {
+    id: 'offline-pp-1',
+    category: 'PURCHASE PLAN',
+    badge: 'PURCHASE PLAN',
+    title: 'Batch CPL-PP-2026-004',
+    content: 'Batch Final 002: 572 Item Konsolidasi • 87 Armada Kapal • Estimasi Rp 19.4 Miliar (Hemat Rp 2.8 M)',
+    highlight: '572 ITEM • RP 19.4 M',
+    timestamp: 'Offline Fallback',
+    severity: 'marine',
+  },
   {
     id: 'offline-ttb-1',
     category: 'STATUS TTB',
@@ -248,12 +270,12 @@ export default function BottomNewsTicker({ onCollapsedChange }: BottomNewsTicker
       // Lalu fetch versi terbarunya
       fetchFeed();
 
-      // Refresh berkala setiap 2 menit jika online
+      // Refresh berkala setiap 5 menit jika online (menjaga pembacaan tetap tenang dan stabil)
       const interval = setInterval(() => {
         if (navigator.onLine) {
           fetchFeed();
         }
-      }, 120 * 1000);
+      }, 300 * 1000);
 
       return () => {
         window.removeEventListener('online', handleOnline);
@@ -272,6 +294,10 @@ export default function BottomNewsTicker({ onCollapsedChange }: BottomNewsTicker
   // Helper render ikon sesuai kategori
   const renderCategoryIcon = (category: string, severity?: string) => {
     switch (category) {
+      case 'REVIEW FPB':
+        return <FileCheck className="size-4 text-pink-400 shrink-0" />;
+      case 'PURCHASE PLAN':
+        return <TrendingUp className="size-4 text-indigo-400 shrink-0" />;
       case 'STATUS TTB':
         return severity === 'success' ? (
           <PackageCheck className="size-4 text-emerald-400 shrink-0" />
@@ -295,6 +321,12 @@ export default function BottomNewsTicker({ onCollapsedChange }: BottomNewsTicker
 
   // Helper render badge styling
   const getBadgeClass = (category: string, severity: string) => {
+    if (category === 'REVIEW FPB') {
+      return 'bg-pink-500/20 text-pink-300 border-pink-500/40';
+    }
+    if (category === 'PURCHASE PLAN') {
+      return 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40';
+    }
     if (category === 'STATUS TTB') {
       return severity === 'success'
         ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
@@ -403,7 +435,7 @@ export default function BottomNewsTicker({ onCollapsedChange }: BottomNewsTicker
             }`}
             style={{
               animationDuration:
-                speedMode === 'relaxed' ? '100s' : speedMode === 'slow' ? '140s' : '70s',
+                speedMode === 'relaxed' ? '185s' : speedMode === 'slow' ? '260s' : '120s',
             }}
           >
             {displayItems.map((item, index) => (
@@ -475,10 +507,10 @@ export default function BottomNewsTicker({ onCollapsedChange }: BottomNewsTicker
             className="px-1.5 py-0.5 rounded hover:bg-slate-800 text-[10px] font-mono text-slate-400 hover:text-cyan-300 transition cursor-pointer flex items-center gap-1"
             title={`Kecepatan: ${
               speedMode === 'relaxed'
-                ? 'Santai / Perlahan (100 detik)'
+                ? 'Santai / Perlahan (185 detik)'
                 : speedMode === 'slow'
-                ? 'Sangat Lambat (140 detik)'
-                : 'Cepat (70 detik)'
+                ? 'Sangat Lambat (260 detik)'
+                : 'Cepat (120 detik)'
             } • Klik untuk mengganti kecepatan`}
           >
             <Gauge className="size-3 text-cyan-400" />
@@ -493,7 +525,7 @@ export default function BottomNewsTicker({ onCollapsedChange }: BottomNewsTicker
             onClick={fetchFeed}
             disabled={isLoading}
             className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-cyan-300 transition cursor-pointer disabled:opacity-50"
-            title="Perbarui kabar armada & cuaca sekarang"
+            title="Perbarui kabar feed pengadaan & armada sekarang"
           >
             <RotateCw className={`size-3.5 ${isLoading ? 'animate-spin text-cyan-400' : ''}`} />
           </button>

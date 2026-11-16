@@ -1,6 +1,8 @@
 export type TickerCategory =
   | 'JADWAL PENGANTARAN'
   | 'STATUS TTB'
+  | 'REVIEW FPB'
+  | 'PURCHASE PLAN'
   | 'ARMADA'
   | 'CUACA'
   | 'SOP CPG'

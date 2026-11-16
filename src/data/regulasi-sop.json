@@ -48,6 +48,27 @@
   ],
   "documents": [
     {
+      "id": "sop-doc-1794840549118-frx5s",
+      "folderId": "folder-logistik",
+      "title": "Prosedur Pembelian Barang dan Jasa Non Trading Rev. 04",
+      "docNumber": "CPL-PRC-SOP-001 ",
+      "version": "v4.0",
+      "effectiveDate": "2026-01-16",
+      "summary": "prosedur pembelian Barang dan atau jasa non trading yang belaku di PT Cindara Pratama Lines",
+      "tags": [],
+      "fileName": "CPL-PRC-SOP-001 Prosedur Pembelian Barang dan Jasa Non Trading Rev. 04.pdf",
+      "fileUrl": "/api/r2-file?key=sop-documents%2FCPL-PRC-SOP-001__1794840548514.pdf",
+      "fileSize": 329936,
+      "fileType": "pdf",
+      "status": "ACTIVE",
+      "uploadedBy": "admin",
+      "uploadedByName": "Administrator CPG",
+      "uploadedAt": "2026-11-16T14:49:09.118Z",
+      "viewCount": 1,
+      "downloadCount": 0,
+      "lastModifiedAt": "2026-11-16T14:49:16.195Z"
+    },
+    {
       "id": "doc-sop-log-001",
       "folderId": "folder-logistik",
       "title": "SOP Alur Validasi 4 PIC Dokumen TTB & FSTB",
@@ -55,7 +76,14 @@
       "version": "v2.0",
       "effectiveDate": "2026-01-15",
       "summary": "Mengatur alur persetujuan dokumen berjenjang secara berurutan: Staff Logistik -> Supervisor Logistik -> Supervisor Purchasing -> Manager Procurement untuk memastikan seluruh barang masuk sesuai PO dan lolos uji fisik.",
-      "tags": ["TTB", "FSTB", "Validasi", "4 PIC", "Logistik", "Purchasing"],
+      "tags": [
+        "TTB",
+        "FSTB",
+        "Validasi",
+        "4 PIC",
+        "Logistik",
+        "Purchasing"
+      ],
       "fileName": "SOP-CPG-LOG-001_Validasi_4_PIC.pdf",
       "fileUrl": "",
       "fileSize": 1425000,
@@ -64,8 +92,9 @@
       "uploadedBy": "admin",
       "uploadedByName": "Administrator CPG",
       "uploadedAt": "2026-01-15T08:00:00.000Z",
-      "viewCount": 248,
-      "downloadCount": 42
+      "viewCount": 249,
+      "downloadCount": 42,
+      "lastModifiedAt": "2026-11-16T14:46:20.229Z"
     },
     {
       "id": "doc-sop-log-002",
@@ -75,7 +104,13 @@
       "version": "v1.4",
       "effectiveDate": "2026-02-01",
       "summary": "Tata cara pengantaran logistik ke dermaga, verifikasi fisik bersama perwakilan kapal, pengambilan foto bukti penerimaan, serta pengisian tanda tangan digital nakhoda/mualim via tautan daring mandiri.",
-      "tags": ["Serah Terima", "Kurir", "Nakhoda", "Foto TimeMark", "Remote Link"],
+      "tags": [
+        "Serah Terima",
+        "Kurir",
+        "Nakhoda",
+        "Foto TimeMark",
+        "Remote Link"
+      ],
       "fileName": "SOP-CPG-LOG-002_Serah_Terima_Lapangan.pdf",
       "fileUrl": "",
       "fileSize": 980000,
@@ -95,7 +130,13 @@
       "version": "v1.0",
       "effectiveDate": "2026-03-01",
       "summary": "Aturan resmi direksi terkait pengalihan wewenang sementara persetujuan dokumen pengadaan saat pejabat struktural (Manager/Supervisor) menjalani cuti atau penugasan luar kota dengan batas waktu otomatis.",
-      "tags": ["Delegasi", "Cuti", "Plh", "Approval", "Direksi"],
+      "tags": [
+        "Delegasi",
+        "Cuti",
+        "Plh",
+        "Approval",
+        "Direksi"
+      ],
       "fileName": "SK-CPG-DIR-2026-004_Pendelegasian_Plh.pdf",
       "fileUrl": "",
       "fileSize": 1250000,
@@ -115,7 +156,13 @@
       "version": "v2.2",
       "effectiveDate": "2026-01-02",
       "summary": "Bagan batas plafon anggaran pengadaan barang/jasa, batasan kewenangan persetujuan Purchase Order (PO), serta ketentuan tender wajib untuk nilai transaksi strategis di lingkungan Cindara Pratama Group.",
-      "tags": ["Otorisasi", "Plafon Anggaran", "PO", "Tender", "Tata Kelola"],
+      "tags": [
+        "Otorisasi",
+        "Plafon Anggaran",
+        "PO",
+        "Tender",
+        "Tata Kelola"
+      ],
       "fileName": "SK-CPG-DIR-2026-001_Matriks_Otorisasi_Pengadaan.pdf",
       "fileUrl": "",
       "fileSize": 2100000,
@@ -135,7 +182,14 @@
       "version": "v1.2",
       "effectiveDate": "2026-01-20",
       "summary": "Pedoman wajib pemakaian helm keselamatan, safety shoes, kacamata pelindung, dan tali pengaman saat proses docking, reparasi lambung kapal, dan aktivitas pengelasan di bengkel galangan GAJ.",
-      "tags": ["K3", "APD", "Galangan", "Docking", "GAJ", "Zero Accident"],
+      "tags": [
+        "K3",
+        "APD",
+        "Galangan",
+        "Docking",
+        "GAJ",
+        "Zero Accident"
+      ],
       "fileName": "SOP-CPG-K3-002_Standar_APD_Galangan.pdf",
       "fileUrl": "",
       "fileSize": 1850000,
@@ -155,7 +209,13 @@
       "version": "v1.1",
       "effectiveDate": "2026-02-10",
       "summary": "Prosedur pencegahan pencemaran tumpahan bahan bakar minyak selama transfer bunker STS di laut, pemasangan oil boom di sekitar kapal, dan protokol darurat respon tumpahan limbah laut.",
-      "tags": ["Lingkungan", "Bunker", "Zero Oil Spill", "STS", "Selat Makassar"],
+      "tags": [
+        "Lingkungan",
+        "Bunker",
+        "Zero Oil Spill",
+        "STS",
+        "Selat Makassar"
+      ],
       "fileName": "SOP-CPG-K3-005_Zero_Oil_Spill_Bunkering.pdf",
       "fileUrl": "",
       "fileSize": 1640000,
@@ -175,7 +235,13 @@
       "version": "v1.5",
       "effectiveDate": "2026-01-10",
       "summary": "Tata cara penerimaan barang supplier, penomoran bin lokasi rak, pencatatan stock opname periodik, dan sinkronisasi ketersediaan suku cadang dengan sistem inventori Accurate.",
-      "tags": ["Gudang", "Stock Opname", "Accurate", "Pak Budi", "Somber"],
+      "tags": [
+        "Gudang",
+        "Stock Opname",
+        "Accurate",
+        "Pak Budi",
+        "Somber"
+      ],
       "fileName": "SOP-CPG-WH-003_Stock_Opname_Gudang.pdf",
       "fileUrl": "",
       "fileSize": 1320000,
@@ -195,7 +261,13 @@
       "version": "v1.0",
       "effectiveDate": "2026-01-05",
       "summary": "Formulir standar yang wajib diisi dan ditandatangani bersama oleh kurir logistik dan perwakilan kapal apabila ditemukan barang rusak, cacat kemasan, atau ketidaksesuaian jumlah fisik saat serah terima.",
-      "tags": ["Formulir", "Berita Acara", "Klaim", "Retur", "Template"],
+      "tags": [
+        "Formulir",
+        "Berita Acara",
+        "Klaim",
+        "Retur",
+        "Template"
+      ],
       "fileName": "FORM-CPG-LOG-01_Berita_Acara_Selisih_Barang.pdf",
       "fileUrl": "",
       "fileSize": 450000,
@@ -204,9 +276,10 @@
       "uploadedBy": "admin",
       "uploadedByName": "Administrator CPG",
       "uploadedAt": "2026-01-05T09:00:00.000Z",
-      "viewCount": 290,
-      "downloadCount": 85
+      "viewCount": 291,
+      "downloadCount": 85,
+      "lastModifiedAt": "2026-11-16T14:49:45.536Z"
     }
   ],
-  "lastUpdated": "2026-03-01T10:00:00.000Z"
+  "lastUpdated": "2026-11-16T14:49:45.536Z"
 }
