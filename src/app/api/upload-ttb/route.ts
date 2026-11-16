@@ -112,13 +112,24 @@ async function getHistory(): Promise<UploadedTtbItem[]> {
     }
   }
 
-  // 2. Fallback disk lokal
-  try {
-    const raw = await fs.readFile(HISTORY_FILE_PATH, 'utf8');
-    return JSON.parse(raw);
-  } catch {
-    return [];
+  // 2. Fallback disk lokal (src/data atau metadata di public/uploads / public)
+  const candidateHistoryPaths = [
+    HISTORY_FILE_PATH,
+    path.join(process.cwd(), 'public', 'uploads', 'ttb-metadata', 'history.json'),
+    path.join(process.cwd(), 'public', 'ttb-metadata', 'history.json'),
+  ];
+
+  for (const p of candidateHistoryPaths) {
+    try {
+      const raw = await fs.readFile(p, 'utf8');
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    } catch {}
   }
+
+  return [];
 }
 
 // Simpan riwayat upload ke Cloudflare R2 dan disk lokal

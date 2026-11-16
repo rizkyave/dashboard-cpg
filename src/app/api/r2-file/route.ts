@@ -76,11 +76,23 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // 2. Fallback ke disk lokal: periksa folder uploads dan photos
+  // 2. Fallback ke disk lokal: periksa folder uploads, public, dan subdirektori terkait
   const candidatePaths: string[] = [
     path.join(process.cwd(), 'public', 'uploads', normalizedKey),
-    path.join(process.cwd(), 'public', 'uploads', filename),
     path.join(process.cwd(), 'public', normalizedKey),
+    path.join(process.cwd(), 'public', 'uploads', filename),
+    path.join(process.cwd(), 'public', filename),
+    path.join(process.cwd(), 'public', 'fstb-documents', filename),
+    path.join(process.cwd(), 'public', 'uploads', 'fstb-documents', filename),
+    path.join(process.cwd(), 'public', 'ttb-documents', filename),
+    path.join(process.cwd(), 'public', 'uploads', 'ttb-documents', filename),
+    path.join(process.cwd(), 'public', 'sop-documents', filename),
+    path.join(process.cwd(), 'public', 'uploads', 'sop-documents', filename),
+    path.join(process.cwd(), 'public', 'ttb-photos', filename),
+    path.join(process.cwd(), 'public', 'uploads', 'ttb-photos', filename),
+    path.resolve(process.cwd(), '../../../public_html', 'uploads', normalizedKey),
+    path.resolve(process.cwd(), '../../../public_html', normalizedKey),
+    path.resolve(process.cwd(), '../../../public_html', filename),
     path.join(getPhotosDir(), filename),
     path.join(process.cwd(), 'src', 'app', 'public', 'photos_TTB', filename),
     path.join(getFstbPhotosDir(), filename),

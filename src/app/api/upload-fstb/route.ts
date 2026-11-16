@@ -63,12 +63,24 @@ async function getHistory(): Promise<UploadedFstbItem[]> {
     }
   }
 
-  try {
-    const raw = await fs.readFile(HISTORY_FILE_PATH, 'utf8');
-    return JSON.parse(raw);
-  } catch {
-    return [];
+  // 2. Coba baca dari file lokal (src/data atau metadata di public/uploads / public)
+  const candidateHistoryPaths = [
+    HISTORY_FILE_PATH,
+    path.join(process.cwd(), 'public', 'uploads', 'fstb-metadata', 'history.json'),
+    path.join(process.cwd(), 'public', 'fstb-metadata', 'history.json'),
+  ];
+
+  for (const p of candidateHistoryPaths) {
+    try {
+      const raw = await fs.readFile(p, 'utf8');
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    } catch {}
   }
+
+  return [];
 }
 
 // Simpan riwayat upload FSTB ke Cloudflare R2 dan disk lokal
