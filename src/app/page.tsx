@@ -1273,7 +1273,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Tombol Sembunyikan Ringkasan Metrik KPI */}
-              {activeTab !== 'inventory' && activeTab !== 'stok-gudang' && activeTab !== 'ringkasan-berkas' && activeTab !== 'review-fpb' && activeTab !== 'monitoring-internal' && activeTab !== 'pos-kapal' && activeTab !== 'crew-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'admin-settings' && (!isVisitor || searchKeyword.trim() !== '') && (
+              {activeTab === 'overview' && (!isVisitor || searchKeyword.trim() !== '') && (
                 <button
                   type="button"
                   onClick={toggleKpiHidden}
@@ -1304,8 +1304,8 @@ export default function DashboardPage() {
             </div>
           ) : (
             <>
-          {/* 4 Pillar Executive Metric Cards (procurement tabs only) */}
-          {activeTab !== 'inventory' && activeTab !== 'ringkasan-berkas' && activeTab !== 'review-fpb' && activeTab !== 'monitoring-internal' && activeTab !== 'pos-kapal' && activeTab !== 'crew-kapal' && activeTab !== 'work-order' && activeTab !== 'list-sm' && activeTab !== 'sisa-layanan' && activeTab !== 'serah-terima-lapangan' && activeTab !== 'galeri-ttb' && activeTab !== 'upload-fstb' && activeTab !== 'upload-ttb' && activeTab !== 'validasi-dokumen' && activeTab !== 'admin-settings' && activeTab !== 'jadwal-pengantaran' && activeTab !== 'regulasi-sop' && !isKpiHidden && (!isVisitor || searchKeyword.trim() !== '') && (
+          {/* 4 Pillar Executive Metric Cards (Overview tab only) */}
+          {activeTab === 'overview' && !isKpiHidden && (!isVisitor || searchKeyword.trim() !== '') && (
             <div className="animate-in fade-in-50 duration-200">
               <KpiCards
                 procurementList={filteredProcurement}

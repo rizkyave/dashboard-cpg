@@ -293,7 +293,7 @@ export default function Sidebar({
         className={`h-screen overflow-y-auto shrink-0 bg-background border-r border-border flex flex-col justify-between transition-all duration-300 select-none z-50 lg:z-30 fixed inset-y-0 left-0 lg:relative ${
           isCollapsed
             ? '-translate-x-full lg:w-0 lg:p-0 lg:border-r-0 lg:opacity-0 lg:pointer-events-none'
-            : 'w-72 max-w-[85vw] lg:w-64 p-3.5 md:p-4 opacity-100 translate-x-0 shadow-2xl lg:shadow-none'
+            : 'w-72 max-w-[85vw] lg:w-72 p-3.5 md:p-4 opacity-100 translate-x-0 shadow-2xl lg:shadow-none'
         }`}
       >
         <div className="flex flex-col gap-4">
