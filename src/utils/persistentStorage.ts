@@ -51,6 +51,7 @@ export function findLocalFile(relPath: string, filename?: string): string | null
     // Shared uploads permanen
     path.join(getPersistentStorageDir(), cleanRel),
     path.join(getPersistentStorageDir(), fname),
+    path.join(getPersistentStorageDir(), cleanRel.split('/').join('\\')),
 
     // Local project public/uploads
     path.join(cwd, 'public', 'uploads', cleanRel),
@@ -69,6 +70,9 @@ export function findLocalFile(relPath: string, filename?: string): string | null
 
   // Cari di shared_uploads subfolders
   const shared = getPersistentStorageDir();
+  const backslashRel = cleanRel.split('/').join('\\');
+  candidates.push(path.join(shared, backslashRel));
+  candidates.push(path.join(shared, 'uploads', backslashRel));
   candidates.push(path.join(shared, 'uploads', cleanRel));
   candidates.push(path.join(shared, 'uploads', fname));
   candidates.push(path.join(shared, 'ttb-documents', fname));

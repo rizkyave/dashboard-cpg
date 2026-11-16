@@ -28,6 +28,33 @@ function setupPersistentStorage() {
       console.log(`[Storage] Membuat direktori permanen: ${sharedUploads}`);
     }
 
+    // Normalisasi file yang terekstrak dengan backslash Windows (misal: "dashboard-metadata\armada-data.json")
+    try {
+      function normalizeBackslashes(dir) {
+        const entries = fs.readdirSync(dir, { withFileTypes: true });
+        for (const entry of entries) {
+          const fullPath = path.join(dir, entry.name);
+          if (entry.isDirectory()) {
+            normalizeBackslashes(fullPath);
+          } else if (entry.name.includes('\\')) {
+            const parts = entry.name.split('\\');
+            const targetDir = path.join(dir, ...parts.slice(0, -1));
+            const targetFile = path.join(dir, ...parts);
+            if (!fs.existsSync(targetDir)) {
+              fs.mkdirSync(targetDir, { recursive: true });
+            }
+            try {
+              fs.renameSync(fullPath, targetFile);
+              console.log(`[Storage] Berhasil merapikan: ${entry.name} -> ${parts.join('/')}`);
+            } catch {}
+          }
+        }
+      }
+      normalizeBackslashes(sharedUploads);
+    } catch (normErr) {
+      console.warn(`[Storage] Normalisasi backslash: ${normErr.message}`);
+    }
+
     const localUploads = path.join(cwd, 'public', 'uploads');
 
     // Jika public/uploads belum ada, buat symlink ke shared_uploads
