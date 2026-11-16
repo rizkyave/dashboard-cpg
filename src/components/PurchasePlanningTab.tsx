@@ -1541,18 +1541,18 @@ export default function PurchasePlanningTab({
           )}
         </div>
 
-        {/* 4 Tahapan Alur Pengadaan */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+        {/* 4 Tahapan Alur Pengadaan (Procurement Lifecycle Pipeline) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 relative">
           {/* Tahap 1: Review FPB */}
           <div
             onClick={() => onNavigateTab?.('review-fpb')}
-            className="p-3 rounded-2xl border border-emerald-500/35 bg-emerald-500/5 hover:bg-emerald-500/10 transition cursor-pointer relative group flex flex-col justify-between"
+            className="p-3.5 rounded-2xl border border-emerald-500/40 bg-emerald-500/5 hover:bg-emerald-500/10 transition cursor-pointer relative group flex flex-col justify-between shadow-2xs hover:shadow-xs"
             title="Klik untuk membuka menu Review Analisa FPB"
           >
             <div>
               <div className="flex items-center justify-between gap-1 mb-1.5">
-                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 uppercase tracking-wider font-mono">
-                  Tahap 1 • Cek &amp; Review FPB
+                <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 uppercase tracking-wider font-mono">
+                  Tahap 1 • Intake &amp; Cek FPB
                 </span>
                 <span className="flex h-2 w-2 relative shrink-0">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -1561,51 +1561,61 @@ export default function PurchasePlanningTab({
               </div>
               <div className="font-bold text-xs text-foreground group-hover:text-emerald-600 transition flex items-center justify-between">
                 <span>Batch III (Minggu 47)</span>
-                <ArrowRight className="size-3 text-muted-foreground group-hover:translate-x-0.5 transition" />
+                <ArrowRight className="size-3.5 text-muted-foreground group-hover:translate-x-0.5 transition" />
+              </div>
+              <div className="font-mono text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold mt-0.5">
+                CPG-PP-2026-B03
               </div>
               <div className="text-[10px] text-muted-foreground mt-1">
-                Cut-Off: <strong className="text-foreground">Jumat, 20 Nov pk 10:00</strong>
+                Batas Cut-Off: <strong className="text-foreground">Jumat, 20 Nov pk 10:00</strong>
               </div>
             </div>
-            <div className="mt-2.5 pt-2 border-t border-emerald-500/20 flex items-center justify-between text-[11px]">
+            <div className="mt-3 pt-2 border-t border-emerald-500/20 flex items-center justify-between text-[11px]">
               <span className="text-emerald-700 dark:text-emerald-300 font-bold font-mono">
                 {activeCycleApprovedFpbs.length} FPB Disetujui
               </span>
-              <span className="text-[10px] text-muted-foreground font-semibold">Live Review ↗</span>
+              <span className="text-[10px] text-muted-foreground font-semibold group-hover:text-emerald-600 transition">
+                Live Review ↗
+              </span>
             </div>
           </div>
 
-          {/* Tahap 2: Perencanaan Pengadaan */}
+          {/* Tahap 2: Perencanaan Pengadaan (Halaman Ini) */}
           <div
-            onClick={() => setSelectedBatch('CPG-PP-2026-B02')}
-            className={`p-3 rounded-2xl border transition cursor-pointer relative group flex flex-col justify-between ${
-              selectedBatch === 'CPG-PP-2026-B02'
-                ? 'border-blue-500 bg-blue-500/10 shadow-xs ring-1 ring-blue-500'
-                : 'border-blue-500/30 bg-blue-500/5 hover:bg-blue-500/10'
+            onClick={() => setSelectedBatch(selectedBatch === 'CPL-PP-2026-004' || selectedBatch === 'CPG-PP-2026-B02' ? 'ALL' : 'CPL-PP-2026-004')}
+            className={`p-3.5 rounded-2xl border-2 transition cursor-pointer relative group flex flex-col justify-between shadow-2xs ${
+              selectedBatch === 'CPL-PP-2026-004' || selectedBatch === 'CPG-PP-2026-B02'
+                ? 'border-blue-500 bg-blue-500/15 ring-2 ring-blue-500/30'
+                : 'border-blue-500/40 bg-blue-500/5 hover:bg-blue-500/10'
             }`}
-            title="Klik untuk memfilter Batch II (Minggu 46)"
+            title="Klik untuk memfilter Batch Aktif Pengadaan: CPL-PP-2026-004 (Batch II Minggu 46)"
           >
             <div>
               <div className="flex items-center justify-between gap-1 mb-1.5">
-                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-500/20 text-blue-700 dark:text-blue-300 uppercase tracking-wider font-mono">
-                  Tahap 2 • Perencanaan PP
+                <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-blue-500/20 text-blue-700 dark:text-blue-300 uppercase tracking-wider font-mono flex items-center gap-1">
+                  <span>Tahap 2 • Perencanaan PP</span>
+                  <span className="size-1.5 rounded-full bg-blue-500"></span>
                 </span>
-                <span className="size-2 rounded-full bg-blue-500"></span>
+                <span className="text-[9px] px-1.5 py-0.2 rounded font-bold bg-blue-600 text-white font-mono">
+                  AKTIF DI SINI
+                </span>
               </div>
               <div className="font-bold text-xs text-foreground group-hover:text-blue-600 transition flex items-center justify-between">
-                <span>Batch II (Minggu 46)</span>
-                <span className="font-mono text-[10px] text-blue-600 dark:text-blue-400">CPG-PP-2026-B02</span>
+                <span>CPL-PP-2026-004</span>
+                <span className="text-[10px] font-mono text-blue-600 dark:text-blue-400 font-bold">
+                  Batch II (Mg 46)
+                </span>
               </div>
               <div className="text-[10px] text-muted-foreground mt-1">
-                Status: <strong className="text-foreground">Aktif Pengadaan (Siap Tender)</strong>
+                Fokus: <strong className="text-foreground">Hitung Net Demand &amp; Stok Gudang</strong>
               </div>
             </div>
-            <div className="mt-2.5 pt-2 border-t border-blue-500/20 flex items-center justify-between text-[11px]">
+            <div className="mt-3 pt-2 border-t border-blue-500/25 flex items-center justify-between text-[11px]">
               <span className="text-blue-700 dark:text-blue-300 font-bold font-mono">
-                {batch2Count} Item Material
+                {batch2Count} Item Siap Tender
               </span>
-              <span className="text-[10px] text-muted-foreground font-semibold">
-                {selectedBatch === 'CPG-PP-2026-B02' ? '✓ Dipilih' : 'Pilih Batch'}
+              <span className="text-[10px] font-semibold text-blue-600 dark:text-blue-400">
+                {selectedBatch === 'CPL-PP-2026-004' || selectedBatch === 'CPG-PP-2026-B02' ? '✓ Dipilih' : 'Pilih Batch'}
               </span>
             </div>
           </div>
@@ -1613,63 +1623,67 @@ export default function PurchasePlanningTab({
           {/* Tahap 3: Paket Pratender */}
           <div
             onClick={() => onNavigateTab?.('pratender')}
-            className="p-3 rounded-2xl border border-purple-500/30 bg-purple-500/5 hover:bg-purple-500/10 transition cursor-pointer relative group flex flex-col justify-between"
+            className="p-3.5 rounded-2xl border border-purple-500/35 bg-purple-500/5 hover:bg-purple-500/10 transition cursor-pointer relative group flex flex-col justify-between shadow-2xs hover:shadow-xs"
             title="Klik untuk membuka menu Pratender Material"
           >
             <div>
               <div className="flex items-center justify-between gap-1 mb-1.5">
-                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-500/20 text-purple-700 dark:text-purple-300 uppercase tracking-wider font-mono">
-                  Tahap 3 • Pratender
+                <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-purple-500/20 text-purple-700 dark:text-purple-300 uppercase tracking-wider font-mono">
+                  Tahap 3 • Paket Pratender
                 </span>
                 <span className="size-2 rounded-full bg-purple-500"></span>
               </div>
               <div className="font-bold text-xs text-foreground group-hover:text-purple-600 transition flex items-center justify-between">
-                <span>Paket Tender Bersama</span>
-                <ExternalLink className="size-3 text-muted-foreground group-hover:translate-x-0.5 transition" />
+                <span>Tender Bersama Vendor</span>
+                <ExternalLink className="size-3.5 text-muted-foreground group-hover:translate-x-0.5 transition" />
               </div>
               <div className="text-[10px] text-muted-foreground mt-1">
-                Status: <strong className="text-foreground">Seleksi Vendor &amp; HPS</strong>
+                Fokus: <strong className="text-foreground">Penawaran Harga &amp; HPS Resmi</strong>
               </div>
             </div>
-            <div className="mt-2.5 pt-2 border-t border-purple-500/20 flex items-center justify-between text-[11px]">
+            <div className="mt-3 pt-2 border-t border-purple-500/20 flex items-center justify-between text-[11px]">
               <span className="text-purple-700 dark:text-purple-300 font-bold font-mono">
                 {data ? data.items.filter((it) => Boolean(getPratenderStatusForItem(it))).length : 59} Terpaketkan
               </span>
-              <span className="text-[10px] text-muted-foreground font-semibold">Buka Pratender ➔</span>
+              <span className="text-[10px] text-muted-foreground font-semibold group-hover:text-purple-600 transition">
+                Buka Pratender ➔
+              </span>
             </div>
           </div>
 
           {/* Tahap 4: PO Purchasing */}
           <div
-            onClick={() => setSelectedBatch('CPG-PP-2026-B01')}
-            className={`p-3 rounded-2xl border transition cursor-pointer relative group flex flex-col justify-between ${
-              selectedBatch === 'CPG-PP-2026-B01'
-                ? 'border-slate-500 bg-slate-500/10 shadow-xs ring-1 ring-slate-500'
+            onClick={() => setSelectedBatch(selectedBatch === 'CPL-PP-2026-003' || selectedBatch === 'CPG-PP-2026-B01' ? 'ALL' : 'CPL-PP-2026-003')}
+            className={`p-3.5 rounded-2xl border transition cursor-pointer relative group flex flex-col justify-between shadow-2xs ${
+              selectedBatch === 'CPL-PP-2026-003' || selectedBatch === 'CPG-PP-2026-B01'
+                ? 'border-slate-500 bg-slate-500/15 ring-2 ring-slate-500/30'
                 : 'border-border bg-card/60 hover:bg-muted/40'
             }`}
-            title="Klik untuk memfilter Batch I (Minggu 45)"
+            title="Klik untuk memfilter Batch Selesai PO: CPL-PP-2026-003 (Batch I Minggu 45)"
           >
             <div>
               <div className="flex items-center justify-between gap-1 mb-1.5">
-                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-muted text-muted-foreground uppercase tracking-wider font-mono">
+                <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-muted text-muted-foreground uppercase tracking-wider font-mono">
                   Tahap 4 • Purchasing PO
                 </span>
                 <span className="size-2 rounded-full bg-slate-400"></span>
               </div>
               <div className="font-bold text-xs text-foreground group-hover:text-foreground transition flex items-center justify-between">
-                <span>Batch I (Minggu 45)</span>
-                <span className="font-mono text-[10px] text-muted-foreground">CPG-PP-2026-B01</span>
+                <span>CPL-PP-2026-003</span>
+                <span className="text-[10px] font-mono text-muted-foreground font-bold">
+                  Batch I (Mg 45)
+                </span>
               </div>
               <div className="text-[10px] text-muted-foreground mt-1">
-                Status: <strong className="text-foreground">Proses PO &amp; Pengiriman</strong>
+                Status: <strong className="text-foreground">Selesai PO &amp; Pengiriman</strong>
               </div>
             </div>
-            <div className="mt-2.5 pt-2 border-t border-border flex items-center justify-between text-[11px]">
+            <div className="mt-3 pt-2 border-t border-border flex items-center justify-between text-[11px]">
               <span className="text-muted-foreground font-bold font-mono">
                 {batch1Count} Item Terbit PO
               </span>
               <span className="text-[10px] text-muted-foreground font-semibold">
-                {selectedBatch === 'CPG-PP-2026-B01' ? '✓ Dipilih' : 'Pilih Batch'}
+                {selectedBatch === 'CPL-PP-2026-003' || selectedBatch === 'CPG-PP-2026-B01' ? '✓ Dipilih' : 'Lihat Arsip'}
               </span>
             </div>
           </div>
@@ -1698,43 +1712,64 @@ export default function PurchasePlanningTab({
               Semua Siklus ({data.items.length})
             </button>
 
-            {/* Pill: Batch II (Aktif Pengadaan) */}
+            {/* Pill: Batch II (Aktif Pengadaan - CPL-PP-2026-004) */}
             <button
               type="button"
-              onClick={() => setSelectedBatch(selectedBatch === 'CPG-PP-2026-B02' ? 'ALL' : 'CPG-PP-2026-B02')}
+              onClick={() => setSelectedBatch(selectedBatch === 'CPL-PP-2026-004' || selectedBatch === 'CPG-PP-2026-B02' ? 'ALL' : 'CPL-PP-2026-004')}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold border transition cursor-pointer ${
-                selectedBatch === 'CPG-PP-2026-B02'
+                selectedBatch === 'CPL-PP-2026-004' || selectedBatch === 'CPG-PP-2026-B02'
                   ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
                   : 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/30 hover:bg-blue-500/20'
               }`}
-              title="Filter Batch II (Minggu 46) - Aktif Pengadaan & Pratender"
+              title="Filter Batch Aktif Pengadaan: CPL-PP-2026-004 (Batch II Minggu 46) - Siap Ditenderkan"
             >
               <span className="size-2 rounded-full bg-blue-500 shrink-0"></span>
-              <span>Batch II (Minggu 46)</span>
-              <span className="font-mono text-[10px] opacity-85">(CPG-PP-2026-B02)</span>
+              <span className="font-mono">CPL-PP-2026-004</span>
+              <span className="opacity-80 text-[10px] hidden sm:inline">(Batch II Aktif)</span>
               <span className="px-1.5 py-0.2 rounded bg-black/15 dark:bg-white/15 text-[10px] font-mono">
                 {batch2Count}
               </span>
             </button>
 
-            {/* Pill: Batch I (Tahap PO) */}
+            {/* Pill: Batch I (Tahap PO - CPL-PP-2026-003) */}
             <button
               type="button"
-              onClick={() => setSelectedBatch(selectedBatch === 'CPG-PP-2026-B01' ? 'ALL' : 'CPG-PP-2026-B01')}
+              onClick={() => setSelectedBatch(selectedBatch === 'CPL-PP-2026-003' || selectedBatch === 'CPG-PP-2026-B01' ? 'ALL' : 'CPL-PP-2026-003')}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold border transition cursor-pointer ${
-                selectedBatch === 'CPG-PP-2026-B01'
+                selectedBatch === 'CPL-PP-2026-003' || selectedBatch === 'CPG-PP-2026-B01'
                   ? 'bg-slate-700 text-white border-slate-700 shadow-2xs'
                   : 'bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-500/30 hover:bg-slate-500/20'
               }`}
-              title="Filter Batch I (Minggu 45) - Riwayat Pengadaan / Tahap PO Purchasing"
+              title="Filter Batch Selesai: CPL-PP-2026-003 (Batch I Minggu 45) - Tahap Penerbitan PO Purchasing"
             >
               <span className="size-2 rounded-full bg-slate-400 shrink-0"></span>
-              <span>Batch I (Minggu 45)</span>
-              <span className="font-mono text-[10px] opacity-85">(CPG-PP-2026-B01)</span>
+              <span className="font-mono">CPL-PP-2026-003</span>
+              <span className="opacity-80 text-[10px] hidden sm:inline">(Batch I PO)</span>
               <span className="px-1.5 py-0.2 rounded bg-black/15 dark:bg-white/15 text-[10px] font-mono">
                 {batch1Count}
               </span>
             </button>
+
+            {/* Dynamic Pills dari uniqueBatches jika ada batch tambahan selain 003 dan 004 */}
+            {uniqueBatches
+              .filter((b) => !['CPL-PP-2026-003', 'CPL-PP-2026-004', 'CPG-PP-2026-B01', 'CPG-PP-2026-B02', 'CPG-PP-2026-B03'].includes(b.batchNo))
+              .map((b) => (
+                <button
+                  key={b.batchNo}
+                  type="button"
+                  onClick={() => setSelectedBatch(selectedBatch === b.batchNo ? 'ALL' : b.batchNo)}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold border transition cursor-pointer font-mono ${
+                    selectedBatch === b.batchNo
+                      ? 'bg-primary text-primary-foreground border-primary shadow-2xs'
+                      : 'bg-background/80 text-muted-foreground border-border hover:bg-muted/60'
+                  }`}
+                >
+                  <span>{b.batchNo}</span>
+                  <span className="px-1.5 py-0.2 rounded bg-black/15 dark:bg-white/15 text-[10px]">
+                    {b.count}
+                  </span>
+                </button>
+              ))}
 
             {/* Pill: Batch III (Live di Review FPB) */}
             <button
@@ -1751,7 +1786,7 @@ export default function PurchasePlanningTab({
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
               <span>Batch III (Minggu 47)</span>
-              <span className="text-[10px] opacity-85">• Sedang Review FPB ↗</span>
+              <span className="text-[10px] opacity-85 hidden sm:inline">• Sedang Review FPB ↗</span>
             </button>
 
             {/* Ringkasan Status Integrasi Pratender & Anomali */}
@@ -1803,6 +1838,34 @@ export default function PurchasePlanningTab({
               <span>Segarkan Integrasi</span>
             </button>
           </div>
+        </div>
+      )}
+
+      {/* ── CONTEXT BAR: STATUS BATCH AKTIF & FOKUS PROSES ── */}
+      {data && selectedBatch !== 'ALL' && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-blue-500/10 via-card to-blue-500/5 border border-blue-500/30 text-xs shadow-2xs">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="flex h-2 w-2 relative shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+            </span>
+            <span className="text-muted-foreground font-medium">Batch Terpilih:</span>
+            <strong className="text-foreground font-mono font-bold px-2 py-0.5 rounded-md bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30">
+              {selectedBatch}
+            </strong>
+            <span className="text-muted-foreground">&bull;</span>
+            <span className="text-blue-700 dark:text-blue-300 font-semibold">
+              {filteredItems.length} Item Material ({selectedBatch.includes('004') || selectedBatch === 'CPG-PP-2026-B02' ? 'Tahap 2: Evaluasi Kebutuhan & Siap Ditenderkan' : selectedBatch.includes('003') || selectedBatch === 'CPG-PP-2026-B01' ? 'Tahap 4: Selesai PO Purchasing & Pengiriman' : 'Koleksi Batch Khusus'})
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSelectedBatch('ALL')}
+            className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline cursor-pointer self-start sm:self-auto flex items-center gap-1"
+          >
+            <span>Reset ke Semua Siklus</span>
+            <X className="size-3" />
+          </button>
         </div>
       )}
 
