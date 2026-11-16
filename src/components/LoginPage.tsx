@@ -25,6 +25,7 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import BottomNewsTicker from '@/components/BottomNewsTicker';
 
 export interface FleetBackgroundItem {
   id: string;
@@ -120,6 +121,8 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
   const [bgClarity, setBgClarity] = useState<'vivid' | 'balanced' | 'dim'>('vivid');
   // State sembunyikan bar info armada secara gradual dari kanan ke kiri
   const [isFleetBarCollapsed, setIsFleetBarCollapsed] = useState<boolean>(false);
+  // State bottom news ticker (apakah sedang di-minimize)
+  const [isTickerCollapsed, setIsTickerCollapsed] = useState<boolean>(false);
 
   useEffect(() => {
     // Acak gambar armada saat halaman dibuka
@@ -689,7 +692,11 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
       </div>
 
       {/* Floating Bottom Fleet Status & Live Wallpaper Switcher */}
-      <div className="fixed bottom-3 left-3 sm:bottom-4 sm:left-6 z-20 flex items-center gap-1.5">
+      <div
+        className={`fixed ${
+          isTickerCollapsed ? 'bottom-3 sm:bottom-4' : 'bottom-11 sm:bottom-12'
+        } left-3 sm:left-6 z-20 flex items-center gap-1.5 transition-all duration-300`}
+      >
         {/* Toggle Button (Area Kotak Putih / Cyan Pulse Dot) */}
         <button
           type="button"
@@ -815,6 +822,9 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
           </div>
         </div>
       )}
+
+      {/* Live Maritime Fleet & Weather News Ticker (Bottom Bar) */}
+      <BottomNewsTicker onCollapsedChange={setIsTickerCollapsed} />
     </div>
   );
 }
