@@ -19,49 +19,103 @@ import {
   X,
   Compass,
   AlertTriangle,
+  Truck,
+  CalendarCheck,
+  PackageCheck,
+  Navigation,
 } from 'lucide-react';
 import { NewsTickerItem, NewsTickerResponse } from '@/types/newsTicker';
 
-const CACHE_KEY = 'CPG_NEWS_TICKER_CACHE_V2';
+const CACHE_KEY = 'CPG_NEWS_TICKER_CACHE_V3';
 
 // Fallback jika tidak ada internet sama sekali sejak pertama kali load
 const DEFAULT_OFFLINE_ITEMS: NewsTickerItem[] = [
   {
+    id: 'offline-ttb-1',
+    category: 'STATUS TTB',
+    badge: 'TTB ON-DELIVERY',
+    title: 'CPL-TTB-26-07465 • TB KING STAR',
+    content: 'Kurir: BARDI • Menuju Pelabuhan Semayang • Menunggu tanda tangan Nakhoda Abdul Rauf Wakano',
+    highlight: 'PROSES ANTAR',
+    timestamp: 'Offline Fallback',
+    severity: 'warning',
+  },
+  {
+    id: 'offline-ttb-2',
+    category: 'STATUS TTB',
+    badge: 'TTB ON-DELIVERY',
+    title: 'MIL-TTB-26-00064 • MT DOMINO',
+    content: 'Kurir: AKBAR RAMADHAN • Status: Menuju dermaga / Menunggu serah terima fisik & tanda tangan Mualim II',
+    highlight: 'PROSES ANTAR',
+    timestamp: 'Offline Fallback',
+    severity: 'warning',
+  },
+  {
+    id: 'offline-ttb-3',
+    category: 'STATUS TTB',
+    badge: 'TTB TERKIRIM',
+    title: 'CPL-TTB-26-06278 • MT BLUE PETROL',
+    content: 'Kurir: Hermansyah Herman • Berhasil diterima & ditandatangani oleh Nakhoda Kiky di Rede Balikpapan',
+    highlight: 'SELESAI TERIMA',
+    timestamp: 'Offline Fallback',
+    severity: 'success',
+  },
+  {
+    id: 'offline-sched-1',
+    category: 'JADWAL PENGANTARAN',
+    badge: 'DELIVERY SCHEDULE',
+    title: 'Ke AJ PUTRA • Semayang Balikpapan',
+    content: 'Jadwal: SENIN • Slot: PAGI (08:00 - 11:30) • Kurir: AGUSSALIM • Diantar Tim Logistik CPG',
+    highlight: 'SENIN • AGUSSALIM',
+    timestamp: 'Offline Fallback',
+    severity: 'info',
+  },
+  {
+    id: 'offline-sched-2',
+    category: 'JADWAL PENGANTARAN',
+    badge: 'DELIVERY SCHEDULE',
+    title: 'Ke AMBER • Somber Kariangau',
+    content: 'Jadwal: SENIN • Slot: SIANG (13:00 - 15:30) • Kurir: BARDI • Pengantaran material perawatan kapal',
+    highlight: 'SENIN • BARDI',
+    timestamp: 'Offline Fallback',
+    severity: 'info',
+  },
+  {
+    id: 'offline-sched-3',
+    category: 'JADWAL PENGANTARAN',
+    badge: 'DELIVERY SCHEDULE',
+    title: 'Ke BARONGKO • Semayang Balikpapan',
+    content: 'Jadwal: RABU • Slot: SIANG (13:00 - 15:30) • Kurir: ZULFIANSYAH • Pengantaran logistik & sparepart',
+    highlight: 'RABU • ZULFIANSYAH',
+    timestamp: 'Offline Fallback',
+    severity: 'info',
+  },
+  {
     id: 'offline-armada-1',
     category: 'ARMADA',
     badge: 'CPG FLEET RADAR',
-    title: 'TB Cindara 3112',
-    content: 'Posisi: Kariangau Anchorage • Operasi Towing & Berthing Support Pelabuhan Balikpapan',
-    highlight: 'ON - OPERASIONAL',
+    title: 'Status Armada Aktif CPG',
+    content: 'Total 33 Unit Kapal: 22 Beroperasi (ON), 7 Standby (SB), 3 Docking (DK).',
+    highlight: '22 Beroperasi',
     timestamp: 'Offline Fallback',
-    severity: 'success',
+    severity: 'marine',
   },
   {
     id: 'offline-armada-2',
     category: 'ARMADA',
-    badge: 'CPG FLEET RADAR',
-    title: 'SPOB Cintiana Pratama',
-    content: 'Posisi: STS Balikpapan Offshore • Bunkering Marine Fuel Pertamina & PHM',
-    highlight: 'ON - BUNKERING',
-    timestamp: 'Offline Fallback',
-    severity: 'success',
-  },
-  {
-    id: 'offline-armada-3',
-    category: 'ARMADA',
-    badge: 'CPG FLEET RADAR',
-    title: 'SV Twin Sister 307',
-    content: 'Posisi: West Seno / Selat Makassar • Support Logistik Lepas Pantai',
-    highlight: 'ON - OFFSHORE',
+    badge: 'ARMADA [ON]',
+    title: 'TB Cindara 3112',
+    content: 'Posisi: Kariangau Anchorage • Operasi Towing & Berthing Support Pelabuhan Balikpapan',
+    highlight: 'OPERASIONAL',
     timestamp: 'Offline Fallback',
     severity: 'marine',
   },
   {
     id: 'offline-weather',
     category: 'CUACA',
-    badge: 'CUACA MARITIM',
+    badge: 'BMKG MARITIM',
     title: 'Prakiraan Teluk Balikpapan',
-    content: 'Kondusif Berawan, Suhu 28°C, Angin 6-10 kn, Tinggi Gelombang 0.4 - 0.7m. Aman untuk aktivitas pelayaran.',
+    content: 'Kondusif Berawan, Suhu 28°C, Angin 6-10 kn, Tinggi Gelombang 0.4 - 0.7m. Aman untuk pengantaran kapal.',
     highlight: 'Kondusif • Gelombang Tenang',
     timestamp: 'Offline Fallback',
     severity: 'info',
@@ -71,20 +125,10 @@ const DEFAULT_OFFLINE_ITEMS: NewsTickerItem[] = [
     category: 'SOP CPG',
     badge: 'SOP PENGADAAN',
     title: 'Validasi Berjenjang TTB & FSTB',
-    content: 'Setiap barang masuk wajib ditandatangani berjenjang oleh 4 PIC: Staff Logistik, Spv Logistik, Spv Purchasing, dan Mgr Procurement.',
+    content: 'Setiap barang masuk wajib diverifikasi 4 PIC: Staff Logistik, Spv Logistik, Spv Purchasing, Mgr Procurement & pihak kapal.',
     highlight: 'Wajib 4 PIC',
     timestamp: 'Offline Fallback',
     severity: 'info',
-  },
-  {
-    id: 'offline-safety',
-    category: 'SAFETY',
-    badge: 'K3 MARITIM',
-    title: 'Marine Safety & Zero Accident',
-    content: 'Patuhi standar keselamatan maritim: selalu gunakan lifejacket dan APD saat olah gerak kapal di laut.',
-    highlight: 'Zero Accident',
-    timestamp: 'Offline Fallback',
-    severity: 'success',
   },
 ];
 
@@ -224,36 +268,54 @@ export default function BottomNewsTicker({ onCollapsedChange }: BottomNewsTicker
   }, [items]);
 
   // Helper render ikon sesuai kategori
-  const renderCategoryIcon = (category: string) => {
+  const renderCategoryIcon = (category: string, severity?: string) => {
     switch (category) {
+      case 'STATUS TTB':
+        return severity === 'success' ? (
+          <PackageCheck className="size-3.5 text-emerald-400 shrink-0" />
+        ) : (
+          <Truck className="size-3.5 text-amber-400 shrink-0" />
+        );
+      case 'JADWAL PENGANTARAN':
+        return <CalendarCheck className="size-3.5 text-blue-400 shrink-0" />;
       case 'ARMADA':
         return <Ship className="size-3.5 text-cyan-400 shrink-0" />;
       case 'CUACA':
-        return <Wind className="size-3.5 text-emerald-400 shrink-0" />;
+        return <Wind className="size-3.5 text-teal-400 shrink-0" />;
       case 'SOP CPG':
-        return <FileText className="size-3.5 text-amber-400 shrink-0" />;
+        return <FileText className="size-3.5 text-violet-400 shrink-0" />;
       case 'SAFETY':
         return <ShieldCheck className="size-3.5 text-purple-400 shrink-0" />;
       default:
-        return <Radio className="size-3.5 text-blue-400 shrink-0" />;
+        return <Radio className="size-3.5 text-cyan-400 shrink-0" />;
     }
   };
 
   // Helper render badge styling
   const getBadgeClass = (category: string, severity: string) => {
+    if (category === 'STATUS TTB') {
+      return severity === 'success'
+        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+        : 'bg-amber-500/20 text-amber-300 border-amber-500/40';
+    }
+    if (category === 'JADWAL PENGANTARAN') {
+      return severity === 'warning'
+        ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+        : 'bg-blue-500/20 text-blue-300 border-blue-500/40';
+    }
+    if (category === 'ARMADA') {
+      return 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40';
+    }
+    if (category === 'CUACA') {
+      return 'bg-teal-500/20 text-teal-300 border-teal-500/40';
+    }
+    if (category === 'SOP CPG') {
+      return 'bg-violet-500/20 text-violet-300 border-violet-500/40';
+    }
     if (severity === 'success') {
-      return 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30';
+      return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
     }
-    if (severity === 'warning') {
-      return 'bg-amber-500/15 text-amber-300 border-amber-500/30';
-    }
-    if (severity === 'marine' || category === 'ARMADA') {
-      return 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30';
-    }
-    if (category === 'SAFETY') {
-      return 'bg-purple-500/15 text-purple-300 border-purple-500/30';
-    }
-    return 'bg-blue-500/15 text-blue-300 border-blue-500/30';
+    return 'bg-slate-700/40 text-slate-300 border-slate-600/40';
   };
 
   // State collapsed: Mini Dock Pill di Pojok Kanan Bawah
@@ -345,7 +407,7 @@ export default function BottomNewsTicker({ onCollapsedChange }: BottomNewsTicker
                 className="flex items-center gap-2 text-xs text-slate-300 hover:text-white transition group/item shrink-0 cursor-pointer"
               >
                 {/* Category Icon */}
-                {renderCategoryIcon(item.category)}
+                {renderCategoryIcon(item.category, item.severity)}
 
                 {/* Badge Category */}
                 <span
@@ -425,7 +487,7 @@ export default function BottomNewsTicker({ onCollapsedChange }: BottomNewsTicker
           <div className="w-full max-w-md rounded-2xl bg-slate-900 border border-slate-800 p-5 shadow-2xl text-slate-200 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <div className="flex items-center gap-2">
-                {renderCategoryIcon(selectedItem.category)}
+                {renderCategoryIcon(selectedItem.category, selectedItem.severity)}
                 <div>
                   <span
                     className={`inline-block px-2 py-0.5 rounded text-[10px] font-mono font-semibold border ${getBadgeClass(

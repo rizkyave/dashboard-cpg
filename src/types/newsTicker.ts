@@ -1,4 +1,10 @@
-export type TickerCategory = 'ARMADA' | 'CUACA' | 'SOP CPG' | 'SAFETY';
+export type TickerCategory =
+  | 'JADWAL PENGANTARAN'
+  | 'STATUS TTB'
+  | 'ARMADA'
+  | 'CUACA'
+  | 'SOP CPG'
+  | 'SAFETY';
 
 export type TickerSeverity = 'info' | 'success' | 'warning' | 'marine' | 'critical';
 
@@ -22,6 +28,8 @@ export interface NewsTickerResponse {
   meta?: {
     armadaCount?: number;
     activeShips?: number;
+    deliveryCount?: number;
+    ttbTransitCount?: number;
     weatherLocation?: string;
     temperature?: number;
     windKnots?: number;
