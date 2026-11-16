@@ -69,12 +69,34 @@ export function findLocalFile(relPath: string, filename?: string): string | null
 
   // Cari di shared_uploads subfolders
   const shared = getPersistentStorageDir();
+  candidates.push(path.join(shared, 'uploads', cleanRel));
+  candidates.push(path.join(shared, 'uploads', fname));
   candidates.push(path.join(shared, 'ttb-documents', fname));
   candidates.push(path.join(shared, 'fstb-documents', fname));
   candidates.push(path.join(shared, 'sop-documents', fname));
   candidates.push(path.join(shared, 'ttb-photos', fname));
   candidates.push(path.join(shared, 'fpb-pdfs', fname));
   candidates.push(path.join(shared, 'fpb-signed', fname));
+  candidates.push(path.join(shared, 'uploads', 'ttb-documents', fname));
+  candidates.push(path.join(shared, 'uploads', 'fstb-documents', fname));
+  candidates.push(path.join(shared, 'uploads', 'sop-documents', fname));
+  candidates.push(path.join(shared, 'uploads', 'ttb-photos', fname));
+  candidates.push(path.join(shared, 'uploads', 'fpb-pdfs', fname));
+  candidates.push(path.join(shared, 'uploads', 'fpb-signed', fname));
+
+  // Kandidat di tingkat domain Hostinger (di luar hbuilds)
+  try {
+    const domainDir = path.resolve(cwd, '../../../..');
+    const domainShared = path.join(domainDir, 'shared_uploads');
+    candidates.push(path.join(domainShared, cleanRel));
+    candidates.push(path.join(domainShared, fname));
+    candidates.push(path.join(domainShared, 'uploads', cleanRel));
+    candidates.push(path.join(domainShared, 'uploads', fname));
+    candidates.push(path.join(domainShared, 'ttb-documents', fname));
+    candidates.push(path.join(domainShared, 'fstb-documents', fname));
+    candidates.push(path.join(domainShared, 'sop-documents', fname));
+    candidates.push(path.join(domainShared, 'ttb-photos', fname));
+  } catch {}
 
   // Cari di seluruh versi Hostinger hbuilds/versions/*/nodejs/public/uploads
   try {
