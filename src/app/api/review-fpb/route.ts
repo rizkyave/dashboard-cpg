@@ -16,6 +16,7 @@ import {
 import { InventoryItem } from '@/types/procurement';
 import { isR2Configured, getObjectFromR2, uploadToR2 } from '@/utils/r2Client';
 import { findDocumentsByFpb } from '@/utils/docRelationResolver';
+import { lookupFpbArmada } from '@/utils/fpbDetector';
 import { formatDateDdMmYy } from '@/utils/formatDate';
 import { stampFpbPdf, formatToStampDate, formatToStampTimestamp } from '@/utils/fpbStamper';
 import { triggerEfpbReceivedLogistic } from '@/utils/efpbApprovalTrigger';
@@ -747,11 +748,17 @@ export async function GET(req: NextRequest) {
       await saveReviews(records);
     }
 
-    // Cross-link latest document relations
+    // Cross-link latest document relations and enrich armada if missing or generic
     records = records.map((rec) => {
       const rel = findDocumentsByFpb(rec.fpbNo);
+      let armada = rec.armada;
+      if (!armada || armada.trim().toUpperCase() === 'ARMADA KAPAL' || armada.trim() === '-') {
+        const detected = lookupFpbArmada(rec.fpbNo);
+        if (detected) armada = detected;
+      }
       return {
         ...rec,
+        armada,
         relatedDocs: {
           poNos: Array.from(new Set([...(rec.relatedDocs?.poNos || []), ...(rel?.pos || [])])),
           fstbNos: Array.from(new Set([...(rec.relatedDocs?.fstbNos || []), ...(rel?.fstbs || [])])),
@@ -911,12 +918,17 @@ export async function POST(req: NextRequest) {
       } else {
         // Create new record
         const rel = findDocumentsByFpb(fpbNo);
+        let armada = body.armada || 'Armada Kapal';
+        if (!armada || armada.trim().toUpperCase() === 'ARMADA KAPAL' || armada.trim() === '-') {
+          const detected = lookupFpbArmada(fpbNo);
+          if (detected) armada = detected;
+        }
         const newRecord: FpbReviewRecord = {
           id: `fpb-rev-${fpbNo}`,
           fpbNo,
           originalFpb: body.originalFpb || fpbNo,
           entity: body.entity || 'CPL',
-          armada: body.armada || 'Armada Kapal',
+          armada,
           date: body.date || formatDateDdMmYy(new Date().toISOString()),
           purpose: body.purpose || '',
           efpbStatus: body.efpbStatus || 'Approved',

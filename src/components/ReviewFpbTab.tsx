@@ -78,6 +78,7 @@ import {
   ItemDecision,
 } from '@/types/fpbReview';
 import { useAuth } from '@/context/AuthContext';
+import { MASTER_ARMADA_LIST } from '@/utils/fstbDetector';
 import { findCrewOrArmadaContact, syncCrewContact } from '@/utils/crewKapalStorage';
 import LogisticsApprovalCell from './LogisticsApprovalCell';
 import LogisticsApprovalConfirmModal from './LogisticsApprovalConfirmModal';
@@ -4388,7 +4389,14 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                     type="text"
                     required
                     value={newFpbNo}
-                    onChange={(e) => setNewFpbNo(e.target.value.toUpperCase())}
+                    onChange={(e) => {
+                      const val = e.target.value.toUpperCase();
+                      setNewFpbNo(val);
+                      const prefix = val.split(/[-_/]/)[0];
+                      if (prefix && ['CPL', 'SP', 'GAJ', 'HL', 'MIL', 'MO'].includes(prefix)) {
+                        setNewEntity(prefix);
+                      }
+                    }}
                     placeholder="Contoh: MIL-FPB-26-0000072"
                     className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground font-mono focus:outline-hidden focus:ring-1 focus:ring-primary"
                   />
@@ -4416,11 +4424,17 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                   <input
                     type="text"
                     required
+                    list="fpb-armada-datalist"
                     value={newArmada}
                     onChange={(e) => setNewArmada(e.target.value)}
-                    placeholder="Contoh: TB MUARA MEGA"
+                    placeholder="Contoh: TB MUARA MEGA (Pilih dari daftar)"
                     className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary"
                   />
+                  <datalist id="fpb-armada-datalist">
+                    {MASTER_ARMADA_LIST.map((armada) => (
+                      <option key={armada} value={armada} />
+                    ))}
+                  </datalist>
                 </div>
 
                 {/* Tanggal FPB */}

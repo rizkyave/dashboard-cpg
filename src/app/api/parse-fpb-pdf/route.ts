@@ -5,6 +5,7 @@ import path from 'path';
 import { formatDateDdMmYy } from '@/utils/formatDate';
 import { cleanSingleDescription, deduplicateDescriptions } from '@/utils/descriptionCleaner';
 import { isR2Configured, getObjectFromR2, uploadToR2 } from '@/utils/r2Client';
+import { lookupFpbArmada, detectArmadaFromPdfBlocks } from '@/utils/fpbDetector';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -439,6 +440,22 @@ function extractPdfData(
   }
 
   if (!fpbNo) fpbNo = fpbQuery;
+
+  // Enrich & Verifikasi userArmada jika kosong atau bernilai default generic
+  const cleanArmadaUpper = (userArmada || '').trim().toUpperCase();
+  if (!cleanArmadaUpper || cleanArmadaUpper === 'ARMADA KAPAL' || cleanArmadaUpper === '-' || cleanArmadaUpper === 'USER') {
+    // 1. Coba deteksi cerdas dari blok-blok teks PDF (mencari label alternatif atau master armada)
+    const detectedFromBlocks = detectArmadaFromPdfBlocks(allBlocks);
+    if (detectedFromBlocks) {
+      userArmada = detectedFromBlocks;
+    } else {
+      // 2. Lookup ke database terverifikasi (19.346 rekor) dan referensi relasi (4.002 rekor)
+      const lookupResult = lookupFpbArmada(fpbNo);
+      if (lookupResult) {
+        userArmada = lookupResult;
+      }
+    }
+  }
 
   // Extract signatures
   let requestedBy = '',
