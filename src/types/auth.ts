@@ -6,6 +6,8 @@ export type UserRole =
   | 'direksi'
   | 'manager'
   | 'supervisor'
+  | 'spv_purchasing'
+  | 'spv_logistik'
   | 'staf_fpb'
   | 'staf_purchasing'
   | 'staf_ttb'
@@ -109,6 +111,8 @@ export interface ModulePermissionItem {
     admin: RolePermissionRule;
     manager: RolePermissionRule;
     supervisor: RolePermissionRule;
+    spv_purchasing?: RolePermissionRule;
+    spv_logistik?: RolePermissionRule;
     staf_fpb?: RolePermissionRule;
     staf_purchasing: RolePermissionRule;
     staf_ttb: RolePermissionRule;
@@ -120,7 +124,7 @@ export interface ModulePermissionItem {
 
 export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = rawRbacMatrix as unknown as ModulePermissionItem[];
 
-export const RBAC_MATRIX_STORAGE_KEY = 'CPG_AUTH_RBAC_MATRIX_V12';
+export const RBAC_MATRIX_STORAGE_KEY = 'CPG_AUTH_RBAC_MATRIX_V13';
 
 /**
  * Membaca matriks perizinan dinamis dari localStorage (fallback ke default matrix)
@@ -142,6 +146,7 @@ export function getStoredPermissionsMatrix(): ModulePermissionItem[] {
     localStorage.removeItem('CPG_AUTH_RBAC_MATRIX_V9');
     localStorage.removeItem('CPG_AUTH_RBAC_MATRIX_V10');
     localStorage.removeItem('CPG_AUTH_RBAC_MATRIX_V11');
+    localStorage.removeItem('CPG_AUTH_RBAC_MATRIX_V12');
 
     const raw = localStorage.getItem(RBAC_MATRIX_STORAGE_KEY);
     if (raw) {
@@ -303,6 +308,8 @@ export function canAccessTab(role: UserRole | undefined, tab: TabType): boolean 
 export function getDefaultTabForRole(role: UserRole | undefined): TabType {
   let preferred: TabType = 'overview';
   if (role === 'staf_fpb') preferred = 'review-fpb';
+  else if (role === 'spv_purchasing') preferred = 'purchase-planning';
+  else if (role === 'spv_logistik') preferred = 'stok-gudang';
   else if (role === 'staf_lapangan') preferred = 'serah-terima-lapangan';
   else if (role === 'end_user') preferred = 'serah-terima-lapangan';
   else if (role === 'staf_ttb') preferred = 'upload-ttb';
@@ -352,6 +359,10 @@ export function getRoleDisplayName(role: UserRole | undefined): string {
       return 'Manager Procurement';
     case 'supervisor':
       return 'Supervisor Procurement';
+    case 'spv_purchasing':
+      return 'Supervisor Purchasing';
+    case 'spv_logistik':
+      return 'Supervisor Logistik';
     case 'staf_fpb':
       return 'Staf Reviewer & Perencana FPB';
     case 'staf_purchasing':

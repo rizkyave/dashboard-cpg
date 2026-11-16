@@ -57,6 +57,18 @@
         "level": "Dilarang",
         "badgeTone": "rose",
         "notes": "Bukan domain kerja perencana FPB"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Akses membaca log pekerjaan pengadaan dan PO"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Akses membaca log pekerjaan logistik, gudang dan TTB"
       }
     }
   },
@@ -118,6 +130,18 @@
         "level": "Read-only",
         "badgeTone": "slate",
         "notes": "Pemantauan data pendukung perencana logistik"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Pencarian cepat berkas pengadaan & PO"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Pencarian cepat berkas logistik, TTB, dan gudang"
       }
     }
   },
@@ -172,6 +196,18 @@
         "level": "Read-only",
         "badgeTone": "slate",
         "notes": "Pemantauan data pendukung perencana logistik"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Monitoring ringkasan berkas purchasing"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Monitoring ringkasan berkas logistik & TTB"
       }
     }
   },
@@ -232,6 +268,18 @@
         "level": "Full Access",
         "badgeTone": "purple",
         "notes": "Akses penuh verifikasi FPB, cek stok gudang, dan persetujuan Purchase Planning"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Otorisasi masuk Purchase Planning & alokasi PO"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Verifikasi stok gudang & approval Received_Logistic"
       }
     }
   },
@@ -293,6 +341,18 @@
         "level": "Dilarang",
         "badgeTone": "rose",
         "notes": "Bukan domain kerja perencana FPB"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Otorisasi peramalan kebutuhan, net demand, dan konsolidasi batch PP"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Monitoring agenda pengadaan untuk persiapan gudang"
       }
     }
   },
@@ -353,6 +413,18 @@
         "level": "Dilarang",
         "badgeTone": "rose",
         "notes": "Bukan domain kerja perencana FPB"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Pembentukan paket pratender material, batas waktu & vendor undangan"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Monitoring paket barang yang akan masuk gudang"
       }
     }
   },
@@ -410,6 +482,18 @@
         "level": "Dilarang",
         "badgeTone": "rose",
         "notes": "Bukan domain kerja perencana FPB"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Otorisasi evaluasi penawaran vendor, HPS dan pemenang lelang"
+      },
+      "spv_logistik": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Bukan domain logistik gudang (Kerahasiaan penawaran harga vendor)"
       }
     }
   },
@@ -470,6 +554,18 @@
         "level": "Read-only",
         "badgeTone": "slate",
         "notes": "Pemantauan data pendukung perencana logistik"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Otorisasi & monitoring status PO, penerbitan dan relasi vendor"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Monitoring nomor PO untuk cross-check penerimaan barang"
       }
     }
   },
@@ -530,6 +626,18 @@
         "level": "Read-only",
         "badgeTone": "slate",
         "notes": "Pemantauan data pendukung perencana logistik"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Melihat profil armada pemohon"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Melihat profil armada & kebutuhan operasional kapal"
       }
     }
   },
@@ -590,6 +698,18 @@
         "level": "Read-only",
         "badgeTone": "slate",
         "notes": "Pemantauan data pendukung perencana logistik"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Monitoring SLA purchasing & pelunasan pengadaan"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Monitoring SLA logistik, gudang, dan serah terima"
       }
     }
   },
@@ -650,6 +770,18 @@
         "level": "Dilarang",
         "badgeTone": "rose",
         "notes": "Bukan domain kerja perencana FPB"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Monitoring dokumen FSTB terkait PO"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Otorisasi & validasi berkas fisik FSTB serah terima barang gudang"
       }
     }
   },
@@ -710,6 +842,18 @@
         "level": "Dilarang",
         "badgeTone": "rose",
         "notes": "Bukan domain kerja perencana FPB"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Verifikasi kelengkapan berkas tagihan supplier"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Otorisasi validasi dokumen fisik FSTB & TTB dengan stempel digital"
       }
     }
   },
@@ -770,6 +914,18 @@
         "level": "Dilarang",
         "badgeTone": "rose",
         "notes": "Bukan domain kerja perencana FPB"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Tracking bukti penerimaan barang armada (TTB)"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Otorisasi tanda terima barang (TTB), tanda tangan digital & kirim WA"
       }
     }
   },
@@ -830,6 +986,18 @@
         "level": "Dilarang",
         "badgeTone": "rose",
         "notes": "Bukan domain kerja perencana FPB"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Monitoring estimasi waktu kedatangan barang ke kapal"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Pengaturan jadwal distribusi kapal, kurir darat & armada laut"
       }
     }
   },
@@ -891,6 +1059,18 @@
         "level": "Dilarang",
         "badgeTone": "rose",
         "notes": "Bukan domain kerja perencana FPB"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Melihat foto bukti fisik penerimaan barang"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Inspeksi foto fisik, stempel TimeMark, dan arsip visual TTB"
       }
     }
   },
@@ -951,6 +1131,18 @@
         "level": "Read-only",
         "badgeTone": "slate",
         "notes": "Pemantauan data pendukung perencana logistik"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Pengecekan stok gudang Accurate sebelum membuat PO"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Otorisasi persediaan, stock opname, penyesuaian stok gudang"
       }
     }
   },
@@ -1011,6 +1203,18 @@
         "level": "Read-only",
         "badgeTone": "slate",
         "notes": "Pemantauan data pendukung perencana logistik"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Melihat stok gudang pusat"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Pengelolaan stok fisik gudang pusat Somber & transfer antar gudang"
       }
     }
   },
@@ -1071,6 +1275,18 @@
         "level": "Read-only",
         "badgeTone": "slate",
         "notes": "Pemantauan data pendukung perencana logistik"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Monitoring lokasi armada peminta barang"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Monitoring posisi armada untuk koordinasi titik serah barang"
       }
     }
   },
@@ -1131,6 +1347,18 @@
         "level": "Read-only",
         "badgeTone": "slate",
         "notes": "Pemantauan data pendukung perencana logistik"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Melihat kontak pembuat FPB di kapal"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Koordinasi dengan Nakhoda/KKM untuk serah terima barang"
       }
     }
   },
@@ -1191,6 +1419,18 @@
         "level": "Read-only",
         "badgeTone": "slate",
         "notes": "Pemantauan data pendukung perencana logistik"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Cross-check nomor WO perbaikan kapal dengan PO jasa"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Cross-check WO perbaikan kapal dengan pengeluaran suku cadang"
       }
     }
   },
@@ -1251,6 +1491,18 @@
         "level": "Dilarang",
         "badgeTone": "rose",
         "notes": "Bukan domain kerja perencana FPB"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Melihat surat masuk administrasi purchasing"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Melihat surat masuk logistik dan pengiriman"
       }
     }
   },
@@ -1311,6 +1563,18 @@
         "level": "Dilarang",
         "badgeTone": "rose",
         "notes": "Bukan domain kerja perencana FPB"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Monitoring & penyelesaian backlog PO dan tagihan vendor"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Monitoring sisa layanan barang yang belum terkirim ke kapal"
       }
     }
   },
@@ -1371,6 +1635,18 @@
         "level": "Dilarang",
         "badgeTone": "rose",
         "notes": "Bukan domain kerja perencana FPB"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Monitoring bukti serah terima selesai"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple",
+        "notes": "Otorisasi serah terima barang lapangan, tanda tangan digital & BAST"
       }
     }
   },
@@ -1431,6 +1707,18 @@
         "level": "Dilarang",
         "badgeTone": "rose",
         "notes": "Bukan domain kerja perencana FPB"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Analisis tren belanja, efisiensi anggaran, dan performa supplier"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate",
+        "notes": "Analisis perputaran stok gudang, lead time pengiriman ke armada"
       }
     }
   },
@@ -1491,6 +1779,18 @@
         "level": "Dilarang",
         "badgeTone": "rose",
         "notes": "Bukan domain kerja perencana FPB"
+      },
+      "spv_purchasing": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Khusus Administrator sistem"
+      },
+      "spv_logistik": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose",
+        "notes": "Khusus Administrator sistem"
       }
     }
   }

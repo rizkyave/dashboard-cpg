@@ -23,6 +23,8 @@ interface AuthContextType {
   isAdmin: boolean;
   isManager: boolean;
   isSupervisor: boolean;
+  isSpvPurchasing: boolean;
+  isSpvLogistik: boolean;
   isStafFpb: boolean;
   isStafPurchasing: boolean;
   isUser: boolean;
@@ -469,7 +471,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const isAdmin = user?.role === 'admin';
   const isManager = user?.role === 'manager';
-  const isSupervisor = user?.role === 'supervisor';
+  const isSpvPurchasing = user?.role === 'spv_purchasing';
+  const isSpvLogistik = user?.role === 'spv_logistik';
+  const isSupervisor = user?.role === 'supervisor' || isSpvPurchasing || isSpvLogistik;
   const isStafFpb = user?.role === 'staf_fpb';
   const isStafPurchasing = user?.role === 'staf_purchasing';
   const isStafTtb = user?.role === 'staf_ttb';
@@ -481,6 +485,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isAdmin ||
     isManager ||
     isSupervisor ||
+    isSpvPurchasing ||
+    isSpvLogistik ||
     isStafFpb ||
     isStafPurchasing ||
     isStafTtb ||
@@ -499,6 +505,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAdmin,
         isManager,
         isSupervisor,
+        isSpvPurchasing,
+        isSpvLogistik,
         isStafFpb,
         isStafPurchasing,
         isUser,
