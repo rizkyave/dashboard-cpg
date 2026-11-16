@@ -66,9 +66,8 @@ export function getR2Config(): R2Config {
 }
 
 export function isR2Configured(): boolean {
-  // Mode Hostinger: R2 dinonaktifkan agar seluruh sistem berjalan 100% cepat & mandiri di server Hostinger.
-  // Set USE_CLOUDFLARE_R2=true di .env jika ingin mengaktifkan kembali koneksi R2.
-  if (process.env.USE_CLOUDFLARE_R2 !== 'true') {
+  // R2 aktif sebagai fail-safe fallback otomatis jika berkas belum ada di disk lokal Hostinger.
+  if (process.env.USE_CLOUDFLARE_R2 === 'false') {
     return false;
   }
   return getR2Config().isConfigured;

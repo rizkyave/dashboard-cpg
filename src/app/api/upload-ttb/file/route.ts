@@ -92,6 +92,14 @@ export async function GET(req: NextRequest) {
           }
 
           const fileBytes = Buffer.from(r2Object.body);
+
+          // Simpan salinan ke disk lokal Hostinger agar berikutnya instan
+          try {
+            const localCacheTarget = path.join(process.cwd(), 'public', 'uploads', r2Key);
+            await fs.mkdir(path.dirname(localCacheTarget), { recursive: true });
+            await fs.writeFile(localCacheTarget, fileBytes);
+          } catch {}
+
           headers['Content-Length'] = String(fileBytes.length);
           return new NextResponse(new Uint8Array(fileBytes), { headers });
         }

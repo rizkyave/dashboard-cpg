@@ -44,60 +44,51 @@ export async function GET(req: NextRequest) {
     ? 'no-cache, no-store, must-revalidate, max-age=0'
     : 'public, max-age=86400, stale-while-revalidate=604800';
 
-  // 1. Coba ambil dari Cloudflare R2 jika telah dikonfigurasi
-  if (isR2Configured()) {
-    try {
-      const r2Object = await getObjectFromR2(normalizedKey);
-      if (r2Object) {
-        const headers: Record<string, string> = {
-          'Content-Type': r2Object.contentType || fallbackMime,
-          'Cache-Control': cacheControl,
-        };
-
-        if (r2Object.contentLength) {
-          headers['Content-Length'] = String(r2Object.contentLength);
-        }
-        if (r2Object.eTag) {
-          headers['ETag'] = r2Object.eTag;
-        }
-
-        if (download) {
-          headers['Content-Disposition'] = `attachment; filename="${encodeURIComponent(filename)}"`;
-        } else {
-          headers['Content-Disposition'] = `inline; filename="${encodeURIComponent(filename)}"`;
-        }
-
-        const fileBytes = Buffer.from(r2Object.body);
-        headers['Content-Length'] = String(fileBytes.length);
-        return new NextResponse(new Uint8Array(fileBytes), { headers });
-      }
-    } catch (r2Err) {
-      console.warn('Gagal membaca dari Cloudflare R2, mencoba fallback disk lokal:', r2Err);
-    }
-  }
-
-  // 2. Fallback ke disk lokal: periksa folder uploads, public, dan subdirektori terkait
+  // 1. Coba baca dari disk lokal Hostinger terlebih dahulu (kecepatan maksimal <10ms)
   const candidatePaths: string[] = [
     path.join(process.cwd(), 'public', 'uploads', normalizedKey),
     path.join(process.cwd(), 'public', normalizedKey),
     path.join(process.cwd(), 'public', 'uploads', filename),
     path.join(process.cwd(), 'public', filename),
-    path.join(process.cwd(), 'public', 'fstb-documents', filename),
-    path.join(process.cwd(), 'public', 'uploads', 'fstb-documents', filename),
     path.join(process.cwd(), 'public', 'ttb-documents', filename),
     path.join(process.cwd(), 'public', 'uploads', 'ttb-documents', filename),
+    path.join(process.cwd(), 'public', 'fstb-documents', filename),
+    path.join(process.cwd(), 'public', 'uploads', 'fstb-documents', filename),
     path.join(process.cwd(), 'public', 'sop-documents', filename),
     path.join(process.cwd(), 'public', 'uploads', 'sop-documents', filename),
     path.join(process.cwd(), 'public', 'ttb-photos', filename),
     path.join(process.cwd(), 'public', 'uploads', 'ttb-photos', filename),
-    path.resolve(process.cwd(), '../../../public_html', 'uploads', normalizedKey),
-    path.resolve(process.cwd(), '../../../public_html', normalizedKey),
-    path.resolve(process.cwd(), '../../../public_html', filename),
+    path.join(process.cwd(), 'public', 'fpb-pdfs', filename),
+    path.join(process.cwd(), 'public', 'uploads', 'fpb-pdfs', filename),
+    path.join(process.cwd(), 'public', 'fpb-signed', filename),
+    path.join(process.cwd(), 'public', 'uploads', 'fpb-signed', filename),
+    path.join(process.cwd(), 'public', 'fpb signed', filename),
+    path.join(process.cwd(), 'public', 'uploads', 'fpb signed', filename),
+    path.resolve(process.cwd(), '../../../../public_html', 'uploads', normalizedKey),
+    path.resolve(process.cwd(), '../../../../public_html', normalizedKey),
+    path.resolve(process.cwd(), '../../../../public_html', filename),
+    path.resolve(process.cwd(), '../../../../../../public_html', 'uploads', normalizedKey),
+    path.resolve(process.cwd(), '../../../../../../public_html', normalizedKey),
+    path.resolve(process.cwd(), '../../../../../../public_html', filename),
     path.join(getPhotosDir(), filename),
     path.join(process.cwd(), 'src', 'app', 'public', 'photos_TTB', filename),
     path.join(getFstbPhotosDir(), filename),
     path.join(process.cwd(), 'src', 'app', 'public', 'photos_FSTB', filename),
   ];
+
+  // Tambahkan pencarian ke versi-versi build Hostinger sebelumnya
+  try {
+    const versionsDir = path.resolve(process.cwd(), '../..');
+    const versions = await fs.readdir(versionsDir);
+    for (const v of versions) {
+      const vBase = path.join(versionsDir, v, 'nodejs', 'public');
+      candidatePaths.push(path.join(vBase, 'uploads', normalizedKey));
+      candidatePaths.push(path.join(vBase, normalizedKey));
+      candidatePaths.push(path.join(vBase, filename));
+      candidatePaths.push(path.join(vBase, 'ttb-documents', filename));
+      candidatePaths.push(path.join(vBase, 'fstb-documents', filename));
+    }
+  } catch {}
 
   for (const candidate of candidatePaths) {
     try {
@@ -113,15 +104,6 @@ export async function GET(req: NextRequest) {
         headers['Content-Disposition'] = `inline; filename="${encodeURIComponent(filename)}"`;
       }
 
-      // Auto-cache ke R2 di background
-      if (isR2Configured()) {
-        uploadToR2({
-          key: normalizedKey,
-          body: fileBytes,
-          contentType: fallbackMime,
-        }).catch((err) => console.warn('Gagal auto-sync ke R2 dari disk lokal:', err));
-      }
-
       headers['Content-Length'] = String(fileBytes.length);
       return new NextResponse(new Uint8Array(fileBytes), { headers });
     } catch {
@@ -129,12 +111,16 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // 3. Fallback cerdas: cari berkas lokal yang memuat kode dokumen (cth: GAJ-TTB-26-01124)
+  // 2. Fallback cerdas: cari berkas lokal yang memuat kode dokumen (cth: GAJ-TTB-26-01124)
   const docMatch = filename.match(/[A-Z0-9]+-(?:TTB|FSTB)-\d{2}-\d{4,6}/i);
   const docCode = docMatch ? docMatch[0].toUpperCase() : null;
 
   if (docCode) {
     const searchDirs = [
+      path.join(process.cwd(), 'public', 'uploads', 'ttb-documents'),
+      path.join(process.cwd(), 'public', 'ttb-documents'),
+      path.join(process.cwd(), 'public', 'uploads', 'fstb-documents'),
+      path.join(process.cwd(), 'public', 'fstb-documents'),
       getPhotosDir(),
       path.join(process.cwd(), 'src', 'app', 'public', 'photos_TTB'),
       getFstbPhotosDir(),
@@ -157,20 +143,53 @@ export async function GET(req: NextRequest) {
             'Content-Disposition': `${download ? 'attachment' : 'inline'}; filename="${encodeURIComponent(matched)}"`,
           };
 
-          // Auto-cache ke R2 dengan key asli yang diminta
-          if (isR2Configured()) {
-            uploadToR2({
-              key: normalizedKey,
-              body: fileBytes,
-              contentType: matchedMime,
-            }).catch((err) => console.warn('Gagal auto-sync berkas fuzzy ke R2:', err));
-          }
-
           return new NextResponse(new Uint8Array(fileBytes), { headers });
         }
       } catch {
         // Abaikan dan lanjutkan
       }
+    }
+  }
+
+  // 3. Fallback Cloudflare R2 (jika berkas belum sempat diunggah ke disk Hostinger)
+  // Otomatis simpan berkas ke disk lokal Hostinger agar request berikutnya instan!
+  if (isR2Configured()) {
+    try {
+      const r2Object = await getObjectFromR2(normalizedKey);
+      if (r2Object) {
+        const fileBytes = Buffer.from(r2Object.body);
+        const headers: Record<string, string> = {
+          'Content-Type': r2Object.contentType || fallbackMime,
+          'Cache-Control': cacheControl,
+        };
+
+        if (r2Object.contentLength) {
+          headers['Content-Length'] = String(r2Object.contentLength);
+        }
+        if (r2Object.eTag) {
+          headers['ETag'] = r2Object.eTag;
+        }
+
+        if (download) {
+          headers['Content-Disposition'] = `attachment; filename="${encodeURIComponent(filename)}"`;
+        } else {
+          headers['Content-Disposition'] = `inline; filename="${encodeURIComponent(filename)}"`;
+        }
+
+        // Auto-save salinan ke disk lokal Hostinger
+        try {
+          const localCacheTarget = path.join(process.cwd(), 'public', 'uploads', normalizedKey);
+          await fs.mkdir(path.dirname(localCacheTarget), { recursive: true });
+          await fs.writeFile(localCacheTarget, fileBytes);
+        } catch (saveErr) {
+          console.warn('Gagal menyimpan cache R2 ke disk lokal Hostinger:', saveErr);
+        }
+
+        headers['Content-Length'] = String(fileBytes.length);
+        return new NextResponse(new Uint8Array(fileBytes), { headers });
+      }
+    } catch (r2Err) {
+      console.warn('Gagal membaca dari Cloudflare R2:', r2Err);
     }
   }
 
