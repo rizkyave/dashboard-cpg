@@ -134,12 +134,24 @@ async function getStoredValidations(): Promise<DocumentValidationRecord[]> {
     }
   }
 
-  try {
-    const raw = await fs.readFile(VALIDATIONS_FILE_PATH, 'utf8');
-    return JSON.parse(raw);
-  } catch {
-    return [];
+  // 2. Fallback disk lokal (coba metadata uploads, public, dan src/data)
+  const candidateValidationPaths = [
+    VALIDATIONS_FILE_PATH,
+    path.join(process.cwd(), 'public', 'uploads', 'validation-metadata', 'records.json'),
+    path.join(process.cwd(), 'public', 'validation-metadata', 'records.json'),
+  ];
+
+  for (const p of candidateValidationPaths) {
+    try {
+      const raw = await fs.readFile(p, 'utf8');
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    } catch {}
   }
+
+  return [];
 }
 
 // Simpan data validasi ke Cloudflare R2 dan disk lokal
