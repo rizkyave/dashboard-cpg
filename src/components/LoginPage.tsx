@@ -118,6 +118,8 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
   const [bgIndex, setBgIndex] = useState<number>(0);
   // Kontrol Kecerahan Latar Gambar (Vivid = 90% terang jelas, Balanced = 70%, Dim = 40%)
   const [bgClarity, setBgClarity] = useState<'vivid' | 'balanced' | 'dim'>('vivid');
+  // State sembunyikan bar info armada secara gradual dari kanan ke kiri
+  const [isFleetBarCollapsed, setIsFleetBarCollapsed] = useState<boolean>(false);
 
   useEffect(() => {
     // Acak gambar armada saat halaman dibuka
@@ -687,49 +689,92 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
       </div>
 
       {/* Floating Bottom Fleet Status & Live Wallpaper Switcher */}
-      <div className="fixed bottom-3 left-3 sm:bottom-4 sm:left-6 z-20 flex items-center gap-2">
+      <div className="fixed bottom-3 left-3 sm:bottom-4 sm:left-6 z-20 flex items-center gap-1.5">
+        {/* Toggle Button (Area Kotak Putih / Cyan Pulse Dot) */}
         <button
           type="button"
-          onClick={() => setBgIndex((prev) => (prev + 1) % FLEET_BACKGROUNDS.length)}
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/85 hover:bg-slate-900 border border-slate-700/60 text-slate-300 hover:text-white backdrop-blur-xl transition text-[11px] font-mono shadow-xl cursor-pointer group active:scale-95"
-          title="Klik untuk mengganti visual latar armada kapal CPG"
+          onClick={() => setIsFleetBarCollapsed((prev) => !prev)}
+          className={`size-7 sm:size-8 rounded-full bg-slate-900/90 hover:bg-slate-900 border transition-all duration-300 flex items-center justify-center backdrop-blur-xl shadow-xl cursor-pointer group active:scale-90 shrink-0 ${
+            isFleetBarCollapsed
+              ? 'border-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.4)] hover:scale-110 ring-2 ring-cyan-400/30'
+              : 'border-slate-700/60 hover:border-cyan-400/80'
+          }`}
+          title={isFleetBarCollapsed ? 'Klik untuk menampilkan info armada & kontrol wallpaper' : 'Klik untuk menyembunyikan info armada (gradual collapse)'}
         >
-          <span className="size-2 rounded-full bg-cyan-400 animate-pulse shrink-0" />
-          <span className="font-semibold text-white group-hover:text-cyan-300 transition">
-            {FLEET_BACKGROUNDS[bgIndex].title}
-          </span>
-          <span className="text-slate-400 hidden sm:inline">&bull; {FLEET_BACKGROUNDS[bgIndex].category}</span>
-          <RotateCcw className="size-3 text-slate-400 group-hover:rotate-180 transition-transform duration-500 shrink-0 ml-0.5" />
+          <span
+            className={`rounded-full transition-all duration-300 ${
+              isFleetBarCollapsed
+                ? 'size-2.5 bg-cyan-400 shadow-[0_0_8px_#22d3ee]'
+                : 'size-2 bg-cyan-400 animate-pulse group-hover:scale-125'
+            }`}
+          />
         </button>
 
-        {/* 5 Indicator Dots */}
-        <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-full bg-slate-900/70 border border-slate-800 backdrop-blur-md">
-          {FLEET_BACKGROUNDS.map((item, i) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => setBgIndex(i)}
-              className={`rounded-full transition-all cursor-pointer ${
-                i === bgIndex ? 'bg-cyan-400 w-4 h-2' : 'bg-slate-600 hover:bg-slate-400 size-2'
-              }`}
-              title={item.title}
-            />
-          ))}
+        {/* Gradual Collapse Container: Menghilang bertahap dari kanan ke kiri */}
+        <div
+          className={`flex items-center gap-2 overflow-hidden transition-all duration-500 ease-in-out ${
+            isFleetBarCollapsed
+              ? 'max-w-0 opacity-0 pointer-events-none'
+              : 'max-w-[850px] opacity-100 pointer-events-auto'
+          }`}
+        >
+          {/* Elemen 1: Nama Kapal & Kategori (Menghilang terakhir saat collapse, delay 150ms) */}
+          <button
+            type="button"
+            onClick={() => setBgIndex((prev) => (prev + 1) % FLEET_BACKGROUNDS.length)}
+            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/85 hover:bg-slate-900 border border-slate-700/60 text-slate-300 hover:text-white backdrop-blur-xl text-[11px] font-mono shadow-xl cursor-pointer group active:scale-95 shrink-0 transition-all duration-300 ${
+              isFleetBarCollapsed
+                ? 'opacity-0 translate-x-3 delay-150'
+                : 'opacity-100 translate-x-0 delay-75'
+            }`}
+            title="Klik untuk mengganti visual latar armada kapal CPG"
+          >
+            <span className="font-semibold text-white group-hover:text-cyan-300 transition whitespace-nowrap">
+              {FLEET_BACKGROUNDS[bgIndex].title}
+            </span>
+            <span className="text-slate-400 hidden sm:inline whitespace-nowrap">&bull; {FLEET_BACKGROUNDS[bgIndex].category}</span>
+            <RotateCcw className="size-3 text-slate-400 group-hover:rotate-180 transition-transform duration-500 shrink-0 ml-0.5" />
+          </button>
+
+          {/* Elemen 2: 5 Indicator Dots (Menghilang kedua saat collapse, delay 75ms) */}
+          <div
+            className={`hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-full bg-slate-900/70 border border-slate-800 backdrop-blur-md shrink-0 transition-all duration-300 ${
+              isFleetBarCollapsed
+                ? 'opacity-0 translate-x-4 delay-75'
+                : 'opacity-100 translate-x-0 delay-150'
+            }`}
+          >
+            {FLEET_BACKGROUNDS.map((item, i) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setBgIndex(i)}
+                className={`rounded-full transition-all cursor-pointer ${
+                  i === bgIndex ? 'bg-cyan-400 w-4 h-2' : 'bg-slate-600 hover:bg-slate-400 size-2'
+                }`}
+                title={item.title}
+              />
+            ))}
+          </div>
+
+          {/* Elemen 3: Kejernihan Background Switcher (Paling kanan - Menghilang pertama kali tanpa delay) */}
+          <button
+            type="button"
+            onClick={() => setBgClarity((prev) => (prev === 'vivid' ? 'balanced' : prev === 'balanced' ? 'dim' : 'vivid'))}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-slate-900/85 hover:bg-slate-900 border border-slate-700/60 text-slate-300 hover:text-white backdrop-blur-xl text-[11px] font-mono shadow-xl cursor-pointer active:scale-95 shrink-0 transition-all duration-300 ${
+              isFleetBarCollapsed
+                ? 'opacity-0 translate-x-6 delay-0'
+                : 'opacity-100 translate-x-0 delay-225'
+            }`}
+            title="Klik untuk mengubah tingkat kejernihan foto background"
+          >
+            <Sparkles className="size-3 text-amber-400 shrink-0" />
+            <span className="hidden md:inline text-slate-400 whitespace-nowrap">Kejernihan:</span>
+            <span className="font-bold text-amber-300 whitespace-nowrap">
+              {bgClarity === 'vivid' ? 'Sangat Jelas (90%)' : bgClarity === 'balanced' ? 'Sedang (70%)' : 'Redup (40%)'}
+            </span>
+          </button>
         </div>
-
-        {/* Dynamic Background Clarity Switcher */}
-        <button
-          type="button"
-          onClick={() => setBgClarity((prev) => (prev === 'vivid' ? 'balanced' : prev === 'balanced' ? 'dim' : 'vivid'))}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-slate-900/85 hover:bg-slate-900 border border-slate-700/60 text-slate-300 hover:text-white backdrop-blur-xl transition text-[11px] font-mono shadow-xl cursor-pointer active:scale-95"
-          title="Klik untuk mengubah tingkat kejernihan foto background"
-        >
-          <Sparkles className="size-3 text-amber-400 shrink-0" />
-          <span className="hidden md:inline text-slate-400">Kejernihan:</span>
-          <span className="font-bold text-amber-300">
-            {bgClarity === 'vivid' ? 'Sangat Jelas (90%)' : bgClarity === 'balanced' ? 'Sedang (70%)' : 'Redup (40%)'}
-          </span>
-        </button>
       </div>
 
       {/* Help Modal */}
