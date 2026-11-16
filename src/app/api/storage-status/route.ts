@@ -8,61 +8,46 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   const cwd = process.cwd();
   
-  // Cari di semua lokasi potensial
-  const domainRoot = path.resolve(cwd, '../../..');
-  const userHome = path.resolve(cwd, '../../../../..');
-  const versionsDir = path.resolve(cwd, '../..');
-  
+  // Hitung direktori pasti
+  const hbuildsDir = path.resolve(cwd, '../../..'); // .../hbuilds
+  const domainDir = path.resolve(cwd, '../../../..'); // /home/u964694521/domains/peachpuff-jackal-720947.hostingersite.com
+  const userHome = path.resolve(cwd, '../../../../../..'); // /home/u964694521
+
   const results: Record<string, any> = {
     cwd,
-    domainRoot,
+    hbuildsDir,
+    domainDir,
     userHome,
-    locations: {},
+    directories: {},
   };
 
-  const toCheck = [
-    domainRoot,
-    path.join(domainRoot, 'public_html'),
-    path.join(domainRoot, 'public_html', 'uploads'),
-    path.join(domainRoot, 'public_html', 'ttb-documents'),
-    path.join(domainRoot, 'public_html', 'fstb-documents'),
+  const targets = [
+    userHome,
     path.join(userHome, 'public_html'),
-    path.join(userHome, 'public_html', 'uploads'),
     path.join(userHome, 'uploads'),
-    versionsDir,
+    domainDir,
+    path.join(domainDir, 'public_html'),
+    path.join(domainDir, 'public_html', 'uploads'),
+    path.join(domainDir, 'uploads'),
+    path.join(hbuildsDir, 'shared'),
+    path.join(hbuildsDir, 'storage'),
   ];
 
-  // Cek setiap versi di versionsDir
-  try {
-    if (fs.existsSync(versionsDir)) {
-      const versions = fs.readdirSync(versionsDir);
-      for (const v of versions) {
-        const vPublic = path.join(versionsDir, v, 'nodejs', 'public');
-        toCheck.push(vPublic);
-        toCheck.push(path.join(vPublic, 'uploads'));
-        toCheck.push(path.join(vPublic, 'ttb-documents'));
-        toCheck.push(path.join(vPublic, 'fstb-documents'));
-      }
-    }
-  } catch (e: any) {
-    results.versionsError = e.message;
-  }
-
-  for (const p of toCheck) {
+  for (const t of targets) {
     try {
-      if (fs.existsSync(p)) {
-        const stat = fs.statSync(p);
+      if (fs.existsSync(t)) {
+        const stat = fs.statSync(t);
         if (stat.isDirectory()) {
-          const files = fs.readdirSync(p);
-          results.locations[p] = { exists: true, count: files.length, sample: files.slice(0, 5) };
+          const items = fs.readdirSync(t);
+          results.directories[t] = { exists: true, count: items.length, sample: items.slice(0, 10) };
         } else {
-          results.locations[p] = { exists: true, isFile: true, size: stat.size };
+          results.directories[t] = { exists: true, isFile: true, size: stat.size };
         }
       } else {
-        results.locations[p] = { exists: false };
+        results.directories[t] = { exists: false };
       }
     } catch (e: any) {
-      results.locations[p] = { error: e.message };
+      results.directories[t] = { error: e.message };
     }
   }
 
