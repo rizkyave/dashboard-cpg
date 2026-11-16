@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 import { NewsTickerItem, NewsTickerResponse } from '@/types/newsTicker';
 
-const CACHE_KEY = 'CPG_NEWS_TICKER_CACHE_V3';
+const CACHE_KEY = 'CPG_NEWS_TICKER_CACHE_V4';
 
 // Fallback jika tidak ada internet sama sekali sejak pertama kali load
 const DEFAULT_OFFLINE_ITEMS: NewsTickerItem[] = [
@@ -48,8 +48,8 @@ const DEFAULT_OFFLINE_ITEMS: NewsTickerItem[] = [
     category: 'PURCHASE PLAN',
     badge: 'PURCHASE PLAN',
     title: 'Batch CPL-PP-2026-004',
-    content: 'Batch Final 002: 572 Item Konsolidasi • 87 Armada Kapal • Estimasi Rp 19.4 Miliar (Hemat Rp 2.8 M)',
-    highlight: '572 ITEM • RP 19.4 M',
+    content: 'Batch Final 002: 572 Item Konsolidasi untuk 87 Armada Kapal • Status: Tahap Final Otorisasi PO Massal',
+    highlight: 'STATUS SIAP PO',
     timestamp: 'Offline Fallback',
     severity: 'marine',
   },

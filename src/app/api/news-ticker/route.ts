@@ -260,8 +260,6 @@ export async function GET() {
   // ========================================================
   if (purchasePlan && purchasePlan.summary) {
     const summ = purchasePlan.summary;
-    const estBudgetMilyar = (summ.totalEstimatedBudget / 1000000000).toFixed(1);
-    const savingsMilyar = (summ.totalPotentialSavings / 1000000000).toFixed(1);
 
     items.push(
       {
@@ -269,8 +267,8 @@ export async function GET() {
         category: 'PURCHASE PLAN',
         badge: 'PURCHASE PLAN BATCH',
         title: 'Batch Konsolidasi CPL-PP-2026-004',
-        content: `Konsolidasi ${summ.totalItems} Item (${summ.criticalCount} Kritis, ${summ.reorderCount} Reorder) untuk ${summ.activeVesselsCount} Armada. Estimasi: Rp ${estBudgetMilyar} M (Potensi Hemat Rp ${savingsMilyar} M).`,
-        highlight: `Rp ${estBudgetMilyar} Miliar`,
+        content: `Konsolidasi ${summ.totalItems} Item (${summ.criticalCount} Kritis, ${summ.reorderCount} Reorder) untuk ${summ.activeVesselsCount} Armada Kapal CPG • Status: Tahap Final Otorisasi PO Massal.`,
+        highlight: 'STATUS SIAP PO',
         timestamp: dateStr,
         severity: 'success',
       },
@@ -279,8 +277,8 @@ export async function GET() {
         category: 'PURCHASE PLAN',
         badge: 'BATCH PRIORITAS',
         title: 'Batch Kebutuhan Kritis Armada',
-        content: `${summ.criticalCount} Item mendesak (Kebutuhan Suku Cadang Mesin & Kelistrikan Kapal) siap masuk tahap otorisasi PO massal.`,
-        highlight: `${summ.criticalCount} Item Kritis`,
+        content: `${summ.criticalCount} Item mendesak (Suku Cadang Mesin & Kelistrikan Kapal) siap masuk otorisasi PO massal.`,
+        highlight: 'SIAP OTORISASI',
         timestamp: dateStr,
         severity: 'warning',
       }
@@ -291,8 +289,8 @@ export async function GET() {
       category: 'PURCHASE PLAN',
       badge: 'PURCHASE PLAN',
       title: 'Batch Konsolidasi Pengadaan',
-      content: 'Purchase Planning Batch berjalan optimal: memangkas biaya melalui skema bulk purchasing bersama lintas entitas CPG.',
-      highlight: 'Optimasi Biaya',
+      content: 'Purchase Planning Batch berjalan optimal: konsolidasi kebutuhan material armada siap masuk proses pengadaan massal.',
+      highlight: 'KONSOLIDASI AKTIF',
       timestamp: dateStr,
       severity: 'success',
     });
