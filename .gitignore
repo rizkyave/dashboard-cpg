@@ -50,3 +50,4 @@ src/data/backups/
 scratch/
 public/cpg-backup-latest.json
 
+/public/uploads/

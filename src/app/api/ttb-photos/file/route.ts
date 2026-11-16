@@ -25,13 +25,23 @@ export async function GET(req: NextRequest) {
   const mime = MIME[path.extname(name).toLowerCase()];
   if (!mime) return new NextResponse('Format tidak didukung', { status: 415 });
 
-  // 1. Coba baca dari disk lokal terlebih dahulu
-  try {
-    const data = await fs.readFile(path.join(getPhotosDir(), name));
-    return new NextResponse(new Uint8Array(data), {
-      headers: { 'Content-Type': mime, 'Cache-Control': 'public, max-age=86400' },
-    });
-  } catch {
+  // 1. Coba baca dari disk lokal terlebih dahulu (public/uploads dan getPhotosDir)
+  const candidatePaths = [
+    path.join(process.cwd(), 'public', 'uploads', 'ttb-photos', name),
+    path.join(getPhotosDir(), name),
+    path.join(process.cwd(), 'src', 'app', 'public', 'photos_TTB', name),
+  ];
+
+  for (const filePath of candidatePaths) {
+    try {
+      const data = await fs.readFile(filePath);
+      return new NextResponse(new Uint8Array(data), {
+        headers: { 'Content-Type': mime, 'Cache-Control': 'public, max-age=86400' },
+      });
+    } catch {
+      // Coba kandidat berikutnya
+    }
+  }
     // 2. Jika tidak ada di lokal (misal di Vercel), coba ambil dari Cloudflare R2
     if (isR2Configured()) {
       try {
@@ -50,5 +60,4 @@ export async function GET(req: NextRequest) {
     }
 
     return new NextResponse('Foto tidak ditemukan', { status: 404 });
-  }
 }

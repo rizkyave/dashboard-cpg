@@ -76,8 +76,11 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // 2. Fallback ke disk lokal: periksa folder photos_TTB dan photos_FSTB
+  // 2. Fallback ke disk lokal: periksa folder uploads dan photos
   const candidatePaths: string[] = [
+    path.join(process.cwd(), 'public', 'uploads', normalizedKey),
+    path.join(process.cwd(), 'public', 'uploads', filename),
+    path.join(process.cwd(), 'public', normalizedKey),
     path.join(getPhotosDir(), filename),
     path.join(process.cwd(), 'src', 'app', 'public', 'photos_TTB', filename),
     path.join(getFstbPhotosDir(), filename),

@@ -33,25 +33,36 @@ export async function GET(req: NextRequest) {
     return new NextResponse('Format file tidak didukung.', { status: 415 });
   }
 
-  // 1. Coba baca dari disk lokal
-  try {
-    const filePath = path.join(getPhotosDir(), name);
-    const data = await fs.readFile(filePath);
+  // 1. Coba baca dari disk lokal (folder public/uploads dan photos_TTB)
+  const candidateLocalPaths = [
+    path.join(process.cwd(), 'public', 'uploads', 'ttb-documents', name),
+    path.join(process.cwd(), 'public', 'uploads', 'ttb-photos', name),
+    path.join(process.cwd(), 'public', 'uploads', name),
+    path.join(getPhotosDir(), name),
+    path.join(process.cwd(), 'src', 'app', 'public', 'photos_TTB', name),
+  ];
 
-    const headers: Record<string, string> = {
-      'Content-Type': mime,
-      'Cache-Control': 'public, max-age=86400',
-    };
+  for (const filePath of candidateLocalPaths) {
+    try {
+      const data = await fs.readFile(filePath);
 
-    if (download) {
-      headers['Content-Disposition'] = `attachment; filename="${encodeURIComponent(name)}"`;
-    } else {
-      headers['Content-Disposition'] = `inline; filename="${encodeURIComponent(name)}"`;
+      const headers: Record<string, string> = {
+        'Content-Type': mime,
+        'Cache-Control': 'public, max-age=86400',
+      };
+
+      if (download) {
+        headers['Content-Disposition'] = `attachment; filename="${encodeURIComponent(name)}"`;
+      } else {
+        headers['Content-Disposition'] = `inline; filename="${encodeURIComponent(name)}"`;
+      }
+
+      headers['Content-Length'] = String(data.length);
+      return new NextResponse(new Uint8Array(data), { headers });
+    } catch {
+      // Lanjutkan ke kandidat berikutnya
     }
-
-    headers['Content-Length'] = String(data.length);
-    return new NextResponse(new Uint8Array(data), { headers });
-  } catch {
+  }
     // 2. Jika tidak ada di lokal, coba ambil dari Cloudflare R2
     if (isR2Configured()) {
       try {
@@ -89,5 +100,4 @@ export async function GET(req: NextRequest) {
     // 3. Fallback terakhir ke folder Google Drive
     const driveFolderId = process.env.GOOGLE_DRIVE_TTB_FOLDER_ID || '1Hd6FsgWiALq1jJyRvh8auY0FJGE9h5tf';
     return NextResponse.redirect(`https://drive.google.com/drive/folders/${driveFolderId}`, 302);
-  }
 }

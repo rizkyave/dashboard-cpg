@@ -44,9 +44,79 @@
       "icon": "CheckSquare",
       "color": "teal",
       "order": 5
+    },
+    {
+      "id": "folder-1794841044683",
+      "name": "Job Description Dept Procurement",
+      "code": "JD-PROC",
+      "description": "Pustaka Deskripsi pekerja personil Department Procurement",
+      "icon": "Folder",
+      "color": "blue",
+      "order": 6
     }
   ],
   "documents": [
+    {
+      "id": "sop-doc-1794841137543-8g6ao",
+      "folderId": "folder-1794841044683",
+      "title": "Jobdesk_Technical_Administration_Logistik_Lutfi",
+      "docNumber": "CPG-LOG-JD-002",
+      "version": "v1",
+      "effectiveDate": "2026-11-01",
+      "summary": "JD Pak Lutfi Andrriyanto sebagai Teknikal Admin di Logistik",
+      "tags": [],
+      "fileName": "Jobdesk_Technical_Administration_Logistik_Lutfi.pdf",
+      "fileUrl": "/api/r2-file?key=sop-documents%2FCPG-LOG-JD-002_1794841137179.pdf",
+      "fileSize": 245114,
+      "fileType": "pdf",
+      "status": "ACTIVE",
+      "uploadedBy": "admin",
+      "uploadedByName": "Administrator CPG",
+      "uploadedAt": "2026-11-16T14:58:57.543Z",
+      "viewCount": 1,
+      "downloadCount": 0,
+      "lastModifiedAt": "2026-11-16T14:59:04.019Z"
+    },
+    {
+      "id": "sop-doc-1794840815455-uas7w",
+      "folderId": "folder-logistik",
+      "title": " Prosedur Pengelolaan Stock Barang Rev. 05",
+      "docNumber": "CPL-PRC-SOP-003",
+      "version": "v5.0",
+      "effectiveDate": "2023-04-03",
+      "summary": "Menjelaskan bagaimana prosedur stock barang yang belaku di PT Cindara Pratama Lines.",
+      "tags": [],
+      "fileName": "CPL-PRC-SOP-003.pdf",
+      "fileUrl": "",
+      "fileSize": 0,
+      "fileType": "pdf",
+      "status": "ACTIVE",
+      "uploadedBy": "admin",
+      "uploadedByName": "Administrator CPG",
+      "uploadedAt": "2026-11-16T14:53:35.455Z",
+      "viewCount": 0,
+      "downloadCount": 0
+    },
+    {
+      "id": "sop-doc-1794840741436-qq0dl",
+      "folderId": "folder-logistik",
+      "title": "Prosedur Seleksi dan Penilaian Vendor Rev. 05",
+      "docNumber": "CPL-PRC-SOP-002 ",
+      "version": "v5.0",
+      "effectiveDate": "2023-04-03",
+      "summary": "1Prosedur ini bertujuan untuk memastikan berjalannya kegiatan seleksi calon penyedia jasa dan pemasok sebagai Vendor PT CPL yang dilaksanakan untuk mendapatkan database Penyedia Jasa / Pemasok.",
+      "tags": [],
+      "fileName": "CPL-PRC-SOP-002 .pdf",
+      "fileUrl": "",
+      "fileSize": 0,
+      "fileType": "pdf",
+      "status": "ACTIVE",
+      "uploadedBy": "admin",
+      "uploadedByName": "Administrator CPG",
+      "uploadedAt": "2026-11-16T14:52:21.436Z",
+      "viewCount": 0,
+      "downloadCount": 0
+    },
     {
       "id": "sop-doc-1794840549118-frx5s",
       "folderId": "folder-logistik",
@@ -281,5 +351,5 @@
       "lastModifiedAt": "2026-11-16T14:49:45.536Z"
     }
   ],
-  "lastUpdated": "2026-11-16T14:49:45.536Z"
+  "lastUpdated": "2026-11-16T14:59:04.019Z"
 }

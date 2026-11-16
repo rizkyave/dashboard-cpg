@@ -31,19 +31,30 @@ export async function GET(req: NextRequest) {
     return new NextResponse('Format file tidak didukung.', { status: 415 });
   }
 
-  // 1. Coba baca dari disk lokal
-  try {
-    const filePath = path.join(getFstbPhotosDir(), name);
-    const data = await fs.readFile(filePath);
+  // 1. Coba baca dari disk lokal (folder public/uploads dan photos_FSTB)
+  const candidateLocalPaths = [
+    path.join(process.cwd(), 'public', 'uploads', 'fstb-documents', name),
+    path.join(process.cwd(), 'public', 'uploads', 'fstb-photos', name),
+    path.join(process.cwd(), 'public', 'uploads', name),
+    path.join(getFstbPhotosDir(), name),
+    path.join(process.cwd(), 'src', 'app', 'public', 'photos_FSTB', name),
+  ];
 
-    const headers: Record<string, string> = {
-      'Content-Type': mime,
-      'Cache-Control': 'public, max-age=86400',
-      'Content-Disposition': `${download ? 'attachment' : 'inline'}; filename="${encodeURIComponent(name)}"`,
-    };
+  for (const filePath of candidateLocalPaths) {
+    try {
+      const data = await fs.readFile(filePath);
 
-    return new NextResponse(new Uint8Array(data), { headers });
-  } catch {
+      const headers: Record<string, string> = {
+        'Content-Type': mime,
+        'Cache-Control': 'public, max-age=86400',
+        'Content-Disposition': `${download ? 'attachment' : 'inline'}; filename="${encodeURIComponent(name)}"`,
+      };
+
+      return new NextResponse(new Uint8Array(data), { headers });
+    } catch {
+      // Lanjutkan ke kandidat berikutnya
+    }
+  }
     // 2. Jika tidak ada di lokal, coba ambil dari Cloudflare R2
     if (isR2Configured()) {
       try {
@@ -71,6 +82,5 @@ export async function GET(req: NextRequest) {
     }
 
     return new NextResponse('Berkas FSTB tidak ditemukan di server.', { status: 404 });
-  }
 }
 
