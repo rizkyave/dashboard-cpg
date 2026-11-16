@@ -51,6 +51,9 @@ import FstbValidationModal from './FstbValidationModal';
 import TtbValidationModal from './TtbValidationModal';
 import BatchSignatureModal from './BatchSignatureModal';
 import RevisionUploadModal from './RevisionUploadModal';
+import DelegationModal from './DelegationModal';
+import { ApprovalDelegation } from '@/types/delegation';
+import { getActiveDelegationsForDelegate } from '@/utils/delegationHelper';
 import { useAuth } from '@/context/AuthContext';
 
 export interface ValidasiDokumenTabProps {
@@ -93,6 +96,10 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
   // Revision / Replacement Clean File Modal State
   const [revisionRecord, setRevisionRecord] = useState<DocumentValidationRecord | null>(null);
   const [isRevisionModalOpen, setIsRevisionModalOpen] = useState<boolean>(false);
+
+  // Delegasi Cuti (Plh) State
+  const [delegations, setDelegations] = useState<ApprovalDelegation[]>([]);
+  const [isDelegationModalOpen, setIsDelegationModalOpen] = useState<boolean>(false);
 
   // Batch / Bulk Selection State
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -147,6 +154,24 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
       setIsRefreshing(false);
     }
   };
+
+  const fetchDelegations = async () => {
+    try {
+      const res = await fetch('/api/approval-delegations');
+      const data = await res.json();
+      if (data.success && Array.isArray(data.delegations)) {
+        setDelegations(data.delegations);
+      }
+    } catch {}
+  };
+
+  useEffect(() => {
+    fetchDelegations();
+  }, []);
+
+  const userActiveDelegations = useMemo(() => {
+    return getActiveDelegationsForDelegate(delegations, user?.username);
+  }, [delegations, user?.username]);
 
   // Sinkronisasi cerdas dengan Cloud Storage dan direktori lokal
   const handleSyncR2 = async () => {
@@ -391,10 +416,10 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
   const selectableRecords = useMemo(() => {
     if (workflowTab === 'COMPLETED') return [];
     return filteredRecords.filter((rec) => {
-      const action = getUserActionForRecord(rec, user, Boolean(isAdmin));
+      const action = getUserActionForRecord(rec, user, Boolean(isAdmin), userActiveDelegations);
       return action.canValidate;
     });
-  }, [filteredRecords, user, isAdmin, workflowTab]);
+  }, [filteredRecords, user, isAdmin, workflowTab, userActiveDelegations]);
 
   // Objek record berkas terpilih untuk dialog batch
   const selectedRecords = useMemo(() => {
@@ -484,7 +509,22 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
             </p>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">
+            {(isAdmin || isSupervisor || isManager) && (
+              <button
+                type="button"
+                onClick={() => setIsDelegationModalOpen(true)}
+                className="h-9 px-3.5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 text-xs font-semibold text-indigo-700 dark:text-indigo-300 inline-flex items-center gap-2 shadow-xs transition active:scale-95 cursor-pointer"
+                title="Kelola Pelaksana Harian (Plh) saat Supervisor / Manajer Cuti"
+              >
+                <UserCheck className="size-3.5" />
+                <span>Delegasi Cuti (Plh)</span>
+                {userActiveDelegations.length > 0 && (
+                  <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+                )}
+              </button>
+            )}
+
             <button
               type="button"
               onClick={handleSyncR2}
@@ -509,6 +549,38 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
           </div>
         </div>
       </div>
+
+      {/* Banner Notifikasi Pelaksana Harian (Plh) Aktif */}
+      {userActiveDelegations.length > 0 && (
+        <div className="p-3.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-900 dark:text-indigo-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs animate-in fade-in duration-300">
+          <div className="flex items-center gap-2.5">
+            <div className="size-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+              <UserCheck className="size-4" />
+            </div>
+            <div>
+              <p className="font-bold text-foreground flex items-center gap-2">
+                <span>Mode Pelaksana Harian (Plh) Aktif</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 uppercase">
+                  Wewenang Sah
+                </span>
+              </p>
+              <p className="text-[11px] opacity-90 mt-0.5">
+                Anda bertindak sebagai Plh untuk:{' '}
+                <strong>{userActiveDelegations.map((d) => `${d.delegatorName} (${d.delegatorRole.toUpperCase()})`).join(', ')}</strong>{' '}
+                periode <span className="font-semibold">{userActiveDelegations[0].startDate} s/d {userActiveDelegations[0].endDate}</span>.
+                Anda berwenang mengesahkan dokumen atas nama beliau.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsDelegationModalOpen(true)}
+            className="px-3 py-1.5 rounded-lg border border-indigo-500/30 bg-background hover:bg-muted text-xs font-semibold transition shrink-0 cursor-pointer self-start sm:self-auto"
+          >
+            Kelola Delegasi Plh
+          </button>
+        </div>
+      )}
 
       {/* KPI Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
@@ -819,7 +891,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
               ) : (
                 filteredRecords.map((item) => {
                   const comp = computeValidationStatus(item);
-                  const userAction = getUserActionForRecord(item, user, Boolean(isAdmin));
+                  const userAction = getUserActionForRecord(item, user, Boolean(isAdmin), userActiveDelegations);
                   const isSelected = selectedIds.includes(item.id);
 
                   return (
@@ -1464,6 +1536,19 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
           }}
           onSuccess={(updated) => {
             handleValidationUpdated(updated);
+          }}
+          showToast={showToast}
+        />
+      )}
+
+      {/* Modal Manajemen Delegasi Cuti (Plh) */}
+      {isDelegationModalOpen && (
+        <DelegationModal
+          isOpen={isDelegationModalOpen}
+          onClose={() => setIsDelegationModalOpen(false)}
+          onDelegationChanged={() => {
+            fetchDelegations();
+            fetchValidations(false);
           }}
           showToast={showToast}
         />

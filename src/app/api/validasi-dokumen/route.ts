@@ -24,6 +24,8 @@ import { getFstbPhotosDir } from '@/utils/fstbPhotosDir';
 import { stampTtbPdf, formatTtbStampDate, TtbStampRoleType } from '@/utils/ttbStamper';
 import { getPhotosDir as getTtbPhotosDir } from '@/utils/ttbPhotosDir';
 import { computeValidationStatus } from '@/utils/validationHelper';
+import { ApprovalDelegation } from '@/types/delegation';
+import { getActiveDelegationsForDelegate, checkUserPlhAuthority } from '@/utils/delegationHelper';
 import {
   resolveDocRelation,
   extractDocPrefix,
@@ -161,6 +163,26 @@ async function saveValidations(records: DocumentValidationRecord[]) {
     await fs.writeFile(VALIDATIONS_FILE_PATH, jsonStr, 'utf8');
   } catch {
     // Non-fatal
+  }
+}
+
+// Baca daftar delegasi wewenang cuti (Plh)
+async function getStoredDelegations(): Promise<ApprovalDelegation[]> {
+  if (isR2Configured()) {
+    try {
+      const obj = await getObjectFromR2('settings/approval-delegations.json');
+      if (obj?.body) {
+        const text = Buffer.from(obj.body).toString('utf8');
+        const parsed = JSON.parse(text);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {}
+  }
+  try {
+    const raw = await fs.readFile(path.join(process.cwd(), 'src', 'data', 'approval-delegations.json'), 'utf8');
+    return JSON.parse(raw);
+  } catch {
+    return [];
   }
 }
 
@@ -1034,6 +1056,13 @@ export async function POST(req: NextRequest) {
       let processedCount = 0;
       const updatedList: DocumentValidationRecord[] = [];
 
+      // Cek apakah validator bertindak sebagai Plh untuk pejabat tertentu yang sedang cuti
+      const allDelegations = await getStoredDelegations();
+      const activePlhs = getActiveDelegationsForDelegate(allDelegations, validatorUsername);
+      const plhPurchasing = checkUserPlhAuthority(activePlhs, 'spv_purchasing');
+      const plhLogistik = checkUserPlhAuthority(activePlhs, 'spv_logistik');
+      const plhManager = checkUserPlhAuthority(activePlhs, 'manager');
+
       for (const recId of docIds) {
         const record = validationRecords.find(
           (r) => r.id === recId || r.docId === recId || r.docNumber === recId || r.cleanDocNumber === recId
@@ -1067,31 +1096,43 @@ export async function POST(req: NextRequest) {
           let prefix = 'LOG';
 
           if (targetSlot === 'approvedBy') {
+            const hasPlh = plhLogistik.isPlh || plhManager.isPlh;
             if (
-              validatorRole === 'spv_purchasing' ||
-              (effectiveJabatan &&
-                effectiveJabatan.toLowerCase().includes('purchasing') &&
-                !effectiveJabatan.toLowerCase().includes('logistik'))
+              !hasPlh &&
+              validatorRole !== 'admin' &&
+              validatorRole !== 'manager' &&
+              (validatorRole === 'spv_purchasing' ||
+                (effectiveJabatan &&
+                  effectiveJabatan.toLowerCase().includes('purchasing') &&
+                  !effectiveJabatan.toLowerCase().includes('logistik')))
             ) {
-              // SPV Purchasing tidak berhak mengesahkan slot Logistic Supervisor
+              // SPV Purchasing tidak berhak mengesahkan slot Logistic Supervisor (kecuali bertindak sebagai Plh sah)
               continue;
             }
             roleType = 'approved_by';
-            defaultJabatan = 'Logistic Supervisor';
-            prefix = 'LOG-SPV';
+            defaultJabatan = hasPlh
+              ? `Plh. Logistic Supervisor (a.n. ${plhLogistik.delegatorName || plhManager.delegatorName})`
+              : 'Logistic Supervisor';
+            prefix = hasPlh ? 'LOG-SPV-PLH' : 'LOG-SPV';
           } else if (targetSlot === 'acknowledgedBy') {
+            const hasPlh = plhPurchasing.isPlh || plhManager.isPlh;
             if (
-              validatorRole === 'spv_logistik' ||
-              (effectiveJabatan &&
-                effectiveJabatan.toLowerCase().includes('logistik') &&
-                !effectiveJabatan.toLowerCase().includes('purchasing'))
+              !hasPlh &&
+              validatorRole !== 'admin' &&
+              validatorRole !== 'manager' &&
+              (validatorRole === 'spv_logistik' ||
+                (effectiveJabatan &&
+                  effectiveJabatan.toLowerCase().includes('logistik') &&
+                  !effectiveJabatan.toLowerCase().includes('purchasing')))
             ) {
-              // SPV Logistik tidak berhak mengesahkan slot Procurement Manager
+              // SPV Logistik tidak berhak mengesahkan slot Procurement Manager (kecuali bertindak sebagai Plh sah)
               continue;
             }
             roleType = 'acknowledged_by';
-            defaultJabatan = 'Procurement Manager';
-            prefix = 'PCH-MGR';
+            defaultJabatan = hasPlh
+              ? `Plh. Procurement Manager (a.n. ${plhPurchasing.delegatorName || plhManager.delegatorName})`
+              : 'Procurement Manager';
+            prefix = hasPlh ? 'PCH-MGR-PLH' : 'PCH-MGR';
           } else if (targetSlot === 'receivedBy') {
             const isCourier =
               validatorRole === 'staf_lapangan' ||
@@ -1231,35 +1272,47 @@ export async function POST(req: NextRequest) {
           let prefix = 'PCH';
 
           if (targetSlot === 'approvedBy') {
+            const hasPlh = plhPurchasing.isPlh || plhManager.isPlh;
             if (
-              validatorRole === 'spv_logistik' ||
-              (effectiveJabatan &&
-                effectiveJabatan.toLowerCase().includes('logistik') &&
-                !effectiveJabatan.toLowerCase().includes('purchasing'))
+              !hasPlh &&
+              validatorRole !== 'admin' &&
+              validatorRole !== 'manager' &&
+              (validatorRole === 'spv_logistik' ||
+                (effectiveJabatan &&
+                  effectiveJabatan.toLowerCase().includes('logistik') &&
+                  !effectiveJabatan.toLowerCase().includes('purchasing')))
             ) {
-              // SPV Logistik tidak berhak mengesahkan slot Purchasing Supervisor pada FSTB
+              // SPV Logistik tidak berhak mengesahkan slot Purchasing Supervisor pada FSTB (kecuali Plh sah)
               continue;
             }
             roleType = 'approved_by';
-            defaultJabatan = 'Purchasing Supervisor';
-            prefix = 'PCH-SPV';
+            defaultJabatan = hasPlh
+              ? `Plh. Supervisi Purchasing (a.n. ${plhPurchasing.delegatorName || plhManager.delegatorName})`
+              : 'Purchasing Supervisor';
+            prefix = hasPlh ? 'PCH-SPV-PLH' : 'PCH-SPV';
           } else if (targetSlot === 'receivedBy') {
             roleType = 'received_by';
             defaultJabatan = 'Logistic Staff';
             prefix = 'LOG';
           } else if (targetSlot === 'acknowledgedBy') {
+            const hasPlh = plhLogistik.isPlh || plhManager.isPlh;
             if (
-              validatorRole === 'spv_purchasing' ||
-              (effectiveJabatan &&
-                effectiveJabatan.toLowerCase().includes('purchasing') &&
-                !effectiveJabatan.toLowerCase().includes('logistik'))
+              !hasPlh &&
+              validatorRole !== 'admin' &&
+              validatorRole !== 'manager' &&
+              (validatorRole === 'spv_purchasing' ||
+                (effectiveJabatan &&
+                  effectiveJabatan.toLowerCase().includes('purchasing') &&
+                  !effectiveJabatan.toLowerCase().includes('logistik')))
             ) {
-              // SPV Purchasing tidak berhak mengesahkan slot Logistic Supervisor pada FSTB
+              // SPV Purchasing tidak berhak mengesahkan slot Logistic Supervisor pada FSTB (kecuali Plh sah)
               continue;
             }
             roleType = 'acknowledged_by';
-            defaultJabatan = 'Logistic Supervisor';
-            prefix = 'LOG-SPV';
+            defaultJabatan = hasPlh
+              ? `Plh. Supervisi Logistik (a.n. ${plhLogistik.delegatorName || plhManager.delegatorName})`
+              : 'Logistic Supervisor';
+            prefix = hasPlh ? 'LOG-SPV-PLH' : 'LOG-SPV';
           }
 
           const token = `VAL-FSTB-${prefix}-BATCH-${Date.now().toString(36).toUpperCase()}-${Math.random()
@@ -1720,6 +1773,13 @@ export async function POST(req: NextRequest) {
         }
       }
 
+      // Cek apakah validator bertindak sebagai Plh untuk pejabat tertentu yang sedang cuti
+      const allDelegationsSingle = await getStoredDelegations();
+      const activePlhsSingle = getActiveDelegationsForDelegate(allDelegationsSingle, validatorUsername);
+      const plhPurchasingSingle = checkUserPlhAuthority(activePlhsSingle, 'spv_purchasing');
+      const plhLogistikSingle = checkUserPlhAuthority(activePlhsSingle, 'spv_logistik');
+      const plhManagerSingle = checkUserPlhAuthority(activePlhsSingle, 'manager');
+
       if (record.docType === 'FSTB') {
         // Tentukan slot yang hendak divalidasi
         let targetSlots: FstbSlotKey[] = [];
@@ -1787,7 +1847,8 @@ export async function POST(req: NextRequest) {
             defaultJabatan = 'Logistic Staff';
             prefix = 'LOG';
           } else if (slot === 'approvedBy') {
-            if (validatorRole === 'spv_logistik' && validatorRole !== 'admin') {
+            const hasPlh = plhPurchasingSingle.isPlh || plhManagerSingle.isPlh;
+            if (validatorRole === 'spv_logistik' && !hasPlh && validatorRole !== 'admin') {
               return NextResponse.json(
                 {
                   success: false,
@@ -1798,10 +1859,13 @@ export async function POST(req: NextRequest) {
               );
             }
             roleType = 'approved_by';
-            defaultJabatan = 'Purchasing Supervisor';
-            prefix = 'PCH-SPV';
+            defaultJabatan = hasPlh
+              ? `Plh. Supervisi Purchasing (a.n. ${plhPurchasingSingle.delegatorName || plhManagerSingle.delegatorName})`
+              : 'Purchasing Supervisor';
+            prefix = hasPlh ? 'PCH-SPV-PLH' : 'PCH-SPV';
           } else if (slot === 'acknowledgedBy') {
-            if (validatorRole === 'spv_purchasing' && validatorRole !== 'admin') {
+            const hasPlh = plhLogistikSingle.isPlh || plhManagerSingle.isPlh;
+            if (validatorRole === 'spv_purchasing' && !hasPlh && validatorRole !== 'admin') {
               return NextResponse.json(
                 {
                   success: false,
@@ -1812,8 +1876,10 @@ export async function POST(req: NextRequest) {
               );
             }
             roleType = 'acknowledged_by';
-            defaultJabatan = 'Logistic Supervisor';
-            prefix = 'LOG-SPV';
+            defaultJabatan = hasPlh
+              ? `Plh. Supervisi Logistik (a.n. ${plhLogistikSingle.delegatorName || plhManagerSingle.delegatorName})`
+              : 'Logistic Supervisor';
+            prefix = hasPlh ? 'LOG-SPV-PLH' : 'LOG-SPV';
           }
 
           const token = `VAL-FSTB-${prefix}-${Date.now().toString(36).toUpperCase()}-${Math.random()
@@ -1978,7 +2044,8 @@ export async function POST(req: NextRequest) {
             defaultJabatan = 'Penerima / Crew Armada Kapal';
             prefix = 'RCV-LAP';
           } else if (slot === 'approvedBy') {
-            if (validatorRole === 'spv_purchasing' && validatorRole !== 'admin') {
+            const hasPlh = plhLogistikSingle.isPlh || plhManagerSingle.isPlh;
+            if (validatorRole === 'spv_purchasing' && !hasPlh && validatorRole !== 'admin') {
               return NextResponse.json(
                 {
                   success: false,
@@ -1989,10 +2056,13 @@ export async function POST(req: NextRequest) {
               );
             }
             roleType = 'approved_by';
-            defaultJabatan = 'Logistic Supervisor';
-            prefix = 'LOG-SPV';
+            defaultJabatan = hasPlh
+              ? `Plh. Logistic Supervisor (a.n. ${plhLogistikSingle.delegatorName || plhManagerSingle.delegatorName})`
+              : 'Logistic Supervisor';
+            prefix = hasPlh ? 'LOG-SPV-PLH' : 'LOG-SPV';
           } else if (slot === 'acknowledgedBy') {
-            if (validatorRole === 'spv_logistik' && validatorRole !== 'admin') {
+            const hasPlh = plhPurchasingSingle.isPlh || plhManagerSingle.isPlh;
+            if (validatorRole === 'spv_logistik' && !hasPlh && validatorRole !== 'admin') {
               return NextResponse.json(
                 {
                   success: false,
@@ -2003,8 +2073,12 @@ export async function POST(req: NextRequest) {
               );
             }
             roleType = 'acknowledged_by';
-            defaultJabatan = validatorRole === 'manager' ? 'Procurement Manager' : 'Manager Procurement';
-            prefix = 'PCH-MGR';
+            defaultJabatan = hasPlh
+              ? `Plh. Procurement Manager (a.n. ${plhPurchasingSingle.delegatorName || plhManagerSingle.delegatorName})`
+              : validatorRole === 'manager'
+              ? 'Procurement Manager'
+              : 'Manager Procurement';
+            prefix = hasPlh ? 'PCH-MGR-PLH' : 'PCH-MGR';
           }
 
           const token = `VAL-TTB-${prefix}-${Date.now().toString(36).toUpperCase()}-${Math.random()

@@ -9,6 +9,8 @@ import {
   DocumentValidationRecord,
   OverallValidationStatus,
 } from '@/types/documentValidation';
+import { ApprovalDelegation } from '@/types/delegation';
+import { checkUserPlhAuthority } from '@/utils/delegationHelper';
 
 export interface PendingSlotInfo {
   key: string;
@@ -19,7 +21,7 @@ export interface PendingSlotInfo {
 
 export interface UserActionInfo {
   canValidate: boolean;
-  actionLabel: 'Validasi & TTD' | 'Lihat Berkas';
+  actionLabel: 'Validasi & TTD' | 'Validasi & TTD (Plh)' | 'Lihat Berkas';
   tooltip: string;
   isCompleted: boolean;
   completedCount: number;
@@ -235,7 +237,8 @@ export function getUserActionForRecord(
     department?: string;
     username?: string;
   } | null,
-  isAdmin: boolean
+  isAdmin: boolean,
+  activeDelegations: ApprovalDelegation[] = []
 ): UserActionInfo {
   const comp = computeValidationStatus(record);
 
@@ -256,6 +259,11 @@ export function getUserActionForRecord(
   const role = (user?.role || '').toLowerCase();
   const jabatan = (user?.jabatan || '').toLowerCase();
   const dept = (user?.department || '').toLowerCase();
+
+  // Cek Wewenang Pelaksana Harian (Plh / Delegasi Cuti)
+  const plhPurchasing = checkUserPlhAuthority(activeDelegations, 'spv_purchasing');
+  const plhLogistik = checkUserPlhAuthority(activeDelegations, 'spv_logistik');
+  const plhManager = checkUserPlhAuthority(activeDelegations, 'manager');
 
   // Pemisahan ketat wewenang Supervisi Logistik vs Supervisi Purchasing
   const isSpvLogistikUser =
@@ -323,7 +331,9 @@ export function getUserActionForRecord(
         hasAuthority:
           isAdmin ||
           role === 'manager' ||
+          plhManager.isPlh ||
           isSpvLogistikUser ||
+          plhLogistik.isPlh ||
           (isGenericSpv && (jabatan.includes('logistik') || dept.includes('logistik'))),
       },
       {
@@ -335,7 +345,9 @@ export function getUserActionForRecord(
         hasAuthority:
           isAdmin ||
           role === 'manager' ||
+          plhManager.isPlh ||
           isSpvPurchasingUser ||
+          plhPurchasing.isPlh ||
           (isGenericSpv && (jabatan.includes('purchasing') || dept.includes('purchasing'))),
       },
       {
@@ -376,12 +388,25 @@ export function getUserActionForRecord(
       };
     }
 
-    // Jika user saat ini memiliki wewenang pada slot pending tersebut (atau admin)
+    // Jika user saat ini memiliki wewenang pada slot pending tersebut (atau admin / Plh)
     if (firstPending.hasAuthority) {
+      const isActingAsPlh =
+        (firstPending.code.includes('PCH') && plhPurchasing.isPlh) ||
+        (firstPending.code.includes('LOG') && plhLogistik.isPlh) ||
+        plhManager.isPlh;
+
+      const plhDelegator = plhManager.isPlh
+        ? plhManager.delegatorName
+        : firstPending.code.includes('PCH') && plhPurchasing.isPlh
+        ? plhPurchasing.delegatorName
+        : plhLogistik.delegatorName;
+
       return {
         canValidate: true,
-        actionLabel: 'Validasi & TTD',
-        tooltip: `Otorisasi Anda Diperlukan: Validasi & TTD (${firstPending.label})`,
+        actionLabel: isActingAsPlh ? 'Validasi & TTD (Plh)' : 'Validasi & TTD',
+        tooltip: isActingAsPlh
+          ? `Otorisasi Plh: Validasi & TTD (${firstPending.label}) a.n. ${plhDelegator}`
+          : `Otorisasi Anda Diperlukan: Validasi & TTD (${firstPending.label})`,
         isCompleted: false,
         completedCount: comp.completedCount,
         nextPending: firstPending,
@@ -441,7 +466,9 @@ export function getUserActionForRecord(
       hasAuthority:
         isAdmin ||
         role === 'manager' ||
+        plhManager.isPlh ||
         isSpvPurchasingUser ||
+        plhPurchasing.isPlh ||
         (isGenericSpv && (jabatan.includes('purchasing') || dept.includes('purchasing'))),
     },
     {
@@ -466,7 +493,9 @@ export function getUserActionForRecord(
       hasAuthority:
         isAdmin ||
         role === 'manager' ||
+        plhManager.isPlh ||
         isSpvLogistikUser ||
+        plhLogistik.isPlh ||
         (isGenericSpv && (jabatan.includes('logistik') || dept.includes('logistik'))),
     },
   ];
@@ -485,10 +514,23 @@ export function getUserActionForRecord(
   }
 
   if (firstPendingFstb.hasAuthority) {
+    const isActingAsPlh =
+      (firstPendingFstb.code.includes('PCH') && plhPurchasing.isPlh) ||
+      (firstPendingFstb.code.includes('LOG') && plhLogistik.isPlh) ||
+      plhManager.isPlh;
+
+    const plhDelegator = plhManager.isPlh
+      ? plhManager.delegatorName
+      : firstPendingFstb.code.includes('PCH') && plhPurchasing.isPlh
+      ? plhPurchasing.delegatorName
+      : plhLogistik.delegatorName;
+
     return {
       canValidate: true,
-      actionLabel: 'Validasi & TTD',
-      tooltip: `Otorisasi Anda Diperlukan: Validasi & TTD (${firstPendingFstb.label})`,
+      actionLabel: isActingAsPlh ? 'Validasi & TTD (Plh)' : 'Validasi & TTD',
+      tooltip: isActingAsPlh
+        ? `Otorisasi Plh: Validasi & TTD (${firstPendingFstb.label}) a.n. ${plhDelegator}`
+        : `Otorisasi Anda Diperlukan: Validasi & TTD (${firstPendingFstb.label})`,
       isCompleted: false,
       completedCount: comp.completedCount,
       nextPending: firstPendingFstb,
