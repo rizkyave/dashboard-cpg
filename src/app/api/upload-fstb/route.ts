@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { sanitizeFstbNumber, formatFstbFilename, extractFstbComponents } from '@/utils/fstbRename';
+import { resolveDocRelation } from '@/utils/docRelationResolver';
 import { getFstbPhotosDir } from '@/utils/fstbPhotosDir';
 import { UploadedFstbItem, UploadFstbResponse } from '@/types/fstbUpload';
 import { stampFstbPdf, formatFstbStampDate } from '@/utils/fstbStamper';
@@ -269,6 +270,29 @@ export async function POST(req: NextRequest) {
     }
 
     const cleanNoFstb = sanitizeFstbNumber(noFstbRaw);
+
+    // Fallback auto-enrichment armada & referensi dokumen jika belum terisi dari client
+    let finalArmada = armada && armada.trim() !== '-' ? armada.trim() : '';
+    let finalDoNo = doNo && doNo.trim() ? doNo.trim() : '';
+    let finalNoFpb = noFpb && noFpb.trim() ? noFpb.trim() : '';
+
+    if (!finalArmada || !finalDoNo || !finalNoFpb) {
+      try {
+        const resolved = resolveDocRelation('FSTB', cleanNoFstb);
+        if (!finalArmada && resolved?.armada) {
+          finalArmada = resolved.armada;
+        }
+        if (!finalDoNo && resolved?.poNumber) {
+          finalDoNo = resolved.poNumber;
+        }
+        if (!finalNoFpb && resolved?.fpbNumber) {
+          finalNoFpb = resolved.fpbNumber;
+        }
+      } catch (enrichErr) {
+        console.warn('[upload-fstb] Gagal auto-enrichment relasi:', enrichErr);
+      }
+    }
+
     const targetPhotosDir = getFstbPhotosDir();
     try {
       await fs.mkdir(targetPhotosDir, { recursive: true });
@@ -319,9 +343,9 @@ export async function POST(req: NextRequest) {
             metadata: {
               noFstb: noFstbRaw,
               cleanNoFstb,
-              armada: armada || '-',
-              doNo: doNo || '',
-              noFpb: noFpb || '',
+              armada: finalArmada || '-',
+              doNo: finalDoNo || '',
+              noFpb: finalNoFpb || '',
               originalName: f.name,
               uploaderName: uploaderName || '',
               uploaderNik: uploaderNik || '',
@@ -348,9 +372,9 @@ export async function POST(req: NextRequest) {
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         noFstb: noFstbRaw,
         cleanNoFstb,
-        armada: armada || '-',
-        doNo: doNo || undefined,
-        noFpb: noFpb || undefined,
+        armada: finalArmada || '-',
+        doNo: finalDoNo || undefined,
+        noFpb: finalNoFpb || undefined,
         receivedDate: receivedDate || new Date().toISOString().slice(0, 10),
         fstbDate: fstbDate || undefined,
         keterangan: keterangan || '',

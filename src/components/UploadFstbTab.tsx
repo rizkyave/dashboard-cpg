@@ -49,6 +49,12 @@ import {
 import { formatFstbStampDate } from '@/utils/stampDateFormatter';
 import FstbSuccessWaModal from './FstbSuccessWaModal';
 import { optimizeAndScaleImage, formatByteSize } from '@/utils/imageCompressor';
+import {
+  detectFstbMetadata,
+  lookupFstbRelation,
+  MASTER_ARMADA_LIST,
+  FstbSuggestionItem,
+} from '@/utils/fstbDetector';
 
 interface UploadFstbTabProps {
   procurementItems?: ProcurementItem[];
@@ -68,99 +74,14 @@ interface QueuedFile {
   doNo: string;
   noFpb: string;
   isAutoMatched: boolean;
+  matchSource?: string;
   originalSize?: number;
   compressedSize?: number;
   savingsPercent?: number;
   isOptimized?: boolean;
 }
 
-interface FstbSuggestion {
-  noFstb: string;
-  armada: string;
-  noFpb?: string;
-  doNo?: string;
-  description?: string;
-}
-
-/**
- * Mendeteksi Nomor FSTB, Armada, DO/PO, dan FPB secara cerdas dari nama berkas dan dataset.
- */
-function detectFstbAndArmada(
-  fileName: string,
-  suggestions: FstbSuggestion[] = []
-): { noFstb: string; armada: string; doNo: string; noFpb: string; isAutoMatched: boolean } {
-  const components = extractFstbComponents(fileName);
-
-  let finalNoFstb = components.canonicalFstb || '';
-  let matchedArmada = '';
-  let matchedDoNo = '';
-  let matchedNoFpb = '';
-
-  const filePrefix = components.prefix;
-  const targetNumber = components.number || components.rawNumber;
-
-  if (targetNumber && suggestions.length > 0) {
-    const padded = targetNumber.padStart(5, '0');
-
-    if (filePrefix) {
-      // Cari saran dengan prefix dan nomor urut yang sama
-      const exactMatch = suggestions.find((s) => {
-        const sComp = extractFstbComponents(s.noFstb);
-        if (sComp.prefix && sComp.prefix !== filePrefix) return false;
-        const cleanS = s.noFstb.replace(/\D/g, '');
-        return cleanS.endsWith(targetNumber) || cleanS.endsWith(padded);
-      });
-
-      if (exactMatch) {
-        finalNoFstb = exactMatch.noFstb || finalNoFstb;
-        matchedArmada = exactMatch.armada || '';
-        matchedDoNo = exactMatch.doNo || '';
-        matchedNoFpb = exactMatch.noFpb || '';
-      }
-    } else {
-      const lowerFileName = fileName.toLowerCase();
-      const candidates = suggestions.filter((s) => {
-        const cleanS = s.noFstb.replace(/\D/g, '');
-        return cleanS.endsWith(targetNumber) || cleanS.endsWith(padded);
-      });
-
-      if (candidates.length > 0) {
-        const matchWithArmada = candidates.find(
-          (c) => c.armada && lowerFileName.includes(c.armada.toLowerCase())
-        );
-        const best = matchWithArmada || candidates[0];
-        finalNoFstb = best.noFstb || finalNoFstb;
-        matchedArmada = best.armada || '';
-        matchedDoNo = best.doNo || '';
-        matchedNoFpb = best.noFpb || '';
-      }
-    }
-  }
-
-  // Jika nama armada tertera pada nama berkas, ekstrak langsung
-  if (!matchedArmada) {
-    const knownArmadas = [
-      'UB CMPL 01', 'CMPL 01', 'SPOB SEA LION', 'SEA LION', 'TEMASEK',
-      'CINDARA', 'TWINSISTER', 'PMI ABADI', 'FERY 471', 'MANDAR',
-      'BLUE PETROL', 'COASTWAY', 'CAKRA 10', 'OFFICE GAJ', 'WORKSHOP',
-    ];
-    const upperFile = fileName.toUpperCase();
-    for (const arm of knownArmadas) {
-      if (upperFile.includes(arm)) {
-        matchedArmada = arm;
-        break;
-      }
-    }
-  }
-
-  return {
-    noFstb: finalNoFstb,
-    armada: matchedArmada,
-    doNo: matchedDoNo,
-    noFpb: matchedNoFpb,
-    isAutoMatched: Boolean(finalNoFstb && matchedArmada),
-  };
-}
+type FstbSuggestion = FstbSuggestionItem;
 
 export default function UploadFstbTab({
   procurementItems = [],
@@ -352,7 +273,8 @@ export default function UploadFstbTab({
       }
 
       const previewUrl = URL.createObjectURL(finalFile);
-      const detection = detectFstbAndArmada(finalFile.name, fstbSuggestions);
+      // Ekstraksi cerdas metadata dari isi teks PDF, nama berkas, & database relasi CPG
+      const detection = await detectFstbMetadata(finalFile, fstbSuggestions);
 
       newQueued.push({
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -365,11 +287,17 @@ export default function UploadFstbTab({
         doNo: detection.doNo || batchDoNo,
         noFpb: detection.noFpb || batchNoFpb,
         isAutoMatched: detection.isAutoMatched,
+        matchSource: detection.matchSource,
         originalSize,
         compressedSize,
         savingsPercent,
         isOptimized,
       });
+
+      // Jika ada tanggal terdeteksi di PDF, sinkronkan tanggal serah terima
+      if (detection.receivedDate && !batchReceivedDate) {
+        setBatchReceivedDate(detection.receivedDate);
+      }
     }
 
     setQueue((prev) => [...prev, ...newQueued]);
@@ -379,6 +307,7 @@ export default function UploadFstbTab({
       if (!batchNoFstb) setBatchNoFstb(newQueued[0].noFstb);
       if (!batchArmada && newQueued[0].armada) setBatchArmada(newQueued[0].armada);
       if (!batchDoNo && newQueued[0].doNo) setBatchDoNo(newQueued[0].doNo);
+      if (!batchNoFpb && newQueued[0].noFpb) setBatchNoFpb(newQueued[0].noFpb);
     }
 
     const detectedDuplicates = newQueued.filter((q) => Boolean(checkFstbDuplicate(q.noFstb, q.file.name)));
@@ -438,7 +367,7 @@ export default function UploadFstbTab({
     setBatchNoFpb('');
   };
 
-  // Update nilai item tertentu di antrean
+  // Update nilai item tertentu di antrean dengan auto-lookup cerdas
   const handleUpdateQueueItem = (
     id: string,
     field: 'noFstb' | 'armada' | 'doNo' | 'noFpb',
@@ -447,11 +376,46 @@ export default function UploadFstbTab({
     setQueue((prev) =>
       prev.map((item) => {
         if (item.id === id) {
-          return { ...item, [field]: val };
+          const updated = { ...item, [field]: val };
+
+          // Jika staf mengedit / mengoreksi Nomor FSTB, lakukan auto-lookup kapal & PO
+          if (field === 'noFstb' && val.trim().length >= 4) {
+            const rel = lookupFstbRelation(val);
+            if (rel.armada && (!item.armada || item.armada === '-')) {
+              updated.armada = rel.armada;
+              updated.matchSource = `Database Relasi FSTB: ${rel.armada}`;
+              updated.isAutoMatched = true;
+            }
+            if (rel.poNumber && !item.doNo) {
+              updated.doNo = rel.poNumber;
+            }
+            if (rel.fpbNumber && !item.noFpb) {
+              updated.noFpb = rel.fpbNumber;
+            }
+          }
+
+          return updated;
         }
         return item;
       })
     );
+  };
+
+  // Handler pengubahan No. FSTB Default (Batch) dengan auto-lookup
+  const handleBatchNoFstbChange = (val: string) => {
+    setBatchNoFstb(val);
+    if (val.trim().length >= 4) {
+      const rel = lookupFstbRelation(val);
+      if (rel.armada && (!batchArmada || batchArmada === '-')) {
+        setBatchArmada(rel.armada);
+      }
+      if (rel.poNumber && !batchDoNo) {
+        setBatchDoNo(rel.poNumber);
+      }
+      if (rel.fpbNumber && !batchNoFpb) {
+        setBatchNoFpb(rel.fpbNumber);
+      }
+    }
   };
 
   // Helper cek duplikat FSTB terhadap riwayat
@@ -1061,6 +1025,14 @@ export default function UploadFstbTab({
                         </div>
                       )}
 
+                      {/* Indikator deteksi cerdas metadata / kapal */}
+                      {item.matchSource && (
+                        <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-[10px] text-emerald-700 dark:text-emerald-300 font-medium">
+                          <Sparkles className="size-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                          <span className="truncate">Terdeteksi Otomatis &bull; {item.matchSource}</span>
+                        </div>
+                      )}
+
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-border/50 text-xs">
                         <div>
                           <label className="text-[10px] text-muted-foreground font-semibold block mb-0.5">
@@ -1082,12 +1054,45 @@ export default function UploadFstbTab({
                           </label>
                           <input
                             type="text"
+                            list="fstb-armada-datalist"
                             value={item.armada}
                             onChange={(e) =>
                               handleUpdateQueueItem(item.id, 'armada', e.target.value)
                             }
-                            placeholder="UB CMPL 01"
-                            className="w-full h-7 px-2 text-xs rounded-lg border border-border bg-card text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
+                            placeholder="Cth: TB KING STAR"
+                            className="w-full h-7 px-2 text-xs rounded-lg border border-border bg-card text-foreground focus:ring-1 focus:ring-primary focus:outline-none font-medium"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Detail Pendukung: No. DO/PO & No. FPB */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <label className="text-[10px] text-muted-foreground font-semibold block mb-0.5">
+                            No. DO / No. PO (Ref):
+                          </label>
+                          <input
+                            type="text"
+                            value={item.doNo}
+                            onChange={(e) =>
+                              handleUpdateQueueItem(item.id, 'doNo', e.target.value)
+                            }
+                            placeholder="Cth: CPL-PO-26-05649"
+                            className="w-full h-7 px-2 text-[11px] font-mono rounded-lg border border-border bg-card/70 text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-muted-foreground font-semibold block mb-0.5">
+                            No. FPB (Ref):
+                          </label>
+                          <input
+                            type="text"
+                            value={item.noFpb}
+                            onChange={(e) =>
+                              handleUpdateQueueItem(item.id, 'noFpb', e.target.value)
+                            }
+                            placeholder="Cth: CPL-FPB-26-0005241"
+                            className="w-full h-7 px-2 text-[11px] font-mono rounded-lg border border-border bg-card/70 text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
                           />
                         </div>
                       </div>
@@ -1119,7 +1124,7 @@ export default function UploadFstbTab({
                 <input
                   type="text"
                   value={batchNoFstb}
-                  onChange={(e) => setBatchNoFstb(e.target.value)}
+                  onChange={(e) => handleBatchNoFstbChange(e.target.value)}
                   placeholder="Cth: CPL-FSTB-26-05241"
                   className="w-full h-8.5 px-3 rounded-lg border border-border bg-background text-foreground font-mono focus:ring-1 focus:ring-primary focus:outline-none"
                 />
@@ -1128,14 +1133,15 @@ export default function UploadFstbTab({
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
                   <label className="text-[11px] font-semibold text-foreground block mb-1">
-                    Armada / Unit:
+                    Armada / Unit Kapal:
                   </label>
                   <input
                     type="text"
+                    list="fstb-armada-datalist"
                     value={batchArmada}
                     onChange={(e) => setBatchArmada(e.target.value)}
-                    placeholder="Cth: UB CMPL 01"
-                    className="w-full h-8.5 px-3 rounded-lg border border-border bg-background text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
+                    placeholder="Cth: TB KING STAR"
+                    className="w-full h-8.5 px-3 rounded-lg border border-border bg-background text-foreground focus:ring-1 focus:ring-primary focus:outline-none font-medium"
                   />
                 </div>
                 <div>
@@ -1654,6 +1660,13 @@ export default function UploadFstbTab({
         fileCount={waModalData.fileCount}
         showToast={showToast}
       />
+
+      {/* Datalist Autocomplete Armada & Kapal Maritim CPG */}
+      <datalist id="fstb-armada-datalist">
+        {MASTER_ARMADA_LIST.map((arm, idx) => (
+          <option key={idx} value={arm} />
+        ))}
+      </datalist>
     </div>
   );
 }
