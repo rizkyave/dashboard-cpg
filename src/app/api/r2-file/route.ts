@@ -4,6 +4,7 @@ import { promises as fs } from 'fs';
 import { getObjectFromR2, isR2Configured, uploadToR2 } from '@/utils/r2Client';
 import { getPhotosDir } from '@/utils/ttbPhotosDir';
 import { getFstbPhotosDir } from '@/utils/fstbPhotosDir';
+import { findLocalFile, getPersistentStorageDir } from '@/utils/persistentStorage';
 import rawManifest from '@/data/ttb-photos-manifest.json';
 
 export const runtime = 'nodejs';
@@ -44,7 +45,28 @@ export async function GET(req: NextRequest) {
     ? 'no-cache, no-store, must-revalidate, max-age=0'
     : 'public, max-age=86400, stale-while-revalidate=604800';
 
-  // 1. Coba baca dari disk lokal Hostinger terlebih dahulu (kecepatan maksimal <10ms)
+  // 1. Coba baca dari direktori permanen Hostinger (findLocalFile)
+  const resolvedLocal = findLocalFile(normalizedKey, filename);
+  if (resolvedLocal) {
+    try {
+      const fileBytes = await fs.readFile(resolvedLocal);
+      const headers: Record<string, string> = {
+        'Content-Type': fallbackMime,
+        'Cache-Control': cacheControl,
+      };
+
+      if (download) {
+        headers['Content-Disposition'] = `attachment; filename="${encodeURIComponent(filename)}"`;
+      } else {
+        headers['Content-Disposition'] = `inline; filename="${encodeURIComponent(filename)}"`;
+      }
+
+      headers['Content-Length'] = String(fileBytes.length);
+      return new NextResponse(new Uint8Array(fileBytes), { headers });
+    } catch {}
+  }
+
+  // 1b. Coba baca dari kandidat disk lokal lainnya
   const candidatePaths: string[] = [
     path.join(process.cwd(), 'public', 'uploads', normalizedKey),
     path.join(process.cwd(), 'public', normalizedKey),
@@ -176,13 +198,13 @@ export async function GET(req: NextRequest) {
           headers['Content-Disposition'] = `inline; filename="${encodeURIComponent(filename)}"`;
         }
 
-        // Auto-save salinan ke disk lokal Hostinger
+        // Auto-save salinan ke direktori permanen Hostinger (kebal Git deploy)
         try {
-          const localCacheTarget = path.join(process.cwd(), 'public', 'uploads', normalizedKey);
+          const localCacheTarget = path.join(getPersistentStorageDir(), normalizedKey);
           await fs.mkdir(path.dirname(localCacheTarget), { recursive: true });
           await fs.writeFile(localCacheTarget, fileBytes);
         } catch (saveErr) {
-          console.warn('Gagal menyimpan cache R2 ke disk lokal Hostinger:', saveErr);
+          console.warn('Gagal menyimpan cache R2 ke direktori permanen Hostinger:', saveErr);
         }
 
         headers['Content-Length'] = String(fileBytes.length);
