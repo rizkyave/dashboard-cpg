@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { sanitizeFstbNumber, formatFstbFilename, extractFstbComponents } from '@/utils/fstbRename';
+import { validateUploadDocumentType } from '@/utils/documentTypeGuard';
 import { resolveDocRelation } from '@/utils/docRelationResolver';
 import { getFstbPhotosDir } from '@/utils/fstbPhotosDir';
 import { UploadedFstbItem, UploadFstbResponse } from '@/types/fstbUpload';
@@ -259,7 +260,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Nomor FSTB wajib diisi.' }, { status: 400 });
     }
 
-    // Validasi ekstensi berkas
+    // Validasi ekstensi berkas & Guardrail Anti-Tertukar Dokumen
     for (const f of files) {
       if (!ALLOWED_EXT.test(f.name)) {
         return NextResponse.json(
@@ -267,6 +268,15 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         );
       }
+      const check = validateUploadDocumentType('FSTB', f.name);
+      if (!check.isAllowed) {
+        return NextResponse.json({ success: false, error: check.reason }, { status: 400 });
+      }
+    }
+
+    const headerCheck = validateUploadDocumentType('FSTB', noFstbRaw);
+    if (!headerCheck.isAllowed) {
+      return NextResponse.json({ success: false, error: headerCheck.reason }, { status: 400 });
     }
 
     const cleanNoFstb = sanitizeFstbNumber(noFstbRaw);

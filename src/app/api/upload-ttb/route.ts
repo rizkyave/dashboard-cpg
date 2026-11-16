@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { sanitizeTtbNumber, formatTtbFilename, extractTtbComponents } from '@/utils/ttbRename';
+import { validateUploadDocumentType } from '@/utils/documentTypeGuard';
 import { getPhotosDir } from '@/utils/ttbPhotosDir';
 import { UploadedTtbItem, UploadTtbResponse } from '@/types/ttbUpload';
 import { stampTtbPdf, formatTtbStampDate } from '@/utils/ttbStamper';
@@ -542,7 +543,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
       );
     }
 
-    // Validasi format
+    // Validasi format & Guardrail Anti-Tertukar Dokumen
     for (const f of files) {
       const ext = path.extname(f.name).toLowerCase();
       if (!ALLOWED_EXT.test(ext)) {
@@ -557,6 +558,35 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
           { status: 400 }
         );
       }
+      const check = validateUploadDocumentType('TTB', f.name);
+      if (!check.isAllowed) {
+        const errorMsg = check.reason || 'Dokumen terdeteksi bukan berkas TTB.';
+        return NextResponse.json(
+          {
+            success: false,
+            message: errorMsg,
+            storageProvider: 'CLOUDFLARE_R2',
+            uploadedFiles: [],
+            error: errorMsg,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    const headerCheck = validateUploadDocumentType('TTB', noTtbRaw);
+    if (!headerCheck.isAllowed) {
+      const errorMsg = headerCheck.reason || 'Nomor TTB terdeteksi sebagai berkas FSTB.';
+      return NextResponse.json(
+        {
+          success: false,
+          message: errorMsg,
+          storageProvider: 'CLOUDFLARE_R2',
+          uploadedFiles: [],
+          error: errorMsg,
+        },
+        { status: 400 }
+      );
     }
 
     const cleanNoTtb = sanitizeTtbNumber(noTtbRaw);

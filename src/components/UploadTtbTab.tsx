@@ -72,6 +72,8 @@ import { getSignatureForUploader } from '@/utils/uploaderSignatures';
 import CameraWatermarkModal from '@/components/CameraWatermarkModal';
 import TtbMediaModal from '@/components/TtbMediaModal';
 import { parseTtbList } from '@/utils/timemark';
+import { extractPdfTextTokens } from '@/utils/fstbDetector';
+import { validateUploadDocumentType } from '@/utils/documentTypeGuard';
 
 
 interface UploadTtbTabProps {
@@ -1014,6 +1016,22 @@ export default function UploadTtbTab({
     const MAX_PHOTOS_PER_TTB = 10;
 
     for (const rawFile of files) {
+      // ── GUARDRAIL ANTI-TERTUKAR DOKUMEN ──
+      let pdfTokens: string[] = [];
+      if (rawFile.name.toLowerCase().endsWith('.pdf')) {
+        try {
+          pdfTokens = await extractPdfTextTokens(rawFile);
+        } catch {}
+      }
+      const typeCheck = validateUploadDocumentType('TTB', rawFile.name, pdfTokens.join(' '));
+      if (!typeCheck.isAllowed) {
+        showToast?.(
+          `⛔ DOKUMEN DITOLAK: ${typeCheck.reason}`,
+          'error'
+        );
+        continue;
+      }
+
       const ext = rawFile.name.slice(rawFile.name.lastIndexOf('.')).toLowerCase();
       const isImage = /\.(jpe?g|png|webp|gif)$/i.test(ext);
       const isPdf = /\.pdf$/i.test(ext);

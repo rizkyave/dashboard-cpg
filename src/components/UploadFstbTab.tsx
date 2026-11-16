@@ -52,9 +52,11 @@ import { optimizeAndScaleImage, formatByteSize } from '@/utils/imageCompressor';
 import {
   detectFstbMetadata,
   lookupFstbRelation,
+  extractPdfTextTokens,
   MASTER_ARMADA_LIST,
   FstbSuggestionItem,
 } from '@/utils/fstbDetector';
+import { validateUploadDocumentType } from '@/utils/documentTypeGuard';
 
 interface UploadFstbTabProps {
   procurementItems?: ProcurementItem[];
@@ -246,6 +248,22 @@ export default function UploadFstbTab({
     const newQueued: QueuedFile[] = [];
 
     for (const rawFile of fileArray) {
+      // ── GUARDRAIL ANTI-TERTUKAR DOKUMEN ──
+      let pdfTokens: string[] = [];
+      if (rawFile.name.toLowerCase().endsWith('.pdf')) {
+        try {
+          pdfTokens = await extractPdfTextTokens(rawFile);
+        } catch {}
+      }
+      const typeCheck = validateUploadDocumentType('FSTB', rawFile.name, pdfTokens.join(' '));
+      if (!typeCheck.isAllowed) {
+        showToast?.(
+          `⛔ DOKUMEN DITOLAK: ${typeCheck.reason}`,
+          'error'
+        );
+        continue;
+      }
+
       const isPdf = rawFile.name.toLowerCase().endsWith('.pdf');
       const isImage = /\.(jpe?g|png|webp|gif)$/i.test(rawFile.name);
 
