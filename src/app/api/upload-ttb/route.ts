@@ -490,7 +490,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResponse>> {
   try {
     const formData = await req.formData();
-    const noTtbRaw = ((formData.get('noTtb') as string) || '').trim();
+    let noTtbRaw = ((formData.get('noTtb') as string) || '').trim();
     const armada = ((formData.get('armada') as string) || '').trim();
     const noFpb = ((formData.get('noFpb') as string) || '').trim();
     const noPo = ((formData.get('noPo') as string) || '').trim();
@@ -513,19 +513,6 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
     const clientPhotoIndex = photoIndexRaw ? parseInt(photoIndexRaw as string, 10) : undefined;
     const totalPhotosRaw = formData.get('totalPhotos');
     const clientTotalPhotos = totalPhotosRaw ? parseInt(totalPhotosRaw as string, 10) : undefined;
-
-    if (!noTtbRaw) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: 'Nomor TTB wajib diisi.',
-          storageProvider: 'CLOUDFLARE_R2',
-          uploadedFiles: [],
-          error: 'Nomor TTB wajib diisi.',
-        },
-        { status: 400 }
-      );
-    }
 
     // Ambil semua file yang diupload
     const files: File[] = [];
@@ -550,6 +537,27 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
           storageProvider: 'CLOUDFLARE_R2',
           uploadedFiles: [],
           error: 'Berkas tidak ditemukan.',
+        },
+        { status: 400 }
+      );
+    }
+
+    // Jika noTtbRaw belum diberikan dari form, cari apakah ada berkas yang memiliki nomor TTB pada namanya
+    if (!noTtbRaw) {
+      const firstWithTtb = files.find((f) => extractTtbComponents(f.name).canonicalTtb);
+      if (firstWithTtb) {
+        noTtbRaw = extractTtbComponents(firstWithTtb.name).canonicalTtb || '';
+      }
+    }
+
+    if (!noTtbRaw) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Nomor TTB wajib diisi (tidak terdeteksi dari nama berkas).',
+          storageProvider: 'CLOUDFLARE_R2',
+          uploadedFiles: [],
+          error: 'Nomor TTB wajib diisi.',
         },
         { status: 400 }
       );
@@ -628,11 +636,16 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
       const f = files[i];
       const isPdf = f.name.toLowerCase().endsWith('.pdf') || f.type === 'application/pdf';
 
+      // Cek apakah file memiliki nomor TTB tersendiri dari nama berkasnya
+      const fComponents = extractTtbComponents(f.name);
+      const itemCleanNoTtb = (fComponents.canonicalTtb ? sanitizeTtbNumber(fComponents.canonicalTtb) : '') || cleanNoTtb;
+      const itemRawNoTtb = (fComponents.canonicalTtb ? fComponents.canonicalTtb : '') || noTtbRaw;
+
       // Hitung foto yang sudah tersimpan untuk TTB ini di riwayat
       const existingPhotosForTtb = currentHistory.filter((h) => {
         const hClean = sanitizeTtbNumber(h.cleanNoTtb || h.noTtb || '');
         const isImg = !h.renamedFileName.toLowerCase().endsWith('.pdf') && h.fileType !== 'application/pdf';
-        return hClean === cleanNoTtb && isImg;
+        return hClean === itemCleanNoTtb && isImg;
       });
 
       // Proteksi: Maksimal 10 foto bukti serah terima per nomor TTB
@@ -640,7 +653,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
         return NextResponse.json(
           {
             success: false,
-            message: `Batas maksimal 10 foto bukti serah terima untuk TTB ${cleanNoTtb} telah tercapai.`,
+            message: `Batas maksimal 10 foto bukti serah terima untuk TTB ${itemCleanNoTtb} telah tercapai.`,
             storageProvider: isR2Active ? 'CLOUDFLARE_R2' : 'LOCAL',
             uploadedFiles: [],
             error: 'Batas maksimal 10 foto tercapai.',
@@ -661,9 +674,40 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
         }
       }
 
-      const renamedFileName = isPdf
-        ? `${cleanNoTtb}.pdf`
-        : formatTtbFilename(cleanNoTtb, f.name, i, clientTotalPhotos || files.length, effectivePhotoIndex);
+      let renamedFileName = '';
+      if (isPdf) {
+        // Cek berapa PDF yang sudah ada untuk nomor TTB ini (di riwayat & di batch upload saat ini)
+        const existingPdfsForTtb = [
+          ...currentHistory.filter((h) => {
+            const hClean = sanitizeTtbNumber(h.cleanNoTtb || h.noTtb || '');
+            const isDocPdf = h.renamedFileName.toLowerCase().endsWith('.pdf') || h.fileType === 'application/pdf';
+            return hClean === itemCleanNoTtb && isDocPdf;
+          }),
+          ...newlyUploadedItems.filter((item) => {
+            const itemClean = sanitizeTtbNumber(item.cleanNoTtb || item.noTtb || '');
+            const isDocPdf = item.renamedFileName.toLowerCase().endsWith('.pdf') || item.fileType === 'application/pdf';
+            return itemClean === itemCleanNoTtb && isDocPdf;
+          }),
+        ];
+
+        // Jika nama berkas persis sama dengan yang sudah ada, ini adalah re-upload berkas yang sama
+        const exactPdfMatch = existingPdfsForTtb.find(
+          (p) => p.originalFileName && p.originalFileName.toLowerCase() === f.name.toLowerCase()
+        );
+
+        if (exactPdfMatch) {
+          renamedFileName = exactPdfMatch.renamedFileName;
+        } else if (existingPdfsForTtb.length === 0) {
+          // Berkas PDF utama
+          renamedFileName = `${itemCleanNoTtb}.pdf`;
+        } else {
+          // Berkas PDF lampiran tambahan agar TIDAK MENIMPA berkas PDF utama
+          renamedFileName = `${itemCleanNoTtb}_lampiran_${existingPdfsForTtb.length}.pdf`;
+        }
+      } else {
+        renamedFileName = formatTtbFilename(itemCleanNoTtb, f.name, i, clientTotalPhotos || files.length, effectivePhotoIndex);
+      }
+
       let buffer: Buffer = Buffer.from(await f.arrayBuffer());
       const mimeType = getMimeType(renamedFileName, f.type);
       let isFileStamped = false;
@@ -698,8 +742,8 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
             body: buffer,
             contentType: mimeType,
             metadata: {
-              noTtb: noTtbRaw,
-              cleanNoTtb,
+              noTtb: itemRawNoTtb,
+              cleanNoTtb: itemCleanNoTtb,
               armada: armada || '-',
               originalName: f.name,
               uploaderName: uploaderName || '',
@@ -738,8 +782,8 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadTtbResp
 
       const record: UploadedTtbItem = {
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        noTtb: noTtbRaw,
-        cleanNoTtb,
+        noTtb: itemRawNoTtb,
+        cleanNoTtb: itemCleanNoTtb,
         armada: armada || '-',
         noFpb: noFpb || undefined,
         noPo: noPo || undefined,

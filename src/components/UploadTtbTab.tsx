@@ -115,7 +115,8 @@ interface TtbSuggestion {
  */
 function detectTtbAndArmada(
   fileName: string,
-  suggestions: TtbSuggestion[] = []
+  suggestions: TtbSuggestion[] = [],
+  pdfTokens?: string[]
 ): { noTtb: string; armada: string; doNo: string; noFpb: string; noFstb?: string; isAutoMatched: boolean } {
   const components = extractTtbComponents(fileName);
 
@@ -125,8 +126,61 @@ function detectTtbAndArmada(
   let matchedNoFpb = '';
   let matchedNoFstb = '';
 
-  const filePrefix = components.prefix;
-  const targetNumber = components.number || components.rawNumber;
+  // 1. Jika nama berkas belum menghasilkan nomor TTB kanonikal dan berkas adalah PDF, ekstrak dari isi teks dokumen
+  if (!finalNoTtb && pdfTokens && pdfTokens.length > 0) {
+    for (let i = 0; i < pdfTokens.length; i++) {
+      const token = pdfTokens[i].trim();
+
+      // Pola A: Token langsung mengandung format TTB kanonikal (cth: "GAJ-TTB-26-01420" atau "TTB-26-01420")
+      const ttbMatch = token.match(/(?:^|[^A-Za-z0-9])([A-Za-z]{2,6}-TTB-\d{2}-\d{3,6}|TTB-\d{2}-\d{3,6})(?:$|[^A-Za-z0-9])/i);
+      if (ttbMatch) {
+        finalNoTtb = ttbMatch[1].toUpperCase();
+        break;
+      }
+
+      // Pola B: Token label TTB (cth: "TTB No", "TTB No.", "No. TTB", "Nomor TTB")
+      if (/TTB\s*(?:NO|NOMOR)\.?/i.test(token)) {
+        // Cek apakah nomor ada di baris token yang sama
+        const sub = token.replace(/.*?TTB\s*(?:NO|NOMOR)\.?:?/i, '').trim();
+        const subMatch = sub.match(/([A-Za-z]{2,6}-TTB-\d{2}-\d{3,6}|TTB-\d{2}-\d{3,6}|\d{4,6})/i);
+        if (subMatch) {
+          const comp = extractTtbComponents(subMatch[1]);
+          if (comp.canonicalTtb) {
+            finalNoTtb = comp.canonicalTtb;
+            break;
+          }
+        }
+        // Cek token berikutnya
+        if (pdfTokens[i + 1]) {
+          const next = pdfTokens[i + 1].trim();
+          const nextComp = extractTtbComponents(next);
+          if (nextComp.canonicalTtb) {
+            finalNoTtb = nextComp.canonicalTtb;
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  // 2. Ekstraksi No. FPB & No. PO dari teks PDF jika belum ada
+  if (pdfTokens && pdfTokens.length > 0) {
+    for (let i = 0; i < pdfTokens.length; i++) {
+      const token = pdfTokens[i].trim();
+      if (!matchedNoFpb) {
+        const fpbMatch = token.match(/(?:^|[^A-Za-z0-9])([A-Za-z]{2,6}-FPB-\d{2}-\d{3,7}|FPB-\d{2}-\d{3,7})(?:$|[^A-Za-z0-9])/i);
+        if (fpbMatch) matchedNoFpb = fpbMatch[1].toUpperCase();
+      }
+      if (!matchedDoNo) {
+        const poMatch = token.match(/(?:^|[^A-Za-z0-9])([A-Za-z]{2,6}-PO-\d{2}-\d{3,7}|PO-\d{2}-\d{3,7})(?:$|[^A-Za-z0-9])/i);
+        if (poMatch) matchedDoNo = poMatch[1].toUpperCase();
+      }
+    }
+  }
+
+  const activeComponents = extractTtbComponents(finalNoTtb || fileName);
+  const filePrefix = activeComponents.prefix;
+  const targetNumber = activeComponents.number || activeComponents.rawNumber;
 
   if (targetNumber && suggestions.length > 0) {
     const padded = targetNumber.padStart(5, '0');
@@ -143,8 +197,8 @@ function detectTtbAndArmada(
       if (exactMatch) {
         finalNoTtb = exactMatch.noTtb || finalNoTtb;
         matchedArmada = exactMatch.armada || '';
-        matchedDoNo = exactMatch.doNo || '';
-        matchedNoFpb = exactMatch.noFpb || '';
+        matchedDoNo = matchedDoNo || exactMatch.doNo || '';
+        matchedNoFpb = matchedNoFpb || exactMatch.noFpb || '';
         matchedNoFstb = exactMatch.noFstb || '';
       }
     } else {
@@ -161,23 +215,24 @@ function detectTtbAndArmada(
         const best = matchWithArmada || candidates[0];
         finalNoTtb = best.noTtb || finalNoTtb;
         matchedArmada = best.armada || '';
-        matchedDoNo = best.doNo || '';
-        matchedNoFpb = best.noFpb || '';
+        matchedDoNo = matchedDoNo || best.doNo || '';
+        matchedNoFpb = matchedNoFpb || best.noFpb || '';
         matchedNoFstb = best.noFstb || '';
       }
     }
   }
 
-  // Fallback pencocokan Armada dari teks nama berkas
+  // Fallback pencocokan Armada dari teks nama berkas atau isi teks PDF
   if (!matchedArmada && suggestions.length > 0) {
     const lowerFileName = fileName.toLowerCase();
+    const pdfTextCombined = (pdfTokens || []).join(' ').toLowerCase();
     const uniqueArmadas = Array.from(
       new Set(suggestions.map((s) => (s.armada || '').trim()).filter(Boolean))
     );
     uniqueArmadas.sort((a, b) => b.length - a.length);
 
     for (const arm of uniqueArmadas) {
-      if (arm.length >= 3 && lowerFileName.includes(arm.toLowerCase())) {
+      if (arm.length >= 3 && (lowerFileName.includes(arm.toLowerCase()) || (pdfTextCombined && pdfTextCombined.includes(arm.toLowerCase())))) {
         matchedArmada = arm;
         break;
       }
@@ -847,7 +902,7 @@ export default function UploadTtbTab({
 
   // Helper cek duplikat TTB terhadap riwayat
   const checkTtbDuplicate = (noTtb: string, fileName: string) => {
-    const targetNo = sanitizeTtbNumber(noTtb.trim() || batchNoTtb.trim());
+    const targetNo = sanitizeTtbNumber(noTtb.trim() || (queue.length === 1 ? batchNoTtb.trim() : ''));
     if (!targetNo) return null;
     return (
       history.find((h) => {
@@ -896,7 +951,7 @@ export default function UploadTtbTab({
     const groupsMap = new Map<string, QueuePairGroup>();
 
     for (const item of queue) {
-      const rawTtb = (item.noTtb.trim() || batchNoTtb.trim());
+      const rawTtb = item.noTtb.trim() || (queue.length === 1 ? batchNoTtb.trim() : '');
       let cleanKey = sanitizeTtbNumber(rawTtb);
       if (!cleanKey) {
         const baseName = item.file.name.replace(/\.[^/.]+$/, '').trim();
@@ -922,7 +977,7 @@ export default function UploadTtbTab({
 
         groupsMap.set(key, {
           key,
-          displayNoTtb: item.noTtb || batchNoTtb || key,
+          displayNoTtb: item.noTtb || (queue.length === 1 ? batchNoTtb : '') || key,
           files: [],
           pdfFiles: [],
           photoFiles: [],
@@ -1038,11 +1093,11 @@ export default function UploadTtbTab({
 
       if (isImage) {
         const detectedEarly = detectTtbAndArmada(rawFile.name, ttbSuggestions);
-        const ttbKey = sanitizeTtbNumber(detectedEarly.noTtb || batchNoTtb || '');
+        const ttbKey = sanitizeTtbNumber(detectedEarly.noTtb || (files.length === 1 ? batchNoTtb : '') || '');
         if (ttbKey) {
           const currentPhotosForTtb =
-            queue.filter((q) => q.isImage && sanitizeTtbNumber(q.noTtb || batchNoTtb) === ttbKey).length +
-            newItems.filter((q) => q.isImage && sanitizeTtbNumber(q.noTtb || batchNoTtb) === ttbKey).length;
+            queue.filter((q) => q.isImage && sanitizeTtbNumber(q.noTtb || (queue.length === 1 ? batchNoTtb : '')) === ttbKey).length +
+            newItems.filter((q) => q.isImage && sanitizeTtbNumber(q.noTtb || (files.length === 1 ? batchNoTtb : '')) === ttbKey).length;
           if (currentPhotosForTtb >= MAX_PHOTOS_PER_TTB) {
             showToast?.(
               `Batas maksimal ${MAX_PHOTOS_PER_TTB} foto bukti fisik untuk TTB "${detectedEarly.noTtb || ttbKey}" telah tercapai. Berkas "${rawFile.name}" diabaikan.`,
@@ -1085,7 +1140,11 @@ export default function UploadTtbTab({
       }
 
       const previewUrl = isImage ? URL.createObjectURL(finalFile) : '';
-      const detected = detectTtbAndArmada(finalFile.name, ttbSuggestions);
+      const detected = detectTtbAndArmada(finalFile.name, ttbSuggestions, pdfTokens);
+
+      const fallbackNoTtb = (files.length === 1 || !isPdf) ? (batchNoTtb || '') : '';
+      const fallbackArmada = (files.length === 1) ? (batchArmada || '') : '';
+      const fallbackDoNo = (files.length === 1) ? (batchDoNo || '') : '';
 
       newItems.push({
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -1093,9 +1152,9 @@ export default function UploadTtbTab({
         previewUrl,
         isImage,
         isPdf,
-        noTtb: detected.noTtb || batchNoTtb || '',
-        armada: detected.armada || batchArmada || '',
-        doNo: detected.doNo || batchDoNo || '',
+        noTtb: detected.noTtb || fallbackNoTtb || '',
+        armada: detected.armada || fallbackArmada || '',
+        doNo: detected.doNo || fallbackDoNo || '',
         noFpb: detected.noFpb || '',
         noFstb: detected.noFstb || '',
         isAutoMatched: detected.isAutoMatched,
@@ -1233,17 +1292,17 @@ export default function UploadTtbTab({
 
       for (let i = 0; i < targetQueue.length; i++) {
         const item = targetQueue[i];
-        const targetNoTtb = (item.noTtb.trim() || batchNoTtb.trim());
+        const targetNoTtb = item.noTtb.trim() || (targetQueue.length === 1 ? batchNoTtb.trim() : '');
         const cleanNoTtb = sanitizeTtbNumber(targetNoTtb);
 
         if (!cleanNoTtb) {
-          throw new Error(`Nomor TTB untuk berkas "${item.file.name}" wajib diisi.`);
+          throw new Error(`Nomor TTB untuk berkas "${item.file.name}" wajib diisi. Silakan isi Nomor TTB pada baris berkas di antrean.`);
         }
 
         const formData = new FormData();
         formData.append('noTtb', cleanNoTtb);
-        formData.append('armada', item.armada.trim() || batchArmada.trim());
-        formData.append('noPo', item.doNo.trim() || batchDoNo.trim());
+        formData.append('armada', item.armada.trim() || (targetQueue.length === 1 ? batchArmada.trim() : ''));
+        formData.append('noPo', item.doNo.trim() || (targetQueue.length === 1 ? batchDoNo.trim() : ''));
         if (item.noFpb) formData.append('noFpb', item.noFpb.trim());
         if (item.noFstb) formData.append('noFstb', item.noFstb.trim());
         formData.append('receivedDate', batchReceivedDate);
@@ -1258,7 +1317,7 @@ export default function UploadTtbTab({
           });
 
           const queuePhotosForTtb = targetQueue.filter((q) => {
-            const qClean = sanitizeTtbNumber(q.noTtb.trim() || batchNoTtb.trim());
+            const qClean = sanitizeTtbNumber(q.noTtb.trim() || (targetQueue.length === 1 ? batchNoTtb.trim() : ''));
             return qClean === cleanNoTtb && q.isImage;
           });
 
@@ -1398,7 +1457,7 @@ export default function UploadTtbTab({
       }[] = [];
 
       for (const item of queue) {
-        const rawTtb = item.noTtb.trim() || batchNoTtb.trim();
+        const rawTtb = item.noTtb.trim() || (queue.length === 1 ? batchNoTtb.trim() : '');
         const fstbStatus = checkFstbPrerequisite(rawTtb, item.noFpb, item.doNo, item.noFstb);
         if (!fstbStatus.hasFstb) {
           blocked.push({ item, fstbInfo: fstbStatus });
@@ -1611,7 +1670,7 @@ export default function UploadTtbTab({
   }, [enrichedHistory]);
 
   const distinctTtbCount = useMemo(() => {
-    const set = new Set(queue.map((item) => sanitizeTtbNumber(item.noTtb.trim() || batchNoTtb.trim())).filter(Boolean));
+    const set = new Set(queue.map((item) => sanitizeTtbNumber(item.noTtb.trim() || (queue.length === 1 ? batchNoTtb.trim() : ''))).filter(Boolean));
     return set.size;
   }, [queue, batchNoTtb]);
 
@@ -2001,9 +2060,9 @@ export default function UploadTtbTab({
                   const pairGroup = queuePairAnalysis.itemGroupMap.get(item.id);
                   const isIncomplete = pairGroup && !pairGroup.isComplete;
 
-                  const targetCleanTtb = sanitizeTtbNumber(item.noTtb || batchNoTtb);
+                  const targetCleanTtb = sanitizeTtbNumber(item.noTtb || (queue.length === 1 ? batchNoTtb : ''));
                   const photosInQueueForTtb = queue.filter(
-                    (q) => q.isImage && sanitizeTtbNumber(q.noTtb || batchNoTtb) === targetCleanTtb
+                    (q) => q.isImage && sanitizeTtbNumber(q.noTtb || (queue.length === 1 ? batchNoTtb : '')) === targetCleanTtb
                   );
                   const photoIndexInQueue = item.isImage ? photosInQueueForTtb.indexOf(item) + 1 : 0;
                   const totalPhotosInQueue = photosInQueueForTtb.length;
@@ -2154,7 +2213,7 @@ export default function UploadTtbTab({
 
                       {/* Status Verifikasi Berkas FSTB Pasangan (SOP Prerequisite) */}
                       {(() => {
-                        const rawTtb = item.noTtb.trim() || batchNoTtb.trim();
+                        const rawTtb = item.noTtb.trim() || (queue.length === 1 ? batchNoTtb.trim() : '');
                         if (!rawTtb) return null;
                         const fstbCheck = checkFstbPrerequisite(rawTtb, item.noFpb, item.doNo, item.noFstb);
                         return (
@@ -2215,7 +2274,7 @@ export default function UploadTtbTab({
             <div className="space-y-3 text-xs">
               <div>
                 <label className="text-[11px] font-semibold text-foreground block mb-1">
-                  Nomor TTB Default (Batch):
+                  Nomor TTB (Berkas Tunggal / Manual):
                 </label>
                 <input
                   type="text"
@@ -2225,6 +2284,9 @@ export default function UploadTtbTab({
                   placeholder="Cth: CPL-TTB-26-00449"
                   className="w-full h-8.5 px-3 rounded-lg border border-border bg-background text-foreground font-mono focus:ring-1 focus:ring-primary focus:outline-none"
                 />
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  💡 Untuk multi-upload berkas, sistem otomatis membaca Nomor TTB per berkas dari teks scan PDF & nama file.
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-2.5">
