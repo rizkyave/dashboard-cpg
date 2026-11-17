@@ -34,6 +34,9 @@ import {
   ShieldCheck,
   Phone,
   User,
+  CalendarPlus,
+  RotateCcw,
+  History,
 } from 'lucide-react';
 import {
   PratenderPackage,
@@ -88,6 +91,13 @@ export default function TenderManagementTab({ showToast, onNavigateTab }: Props)
   const [registeredVendors, setRegisteredVendors] = useState<RegisteredVendor[]>([]);
   const [selectedVendorId, setSelectedVendorId] = useState<string>('');
   const [selectedVendorToken, setSelectedVendorToken] = useState<string>('');
+
+  // Perpanjangan Batas Waktu (Addendum Jadwal) Modal States
+  const [isExtendModalOpen, setIsExtendModalOpen] = useState<boolean>(false);
+  const [extendingPackage, setExtendingPackage] = useState<PratenderPackage | null>(null);
+  const [extendNewDate, setExtendNewDate] = useState<string>('');
+  const [extendReason, setExtendReason] = useState<string>('Perpanjangan masa penawaran untuk memaksimalkan partisipasi rekanan DPT');
+  const [isSavingExtend, setIsSavingExtend] = useState<boolean>(false);
 
   // Fetch Packages and Registered Vendors from server
   const fetchPackages = async () => {
@@ -217,6 +227,71 @@ export default function TenderManagementTab({ showToast, onNavigateTab }: Props)
     setWaBlastPackage(null);
     if (showToast) {
       showToast('Pengumuman pemenang berhasil disiarkan & tombol blast telah dikunci permanen.', 'success');
+    }
+  };
+
+  // Buka Modal Perpanjangan Waktu (Addendum Jadwal)
+  const handleOpenExtendModal = (pkg: PratenderPackage) => {
+    setExtendingPackage(pkg);
+    const isZeroBids = (pkg.vendorBids?.length || 0) === 0;
+    setExtendReason(
+      isZeroBids
+        ? 'Tender Nihil: Perpanjangan masa penawaran untuk memaksimalkan partisipasi rekanan DPT'
+        : 'Addendum jadwal penawaran untuk penyempurnaan dokumen penawaran rekanan'
+    );
+    // Rekomendasi tanggal baru: 3 hari dari sekarang pukul 17:00 WITA
+    const defaultDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+    defaultDate.setHours(17, 0, 0, 0);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const formattedDefault = `${defaultDate.getFullYear()}-${pad(defaultDate.getMonth() + 1)}-${pad(defaultDate.getDate())}T${pad(defaultDate.getHours())}:${pad(defaultDate.getMinutes())}`;
+    setExtendNewDate(formattedDefault);
+    setIsExtendModalOpen(true);
+  };
+
+  // Simpan Perpanjangan Waktu (Addendum Jadwal)
+  const handleConfirmExtendDeadline = async () => {
+    if (!extendingPackage || !extendNewDate) return;
+
+    const targetDate = new Date(extendNewDate);
+    if (isNaN(targetDate.getTime()) || targetDate.getTime() <= Date.now()) {
+      if (showToast) showToast('Tanggal perpanjangan harus berupa waktu di masa depan.', 'warning');
+      return;
+    }
+
+    setIsSavingExtend(true);
+    try {
+      const newHistoryItem = {
+        extendedAt: new Date().toISOString(),
+        extendedBy: user?.name || user?.username || 'Administrator CPG',
+        oldDate: extendingPackage.targetClosingDate || '',
+        newDate: extendNewDate,
+        reason: extendReason.trim() || 'Perpanjangan masa penawaran tender',
+      };
+
+      const updated: PratenderPackage = {
+        ...extendingPackage,
+        targetClosingDate: extendNewDate,
+        scheduleAddendumHistory: [
+          ...(extendingPackage.scheduleAddendumHistory || []),
+          newHistoryItem,
+        ],
+        // Bila sebelumnya draft/nihil, pastikan status RFQ_SENT aktif kembali
+        status: extendingPackage.status === 'DRAFT' ? 'RFQ_SENT' : extendingPackage.status,
+      };
+
+      await handleSaveCbtPackage(updated);
+      setIsExtendModalOpen(false);
+      setExtendingPackage(null);
+      if (showToast) {
+        showToast(
+          `✓ Batas waktu paket ${extendingPackage.packageNumber} berhasil diperpanjang hingga ${formatTenderClosingFull(extendNewDate)}. Portal rekanan telah dibuka kembali!`,
+          'success'
+        );
+      }
+    } catch (err: any) {
+      if (showToast) showToast(`Gagal memperpanjang jadwal: ${err.message}`, 'error');
+    } finally {
+      setIsSavingExtend(false);
     }
   };
 
@@ -446,6 +521,9 @@ export default function TenderManagementTab({ showToast, onNavigateTab }: Props)
             {filteredPackages.map((pkg) => {
               const vendorBidsCount = pkg.vendorBids?.length || 0;
               const hasWinner = pkg.status === 'AWARDED' || pkg.status === 'COMPLETED';
+              const dInfo = pkg.targetClosingDate ? getTenderDeadlineInfo(pkg.targetClosingDate) : null;
+              const isClosingPassed = Boolean(dInfo?.isPassed);
+              const addendaCount = pkg.scheduleAddendumHistory?.length || 0;
 
               return (
                 <div
@@ -482,26 +560,34 @@ export default function TenderManagementTab({ showToast, onNavigateTab }: Props)
                       <span className="font-mono text-base font-bold text-foreground">
                         Rp {(pkg.ownerEstimateHps || pkg.totalEstimatedBudget || 0).toLocaleString('id-ID')}
                       </span>
-                      {pkg.targetClosingDate && (() => {
-                        const dInfo = getTenderDeadlineInfo(pkg.targetClosingDate);
-                        return (
-                          <div className="text-[11px] text-muted-foreground space-y-0.5 pt-1">
-                            <p>
-                              Batas Penawaran:{' '}
-                              <span className="font-semibold text-foreground">{dInfo.formattedFull}</span>
-                            </p>
+                      {pkg.targetClosingDate && dInfo && (
+                        <div className="text-[11px] text-muted-foreground space-y-0.5 pt-1">
+                          <p>
+                            Batas Penawaran:{' '}
+                            <span className="font-semibold text-foreground">{dInfo.formattedFull}</span>
+                          </p>
+                          <div className="flex items-center gap-1.5 flex-wrap sm:justify-end">
                             <span
                               className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                                dInfo.isPassed
+                                isClosingPassed
                                   ? 'bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/20'
                                   : 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20'
                               }`}
                             >
-                              {dInfo.isPassed ? '🔴 Pemasukan Ditutup' : `⏳ ${dInfo.remainingText}`}
+                              {isClosingPassed ? '🔴 Pemasukan Ditutup' : `⏳ ${dInfo.remainingText}`}
                             </span>
+                            {addendaCount > 0 && (
+                              <span
+                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20"
+                                title={`Telah mengalami ${addendaCount}x addendum perpanjangan jadwal`}
+                              >
+                                <History className="size-2.5 text-purple-600" />
+                                <span>Addendum ke-{addendaCount}</span>
+                              </span>
+                            )}
                           </div>
-                        );
-                      })()}
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -517,9 +603,10 @@ export default function TenderManagementTab({ showToast, onNavigateTab }: Props)
                     <div>
                       <span className="text-[10px] text-muted-foreground block">Partisipasi Rekanan</span>
                       <div className="flex items-center gap-1.5 mt-0.5">
-                        <Users className="size-3.5 text-sky-500" />
-                        <span className="font-bold text-xs text-foreground">
+                        <Users className={`size-3.5 ${vendorBidsCount === 0 && isClosingPassed ? 'text-rose-500' : 'text-sky-500'}`} />
+                        <span className={`font-bold text-xs ${vendorBidsCount === 0 && isClosingPassed ? 'text-rose-600 dark:text-rose-400' : 'text-foreground'}`}>
                           {vendorBidsCount} Penawaran Masuk
+                          {vendorBidsCount === 0 && isClosingPassed && ' (Nihil)'}
                         </span>
                       </div>
                     </div>
@@ -530,9 +617,17 @@ export default function TenderManagementTab({ showToast, onNavigateTab }: Props)
                         <span className="font-bold text-emerald-600 dark:text-emerald-400 text-xs truncate block">
                           ✓ {pkg.awardedVendor}
                         </span>
+                      ) : isClosingPassed && vendorBidsCount === 0 ? (
+                        <span className="text-rose-600 dark:text-rose-400 text-xs font-semibold">
+                          Tender Nihil &bull; Perlu Perpanjangan
+                        </span>
+                      ) : isClosingPassed && vendorBidsCount > 0 ? (
+                        <span className="text-sky-600 dark:text-sky-400 text-xs font-semibold">
+                          Pemasukan Selesai &bull; Evaluasi CBT
+                        </span>
                       ) : (
                         <span className="text-muted-foreground text-xs italic">
-                          Dalam evaluasi / belum penetapan
+                          Masa penawaran aktif / evaluasi
                         </span>
                       )}
                     </div>
@@ -547,22 +642,35 @@ export default function TenderManagementTab({ showToast, onNavigateTab }: Props)
                         onClick={() => handleDownloadTenderDoc(pkg, 'RKS')}
                         disabled={generatingDocType === `RKS-${pkg.id}`}
                         className="px-2.5 py-1.5 rounded-lg border border-border bg-card hover:bg-muted text-foreground text-xs font-medium inline-flex items-center gap-1 transition cursor-pointer disabled:opacity-50"
-                        title="Unduh Dokumen RKS / Ketentuan Tender (PDF)"
+                        title={isClosingPassed ? "Unduh Dokumen RKS / Ketentuan Tender (Arsip PDF)" : "Unduh Dokumen RKS / Ketentuan Tender (PDF)"}
                       >
                         <FileText className="size-3 text-sky-500" />
-                        <span>RKS</span>
+                        <span>{isClosingPassed ? 'RKS (Arsip)' : 'RKS'}</span>
                       </button>
 
-                      <button
-                        type="button"
-                        onClick={() => handleDownloadTenderDoc(pkg, 'BAEP')}
-                        disabled={generatingDocType === `BAEP-${pkg.id}`}
-                        className="px-2.5 py-1.5 rounded-lg border border-border bg-card hover:bg-muted text-foreground text-xs font-medium inline-flex items-center gap-1 transition cursor-pointer disabled:opacity-50"
-                        title="Unduh Berita Acara Evaluasi Pengadaan (BAEP PDF)"
-                      >
-                        <Award className="size-3 text-amber-500" />
-                        <span>BAEP</span>
-                      </button>
+                      {/* BAEP Gated: Hanya dapat diunduh jika ada rekanan yang memasukkan penawaran */}
+                      {vendorBidsCount === 0 ? (
+                        <button
+                          type="button"
+                          disabled
+                          className="px-2.5 py-1.5 rounded-lg border border-dashed border-border bg-muted/40 text-muted-foreground/60 text-xs font-medium inline-flex items-center gap-1 cursor-not-allowed opacity-60"
+                          title="Berita Acara Evaluasi Pengadaan (BAEP) belum tersedia: Belum ada rekanan yang memasukkan penawaran."
+                        >
+                          <Award className="size-3 text-muted-foreground/50" />
+                          <span>BAEP (Nihil)</span>
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadTenderDoc(pkg, 'BAEP')}
+                          disabled={generatingDocType === `BAEP-${pkg.id}`}
+                          className="px-2.5 py-1.5 rounded-lg border border-border bg-card hover:bg-muted text-foreground text-xs font-medium inline-flex items-center gap-1 transition cursor-pointer disabled:opacity-50"
+                          title="Unduh Berita Acara Evaluasi Pengadaan (BAEP PDF)"
+                        >
+                          <Award className="size-3 text-amber-500" />
+                          <span>BAEP</span>
+                        </button>
+                      )}
 
                       {hasWinner && (
                         <button
@@ -577,13 +685,14 @@ export default function TenderManagementTab({ showToast, onNavigateTab }: Props)
                         </button>
                       )}
 
-                      {/* Button Blast WA / Blast Pemenang (1x Click Protected & Authorization Gated) */}
+                      {/* WhatsApp Blast & Addendum Perpanjangan Logic */}
                       {(() => {
                         const isAwarded =
                           pkg.status === 'AWARDED' ||
                           pkg.status === 'COMPLETED' ||
                           Boolean(pkg.evaluationSummary?.winningVendorName || pkg.awardedVendor);
 
+                        // KASUS 1: TENDER SUDAH ADA PEMENANG
                         if (isAwarded) {
                           if (pkg.isWinnerBlasted) {
                             return (
@@ -650,6 +759,48 @@ export default function TenderManagementTab({ showToast, onNavigateTab }: Props)
                           );
                         }
 
+                        // KASUS 2: PEMASUKAN PENAWARAN TELAH DITUTUP (TIDAK BOLEH BLAST UNDANGAN LAGI)
+                        if (isClosingPassed) {
+                          return (
+                            <div className="flex items-center gap-1.5">
+                              {vendorBidsCount === 0 ? (
+                                <>
+                                  <span className="px-2 py-1 rounded-lg bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/20 text-[11px] font-bold flex items-center gap-1">
+                                    <AlertCircle className="size-3 text-rose-600" />
+                                    <span>0 Rekanan (Nihil)</span>
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenExtendModal(pkg)}
+                                    className="px-2.5 py-1.5 rounded-lg border border-amber-500/40 bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 dark:text-amber-200 text-xs font-bold inline-flex items-center gap-1.5 transition cursor-pointer shadow-xs"
+                                    title="Tender Nihil: Perpanjang batas waktu penawaran agar rekanan dapat kembali menginput penawaran"
+                                  >
+                                    <CalendarPlus className="size-3.5 text-amber-600" />
+                                    <span>Perpanjang Jadwal</span>
+                                  </button>
+                                </>
+                              ) : (
+                                <>
+                                  <span className="px-2 py-1 rounded-lg bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/20 text-[11px] font-semibold flex items-center gap-1">
+                                    <CheckCircle2 className="size-3 text-sky-600" />
+                                    <span>Pemasukan Ditutup</span>
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenExtendModal(pkg)}
+                                    className="px-2 py-1.5 rounded-lg border border-border hover:bg-muted text-muted-foreground hover:text-foreground text-xs inline-flex items-center gap-1 transition cursor-pointer"
+                                    title="Addendum Perpanjangan Jadwal Penawaran"
+                                  >
+                                    <RotateCcw className="size-3 text-muted-foreground" />
+                                    <span>Addendum Jadwal</span>
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          );
+                        }
+
+                        // KASUS 3: PENAWARAN MASIH AKTIF
                         return (
                           <button
                             type="button"
@@ -676,8 +827,16 @@ export default function TenderManagementTab({ showToast, onNavigateTab }: Props)
                           setSelectedCbtPackage(pkg);
                           setIsCbtModalOpen(true);
                         }}
-                        className="px-4 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold inline-flex items-center gap-1.5 transition cursor-pointer shadow-xs"
-                        title="Buka Evaluasi Komparasi Penawaran CBT (SAP ME49)"
+                        className={`px-4 py-1.5 rounded-xl text-white text-xs font-bold inline-flex items-center gap-1.5 transition cursor-pointer shadow-xs ${
+                          isClosingPassed && vendorBidsCount > 0
+                            ? 'bg-purple-600 hover:bg-purple-500 ring-2 ring-purple-500/40 shadow-purple-500/20 shadow-md animate-pulse'
+                            : 'bg-purple-600 hover:bg-purple-500'
+                        }`}
+                        title={
+                          vendorBidsCount === 0
+                            ? 'Buka Tabulasi CBT SAP ME49 (Belum ada penawaran masuk)'
+                            : 'Buka Evaluasi Komparasi Penawaran CBT (SAP ME49)'
+                        }
                       >
                         <Scale className="size-3.5" />
                         <span>CBT SAP (ME49)</span>
@@ -930,6 +1089,19 @@ Salam hormat,
                     </>
                   )}
                 </div>
+              ) : getTenderDeadlineInfo(waBlastPackage.targetClosingDate).isPassed ? (
+                /* TAMPILAN BLOCKED JIKA PEMASUKAN DITUTUP */
+                <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/25 text-center space-y-2.5">
+                  <AlertCircle className="size-8 text-rose-600 mx-auto" />
+                  <p className="text-xs font-bold text-foreground">Pemasukan Penawaran Telah Ditutup</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    Batas waktu penawaran paket ini telah resmi berakhir pada{' '}
+                    <strong>{formatTenderClosingFull(waBlastPackage.targetClosingDate)}</strong>.
+                  </p>
+                  <div className="p-2.5 rounded-lg bg-background border border-border text-[11px] text-muted-foreground text-left">
+                    Sesuai prinsip transparansi pengadaan, undangan tender tidak dapat dikirimkan ke rekanan ketika masa pemasukan penawaran sudah ditutup. Jika panitia ingin mengundang kembali rekanan, silakan gunakan tombol <strong>Perpanjang Jadwal</strong> di daftar paket tender.
+                  </div>
+                </div>
               ) : (
                 /* TAMPILAN STANDAR JIKA TAHAP PENAWARAN (UNDANGAN TENDER) */
                 <div className="space-y-3">
@@ -1079,6 +1251,14 @@ Salam hormat,
                       <span>Siarkan Pengumuman via WhatsApp Web</span>
                     </button>
                   )
+                ) : getTenderDeadlineInfo(waBlastPackage.targetClosingDate).isPassed ? (
+                  <button
+                    type="button"
+                    disabled
+                    className="px-4 py-1.5 rounded-lg bg-muted text-muted-foreground text-xs font-semibold cursor-not-allowed opacity-60"
+                  >
+                    Undangan Ditahan (Pemasukan Ditutup)
+                  </button>
                 ) : (
                   (() => {
                     const cleanPhone = personalVendorPhone.replace(/[^0-9]/g, '');
@@ -1122,6 +1302,167 @@ Salam hormat,
           </div>
         );
       })()}
+
+      {/* MODAL 4: PERPANJANG BATAS WAKTU (ADDENDUM JADWAL PENAWARAN) */}
+      {isExtendModalOpen && extendingPackage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="relative w-full max-w-lg rounded-2xl bg-card border border-border shadow-2xl p-6 space-y-5 text-foreground">
+            {/* Modal Header */}
+            <div className="flex items-start justify-between gap-3 border-b border-border pb-3">
+              <div className="flex items-center gap-3">
+                <div className="size-10 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center border border-amber-500/30">
+                  <CalendarPlus className="size-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-foreground">
+                    Perpanjang Batas Waktu Penawaran
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Addendum Jadwal &bull; Paket {extendingPackage.packageNumber}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsExtendModalOpen(false);
+                  setExtendingPackage(null);
+                }}
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="space-y-4 text-xs">
+              {/* Info Paket Saat Ini */}
+              <div className="p-3.5 rounded-xl bg-muted/40 border border-border/70 space-y-2">
+                <div className="flex justify-between items-center text-muted-foreground">
+                  <span>Nama Paket:</span>
+                  <span className="font-semibold text-foreground truncate max-w-[260px]">
+                    {extendingPackage.title}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-muted-foreground">
+                  <span>Batas Waktu Saat Ini:</span>
+                  <span className="font-semibold text-rose-600 dark:text-rose-400">
+                    {formatTenderClosingFull(extendingPackage.targetClosingDate)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-muted-foreground">
+                  <span>Partisipasi Rekanan:</span>
+                  <span className={`font-semibold ${extendingPackage.vendorBids?.length ? 'text-foreground' : 'text-rose-600 dark:text-rose-400'}`}>
+                    {extendingPackage.vendorBids?.length || 0} Penawaran Masuk {(!extendingPackage.vendorBids?.length) && '(Tender Nihil)'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Form Input Tanggal & Jam Baru */}
+              <div className="space-y-1.5">
+                <label className="font-bold text-foreground flex items-center gap-1.5">
+                  <Calendar className="size-3.5 text-amber-600" />
+                  <span>Batas Waktu Penawaran Baru (WITA):</span>
+                </label>
+                <input
+                  type="datetime-local"
+                  value={extendNewDate}
+                  onChange={(e) => setExtendNewDate(e.target.value)}
+                  className="w-full h-9 px-3 rounded-xl border border-border bg-background text-foreground text-xs focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 font-mono"
+                  min={new Date().toISOString().slice(0, 16)}
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Format waktu mengacu pada Waktu Indonesia Tengah (WITA). Portal vendor akan terbuka otomatis hingga waktu yang Anda tentukan.
+                </p>
+              </div>
+
+              {/* Form Justifikasi / Alasan Addendum */}
+              <div className="space-y-1.5">
+                <label className="font-bold text-foreground flex items-center gap-1.5">
+                  <FileText className="size-3.5 text-amber-600" />
+                  <span>Alasan / Justifikasi Addendum Perpanjangan:</span>
+                </label>
+                <textarea
+                  rows={3}
+                  value={extendReason}
+                  onChange={(e) => setExtendReason(e.target.value)}
+                  placeholder="Contoh: Perpanjangan masa penawaran karena belum ada rekanan yang memasukkan dokumen (Tender Nihil)..."
+                  className="w-full p-2.5 rounded-xl border border-border bg-background text-foreground text-xs focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 resize-none leading-relaxed"
+                />
+                {/* Quick Suggestion Chips */}
+                <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                  <span className="text-[10px] text-muted-foreground">Opsi Cepat:</span>
+                  <button
+                    type="button"
+                    onClick={() => setExtendReason('Tender Nihil: Perpanjangan masa penawaran untuk memaksimalkan partisipasi rekanan DPT')}
+                    className="px-2 py-0.5 rounded-md bg-muted text-[10px] text-foreground hover:bg-muted/80 border border-border transition cursor-pointer"
+                  >
+                    Tender Nihil (0 Rekanan)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setExtendReason('Pemberian kesempatan tambahan bagi rekanan untuk melengkapi dokumen teknis penawaran')}
+                    className="px-2 py-0.5 rounded-md bg-muted text-[10px] text-foreground hover:bg-muted/80 border border-border transition cursor-pointer"
+                  >
+                    Kelengkapan Dokumen
+                  </button>
+                </div>
+              </div>
+
+              {/* Riwayat Addendum Sebelumnya (Jika Ada) */}
+              {extendingPackage.scheduleAddendumHistory && extendingPackage.scheduleAddendumHistory.length > 0 && (
+                <div className="p-3 rounded-xl bg-purple-500/5 border border-purple-500/20 space-y-1.5">
+                  <div className="flex items-center gap-1.5 text-purple-700 dark:text-purple-300 font-bold text-[11px]">
+                    <History className="size-3.5 text-purple-600" />
+                    <span>Riwayat Addendum Jadwal ({extendingPackage.scheduleAddendumHistory.length}x):</span>
+                  </div>
+                  <div className="space-y-1 max-h-24 overflow-y-auto pr-1">
+                    {extendingPackage.scheduleAddendumHistory.map((item, idx) => (
+                      <div key={idx} className="text-[10px] text-muted-foreground border-b border-border/40 pb-1 last:border-0">
+                        <span className="font-semibold text-foreground">Addendum #{idx + 1}:</span>{' '}
+                        {item.reason} &bull; Diubah ke {formatTenderClosingFull(item.newDate)} oleh {item.extendedBy}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex justify-end gap-2 pt-2 border-t border-border">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsExtendModalOpen(false);
+                  setExtendingPackage(null);
+                }}
+                disabled={isSavingExtend}
+                className="px-3.5 py-1.5 rounded-xl border border-border hover:bg-muted text-foreground text-xs font-medium transition cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmExtendDeadline}
+                disabled={isSavingExtend || !extendNewDate}
+                className="px-4 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white font-bold text-xs inline-flex items-center gap-1.5 transition cursor-pointer shadow-xs"
+              >
+                {isSavingExtend ? (
+                  <>
+                    <RefreshCw className="size-3.5 animate-spin" />
+                    <span>Menyimpan...</span>
+                  </>
+                ) : (
+                  <>
+                    <CalendarPlus className="size-3.5" />
+                    <span>Simpan &amp; Buka Kembali Portal</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
