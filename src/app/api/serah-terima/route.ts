@@ -16,6 +16,7 @@ import { UploadedTtbItem } from '@/types/ttbUpload';
 import { DocumentValidationRecord, ValidationSignatureRecord } from '@/types/documentValidation';
 import { computeValidationStatus } from '@/utils/validationHelper';
 import { stampTtbRecipientPdf, formatTtbStampDate } from '@/utils/ttbStamper';
+import { findLocalFile, getPersistentStorageDir } from '@/utils/persistentStorage';
 import rawManifest from '@/data/ttb-photos-manifest.json';
 
 export const runtime = 'nodejs';
@@ -544,8 +545,20 @@ export async function POST(req: NextRequest): Promise<NextResponse<SerahTerimaRe
         let targetKey = ttbItem?.r2Key;
         const targetFileName = ttbItem?.renamedFileName || `${cleanSearch}.pdf`;
 
-        // Cari dan baca PDF TTB asli (dari Cloudflare R2 terlebih dahulu)
-        if (isR2Active) {
+        // 1. Cari dan baca PDF TTB dari penyimpanan lokal Hostinger / shared_uploads
+        const resolvedLocal = findLocalFile(targetKey || `ttb-documents/${targetFileName}`, targetFileName) ||
+          findLocalFile(`ttb-documents/${cleanSearch}.pdf`, `${cleanSearch}.pdf`);
+        if (resolvedLocal) {
+          try {
+            const b = await fs.readFile(resolvedLocal);
+            if (b && b.length > 0) {
+              pdfBuffer = b;
+            }
+          } catch {}
+        }
+
+        // 2. Jika belum ada di lokal, coba baca dari Cloudflare R2
+        if ((!pdfBuffer || pdfBuffer.length === 0) && isR2Active) {
           const keysToTry = [
             targetKey,
             `ttb-documents/${targetFileName}`,
@@ -566,9 +579,12 @@ export async function POST(req: NextRequest): Promise<NextResponse<SerahTerimaRe
           }
         }
 
-        // Jika belum ada di R2, coba baca dari berkas lokal
+        // 3. Fallback kandidat berkas lokal lainnya
         if (!pdfBuffer || pdfBuffer.length === 0) {
           const localCandidates = [
+            path.join(getPersistentStorageDir(), 'ttb-documents', targetFileName),
+            path.join(getPersistentStorageDir(), targetFileName),
+            path.join(process.cwd(), 'public', 'uploads', 'ttb-documents', targetFileName),
             path.join(targetPhotosDir, targetFileName),
             path.join(targetPhotosDir, `${cleanSearch}.pdf`),
             path.join(process.cwd(), 'src', 'app', 'public', 'photos_TTB', targetFileName),
@@ -641,12 +657,19 @@ export async function POST(req: NextRequest): Promise<NextResponse<SerahTerimaRe
             });
           }
 
-          // Simpan salinan ke lokal
-          try {
-            const localCandidatePath = path.join(targetPhotosDir, targetFileName);
-            await fs.writeFile(localCandidatePath, stampedPdfBuffer);
-          } catch {
-            // Non-fatal
+          // Simpan salinan ke seluruh direktori lokal Hostinger
+          const saveTargets = [
+            path.join(getPersistentStorageDir(), 'ttb-documents', targetFileName),
+            path.join(getPersistentStorageDir(), targetFileName),
+            path.join(process.cwd(), 'public', 'uploads', 'ttb-documents', targetFileName),
+            path.join(targetPhotosDir, targetFileName),
+            path.join(process.cwd(), 'src', 'app', 'public', 'photos_TTB', targetFileName),
+          ];
+          for (const tgt of saveTargets) {
+            try {
+              await fs.mkdir(path.dirname(tgt), { recursive: true });
+              await fs.writeFile(tgt, stampedPdfBuffer);
+            } catch {}
           }
 
           isTtbStamped = true;

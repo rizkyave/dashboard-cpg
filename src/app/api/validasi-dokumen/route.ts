@@ -23,6 +23,7 @@ import { stampFstbPdf, formatFstbStampDate, FstbStampRoleType } from '@/utils/fs
 import { getFstbPhotosDir } from '@/utils/fstbPhotosDir';
 import { stampTtbPdf, formatTtbStampDate, TtbStampRoleType } from '@/utils/ttbStamper';
 import { getPhotosDir as getTtbPhotosDir } from '@/utils/ttbPhotosDir';
+import { findLocalFile, getPersistentStorageDir } from '@/utils/persistentStorage';
 import { computeValidationStatus } from '@/utils/validationHelper';
 import { ApprovalDelegation } from '@/types/delegation';
 import { getActiveDelegationsForDelegate, checkUserPlhAuthority } from '@/utils/delegationHelper';
@@ -1174,7 +1175,16 @@ export async function POST(req: NextRequest) {
           const filename = record.renamedFileName || `${record.cleanDocNumber}.pdf`;
           const r2Key = record.r2Key || `ttb-documents/${filename}`;
 
-          if (isR2Configured()) {
+          // 1. Coba baca dari penyimpanan lokal Hostinger / shared_uploads
+          const resolvedPath = findLocalFile(r2Key, filename) || findLocalFile(`ttb-documents/${filename}`, filename);
+          if (resolvedPath) {
+            try {
+              pdfBuffer = await fs.readFile(resolvedPath);
+            } catch {}
+          }
+
+          // 2. Coba R2 jika lokal belum ditemukan
+          if (!pdfBuffer && isR2Configured()) {
             try {
               const r2Obj = await getObjectFromR2(r2Key);
               if (r2Obj && r2Obj.body) {
@@ -1183,14 +1193,23 @@ export async function POST(req: NextRequest) {
             } catch {}
           }
 
+          // 3. Fallback kandidat lokal lainnya
           if (!pdfBuffer) {
-            try {
-              const localDir = getTtbPhotosDir();
-              pdfBuffer = await fs.readFile(path.join(localDir, filename));
-            } catch {
+            const candidates = [
+              path.join(getPersistentStorageDir(), 'ttb-documents', filename),
+              path.join(getPersistentStorageDir(), filename),
+              path.join(process.cwd(), 'public', 'uploads', 'ttb-documents', filename),
+              path.join(process.cwd(), 'public', 'ttb-documents', filename),
+              path.join(getTtbPhotosDir(), filename),
+              path.join(process.cwd(), 'src', 'app', 'public', 'photos_TTB', filename),
+            ];
+            for (const cand of candidates) {
               try {
-                const altPath = path.join(process.cwd(), 'src', 'app', 'public', 'photos_TTB', filename);
-                pdfBuffer = await fs.readFile(altPath);
+                const b = await fs.readFile(cand);
+                if (b && b.length > 0) {
+                  pdfBuffer = b;
+                  break;
+                }
               } catch {}
             }
           }
@@ -1214,11 +1233,21 @@ export async function POST(req: NextRequest) {
                 });
               }
 
-              try {
-                const localDir = getTtbPhotosDir();
-                await fs.mkdir(localDir, { recursive: true });
-                await fs.writeFile(path.join(localDir, filename), pdfBuffer);
-              } catch {}
+              // Simpan salinan ke seluruh target direktori penyimpanan lokal Hostinger
+              const saveTargets = [
+                path.join(getPersistentStorageDir(), 'ttb-documents', filename),
+                path.join(getPersistentStorageDir(), filename),
+                path.join(process.cwd(), 'public', 'uploads', 'ttb-documents', filename),
+                path.join(process.cwd(), 'public', 'ttb-documents', filename),
+                path.join(getTtbPhotosDir(), filename),
+                path.join(process.cwd(), 'src', 'app', 'public', 'photos_TTB', filename),
+              ];
+              for (const tgt of saveTargets) {
+                try {
+                  await fs.mkdir(path.dirname(tgt), { recursive: true });
+                  await fs.writeFile(tgt, pdfBuffer);
+                } catch {}
+              }
 
               record.fileUrl = `/api/r2-file?key=${encodeURIComponent(r2Key)}&v=${Date.now()}`;
               await syncTtbHistoryStampedPdf(record.cleanDocNumber, r2Key, pdfBuffer.length, nowIso);
@@ -1337,7 +1366,16 @@ export async function POST(req: NextRequest) {
           const filename = record.renamedFileName || `${record.cleanDocNumber}.pdf`;
           const r2Key = record.r2Key || `fstb-documents/${filename}`;
 
-          if (isR2Configured()) {
+          // 1. Coba baca dari penyimpanan lokal Hostinger / shared_uploads
+          const resolvedPath = findLocalFile(r2Key, filename) || findLocalFile(`fstb-documents/${filename}`, filename);
+          if (resolvedPath) {
+            try {
+              pdfBuffer = await fs.readFile(resolvedPath);
+            } catch {}
+          }
+
+          // 2. Coba R2 jika lokal belum ditemukan
+          if (!pdfBuffer && isR2Configured()) {
             try {
               const r2Obj = await getObjectFromR2(r2Key);
               if (r2Obj && r2Obj.body) {
@@ -1346,14 +1384,23 @@ export async function POST(req: NextRequest) {
             } catch {}
           }
 
+          // 3. Fallback kandidat lokal lainnya
           if (!pdfBuffer) {
-            try {
-              const localDir = getFstbPhotosDir();
-              pdfBuffer = await fs.readFile(path.join(localDir, filename));
-            } catch {
+            const candidates = [
+              path.join(getPersistentStorageDir(), 'fstb-documents', filename),
+              path.join(getPersistentStorageDir(), filename),
+              path.join(process.cwd(), 'public', 'uploads', 'fstb-documents', filename),
+              path.join(process.cwd(), 'public', 'fstb-documents', filename),
+              path.join(getFstbPhotosDir(), filename),
+              path.join(process.cwd(), 'src', 'app', 'public', 'photos_FSTB', filename),
+            ];
+            for (const cand of candidates) {
               try {
-                const altPath = path.join(process.cwd(), 'src', 'app', 'public', 'photos_FSTB', filename);
-                pdfBuffer = await fs.readFile(altPath);
+                const b = await fs.readFile(cand);
+                if (b && b.length > 0) {
+                  pdfBuffer = b;
+                  break;
+                }
               } catch {}
             }
           }
@@ -1377,11 +1424,21 @@ export async function POST(req: NextRequest) {
                 });
               }
 
-              try {
-                const localDir = getFstbPhotosDir();
-                await fs.mkdir(localDir, { recursive: true });
-                await fs.writeFile(path.join(localDir, filename), pdfBuffer);
-              } catch {}
+              // Simpan salinan ke seluruh target direktori penyimpanan lokal Hostinger
+              const saveTargets = [
+                path.join(getPersistentStorageDir(), 'fstb-documents', filename),
+                path.join(getPersistentStorageDir(), filename),
+                path.join(process.cwd(), 'public', 'uploads', 'fstb-documents', filename),
+                path.join(process.cwd(), 'public', 'fstb-documents', filename),
+                path.join(getFstbPhotosDir(), filename),
+                path.join(process.cwd(), 'src', 'app', 'public', 'photos_FSTB', filename),
+              ];
+              for (const tgt of saveTargets) {
+                try {
+                  await fs.mkdir(path.dirname(tgt), { recursive: true });
+                  await fs.writeFile(tgt, pdfBuffer);
+                } catch {}
+              }
 
               record.fileUrl = `/api/r2-file?key=${encodeURIComponent(r2Key)}&v=${Date.now()}`;
             } catch (err) {
@@ -1814,7 +1871,16 @@ export async function POST(req: NextRequest) {
         const filename = record.renamedFileName || `${record.cleanDocNumber}.pdf`;
         const r2Key = record.r2Key || `fstb-documents/${filename}`;
 
-        if (isR2Configured()) {
+        // 1. Coba baca dari penyimpanan lokal Hostinger / shared_uploads
+        const resolvedPath = findLocalFile(r2Key, filename) || findLocalFile(`fstb-documents/${filename}`, filename);
+        if (resolvedPath) {
+          try {
+            pdfBuffer = await fs.readFile(resolvedPath);
+          } catch {}
+        }
+
+        // 2. Coba R2 jika belum ditemukan di lokal
+        if (!pdfBuffer && isR2Configured()) {
           try {
             const r2Obj = await getObjectFromR2(r2Key);
             if (r2Obj && r2Obj.body) {
@@ -1825,18 +1891,24 @@ export async function POST(req: NextRequest) {
           }
         }
 
+        // 3. Fallback kandidat lokal lainnya
         if (!pdfBuffer) {
-          const localDir = getFstbPhotosDir();
-          const localPath = path.join(localDir, filename);
-          try {
-            pdfBuffer = await fs.readFile(localPath);
-          } catch {
-            const altPath = path.join(process.cwd(), 'src', 'app', 'public', 'photos_FSTB', filename);
+          const candidates = [
+            path.join(getPersistentStorageDir(), 'fstb-documents', filename),
+            path.join(getPersistentStorageDir(), filename),
+            path.join(process.cwd(), 'public', 'uploads', 'fstb-documents', filename),
+            path.join(process.cwd(), 'public', 'fstb-documents', filename),
+            path.join(getFstbPhotosDir(), filename),
+            path.join(process.cwd(), 'src', 'app', 'public', 'photos_FSTB', filename),
+          ];
+          for (const cand of candidates) {
             try {
-              pdfBuffer = await fs.readFile(altPath);
-            } catch {
-              console.warn('Berkas fisik PDF FSTB tidak ditemukan di disk lokal.');
-            }
+              const b = await fs.readFile(cand);
+              if (b && b.length > 0) {
+                pdfBuffer = b;
+                break;
+              }
+            } catch {}
           }
         }
 
@@ -1942,15 +2014,21 @@ export async function POST(req: NextRequest) {
             }
           }
 
-          try {
-            const localDir = getFstbPhotosDir();
-            await fs.mkdir(localDir, { recursive: true });
-            await fs.writeFile(path.join(localDir, filename), pdfBuffer);
-            const altDir = path.join(process.cwd(), 'src', 'app', 'public', 'photos_FSTB');
-            await fs.mkdir(altDir, { recursive: true });
-            await fs.writeFile(path.join(altDir, filename), pdfBuffer);
-          } catch {
-            // Non-fatal
+          // Simpan salinan ke seluruh target direktori penyimpanan lokal Hostinger
+          const savePaths = [
+            path.join(getPersistentStorageDir(), 'fstb-documents', filename),
+            path.join(getPersistentStorageDir(), filename),
+            path.join(process.cwd(), 'public', 'uploads', 'fstb-documents', filename),
+            path.join(process.cwd(), 'public', 'fstb-documents', filename),
+            path.join(getFstbPhotosDir(), filename),
+            path.join(process.cwd(), 'src', 'app', 'public', 'photos_FSTB', filename),
+          ];
+
+          for (const p of savePaths) {
+            try {
+              await fs.mkdir(path.dirname(p), { recursive: true });
+              await fs.writeFile(p, pdfBuffer);
+            } catch {}
           }
 
           record.fileUrl = `/api/r2-file?key=${encodeURIComponent(r2Key)}&v=${Date.now()}`;
@@ -1998,7 +2076,16 @@ export async function POST(req: NextRequest) {
         const filename = record.renamedFileName || `${record.cleanDocNumber}.pdf`;
         const r2Key = record.r2Key || `ttb-documents/${filename}`;
 
-        if (isR2Configured()) {
+        // 1. Coba baca dari penyimpanan lokal Hostinger / shared_uploads
+        const resolvedPath = findLocalFile(r2Key, filename) || findLocalFile(`ttb-documents/${filename}`, filename);
+        if (resolvedPath) {
+          try {
+            pdfBuffer = await fs.readFile(resolvedPath);
+          } catch {}
+        }
+
+        // 2. Coba R2 jika lokal belum ditemukan
+        if (!pdfBuffer && isR2Configured()) {
           try {
             const r2Obj = await getObjectFromR2(r2Key);
             if (r2Obj && r2Obj.body) {
@@ -2009,18 +2096,24 @@ export async function POST(req: NextRequest) {
           }
         }
 
+        // 3. Fallback kandidat lokal lainnya
         if (!pdfBuffer) {
-          const localDir = getTtbPhotosDir();
-          const localPath = path.join(localDir, filename);
-          try {
-            pdfBuffer = await fs.readFile(localPath);
-          } catch {
-            const altPath = path.join(process.cwd(), 'src', 'app', 'public', 'photos_TTB', filename);
+          const candidates = [
+            path.join(getPersistentStorageDir(), 'ttb-documents', filename),
+            path.join(getPersistentStorageDir(), filename),
+            path.join(process.cwd(), 'public', 'uploads', 'ttb-documents', filename),
+            path.join(process.cwd(), 'public', 'ttb-documents', filename),
+            path.join(getTtbPhotosDir(), filename),
+            path.join(process.cwd(), 'src', 'app', 'public', 'photos_TTB', filename),
+          ];
+          for (const cand of candidates) {
             try {
-              pdfBuffer = await fs.readFile(altPath);
-            } catch {
-              console.warn('Berkas fisik PDF TTB tidak ditemukan di disk lokal.');
-            }
+              const b = await fs.readFile(cand);
+              if (b && b.length > 0) {
+                pdfBuffer = b;
+                break;
+              }
+            } catch {}
           }
         }
 
@@ -2141,15 +2234,21 @@ export async function POST(req: NextRequest) {
             }
           }
 
-          try {
-            const localDir = getTtbPhotosDir();
-            await fs.mkdir(localDir, { recursive: true });
-            await fs.writeFile(path.join(localDir, filename), pdfBuffer);
-            const altDir = path.join(process.cwd(), 'src', 'app', 'public', 'photos_TTB');
-            await fs.mkdir(altDir, { recursive: true });
-            await fs.writeFile(path.join(altDir, filename), pdfBuffer);
-          } catch {
-            // Non-fatal
+          // Simpan salinan ke seluruh target direktori penyimpanan lokal Hostinger
+          const savePaths = [
+            path.join(getPersistentStorageDir(), 'ttb-documents', filename),
+            path.join(getPersistentStorageDir(), filename),
+            path.join(process.cwd(), 'public', 'uploads', 'ttb-documents', filename),
+            path.join(process.cwd(), 'public', 'ttb-documents', filename),
+            path.join(getTtbPhotosDir(), filename),
+            path.join(process.cwd(), 'src', 'app', 'public', 'photos_TTB', filename),
+          ];
+
+          for (const p of savePaths) {
+            try {
+              await fs.mkdir(path.dirname(p), { recursive: true });
+              await fs.writeFile(p, pdfBuffer);
+            } catch {}
           }
 
           record.fileUrl = `/api/r2-file?key=${encodeURIComponent(r2Key)}&v=${Date.now()}`;

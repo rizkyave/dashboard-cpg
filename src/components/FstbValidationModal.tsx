@@ -553,9 +553,18 @@ export default function FstbValidationModal({
           <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0">
             <button
               type="button"
-              onClick={() => setPdfRefreshKey(Date.now())}
+              onClick={async () => {
+                try {
+                  const targetDoc = record.cleanDocNumber || record.docNumber || '';
+                  if (targetDoc) {
+                    await fetch(`/api/validasi-dokumen/restamp?docNumber=${encodeURIComponent(targetDoc)}`);
+                  }
+                } catch {}
+                setPdfRefreshKey(Date.now());
+                if (showToast) showToast('Pratinjau dokumen & stempel digital berhasil disegarkan.', 'success');
+              }}
               className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted border border-border/80 transition"
-              title="Segarkan Pratinjau Dokumen"
+              title="Segarkan & Sinkronkan Stempel Dokumen"
             >
               <RefreshCw className="size-4" />
             </button>

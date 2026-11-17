@@ -11,6 +11,7 @@ import {
 import { getPhotosDir } from '@/utils/ttbPhotosDir';
 import { sanitizeTtbNumber, extractTtbComponents } from '@/utils/ttbRename';
 import { stampTtbRecipientPdf, formatTtbStampDate } from '@/utils/ttbStamper';
+import { findLocalFile, getPersistentStorageDir } from '@/utils/persistentStorage';
 import { computeValidationStatus } from '@/utils/validationHelper';
 import { DocumentValidationRecord } from '@/types/documentValidation';
 import { SerahTerimaItem } from '@/types/serahTerima';
@@ -721,7 +722,20 @@ export async function PUT(req: NextRequest): Promise<NextResponse<RemoteHandover
         let targetKey = targetTtbItem?.r2Key;
         const targetFileName = targetTtbItem?.renamedFileName || `${cleanSearch}.pdf`;
 
-        if (isR2Active) {
+        // 1. Coba baca dari penyimpanan lokal Hostinger / shared_uploads
+        const resolvedLocal = findLocalFile(targetKey || `ttb-documents/${targetFileName}`, targetFileName) ||
+          findLocalFile(`ttb-documents/${cleanSearch}.pdf`, `${cleanSearch}.pdf`);
+        if (resolvedLocal) {
+          try {
+            const b = await fs.readFile(resolvedLocal);
+            if (b && b.length > 0) {
+              pdfBuffer = b;
+            }
+          } catch {}
+        }
+
+        // 2. Jika belum ada di lokal, coba dari R2
+        if ((!pdfBuffer || pdfBuffer.length === 0) && isR2Active) {
           const keysToTry = [
             targetKey,
             `ttb-documents/${targetFileName}`,
@@ -740,11 +754,24 @@ export async function PUT(req: NextRequest): Promise<NextResponse<RemoteHandover
           }
         }
 
-        if (!pdfBuffer) {
-          try {
-            const localFile = path.join(localPhotosDir, targetFileName);
-            pdfBuffer = await fs.readFile(localFile);
-          } catch {}
+        // 3. Fallback kandidat berkas lokal lainnya
+        if (!pdfBuffer || pdfBuffer.length === 0) {
+          const localCandidates = [
+            path.join(getPersistentStorageDir(), 'ttb-documents', targetFileName),
+            path.join(getPersistentStorageDir(), targetFileName),
+            path.join(process.cwd(), 'public', 'uploads', 'ttb-documents', targetFileName),
+            path.join(localPhotosDir, targetFileName),
+            path.join(process.cwd(), 'src', 'app', 'public', 'photos_TTB', targetFileName),
+          ];
+          for (const candPath of localCandidates) {
+            try {
+              const b = await fs.readFile(candPath);
+              if (b && b.length > 0) {
+                pdfBuffer = b;
+                break;
+              }
+            } catch {}
+          }
         }
 
         if (pdfBuffer && pdfBuffer.length > 0) {
@@ -768,10 +795,20 @@ export async function PUT(req: NextRequest): Promise<NextResponse<RemoteHandover
             });
           }
 
-          try {
-            await fs.mkdir(localPhotosDir, { recursive: true });
-            await fs.writeFile(path.join(localPhotosDir, targetFileName), stampedPdfBuffer);
-          } catch {}
+          // Simpan salinan ke seluruh direktori lokal Hostinger
+          const saveTargets = [
+            path.join(getPersistentStorageDir(), 'ttb-documents', targetFileName),
+            path.join(getPersistentStorageDir(), targetFileName),
+            path.join(process.cwd(), 'public', 'uploads', 'ttb-documents', targetFileName),
+            path.join(localPhotosDir, targetFileName),
+            path.join(process.cwd(), 'src', 'app', 'public', 'photos_TTB', targetFileName),
+          ];
+          for (const tgt of saveTargets) {
+            try {
+              await fs.mkdir(path.dirname(tgt), { recursive: true });
+              await fs.writeFile(tgt, stampedPdfBuffer);
+            } catch {}
+          }
         }
       } catch (stampErr) {
         console.warn('Stamping PDF pada remote handover gagal (non-fatal):', stampErr);

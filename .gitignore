@@ -48,6 +48,7 @@ src/data/backups/
 
 # scratch scripts and temp files
 scratch/
+*.zip
 public/cpg-backup-latest.json
 
 /public/uploads/
