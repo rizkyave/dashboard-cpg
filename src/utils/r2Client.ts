@@ -66,11 +66,13 @@ export function getR2Config(): R2Config {
 }
 
 export function isR2Configured(): boolean {
-  // R2 aktif sebagai fail-safe fallback otomatis jika berkas belum ada di disk lokal Hostinger.
-  if (process.env.USE_CLOUDFLARE_R2 === 'false') {
-    return false;
+  // Sistem beralih 100% murni ke Hostinger Persistent Storage (shared_uploads).
+  // Cloudflare R2 dinonaktifkan secara default demi performa maksimal, zero latency, dan kebebasan dari limit pihak ketiga.
+  // Hanya aktif jika secara eksplisit diset USE_CLOUDFLARE_R2 === 'true'.
+  if (process.env.USE_CLOUDFLARE_R2 === 'true') {
+    return getR2Config().isConfigured;
   }
-  return getR2Config().isConfigured;
+  return false;
 }
 
 let cachedClient: S3Client | null = null;

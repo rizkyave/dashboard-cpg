@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { getPhotosDir } from '@/utils/ttbPhotosDir';
 import { getObjectFromR2, isR2Configured } from '@/utils/r2Client';
+import { findLocalFile, getPersistentStorageDir } from '@/utils/persistentStorage';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -33,12 +34,17 @@ export async function GET(req: NextRequest) {
     return new NextResponse('Format file tidak didukung.', { status: 415 });
   }
 
-  // 1. Coba baca dari disk lokal (folder public/uploads, public, dan photos_TTB)
+  // 1. Coba baca dari disk lokal Hostinger (folder shared_uploads, public/uploads, public, dan photos_TTB)
+  const isPdf = ext === '.pdf';
+  const subfolder = isPdf ? 'ttb-documents' : 'ttb-photos';
+  const foundByHelper = findLocalFile(path.join(subfolder, name), name);
+
   const candidateLocalPaths = [
-    path.join(process.cwd(), 'public', 'uploads', 'ttb-documents', name),
-    path.join(process.cwd(), 'public', 'ttb-documents', name),
-    path.join(process.cwd(), 'public', 'uploads', 'ttb-photos', name),
-    path.join(process.cwd(), 'public', 'ttb-photos', name),
+    ...(foundByHelper ? [foundByHelper] : []),
+    path.join(getPersistentStorageDir(), subfolder, name),
+    path.join(getPersistentStorageDir(), name),
+    path.join(process.cwd(), 'public', 'uploads', subfolder, name),
+    path.join(process.cwd(), 'public', subfolder, name),
     path.join(process.cwd(), 'public', 'uploads', name),
     path.join(process.cwd(), 'public', name),
     path.join(getPhotosDir(), name),

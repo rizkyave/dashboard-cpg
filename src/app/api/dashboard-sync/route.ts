@@ -8,6 +8,7 @@ import {
   getObjectFromR2,
   uploadToR2,
 } from '@/utils/r2Client';
+import { findLocalFile, getPersistentStorageDir } from '@/utils/persistentStorage';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -43,43 +44,37 @@ const R2_PUBLIC_BASE =
  * Baca dataset Procurement dari disk lokal Hostinger atau Cloudflare R2
  */
 async function getStoredProcurementFromR2(): Promise<ProcurementItem[] | null> {
-  // Prioritas 1: Baca dari disk lokal Hostinger
-  try {
-    const raw = await fs.readFile(LOCAL_PROCUREMENT_PATH, 'utf8');
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed) && parsed.length > 0) {
-      return parsed;
-    }
-  } catch {}
+  // Prioritas 1: Baca langsung dari disk Hostinger (shared_uploads & public/uploads)
+  const candidateProcurementPaths = [
+    findLocalFile('dashboard-metadata/procurement-data.json', 'procurement-data.json'),
+    path.join(getPersistentStorageDir(), 'dashboard-metadata', 'procurement-data.json'),
+    LOCAL_PROCUREMENT_PATH,
+  ].filter(Boolean) as string[];
 
-  // Prioritas 2: Ambil langsung dari Public CDN R2 (Sangat cepat, 0ms CPU limit)
-  if (R2_PUBLIC_BASE) {
+  for (const p of candidateProcurementPaths) {
     try {
-      const res = await fetch(`${R2_PUBLIC_BASE}/${R2_PROCUREMENT_KEY}`, { cache: 'no-store' });
-      if (res.ok) {
-        const parsed = await res.json();
+      const raw = await fs.readFile(p, 'utf8');
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    } catch {}
+  }
+
+  // Prioritas 2: Fallback ke Cloudflare R2 hanya jika R2 aktif
+  if (isR2Configured()) {
+    try {
+      const obj = await getObjectFromR2(R2_PROCUREMENT_KEY);
+      if (obj && obj.body) {
+        const text = Buffer.from(obj.body).toString('utf8');
+        const parsed = JSON.parse(text);
         if (Array.isArray(parsed) && parsed.length > 0) {
           return parsed;
         }
       }
     } catch (err) {
-      console.warn('Gagal fetch procurement-data.json via R2 public CDN:', err);
+      console.warn('Gagal membaca procurement-data.json dari Cloudflare R2 via SDK:', err);
     }
-  }
-
-  // Prioritas 3: Fallback ke S3 SDK jika public CDN tidak tersedia
-  if (!isR2Configured()) return null;
-  try {
-    const obj = await getObjectFromR2(R2_PROCUREMENT_KEY);
-    if (obj && obj.body) {
-      const text = Buffer.from(obj.body).toString('utf8');
-      const parsed = JSON.parse(text);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
-      }
-    }
-  } catch (err) {
-    console.warn('Gagal membaca procurement-data.json dari Cloudflare R2 via SDK:', err);
   }
   return null;
 }
@@ -88,87 +83,123 @@ async function getStoredProcurementFromR2(): Promise<ProcurementItem[] | null> {
  * Baca dataset Armada dari disk lokal Hostinger atau Cloudflare R2
  */
 async function getStoredArmadaFromR2(): Promise<ArmadaItem[] | null> {
-  // Prioritas 1: Baca dari disk lokal Hostinger
-  try {
-    const raw = await fs.readFile(LOCAL_ARMADA_PATH, 'utf8');
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed) && parsed.length > 0) {
-      return parsed;
-    }
-  } catch {}
+  // Prioritas 1: Baca langsung dari disk Hostinger (shared_uploads & public/uploads)
+  const candidateArmadaPaths = [
+    findLocalFile('dashboard-metadata/armada-data.json', 'armada-data.json'),
+    path.join(getPersistentStorageDir(), 'dashboard-metadata', 'armada-data.json'),
+    LOCAL_ARMADA_PATH,
+  ].filter(Boolean) as string[];
 
-  // Prioritas 2: Ambil langsung dari Public CDN R2 (Sangat cepat, 0ms CPU limit)
-  if (R2_PUBLIC_BASE) {
+  for (const p of candidateArmadaPaths) {
     try {
-      const res = await fetch(`${R2_PUBLIC_BASE}/${R2_ARMADA_KEY}`, { cache: 'no-store' });
-      if (res.ok) {
-        const parsed = await res.json();
+      const raw = await fs.readFile(p, 'utf8');
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    } catch {}
+  }
+
+  // Prioritas 2: Fallback ke Cloudflare R2 hanya jika R2 aktif
+  if (isR2Configured()) {
+    try {
+      const obj = await getObjectFromR2(R2_ARMADA_KEY);
+      if (obj && obj.body) {
+        const text = Buffer.from(obj.body).toString('utf8');
+        const parsed = JSON.parse(text);
         if (Array.isArray(parsed) && parsed.length > 0) {
           return parsed;
         }
       }
     } catch (err) {
-      console.warn('Gagal fetch armada-data.json via R2 public CDN:', err);
+      console.warn('Gagal membaca armada-data.json dari Cloudflare R2 via SDK:', err);
     }
-  }
-
-  // Prioritas 3: Fallback ke S3 SDK
-  if (!isR2Configured()) return null;
-  try {
-    const obj = await getObjectFromR2(R2_ARMADA_KEY);
-    if (obj && obj.body) {
-      const text = Buffer.from(obj.body).toString('utf8');
-      const parsed = JSON.parse(text);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
-      }
-    }
-  } catch (err) {
-    console.warn('Gagal membaca armada-data.json dari Cloudflare R2 via SDK:', err);
   }
   return null;
 }
 
 /**
- * Simpan dataset Procurement & Armada ke Cloudflare R2
+ * Simpan dataset Procurement & Armada ke Disk Hostinger (dan Cloudflare R2 jika aktif)
  */
 async function saveDashboardDataToR2(
   procurement: ProcurementItem[],
   armada: ArmadaItem[],
   updatedBy: string = 'system'
 ): Promise<boolean> {
-  if (!isR2Configured()) return false;
-  try {
-    const now = new Date().toISOString();
-    const meta: DashboardMeta = {
-      lastUpdated: now,
-      totalProcurement: procurement.length,
-      totalArmada: armada.length,
-      updatedBy,
-    };
+  const now = new Date().toISOString();
+  const meta: DashboardMeta = {
+    lastUpdated: now,
+    totalProcurement: procurement.length,
+    totalArmada: armada.length,
+    updatedBy,
+  };
 
-    await Promise.all([
-      uploadToR2({
-        key: R2_PROCUREMENT_KEY,
-        body: Buffer.from(JSON.stringify(procurement), 'utf8'),
-        contentType: 'application/json',
-      }),
-      uploadToR2({
-        key: R2_ARMADA_KEY,
-        body: Buffer.from(JSON.stringify(armada), 'utf8'),
-        contentType: 'application/json',
-      }),
-      uploadToR2({
-        key: R2_DASHBOARD_META_KEY,
-        body: Buffer.from(JSON.stringify(meta, null, 2), 'utf8'),
-        contentType: 'application/json',
-      }),
-    ]);
-    return true;
-  } catch (err) {
-    console.error('Gagal menyimpan dashboard data ke Cloudflare R2:', err);
-    return false;
+  const procJson = JSON.stringify(procurement);
+  const armJson = JSON.stringify(armada);
+  const metaJson = JSON.stringify(meta, null, 2);
+
+  // 1. Simpan selalu ke Hostinger Persistent Disk (shared_uploads & public/uploads)
+  try {
+    const diskTargets = [
+      {
+        paths: [
+          path.join(getPersistentStorageDir(), 'dashboard-metadata', 'procurement-data.json'),
+          LOCAL_PROCUREMENT_PATH,
+        ],
+        data: procJson,
+      },
+      {
+        paths: [
+          path.join(getPersistentStorageDir(), 'dashboard-metadata', 'armada-data.json'),
+          LOCAL_ARMADA_PATH,
+        ],
+        data: armJson,
+      },
+      {
+        paths: [
+          path.join(getPersistentStorageDir(), 'dashboard-metadata', 'dashboard-meta.json'),
+          LOCAL_META_PATH,
+        ],
+        data: metaJson,
+      },
+    ];
+
+    for (const target of diskTargets) {
+      for (const p of target.paths) {
+        await fs.mkdir(path.dirname(p), { recursive: true });
+        await fs.writeFile(p, target.data, 'utf8');
+      }
+    }
+  } catch (diskErr) {
+    console.warn('Gagal menyimpan metadata dashboard ke disk Hostinger:', diskErr);
   }
+
+  // 2. Simpan ke Cloudflare R2 hanya jika R2 dikonfigurasi aktif
+  if (isR2Configured()) {
+    try {
+      await Promise.all([
+        uploadToR2({
+          key: R2_PROCUREMENT_KEY,
+          body: Buffer.from(procJson, 'utf8'),
+          contentType: 'application/json',
+        }),
+        uploadToR2({
+          key: R2_ARMADA_KEY,
+          body: Buffer.from(armJson, 'utf8'),
+          contentType: 'application/json',
+        }),
+        uploadToR2({
+          key: R2_DASHBOARD_META_KEY,
+          body: Buffer.from(metaJson, 'utf8'),
+          contentType: 'application/json',
+        }),
+      ]);
+    } catch (err) {
+      console.warn('Gagal menyimpan dashboard data ke Cloudflare R2:', err);
+    }
+  }
+
+  return true;
 }
 
 /**
@@ -217,7 +248,24 @@ export async function GET() {
     }
 
     let meta: DashboardMeta | null = null;
-    if (isR2Configured()) {
+    const candidateMetaPaths = [
+      findLocalFile('dashboard-metadata/dashboard-meta.json', 'dashboard-meta.json'),
+      path.join(getPersistentStorageDir(), 'dashboard-metadata', 'dashboard-meta.json'),
+      LOCAL_META_PATH,
+    ].filter(Boolean) as string[];
+
+    for (const p of candidateMetaPaths) {
+      try {
+        const raw = await fs.readFile(p, 'utf8');
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          meta = parsed;
+          break;
+        }
+      } catch {}
+    }
+
+    if (!meta && isR2Configured()) {
       try {
         const metaObj = await getObjectFromR2(R2_DASHBOARD_META_KEY);
         if (metaObj && metaObj.body) {

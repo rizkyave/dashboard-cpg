@@ -613,26 +613,8 @@ export default function DashboardPage() {
           saveStoredArmada(enriched.armada);
         };
 
-        const R2_PUBLIC_URL = 'https://pub-9a40b24be68549b19c6eaec0f2542c0b.r2.dev';
-
-        // 1. Fetch Cloud Data secara Paralel (Procurement & Armada) via HTTP/2 Multiplexing
-        const fetchCloudData = async () => {
-          try {
-            const [procRes, armRes] = await Promise.all([
-              fetch(`${R2_PUBLIC_URL}/dashboard-metadata/procurement-data.json`, { cache: 'default' }),
-              fetch(`${R2_PUBLIC_URL}/dashboard-metadata/armada-data.json`, { cache: 'default' }),
-            ]);
-
-            if (procRes.ok && armRes.ok) {
-              const [procData, armData] = await Promise.all([procRes.json(), armRes.json()]);
-              if (Array.isArray(procData) && procData.length > 0) {
-                applySyncedData(procData, armData || []);
-                return;
-              }
-            }
-          } catch {}
-
-          // Fallback ke API internal (didukung RAM cache server)
+        // 1. Sinkronisasi Data Procurement & Armada langsung dari Hostinger Server API (In-Memory RAM Cache)
+        const fetchDashboardData = async () => {
           try {
             const res = await fetch('/api/dashboard-sync');
             const data = await res.json();
@@ -640,12 +622,12 @@ export default function DashboardPage() {
               applySyncedData(data.procurement, data.armada || []);
             }
           } catch (e) {
-            console.warn('Auto-fetch dashboard-sync fallback error:', e);
+            console.warn('Auto-fetch dashboard-sync error:', e);
           }
         };
 
-        // Eksekusi fetch sinkronisasi cloud di background
-        fetchCloudData();
+        // Eksekusi fetch sinkronisasi Hostinger di background
+        fetchDashboardData();
 
         if (activeWoItems.length === 0) {
           // Sync Work Order on initial load in background if not yet cached
