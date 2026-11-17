@@ -184,7 +184,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
   const [isVerifyingEfpb, setIsVerifyingEfpb] = useState<boolean>(false);
 
   // Clean Sheet & Archive States
-  const [sheetViewMode, setSheetViewMode] = useState<'active' | 'archived' | 'batch_summary'>('active');
+  const [sheetViewMode, setSheetViewMode] = useState<'all' | 'active' | 'archived' | 'batch_summary'>('all');
   const [isCleanSheetModalOpen, setIsCleanSheetModalOpen] = useState<boolean>(false);
   const [isCleaningSheet, setIsCleaningSheet] = useState<boolean>(false);
 
@@ -1604,7 +1604,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
   // Filtered Reviews Memo
   const filteredReviews = useMemo(() => {
     return reviews.filter((r) => {
-      // 0. Sheet View Mode (Lembar Aktif vs Arsip Riwayat)
+      // 0. Sheet View Mode (Semua Data vs Lembar Aktif vs Arsip Riwayat)
       if (sheetViewMode === 'active') {
         if (r.isArchived) return false;
       } else if (sheetViewMode === 'archived') {
@@ -1680,7 +1680,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
         }
         return true;
       }
-      // 'batch_summary': Tampilkan akumulasi seluruh siklus tahun berjalan
+      // 'all' atau 'batch_summary': Tampilkan akumulasi seluruh dokumen
       return true;
     });
 
@@ -2243,6 +2243,18 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
         <div className="flex items-center p-1 rounded-xl bg-muted border border-border text-xs gap-1">
           <button
             type="button"
+            onClick={() => setSheetViewMode('all')}
+            className={`px-3.5 py-1.5 rounded-lg font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+              sheetViewMode === 'all'
+                ? 'bg-card text-foreground shadow-xs font-bold'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Layers className="size-3.5 text-blue-500" />
+            <span>Semua FPB ({reviews.length})</span>
+          </button>
+          <button
+            type="button"
             onClick={() => setSheetViewMode('active')}
             className={`px-3.5 py-1.5 rounded-lg font-semibold transition cursor-pointer flex items-center gap-1.5 ${
               sheetViewMode === 'active'
@@ -2340,7 +2352,12 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
       {/* Label Konteks Indikator KPI */}
       <div className="flex items-center justify-between text-xs px-1">
         <div className="flex items-center gap-2">
-          {sheetViewMode === 'active' ? (
+          {sheetViewMode === 'all' ? (
+            <span className="font-bold text-foreground flex items-center gap-1.5">
+              <Layers className="size-3.5 text-blue-500" />
+              Indikator Seluruh Data FPB: <span className="text-blue-500">Semua Siklus &amp; Riwayat</span> ({currentViewMetrics.total} Dokumen FPB)
+            </span>
+          ) : sheetViewMode === 'active' ? (
             <span className="font-bold text-foreground flex items-center gap-1.5">
               <Sparkles className="size-3.5 text-primary" />
               Indikator Siklus Berjalan: <span className="text-primary">{cycleInfo.batchName}</span> ({currentViewMetrics.total} Dokumen FPB)
@@ -2358,7 +2375,9 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
           )}
         </div>
         <span className="text-[11px] text-muted-foreground hidden sm:inline">
-          {sheetViewMode === 'active'
+          {sheetViewMode === 'all'
+            ? 'Menampilkan seluruh dokumen FPB tanpa filter arsip'
+            : sheetViewMode === 'active'
             ? 'Metrik difilter khusus untuk siklus aktif saat ini'
             : sheetViewMode === 'archived'
             ? 'Metrik dokumen yang telah difinalisasi & diarsipkan'

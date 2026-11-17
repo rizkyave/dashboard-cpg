@@ -13,11 +13,18 @@ import {
   estimateBulkDiscount,
 } from '@/utils/purchasePlanningParser';
 import { FpbReviewRecord } from '@/types/fpbReview';
+import { getPersistentStorageDir } from './persistentStorage';
 
 const STORAGE_FILE_PATH = path.join(process.cwd(), 'src', 'data', 'purchase-planning-data.json');
 const DESKTOP_CANDIDATE_PATH = 'C:\\Users\\Hermansyah\\OneDrive\\Desktop\\PURCHASE_PLANNING_BATCH_001_CPG.xlsx';
 const REVIEWS_FILE_PATH = path.join(process.cwd(), 'src', 'data', 'fpb-reviews.json');
 const INVENTORY_FILE_PATH = path.join(process.cwd(), 'src', 'data', 'initialInventoryData.json');
+
+function getEffectiveReviewsPath(): string {
+  const p = path.join(getPersistentStorageDir(), 'fpb-metadata', 'reviews.json');
+  if (fs.existsSync(p)) return p;
+  return REVIEWS_FILE_PATH;
+}
 
 /**
  * Estimasi kategori barang berdasarkan nama jika tidak tersedia di e-FPB
@@ -115,9 +122,10 @@ export function getSyncStats(currentResponse?: PurchasePlanningResponse): Purcha
   let pendingApprovedFpbsCount = 0;
   let pendingPoItemsCount = 0;
 
-  if (fs.existsSync(REVIEWS_FILE_PATH)) {
+  const reviewsPath = getEffectiveReviewsPath();
+  if (fs.existsSync(reviewsPath)) {
     try {
-      const reviews: FpbReviewRecord[] = JSON.parse(fs.readFileSync(REVIEWS_FILE_PATH, 'utf-8'));
+      const reviews: FpbReviewRecord[] = JSON.parse(fs.readFileSync(reviewsPath, 'utf-8'));
       const approvedReviews = reviews.filter(
         (r) => r.isReceivedLogistik || r.reviewStatus === 'APPROVED_PO' || (r.items && r.items.some((i) => i.decision === 'PO'))
       );
@@ -213,13 +221,14 @@ export function performHybridSync(options?: {
   }
 
   // 3. Baca e-FPB yang telah disetujui dari fpb-reviews.json
-  if (!fs.existsSync(REVIEWS_FILE_PATH)) {
+  const reviewsPath = getEffectiveReviewsPath();
+  if (!fs.existsSync(reviewsPath)) {
     const syncStats = getSyncStats(baseResponse);
     baseResponse.syncStats = syncStats;
     return { response: baseResponse, mergedCount: 0, newCount: 0, totalSyncedPoItems: 0 };
   }
 
-  const reviews: FpbReviewRecord[] = JSON.parse(fs.readFileSync(REVIEWS_FILE_PATH, 'utf-8'));
+  const reviews: FpbReviewRecord[] = JSON.parse(fs.readFileSync(reviewsPath, 'utf-8'));
   const approvedReviews = reviews.filter(
     (r) => r.isReceivedLogistik || r.reviewStatus === 'APPROVED_PO' || (r.items && r.items.some((i) => i.decision === 'PO'))
   );

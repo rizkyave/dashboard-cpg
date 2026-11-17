@@ -20,6 +20,7 @@ import { lookupFpbArmada } from '@/utils/fpbDetector';
 import { formatDateDdMmYy } from '@/utils/formatDate';
 import { stampFpbPdf, formatToStampDate, formatToStampTimestamp } from '@/utils/fpbStamper';
 import { triggerEfpbReceivedLogistic } from '@/utils/efpbApprovalTrigger';
+import { getPersistentStorageDir, findLocalFile } from '@/utils/persistentStorage';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -29,6 +30,10 @@ export const maxDuration = 180;
 const R2_FPB_REVIEWS_KEY = 'fpb-metadata/reviews.json';
 const LOCAL_REVIEWS_PATH = path.join(process.cwd(), 'src', 'data', 'fpb-reviews.json');
 const LOCAL_INVENTORY_PATH = path.join(process.cwd(), 'src', 'data', 'initialInventoryData.json');
+
+function getPersistentReviewsPath(): string {
+  return path.join(getPersistentStorageDir(), 'fpb-metadata', 'reviews.json');
+}
 
 // Memory cache for fast response
 let cachedReviews: FpbReviewRecord[] | null = null;
@@ -209,19 +214,32 @@ function deduplicateReviews(records: FpbReviewRecord[]): { records: FpbReviewRec
 }
 
 /**
- * Load Reviews from Cloudflare R2 with fallback to local disk
+ * Load Reviews from Cloudflare R2, Persistent Shared Storage Hostinger, and local disk
  */
 async function loadReviews(): Promise<FpbReviewRecord[]> {
-  // Read local file first
+  // Read local file & persistent storage first
   let localList: FpbReviewRecord[] = [];
-  try {
-    if (fs.existsSync(LOCAL_REVIEWS_PATH)) {
-      const raw = fs.readFileSync(LOCAL_REVIEWS_PATH, 'utf-8');
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) localList = parsed.filter((r) => !DUMMY_FPB_BLACKLIST.has(r.fpbNo));
+  const persistentPath = getPersistentReviewsPath();
+
+  const fileSources = [persistentPath, LOCAL_REVIEWS_PATH];
+  for (const src of fileSources) {
+    try {
+      if (fs.existsSync(src)) {
+        const raw = fs.readFileSync(src, 'utf-8');
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const valid = parsed.filter((r) => !DUMMY_FPB_BLACKLIST.has(r.fpbNo));
+          // Merge unik berdasarkan fpbNo
+          for (const item of valid) {
+            if (!localList.some((ex) => ex.fpbNo.toLowerCase() === item.fpbNo.toLowerCase())) {
+              localList.push(item);
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.warn(`[review-fpb] Gagal membaca file dari ${src}:`, err);
     }
-  } catch (err) {
-    console.warn('[review-fpb] Gagal membaca file lokal:', err);
   }
 
   // 1. Try Cloudflare R2
@@ -297,13 +315,13 @@ async function loadReviews(): Promise<FpbReviewRecord[]> {
     }
   }
 
-  // 2. Fallback to local file
+  // 2. Fallback to local / persistent file
   if (localList.length > 0) {
     const { records: dedupedLocal, hasDuplicates: hasLocalDupes } = deduplicateReviews(localList);
     if (hasLocalDupes) {
       localList = dedupedLocal;
-      saveReviews(localList).catch(() => {});
     }
+    saveReviews(localList).catch(() => {});
     cachedReviews = localList;
     return localList;
   }
@@ -316,26 +334,35 @@ async function loadReviews(): Promise<FpbReviewRecord[]> {
 }
 
 /**
- * Save Reviews to Cloudflare R2 and local disk
+ * Save Reviews to Cloudflare R2, Persistent Storage Hostinger, and local disk
  */
 async function saveReviews(records: FpbReviewRecord[]): Promise<boolean> {
   cachedReviews = records;
 
-  // 1. Save locally
-  try {
-    const dir = path.dirname(LOCAL_REVIEWS_PATH);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
+  const payload = JSON.stringify(records, null, 2);
+
+  // 1. Save locally and to persistent Hostinger storage
+  const savePaths = [
+    LOCAL_REVIEWS_PATH,
+    getPersistentReviewsPath(),
+    path.join(process.cwd(), 'public', 'uploads', 'fpb-metadata', 'reviews.json'),
+  ];
+
+  for (const sp of savePaths) {
+    try {
+      const dir = path.dirname(sp);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      fs.writeFileSync(sp, payload, 'utf-8');
+    } catch (err) {
+      console.warn(`[review-fpb] Gagal menyimpan ke ${sp}:`, err);
     }
-    fs.writeFileSync(LOCAL_REVIEWS_PATH, JSON.stringify(records, null, 2), 'utf-8');
-  } catch (err) {
-    console.warn('[review-fpb] Gagal menyimpan file lokal:', err);
   }
 
   // 2. Save to Cloudflare R2
   if (isR2Configured()) {
     try {
-      const payload = JSON.stringify(records, null, 2);
       await uploadToR2({
         key: R2_FPB_REVIEWS_KEY,
         body: Buffer.from(payload, 'utf-8'),

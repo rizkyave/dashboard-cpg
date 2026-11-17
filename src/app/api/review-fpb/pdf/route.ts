@@ -4,6 +4,7 @@ import path from 'path';
 import { stampFpbPdf, formatToStampDate, formatToStampTimestamp } from '@/utils/fpbStamper';
 import { isR2Configured, getObjectFromR2, uploadToR2 } from '@/utils/r2Client';
 import { FpbReviewRecord } from '@/types/fpbReview';
+import { findLocalFile, getPersistentStorageDir } from '@/utils/persistentStorage';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -14,15 +15,22 @@ const LOCAL_REVIEWS_PATH = path.join(process.cwd(), 'src', 'data', 'fpb-reviews.
 const LOCAL_PDF_DIR = path.join(process.cwd(), 'public', 'uploads', 'fpb');
 
 async function getReviewRecord(fpbNo: string): Promise<FpbReviewRecord | null> {
-  try {
-    if (fs.existsSync(LOCAL_REVIEWS_PATH)) {
-      const raw = fs.readFileSync(LOCAL_REVIEWS_PATH, 'utf-8');
-      const records: FpbReviewRecord[] = JSON.parse(raw);
-      const match = records.find((r) => r.fpbNo.toLowerCase() === fpbNo.toLowerCase());
-      if (match) return match;
+  const sources = [
+    path.join(getPersistentStorageDir(), 'fpb-metadata', 'reviews.json'),
+    LOCAL_REVIEWS_PATH,
+  ];
+
+  for (const src of sources) {
+    try {
+      if (fs.existsSync(src)) {
+        const raw = fs.readFileSync(src, 'utf-8');
+        const records: FpbReviewRecord[] = JSON.parse(raw);
+        const match = records.find((r) => r.fpbNo.toLowerCase() === fpbNo.toLowerCase());
+        if (match) return match;
+      }
+    } catch (err) {
+      console.warn(`[review-fpb/pdf] Gagal membaca ${src}:`, err);
     }
-  } catch (err) {
-    console.warn('[review-fpb/pdf] Gagal membaca fpb-reviews.json:', err);
   }
   return null;
 }
@@ -66,8 +74,15 @@ async function resolveLocalOrR2Pdf(
     }
   }
 
-  // 2. Cek penyimpanan file lokal di public/uploads dan public
+  // 2. Cek penyimpanan file lokal di public/uploads, shared_uploads, dan public
+  const persistentDir = getPersistentStorageDir();
   const localCandidates = [
+    type === 'signed' ? findLocalFile(`fpb-signed/${normalizedFpb}.pdf`, `${normalizedFpb}.pdf`) : null,
+    findLocalFile(`fpb-pdfs/${normalizedFpb}.pdf`, `${normalizedFpb}.pdf`),
+    findLocalFile(`dashboard-metadata/fpb-pdfs/${normalizedFpb}.pdf`, `${normalizedFpb}.pdf`),
+    type === 'signed' ? path.join(persistentDir, 'fpb-signed', `${normalizedFpb}.pdf`) : null,
+    path.join(persistentDir, 'fpb-pdfs', `${normalizedFpb}.pdf`),
+    path.join(persistentDir, `${normalizedFpb}.pdf`),
     type === 'signed' ? path.join(process.cwd(), 'public', 'uploads', 'fpb-signed', `${normalizedFpb}.pdf`) : null,
     type === 'signed' ? path.join(process.cwd(), 'public', 'uploads', 'fpb signed', `${normalizedFpb}.pdf`) : null,
     type === 'signed' ? path.join(process.cwd(), 'public', 'fpb-signed', `${normalizedFpb}.pdf`) : null,

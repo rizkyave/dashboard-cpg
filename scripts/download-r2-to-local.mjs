@@ -49,8 +49,21 @@ async function main() {
   }
   console.log('Kategori objek:', categories);
 
-  // Download berkas-berkas penting: sop-documents, fstb-documents, ttb-documents, notifications-metadata, ttb-metadata
-  const targetPrefixes = ['sop-documents', 'fstb-documents', 'ttb-documents', 'ttb-photos', 'ttb-metadata', 'dashboard-metadata', 'notifications-metadata', 'settings'];
+  // Download berkas-berkas penting: sop-documents, fstb-documents, ttb-documents, notifications-metadata, ttb-metadata, fpb-metadata, fpb-pdfs, fpb-signed
+  const targetPrefixes = [
+    'sop-documents',
+    'fstb-documents',
+    'ttb-documents',
+    'ttb-photos',
+    'ttb-metadata',
+    'dashboard-metadata',
+    'notifications-metadata',
+    'settings',
+    'fpb-metadata',
+    'fpb-pdfs',
+    'fpb-signed',
+    'fpb-attachments',
+  ];
   
   const UPLOADS_DIR = path.join(process.cwd(), 'public', 'uploads');
   if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });

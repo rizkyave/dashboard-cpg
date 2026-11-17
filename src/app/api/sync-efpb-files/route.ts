@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { FpbReviewRecord } from '@/types/fpbReview';
 import { isR2Configured, listR2Objects, getObjectFromR2, uploadToR2 } from '@/utils/r2Client';
+import { getPersistentStorageDir } from '@/utils/persistentStorage';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -11,6 +12,10 @@ export const runtime = 'nodejs';
 const R2_FPB_REVIEWS_KEY = 'fpb-metadata/reviews.json';
 const LOCAL_REVIEWS_PATH = path.join(process.cwd(), 'src', 'data', 'fpb-reviews.json');
 const LOCAL_PDF_DIR = path.join(process.cwd(), 'public', 'uploads', 'fpb');
+
+function getPersistentReviewsPath(): string {
+  return path.join(getPersistentStorageDir(), 'fpb-metadata', 'reviews.json');
+}
 
 function extractFpbNumberFromFilename(filename: string): string {
   const cleaned = filename
@@ -32,11 +37,14 @@ async function loadReviewsFromR2OrLocal(): Promise<FpbReviewRecord[]> {
       }
     } catch {}
   }
-  if (fs.existsSync(LOCAL_REVIEWS_PATH)) {
-    try {
-      const parsed = JSON.parse(fs.readFileSync(LOCAL_REVIEWS_PATH, 'utf-8'));
-      if (Array.isArray(parsed)) return parsed;
-    } catch {}
+  const sources = [getPersistentReviewsPath(), LOCAL_REVIEWS_PATH];
+  for (const src of sources) {
+    if (fs.existsSync(src)) {
+      try {
+        const parsed = JSON.parse(fs.readFileSync(src, 'utf-8'));
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch {}
+    }
   }
   return [];
 }
@@ -55,9 +63,17 @@ async function saveReviewsToR2AndLocal(records: FpbReviewRecord[]): Promise<void
       console.warn('[sync-efpb-files] Gagal menyimpan reviews.json ke R2:', err);
     }
   }
-  try {
-    fs.writeFileSync(LOCAL_REVIEWS_PATH, jsonStr, 'utf-8');
-  } catch {}
+  const targets = [
+    LOCAL_REVIEWS_PATH,
+    getPersistentReviewsPath(),
+    path.join(process.cwd(), 'public', 'uploads', 'fpb-metadata', 'reviews.json'),
+  ];
+  for (const tgt of targets) {
+    try {
+      fs.mkdirSync(path.dirname(tgt), { recursive: true });
+      fs.writeFileSync(tgt, jsonStr, 'utf-8');
+    } catch {}
+  }
 }
 
 /**
